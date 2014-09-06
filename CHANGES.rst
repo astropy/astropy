@@ -180,6 +180,16 @@ Bug Fixes
   - Added a ``latex_inline`` unit format that returns the units in LaTeX math
     notation with negative exponents instead of fractions [#2622].
 
+  - When using a unit that is deprecated in a given unit format,
+    non-deprecated alternatives will be suggested. [#2806] For
+    example::
+
+      >>> import astropy.units as u
+      >>> u.Unit('Angstrom', format='fits')
+      WARNING: UnitsWarning: The unit 'Angstrom' has been deprecated
+      in the FITS standard. Suggested: nm (with data multiplied by
+      0.1).  [astropy.units.format.utils]
+
 - ``astropy.utils``
 
 - ``astropy.vo``

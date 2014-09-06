@@ -4,16 +4,13 @@ Handles the "VOUnit" unit format.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ...extern import six
+
 from ...extern.six.moves import zip
 
 import keyword
-import warnings
-from ...utils.exceptions import AstropyDeprecationWarning
 
 from . import generic
 from . import utils
-from ...utils.misc import did_you_mean
 
 
 class VOUnit(generic.Generic):
@@ -79,52 +76,48 @@ class VOUnit(generic.Generic):
         return result
 
     @classmethod
-    def _parse_unit(cls, unit, detailed_exception=True):
+    def _validate_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit {0!r} not supported by the VOUnit "
+                    "Unit '{0}' not supported by the VOUnit "
                     "standard. {1}".format(
-                        unit, did_you_mean(
-                            unit, cls._units)))
+                        unit, utils.did_you_mean_units(
+                            unit, cls._units, cls._deprecated_units,
+                            cls._to_decomposed_alternative)))
             else:
                 raise ValueError()
 
         if unit in cls._deprecated_units:
-            warnings.warn(
-                "The use of unit {0!r} is discouraged by the "
-                "VOUnit standard.".format(unit),
-                AstropyDeprecationWarning)
+            utils.unit_deprecation_warning(
+                unit, cls._units[unit], 'VOUnit',
+                cls._to_decomposed_alternative)
 
+    @classmethod
+    def _parse_unit(cls, unit, detailed_exception=True):
+        cls._validate_unit(unit, detailed_exception=detailed_exception)
         return cls._units[unit]
 
-    def _get_unit_name(self, unit):
+    @classmethod
+    def _get_unit_name(cls, unit):
         name = unit.get_format_name('vounit')
-
-        if name not in self._units:
-            raise ValueError(
-                "Unit {0!r} is not part of the VOUnit standard".format(name))
-
-        if name in self._deprecated_units:
-            warnings.warn(
-                "The use of unit {0!r} is discouraged by the "
-                "VOUnit standard.".format(name),
-                AstropyDeprecationWarning)
-
+        cls._validate_unit(name)
         return name
 
-    def to_string(self, unit):
+    @classmethod
+    def to_string(cls, unit):
         from .. import core
 
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, self._get_unit_name)
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
             if unit.physical_type == 'dimensionless' and unit.scale != 1:
-                raise ValueError("The VOUnit format is not able to "
-                                 "represent scale for dimensionless units. "
-                                 "Multiply your data by {0:e}."
-                                 .format(unit.scale))
+                raise core.UnitScaleError(
+                    "The VOUnit format is not able to "
+                    "represent scale for dimensionless units. "
+                    "Multiply your data by {0:e}."
+                    .format(unit.scale))
             s = ''
             if unit.scale != 1:
                 m, ex = utils.split_mantissa_exponent(unit.scale)
@@ -142,8 +135,22 @@ class VOUnit(generic.Generic):
             pairs = list(zip(unit.bases, unit.powers))
             pairs.sort(key=lambda x: x[1], reverse=True)
 
-            s += self._format_unit_list(pairs)
+            s += cls._format_unit_list(pairs)
         elif isinstance(unit, core.NamedUnit):
-            s = self._get_unit_name(unit)
+            s = cls._get_unit_name(unit)
 
+        return s
+
+    @classmethod
+    def _to_decomposed_alternative(cls, unit):
+        from .. import core
+
+        try:
+            s = cls.to_string(unit)
+        except core.UnitScaleError:
+            scale = unit.scale
+            unit = copy.copy(unit)
+            unit._scale = 1.0
+            return '{0} (with data multiplied by {1})'.format(
+                cls.to_string(unit), scale)
         return s

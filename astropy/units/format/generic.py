@@ -18,6 +18,36 @@ from .base import Base
 from ...utils.misc import did_you_mean
 
 
+def _to_string(cls, unit):
+    from .. import core
+
+    if isinstance(unit, core.CompositeUnit):
+        parts = []
+
+        if cls._show_scale and unit.scale != 1:
+            parts.append('{0:g}'.format(unit.scale))
+
+        if len(unit.bases):
+            positives, negatives = utils.get_grouped_by_powers(
+                unit.bases, unit.powers)
+            if len(positives):
+                parts.append(cls._format_unit_list(positives))
+            elif len(parts) == 0:
+                parts.append('1')
+
+            if len(negatives):
+                parts.append('/')
+                unit_list = cls._format_unit_list(negatives)
+                if len(negatives) == 1:
+                    parts.append('{0}'.format(unit_list))
+                else:
+                    parts.append('({0})'.format(unit_list))
+
+        return ' '.join(parts)
+    elif isinstance(unit, core.NamedUnit):
+        return cls._get_unit_name(unit)
+
+
 class Generic(Base):
     """
     A "generic" format.
@@ -318,7 +348,7 @@ class Generic(Base):
                 p[0] = p[3] ** 0.5
             else:
                 raise ValueError(
-                   '{0!r} is not a recognized function'.format(p[1]))
+                   "'{0}' is not a recognized function".format(p[1]))
 
         def p_error(p):
             raise ValueError()
@@ -372,67 +402,45 @@ class Generic(Base):
         return result
 
     def _do_parse(self, s, debug=False):
-        # This is a short circuit for the case where the string
-        # is just a single unit name
         try:
+            # This is a short circuit for the case where the string
+            # is just a single unit name
             return self._parse_unit(s, detailed_exception=False)
         except ValueError as e:
             try:
                 return self._parser.parse(s, lexer=self._lexer, debug=debug)
             except ValueError as e:
                 if six.text_type(e):
-                    raise ValueError(six.text_type(e))
+                    raise
                 else:
-                    raise ValueError("Syntax error")
+                    raise ValueError(
+                        "Syntax error parsing unit '{0}'".format(s))
 
-    def _get_unit_name(self, unit):
+    @classmethod
+    def _get_unit_name(cls, unit):
         return unit.get_format_name('generic')
 
-    def _format_unit_list(self, units):
+    @classmethod
+    def _format_unit_list(cls, units):
         out = []
-        units.sort(key=lambda x: self._get_unit_name(x[0]).lower())
+        units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
 
         for base, power in units:
             if power == 1:
-                out.append(self._get_unit_name(base))
+                out.append(cls._get_unit_name(base))
             else:
                 power = utils.format_power(power)
                 if '/' in power:
                     out.append('{0}({1})'.format(
-                        self._get_unit_name(base), power))
+                        cls._get_unit_name(base), power))
                 else:
                     out.append('{0}{1}'.format(
-                        self._get_unit_name(base), power))
+                        cls._get_unit_name(base), power))
         return ' '.join(out)
 
-    def to_string(self, unit):
-        from .. import core
-
-        if isinstance(unit, core.CompositeUnit):
-            parts = []
-
-            if self._show_scale and unit.scale != 1:
-                parts.append('{0:g}'.format(unit.scale))
-
-            if len(unit.bases):
-                positives, negatives = utils.get_grouped_by_powers(
-                    unit.bases, unit.powers)
-                if len(positives):
-                    parts.append(self._format_unit_list(positives))
-                elif len(parts) == 0:
-                    parts.append('1')
-
-                if len(negatives):
-                    parts.append('/')
-                    unit_list = self._format_unit_list(negatives)
-                    if len(negatives) == 1:
-                        parts.append('{0}'.format(unit_list))
-                    else:
-                        parts.append('({0})'.format(unit_list))
-
-            return ' '.join(parts)
-        elif isinstance(unit, core.NamedUnit):
-            return self._get_unit_name(unit)
+    @classmethod
+    def to_string(cls, unit):
+        return _to_string(cls, unit)
 
 
 class Unscaled(Generic):
