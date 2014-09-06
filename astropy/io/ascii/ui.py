@@ -175,7 +175,9 @@ def _guess(table, read_kwargs):
 
             # When guessing require at least two columns
             if len(dat.colnames) <= 1:
+                del dat
                 raise ValueError
+
             return dat
 
         except (core.InconsistentTableError, ValueError, TypeError,
