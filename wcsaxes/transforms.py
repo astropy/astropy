@@ -170,7 +170,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
 
 try:
-    
+
     from astropy.coordinates import SkyCoord
     from astropy.coordinates import frame_transform_graph
 

@@ -4,8 +4,6 @@ from astropy.utils import OrderedDict
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
 
-# TODO: once we want to start writing more complex frames, use an abstract base
-# class.
 
 class Spine(object):
 

@@ -4,13 +4,13 @@ from matplotlib.transforms import Affine2D, Bbox, Transform
 from matplotlib.patches import Patch
 
 from astropy.wcs import WCS
-# from astropy.coordinates import frame_transform_graph
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
 from .utils import get_coordinate_frame, get_coord_meta
 from .frame import RectangularFrame
+import numpy as np
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
 
@@ -41,6 +41,39 @@ class WCSAxes(Axes):
 
         self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
         self._hide_parent_artists()
+        self.format_coord = self._display_world_coords
+        self._display_overlay_coords = False
+
+    def _display_world_coords(self, x, y):
+
+        # TODO: Possibly move to the coordinates map class so that
+        # it can use the FormatterLocator's format to format the
+        # world coordinate values.
+        transform = self.coords._transform
+        if len(self.slices) > 2:
+            # Currently cannot convert coords for data with more than
+            # 2 dimensions.
+            return 'x=%s y=%s' % (x, y)
+        if self.slices == ('x', 'y'):
+            pixel = np.array([x, y])
+            world = transform.transform(np.array([pixel]))[0]
+            xw, yw = world[0], world[1]
+        else:
+            pixel = np.array([y, x])
+            world = transform.transform(np.array([pixel]))[0]
+            xw, yw = world[1], world[0]
+
+        if not self._display_overlay_coords:
+            return "%s %s (world)" % (xw, yw)
+        else:
+            overlay_transform = self._overlay_transform
+            overlay_world = overlay_transform.transform(np.array([pixel]))[0]
+            overlay_xw, overlay_yw = overlay_world[0], overlay_world[1]
+            return "%s %s (world), %s %s (overlay coords)" % (xw, yw, overlay_xw, overlay_yw)
+
+    def display_overlay_coords(self, display_overlay_coords, overlay_coords):
+        self._display_overlay_coords = display_overlay_coords
+        self._overlay_transform = overlay_coords._transform
 
         self.patch = self.coords.frame.patch
 
@@ -49,7 +82,7 @@ class WCSAxes(Axes):
         for s in self.spines.values():
             s.set_visible(False)
 
-        self.xaxis.set_visible(False)
+            self.xaxis.set_visible(False)
         self.yaxis.set_visible(False)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
@@ -80,15 +113,17 @@ class WCSAxes(Axes):
         self._all_coords = [self.coords]
 
         if slices is None:
-            slices = ('x', 'y')
+            self.slices = ('x', 'y')
+        else:
+            self.slices = slices
 
         # Common default settings for Rectangular Frame
         if self.frame_class is RectangularFrame:
-            for coord_index in range(len(slices)):
-                if slices[coord_index] == 'x':
+            for coord_index in range(len(self.slices)):
+                if self.slices[coord_index] == 'x':
                     self.coords[coord_index].set_axislabel_position('b')
                     self.coords[coord_index].set_ticklabel_position('b')
-                elif slices[coord_index] == 'y':
+                elif self.slices[coord_index] == 'y':
                     self.coords[coord_index].set_axislabel_position('l')
                     self.coords[coord_index].set_ticklabel_position('l')
                 else:
@@ -270,6 +305,5 @@ class WCSAxes(Axes):
         """
         if draw_grid:
             self.coords.grid(draw_grid=draw_grid, **kwargs)
-
 
 WCSAxesSubplot = subplot_class_factory(WCSAxes)
