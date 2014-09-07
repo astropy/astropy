@@ -11,6 +11,7 @@ from .coordinates_map import CoordinatesMap
 from .utils import get_coordinate_frame, get_coord_meta
 from .frame import RectangularFrame
 import numpy as np
+from warnings import warn
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
 
@@ -41,19 +42,22 @@ class WCSAxes(Axes):
 
         self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
         self._hide_parent_artists()
+        self._cursor_world = True
         self.format_coord = self._display_world_coords
         self._display_overlay_coords = False
+        fig.canvas.mpl_connect('key_press_event', self._set_cursor_prefs)
 
     def _display_world_coords(self, x, y):
 
         # TODO: Possibly move to the coordinates map class so that
         # it can use the FormatterLocator's format to format the
         # world coordinate values.
-        transform = self.coords._transform
-        if len(self.slices) > 2:
+        if not self._cursor_world or len(self.slices) > 2:
             # Currently cannot convert coords for data with more than
             # 2 dimensions.
             return 'x=%s y=%s' % (x, y)
+
+        transform = self.coords._transform
         if self.slices == ('x', 'y'):
             pixel = np.array([x, y])
             world = transform.transform(np.array([pixel]))[0]
@@ -66,14 +70,19 @@ class WCSAxes(Axes):
         if not self._display_overlay_coords:
             return "%s %s (world)" % (xw, yw)
         else:
-            overlay_transform = self._overlay_transform
+            overlay_transform = self.overlay_coords._transform
             overlay_world = overlay_transform.transform(np.array([pixel]))[0]
             overlay_xw, overlay_yw = overlay_world[0], overlay_world[1]
             return "%s %s (world), %s %s (overlay coords)" % (xw, yw, overlay_xw, overlay_yw)
 
-    def display_overlay_coords(self, display_overlay_coords, overlay_coords):
-        self._display_overlay_coords = display_overlay_coords
-        self._overlay_transform = overlay_coords._transform
+    def _set_cursor_prefs(self, event, **kwargs):
+        if event.key == 'p':
+            self._cursor_world = not self._cursor_world
+        if event.key == 'o':
+            if not hasattr(self, 'overlay_coords'):
+                warn("No overlay coordinates are available")
+            else:
+                self._display_overlay_coords = not self._display_overlay_coords
 
         self.patch = self.coords.frame.patch
 
@@ -82,7 +91,7 @@ class WCSAxes(Axes):
         for s in self.spines.values():
             s.set_visible(False)
 
-            self.xaxis.set_visible(False)
+        self.xaxis.set_visible(False)
         self.yaxis.set_visible(False)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
@@ -193,6 +202,8 @@ class WCSAxes(Axes):
         coords[1].set_axislabel_position('r')
         coords[0].set_ticklabel_position('t')
         coords[1].set_ticklabel_position('r')
+
+        self.overlay_coords = coords
 
         return coords
 
