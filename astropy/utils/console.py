@@ -560,6 +560,14 @@ class ProgressBar(six.Iterator):
         """
         Update progress bar via the console or notebook accordingly.
         """
+
+ #       # Update self.value 
+ #       if value is None:
+ #           value = self._current_value = self._current_value + 1
+ #       else:
+ #           self._current_value = value
+
+        # Choose the appropriate environment
         if self._interactive:
             self._update_interactive(value)
         else:
@@ -574,7 +582,7 @@ class ProgressBar(six.Iterator):
             value = self._current_value = self._current_value + 1
         else:
             self._current_value = value
-            
+
         if self._total == 0:
             frac = 1.0
         else:
