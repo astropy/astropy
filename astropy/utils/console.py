@@ -574,6 +574,7 @@ class ProgressBar(six.Iterator):
             value = self._current_value = self._current_value + 1
         else:
             self._current_value = value
+            
         if self._total == 0:
             frac = 1.0
         else:
@@ -619,6 +620,12 @@ class ProgressBar(six.Iterator):
         This method is for use in the iPython notebook 2+. 
         """
 
+        # Update self value ...
+        if value is None:
+            value = self._current_value = self._current_value + 1
+        else:
+            self._current_value = value    
+
         # Create and display an empty progress bar widget,
         # if none exists.
         if not hasattr(self, '_widget'):
@@ -630,7 +637,7 @@ class ProgressBar(six.Iterator):
             display(self._widget)
             self._widget.value = 0
 
-        # Calculate percent completion, and update progress bar    
+        # Calculate percent completion, and update progress bar
         percent = (value/self._total) * 100
         self._widget.value = percent
         self._widget.description =' ({0:>6s}%)'.format('{0:.2f}'.format(percent))
