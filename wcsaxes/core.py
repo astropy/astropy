@@ -49,9 +49,6 @@ class WCSAxes(Axes):
 
     def _display_world_coords(self, x, y):
 
-        # TODO: Possibly move to the coordinates map class so that
-        # it can use the FormatterLocator's format to format the
-        # world coordinate values.
         if not self._cursor_world or len(self.slices) > 2:
             # Currently cannot convert coords for data with more than
             # 2 dimensions.
@@ -61,19 +58,26 @@ class WCSAxes(Axes):
         if self.slices == ('x', 'y'):
             pixel = np.array([x, y])
             world = transform.transform(np.array([pixel]))[0]
-            xw, yw = world[0], world[1]
+            xw, yw = self._format_values(world[0], 0), self._format_values(world[1], 1)
         else:
             pixel = np.array([y, x])
             world = transform.transform(np.array([pixel]))[0]
-            xw, yw = world[1], world[0]
+            xw, yw = self._format_values(world[1], 1), self._format_values(world[0], 0)
 
         if not self._display_overlay_coords:
             return "%s %s (world)" % (xw, yw)
         else:
             overlay_transform = self.overlay_coords._transform
             overlay_world = overlay_transform.transform(np.array([pixel]))[0]
-            overlay_xw, overlay_yw = overlay_world[0], overlay_world[1]
+            overlay_xw = self._format_values(overlay_world[0], 0)
+            overlay_yw = self._format_values(overlay_world[1], 1)
             return "%s %s (world), %s %s (overlay coords)" % (xw, yw, overlay_xw, overlay_yw)
+
+    def _format_values(self, value, coord):
+        formatter_locator = self.coords[coord]._formatter_locator
+        unit = formatter_locator._unit
+        string = formatter_locator.formatter([value] * unit, formatter_locator._locator_spacing)
+        return string[0]
 
     def _set_cursor_prefs(self, event, **kwargs):
         if event.key == 'p':
