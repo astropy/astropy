@@ -51,17 +51,11 @@ def test_two_model_instance_arithmetic_1d(expr, result):
     model *instances* with fixed parameters.
     """
 
-    S = expr(Const1D(2), Const1D(3))
+    s = expr(Const1D(2), Const1D(3))
 
-    # TODO: Should a sum of two model instances return a new compound model
-    # instance?  Currently it still returns a new class.  I don't know...
-    assert issubclass(S, Model)
-    assert S.n_inputs == 1
-    assert S.n_outputs == 1
-
-    # Init doesn't take any arguments since the initial parameter values have
-    # already been fixed
-    s = S()
+    assert isinstance(s, Model)
+    assert s.n_inputs == 1
+    assert s.n_outputs == 1
 
     out = s(0)
     assert out == result

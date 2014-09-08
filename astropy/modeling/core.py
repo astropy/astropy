@@ -1637,7 +1637,16 @@ def _make_compound_model(left, right, operator):
                'outputs': outputs,
                '__module__': modname}
 
-    return _CompoundModelMeta(name, (_CompoundModel,), members)
+    new_cls = _CompoundModelMeta(name, (_CompoundModel,), members)
+
+    if isinstance(left, Model) and isinstance(right, Model):
+        # Both models used in the operator were already instantiated models,
+        # not model *classes*.  As such it's not particularly useful to return
+        # the class itself, but to instead produce a new instance:
+        return new_cls()
+
+    # Otherwise return the new uninstantiated class itself
+    return new_cls
 
 
 # TODO: Support a couple unary operators, or at least negation?
