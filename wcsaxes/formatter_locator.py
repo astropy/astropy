@@ -230,7 +230,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
         if self.values is not None:
 
             # values were manually specified
-            return self.values, 1.1 * u.arcsec
+            self._locator_spacing = 1.1 * u.arcsec
+            return self.values, self._locator_spacing
 
         else:
 
@@ -263,7 +264,8 @@ class AngleFormatterLocator(BaseFormatterLocator):
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this.
             values = self._locate_values(value_min, value_max, spacing_deg)
-            return values * spacing_deg * u.degree, spacing_deg * u.degree
+            self._locator_spacing = spacing_deg * u.degree
+            return values * spacing_deg * u.degree, self._locator_spacing
 
     def formatter(self, values, spacing):
         if not isinstance(values, u.Quantity) and values is not None:
@@ -403,7 +405,8 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         if self.values is not None:
 
             # values were manually specified
-            return self.values, 1.1 * self._unit
+            self._locator_spacing = 1.1 * self._unit
+            return self.values, self._locator_spacing
 
         else:
 
@@ -431,6 +434,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             # generate the tick positions from this
 
             values = self._locate_values(value_min, value_max, spacing)
+            self._locator_spacing = spacing * self._unit
             return values * spacing * self._unit, spacing * self._unit
 
     def formatter(self, values, spacing):
