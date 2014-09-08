@@ -123,7 +123,11 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             >>> from astropy.modeling.models import Rotation2D
             >>> SkyRotation = Rotation2D.rename('SkyRotation')
             >>> SkyRotation
-            <class '...SkyRotation'>
+            <class '__main__.SkyRotation'>
+            Name: SkyRotation (Rotation2D)
+            Inputs: ('x', 'y')
+            Outputs: ('x', 'y')
+            Fittable parameters: ('angle',)
             >>> issubclass(SkyRotation, Rotation2D)
             True
             >>> r = SkyRotation(90)

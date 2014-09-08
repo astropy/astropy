@@ -34,8 +34,8 @@ def test_Model():
     assert repr(m) == "<NonFittableModel(a=42.0)>"
     assert (str(m) ==
         "Model: NonFittableModel\n"
-        "Inputs: 0\n"
-        "Outputs: 0\n"
+        "Inputs: ()\n"
+        "Outputs: ()\n"
         "Model set size: 1\n"
         "Parameters:\n"
         "     a  \n"
