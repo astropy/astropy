@@ -512,9 +512,9 @@ class ProgressBar(six.Iterator):
         self._interactive = interactive
 
 
-        if interactive:
-            self._update_interactive(0)
-        else:    
+        if not interactive:
+        #    self._update_interactive(0)
+        #else:    
             self._should_handle_resize = (
                 _CAN_RESIZE_TERMINAL and self._file.isatty())
             self._handle_resize()
@@ -524,7 +524,7 @@ class ProgressBar(six.Iterator):
             else:
                 self._signal_set = False
 
-            self._update_console(0)
+        self.update(0)
 
     def _handle_resize(self, signum=None, frame=None):
         terminal_width = terminal_size(self._file)[1]
@@ -561,11 +561,11 @@ class ProgressBar(six.Iterator):
         Update progress bar via the console or notebook accordingly.
         """
 
- #       # Update self.value 
- #       if value is None:
- #           value = self._current_value = self._current_value + 1
- #       else:
- #           self._current_value = value
+        # Update self.value 
+        if value is None:
+            value = self._current_value = self._current_value + 1
+        else:
+            self._current_value = value
 
         # Choose the appropriate environment
         if self._interactive:
@@ -578,10 +578,10 @@ class ProgressBar(six.Iterator):
         Update the progress bar to the given value (out of the total
         given to the constructor).
         """
-        if value is None:
-            value = self._current_value = self._current_value + 1
-        else:
-            self._current_value = value
+#        if value is None:
+#            value = self._current_value = self._current_value + 1
+#        else:
+#            self._current_value = value
 
         if self._total == 0:
             frac = 1.0
@@ -628,11 +628,11 @@ class ProgressBar(six.Iterator):
         This method is for use in the iPython notebook 2+. 
         """
 
-        # Update self value ...
-        if value is None:
-            value = self._current_value = self._current_value + 1
-        else:
-            self._current_value = value    
+#        # Update self value ...
+#        if value is None:
+#            value = self._current_value = self._current_value + 1
+#        else:
+#            self._current_value = value    
 
         # Create and display an empty progress bar widget,
         # if none exists.
