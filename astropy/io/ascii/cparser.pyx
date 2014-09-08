@@ -1,22 +1,24 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import numpy as np
-cimport numpy as np
-from numpy import ma
-from ...utils.data import get_readable_fileobj
-from ...table import pprint
-from ...extern import six
-from . import core
-from libc cimport stdio
-from distutils import version
 import csv
 import os
 import math
 import multiprocessing
 import mmap
+from distutils import version
+
+import numpy as np
+cimport numpy as np
+from numpy import ma
+from libc cimport stdio
 from cpython.buffer cimport PyBUF_SIMPLE
 from cpython.buffer cimport Py_buffer
 from cpython.buffer cimport PyObject_GetBuffer
+
+from ...utils.data import get_readable_fileobj
+from ...table import pprint
+from ...extern import six
+from . import core
 
 try:
     import Queue
@@ -257,7 +259,7 @@ cdef class CParser:
 
         if isinstance(source, six.string_types): # filename or data
             if '\n' not in source and '\r' not in source: # filename
-                fstring = FileString(source.encode('ascii'))
+                fstring = FileString(source)
                 self.tokenizer.source = <char *>fstring.mmap_ptr
                 self.source_ptr = <char *>fstring.mmap_ptr
                 self.source = fstring
