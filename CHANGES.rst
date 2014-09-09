@@ -14,6 +14,9 @@ New Features
 
 - ``astropy.cosmology``
 
+  - Add baryonic matter density and dark matter only density parameters
+    to cosmology objects [#2757].
+
   - Add a ``clone`` method to cosmology objects to allow copies
     of cosmological objects to be created with the specified variables
     modified [#2592].
