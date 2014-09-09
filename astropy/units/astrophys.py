@@ -17,7 +17,7 @@ from __future__ import (absolute_import, division, print_function,
 
 from . import si
 from ..constants import si as _si
-from .core import UnitBase, def_unit
+from .core import UnitBase, def_unit, si_prefixes, binary_prefixes
 
 import numpy as _numpy
 
@@ -34,10 +34,10 @@ def_unit(['pc', 'parsec'], _si.pc.value * si.m, namespace=_ns, prefixes=True,
          doc="parsec: approximately 3.26 light-years.")
 
 def_unit(['solRad', 'R_sun', 'Rsun'], _si.R_sun.value * si.m, namespace=_ns,
-         doc="Solar radius",
+         doc="Solar radius", prefixes=True,
          format={'latex': r'R_{\odot}', 'unicode': 'R⊙'})
 def_unit(['lyr', 'lightyear'], _si.c.value * si.yr.to(si.s) * si.m,
-         namespace=_ns, doc="Light year")
+         namespace=_ns, prefixes=True, doc="Light year")
 
 
 ###########################################################################
@@ -68,6 +68,7 @@ def_unit(['M_e'], _si.m_e.value * si.kg, namespace=_ns,
          format={'latex': r'M_{e}', 'unicode': 'Mₑ'})
 # Unified atomic mass unit
 def_unit(['u', 'Da', 'Dalton'], 1.6605387e-27 * si.kg, namespace=_ns,
+         prefixes=True, exclude_prefixes=['a', 'da'],
          doc="Unified atomic mass unit")
 
 
@@ -75,6 +76,7 @@ def_unit(['u', 'Da', 'Dalton'], 1.6605387e-27 * si.kg, namespace=_ns,
 # ENERGY
 
 def_unit(['Ry', 'rydberg'], 13.605692 * si.eV, namespace=_ns,
+         prefixes=True,
          doc="Rydberg: Energy of a photon whose wavenumber is the Rydberg "
          "constant",
          format={'latex': r'R_{\infty}', 'unicode': 'R∞'})
@@ -91,9 +93,9 @@ def_unit(['solLum', 'L_sun', 'Lsun'], _si.L_sun.value * si.W, namespace=_ns,
 ###########################################################################
 # SPECTRAL DENSITY
 
-def_unit(['ph', 'photon'],
-         format={'ogip': 'photon'},
-         namespace=_ns)
+def_unit((['ph', 'photon'], ['photon']),
+         format={'ogip': 'photon', 'vounit': 'photon'},
+         namespace=_ns, prefixes=True)
 def_unit(['Jy', 'Jansky', 'jansky'], 1e-26 * si.W / si.m ** 2 / si.Hz,
          namespace=_ns, prefixes=True,
          doc="Jansky: spectral flux density")
@@ -117,27 +119,30 @@ def_unit(['Sun'], namespace=_ns)
 ###########################################################################
 # EVENTS
 
-def_unit(['ct', 'count'],
-         format={'fits': 'count', 'ogip': 'count'},
-         namespace=_ns)
-def_unit(['pix', 'pixel'],
-         format={'ogip': 'pixel'},
-         namespace=_ns)
+def_unit((['ct', 'count'], ['count']),
+         format={'fits': 'count', 'ogip': 'count', 'vounit': 'count'},
+         namespace=_ns, prefixes=True, exclude_prefixes=['p'])
+def_unit((['pix', 'pixel'], ['pixel']),
+         format={'ogip': 'pixel', 'vounit': 'pixel'},
+         namespace=_ns, prefixes=True)
 
 
 ###########################################################################
 # MISCELLANEOUS
 
-def_unit(['chan'], namespace=_ns)
-def_unit(['bin'], namespace=_ns)
-def_unit(['vox', 'voxel'],
+def_unit(['chan'], namespace=_ns, prefixes=True)
+def_unit(['bin'], namespace=_ns, prefixes=True)
+def_unit((['vox', 'voxel'], ['voxel']),
          format={'fits': 'voxel', 'ogip': 'voxel', 'vounit': 'voxel'},
-         namespace=_ns)
-def_unit((['bit', 'b'], ['bit']), namespace=_ns, prefixes=True)
-def_unit((['byte', 'B'], ['byte']), namespace=_ns, prefixes=True,
+         namespace=_ns, prefixes=True)
+def_unit((['bit', 'b'], ['bit']), namespace=_ns,
+         prefixes=si_prefixes + binary_prefixes)
+def_unit((['byte', 'B'], ['byte']), namespace=_ns,
+         format={'vounit': 'byte'},
+         prefixes=si_prefixes + binary_prefixes,
          exclude_prefixes=['d'])
-def_unit(['adu'], namespace=_ns)
-def_unit(['beam'], namespace=_ns)
+def_unit(['adu'], namespace=_ns, prefixes=True)
+def_unit(['beam'], namespace=_ns, prefixes=True)
 def_unit(['electron'], doc="Number of electrons", namespace=_ns,
          format={'latex': r'e^{-}', 'unicode': 'e⁻'})
 

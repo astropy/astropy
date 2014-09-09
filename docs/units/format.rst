@@ -122,10 +122,10 @@ formats:
     Unlike the "generic" string format, this will only accept or
     generate units defined in the FITS standard.
 
-  - ``"vounit"``: The `proposed IVOA standard
-    <http://www.ivoa.net/Documents/VOUnits/>`__ for representing units
-    in the VO.  Again, based on the FITS syntax, but the collection of
-    supported units is different.
+  - ``"vounit"``: The `Units in the VO 1.0
+    <http://www.ivoa.net/Documents/VOUnits/>`__ standard for
+    representing units in the VO.  Again, based on the FITS syntax,
+    but the collection of supported units is different.
 
   - ``"cds"``: `Standards for astronomical catalogues from Centre de
     Données astronomiques de Strasbourg

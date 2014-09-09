@@ -2076,6 +2076,16 @@ si_prefixes = [
 ]
 
 
+binary_prefixes = [
+    (['Ki'], ['kibi'], 2. ** 10),
+    (['Mi'], ['mebi'], 2. ** 20),
+    (['Gi'], ['gibi'], 2. ** 30),
+    (['Ti'], ['tebi'], 2. ** 40),
+    (['Pi'], ['pebi'], 2. ** 50),
+    (['Ei'], ['exbi'], 2. ** 60)
+]
+
+
 def _add_prefixes(u, excludes=[], namespace=None, prefixes=False):
     """
     Set up all of the standard metric prefixes for a unit.  This
@@ -2194,7 +2204,7 @@ def def_unit(s, represents=None, register=None, doc=None,
     """
     if register is not None:
         warnings.warn(
-            "The registry kwarg was removed in astropy 0.3. "
+            "The register kwarg was removed in astropy 0.3. "
             "Use the namespace kwarg to inject the unit into "
             "a namespace and add_enabled_units() to enable it "
             "in the global unit registry.",

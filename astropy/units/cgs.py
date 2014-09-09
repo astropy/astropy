@@ -86,7 +86,7 @@ def_unit(['k', 'Kayser', 'kayser'], cm ** -1, namespace=_ns,
 # ELECTRICAL
 
 def_unit(['D', 'Debye', 'debye'], Fraction(1, 3) * 1e-29 * C * si.m,
-         namespace=_ns,
+         namespace=_ns, prefixes=True,
          doc="Debye: CGS unit of electric dipole moment")
 
 def_unit(['Fr', 'Franklin', 'statcoulomb', 'statC', 'esu'],

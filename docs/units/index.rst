@@ -11,13 +11,13 @@ Units and Quantities (`astropy.units`)
 Introduction
 ============
 
-`astropy.units` handles defining, converting between, and performing 
-arithmetic with physical quantities. Examples of physical quantities 
+`astropy.units` handles defining, converting between, and performing
+arithmetic with physical quantities. Examples of physical quantities
 are meters, seconds, Hz, etc.
 
-`astropy.units` does not know spherical geometry or sexagesimal 
-(hours, min, sec): if you want to deal with celestial coordinates, 
-see the `astropy.coordinates` package.  
+`astropy.units` does not know spherical geometry or sexagesimal
+(hours, min, sec): if you want to deal with celestial coordinates,
+see the `astropy.coordinates` package.
 
 Getting Started
 ===============
@@ -152,7 +152,7 @@ See Also
 - `FITS Standard <http://fits.gsfc.nasa.gov/fits_standard.html>`_ for
   units in FITS.
 
-- The `proposed IVOA standard
+- The `Units in the VO 1.0 Standard
   <http://www.ivoa.net/Documents/VOUnits/>`_ for representing units in
   the VO.
 

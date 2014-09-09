@@ -88,7 +88,7 @@ class Generic(Base):
             'CARET',
             'OPEN_PAREN',
             'CLOSE_PAREN',
-            'SQRT',
+            'FUNCNAME',
             'UNIT',
             'SIGN',
             'UINT',
@@ -129,12 +129,12 @@ class Generic(Base):
 
         # This needs to be a function so we can force it to happen
         # before t_UNIT
-        def t_SQRT(t):
-            r'sqrt'
+        def t_FUNCNAME(t):
+            r'(sqrt)|(ln)|(exp)|(log)'
             return t
 
         def t_UNIT(t):
-            r'%|((?!\d)\w)+'
+            r"%|([YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+')|((?!\d)\w)+"
             t.value = cls._get_unit(t)
             return t
 
@@ -336,7 +336,7 @@ class Generic(Base):
 
         def p_function_name(p):
             '''
-            function_name : SQRT
+            function_name : FUNCNAME
             '''
             p[0] = p[1]
 
