@@ -270,7 +270,7 @@ def test_repr():
                'm_nu=[ 0.  0.  0.] eV, Ob0=None)'
     assert str(cosmo) == expected
 
-    cosmo = core.Flatw0waCDM(55.0, 0.35, w0=-0.9, wa=-0.2, name='test4', 
+    cosmo = core.Flatw0waCDM(55.0, 0.35, w0=-0.9, wa=-0.2, name='test4',
                              Ob0=0.0456789)
     expected = 'Flatw0waCDM(name="test4", H0=55 km / (Mpc s), Om0=0.35, '\
                'w0=-0.9, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV, '\
