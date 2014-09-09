@@ -62,7 +62,7 @@ New Features
 - ``astropy.units``
 
   - Support for VOUnit has been updated to be compliant with version
-    1.0 of the standard.
+    1.0 of the standard. [#2901]
 
 - ``astropy.utils``
 
@@ -120,6 +120,15 @@ API Changes
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - Support for VOUnit has been updated to be compliant with version
+    1.0 of the standard. This means that some VOUnit strings that were
+    rejected before are now acceptable. [#2901] Notably:
+
+      - SI prefixes are supported on most units
+      - Binary prefixes are supported on "bits" and "bytes"
+      - Custom units can be defined "inline" by placing them between single
+        quotes.
 
 - ``astropy.utils``
 
