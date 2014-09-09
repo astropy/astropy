@@ -792,7 +792,7 @@ def test_deepcopy():
 
     c4 = SkyCoord([1, 2] * u.m, [2, 3] *u.m, [3, 4] * u.m, representation='cartesian', frame='fk5',
                   obstime='J1999.9', equinox='J1988.8')
-    c5 = c4.deepcopy(c4)
+    c5 = copy.deepcopy(c4)
     assert np.all(c5.x == c4.x)  # and y and z
     assert c5.frame.name == c4.frame.name
     assert c5.obstime == c4.obstime
