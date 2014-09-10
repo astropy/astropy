@@ -489,7 +489,7 @@ class ProgressBar(six.Iterator):
         if file is None:
             file = _get_stdout()
 
-        if not isatty(file):
+        if not isatty(file) and not interactive:
             self.update = self._silent_update
             self._silent = True
         else:
@@ -513,8 +513,6 @@ class ProgressBar(six.Iterator):
 
 
         if not interactive:
-        #    self._update_interactive(0)
-        #else:    
             self._should_handle_resize = (
                 _CAN_RESIZE_TERMINAL and self._file.isatty())
             self._handle_resize()
@@ -563,9 +561,8 @@ class ProgressBar(six.Iterator):
 
         # Update self.value 
         if value is None:
-            value = self._current_value = self._current_value + 1
-        else:
-            self._current_value = value
+            value = self._current_value + 1
+        self._current_value = value
 
         # Choose the appropriate environment
         if self._interactive:
@@ -578,10 +575,6 @@ class ProgressBar(six.Iterator):
         Update the progress bar to the given value (out of the total
         given to the constructor).
         """
-#        if value is None:
-#            value = self._current_value = self._current_value + 1
-#        else:
-#            self._current_value = value
 
         if self._total == 0:
             frac = 1.0
@@ -627,12 +620,6 @@ class ProgressBar(six.Iterator):
         
         This method is for use in the iPython notebook 2+. 
         """
-
-#        # Update self value ...
-#        if value is None:
-#            value = self._current_value = self._current_value + 1
-#        else:
-#            self._current_value = value    
 
         # Create and display an empty progress bar widget,
         # if none exists.
