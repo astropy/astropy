@@ -148,6 +148,11 @@ API Changes
     which should be preferred over referencing individual submodules of
     ``astropy.utils``.  [#2857]
 
+  - Updated ``astropy/utils/console.py`` ProgressBar() modeule to display 
+    output to iPython Notebook with the addition of an 'interactive' kwarg 
+    (see original issue [#2658]). [#2789]
+
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
