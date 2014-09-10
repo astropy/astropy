@@ -629,3 +629,7 @@ def test_composite_compose():
     # Issue #2382
     composite_unit = u.s.compose(units=[u.Unit("s")])[0]
     u.s.compose(units=[composite_unit])
+
+
+def test_data_quantities():
+    assert u.byte.is_equivalent(u.bit)

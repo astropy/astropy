@@ -137,7 +137,7 @@ def_unit((['vox', 'voxel'], ['voxel']),
          namespace=_ns, prefixes=True)
 def_unit((['bit', 'b'], ['bit']), namespace=_ns,
          prefixes=si_prefixes + binary_prefixes)
-def_unit((['byte', 'B'], ['byte']), namespace=_ns,
+def_unit((['byte', 'B'], ['byte']), 8 * bit, namespace=_ns,
          format={'vounit': 'byte'},
          prefixes=si_prefixes + binary_prefixes,
          exclude_prefixes=['d'])
