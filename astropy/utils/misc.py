@@ -502,7 +502,13 @@ class InheritDocstrings(type):
                         val.__doc__ = super_method.__doc__
                         break
 
-def in_ipynb():
+def in_ipynb_kernel():
+    """
+    Determine whether the current code is being executed from within an IPython
+    notebook kernel.  If ``True``, the code may be executed from a notebook or
+    from a console connected to a notebook kernel, but (we believe) it's not
+    being executed in a console that was initialized from the command line.
+    """
     try:
         cfg = get_ipython().config 
         app = cfg['IPKernelApp']
