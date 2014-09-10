@@ -559,7 +559,7 @@ class ProgressBar(six.Iterator):
         Update progress bar via the console or notebook accordingly.
         """
 
-        # Update self.value 
+        # Update self.value
         if value is None:
             value = self._current_value + 1
         self._current_value = value
@@ -617,8 +617,8 @@ class ProgressBar(six.Iterator):
         """
         Update the progress bar to the given value (out of a total
         given to the contructor).
-        
-        This method is for use in the iPython notebook 2+. 
+
+        This method is for use in the iPython notebook 2+.
         """
 
         # Create and display an empty progress bar widget,
