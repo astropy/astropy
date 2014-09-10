@@ -510,7 +510,7 @@ def in_ipynb_kernel():
     being executed in a console that was initialized from the command line.
     """
     try:
-        cfg = get_ipython().config 
+        cfg = get_ipython().config
         app = cfg['IPKernelApp']
         # ipython 1.0 console has no 'parent_appname',
         # but ipynb does
