@@ -1217,6 +1217,541 @@ class Fittable2DModel(FittableModel):
     outputs = ('z',)
 
 
+def _make_compound_model(left, right, operator):
+    name = str('CompoundModel{0}'.format(_CompoundModelMeta._nextid))
+    _CompoundModelMeta._nextid += 1
+
+    children = []
+    for child in (left, right):
+        if isinstance(child, _CompoundModel):
+            children.append(child._tree)
+        elif isinstance(child, _CompoundModelMeta):
+            children.append(child._tree)
+        else:
+            children.append(ExpressionTree(child))
+
+    tree = ExpressionTree(operator, left=children[0], right=children[1])
+
+    mod = find_current_module(3)
+    if mod:
+        modname = mod.__name__
+    else:
+        modname = '__main__'
+
+    # TODO: These aren't the full rules for handling inputs and outputs, but
+    # this will handle most basic cases correctly
+    if operator == '|':
+        inputs = left.inputs
+        outputs = right.outputs
+    else:
+        # Without loss of generality
+        inputs = left.inputs
+        outputs = left.outputs
+
+
+    members = {'_tree': tree,
+               # TODO: These are temporary until we implement the full rules
+               # for handling inputs/outputs
+               'inputs': inputs,
+               'outputs': outputs,
+               '__module__': modname}
+
+    new_cls = _CompoundModelMeta(name, (_CompoundModel,), members)
+
+    if isinstance(left, Model) and isinstance(right, Model):
+        # Both models used in the operator were already instantiated models,
+        # not model *classes*.  As such it's not particularly useful to return
+        # the class itself, but to instead produce a new instance:
+        return new_cls()
+
+    # Otherwise return the new uninstantiated class itself
+    return new_cls
+
+
+# TODO: Support a couple unary operators, or at least negation?
+BINARY_OPERATORS = {
+    '+': lambda f, g: _make_binary_arith_oper(operator.add, f, g),
+    '-': lambda f, g: _make_binary_arith_oper(operator.sub, f, g),
+    '*': lambda f, g: _make_binary_arith_oper(operator.mul, f, g),
+    '/': lambda f, g: _make_binary_arith_oper(operator.truediv, f, g),
+    '**': lambda f, g: _make_binary_arith_oper(operator.pow, f, g),
+    '|': lambda f, g: (lambda *args: g(*f(*args)))
+}
+
+
+_ORDER_OF_OPERATORS = [('+', '-'), ('*', '/'), ('**',), ('|',)]
+OPERATOR_PRECEDENCE = {}
+for idx, ops in enumerate(_ORDER_OF_OPERATORS):
+    for op in ops:
+        OPERATOR_PRECEDENCE[op] = idx
+
+
+class _CompoundModelMeta(_ModelMeta):
+    _tree = None
+    _submodels = None
+    _nextid = 0
+
+    def __getitem__(cls, index):
+        return cls._get_submodels()[index]
+
+    def __repr__(cls):
+        expression = cls._tree.format_expression(OPERATOR_PRECEDENCE)
+        components = '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
+                                 for idx, m in enumerate(cls._get_submodels()))
+        keywords = [
+            ('Expression', expression),
+            ('Components', '\n' + indent(components))
+        ]
+
+        return cls._format_cls_repr(keywords=keywords)
+
+    # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
+    # leaf nodes is something the ExpressionTree class itself could just know
+    def _get_submodels(cls):
+        # Would make this a lazyproperty but those don't currently work with
+        # type objects
+        if cls._submodels is not None:
+            return cls._submodels
+
+        cls._submodels = [c.value for c in cls._tree.traverse_postorder()
+                          if c.isleaf]
+        return cls._submodels
+        return [c.value for c in cls._tree.traverse_postorder() if c.isleaf]
+
+
+def _make_binary_arith_oper(oper, f, g):
+    return lambda *args: tuple(oper(x, y)
+                               for x, y in zip(f(*args), g(*args)))
+
+
+@six.add_metaclass(_CompoundModelMeta)
+class _CompoundModel(Model):
+    def __init__(self, *args, **kwargs):
+        # TODO: Just as a quick prototype, pass args off as parameters to
+        # individual submodels; there are a myriad ways we can make this more
+        # sophisticated later...
+
+        # Make a copy of the class's model tree, then go through each leaf node
+        # and convert it from a class to an instance of that class
+        self._tree = self.__class__._tree.copy()
+
+        for node in self._tree.traverse_postorder():
+            if not node.isleaf:
+                continue
+
+            if isinstance(node.value, Model):
+                # An already instantiated model instance--we leave it as is
+                # and keep its initial paramters fixed
+                pass
+            else:
+                model_cls = node.value
+                nparams = len(model_cls.param_names)
+                model_inst = model_cls(*args[:nparams])
+
+                # Update the node replacing the class with the instance
+                node.value = model_inst
+                args = args[nparams:]
+
+        # TODO: This is temporary while prototyping
+        self._model_set_axis = 0
+        self._n_models = 1
+        self._name = kwargs.pop('name', None)
+
+    @property
+    def param_sets(self):
+        # TODO: This is temporary while prototyping
+
+        all_params = [n.value.param_sets
+                      for n in self._tree.traverse_postorder()
+                      if n.isleaf and n.value.param_names]
+
+        return np.vstack(tuple(all_params))
+
+    def evaluate(self, *args):
+        inputs = args[:self.n_inputs]
+        params = iter(args[self.n_inputs:])
+
+        def getter(model, params=params):
+            # Returns partial evaluation of the model's evaluate() method witht
+            # the parameter values already applied
+            nparams = len(model.param_names)
+
+            if model.n_outputs == 1:
+                return lambda *inputs: (model.evaluate(
+                    *(inputs + tuple(itertools.islice(params, nparams)))),)
+            else:
+                return lambda *inputs: model.evaluate(
+                    *(inputs + tuple(itertools.islice(params, nparams))))
+
+        func = self._tree.evaluate(BINARY_OPERATORS, getter=getter)
+        result = func(*inputs)
+
+        if self.n_outputs == 1:
+            return result[0]
+        else:
+            return result
+
+
+def custom_model(*args, **kwargs):
+    """
+    Create a model from a user defined function. The inputs and parameters of
+    the model will be inferred from the arguments of the function.
+
+    This can be used either as a function or as a decorator.  See below for
+    examples of both usages.
+
+    .. note::
+
+        All model parameters have to be defined as keyword arguments with
+        default values in the model function.  Use `None` as a default argument
+        value if you do not want to have a default value for that parameter.
+
+    Parameters
+    ----------
+    func : function
+        Function which defines the model.  It should take N positional
+        arguments where ``N`` is dimensions of the model (the number of
+        independent variable in the model), and any number of keyword arguments
+        (the parameters).  It must return the value of the model (typically as
+        an array, but can also be a scalar for scalar inputs).  This
+        corresponds to the `~astropy.modeling.Model.evaluate` method.
+    fit_deriv : function, optional
+        Function which defines the Jacobian derivative of the model. I.e., the
+        derivive with respect to the *parameters* of the model.  It should
+        have the same argument signature as ``func``, but should return a
+        sequence where each element of the sequence is the derivative
+        with respect to the correseponding argument. This corresponds to the
+        :meth:`~astropy.modeling.FittableModel.fit_deriv` method.
+
+    Examples
+    --------
+    Define a sinusoidal model function as a custom 1D model::
+
+        >>> from astropy.modeling.models import custom_model
+        >>> import numpy as np
+        >>> def sine_model(x, amplitude=1., frequency=1.):
+        ...     return amplitude * np.sin(2 * np.pi * frequency * x)
+        >>> def sine_deriv(x, amplitude=1., frequency=1.):
+        ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
+        >>> SineModel = custom_model(sine_model, fit_deriv=sine_deriv)
+
+    Create an instance of the custom model and evaluate it::
+
+        >>> model = SineModel()
+        >>> model(0.25)
+        1.0
+
+    This model instance can now be used like a usual astropy model.
+
+    The next example demonstrates a 2D beta function model, and also
+    demonstrates the support for docstrings (this example could also include
+    a derivative, but it has been ommitted for simplicity)::
+
+        >>> @custom_model
+        ... def Beta2D(x, y, amplitude=1.0, x_0=0.0, y_0=0.0, gamma=1.0,
+        ...            alpha=1.0):
+        ...     \"\"\"Two dimensional beta function.\"\"\"
+        ...     rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
+        ...     return amplitude * (1 + rr_gg) ** (-alpha)
+        ...
+        >>> print(Beta2D.__doc__)
+        Two dimensional beta function.
+        >>> model = Beta2D()
+        >>> model(1, 1)  # doctest: +FLOAT_CMP
+        0.3333333333333333
+    """
+
+    fit_deriv = kwargs.get('fit_deriv', None)
+
+    if len(args) == 1 and six.callable(args[0]):
+        return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
+    elif not args:
+        return functools.partial(_custom_model_wrapper, fit_deriv=fit_deriv)
+    else:
+        raise TypeError(
+            "{0} takes at most one positional argument (the callable/"
+            "function to be turned into a model.  When used as a decorator "
+            "it should be passed keyword arguments only (if "
+            "any).".format(__name__))
+
+
+def _custom_model_wrapper(func, fit_deriv=None):
+    """
+    Internal implementation `custom_model`.
+
+    When `custom_model` is called as a function its arguments are passed to
+    this function, and the result of this function is returned.
+
+    When `custom_model` is used as a decorator a partial evaluation of this
+    function is returned by `custom_model`.
+    """
+
+    if not six.callable(func):
+        raise ModelDefinitionError(
+            "func is not callable; it must be a function or other callable "
+            "object")
+
+    if fit_deriv is not None and not six.callable(fit_deriv):
+        raise ModelDefinitionError(
+            "fit_deriv not callable; it must be a function or other "
+            "callable object")
+
+    model_name = func.__name__
+    argspec = inspect.getargspec(func)
+    param_values = argspec.defaults or ()
+
+    nparams = len(param_values)
+    param_names = argspec.args[-nparams:]
+
+    if (fit_deriv is not None and
+            len(six.get_function_defaults(fit_deriv)) != nparams):
+        raise ModelDefinitionError("derivative function should accept "
+                                   "same number of parameters as func.")
+
+    if nparams:
+        input_names = argspec.args[:-nparams]
+    else:
+        input_names = argspec.args
+
+    # TODO: Maybe have a clever scheme for default output name?
+    if input_names:
+        output_names = (input_names[0],)
+    else:
+        output_names = ('x',)
+
+    params = dict((name, Parameter(name, default=default))
+                  for name, default in zip(param_names, param_values))
+
+    mod = find_current_module(2)
+    if mod:
+        modname = mod.__name__
+    else:
+        modname = '__main__'
+
+    members = {
+        '__module__': modname,
+        '__doc__': func.__doc__,
+        'inputs': tuple(input_names),
+        'outputs': output_names,
+        'evaluate': staticmethod(func),
+    }
+
+    if fit_deriv is not None:
+        members['fit_deriv'] = staticmethod(fit_deriv)
+
+    members.update(params)
+
+    return type(model_name, (FittableModel,), members)
+
+
+def _prepare_inputs_single_model(model, params, inputs, **kwargs):
+    broadcasts = []
+
+    for idx, _input in enumerate(inputs):
+        _input = np.asanyarray(_input, dtype=np.float)
+        input_shape = _input.shape
+        max_broadcast = ()
+
+        for param in params:
+            try:
+                if model.standard_broadcasting:
+                    broadcast = check_broadcast(input_shape, param.shape)
+                else:
+                    broadcast = input_shape
+            except IncompatibleShapeError:
+                raise ValueError(
+                    "Model input argument {0!r} of shape {1!r} cannot be "
+                    "broadcast with parameter {2!r} of shape "
+                    "{3!r}.".format(model.inputs[idx], input_shape,
+                                    param.name, param.shape))
+
+            if len(broadcast) > len(max_broadcast):
+                max_broadcast = broadcast
+            elif len(broadcast) == len(max_broadcast):
+                max_broadcast = max(max_broadcast, broadcast)
+
+        broadcasts.append(max_broadcast)
+
+    if model.n_outputs > model.n_inputs:
+        if len(set(broadcasts)) > 1:
+            raise ValueError(
+                "For models with n_outputs > n_inputs, the combination of "
+                "all inputs and parameters must broadcast to the same shape, "
+                "which will be used as the shape of all outputs.  In this "
+                "case some of the inputs had different shapes, so it is "
+                "ambiguous how to format outputs for this model.  Try using "
+                "inputs that are all the same size and shape.")
+        else:
+            # Extend the broadcasts list to include shapes for all outputs
+            extra_outputs = model.n_outputs - model.n_inputs
+            broadcasts.extend([broadcasts[0]] * extra_outputs)
+
+    return inputs, (broadcasts,)
+
+
+def _prepare_outputs_single_model(model, outputs, format_info):
+    if not format_info:
+        # This is the shortcut for models with all scalar inputs/parameters
+        if model.n_outputs == 1:
+            return np.asscalar(outputs[0])
+        else:
+            return tuple(np.asscalar(output) for output in outputs)
+
+    broadcasts = format_info[0]
+
+    outputs = list(outputs)
+
+    for idx, output in enumerate(outputs):
+        if broadcasts[idx]:
+            outputs[idx] = output.reshape(broadcasts[idx])
+
+    if model.n_outputs == 1:
+        return outputs[0]
+    else:
+        return tuple(outputs)
+
+
+def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
+                              **kwargs):
+    reshaped = []
+    pivots = []
+
+    for idx, _input in enumerate(inputs):
+        _input = np.asanyarray(_input, dtype=np.float)
+
+        max_param_shape = ()
+
+        if n_models > 1 and model_set_axis is not False:
+            # Use the shape of the input *excluding* the model axis
+            input_shape = (_input.shape[:model_set_axis] +
+                           _input.shape[model_set_axis + 1:])
+        else:
+            input_shape = _input.shape
+
+        for param in params:
+            try:
+                check_broadcast(input_shape, param.shape)
+            except IncompatibleShapeError:
+                raise ValueError(
+                    "Model input argument {0!r} of shape {1!r} cannot be "
+                    "broadcast with parameter {2!r} of shape "
+                    "{3!r}.".format(model.inputs[idx], input_shape,
+                                    param.name, param.shape))
+
+            if len(param.shape) > len(max_param_shape):
+                max_param_shape = param.shape
+
+        # We've now determined that, excluding the model_set_axis, the
+        # input can broadcast with all the parameters
+        input_ndim = len(input_shape)
+        if model_set_axis is False:
+            if len(max_param_shape) > input_ndim:
+                # Just needs to prepend new axes to the input
+                n_new_axes = 1 + len(max_param_shape) - input_ndim
+                new_axes = (1,) * n_new_axes
+                new_shape = new_axes + _input.shape
+                pivot = model.model_set_axis
+            else:
+                pivot = input_ndim - len(max_param_shape)
+                new_shape = (_input.shape[:pivot] + (1,) +
+                             _input.shape[pivot:])
+            new_input = _input.reshape(new_shape)
+        else:
+            if len(max_param_shape) >= input_ndim:
+                n_new_axes = len(max_param_shape) - input_ndim
+                pivot = model.model_set_axis
+                new_axes = (1,) * n_new_axes
+                new_shape = (_input.shape[:pivot + 1] + new_axes +
+                             _input.shape[pivot + 1:])
+                new_input = _input.reshape(new_shape)
+            else:
+                pivot = _input.ndim - len(max_param_shape) - 1
+                new_input = np.rollaxis(_input, model_set_axis,
+                                        pivot + 1)
+
+        pivots.append(pivot)
+        reshaped.append(new_input)
+
+    return reshaped, (pivots,)
+
+
+def _prepare_outputs_model_set(model, outputs, format_info):
+    pivots = format_info[0]
+
+    outputs = list(outputs)
+
+    for idx, output in enumerate(outputs):
+        pivot = pivots[idx]
+        if pivot < output.ndim and pivot != model.model_set_axis:
+            outputs[idx] = np.rollaxis(output, pivot,
+                                       model.model_set_axis)
+
+    if model.n_outputs == 1:
+        return outputs[0]
+    else:
+        return tuple(outputs)
+
+
+def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
+                           validate_broadcasting):
+    """
+    Perform basic validation of model inputs--that they are mutually
+    broadcastable and that they have the minimum dimensions for the given
+    model_set_axis.
+
+    If validation succeeds, returns the total shape that will result from
+    broadcasting the input arrays with each other.
+    """
+
+    check_model_set_axis = n_models > 1 and model_set_axis is not False
+
+    if not (validate_broadcasting or check_model_set_axis):
+        # Nothing else needed here
+        return
+
+    all_shapes = []
+
+    for idx, _input in enumerate(inputs):
+        input_shape = np.shape(_input)
+        # Ensure that the input's model_set_axis matches the model's
+        # n_models
+        if input_shape and check_model_set_axis:
+            # Note: Scalar inputs *only* get a pass on this
+            if len(input_shape) < model_set_axis + 1:
+                raise ValueError(
+                    "For model_set_axis={0}, all inputs must be at "
+                    "least {1}-dimensional.".format(
+                        model_set_axis, model_set_axis + 1))
+            elif input_shape[model_set_axis] != n_models:
+                raise ValueError(
+                    "Input argument {0!r} does not have the correct "
+                    "dimensions in model_set_axis={1} for a model set with "
+                    "n_models={2}.".format(argnames[idx], model_set_axis,
+                                           n_models))
+        all_shapes.append(input_shape)
+
+    if not validate_broadcasting:
+        return
+
+    try:
+        input_broadcast = check_broadcast(*all_shapes)
+    except IncompatibleShapesError as exc:
+        shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
+        arg_a = argnames[shape_a_idx]
+        arg_b = argnames[shape_b_idx]
+
+        raise ValueError(
+            "Model input argument {0!r} of shape {1!r} cannot "
+            "be broadcast with input {2!r} of shape {3!r}".format(
+                arg_a, shape_a, arg_b, shape_b))
+
+    return input_broadcast
+
+
+# *** Pre-1.0 legacy composite model classes *** #
+# TODO: These could prehaps be rewritten on top of the new composite model
+# framework, but keeping the legacy API for backwards-compatibility.
+
 class LabeledInput(dict):
     """
     Used by `SerialCompositeModel` and `SummedCompositeModel` to choose input
@@ -1596,537 +2131,3 @@ class SummedCompositeModel(_CompositeModel):
             for tr in self._transforms[1:]:
                 result += tr(*data)
             return result
-
-
-def _make_compound_model(left, right, operator):
-    name = str('CompoundModel{0}'.format(_CompoundModelMeta._nextid))
-    _CompoundModelMeta._nextid += 1
-
-    children = []
-    for child in (left, right):
-        if isinstance(child, _CompoundModel):
-            children.append(child._tree)
-        elif isinstance(child, _CompoundModelMeta):
-            children.append(child._tree)
-        else:
-            children.append(ExpressionTree(child))
-
-    tree = ExpressionTree(operator, left=children[0], right=children[1])
-
-    mod = find_current_module(3)
-    if mod:
-        modname = mod.__name__
-    else:
-        modname = '__main__'
-
-    # TODO: These aren't the full rules for handling inputs and outputs, but
-    # this will handle most basic cases correctly
-    if operator == '|':
-        inputs = left.inputs
-        outputs = right.outputs
-    else:
-        # Without loss of generality
-        inputs = left.inputs
-        outputs = left.outputs
-
-
-    members = {'_tree': tree,
-               # TODO: These are temporary until we implement the full rules
-               # for handling inputs/outputs
-               'inputs': inputs,
-               'outputs': outputs,
-               '__module__': modname}
-
-    new_cls = _CompoundModelMeta(name, (_CompoundModel,), members)
-
-    if isinstance(left, Model) and isinstance(right, Model):
-        # Both models used in the operator were already instantiated models,
-        # not model *classes*.  As such it's not particularly useful to return
-        # the class itself, but to instead produce a new instance:
-        return new_cls()
-
-    # Otherwise return the new uninstantiated class itself
-    return new_cls
-
-
-# TODO: Support a couple unary operators, or at least negation?
-BINARY_OPERATORS = {
-    '+': lambda f, g: _make_binary_arith_oper(operator.add, f, g),
-    '-': lambda f, g: _make_binary_arith_oper(operator.sub, f, g),
-    '*': lambda f, g: _make_binary_arith_oper(operator.mul, f, g),
-    '/': lambda f, g: _make_binary_arith_oper(operator.truediv, f, g),
-    '**': lambda f, g: _make_binary_arith_oper(operator.pow, f, g),
-    '|': lambda f, g: (lambda *args: g(*f(*args)))
-}
-
-
-_ORDER_OF_OPERATORS = [('+', '-'), ('*', '/'), ('**',), ('|',)]
-OPERATOR_PRECEDENCE = {}
-for idx, ops in enumerate(_ORDER_OF_OPERATORS):
-    for op in ops:
-        OPERATOR_PRECEDENCE[op] = idx
-
-
-class _CompoundModelMeta(_ModelMeta):
-    _tree = None
-    _submodels = None
-    _nextid = 0
-
-    def __getitem__(cls, index):
-        return cls._get_submodels()[index]
-
-    def __repr__(cls):
-        expression = cls._tree.format_expression(OPERATOR_PRECEDENCE)
-        components = '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
-                                 for idx, m in enumerate(cls._get_submodels()))
-        keywords = [
-            ('Expression', expression),
-            ('Components', '\n' + indent(components))
-        ]
-
-        return cls._format_cls_repr(keywords=keywords)
-
-    # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
-    # leaf nodes is something the ExpressionTree class itself could just know
-    def _get_submodels(cls):
-        # Would make this a lazyproperty but those don't currently work with
-        # type objects
-        if cls._submodels is not None:
-            return cls._submodels
-
-        cls._submodels = [c.value for c in cls._tree.traverse_postorder()
-                          if c.isleaf]
-        return cls._submodels
-        return [c.value for c in cls._tree.traverse_postorder() if c.isleaf]
-
-
-def _make_binary_arith_oper(oper, f, g):
-    return lambda *args: tuple(oper(x, y)
-                               for x, y in zip(f(*args), g(*args)))
-
-
-@six.add_metaclass(_CompoundModelMeta)
-class _CompoundModel(Model):
-    def __init__(self, *args, **kwargs):
-        # TODO: Just as a quick prototype, pass args off as parameters to
-        # individual submodels; there are a myriad ways we can make this more
-        # sophisticated later...
-
-        # Make a copy of the class's model tree, then go through each leaf node
-        # and convert it from a class to an instance of that class
-        self._tree = self.__class__._tree.copy()
-
-        for node in self._tree.traverse_postorder():
-            if not node.isleaf:
-                continue
-
-            if isinstance(node.value, Model):
-                # An already instantiated model instance--we leave it as is
-                # and keep its initial paramters fixed
-                pass
-            else:
-                model_cls = node.value
-                nparams = len(model_cls.param_names)
-                model_inst = model_cls(*args[:nparams])
-
-                # Update the node replacing the class with the instance
-                node.value = model_inst
-                args = args[nparams:]
-
-        # TODO: This is temporary while prototyping
-        self._model_set_axis = 0
-        self._n_models = 1
-        self._name = kwargs.pop('name', None)
-
-    @property
-    def param_sets(self):
-        # TODO: This is temporary while prototyping
-
-        all_params = [n.value.param_sets
-                      for n in self._tree.traverse_postorder()
-                      if n.isleaf and n.value.param_names]
-
-        return np.vstack(tuple(all_params))
-
-    def evaluate(self, *args):
-        inputs = args[:self.n_inputs]
-        params = iter(args[self.n_inputs:])
-
-        def getter(model, params=params):
-            # Returns partial evaluation of the model's evaluate() method witht
-            # the parameter values already applied
-            nparams = len(model.param_names)
-
-            if model.n_outputs == 1:
-                return lambda *inputs: (model.evaluate(
-                    *(inputs + tuple(itertools.islice(params, nparams)))),)
-            else:
-                return lambda *inputs: model.evaluate(
-                    *(inputs + tuple(itertools.islice(params, nparams))))
-
-        func = self._tree.evaluate(BINARY_OPERATORS, getter=getter)
-        result = func(*inputs)
-
-        if self.n_outputs == 1:
-            return result[0]
-        else:
-            return result
-
-
-def custom_model(*args, **kwargs):
-    """
-    Create a model from a user defined function. The inputs and parameters of
-    the model will be inferred from the arguments of the function.
-
-    This can be used either as a function or as a decorator.  See below for
-    examples of both usages.
-
-    .. note::
-
-        All model parameters have to be defined as keyword arguments with
-        default values in the model function.  Use `None` as a default argument
-        value if you do not want to have a default value for that parameter.
-
-
-    Parameters
-    ----------
-    func : callable
-        Function which defines the model.  It should take N positional
-        arguments where ``N`` is dimensions of the model (the number of
-        independent variable in the model), and any number of keyword arguments
-        (the parameters).  It must return the value of the model (typically as
-        an array, but can also be a scalar for scalar inputs).  This
-        corresponds to the `~astropy.modeling.Model.evaluate` method.
-    fit_deriv : callable, optional
-        Function which defines the Jacobian derivative of the model. I.e., the
-        derivive with respect to the *parameters* of the model.  It should
-        have the same argument signature as ``func``, but should return a
-        sequence where each element of the sequence is the derivative
-        with respect to the correseponding argument. This corresponds to the
-        :meth:`~astropy.modeling.FittableModel.fit_deriv` method.
-
-
-    Examples
-    --------
-    Define a sinusoidal model function as a custom 1D model::
-
-        >>> from astropy.modeling.models import custom_model
-        >>> import numpy as np
-        >>> def sine_model(x, amplitude=1., frequency=1.):
-        ...     return amplitude * np.sin(2 * np.pi * frequency * x)
-        >>> def sine_deriv(x, amplitude=1., frequency=1.):
-        ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
-        >>> SineModel = custom_model(sine_model, fit_deriv=sine_deriv)
-
-    Create an instance of the custom model and evaluate it::
-
-        >>> model = SineModel()
-        >>> model(0.25)
-        1.0
-
-    This model instance can now be used like a usual astropy model.
-
-    The next example demonstrates a 2D beta function model, and also
-    demonstrates the support for docstrings (this example could also include
-    a derivative, but it has been ommitted for simplicity)::
-
-        >>> @custom_model
-        ... def Beta2D(x, y, amplitude=1.0, x_0=0.0, y_0=0.0, gamma=1.0,
-        ...            alpha=1.0):
-        ...     \"\"\"Two dimensional beta function.\"\"\"
-        ...     rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
-        ...     return amplitude * (1 + rr_gg) ** (-alpha)
-        ...
-        >>> print(Beta2D.__doc__)
-        Two dimensional beta function.
-        >>> model = Beta2D()
-        >>> model(1, 1)  # doctest: +FLOAT_CMP
-        0.3333333333333333
-    """
-
-    fit_deriv = kwargs.get('fit_deriv', None)
-
-    if len(args) == 1 and six.callable(args[0]):
-        return _custom_model_wrapper(args[0], fit_deriv=fit_deriv)
-    elif not args:
-        return functools.partial(_custom_model_wrapper, fit_deriv=fit_deriv)
-    else:
-        raise TypeError(
-            "{0} takes at most one positional argument (the callable/"
-            "function to be turned into a model.  When used as a decorator "
-            "it should be passed keyword arguments only (if "
-            "any).".format(__name__))
-
-
-def _custom_model_wrapper(func, fit_deriv=None):
-    """
-    Internal implementation `custom_model`.
-
-    When `custom_model` is called as a function its arguments are passed to
-    this function, and the result of this function is returned.
-
-    When `custom_model` is used as a decorator a partial evaluation of this
-    function is returned by `custom_model`.
-    """
-
-    if not six.callable(func):
-        raise ModelDefinitionError(
-            "func is not callable; it must be a function or other callable "
-            "object")
-
-    if fit_deriv is not None and not six.callable(fit_deriv):
-        raise ModelDefinitionError(
-            "fit_deriv not callable; it must be a function or other "
-            "callable object")
-
-    model_name = func.__name__
-    argspec = inspect.getargspec(func)
-    param_values = argspec.defaults or ()
-
-    nparams = len(param_values)
-    param_names = argspec.args[-nparams:]
-
-    if (fit_deriv is not None and
-            len(six.get_function_defaults(fit_deriv)) != nparams):
-        raise ModelDefinitionError("derivative function should accept "
-                                   "same number of parameters as func.")
-
-
-    if nparams:
-        input_names = argspec.args[:-nparams]
-    else:
-        input_names = argspec.args
-
-    # TODO: Maybe have a clever scheme for default output name?
-    if input_names:
-        output_names = (input_names[0],)
-    else:
-        output_names = ('x',)
-
-    params = dict((name, Parameter(name, default=default))
-                  for name, default in zip(param_names, param_values))
-
-    mod = find_current_module(2)
-    if mod:
-        modname = mod.__name__
-    else:
-        modname = '__main__'
-
-    members = {
-        '__module__': modname,
-        '__doc__': func.__doc__,
-        'inputs': tuple(input_names),
-        'outputs': output_names,
-        'evaluate': staticmethod(func),
-    }
-
-    if fit_deriv is not None:
-        members['fit_deriv'] = staticmethod(fit_deriv)
-
-    members.update(params)
-
-    return type(model_name, (FittableModel,), members)
-
-
-def _prepare_inputs_single_model(model, params, inputs, **kwargs):
-    broadcasts = []
-
-    for idx, _input in enumerate(inputs):
-        _input = np.asanyarray(_input, dtype=np.float)
-        input_shape = _input.shape
-        max_broadcast = ()
-
-        for param in params:
-            try:
-                if model.standard_broadcasting:
-                    broadcast = check_broadcast(input_shape, param.shape)
-                else:
-                    broadcast = input_shape
-            except IncompatibleShapeError:
-                raise ValueError(
-                    "Model input argument {0!r} of shape {1!r} cannot be "
-                    "broadcast with parameter {2!r} of shape "
-                    "{3!r}.".format(model.inputs[idx], input_shape,
-                                    param.name, param.shape))
-
-            if len(broadcast) > len(max_broadcast):
-                max_broadcast = broadcast
-            elif len(broadcast) == len(max_broadcast):
-                max_broadcast = max(max_broadcast, broadcast)
-
-        broadcasts.append(max_broadcast)
-
-    if model.n_outputs > model.n_inputs:
-        if len(set(broadcasts)) > 1:
-            raise ValueError(
-                "For models with n_outputs > n_inputs, the combination of "
-                "all inputs and parameters must broadcast to the same shape, "
-                "which will be used as the shape of all outputs.  In this "
-                "case some of the inputs had different shapes, so it is "
-                "ambiguous how to format outputs for this model.  Try using "
-                "inputs that are all the same size and shape.")
-        else:
-            # Extend the broadcasts list to include shapes for all outputs
-            extra_outputs = model.n_outputs - model.n_inputs
-            broadcasts.extend([broadcasts[0]] * extra_outputs)
-
-    return inputs, (broadcasts,)
-
-
-def _prepare_outputs_single_model(model, outputs, format_info):
-    if not format_info:
-        # This is the shortcut for models with all scalar inputs/parameters
-        if model.n_outputs == 1:
-            return np.asscalar(outputs[0])
-        else:
-            return tuple(np.asscalar(output) for output in outputs)
-
-    broadcasts = format_info[0]
-
-    outputs = list(outputs)
-
-    for idx, output in enumerate(outputs):
-        if broadcasts[idx]:
-            outputs[idx] = output.reshape(broadcasts[idx])
-
-    if model.n_outputs == 1:
-        return outputs[0]
-    else:
-        return tuple(outputs)
-
-
-def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
-                              **kwargs):
-    reshaped = []
-    pivots = []
-
-    for idx, _input in enumerate(inputs):
-        _input = np.asanyarray(_input, dtype=np.float)
-
-        max_param_shape = ()
-
-        if n_models > 1 and model_set_axis is not False:
-            # Use the shape of the input *excluding* the model axis
-            input_shape = (_input.shape[:model_set_axis] +
-                           _input.shape[model_set_axis + 1:])
-        else:
-            input_shape = _input.shape
-
-        for param in params:
-            try:
-                check_broadcast(input_shape, param.shape)
-            except IncompatibleShapeError:
-                raise ValueError(
-                    "Model input argument {0!r} of shape {1!r} cannot be "
-                    "broadcast with parameter {2!r} of shape "
-                    "{3!r}.".format(model.inputs[idx], input_shape,
-                                    param.name, param.shape))
-
-            if len(param.shape) > len(max_param_shape):
-                max_param_shape = param.shape
-
-        # We've now determined that, excluding the model_set_axis, the
-        # input can broadcast with all the parameters
-        input_ndim = len(input_shape)
-        if model_set_axis is False:
-            if len(max_param_shape) > input_ndim:
-                # Just needs to prepend new axes to the input
-                n_new_axes = 1 + len(max_param_shape) - input_ndim
-                new_axes = (1,) * n_new_axes
-                new_shape = new_axes + _input.shape
-                pivot = model.model_set_axis
-            else:
-                pivot = input_ndim - len(max_param_shape)
-                new_shape = (_input.shape[:pivot] + (1,) +
-                             _input.shape[pivot:])
-            new_input = _input.reshape(new_shape)
-        else:
-            if len(max_param_shape) >= input_ndim:
-                n_new_axes = len(max_param_shape) - input_ndim
-                pivot = model.model_set_axis
-                new_axes = (1,) * n_new_axes
-                new_shape = (_input.shape[:pivot + 1] + new_axes +
-                             _input.shape[pivot + 1:])
-                new_input = _input.reshape(new_shape)
-            else:
-                pivot = _input.ndim - len(max_param_shape) - 1
-                new_input = np.rollaxis(_input, model_set_axis,
-                                        pivot + 1)
-
-        pivots.append(pivot)
-        reshaped.append(new_input)
-
-    return reshaped, (pivots,)
-
-
-def _prepare_outputs_model_set(model, outputs, format_info):
-    pivots = format_info[0]
-
-    outputs = list(outputs)
-
-    for idx, output in enumerate(outputs):
-        pivot = pivots[idx]
-        if pivot < output.ndim and pivot != model.model_set_axis:
-            outputs[idx] = np.rollaxis(output, pivot,
-                                       model.model_set_axis)
-
-    if model.n_outputs == 1:
-        return outputs[0]
-    else:
-        return tuple(outputs)
-
-
-def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
-                           validate_broadcasting):
-    """
-    Perform basic validation of model inputs--that they are mutually
-    broadcastable and that they have the minimum dimensions for the given
-    model_set_axis.
-
-    If validation succeeds, returns the total shape that will result from
-    broadcasting the input arrays with each other.
-    """
-
-    check_model_set_axis = n_models > 1 and model_set_axis is not False
-
-    if not (validate_broadcasting or check_model_set_axis):
-        # Nothing else needed here
-        return
-
-    all_shapes = []
-
-    for idx, _input in enumerate(inputs):
-        input_shape = np.shape(_input)
-        # Ensure that the input's model_set_axis matches the model's
-        # n_models
-        if input_shape and check_model_set_axis:
-            # Note: Scalar inputs *only* get a pass on this
-            if len(input_shape) < model_set_axis + 1:
-                raise ValueError(
-                    "For model_set_axis={0}, all inputs must be at "
-                    "least {1}-dimensional.".format(
-                        model_set_axis, model_set_axis + 1))
-            elif input_shape[model_set_axis] != n_models:
-                raise ValueError(
-                    "Input argument {0!r} does not have the correct "
-                    "dimensions in model_set_axis={1} for a model set with "
-                    "n_models={2}.".format(argnames[idx], model_set_axis,
-                                           n_models))
-        all_shapes.append(input_shape)
-
-    if not validate_broadcasting:
-        return
-
-    try:
-        input_broadcast = check_broadcast(*all_shapes)
-    except IncompatibleShapesError as exc:
-        shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
-        arg_a = argnames[shape_a_idx]
-        arg_b = argnames[shape_b_idx]
-
-        raise ValueError(
-            "Model input argument {0!r} of shape {1!r} cannot "
-            "be broadcast with input {2!r} of shape {3!r}".format(
-                arg_a, shape_a, arg_b, shape_b))
-
-    return input_broadcast
