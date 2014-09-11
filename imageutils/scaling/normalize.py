@@ -37,7 +37,10 @@ class ImageNormalize(Normalize):
             values_norm = np.clip(values_norm, 0., 1.)
 
         # Stretch values
-        return self.stretch(values_norm)
+        new_values = self.stretch(values_norm)
+        
+        # Don't assume stretch returned a masked array
+        return ma.asarray(new_values)
 
     def inverse(self, values):
 

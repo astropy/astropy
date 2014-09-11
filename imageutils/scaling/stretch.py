@@ -9,7 +9,7 @@ import numpy as np
 
 from astropy.extern import six
 
-__all__ = ["LinearStretch", "SqrtStretch", "PowerStretch"]
+__all__ = ["LinearStretch", "SqrtStretch", "PowerStretch", "HistEqStretch", "ContrastBiasStretch"]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -82,6 +82,53 @@ class PowerStretch(BaseStretch):
 
     def inverted(self):
         return PowerStretch(1. / self.power)
+
+
+class HistEqStretch(BaseStretch):
+    """
+    A histogram equalization stretch
+
+    Parameters
+    ----------
+    data : float
+        The data defining the equalization
+    """
+
+    def __init__(self, data, values=None):
+
+        # Assume data is not necessarily normalized at this point
+        self.data = np.sort(data.ravel())
+        vmin = self.data.min()
+        vmax = self.data.max()
+        self.data = (self.data - vmin) / (vmax - vmin)
+
+        # Compute relative position of each pixel
+        if values is None:
+            self.values = np.linspace(0., 1., len(self.data))
+        else:
+            self.values = values
+
+    def __call__(self, values):
+        return np.interp(values, self.data, self.values)
+
+    def inverted(self):
+        return InvertedHistEqStretch(self.data, values=self.values)
+
+
+class InvertedHistEqStretch(BaseStretch):
+
+    def __init__(self, data, values=None):
+        self.data = data
+        if values is None:
+            self.values = np.linspace(0., 1., len(self.data))
+        else:
+            self.values = values
+
+    def __call__(self, values):
+        return np.interp(values, self.values, self.data)
+
+    def inverted(self):
+        return HistEqStretch(self.data, values=self.values)
 
 
 class ContrastBiasStretch(BaseStretch):
