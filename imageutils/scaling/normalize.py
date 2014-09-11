@@ -9,6 +9,7 @@ from matplotlib.colors import Normalize
 
 __all__ = ['ImageNormalize']
 
+
 class ImageNormalize(Normalize):
 
     def __init__(self, vmin=None, vmax=None, stretch=None, clip=False):
