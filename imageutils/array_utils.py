@@ -218,8 +218,8 @@ def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
                   (x_mirror >= subdata.shape[1]) |
                   (y_mirror >= subdata.shape[0]))
     if outofimage.any():
-        x_mirror[outofimage] = x_masked[outofimage]
-        y_mirror[outofimage] = y_masked[outofimage]
+        x_mirror[outofimage] = x_masked[outofimage].astype('int32')
+        y_mirror[outofimage] = y_masked[outofimage].astype('int32')
 
     subdata[y_masked, x_masked] = subdata[y_mirror, x_mirror]
 
