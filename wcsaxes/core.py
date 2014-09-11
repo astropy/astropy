@@ -8,6 +8,7 @@ from astropy.wcs import WCS
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
+from .coordinate_helpers import wrap_angle_at
 from .utils import get_coordinate_frame, get_coord_meta
 from .frame import RectangularFrame
 import numpy as np
@@ -49,20 +50,19 @@ class WCSAxes(Axes):
 
     def _display_world_coords(self, x, y):
 
-        if not self._cursor_world or len(self.slices) > 2:
-            # Currently cannot convert coords for data with more than
-            # 2 dimensions.
+        if not self._cursor_world:
             return 'x=%s y=%s' % (x, y)
 
         transform = self.coords._transform
-        if self.slices == ('x', 'y'):
+        x_index = self.slices.index('x')
+        y_index = self.slices.index('y')
+        if x < y:
             pixel = np.array([x, y])
-            world = transform.transform(np.array([pixel]))[0]
-            xw, yw = self._format_values(world[0], 0), self._format_values(world[1], 1)
         else:
             pixel = np.array([y, x])
-            world = transform.transform(np.array([pixel]))[0]
-            xw, yw = self._format_values(world[1], 1), self._format_values(world[0], 0)
+        world = transform.transform(np.array([pixel]))[0]
+        xw = self._format_values(world[x_index], x_index)
+        yw = self._format_values(world[y_index], y_index)
 
         if not self._display_overlay_coords:
             return "%s %s (world)" % (xw, yw)
@@ -75,7 +75,11 @@ class WCSAxes(Axes):
 
     def _format_values(self, value, coord):
         formatter_locator = self.coords[coord]._formatter_locator
+        if self.coords[coord].coord_type == 'longitude':
+            value = wrap_angle_at(value, self.coords[coord].coord_wrap)
         unit = formatter_locator._unit
+        # TODO: Figure out a way to format without spacing because changing
+        # coordinate type in the middle breaks it.
         string = formatter_locator.formatter([value] * unit, formatter_locator._locator_spacing)
         return string[0]
 
