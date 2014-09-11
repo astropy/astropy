@@ -342,7 +342,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         # __repr__
         parts = [super(_ModelMeta, cls).__repr__()]
 
-        if cls is Model or cls.__name__.startswith('_'):
+        if cls.__name__.startswith('_') or inspect.isabstract(cls):
             return parts[0]
 
         def format_inheritance(cls):
