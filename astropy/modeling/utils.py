@@ -25,6 +25,12 @@ class ExpressionTree(object):
     def __init__(self, value, left=None, right=None):
         self.value = value
         self.left = left
+
+        # Two subtrees can't be the same *object* or else traverse_postorder
+        # breaks, so we just always copy the right subtree to subvert that.
+        if right is not None and left is right:
+            right = right.copy()
+
         self.right = right
 
     @property
@@ -55,21 +61,20 @@ class ExpressionTree(object):
                 node = node.right
 
     def traverse_postorder(self):
-        stack = deque()
-        node = self
+        stack = deque([self])
         last = None
-        while stack or node is not None:
-            if node is not None:
-                stack.append(node)
-                node = node.left
+        while stack:
+            node = stack[-1]
+            if last is None or node is last.left or node is last.right:
+                if node.left is not None:
+                    stack.append(node.left)
+                elif node.right is not None:
+                    stack.append(node.right)
+            elif node.left is last and node.right is not None:
+                stack.append(node.right)
             else:
-                parent = stack[-1]
-                if parent.right is not None and last is not parent.right:
-                    node = parent.right
-                else:
-                    stack.pop()
-                    yield parent
-                    last = parent
+                yield stack.pop()
+            last = node
 
     def evaluate(self, operators, getter=None):
         """Evaluate the expression represented by this tree.
