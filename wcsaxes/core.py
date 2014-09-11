@@ -78,9 +78,7 @@ class WCSAxes(Axes):
         if self.coords[coord].coord_type == 'longitude':
             value = wrap_angle_at(value, self.coords[coord].coord_wrap)
         unit = formatter_locator._unit
-        # TODO: Figure out a way to format without spacing because changing
-        # coordinate type in the middle breaks it.
-        string = formatter_locator.formatter([value] * unit, formatter_locator._locator_spacing)
+        string = formatter_locator.formatter([value] * unit)
         return string[0]
 
     def _set_cursor_prefs(self, event, **kwargs):
