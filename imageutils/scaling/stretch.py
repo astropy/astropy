@@ -49,7 +49,7 @@ class LinearStretch(BaseStretch):
     A linear stretch: y = x
     """
 
-    def __call__(self, values):
+    def __call__(self, values, out=None):
         return values
 
     def inverted(self):
@@ -61,8 +61,11 @@ class SqrtStretch(BaseStretch):
     A square root stretch: y = sqrt(x)
     """
 
-    def __call__(self, values):
-        return np.sqrt(values)
+    def __call__(self, values, out=None):
+        if out is None:
+            return np.sqrt(values)
+        else:
+            return np.sqrt(values, out=out)
 
     def inverted(self):
         return PowerStretch(2)
@@ -77,8 +80,11 @@ class PowerStretch(BaseStretch):
         super(PowerStretch, self).__init__()
         self.power = a
 
-    def __call__(self, values):
-        return values ** self.power
+    def __call__(self, values, out=None):
+        if out is None:
+            return np.power(values, self.power)
+        else:
+            return np.power(values, self.power, out=out)
 
     def inverted(self):
         return PowerStretch(1. / self.power)
@@ -108,8 +114,12 @@ class HistEqStretch(BaseStretch):
         else:
             self.values = values
 
-    def __call__(self, values):
-        return np.interp(values, self.data, self.values)
+    def __call__(self, values, out=None):
+        if out is None:
+            return np.interp(values, self.data, self.values)
+        else:
+            values[:] = np.interp(values, self.data, self.values)
+            return values
 
     def inverted(self):
         return InvertedHistEqStretch(self.data, values=self.values)
@@ -124,8 +134,12 @@ class InvertedHistEqStretch(BaseStretch):
         else:
             self.values = values
 
-    def __call__(self, values):
-        return np.interp(values, self.values, self.data)
+    def __call__(self, values, out=None):
+        if out is None:
+            return np.interp(values, self.values, self.data)
+        else:
+            values[:] = np.interp(values, self.values, self.data)
+            return values
 
     def inverted(self):
         return HistEqStretch(self.data, values=self.values)
@@ -141,8 +155,19 @@ class ContrastBiasStretch(BaseStretch):
         self.contrast = contrast
         self.bias = bias
 
-    def __call__(self, values):
-        return np.clip((values - self.bias) * self.contrast + 0.5, 0., 1.)
+    def __call__(self, values, out=None):
+
+        if out is None:
+            values = np.subtract(values, self.bias)
+        else:
+            np.subtract(values, self.bias, out=values)
+
+        # Use in-place operations for the rest since they are faster
+        np.multiply(values, self.contrast, out=values)
+        np.add(values, 0.5, out=values)
+        np.clip(values, 0, 1, out=values)
+
+        return values
 
     def inverted(self):
         return InvertedContrastBiasStretch(self.contrast, self.bias)
@@ -158,8 +183,19 @@ class InvertedContrastBiasStretch(BaseStretch):
         self.contrast = contrast
         self.bias = bias
 
-    def __call__(self, values):
-        return np.clip((values - 0.5) / self.contrast + self.bias, 0., 1.)
+    def __call__(self, values, out=None):
+
+        if out is None:
+            values = np.subtract(values, 0.5)
+        else:
+            np.subtract(values, 0.5, out=values)
+
+        # Use in-place operations for the rest since they are faster
+        np.divide(values, self.contrast, out=values)
+        np.add(values, self.bias, out=values)
+        np.clip(values, 0, 1, out=values)
+
+        return values
 
     def inverted(self):
         return ContrastBiasStretch(self.contrast, self.bias)
