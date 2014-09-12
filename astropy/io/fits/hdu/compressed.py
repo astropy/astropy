@@ -1462,7 +1462,10 @@ class CompImageHDU(BinTableHDU):
         # the values of those cards that relate to the image from
         # their corresponding table cards.  These include
         # ZBITPIX -> BITPIX, ZNAXIS -> NAXIS, and ZNAXISn -> NAXISn.
-        for keyword in list(image_header):
+        # (Note: Used set here instead of list in case there are any duplicate
+        # keywords, which there may be in some pathological cases:
+        # https://github.com/astropy/astropy/issues/2750
+        for keyword in set(image_header):
             if CompImageHeader._is_reserved_keyword(keyword, warn=False):
                 del image_header[keyword]
 
