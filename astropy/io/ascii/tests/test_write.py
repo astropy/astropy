@@ -11,6 +11,7 @@ except ImportError:
 
 from ... import ascii
 from .... import table
+from ....tests.helper import pytest
 
 from .common import setup_function, teardown_function
 
@@ -371,16 +372,21 @@ a,b,c
 ]
 
 
-def check_write_table(test_def, table):
+def check_write_table(test_def, table, fast_writer):
     out = StringIO()
-    ascii.write(table, out, **test_def['kwargs'])
+    try:
+        ascii.write(table, out, fast_writer=fast_writer, **test_def['kwargs'])
+    except ValueError as e: # if format doesn't have a fast writer, ignore
+        if not 'not in the list of formats with fast writers' in str(e):
+            raise e
+        return
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
-def check_write_table_via_table(test_def, table):
+def check_write_table_via_table(test_def, table, fast_writer):
     out = StringIO()
 
     test_def = copy.deepcopy(test_def)
@@ -390,30 +396,38 @@ def check_write_table_via_table(test_def, table):
     else:
         format = 'ascii'
 
-    table.write(out, format=format, **test_def['kwargs'])
+    try:
+        table.write(out, format=format,  fast_writer=fast_writer, **test_def['kwargs'])
+    except ValueError as e: # if format doesn't have a fast writer, ignore
+        if not 'not in the list of formats with fast writers' in str(e):
+            raise e
+        return
     print('Expected:\n%s' % test_def['out'])
     print('Actual:\n%s' % out.getvalue())
     assert [x.strip() for x in out.getvalue().strip().splitlines()] == [
         x.strip() for x in test_def['out'].strip().splitlines()]
 
 
-def test_write_table():
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_table(fast_writer):
     table = ascii.get_reader(Reader=ascii.Daophot)
     data = table.read('t/daophot.dat')
 
     for test_def in test_defs:
-        check_write_table(test_def, data)
-        check_write_table_via_table(test_def, data)
+        check_write_table(test_def, data, fast_writer)
+        check_write_table_via_table(test_def, data, fast_writer)
 
 
-def test_write_fill_values():
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_values(fast_writer):
     data = ascii.read(tab_to_fill)
 
     for test_def in test_defs_fill_value:
-        check_write_table(test_def, data)
+        check_write_table(test_def, data, fast_writer)
 
 
-def test_write_fill_masked_different():
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_masked_different(fast_writer):
     '''see discussion in #2255'''
     data = ascii.read(tab_to_fill)
     data = table.Table(data, masked=True)
@@ -421,14 +435,23 @@ def test_write_fill_masked_different():
     data['c'].mask = [False, True]
 
     for test_def in test_def_masked_fill_value:
-        check_write_table(test_def, data)
+        check_write_table(test_def, data, fast_writer)
 
 
-def test_write_no_data_ipac():
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_no_data_ipac(fast_writer):
     """Write an IPAC table that contains no data."""
     table = ascii.get_reader(Reader=ascii.Ipac)
     data = table.read('t/no_data_ipac.dat')
 
     for test_def in test_defs_no_data:
-        check_write_table(test_def, data)
-        check_write_table_via_table(test_def, data)
+        check_write_table(test_def, data, fast_writer)
+        check_write_table_via_table(test_def, data, fast_writer)
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_strip_names(fast_writer):
+    """Names should be stripped of whitespace by default."""
+    data = table.Table([[1], [2], [3]], names=(' A', 'B ', ' C '))
+    out = StringIO()
+    ascii.write(data, out, format='csv', fast_writer=True)
+    assert out.getvalue().splitlines()[0] == 'A,B,C'

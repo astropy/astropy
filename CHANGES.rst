@@ -27,6 +27,12 @@ New Features
     entirely by overriding inherited class attributes instead of setting
     instance attributes in the Reader ``__init__`` method. [#2812]
 
+  - There is now a faster C/Cython engine available for reading and writing
+    simple ASCII formats like CSV. Both are enabled by default, and fast
+    reading will fall back on an ordinary reader in case of a parsing
+    failure. Their behavior can be altered with the parameter ``fast_reader``
+    in ``read`` and ``fast_writer`` in ``write``. [#2716]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``

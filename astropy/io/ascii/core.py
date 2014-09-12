@@ -33,6 +33,9 @@ from . import connect
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}
 
+# Similar dictionary for fast readers
+FAST_CLASSES = {}
+
 class MaskedConstant(numpy.ma.core.MaskedConstant):
     """A trivial extension of numpy.ma.masked
 
@@ -65,6 +68,20 @@ class OptionalTableImportError(ImportError):
     an ImportError.
     """
 
+class ParameterError(NotImplementedError):
+    """
+    Indicates that a reader cannot handle a passed parameter.
+
+    The C-based fast readers in ``io.ascii`` raise an instance of
+    this error class upon encountering a parameter that the
+    C engine cannot handle.
+    """
+
+class FastOptionsError(NotImplementedError):
+    """
+    Indicates that one of the specified options for fast
+    reading is invalid.
+    """
 
 class NoType(object):
     """
@@ -718,6 +735,10 @@ class MetaBaseReader(type):
         if format is None:
             return
 
+        fast = dct.get('_fast')
+        if fast is not None:
+            FAST_CLASSES[format] = cls
+
         FORMAT_CLASSES[format] = cls
 
         io_formats = ['ascii.' + format] + dct.get('_io_registry_format_aliases', [])
@@ -1021,6 +1042,14 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     because it depends only on the "core" module.
     """
 
+    from .fastbasic import FastBasic
+    if issubclass(Reader, FastBasic): # Fast readers handle args separately
+        if Inputter is not None:
+            kwargs['Inputter'] = Inputter
+        return Reader(**kwargs)
+
+    if 'fast_reader' in kwargs:
+        del kwargs['fast_reader'] # ignore fast_reader parameter for slow readers
     reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     reader = Reader(**reader_kwargs)
 
@@ -1097,10 +1126,19 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'fill_exclude_names')
 
 
-def _get_writer(Writer, **kwargs):
+def _get_writer(Writer, fast_writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This
     routine is for internal (package) use only and is useful because it depends
     only on the "core" module. """
+
+    from .fastbasic import FastBasic
+
+    if issubclass(Writer, FastBasic): # Fast writers handle args separately
+        return Writer(**kwargs)
+    elif fast_writer and 'fast_{0}'.format(Writer._format_name) in FAST_CLASSES:
+        # Switch to fast writer
+        kwargs['fast_writer'] = fast_writer
+        return FAST_CLASSES['fast_{0}'.format(Writer._format_name)](**kwargs)
 
     writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
     writer = Writer(**writer_kwargs)
