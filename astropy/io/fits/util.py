@@ -599,24 +599,31 @@ def _array_from_file(infile, dtype, count, sep):
         return np.fromstring(s, dtype=dtype, count=count, sep=sep)
 
 
+_OSX_WRITE_LIMIT = (2 ** 32) - 1
+_WIN_WRITE_LIMIT = (2 ** 31) - 1
+
 def _array_to_file(arr, outfile):
-    """Write a numpy array to a file or a file-like object."""
+    """
+    Write a numpy array to a file or a file-like object.
+
+    Parameters
+    ----------
+    arr : `~numpy.ndarray`
+        The Numpy array to write.
+    outfile : file-like
+        A file-like object such as a Python file object, an `io.BytesIO`, or
+        anything else with a ``write`` method.  The file object must support
+        the buffer interface in its ``write``.
+
+    If writing directly to an on-disk file this delegates directly to
+    `ndarray.tofile`.  Otherwise a slower Python implementation is used.
+    """
+
 
     if isfile(outfile):
-        def write(a, f):
-            a.tofile(f)
+        write = lambda a, f: a.tofile(f)
     else:
-        # treat as file-like object with "write" method and write the array
-        # via its buffer interface
-        def write(a, f):
-            # StringIO in some versions of Python ask 'if not s' before
-            # writing, which fails for Numpy arrays.  Test ahead of time that
-            # the array is non-empty, then pass in the array buffer directly
-            if isinstance(f, StringIO):
-                if len(a):
-                    f.write(a.data)
-            else:
-                f.write(a)
+        write = _array_to_file_like
 
     # Implements a workaround for a bug deep in OSX's stdlib file writing
     # functions; on 64-bit OSX it is not possible to correctly write a number
@@ -624,18 +631,56 @@ def _array_to_file(arr, outfile):
     # whatever the default blocksize for the filesystem is).
     # This issue should have a workaround in Numpy too, but hasn't been
     # implemented there yet: https://github.com/astropy/astropy/issues/839
-    osx_write_limit = (2 ** 32) - 1
+    #
+    # Apparently Windows has its own fwrite bug:
+    # https://github.com/numpy/numpy/issues/2256
 
-    if (sys.platform == 'darwin' and arr.nbytes >= osx_write_limit + 1 and
+    if (sys.platform == 'darwin' and arr.nbytes >= _OSX_WRITE_LIMIT + 1 and
             arr.nbytes % 4096 == 0):
-        idx = 0
         # chunksize is a count of elements in the array, not bytes
-        chunksize = osx_write_limit // arr.itemsize
-        while idx < arr.nbytes:
-            write(arr[idx:idx + chunksize], outfile)
-            idx += chunksize
+        chunksize = _OSX_WRITE_LIMIT
+    elif sys.platform.startswith('win'):
+        chunksize = _WIN_WRITE_LIMIT
     else:
-        write(arr, outfile)
+        # Just pass the whole array to the write routine
+        return write(arr, outfile)
+
+    # Write one chunk at a time for systems whose fwrite chokes on large
+    # writes.
+    idx = 0
+    arr = arr.flatten()
+    while idx < arr.nbytes:
+        write(arr[idx:idx + chunksize], outfile)
+        idx += chunksize
+
+
+def _array_to_file_like(arr, fileobj):
+    """
+    Write a `~numpy.ndarray` to a file-like object (which is not supported by
+    `numpy.ndarray.tofile`).
+    """
+
+    if arr.flags.contiguous:
+        # It sufficies to just pass the underlying buffer directly to the
+        # fileobj's write (assuming it supports the buffer interface, which
+        # unforunately there's no simple way to check)
+        fileobj.write(arr.data)
+    elif hasattr(np, 'nditer'):
+        # nditer version for non-contiguous arrays
+        for item in np.nditer(arr):
+            fileobj.write(item.tostring())
+    else:
+        # Slower version for Numpy versions without nditer;
+        # The problem with flatiter is it doesn't preserve the original
+        # byteorder
+        byteorder = arr.dtype.byteorder
+        if ((sys.byteorder == 'little' and byteorder == '>')
+                or (sys.byteorder == 'big' and byteorder == '<')):
+            for item in arr.flat:
+                fileobj.write(item.byteswap().tostring())
+        else:
+            for item in arr.flat:
+                fileobj.write(item.tostring())
 
 
 def _write_string(f, s):

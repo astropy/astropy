@@ -253,6 +253,12 @@ Bug Fixes
   - Fixed crash when reading gzip-compressed FITS tables through the Astropy
     ``Table`` interface. [#2783]
 
+  - Fixed corruption when writing new FITS files through to gzipped files.
+    [#2794]
+
+  - Fixed crash when writing HDUs made with non-contiguous data arrays to
+    file-like objects. [#2794]
+
   - It is now possible to create ``astropy.io.fits.BinTableHDU``
     objects with a table with zero rows. [#2916]
 
