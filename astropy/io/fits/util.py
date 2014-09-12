@@ -638,9 +638,9 @@ def _array_to_file(arr, outfile):
     if (sys.platform == 'darwin' and arr.nbytes >= _OSX_WRITE_LIMIT + 1 and
             arr.nbytes % 4096 == 0):
         # chunksize is a count of elements in the array, not bytes
-        chunksize = _OSX_WRITE_LIMIT
+        chunksize = _OSX_WRITE_LIMIT // arr.itemsize
     elif sys.platform.startswith('win'):
-        chunksize = _WIN_WRITE_LIMIT
+        chunksize = _WIN_WRITE_LIMIT // arr.itemsize
     else:
         # Just pass the whole array to the write routine
         return write(arr, outfile)
