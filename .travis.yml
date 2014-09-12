@@ -9,7 +9,7 @@ python:
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - NUMPY_VERSION=1.8
+        - NUMPY_VERSION=1.9
         - OPTIONAL_DEPS=false
         - MAIN_CMD='python setup.py'
     matrix:
@@ -49,6 +49,8 @@ matrix:
           env: SETUP_CMD='test'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
         # Try older numpy versions
+        - python: 2.7
+          env: NUMPY_VERSION=1.8 SETUP_CMD='test'
         - python: 2.7
           env: NUMPY_VERSION=1.7 SETUP_CMD='test'
         - python: 2.7
