@@ -127,6 +127,7 @@ Parameters for ``read()``
 **header_Splitter**: Splitter class to split header columns
 
 **fast_reader**: whether to use the C engine, can also be a dict with options
+  with options which default to False
   (see :ref:`fast_ascii_io`)
 
 **Reader** : Reader class (*deprecated* in favor of ``format``)

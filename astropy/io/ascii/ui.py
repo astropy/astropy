@@ -109,7 +109,7 @@ def read(table, guess=None, **kwargs):
     :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
-    :param fast_reader: whether to use the C engine, can also be a dict with options (default=True)
+    :param fast_reader: whether to use the C engine, can also be a dict with options which default to False (default=True)
     :param Reader: Reader class (DEPRECATED) (default=``ascii.Basic``)
     """
 

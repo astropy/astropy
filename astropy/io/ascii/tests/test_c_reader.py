@@ -65,12 +65,12 @@ def _read(table, Reader, format, fail_parallel=False, **kwargs):
         f.write(table.encode('ascii'))
         f.flush()
         t7 = ascii.read(f.name, format=format, guess=False, **kwargs)
-        if not fail_parallel:
+        if not fail_parallel and not TRAVIS:
             t8 = ascii.read(f.name, format=format, guess=False, fast_reader={
                 'parallel': True}, **kwargs)
 
     assert_table_equal(t1, t7)
-    if not fail_parallel:
+    if not fail_parallel and not TRAVIS:
         assert_table_equal(t1, t8)
     return t1
 

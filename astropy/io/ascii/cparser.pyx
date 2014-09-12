@@ -203,6 +203,7 @@ cdef class CParser:
             fast_reader = {}
         elif fast_reader is False: # shouldn't happen
             raise core.ParameterError("fast_reader cannot be False for fast readers")
+        # parallel and use_fast_reader are False by default
         use_fast_converter = fast_reader.pop('use_fast_converter', False)
         parallel = fast_reader.pop('parallel', False)
         if fast_reader:
