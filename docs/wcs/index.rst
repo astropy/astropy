@@ -71,9 +71,9 @@ The basic workflow is as follows:
 
 For example, to convert pixel coordinates to world coordinates::
 
-    >>> from astropy import wcs
-    >>> WCS = wcs.WCS('image.fits')
-    >>> lon, lat = WCS.all_pix2world(30, 40, 0)
+    >>> from astropy.wcs import WCS
+    >>> w = WCS('image.fits')
+    >>> lon, lat = w.all_pix2world(30, 40, 0)
     >>> print(lon, lat)
 
 
