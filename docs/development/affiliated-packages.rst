@@ -5,7 +5,11 @@ How to create and maintain an Astropy affiliated package
 If you run into any problems, don't hesitate to ask for help on the
 astropy-dev mailing list!
 
-This package provides a template for packages that are affiliated with the
+Starting a new package
+======================
+
+The `package-template <https://github.com/astropy/package-template>`_
+repository provides a template for packages that are affiliated with the
 `Astropy`_ project. This package design mirrors the layout of the main
 `Astropy`_ repository, as well as reusing much of the helper code used to
 organize `Astropy`_.  The instructions below describe how to take this
@@ -205,6 +209,97 @@ will be clear from context what to do with your particular VCS.
   doing this will be provided on the `Astropy`_ website.
 
 * Good luck with your code and your science!
+
+Releasing an affiliated package
+===============================
+
+You can release an affiliated package using the steps given below. In these
+instructions, we assume that the changelog file is named ``CHANGES.rst``, like
+for the astropy core package. If instead you use Markdown, then you should
+replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
+
+1. Make sure that Travis and any other continuous integration is passing.
+
+2. Update the ``CHANGES.rst`` file to make sure that all the changes are listed,
+   and update the release date, which should currently be set to
+   ``unreleased``, to the current date in ``yyyy-mm-dd`` format.
+
+3. Update the version number in ``setup.py`` to the version you're about to
+   release, without the ``.dev`` suffix (e.g. ``v0.1``).
+
+4. Run ``git clean -fxd`` to remove any untracked files (WARNING: this will
+   permanently remove any files that have not been previously committed, so
+   make sure that you don't need to keep any of these files).
+
+5. Run::
+
+        python setup.py sdist --format=gztar
+
+   and make sure that generated file is good to
+   go by going inside ``dist``, expanding the tar file, going inside the
+   expanded directory, and running the tests with::
+
+        python setup.py test
+
+   You may need to add the ``--remote-data`` flag or any other flags that you
+   normally add when fully testing your affiliated package.
+
+6. Go back to the root of the directory and remove the generated files with::
+
+        git clean -fxd
+
+7. Add the changes to ``CHANGES.rst`` and ``setup.py``::
+
+        git add CHANGES.rst setup.py
+
+   and commit with message::
+
+        git commit -m "Preparing release <version>"
+
+8. Tag commit with ``v<version>``, optionally signing with the ``-s`` option::
+
+        git tag v<version>
+
+9. Change ``VERSION`` in ``setup.py`` to next version number, but with a
+   ``.dev`` suffix at the end (e.g. ``v0.2.dev``). Add a new section to
+   ``CHANGES.rst`` for next version, with a single entry ``No changes yet``, e.g.::
+   
+       0.2 (unreleased)
+       ----------------
+   
+       - No changes yet
+
+10. Add the changes to ``CHANGES.rst`` and ``setup.py``::
+
+        git add CHANGES.rst setup.py
+
+    and commit with message::
+
+        git commit -m "Back to development: <next_version>"
+
+11. Check out the release commit with ``git checkout v<version>``. Run ``git
+    clean -fxd`` to remove any non-committed files, then either release with::
+
+        python setup.py register sdist --format=gztar upload
+
+    or, if you are concerned about security, you can also use ``twine`` as described
+    in `these <https://packaging.python.org/en/latest/tutorial.html#uploading-your-project-to-pypi>`_
+    instructions. Either way, check that the entry on PyPI is correct, and that
+    the tarfile is present.
+
+12. Go back to the master branch and push your changes to github::
+
+        git checkout master
+        git push --tags origin master
+
+    Once you have done this, if you use readthedocs, trigger a ``latest`` build
+    then go to the project settings, and under **Versions** you should see the
+    tag you just pushed. Select the tag to activate it, and save.
+
+.. note:: The instructions above assume that you do not make use of bug fix
+          branches in your workflow. If you do wish to create a bug fix branch,
+          we recommend that you read over the more complete astropy
+          :doc:`releasing` and adapt these for your package.
 
 .. _git: http://git-scm.com/
 .. _github: http://github.com
