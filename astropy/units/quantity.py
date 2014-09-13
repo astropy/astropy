@@ -13,6 +13,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numbers
 
 import numpy as np
+NUMPY_LT_1P9 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 9]
 
 # AstroPy
 from ..extern import six
@@ -695,6 +696,34 @@ class Quantity(np.ndarray):
                     self.__class__.__name__, attr))
         else:
             return value
+
+    if not NUMPY_LT_1P9:
+        # Equality (return False if units do not match) needs to be handled
+        # explicitly for numpy >=1.9, since it no longer traps errors.
+        def __eq__(self, other):
+            try:
+                try:
+                    return super(Quantity, self).__eq__(other)
+                except DeprecationWarning:
+                    # We treat the DeprecationWarning separately, since it may
+                    # mask another Exception.  But we do not want to just use
+                    # np.equal, since super's __eq__ treats recarrays correctly.
+                    return np.equal(self, other)
+            except UnitsError:
+                return False
+            except TypeError:
+                return NotImplemented
+
+        def __ne__(self, other):
+            try:
+                try:
+                    return super(Quantity, self).__ne__(other)
+                except DeprecationWarning:
+                    return np.not_equal(self, other)
+            except UnitsError:
+                return True
+            except TypeError:
+                return NotImplemented
 
     # Arithmetic operations
     def __mul__(self, other):
