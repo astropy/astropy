@@ -167,6 +167,35 @@ will be clear from context what to do with your particular VCS.
     # Push to upstream master
     git push upstream master
 
+* (optional) If you are working from an existing code base, and you 
+  want to preserve your code's own git history, navigate to your 
+  code's working directory and create a subdirectory called yourpkg. 
+  Then move the .py files containing your code's functionality 
+  into this new subdirectory 
+
+    git mv my_code.py yourpkg
+
+  If present in your code base, do not move supplementary files such as a .travis, 
+  .gitignore, setup.py, etc. These files are already present in the astropy 
+  package-template, and so including them in the repo you are merging with the 
+  package-template will cause merge conflicts. Instead, copy their contents 
+  somewhere for safekeeping, and then git remove them:
+
+    git rm .travis (if present in your existing code base)
+    git rm setup.py (if present in your existing code base)
+    git rm .gitignore (if present in your existing code base)
+
+  Now navigate to package-template/yourpkg, and create a remote tracking branch 
+  called `old_yourpkg`; this remote should point to the (newly modified) directory 
+  containing your old code. To merge your existing repo with the package-template:
+
+    git merge old_yourpkg/master 
+
+  You may need to resolve a few minor conflicts if there happened to be files in old_yourpkg 
+  with the same filenames as the package-template, but otherwise this merge will 
+  have minimal conflicts since the code differences have been isolated to 
+  the yourpkg subdirectory.
+
 * You should register your package on https://travis-ci.org and modify the
   ``.travis.yml`` file to make the build pass. This will continuously test
   your package for each commit, even pull requests against your main repository
