@@ -75,6 +75,7 @@ Other Changes and Additions
   printed when a format was specified, the column format string options were
   expanded to allow simple specifiers such as ``'5.2f'``. [#2898]
 
+- Ensure numpy 1.9 is supported. [#2917]
 
 0.4.1 (2014-08-08)
 ------------------
