@@ -172,13 +172,15 @@ through `Wcsprm.cunit <astropy.wcs.Wcsprm.cunit>`), for example,
 Subsetting and Pixel Scales
 ===========================
 
-WCS objects can be broken apart into their constituent axes using the `wcs.sub`
-function.  There is also a `wcs.celestial` convenience function that will
-return a WCS object with only the celestial axes included.
+WCS objects can be broken apart into their constituent axes using the
+`~astropy.wcs.WCS.sub` function.  There is also a `~astropy.wcs.WCS.celestial`
+convenience function that will return a WCS object with only the celestial axes
+included.
 
 The pixel scale of a celestial image or the pixel dimensions of a non-celestial
 image can be extracted with the utility functions
-`wcs.utils.celestial_pixel_scale` and `wcs.utils.non_celestial_pixel_scales`.
+`~astropy.wcs.utils.celestial_pixel_scale` and
+`~astropy.wcs.utils.non_celestial_pixel_scales`.
 
 Other information
 =================
