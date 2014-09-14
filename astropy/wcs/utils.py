@@ -161,10 +161,10 @@ def celestial_pixel_scale(inwcs, allow_nonsquare=False):
 
     Raises
     ------
-    ValueError if the pixels are asymmetric and ``allow_nonsquare==False``
+    ValueError if the pixels are nonsquare and ``allow_nonsquare==False``
     """
     cwcs = inwcs.celestial
-    if 'CAR' != cwcs.wcs.ctype[0][-3:]:
+    if cwcs.wcs.ctype[0][-3:] != 'CAR':
         warnings.warn("Pixel sizes may very over the image for "
                       "projection class {0}".format(cwcs.wcs.ctype[0][-3:]),
                       AstropyUserWarning)
@@ -174,7 +174,7 @@ def celestial_pixel_scale(inwcs, allow_nonsquare=False):
             warnings.warn("Pixels are not square, using an average pixel scale")
             return np.mean(scale)*u.deg
         else:
-            raise ValueError("Pixels are not symmetric: 'pixel scale' is ambiguous")
+            raise ValueError("Pixels are not square: 'pixel scale' is ambiguous")
     # Return a quantity: WCS always stores in degrees
     return scale[0]*u.deg
 
@@ -200,7 +200,7 @@ def non_celestial_pixel_scales(inwcs):
 
     pccd = inwcs.pixel_scale_matrix
 
-    if np.allclose(pccd[1,0], 0) and np.allclose(pccd[0,1], 0):
+    if np.allclose(np.extract(1-np.eye(*pccd.shape), pccd), 0):
         return np.abs(np.diagonal(pccd))*u.deg
     else:
         raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
