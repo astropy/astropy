@@ -300,28 +300,18 @@ def test_pixscale_pc_rotated(angle):
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
     assert_almost_equal(celestial_pixel_scale(mywcs), 0.1*u.deg)
 
-@pytest.mark.parametrize(('cd','pc','pccd'),
+@pytest.mark.parametrize(('cdelt','pc','pccd'),
                          (([0.1,0.2], np.eye(2), np.diag([0.1,0.2])),
                           ([0.1,0.2,0.3], np.eye(3), np.diag([0.1,0.2,0.3])),
                           ([1,1,1], np.diag([0.1,0.2,0.3]), np.diag([0.1,0.2,0.3])),
                          ))
-def test_pixel_scale_matrix(cd, pc, pccd):
+def test_pixel_scale_matrix(cdelt, pc, pccd):
 
-    mywcs = WCS(naxis=(len(cd)))
-    mywcs.wcs.cd = cd
+    mywcs = WCS(naxis=(len(cdelt)))
+    mywcs.wcs.cdelt = cdelt
     mywcs.wcs.pc = pc
 
     assert_almost_equal(mywcs.pixel_scale_matrix, pccd)
-
-
-def test_noncelestial_scale():
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.cd = [[-0.2,0],[0,0.1]]
-    mywcs.wcs.ctype = ['RA---TAN','FREQ']
-
-    ps = non_celestial_pixel_scales(mywcs)
-
-    assert_almost_equal(ps, [0.2,0.1])
 
 @pytest.mark.parametrize(('ctype', 'cel'), 
                          ((['RA---TAN','DEC--TAN'], True),
@@ -342,3 +332,24 @@ def test_has_celestial(ctype, cel):
     mywcs.wcs.ctype = ctype
 
     assert mywcs.has_celestial == cel
+
+@pytest.mark.parametrize(('cdelt','pc','cd'),
+                         ((np.array([0.1,0.2]), np.eye(2), np.eye(2)),
+                          (np.array([1,1]), np.diag([0.1,0.2]), np.eye(2)),
+                          (np.array([0.1,0.2]), np.eye(2), None),
+                          (np.array([0.1,0.2]), None, np.eye(2)),
+                          )
+                        )
+def test_noncelestial_scale(cdelt, pc, cd):
+    mywcs = WCS(naxis=2)
+    if cd is not None:
+        mywcs.wcs.cd = cd
+    if pc is not None:
+        mywcs.wcs.pc = pc
+    mywcs.wcs.cdelt = cdelt
+
+    mywcs.wcs.ctype = ['RA---TAN','FREQ']
+
+    ps = non_celestial_pixel_scales(mywcs)
+
+    assert_almost_equal(ps, [0.1,0.2]*u.deg)

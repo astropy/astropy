@@ -2732,14 +2732,29 @@ naxis kwarg.
 
     @property
     def has_celestial(self):
-        return self.celestial.naxis == 2
+        try:
+            return self.celestial.naxis == 2
+        except InconsistentAxisTypesError:
+            return False
 
     @property
     def pixel_scale_matrix(self):
 
-        cdelt = np.matrix(np.diag(self.wcs.get_cdelt()))
+        try:
+            cdelt = np.matrix(np.diag(self.wcs.get_cdelt()))
+            pc = np.matrix(self.wcs.get_pc())
+        except InconsistentAxisTypesError:
+            try:
+                # for non-celestial axes, get_cdelt doesnt work
+                cdelt = np.matrix(self.wcs.cd) * np.matrix(np.diag(self.wcs.cdelt))
+            except AttributeError:
+                cdelt = np.matrix(np.diag(self.wcs.cdelt))
 
-        pc = np.matrix(self.wcs.get_pc())
+            try:
+                pc = np.matrix(self.wcs.pc)
+            except AttributeError:
+                pc = 1
+
         pccd = np.array(cdelt * pc)
 
         return pccd
