@@ -2727,6 +2727,14 @@ naxis kwarg.
         return self.sub([WCSSUB_CELESTIAL])
 
     @property
+    def is_celestial(self):
+        return self.has_celestial and self.naxis==2
+
+    @property
+    def has_celestial(self):
+        return wcs.celestial.naxis == 2
+
+    @property
     def pixel_scale_matrix(self):
         cwcs = self.celestial.wcs
         cdelt = np.matrix([[cwcs.get_cdelt()[0],0],

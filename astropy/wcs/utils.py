@@ -141,7 +141,7 @@ def wcs_to_celestial_frame(wcs):
                      "the specified WCS object")
 
 
-def celestial_scale(inwcs):
+def celestial_pixel_scale(inwcs, allow_nonsquare=False):
     """
     For a WCS, if the pixels are square, return the pixel scale in the spatial
     dimensions
@@ -150,6 +150,8 @@ def celestial_scale(inwcs):
     ----------
     inwcs: `astropy.wcs.WCS`
         The world coordinate system object
+    allow_nonsquare : bool
+        Return the average of the X and Y scales if True
 
     Returns
     -------
@@ -158,7 +160,7 @@ def celestial_scale(inwcs):
 
     Raises
     ------
-    ValueError if the pixels are asymmetric
+    ValueError if the pixels are asymmetric and ``allow_nonsquare==False``
     """
     cwcs = inwcs.celestial.wcs
     if 'CAR' != cwcs.ctype[0][-3:]:
@@ -167,6 +169,37 @@ def celestial_scale(inwcs):
                       AstropyUserWarning)
     scale = (cwcs.pixel_scale_matrix**2).sum(axis=0)**0.5
     if not np.allclose(scale[0],scale[1]):
-        raise ValueError("Pixels are not symmetric: 'pixel scale' is ambiguous")
+        if allow_nonsquare:
+            warnings.warn("Pixels are not square, using an average pixel scale")
+            return np.mean(scale)
+        else:
+            raise ValueError("Pixels are not symmetric: 'pixel scale' is ambiguous")
     # Return a quantity: WCS always stores in degrees
     return scale[0]*u.deg
+
+
+def non_celestial_pixel_scales(inwcs):
+    """
+    For a non-celestial WCS, e.g. one with mixed spectral and spatial axes, it
+    is still sometimes possible to define a pixel scale.
+
+    Parameters
+    ----------
+    inwcs: `astropy.wcs.WCS`
+        The world coordinate system object
+
+    Returns
+    -------
+    scale : `numpy.ndarray`
+        The pixel scale along each axis
+    """
+
+    if inwcs.is_celestial:
+        raise ValueError("WCS is celestial, use celestial_pixel_scale instead")
+
+    pccd = wcs.pixel_scale_matrix
+
+    if np.allclose(pccd[1,0], 0) and np.allclose(pccd[0,1], 0):
+        return np.abs(np.diagonal(pccd))
+    else:
+        raise ValueError("WCS is rotated, cannot determine consistent pixel scales")

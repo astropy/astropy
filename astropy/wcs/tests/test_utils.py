@@ -298,3 +298,23 @@ def test_pixscale_pc_rotated(angle):
                     [np.sin(rho), np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
     assert_almost_equal(celestial_scale(mywcs), 0.1)
+
+@pytest.mark.parametrize(('ctype', 'cel'), 
+                         ((['RA---TAN','DEC--TAN'], True),
+                          (['RA---TAN','DEC--TAN','FREQ'], False),
+                          (['RA---TAN','FREQ'], False),))
+def test_is_celestial(ctype, cel):
+    mywcs = WCS(naxis=len(ctype))
+    mywcs.wcs.ctype = ctype
+
+    assert mywcs.is_celestial == cel
+
+@pytest.mark.parametrize(('ctype', 'cel'), 
+                         ((['RA---TAN','DEC--TAN'], True),
+                          (['RA---TAN','DEC--TAN','FREQ'], True),
+                          (['RA---TAN','FREQ'], False),))
+def test_has_celestial(ctype, cel):
+    mywcs = WCS(naxis=len(ctype))
+    mywcs.wcs.ctype = ctype
+
+    assert mywcs.has_celestial == cel
