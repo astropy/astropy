@@ -313,7 +313,7 @@ def test_pixel_scale_matrix(cdelt, pc, pccd):
 
     assert_almost_equal(mywcs.pixel_scale_matrix, pccd)
 
-@pytest.mark.parametrize(('ctype', 'cel'), 
+@pytest.mark.parametrize(('ctype', 'cel'),
                          ((['RA---TAN','DEC--TAN'], True),
                           (['RA---TAN','DEC--TAN','FREQ'], False),
                           (['RA---TAN','FREQ'], False),))
@@ -323,7 +323,7 @@ def test_is_celestial(ctype, cel):
 
     assert mywcs.is_celestial == cel
 
-@pytest.mark.parametrize(('ctype', 'cel'), 
+@pytest.mark.parametrize(('ctype', 'cel'),
                          ((['RA---TAN','DEC--TAN'], True),
                           (['RA---TAN','DEC--TAN','FREQ'], True),
                           (['RA---TAN','FREQ'], False),))
