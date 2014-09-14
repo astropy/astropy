@@ -275,7 +275,7 @@ def test_pixscale_asymmetric():
 
     with pytest.raises(ValueError) as exc:
         celestial_pixel_scale(mywcs)
-    assert exc.value.args[0] == "Pixels are not symmetric: 'pixel scale' is ambiguous"
+    assert exc.value.args[0] == "Pixels are not square: 'pixel scale' is ambiguous"
 
 @pytest.mark.parametrize('angle',
                          (30,45,60,75))
