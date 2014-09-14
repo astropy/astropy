@@ -203,6 +203,7 @@ Reference/API
 
 .. automodapi:: astropy.wcs
 
+.. automodapi:: astropy.wcs.utils
 
 Acknowledgments and Licenses
 ============================
