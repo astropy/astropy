@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 import warnings
+from .. import units as u
 from ..utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ['wcs_to_celestial_frame']
@@ -171,11 +172,11 @@ def celestial_pixel_scale(inwcs, allow_nonsquare=False):
     if not np.allclose(scale[0],scale[1]):
         if allow_nonsquare:
             warnings.warn("Pixels are not square, using an average pixel scale")
-            return np.mean(scale)
+            return np.mean(scale)*u.deg
         else:
             raise ValueError("Pixels are not symmetric: 'pixel scale' is ambiguous")
     # Return a quantity: WCS always stores in degrees
-    return scale[0]
+    return scale[0]*u.deg
 
 
 def non_celestial_pixel_scales(inwcs):
@@ -200,6 +201,6 @@ def non_celestial_pixel_scales(inwcs):
     pccd = inwcs.pixel_scale_matrix
 
     if np.allclose(pccd[1,0], 0) and np.allclose(pccd[0,1], 0):
-        return np.abs(np.diagonal(pccd))
+        return np.abs(np.diagonal(pccd))*u.deg
     else:
         raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
