@@ -10,6 +10,7 @@ from numpy.testing.utils import assert_allclose
 from ... import units as u
 from ...tests.helper import raises
 from ...extern.six.moves import zip
+from ...utils.compat import NUMPY_LT_1_13
 
 
 class TestUfuncCoverage(object):
@@ -17,6 +18,10 @@ class TestUfuncCoverage(object):
     def test_coverage(self):
         all_np_ufuncs = set([ufunc for ufunc in np.core.umath.__dict__.values()
                              if type(ufunc) == np.ufunc])
+
+        # in numpy >=1.10, with __numpy_ufunc__, np.dot behaves like a ufunc.
+        if not NUMPY_LT_1_13:
+            all_np_ufuncs |= set([np.dot])
 
         from .. import quantity_helper as qh
 
@@ -658,9 +663,17 @@ class TestInplaceUfuncs(object):
         np.modf(v3, v3, tmp)
         assert check3 is v3
         assert check3.unit == u.dimensionless_unscaled
-        # but cannot replace input with first output if scaling is needed
-        with pytest.raises(TypeError):
-            np.modf(v_copy, v_copy, tmp)
+        # in np<1.12, without __numpy_ufunc__, one cannot replace input with
+        # first output when scaling
+        v4 = v_copy.copy()
+        if NUMPY_LT_1_13:
+            with pytest.raises(TypeError):
+                np.modf(v4, v4, tmp)
+        else:
+            check4 = v4
+            np.modf(v4, v4, tmp)
+            assert check4 is v4
+            assert check4.unit == u.dimensionless_unscaled
 
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_ufunc_inplace_1(self, value):
