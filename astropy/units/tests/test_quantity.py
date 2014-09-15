@@ -16,9 +16,9 @@ import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
 
-
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
+from ...utils.compat import NUMPY_LT_1_10
 from ...utils.compat.numpy import matmul
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
@@ -571,7 +571,7 @@ class TestQuantityOperations(object):
             assert long(q3) == 1
 
         with pytest.raises(TypeError) as exc:
-            q1.__index__()
+            q3.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # integer dimensionless unscaled is good for all
@@ -602,6 +602,15 @@ class TestQuantityOperations(object):
         with pytest.raises(TypeError) as exc:
             q5.__index__()
         assert exc.value.args[0] == index_err_msg
+
+    # Fails for numpy >=1.10; see https://github.com/numpy/numpy/issues/5074
+    # It seems unlikely this will be resolved, so xfail'ing it.
+    @pytest.mark.xfail(not NUMPY_LT_1_10,
+                       reason="list multiplication only works for numpy <=1.10")
+    def test_numeric_converter_to_index_in_practice(self):
+        """Test that use of __index__ actually works."""
+        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
+        assert q4 * ['a', 'b', 'c'] == ['a', 'b', 'c', 'a', 'b', 'c']
 
     def test_array_converters(self):
 
