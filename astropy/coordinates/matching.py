@@ -60,39 +60,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_
     This function requires `SciPy <http://www.scipy.org>`_ to be installed
     or it will fail.
     """
-    from warnings import warn
-
-    #without scipy this will immediately fail
-    from scipy import spatial
-    try:
-        KDTree = spatial.cKDTree
-    except:
-        warn('C-base KD tree not found, falling back on (much slower) '
-             'python implementation')
-        KDTree = spatial.KDTree
-
-    if storekdtree is True:  # backwards compatibility for pre v0.4
-        storekdtree = '_kdtree'
-
-    # figure out where any cached KDTree might be
-    if isinstance(storekdtree, six.string_types):
-        kdt = getattr(catalogcoord, storekdtree, None)
-        if kdt is not None and not isinstance(kdt, KDTree):
-            raise ValueError('Invalid `storekdtree` string:' + storekdtree)
-    elif isinstance(storekdtree, KDTree):
-        kdt = storekdtree
-        storekdtree = None
-    elif not storekdtree:
-        kdt = None
-    else:
-        raise ValueError('Invalid `storekdtree` argument:' +
-                          str(storekdtree))
-
-    if kdt is None:
-        #need to build the cartesian KD-tree for the catalog
-        cartxyz = catalogcoord.cartesian.xyz
-        flatxyz = cartxyz.reshape((3, np.prod(cartxyz.shape) // 3))
-        kdt = KDTree(flatxyz.value.T)
+    kdt = _get_cartesian_kdtree(catalogcoord, storekdtree)
 
     #make sure coordinate systems match
     matchcoord = matchcoord.transform_to(catalogcoord)
@@ -107,10 +75,6 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_
     if nthneighbor > 1:  # query gives 1D arrays if k=1, 2D arrays otherwise
         dist = dist[:, -1]
         idx = idx[:, -1]
-
-    if storekdtree:
-        #cache the kdtree in `catalogcoord`
-        setattr(catalogcoord, storekdtree, kdt)
 
     sep2d = catalogcoord[idx].separation(matchcoord)
     return idx.reshape(matchxyz.shape[1:]), sep2d, dist.reshape(matchxyz.shape[1:]) * catunit
@@ -175,6 +139,12 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
     cat_urepr = catalogcoord.data.represent_as(UnitSphericalRepresentation)
     newcat_u = catalogcoord.realize_frame(cat_urepr)
 
+    if isinstance(storekdtree, six.string_types) and hasattr(catalogcoord, storekdtree):
+        # Check for a stored KD-tree on the passed-in coordinate.  Normally it
+        # will have a distinct name from the "3D" one, so it's safe to use even
+        # though it's based on UnitSphericalRepresentation.
+        storekdtree = getattr(catalogcoord, storekdtree)
+
     idx, sep2d, sep3d = match_coordinates_3d(newmatch_u, newcat_u, nthneighbor, storekdtree)
     # sep3d is *wrong* above, because the distance information was removed,
     # unless one of the catalogs doesn't have a real distance
@@ -187,3 +157,66 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
         setattr(catalogcoord, storekdtree, getattr(newcat_u, storekdtree))
 
     return idx, sep2d, sep3d
+
+
+def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree'):
+    """
+    This is a utility function to retreive (and build/chache, if necessary)
+    a 3D cartesian KD-Tree from various sorts of astropy coordinate objects.
+
+    Parameters
+    ----------
+    coord : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
+        The coordinates to build the KD-Tree for.
+    attrname_or_kdt : bool or str or KDTree
+        If a string, will store the KD-Tree used for the computation
+        in the ``coord``, as an attrbute in ``coord`` with the
+        provided name. If given as a KD-Tree, it will just be used directly.
+
+    Returns
+    -------
+    kdt : `~scipy.spatial.cKDTree` or `~scipy.spatial.KDTree`
+        The KD-Tree representing the 3D cartesian representation of the input
+        coordinates.
+    """
+
+    from warnings import warn
+
+    #without scipy this will immediately fail
+    from scipy import spatial
+    try:
+        KDTree = spatial.cKDTree
+    except:
+        warn('C-based KD tree not found, falling back on (much slower) '
+             'python implementation')
+        KDTree = spatial.KDTree
+
+    if attrname_or_kdt is True:  # backwards compatibility for pre v0.4
+        attrname_or_kdt = '_kdtree'
+
+    # figure out where any cached KDTree might be
+    if isinstance(attrname_or_kdt, six.string_types):
+        kdt = getattr(catalogcoord, attrname_or_kdt, None)
+        if kdt is not None and not isinstance(kdt, KDTree):
+            raise ValueError('The `attrname_or_kdt` "{0}" is not a scipy KD tree!'.format(attrname_or_kdt))
+    elif isinstance(attrname_or_kdt, KDTree):
+        kdt = attrname_or_kdt
+        attrname_or_kdt = None
+    elif not attrname_or_kdt:
+        kdt = None
+    else:
+        raise ValueError('Invalid `attrname_or_kdt` argument for KD-Tree:' +
+                          str(attrname_or_kdt))
+
+    if kdt is None:
+        #need to build the cartesian KD-tree for the catalog
+        cartxyz = catalogcoord.cartesian.xyz
+        flatxyz = cartxyz.reshape((3, np.prod(cartxyz.shape) // 3))
+        kdt = KDTree(flatxyz.value.T)
+
+    if attrname_or_kdt:
+        #cache the kdtree in `catalogcoord`
+        setattr(catalogcoord, attrname_or_kdt, kdt)
+
+    return kdt
+
