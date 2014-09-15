@@ -89,7 +89,7 @@ void resize_col(tokenizer_t *self, int index)
   end of the column string, incrementing the column position pointer.
 */
 
-inline void push(tokenizer_t *self, char c, int col)
+static inline void push(tokenizer_t *self, char c, int col)
 {
     if (self->col_ptrs[col] - self->output_cols[col] >=
         self->output_len[col])
@@ -118,7 +118,7 @@ inline void push(tokenizer_t *self, char c, int col)
   Increment the variable col if we are tokenizing data.
 */
 
-inline void end_field(tokenizer_t *self, int *col, int header)
+static inline void end_field(tokenizer_t *self, int *col, int header)
 {
     if (self->strip_whitespace_fields)
     {
@@ -157,7 +157,7 @@ inline void end_field(tokenizer_t *self, int *col, int header)
   all the necessary rows have already been parsed.
 */
 
-inline int end_line(tokenizer_t *self, int col, int header, int end,
+static inline int end_line(tokenizer_t *self, int col, int header, int end,
                     tokenizer_state *old_state)
 {
     if (header)                                 
