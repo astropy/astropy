@@ -8,6 +8,8 @@ from ..utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ['wcs_to_celestial_frame']
 
+__all__ = ['add_stokes_axis_to_wcs', 'wcs_to_celestial_frame',
+           'celestial_pixel_scale', 'non_celestial_pixel_scales']
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
     """
