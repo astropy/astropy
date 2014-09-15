@@ -129,9 +129,10 @@ def wcs_to_celestial_frame(wcs):
     instance and should return either an instance of a frame, or `None` if no
     matching frame was found. You can register this function temporarily with::
 
-    >>> from astropy.wcs.utils import wcs_to_celestial_frame, custom_frame_mappings
-    >>> with custom_frame_mappings(my_function):
-    ...     wcs_to_celestial_frame(...)
+        >>> from astropy.wcs.utils import wcs_to_celestial_frame, custom_frame_mappings
+        >>> with custom_frame_mappings(my_function):
+        ...     wcs_to_celestial_frame(...)
+
     """
     for mapping_set in WCS_FRAME_MAPPINGS:
         for func in mapping_set:
