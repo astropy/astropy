@@ -110,15 +110,15 @@ def wcs_to_celestial_frame(wcs):
     For a given WCS, return the coordinate frame that matches the celestial
     component of the WCS.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     wcs : :class:`~astropy.wcs.WCS` instance
         The WCS to find the frame for
 
     Returns
     -------
-    frame : :class:`~astropy.coordinates.base_frame.BaseFrame` subclass instance
-        An instance of a :class:`~astropy.coordinates.base_frame.BaseFrame`
+    frame : :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass instance
+        An instance of a :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame`
         subclass instance that best matches the specified WCS.
 
     Notes
