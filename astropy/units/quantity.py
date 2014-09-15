@@ -625,10 +625,11 @@ class Quantity(np.ndarray):
         result = super(Quantity, self).__array_ufunc__(function, method,
                                                        *arrays, **kwargs)
         # If unit is None, a plain array is expected (e.g., comparisons and
-        # np.frexp), which means we're done. We're also done if the result was
+        # np.frexp), which means we're done.
+        # We're also done if the result was None (for method is 'at') or
         # NotImplemented, which can happen if other inputs/outputs override
         # __array_ufunc__; hopefully, they can then deal with us.
-        if unit is None or result is NotImplemented:
+        if unit is None or result is None or result is NotImplemented:
             return result
 
         return self._result_as_quantity(result, unit, outputs)
