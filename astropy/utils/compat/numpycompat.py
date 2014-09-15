@@ -10,7 +10,7 @@ from ...utils import minversion
 
 
 __all__ = ['NUMPY_LT_1_6_1', 'NUMPY_LT_1_7', 'NUMPY_LT_1_8', 'NUMPY_LT_1_9',
-           'NUMPY_LT_1_9_1']
+           'NUMPY_LT_1_9_1', 'NUMPY_LT_1_10']
 
 # TODO: It might also be nice to have aliases to these named for specific
 # features/bugs we're checking for (ex:
@@ -20,6 +20,7 @@ NUMPY_LT_1_7 = not minversion('numpy', '1.7.0')
 NUMPY_LT_1_8 = not minversion('numpy', '1.8.0')
 NUMPY_LT_1_9 = not minversion('numpy', '1.9.0')
 NUMPY_LT_1_9_1 = not minversion('numpy', '1.9.1')
+NUMPY_LT_1_10 = not minversion('numpy', '1.10.*')
 
 
 def _monkeypatch_unicode_mask_fill_values():

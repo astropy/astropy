@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.testing.utils import assert_allclose
+from ...utils.compat import NUMPY_LT_1_10
 
 from ... import units as u
 from ...tests.helper import pytest
@@ -23,3 +24,10 @@ class TestQuantityLinAlgFuncs(object):
         q2 = np.array([4, 5, 6]) / u.s
         o = np.inner(q1, q2)
         assert o == 32 * u.m / u.s
+
+    @pytest.mark.xfail("NUMPY_LT_1_10")
+    def test_dot(self):
+        q1 = np.array([1., 2., 3.]) * u.m
+        q2 = np.array([4., 5., 6.]) / u.s
+        o = np.dot(q1, q2)
+        assert o == 32. * u.m / u.s

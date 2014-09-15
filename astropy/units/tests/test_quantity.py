@@ -14,10 +14,9 @@ import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
 
-
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
-from ...utils.compat import NUMPY_LT_1_7
+from ...utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_10
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import xrange
@@ -467,7 +466,7 @@ class TestQuantityOperations(object):
             assert exc.value.args[0] == converter_err_msg
 
         with pytest.raises(TypeError) as exc:
-            q1 * ['a', 'b', 'c']
+            q1.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # dimensionless but scaled is OK, however
@@ -480,7 +479,7 @@ class TestQuantityOperations(object):
             assert long(q2) == long(q2.to(u.dimensionless_unscaled).value)
 
         with pytest.raises(TypeError) as exc:
-            q2 * ['a', 'b', 'c']
+            q2.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # dimensionless unscaled is OK, though for index needs to be int
@@ -492,7 +491,7 @@ class TestQuantityOperations(object):
             assert long(q3) == 1
 
         with pytest.raises(TypeError) as exc:
-            q1 * ['a', 'b', 'c']
+            q3.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # integer dimensionless unscaled is good for all
@@ -503,7 +502,7 @@ class TestQuantityOperations(object):
         if six.PY2:
             assert long(q4) == 2
 
-        assert q4 * ['a', 'b', 'c'] == ['a', 'b', 'c', 'a', 'b', 'c']
+        assert q4.__index__() == 2
 
         # but arrays are not OK
         q5 = u.Quantity([1, 2], u.m)
@@ -521,8 +520,16 @@ class TestQuantityOperations(object):
             assert exc.value.args[0] == converter_err_msg
 
         with pytest.raises(TypeError) as exc:
-            q5 * ['a', 'b', 'c']
+            q5.__index__()
         assert exc.value.args[0] == index_err_msg
+
+    # Fails for numpy >=1.10; see https://github.com/numpy/numpy/issues/5074
+    # It seems unlikely this will be resolved, so xfail'ing it.
+    @pytest.mark.xfail("not NUMPY_LT_1_10")
+    def test_numeric_converter_to_index_in_practice(self):
+        """Test that use of __index__ actually works."""
+        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
+        assert q4 * ['a', 'b', 'c'] == ['a', 'b', 'c', 'a', 'b', 'c']
 
     def test_array_converters(self):
 
