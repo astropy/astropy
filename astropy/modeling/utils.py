@@ -200,6 +200,32 @@ class ExpressionTree(object):
         return textwrap.dedent('\n'.join(stack[0][1]))
 
 
+def make_binary_operator_eval(oper, f, g):
+    """
+    Given a binary operator (as a callable of two arguments) ``oper`` and
+    two callables ``f`` and ``g`` which accept the same arguments,
+    returns a *new* function that takes the same arguments as ``f`` and ``g``,
+    but passes the outputs of ``f`` and ``g`` in the given ``oper``.
+
+    ``f`` and ``g`` are assumed to return tuples (which may be 1-tuples).  The
+    given operator is applied element-wise to tuple outputs).
+
+    Example
+    -------
+
+    >>> from operator import add
+    >>> def prod(x, y):
+    ...     return (x * y,)
+    ...
+    >>> sum_of_prod = make_binary_operator_eval(add, prod, prod)
+    >>> sum_of_prod(3, 5)
+    (30,)
+    """
+
+    return lambda *args: tuple(oper(x, y)
+                               for x, y in zip(f(*args), g(*args)))
+
+
 class IncompatibleShapeError(ValueError):
     def __init__(self, shape_a, shape_a_idx, shape_b, shape_b_idx):
         super(IncompatibleShapeError, self).__init__(
@@ -301,3 +327,21 @@ def array_repr_oneline(array):
 
     r = np.array2string(array, separator=',', suppress_small=True)
     return ' '.join(l.strip() for l in r.splitlines())
+
+
+def combine_labels(left, right):
+    """
+    For use with the join operator &: Combine left input/output labels with
+    right input/output labels.
+
+    If none of the labels conflict then this just returns a sum of tuples.
+    However if *any* of the labels conflict, this appends '0' to the left-hand
+    labels and '1' to the right-hand labels so there is no ambiguity).
+    """
+
+    if set(left).intersection(right):
+        left = tuple(l + '0' for l in left)
+        right = tuple(r + '1' for r in right)
+
+    return left + right
+

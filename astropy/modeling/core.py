@@ -35,7 +35,8 @@ from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
-from .utils import (array_repr_oneline, check_broadcast, ExpressionTree,
+from .utils import (array_repr_oneline, check_broadcast, combine_labels,
+                    make_binary_operator_eval, ExpressionTree,
                     IncompatibleShapeError)
 
 from .parameters import Parameter, InputParameterError
@@ -327,6 +328,9 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     def __or__(cls, other):
         return _make_compound_model(cls, other, '|')
 
+    def __and__(cls, other):
+        return _make_compound_model(cls, other, '&')
+
     # *** Other utilities ***
 
     def _format_cls_repr(cls, keywords=[]):
@@ -568,6 +572,9 @@ class Model(object):
 
     def __or__(self, other):
         return _make_compound_model(self, other, '|')
+
+    def __and__(self, other):
+        return _make_compound_model(self, other, '&')
 
     # *** Properties ***
     @property
@@ -1243,6 +1250,9 @@ def _make_compound_model(left, right, operator):
     if operator == '|':
         inputs = left.inputs
         outputs = right.outputs
+    elif operator == '&':
+        inputs = combine_labels(left.inputs, right.inputs)
+        outputs = combine_labels(left.outputs, right.outputs)
     else:
         # Without loss of generality
         inputs = left.inputs
@@ -1268,14 +1278,40 @@ def _make_compound_model(left, right, operator):
     return new_cls
 
 
-# TODO: Support a couple unary operators, or at least negation?
+def _make_arithmetic_operator(oper):
+    def op(f, g):
+        f, f_in, f_out = f
+        g = g[0]
+
+        return (make_binary_operator_eval(oper, f, g), f_in, f_out)
+
+    return op
+
+
+def _composition_operator(f, g):
+    f, f_in, _ = f
+    g, _, g_out = g
+    return (lambda *args: g(*f(*args)), f_in, g_out)
+
+
+def _join_operator(f, g):
+    f, f_in, f_out = f
+    g, g_in, g_out = g
+
+    h = lambda *args: f(*args[:f_in]) + g(*args[f_in:])
+
+    return (h, f_in + g_in, f_out + g_out)
+
+
+# TODO: Support a couple unary operators--at least negation?
 BINARY_OPERATORS = {
-    '+': lambda f, g: _make_binary_arith_oper(operator.add, f, g),
-    '-': lambda f, g: _make_binary_arith_oper(operator.sub, f, g),
-    '*': lambda f, g: _make_binary_arith_oper(operator.mul, f, g),
-    '/': lambda f, g: _make_binary_arith_oper(operator.truediv, f, g),
-    '**': lambda f, g: _make_binary_arith_oper(operator.pow, f, g),
-    '|': lambda f, g: (lambda *args: g(*f(*args)))
+    '+': _make_arithmetic_operator(operator.add),
+    '-': _make_arithmetic_operator(operator.sub),
+    '*': _make_arithmetic_operator(operator.mul),
+    '/': _make_arithmetic_operator(operator.truediv),
+    '**': _make_arithmetic_operator(operator.pow),
+    '|': _composition_operator,
+    '&': _join_operator
 }
 
 
@@ -1317,11 +1353,6 @@ class _CompoundModelMeta(_ModelMeta):
                           if c.isleaf]
         return cls._submodels
         return [c.value for c in cls._tree.traverse_postorder() if c.isleaf]
-
-
-def _make_binary_arith_oper(oper, f, g):
-    return lambda *args: tuple(oper(x, y)
-                               for x, y in zip(f(*args), g(*args)))
 
 
 @six.add_metaclass(_CompoundModelMeta)
@@ -1377,13 +1408,15 @@ class _CompoundModel(Model):
             nparams = len(model.param_names)
 
             if model.n_outputs == 1:
-                return lambda *inputs: (model.evaluate(
+                f = lambda *inputs: (model.evaluate(
                     *(inputs + tuple(itertools.islice(params, nparams)))),)
             else:
-                return lambda *inputs: model.evaluate(
+                f = lambda *inputs: model.evaluate(
                     *(inputs + tuple(itertools.islice(params, nparams))))
 
-        func = self._tree.evaluate(BINARY_OPERATORS, getter=getter)
+            return (f, model.n_inputs, model.n_outputs)
+
+        func = self._tree.evaluate(BINARY_OPERATORS, getter=getter)[0]
         result = func(*inputs)
 
         if self.n_outputs == 1:
