@@ -384,7 +384,7 @@ def converters_and_unit(function, method, *args):
         raise TypeError("Cannot use function '{0}' with quantities"
                         .format(function.__name__))
 
-    if method == '__call__':
+    if method == '__call__' or (method == 'outer' and function.nin == 2):
         # Find out the units of the arguments passed to the ufunc; usually,
         # at least one is a quantity, but for two-argument ufuncs, the second
         # could also be a Numpy array, etc.  These are given unit=None.
@@ -436,19 +436,54 @@ def converters_and_unit(function, method, *args):
 
             result_unit = result_unit ** validate_power(p)
 
-    else:
-        # methods other than __call__, e.g., reduce, accumulate; these make
-        # sense only for two-argument functions that leave the unit intact.
-        if UFUNC_HELPERS[function] is helper_twoarg_invariant:
-            converters = [None]
-            result_unit = getattr(args[0], 'unit', None)
+    else:  # methods for which the unit should stay the same
+        if method == 'at':
+            unit = getattr(args[0], 'unit', None)
+            units = [unit]
+            if function.nin == 2:
+                units.append(getattr(args[2], 'unit', None))
+
+            converters, result_unit = UFUNC_HELPERS[function](function, *units)
+
+            # ensure there is no 'converter' for indices (2nd argument)
+            converters.insert(1, None)
+
+        elif (method in ('reduce', 'accumulate', 'reduceat') and
+              function.nin == 2):
+            unit = getattr(args[0], 'unit', None)
+            converters, result_unit = UFUNC_HELPERS[function](function,
+                                                              unit, unit)
+            converters = converters[:1]
+            if method == 'reduceat':
+                # add 'scale' for indices (2nd argument)
+                converters += [None]
+
         else:
-            raise TypeError("Unknown ufunc {0} for method {1}.  "
-                            "If this should work, please raise an issue on "
+            if method in ('reduce', 'accumulate', 'reduceat',
+                          'outer') and function.nin != 2:
+                raise ValueError("{0} only supported for binary functions"
+                                 .format(method))
+
+            raise TypeError("Unexpected ufunc method {0}.  If this should "
+                            "work, please raise an issue on"
                             "https://github.com/astropy/astropy"
-                            .format(function.__name__, method))
+                            .format(method))
+
+        # for all but __call__ method, scaling is not allowed
+        if unit is not None and result_unit is None:
+            raise TypeError("Cannot use '{1}' method on ufunc {0} with a "
+                            "Quantity instance as the result is not a "
+                            "Quantity.".format(function.__name__, method))
+
+        if converters[0] is not None or (unit is not None and
+                                         (not result_unit.is_equivalent(unit) or
+                                          result_unit.to(unit) != 1.)):
+            raise UnitsError("Cannot use '{1}' method on ufunc {0} with a "
+                             "Quantity instance as it would change the unit."
+                             .format(function.__name__, method))
 
     return converters, result_unit
+
 
 def check_output(output, unit, inputs, function=None):
     """Check that function output can be stored in the output array given.
