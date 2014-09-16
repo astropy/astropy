@@ -46,9 +46,47 @@ class MinMaxInterval(BaseInterval):
         return np.min(values), np.max(values)
 
 
-class PercentileInterval(BaseInterval):
+class AsymmetricPercentileInterval(BaseInterval):
     """
-    Interval based on a keeping a specified fraction of pixels
+    Interval based on a keeping a specified fraction of pixels (can be asymmetric).
+
+    Parameters
+    ----------
+    lower_percentile : float
+        The lower percentile below which to ignore pixels.
+    upper_percentile : float
+        The upper percentile above which to ignore pixels.
+    n_samples : int, optional
+        Maximum number of values to use. If this is specified, and there are
+        more values in the dataset as this, then values are randomly sampled
+        from the array (with replacement)
+    """
+
+    def __init__(self, lower_percentile, upper_percentile, n_samples=None):
+        self.lower_percentile = lower_percentile
+        self.upper_percentile = upper_percentile
+        self.n_samples = n_samples
+
+    def get_limits(self, values):
+
+        # If needed, limit the number of samples. We sample with replacement
+        # since this is much faster.
+        if self.n_samples is not None and values.size > self.n_samples:
+            values = np.random.choice(values, self.n_samples)
+
+        # Filter out invalid values (inf, nan)
+        values = values[np.isfinite(values)]
+
+        # Determine values at percentiles
+        vmin = np.percentile(values, lower_percentile)
+        vmax = np.percentile(values, upper_percentile)
+
+        return vmin, vmax
+
+
+class PercentileInterval(AsymmetricPercentileInterval):
+    """
+    Interval based on a keeping a specified fraction of pixels.
 
     Parameters
     ----------
@@ -62,24 +100,6 @@ class PercentileInterval(BaseInterval):
     """
 
     def __init__(self, percentile, n_samples=None):
-        self.percentile = percentile
-        self.n_samples = n_samples
-
-    def get_limits(self, values):
-
-        # If needed, limmit the number of samples. We sample with replacement
-        # since this is much faster.
-        if self.n_samples is not None and values.size > self.n_samples:
-            values = np.random.choice(values, self.n_samples)
-
-        pmin = (100. - self.percentile) * 0.5
-        pmax = 100. - pmin
-
-        # Filter out invalid values (inf, nan)
-        values = values[np.isfinite(values)]
-
-        # Determine values at percentiles
-        vmin = np.percentile(values, pmin)
-        vmax = np.percentile(values, pmax)
-
-        return vmin, vmax
+        lower_percentile = (100 - percentile) * 0.5
+        upper_percentile = 100 - lower_percentile
+        super(PercentileInterval, self).__init__(lower_percentile, upper_percentile, n_samples=n_samples)

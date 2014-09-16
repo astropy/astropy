@@ -21,7 +21,7 @@ class BaseStretch(object):
 
 class CompositeStretch(BaseStretch):
     """
-    A combiantion of two stretches.
+    A combination of two stretches.
 
     Parameters
     ----------
@@ -46,7 +46,7 @@ class CompositeStretch(BaseStretch):
 
 class LinearStretch(BaseStretch):
     """
-    A linear stretch: y = x
+    A linear stretch: y = x.
     """
 
     def __call__(self, values, out=None):
@@ -58,7 +58,7 @@ class LinearStretch(BaseStretch):
 
 class SqrtStretch(BaseStretch):
     """
-    A square root stretch: y = sqrt(x)
+    A square root stretch: y = sqrt(x).
     """
 
     def __call__(self, values, out=None):
@@ -73,7 +73,7 @@ class SqrtStretch(BaseStretch):
 
 class PowerStretch(BaseStretch):
     """
-    A power-law stretch: y = x ** a
+    A power-law stretch: y = x ** a.
     """
 
     def __init__(self, a):
@@ -92,7 +92,7 @@ class PowerStretch(BaseStretch):
 
 class HistEqStretch(BaseStretch):
     """
-    A histogram equalization stretch
+    A histogram equalization stretch.
 
     Parameters
     ----------
@@ -126,6 +126,9 @@ class HistEqStretch(BaseStretch):
 
 
 class InvertedHistEqStretch(BaseStretch):
+    """
+    Inverse transformation for HistEqStretch
+    """
 
     def __init__(self, data, values=None):
         self.data = data
@@ -147,7 +150,9 @@ class InvertedHistEqStretch(BaseStretch):
 
 class ContrastBiasStretch(BaseStretch):
     """
-    A stretch that takes into account contrast and bias: y = clip((x - bias) * contrast + 0.5, 0, 1)
+    A stretch that takes into account contrast and bias.
+    
+    y = clip((x - bias) * contrast + 0.5, 0, 1).
     """
 
     def __init__(self, contrast, bias):
@@ -175,7 +180,7 @@ class ContrastBiasStretch(BaseStretch):
 
 class InvertedContrastBiasStretch(BaseStretch):
     """
-    A stretch that takes into account contrast and bias: y = clip((x - bias) * contrast + 0.5, 0, 1)
+    Inverse transformation for ContrastBiasStretch.
     """
 
     def __init__(self, contrast, bias):
