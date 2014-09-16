@@ -8,7 +8,7 @@ from ..extern.six.moves import xrange
 
 import os
 import sys
-import ipdb
+
 import numpy as np
 
 from .. import log
@@ -254,7 +254,6 @@ class TableFormatter(object):
 
         # Now bring all the column string values to the same fixed width
         for i, col_str in enumerate(col_strs):
-            #ipdb.set_trace()
             if align.upper() == 'RIGHT':
                 col_strs[i] = col_str.rjust(col_width)
             elif align.upper() == 'LEFT':
