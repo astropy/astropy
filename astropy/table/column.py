@@ -519,6 +519,33 @@ class BaseColumn(np.ndarray):
     def __repr__(self):
         return np.asarray(self).__repr__()
 
+    def to(self, unit, **kwargs):
+        """
+        Converts this table column to a `~astropy.units.Quantity` object with
+        the requested units.
+
+        Parameters
+        ----------
+        unit : `~astropy.units.Unit`, str, or None
+            The unit to convert to (i.e., a valid argument to the
+            :meth:`astropy.units.Quantity.to` method) or None to just yield a
+            Quantity with the units currently in this column.
+        kwargs :
+            Any additional keywords are passed into the Quantity constructor
+            *before* converting to the new ``unit``.
+
+        Returns
+        -------
+        quantity : `~astropy.units.Quantity`
+            A quantity object with the cotents of this column.
+        """
+        selfq = Quantity(self, **kwargs)
+
+        if unit is None:
+            return selfq
+        else:
+            return selfq.to(unit)
+
 
 class Column(BaseColumn):
     """Define a data column for use in a Table object.
