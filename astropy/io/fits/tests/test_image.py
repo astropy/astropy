@@ -786,6 +786,29 @@ class TestImageFunctions(FitsTestCase):
             assert 'NAXIS1' not in h[1].header
             assert 'NAXIS2' not in h[1].header
 
+    def test_invalid_blank(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2711
+
+        If the BLANK keyword contains an invalid value it should be ignored for
+        any calculations (though a warning should be issued).
+        """
+
+        data = np.arange(100, dtype=np.float64)
+        hdu = fits.PrimaryHDU(data)
+        hdu.header['BLANK'] = 'nan'
+        hdu.writeto(self.temp('test.fits'))
+
+        with catch_warnings() as w:
+            with fits.open(self.temp('test.fits')) as hdul:
+                assert np.all(hdul[0].data == data)
+
+        assert len(w) == 2
+        msg = "Invalid value for 'BLANK' keyword in header"
+        assert msg in str(w[0].message)
+        msg = "Invalid 'BLANK' keyword"
+        assert msg in str(w[1].message)
+
 
 class TestCompressedImage(FitsTestCase):
     def test_empty(self):
