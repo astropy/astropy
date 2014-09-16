@@ -256,6 +256,10 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed a crash when reading the header of a tile-compressed HDU if that
+    header contained invalid duplicate keywords resulting in a ``KeyError``
+    [#2750]
+
   - Fixed crash when reading gzip-compressed FITS tables through the Astropy
     ``Table`` interface. [#2783]
 
