@@ -9,12 +9,19 @@ import numpy as np
 
 from astropy.extern import six
 
+from .transform import BaseTransform
+
 __all__ = ['ManualInterval', 'MinMaxInterval', 'PercentileInterval']
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseInterval(object):
-    pass
+class BaseInterval(BaseTransform):
+    def __call__(self, values, clip=False):
+        vmin, vmax = self.get_limits(values)
+        new_values = (values - vmin) / (vmax - vmin)
+        if clip:
+            new_values = np.clip(new_values, 0., 1.)
+        return new_values
 
 
 class ManualInterval(BaseInterval):
@@ -78,8 +85,8 @@ class AsymmetricPercentileInterval(BaseInterval):
         values = values[np.isfinite(values)]
 
         # Determine values at percentiles
-        vmin = np.percentile(values, lower_percentile)
-        vmax = np.percentile(values, upper_percentile)
+        vmin = np.percentile(values, self.lower_percentile)
+        vmax = np.percentile(values, self.upper_percentile)
 
         return vmin, vmax
 

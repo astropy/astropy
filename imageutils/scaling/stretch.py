@@ -9,39 +9,14 @@ import numpy as np
 
 from astropy.extern import six
 
+from .transform import BaseTransform
+
 __all__ = ["LinearStretch", "SqrtStretch", "PowerStretch", "HistEqStretch", "ContrastBiasStretch"]
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseStretch(object):
-
-    def __add__(self, other):
-        return CompositeStretch(other, self)
-
-
-class CompositeStretch(BaseStretch):
-    """
-    A combination of two stretches.
-
-    Parameters
-    ----------
-    stretch_1:
-        The first stretch to apply.
-    stretch_2:
-        The second stretch to apply.
-    """
-
-    def __init__(self, stretch_1, stretch_2):
-        super(CompositeStretch, self).__init__()
-        self.stretch_1 = stretch_1
-        self.stretch_2 = stretch_2
-
-    def __call__(self, values):
-        return self.stretch_2(self.stretch_1(values))
-
-    def inverted(self):
-        return CompositeStretch(self.stretch_2.inverted(),
-                                self.stretch_1.inverted())
+class BaseStretch(BaseTransform):
+    pass
 
 
 class LinearStretch(BaseStretch):
@@ -151,7 +126,7 @@ class InvertedHistEqStretch(BaseStretch):
 class ContrastBiasStretch(BaseStretch):
     """
     A stretch that takes into account contrast and bias.
-    
+
     y = clip((x - bias) * contrast + 0.5, 0, 1).
     """
 
