@@ -8,7 +8,7 @@ from ..extern.six.moves import xrange
 
 import os
 import sys
-
+import ipdb
 import numpy as np
 
 from .. import log
@@ -185,7 +185,7 @@ class TableFormatter(object):
 
 
     def _pformat_col(self, col, max_lines=None, show_name=True, show_unit=None,
-                     show_dtype=False, show_length=None, html=False):
+                     show_dtype=False, show_length=None, html=False, align='right'):
         """Return a list of formatted string representation of column values.
 
         Parameters
@@ -210,6 +210,9 @@ class TableFormatter(object):
 
         html : bool
             Output column as HTML
+
+        align : str
+            Left/right alignment of a column. Default is 'right'.
 
         Returns
         -------
@@ -248,6 +251,16 @@ class TableFormatter(object):
                 col_strs.pop(n_header - 1)
             col_strs.insert(0, '<table>')
             col_strs.append('</table>')
+
+        # Now bring all the column string values to the same fixed width
+        for i, col_str in enumerate(col_strs):
+            #ipdb.set_trace()
+            if align.upper() == 'RIGHT':
+                col_strs[i] = col_str.rjust(col_width)
+            elif align.upper() == 'LEFT':
+                col_strs[i] = col_str.ljust(col_width)
+            else:
+                log.error('Argument `align` must take either left or right.')
 
         else:
             col_width = max(len(x) for x in col_strs) if col_strs else 1
@@ -376,7 +389,7 @@ class TableFormatter(object):
 
     def _pformat_table(self, table, max_lines=None, max_width=None, show_name=True,
                        show_unit=None, show_dtype=False,
-                       html=False, tableid=None):
+                       html=False, tableid=None, align='right'):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -406,6 +419,9 @@ class TableFormatter(object):
             An ID tag for the table; only used if html is set.  Default is
             "table{id}", where id is the unique integer id of the table object,
             id(table)
+
+        align : str
+            Left/right alignment of a column. Default is 'right'.    
 
         Returns
         -------
