@@ -635,7 +635,7 @@ class Table(object):
         return is_mixin
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_unit=None, show_dtype=False):
+               show_unit=None, show_dtype=False, align='right'):
         """Print a formatted string representation of the table.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -666,6 +666,9 @@ class Table(object):
 
         show_dtype : bool
             Include a header row for column dtypes (default=True)
+
+        align : str
+            Left/right alignment of a column. Default is 'right'.
         """
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
@@ -674,6 +677,7 @@ class Table(object):
             lines.append('Length = {0} rows'.format(len(self)))
 
         n_header = outs['n_header']
+
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -740,7 +744,8 @@ class Table(object):
                 webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=None, show_dtype=False, html=False, tableid=None):
+                show_unit=None, show_dtype=False, html=False, tableid=None,
+                align='right'):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -780,6 +785,9 @@ class Table(object):
             An ID tag for the table; only used if html is set.  Default is
             "table{id}", where id is the unique integer id of the table object,
             id(self)
+            
+        align : str
+            Left/right alignment of a column. Default is 'right'.    
 
         Returns
         -------
@@ -787,6 +795,7 @@ class Table(object):
             Formatted table as a list of strings
 
         """
+
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
                                                     show_dtype=show_dtype, html=html,
