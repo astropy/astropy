@@ -54,6 +54,10 @@ New Features
     the old one but is less limited in the types of models it can be used to
     created.  [#1763]
 
+  - The ``Model`` and ``Fitter`` classes have ``.registry`` attributes which
+    provide sets of all loaded ``Model`` and ``Fitter`` classes (this is
+    useful for building UIs for models and fitting). [#2725]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``

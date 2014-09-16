@@ -55,6 +55,11 @@ class _ModelMeta(abc.ABCMeta):
     Parameter descriptors declared at the class-level of Model subclasses.
     """
 
+    registry = set()
+    """
+    A registry of all known concrete (non-abstract) Model subclasses.
+    """
+
     def __new__(mcls, name, bases, members):
         param_names = members.get('param_names', [])
         parameters = {}
@@ -91,9 +96,31 @@ class _ModelMeta(abc.ABCMeta):
         # If no parameters were defined get out early--this is especially
         # important for PolynomialModels which take a different approach to
         # parameters, since they can have a variable number of them
-        if not parameters:
-            return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+        if parameters:
+            mcls._check_parameters(name, members, param_names, parameters)
 
+        # Backwards compatibility check for 'eval' -> 'evaluate'
+        # TODO: Remove sometime after Astropy 1.0 release.
+        if 'eval' in members and 'evaluate' not in members:
+            warnings.warn(
+                "Use of an 'eval' method when defining subclasses of "
+                "FittableModel is deprecated; please rename this method to "
+                "'evaluate'.  Otherwise its semantics remain the same.",
+                AstropyDeprecationWarning)
+            members['evaluate'] = members['eval']
+        elif 'evaluate' in members:
+            alt = '.'.join((name, 'evaluate'))
+            deprecate = deprecated('1.0', alternative=alt, name='eval')
+            members['eval'] = deprecate(members['evaluate'])
+
+        cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+
+        if not inspect.isabstract(cls) and not name.startswith('_'):
+            mcls.registry.add(cls)
+        return cls
+
+    @staticmethod
+    def _check_parameters(name, members, param_names, parameters):
         # If param_names was declared explicitly we use only the parameters
         # listed manually in param_names, but still check that all listed
         # parameters were declared
@@ -110,22 +137,6 @@ class _ModelMeta(abc.ABCMeta):
             members['param_names'] = param_names
             members['_param_orders'] = \
                     dict((name, idx) for idx, name in enumerate(param_names))
-
-        # Backwards compatibility check for 'eval' -> 'evaluate'
-        # TODO: Remove sometime after Astropy 1.0 release.
-        if 'eval' in members and 'evaluate' not in members:
-            warnings.warn(
-                "Use of an 'eval' method when defining subclasses of "
-                "FittableModel is deprecated; please rename this method to "
-                "'evaluate'.  Otherwise its semantics remain the same.",
-                AstropyDeprecationWarning)
-            members['evaluate'] = members['eval']
-        elif 'evaluate' in members:
-            alt = '.'.join((name, 'evaluate'))
-            deprecate = deprecated('1.0', alternative=alt, name='eval')
-            members['eval'] = deprecate(members['evaluate'])
-
-        return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
 
 @six.add_metaclass(_ModelMeta)
