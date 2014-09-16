@@ -230,6 +230,9 @@ class SkyCoord(object):
                         for colnm in simplified_colnames:
                             if colnm.startswith(nm):
                                 attr_class = frame.representation.attr_classes[reprnm]
+                                if unit is None:
+                                    # use the unit from the table if not overrridden
+                                    unit = args[0][colnm].unit
                                 coord_kwargs[nm] = attr_class(args[0][colnm], unit=unit)
                                 break  # moves on to the next `nm`
                 else:
