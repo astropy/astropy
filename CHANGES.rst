@@ -18,6 +18,11 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed a crash when reading data from an HDU whose header contained in
+    invalid value for the BLANK keyword (eg. a string value instead of an
+    integer as required by the FITS Standard). Invalid BLANK keywords are now
+    warned about, but are otherwise ignored. [#2711]
+
   - Fixed a crash when reading the header of a tile-compressed HDU if that
     header contained invalid duplicate keywords resulting in a ``KeyError``
     [#2750]

@@ -1,12 +1,15 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import sys
+import warnings
+
 import numpy as np
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU
 from ..header import Header
 from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
                     _normalize_slice)
+from ..verify import VerifyWarning
 
 from ....extern.six import string_types
 from ....extern.six.moves import xrange
@@ -121,6 +124,26 @@ class _ImageBaseHDU(_ValidHDU):
         self._gcount = self._header.get('GCOUNT', 1)
         self._pcount = self._header.get('PCOUNT', 0)
         self._blank = None if ignore_blank else self._header.get('BLANK')
+
+        if self._blank is not None:
+            messages = []
+            # TODO: Once the FITSSchema framewhere is merged these warnings
+            # should be handled by the schema
+            if not _is_int(self._blank):
+                messages.append(
+                    "Invalid value for 'BLANK' keyword in header: {0!r} "
+                    "The 'BLANK' keyword must be an integer.  It will be "
+                    "ignored in the meantime.".format(self._blank))
+                self._blank = None
+            if not self._bitpix > 0:
+                messages.append(
+                    "Invalid 'BLANK' keyword in header.  The 'BLANK' keyword "
+                    "is only applicable to integer data, and will be ignored "
+                    "in this HDU.")
+                self._blank = None
+
+            for msg in messages:
+                warnings.warn(msg, VerifyWarning)
 
         self._orig_bitpix = self._bitpix
         self._orig_bzero = self._bzero
@@ -577,7 +600,9 @@ class _ImageBaseHDU(_ValidHDU):
             # In these cases, we end up with floating-point arrays and have to
             # apply bscale and bzero. We may have to handle BLANK and convert
             # to NaN in the resulting floating-point arrays.
-            if self._blank is not None:
+            # The BLANK keyword should only be applied for integer data (this
+            # is checked in __init__ but it can't hurt to double check here)
+            if self._blank is not None and self._bitpix > 0:
                 blanks = raw_data.flat == self._blank
                 # The size of blanks in bytes is the number of elements in
                 # raw_data.flat.  However, if we use np.where instead we will
