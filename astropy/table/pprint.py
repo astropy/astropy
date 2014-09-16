@@ -211,8 +211,10 @@ class TableFormatter(object):
         html : bool
             Output column as HTML
 
-        align : str
-            Left/right alignment of a column. Default is 'right'.
+        align : str or list
+            Left/right alignment of a column. Default is 'right'. A list
+            of strings can be provided for alignment of tables with multiple
+            columns.
 
         Returns
         -------
@@ -254,12 +256,12 @@ class TableFormatter(object):
 
         # Now bring all the column string values to the same fixed width
         for i, col_str in enumerate(col_strs):
-            if align.upper() == 'RIGHT':
+            if align.upper() in ['RIGHT','R']:
                 col_strs[i] = col_str.rjust(col_width)
-            elif align.upper() == 'LEFT':
+            elif align.upper() in ['LEFT','L']:
                 col_strs[i] = col_str.ljust(col_width)
             else:
-                log.error('Argument `align` must take either left or right.')
+                log.error('Argument `align` must take either `left` or `right`.')
 
         else:
             col_width = max(len(x) for x in col_strs) if col_strs else 1
@@ -419,9 +421,11 @@ class TableFormatter(object):
             "table{id}", where id is the unique integer id of the table object,
             id(table)
 
-        align : str
-            Left/right alignment of a column. Default is 'right'.    
-
+        align : str or list
+            Left/right alignment of a column. Default is 'right'. A list
+            of strings can be provided for alignment of tables with multiple
+            columns.
+            
         Returns
         -------
         out : str
@@ -444,6 +448,27 @@ class TableFormatter(object):
             if outs['show_length']:
                 lines = lines[:-1]
             cols.append(lines)
+
+        if isinstance(align,str):
+            align = align
+        elif isinstance(align,list) and len(align) == 1:
+            align = align[0]
+        elif isinstance(align,list) and len(align) == len(table.columns.values()):
+            align = align
+        else:
+            align = 'right'
+
+        # If align remains a list, need to loop over values
+        if type(align) == list:
+            for i,col in enumerate(six.itervalues(table.columns)):
+                lines, n_header = self._pformat_col(col, max_lines, show_name,
+                                                show_unit, align=align[i])
+                cols.append(lines)
+        else:
+            for col in six.itervalues(table.columns):
+                lines, n_header = self._pformat_col(col, max_lines, show_name,
+                                                show_unit, align=align)
+                cols.append(lines)
 
         if not cols:
             return ['<No columns>'], {'show_length': False}
