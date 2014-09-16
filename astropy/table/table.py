@@ -785,9 +785,9 @@ class Table(object):
             An ID tag for the table; only used if html is set.  Default is
             "table{id}", where id is the unique integer id of the table object,
             id(self)
-            
+
         align : str
-            Left/right alignment of a column. Default is 'right'.    
+            Left/right alignment of a column. Default is 'right'.
 
         Returns
         -------
