@@ -59,6 +59,9 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Ensure bigendian input to Time works on a little-endian machine
+    (and vice versa).  [#2942]
+
 - ``astropy.units``
 
 - ``astropy.utils``
