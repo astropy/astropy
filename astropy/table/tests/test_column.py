@@ -152,12 +152,12 @@ class TestColumn():
 
     def test_quantity_init(self, Column):
 
-        c = Column(data=np.array([1,2,3]) * u.m)
-        assert np.all(c.data == np.array([1,2,3]))
+        c = Column(data=np.array([1, 2, 3]) * u.m)
+        assert np.all(c.data == np.array([1, 2, 3]))
         assert np.all(c.unit == u.m)
 
-        c = Column(data=np.array([1,2,3]) * u.m, unit=u.cm)
-        assert np.all(c.data == np.array([100,200,300]))
+        c = Column(data=np.array([1, 2, 3]) * u.m, unit=u.cm)
+        assert np.all(c.data == np.array([100, 200, 300]))
         assert np.all(c.unit == u.cm)
 
     def test_attrs_survive_getitem_after_change(self, Column):
@@ -187,6 +187,20 @@ class TestColumn():
         val = c1[1]
         for attr in ('name', 'unit', 'format', 'description', 'meta'):
             assert not hasattr(val, attr)
+
+    def test_to(self, Column):
+        d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
+
+        assert np.all(d.to(u.km) == ([.001, .002, .003] * u.km))
+        assert np.all(d.to('km') == ([.001, .002, .003] * u.km))
+        assert np.all(d.to(None) == ([1, 2, 3.] * u.m))
+
+        assert d.to(u.km, ndmin=2).shape == (1, 3)
+
+        d_nounit = Column([1, 2, 3], name='a', dtype="f8", unit=None)
+        with pytest.raises(u.UnitsError):
+            d_nounit.to(u.km)
+        assert np.all(d_nounit.to(u.dimensionless_unscaled) == np.array([1, 2, 3]))
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
