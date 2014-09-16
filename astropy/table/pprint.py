@@ -425,7 +425,7 @@ class TableFormatter(object):
             Left/right alignment of a column. Default is 'right'. A list
             of strings can be provided for alignment of tables with multiple
             columns.
-            
+
         Returns
         -------
         out : str
