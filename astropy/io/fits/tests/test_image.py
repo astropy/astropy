@@ -1323,3 +1323,27 @@ class TestCompressedImage(FitsTestCase):
             assert np.all(comp_hdu.data[0] == arr[0])
             # The second tile uses lossy compression and may be somewhat off,
             # so we don't bother comparing it exactly
+
+    def test_duplicate_compression_header_keywords(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2750
+
+        Tests that the fake header (for the compressed image) can still be read
+        even if the real header contained a duplicate ZTENSION keyword (the
+        issue applies to any keyword specific to the compression convention,
+        however).
+        """
+
+        arr = np.arange(100, dtype=np.int32)
+        hdu = fits.CompImageHDU(data=arr)
+
+        header = hdu._header
+        # append the duplicate keyword
+        hdu._header.append(('ZTENSION', 'IMAGE'))
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert header == hdul[1]._header
+            # There's no good reason to have a duplicate keyword, but
+            # technically it isn't invalid either :/
+            assert hdul[1]._header.count('ZTENSION') == 2
