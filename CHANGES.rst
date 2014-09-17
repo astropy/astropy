@@ -187,8 +187,6 @@ Bug Fixes
 
 - ``astropy.modeling``
 
-  - Make ``LevMarLSQFitter`` work with ``weights`` keyword. [#2900]
-
 - ``astropy.nddata``
 
 - ``astropy.stats``
@@ -292,6 +290,8 @@ Bug Fixes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
+  - Make ``LevMarLSQFitter`` work with ``weights`` keyword. [#2900]
 
 - ``astropy.nddata``
 
