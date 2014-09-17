@@ -720,7 +720,8 @@ cdef class CParser:
         self.names = names
 
     def __reduce__(self):
-        return (_copy_cparser, (self.source_ptr, self.source_bytes, self.use_cols, self.fill_names,
+        cdef bytes source_ptr = self.source_ptr if self.source_ptr else b''
+        return (_copy_cparser, (source_ptr, self.source_bytes, self.use_cols, self.fill_names,
                                 self.fill_values, self.tokenizer.strip_whitespace_lines,
                                 self.tokenizer.strip_whitespace_fields,
                                 dict(delimiter=chr(self.tokenizer.delimiter),
@@ -739,12 +740,13 @@ cdef class CParser:
                                 use_fast_converter=self.tokenizer.use_fast_converter,
                                 parallel=False)))
 
-def _copy_cparser(char *src_ptr, bytes source_bytes, use_cols, fill_names, fill_values,
+def _copy_cparser(bytes src_ptr, bytes source_bytes, use_cols, fill_names, fill_values,
                   strip_whitespace_lines, strip_whitespace_fields, kwargs):
     parser = CParser(None, strip_whitespace_lines, strip_whitespace_fields, **kwargs)
     parser.use_cols = use_cols
     parser.fill_names = fill_names
     parser.fill_values = fill_values
+
     if src_ptr:
         parser.tokenizer.source = src_ptr
     else:
