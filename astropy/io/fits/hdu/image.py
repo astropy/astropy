@@ -616,7 +616,10 @@ class _ImageBaseHDU(_ValidHDU):
             if new_dtype is not None:
                 data = np.array(raw_data, dtype=new_dtype)
             else:  # floating point cases
-                if self._file.memmap:
+                if self._file is not None and self._file.memmap:
+                    data = raw_data.copy()
+                elif not raw_data.flags.writeable:
+                    # create a writeable copy if needed
                     data = raw_data.copy()
                 # if not memmap, use the space already in memory
                 else:

@@ -809,6 +809,24 @@ class TestImageFunctions(FitsTestCase):
         msg = "Invalid 'BLANK' keyword"
         assert msg in str(w[1].message)
 
+    def test_scaled_image_fromfile(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2710
+        """
+
+        # Make some sample data
+        a = np.arange(100, dtype=np.float32)
+
+        hdu = fits.PrimaryHDU(data=a.copy())
+        hdu.scale(bscale=1.1)
+        hdu.writeto(self.temp('test.fits'))
+
+        with open(self.temp('test.fits'), 'rb') as f:
+            file_data = f.read()
+
+        hdul = fits.HDUList.fromstring(file_data)
+        assert np.allclose(hdul[0].data, a)
+
 
 class TestCompressedImage(FitsTestCase):
     def test_empty(self):
