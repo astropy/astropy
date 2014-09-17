@@ -104,7 +104,7 @@ class TestRunner(object):
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
                   pdb=False, coverage=False, open_files=False, parallel=0,
-                  docs_path=None, skip_docs=False):
+                  docs_path=None, skip_docs=False, config=None):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -263,6 +263,11 @@ class TestRunner(object):
         # case our default one in a temp directory), clear the config object
         # cache.
         configuration._cfgobjs.clear()
+
+        if config:
+            for module_and_key, value in config.items():
+                module, key = module_and_key.rsplit(".", 1)
+                configuration.get_config(module)[key] = value
 
         # This prevents cyclical import problems that make it
         # impossible to test packages that define Table types on their
