@@ -18,6 +18,10 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed a crash when reading scaled float data out of a FITS file that was
+    loaded from a string (using ``HDUList.fromfile``) rather than from a file.
+    [#2710]
+
   - Fixed a crash when reading data from an HDU whose header contained in
     invalid value for the BLANK keyword (eg. a string value instead of an
     integer as required by the FITS Standard). Invalid BLANK keywords are now
