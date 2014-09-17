@@ -807,3 +807,25 @@ def test_immutable():
 
     c1.foo = 42
     assert c1.foo == 42
+
+
+def test_search_around():
+    """
+    Test the search_around_* methods
+
+    Here we don't actually test the values are right, just that the methods of
+    SkyCoord work.  The accuracy tests are in ``test_matching.py``
+    """
+    from ...utils import NumpyRNGContext
+
+    with NumpyRNGContext(987654321):
+        sc1 = SkyCoord(np.random.rand(20) * 360.*u.degree,
+                      (np.random.rand(20) * 180. - 90.)*u.degree)
+        sc2 = SkyCoord(np.random.rand(100) * 360. * u.degree,
+                      (np.random.rand(100) * 180. - 90.)*u.degree)
+
+        sc1ds = SkyCoord(ra=sc1.ra, dec=sc1.dec, distance=np.random.rand(20)*u.kpc)
+        sc2ds = SkyCoord(ra=sc2.ra, dec=sc2.dec, distance=np.random.rand(100)*u.kpc)
+
+    idx1_sky, idx2_sky, d2d_sky, d3d_sky = sc1.search_around_sky(sc2, 10*u.deg)
+    idx1_3d, idx2_3d, d2d_3d, d3d_3d = sc1ds.search_around_3d(sc2ds, 250*u.pc)
