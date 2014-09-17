@@ -350,8 +350,8 @@ def test_compose_si_to_cgs():
 
 
 def test_to_cgs():
-    assert u.Pa.to_system(u.cgs)[0]._bases[0] is u.Ba
-    assert u.Pa.to_system(u.cgs)[0]._scale == 10.0
+    assert u.Pa.to_system(u.cgs)[1]._bases[0] is u.Ba
+    assert u.Pa.to_system(u.cgs)[1]._scale == 10.0
 
 
 def test_decompose_to_cgs():
