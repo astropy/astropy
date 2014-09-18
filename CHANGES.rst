@@ -249,6 +249,11 @@ Bug Fixes
   - ``Angle`` accepts hours:mins or deg:mins initializers (without
      seconds). In these cases float minutes are also accepted.
 
+  - The ``repr`` for coordinate frames now displayes the frame attributes
+    (ex: ra, dec) in a consistent order.  It should be noted that as part of
+    this fix, the ``BaseCoordinateFrame.get_frame_attr_names()`` method now
+    returns an ``OrderedDict`` instead of just a ``dict``. [#2845]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -301,7 +306,7 @@ Bug Fixes
 
   - Fixed reference cycle in tables that could prevent ``Table`` objects
     from being freed from memory. [#2879]
-    
+
   - Fixed an issue where ``Table.pprint()`` did not print the header to
     ``stdout`` when ``stdout`` is redirected (say, to a file). [#2878]
 
