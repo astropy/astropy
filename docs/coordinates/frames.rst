@@ -39,7 +39,7 @@ their default values)  are available as the class method
 ``get_frame_attr_names``::
 
     >>> FK5.get_frame_attr_names()
-    {'equinox': <Time object: scale='utc' format='jyear_str' value=J2000.000>}
+    OrderedDict([('equinox', <Time object: scale='utc' format='jyear_str' value=J2000.000>)])
 
 You can access any of the attributes on a frame by using standard Python
 attribute access.  Note that for cases like ``equinox``, which are time
@@ -246,8 +246,8 @@ the way you want.  As an example::
   ...      obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
   >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
-  >>> c  # doctest: +SKIP
-  <MyFrame Coordinate: equinox=B1950.000, location=None, obstime=B1950.000, R=0.174532... rad, D=0.349065... rad>
+  >>> c  # doctest: +FLOAT_CMP
+  <MyFrame Coordinate: location=None, equinox=B1950.000, obstime=B1950.000, R=0.174532925199 rad, D=0.349065850399 rad>
   >>> c.equinox
   <Time object: scale='utc' format='byear_str' value=B1950.000>
 

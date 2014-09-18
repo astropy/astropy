@@ -17,6 +17,7 @@ from collections import namedtuple
 # Project
 from ..utils.compat.misc import override__dir__
 from ..extern import six
+from ..utils.compat.odict import OrderedDict
 from ..utils.exceptions import AstropyDeprecationWarning
 from .. import units as u
 from ..utils import OrderedDict
@@ -144,9 +145,20 @@ class FrameAttribute(object):
         A new data descriptor to hold a frame attribute
     """
 
+    _nextid = 1
+    """
+    Used to ascribe some ordering to FrameAttribute instances so that the
+    order they were assigned in a class body can be determined.
+    """
+
     def __init__(self, default=None, secondary_attribute=''):
         self.default = default
         self.secondary_attribute = secondary_attribute
+
+        # Use FrameAttribute._nextid explicitly so that subclasses of
+        # FrameAttribute use the same counter
+        self._order = FrameAttribute._nextid
+        FrameAttribute._nextid += 1
 
     def convert_input(self, value):
         """
@@ -489,12 +501,20 @@ class BaseCoordinateFrame(object):
 
     @classmethod
     def get_frame_attr_names(cls):
-        out = {}
+        seen = set()
+        attributes = []
         for mro_cls in cls.__mro__:
             for name, val in mro_cls.__dict__.items():
-                if issubclass(val.__class__, FrameAttribute) and name not in out:
-                    out[name] = getattr(mro_cls, name)
-        return out
+                if isinstance(val, FrameAttribute) and name not in seen:
+                    seen.add(name)
+                    # Add the sort order, name, and actual value of the frame
+                    # attribute in question
+                    attributes.append((val._order, name,
+                                       getattr(mro_cls, name)))
+
+        # Sort by the frame attribute order
+        attributes.sort(key=lambda a: a[0])
+        return OrderedDict((a[1], a[2]) for a in attributes)
 
     @property
     def representation(self):
