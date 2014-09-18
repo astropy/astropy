@@ -88,9 +88,14 @@ New Features
 
 - ``astropy.wcs``
 
+  - The minimum required version of ``wcslib`` is now 4.24. [#2503]
+
   - Added a new function ``wcs_to_celestial_frame`` that can be used to find
     the astropy.coordinates celestial frame corresponding to a particular WCS.
     [#2730]
+
+  - ``astropy.wcs.WCS.compare`` now supports a ``tolerance`` keyword argument
+    to allow for approximate comparison of floating-point values. [#2503]
 
 API Changes
 ^^^^^^^^^^^
@@ -301,7 +306,7 @@ Bug Fixes
 
   - Fixed reference cycle in tables that could prevent ``Table`` objects
     from being freed from memory. [#2879]
-    
+
   - Fixed an issue where ``Table.pprint()`` did not print the header to
     ``stdout`` when ``stdout`` is redirected (say, to a file). [#2878]
 
