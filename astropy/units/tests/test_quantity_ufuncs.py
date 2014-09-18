@@ -264,6 +264,16 @@ class TestQuantityMathFuncs(object):
         assert np.all(np.reciprocal(np.array([1., 2., 4.]) * u.m)
                       == np.array([1., 0.5, 0.25]) / u.m)
 
+    # cbrt only introduced in numpy 1.10
+    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
+    def test_cbrt_scalar(self):
+        assert np.cbrt(8. * u.m**3) == 2. * u.m
+
+    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
+    def test_cbrt_array(self):
+        assert np.all(np.cbrt(np.array([1., 8., 64.]) * u.m**3)
+                      == np.array([1., 2., 4.]) * u.m)
+
     def test_power_scalar(self):
         assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
         assert np.power(4., 200. * u.cm / u.m) == \
