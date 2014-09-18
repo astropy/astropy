@@ -8,12 +8,12 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 4.23 2014/05/11 04:09:39 mcalabre Exp $
+# $Id: configure.ac,v 4.24 2014/09/18 15:25:02 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [4.23], [mark@calabretta.id.au], [wcslib-4.23])
+AC_INIT([WCSLIB], [4.24], [mark@calabretta.id.au], [wcslib-4.24])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 4.23 $])
+AC_REVISION([$Revision: 4.24 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -34,7 +34,7 @@ AC_SUBST([ARCH])
 AC_CHECK_PROG([FLEX], [flex], [flex], [], [], [])
 if test "x$FLEX" = xflex ; then
   # Version 2.5.9 or later is required.
-  V=`flex --version | awk '{print $NF}'`
+  V=`flex --version | awk '{print $2}'`
   W=`echo $V | awk -F. '{if ((($1*100 + $2)*100 + $3) < 20509) print "no"}'`
   if test "x$W" != x ; then
     AC_MSG_NOTICE([Flex version $V is too old, ignored.])
