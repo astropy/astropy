@@ -880,8 +880,9 @@ class BaseCoordinateFrame(object):
 
         # attr == '_representation' is likely from the hasattr() test in the
         # representation property which is used for
-        # self.representation_component_names.  Prevent infinite recursion
-        # here.
+        # self.representation_component_names.
+        #
+        # Prevent infinite recursion here.
         if (attr == '_representation' or
                 attr not in self.representation_component_names):
             raise AttributeError("'{0}' object has no attribute '{1}'"
