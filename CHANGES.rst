@@ -341,6 +341,9 @@ Other Changes and Additions
 
 - Ensure numpy 1.9 is supported. [#2917]
 
+- Ensure numpy master is supported, by making ``np.cbrt`` work with quantities.
+  [#2937] 
+
 0.4.1 (2014-08-08)
 ------------------
 

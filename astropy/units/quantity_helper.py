@@ -3,6 +3,7 @@
 
 import numpy as np
 from .core import UnitsError, dimensionless_unscaled
+from ..utils.compat.fractions import Fraction
 
 
 def _d(unit):
@@ -64,6 +65,11 @@ UFUNC_HELPERS[np.square] = lambda f, unit: ([1.], unit ** 2 if unit is not None
 UFUNC_HELPERS[np.reciprocal] = lambda f, unit: ([1.], unit ** -1
                                                 if unit is not None
                                                 else dimensionless_unscaled)
+# cbrt only was added in numpy 1.10
+if isinstance(getattr(np, 'cbrt', None), np.ufunc):
+    UFUNC_HELPERS[np.cbrt] = lambda f, unit: ([1.], unit ** Fraction(1, 3)
+                                              if unit is not None
+                                              else dimensionless_unscaled)
 # ones_like was not private in numpy <= 1.6
 if isinstance(getattr(np.core.umath, 'ones_like', None), np.ufunc):
     UFUNC_HELPERS[np.core.umath.ones_like] = (lambda f, unit:
