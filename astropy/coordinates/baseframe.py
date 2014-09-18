@@ -73,12 +73,11 @@ class FrameMeta(type):
 
         # somewhat hacky, but this is the best way to get the MRO according to
         # https://mail.python.org/pipermail/python-list/2002-December/167861.html
-        mro = super(FrameMeta, mcls).__new__(mcls, name, bases, members).__mro__
-        parent_members = [c.__dict__ for c in mro]
+        tmp_cls = super(FrameMeta, mcls).__new__(mcls, name, bases, members)
 
-        #now look through the whole MRO for the class attributes, raw
-        # for frame_attr_names, and leading underscore for others
-        for m in parent_members:
+        # now look through the whole MRO for the class attributes, raw for
+        # frame_attr_names, and leading underscore for others
+        for m in (c.__dict__ for c in tmp_cls.__mro__):
             if not found_default_repr and '_default_representation' in m:
                 default_repr = m['_default_representation']
                 found_default_repr = True
