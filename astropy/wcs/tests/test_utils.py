@@ -357,17 +357,6 @@ def test_noncelestial_scale(cdelt, pc, cd):
 
     assert_almost_equal(ps, [0.1,0.2]*u.deg)
 
-def test_has_distorion():
-
-    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
-    wcs = WCS(header)
-    assert not utils.has_distortion(wcs)
-
-    header = get_pkg_data_filename('data/sip.fits')
-    wcs = WCS(header)
-    assert utils.has_distortion(wcs)
-
-
 @pytest.mark.parametrize('mode', ['all', 'wcs'])
 def test_skycoord_to_pixel(mode):
 

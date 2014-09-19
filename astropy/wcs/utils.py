@@ -8,15 +8,11 @@ from ..utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ['wcs_to_celestial_frame']
 
-__all__ = ['has_distortions', 'add_stokes_axis_to_wcs',
+__all__ = ['add_stokes_axis_to_wcs',
            'wcs_to_celestial_frame', 'custom_frame_mappings',
            'wcs_to_celestial_frame', 'celestial_pixel_scale', 
            'non_celestial_pixel_scales', 'skycoord_to_pixel',
            'pixel_to_skycoord']
-
-def has_distortion(wcs):
-    return any(getattr(wcs, dist_attr) is not None
-               for dist_attr in ['cpdis1', 'cpdis2', 'det2im1', 'det2im2', 'sip'])
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -216,6 +212,8 @@ def non_celestial_pixel_scales(inwcs):
     else:
         raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
 
+# TODO: in future, we should think about how the following two functions can be
+# integrated better into the WCS class.
 
 def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
     """
@@ -242,7 +240,7 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
     from .. import units as u
     from . import WCSSUB_CELESTIAL
 
-    if has_distortion(wcs) and wcs.naxis != 2:
+    if wcs.has_distortion and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
@@ -310,7 +308,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all'):
     from . import WCSSUB_CELESTIAL
     from ..coordinates import SkyCoord, UnitSphericalRepresentation
 
-    if has_distortion(wcs) and wcs.naxis != 2:
+    if wcs.has_distortion and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
