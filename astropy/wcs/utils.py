@@ -8,8 +8,11 @@ from ..utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ['wcs_to_celestial_frame']
 
-__all__ = ['add_stokes_axis_to_wcs', 'wcs_to_celestial_frame',
-           'celestial_pixel_scale', 'non_celestial_pixel_scales']
+__all__ = ['has_distortions', 'add_stokes_axis_to_wcs',
+           'wcs_to_celestial_frame', 'custom_frame_mappings',
+           'wcs_to_celestial_frame', 'celestial_pixel_scale', 
+           'non_celestial_pixel_scales', 'skycoord_to_pixel',
+           'pixel_to_skycoord']
 
 def has_distortion(wcs):
     return any(getattr(wcs, dist_attr) is not None
