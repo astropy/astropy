@@ -53,6 +53,27 @@ class TestColumn():
         lt = c - 1 < arr
         assert np.all(lt)
 
+    def test_numpy_boolean_ufuncs(self, Column):
+        """Show that basic numpy operations with Column behave sensibly"""
+
+        arr = np.array([1, 2, 3])
+        c = Column(arr, name='a')
+
+        for ufunc, test_true in ((np.isfinite, True),
+                                 (np.isinf, False),
+                                 (np.isnan, False),
+                                 (np.sign, True),
+                                 (np.signbit, False)):
+            result = ufunc(c)
+            assert len(result) == len(c)
+            assert np.all(result) if test_true else not np.any(result)
+            if Column is table.Column:
+                assert type(result) == np.ndarray
+            else:
+                assert type(result) == np.ma.core.MaskedArray
+                if ufunc is not np.sign:
+                    assert result.dtype.str == '|b1'
+
     def test_view(self, Column):
         c = np.array([1, 2, 3]).view(Column)
         if Column == table.MaskedColumn:
