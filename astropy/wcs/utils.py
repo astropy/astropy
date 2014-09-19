@@ -229,7 +229,7 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
         Whether to return 0 or 1-based pixel coordinates.
     mode : 'all' or 'wcs'
         Whether to do the transformation including distortions (``'all'``) or
-        only including only the pure WCS component (``'wcs'``).
+        only including only the core WCS transformation (``'wcs'``).
 
     Returns
     -------
@@ -296,7 +296,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all'):
         Whether to return 0 or 1-based pixel coordinates.
     mode : 'all' or 'wcs'
         Whether to do the transformation including distortions (``'all'``) or
-        only including only the pure WCS component (``'wcs'``).
+        only including only the core WCS transformation (``'wcs'``).
 
     Returns
     -------
