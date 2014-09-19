@@ -11,6 +11,11 @@ __doctest_skip__ = ['wcs_to_celestial_frame']
 __all__ = ['add_stokes_axis_to_wcs', 'wcs_to_celestial_frame',
            'celestial_pixel_scale', 'non_celestial_pixel_scales']
 
+def has_distortion(wcs):
+    return any(getattr(wcs, dist_attr) is not None
+               for dist_attr in ['cpdis1', 'cpdis2', 'det2im1', 'det2im2', 'sip'])
+
+
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
     """
     Add a new Stokes axis that is uncorrelated with any other axes.
@@ -209,7 +214,7 @@ def non_celestial_pixel_scales(inwcs):
         raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
 
 
-def skycoord_to_pixel(coords, wcs, origin=0):
+def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
     """
     Convert a set of SkyCoord coordinates into pixels.
 
@@ -221,6 +226,9 @@ def skycoord_to_pixel(coords, wcs, origin=0):
         The WCS transformation to use.
     origin : int
         Whether to return 0 or 1-based pixel coordinates.
+    mode : 'all' or 'wcs'
+        Whether to do the transformation including distortions (``'all'``) or
+        only including only the pure WCS component (``'wcs'``).
 
     Returns
     -------
@@ -231,8 +239,8 @@ def skycoord_to_pixel(coords, wcs, origin=0):
     from .. import units as u
     from . import WCSSUB_CELESTIAL
 
-    if wcs.naxis != 2:
-        raise ValueError("WCS should be two-dimensional")
+    if has_distortion(wcs) and wcs.naxis != 2:
+        raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
     wcs = wcs.sub([WCSSUB_CELESTIAL])
@@ -263,13 +271,17 @@ def skycoord_to_pixel(coords, wcs, origin=0):
         lat = coords.spherical.lat.to(yw_unit)
 
     # Convert to pixel coordinates
-    print(lon.value, lat.value)
-    xp, yp = wcs.wcs_world2pix(lon.value, lat.value, origin)
+    if mode == 'all':
+        xp, yp = wcs.all_world2pix(lon.value, lat.value, origin)
+    elif mode == 'wcs':
+        xp, yp = wcs.wcs_world2pix(lon.value, lat.value, origin)
+    else:
+        raise ValueError("mode should be either 'all' or 'wcs'")
 
     return xp, yp
 
 
-def pixel_to_skycoord(xp, yp, wcs, origin=0):
+def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all'):
     """
     Convert a set of pixel coordinates into a SkyCoord coordinate.
 
@@ -281,6 +293,9 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0):
         The WCS transformation to use.
     origin : int
         Whether to return 0 or 1-based pixel coordinates.
+    mode : 'all' or 'wcs'
+        Whether to do the transformation including distortions (``'all'``) or
+        only including only the pure WCS component (``'wcs'``).
 
     Returns
     -------
@@ -292,8 +307,8 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0):
     from . import WCSSUB_CELESTIAL
     from ..coordinates import SkyCoord, UnitSphericalRepresentation
 
-    if wcs.naxis != 2:
-        raise ValueError("WCS should be two-dimensional")
+    if has_distortion(wcs) and wcs.naxis != 2:
+        raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
     wcs = wcs.sub([WCSSUB_CELESTIAL])
@@ -309,7 +324,12 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0):
     lat_unit = u.Unit(wcs.wcs.cunit[1])
 
     # Convert pixel coordinates to celestial coordinates
-    lon, lat = wcs.wcs_pix2world(xp, yp, origin)
+    if mode == 'all':
+        lon, lat = wcs.all_pix2world(xp, yp, origin)
+    elif mode == 'wcs':
+        lon, lat = wcs.wcs_pix2world(xp, yp, origin)
+    else:
+        raise ValueError("mode should be either 'all' or 'wcs'")
 
     # Add units to longitude/latitude
     lon = lon * lon_unit
