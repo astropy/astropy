@@ -356,6 +356,10 @@ Bug Fixes
   - WCS allows slices of the form slice(None, x, y), which previously resulted
     in an unsliced copy being returned [#2909]
 
+  - Invalid or out of range values passed to ``wcs_world2pix`` will
+    now be correctly identified and returned as ``nan``
+    values. [#2965]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -458,7 +462,6 @@ Other Changes and Additions
 
 - Ensure numpy master is supported, by making ``np.cbrt`` work with quantities.
   [#2937]
-
 
 0.4.1 (2014-08-08)
 ------------------
