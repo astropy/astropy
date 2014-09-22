@@ -254,8 +254,9 @@ def find_scales(f, *units):
         except UnitsError:
             # special case: would be OK if unitless number is zero, inf, nan
             scales[fixed] = 0.
-
-        return scales, dimensionless_unscaled
+            return scales, units[changeable]
+        else:
+            return scales, dimensionless_unscaled
 
     else:
         try:

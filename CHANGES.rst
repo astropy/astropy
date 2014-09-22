@@ -88,6 +88,8 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Ensure unit is kept when adding 0 to quantities. [#2968]
+
 - ``astropy.utils``
 
   - Fixed color printing on Windows with IPython 2.0. [#2878]
