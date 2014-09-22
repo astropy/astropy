@@ -256,11 +256,13 @@ class IERS_A(IERS):
 
         Combines UT1-UTC values, taking UT1_UTC_B if available, else UT1_UTC_A
         """
+        # run np.where on the data from the table columns, since in numpy 1.9
+        # it otherwise returns an only partially initialized column.
         table['UT1_UTC'] = np.where(table['UT1_UTC_B'].mask,
-                                    table['UT1_UTC_A'],
-                                    table['UT1_UTC_B'])
+                                    table['UT1_UTC_A'].data,
+                                    table['UT1_UTC_B'].data)
         table['UT1Flag'] = np.where(table['UT1_UTC_B'].mask,
-                                    table['UT1Flag_A'],
+                                    table['UT1Flag_A'].data,
                                     'B')
         super(IERS_A, self).__init__(table.filled())
 
