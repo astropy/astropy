@@ -322,6 +322,9 @@ Bug Fixes
 
   - Fixed printing of masked values when a format is specified. [#1026]
 
+  - Ensured that numpy ufuncs that return booleans return plain ``ndarray`` 
+    instances, just like the comparison operators. [#2963]
+
 - ``astropy.time``
 
   - Ensure bigendian input to Time works on a little-endian machine
