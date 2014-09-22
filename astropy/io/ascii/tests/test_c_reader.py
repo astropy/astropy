@@ -56,7 +56,8 @@ def _read(table, Reader, format, fail_parallel=False, **kwargs):
     assert_table_equal(t4, t5)
 
     # Multiprocessing failures can occur on Travis CI
-    if not fail_parallel and not TRAVIS:
+    # disable Windows multiprocessing support for now
+    if not fail_parallel and not TRAVIS and os.name != 'nt':
         t6 = ascii.read(table, format=format, guess=False, fast_reader={
             'parallel': True}, **kwargs)
         assert_table_equal(t1, t6)
@@ -70,7 +71,7 @@ def _read(table, Reader, format, fail_parallel=False, **kwargs):
                 'parallel': True}, **kwargs)
 
     assert_table_equal(t1, t7)
-    if not fail_parallel and not TRAVIS:
+    if not fail_parallel and not TRAVIS and os.name != 'nt':
         assert_table_equal(t1, t8)
     return t1
 
