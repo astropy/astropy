@@ -465,6 +465,18 @@ class TestInvariantUfuncs(object):
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,
                                          np.remainder, np.mod, np.fmod])
+    def test_invariant_twoarg_one_arbitrary(self, ufunc):
+
+        q_i1 = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
+        arbitrary_unit_value = np.array([0.])
+        q_o = ufunc(q_i1, arbitrary_unit_value)
+        assert isinstance(q_o, u.Quantity)
+        assert q_o.unit == q_i1.unit
+        assert_allclose(q_o.value, ufunc(q_i1.value, arbitrary_unit_value))
+
+    @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
+                                         np.maximum, np.minimum, np.nextafter,
+                                         np.remainder, np.mod, np.fmod])
     def test_invariant_twoarg_invalid_units(self, ufunc):
 
         q_i1 = 4.7 * u.m
