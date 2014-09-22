@@ -2719,6 +2719,46 @@ naxis kwarg.
             names[i] = types[i].split('-')[0]
         return names
 
+    @property
+    def celestial(self):
+        """
+        A copy of the current WCS with only the celestial axes included
+        """
+        return self.sub([WCSSUB_CELESTIAL])
+
+    @property
+    def is_celestial(self):
+        return self.has_celestial and self.naxis==2
+
+    @property
+    def has_celestial(self):
+        try:
+            return self.celestial.naxis == 2
+        except InconsistentAxisTypesError:
+            return False
+
+    @property
+    def pixel_scale_matrix(self):
+
+        try:
+            cdelt = np.matrix(np.diag(self.wcs.get_cdelt()))
+            pc = np.matrix(self.wcs.get_pc())
+        except InconsistentAxisTypesError:
+            try:
+                # for non-celestial axes, get_cdelt doesnt work
+                cdelt = np.matrix(self.wcs.cd) * np.matrix(np.diag(self.wcs.cdelt))
+            except AttributeError:
+                cdelt = np.matrix(np.diag(self.wcs.cdelt))
+
+            try:
+                pc = np.matrix(self.wcs.pc)
+            except AttributeError:
+                pc = 1
+
+        pccd = np.array(cdelt * pc)
+
+        return pccd
+
 
 def __WCS_unpickle__(cls, dct, fits_data):
     """

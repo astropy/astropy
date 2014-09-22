@@ -2,9 +2,14 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
+import warnings
+from .. import units as u
+from ..utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ['wcs_to_celestial_frame']
 
+__all__ = ['add_stokes_axis_to_wcs', 'wcs_to_celestial_frame',
+           'celestial_pixel_scale', 'non_celestial_pixel_scales']
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
     """
@@ -107,15 +112,15 @@ def wcs_to_celestial_frame(wcs):
     For a given WCS, return the coordinate frame that matches the celestial
     component of the WCS.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     wcs : :class:`~astropy.wcs.WCS` instance
         The WCS to find the frame for
 
     Returns
     -------
-    frame : :class:`~astropy.coordinates.base_frame.BaseFrame` subclass instance
-        An instance of a :class:`~astropy.coordinates.base_frame.BaseFrame`
+    frame : :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass instance
+        An instance of a :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame`
         subclass instance that best matches the specified WCS.
 
     Notes
@@ -126,9 +131,10 @@ def wcs_to_celestial_frame(wcs):
     instance and should return either an instance of a frame, or `None` if no
     matching frame was found. You can register this function temporarily with::
 
-    >>> from astropy.wcs.utils import wcs_to_celestial_frame, custom_frame_mappings
-    >>> with custom_frame_mappings(my_function):
-    ...     wcs_to_celestial_frame(...)
+        >>> from astropy.wcs.utils import wcs_to_celestial_frame, custom_frame_mappings
+        >>> with custom_frame_mappings(my_function):
+        ...     wcs_to_celestial_frame(...)
+
     """
     for mapping_set in WCS_FRAME_MAPPINGS:
         for func in mapping_set:
@@ -137,3 +143,67 @@ def wcs_to_celestial_frame(wcs):
                 return frame
     raise ValueError("Could not determine celestial frame corresponding to "
                      "the specified WCS object")
+
+
+def celestial_pixel_scale(inwcs, allow_nonsquare=False):
+    """
+    For a WCS, if the pixels are square, return the pixel scale in the spatial
+    dimensions
+
+    Parameters
+    ----------
+    inwcs: `astropy.wcs.WCS`
+        The world coordinate system object
+    allow_nonsquare : bool
+        Return the average of the X and Y scales if True
+
+    Returns
+    -------
+    scale : float
+        The square pixel scale
+
+    Raises
+    ------
+    ValueError if the pixels are nonsquare and ``allow_nonsquare==False``
+    """
+    cwcs = inwcs.celestial
+    if cwcs.wcs.ctype[0][-3:] != 'CAR':
+        warnings.warn("Pixel sizes may very over the image for "
+                      "projection class {0}".format(cwcs.wcs.ctype[0][-3:]),
+                      AstropyUserWarning)
+    scale = (cwcs.pixel_scale_matrix**2).sum(axis=0)**0.5
+    if not np.allclose(scale[0],scale[1]):
+        if allow_nonsquare:
+            warnings.warn("Pixels are not square, using an average pixel scale")
+            return np.mean(scale)*u.deg
+        else:
+            raise ValueError("Pixels are not square: 'pixel scale' is ambiguous")
+    # Return a quantity: WCS always stores in degrees
+    return scale[0]*u.deg
+
+
+def non_celestial_pixel_scales(inwcs):
+    """
+    For a non-celestial WCS, e.g. one with mixed spectral and spatial axes, it
+    is still sometimes possible to define a pixel scale.
+
+    Parameters
+    ----------
+    inwcs: `astropy.wcs.WCS`
+        The world coordinate system object
+
+    Returns
+    -------
+    scale : `numpy.ndarray`
+        The pixel scale along each axis
+    """
+
+    if inwcs.is_celestial:
+        raise ValueError("WCS is celestial, use celestial_pixel_scale instead")
+
+    pccd = inwcs.pixel_scale_matrix
+
+    if np.allclose(np.extract(1-np.eye(*pccd.shape), pccd), 0):
+        return np.abs(np.diagonal(pccd))*u.deg
+    else:
+        raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
