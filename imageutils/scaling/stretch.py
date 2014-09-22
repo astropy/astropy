@@ -6,12 +6,15 @@ another set of [0:1] values with a transformation
 import abc
 
 import numpy as np
+from numpy.lib.scimath import logn
 
 from astropy.extern import six
 
 from .transform import BaseTransform
 
-__all__ = ["LinearStretch", "SqrtStretch", "PowerStretch", "HistEqStretch", "ContrastBiasStretch"]
+__all__ = ["LinearStretch", "SqrtStretch", "PowerStretch", "PowerDistStretch",
+           "SquaredStretch", "LogStretch", "AsinhStretch", "SinhStretch",
+           "HistEqStretch", "ContrastBiasStretch"]
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -63,6 +66,172 @@ class PowerStretch(BaseStretch):
 
     def inverted(self):
         return PowerStretch(1. / self.power)
+
+
+class PowerDistStretch(BaseStretch):
+    """
+    An alternative power stretch: y = ((a ** x) - 1) / a
+    This is the same as ds9's POW stretch, described here
+        (http://ds9.si.edu/doc/ref/how.html)
+    """
+
+    def __init__(self, a=1000.0):
+        super(PowerDistStretch, self).__init__()
+        self.exp = a
+
+    def __call__(self, values, out=None):
+        res = (self.exp ** values - 1.0) / self.exp
+        return np.clip(res, 0.0, 1.0, out=out)
+
+    def inverted(self):
+        return InvertedPowerDistStretch(a=self.exp)
+
+
+class InvertedPowerDistStretch(BaseStretch):
+    """
+    Inverse transformation for PowerDistStretch
+    """
+
+    def __init__(self, a=1000.0):
+        super(InvertedPowerDistStretch, self).__init__()
+        self.exp = a
+
+    def __call__(self, values, out=None):
+        res = logn(self.exp, self.exp * values + 1.0)
+        return np.clip(res, 0.0, 1.0, out=out)
+
+    def inverted(self):
+        return PowerDistStretch(a=self.exp)
+
+
+class SquaredStretch(PowerStretch):
+    """
+    A convenience class for a power stretch of 2.
+    This is the same as ds9's SQUARE stretch, described here
+        (http://ds9.si.edu/doc/ref/how.html)
+    """
+
+    def __init__(self):
+        super(SquaredStretch, self).__init__(2)
+
+    def inverted(self):
+        return SqrtStretch()
+
+
+class LogStretch(BaseStretch):
+    """
+    A log stretch: y = log(a*x + 1) / log(a)
+    This is the same as ds9's LOG stretch, described here
+        (http://ds9.si.edu/doc/ref/how.html)
+    """
+
+    def __init__(self, a=1000.0):
+        super(LogStretch, self).__init__()
+        self.exp = a
+
+    def __call__(self, values, out=None):
+        res = np.log(self.exp * values + 1.0) / np.log(self.exp)
+        return np.clip(res, 0.0, 1.0, out=out)
+
+    def inverted(self):
+        return InvertedLogStretch(self.exp)
+
+
+class InvertedLogStretch(BaseStretch):
+    """
+    Inverse transformation for LogStretch
+    """
+
+    def __init__(self, a):
+        super(InvertedLogStretch, self).__init__()
+        self.exp = a
+
+    def __call__(self, values, out=None):
+        res = (np.exp(values * np.log(self.exp)) - 1) / self.exp
+        return np.clip(res, 0.0, 1.0, out=out)
+
+    def inverted(self):
+        return LogStretch(a)
+
+
+class AsinhStretch(BaseStretch):
+    """
+    An asinh stretch: y = asinh(nonlinearity * x) / factor
+    This is the same as ds9's ASINH stretch, described here
+        (http://ds9.si.edu/doc/ref/how.html)
+    """
+
+    def __init__(self, factor=10, nonlinearity=3.0):
+        super(AsinhStretch, self).__init__()
+        self.factor = factor
+        self.nonlinearity = nonlinearity
+
+    def __call__(self, values, out=None):
+        res = np.arcsinh(self.factor * values) / self.nonlinearity
+        return np.clip(res, 0.0, 1.0, out=out)
+
+    def inverted(self):
+        return InvertedAsinhStretch(factor=self.factor,
+                                    nonlinearity=self.nonlinearity)
+
+
+class InvertedAsinhStretch(BaseStretch):
+    """
+    Inverse transformation for AsinhStretch
+    """
+
+    def __init__(self, factor=10, nonlinearity=3.0):
+        super(InvertedAsinhStretch, self).__init__()
+        self.factor = factor
+        self.nonlinearity = nonlinearity
+
+    def __call__(self, values, out=None):
+        res = np.sinh(self.nonlinearity * values) / self.factor
+        return np.clip(res, 0.0, 1.0, out=out)
+
+    def inverted(self):
+        return AsinhStretch(factor=self.factor,
+                            nonlinearity=self.nonlinearity)
+
+
+class SinhStretch(BaseStretch):
+    """
+    A sinh stretch: y = sinh(factor * x) / nonlinearity
+    This is the same as ds9's SINH stretch, described here
+        (http://ds9.si.edu/doc/ref/how.html)
+    """
+
+    def __init__(self, factor=3.0, nonlinearity=10.0):
+        super(SinhStretch, self).__init__()
+        self.factor = factor
+        self.nonlinearity = nonlinearity
+
+    def __call__(self, values, out=None):
+        res = np.sinh(self.factor * values) / self.nonlinearity
+        return np.clip(res, 0.0, 1.0, out=out)
+
+    def inverted(self):
+        return InvertedSinhStretch(factor=self.factor,
+                                   nonlinearity=self.nonlinearity)
+
+
+class InvertedSinhStretch(BaseStretch):
+    """
+    Inverse transformation for SinhStretch
+    """
+
+    def __init__(self, factor=3.0, nonlinearity=10.0):
+        super(InvertedSinhStretch, self).__init__()
+        self.factor = factor
+        self.nonlinearity = nonlinearity
+
+    def __call__(self, values, out=None):
+        res = np.arcsinh(self.nonlinearity * values) / self.factor
+        return np.clip(res, 0.0, 1.0, out=out)
+
+    def inverted(self):
+        return SinhStretch(factor=self.factor,
+                           nonlinearity=self.nonlinearity)
 
 
 class HistEqStretch(BaseStretch):
