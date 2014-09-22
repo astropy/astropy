@@ -5,6 +5,7 @@ import os
 import math
 import multiprocessing
 import mmap
+import warnings
 from distutils import version
 
 import numpy as np
@@ -208,6 +209,9 @@ cdef class CParser:
         parallel = fast_reader.pop('parallel', False)
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
+        if parallel and os.name == 'nt':
+            warnings.warn("Using multiprocessing on Windows may cause problems", 
+                          RuntimeWarning)
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
