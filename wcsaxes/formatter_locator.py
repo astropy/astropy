@@ -265,19 +265,12 @@ class AngleFormatterLocator(BaseFormatterLocator):
             values = self._locate_values(value_min, value_max, spacing_deg)
             return values * spacing_deg * u.degree, spacing_deg * u.degree
 
-    def formatter(self, values, spacing=None):
+    def formatter(self, values, spacing):
         if not isinstance(values, u.Quantity) and values is not None:
             raise TypeError("values should be a Quantities array")
 
         if len(values) > 0:
-            if spacing is None:
-                # Using the defaults from ('d', 'm', 's') separators
-                fields = 3
-                precision = 0
-                decimal = False
-                unit = u.degree
-
-            elif self.format is None:
+            if self.format is None:
                 spacing = spacing.to(u.arcsec).value
                 if spacing > 3600:
                     fields = 1
@@ -439,12 +432,10 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             values = self._locate_values(value_min, value_max, spacing)
             return values * spacing * self._unit, spacing * self._unit
 
-    def formatter(self, values, spacing=None):
+    def formatter(self, values, spacing):
 
         if len(values) > 0:
-            if spacing is None:
-                precision = 0
-            elif self.format is None:
+            if self.format is None and spacing is not None:
                 if spacing.value < 1.:
                     precision = -int(np.floor(np.log10(spacing.value)))
                 else:
