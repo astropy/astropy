@@ -435,7 +435,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     def formatter(self, values, spacing):
 
         if len(values) > 0:
-            if self.format is None and spacing is not None:
+            if self.format is None:
                 if spacing.value < 1.:
                     precision = -int(np.floor(np.log10(spacing.value)))
                 else:
