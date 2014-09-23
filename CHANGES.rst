@@ -242,6 +242,56 @@ Other Changes and Additions
   minimum acceptable version of ``six``. [#2814]
 
 
+0.4.3 (unreleased)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.registry``
+
+- ``astropy.io.votable``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Nothing changed yet.
+
+
 0.4.2 (2014-09-23)
 ------------------
 
@@ -323,8 +373,6 @@ Bug Fixes
 - ``astropy.vo``
 
   - Improved error message on Cone Search time out. [#2687]
-
-- ``astropy.wcs``
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
