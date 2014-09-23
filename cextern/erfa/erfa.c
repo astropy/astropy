@@ -1,5 +1,3 @@
-//Derived from erfa version 1.1.0
-
 #include "erfa.h"
 
 #include <stdio.h>
@@ -5966,6 +5964,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **                      -2 = bad month
 **                      -3 = bad day (Note 3)
 **                      -4 = bad fraction (Note 4)
+**                      -5 = internal error
 **
 **  Notes:
 **
@@ -6006,7 +6005,9 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **  5) The status value returned in the case where there are multiple
 **     errors refers to the first error detected.  For example, if the
 **     month and day are 13 and 32 respectively, status -2 (bad month)
-**     will be returned.
+**     will be returned.  The "internal error" status refers to a
+**     case that is impossible but causes some compilers to issue a
+**     warning.
 **
 **  6) In cases where a valid result is not available, zero is returned.
 **
@@ -6026,7 +6027,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 */
 {
 /* Release year for this version of eraDat */
-   enum { IYV = 2013};
+   enum { IYV = 2014};
 
 /* Reference dates (MJD) and drift rates (s/day), pre leap seconds */
    static const double drift[][2] = {
@@ -6097,7 +6098,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
    };
 
 /* Number of Delta(AT) changes */
-   const int NDAT = sizeof changes / sizeof changes[0];
+   enum { NDAT = (int) (sizeof changes / sizeof changes[0]) };
 
 /* Miscellaneous local variables */
    int j, i, m;
@@ -6129,6 +6130,9 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
    for (i = NDAT-1; i >=0; i--) {
       if (m >= (12 * changes[i].iyear + changes[i].month)) break;
    }
+
+/* Prevent underflow warnings. */
+   if (i < 0) return -5;
 
 /* Get the Delta(AT). */
    da = changes[(i < 0) ? 0 : i].delat;
@@ -13896,15 +13900,15 @@ void eraLdsun(double p[3], double e[3], double em, double p1[3])
 **   e r a L d s u n
 **  - - - - - - - - -
 **
-**  Light deflection by the Sun.
+**  Deflection of starlight by the Sun.
 **
 **  Given:
-**     p      double[3]  direction from observer to source (unit vector)
+**     p      double[3]  direction from observer to star (unit vector)
 **     e      double[3]  direction from Sun to observer (unit vector)
 **     em     double     distance from Sun to observer (au)
 **
 **  Returned:
-**     p1     double[3]  observer to deflected source (unit vector)
+**     p1     double[3]  observer to deflected star (unit vector)
 **
 **  Notes:
 **
@@ -18713,7 +18717,7 @@ int eraPmsafe(double ra1, double dec1, double pmr1, double pmd1,
                  ra2, dec2, pmr2, pmd2, px2, rv2);
 
 /* Revise and return the status. */
-   if (! j%2) j += jpx;
+   if ( !(j%2) ) j += jpx;
    return j;
 
 /* Finished. */
