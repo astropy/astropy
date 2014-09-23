@@ -104,8 +104,7 @@ def test_simple_data(parallel):
     expected = Table([[1, 4], [2, 5], [3, 6]], names=('A', 'B', 'C'))
     assert_table_equal(table, expected)
 
-@pytest.mark.parametrize("parallel", [True, False])
-def test_read_types(parallel):
+def test_read_types():
     """
     Make sure that the read() function takes filenames,
     strings, and lists of strings in addition to file-like objects.
@@ -146,7 +145,7 @@ def test_no_header_supplied_names(parallel):
     data should not be read and names should be used instead.
     """
     table = read_basic("A B C\n1 2 3\n4 5 6", header_start=None, data_start=0,
-                       names=('X', 'Y', 'Z'))
+                       names=('X', 'Y', 'Z'), parallel=parallel)
     expected = Table([['A', '1', '4'], ['B', '2', '5'], ['C', '3', '6']], names=('X', 'Y', 'Z'))
     assert_table_equal(table, expected)
 
@@ -258,7 +257,7 @@ A B C D E F G H
 9 10 11 12 13 14 15 16
 """
     table = read_basic(text, include_names=['A', 'B', 'D', 'F', 'H'],
-                    exclude_names=['B', 'F'])
+                       exclude_names=['B', 'F'], parallel=parallel)
     expected = Table([[1, 9], [4, 12], [8, 16]], names=('A', 'D', 'H'))
     assert_table_equal(table, expected)
 
@@ -282,8 +281,7 @@ a b "   c
     table = read_basic(text.replace('"', "'"), quotechar="'", parallel=parallel)
     assert_table_equal(table, expected)
 
-@pytest.mark.parametrize("parallel", [True, False])
-def test_invalid_parameters(parallel):
+def test_invalid_parameters():
     """
     Make sure the C reader raises an error if passed parameters it can't handle.
     """
@@ -316,8 +314,7 @@ def test_invalid_parameters(parallel):
         # Outputter cannot be specified in constructor
         table = FastBasic(Outputter=ascii.TableOutputter).read('1 2 3\n4 5 6')
 
-@pytest.mark.parametrize("parallel", [True, False])
-def test_too_many_cols(parallel):
+def test_too_many_cols():
     """
     If a row contains too many columns, the C reader should raise an error.
     """
@@ -496,8 +493,7 @@ def test_many_columns(parallel):
     expected = Table([[i, i] for i in range(500)], names=[str(i) for i in range(500)])
     assert_table_equal(table, expected)
 
-@pytest.mark.parametrize("parallel", [True, False])
-def test_fast_reader(parallel):
+def test_fast_reader():
     """
     Make sure that ascii.read() works as expected by default and with
     fast_reader specified.
