@@ -4,12 +4,6 @@
 Bug Fixes
 ^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
 - ``astropy.coordinates``
 
   - ``Angle`` accepts hours:mins or deg:mins initializers (without
@@ -19,10 +13,6 @@ Bug Fixes
     (ex: ra, dec) in a consistent order.  It should be noted that as part of
     this fix, the ``BaseCoordinateFrame.get_frame_attr_names()`` method now
     returns an ``OrderedDict`` instead of just a ``dict``. [#2845]
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
@@ -56,17 +46,9 @@ Bug Fixes
   - Fixed a bug that prevented h5py ``Dataset`` objects from being
     automatically recognized by ``Table.read``. [#2831]
 
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - Make ``LevMarLSQFitter`` work with ``weights`` keyword. [#2900]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -78,7 +60,7 @@ Bug Fixes
 
   - Fixed printing of masked values when a format is specified. [#1026]
 
-  - Ensured that numpy ufuncs that return booleans return plain ``ndarray`` 
+  - Ensured that numpy ufuncs that return booleans return plain ``ndarray``
     instances, just like the comparison operators. [#2963]
 
 - ``astropy.time``
@@ -113,7 +95,8 @@ Other Changes and Additions
 - Ensure numpy 1.9 is supported. [#2917]
 
 - Ensure numpy master is supported, by making ``np.cbrt`` work with quantities.
-  [#2937] 
+  [#2937]
+
 
 0.4.1 (2014-08-08)
 ------------------
