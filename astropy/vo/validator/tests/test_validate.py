@@ -29,6 +29,9 @@ from ....utils import data
 __doctest_skip__ = ['*']
 
 
+PY3 = sys.version_info[0] == 3
+
+
 @remote_data
 class TestConeSearchValidation(object):
     """Validation on a small subset of Cone Search sites."""
@@ -52,6 +55,8 @@ class TestConeSearchValidation(object):
         db2 = VOSDatabase.from_json(fname2)
         assert db1.list_catalogs() == db2.list_catalogs()
 
+    @pytest.mark.xfail(sys.platform == "win32" and not PY3,
+                       reason='see issue #2970 on GitHub')
     @pytest.mark.parametrize(('parallel'), [True, False])
     def test_validation(self, parallel):
         if os.path.exists(self.out_dir):
