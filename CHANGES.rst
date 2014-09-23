@@ -242,7 +242,7 @@ Other Changes and Additions
   minimum acceptable version of ``six``. [#2814]
 
 
-0.4.2 (unreleased)
+0.4.2 (2014-09-23)
 ------------------
 
 Bug Fixes
