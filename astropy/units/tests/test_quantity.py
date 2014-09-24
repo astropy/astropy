@@ -320,6 +320,17 @@ class TestQuantityOperations(object):
         with pytest.raises(u.UnitsError):
             new_q = q1 + q2
 
+    def test_non_number_type(self):
+        q1 = u.Quantity(11.412, unit=u.meter)
+        type_err_msg = ("Unsupported operand type(s) for ufunc add: "
+                        "'Quantity' and 'dict'")
+        with pytest.raises(TypeError) as exc:
+            q1 + {'a': 1}
+        assert exc.value.args[0] == type_err_msg
+
+        with pytest.raises(TypeError):
+            q1 + u.meter
+
     def test_dimensionless_operations(self):
         # test conversion to dimensionless
         dq = 3. * u.m / u.km
