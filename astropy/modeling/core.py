@@ -1010,6 +1010,10 @@ class Model(object):
         # parameter, and the param_dim
         self._n_models = n_models
         self._model_set_axis = model_set_axis
+
+        self._initialize_parameter_values(params)
+
+    def _initialize_parameter_values(self, params):
         self._param_metrics = {}
         total_size = 0
 
