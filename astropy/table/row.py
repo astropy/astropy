@@ -32,10 +32,11 @@ class Row(object):
     """
 
     def __init__(self, table, index):
-        self._table = table
+        # Make a single-row slice so that the _data array below is small
+        self._table = table[index:index+1]
         self._index = index
         try:
-            self._data = table._data[index]
+            self._data = self._table._data[0]
 
             # MaskedArray __getitem__ has a strange behavior where if a
             # row mask is all False then it returns a np.void which
@@ -146,5 +147,3 @@ class Row(object):
 
 
 collections.Sequence.register(Row)
-
-

@@ -151,11 +151,24 @@ class Table(object):
     TableColumns = TableColumns
     TableFormatter = TableFormatter
 
+    @property
+    def _data(self):
+        if len(self.columns) == 0:
+            return None
+
+        cols = self.columns.values()
+        dtype = [col.descr for col in cols]
+        empty_init = ma.empty if self.masked else np.empty
+        data = empty_init(len(self), dtype=dtype)
+        for col in cols:
+            data[col.name] = col.data
+
+        return data
+
     def __init__(self, data=None, masked=None, names=None, dtype=None,
                  meta=None, copy=True, rows=None):
 
         # Set up a placeholder empty table
-        self._data = None
         self._set_masked(masked)
         self.columns = self.TableColumns()
         self.meta = meta
@@ -318,28 +331,30 @@ class Table(object):
         This function will cleanly rebuild the columns and self.columns.
         This is a slightly subtle operation, see comments.
         """
-        cols = []
-        for col in six.itervalues(self.columns):
-            # First make a new column based on the name and the original
-            # column.  This step is needed because the table manipulation
-            # may have changed the table masking so that the original data
-            # columns no longer correspond to self.ColumnClass.  This uses
-            # data refs, not copies.
-            newcol = self.ColumnClass(name=col.name, data=col)
+        # NO LONGER NEEDED!
 
-            # Now use the copy() method to copy the column and its metadata,
-            # but at the same time set the column data to a view of
-            # self._data[col.name].  Somewhat confusingly in this case
-            # copy() refers to copying the column attributes, but the data
-            # are used by reference.
-            newcol = newcol.copy(data=self._data[col.name])
+        # cols = []
+        # for col in six.itervalues(self.columns):
+        #     # First make a new column based on the name and the original
+        #     # column.  This step is needed because the table manipulation
+        #     # may have changed the table masking so that the original data
+        #     # columns no longer correspond to self.ColumnClass.  This uses
+        #     # data refs, not copies.
+        #     newcol = self.ColumnClass(name=col.name, data=col)
 
-            # Make column aware of the parent table
-            newcol.parent_table = self
+        #     # Now use the copy() method to copy the column and its metadata,
+        #     # but at the same time set the column data to a view of
+        #     # self._data[col.name].  Somewhat confusingly in this case
+        #     # copy() refers to copying the column attributes, but the data
+        #     # are used by reference.
+        #     newcol = newcol.copy(data=self._data[col.name])
 
-            cols.append(newcol)
+        #     # Make column aware of the parent table
+        #     newcol.parent_table = self
 
-        self.columns = self.TableColumns(cols)
+        #     cols.append(newcol)
+
+        # self.columns = self.TableColumns(cols)
 
     def _check_names_dtype(self, names, dtype, n_cols):
         """Make sure that names and dtype are boths iterable and have
@@ -456,11 +471,12 @@ class Table(object):
         if copy:
             self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
+            # Make new columns with possibly new names, but with references to the
+            # original data values.
             names = [vals[0] or vals[1] for vals in zip(names, data_names)]
-            dtype = [(name, col.dtype) for name, col in zip(names, cols)]
-            data = table._data.view(dtype)
+            newcols = [self.ColumnClass(data=col, name=name) for col, name in zip(cols, names)]
 
-            self._update_table_from_cols(self, data, cols, names)
+            self._update_table_from_cols(self, newcols)
 
     def _init_from_cols(self, cols):
         """Initialize table from a list of Column objects"""
@@ -471,16 +487,15 @@ class Table(object):
                              .format(lengths))
 
         self._set_masked_from_cols(cols)
-        cols = [self.ColumnClass(name=col.name, data=col) for col in cols]
+        newcols = [self.ColumnClass(name=col.name, data=col) for col in cols]
 
-        names = [col.name for col in cols]
-        dtype = [col.descr for col in cols]
-        empty_init = ma.empty if self.masked else np.empty
-        data = empty_init(lengths.pop(), dtype=dtype)
-        for col in cols:
-            data[col.name] = col.data
+        # dtype = [col.descr for col in cols]
+        # empty_init = ma.empty if self.masked else np.empty
+        # data = empty_init(lengths.pop(), dtype=dtype)
+        # for col in cols:
+        #     data[col.name] = col.data
 
-        self._update_table_from_cols(self, data, cols, names)
+        self._update_table_from_cols(self, newcols)
 
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
@@ -489,26 +504,22 @@ class Table(object):
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = list(six.itervalues(self.columns))
-        names = [col.name for col in cols]
-        data = self._data[slice_]
+        newcols = [col[slice_] for col in cols]
 
-        self._update_table_from_cols(table, data, cols, names)
+        self._update_table_from_cols(table, newcols)
 
         return table
 
     @staticmethod
-    def _update_table_from_cols(table, data, cols, names):
+    def _update_table_from_cols(table, cols):
         """Update the existing ``table`` so that it represents the given
         ``data`` (a structured ndarray) with ``cols`` and ``names``."""
 
-        columns = table.TableColumns()
-        table._data = data
+        columns = table.TableColumns((col.name, col) for col in cols)
 
-        for name, col in zip(names, cols):
-            newcol = col.copy(data=data[name], copy_data=False)
-            newcol.name = name
-            newcol.parent_table = table
-            columns[name] = newcol
+        for col in cols:
+            col.parent_table = table
+
         table.columns = columns
 
     def __repr__(self):
@@ -879,10 +890,15 @@ class Table(object):
         return list(self.columns.keys())
 
     def __len__(self):
-        if self._data is None:
+        if len(self.columns) == 0:
             return 0
-        else:
-            return len(self._data)
+
+        lengths = set(len(col) for col in self.columns.values())
+        if len(lengths) != 1:
+            len_strs = [' {0} : {1}'.format(col.name, len(col)) for col in self.columns.values()]
+            raise ValueError('Column length mismatch:\n{0}'.format('\n'.join(len_strs)))
+
+        return lengths.pop()
 
     def create_mask(self):
         if isinstance(self._data, ma.MaskedArray):
