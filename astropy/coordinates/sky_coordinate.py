@@ -707,10 +707,10 @@ class SkyCoord(object):
         -------
         idxsearcharound : integer array
             Indecies into ``coords1`` that matches to the corresponding element of
-            `idxself``. Shape matches ``idxself``.
+            ``idxself``. Shape matches ``idxself``.
         idxself : integer array
             Indecies into ``coords2`` that matches to the corresponding element of
-            `idxsearcharound``. Shape matches ``idxsearcharound``.
+            ``idxsearcharound``. Shape matches ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
@@ -749,10 +749,10 @@ class SkyCoord(object):
         -------
         idxsearcharound : integer array
             Indecies into ``coords1`` that matches to the corresponding element of
-            `idxself``. Shape matches ``idxself``.
+            ``idxself``. Shape matches ``idxself``.
         idxself : integer array
             Indecies into ``coords2`` that matches to the corresponding element of
-            `idxsearcharound``. Shape matches ``idxsearcharound``.
+            ``idxsearcharound``. Shape matches ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.

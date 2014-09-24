@@ -185,10 +185,10 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     -------
     idx1 : integer array
         Indecies into ``coords1`` that matches to the corresponding element of
-        `idx2``. Shape matches ``idx2``.
+        ``idx2``. Shape matches ``idx2``.
     idx2 : integer array
         Indecies into ``coords2`` that matches to the corresponding element of
-        `idx1``. Shape matches ``idx1``.
+        ``idx1``. Shape matches ``idx1``.
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the coordinates. Shape matches ``idx1``
         and ``idx2``.
@@ -269,10 +269,10 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     -------
     idx1 : integer array
         Indecies into ``coords1`` that matches to the corresponding element of
-        `idx2``. Shape matches ``idx2``.
+        ``idx2``. Shape matches ``idx2``.
     idx2 : integer array
         Indecies into ``coords2`` that matches to the corresponding element of
-        `idx1``. Shape matches ``idx1``.
+        ``idx1``. Shape matches ``idx1``.
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the coordinates`. Shape matches ``idx1``
         and ``idx2``.
