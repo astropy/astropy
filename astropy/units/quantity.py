@@ -294,14 +294,23 @@ class Quantity(np.ndarray):
             # can just have the unit of the quantity
             # (this allows, e.g., `q > 0.` independent of unit)
             maybe_arbitrary_arg = args[scales.index(0.)]
-            if _can_have_arbitrary_unit(maybe_arbitrary_arg):
-                scales = [1., 1.]
-            else:
-                raise UnitsError("Can only apply '{0}' function to "
-                                 "dimensionless quantities when other "
-                                 "argument is not a quantity (unless the "
-                                 "latter is all zero/infinity/nan)"
-                                 .format(function.__name__))
+            try:
+                if _can_have_arbitrary_unit(maybe_arbitrary_arg):
+                    scales = [1., 1.]
+                else:
+                    raise UnitsError("Can only apply '{0}' function to "
+                                     "dimensionless quantities when other "
+                                     "argument is not a quantity (unless the "
+                                     "latter is all zero/infinity/nan)"
+                                     .format(function.__name__))
+            except TypeError:
+                # _can_have_arbitrary_unit failed: arg could not be compared
+                # with zero or checked to be finite.  Then, ufunc will fail too.
+                raise TypeError("Unsupported operand type(s) for ufunc {0}: "
+                                "'{1}' and '{2}'"
+                                .format(function.__name__,
+                                        args[0].__class__.__name__,
+                                        args[1].__class__.__name__))
 
         # In the case of np.power, the unit itself needs to be modified by an
         # amount that depends on one of the input values, so we need to treat

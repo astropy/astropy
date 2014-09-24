@@ -40,6 +40,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Operations on quantities with incompatible types now raises a much
+    more informative ``TypeError``. [#2934]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
