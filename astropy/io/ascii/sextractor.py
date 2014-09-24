@@ -11,14 +11,12 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-from ...extern import six
 from . import core
-from . import basic
+
 
 class SExtractorHeader(core.BaseHeader):
     """Read the header from a file produced by SExtractor."""
     comment = r'^\s*#\s*\S\D.*'  # Find lines that dont have "# digit"
-
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a SExtractor
@@ -118,13 +116,5 @@ class SExtractor(core.BaseReader):
     data_class = SExtractorData
     inputter_class = core.ContinuationLinesInputter
 
-
-    def read(self, table):
-        output = core.BaseReader.read(self, table)
-        self.table = output
-        self.cols = self.header.cols
-
-        return self.table
-
-    def write(self, table=None):
+    def write(self, table):
         raise NotImplementedError

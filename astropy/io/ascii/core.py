@@ -889,23 +889,24 @@ class BaseReader(object):
         # Get the table column definitions
         self.header.get_cols(self.lines)
 
-        cols = self.header.cols
+        self.cols = cols = self.header.cols
+        n_cols = len(cols)
         self.data.splitter.cols = cols
 
         for i, str_vals in enumerate(self.data.get_str_vals()):
-            if len(str_vals) != len(cols):
-                str_vals = self.inconsistent_handler(str_vals, len(cols))
+            if len(str_vals) != n_cols:
+                str_vals = self.inconsistent_handler(str_vals, n_cols)
 
                 # if str_vals is None, we skip this row
                 if str_vals is None:
                     continue
 
                 # otherwise, we raise an error only if it is still inconsistent
-                if len(str_vals) != len(cols):
+                if len(str_vals) != n_cols:
                     errmsg = ('Number of header columns (%d) inconsistent with '
                               'data columns (%d) at data line %d\n'
                               'Header values: %s\n'
-                              'Data values: %s' % (len(cols), len(str_vals), i,
+                              'Data values: %s' % (n_cols, len(str_vals), i,
                                                    [x.name for x in cols], str_vals))
                     raise InconsistentTableError(errmsg)
 
@@ -914,7 +915,6 @@ class BaseReader(object):
 
         self.data.masks(cols)
         table = self.outputter(cols, self.meta)
-        self.cols = self.header.cols
 
         _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names,
                                      self.strict_names)
@@ -1055,7 +1055,6 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
 
     if Inputter is not None:
         reader.inputter = Inputter()
-    reader.outputter = TableOutputter()
 
     if Outputter is not None:
         reader.outputter = Outputter()
