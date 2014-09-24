@@ -1331,14 +1331,14 @@ for idx, ops in enumerate(_ORDER_OF_OPERATORS):
 class _CompoundModelMeta(_ModelMeta):
     _tree = None
     _submodels = None
-    _submodels_name_map = None
+    _submodel_names = None
     _nextid = 0
 
     def __getitem__(cls, index):
         if isinstance(index, int):
             return cls._get_submodels()[index]
         elif isinstance(index, str):
-            return cls._get_submodel_by_name(index)
+            return cls._get_submodels()[cls.submodel_names.index(index)]
 
         raise TypeError(
             'Submodels can be indexed either by their integer order or '
@@ -1355,6 +1355,35 @@ class _CompoundModelMeta(_ModelMeta):
 
         return cls._format_cls_repr(keywords=keywords)
 
+    @property
+    def submodel_names(cls):
+        if cls._submodel_names is not None:
+            return cls._submodel_names
+
+        by_name = defaultdict(lambda: [])
+
+        for idx, submodel in enumerate(cls._get_submodels()):
+            # Keep track of the original sort order of the submodels
+            by_name[submodel.name].append(idx)
+
+        names = []
+        for basename, indices in six.iteritems(by_name):
+            if len(indices) == 1:
+                # There is only one model with this name, so it doesn't need an
+                # index appended to its name
+                names.append((basename, indices[0]))
+            else:
+                for idx in indices:
+                    names.append(('{0}_{1}'.format(basename), idx))
+
+        # Sort according to the models' original sort orders
+        names.sort(key=lambda k: k[1])
+
+        names = tuple(k[0] for k in names)
+
+        cls._submodels_names = names
+        return names
+
     # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
     # leaf nodes is something the ExpressionTree class itself could just know
     def _get_submodels(cls):
@@ -1367,26 +1396,6 @@ class _CompoundModelMeta(_ModelMeta):
                      if c.isleaf]
         cls._submodels = submodels
         return submodels
-
-    def _get_submodel_by_name(cls, name):
-        if cls._submodels_name_map is not None:
-            return cls._submodels_name_map[name]
-
-        by_name = defaultdict(lambda: [])
-
-        for submodel in cls._get_submodels():
-            by_name[submodel.name].append(submodel)
-
-        name_map = {}
-        for basename, models in six.iteritems(by_name):
-            if len(models) == 1:
-                name_map[basename] = models[0]
-            else:
-                for idx, model in enumerate(models):
-                    name_map['{0}_{1}'.format(basename, idx)] = model
-
-        cls._submodels_name_map = name_map
-        return name_map[name]
 
 
 @six.add_metaclass(_CompoundModelMeta)
