@@ -809,6 +809,7 @@ def test_immutable():
     assert c1.foo == 42
 
 
+@pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_search_around():
     """
     Test the search_around_* methods
