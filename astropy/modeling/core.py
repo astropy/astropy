@@ -24,6 +24,8 @@ import functools
 import operator
 import warnings
 
+from collections import defaultdict
+
 import numpy as np
 
 from ..utils import indent, isiterable, metadata
@@ -1329,10 +1331,18 @@ for idx, ops in enumerate(_ORDER_OF_OPERATORS):
 class _CompoundModelMeta(_ModelMeta):
     _tree = None
     _submodels = None
+    _submodels_name_map = None
     _nextid = 0
 
     def __getitem__(cls, index):
-        return cls._get_submodels()[index]
+        if isinstance(index, int):
+            return cls._get_submodels()[index]
+        elif isinstance(index, str):
+            return cls._get_submodel_by_name(index)
+
+        raise TypeError(
+            'Submodels can be indexed either by their integer order or '
+            'their name (got {0!r}).'.format(index))
 
     def __repr__(cls):
         expression = cls._tree.format_expression(OPERATOR_PRECEDENCE)
@@ -1353,10 +1363,30 @@ class _CompoundModelMeta(_ModelMeta):
         if cls._submodels is not None:
             return cls._submodels
 
-        cls._submodels = [c.value for c in cls._tree.traverse_postorder()
-                          if c.isleaf]
-        return cls._submodels
-        return [c.value for c in cls._tree.traverse_postorder() if c.isleaf]
+        submodels = [c.value for c in cls._tree.traverse_postorder()
+                     if c.isleaf]
+        cls._submodels = submodels
+        return submodels
+
+    def _get_submodel_by_name(cls, name):
+        if cls._submodels_name_map is not None:
+            return cls._submodels_name_map[name]
+
+        by_name = defaultdict(lambda: [])
+
+        for submodel in cls._get_submodels():
+            by_name[submodel.name].append(submodel)
+
+        name_map = {}
+        for basename, models in six.iteritems(by_name):
+            if len(models) == 1:
+                name_map[basename] = models[0]
+            else:
+                for idx, model in enumerate(models):
+                    name_map['{0}_{1}'.format(basename, idx)] = model
+
+        cls._submodels_name_map = name_map
+        return name_map[name]
 
 
 @six.add_metaclass(_CompoundModelMeta)
