@@ -1400,6 +1400,8 @@ class _CompoundModelMeta(_ModelMeta):
 
 @six.add_metaclass(_CompoundModelMeta)
 class _CompoundModel(Model):
+    _submodels = None
+
     def __init__(self, *args, **kwargs):
         # TODO: Just as a quick prototype, pass args off as parameters to
         # individual submodels; there are a myriad ways we can make this more
@@ -1430,6 +1432,10 @@ class _CompoundModel(Model):
         self._model_set_axis = 0
         self._n_models = 1
         self._name = kwargs.pop('name', None)
+
+    @property
+    def submodel_names(self):
+        return self.__class__.submodel_names
 
     @property
     def param_sets(self):
@@ -1466,6 +1472,8 @@ class _CompoundModel(Model):
             return result[0]
         else:
             return result
+
+    _get_submodels = sharedmethod(_CompoundModelMeta._get_submodels)
 
 
 def custom_model(*args, **kwargs):
