@@ -78,6 +78,8 @@ New Features
     columns that allow the column values to be easily converted to
     ``astropy.units.Quantity`` objects. [#2950]
 
+  - New CSS for jsviewer table [#2917]
+  
 - ``astropy.time``
 
 - ``astropy.units``
