@@ -26,7 +26,7 @@ class Conf(_config.ConfigNamespace):
         'The URL to the jquery datatables library.')
 
     css_urls = _config.ConfigItem(
-        ['https://code.jquery.com/ui/1.11.1/themes/overcast/jquery-ui.css'],
+        ['https://cdn.datatables.net/1.10.2/css/jquery.dataTables.css'],
         'The URLs to the css file(s) to include.', cfgtype='list')
 
 
@@ -70,8 +70,7 @@ IPYNB_JS_SCRIPT = """
         $('#{tid}').dataTable({{
              "iDisplayLength": {display_length},
              "aLengthMenu": {display_length_menu},
-             "bJQueryUI": true,
-             "sPaginationType": "full_numbers"
+             "pagingType": "full_numbers"
         }});
     }}
     function replace_table() {{
@@ -88,8 +87,7 @@ $(document).ready(function() {{
     $('#{tid}').dataTable({{
      "iDisplayLength": {display_length},
      "aLengthMenu": {display_length_menu},
-     "bJQueryUI": true,
-     "sPaginationType": "full_numbers"
+     "pagingType": "full_numbers"
     }});
 }} );
 """
@@ -176,10 +174,13 @@ def write_table_jsviewer(table, filename, table_id=None,
     if table_id is None:
         table_id = 'table{id}'.format(id=id(table))
 
+    table_class = "cell-border compact strip hover order-column" #Nice defaults
+
     jsv = JSViewer(**jskwargs)
 
     htmldict = {}
     htmldict['table_id'] = table_id
+    htmldict['table_class'] = table_class
     htmldict['css'] = css
     htmldict['cssfiles'] = jsv.css_urls
     htmldict['jsfiles'] = jsv.jquery_urls
