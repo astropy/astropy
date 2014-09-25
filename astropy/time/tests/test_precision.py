@@ -110,3 +110,13 @@ def test_precision_epoch():
     t_tai = Time(range(1980, 2001), format='jyear', scale='tai')
     dt = t_utc - t_tai
     assert allclose_sec(dt.sec, np.round(dt.sec))
+
+
+def test_leap_seconds_rounded_correctly():
+    """Regression tests against #2083, where a leap second was rounded
+    incorrectly by the underlying ERFA routine."""
+    t = Time(['2012-06-30 23:59:59.413',
+              '2012-07-01 00:00:00.413'], scale='ut1', precision=3).utc
+    assert np.all(t.iso == np.array(['2012-06-30 23:59:60.000',
+                                     '2012-07-01 00:00:00.000']))
+    # with the bug, both yielded '2012-06-30 23:59:60.000'
