@@ -412,9 +412,9 @@ class Table(object):
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
+                col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype).copy()
             elif isinstance(col, np.ndarray) or isiterable(col):
-                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype)
+                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype).copy()
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
@@ -439,11 +439,11 @@ class Table(object):
             self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
             dtype = [(name, col.dtype, col.shape[1:]) for name, col in zip(names, cols)]
-            self._data = data.view(dtype).ravel()
+            newdata = data.view(dtype).ravel()
             columns = self.TableColumns()
 
             for name in names:
-                columns[name] = self.ColumnClass(name=name, data=self._data[name])
+                columns[name] = self.ColumnClass(name=name, data=newdata[name])
                 columns[name].parent_table = self
             self.columns = columns
 
@@ -1150,17 +1150,22 @@ class Table(object):
               2 0.2   y
               3 0.3   z
         """
-        try:
-            table = np.delete(self._data, row_specifier, axis=0)
-        except (ValueError, IndexError):
-            # Numpy <= 1.7 raises ValueError while Numpy >= 1.8 raises IndexError
-            raise IndexError('Removing row(s) {0} from table with {1} rows failed'
-                             .format(row_specifier, len(self._data)))
-        self._data = table
+        columns = self.TableColumns()
+        for col in self.columns.values():
+            try:
+                newdata = np.delete(col, row_specifier, axis=0)
+            except (ValueError, IndexError):
+                # Numpy <= 1.7 raises ValueError while Numpy >= 1.8 raises IndexError
+                raise IndexError('Removing row(s) {0} from table with {1} rows failed'
+                                 .format(row_specifier, len(self)))
 
-        # after updating the row data, the column views will be out of date
-        # and should be updated:
-        self._rebuild_table_column_views()
+            newcol = self.ColumnClass(data=newdata, dtype=col.dtype, name=col.name,
+                                      description=col.description, unit=col.unit,
+                                      format=col.format, meta=deepcopy(col.meta))
+            columns[col.name] = newcol
+            newcol.parent_table = self
+
+        self.columns = columns
 
         # Revert groups to default (ungrouped) state
         if hasattr(self, '_groups'):
@@ -1263,24 +1268,6 @@ class Table(object):
         for name in names:
             self.columns.pop(name)
 
-        newdtype = [(name, self._data.dtype[name]) for name in self._data.dtype.names
-                    if name not in names]
-        newdtype = np.dtype(newdtype)
-
-        if newdtype:
-            if self.masked:
-                table = np.ma.empty(self._data.shape, dtype=newdtype)
-            else:
-                table = np.empty(self._data.shape, dtype=newdtype)
-
-            for field in newdtype.fields:
-                table[field] = self._data[field]
-                if self.masked:
-                    table[field].fill_value = self._data[field].fill_value
-        else:
-            table = None
-
-        self._data = table
 
     def _convert_string_dtype(self, in_kind, out_kind, python3_only):
         """
@@ -1515,7 +1502,7 @@ class Table(object):
             attrs = ('__getitem__', '__len__', '__iter__', 'keys', 'values', 'items')
             return all(hasattr(obj, attr) for attr in attrs)
 
-        newlen = len(self._data) + 1
+        newlen = len(self) + 1
 
         if vals is None:
             vals = np.zeros(1, dtype=self._data.dtype)[0]
@@ -1577,19 +1564,24 @@ class Table(object):
         else:
             raise TypeError('Vals must be an iterable or mapping or None')
 
+        # import pdb; pdb.set_trace()
         # If no errors have been raised, then the table can be resized
-        if self.masked:
-            if newlen == 1:
-                self._data = ma.empty(1, dtype=self._data.dtype)
-            else:
-                self._data = ma.resize(self._data, (newlen,))
-        else:
-            self._data.resize((newlen,), refcheck=False)
+        columns = self.TableColumns()
+        for name, col in self.columns.items():
+            newcol = self.ColumnClass(length=newlen, dtype=col.dtype, name=name,
+                                      description=col.description, unit=col.unit,
+                                      format=col.format, meta=deepcopy(col.meta))
 
-        # Assign the new row
-        self._data[-1:] = test_data
+            if newlen > 1:
+                newcol[:-1] = col
 
-        self._rebuild_table_column_views()
+            # Assign the new row
+            newcol[-1:] = test_data[name]
+
+            columns[name] = newcol
+            newcol.parent_table = self
+
+        self.columns = columns
 
         # Revert groups to default (ungrouped) state
         if hasattr(self, '_groups'):
@@ -1706,8 +1698,8 @@ class Table(object):
                    Jo  Miller  15
                   Max  Miller  12
         '''
-        self._data[:] = self._data[::-1].copy()
-        self._rebuild_table_column_views()
+        for col in self.columns.values():
+            col[:] = col[::-1].copy()
 
     @classmethod
     def read(cls, *args, **kwargs):

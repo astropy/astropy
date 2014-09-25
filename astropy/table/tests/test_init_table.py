@@ -243,11 +243,13 @@ class TestInitFromNdarrayStruct(BaseInitFromDictLike):
         to input ndarray"""
         self._setup(table_type)
         t = table_type(self.data, copy=False)
-        assert np.all(t._data == self.data)
+        t_data = t._data.data if t.masked else t._data
+        assert np.all(t_data == self.data)
         t['x'][1] = 0
-        assert t._data['x'][1] == 0
+        t_data = t._data.data if t.masked else t._data
+        assert t_data['x'][1] == 0
         assert self.data['x'][1] == 0
-        assert np.all(t._data == self.data)
+        assert np.all(t_data == self.data)
         assert all(t[name].name == name for name in t.colnames)
 
     def test_partial_names_dtype(self, table_type):
