@@ -247,7 +247,7 @@ the way you want.  As an example::
 
   >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
   >>> c  # doctest: +FLOAT_CMP
-  <MyFrame Coordinate: location=None, equinox=B1950.000, obstime=B1950.000, R=0.174532925199 rad, D=0.349065850399 rad>
+  <MyFrame Coordinate (location=None, equinox=B1950.000, obstime=B1950.000): R=0.174532925199 rad, D=0.349065850399 rad>
   >>> c.equinox
   <Time object: scale='utc' format='byear_str' value=B1950.000>
 
