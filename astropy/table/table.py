@@ -1657,10 +1657,15 @@ class Table(object):
         else:
             raise TypeError('Vals must be an iterable or mapping or None')
 
+        # import pdb; pdb.set_trace()
         # If no errors have been raised, then the table can be resized
         columns = self.TableColumns()
         for name, col in self.columns.items():
+<<<<<<< HEAD
             newcol = self.ColumnClass(length=newlen, dtype=col.dtype, shape=col.shape[1:], name=name,
+=======
+            newcol = self.ColumnClass(length=newlen, dtype=col.dtype, name=name,
+>>>>>>> Continued migration, down 117 test fails
                                       description=col.description, unit=col.unit,
                                       format=col.format, meta=deepcopy(col.meta))
 
