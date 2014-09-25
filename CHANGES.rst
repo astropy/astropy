@@ -1325,6 +1325,8 @@ New Features
   - Added column alignment formatting for better pprint viewing
     experience. [#3037]
 
+  - New CSS for jsviewer table [#2917]
+  
 - ``astropy.time``
 
   - ``Time`` can now handle arbitrary array dimensions, with operations
