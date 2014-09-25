@@ -1564,7 +1564,6 @@ class Table(object):
         else:
             raise TypeError('Vals must be an iterable or mapping or None')
 
-        # import pdb; pdb.set_trace()
         # If no errors have been raised, then the table can be resized
         columns = self.TableColumns()
         for name, col in self.columns.items():
@@ -1614,7 +1613,10 @@ class Table(object):
         if kind:
             kwargs['kind'] = kind
 
-        data = self._data
+        if keys:
+            data = self[keys]._data
+        else:
+            data = self._data
 
         if _BROKEN_UNICODE_TABLE_SORT and keys is not None and any(
                 data.dtype[i].kind == 'U' for i in xrange(len(data.dtype))):
@@ -1658,17 +1660,9 @@ class Table(object):
         if type(keys) is not list:
             keys = [keys]
 
-        data = self._data
-
-        if _BROKEN_UNICODE_TABLE_SORT and any(
-                data.dtype[i].kind == 'U' for i in xrange(len(data.dtype))):
-            # Use an alternate sort implementation that uses argsort
-            ordering = self.argsort(keys=keys)
-            data[:] = data[ordering]
-        else:
-            data.sort(order=keys)
-
-        self._rebuild_table_column_views()
+        indexes = self.argsort(keys)  # Allow different sort algorithm??
+        for col in self.columns.values():
+            col[:] = col.take(indexes)
 
     def reverse(self):
         '''
