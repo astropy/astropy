@@ -515,6 +515,9 @@ class Table(object):
         """Update the existing ``table`` so that it represents the given
         ``data`` (a structured ndarray) with ``cols`` and ``names``."""
 
+        if len(set(col.name for col in cols)) != len(cols):
+            raise ValueError('Duplicate column names')
+
         columns = table.TableColumns((col.name, col) for col in cols)
 
         for col in cols:
@@ -806,39 +809,44 @@ class Table(object):
             # self._data[item] = value
 
             if isinstance(item, six.string_types):
+                # Set an existing column
                 self.columns[item] = value
 
             elif isinstance(item, (int, np.integer)):
-                # Set the corresponding row
-                return self.Row(self, item)
+                # Set the corresponding row assuming value is an interable.
+                # TODO catch exception if value has no len
+                if len(value) != len(self.columns):
+                    raise ValueError('Right side value needs {0} elements (one for each column)'
+                                     .format(len(self.columns)))
 
-            elif isinstance(item, (tuple, list)) and all(isinstance(x, six.string_types)
-                                                         for x in item):
-                bad_names = [x for x in item if x not in self.colnames]
-                if bad_names:
-                    raise ValueError('Slice name(s) {0} not valid column name(s)'
-                                     .format(', '.join(bad_names)))
-                out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
-                out._groups = groups.TableGroups(out, indices=self.groups._indices,
-                                                 keys=self.groups._keys)
-                return out
+                for col, val in izip(self.columns.values(), value):
+                    col[item] = val
 
             elif (isinstance(item, slice) or
                   isinstance(item, np.ndarray) or
                   isinstance(item, list) or
-                  isinstance(item, tuple) and all(isinstance(x, np.ndarray)
-                                                  for x in item)):
-                # here for the many ways to give a slice; a tuple of ndarray
-                # is produced by np.where, as in t[np.where(t['a'] > 2)]
-                # For all, a new table is constructed with slice of all columns
-                return self._new_from_slice(item)
+                  (isinstance(item, tuple) and  # output from np.where
+                   all(isinstance(x, np.ndarray) for x in item))):
+
+                if isinstance(value, Table):
+                    vals = (col for col in value.columns.values())
+
+                elif isinstance(value, np.ndarray) and value.dtype.names:
+                    vals = (value[name] for name in value.dtype.names)
+
+                else:  # Assume this is an iterable that will work
+                    # TODO catch exception if value has no len
+                    if len(value) != len(self.columns):
+                        raise ValueError('Right side value needs {0} elements (one for each column)'
+                                         .format(len(self.columns)))
+                    vals = value
+
+                for col, val in izip(self.columns.values(), vals):
+                    col[item] = val
+
             else:
                 raise ValueError('Illegal type {0} for table item access'
                                  .format(type(item)))
-
-
-
-
 
     def __delitem__(self, item):
         if isinstance(item, six.string_types):
