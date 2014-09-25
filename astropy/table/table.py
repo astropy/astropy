@@ -802,8 +802,43 @@ class Table(object):
             # Value is another row
             self._data[item] = value.data
         else:
-            # Otherwise just delegate to the numpy item setter.
-            self._data[item] = value
+            # NO. Otherwise just delegate to the numpy item setter.
+            # self._data[item] = value
+
+            if isinstance(item, six.string_types):
+                self.columns[item] = value
+
+            elif isinstance(item, (int, np.integer)):
+                # Set the corresponding row
+                return self.Row(self, item)
+
+            elif isinstance(item, (tuple, list)) and all(isinstance(x, six.string_types)
+                                                         for x in item):
+                bad_names = [x for x in item if x not in self.colnames]
+                if bad_names:
+                    raise ValueError('Slice name(s) {0} not valid column name(s)'
+                                     .format(', '.join(bad_names)))
+                out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
+                out._groups = groups.TableGroups(out, indices=self.groups._indices,
+                                                 keys=self.groups._keys)
+                return out
+
+            elif (isinstance(item, slice) or
+                  isinstance(item, np.ndarray) or
+                  isinstance(item, list) or
+                  isinstance(item, tuple) and all(isinstance(x, np.ndarray)
+                                                  for x in item)):
+                # here for the many ways to give a slice; a tuple of ndarray
+                # is produced by np.where, as in t[np.where(t['a'] > 2)]
+                # For all, a new table is constructed with slice of all columns
+                return self._new_from_slice(item)
+            else:
+                raise ValueError('Illegal type {0} for table item access'
+                                 .format(type(item)))
+
+
+
+
 
     def __delitem__(self, item):
         if isinstance(item, six.string_types):
