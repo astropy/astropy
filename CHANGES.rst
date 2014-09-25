@@ -192,6 +192,8 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - ``Angle.to_string`` now outputs unicode arrays instead of object arrays [#2981]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
