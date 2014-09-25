@@ -367,7 +367,9 @@ class Angle(u.Quantity):
                 s = '${0}$'.format(s)
             return s
 
-        format_ufunc = np.vectorize(do_format, otypes=[np.object])
+        # we want unicode outputs for degree signs and such
+        format_ufunc = np.vectorize(do_format, otypes=['U'])
+
         result = format_ufunc(values)
         if result.ndim == 0:
             result = result[()]
