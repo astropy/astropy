@@ -619,16 +619,18 @@ class TestAddRow(SetupData):
         with pytest.raises(TypeError):
             t.add_row(1)
 
-    def test_add_without_own_fails(self, table_types):
-        """Add row to a table that doesn't own the data"""
-        self._setup(table_types)
-        data = np.array([(1, 2, 3),
-                         (3, 4, 5)],
-                        dtype='i4')
-        t = table_types.Table(data, copy=False)
-        if not t.masked:
-            with pytest.raises(ValueError):
-                t.add_row([6, 7, 8])
+    # ADD_ROW always just makes a copy so this restriction no longer applies
+    #
+    # def test_add_without_own_fails(self, table_types):
+    #     """Add row to a table that doesn't own the data"""
+    #     self._setup(table_types)
+    #     data = np.array([(1, 2, 3),
+    #                      (3, 4, 5)],
+    #                     dtype='i4')
+    #     t = table_types.Table(data, copy=False)
+    #     if not t.masked:
+    #         with pytest.raises(ValueError):
+    #             t.add_row([6, 7, 8])
 
     def test_add_row_failures(self, table_types):
         self._setup(table_types)
@@ -928,8 +930,13 @@ class TestSort():
         t.add_column(table_types.Column(name='a', data=[2, 1, 3, 2, 3, 1]))
         t.add_column(table_types.Column(name='b', data=[6, 5, 4, 3, 5, 4]))
         assert np.all(t.argsort() == t._data.argsort())
-        assert np.all(t.argsort('a') == t._data.argsort(order=['a']))
-        assert np.all(t.argsort(['a', 'b']) == t._data.argsort(order=['a', 'b']))
+        i0 = t.argsort('a')
+        i1 = t._data.argsort(order=['a'])
+        assert np.all(t['a'][i0] == t['a'][i1])
+        i0 = t.argsort(['a', 'b'])
+        i1 = t._data.argsort(order=['a', 'b'])
+        assert np.all(t['a'][i0] == t['a'][i1])
+        assert np.all(t['b'][i0] == t['b'][i1])
 
     def test_argsort_bytes(self, table_types):
         t = table_types.Table()
@@ -1020,7 +1027,7 @@ class TestConvertNumpyArray():
         np_data = np.array(d, copy=False)
         if table_types.Table is not MaskedTable:
             assert np.all(np_data == d._data)
-            assert np_data is d._data
+            # assert np_data is d._data   # NO LONGER THE CASE
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):
@@ -1032,10 +1039,11 @@ def _assert_copies(t, t2, deep=True):
     np.testing.assert_array_equal(t._data, t2._data)
     assert t.meta == t2.meta
 
-    if deep:
-        assert not np.may_share_memory(t._data, t2._data)
-    else:
-        assert np.may_share_memory(t._data, t2._data)
+    for col, col2 in zip(t.columns.values(), t2.columns.values()):
+        if deep:
+            assert not np.may_share_memory(col, col2)
+        else:
+            assert np.may_share_memory(col, col2)
 
 
 def test_copy():

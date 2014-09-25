@@ -33,6 +33,7 @@ class Row(object):
 
     def __init__(self, table, index):
         # Make a single-row slice so that the _data array below is small
+        self._full_table = table
         self._table = table[index:index+1]
         self._index = index
         try:
@@ -127,15 +128,15 @@ class Row(object):
 
     @property
     def meta(self):
-        return self.table.meta
+        return self._full_table.meta
 
     @property
     def columns(self):
-        return self.table.columns
+        return self._full_table.columns
 
     @property
     def colnames(self):
-        return self.table.colnames
+        return self._full_table.colnames
 
     @property
     def dtype(self):

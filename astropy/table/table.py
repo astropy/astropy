@@ -200,7 +200,7 @@ class Table(object):
         default_names = None
 
         if isinstance(data, self.Row):
-            data = data._table[data._index:data._index + 1]
+            data = data._table[:1]
 
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
@@ -524,7 +524,10 @@ class Table(object):
         """Update the existing ``table`` so that it represents the given
         ``data`` (a structured ndarray) with ``cols`` and ``names``."""
 
-        if len(set(col.name for col in cols)) != len(cols):
+        colnames = set(col.name for col in cols)
+        if None in colnames:
+            raise TypeError('Cannot have None for column name')
+        if len(colnames) != len(cols):
             raise ValueError('Duplicate column names')
 
         columns = table.TableColumns((col.name, col) for col in cols)
@@ -1111,14 +1114,14 @@ class Table(object):
 
         if self._data is None:
             # No existing table data, init from cols
-            newcols = cols
+            newcols = [col.copy() for col in cols]  # COULD ADD A COPY arg to control this!
         else:
             newcols = list(self.columns.values())
             new_indexes = list(range(len(newcols) + 1))
             for col, index in zip(cols, indexes):
                 i = new_indexes.index(index)
                 new_indexes.insert(i, None)
-                newcols.insert(i, col)
+                newcols.insert(i, col.copy())  # COULD ADD A COPY arg to control this!
 
         self._init_from_cols(newcols)
 
