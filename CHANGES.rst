@@ -241,6 +241,8 @@ Other Changes and Additions
 - Updated the bundled ``six`` module to version 1.7.3 and made 1.7.3 the
   minimum acceptable version of ``six``. [#2814]
 
+- The version of ERFA included with Astropy is now v1.1.1 [#2971]
+
 
 0.4.3 (unreleased)
 ------------------

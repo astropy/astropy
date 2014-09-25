@@ -1,5 +1,3 @@
-//Derived from erfa version 1.1.0
-
 #ifndef ERFAHDEF
 #define ERFAHDEF
 
@@ -180,7 +178,7 @@ void eraApco(double date1, double date2,
              eraASTROM *astrom);
 int eraApco13(double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               eraASTROM *astrom, double *eo);
 void eraApcs(double date1, double date2, double pv[2][3],
              double ebpv[2][3], double ehp[3],
@@ -195,7 +193,7 @@ void eraApio(double sp, double theta,
              eraASTROM *astrom);
 int eraApio13(double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               eraASTROM *astrom);
 void eraAtci13(double rc, double dc,
                double pr, double pd, double px, double rv,
@@ -213,7 +211,7 @@ int eraAtco13(double rc, double dc,
               double pr, double pd, double px, double rv,
               double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               double *aob, double *zob, double *hob,
               double *dob, double *rob, double *eo);
 void eraAtic13(double ri, double di,
@@ -226,7 +224,7 @@ void eraAticqn(double ri, double di, eraASTROM *astrom,
 int eraAtio13(double ri, double di,
               double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               double *aob, double *zob, double *hob,
               double *dob, double *rob);
 void eraAtioq(double ri, double di, eraASTROM *astrom,
@@ -235,12 +233,12 @@ void eraAtioq(double ri, double di, eraASTROM *astrom,
 int eraAtoc13(const char *type, double ob1, double ob2,
               double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               double *rc, double *dc);
 int eraAtoi13(const char *type, double ob1, double ob2,
               double utc1, double utc2, double dut1,
               double elong, double phi, double hm, double xp, double yp,
-              double phpa, double tk, double rh, double wl,
+              double phpa, double tc, double rh, double wl,
               double *ri, double *di);
 void eraAtoiq(const char *type,
               double ob1, double ob2, eraASTROM *astrom,
@@ -251,17 +249,14 @@ void eraLdn(int n, eraLDBODY b[], double ob[3], double sc[3],
             double sn[3]);
 void eraLdsun(double p[3], double e[3], double em, double p1[3]);
 void eraPmpx(double rc, double dc, double pr, double pd,
-             double px, double rv, double pmt, double vob[3],
+             double px, double rv, double pmt, double pob[3],
              double pco[3]);
 int eraPmsafe(double ra1, double dec1, double pmr1, double pmd1,
               double px1, double rv1,
               double ep1a, double ep1b, double ep2a, double ep2b,
               double *ra2, double *dec2, double *pmr2, double *pmd2,
               double *px2, double *rv2);
-void eraPvtob(double elong, double phi, double hm,
-              double xp, double yp, double sp, double theta,
-              double pv[2][3]);
-void eraRefco(double phpa, double tk, double rh, double wl,
+void eraRefco(double phpa, double tc, double rh, double wl,
               double *refa, double *refb);
 
 /* Astronomy/Ephemerides */
@@ -371,8 +366,10 @@ void eraPnm00b(double date1, double date2, double rbpn[3][3]);
 void eraPnm06a(double date1, double date2, double rnpb[3][3]);
 void eraPnm80(double date1, double date2, double rmatpn[3][3]);
 void eraPom00(double xp, double yp, double sp, double rpom[3][3]);
-void eraPr00(double date1, double date2, double *dpsipr, double *depspr);
-void eraPrec76(double ep01, double ep02, double ep11, double ep12,
+void eraPr00(double date1, double date2,
+             double *dpsipr, double *depspr);
+void eraPrec76(double date01, double date02,
+               double date11, double date12,
                double *zeta, double *z, double *theta);
 double eraS00(double date1, double date2, double x, double y);
 double eraS00a(double date1, double date2);
