@@ -128,7 +128,6 @@ class TestFillValue(SetupData):
         self.t['b'].fill_value = 1
         assert self.t['b'].fill_value == 1
         assert np.all(self.t['b'].filled() == [1, 1, 1])
-        assert self.t._data['b'].fill_value == 1
 
     def test_data_attribute_fill_and_mask(self):
         """Check that .data attribute preserves fill_value and mask"""

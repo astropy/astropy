@@ -225,10 +225,11 @@ class TestInitFromColsList(BaseInitFromListLike):
         assert all(t[name].name == name for name in t.colnames)
 
     def test_ref(self, table_type):
-        self._setup(table_type)
-        with pytest.raises(ValueError):
-            table_type(self.data, copy=False)
-
+        # CHANGE: allowed to initialize from a list of cols by ref
+        # self._setup(table_type)
+        # with pytest.raises(ValueError):
+        #    table_type(self.data, copy=False)
+        pass
 
 @pytest.mark.usefixtures('table_type')
 class TestInitFromNdarrayStruct(BaseInitFromDictLike):

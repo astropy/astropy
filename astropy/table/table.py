@@ -271,11 +271,16 @@ class Table(object):
 
     @property
     def mask(self):
-        return self._data.mask if self.masked else None
+        # Dynamic view of available masks
+        if self.masked:
+            return Table([col.mask for col in self.columns.values()],
+                         names=self.colnames, copy=False)
+        else:
+            return None
 
     @mask.setter
     def mask(self, val):
-        self._data.mask = val
+        self.mask[:] = val
 
     @property
     def _mask(self):
@@ -383,8 +388,9 @@ class Table(object):
         """Initialize table from a list of columns.  A column can be a
         Column object, np.ndarray, or any other iterable object.
         """
-        if not copy:
-            raise ValueError('Cannot use copy=False with a list data input')
+        # SINCE WE ARE NOT GOING INTO A SEPARATE NDARRAY there is no restriction!
+        # if not copy:
+        #    raise ValueError('Cannot use copy=False with a list data input')
 
         # Set self.masked appropriately, then get class to create column instances.
         self._set_masked_from_cols(data)
@@ -412,12 +418,15 @@ class Table(object):
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype).copy()
+                col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
             elif isinstance(col, np.ndarray) or isiterable(col):
-                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype).copy()
+                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype)
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
+            if copy:
+                col = col.copy()
+
             cols.append(col)
 
         self._init_from_cols(cols)
@@ -804,17 +813,18 @@ class Table(object):
         else:
             # NO. Otherwise just delegate to the numpy item setter.
             # self._data[item] = value
+            n_cols = len(self.columns)
 
             if isinstance(item, six.string_types):
                 # Set an existing column
-                self.columns[item] = value
+                self.columns[item][:] = value
 
             elif isinstance(item, (int, np.integer)):
                 # Set the corresponding row assuming value is an interable.
                 # TODO catch exception if value has no len
-                if len(value) != len(self.columns):
+                if len(value) != n_cols:
                     raise ValueError('Right side value needs {0} elements (one for each column)'
-                                     .format(len(self.columns)))
+                                     .format(n_cols))
 
                 for col, val in izip(self.columns.values(), value):
                     col[item] = val
@@ -831,11 +841,15 @@ class Table(object):
                 elif isinstance(value, np.ndarray) and value.dtype.names:
                     vals = (value[name] for name in value.dtype.names)
 
+                elif np.isscalar(value):
+                    import itertools
+                    vals = itertools.repeat(value, n_cols)
+
                 else:  # Assume this is an iterable that will work
                     # TODO catch exception if value has no len
-                    if len(value) != len(self.columns):
+                    if len(value) != n_cols:
                         raise ValueError('Right side value needs {0} elements (one for each column)'
-                                         .format(len(self.columns)))
+                                         .format(n_cols))
                     vals = value
 
                 for col, val in izip(self.columns.values(), vals):
