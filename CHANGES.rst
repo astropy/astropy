@@ -113,6 +113,11 @@ API Changes
 
 - ``astropy.coordinates``
 
+  - The ``repr`` of ``SkyCoord`` and coordinate frame classes now seperate
+    frame attributes and coordinate information. Subclasses of
+    ``BaseCoordinateFrame`` which define custom ``__repr__()`` may have trouble
+    being parsed in ``SkyCoord``. [#2882]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
