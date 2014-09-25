@@ -167,7 +167,7 @@ class JSViewer(object):
 
 
 def write_table_jsviewer(table, filename, table_id=None,
-                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
+                         css="table,th,td,tr,tbody {}",
                          max_lines=5000,
                          jskwargs={}):
 
