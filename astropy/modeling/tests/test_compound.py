@@ -3,12 +3,16 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from numpy.testing.utils import assert_allclose, assert_array_equal
+import numpy as np
+
+from numpy.testing.utils import (assert_allclose, assert_array_equal,
+                                 assert_almost_equal)
 
 from ...tests.helper import pytest
 
-from ..core import Model
-from ..models import Const1D, Shift, Scale, Rotation2D, Gaussian1D
+from ..core import Model, Identity
+from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
+                      Polynomial1D, Polynomial2D, AffineTransformation2D)
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -138,6 +142,69 @@ def test_simple_two_model_class_compose_2d():
 
     r3 = R2(45, 45, 45, 45)
     assert_allclose(r3(0, 1), (0, -1), atol=1e-10)
+
+
+class TestCompositeLegacy(object):
+    """
+    Tests inspired by the original _CompositeModel tests in test_core.py,
+    this implements the equivalent tests implemented in the new framework.
+
+    Note: These aren't *exactly* the same as the original tests, as they used
+    overly trivial models (polynomials with all coeffs 0).
+    """
+
+    def setup_class(self):
+        self.y, self.x = np.mgrid[:5, :5]
+
+    def test_single_array_input(self):
+        p1 = Polynomial1D(3, c0=1, c1=2, c2=3, c3=4)
+        p2 = Polynomial1D(3, c0=2, c1=3, c2=4, c3=5)
+        m = p1 | p2
+        assert_almost_equal(p2(p1(self.x)), m(self.x))
+
+    def test_labeledinput_1(self):
+        # Note: No actual use of LabeledInput in this test; this just uses the
+        # same name for symmetry with the old tests
+        p1 = Polynomial1D(3, c0=1, c1=2, c2=3, c3=4)
+        p2 = Polynomial2D(3, c0_0=1, c2_0=2, c0_1=3, c2_1=4)
+        m = p2 | p1
+        assert_almost_equal(p1(p2(self.x, self.y)), m(self.x, self.y))
+
+    def test_labledinput_2(self):
+        rot = Rotation2D(angle=23.4)
+        offx = Shift(-2)
+        offy = Shift(1.2)
+        m = rot | (offx & Identity(1)) | (Identity(1) & offy)
+
+        x, y = rot(self.x, self.y)
+        x = offx(x)
+        y = offy(y)
+
+        assert_almost_equal(x, m(self.x, self.y)[0])
+        assert_almost_equal(y, m(self.x, self.y)[1])
+
+        a = np.deg2rad(23.4)
+        # For kicks
+        matrix = [[np.cos(a), -np.sin(a)],
+                  [np.sin(a), np.cos(a)]]
+        x, y = AffineTransformation2D(matrix, [-2, 1.2])(self.x, self.y)
+        assert_almost_equal(x, m(self.x, self.y)[0])
+        assert_almost_equal(y, m(self.x, self.y)[1])
+
+    @pytest.mark.xfail
+    def test_multiple_input(self):
+        """
+        Despite the name, this actually tests inverting composite models,
+        which is not yet supported in the new framework (but should be).
+        """
+
+        rot = Rotation2D(-60)
+        m = rot | rot
+        xx, yy = m(self.x, self.y)
+        inv = m.inverse()
+        x0, y0 = inv(xx, yy)
+        assert_almost_equal(x0, self.x)
+        assert_almost_equal(y0, self.y)
 
 
 def test_expression_formatting():
