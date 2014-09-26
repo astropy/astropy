@@ -790,8 +790,8 @@ class Table(object):
         if isinstance(item, six.string_types) and item not in self.colnames:
             NewColumn = self.MaskedColumn if self.masked else self.Column
 
-            # Make sure value is an ndarray so we can get the dtype
-            if not isinstance(value, np.ndarray):
+            # Make sure value has a dtype.  If not make it into a numpy array
+            if not hasattr(value, 'dtype'):
                 value = np.asarray(value)
 
             # Make new column and assign the value.  If the table currently
@@ -801,18 +801,19 @@ class Table(object):
             # define a new column with the right length and shape and then
             # set it from value.  This allows for broadcasting, e.g. t['a']
             # = 1.
+            name = item
             if isinstance(value, BaseColumn):
                 new_column = value.copy(copy_data=False)
-                new_column.name = item
+                new_column.name = name
+            elif is_table_compatible(value):
+                new_column = value
+                new_column.name = name
             elif len(self) == 0:
-                new_column = NewColumn(name=item, data=value)
+                new_column = NewColumn(value, name=name)
             else:
-                new_column = NewColumn(name=item, length=len(self), dtype=value.dtype,
+                new_column = NewColumn(name=name, length=len(self), dtype=value.dtype,
                                        shape=value.shape[1:])
                 new_column[:] = value
-
-                if isinstance(value, Quantity):
-                    new_column.unit = value.unit
 
             # Now add new column to the table
             self.add_column(new_column)
