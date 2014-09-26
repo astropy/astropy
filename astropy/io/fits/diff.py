@@ -14,6 +14,7 @@ import glob
 import inspect
 import io
 import textwrap
+import os.path
 
 from collections import defaultdict
 from itertools import islice
@@ -129,7 +130,7 @@ class _BaseDiff(object):
         return not any(getattr(self, attr) for attr in self.__dict__
                        if attr.startswith('diff_'))
 
-    def report(self, fileobj=None, indent=0):
+    def report(self, fileobj=None, indent=0, clobber=False):
         """
         Generates a text report on the differences (if any) between two
         objects, and either returns it as a string or writes it to a file-like
@@ -137,13 +138,18 @@ class _BaseDiff(object):
 
         Parameters
         ----------
-        fileobj : file-like object or None, optional
+        fileobj : file-like object, string, or None (optional)
             If `None`, this method returns the report as a string. Otherwise it
             returns `None` and writes the report to the given file-like object
-            (which must have a ``.write()`` method at a minimum).
+            (which must have a ``.write()`` method at a minimum), or to a new
+            file at the path specified.
 
         indent : int
             The number of 4 space tabs to indent the report.
+
+        clobber : bool
+            Whether the report output should overwrite an existing file, when
+            fileobj is specified as a path.
 
         Returns
         -------
@@ -151,8 +157,16 @@ class _BaseDiff(object):
         """
 
         return_string = False
-        if fileobj is None:
+        if isinstance(fileobj, string_types):
+            if os.path.exists(fileobj) and not clobber:
+                raise IOError("File {0} exists, aborting (pass in "
+                              "clobber=True to overwrite)".format(fileobj))
+            else:
+                filepath = fileobj
+                fileobj = open(filepath, 'w')
+        elif fileobj is None:
             fileobj = io.StringIO()
+            filepath = None
             return_string = True
 
         self._fileobj = fileobj
@@ -162,6 +176,8 @@ class _BaseDiff(object):
 
         if return_string:
             return fileobj.getvalue()
+        if filepath:
+            fileobj.close()
 
     def _writeln(self, text):
         self._fileobj.write(indent(text, self._indent) + u('\n'))
