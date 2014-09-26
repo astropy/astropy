@@ -98,6 +98,12 @@ New Features
     that the decorated function also preserves the wrapped function's call
     signature. [#2849]
 
+  - ``astropy.utils.compat.numpy`` has been revised such that it can include
+    patched versions of routines from newer ``numpy`` versions.  The first
+    addition is a version of ``broadcast_arrays`` that can be used with
+    ``Quantity`` and other ``ndarray`` subclasses (using the ``subok=True``
+    flag). [#2327]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``

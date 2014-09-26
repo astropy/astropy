@@ -42,6 +42,8 @@ if not PR4622():
     def as_strided(x, shape=None, strides=None, subok=False):
         """ Make an ndarray from the given array with the given shape and strides.
         """
+        # first convert input to array, possibly keeping subclass
+        x = np.array(x, copy=False, subok=subok)
         interface = dict(x.__array_interface__)
         if shape is not None:
             interface['shape'] = tuple(shape)
@@ -51,10 +53,13 @@ if not PR4622():
         # Make sure dtype is correct in case of custom dtype
         if array.dtype.kind == 'V':
             array.dtype = x.dtype
-        if subok:
-            array = array.view(x.__class__)
-            # we have something akin to a view from x, so we should finalize
-            if callable(getattr(array, '__array_finalize__', None)):
+        if type(x) is not type(array):
+            # if input was an ndarray subclass and subclasses were OK,
+            # then view the result as that subclass.
+            array = array.view(type=type(x))
+            # Since we have done something akin to a view from x, we should let
+            # the subclass finalize (if it has it implemented, i.e., is not None).
+            if array.__array_finalize__:
                 array.__array_finalize__(x)
         return array
 
@@ -114,8 +119,8 @@ if not PR4622():
         strides = [list(x.strides) for x in args]
         nds = [len(s) for s in shapes]
         biggest = max(nds)
-        # Go through each array and prepend dimensions of length 1 to each of the
-        # shapes in order to make the number of dimensions equal.
+        # Go through each array and prepend dimensions of length 1 to each of
+        # the shapes in order to make the number of dimensions equal.
         for i in range(len(args)):
             diff = biggest - nds[i]
             if diff > 0:
@@ -132,20 +137,21 @@ if not PR4622():
                 raise ValueError("shape mismatch: two or more arrays have "
                     "incompatible dimensions on axis %r." % (axis,))
             elif len(unique) == 2:
-                # There is exactly one non-1 length. The common shape will take this
-                # value.
+                # There is exactly one non-1 length. The common shape will take
+                # this value.
                 unique.remove(1)
                 new_length = unique.pop()
                 common_shape.append(new_length)
-                # For each array, if this axis is being broadcasted from a length of
-                # 1, then set its stride to 0 so that it repeats its data.
+                # For each array, if this axis is being broadcasted from a
+                # length of 1, then set its stride to 0 so that it repeats its
+                # data.
                 for i in range(len(args)):
                     if shapes[i][axis] == 1:
                         shapes[i][axis] = new_length
                         strides[i][axis] = 0
             else:
-                # Every array has a length of 1 on this axis. Strides can be left
-                # alone as nothing is broadcasted.
+                # Every array has a length of 1 on this axis. Strides can be
+                # left alone as nothing is broadcasted.
                 common_shape.append(1)
 
         # Construct the new arrays.
