@@ -279,7 +279,7 @@ class HTML(core.BaseReader):
         * cssfiles : list of css files to include when writing table.
 
         * js : js script to include in the body when writing table.
-        
+
         * table_class : css class for the table
     """
 
