@@ -7,7 +7,7 @@ REFERENCE = """
   <meta content="text/html;charset=UTF-8" http-equiv="Content-type"/>
   <style>
 table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}  </style>
-  <link href="https://code.jquery.com/ui/1.11.1/themes/overcast/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <link href="https://cdn.datatables.net/1.10.2/css/jquery.dataTables.css" rel="stylesheet" type="text/css"/>
   <script src="http://code.jquery.com/jquery-1.11.1.min.js">
   </script>
   <script src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js">
@@ -19,11 +19,10 @@ $(document).ready(function() {
     $('#test').dataTable({
      "iDisplayLength": 50,
      "aLengthMenu": [[10, 25, 50, 100, 500, 1000, -1], [10, 25, 50, 100, 500, 1000, 'All']],
-     "bJQueryUI": true,
-     "sPaginationType": "full_numbers"
+     "pagingType": "full_numbers"
     });
 } );  </script>
-  <table id="test">
+  <table class="cell-border compact strip hover order-column" id="test">
    <thead>
     <tr>
      <th>a</th>
