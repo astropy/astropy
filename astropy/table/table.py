@@ -493,7 +493,7 @@ class Table(object):
     def _init_from_cols(self, cols):
         """Initialize table from a list of Column objects"""
 
-        lengths = set(len(col.data) for col in cols)
+        lengths = set(len(col) for col in cols)
         if len(lengths) != 1:
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))
@@ -1116,7 +1116,7 @@ class Table(object):
         elif len(indexes) != len(cols):
             raise ValueError('Number of indexes must match number of cols')
 
-        if self._data is None:
+        if len(self.columns) == 0:
             # No existing table data, init from cols
             newcols = [col.copy() for col in cols]  # COULD ADD A COPY arg to control this!
         else:
