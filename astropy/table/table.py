@@ -1212,20 +1212,14 @@ class Table(object):
               2 0.2   y
               3 0.3   z
         """
-        columns = self.TableColumns()
-        for col in self.columns.values():
-            try:
-                newdata = np.delete(col, row_specifier, axis=0)
-            except (ValueError, IndexError):
-                # Numpy <= 1.7 raises ValueError while Numpy >= 1.8 raises IndexError
-                raise IndexError('Removing row(s) {0} from table with {1} rows failed'
-                                 .format(row_specifier, len(self)))
+        keep_mask = np.ones(len(self), dtype=np.bool)
+        keep_mask[row_specifier] = False
 
-            newcol = self.ColumnClass(data=newdata, dtype=col.dtype, name=col.name,
-                                      description=col.description, unit=col.unit,
-                                      format=col.format, meta=deepcopy(col.meta))
-            columns[col.name] = newcol
+        columns = self.TableColumns()
+        for name, col in self.columns.items():
+            newcol = col[keep_mask]
             newcol.parent_table = self
+            columns[name] = newcol
 
         self.columns = columns
 
@@ -1558,6 +1552,12 @@ class Table(object):
              2   5   8
              3   6   9
         """
+
+        non_basecolumn_types = set(col.__class__.__name__ for col in self.columns.values()
+                               if not isinstance(col, BaseColumn))
+        if non_basecolumn_types:
+            raise NotImplementedError('Cannot add a row in table with column types {}'
+                                      .format(sorted(non_basecolumn_types)))
 
         def _is_mapping(obj):
             """Minimal checker for mapping (dict-like) interface for obj"""
