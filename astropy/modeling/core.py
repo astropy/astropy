@@ -1230,6 +1230,56 @@ class Fittable2DModel(FittableModel):
     outputs = ('z',)
 
 
+class Mapping(Model):
+    def __init__(self, mapping):
+        self._inputs = tuple('x' + str(idx)
+                             for idx in range(max(mapping) + 1))
+        self._outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
+        self._mapping = mapping
+        super(Mapping, self).__init__()
+
+    def __call__(self, *args):
+        return self.evaluate(*args)
+
+    @property
+    def name(self):
+        return 'Mapping({0})'.format(self.mapping)
+
+    @property
+    def inputs(self):
+        return self._inputs
+
+    @property
+    def outputs(self):
+        return self._outputs
+
+    @property
+    def mapping(self):
+        return self._mapping
+
+    def evaluate(self, *args):
+        if len(args) < self.n_inputs:
+            raise TypeError('{0} expects at most {1} inputs; got {2}'.format(
+                self.name, self.n_inputs, len(args)))
+
+        result = tuple(args[idx] for idx in self._mapping)
+
+        if self.n_outputs == 1:
+            return result[0]
+
+        return result
+
+
+class Identity(Mapping):
+    def __init__(self, n_inputs):
+        mapping = tuple(range(n_inputs))
+        super(Identity, self).__init__(mapping)
+
+    @property
+    def name(self):
+        return 'Identity({0})'.format(self.n_inputs)
+
+
 def _make_compound_model(left, right, operator):
     name = str('CompoundModel{0}'.format(_CompoundModelMeta._nextid))
     _CompoundModelMeta._nextid += 1
