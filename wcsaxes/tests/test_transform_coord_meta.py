@@ -1,11 +1,11 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
-from astropy import units as u
 import matplotlib.pyplot as plt
+from astropy import units as u
 from astropy.wcs import WCS
-from wcsaxes import WCSAxes
 
+from .. import WCSAxes
 from .test_images import BaseImageTests
-
 from ..transforms import CurvedTransform
 
 # Create fake transforms that roughly mimic a polar projection

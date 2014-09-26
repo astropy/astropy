@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 from matplotlib.patches import Patch
@@ -9,7 +10,6 @@ from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
 from .utils import get_coordinate_frame, get_coord_meta
-from .coordinate_range import find_coordinate_range
 from .frame import RectangularFrame
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
