@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Downloads the FITS files that are used in image testing and for building documentation.
 """
 from astropy.utils.data import download_file

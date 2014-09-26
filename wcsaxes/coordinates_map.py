@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from astropy.extern import six
 from .coordinate_helpers import CoordinateHelper
 from .transforms import WCSPixel2WorldTransform
