@@ -54,7 +54,7 @@ class BaseColumn(np.ndarray):
 
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None):
+                description=None, unit=None, format=None, meta=None, copy=False):
 
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
@@ -83,6 +83,9 @@ class BaseColumn(np.ndarray):
                 self_data = np.asarray(data.to(unit), dtype=dtype)
         else:
             self_data = np.asarray(data, dtype=dtype)
+
+        if copy:
+            self_data = self_data.copy()
 
         self = self_data.view(cls)
         self._name = fix_column_name(name)
@@ -623,14 +626,14 @@ class Column(BaseColumn):
 
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None):
+                description=None, unit=None, format=None, meta=None, copy=False):
 
         if isinstance(data, MaskedColumn) and np.any(data.mask):
             raise TypeError("Cannot convert a MaskedColumn with masked value to a Column")
 
         self = super(Column, cls).__new__(cls, data=data, name=name, dtype=dtype,
                                           shape=shape, length=length, description=description,
-                                          unit=unit, format=format, meta=meta)
+                                          unit=unit, format=format, meta=meta, copy=copy)
         return self
 
     def __repr__(self):
@@ -741,7 +744,7 @@ class MaskedColumn(Column, ma.MaskedArray):
 
     def __new__(cls, data=None, name=None, mask=None, fill_value=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None):
+                description=None, unit=None, format=None, meta=None, copy=False):
 
         if mask is None and hasattr(data, 'mask'):
             mask = data.mask
@@ -757,7 +760,7 @@ class MaskedColumn(Column, ma.MaskedArray):
         # First just pass through all args and kwargs to BaseColumn, then wrap that object
         # with MaskedArray.
         self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
-                               unit=unit, format=format, description=description, meta=meta)
+                               unit=unit, format=format, description=description, meta=meta, copy=copy)
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not

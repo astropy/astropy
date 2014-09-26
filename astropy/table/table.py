@@ -330,37 +330,6 @@ class Table(object):
 
         return self._data.data if self.masked else self._data
 
-    def _rebuild_table_column_views(self):
-        """
-        Some table manipulations can corrupt the Column views of self._data.
-        This function will cleanly rebuild the columns and self.columns.
-        This is a slightly subtle operation, see comments.
-        """
-        # NO LONGER NEEDED!
-
-        # cols = []
-        # for col in six.itervalues(self.columns):
-        #     # First make a new column based on the name and the original
-        #     # column.  This step is needed because the table manipulation
-        #     # may have changed the table masking so that the original data
-        #     # columns no longer correspond to self.ColumnClass.  This uses
-        #     # data refs, not copies.
-        #     newcol = self.ColumnClass(name=col.name, data=col)
-
-        #     # Now use the copy() method to copy the column and its metadata,
-        #     # but at the same time set the column data to a view of
-        #     # self._data[col.name].  Somewhat confusingly in this case
-        #     # copy() refers to copying the column attributes, but the data
-        #     # are used by reference.
-        #     newcol = newcol.copy(data=self._data[col.name])
-
-        #     # Make column aware of the parent table
-        #     newcol.parent_table = self
-
-        #     cols.append(newcol)
-
-        # self.columns = self.TableColumns(cols)
-
     def _check_names_dtype(self, names, dtype, n_cols):
         """Make sure that names and dtype are boths iterable and have
         the same length as data.
@@ -495,14 +464,15 @@ class Table(object):
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))
 
+        # Set the table masking
         self._set_masked_from_cols(cols)
-        newcols = [self.ColumnClass(name=col.name, data=col) for col in cols]
 
-        # dtype = [col.descr for col in cols]
-        # empty_init = ma.empty if self.masked else np.empty
-        # data = empty_init(lengths.pop(), dtype=dtype)
-        # for col in cols:
-        #     data[col.name] = col.data
+        # Make sure that all Column-based objects have class self.ColumnClass
+        newcols = []
+        for col in cols:
+            if isinstance(col, Column) and not col.__class__ is self.ColumnClass:
+                col = self.ColumnClass(col)  # copy attributes and reference data
+            newcols.append(col)
 
         self._update_table_from_cols(self, newcols)
 
