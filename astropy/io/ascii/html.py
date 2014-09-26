@@ -352,7 +352,10 @@ class HTML(core.BaseReader):
                     html_table_id = None
                 if 'table_class' in self.html:
                     html_table_class = self.html['table_class']
-                with w.tag('table', id=html_table_id, attrib={"class":html_table_class}):
+                    attrib={"class":html_table_class}
+                else:
+                    attrib={}
+                with w.tag('table', id=html_table_id, attrib=attrib):
                     with w.tag('thead'):
                         with w.tag('tr'):
                             for col in cols:
