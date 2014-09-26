@@ -165,8 +165,17 @@ class Table(object):
         if len(self.columns) == 0:
             return None
 
+        def descr(col):
+            """Array-interface compliant full description of the column.
+
+            This returns a 3-tuple (name, type, shape) that can always be
+            used in a structured array dtype definition.
+            """
+            return (col.name, col.dtype.str, col.shape[1:])
+
+
         cols = self.columns.values()
-        dtype = [col.descr for col in cols]
+        dtype = [descr(col) for col in cols]
         empty_init = ma.empty if self.masked else np.empty
         data = empty_init(len(self), dtype=dtype)
         for col in cols:
@@ -478,9 +487,6 @@ class Table(object):
                     raise ValueError('Elements in Table initialization must be '
                                      'either Column or Table compatible')
                 newcols.append(col)
-
-            # for name, newcol in zip(names, newcols):
-            #     newcol.name = name
 
             self._update_table_from_cols(self, newcols)
 
