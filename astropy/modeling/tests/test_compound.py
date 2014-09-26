@@ -8,7 +8,7 @@ from numpy.testing.utils import assert_allclose, assert_array_equal
 from ...tests.helper import pytest
 
 from ..core import Model
-from ..models import Const1D, Shift, Scale, Rotation2D
+from ..models import Const1D, Shift, Scale, Rotation2D, Gaussian1D
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -138,3 +138,61 @@ def test_simple_two_model_class_compose_2d():
 
     r3 = R2(45, 45, 45, 45)
     assert_allclose(r3(0, 1), (0, -1), atol=1e-10)
+
+
+def test_expression_formatting():
+    """
+    Test that the expression strings from compound models are formatted
+    correctly.
+    """
+
+    # For the purposes of this test it doesn't matter a great deal what
+    # model(s) are used in the expression, I don't think
+    G = Gaussian1D
+
+    M = G + G
+    assert M._format_expression() == '[0] + [1]'
+
+    M = G + G + G
+    assert M._format_expression() == '[0] + [1] + [2]'
+
+    M = G + G * G
+    assert M._format_expression() == '[0] + [1] * [2]'
+
+    M = G * G + G
+    assert M._format_expression() == '[0] * [1] + [2]'
+
+    M = G + G * G + G
+    assert M._format_expression() == '[0] + [1] * [2] + [3]'
+
+    M = (G + G) * (G + G)
+    assert M._format_expression() == '([0] + [1]) * ([2] + [3])'
+
+    # This example uses parentheses in the expression, but those won't be
+    # preserved in the expression formatting since they technically aren't
+    # necessary, and there's no way to know that they were originally
+    # parenthesized (short of some deep, and probably not worthwhile
+    # introspection)
+    M = (G * G) + (G * G)
+    assert M._format_expression() == '[0] * [1] + [2] * [3]'
+
+    M = G ** G
+    assert M._format_expression() == '[0] ** [1]'
+
+    M = G + G ** G
+    assert M._format_expression() == '[0] + [1] ** [2]'
+
+    M = (G + G) ** G
+    assert M._format_expression() == '([0] + [1]) ** [2]'
+
+    M = G + G | G
+    assert M._format_expression() == '[0] + [1] | [2]'
+
+    M = G + (G | G )
+    assert M._format_expression() == '[0] + ([1] | [2])'
+
+    M = G & G | G
+    assert M._format_expression() == '[0] & [1] | [2]'
+
+    M = G & (G | G)
+    assert M._format_expression() == '[0] & ([1] | [2])'

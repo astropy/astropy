@@ -1321,7 +1321,7 @@ BINARY_OPERATORS = {
 }
 
 
-_ORDER_OF_OPERATORS = [('+', '-'), ('*', '/'), ('**',), ('|',)]
+_ORDER_OF_OPERATORS = [('|',), ('&',), ('+', '-'), ('*', '/'), ('**',)]
 OPERATOR_PRECEDENCE = {}
 for idx, ops in enumerate(_ORDER_OF_OPERATORS):
     for op in ops:
@@ -1345,7 +1345,7 @@ class _CompoundModelMeta(_ModelMeta):
             'their name (got {0!r}).'.format(index))
 
     def __repr__(cls):
-        expression = cls._tree.format_expression(OPERATOR_PRECEDENCE)
+        expression = cls._format_expression()
         components = '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
                                  for idx, m in enumerate(cls._get_submodels()))
         keywords = [
@@ -1396,6 +1396,11 @@ class _CompoundModelMeta(_ModelMeta):
                      if c.isleaf]
         cls._submodels = submodels
         return submodels
+
+    def _format_expression(cls):
+        # TODO: At some point might be useful to make a public version of this,
+        # albeit with more formatting options
+        return cls._tree.format_expression(OPERATOR_PRECEDENCE)
 
 
 @six.add_metaclass(_CompoundModelMeta)
