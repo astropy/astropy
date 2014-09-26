@@ -19,7 +19,7 @@ information. In this example, we will use a FITS file from the
 
     from astropy.wcs import WCS
     from wcsaxes import datasets
-    hdu = datasets.msx_hdu()
+    hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
 If you have the original FITS file, this is equivalent to doing::

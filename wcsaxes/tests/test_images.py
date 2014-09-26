@@ -88,7 +88,7 @@ class TestBasic(BaseImageTests):
     # Test for overlaying contours on images
     @remote_data
     def test_contour_overlay(self, generate):
-        hdu_msx = datasets.msx_hdu()
+        hdu_msx = datasets.fetch_msx_hdu()
         wcs_msx = WCS(self.msx_header)
 
         fig = plt.figure(figsize=(6, 6))

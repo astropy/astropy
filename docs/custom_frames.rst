@@ -16,7 +16,7 @@ following example shows how to use the built-in
     from wcsaxes import datasets
     from wcsaxes.frame import EllipticalFrame
 
-    hdu = datasets.msx_hdu()
+    hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
@@ -80,7 +80,7 @@ which we can then use:
      from astropy.wcs import WCS
      from wcsaxes import datasets
 
-     hdu = datasets.msx_hdu()
+     hdu = datasets.fetch_msx_hdu()
      wcs = WCS(hdu.header)
 
      import matplotlib.pyplot as plt
