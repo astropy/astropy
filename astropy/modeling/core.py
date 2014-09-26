@@ -1132,16 +1132,16 @@ class Model(object):
 
         parts = [repr(a) for a in args]
 
-        parts.append(', '.join(
-            "{0}={1}".format(
-                name, array_repr_oneline(getattr(self, name).value))
-            for name in self.param_names))
+        parts.extend(
+            "{0}={1}".format(name,
+                             array_repr_oneline(getattr(self, name).value))
+            for name in self.param_names)
 
         if self.name is not None:
             parts.append('name={0!r}'.format(self.name))
 
         for kwarg, value in kwargs.items():
-            if kwarg  in defaults and defaults[kwarg] != value:
+            if kwarg in defaults and defaults[kwarg] != value:
                 continue
             parts.append('{0}={1!r}'.format(kwarg, value))
 
