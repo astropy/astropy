@@ -1326,6 +1326,7 @@ New Features
     experience. [#3037]
 
   - New CSS for jsviewer table [#2917]
+  - New CSS for jsviewer table [#2917, #2982]
   
 - ``astropy.time``
 
