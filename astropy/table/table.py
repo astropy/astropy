@@ -41,6 +41,15 @@ __doctest_skip__ = ['Table.read', 'Table.write',
                     ]
 
 
+def is_table_compatible(obj):
+    """
+    Determine if `obj` meets the protocol for a Table column.
+    """
+    # Temporary but minimal test
+    ok = hasattr(obj, 'name')
+    return ok
+
+
 class TableColumns(OrderedDict):
     """OrderedDict subclass for a set of columns.
 
@@ -388,6 +397,10 @@ class Table(object):
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
+            elif is_table_compatible(col):
+                # Non-Column objects that are compatible with Table
+                col.name = name
+                # TODO: What about dtype?
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype)
             else:
@@ -452,7 +465,22 @@ class Table(object):
             # Make new columns with possibly new names, but with references to the
             # original data values.
             names = [vals[0] or vals[1] for vals in zip(names, data_names)]
-            newcols = [self.ColumnClass(data=col, name=name) for col, name in zip(cols, names)]
+            newcols = []
+            for name, col in zip(names, cols):
+                if isinstance(col, (self.Column, self.MaskedColumn)):
+                    col = self.ColumnClass(col, name=name, copy=copy)
+                elif is_table_compatible(col):
+                    # Non-Column objects that are compatible with Table
+                    col = col.__class__(col, copy=copy)
+                    col.name = name
+                    # TODO: What about dtype?
+                else:
+                    raise ValueError('Elements in Table initialization must be '
+                                     'either Column or Table compatible')
+                newcols.append(col)
+
+            # for name, newcol in zip(names, newcols):
+            #     newcol.name = name
 
             self._update_table_from_cols(self, newcols)
 

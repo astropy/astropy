@@ -163,6 +163,13 @@ class Quantity(np.ndarray):
     # Constants can not initialize properly
     _equivalencies = []
 
+    # Stuff for table compatibility
+    name = None
+
+    @property
+    def data(self):
+        return self
+
     __array_priority__ = 10000
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
