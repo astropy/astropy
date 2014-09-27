@@ -543,10 +543,10 @@ class Table(object):
 
     def __repr__(self):
         names = ("'{0}'".format(x) for x in self.colnames)
-        if any(col.unit for col in self.columns.values()):
-            units = ("{0}".format(
-                    col.unit if col.unit is None else '\''+str(col.unit)+'\'')
-                    for col in self.columns.values())
+        units = [getattr(col, 'unit', None) for col in self.columns.values()]
+        if any(units):
+            units = ("{0}".format(None if unit is None else '\''+str(unit)+'\'')
+                     for unit in units)
             s = "<{3} rows={0} names=({1}) units=({4})>\n{2}".format(
                 self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__
                 ,','.join(units))

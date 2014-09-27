@@ -165,6 +165,31 @@ class Time(object):
     _in_subfmt = '*'  # Select subformat for inputting string times
     _out_subfmt = '*'  # Select subformat for outputting string times
 
+    # Stuff for table compatibility
+    _table_format = None
+
+    @property
+    def name(self):
+        if not hasattr(self, '_name'):
+            self._name = None
+        return self._name
+
+    @name.setter
+    def name(self, val):
+        self._name = val
+
+    @property
+    def data(self):
+        return self.value
+
+    @property
+    def dtype(self):
+        return self.value.dtype
+
+    @property
+    def shape(self):
+        return self.value.shape
+
     SCALES = TIME_SCALES
     """List of time scales"""
 
