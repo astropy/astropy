@@ -405,18 +405,20 @@ class Table(object):
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype)
+                col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype,
+                                       copy=copy)
             elif is_table_compatible(col):
                 # Non-Column objects that are compatible with Table
+                if copy:
+                    col = col.copy()
                 col.name = name
                 # TODO: What about dtype?
             elif isinstance(col, np.ndarray) or isiterable(col):
-                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype)
+                col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
+                                       copy=copy)
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')
-            if copy:
-                col = col.copy()
 
             cols.append(col)
 
@@ -1060,7 +1062,7 @@ class Table(object):
             index = len(self.columns)
         self.add_columns([col], [index])
 
-    def add_columns(self, cols, indexes=None):
+    def add_columns(self, cols, indexes=None, copy=True):
         """
         Add a list of new Column objects ``cols`` to the table.  If a
         corresponding list of ``indexes`` is supplied then insert column before
@@ -1073,6 +1075,8 @@ class Table(object):
             Column objects to add.
         indexes : list of ints or `None`
             Insert column before this position or at end (default)
+        copy : bool
+            Make a copy of the new columns (default=True)
 
         Examples
         --------
@@ -1117,16 +1121,24 @@ class Table(object):
         elif len(indexes) != len(cols):
             raise ValueError('Number of indexes must match number of cols')
 
+        if copy:
+            # Copy new columns, being aware that copy() method might not copy
+            # the name.
+            names = [col.name for col in cols]
+            cols = [col.copy() for col in cols]
+            for name, col in zip(names, cols):
+                col.name = name
+
         if len(self.columns) == 0:
             # No existing table data, init from cols
-            newcols = [col.copy() for col in cols]  # COULD ADD A COPY arg to control this!
+            newcols = cols
         else:
             newcols = list(self.columns.values())
             new_indexes = list(range(len(newcols) + 1))
             for col, index in zip(cols, indexes):
                 i = new_indexes.index(index)
                 new_indexes.insert(i, None)
-                newcols.insert(i, col.copy())  # COULD ADD A COPY arg to control this!
+                newcols.insert(i, col)
 
         self._init_from_cols(newcols)
 
