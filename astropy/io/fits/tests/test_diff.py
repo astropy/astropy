@@ -614,7 +614,7 @@ class TestDiff(FitsTestCase):
         hb['C'] = 4
         diffobj = HeaderDiff(ha, hb)
         diffobj.report(fileobj=outpath)
-        
+
         with pytest.raises(IOError):
             diffobj.report(fileobj=outpath)
 
