@@ -355,6 +355,25 @@ class TestJoin():
             assert ("In merged column 'a' the 'unit' attribute does not match (cm != m)"
                     in str(warning_lines[0].message))
 
+    def test_join_multidimensional(self):
+
+        # Regression test for #2984, which was an issue where join did not work
+        # on multi-dimensional columns.
+
+        t1 = Table()
+        t1['a'] = [1,2,3]
+        t1['b'] = np.ones((3,4))
+
+        t2 = Table()
+        t2['a'] = [1,2,3]
+        t2['c'] = [4,5,6]
+
+        t3 = table.join(t1, t2)
+
+        np.testing.assert_allclose(t3['a'], t1['a'])
+        np.testing.assert_allclose(t3['b'], t1['b'])
+        np.testing.assert_allclose(t3['c'], t2['c'])
+
 
 class TestVStack():
 
