@@ -277,7 +277,7 @@ def join(left, right, keys=None, join_type='inner',
             name, array, array_out, array_mask = right_name, right, right_out, right_mask
         else:
             raise TableMergeError('Unexpected column names (maybe one is ""?)')
-        out[out_name] = array[name].take(array_out)
+        out[out_name] = array[name].take(array_out, axis=0)
         if masked:
             if isinstance(array, ma.MaskedArray):
                 array_mask = array_mask | array[name].mask.take(array_out)
