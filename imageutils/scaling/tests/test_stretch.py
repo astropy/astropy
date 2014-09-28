@@ -3,7 +3,7 @@ import numpy as np
 from ..stretch import *
 
 
-class TestInterval(object):
+class TestStretch(object):
 
     def setup_class(self):
         self.data = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
@@ -30,7 +30,7 @@ class TestInterval(object):
 
         stretch = SquaredStretch()
         np.testing.assert_allclose(stretch(self.data),
-                                   np.array([0., 0.5, 0.70710678, 0.8660254, 1.]))
+                                   np.array([0., 0.0625, 0.25, 0.5625, 1.]))
 
         np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
                                    self.data)
@@ -58,7 +58,7 @@ class TestInterval(object):
 
         stretch = LogStretch()
         np.testing.assert_allclose(stretch(self.data),
-                                   np.array([ 0., 0.79989124, 0.89994591, 0.95854665, 1.]),
+                                   np.array([0., 0.79989124, 0.89994591, 0.95854665, 1.]),
                                    rtol=1e-3)
 
         np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
