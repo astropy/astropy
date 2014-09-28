@@ -70,9 +70,13 @@ class PowerStretch(BaseStretch):
 
 class PowerDistStretch(BaseStretch):
     """
-    An alternative power stretch: y = ((a ** x) - 1) / a
-    This is the same as ds9's POW stretch, described here
-        (http://ds9.si.edu/doc/ref/how.html)
+    An alternative power stretch: y = ((a ** x) - 1) / a.
+
+    Notes
+    -----
+
+    This is the same as ds9's POW stretch, described at
+    http://ds9.si.edu/doc/ref/how.html
     """
 
     def __init__(self, a=1000.0):
@@ -89,7 +93,7 @@ class PowerDistStretch(BaseStretch):
 
 class InvertedPowerDistStretch(BaseStretch):
     """
-    Inverse transformation for PowerDistStretch
+    Inverse transformation for PowerDistStretch.
     """
 
     def __init__(self, a=1000.0):
@@ -107,8 +111,12 @@ class InvertedPowerDistStretch(BaseStretch):
 class SquaredStretch(PowerStretch):
     """
     A convenience class for a power stretch of 2.
-    This is the same as ds9's SQUARE stretch, described here
-        (http://ds9.si.edu/doc/ref/how.html)
+
+    Notes
+    -----
+
+    This is the same as ds9's SQUARE stretch, described at
+    http://ds9.si.edu/doc/ref/how.html
     """
 
     def __init__(self):
@@ -120,7 +128,11 @@ class SquaredStretch(PowerStretch):
 
 class LogStretch(BaseStretch):
     """
-    A log stretch: y = log(a*x + 1) / log(a)
+    A log stretch: y = log(a*x + 1) / log(a).
+
+    Notes
+    -----
+
     This is the same as ds9's LOG stretch, described here
         (http://ds9.si.edu/doc/ref/how.html)
     """
@@ -139,7 +151,7 @@ class LogStretch(BaseStretch):
 
 class InvertedLogStretch(BaseStretch):
     """
-    Inverse transformation for LogStretch
+    Inverse transformation for LogStretch.
     """
 
     def __init__(self, a):
@@ -151,14 +163,18 @@ class InvertedLogStretch(BaseStretch):
         return np.clip(res, 0.0, 1.0, out=out)
 
     def inverted(self):
-        return LogStretch(a)
+        return LogStretch(self.exp)
 
 
 class AsinhStretch(BaseStretch):
     """
-    An asinh stretch: y = asinh(nonlinearity * x) / factor
-    This is the same as ds9's ASINH stretch, described here
-        (http://ds9.si.edu/doc/ref/how.html)
+    An asinh stretch: y = asinh(nonlinearity * x) / factor.
+
+    Notes
+    -----
+
+    This is the same as ds9's ASINH stretch, described at
+    http://ds9.si.edu/doc/ref/how.html
     """
 
     def __init__(self, factor=10, nonlinearity=3.0):
@@ -196,9 +212,13 @@ class InvertedAsinhStretch(BaseStretch):
 
 class SinhStretch(BaseStretch):
     """
-    A sinh stretch: y = sinh(factor * x) / nonlinearity
-    This is the same as ds9's SINH stretch, described here
-        (http://ds9.si.edu/doc/ref/how.html)
+    A sinh stretch: y = sinh(factor * x) / nonlinearity.
+    
+    Notes
+    -----
+    
+    This is the same as ds9's SINH stretch, described at
+    http://ds9.si.edu/doc/ref/how.html
     """
 
     def __init__(self, factor=3.0, nonlinearity=10.0):
@@ -217,7 +237,7 @@ class SinhStretch(BaseStretch):
 
 class InvertedSinhStretch(BaseStretch):
     """
-    Inverse transformation for SinhStretch
+    Inverse transformation for SinhStretch.
     """
 
     def __init__(self, factor=3.0, nonlinearity=10.0):

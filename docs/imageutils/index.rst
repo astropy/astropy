@@ -41,3 +41,5 @@ easy to decide. Please ask on Github or on the Astropy mailing list if you would
 something and don't know where to put it, or if you think something is really out of place and should be moved.
 
 .. automodapi:: imageutils
+
+.. automodapi:: imageutils.scaling
