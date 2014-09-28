@@ -48,40 +48,40 @@ class TestStretch(object):
 
         stretch = PowerDistStretch()
         np.testing.assert_allclose(stretch(self.data),
-                                   np.array([0., 0.00462341, 0.03062278, 0.17682794, 0.999]),
-                                   rtol=1e-3)
+                                   np.array([0.      ,  0.004628,  0.030653,  0.177005,  1.  ]),
+                                   atol=1.e-6)
 
         np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
-                                   self.data, rtol=1e-3)
+                                   self.data)
 
     def test_log(self):
 
         stretch = LogStretch()
         np.testing.assert_allclose(stretch(self.data),
-                                   np.array([0., 0.79989124, 0.89994591, 0.95854665, 1.]),
-                                   rtol=1e-3)
+                                   np.array([0.      ,  0.799776,  0.899816,  0.958408,  1.   ]),
+                                   atol=1.e-6)
 
         np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
-                                   self.data, rtol=1e-2)
+                                   self.data)
 
     def test_asinh(self):
 
         stretch = AsinhStretch()
         np.testing.assert_allclose(stretch(self.data),
-                                   np.array([0., 0.54907705, 0.77081278, 0.9041551, 0.99940765]),
-                                   rtol=1e-3)
+                                   np.array([0., 0.54907705, 0.77081278, 0.9041551, 0.99940765]))
 
         np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
-                                   self.data, rtol=1e-3)
+                                   self.data)
 
     def test_sinh(self):
 
         stretch = SinhStretch()
         np.testing.assert_allclose(stretch(self.data),
-                                   np.array([0., 0.08223167, 0.21292795, 0.46911683, 1.]))
+                                   np.array([0.      ,  0.082085,  0.212548,  0.46828 ,  1.  ]),
+                                   atol=1.e-6)
 
         np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
-                                   self.data, rtol=1e-3)
+                                   self.data)
 
     def test_histeq(self):
 

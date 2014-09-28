@@ -28,5 +28,5 @@ class TestImageScaling(object):
     def test_log(self):
         """Test log10 scaling."""
         img = scale_image(DATA, scale='log')
-        ref = np.clip(np.log10(1000 * DATASCL + 1.0) / np.log10(1000.0), 0., 1.)
+        ref = np.log10(1000 * DATASCL + 1.0) / np.log10(1001.0)
         assert_allclose(img, ref, atol=0, rtol=1.e-5)
