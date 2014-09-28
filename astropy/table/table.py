@@ -50,6 +50,15 @@ def is_table_compatible(obj):
     return ok
 
 
+def descr(col):
+    """Array-interface compliant full description of a column.
+
+    This returns a 3-tuple (name, type, shape) that can always be
+    used in a structured array dtype definition.
+    """
+    return (col.name, col.dtype.str, col.shape[1:])
+
+
 class TableColumns(OrderedDict):
     """OrderedDict subclass for a set of columns.
 
@@ -165,15 +174,6 @@ class Table(object):
         if len(self.columns) == 0:
             return None
 
-        def descr(col):
-            """Array-interface compliant full description of the column.
-
-            This returns a 3-tuple (name, type, shape) that can always be
-            used in a structured array dtype definition.
-            """
-            return (col.name, col.dtype.str, col.shape[1:])
-
-
         cols = self.columns.values()
         dtype = [descr(col) for col in cols]
         empty_init = ma.empty if self.masked else np.empty
@@ -218,7 +218,7 @@ class Table(object):
         default_names = None
 
         if isinstance(data, self.Row):
-            data = data._table[:1]
+            data = data._table[data._index:data._index + 1]
 
         if isinstance(data, (list, tuple)):
             init_func = self._init_from_list
@@ -881,12 +881,13 @@ class Table(object):
 
     def __iter__(self):
         self._iter_index = 0
+        self._len = len(self)
         return self
 
     def __next__(self):
         """Python 3 iterator"""
-        if self._iter_index < len(self._data):
-            val = self[self._iter_index]
+        if self._iter_index < self._len:
+            val = self.Row(self, self._iter_index)
             self._iter_index += 1
             return val
         else:
@@ -948,7 +949,8 @@ class Table(object):
 
     @property
     def dtype(self):
-        return self._data.dtype
+        # TODO caching, which gets invalidated when column is added or removed
+        return np.dtype([descr(col) for col in self.columns.values()])
 
     @property
     def colnames(self):

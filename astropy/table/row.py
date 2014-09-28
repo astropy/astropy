@@ -32,56 +32,46 @@ class Row(object):
     """
 
     def __init__(self, table, index):
-        # Make a single-row slice so that the _data array below is small
-        self._full_table = table
-        self._table = table[index:index+1]
+        self._table = table
         self._index = index
-        try:
-            self._data = self._table._data[0]
 
-            # MaskedArray __getitem__ has a strange behavior where if a
-            # row mask is all False then it returns a np.void which
-            # has no mask attribute. This makes it impossible to then set
-            # the mask. Here we recast back to mvoid. This was fixed in
-            # Numpy following issue numpy/numpy#483, and the fix should be
-            # included in Numpy 1.8.0.
-            if self._table.masked and isinstance(self._data, np.void):
-                self._data = ma.core.mvoid(self._data,
-                                           mask=self._table._mask[index])
-        except ValueError as err:
-            # Another bug (or maybe same?) that is fixed in 1.8 prevents
-            # accessing a row in masked array if it has object-type members.
-            # >>> x = np.ma.empty(1, dtype=[('a', 'O')])
-            # >>> x['a'] = 1
-            # >>> x['a'].mask = True
-            # >>> x[0]
-            # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
-            #
-            # All we do here is re-raise with a more informative message
-            if (six.text_type(err).startswith('Setting void-array with object members')
-                    and version.LooseVersion(np.__version__) < version.LooseVersion('1.8')):
-                raise ValueError('Cannot access table row with Object type columns, due to '
-                                 'a bug in numpy {0}.  Please upgrade to numpy 1.8 or newer.'
-                                 .format(np.__version__))
-            else:
-                raise
+        # TODO: Make sure these corner cases are still handled.
+        #
+        # try:
+        #     self._data = self._table._data[0]
+        #     # MaskedArray __getitem__ has a strange behavior where if a
+        #     # row mask is all False then it returns a np.void which
+        #     # has no mask attribute. This makes it impossible to then set
+        #     # the mask. Here we recast back to mvoid. This was fixed in
+        #     # Numpy following issue numpy/numpy#483, and the fix should be
+        #     # included in Numpy 1.8.0.
+        #     if self._table.masked and isinstance(self._data, np.void):
+        #         self._data = ma.core.mvoid(self._data,
+        #                                    mask=self._table._mask[index])
+        # except ValueError as err:
+        #     # Another bug (or maybe same?) that is fixed in 1.8 prevents
+        #     # accessing a row in masked array if it has object-type members.
+        #     # >>> x = np.ma.empty(1, dtype=[('a', 'O')])
+        #     # >>> x['a'] = 1
+        #     # >>> x['a'].mask = True
+        #     # >>> x[0]
+        #     # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
+        #     #
+        #     # All we do here is re-raise with a more informative message
+        #     if (six.text_type(err).startswith('Setting void-array with object members')
+        #             and version.LooseVersion(np.__version__) < version.LooseVersion('1.8')):
+        #         raise ValueError('Cannot access table row with Object type columns, due to '
+        #                          'a bug in numpy {0}.  Please upgrade to numpy 1.8 or newer.'
+        #                          .format(np.__version__))
+        #     else:
+        #         raise
+
 
     def __getitem__(self, item):
-        return self.data[item]
+        return self._table.columns[item][self._index]
 
     def __setitem__(self, item, val):
-        # Workaround for astropy/astropy#2734 and numpy/numpy#4866:
-        # Assignment to a masked array containing a recarray object doesn't
-        # work properly when being assigned in [row][colname] order.
-        # Instead go back to the parent table and do [colname][row] order.
-        #
-        # Note also that in the masked case the Row object is not a direct
-        # view of the data so we need to set in the table and in self.data.
-
-        # Remember self._table is a 1-row slice of the parent table
-        col = self._table.columns[item]  # works for index or col name
-        col[0] = val
-        self._data = self._table._data[0]
+        self._table.columns[item][self._index] = val
 
     def __eq__(self, other):
         if self._table.masked:
@@ -98,7 +88,7 @@ class Row(object):
 
     @property
     def _mask(self):
-        return self._data.mask
+        return self.data.mask
 
     def __array__(self, dtype=None):
         """Support converting Row to np.array via np.array(table).
@@ -109,10 +99,10 @@ class Row(object):
         if dtype is not None:
             raise ValueError('Datatype coercion is not allowed')
 
-        return np.array(self._data)
+        return np.array(self.data, dtype=self.dtype)
 
     def __len__(self):
-        return len(self._data.dtype)
+        return len(self._table.columns)
 
     @property
     def table(self):
@@ -124,23 +114,31 @@ class Row(object):
 
     @property
     def data(self):
+        if not hasattr(self, '_data'):
+            index = self._index
+            cols = self._table.columns.values()
+            vals = tuple(col[index] for col in cols)
+            if self._table.masked:
+                self._data = np.ma.array([vals], dtype=self.dtype)[0]
+            else:
+                self._data = np.array([vals], dtype=self.dtype)[0]
         return self._data
 
     @property
     def meta(self):
-        return self._full_table.meta
+        return self._table.meta
 
     @property
     def columns(self):
-        return self._full_table.columns
+        return self._table.columns
 
     @property
     def colnames(self):
-        return self._full_table.colnames
+        return self._table.colnames
 
     @property
     def dtype(self):
-        return self.data.dtype
+        return self._table.dtype
 
     def __repr__(self):
         return "<{3} {0} of table\n values={1!r}\n dtype={2}>".format(
