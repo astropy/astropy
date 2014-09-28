@@ -76,8 +76,8 @@ def scale_image(image, scale='linear', power=1.0, noise_level=None,
     elif scale == 'power':
         stretch = PowerStretch(power)
     elif scale == 'log':
-        stretch = LogStretch(power)
+        stretch = LogStretch()
     else:
         raise ValueError('Unknown scale: {0}'.format(scale))
 
-    return (interval + stretch)(image)
+    return (stretch + interval)(image)
