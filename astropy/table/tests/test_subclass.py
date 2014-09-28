@@ -15,7 +15,7 @@ class MyColumn(table.Column):
     pass
 
 
-class MyMaskedColumn(table.Column):
+class MyMaskedColumn(table.MaskedColumn):
     pass
 
 

@@ -119,7 +119,8 @@ class Row(object):
             cols = self._table.columns.values()
             vals = tuple(col[index] for col in cols)
             if self._table.masked:
-                self._data = np.ma.array([vals], dtype=self.dtype)[0]
+                mask = tuple(col.mask[index] for col in cols)
+                self._data = np.ma.array([vals], mask=[mask], dtype=self.dtype)[0]
             else:
                 self._data = np.array([vals], dtype=self.dtype)[0]
         return self._data
