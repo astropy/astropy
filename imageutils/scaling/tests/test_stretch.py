@@ -64,34 +64,6 @@ class TestInterval(object):
         np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
                                    self.data, rtol=1e-2)
 
-    def test_linear(self):
-
-        stretch = LinearStretch()
-        np.testing.assert_allclose(stretch(self.data),
-                                   self.data)
-
-        np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
-                                   self.data)
-
-    def test_sqrt(self):
-
-        stretch = SqrtStretch()
-        np.testing.assert_allclose(stretch(self.data),
-                                   np.array([0., 0.5, 0.70710678, 0.8660254, 1.]))
-
-        np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
-                                   self.data)
-
-    def test_squared(self):
-
-        stretch = SquaredStretch()
-        np.testing.assert_allclose(stretch(self.data),
-                                   np.array([0., 0.0625, 0.25, 0.5625, 1.]),
-                                   rtol=1e-3)
-
-        np.testing.assert_allclose(stretch.inverted()(stretch(self.data)),
-                                   self.data)
-
     def test_asinh(self):
 
         stretch = AsinhStretch()
