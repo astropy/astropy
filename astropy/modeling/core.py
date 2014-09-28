@@ -271,11 +271,6 @@ class Model(object):
         return self.prepare_outputs(format_info, *outputs, **kwargs)
 
     @property
-    @deprecated('0.4', alternative='len(model)')
-    def param_dim(self):
-        return self._n_models
-
-    @property
     def model_set_axis(self):
         return self._model_set_axis
 

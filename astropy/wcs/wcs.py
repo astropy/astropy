@@ -588,11 +588,6 @@ naxis kwarg.
                         format(key, val),
                         FITSFixedWarning)
 
-    @deprecated("0.4", name="calcFootprint", alternative="calc_footprint")
-    def calcFootprint(self, header=None, undistort=True, axes=None):
-        return self.calc_footprint(header=header, undistort=undistort, axes=axes,
-                                   center=True)
-
     def calc_footprint(self, header=None, undistort=True, axes=None, center=True):
         """
         Calculates the footprint of the image on the sky.
