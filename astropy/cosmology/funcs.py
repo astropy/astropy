@@ -13,11 +13,7 @@ from .core import CosmologyError
 from ..units import Quantity
 from ..utils import deprecated
 
-__all__ = ['H', 'angular_diameter_distance', 'arcsec_per_kpc_comoving',
-           'arcsec_per_kpc_proper', 'comoving_distance', 'critical_density',
-           'distmod', 'kpc_comoving_per_arcmin', 'kpc_proper_per_arcmin',
-           'lookback_time', 'luminosity_distance', 'scale_factor',
-           'z_at_value']
+__all__ = ['z_at_value']
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 

@@ -15,8 +15,7 @@ import numpy as np
 from .. import units as u
 from ..utils import deprecated
 
-__all__ = ['Distance', 'CartesianPoints', 'cartesian_to_spherical',
-           'spherical_to_cartesian']
+__all__ = ['Distance', 'cartesian_to_spherical', 'spherical_to_cartesian']
 
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
