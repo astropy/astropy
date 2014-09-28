@@ -164,15 +164,7 @@ class Quantity(np.ndarray):
     _equivalencies = []
 
     # Stuff for table compatibility
-    @property
-    def name(self):
-        if not hasattr(self, '_name'):
-            self._name = None
-        return self._name
-
-    @name.setter
-    def name(self, val):
-        self._name = val
+    _astropy_table_compatible = True
 
     @property
     def data(self):
@@ -262,7 +254,6 @@ class Quantity(np.ndarray):
 
     def __array_finalize__(self, obj):
         self._unit = getattr(obj, '_unit', None)
-        self._name = getattr(obj, '_name', None)
 
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the

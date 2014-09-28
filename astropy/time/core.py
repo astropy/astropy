@@ -167,16 +167,7 @@ class Time(object):
 
     # Stuff for table compatibility
     _table_format = None
-
-    @property
-    def name(self):
-        if not hasattr(self, '_name'):
-            self._name = None
-        return self._name
-
-    @name.setter
-    def name(self, val):
-        self._name = val
+    _astropy_table_compatible = True
 
     @property
     def data(self):

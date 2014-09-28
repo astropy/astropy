@@ -46,7 +46,7 @@ def is_table_compatible(obj):
     Determine if `obj` meets the protocol for a Table column.
     """
     # Temporary but minimal test
-    ok = hasattr(obj, 'name')
+    ok = getattr(obj, '_astropy_table_compatible', False)
     return ok
 
 
@@ -518,8 +518,12 @@ class Table(object):
         table = self.__class__(masked=self.masked)
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
-        cols = list(six.itervalues(self.columns))
+        cols = self.columns.values()
+        names = [col.name for col in cols]
         newcols = [col[slice_] for col in cols]
+        for name, newcol in zip(names, newcols):
+            if not hasattr(newcol, 'name'):
+                newcol.name = name
 
         self._update_table_from_cols(table, newcols)
 
