@@ -1170,8 +1170,6 @@ def test_z_at_value():
     assert np.allclose(z_at_value(cosmo.luminosity_distance, d, ztol=1e-8), 3,
                        rtol=1e-8)
     assert np.allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.1981191749374)
-
-    assert np.allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.1981191749374)
     assert np.allclose(z_at_value(cosmo.luminosity_distance, 1e4 * u.Mpc),
                        1.3685792789133948)
     assert np.allclose(z_at_value(cosmo.lookback_time, 7 * u.Gyr),
