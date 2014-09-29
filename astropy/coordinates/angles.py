@@ -32,7 +32,7 @@ signed_dms_tuple = namedtuple('signed_dms_tuple', ('sign', 'd', 'm', 's'))
 
 #TODO: remove this when numpy 1.5 is no longer supported, as well as the
 #workaround below
-_NUMPY_GTR_15 = LooseVersion(np.version.full_version) > LooseVersion('1.5.1')
+_NUMPY_GTR_15 = LooseVersion(np.__version__) >= LooseVersion('1.6')
 
 
 class Angle(u.Quantity):
@@ -378,7 +378,7 @@ class Angle(u.Quantity):
         if _NUMPY_GTR_15:
             #In Numpy 1.5, guessing the output size doesn't work.  So we give
             # a generous 60 chars, on the theory that you'll never want better
-            # than what double-precision dcimals give, which end up around
+            # than what double-precision decimals give, which end up around
             # that many characters.
             format_ufunc = np.vectorize(do_format, otypes=['U60'])
         else:
