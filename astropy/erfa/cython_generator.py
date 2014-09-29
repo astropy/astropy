@@ -6,6 +6,8 @@ of erfa.pyx when ERFA is updated (or this generator is enhanced).
 `Jinja2 <http://jinja.pocoo.org/>`_ must be installed for this
 module/script to function.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import re
 import os.path
@@ -190,11 +192,11 @@ class Function(object):
             return result
 
 
-def main(srcdir):
-    from jinja2 import Environment, PackageLoader
+def main(srcdir, outfn, templateloc):
+    from jinja2 import Environment, FileSystemLoader
 
     #Prepare the jinja2 templating environment
-    env = Environment(loader=PackageLoader('cython_numpy_auto', '.'))
+    env = Environment(loader=FileSystemLoader(templateloc))
 
     def prefix(a_list, pre):
         return [pre+'{0}'.format(an_element) for an_element in a_list]
@@ -206,7 +208,7 @@ def main(srcdir):
     env.filters['postfix'] = postfix
     env.filters['surround'] = surround
 
-    erfa_pyx_in = env.get_template('erfa.pyx.in')
+    erfa_pyx_in = env.get_template('erfa.pyx.templ')
 
     #Extract all the ERFA function names from erfa.h
     with open(srcdir + "/erfa.h", "r") as f:
@@ -226,5 +228,27 @@ def main(srcdir):
         print("Done!")
         #Render the template and save
         erfa_pyx = erfa_pyx_in.render(funcs=funcs)
-        with open("erfa.pyx", "w") as f:
+        with open(outfn, "w") as f:
             f.write(erfa_pyx)
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+
+    default_erfa_loc = os.path.join(os.path.split(__file__)[0],
+                                    '../../cextern/erfa/')
+
+    ap = ArgumentParser()
+    ap.add_argument('srcdir', default=default_erfa_loc, nargs='?',
+                    help='directory where the ERFA c and header files '
+                         'can be found. Defaults to the builtin astropy'
+                         'erfa: "{0}"'.format(default_erfa_loc))
+    ap.add_argument('-o', '--output', default='erfa.pyx',
+                    help='the output filename')
+    ap.add_argument('-t', '--template-loc',
+                    default=os.path.split(__file__)[0],
+                    help='the location where the "erfa.pyx.templ" '
+                         'template can be found.')
+
+    args = ap.parse_args()
+    main(args.srcdir, args.output, args.template_loc)

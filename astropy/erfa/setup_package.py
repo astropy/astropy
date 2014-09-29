@@ -9,7 +9,7 @@ ERFAPKGDIR = os.path.relpath(os.path.dirname(__file__))
 
 
 def get_extensions():
-    sources = [os.path.join(ERFAPKGDIR, "erfa_time.pyx")]
+    sources = [os.path.join(ERFAPKGDIR, "erfa.pyx")]
     include_dirs = ['numpy']
     libraries = []
 
@@ -19,14 +19,14 @@ def get_extensions():
         sources.append("cextern/erfa/erfa.c")
         include_dirs.append('cextern/erfa')
 
-    time_ext = Extension(
-        name="astropy.erfa",
+    erfa_ext = Extension(
+        name="astropy._erfa",
         sources=sources,
         include_dirs=include_dirs,
         libraries=libraries,
         language="c",)
 
-    return [time_ext]
+    return [erfa_ext]
 
 
 def get_external_libraries():
@@ -35,6 +35,7 @@ def get_external_libraries():
 
 def requires_2to3():
     return False
+
 
 def get_package_data():
     return {'astropy.erfa': 'erfa.pyx.templ'}
