@@ -376,15 +376,18 @@ class Angle(u.Quantity):
 
         # we want unicode outputs for degree signs and such
         if _NUMPY_GTR_15:
-            #In Numpy 1.5, guessing the output size doesn't work.  So we give
-            # a generous 60 chars, on the theory that you'll never want better
-            # than what double-precision decimals give, which end up around
-            # that many characters.
-            format_ufunc = np.vectorize(do_format, otypes=['U60'])
-        else:
+            #for newer numpy's, this just works as you would expect
             format_ufunc = np.vectorize(do_format, otypes=['U'])
+            result = format_ufunc(values)
+        else:
+            format_ufunc = np.vectorize(do_format, otypes=[np.object])
+            #In Numpy 1.5, unicode output is broken.  vectorize always seems to
+            # yieled U2 even if you tell it something else.  So we convert in
+            # a second step with 60 chars, on the theory that you'll never want
+            # better than what double-precision decimals give, which end up
+            # around that many characters.
+            result = format_ufunc(values).astype('U60')
 
-        result = format_ufunc(values)
         if result.ndim == 0:
             result = result[()]
         return result
