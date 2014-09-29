@@ -247,7 +247,7 @@ class TableFormatter(object):
         """
         max_lines, _ = self._get_pprint_size(max_lines, -1)
 
-        multidims = col.shape[1:]  # TODO make this not a protocol requirement?
+        multidims = getattr(col, 'shape', [0])[1:]
         if multidims:
             multidim0 = tuple(0 for n in multidims)
             multidim1 = tuple(n - 1 for n in multidims)

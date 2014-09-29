@@ -56,7 +56,9 @@ def descr(col):
     This returns a 3-tuple (name, type, shape) that can always be
     used in a structured array dtype definition.
     """
-    return (col.name, col.dtype.str, col.shape[1:])
+    col_dtype_str = col.dtype.str if isinstance(col, BaseColumn) else 'O'
+    col_shape = col.shape[1:] if hasattr(col, 'shape') else ()
+    return (col.name, col_dtype_str, col_shape)
 
 
 class TableColumns(OrderedDict):
@@ -179,7 +181,7 @@ class Table(object):
         empty_init = ma.empty if self.masked else np.empty
         data = empty_init(len(self), dtype=dtype)
         for col in cols:
-            data[col.name] = col.data
+            data[col.name] = col
 
         return data
 

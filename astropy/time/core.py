@@ -169,18 +169,6 @@ class Time(object):
     _table_format = None
     _astropy_table_compatible = True
 
-    @property
-    def data(self):
-        return self.value
-
-    @property
-    def dtype(self):
-        return self.value.dtype
-
-    @property
-    def shape(self):
-        return self.value.shape
-
     SCALES = TIME_SCALES
     """List of time scales"""
 
