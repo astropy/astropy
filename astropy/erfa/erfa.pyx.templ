@@ -3,7 +3,7 @@ cimport numpy
 
 numpy.import_array()
 
-__all__ = [{{ funcs|map(attribute='name')|surround("'","'")|join(", ") }}]
+__all__ = [{{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }}, 'dt_eraASTROM']
 
 
 cdef extern from "erfa.h":
