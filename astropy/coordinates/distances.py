@@ -193,9 +193,8 @@ class Distance(u.Quantity):
             from ..cosmology import default_cosmology
             cosmology = default_cosmology.get()
 
-        f = lambda z, d: (cosmology.luminosity_distance(z).value - d) ** 2
-
-        return optimize.brent(f, (self.Mpc,))
+        from ..cosmology import z_at_value
+        return z_at_value(cosmology.luminosity_distance, self)
 
     @property
     def distmod(self):
