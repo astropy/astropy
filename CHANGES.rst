@@ -36,6 +36,8 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fix a bug that caused join to fail for multi-dimensional columns. [#2984]
+
 - ``astropy.time``
 
 - ``astropy.units``
