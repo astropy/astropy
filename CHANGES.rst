@@ -247,6 +247,10 @@ Other Changes and Additions
     unreadable files-- instead it raises the standard Python exceptions in such
     cases. [#2756, #2785]
 
+- ``astropy.table``
+
+  - Sped up setting of ``Column`` slices by an order of magnitude. [#2994]
+
 - Updated the bundled ``six`` module to version 1.7.3 and made 1.7.3 the
   minimum acceptable version of ``six``. [#2814]
 
