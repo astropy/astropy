@@ -101,7 +101,7 @@ class ArgumentDoc(object):
 class Argument(object):
 
     def __init__(self, definition, doc):
-        self.__doc = doc
+        self.doc = doc
         self.__inout_state = None
         self.definition = definition.strip()
         if "*" in self.definition:
@@ -117,10 +117,10 @@ class Argument(object):
     def inout_state(self):
         if self.__inout_state is None:
             self.__inout_state = ''
-            for i in self.__doc.input:
+            for i in self.doc.input:
                 if self.name in i.name.split(','):
                     self.__inout_state = 'in'
-            for o in self.__doc.output:
+            for o in self.doc.output:
                 if self.name in o.name.split(','):
                     if self.__inout_state == 'in':
                         self.__inout_state = 'inout'
@@ -205,14 +205,14 @@ class Function(object):
 
         search = p.search(filecontents)
         self.cfunc = search.group(1)
-        self.__doc = FunctionDoc(search.group(2))
+        self.doc = FunctionDoc(search.group(2))
 
         self.args = []
         for arg in re.search("\(([^)]+)\)", self.cfunc, flags=re.MULTILINE|re.DOTALL).group(1).split(','):
-            self.args.append(Argument(arg, self.__doc))
+            self.args.append(Argument(arg, self.doc))
         self.ret = re.search("^(.*){0}".format(name), self.cfunc).group(1).strip()
         if self.ret == 'double':
-            self.args.append(Return(self.ret, self.__doc))
+            self.args.append(Return(self.ret, self.doc))
 
     def args_by_inout(self, inout_filter, prop=None, join=None):
         result = []
