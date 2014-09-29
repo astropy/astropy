@@ -2759,6 +2759,7 @@ naxis kwarg.
 
         return pccd
 
+    @property
     def has_distortion(self):
         return any(getattr(self, dist_attr) is not None
                    for dist_attr in ['cpdis1', 'cpdis2', 'det2im1', 'det2im2', 'sip'])
