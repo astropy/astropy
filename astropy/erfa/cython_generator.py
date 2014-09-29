@@ -159,18 +159,54 @@ class Return(object):
 
 
 class Function(object):
+    """
+    A class representing a C function.
 
-    def __init__(self, name, source_path):
+    Parameters
+    ----------
+    name : str
+        The name of the function
+    source_path : str
+        Either a directory, which means look for the function in a
+        stand-alone file (like for the standard ERFA distribution), or a
+        file, which means look for the function in that file (as for the
+        astropy-packaged single-file erfa.c).
+    match_line : str, optional
+        If given, searching of the source file will skip until it finds
+        a line matching this string, and start from there.
+    """
+
+    def __init__(self, name, source_path, match_line=None):
         self.name = name
         self.pyname = name.split('era')[-1].lower()
         self.filename = name.split("era")[-1].lower()+".c"
-        self.filepath = os.path.join(os.path.normpath(source_path), self.filename)
+        if os.path.isdir(source_path):
+            self.filepath = os.path.join(os.path.normpath(source_path), self.filename)
+        else:
+            self.filepath = source_path
+
+        with open(self.filepath) as f:
+            if match_line:
+                line = f.readline()
+                while line != '':
+                    if line.startswith(match_line):
+                        filecontents = '\n' + line + f.read()
+                        break
+                    line = f.readline()
+                else:
+                    msg = ('Could not find the match_line "{0}" in '
+                           'the source file "{1}"')
+                    raise ValueError(msg.format(match_line, self.filepath))
+            else:
+                filecontents = f.read()
+
         pattern = "\n([^\n]+{0} ?\([^)]+\)).+?(/\*.+?\*/)".format(name)
         p = re.compile(pattern, flags=re.DOTALL|re.MULTILINE)
-        with open(self.filepath) as f:
-            search = p.search(f.read())
-            self.cfunc = search.group(1)
-            self.__doc = FunctionDoc(search.group(2))
+
+        search = p.search(filecontents)
+        self.cfunc = search.group(1)
+        self.__doc = FunctionDoc(search.group(2))
+
         self.args = []
         for arg in re.search("\(([^)]+)\)", self.cfunc, flags=re.MULTILINE|re.DOTALL).group(1).split(','):
             self.args.append(Argument(arg, self.__doc))
@@ -211,37 +247,67 @@ def main(srcdir, outfn, templateloc):
     erfa_pyx_in = env.get_template('erfa.pyx.templ')
 
     #Extract all the ERFA function names from erfa.h
-    with open(srcdir + "/erfa.h", "r") as f:
+    if os.path.isdir(srcdir):
+        erfahfn = os.path.join(srcdir, 'erfa.h')
+        multifilserc = True
+    else:
+        erfahfn = os.path.join(os.path.split(srcdir)[0], 'erfa.h')
+        multifilserc = False
 
+    with open(erfahfn, "r") as f:
         erfa_h = f.read()
 
-        funcs = []
-        section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
-                                                 erfa_h, flags=re.DOTALL|re.MULTILINE)
-        for section, subsection, functions in section_subsection_functions:
-            print("{0}.{1}".format(section, subsection))
-            if section == "Astronomy":
-                func_names = re.findall(' (\w+)\(.*?\);', functions, flags=re.DOTALL)
-                for name in func_names:
-                    print("{0}.{1}.{2}...".format(section, subsection, name))
+    funcs = []
+    section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
+                                              erfa_h, flags=re.DOTALL|re.MULTILINE)
+    for section, subsection, functions in section_subsection_functions:
+        print("{0}.{1}".format(section, subsection))
+        if section == "Astronomy":
+            func_names = re.findall(' (\w+)\(.*?\);', functions, flags=re.DOTALL)
+            for name in func_names:
+                print("{0}.{1}.{2}...".format(section, subsection, name))
+                if multifilserc:
+                    # easy because it just looks in the file itself
                     funcs.append(Function(name, srcdir))
-        print("Done!")
-        #Render the template and save
-        erfa_pyx = erfa_pyx_in.render(funcs=funcs)
-        with open(outfn, "w") as f:
-            f.write(erfa_pyx)
+                else:
+                    # Have to tell it to look for a declaration matching
+                    # the start of the header declaration, otherwise it
+                    # might find a *call* of the function instead of the
+                    # definition
+                    for line in functions.split('\n'):
+                        if name in line:
+                            # [:-1] is to remove trailing semicolon, and
+                            # splitting on '(' is because the header and
+                            # C files don't necessarily have to match
+                            # argument names and line-breaking or
+                            # whitespace
+                            match_line = line[:-1].split('(')[0]
+                            funcs.append(Function(name, srcdir, match_line))
+                            break
+                    else:
+                        raise ValueError("A name for a C file wasn't "
+                                         "found in the string that "
+                                         "spawned it.  This should be "
+                                         "impossible!")
+    print("Done!")
+    #Render the template and save
+    erfa_pyx = erfa_pyx_in.render(funcs=funcs)
+    with open(outfn, "w") as f:
+        f.write(erfa_pyx)
 
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
     default_erfa_loc = os.path.join(os.path.split(__file__)[0],
-                                    '../../cextern/erfa/')
+                                    '../../cextern/erfa/erfa.c')
 
     ap = ArgumentParser()
     ap.add_argument('srcdir', default=default_erfa_loc, nargs='?',
-                    help='directory where the ERFA c and header files '
-                         'can be found. Defaults to the builtin astropy'
+                    help='Directory where the ERFA c and header files '
+                         'can be found or to a single erfa.c file '
+                         '(which must be in the same directory as '
+                         'erfa.h). Defaults to the builtin astropy '
                          'erfa: "{0}"'.format(default_erfa_loc))
     ap.add_argument('-o', '--output', default='erfa.pyx',
                     help='the output filename')
