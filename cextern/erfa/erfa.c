@@ -1,4 +1,6 @@
 //Derived from erfa version 1.1.1
+// If you are updating this: remember to also use cython_generator.py to update
+// the erfa wrappers!
 
 #include "erfa.h"
 
