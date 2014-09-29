@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
 import collections
+import copy
 
 import numpy as np
 
@@ -125,6 +126,9 @@ class SkyCoord(object):
         w, u, v : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values for the Galactic frame.
     """
+
+    # Stuff for table compatibility
+    _astropy_table_compatible = True
 
     def __init__(self, *args, **kwargs):
 
@@ -453,6 +457,9 @@ class SkyCoord(object):
                                  latangle.to_string(**latargs))]
 
         return coord_string
+
+    def copy(self):
+        return copy.copy(self)
 
     # High-level convinience methods
     def separation(self, other):

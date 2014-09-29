@@ -484,7 +484,10 @@ class Table(object):
                     col = self.ColumnClass(col, name=name, copy=copy)
                 elif is_table_compatible(col):
                     # Non-Column objects that are compatible with Table
-                    col = col.__class__(col, copy=copy)
+                    try:
+                        col = col.__class__(col, copy=copy)
+                    except:
+                        col = col.__class__(col)
                     col.name = name
                     # TODO: What about dtype?
                 else:
