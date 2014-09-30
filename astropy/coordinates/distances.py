@@ -185,13 +185,14 @@ class Distance(u.Quantity):
         z : float
             The redshift of this distance given the provided ``cosmology``.
         """
-        from ..cosmology import luminosity_distance
         from scipy import optimize
 
-        # FIXME: array: need to make this calculation more vector-friendly
+        if cosmology is None:
+            from ..cosmology import default_cosmology
+            cosmology = default_cosmology.get()
 
-        f = lambda z, d, cos: (luminosity_distance(z, cos).value - d) ** 2
-        return optimize.brent(f, (self.Mpc, cosmology))
+        from ..cosmology import z_at_value
+        return z_at_value(cosmology.luminosity_distance, self, ztol=1.e-10)
 
     @property
     def distmod(self):
