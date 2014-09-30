@@ -1747,7 +1747,7 @@ Bug Fixes
   - Progressbar will be limited to 100% so that the bar does not exceed the
     terminal width.  The numerical display can still exceed 100%, however.
   - Converted representation of progress bar units without suffix
-    from float to int in :func:`astropy.utils.console.human_file_size`.
+    from float to int in console.human_file_size.
 
 - ``astropy.vo``
 
