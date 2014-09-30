@@ -6,7 +6,6 @@ another set of [0:1] values with a transformation
 import abc
 
 import numpy as np
-from numpy.lib.scimath import logn
 
 from astropy.extern import six
 
@@ -17,6 +16,16 @@ __all__ = ["LinearStretch", "SqrtStretch", "PowerStretch", "PowerDistStretch",
            "HistEqStretch", "ContrastBiasStretch"]
 
 
+def logn(n, x, out=None):
+    # We define this because numpy.lib.scimath.logn doesn't support out=
+    if out is None:
+        return np.log(x) / np.log(n)
+    else:
+        np.log(x, out=out)
+        np.divide(out, np.log(n), out=out)
+        return out
+
+
 @six.add_metaclass(abc.ABCMeta)
 class BaseStretch(BaseTransform):
     pass
@@ -25,9 +34,9 @@ class BaseStretch(BaseTransform):
 class LinearStretch(BaseStretch):
     """
     A linear stretch.
-    
+
     The stretch is given by:
-    
+
     .. math::
         y = x
     """
@@ -42,9 +51,9 @@ class LinearStretch(BaseStretch):
 class SqrtStretch(BaseStretch):
     r"""
     A square root stretch.
-    
+
     The stretch is given by:
-    
+
     .. math::
         y = \sqrt{x}
     """
@@ -62,9 +71,9 @@ class SqrtStretch(BaseStretch):
 class PowerStretch(BaseStretch):
     r"""
     A power-law stretch.
-    
+
     The stretch is given by:
-    
+
     .. math::
         y = x^a
     """
@@ -86,9 +95,9 @@ class PowerStretch(BaseStretch):
 class PowerDistStretch(BaseStretch):
     r"""
     An alternative power stretch.
-    
+
     The stretch is given by:
-    
+
     .. math::
         y = \frac{a^x - 1}{a - 1}
     """
@@ -100,8 +109,17 @@ class PowerDistStretch(BaseStretch):
         self.exp = a
 
     def __call__(self, values, out=None):
-        res = (self.exp ** values - 1.0) / (self.exp - 1.0)
-        return np.clip(res, 0.0, 1.0, out=out)
+
+        if out is None:
+            values = np.power(self.exp, values)
+        else:
+            values = np.power(self.exp, values, out=out)
+
+        np.subtract(values, 1, out=values)
+        np.divide(values, self.exp - 1.0, out=values)
+        np.clip(values, 0., 1., out=values)
+
+        return values
 
     def inverted(self):
         return InvertedPowerDistStretch(a=self.exp)
@@ -119,8 +137,17 @@ class InvertedPowerDistStretch(BaseStretch):
         self.exp = a
 
     def __call__(self, values, out=None):
-        res = logn(self.exp, (self.exp - 1.0) * values + 1.0)
-        return np.clip(res, 0.0, 1.0, out=out)
+
+        if out is None:
+            values = np.multiply(values, self.exp - 1.0)
+        else:
+            values = np.multiply(values, self.exp - 1.0, out=values)
+
+        np.add(values, 1, out=values)
+        logn(self.exp, values, out=values)
+        np.clip(values, 0., 1., out=values)
+
+        return values
 
     def inverted(self):
         return PowerDistStretch(a=self.exp)
@@ -129,9 +156,9 @@ class InvertedPowerDistStretch(BaseStretch):
 class SquaredStretch(PowerStretch):
     r"""
     A convenience class for a power stretch of 2.
-    
+
     The stretch is given by:
-    
+
     .. math::
         y = x^2
     """
@@ -146,9 +173,9 @@ class SquaredStretch(PowerStretch):
 class LogStretch(BaseStretch):
     r"""
     A log stretch.
-    
+
     The stretch is given by:
-    
+
     .. math::
         y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}.
     """
@@ -158,8 +185,18 @@ class LogStretch(BaseStretch):
         self.exp = a
 
     def __call__(self, values, out=None):
-        res = np.log(self.exp * values + 1.0) / np.log(self.exp + 1)
-        return np.clip(res, 0.0, 1.0, out=out)
+
+        if out is None:
+            values = np.multiply(values, self.exp)
+        else:
+            values = np.multiply(values, self.exp, out=out)
+
+        np.add(values, 1., out=values)
+        np.log(values, out=values)
+        np.divide(values, np.log(self.exp + 1.), out=values)
+        np.clip(values, 0., 1., out=values)
+
+        return values
 
     def inverted(self):
         return InvertedLogStretch(self.exp)
@@ -175,8 +212,18 @@ class InvertedLogStretch(BaseStretch):
         self.exp = a
 
     def __call__(self, values, out=None):
-        res = (np.exp(values * np.log(self.exp + 1.)) - 1) / self.exp
-        return np.clip(res, 0.0, 1.0, out=out)
+
+        if out is None:
+            values = np.multiply(values, np.log(self.exp + 1.))
+        else:
+            values = np.multiply(values, np.log(self.exp + 1.), out=out)
+
+        np.exp(values, out=values)
+        np.subtract(values, 1., out=values)
+        np.divide(values, self.exp, out=values)
+        np.clip(values, 0., 1., out=values)
+
+        return values
 
     def inverted(self):
         return LogStretch(self.exp)
@@ -185,7 +232,7 @@ class InvertedLogStretch(BaseStretch):
 class AsinhStretch(BaseStretch):
     r"""
     An asinh stretch.
-    
+
     The stretch is given by:
 
     .. math::
@@ -197,34 +244,26 @@ class AsinhStretch(BaseStretch):
         self.a = a
 
     def __call__(self, values, out=None):
-        res = np.arcsinh(values / self.a) / np.arcsinh(1. / self.a)
-        return np.clip(res, 0.0, 1.0, out=out)
+
+        if out is None:
+            values = np.divide(values, self.a)
+        else:
+            values = np.divide(values, self.a, out=out)
+
+        np.arcsinh(values, out=values)
+        np.divide(values, np.arcsinh(1. / self.a), out=values)
+        np.clip(values, 0., 1., out=values)
+
+        return values
 
     def inverted(self):
-        return InvertedAsinhStretch(a=self.a)
-
-
-class InvertedAsinhStretch(BaseStretch):
-    """
-    Inverse transformation for `~imageutils.scaling.AsinhStretch`.
-    """
-
-    def __init__(self, a=0.1):
-        super(InvertedAsinhStretch, self).__init__()
-        self.a = a
-
-    def __call__(self, values, out=None):
-        res = np.sinh(np.arcsinh(1. / self.a) * values) * self.a
-        return np.clip(res, 0.0, 1.0, out=out)
-
-    def inverted(self):
-        return AsinhStretch(a=self.a)
+        return SinhStretch(a=1./np.arcsinh(1. / self.a))
 
 
 class SinhStretch(BaseStretch):
     r"""
     A sinh stretch.
-    
+
     The stretch is given by:
 
     .. math::
@@ -236,28 +275,20 @@ class SinhStretch(BaseStretch):
         self.a = a
 
     def __call__(self, values, out=None):
-        res = np.sinh(values / self.a) / np.sinh(1. / self.a)
-        return np.clip(res, 0.0, 1.0, out=out)
+
+        if out is None:
+            values = np.divide(values, self.a)
+        else:
+            values = np.divide(values, self.a, out=out)
+
+        np.sinh(values, out=values)
+        np.divide(values, np.sinh(1. / self.a), out=values)
+        np.clip(values, 0., 1., out=values)
+
+        return values
 
     def inverted(self):
-        return InvertedSinhStretch(a=self.a)
-
-
-class InvertedSinhStretch(BaseStretch):
-    """
-    Inverse transformation for `~imageutils.scaling.SinhStretch`.
-    """
-
-    def __init__(self, a=1./3.):
-        super(InvertedSinhStretch, self).__init__()
-        self.a = a
-
-    def __call__(self, values, out=None):
-        res = np.arcsinh(np.sinh(1. / self.a) * values) * self.a
-        return np.clip(res, 0.0, 1.0, out=out)
-
-    def inverted(self):
-        return SinhStretch(a=self.a)
+        return AsinhStretch(a=1./np.sinh(1. / self.a))
 
 
 class HistEqStretch(BaseStretch):
@@ -326,7 +357,7 @@ class ContrastBiasStretch(BaseStretch):
 
     .. math::
         y = (x - {\\rm bias}) * {\\rm contrast} + 0.5
-    
+
     and the output values are clipped to the [0:1] range.
     """
 
