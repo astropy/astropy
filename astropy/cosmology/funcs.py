@@ -135,7 +135,7 @@ zmin and zmax satisfying fval = func(z).""")
         f = lambda z: abs(func(z) - fval)
 
     zbest, resval, ierr, ncall = fminbound(f, zmin, zmax, maxfun=maxfun,
-                                           full_output=1)
+                                           full_output=1, xtol=ztol)
 
     if ierr != 0:
         warnings.warn('Maximum number of function calls ({}) reached'.format(

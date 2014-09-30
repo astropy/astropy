@@ -14,6 +14,8 @@ Bug Fixes
 
 - ``astropy.cosmology``
 
+  - The ``ztol`` keyword argument to z_at_value now works correctly [#2993].
+
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
