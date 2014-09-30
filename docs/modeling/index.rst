@@ -52,8 +52,8 @@ parametrized functions::
     >>> g = models.Gaussian1D(amplitude=1.2, mean=0.9, stddev=0.5)
     >>> print(g)
     Model: Gaussian1D
-    Inputs: 1
-    Outputs: 1
+    Inputs: ('x',)
+    Outputs: ('y',)
     Model set size: 1
     Parameters:
         amplitude mean stddev
@@ -202,8 +202,8 @@ the array corresponds to one model in the set::
     ...                       stddev=[0.1, 0.2], n_models=2)
     >>> print(g)
     Model: Gaussian1D
-    Inputs: 1
-    Outputs: 1
+    Inputs: ('x',)
+    Outputs: ('y',)
     Model set size: 2
     Parameters:
         amplitude mean stddev
