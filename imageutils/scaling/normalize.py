@@ -13,7 +13,7 @@ __all__ = ['ImageNormalize']
 
 class ImageNormalize(Normalize):
 
-    def __init__(self, vmin=None, vmax=None, stretch=None, clip=False):
+    def __init__(self, vmin=None, vmax=None, stretch=None, clip=True):
 
         super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
 
@@ -28,13 +28,14 @@ class ImageNormalize(Normalize):
             clip = self.clip
 
         # Convert to masked array and make sure scalars get broadcast to 1-d
-        values = ma.atleast_1d(values)
+        values = np.atleast_1d(values)
 
         # Normalize based on vmin and vmax
         values_norm = (values - self.vmin) / (self.vmax - self.vmin)
 
         # Clip to the 0 to 1 range
-        values_norm = np.clip(values_norm, 0., 1.)
+        if self.clip:
+            values_norm = np.clip(values_norm, 0., 1.)
 
         # Stretch values
         new_values = self.stretch(values_norm)
