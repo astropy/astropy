@@ -4,7 +4,7 @@ from .stretch import *
 
 def scale_image(image, scale='linear', power=1.0, noise_level=None,
                 min_cut=None, max_cut=None, min_percent=None,
-                max_percent=None, percent=None):
+                max_percent=None, percent=None, clip=True):
     """
     Perform scaling/stretching of an image between minimum and maximum
     cut levels.
@@ -51,6 +51,9 @@ def scale_image(image, scale='linear', power=1.0, noise_level=None,
         percentile.  The default is 100.0.  ``percent`` is ignored if
         either ``min_percent`` or ``max_percent`` is input.
 
+    clip : bool, optional
+        Whether to clip the result to the range [0:1].
+
     Returns
     -------
     image : ndarray
@@ -80,4 +83,4 @@ def scale_image(image, scale='linear', power=1.0, noise_level=None,
     else:
         raise ValueError('Unknown scale: {0}'.format(scale))
 
-    return (stretch + interval)(image)
+    return (stretch + interval)(image, clip=clip)
