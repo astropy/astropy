@@ -168,6 +168,9 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         # errors. Picklability is required for any class that is
         # documented by Sphinx.
 
+        def __init__(self, *args, **kwargs):
+            super(cls, self).__init__(*args, **kwargs)
+
         def __getstate__(self):
             return super(cls, self).__getstate__()
 
@@ -176,7 +179,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
 
         d = {
             '__doc__': deprecate_doc(cls.__doc__, message),
-            '__init__': deprecate_function(cls.__init__, message),
+            '__init__': deprecate_function(__init__, message),
             '__module__': cls.__module__,
             '__getstate__': __getstate__,
             '__setstate__': __setstate__
