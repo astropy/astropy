@@ -163,7 +163,7 @@ def test_progress_bar():
 
 
 def test_progress_bar2():
-    for x in console.ProgressBar.iterate(xrange(50)):
+    for x in console.ProgressBar(xrange(50)):
         pass
 
 
