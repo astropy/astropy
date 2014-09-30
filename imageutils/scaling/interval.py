@@ -26,7 +26,7 @@ class BaseInterval(BaseTransform):
         else:
             values = np.subtract(values, vmin, out=out)
 
-        np.divide(values, vmax - vmin, out=values)
+        np.true_divide(values, vmax - vmin, out=values)
 
         if clip:
             np.clip(values, 0., 1., out=values)

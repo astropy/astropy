@@ -16,11 +16,12 @@ RESULTS[LogStretch()] = np.array([0., 0.799776, 0.899816, 0.958408, 1.])
 RESULTS[AsinhStretch()] = np.array([0., 0.549402, 0.77127, 0.904691, 1.])
 RESULTS[SinhStretch()] = np.array([0., 0.082085, 0.212548, 0.46828, 1.])
 RESULTS[ContrastBiasStretch(contrast=2., bias=0.4)] = np.array([-0.3, 0.2, 0.7, 1.2, 1.7])
+RESULTS[HistEqStretch(DATA)] = DATA
+RESULTS[HistEqStretch(DATA[::-1])] = DATA
+RESULTS[HistEqStretch(DATA ** 0.5)] = np.array([0., 0.125, 0.25, 0.5674767, 1.])
 
 
 class TestStretch(object):
-
-    clip = False
 
     def setup_class(self):
         DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
@@ -61,29 +62,6 @@ class TestStretch(object):
         stretch.inverted()(result, out=result)
         np.testing.assert_allclose(result, DATA)
 
-    def test_histeq(self):
-
-        stretch = HistEqStretch(DATA)
-        np.testing.assert_allclose(stretch(DATA),
-                                   DATA)
-
-        np.testing.assert_allclose(stretch.inverted()(stretch(DATA)),
-                                   DATA)
-
-        stretch = HistEqStretch(DATA[::-1])
-        np.testing.assert_allclose(stretch(DATA),
-                                   DATA)
-
-        np.testing.assert_allclose(stretch.inverted()(stretch(DATA)),
-                                   DATA)
-
-        stretch = HistEqStretch(DATA ** 0.5)
-        np.testing.assert_allclose(stretch(DATA),
-                                   np.array([0., 0.125, 0.25, 0.5674767, 1.]))
-
-        np.testing.assert_allclose(stretch.inverted()(stretch(DATA)),
-                                   DATA)
-
     def test_inverted(self):
         stretch_1 = SqrtStretch().inverted()
         stretch_2 = PowerStretch(2)
@@ -91,7 +69,13 @@ class TestStretch(object):
                                    stretch_2(DATA))
 
     def test_chaining(self):
+
         stretch_1 = SqrtStretch() + SqrtStretch()
         stretch_2 = PowerStretch(0.25)
+        stretch_3 = PowerStretch(4.)
+
         np.testing.assert_allclose(stretch_1(DATA),
                                    stretch_2(DATA))
+
+        np.testing.assert_allclose(stretch_1.inverted()(DATA),
+                                   stretch_3(DATA))
