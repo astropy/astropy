@@ -704,6 +704,35 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
+    def to_pixels_wcs(self, wcs, origin=0, mode='all'):
+        """
+        Convert this coordinate to pixel coordinates using a `~astropy.wcs.WCS`
+        object.
+
+        Parameters
+        ----------
+        wcs : `~astropy.wcs.WCS`
+            The WCS to use for convert
+        origin : int
+            Whether to return 0 or 1-based pixel coordinates.
+        mode : 'all' or 'wcs'
+            Whether to do the transformation including distortions (``'all'``) or
+            only including only the core WCS transformation (``'wcs'``).
+
+        Returns
+        -------
+        xp, yp : `numpy.ndarray`
+            The pixel coordinates
+
+        See Also
+        --------
+        astropy.wcs.utils.pixel_to_skycoord : to do the inverse operation
+        astropy.wcs.utils.skycoord_to_pixel : the implementation of this method
+        """
+        from astropy.wcs.utils import skycoord_to_pixel
+
+        return skycoord_to_pixel(self, wcs=wcs, origin=origin)
+
     # Name resolve
     @classmethod
     def from_name(cls, name, frame='icrs'):
