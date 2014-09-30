@@ -25,8 +25,8 @@ class CompositeTransform(BaseTransform):
         self.transform_1 = transform_1
         self.transform_2 = transform_2
 
-    def __call__(self, values):
-        return self.transform_2(self.transform_1(values))
+    def __call__(self, values, clip=False):
+        return self.transform_2(self.transform_1(values, clip=clip), clip=clip)
 
     def inverted(self):
         return CompositeTransform(self.transform_2.inverted(),
