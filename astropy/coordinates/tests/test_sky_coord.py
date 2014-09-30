@@ -710,6 +710,28 @@ def test_units_known_fail():
     with pytest.raises(u.UnitsError):
         SkyCoord(1, 2, 3, unit=u.deg, representation='spherical')
 
+
 def test_nodata_failure():
     with pytest.raises(ValueError):
         SkyCoord()
+
+
+@pytest.mark.parametrize('mode', ['all', 'wcs'])
+def test_wcs_methods(mode):
+    from ...wcs import WCS
+    from ...utils.data import get_pkg_data_contents
+    from ...wcs.utils import pixel_to_skycoord
+
+    header = get_pkg_data_contents('../../wcs/tests/maps/1904-66_TAN.hdr', encoding='binary')
+    wcs = WCS(header)
+
+    ref = SkyCoord(0.1 * u.deg, -89. * u.deg, frame='icrs')
+
+    xp, yp = ref.to_pixels_wcs(wcs, mode=mode)
+
+    # WCS is in FK5 so we need to transform back to ICRS
+    new = pixel_to_skycoord(xp, yp, wcs, mode=mode).transform_to('icrs')
+
+    npt.assert_allclose(new.ra.degree, ref.ra.degree)
+    npt.assert_allclose(new.dec.degree, ref.dec.degree)
+
