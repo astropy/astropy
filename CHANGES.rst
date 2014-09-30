@@ -317,7 +317,7 @@ Bug Fixes
 - ``astropy.utils``
 
   - Converted representation of progress bar units without suffix
-    from float to int in :func:`astropy.utils.console.human_file_size`.
+    from float to int in console.human_file_size.
 
 - ``astropy.vo``
 
