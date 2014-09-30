@@ -37,6 +37,7 @@ from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils.compat.odict import OrderedDict
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
                     IncompatibleShapeError)
@@ -1892,7 +1893,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
 # TODO: These could prehaps be rewritten on top of the new composite model
 # framework, but keeping the legacy API for backwards-compatibility.
 
-class LabeledInput(dict):
+class LabeledInput(OrderedDict):
     """
     Used by `SerialCompositeModel` and `SummedCompositeModel` to choose input
     data using labels.
@@ -1927,26 +1928,32 @@ class LabeledInput(dict):
     """
 
     def __init__(self, data, labels):
-        dict.__init__(self)
         if len(labels) != len(data):
             raise TypeError("Number of labels and data doesn't match")
-        self.labels = [l.strip() for l in labels]
-        for coord, label in zip(data, labels):
-            self[label] = coord
-            setattr(self, '_' + label, coord)
-        self._set_properties(self.labels)
 
-    def _getlabel(self, name):
-        par = getattr(self, '_' + name)
-        return par
+        super(LabeledInput, self).__init__(zip(labels, data))
 
-    def _setlabel(self, name, val):
-        setattr(self, '_' + name, val)
-        self[name] = val
+    def __getattr__(self, label):
+        try:
+            return self[label]
+        except KeyError:
+            raise AttributeError(label)
 
-    def _dellabel(self, name):
-        delattr(self, '_' + name)
-        del self[name]
+    def __setattr__(self, label, data):
+        if label.startswith('_'):
+            super(LabeledInput, self).__setattr__(label, data)
+        else:
+            self[label] = data
+
+    def __delattr__(self, label):
+        try:
+            del self[label]
+        except KeyError:
+            raise AttributeError(label)
+
+    @property
+    def labels(self):
+        return tuple(self.keys())
 
     def add(self, label=None, value=None, **kw):
         """
@@ -1962,36 +1969,16 @@ class LabeledInput(dict):
             if given this is a dictionary of ``{label: value}`` pairs
         """
 
-        if kw:
-            if label is None or value is None:
-                self.update(kw)
-            else:
-                kw[label] = value
-                self.update(kw)
-        else:
-            kw = dict({label: value})
-            if label is None or value is None:
-                raise TypeError("Expected label and value to be defined")
-            self[label] = value
+        if ((label is None and value is not None) or
+                (label is not None and value is None)):
+            raise TypeError("Expected label and value to be defined")
 
-        for key in kw:
-            self.__setattr__('_' + key, kw[key])
-        self._set_properties(kw.keys())
+        kw[label] = value
 
-    def _set_properties(self, attributes):
-        for attr in attributes:
-            setattr(self.__class__, attr, property(lambda self, attr=attr:
-                                                   self._getlabel(attr),
-                    lambda self, value, attr=attr:
-                                                   self._setlabel(attr, value),
-                    lambda self, attr=attr:
-                                                   self._dellabel(attr)
-                                                   )
-                    )
+        self.update(kw)
 
     def copy(self):
-        data = [self[label] for label in self.labels]
-        return LabeledInput(data, self.labels)
+        return LabeledInput(self.values(), self.labels)
 
 
 class _CompositeModel(Model):
