@@ -16,12 +16,22 @@ __all__ = ['ManualInterval', 'MinMaxInterval', 'PercentileInterval', 'Asymmetric
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseInterval(BaseTransform):
-    def __call__(self, values, clip=False):
+
+    def __call__(self, values, clip=False, out=None):
+
         vmin, vmax = self.get_limits(values)
-        new_values = (values - vmin) / (vmax - vmin)
+
+        if out is None:
+            values = np.subtract(values, vmin)
+        else:
+            values = np.subtract(values, vmin, out=out)
+
+        np.divide(values, vmax - vmin, out=values)
+
         if clip:
-            new_values = np.clip(new_values, 0., 1.)
-        return new_values
+            np.clip(values, 0., 1., out=values)
+
+        return values
 
 
 class ManualInterval(BaseInterval):
