@@ -120,7 +120,7 @@ def test_deprecated_class_with_super():
             super(TestB, self).__init__()
 
     with catch_warnings(AstropyDeprecationWarning) as w:
-        TestB()
+        TestB(1, 2)
 
     assert len(w) == 1
     assert 'function' not in TestB.__doc__
