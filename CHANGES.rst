@@ -282,6 +282,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fixed an issue with the ``deprecated`` decorator on classes that invoke
+    ``super()`` in their ``__init__`` method. [#3004]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
