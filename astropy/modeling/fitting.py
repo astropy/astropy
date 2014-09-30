@@ -35,7 +35,6 @@ import numpy as np
 
 from .utils import poly_map_domain
 from ..utils.exceptions import AstropyUserWarning
-from .core import _CompositeModel
 from ..extern import six
 from .optimizers import (SLSQP, Simplex)
 from .statistic import (leastsquare)

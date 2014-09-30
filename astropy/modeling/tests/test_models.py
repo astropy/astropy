@@ -20,9 +20,9 @@ import numpy as np
 from numpy.testing import utils
 
 from .example_models import models_1D, models_2D
-from .. import fitting, models
-from ..core import (LabeledInput, SerialCompositeModel, SummedCompositeModel,
-                    Fittable1DModel, Fittable2DModel)
+from .. import (fitting, models, LabeledInput, SerialCompositeModel,
+                SummedCompositeModel)
+from ..core import Fittable1DModel, Fittable2DModel
 from ..polynomial import PolynomialModel
 from ...tests.helper import pytest
 

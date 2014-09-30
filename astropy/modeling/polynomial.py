@@ -11,7 +11,7 @@ import collections
 
 import numpy as np
 
-from .core import FittableModel, Model, SerialCompositeModel
+from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
