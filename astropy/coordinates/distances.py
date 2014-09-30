@@ -187,8 +187,6 @@ class Distance(u.Quantity):
         """
         from scipy import optimize
 
-        # FIXME: array: need to make this calculation more vector-friendly
-
         if cosmology is None:
             from ..cosmology import default_cosmology
             cosmology = default_cosmology.get()
