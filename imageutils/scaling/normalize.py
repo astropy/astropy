@@ -27,21 +27,25 @@ class ImageNormalize(Normalize):
         if clip is None:
             clip = self.clip
 
-        # Convert to masked array and make sure scalars get broadcast to 1-d
-        values = np.atleast_1d(values)
+        # Make sure scalars get broadcast to 1-d
+        if np.isscalar(values):
+            values = np.atleast_1d(values)
+        else:
+            values = values.copy()  # copy because of in-place operations after
 
         # Normalize based on vmin and vmax
-        values_norm = (values - self.vmin) / (self.vmax - self.vmin)
+        np.subtract(values, self.vmin, out=values)
+        np.divide(values, self.vmax - self.vmin, out=values)
 
         # Clip to the 0 to 1 range
         if self.clip:
-            values_norm = np.clip(values_norm, 0., 1.)
+            values = np.clip(values, 0., 1., out=values)
 
         # Stretch values
-        new_values = self.stretch(values_norm)
+        values = self.stretch(values, out=values)
 
-        # Don't assume stretch returned a masked array
-        return ma.asarray(new_values)
+        # Convert to masked array for matplotlib
+        return ma.array(values)
 
     def inverse(self, values):
 
