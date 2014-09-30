@@ -27,7 +27,6 @@ from ..polynomial import PolynomialModel
 from ...tests.helper import pytest
 
 from ...extern import six
-from ...extern.six.moves import copyreg as copy_reg
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -140,11 +139,6 @@ class TestSummedComposite(object):
 
 
 def test_pickle():
-    def reduce_method(m):
-        return (getattr, (m.__self__, m.__func__.__name__))
-
-    copy_reg.pickle(types.MethodType, reduce_method)
-
     p1 = models.Polynomial1D(3)
     p11 = models.Polynomial1D(4)
     g1 = models.Gaussian1D(10.3, 5.4, 1.2)

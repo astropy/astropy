@@ -1981,8 +1981,49 @@ class LabeledInput(OrderedDict):
         return LabeledInput(self.values(), self.labels)
 
 
+class _LabeledInputMapping(Model):
+    def __init__(self, labeled_input, inmap, outmap):
+        self._labeled_input = labeled_input
+        self._inmap = tuple(inmap)
+        self._outmap = tuple(outmap)
+        super(_LabeledInputMapping, self).__init__()
+
+    def __repr__(self):
+        return '<{0}>'.format(self.name)
+
+    @property
+    def inputs(self):
+        return self._outmap
+
+    @property
+    def outputs(self):
+        return self._inmap
+
+    @property
+    def name(self):
+        return '{0}({1} -> {2})'.format(self.__class__.__name__,
+                                        self._outmap, self._inmap)
+
+    def evaluate(self, *inputs):
+        for idx, label in enumerate(self._outmap):
+            self._labeled_input[label] = inputs[idx]
+
+        result = tuple(self._labeled_input[label] for label in self._inmap)
+
+        if len(result) == 1:
+            return result[0]
+        else:
+            return result
+
+    def __call__(self, *inputs):
+        return self.evaluate(*inputs)
+
+
 class _CompositeModel(Model):
-    def __init__(self, transforms, n_inputs, n_outputs):
+    _operator = None
+
+    def __init__(self, transforms, n_inputs, n_outputs, inmap=None,
+                 outmap=None):
         """Base class for all composite models."""
 
         self._transforms = transforms
@@ -1994,6 +2035,10 @@ class _CompositeModel(Model):
         self.n_inputs = n_inputs
         self.n_outputs = n_outputs
         self.fittable = False
+        self._basic_transform = None
+
+        self._inmap = inmap
+        self._outmap = outmap
 
     def __repr__(self):
         return '<{0}([\n{1}\n])>'.format(
@@ -2006,6 +2051,14 @@ class _CompositeModel(Model):
         for tr in self._transforms:
             parts.append(indent(str(tr), width=4))
         return '\n'.join(parts)
+
+    @property
+    def inputs(self):
+        return self._transforms[0].inputs
+
+    @property
+    def outputs(self):
+        return self._transforms[-1].outputs
 
     @property
     def n_inputs(self):
@@ -2023,30 +2076,89 @@ class _CompositeModel(Model):
     def n_outputs(self, val):
         self._n_outputs = val
 
-    def add_model(self, transf, inmap, outmap):
-        self[transf] = [inmap, outmap]
-
-    @staticmethod
-    def evaluate(x, y, *coeffs):
-        # TODO: Refactor how these are evaluated so that they can work like
-        # other models
-        raise NotImplementedError("Needs refactoring")
-
-    def __call__(self):
-        # implemented by subclasses
+    def invert(self):
         raise NotImplementedError("Subclasses should implement this")
 
     @property
     def param_sets(self):
-        raise NotImplementedError(
-            "Composite models do not currently support multiple "
-            "parameter sets.")
+        all_params = tuple(m.param_sets for m in self._transforms)
+        return np.vstack(all_params)
 
     @property
     def parameters(self):
         raise NotImplementedError(
             "Composite models do not currently support the .parameters "
             "array.")
+
+    def evaluate(self, *inputs):
+        """
+        Specialized `Model.evaluate` implementation that allows `LabeledInput`
+        inputs to be handled when calling this model.
+
+        This ignores any passed in parameter values, as _CompoundModels can't
+        be fitted anyways.
+        """
+
+        # Drop parameter arguments
+        inputs = inputs[:self.n_inputs]
+
+        if len(inputs) == 1 and isinstance(inputs[0], LabeledInput):
+            labeled_input = inputs[0].copy()
+            transform = self._make_labeled_transform(labeled_input)
+            inputs = [labeled_input[label] for label in self._inmap[0]]
+            result = transform(*inputs)
+
+            if self._transforms[-1].n_outputs == 1:
+                labeled_input[self._outmap[-1][0]] = result
+            else:
+                for label, output in zip(self._outmap[-1], result):
+                    labeled_input[label] = output
+
+            return labeled_input
+        else:
+            if self._basic_transform is None:
+                transform = self._transforms[0]
+                for t in self._transforms[1:]:
+                    transform = self._operator(transform, t)
+
+                self._basic_transform = transform
+
+            return self._basic_transform(*inputs)
+
+    def __call__(self, *inputs):
+        """
+        Specialized `Model.__call__` implementation that allows
+        `LabeledInput` inputs to be handled when calling this model.
+        """
+
+        return self.evaluate(*inputs)
+
+    def _make_labeled_transform(self, labeled_input):
+        """
+        Build up a transformation graph that incorporates the instructions
+        encoded in the `LabeledInput` object.
+
+        This requires use of the ``_inmap`` and ``_outmap`` attributes set
+        when instantiating this `_CompositeModel`.
+        """
+
+        if self._inmap is None:
+            raise TypeError("Parameter 'inmap' must be provided when "
+                            "input is a labeled object.")
+        if self._outmap is None:
+            raise TypeError("Parameter 'outmap' must be provided when "
+                            "input is a labeled object")
+
+        transforms = [self._transforms[0]]
+        previous_outmap = self._outmap[0]
+        for model, inmap, outmap in zip(self._transforms[1:], self._inmap[1:],
+                                        self._outmap[1:]):
+            mapping = _LabeledInputMapping(labeled_input, inmap,
+                                           previous_outmap)
+            transforms.append(mapping | model)
+            previous_outmap = outmap
+
+        return functools.reduce(self._operator, transforms)
 
 
 class SerialCompositeModel(_CompositeModel):
@@ -2092,6 +2204,8 @@ class SerialCompositeModel(_CompositeModel):
         >>> result = transform(labeled_input)
     """
 
+    _operator = operator.or_
+
     def __init__(self, transforms, inmap=None, outmap=None, n_inputs=None,
                  n_outputs=None):
         if n_inputs is None:
@@ -2103,22 +2217,13 @@ class SerialCompositeModel(_CompositeModel):
             if n_outputs is None:
                 raise TypeError("Expected n_inputs and n_outputs")
 
-        super(SerialCompositeModel, self).__init__(transforms, n_inputs,
-                                                   n_outputs)
-
         if transforms and inmap and outmap:
             if not (len(transforms) == len(inmap) == len(outmap)):
                 raise ValueError("Expected sequences of transform, "
                                  "inmap and outmap to have the same length")
 
-        if inmap is None:
-            inmap = [None] * len(transforms)
-
-        if outmap is None:
-            outmap = [None] * len(transforms)
-
-        self._inmap = inmap
-        self._outmap = outmap
+        super(SerialCompositeModel, self).__init__(
+                transforms, n_inputs, n_outputs, inmap=inmap, outmap=outmap)
 
     @property
     def inverse(self):
@@ -2137,54 +2242,6 @@ class SerialCompositeModel(_CompositeModel):
             inmap = None
             outmap = None
         return SerialCompositeModel(transforms, inmap, outmap)
-
-    def __call__(self, *data):
-        """Transforms data using this model."""
-
-        if len(data) == 1:
-            if not isinstance(data[0], LabeledInput):
-                if self._transforms[0].n_inputs != 1:
-                    raise TypeError("First transform expects {0} inputs, 1 "
-                                    "given".format(self._transforms[0].n_inputs))
-
-                result = data[0]
-                for tr in self._transforms:
-                    result = tr(result)
-                return result
-            else:
-                labeled_input = data[0].copy()
-                # we want to return the entire labeled object because some
-                # parts of it may be used in another transform of which this
-                # one is a component
-                if self._inmap is None:
-                    raise TypeError("Parameter 'inmap' must be provided when "
-                                    "input is a labeled object.")
-                if self._outmap is None:
-                    raise TypeError("Parameter 'outmap' must be provided when "
-                                    "input is a labeled object")
-
-                for transform, incoo, outcoo in izip(self._transforms,
-                                                     self._inmap,
-                                                     self._outmap):
-                    inlist = [labeled_input[label] for label in incoo]
-                    result = transform(*inlist)
-                    if len(outcoo) == 1:
-                        result = [result]
-                    for label, res in zip(outcoo, result):
-
-                        if label not in labeled_input.labels:
-                            labeled_input[label] = res
-                        setattr(labeled_input, label, res)
-                return labeled_input
-        else:
-            if self.n_inputs != len(data):
-                raise TypeError("This transform expects {0} inputs".
-                                format(self._n_inputs))
-
-            result = self._transforms[0](*data)
-            for transform in self._transforms[1:]:
-                result = transform(*result)
-        return result
 
 
 class SummedCompositeModel(_CompositeModel):
@@ -2206,55 +2263,16 @@ class SummedCompositeModel(_CompositeModel):
     Evaluate each model separately and add the results to the input_data.
     """
 
+    _operator = operator.add
+
     def __init__(self, transforms, inmap=None, outmap=None):
-        self._transforms = transforms
-        n_inputs = self._transforms[0].n_inputs
+        n_inputs = transforms[0].n_inputs
         n_outputs = n_inputs
-        for transform in self._transforms:
+        for transform in transforms:
             if not (transform.n_inputs == transform.n_outputs == n_inputs):
                 raise ValueError("A SummedCompositeModel expects n_inputs = "
                                  "n_outputs for all transforms")
 
         super(SummedCompositeModel, self).__init__(transforms, n_inputs,
-                                                   n_outputs)
-
-        self._inmap = inmap
-        self._outmap = outmap
-
-    def __call__(self, *data):
-        """Transforms data using this model."""
-
-        if len(data) == 1:
-            if not isinstance(data[0], LabeledInput):
-                x = data[0]
-                deltas = sum(tr(x) for tr in self._transforms)
-                return deltas
-            else:
-                if self._inmap is None:
-                    raise TypeError("Parameter 'inmap' must be provided when "
-                                    "input is a labeled object.")
-                if self._outmap is None:
-                    raise TypeError("Parameter 'outmap' must be provided when "
-                                    "input is a labeled object")
-                labeled_input = data[0].copy()
-                # create a list of inputs to be passed to the transforms
-                inlist = [getattr(labeled_input, label)
-                          for label in self._inmap]
-                sum_of_deltas = [np.zeros_like(x) for x in inlist]
-                for transform in self._transforms:
-                    delta = [transform(*inlist)]
-                    for i in range(len(sum_of_deltas)):
-                        sum_of_deltas[i] += delta[i]
-
-                for outcoo, delta in izip(self._outmap, sum_of_deltas):
-                    setattr(labeled_input, outcoo, delta)
-                # always return the entire labeled object, not just the result
-                # since this may be part of another composite transform
-                return labeled_input
-        else:
-            result = self._transforms[0](*data)
-            if self.n_inputs != self.n_outputs:
-                raise ValueError("Expected equal number of inputs and outputs")
-            for tr in self._transforms[1:]:
-                result += tr(*data)
-            return result
+                                                   n_outputs, inmap=inmap,
+                                                   outmap=outmap)
