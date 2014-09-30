@@ -2,6 +2,8 @@
 Normalization class for Matplotlib that can be used to produce colorbars.
 """
 
+from __future__ import division, print_function
+
 import numpy as np
 from numpy import ma
 

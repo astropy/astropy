@@ -3,6 +3,8 @@ Classes that deal with computing intervals from arrays of values based on
 various criteria.
 """
 
+from __future__ import division, print_function
+
 import abc
 
 import numpy as np

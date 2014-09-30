@@ -62,6 +62,10 @@ class TestStretch(object):
         stretch.inverted()(result, out=result)
         np.testing.assert_allclose(result, DATA)
 
+    @pytest.mark.parametrize('stretch', RESULTS.keys())
+    def test_double_inverse(self, stretch):
+        np.testing.assert_allclose(stretch.inverted().inverted()(DATA), stretch(DATA), atol=1.e-6)
+
     def test_inverted(self):
         stretch_1 = SqrtStretch().inverted()
         stretch_2 = PowerStretch(2)
