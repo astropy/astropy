@@ -29,13 +29,14 @@ class ImageNormalize(Normalize):
 
         # Make sure scalars get broadcast to 1-d
         if np.isscalar(values):
-            values = np.atleast_1d(values)
+            values = np.array([values], dtype=float)
         else:
             values = values.copy()  # copy because of in-place operations after
 
         # Normalize based on vmin and vmax
         np.subtract(values, self.vmin, out=values)
-        np.divide(values, self.vmax - self.vmin, out=values)
+
+        np.true_divide(values, self.vmax - self.vmin, out=values)
 
         # Clip to the 0 to 1 range
         if self.clip:

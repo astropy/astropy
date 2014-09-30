@@ -5,6 +5,13 @@ from ..normalize import ImageNormalize
 from ..stretch import SqrtStretch
 
 
+def test_normalize_scalar():
+
+    n = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(), clip=True)
+
+    assert_allclose(n(6), 0.70710678)
+
+
 def test_normalize_clip():
 
     data = np.linspace(0., 15., 6)
@@ -27,3 +34,5 @@ def test_normalize_noclip():
     assert_allclose(output, [np.nan, 0.35355339, 0.70710678, 0.93541435, 1.11803399, 1.27475488])
 
     assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
+
+    assert_allclose(n.inverse(n(data))[1:], data[1:])
