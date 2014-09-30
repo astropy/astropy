@@ -122,7 +122,14 @@ API Changes
     be aware of the format expected in ``SkyCoord.__repr__()``, which changed in
     this release. [#2704, #2882]
 
+  - The ``CartesianPoints`` class (deprecated in v0.4) has now been removed.
+    [#2990]
+
 - ``astropy.cosmology``
+
+  - The functional interface to the cosmological routines as well as
+    ``set_current`` and ``get_current`` (deprecated in v0.4) have now been
+    removed. [#2990]
 
 - ``astropy.io.ascii``
 
@@ -143,13 +150,23 @@ API Changes
   - ``custom_model_1d`` is deprecated in favor of the new ``custom_model``
     (see "New Features" above).  [#1763]
 
+  - The ``Model.param_dim`` property (deprecated in v0.4) has now been removed.
+    [#2990]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
 
 - ``astropy.table``
 
+  - The ``Column.units`` property (deprecated in v0.3) has now been removed.
+    [#2990]
+
 - ``astropy.time``
+
+  - The ``Time.val`` and ``Time.vals`` properties (deprecated in v0.3) and the
+    ``Time.lon``, and ``Time.lat`` properties (deprecated in v0.4) have now
+    been removed. [#2990]
 
 - ``astropy.units``
 
@@ -177,9 +194,15 @@ API Changes
     which should be preferred over referencing individual submodules of
     ``astropy.utils``.  [#2857]
 
+    - The ProgressBar.iterate class method (deprecated in v0.3) has now been
+      removed. [#2990]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - The ``WCS.calcFootprint`` method (deprecated in v0.4) has now been removed.
+    [#2990]
 
 Bug Fixes
 ^^^^^^^^^

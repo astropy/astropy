@@ -160,7 +160,7 @@ class TestTimeDelta():
 
         # Include initializers
         dt2 = TimeDelta(dt, format='sec')
-        assert allclose_sec(dt2.val, 86400.0)
+        assert allclose_sec(dt2.value, 86400.0)
 
     def test_neg_abs(self):
         for dt in (self.dt, self.dt_array):

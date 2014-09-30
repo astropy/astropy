@@ -18,16 +18,6 @@ else:
     HAS_SCIPY = True
 
 
-def setup_function(function):
-    # Make sure that tests don't affect default cosmology
-    core.set_current('no_default')
-
-
-def teardown_function(function):
-    # Make sure that tests don't affect default cosmology
-    core.set_current('no_default')
-
-
 def test_init():
     """ Tests to make sure the code refuses inputs it is supposed to"""
     with pytest.raises(ValueError):
@@ -618,54 +608,6 @@ def test_kpc_methods():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_convenience():
-    # these are all for WMAP7 with Tcmb = 0
-    tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    core.set_current(tcos)
-
-    # scalars
-    assert np.allclose(funcs.arcsec_per_kpc_comoving(3).value, 0.0317179)
-    assert funcs.arcsec_per_kpc_comoving(3).unit == u.arcsec / u.kpc
-    assert np.allclose(funcs.arcsec_per_kpc_proper(3).value, 0.1268716668)
-    assert funcs.arcsec_per_kpc_proper(3).unit == u.arcsec / u.kpc
-    assert np.allclose(funcs.kpc_comoving_per_arcmin(3).value, 1891.6753126)
-    assert funcs.kpc_comoving_per_arcmin(3).unit == u.kpc / u.arcmin
-    assert np.allclose(funcs.kpc_proper_per_arcmin(3).value, 472.918828)
-    assert funcs.kpc_proper_per_arcmin(3).unit == u.kpc / u.arcmin
-    assert np.allclose(funcs.distmod(3).value, 47.075902)
-    assert funcs.distmod(3).unit == u.mag
-    assert np.allclose(funcs.H(3).value, 299.80813491298068)
-    assert funcs.H(3).unit == u.km / (u.Mpc * u.s)
-    assert np.allclose(funcs.scale_factor(3), 0.25)
-    assert np.allclose(funcs.scale_factor([3, 4]), [0.25, 0.2])
-    assert np.allclose(funcs.critical_density(3).value, 1.6884621680232328e-28)
-    assert funcs.critical_density(3).unit == u.g / u.cm ** 3
-    assert np.allclose(funcs.lookback_time(3).value, 11.555469926558361)
-    assert funcs.lookback_time(3).unit == u.Gyr
-    assert np.allclose(funcs.lookback_time([3, 4]).value,
-                       [11.555469927, 12.17718555], rtol=1e-5)
-    assert np.allclose(funcs.comoving_distance(3).value, 6503.100697385924)
-    assert funcs.comoving_distance(3).unit == u.Mpc
-    assert np.allclose(funcs.angular_diameter_distance(3).value,
-                       1625.775174346481)
-    assert funcs.angular_diameter_distance(3).unit == u.Mpc
-    assert np.allclose(funcs.luminosity_distance(3).value, 26012.402789543696)
-    assert funcs.luminosity_distance(3).unit == u.Mpc
-
-    # arrays
-    assert np.allclose(funcs.arcsec_per_kpc_comoving([0.1, 0.5]).value,
-                       [0.4946986, 0.10876163])
-    assert np.allclose(funcs.arcsec_per_kpc_proper([0.1, 0.5]).value,
-                       [0.54416846354697479, 0.16314245192751084])
-    assert np.allclose(funcs.kpc_comoving_per_arcmin([0.1, 0.5]).value,
-                       [121.2859701, 551.66511804])
-    assert np.allclose(funcs.kpc_proper_per_arcmin([0.1, 0.5]).value,
-                       [110.25997282, 367.77674536])
-    assert np.allclose(funcs.distmod([0.1, 0.5]).value,
-                       [38.30738567, 42.27020333])
-
-
-@pytest.mark.skipif('not HAS_SCIPY')
 def test_comoving_volume():
 
     c_flat = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Tcmb0=0.0)
@@ -870,21 +812,6 @@ def test_integral():
                        cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7)
 
 
-def test_current():
-    with core.default_cosmology.set('WMAP7'):
-        cosmo = core.get_current()
-        assert cosmo == core.WMAP7
-    with core.default_cosmology.set('WMAP5'):
-        core.set_current('WMAP5')
-        assert core.get_current() == core.WMAP5
-    with core.default_cosmology.set('WMAP9'):
-        core.set_current('WMAP9')
-        assert core.get_current() == core.WMAP9
-    with core.default_cosmology.set('Planck13'):
-        core.set_current('Planck13')
-        assert core.get_current() == core.Planck13
-
-
 def test_wz():
     cosmo = core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.70)
     assert np.allclose(cosmo.w([0.1, 0.2, 0.5, 1.5, 2.5, 11.5]),
@@ -980,12 +907,9 @@ def test_age():
 def test_distmod():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    core.set_current(tcos)
     assert np.allclose(tcos.hubble_distance.value, 4258.415596590909)
     assert np.allclose(tcos.distmod([1, 5]).value, [44.124857, 48.40167258])
     assert np.allclose(tcos.distmod([1., 5.]).value, [44.124857, 48.40167258])
-    assert np.allclose(funcs.distmod([1, 5], cosmo=tcos).value,
-                       [44.124857, 48.40167258])
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1197,24 +1121,16 @@ def test_z_at_value_roundtrip():
     """
     z = 0.5
 
-    skip = ('z_at_value', 'angular_diameter_distance_z1z2', 'CosmologyError',
-            'deprecated')
+    skip = ('Ok', 'angular_diameter_distance_z1z2', 'clone', 'de_density_scale', 'w')
 
-    core.set_current('Planck13')
-    for name in funcs.__all__:
+    import inspect
+    methods = inspect.getmembers(core.Planck13, predicate=inspect.ismethod)
+
+    for name, func in methods:
         if name.startswith('_') or name in skip:
             continue
-        f = getattr(funcs, name)
-        if not hasattr(f, '__call__'):
-            continue
         print('Round-trip testing {0}'.format(name))
-        fval = f(z)
+        fval = func(z)
         # we need zmax here to pick the right solution for
         # angular_diameter_distance and related methods.
-        assert np.allclose(z, funcs.z_at_value(f, fval, zmax=1.5))
-
-
-def test_default_reset():
-    # Check that the default is being reset after tests. This test should be
-    # updated if the default cosmology is updated.
-    assert core.get_current() == core.WMAP9
+        assert np.allclose(z, funcs.z_at_value(func, fval, zmax=1.5))

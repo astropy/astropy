@@ -462,13 +462,6 @@ class Angle(u.Quantity):
             ok &= np.all(self < Angle(upper))
         return bool(ok)
 
-    @deprecated("0.3", name="format", alternative="to_string")
-    def format(self, unit=u.degree, decimal=False, sep='fromunit', precision=5,
-               alwayssign=False, pad=False):
-        return self.to_string(
-            unit=unit, decimal=decimal, sep=sep, precision=precision,
-            alwayssign=alwayssign, pad=pad)
-
     def __str__(self):
         return str(self.to_string())
 

@@ -434,21 +434,6 @@ class BaseColumn(np.ndarray):
     def unit(self):
         self._unit = None
 
-    @property
-    @deprecated('0.3', alternative=':attr:`Column.unit`')
-    def units(self):
-        return self.unit
-
-    @units.setter
-    @deprecated('0.3', alternative=':attr:`Column.unit`')
-    def units(self, unit):
-        self.unit = unit
-
-    @units.deleter
-    @deprecated('0.3', alternative=':attr:`Column.unit`')
-    def units(self):
-        del self.unit
-
     def convert_unit_to(self, new_unit, equivalencies=[]):
         """
         Converts the values of the column in-place from the current

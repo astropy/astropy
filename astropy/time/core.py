@@ -481,27 +481,6 @@ class Time(object):
         """Time value(s) in current format"""
         return self._shaped_like_input(self._time.value)
 
-    @property
-    @deprecated("0.3", name="val", alternative="value")
-    def val(self):
-        return self.value
-
-    @property
-    @deprecated("0.3", name="vals", alternative="value")
-    def vals(self):
-        """Time values in current format as a numpy array."""
-        return self.value
-
-    @property
-    @deprecated("0.4", name="lon", alternative="location.longitude")
-    def lon(self):
-        return self.location.longitude
-
-    @property
-    @deprecated("0.4", name="lat", alternative="location.latitude")
-    def lat(self):
-        return self.location.latitude
-
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
 
