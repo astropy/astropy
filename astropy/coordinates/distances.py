@@ -194,7 +194,7 @@ class Distance(u.Quantity):
             cosmology = default_cosmology.get()
 
         from ..cosmology import z_at_value
-        return z_at_value(cosmology.luminosity_distance, self)
+        return z_at_value(cosmology.luminosity_distance, self, ztol=1.e-10)
 
     @property
     def distmod(self):
