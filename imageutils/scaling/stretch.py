@@ -43,7 +43,7 @@ class LinearStretch(BaseStretch):
         y = x
     """
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = values.copy()
@@ -70,7 +70,7 @@ class SqrtStretch(BaseStretch):
         y = \sqrt{x}
     """
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.sqrt(values)
@@ -100,7 +100,7 @@ class PowerStretch(BaseStretch):
         super(PowerStretch, self).__init__()
         self.power = a
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.power(values, self.power)
@@ -132,7 +132,7 @@ class PowerDistStretch(BaseStretch):
         super(PowerDistStretch, self).__init__()
         self.exp = a
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.power(self.exp, values)
@@ -162,7 +162,7 @@ class InvertedPowerDistStretch(BaseStretch):
         super(InvertedPowerDistStretch, self).__init__()
         self.exp = a
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.multiply(values, self.exp - 1.0)
@@ -212,7 +212,7 @@ class LogStretch(BaseStretch):
         super(LogStretch, self).__init__()
         self.exp = a
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.multiply(values, self.exp)
@@ -241,7 +241,7 @@ class InvertedLogStretch(BaseStretch):
         super(InvertedLogStretch, self).__init__()
         self.exp = a
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.multiply(values, np.log(self.exp + 1.))
@@ -275,7 +275,7 @@ class AsinhStretch(BaseStretch):
         super(AsinhStretch, self).__init__()
         self.a = a
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.true_divide(values, self.a)
@@ -308,7 +308,7 @@ class SinhStretch(BaseStretch):
         super(SinhStretch, self).__init__()
         self.a = a
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.true_divide(values, self.a)
@@ -351,7 +351,7 @@ class HistEqStretch(BaseStretch):
         else:
             self.values = values
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.interp(values, self.data, self.values)
@@ -380,7 +380,7 @@ class InvertedHistEqStretch(BaseStretch):
         else:
             self.values = values
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
         if out is None:
             values = np.interp(values, self.values, self.data)
         else:
@@ -412,7 +412,7 @@ class ContrastBiasStretch(BaseStretch):
         self.contrast = contrast
         self.bias = bias
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.subtract(values, self.bias)
@@ -442,7 +442,7 @@ class InvertedContrastBiasStretch(BaseStretch):
         self.contrast = contrast
         self.bias = bias
 
-    def __call__(self, values, out=None, clip=False):
+    def __call__(self, values, out=None, clip=True):
 
         if out is None:
             values = np.subtract(values, 0.5)

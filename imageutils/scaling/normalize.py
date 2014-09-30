@@ -15,7 +15,7 @@ __all__ = ['ImageNormalize']
 
 class ImageNormalize(Normalize):
 
-    def __init__(self, vmin=None, vmax=None, stretch=None, clip=True):
+    def __init__(self, vmin=None, vmax=None, stretch=None, clip=False):
 
         super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
 
@@ -28,6 +28,15 @@ class ImageNormalize(Normalize):
 
         if clip is None:
             clip = self.clip
+
+        if isinstance(values, ma.MaskedArray):
+            if clip:
+                mask = False
+            else:
+                mask = values.mask
+            values = values.filled(self.vmax)
+        else:
+            mask = False
 
         # Make sure scalars get broadcast to 1-d
         if np.isscalar(values):
@@ -45,15 +54,15 @@ class ImageNormalize(Normalize):
             values = np.clip(values, 0., 1., out=values)
 
         # Stretch values
-        values = self.stretch(values, out=values)
+        values = self.stretch(values, out=values, clip=False)
 
         # Convert to masked array for matplotlib
-        return ma.array(values)
+        return ma.array(values, mask=mask)
 
     def inverse(self, values):
 
         # Find unstretched values in range 0 to 1
-        values_norm = self.inverse_stretch(values)
+        values_norm = self.inverse_stretch(values, clip=False)
 
         # Scale to original range
         return values_norm * (self.vmax - self.vmin) + self.vmin

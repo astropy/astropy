@@ -19,7 +19,7 @@ __all__ = ['ManualInterval', 'MinMaxInterval', 'PercentileInterval', 'Asymmetric
 @six.add_metaclass(abc.ABCMeta)
 class BaseInterval(BaseTransform):
 
-    def __call__(self, values, clip=False, out=None):
+    def __call__(self, values, clip=True, out=None):
 
         vmin, vmax = self.get_limits(values)
 
