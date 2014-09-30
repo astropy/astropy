@@ -140,8 +140,7 @@ def test_sphere_cart():
     """
     from numpy.testing.utils import assert_allclose
     from ...utils import NumpyRNGContext
-    from ..distances import spherical_to_cartesian, cartesian_to_spherical
-
+    from .. import spherical_to_cartesian, cartesian_to_spherical
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
     npt.assert_allclose(x, 1)
