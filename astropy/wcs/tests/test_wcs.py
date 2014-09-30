@@ -667,3 +667,14 @@ def test_printwcs():
     h = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
     w = wcs.WCS(h)
     w.printwcs()
+
+
+def test_has_distorion():
+
+    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
+    w = wcs.WCS(header)
+    assert not w.has_distortion
+
+    header = get_pkg_data_filename('data/sip.fits')
+    w = wcs.WCS(header)
+    assert w.has_distortion
