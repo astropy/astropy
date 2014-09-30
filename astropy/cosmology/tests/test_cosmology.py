@@ -907,12 +907,9 @@ def test_age():
 def test_distmod():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    core.set_current(tcos)
     assert np.allclose(tcos.hubble_distance.value, 4258.415596590909)
     assert np.allclose(tcos.distmod([1, 5]).value, [44.124857, 48.40167258])
     assert np.allclose(tcos.distmod([1., 5.]).value, [44.124857, 48.40167258])
-    assert np.allclose(funcs.distmod([1, 5], cosmo=tcos).value,
-                       [44.124857, 48.40167258])
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1124,24 +1121,16 @@ def test_z_at_value_roundtrip():
     """
     z = 0.5
 
-    skip = ('z_at_value', 'angular_diameter_distance_z1z2', 'CosmologyError',
-            'deprecated')
+    skip = ('Ok', 'angular_diameter_distance_z1z2', 'clone', 'de_density_scale', 'w')
 
-    core.set_current('Planck13')
-    for name in funcs.__all__:
+    import inspect
+    methods = inspect.getmembers(core.Planck13, predicate=inspect.ismethod)
+
+    for name, func in methods:
         if name.startswith('_') or name in skip:
             continue
-        f = getattr(funcs, name)
-        if not hasattr(f, '__call__'):
-            continue
         print('Round-trip testing {0}'.format(name))
-        fval = f(z)
+        fval = func(z)
         # we need zmax here to pick the right solution for
         # angular_diameter_distance and related methods.
-        assert np.allclose(z, funcs.z_at_value(f, fval, zmax=1.5))
-
-
-def test_default_reset():
-    # Check that the default is being reset after tests. This test should be
-    # updated if the default cosmology is updated.
-    assert core.get_current() == core.WMAP9
+        assert np.allclose(z, funcs.z_at_value(func, fval, zmax=1.5))
