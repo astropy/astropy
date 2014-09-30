@@ -24,7 +24,12 @@ class BaseStretch(BaseTransform):
 
 class LinearStretch(BaseStretch):
     """
-    A linear stretch: y = x.
+    A linear stretch.
+    
+    The stretch is given by:
+    
+    .. math::
+        y = x
     """
 
     def __call__(self, values, out=None):
@@ -35,8 +40,13 @@ class LinearStretch(BaseStretch):
 
 
 class SqrtStretch(BaseStretch):
-    """
-    A square root stretch: y = sqrt(x).
+    r"""
+    A square root stretch.
+    
+    The stretch is given by:
+    
+    .. math::
+        y = \sqrt{x}
     """
 
     def __call__(self, values, out=None):
@@ -50,8 +60,13 @@ class SqrtStretch(BaseStretch):
 
 
 class PowerStretch(BaseStretch):
-    """
-    A power-law stretch: y = x ** a.
+    r"""
+    A power-law stretch.
+    
+    The stretch is given by:
+    
+    .. math::
+        y = x^a
     """
 
     def __init__(self, a):
@@ -69,14 +84,13 @@ class PowerStretch(BaseStretch):
 
 
 class PowerDistStretch(BaseStretch):
-    """
-    An alternative power stretch: y = ((a ** x) - 1) / (a - 1).
-
-    Notes
-    -----
-
-    This is the same as ds9's POW stretch, described at
-    http://ds9.si.edu/doc/ref/how.html
+    r"""
+    An alternative power stretch.
+    
+    The stretch is given by:
+    
+    .. math::
+        y = \frac{a^x - 1}{a - 1}
     """
 
     def __init__(self, a=1000.0):
@@ -95,7 +109,7 @@ class PowerDistStretch(BaseStretch):
 
 class InvertedPowerDistStretch(BaseStretch):
     """
-    Inverse transformation for PowerDistStretch.
+    Inverse transformation for `~imageutils.scaling.PowerDistStretch`.
     """
 
     def __init__(self, a=1000.0):
@@ -113,14 +127,13 @@ class InvertedPowerDistStretch(BaseStretch):
 
 
 class SquaredStretch(PowerStretch):
-    """
+    r"""
     A convenience class for a power stretch of 2.
-
-    Notes
-    -----
-
-    This is the same as ds9's SQUARE stretch, described at
-    http://ds9.si.edu/doc/ref/how.html
+    
+    The stretch is given by:
+    
+    .. math::
+        y = x^2
     """
 
     def __init__(self):
@@ -131,15 +144,13 @@ class SquaredStretch(PowerStretch):
 
 
 class LogStretch(BaseStretch):
-    """
-    A log stretch: y = log(a*x + 1) / log(a + 1).
-
-    Notes
-    -----
-
-    This is the same as ds9's LOG stretch, described at
-    http://ds9.si.edu/doc/ref/how.html, except that the denominator includes a
-    +1 to ensure that the [0:1] range gets mapped to [0:1].
+    r"""
+    A log stretch.
+    
+    The stretch is given by:
+    
+    .. math::
+        y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}.
     """
 
     def __init__(self, a=1000.0):
@@ -156,7 +167,7 @@ class LogStretch(BaseStretch):
 
 class InvertedLogStretch(BaseStretch):
     """
-    Inverse transformation for LogStretch.
+    Inverse transformation for `~imageutils.scaling.LogStretch`.
     """
 
     def __init__(self, a):
@@ -172,14 +183,13 @@ class InvertedLogStretch(BaseStretch):
 
 
 class AsinhStretch(BaseStretch):
-    """
-    An asinh stretch: y = asinh(x / a) / asinh(1 / a).
+    r"""
+    An asinh stretch.
+    
+    The stretch is given by:
 
-    Notes
-    -----
-
-    This is the same as ds9's ASINH stretch, described at
-    http://ds9.si.edu/doc/ref/how.html, with a=0.1.
+    .. math::
+        y = \frac{{\rm asinh}(x / a)}{{\rm asinh}(1 / a)}.
     """
 
     def __init__(self, a=0.1):
@@ -196,7 +206,7 @@ class AsinhStretch(BaseStretch):
 
 class InvertedAsinhStretch(BaseStretch):
     """
-    Inverse transformation for AsinhStretch
+    Inverse transformation for `~imageutils.scaling.AsinhStretch`.
     """
 
     def __init__(self, a=0.1):
@@ -212,14 +222,13 @@ class InvertedAsinhStretch(BaseStretch):
 
 
 class SinhStretch(BaseStretch):
-    """
-    A sinh stretch: y = sinh(x / a) / sinh(1 / a).
+    r"""
+    A sinh stretch.
     
-    Notes
-    -----
-    
-    This is the same as ds9's SINH stretch, described at
-    http://ds9.si.edu/doc/ref/how.html, with a=1/3.
+    The stretch is given by:
+
+    .. math::
+        y = \frac{{\rm sinh}(x / a)}{{\rm sinh}(1 / a)}
     """
 
     def __init__(self, a=1./3.):
@@ -236,7 +245,7 @@ class SinhStretch(BaseStretch):
 
 class InvertedSinhStretch(BaseStretch):
     """
-    Inverse transformation for SinhStretch.
+    Inverse transformation for `~imageutils.scaling.SinhStretch`.
     """
 
     def __init__(self, a=1./3.):
@@ -288,7 +297,7 @@ class HistEqStretch(BaseStretch):
 
 class InvertedHistEqStretch(BaseStretch):
     """
-    Inverse transformation for HistEqStretch
+    Inverse transformation for `~imageutils.scaling.HistEqStretch`.
     """
 
     def __init__(self, data, values=None):
@@ -313,7 +322,12 @@ class ContrastBiasStretch(BaseStretch):
     """
     A stretch that takes into account contrast and bias.
 
-    y = clip((x - bias) * contrast + 0.5, 0, 1).
+    The stretch is given by:
+
+    .. math::
+        y = (x - {\\rm bias}) * {\\rm contrast} + 0.5
+    
+    and the output values are clipped to the [0:1] range.
     """
 
     def __init__(self, contrast, bias):
