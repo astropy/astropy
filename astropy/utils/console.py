@@ -465,7 +465,7 @@ class ProgressBar(six.Iterator):
         for item in ProgressBar(items):
             item.process()
     """
-    def __init__(self, total_or_items, file=None):
+    def __init__(self, total_or_items, interactive=False, file=None):
         """
         Parameters
         ----------
@@ -481,10 +481,15 @@ class ProgressBar(six.Iterator):
             completely silent.
         """
 
+        if interactive:
+            # Import only if interactive, i.e., widget in iPython NB
+            from IPython.html import widgets
+            from IPython.display import display
+
         if file is None:
             file = _get_stdout()
 
-        if not isatty(file):
+        if not isatty(file) and not interactive:
             self.update = self._silent_update
             self._silent = True
         else:
@@ -503,17 +508,20 @@ class ProgressBar(six.Iterator):
 
         self._file = file
         self._start_time = time.time()
-
-        self._should_handle_resize = (
-            _CAN_RESIZE_TERMINAL and self._file.isatty())
-        self._handle_resize()
-        if self._should_handle_resize:
-            signal.signal(signal.SIGWINCH, self._handle_resize)
-            self._signal_set = True
-        else:
-            self._signal_set = False
-
         self._human_total = human_file_size(self._total)
+        self._interactive = interactive
+
+
+        if not interactive:
+            self._should_handle_resize = (
+                _CAN_RESIZE_TERMINAL and self._file.isatty())
+            self._handle_resize()
+            if self._should_handle_resize:
+                signal.signal(signal.SIGWINCH, self._handle_resize)
+                self._signal_set = True
+            else:
+                self._signal_set = False
+
         self.update(0)
 
     def _handle_resize(self, signum=None, frame=None):
@@ -548,13 +556,26 @@ class ProgressBar(six.Iterator):
 
     def update(self, value=None):
         """
+        Update progress bar via the console or notebook accordingly.
+        """
+
+        # Update self.value
+        if value is None:
+            value = self._current_value + 1
+        self._current_value = value
+
+        # Choose the appropriate environment
+        if self._interactive:
+            self._update_interactive(value)
+        else:
+            self._update_console(value)
+
+    def _update_console(self, value=None):
+        """
         Update the progress bar to the given value (out of the total
         given to the constructor).
         """
-        if value is None:
-            value = self._current_value = self._current_value + 1
-        else:
-            self._current_value = value
+
         if self._total == 0:
             frac = 1.0
         else:
@@ -591,6 +612,31 @@ class ProgressBar(six.Iterator):
         if t is not None:
             write(human_time(t))
         self._file.flush()
+
+    def _update_interactive(self, value=None):
+        """
+        Update the progress bar to the given value (out of a total
+        given to the contructor).
+
+        This method is for use in the iPython notebook 2+.
+        """
+
+        # Create and display an empty progress bar widget,
+        # if none exists.
+        if not hasattr(self, '_widget'):
+            # Import only if interactive, i.e., widget in iPython NB
+            from IPython.html import widgets
+            from IPython.display import display
+
+            self._widget = widgets.FloatProgressWidget()
+            display(self._widget)
+            self._widget.value = 0
+
+        # Calculate percent completion, and update progress bar
+        percent = (value/self._total) * 100
+        self._widget.value = percent
+        self._widget.description =' ({0:>6s}%)'.format('{0:.2f}'.format(percent))
+
 
     def _silent_update(self, value=None):
         pass
