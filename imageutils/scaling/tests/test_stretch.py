@@ -30,7 +30,7 @@ class TestStretch(object):
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_no_clip(self, stretch):
 
-        np.testing.assert_allclose(stretch(DATA),
+        np.testing.assert_allclose(stretch(DATA, clip=False),
                                            RESULTS[stretch], atol=1.e-6)
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
@@ -44,22 +44,22 @@ class TestStretch(object):
 
         data_in = DATA.copy()
         result = np.zeros(DATA.shape)
-        stretch(data_in, out=result)
+        stretch(data_in, out=result, clip=False)
         np.testing.assert_allclose(result, RESULTS[stretch], atol=1.e-6)
         np.testing.assert_allclose(data_in, DATA)
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_round_trip(self, stretch):
 
-        np.testing.assert_allclose(stretch.inverted()(stretch(DATA)),
+        np.testing.assert_allclose(stretch.inverted()(stretch(DATA, clip=False), clip=False),
                                    DATA)
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_inplace_roundtrip(self, stretch):
 
         result = np.zeros(DATA.shape)
-        stretch(DATA, out=result)
-        stretch.inverted()(result, out=result)
+        stretch(DATA, out=result, clip=False)
+        stretch.inverted()(result, out=result, clip=False)
         np.testing.assert_allclose(result, DATA)
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
