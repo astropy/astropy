@@ -31,7 +31,7 @@ the `Stretching`_ section.
 Intervals and Normalization
 ===========================
 
-Several classes are provided for determining intervals and for scaling values
+Several classes are provided for determining intervals and for normalizing values
 in this interval to the [0:1] range. One of the simplest examples is the
 :class:`~imageutils.scaling.MinMaxInterval` which determines the limits of the
 values based on the minimum and maximum values in the array. The class is
@@ -58,7 +58,7 @@ Other interval classes include :class:`~imageutils.scaling.ManualInterval`,
 :class:`~imageutils.scaling.PercentileInterval`, and
 :class:`~imageutils.scaling.AsymmetricPercentileInterval`. For these three,
 values in the array can fall outside of the limits given by the interval. A
-``clip`` argument is provided to control the behavior of the scaling when
+``clip`` argument is provided to control the behavior of the normalization when
 values fall outside the limits::
 
 
@@ -113,7 +113,7 @@ Combining transformations
 =========================
 
 Any stretches and intervals can be chained by using the ``+`` operator, which
-returns a new transformation. For example, to apply scaling based on a
+returns a new transformation. For example, to apply normalization based on a
 percentile value, followed by a square root stretch, you can do::
 
     >>> transform = SqrtStretch() + PercentileInterval(90.)
@@ -126,14 +126,14 @@ As before, the combined transformation can also accept a ``clip`` argument
 Matplotlib normalization
 ========================
 
-Matplotlib allows a custom scaling and stretch to be used when showing data,
-and requires a :class:`~matplotlib.colors.Normalize` object to be passed to e.g.
-:meth:`~matplotlib.axes.Axes.imshow`. The `imageutils.scaling` module
-provides a class, :class:`~imageutils.scaling.ImageNormalize`, which
-wraps the stretch functions from `Stretching`_ into an object Matplotlib
-understands. The :class:`~imageutils.scaling.ImageNormalize` class
-takes the limits (which you can determine from the `Intervals and
-Normalization`_ classes) and the stretch instance:
+Matplotlib allows a custom normalization and stretch to be used when showing
+data, and requires a :class:`~matplotlib.colors.Normalize` object to be passed
+to e.g. :meth:`~matplotlib.axes.Axes.imshow`. The `imageutils.scaling` module
+provides a class, :class:`~imageutils.scaling.ImageNormalize`, which wraps the
+stretch functions from `Stretching`_ into an object Matplotlib understands. The
+:class:`~imageutils.scaling.ImageNormalize` class takes the limits (which you
+can determine from the `Intervals and Normalization`_ classes) and the stretch
+instance:
 
 .. plot::
    :include-source:
