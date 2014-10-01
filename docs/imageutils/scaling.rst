@@ -2,12 +2,34 @@
 Image stretching and scaling
 ****************************
 
-The `imageutils.scaling` module provides a framework for dealing with image
-stretching and scaling, as well as determining intervals based on various
-criteria (such as percentile values).
+The `imageutils.scaling` module provides a framework for transforming values in
+images (and more generally any arrays), typically for the purpose of
+visualization. Two main types of transformations are provided:
 
-Intervals
-=========
+* Re-normalization to the [0:1] range using lower and upper limits where
+  :math:`x` represents the values in the original image::
+
+.. math::
+
+    y = \frac{x - v_{\rm min}}{v_{\rm max} - v_{\rm min}}
+
+* *Stretching* of values in the [0:1] range to the [0:1] range using a linear
+  or non-linear function:
+  
+.. math::
+
+    z = f(y)
+
+In addition, classes are provided in order to identify lower and upper limits
+for a dataset based on specific algorithms (such as using percentiles).
+
+Identifying lower and upper limits, as well as re-normalizing, is described in
+the `Intervals and Normalization`_ section, while stretching is described in
+the `Stretching`_ section
+
+
+Intervals and Normalization
+===========================
 
 Several classes are provided for determining intervals and for scaling values
 in this interval to the [0:1] range. One of the simplest examples is the
@@ -23,11 +45,8 @@ and the limits can be determined by calling the
 :meth:`~imageutils.scaling.MinMaxInterval.get_limits` method, which takes the
 array of values::
 
-    >>> vmin, vmax = interval.get_limits([1, 3, 4, 5, 6])
-    >>> vmin
-    1
-    >>> vmax
-    6
+    >>> interval.get_limits([1, 3, 4, 5, 6])
+    (1, 6)
 
 The ``interval`` instance can also be called like a function to actually
 normalize values to the range::
@@ -82,13 +101,13 @@ but this can be disabled::
     array([        nan,  0.        ,  0.70710678,  1.        ,  1.22474487])
 
 .. note:: The stretch functions are similar but not always strictly identical
-          to those used in e.g. ds9 (although they should have the same
-          behavior). The equations for the ds9 stretches can be found `here
-          <http://ds9.si.edu/ref/how.html>`_ and can be compared to the
-          equations for our stretches provided in the `imageutils.scaling` API
-          section. The main difference between our stretches and ds9 is that we
-          have adjusted them so that the [0:1] range always maps exactly to the
-          [0:1] range.
+          to those used in e.g. `DS9 <http://ds9.si.edu/site/Home.html>`_
+          (although they should have the same behavior). The equations for the
+          DS9 stretches can be found `here <http://ds9.si.edu/ref/how.html>`_
+          and can be compared to the equations for our stretches provided in
+          the `imageutils.scaling` API section. The main difference between our
+          stretches and DS9 is that we have adjusted them so that the [0:1]
+          range always maps exactly to the [0:1] range.
 
 Combining transformations
 =========================
@@ -109,11 +128,12 @@ Matplotlib normalization
 
 Matplotlib allows a custom scaling and stretch to be used when showing images,
 and requires a :class:`~matplotlib.colors.Normalize` object to be passed to
-``imshow``. The `imageutils.scaling.normalize` module provides a class,
-:class:`imageutils.scaling.ImageNormalize`, which wraps the stretch functions
-from `Stretching`_ into an object Matplotlib understands. The
-:class:`imageutils.scaling.ImageNormalize` class takes the limits (which you
-can determine from the `Intervals`_ classes) and the stretch instance:
+:meth:`~matplotlib.axes.Axes.imshow`. The `imageutils.scaling.normalize` module
+provides a class, :class:`~imageutils.scaling.normalize.ImageNormalize`, which
+wraps the stretch functions from `Stretching`_ into an object Matplotlib
+understands. The :class:`~imageutils.scaling.normalize.ImageNormalize` class
+takes the limits (which you can determine from the `Intervals and
+Normalization`_ classes) and the stretch instance:
 
 .. plot::
    :include-source:

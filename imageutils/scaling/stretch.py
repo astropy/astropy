@@ -5,11 +5,10 @@ another set of [0:1] values with a transformation
 
 from __future__ import division, print_function
 
-import abc
-
 import numpy as np
 
 from astropy.extern import six
+from astropy.utils.misc import InheritDocstrings
 
 from .transform import BaseTransform
 
@@ -43,10 +42,35 @@ def _prepare(values, out=None, clip=True):
             return out
 
 
-@six.add_metaclass(abc.ABCMeta)
+@six.add_metaclass(InheritDocstrings)
 class BaseStretch(BaseTransform):
-    pass
 
+    def __call__(self, values, out=None, clip=True):
+        """
+        Transform values using this stretch.
+
+        Parameters
+        ----------
+        values : `~numpy.ndarray` or list
+            The input values, which should already be normalized to the [0:1]
+            range.
+        out : `~numpy.ndarray`, optional
+            If specified, the output values will be placed in this array
+            (typically used for in-place calculations).
+        clip : bool, optional
+            If `True` (default), values outside the [0:1] range are clipped to
+            the [0:1] range.
+
+        Returns
+        -------
+        new_values : `~numpy.ndarray`
+            The transformed values.
+        """
+
+    def inverted(self):
+        """
+        Return a stretch that performs the inverse operation.
+        """
 
 class LinearStretch(BaseStretch):
     """

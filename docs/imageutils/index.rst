@@ -26,6 +26,10 @@ Contributions welcome!
 (please start by filing an `issue on Github <https://github.com/astropy/imageutils/issues>`__ asking if
 some functionality is in scope for this package before spending time on a pull request)
 
+
+Using imageutils
+----------------
+
 .. toctree::
    :maxdepth: 1
 

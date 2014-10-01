@@ -5,8 +5,6 @@ various criteria.
 
 from __future__ import division, print_function
 
-import abc
-
 import numpy as np
 
 from astropy.extern import six
@@ -16,7 +14,6 @@ from .transform import BaseTransform
 __all__ = ['ManualInterval', 'MinMaxInterval', 'PercentileInterval', 'AsymmetricPercentileInterval']
 
 
-@six.add_metaclass(abc.ABCMeta)
 class BaseInterval(BaseTransform):
 
     def __call__(self, values, clip=True, out=None):

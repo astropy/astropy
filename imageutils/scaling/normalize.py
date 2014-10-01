@@ -14,6 +14,18 @@ __all__ = ['ImageNormalize']
 
 
 class ImageNormalize(Normalize):
+    """
+    Normalization class to be used with Matplotlib.
+
+    Parameters
+    ----------
+    vmin, vmax : float
+        The minimum and maximum levels to show for the data
+    stretch : :class:`~imageutils.scaling.stretch.BaseStretch` instance
+        The stretch to use for the normalization
+    clip : bool, optional
+        Whether to clip the output values to the [0:1] range
+    """
 
     def __init__(self, vmin=None, vmax=None, stretch=None, clip=False):
 

@@ -1,10 +1,10 @@
 from __future__ import division, print_function
 
-import abc
 
 from astropy.extern import six
+from astropy.utils.misc import InheritDocstrings
 
-@six.add_metaclass(abc.ABCMeta)
+
 class BaseTransform(object):
     def __add__(self, other):
         return CompositeTransform(other, self)
