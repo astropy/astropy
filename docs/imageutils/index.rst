@@ -26,6 +26,11 @@ Contributions welcome!
 (please start by filing an `issue on Github <https://github.com/astropy/imageutils/issues>`__ asking if
 some functionality is in scope for this package before spending time on a pull request)
 
+.. toctree::
+   :maxdepth: 1
+
+   scaling.rst
+
 Related Astropy packages
 ------------------------
 
@@ -41,5 +46,3 @@ easy to decide. Please ask on Github or on the Astropy mailing list if you would
 something and don't know where to put it, or if you think something is really out of place and should be moved.
 
 .. automodapi:: imageutils
-
-.. automodapi:: imageutils.scaling
