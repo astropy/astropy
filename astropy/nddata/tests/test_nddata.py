@@ -110,27 +110,6 @@ def test_nddata_mask_invalid_shape(shape):
     assert exc.value.args[0] == 'dimensions of mask do not match data'
 
 
-@pytest.mark.parametrize('flags_in', [
-                         np.array([True, False]),
-                         np.array([1, 0]),
-                         [True, False],
-                         [1, 0],
-                         np.array(['a', 'b']),
-                         ['a', 'b']])
-def test_nddata_flags_init_without_np_array(flags_in):
-    ndd = NDData([1, 1], flags=flags_in)
-    assert (ndd.flags == flags_in).all()
-
-
-@pytest.mark.parametrize(('shape'), [(10,), (5, 5), (3, 10, 10)])
-def test_nddata_flags_invalid_shape(shape):
-    with pytest.raises(ValueError) as exc:
-        with NumpyRNGContext(789):
-            NDData(np.random.random((10, 10)), flags=np.random.random(shape))
-    assert exc.value.args[0] == 'dimensions of flags do not match data'
-
-
-
 def test_nddata_uncertainty_init():
     u = StdDevUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), uncertainty=u)
@@ -164,7 +143,6 @@ def test_nddata_init_from_nddata_data_argument_only():
     assert ndd2.wcs == ndd1.wcs
     assert ndd2.uncertainty == ndd1.uncertainty
     assert ndd2.mask == ndd1.mask
-    assert ndd2.flags == ndd1.flags
     assert ndd2.unit == ndd1.unit
     assert ndd2.meta == ndd1.meta
 
@@ -237,7 +215,6 @@ def test_convert_unit_to():
     assert d.mask[0, 0] != d1.mask[0, 0]
     d.flags = np.zeros_like(d.data)
     d1 = d.convert_unit_to('m')
-    assert (d1.flags == d.flags).all()
 
 
 @raises(ValueError)
@@ -266,11 +243,9 @@ def test_slicing_reference():
 
 def test_slicing_with_mask_or_flag():
     # Regression test for #2170
-    ndd = NDData([1, 2, 3], mask=np.array([False, False, False]),
-                 flags=np.array([-1, -1, -1]))
+    ndd = NDData([1, 2, 3], mask=np.array([False, False, False]))
     assert ndd[0].shape == ()
     assert not ndd[0].mask
-    assert ndd[0].flags == -1
 
 
 def test_initializing_from_nddata():

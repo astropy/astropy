@@ -67,33 +67,6 @@ or by initializing with a masked array. A mask value of `True` indicates a
 value that should be ignored, while a mask value of `False` indicates a valid
 value.
 
-Flags
------
-
-Values can be assigned one or more flags. The ``flags`` attribute is used to
-store either a single Numpy array (of any type) with dimensions matching that
-of the data, or a `~astropy.nddata.FlagCollection`, which is
-essentially a dictionary of Numpy arrays (of any type) with the same shape as
-the data. The following example demonstrates setting a single set of integer
-flags::
-
-    >>> ndd.flags = np.zeros(ndd.shape)
-    >>> ndd.flags[ndd.data < 0.1] = 1
-    >>> ndd.flags[ndd.data < 0.01] = 2
-
-but one can also have multiple flag layers with different types::
-
-    >>> from astropy.nddata import FlagCollection
-    >>> ndd.flags = FlagCollection(shape=(12, 12, 12))
-    >>> ndd.flags['photometry'] = np.zeros(ndd.shape, dtype=str)
-    >>> ndd.flags['photometry'][ndd.data > 0.9] = 's'
-    >>> ndd.flags['cosmic_rays'] = np.zeros(ndd.shape, dtype=int)
-    >>> ndd.flags['cosmic_rays'][ndd.data > 0.99] = 99
-
-and flags can easily be used to set the mask::
-
-    >>> ndd.mask = ndd.flags['cosmic_rays'] == 99
-
 Uncertainties
 -------------
 
@@ -127,8 +100,7 @@ The purpose of the :meth:`~astropy.nddata.nddata.NDArithmetic.add`,
 :meth:`~astropy.nddata.nddata.NDArithmetic.divide` methods is to allow the
 combination of two data objects that have common WCS and shape and units
 consistent with the operation performed, with consistent behavior for masks,
-and with a framework to propagate uncertainties. Currently any flags on the
-operands are dropped so that the result of the operation always has no flags.
+and with a framework to propagate uncertainties.
 These methods are intended for use by sub-classes and functions that deal with
 more complex combinations.
 

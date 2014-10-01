@@ -58,7 +58,7 @@ Numpy array with the same dimensions as the data, e.g.::
 A mask value of `True` indicates a value that should be ignored, while a mask
 value of `False` indicates a valid value.
 
-Similarly, attributes are available to store generic meta-data, flags, and
+Similarly, attributes are available to store generic meta-data and
 uncertainties. The `~astropy.nddata.NDDataArithmetic` class includes methods to
 combine datasets with arithmetic operations (which include limited support for
 propagation of uncertainties). These are described in :doc:`nddata`.

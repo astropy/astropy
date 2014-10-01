@@ -31,7 +31,7 @@ class NDData(object):
     """A Superclass for array-based data in Astropy.
 
     The key distinction from raw numpy arrays is the presence of
-    additional metadata such as uncertainties, a mask, units, flags,
+    additional metadata such as uncertainties, a mask, units,
     and/or a coordinate system.
 
     Parameters
@@ -52,13 +52,6 @@ class NDData(object):
         masked arrays). If ``data`` is a numpy masked array, providing
         ``mask`` here will causes the mask from the masked array to be
         ignored.
-
-    flags : `~numpy.ndarray`-like or `~astropy.nddata.FlagCollection`, optional
-        Flags giving information about each pixel. These can be specified
-        either as a Numpy array of any type (or an object which can be converted
-        to a Numpy array) with a shape matching that of the
-        data, or as a `~astropy.nddata.FlagCollection` instance which has a
-        shape matching that of the data.
 
     wcs : undefined, optional
         WCS-object containing the world coordinate system for the data.
@@ -112,14 +105,13 @@ class NDData(object):
 
     meta = MetaData()
 
-    def __init__(self, data, uncertainty=None, mask=None, flags=None, wcs=None,
+    def __init__(self, data, uncertainty=None, mask=None, wcs=None,
                  meta=None, unit=None):
 
         if isinstance(data, self.__class__):
             self.data = np.array(data.data, subok=True, copy=False)
             self.uncertainty = data.uncertainty
             self.mask = data.mask
-            self.flags = data.flags
             self.wcs = data.wcs
             self.meta = data.meta
             self.unit = data.unit
@@ -132,10 +124,6 @@ class NDData(object):
             if mask is not None:
                 self.mask = mask
                 log.info("Overwriting NDData's current mask with specified mask")
-
-            if flags is not None:
-                self.flags = flags
-                log.info("Overwriting NDData's current flags with specified flag")
 
             if wcs is not None:
                 self.wcs = wcs
@@ -166,7 +154,6 @@ class NDData(object):
                 self.data = np.array(data, subok=True, copy=False)
                 self.mask = mask
 
-            self.flags = flags
             self.wcs = wcs
             self.meta = meta
             if isinstance(data, Quantity):
@@ -210,27 +197,6 @@ class NDData(object):
         else:
             # internal representation should be one numpy understands
             self._mask = np.ma.nomask
-
-    @property
-    def flags(self):
-        return self._flags
-
-    @flags.setter
-    def flags(self, value):
-        if value is not None:
-            if isinstance(value, FlagCollection):
-                if value.shape != self.shape:
-                    raise ValueError("dimensions of FlagCollection does not match data")
-                else:
-                    self._flags = value
-            else:
-                flags = np.array(value, copy=False)
-                if flags.shape != self.shape:
-                    raise ValueError("dimensions of flags do not match data")
-                else:
-                    self._flags = flags
-        else:
-            self._flags = value
 
     @property
     def uncertainty(self):
@@ -357,24 +323,13 @@ class NDData(object):
         else:
             new_mask = None
 
-        if self.flags is not None:
-            if isinstance(self.flags, np.ndarray):
-                new_flags = self.flags[item]
-                # flags setter expects an array, always
-                if new_flags.shape == ():
-                    new_flags = np.array(new_flags)
-            elif isinstance(self.flags, FlagCollection):
-                raise NotImplementedError('Slicing complex Flags is currently not implemented')
-        else:
-            new_flags = None
-
         if self.wcs is not None:
             raise NotImplementedError('Slicing for WCS is not currently implemented')
         else:
             new_wcs = None
 
         return self.__class__(new_data, uncertainty=new_uncertainty,
-                              mask=new_mask, flags=new_flags, wcs=new_wcs,
+                              mask=new_mask, wcs=new_wcs,
                               meta=self.meta, unit=self.unit)
 
     def convert_unit_to(self, unit, equivalencies=[]):
@@ -401,9 +356,6 @@ class NDData(object):
         UnitsError
             If units are inconsistent.
 
-        Notes
-        -----
-        Flags are set to None in the result.
         """
         if self.unit is None:
             raise ValueError("No unit specified on source data")
@@ -421,7 +373,7 @@ class NDData(object):
             new_mask = None
         # Call __class__ in case we are dealing with an inherited type
         result = self.__class__(data, uncertainty=uncertainty,
-                                mask=new_mask, flags=self.flags,
+                                mask=new_mask,
                                 wcs=self.wcs,
                                 meta=self.meta, unit=unit)
 
@@ -460,8 +412,8 @@ class NDArithmetic(object):
         Notes
         -----
         This method requires the datasets to have identical WCS
-        properties, equivalent units, and identical shapes. Flags and
-        meta-data get set to None in the resulting dataset. The unit
+        properties, equivalent units, and identical shapes.
+        Meta-data get set to None in the resulting dataset. The unit
         in the result is the same as the unit in ``self``. Uncertainties
         are propagated, although correlated errors are not supported
         by any of the built-in uncertainty classes.  If uncertainties
@@ -518,7 +470,7 @@ class NDArithmetic(object):
 
         # Call __class__ in case we are dealing with an inherited type
         result = self.__class__(data, uncertainty=None,
-                                mask=None, flags=None, wcs=new_wcs,
+                                mask=None, wcs=new_wcs,
                                 meta=None, unit=result_unit)
 
         # Prepare to scale uncertainty if it is needed
@@ -577,7 +529,6 @@ class NDArithmetic(object):
                                                unit=operand.unit,
                                                wcs=operand.wcs,
                                                mask=operand.mask,
-                                               flags=operand.flags,
                                                meta=operand.meta)
             try:
                 method = getattr(self.uncertainty, propagate_uncertainties)
