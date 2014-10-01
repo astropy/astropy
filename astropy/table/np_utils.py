@@ -74,7 +74,8 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
             else:
                 # If name is not one of the common column outputs, and it collides
                 # with the names in one of the other arrays, then rename
-                others = (x for x in arrays if x is not array)
+                others = list(arrays)
+                others.pop(idx)
                 if any(name in other.dtype.names for other in others):
                     out_name = uniq_col_name.format(table_name=table_name, col_name=name)
                 col_name_list.append(out_name)

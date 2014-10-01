@@ -608,6 +608,17 @@ class TestHStack():
                                        ('a', 1),
                                        ('e', 1)])
 
+    def test_stack_same_table(self):
+        """
+        From #2995, test that hstack'ing references to the same table has the
+        expected output.
+        """
+        out = table.hstack([self.t1, self.t1])
+        assert out.pformat() == ['a_1 b_1 a_2 b_2',
+                                 '--- --- --- ---',
+                                 '  0 foo   0 foo',
+                                 '  1 bar   1 bar']
+
     def test_stack_rows(self):
         out = table.hstack([self.t1[0], self.t2[1]])
         assert out.pformat() == ['a_1 b_1 a_2 b_2  c ',
