@@ -24,9 +24,11 @@ class BaseInterval(BaseTransform):
         vmin, vmax = self.get_limits(values)
 
         if out is None:
-            values = np.subtract(values, vmin)
+            values = np.subtract(values, float(vmin))
         else:
-            values = np.subtract(values, vmin, out=out)
+            if out.dtype.kind != 'f':
+                raise TypeError("Can only do in-place scaling for floating-point arrays")
+            values = np.subtract(values, float(vmin), out=out)
 
         np.true_divide(values, vmax - vmin, out=values)
 
