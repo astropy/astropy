@@ -315,6 +315,12 @@ API Changes
 
 - ``astropy.nddata``
 
+  - ``flags`` property removed from ``astropy.nddata.NDData``. [#2905]
+
+  - Arithmetic operations and uncertainty propagation moved from
+    ``astropy.nddata.NDData`` to a new class
+    ``astropy.nddata.NDDataArithmetic``.  [#2905]
+
 - ``astropy.stats``
 
 - ``astropy.table``
