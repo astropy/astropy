@@ -237,6 +237,9 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fix a problem where ``table.hstack`` fails to stack multiple references to
+    the same table, e.g. ``table.hstack([t, t])``. [#2995]
+
 - ``astropy.time``
 
 - ``astropy.units``
