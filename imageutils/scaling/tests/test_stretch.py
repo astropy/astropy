@@ -26,12 +26,11 @@ class TestStretch(object):
     def setup_class(self):
         DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
 
-
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_no_clip(self, stretch):
 
         np.testing.assert_allclose(stretch(DATA, clip=False),
-                                           RESULTS[stretch], atol=1.e-6)
+                                   RESULTS[stretch], atol=1.e-6)
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_clip(self, stretch):
@@ -83,3 +82,14 @@ class TestStretch(object):
 
         np.testing.assert_allclose(stretch_1.inverted()(DATA),
                                    stretch_3(DATA))
+
+
+def test_clip_invalid():
+
+    stretch = SqrtStretch()
+
+    values = stretch([-1., 0., 0.5, 1., 1.5])
+    np.testing.assert_allclose(values, [0., 0., 0.70710678, 1., 1.])
+
+    values = stretch([-1., 0., 0.5, 1., 1.5], clip=False)
+    np.testing.assert_allclose(values, [np.nan, 0., 0.70710678, 1., 1.2247448])
