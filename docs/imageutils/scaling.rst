@@ -104,4 +104,41 @@ percentile value, followed by a square root stretch, you can do::
 As before, the combined transformation can also accept a ``clip`` argument
 (which is `True` by default).
 
+Matplotlib normalization
+========================
+
+Matplotlib allows a custom scaling and stretch to be used when showing images,
+and requires a :class:`~matplotlib.colors.Normalize` object to be passed to
+``imshow``. The `imageutils.scaling.normalize` module provides a class,
+:class:`imageutils.scaling.ImageNormalize`, which wraps the stretch functions
+from `Stretching`_ into an object Matplotlib understands. The
+:class:`imageutils.scaling.ImageNormalize` class takes the limits (which you
+can determine from the `Intervals`_ classes) and the stretch instance:
+
+.. plot::
+   :include-source:
+   :align: center
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from imageutils.scaling import SqrtStretch
+    from imageutils.scaling.normalize import ImageNormalize
+
+    # Generate test image
+    image = np.arange(65536).reshape((256, 256))
+
+    # Create normalizer object
+    norm = ImageNormalize(vmin=0., vmax=65536, stretch=SqrtStretch())
+
+    # Make the figure
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    im = ax.imshow(image, norm=norm)
+    fig.colorbar(im)
+
+As shown above, the colorbar ticks are automatically adjusted.
+
 .. automodapi:: imageutils.scaling
+
+.. automodapi:: imageutils.scaling.normalize

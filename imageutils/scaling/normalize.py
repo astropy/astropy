@@ -42,7 +42,8 @@ class ImageNormalize(Normalize):
         if np.isscalar(values):
             values = np.array([values], dtype=float)
         else:
-            values = values.copy()  # copy because of in-place operations after
+            # copy because of in-place operations after
+            values = np.array(values, copy=True, dtype=float)
 
         # Normalize based on vmin and vmax
         np.subtract(values, self.vmin, out=values)
