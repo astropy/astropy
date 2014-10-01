@@ -8,7 +8,7 @@ Image processing utilities for Astropy.
 * Docs: https://imageutils.readthedocs.org/
 
 What is this?
--------------
+=============
 
 This is an attempt to collect image processing utilities that are generally considered
 useful for astronomers and propose to include them as ``astropy.image`` into the
@@ -28,7 +28,7 @@ some functionality is in scope for this package before spending time on a pull r
 
 
 Using imageutils
-----------------
+================
 
 .. toctree::
    :maxdepth: 1
@@ -36,7 +36,7 @@ Using imageutils
    scaling.rst
 
 Related Astropy packages
-------------------------
+========================
 
 * The `astropy.convolution` and `astropy.wcs` sub-packages in the Astropy core.
 * The `reproject` package which is planned to be moved into Astropy core as `astropy.reproject`.
@@ -48,5 +48,8 @@ Related Astropy packages
 How to structure Astropy into sub-packages and which function belongs where is sometimes not
 easy to decide. Please ask on Github or on the Astropy mailing list if you would like to contribute
 something and don't know where to put it, or if you think something is really out of place and should be moved.
+
+Reference/API
+=============
 
 .. automodapi:: imageutils

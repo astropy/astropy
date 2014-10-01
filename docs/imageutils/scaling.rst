@@ -158,4 +158,7 @@ Normalization`_ classes) and the stretch instance:
 
 As shown above, the colorbar ticks are automatically adjusted.
 
+Reference/API
+=============
+
 .. automodapi:: imageutils.scaling
