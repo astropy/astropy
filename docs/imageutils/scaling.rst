@@ -1,12 +1,12 @@
-****************************
-Image stretching and scaling
-****************************
+**********************************
+Image stretching and normalization
+**********************************
 
 The `imageutils.scaling` module provides a framework for transforming values in
 images (and more generally any arrays), typically for the purpose of
 visualization. Two main types of transformations are provided:
 
-* Re-normalization to the [0:1] range using lower and upper limits where
+* Normalization to the [0:1] range using lower and upper limits where
   :math:`x` represents the values in the original image:
 
 .. math::
@@ -25,7 +25,7 @@ for a dataset based on specific algorithms (such as using percentiles).
 
 Identifying lower and upper limits, as well as re-normalizing, is described in
 the `Intervals and Normalization`_ section, while stretching is described in
-the `Stretching`_ section
+the `Stretching`_ section.
 
 
 Intervals and Normalization
