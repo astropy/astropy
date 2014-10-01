@@ -79,9 +79,7 @@ class SqrtStretch(BaseStretch):
     def __call__(self, values, out=None, clip=True):
 
         values = _prepare(values, out=out, clip=clip)
-        
-        print(type(values))
-        
+
         np.sqrt(values, out=values)
 
         return values
@@ -107,7 +105,7 @@ class PowerStretch(BaseStretch):
     def __call__(self, values, out=None, clip=True):
 
         values = _prepare(values, out=out, clip=clip)
-        
+
         np.power(values, self.power, out=values)
 
         return values
@@ -348,7 +346,7 @@ class InvertedHistEqStretch(BaseStretch):
     def __call__(self, values, out=None, clip=True):
 
         values = _prepare(values, out=out, clip=clip)
-        
+
         values[:] = np.interp(values, self.values, self.data)
 
         return values
