@@ -52,6 +52,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - Fixed an issue with the ``deprecated`` decorator on classes that invoke
+    ``super()`` in their ``__init__`` method. [#3004]
+
 - ``astropy.vo``
 
   - Fixed an issue with reconnecting to a SAMP Hub. [#2674]

@@ -375,7 +375,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         needs to be overridden.
     """
 
-    method_types = (classmethod, staticmethod)
+    method_types = (classmethod, staticmethod, types.MethodType)
 
     def deprecate_doc(old_doc, message):
         """
@@ -477,21 +477,15 @@ def deprecated(since, message='', name='', alternative='', pending=False,
         # errors. Picklability is required for any class that is
         # documented by Sphinx.
 
-        def __getstate__(self):
-            return super(cls, self).__getstate__()
+        members = cls.__dict__.copy()
 
-        def __setstate__(self, state):
-            return super(cls, self).__setstate__(state)
-
-        d = {
+        members.update({
             '__doc__': deprecate_doc(cls.__doc__, message),
-            '__init__': deprecate_function(cls.__init__, message),
-            '__module__': cls.__module__,
-            '__getstate__': __getstate__,
-            '__setstate__': __setstate__
-        }
+            '__init__': deprecate_function(get_function(cls.__init__),
+                                           message),
+        })
 
-        return type(cls.__name__, (cls,), d)
+        return type(cls.__name__, cls.__bases__, members)
 
     def deprecate(obj, message=message, name=name, alternative=alternative,
                   pending=pending):

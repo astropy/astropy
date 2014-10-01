@@ -142,6 +142,28 @@ def test_deprecated_class():
     pickle.dumps(TestA)
 
 
+def test_deprecated_class_with_super():
+    """
+    Regression test for an issue where classes that used `super()` in their
+    ``__init__`` did not actually call the correct class's ``__init__`` in the
+    MRO.
+    """
+
+    @misc.deprecated('100.0')
+    class TestB(object):
+        def __init__(self, a, b):
+            super(TestB, self).__init__()
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        TestB(1, 2)
+
+    assert len(w) == 1
+    assert 'function' not in TestB.__doc__
+    assert 'deprecated' in TestB.__doc__
+    assert 'function' not in TestB.__init__.__doc__
+    assert 'deprecated' in TestB.__init__.__doc__
+
+
 def test_deprecated_static_and_classmethod():
     """
     Regression test for issue introduced by
