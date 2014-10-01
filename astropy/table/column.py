@@ -205,6 +205,11 @@ class BaseColumn(np.ndarray):
     def __ne__(self, other):
         return self.data.__ne__(other)
 
+    # Set items using a view of the underlying data, as it gives an
+    # order-of-magnitude speed-up. [#2994]
+    def __setitem__(self, index, value):
+        self.data[index] = value
+
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
         if obj is None:
