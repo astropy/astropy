@@ -7,7 +7,7 @@ images (and more generally any arrays), typically for the purpose of
 visualization. Two main types of transformations are provided:
 
 * Re-normalization to the [0:1] range using lower and upper limits where
-  :math:`x` represents the values in the original image::
+  :math:`x` represents the values in the original image:
 
 .. math::
 
@@ -126,12 +126,12 @@ As before, the combined transformation can also accept a ``clip`` argument
 Matplotlib normalization
 ========================
 
-Matplotlib allows a custom scaling and stretch to be used when showing images,
-and requires a :class:`~matplotlib.colors.Normalize` object to be passed to
-:meth:`~matplotlib.axes.Axes.imshow`. The `imageutils.scaling.normalize` module
-provides a class, :class:`~imageutils.scaling.normalize.ImageNormalize`, which
+Matplotlib allows a custom scaling and stretch to be used when showing data,
+and requires a :class:`~matplotlib.colors.Normalize` object to be passed to e.g.
+:meth:`~matplotlib.axes.Axes.imshow`. The `imageutils.scaling` module
+provides a class, :class:`~imageutils.scaling.ImageNormalize`, which
 wraps the stretch functions from `Stretching`_ into an object Matplotlib
-understands. The :class:`~imageutils.scaling.normalize.ImageNormalize` class
+understands. The :class:`~imageutils.scaling.ImageNormalize` class
 takes the limits (which you can determine from the `Intervals and
 Normalization`_ classes) and the stretch instance:
 
@@ -142,8 +142,7 @@ Normalization`_ classes) and the stretch instance:
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from imageutils.scaling import SqrtStretch
-    from imageutils.scaling.normalize import ImageNormalize
+    from imageutils.scaling import SqrtStretch, ImageNormalize
 
     # Generate test image
     image = np.arange(65536).reshape((256, 256))
@@ -160,5 +159,3 @@ Normalization`_ classes) and the stretch instance:
 As shown above, the colorbar ticks are automatically adjusted.
 
 .. automodapi:: imageutils.scaling
-
-.. automodapi:: imageutils.scaling.normalize
