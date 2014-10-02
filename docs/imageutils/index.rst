@@ -33,7 +33,7 @@ Using imageutils
 .. toctree::
    :maxdepth: 1
 
-   scaling.rst
+   normalization.rst
 
 Related Astropy packages
 ========================
