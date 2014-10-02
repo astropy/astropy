@@ -1430,7 +1430,7 @@ class _CompoundModelMeta(_ModelMeta):
                 names.append((basename, indices[0]))
             else:
                 for idx in indices:
-                    names.append(('{0}_{1}'.format(basename), idx))
+                    names.append(('{0}_{1}'.format(basename, idx), idx))
 
         # Sort according to the models' original sort orders
         names.sort(key=lambda k: k[1])
