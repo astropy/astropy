@@ -85,12 +85,15 @@ columns to a table.  In both cases the new columns must be specified as |Column|
   >>> t2 = Table(np.arange(25).reshape(5, 5), names=('e', 'f', 'g', 'h', 'i'))
   >>> t.add_columns(t2.columns.values())
 
-Finally, columns can also be added as :class:`~astropy.units.Quantity` objects::
+Finally, columns can also be added from
+:class:`~astropy.units.Quantity` objects, which automatically sets the
+``.unit`` attribute on the column:
 
   >>> from astropy import units as u
   >>> t['d'] = np.arange(1., 6.) * u.m
   >>> t['d']
-  <Quantity [ 1., 2., 3., 4., 5.] m>
+  <Column name='d' unit='m' format=None description=None>
+  array([ 1., 2., 3., 4., 5.])
 
 **Remove columns**
 ::

@@ -163,9 +163,6 @@ class Quantity(np.ndarray):
     # Constants can not initialize properly
     _equivalencies = []
 
-    # Stuff for table compatibility
-    _astropy_table_compatible = True
-
     __array_priority__ = 10000
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,

@@ -165,10 +165,6 @@ class Time(object):
     _in_subfmt = '*'  # Select subformat for inputting string times
     _out_subfmt = '*'  # Select subformat for outputting string times
 
-    # Stuff for table compatibility
-    _table_format = None
-    _astropy_table_compatible = True
-
     SCALES = TIME_SCALES
     """List of time scales"""
 
