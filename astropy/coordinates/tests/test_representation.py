@@ -91,6 +91,16 @@ class TestSphericalRepresentation(object):
         assert_allclose_quantity(lat, s1.lat)
         assert_allclose_quantity(distance, s1.distance)
 
+    def test_init_float32_array(self):
+        """Regression test against #2983"""
+        lon = Longitude(np.float32([1., 2.]), u.degree)
+        lat = Latitude(np.float32([3., 4.]), u.degree)
+        s1 = UnitSphericalRepresentation(lon=lon, lat=lat, copy=False)
+        assert s1.lon.dtype == np.float32
+        assert s1.lat.dtype == np.float32
+        assert s1._values['lon'].dtype == np.float32
+        assert s1._values['lat'].dtype == np.float32
+
     def test_reprobj(self):
 
         s1 = SphericalRepresentation(lon=8 * u.hourangle, lat=5 * u.deg, distance=10 * u.kpc)

@@ -15,6 +15,8 @@ Bug Fixes
   - The ``Distance`` class has been fixed to no longer rely on the deprecated
     cosmology functions. [#2991]
 
+  - Ensure ``float32`` values can be used in coordinate representations. [#2983]
+
 - ``astropy.cosmology``
 
   - The ``ztol`` keyword argument to z_at_value now works correctly [#2993].
