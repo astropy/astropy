@@ -64,11 +64,8 @@ values fall outside the limits::
 
     >>> from imageutils.normalization import PercentileInterval
     >>> interval = PercentileInterval(50.)
-    >>> vmin, vmax = interval.get_limits([1, 3, 4, 5, 6])
-    >>> vmin
-    3.0
-    >>> vmax
-    5.0
+    >>> interval.get_limits([1, 3, 4, 5, 6])
+    (3.0, 5.0)
     >>> interval([1, 3, 4, 5, 6])  # default is clip=True
     array([ 0. ,  0. ,  0.5,  1. ,  1. ])
     >>> interval([1, 3, 4, 5, 6], clip=False)
