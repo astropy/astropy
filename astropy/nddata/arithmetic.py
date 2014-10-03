@@ -226,6 +226,8 @@ class NDDataArithmetic(NDArithmetic, NDData):
     An ``NDData`` object with arithmetic. This class is functionally equivalent
     to ``NDData`` in astropy  versions prior to 1.0.
     """
+    # Implement uncertainty as NDUncertainty to support propagation of
+    # uncertainties in arithmetic operations
     @property
     def uncertainty(self):
         return self._uncertainty
@@ -255,3 +257,23 @@ class NDDataArithmetic(NDArithmetic, NDData):
         else:
             self._uncertainty = value
 
+    # Implement mask in a way that converts nicely to a numpy masked array
+    @property
+    def mask(self):
+        if self._mask is np.ma.nomask:
+            return None
+        else:
+            return self._mask
+
+    @mask.setter
+    def mask(self, value):
+        # Check that value is not either type of null mask.
+        if (value is not None) and (value is not np.ma.nomask):
+            mask = np.array(value, dtype=np.bool_, copy=False)
+            if mask.shape != self.shape:
+                raise ValueError("dimensions of mask do not match data")
+            else:
+                self._mask = mask
+        else:
+            # internal representation should be one numpy understands
+            self._mask = np.ma.nomask

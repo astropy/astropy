@@ -36,6 +36,7 @@ class FakeUncertainty(NDUncertainty):
         pass
 
 
+# Uncertainty tests
 def test_nddata_uncertainty_init_invalid_shape_1():
     u = StdDevUncertainty(array=np.ones((6, 6)))
     with pytest.raises(ValueError) as exc:
@@ -121,8 +122,6 @@ def test_nddata_add_uncertainties_mismatch():
     assert exc.value.args[0] == 'Cannot propagate uncertainties of type StdDevUncertainty with uncertainties of type FakeUncertainty for addition'
 
 
-
-
 def test_initializing_nduncertainty_from_quantity():
     # Until nddata and quantity are integrated initializing with a quantity
     # should raise an error.
@@ -154,6 +153,53 @@ def test_initializing_nduncertainty_from_quantity():
     with pytest.raises(ValueError):
         ndd.uncertainty = std_error
 
+
+# Mask tests
+def test_unmasked_masked_array_input():
+    # Test for #2784
+    marr = np.ma.array([1, 2, 5])  # Masked array with no masked entries
+    nd = NDDataArithmetic(marr)  # Before fix this raised a ValueError
+
+    # Check that masks are correct
+    assert marr.mask is np.ma.nomask
+    assert nd.mask is None  # Internal representation is np.ma.nomask but getter returns None
+
+
+def test_nddata_unmasked_in_operation_with_masked_numpy_array():
+    # test for #2417
+    ndd = NDDataArithmetic([1, 2, 3])
+    np_data = -np.ones_like(ndd)
+    np_mask = np.array([True, False, True])
+    np_arr_masked = np.ma.masked_array(np_data, mask=np_mask, copy=True)
+    # check multiplication in both orders as in test above
+    result1 = ndd * np_arr_masked
+    result2 = np_arr_masked * ndd
+    for result in [result1, result2]:
+        # multiplying by a masked numpy array should return a masked array
+        assert isinstance(result, np.ma.MaskedArray)
+        assert np.all(result.mask == np_mask)
+        assert np.all(result[~result.mask] == -ndd.data[~np_mask])
+
+
+@pytest.mark.parametrize(('shape'), [(10,), (5, 5), (3, 10, 10)])
+def test_nddata_mask_invalid_shape(shape):
+    with pytest.raises(ValueError) as exc:
+        with NumpyRNGContext(789):
+            NDDataArithmetic(np.random.random((10, 10)), mask=np.random.random(shape) > 0.5)
+    assert exc.value.args[0] == 'dimensions of mask do not match data'
+
+
+@pytest.mark.parametrize('mask_in', [
+                         np.array([True, False]),
+                         np.array([1, 0]),
+                         [True, False],
+                         [1, 0]])
+def test_nddata_mask_init_without_np_array(mask_in):
+    ndd = NDDataArithmetic([1, 1], mask=mask_in)
+    assert (ndd.mask == mask_in).all()
+
+
+# Arithmetic tests
 
 def test_nddata_subtract():
     d1 = NDDataArithmetic(np.ones((5, 5)))

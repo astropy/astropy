@@ -175,23 +175,11 @@ class NDData(object):
 
     @property
     def mask(self):
-        if self._mask is np.ma.nomask:
-            return None
-        else:
-            return self._mask
+        return self._mask
 
     @mask.setter
     def mask(self, value):
-        # Check that value is not either type of null mask.
-        if (value is not None) and (value is not np.ma.nomask):
-            mask = np.array(value, dtype=np.bool_, copy=False)
-            if mask.shape != self.shape:
-                raise ValueError("dimensions of mask do not match data")
-            else:
-                self._mask = mask
-        else:
-            # internal representation should be one numpy understands
-            self._mask = np.ma.nomask
+        self._mask = value
 
     @property
     def uncertainty(self):
@@ -291,9 +279,6 @@ class NDData(object):
 
         if self.mask is not None:
             new_mask = self.mask[item]
-            # mask setter expects an array, always
-            if new_mask.shape == ():
-                new_mask = np.array(new_mask)
         else:
             new_mask = None
 
