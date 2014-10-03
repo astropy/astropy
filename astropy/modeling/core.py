@@ -28,7 +28,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from ..utils import indent, isiterable, metadata
+from ..utils import indent, isiterable, isinstancemethod, metadata
 from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
@@ -1390,6 +1390,9 @@ class _CompoundModelMeta(_ModelMeta):
     _submodel_names = None
     _nextid = 0
 
+    _param_names = None
+    _param_map = None
+
     def __getitem__(cls, index):
         if isinstance(index, int):
             return cls._get_submodels()[index]
@@ -1400,7 +1403,18 @@ class _CompoundModelMeta(_ModelMeta):
             'Submodels can be indexed either by their integer order or '
             'their name (got {0!r}).'.format(index))
 
+    def __getattr__(cls, attr):
+        if attr in cls.param_names:
+            cls._init_param_descriptors()
+            return getattr(cls, attr)
+
+        raise AttributeError(attr)
+
     def __repr__(cls):
+        if cls._tree is None:
+            # This case is mostly for debugging purposes
+            return cls._format_cls_repr()
+
         expression = cls._format_expression()
         components = '\n\n'.join('[{0}]: {1!r}'.format(idx, m)
                                  for idx, m in enumerate(cls._get_submodels()))
@@ -1410,6 +1424,16 @@ class _CompoundModelMeta(_ModelMeta):
         ]
 
         return cls._format_cls_repr(keywords=keywords)
+
+    def __dir__(cls):
+        basedir = super(_CompoundModelMeta, cls).__dir__()
+        if cls._tree is not None:
+            for name in cls.param_names:
+                basedir.append(name)
+
+            basedir.sort()
+
+        return basedir
 
     @property
     def submodel_names(cls):
@@ -1440,6 +1464,13 @@ class _CompoundModelMeta(_ModelMeta):
         cls._submodels_names = names
         return names
 
+    @property
+    def param_names(cls):
+        if cls._param_names is None:
+            cls._init_param_names()
+
+        return cls._param_names
+
     # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
     # leaf nodes is something the ExpressionTree class itself could just know
     def _get_submodels(cls):
@@ -1453,6 +1484,72 @@ class _CompoundModelMeta(_ModelMeta):
         cls._submodels = submodels
         return submodels
 
+    def _init_param_descriptors(cls):
+        """
+        This routine sets up the names for all the parameters on a compound
+        model, including figuring out unique names for those parameters and
+        also mapping them back to their associated parameters of the underlying
+        submodels.
+
+        Setting this all up is costly, and only necessary for compound models
+        that a user will directly interact with.  For example when building an
+        expression like::
+
+            >>> M = (Model1 + Model2) * Model3  # doctest: +SKIP
+
+        the user will generally never interact directly with the temporary
+        result of the subexpression ``(Model1 + Model2)``.  So there's no need
+        to setup all the parameters for that temporary throwaway.  Only once
+        the full expression is built and the user initializes or introspects
+        ``M`` is it necessary to determine its full parameterization.
+        """
+
+        # Accessing cls.param_names will implicitly call _init_param_names if
+        # needed and thus also set up the _param_map; I'm not crazy about that
+        # design but it stands for now
+        for param_name in cls.param_names:
+            submodel_idx, submodel_param = cls._param_map[param_name]
+            submodel = cls[submodel_idx]
+
+            orig_param = getattr(submodel, submodel_param)
+
+            # Note: Parameter.copy() returns a new unbound Parameter, never a
+            # bound Parameter even if submodel is a Model instance (as opposed
+            # to a Model subclass)
+            new_param = orig_param.copy(name=param_name)
+            setattr(cls, param_name, new_param)
+
+    def _init_param_names(cls):
+        """
+        This subroutine is solely for setting up the ``param_names`` attribute
+        itself.
+
+        See ``_init_param_descriptors`` for the full parameter setup.
+        """
+
+        # Currently this skips over Model *instances* in the expression tree;
+        # basically these are treated as constants and do not add
+        # fittable/tunable parameters to the compound model.
+        # TODO: I'm not 100% happy with this design, and maybe we need some
+        # interface for distinguishing fittable/settable parameters with
+        # *constant* parameters (which would be distinct from parameters with
+        # fixed constraints since they're permanently locked in place). But I'm
+        # not sure if this is really the best way to treat the issue.
+
+        names = []
+        param_map = {}
+
+        for idx, model in enumerate(model for model in cls._get_submodels()
+                                    if isinstance(model, type) and
+                                    model.param_names):
+            for param_name in model.param_names:
+                name = '{0}_{1}'.format(param_name, idx)
+                names.append(name)
+                param_map[name] = (idx, param_name)
+
+        cls._param_names = tuple(names)
+        cls._param_map = param_map
+
     def _format_expression(cls):
         # TODO: At some point might be useful to make a public version of this,
         # albeit with more formatting options
@@ -1463,50 +1560,16 @@ class _CompoundModelMeta(_ModelMeta):
 class _CompoundModel(Model):
     _submodels = None
 
-    def __init__(self, *args, **kwargs):
-        # TODO: Just as a quick prototype, pass args off as parameters to
-        # individual submodels; there are a myriad ways we can make this more
-        # sophisticated later...
-
-        # Make a copy of the class's model tree, then go through each leaf node
-        # and convert it from a class to an instance of that class
-        self._tree = self.__class__._tree.copy()
-
-        for node in self._tree.traverse_postorder():
-            if not node.isleaf:
-                continue
-
-            if isinstance(node.value, Model):
-                # An already instantiated model instance--we leave it as is
-                # and keep its initial paramters fixed
-                pass
-            else:
-                model_cls = node.value
-                nparams = len(model_cls.param_names)
-                model_inst = model_cls(*args[:nparams])
-
-                # Update the node replacing the class with the instance
-                node.value = model_inst
-                args = args[nparams:]
-
-        # TODO: This is temporary while prototyping
-        self._model_set_axis = 0
-        self._n_models = 1
-        self._name = kwargs.pop('name', None)
+    def __getattr__(self, attr):
+        return getattr(self.__class__, attr)
 
     @property
     def submodel_names(self):
         return self.__class__.submodel_names
 
     @property
-    def param_sets(self):
-        # TODO: This is temporary while prototyping
-
-        all_params = [n.value.param_sets
-                      for n in self._tree.traverse_postorder()
-                      if n.isleaf and n.value.param_names]
-
-        return np.vstack(tuple(all_params))
+    def param_names(self):
+        return self.__class__.param_names
 
     def evaluate(self, *args):
         inputs = args[:self.n_inputs]
@@ -1517,12 +1580,27 @@ class _CompoundModel(Model):
             # the parameter values already applied
             nparams = len(model.param_names)
 
-            if model.n_outputs == 1:
-                f = lambda *inputs: (model.evaluate(
-                    *(inputs + tuple(itertools.islice(params, nparams)))),)
+            if isinstance(model, Model):
+                # Use the fixed model instance's parameters in the evaluation
+                param_values = tuple(model.param_sets)
             else:
-                f = lambda *inputs: model.evaluate(
-                    *(inputs + tuple(itertools.islice(params, nparams))))
+                param_values = tuple(itertools.islice(params, nparams))
+
+                # There is currently an unfortunate iconsistency in some
+                # models, which requires them to be instantiated for their
+                # evaluate to work.  I think that needs to be reconsidered and
+                # fixed somehow, but in the meantime we need to check for that
+                # case
+                if isinstancemethod(model, model.evaluate):
+                    # Where previously model was a class, now make an instance
+                    model = model(*param_values)
+
+            if model.n_outputs == 1:
+                f = lambda *inputs: \
+                        (model.evaluate(*(inputs + param_values)),)
+            else:
+                f = lambda *inputs: \
+                        model.evaluate(*(inputs + param_values))
 
             return (f, model.n_inputs, model.n_outputs)
 
