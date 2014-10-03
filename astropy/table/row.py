@@ -114,16 +114,21 @@ class Row(object):
 
     @property
     def data(self):
-        if not hasattr(self, '_data'):
-            index = self._index
-            cols = self._table.columns.values()
-            vals = tuple(col[index] for col in cols)
-            if self._table.masked:
-                mask = tuple(col.mask[index] for col in cols)
-                self._data = np.ma.array([vals], mask=[mask], dtype=self.dtype)[0]
-            else:
-                self._data = np.array([vals], dtype=self.dtype)[0]
-        return self._data
+        """
+        This provides a read-only copy of the row values in the form of np.void
+        or np.ma.mvoid objects.  This property is slow and its use is discouraged
+        in most cases.
+        """
+        index = self._index
+        cols = self._table.columns.values()
+        vals = tuple(col[index] for col in cols)
+        if self._table.masked:
+            mask = tuple(col.mask[index] if hasattr(col, 'mask') else False
+                         for col in cols)
+            self_data = np.ma.array([vals], mask=[mask], dtype=self.dtype)[0]
+        else:
+            self_data = np.array([vals], dtype=self.dtype)[0]
+        return self_data
 
     @property
     def meta(self):
