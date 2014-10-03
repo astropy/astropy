@@ -10,7 +10,7 @@ import numpy as np
 from .. units import dimensionless_unscaled, UnitsError
 from .. import log
 from .nddata import NDData
-from .nduncertainty import IncompatibleUncertaintiesException
+from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 
 __all__ = ['NDArithmetic', 'NDDataArithmetic']
 
@@ -226,4 +226,32 @@ class NDDataArithmetic(NDArithmetic, NDData):
     An ``NDData`` object with arithmetic. This class is functionally equivalent
     to ``NDData`` in astropy  versions prior to 1.0.
     """
-    pass
+    @property
+    def uncertainty(self):
+        return self._uncertainty
+
+    @uncertainty.setter
+    def uncertainty(self, value):
+        if value is not None:
+            if isinstance(value, NDUncertainty):
+                class_name = self.__class__.__name__
+                if self.unit and value._unit:
+                    try:
+                        scaling = (1 * value._unit).to(self.unit)
+                    except UnitsError:
+                        raise UnitsError('Cannot convert unit of uncertainty '
+                                         'to unit of '
+                                         '{0} object.'.format(class_name))
+                    value.array *= scaling
+                elif not self.unit and value._unit:
+                    # Raise an error if uncertainty has unit and data does not
+                    raise ValueError("Cannot assign an uncertainty with unit "
+                                     "to {0} without "
+                                     "a unit".format(class_name))
+                self._uncertainty = value
+                self._uncertainty.parent_nddata = self
+            else:
+                raise TypeError("Uncertainty must be an instance of a NDUncertainty object")
+        else:
+            self._uncertainty = value
+

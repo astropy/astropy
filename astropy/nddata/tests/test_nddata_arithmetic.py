@@ -36,6 +36,28 @@ class FakeUncertainty(NDUncertainty):
         pass
 
 
+def test_nddata_uncertainty_init_invalid_shape_1():
+    u = StdDevUncertainty(array=np.ones((6, 6)))
+    with pytest.raises(ValueError) as exc:
+        NDDataArithmetic(np.ones((5, 5)), uncertainty=u)
+    assert exc.value.args[0] == 'parent shape does not match array data shape'
+
+
+def test_nddata_uncertainty_init_invalid_shape_2():
+    u = StdDevUncertainty()
+    NDDataArithmetic(np.ones((5, 5)), uncertainty=u)
+    with pytest.raises(ValueError) as exc:
+        u.array = np.ones((6, 6))
+    assert exc.value.args[0] == 'array shape does not match parent data shape'
+
+
+@pytest.mark.parametrize(('uncertainty'), [1., 'spam', np.ones((5, 5))])
+def test_nddata_uncertainty_invalid_type(uncertainty):
+    with pytest.raises(TypeError) as exc:
+        NDDataArithmetic(np.ones((5, 5)), uncertainty=uncertainty)
+    assert exc.value.args[0] == 'Uncertainty must be an instance of a NDUncertainty object'
+
+
 def test_nddata_add():
     d1 = NDDataArithmetic(np.ones((5, 5)))
     d2 = NDDataArithmetic(np.ones((5, 5)))
@@ -97,6 +119,40 @@ def test_nddata_add_uncertainties_mismatch():
     with pytest.raises(IncompatibleUncertaintiesException) as exc:
         d3 = d1.add(d2)
     assert exc.value.args[0] == 'Cannot propagate uncertainties of type StdDevUncertainty with uncertainties of type FakeUncertainty for addition'
+
+
+
+
+def test_initializing_nduncertainty_from_quantity():
+    # Until nddata and quantity are integrated initializing with a quantity
+    # should raise an error.
+    input_ndd_unit = u.kg
+    ndd = NDDataArithmetic(np.array([1, 2, 3]), unit=input_ndd_unit)
+    std_data = np.array([1, 2, 3])
+
+    # Unit of the uncertainty not convertible to unit of ndd, should raise
+    # an error.
+    std_error = StdDevUncertainty(u.adu * std_data)
+    assert std_error._unit is u.adu
+    with pytest.raises(u.UnitsError):
+        ndd.uncertainty = std_error
+
+    # Uncertainty should be settable without any change in its values
+    # because uncertainty unit is same as data unit.
+    std_error = StdDevUncertainty(u.kg * std_data)
+    ndd.uncertainty = std_error
+    assert_array_equal(std_data, ndd.uncertainty.array)
+
+    # If the uncertainty unit is grams there should be no error, but the
+    # values of the uncertainty should be scaled.
+    std_error = StdDevUncertainty(u.g * std_data)
+    ndd.uncertainty = std_error
+    assert_array_equal(std_data, 1000 * ndd.uncertainty.array)
+
+    # If ndd has no unit but the uncertainty does an error should be raised.
+    ndd.unit = None
+    with pytest.raises(ValueError):
+        ndd.uncertainty = std_error
 
 
 def test_nddata_subtract():

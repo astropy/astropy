@@ -5,10 +5,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 
-from ..units import Unit, Quantity, UnitsError
+from ..units import Unit, Quantity
 from .. import log
 
-from .nduncertainty import NDUncertainty
 from ..io import registry as io_registry
 from ..config import ConfigAlias
 from ..utils.metadata import MetaData
@@ -200,28 +199,7 @@ class NDData(object):
 
     @uncertainty.setter
     def uncertainty(self, value):
-        if value is not None:
-            if isinstance(value, NDUncertainty):
-                class_name = self.__class__.__name__
-                if self.unit and value._unit:
-                    try:
-                        scaling = value._unit.to(self.unit)
-                    except UnitsError:
-                        raise UnitsError('Cannot convert unit of uncertainty '
-                                         'to unit of '
-                                         '{0} object.'.format(class_name))
-                    value.array *= scaling
-                elif not self.unit and value._unit:
-                    # Raise an error if uncertainty has unit and data does not
-                    raise ValueError("Cannot assign an uncertainty with unit "
-                                     "to {0} without "
-                                     "a unit".format(class_name))
-                self._uncertainty = value
-                self._uncertainty.parent_nddata = self
-            else:
-                raise TypeError("Uncertainty must be an instance of a NDUncertainty object")
-        else:
-            self._uncertainty = value
+        self._uncertainty = value
 
     @property
     def unit(self):
