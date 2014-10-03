@@ -637,6 +637,25 @@ a real-world example::
    so the ``astropy.tests.helper.catch_warnings`` context manager is
    preferred.
 
+Testing configuration parameters
+--------------------------------
+
+In order to ensure reproducibility of tests, all configuration items
+are reset to their default values when the test runner starts up.
+
+Sometimes you'll want to test the behavior of code when a certain
+configuration item is set to a particular value.  In that case, you
+can use the ``~astropy.config.ConfigItem.set_temp`` context manager to
+temporarily set a configuration item to that value, test within that
+context, and have it automatically return to its original value.
+
+For example::
+
+    def test_pprint():
+        from ... import conf
+        with conf.set_temp('max_lines', 6):
+            # ...
+
 Testing with Unicode literals
 -----------------------------
 
