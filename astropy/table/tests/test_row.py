@@ -23,12 +23,11 @@ def test_masked_row_with_object_col():
     """
     t = table.Table([[1]], dtype=['O'], masked=True)
     if numpy_lt_1p8:
-        with pytest.raises(ValueError):
-            t['col0'].mask = False
-            t[0]
+        t['col0'].mask = False
+        t[0].data
         with pytest.raises(ValueError):
             t['col0'].mask = True
-            t[0]
+            t[0].data
     else:
         t['col0'].mask = False
         assert t[0]['col0'] == 1
@@ -129,14 +128,14 @@ class TestRow():
 
         np_data = np.array(d)
         if table_types.Table is not MaskedTable:
-            assert np.all(np_data == d._data)
-        assert not np_data is d._data
+            assert np.all(np_data == d.data)
+        assert not np_data is d.data
         assert d.colnames == list(np_data.dtype.names)
 
         np_data = np.array(d, copy=False)
         if table_types.Table is not MaskedTable:
-            assert np.all(np_data == d._data)
-        assert not np_data is d._data
+            assert np.all(np_data == d.data)
+        assert not np_data is d.data
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):
