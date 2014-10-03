@@ -123,24 +123,6 @@ def test_nddata_conversion():
     assert nd.dtype == np.dtype(int)
 
 
-def test_ndddata_with_mask_acts_like_masked_array():
-    # test for #2414
-    input_mask = np.array([True, False, False])
-    input_data = np.array([1, 2, 3])
-    ndd_masked = NDData(input_data.copy(), mask=input_mask.copy())
-    other = - np.ones_like(input_data)
-    result1 = ndd_masked * other
-    result2 = other * ndd_masked
-    # Test for both orders of multiplication -- if multiplication is
-    # eventually overridden for NDData the result can depend on order.
-    for result in [result1, result2]:
-        # Result should be a masked array because input NDData was masked
-        assert isinstance(result, np.ma.MaskedArray)
-        # Result mask should match input mask because other has no mask
-        assert np.all(result.mask == input_mask)
-        assert np.all(result[~result.mask] == - input_data[~input_mask])
-
-
 def test_convert_unit_to():
     # convert_unit_to should return a copy of its input
     d = NDData(np.ones((5, 5)))
@@ -148,10 +130,10 @@ def test_convert_unit_to():
     d.uncertainty = StdDevUncertainty(0.1 + np.zeros_like(d))
     # workaround because zeros_like does not support dtype arg until v1.6
     # and NDData accepts only bool ndarray as mask
-    tmp = np.zeros_like(d)
+    tmp = np.zeros_like(d.data)
     d.mask = np.array(tmp, dtype=np.bool)
     d1 = d.convert_unit_to('m')
-    assert np.all(d1 == np.array(1000.0))
+    assert np.all(d1.data == np.array(1000.0))
     assert np.all(d1.uncertainty.array == 1000.0 * d.uncertainty.array)
     assert d1.unit == u.m
     # changing the output mask should not change the original

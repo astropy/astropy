@@ -249,25 +249,6 @@ class NDData(object):
         """
         return self.data.ndim
 
-    def __array__(self):
-        """
-        This allows code that requests a Numpy array to use an NDData
-        object as a Numpy array.
-        """
-        if self.mask is not None:
-            return np.ma.masked_array(self.data, self.mask)
-        else:
-            return np.array(self.data)
-
-    def __array_prepare__(self, array, context=None):
-        """
-        This ensures that a masked array is returned if self is masked.
-        """
-        if self.mask is not None:
-            return np.ma.masked_array(array, self.mask)
-        else:
-            return array
-
     def __getitem__(self, item):
 
         new_data = self.data[item]

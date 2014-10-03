@@ -277,3 +277,22 @@ class NDDataArithmetic(NDArithmetic, NDData):
         else:
             # internal representation should be one numpy understands
             self._mask = np.ma.nomask
+
+    def __array__(self):
+        """
+        This allows code that requests a Numpy array to use an NDData
+        object as a Numpy array.
+        """
+        if self.mask is not None:
+            return np.ma.masked_array(self.data, self.mask)
+        else:
+            return np.array(self.data)
+
+    def __array_prepare__(self, array, context=None):
+        """
+        This ensures that a masked array is returned if self is masked.
+        """
+        if self.mask is not None:
+            return np.ma.masked_array(array, self.mask)
+        else:
+            return array
