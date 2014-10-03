@@ -9,7 +9,7 @@ import textwrap
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ..nddata import NDData, NDDataArithmetic
+from ..arithmetic import NDDataArithmetic
 from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
 from ...tests.helper import pytest, raises
 from ... import units as u

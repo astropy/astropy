@@ -12,6 +12,7 @@ from .nddata import *
 from .nduncertainty import *
 from .flag_collection import *
 from .decorators import *
+from .arithmetic import *
 
 from .. import config as _config
 
