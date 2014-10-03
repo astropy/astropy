@@ -4,14 +4,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import textwrap
-
 import numpy as np
 from numpy.testing import assert_array_equal
 
 from ..arithmetic import NDDataArithmetic
 from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
-from ...tests.helper import pytest, raises
+from ...tests.helper import pytest
 from ... import units as u
 from ...utils import NumpyRNGContext
 
