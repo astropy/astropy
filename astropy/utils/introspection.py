@@ -9,11 +9,12 @@ from __future__ import (absolute_import, division, print_function,
 
 import inspect
 import sys
+import types
 
 from ..extern import six
 
 
-__all__ = ['find_current_module']
+__all__ = ['find_current_module', 'isinstancemethod']
 
 
 __doctest_skip__ = ['find_current_module']
@@ -194,3 +195,58 @@ def find_mod_objs(modname, onlylocals=False):
         objs = [e for i, e in enumerate(objs) if valids[i]]
 
     return localnames, fqnames, objs
+
+
+# Note: I would have preferred call this is_instancemethod, but this naming is
+# for consistency with other functions in the `inspect` module
+def isinstancemethod(cls, obj):
+    """
+    Returns `True` if the given object is an instance method of the class
+    it is defined on (as opposed to a `staticmethod` or a `classmethod`).
+
+    This requires both the class the object is a member of as well as the
+    object itself in order to make this determination.
+
+    Parameters
+    ----------
+    cls : `type`
+        The class on which this method was defined.
+    obj : `object`
+        A member of the provided class (the membership is not checked directly,
+        but this function will always return `False` if the given object is not
+        a member of the given class).
+
+    Examples
+    --------
+    >>> class MetaClass(type):
+    ...     def a_classmethod(cls): pass
+    ...
+    >>> class MyClass(object):
+    ...     __metaclass__ = MetaClass
+    ...     def an_instancemethod(self): pass
+    ...     @classmethod
+    ...     def another_classmethod(cls): pass
+    ...     @staticmethod
+    ...     def a_staticmethod(): pass
+    ...
+    >>> isinstancemethod(MyClass, MyClass.a_classmethod)
+    False
+    >>> isinstancemethod(MyClass, MyClass.another_classmethod)
+    False
+    >>> isinstancemethod(MyClass, MyClass.a_staticmethod)
+    False
+    >>> isinstancemethod(MyClass, MyClass.an_instancemethod)
+    True
+    """
+
+    return _isinstancemethod(cls, obj)
+
+
+if six.PY3:
+    def _isinstancemethod(cls, obj):
+        return (isinstance(obj, types.FunctionType) and
+                not isinstance(cls.__dict__[obj.__name__], staticmethod))
+else:
+    def _isinstancemethod(cls, obj):
+        return isinstance(obj, types.MethodType) and obj.im_class is cls
+
