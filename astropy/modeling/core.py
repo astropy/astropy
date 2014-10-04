@@ -1320,12 +1320,20 @@ def _make_compound_model(left, right, operator):
         inputs = left.inputs
         outputs = left.outputs
 
+    if operator in ('|', '+', '-'):
+        linear = left.linear and right.linear
+    else:
+        # Which is not to say it is *definitely* not linear but it would be
+        # trickier to determine
+        linear = False
+
 
     members = {'_tree': tree,
                # TODO: These are temporary until we implement the full rules
                # for handling inputs/outputs
                'inputs': inputs,
                'outputs': outputs,
+               'linear': linear,
                '__module__': str(modname)}
 
     new_cls = _CompoundModelMeta(name, (_CompoundModel,), members)
