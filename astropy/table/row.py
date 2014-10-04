@@ -10,6 +10,7 @@ import numpy as np
 from numpy import ma
 
 from ..extern import six
+from ..utils import deprecated
 
 class Row(object):
     """A class to represent one row of a Table object.
@@ -95,11 +96,13 @@ class Row(object):
 
         Coercion to a different dtype via np.array(table, dtype) is not
         supported and will raise a ValueError.
+
+        If the parent table is masked then the mask information is dropped.
         """
         if dtype is not None:
             raise ValueError('Datatype coercion is not allowed')
 
-        return np.array(self.data, dtype=self.dtype)
+        return np.asarray(self.data)
 
     def __len__(self):
         return len(self._table.columns)
@@ -113,11 +116,15 @@ class Row(object):
         return self._index
 
     @property
+    @deprecated('0.4', alternative=':attr:`Row.as_void`')
     def data(self):
+        return self.as_void()
+
+    def as_void(self):
         """
-        This provides a read-only copy of the row values in the form of np.void
-        or np.ma.mvoid objects.  This property is slow and its use is discouraged
-        in most cases.
+        This provides a *read-only* copy of the row values in the form of np.void
+        or np.ma.mvoid objects.  This method is slow and its use is discouraged
+        when possible.
         """
         index = self._index
         cols = self._table.columns.values()
