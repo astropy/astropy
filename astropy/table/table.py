@@ -316,7 +316,7 @@ class Table(object):
     @property
     def _mask(self):
         """This is needed due to intricacies in numpy.ma, don't remove it."""
-        return self._data.mask
+        return self.as_array().mask
 
     def filled(self, fill_value=None):
         """Return a copy of self, with masked values filled.
