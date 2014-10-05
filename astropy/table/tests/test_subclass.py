@@ -8,7 +8,7 @@ from .. import pprint
 
 class MyRow(table.Row):
     def __str__(self):
-        return str(self.data)
+        return str(self.as_void())
 
 
 class MyColumn(table.Column):

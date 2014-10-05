@@ -92,7 +92,7 @@ class TestRow():
     def test_left_equal(self, table_types):
         """Compare a table row to the corresponding structured array row"""
         self._setup(table_types)
-        np_t = self.t._data.copy()
+        np_t = self.t.as_array()
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
                 self.t[0] == np_t[0]
@@ -103,7 +103,7 @@ class TestRow():
     def test_left_not_equal(self, table_types):
         """Compare a table row to the corresponding structured array row"""
         self._setup(table_types)
-        np_t = self.t._data.copy()
+        np_t = self.t.as_array()
         np_t['a'] = [0, 0, 0]
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
@@ -115,7 +115,7 @@ class TestRow():
     def test_right_equal(self, table_types):
         """Test right equal"""
         self._setup(table_types)
-        np_t = self.t._data.copy()
+        np_t = self.t.as_array()
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
                 self.t[0] == np_t[0]

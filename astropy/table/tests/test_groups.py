@@ -42,7 +42,7 @@ def test_column_group_by():
         assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
 
         # Group by a numpy structured array
-        t1ag = t1a.group_by(t1['a', 'b']._data)
+        t1ag = t1a.group_by(t1['a', 'b'].as_array())
         assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
 
 
@@ -101,7 +101,7 @@ def test_table_group_by():
         assert tg.pformat() == tg2.pformat()
 
         # Group by a structured array
-        tg2 = t1.group_by(t1['a', 'b']._data)
+        tg2 = t1.group_by(t1['a', 'b'].as_array())
         assert tg.pformat() == tg2.pformat()
 
         # Group by a simple ndarray
@@ -388,7 +388,7 @@ def test_groups_keys_meta():
     assert tg.groups[1].groups.keys.meta['grouped_by_table_cols'] is False
 
     # Group by external numpy array
-    tg = T1.group_by(T1['a', 'b']._data)
+    tg = T1.group_by(T1['a', 'b'].as_array())
     assert not hasattr(tg.groups.keys, 'meta')
     assert not hasattr(tg['c'].groups.keys, 'meta')
 
