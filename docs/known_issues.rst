@@ -48,7 +48,7 @@ Quantities float comparison with np.isclose fails
 -------------------------------------------------
 
 Comparing Quantities floats using the numpy function `~numpy.isclose` fails on
-numpy 1.9 as the comparison between `a` and `b` is made using the formula
+numpy 1.9 as the comparison between :math:`a` and :math:`b` is made using the formula
 
 .. math::
 
