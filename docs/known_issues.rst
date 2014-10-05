@@ -44,6 +44,29 @@ Work-arounds are available for some cases.  For the above::
 
 See: https://github.com/astropy/astropy/issues/1274
 
+Quantities float comparison with np.isclose fails
+-------------------------------------------------
+
+Comparing Quantities floats using the numpy function `~numpy.isclose` fails on
+numpy 1.9 as the comparison between `a` and `b` is made using the formula:
+
+    absolute(`a` - `b`) <= (`atol` + `rtol` * absolute(`b`))
+
+This will result in the following traceback when using this with Quantities::
+
+    In [1]: from astropy import units as u, constants as const
+    In [2]: import numpy as np
+    In [3]: np.isclose(500* u.km/u.s, 300 * u.km / u.s)
+    UnitsError: Can only apply 'add' function to dimensionless quantities when
+    other argument is not a quantity (unless the latter is all zero/infinity/nan)
+
+An easy solution is to do::
+
+    In [4]: np.isclose(500* u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.km / u.s)
+    Out[4]: array([False], dtype=bool)
+
+or `atol = 0`.
+
 Some docstrings can not be displayed in IPython < 0.13.2
 --------------------------------------------------------
 
