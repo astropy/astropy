@@ -118,24 +118,49 @@ class Row(object):
     @property
     @deprecated('0.4', alternative=':attr:`Row.as_void`')
     def data(self):
+        """
+        Returns a *read-only* copy of the row values in the form of np.void or
+        np.ma.mvoid objects.  This corresponds to the object types returned for
+        row indexing of a pure numpy structured array or masked array. This
+        method is slow and its use is deprecated.
+        """
         return self.as_void()
 
     def as_void(self):
         """
-        This provides a *read-only* copy of the row values in the form of np.void
-        or np.ma.mvoid objects.  This method is slow and its use is discouraged
-        when possible.
+        Returns a *read-only* copy of the row values in the form of np.void or
+        np.ma.mvoid objects.  This corresponds to the object types returned for
+        row indexing of a pure numpy structured array or masked array. This
+        method is slow and its use is discouraged when possible.
+
+        Returns
+        -------
+        void_row : np.void (unmasked) or np.ma.mvoid (masked)
+            Copy of row values
         """
         index = self._index
         cols = self._table.columns.values()
         vals = tuple(col[index] for col in cols)
         if self._table.masked:
-            mask = tuple(col.mask[index] if hasattr(col, 'mask') else False
-                         for col in cols)
-            self_data = np.ma.array([vals], mask=[mask], dtype=self.dtype)[0]
+            # The logic here is a little complicated to work around
+            # bug in numpy < 1.8 (numpy/numpy#483).  Need to build up
+            # a np.ma.mvoid object by hand.
+            from .table import descr
+
+            # Make np.void version of masks.  Use the table dtype but
+            # substitute bool for data type
+            masks = tuple(col.mask[index] if hasattr(col, 'mask') else False
+                          for col in cols)
+            descrs = (descr(col) for col in cols)
+            mask_dtypes = [(name, np.bool, shape) for name, type_, shape in descrs]
+            row_mask = np.array([masks], dtype=mask_dtypes)[0]
+
+            # Make np.void version of values, and then the final mvoid row
+            row_vals = np.array([vals], dtype=self.dtype)[0]
+            void_row = np.ma.mvoid(data=row_vals, mask=row_mask)
         else:
-            self_data = np.array([vals], dtype=self.dtype)[0]
-        return self_data
+            void_row = np.array([vals], dtype=self.dtype)[0]
+        return void_row
 
     @property
     def meta(self):
