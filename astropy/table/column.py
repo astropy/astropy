@@ -277,9 +277,6 @@ class BaseColumn(np.ndarray):
         if self.parent_table is not None:
             table = self.parent_table
             table.columns._rename_column(self.name, val)
-            table._data.dtype.names = list(table.columns)
-            if table.masked:
-                table._data.mask.dtype.names = list(table.columns)
 
         self._name = val
 
@@ -796,9 +793,6 @@ class MaskedColumn(Column, ma.MaskedArray):
         """Set fill value both in the masked column view and in the parent table
         if it exists.  Setting one or the other alone doesn't work."""
         val = self._fix_fill_value(val)
-
-        if self.parent_table:
-            self.parent_table._data[self._name].fill_value = val
 
         # Yet another ma bug workaround: If the value of fill_value for a string array is
         # requested but not yet set then it gets created as 'N/A'.  From this point onward
