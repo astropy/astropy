@@ -34,7 +34,9 @@ except ImportError:
 from distutils.core import Command
 
 from .. import test
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import (AstropyWarning,
+                                AstropyDeprecationWarning,
+                                AstropyPendingDeprecationWarning)
 from ..config import configuration
 
 if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
@@ -425,6 +427,8 @@ def treat_deprecations_as_exceptions():
     warnings.resetwarnings()
     # Now, turn DeprecationWarnings into exceptions
     warnings.filterwarnings("error", ".*", DeprecationWarning)
+    warnings.filterwarnings("error", ".*", AstropyDeprecationWarning)
+    warnings.filterwarnings("error", ".*", AstropyPendingDeprecationWarning)
 
     if sys.version_info[:2] == (2, 6):
         # py.test's warning.showwarning does not include the line argument
