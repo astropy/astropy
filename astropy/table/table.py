@@ -163,7 +163,27 @@ class Table(object):
     TableFormatter = TableFormatter
 
     @property
+    @deprecated('0.4', alternative=':attr:`Table.as_array`')
     def _data(self):
+        """
+        Return a new copy of the table in the form of a structured np.ndarray or
+        np.ma.MaskedArray object (as appropriate).
+
+        Prior to version 1.0 of astropy this private property was a modifiable
+        view of the table data, but since 1.0 it is a copy.
+        """
+        return self.as_array()
+
+    def as_array(self):
+        """
+        Return a new copy of the table in the form of a structured np.ndarray or
+        np.ma.MaskedArray object (as appropriate).
+
+        Returns
+        -------
+        table_array : np.ndarray (unmasked) or np.ma.MaskedArray (masked)
+            Copy of table as a numpy structured array
+        """
         if len(self.columns) == 0:
             return None
 
@@ -339,7 +359,7 @@ class Table(object):
         # array([(0, 0), (0, 0)],
         #       dtype=[('a', '<i8'), ('b', '<i8')])
 
-        return self._data.data if self.masked else self._data
+        return self.as_array().data if self.masked else self.as_array()
 
     def _check_names_dtype(self, names, dtype, n_cols):
         """Make sure that names and dtype are boths iterable and have
@@ -536,11 +556,11 @@ class Table(object):
             units = ("{0}".format(None if unit is None else '\''+str(unit)+'\'')
                      for unit in units)
             s = "<{3} rows={0} names=({1}) units=({4})>\n{2}".format(
-                self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__
+                self.__len__(), ','.join(names), repr(self.as_array()), self.__class__.__name__
                 ,','.join(units))
         else:
             s = "<{3} rows={0} names=({1})>\n{2}".format(
-                self.__len__(), ','.join(names), repr(self._data), self.__class__.__name__)
+                self.__len__(), ','.join(names), repr(self.as_array()), self.__class__.__name__)
         return s
 
     def __unicode__(self):
@@ -1561,13 +1581,13 @@ class Table(object):
         newlen = len(self) + 1
 
         if vals is None:
-            vals = np.zeros(1, dtype=self._data.dtype)[0]
+            vals = np.zeros(1, dtype=self.dtype)[0]
 
         if mask is not None and not self.masked:
             self._set_masked(True)
 
         # Create a table with one row to test the operation on
-        test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self._data.dtype)
+        test_data = (ma.zeros if self.masked else np.zeros)(1, dtype=self.dtype)
 
         if _is_mapping(vals):
 
@@ -1670,9 +1690,9 @@ class Table(object):
             kwargs['kind'] = kind
 
         if keys:
-            data = self[keys]._data
+            data = self[keys].as_array()
         else:
-            data = self._data
+            data = self.as_array()
 
         if _BROKEN_UNICODE_TABLE_SORT and keys is not None and any(
                 data.dtype[i].kind == 'U' for i in xrange(len(data.dtype))):
@@ -1842,24 +1862,24 @@ class Table(object):
     def __eq__(self, other):
 
         if isinstance(other, Table):
-            other = other._data
+            other = other.as_array()
 
         if self.masked:
             if isinstance(other, np.ma.MaskedArray):
-                result = self._data == other
+                result = self.as_array() == other
             else:
                 # If mask is True, then by definition the row doesn't match
                 # because the other array is not masked.
                 false_mask = np.zeros(1, dtype=[(n, bool) for n in self.dtype.names])
-                result = (self._data.data == other) & (self.mask == false_mask)
+                result = (self.as_array().data == other) & (self.mask == false_mask)
         else:
             if isinstance(other, np.ma.MaskedArray):
                 # If mask is True, then by definition the row doesn't match
                 # because the other array is not masked.
                 false_mask = np.zeros(1, dtype=[(n, bool) for n in other.dtype.names])
-                result = (self._data == other.data) & (other.mask == false_mask)
+                result = (self.as_array() == other.data) & (other.mask == false_mask)
             else:
-                result = self._data == other
+                result = self.as_array() == other
 
         return result
 

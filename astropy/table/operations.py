@@ -145,7 +145,7 @@ def join(left, right, keys=None, join_type='inner',
         right = Table(right)
 
     col_name_map = OrderedDict()
-    out_data = np_utils.join(left._data, right._data, keys, join_type,
+    out_data = np_utils.join(left.as_array(), right.as_array(), keys, join_type,
                              uniq_col_name, table_names, col_name_map)
     # Create the output (Table or subclass of Table)
     out = Table(out_data)
@@ -211,7 +211,7 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     from .table import Table
 
     tables = _get_list_of_tables(tables)  # validates input
-    arrays = [table._data for table in tables]
+    arrays = [table.as_array() for table in tables]
     col_name_map = OrderedDict()
 
     out_data = np_utils.vstack(arrays, join_type, col_name_map)
@@ -285,7 +285,7 @@ def hstack(tables, join_type='outer',
     from .table import Table
 
     tables = _get_list_of_tables(tables)  # validates input
-    arrays = [table._data for table in tables]
+    arrays = [table.as_array() for table in tables]
     col_name_map = OrderedDict()
 
     out_data = np_utils.hstack(arrays, join_type, uniq_col_name, table_names,
