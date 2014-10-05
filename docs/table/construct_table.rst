@@ -767,13 +767,13 @@ are contained in a numpy object-dtype column named ``params``::
   ...    """
   ...    def __getitem__(self, item):
   ...        if item not in self.colnames:
-  ...            return self.data['params'][item]
+  ...            return super(ParamsRow, self).__getitem__('params')[item]
   ...        else:
-  ...            return self.data[item]
+  ...            return super(ParamsRow, self).__getitem__(item)
   ...
   ...    def keys(self):
   ...        out = [name for name in self.colnames if name != 'params']
-  ...        params = [key.lower() for key in sorted(self.data['params'])]
+  ...        params = [key.lower() for key in sorted(self['params'])]
   ...        return out + params
   ...
   ...    def values(self):
