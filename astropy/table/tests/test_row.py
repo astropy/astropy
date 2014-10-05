@@ -186,3 +186,11 @@ class TestRow():
             assert row_void['a'] == 1
             row_void = row.as_void()  # but row is a view
             assert row['a'] is np.ma.masked
+
+    def test_row_and_as_void_with_objects(self, table_types):
+        """Test the deprecated data property and as_void() method"""
+        t = table_types.Table([[{'a': 1}, {'b': 2}]], names=('a',))
+        assert t[0][0] == {'a': 1}
+        assert t[0]['a'] == {'a': 1}
+        assert t[0].as_void()[0] == {'a': 1}
+        assert t[0].as_void()['a'] == {'a': 1}

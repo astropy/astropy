@@ -136,7 +136,7 @@ class Row(object):
         """
         index = self._index
         cols = self._table.columns.values()
-        vals = tuple(np.asarray(col[index]) for col in cols)
+        vals = tuple(np.asarray(col)[index] for col in cols)
         if self._table.masked:
             # The logic here is a little complicated to work around
             # bug in numpy < 1.8 (numpy/numpy#483).  Need to build up
