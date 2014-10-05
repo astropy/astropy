@@ -13,7 +13,7 @@ import string
 import numpy as np
 
 from .table import Table, Column
-from ..extern.six.moves import zip
+from ..extern.six.moves import zip, range
 
 class TimingTables(object):
     """
@@ -91,9 +91,9 @@ def simple_table(size=3, cols=None, kinds='ifS', masked=False):
         raise ValueError("Max 26 columns in SimpleTable")
 
     columns = []
-    names = [chr(ord('a') + ii) for ii in xrange(cols)]
+    names = [chr(ord('a') + ii) for ii in range(cols)]
     letters = np.array([c for c in string.ascii_letters])
-    for jj, kind in zip(xrange(cols), cycle(kinds)):
+    for jj, kind in zip(range(cols), cycle(kinds)):
         if kind == 'i':
             data = np.arange(1, size + 1, dtype=int) + jj
         elif kind == 'f':
