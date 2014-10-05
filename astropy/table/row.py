@@ -80,16 +80,12 @@ class Row(object):
             # "Comparing rows in a structured masked array raises exception"
             # No response, so this is still unresolved.
             raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
-        return self.data == other
+        return self.as_void() == other
 
     def __ne__(self, other):
         if self._table.masked:
             raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
-        return self.data != other
-
-    @property
-    def _mask(self):
-        return self.data.mask
+        return self.as_void() != other
 
     def __array__(self, dtype=None):
         """Support converting Row to np.array via np.array(table).
@@ -102,7 +98,7 @@ class Row(object):
         if dtype is not None:
             raise ValueError('Datatype coercion is not allowed')
 
-        return np.asarray(self.data)
+        return np.asarray(self.as_void())
 
     def __len__(self):
         return len(self._table.columns)
@@ -180,7 +176,7 @@ class Row(object):
 
     def __repr__(self):
         return "<{3} {0} of table\n values={1!r}\n dtype={2}>".format(
-            self.index, self.data, self.dtype, self.__class__.__name__)
+            self.index, self.as_void(), self.dtype, self.__class__.__name__)
 
 
 collections.Sequence.register(Row)
