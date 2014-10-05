@@ -952,12 +952,6 @@ class Table(object):
 
         return lengths.pop()
 
-    def create_mask(self):
-        if isinstance(self._data, ma.MaskedArray):
-            raise Exception("data array is already masked")
-        else:
-            self._data = ma.array(self._data)
-
     def index_column(self, name):
         """
         Return the positional index of column ``name``.
