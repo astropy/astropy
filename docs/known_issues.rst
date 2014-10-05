@@ -48,9 +48,11 @@ Quantities float comparison with np.isclose fails
 -------------------------------------------------
 
 Comparing Quantities floats using the numpy function `~numpy.isclose` fails on
-numpy 1.9 as the comparison between `a` and `b` is made using the formula:
+numpy 1.9 as the comparison between `a` and `b` is made using the formula
 
-    absolute(`a` - `b`) <= (`atol` + `rtol` * absolute(`b`))
+.. math::
+
+    absolute(a - b) \le (atol + rtol \times absolute(b))
 
 This will result in the following traceback when using this with Quantities::
 
@@ -60,12 +62,12 @@ This will result in the following traceback when using this with Quantities::
     UnitsError: Can only apply 'add' function to dimensionless quantities when
     other argument is not a quantity (unless the latter is all zero/infinity/nan)
 
-An easy solution is to do::
+An easy solution is::
 
     In [4]: np.isclose(500* u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.km / u.s)
     Out[4]: array([False], dtype=bool)
 
-or `atol = 0`.
+
 
 Some docstrings can not be displayed in IPython < 0.13.2
 --------------------------------------------------------
