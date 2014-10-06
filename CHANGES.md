@@ -9,6 +9,9 @@
 - Fixed a bug that caused the clip path for images to not be updated when
   making subsequent changes after drawing the figure. [#117]
 
+- Fixed a bug that caused the clip path for images to not be updated after
+  calling reset_wcs. [#120]
+
 0.2 (2014-08-11)
 ----------------
 

@@ -63,9 +63,19 @@ class WCSAxes(Axes):
         else:
             self.wcs = wcs
 
+        # If we are making a new WCS, we need to preserve the path object since
+        # it may already be used by objects that have been plotted, and we need
+        # to continue updating it. CoordinatesMap will create a new frame
+        # instance, but we can tell that instance to keep using the old path.
+        if hasattr(self, 'coords'):
+            previous_frame_path = self.coords.frame._path
+        else:
+            previous_frame_path = None
+
         self.coords = CoordinatesMap(self, wcs=self.wcs, slice=slices,
                                      transform=transform, coord_meta=coord_meta,
-                                     frame_class=self.frame_class)
+                                     frame_class=self.frame_class,
+                                     previous_frame_path=previous_frame_path)
 
         self._all_coords = [self.coords]
 

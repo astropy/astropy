@@ -75,7 +75,7 @@ class Spine(object):
 
 class BaseFrame(OrderedDict):
 
-    def __init__(self, parent_axes, transform):
+    def __init__(self, parent_axes, transform, path=None):
 
         super(BaseFrame, self).__init__()
 
@@ -83,7 +83,7 @@ class BaseFrame(OrderedDict):
         self._transform = transform
         self._linewidth = None
         self._color = 'black'
-        self._path = None
+        self._path = path
 
         for axis in self.spine_names:
             self[axis] = Spine(parent_axes, transform)
