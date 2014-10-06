@@ -307,6 +307,17 @@ class CoordinateHelper(object):
         self.axislabels.set_minpad(minpad)
         self.axislabels.set(**kwargs)
 
+    def get_axislabel(self):
+        """
+        Get the text for the axis label
+
+        Returns
+        -------
+        label : str
+            The axis label
+        """
+        return self.axislabels.get_text()
+
     def set_axislabel_position(self, position):
         """
         Set where axis labels should appear
