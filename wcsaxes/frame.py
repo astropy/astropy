@@ -82,6 +82,7 @@ class BaseFrame(OrderedDict):
         self._transform = transform
         self._linewidth = None
         self._color = 'black'
+        self._path = None
 
         for axis in self.spine_names:
             self[axis] = Spine(parent_axes, transform)
@@ -101,18 +102,25 @@ class BaseFrame(OrderedDict):
         for axis in self:
             self[axis].transform = value
 
-    @property
-    def path(self):
+    def _update_patch_path(self):
+
         self.update_spines()
         x, y = [], []
         for axis in self:
             x.append(self[axis].data[:,0])
             y.append(self[axis].data[:,1])
-        return Path(np.vstack([np.hstack(x), np.hstack(y)]).transpose())
+        vertices = np.vstack([np.hstack(x), np.hstack(y)]).transpose()
+
+        if self._path is None:
+            self._path = Path(vertices)
+        else:
+            self._path.vertices = vertices
 
     @property
     def patch(self):
-        return PathPatch(self.path, transform=self.parent_axes.transData)
+        self._update_patch_path()
+        return PathPatch(self._path, transform=self.parent_axes.transData,
+                         facecolor='white', edgecolor='white')
 
     def draw(self, renderer):
         for axis in self:
