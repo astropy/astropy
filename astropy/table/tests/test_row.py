@@ -192,8 +192,11 @@ class TestRow():
         t = table_types.Table([[{'a': 1}, {'b': 2}]], names=('a',))
         assert t[0][0] == {'a': 1}
         assert t[0]['a'] == {'a': 1}
-        if not numpy_lt_1p8:
+        if numpy_lt_1p8 and t.masked:
             # With numpy < 1.8 there is a bug setting mvoid with
             # an object.
+            with pytest.raises(ValueError):
+                t[0].as_void()
+        else:
             assert t[0].as_void()[0] == {'a': 1}
             assert t[0].as_void()['a'] == {'a': 1}

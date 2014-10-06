@@ -153,7 +153,26 @@ class Row(object):
 
             # Make np.void version of values, and then the final mvoid row
             row_vals = np.array([vals], dtype=self.dtype)[0]
-            void_row = np.ma.mvoid(data=row_vals, mask=row_mask)
+            try:
+                void_row = np.ma.mvoid(data=row_vals, mask=row_mask)
+            except ValueError as err:
+                # Another bug (or maybe same?) that is fixed in 1.8 prevents
+                # accessing a row in masked array if it has object-type members.
+                # >>> x = np.ma.empty(1, dtype=[('a', 'O')])
+                # >>> x['a'] = 1
+                # >>> x['a'].mask = True
+                # >>> x[0]
+                # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
+                #
+                # All we do here is re-raise with a more informative message
+                if (six.text_type(err).startswith('Setting void-array with object members')
+                        and version.LooseVersion(np.__version__) < version.LooseVersion('1.8')):
+                    raise ValueError('Cannot convert masked table row with Object type columns '
+                                     'using as_void(), due to a bug in numpy {0}.  Please upgrade '
+                                     'to numpy 1.8 or newer.'
+                                     .format(np.__version__))
+                else:
+                    raise
         else:
             void_row = np.array([vals], dtype=self.dtype)[0]
         return void_row
