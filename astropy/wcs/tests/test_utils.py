@@ -377,6 +377,17 @@ def test_skycoord_to_pixel(mode):
     assert_allclose(new.ra.degree, ref.ra.degree)
     assert_allclose(new.dec.degree, ref.dec.degree)
 
+    # Make sure you can specify a different class using ``cls`` keyword
+    class SkyCoord2(SkyCoord):
+        pass
+
+    new2 = pixel_to_skycoord(xp, yp, wcs, mode=mode,
+                             cls=SkyCoord2).transform_to('icrs')
+
+    assert new2.__class__ is SkyCoord2
+    assert_allclose(new2.ra.degree, ref.ra.degree)
+    assert_allclose(new2.dec.degree, ref.dec.degree)
+
 
 @pytest.mark.parametrize('mode', ['all', 'wcs'])
 def test_skycoord_to_pixel_distortions(mode):
