@@ -11,7 +11,7 @@ For the example in the following page we start from the example introduced in
 
     from astropy.wcs import WCS
     from wcsaxes import datasets
-    hdu = datasets.msx_hdu()
+    hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
@@ -118,7 +118,7 @@ image to plot the contours for:
    :include-source:
    :align: center
 
-    hdu = datasets.bolocam_hdu()
+    hdu = datasets.fetch_bolocam_hdu()
     ax.contour(hdu.data, transform=ax.get_transform(WCS(hdu.header)),
                levels=[1,2,3,4,5,6], colors='white')
 

@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This file defines the classes used to represent a 'coordinate', which includes
 axes, ticks, tick labels, and grid lines.

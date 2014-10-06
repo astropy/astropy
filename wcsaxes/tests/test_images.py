@@ -1,20 +1,19 @@
-import pytest
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 import os
 import shutil
 import tempfile
-import numpy as np
-from astropy import units as u
 import matplotlib.pyplot as plt
 from matplotlib.testing.compare import compare_images
 from matplotlib.patches import Circle
 from ..rc_utils import rc_context
 
+from astropy import units as u
 from astropy.wcs import WCS
 from astropy.io import fits
-from wcsaxes import WCSAxes
 from astropy.tests.helper import pytest
 from astropy.tests.helper import remote_data
-from wcsaxes import datasets
+from .. import WCSAxes
+from .. import datasets
 
 
 class BaseImageTests(object):
@@ -88,7 +87,7 @@ class TestBasic(BaseImageTests):
     # Test for overlaying contours on images
     @remote_data
     def test_contour_overlay(self, generate):
-        hdu_msx = datasets.msx_hdu()
+        hdu_msx = datasets.fetch_msx_hdu()
         wcs_msx = WCS(self.msx_header)
 
         fig = plt.figure(figsize=(6, 6))

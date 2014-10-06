@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numpy as np
 from astropy.utils import OrderedDict
 from matplotlib.lines import Line2D, Path

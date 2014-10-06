@@ -11,7 +11,7 @@ For the example in the following page we start from the example introduced in
 
     from astropy.wcs import WCS
     from wcsaxes import datasets
-    hdu = datasets.msx_hdu()
+    hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
@@ -266,7 +266,7 @@ Coordinate grid
 
 Since the properties of a coordinate grid are linked to the properties of the
 ticks and labels, grid lines 'belong' to the coordinate objects described
-above. For example, you can show a grid with red lines for RA and blue lines
+above. For example, you can show a grid with yellow lines for RA and orange lines
 for declination with:
 
 .. plot::

@@ -11,7 +11,7 @@ For the example in the following page we start from the example introduced in
 
     from astropy.wcs import WCS
     from wcsaxes import datasets
-    hdu = datasets.msx_hdu()
+    hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
