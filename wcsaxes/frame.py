@@ -119,7 +119,8 @@ class BaseFrame(OrderedDict):
     @property
     def patch(self):
         self._update_patch_path()
-        return PathPatch(self._path, transform=self.parent_axes.transData)
+        return PathPatch(self._path, transform=self.parent_axes.transData,
+                         facecolor='white', edgecolor='white')
 
     def draw(self, renderer):
         for axis in self:
