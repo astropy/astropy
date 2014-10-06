@@ -48,11 +48,11 @@ Quantities float comparison with np.isclose fails
 -------------------------------------------------
 
 Comparing Quantities floats using the numpy function `~numpy.isclose` fails on
-numpy 1.9 as the comparison between :math:`a` and :math:`b` is made using the formula
+numpy 1.9 as the comparison between ``a`` and ``b`` is made using the formula
 
 .. math::
 
-    absolute(a - b) \le (atol + rtol \times absolute(b))
+    |a - b| \le (a_\textrm{tol} + r_\textrm{tol} \times |b|)
 
 This will result in the following traceback when using this with Quantities::
 
@@ -64,7 +64,7 @@ This will result in the following traceback when using this with Quantities::
 
 An easy solution is::
 
-    >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.km / u.s)
+    >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
     array([False], dtype=bool)
 
 
