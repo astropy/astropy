@@ -704,7 +704,7 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
-    def to_pixels_wcs(self, wcs, origin=0, mode='all'):
+    def to_pixel(self, wcs, origin=0, mode='all'):
         """
         Convert this coordinate to pixel coordinates using a `~astropy.wcs.WCS`
         object.

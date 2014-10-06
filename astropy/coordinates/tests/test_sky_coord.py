@@ -727,7 +727,7 @@ def test_wcs_methods(mode):
 
     ref = SkyCoord(0.1 * u.deg, -89. * u.deg, frame='icrs')
 
-    xp, yp = ref.to_pixels_wcs(wcs, mode=mode)
+    xp, yp = ref.to_pixel(wcs, mode=mode)
 
     # WCS is in FK5 so we need to transform back to ICRS
     new = pixel_to_skycoord(xp, yp, wcs, mode=mode).transform_to('icrs')
