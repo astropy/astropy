@@ -12,6 +12,8 @@
 - Fixed a bug that caused the clip path for images to not be updated after
   calling reset_wcs. [#120]
 
+- Added ``CoordinateHelper.get_axislabel()`` method. [#122]
+
 0.2 (2014-08-11)
 ----------------
 
