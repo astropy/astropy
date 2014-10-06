@@ -1,5 +1,6 @@
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
+from matplotlib.patches import Patch
 
 from astropy.wcs import WCS
 # from astropy.coordinates import frame_transform_graph
@@ -40,6 +41,8 @@ class WCSAxes(Axes):
 
         self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
         self._hide_parent_artists()
+
+        self.patch = self.coords.frame.patch
 
     def _hide_parent_artists(self):
         # Turn off spines and current axes
@@ -83,18 +86,10 @@ class WCSAxes(Axes):
                     self.coords[coord_index].set_ticklabel_position('')
                     self.coords[coord_index].set_ticks_position('')
 
-    def _update_patch(self):
-
-        old_props = self.patch.properties()
-        self.patch = self.coords.frame.patch
-        props = {}
-        for key in VISUAL_PROPERTIES:
-            props[key] = old_props[key]
-        self.patch.update(props)
-
     def draw(self, renderer, inframe=False):
 
-        self._update_patch()
+        # We need to make sure that that frame path is up to date
+        self.coords.frame._update_patch_path()
 
         super(WCSAxes, self).draw(renderer, inframe)
 
