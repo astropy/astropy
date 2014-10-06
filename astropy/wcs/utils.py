@@ -236,8 +236,9 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
     xp, yp : `numpy.ndarray`
         The pixel coordinates
 
-    See also
-
+    See Also
+    --------
+    astropy.coordinates.SkyCoord.from_pixel
     """
 
     from .. import units as u
@@ -310,6 +311,10 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
     -------
     coords : Whatever ``cls`` is (a subclass of `~astropy.coordinates.SkyCoord`)
         The celestial coordinates
+
+    See Also
+    --------
+    astropy.coordinates.SkyCoord.from_pixel
     """
 
     from .. import units as u
