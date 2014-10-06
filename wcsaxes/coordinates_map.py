@@ -10,7 +10,8 @@ from .coordinate_range import find_coordinate_range
 class CoordinatesMap(object):
 
     def __init__(self, axes, wcs=None, transform=None, coord_meta=None,
-                 slice=None, frame_class=RectangularFrame):
+                 slice=None, frame_class=RectangularFrame,
+                 previous_frame_path=None):
 
         # Keep track of parent axes and WCS
         self._axes = axes
@@ -31,7 +32,7 @@ class CoordinatesMap(object):
             self._transform = WCSPixel2WorldTransform(wcs, slice=slice)
             naxis = wcs.wcs.naxis
 
-        self.frame = frame_class(axes, self._transform)
+        self.frame = frame_class(axes, self._transform, path=previous_frame_path)
 
         # Set up coordinates
         self._coords = []
