@@ -112,3 +112,28 @@ class TestFrame(BaseImageTests):
         ax.set_ylim(-0.5, 11.5)
 
         self.generate_or_test(generate, fig, 'update_clip_path_nonrectangular.png')
+
+    def test_update_clip_path_change_wcs(self, generate, tmpdir):
+
+        # When WCS is changed, a new frame is created, so we need to make sure
+        # that the path is carried over to the new frame.
+
+        fig = plt.figure()
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect='equal')
+
+        fig.add_axes(ax)
+
+        ax.set_xlim(0., 2.)
+        ax.set_ylim(0., 2.)
+
+        # Force drawing, which freezes the clip path returned by WCSAxes
+        fig.savefig(tmpdir.join('nothing').strpath)
+
+        ax.reset_wcs()
+
+        im = ax.imshow(np.zeros((12,4)))
+
+        ax.set_xlim(-0.5, 3.5)
+        ax.set_ylim(-0.5, 11.5)
+
+        self.generate_or_test(generate, fig, 'update_clip_path_change_wcs.png')
