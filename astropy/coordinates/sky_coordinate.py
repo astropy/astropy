@@ -726,12 +726,47 @@ class SkyCoord(object):
 
         See Also
         --------
-        astropy.wcs.utils.pixel_to_skycoord : to do the inverse operation
+        from_pixel : to do the inverse operation
         astropy.wcs.utils.skycoord_to_pixel : the implementation of this method
         """
         from astropy.wcs.utils import skycoord_to_pixel
 
         return skycoord_to_pixel(self, wcs=wcs, origin=origin)
+
+    @classmethod
+    def from_pixel(cls, xp, yp, wcs, origin=0, mode='all'):
+        """
+        Create a new `SkyCoord from pixel coordinates using an
+        `~astropy.wcs.WCS` object.
+
+        Parameters
+        ----------
+        xp, yp : float or `numpy.ndarray`
+            The coordinates to convert.
+        wcs : `~astropy.wcs.WCS`
+            The WCS to use for convert
+        origin : int
+            Whether to return 0 or 1-based pixel coordinates.
+        mode : 'all' or 'wcs'
+            Whether to do the transformation including distortions (``'all'``) or
+            only including only the core WCS transformation (``'wcs'``).
+
+        Returns
+        -------
+        coord : an instance of this class
+            A new object with sky coordinates corresponding to the input ``xp``
+            and ``yp``.
+
+        See Also
+        --------
+        to_pixel : to do the inverse operation
+        astropy.wcs.utils.pixel_to_skycoord : the implementation of this method
+        """
+        from astropy.wcs.utils import pixel_to_skycoord
+
+        return pixel_to_skycoord(xp, yp, wcs, origin, mode, cls)
+
+
 
     # Name resolve
     @classmethod

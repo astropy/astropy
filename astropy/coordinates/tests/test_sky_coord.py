@@ -716,8 +716,10 @@ def test_nodata_failure():
         SkyCoord()
 
 
-@pytest.mark.parametrize('mode', ['all', 'wcs'])
-def test_wcs_methods(mode):
+@pytest.mark.parametrize('mode, origin', [('wcs', 0),
+                                          ('all', 0),
+                                          ('all', 1)])
+def test_wcs_methods(mode, origin):
     from ...wcs import WCS
     from ...utils.data import get_pkg_data_contents
     from ...wcs.utils import pixel_to_skycoord
@@ -727,11 +729,22 @@ def test_wcs_methods(mode):
 
     ref = SkyCoord(0.1 * u.deg, -89. * u.deg, frame='icrs')
 
-    xp, yp = ref.to_pixel(wcs, mode=mode)
+    xp, yp = ref.to_pixel(wcs, mode=mode, origin=origin)
 
     # WCS is in FK5 so we need to transform back to ICRS
-    new = pixel_to_skycoord(xp, yp, wcs, mode=mode).transform_to('icrs')
+    new = pixel_to_skycoord(xp, yp, wcs, mode=mode, origin=origin).transform_to('icrs')
 
     npt.assert_allclose(new.ra.degree, ref.ra.degree)
     npt.assert_allclose(new.dec.degree, ref.dec.degree)
 
+    #also try to round-trip with `from_pixel`
+    scnew = SkyCoord.from_pixel(xp, yp, wcs, mode=mode, origin=origin).transform_to('icrs')
+    npt.assert_allclose(scnew.ra.degree, ref.ra.degree)
+    npt.assert_allclose(scnew.dec.degree, ref.dec.degree)
+
+    #Also make sure the right type comes out
+    class SkyCoord2(SkyCoord):
+        pass
+    scnew2 = SkyCoord2.from_pixel(xp, yp, wcs, mode=mode, origin=origin)
+    assert scnew.__class__ is SkyCoord
+    assert scnew2.__class__ is SkyCoord2
