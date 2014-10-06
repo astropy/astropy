@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 # Note: This file incldues code dervived from pywcsgrid2
 #
 # This file contains Matplotlib transformation objects (e.g. from pixel to world
