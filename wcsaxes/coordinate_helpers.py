@@ -169,6 +169,21 @@ class CoordinateHelper(object):
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
+    def format_coord(self, value):
+        """
+        Given the value of a coordinate, will format it according to the
+        format of the formatter_locator.
+        """
+        fl = self._formatter_locator
+        if isinstance(fl, AngleFormatterLocator):
+            if self.coord_type == 'longitude':
+                value = wrap_angle_at(value, self.coord_wrap)
+            value = value * u.degree
+            value = value.to(fl._unit).value
+        spacing = self._fl_spacing
+        string = fl.formatter(values=[value] * fl._unit, spacing=spacing)
+        return string[0]
+
     def set_separator(self, separator):
         """
         Set the separator to use for the angle major tick labels.
@@ -396,9 +411,9 @@ class CoordinateHelper(object):
         coord_range = self.parent_map.get_coord_range()
 
         # First find the ticks we want to show
-        tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        tick_world_coordinates, self._fl_spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
         if self.ticks.get_display_minor_ticks():
-            minor_ticks_w_coordinates = self._formatter_locator.minor_locator(spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
+            minor_ticks_w_coordinates = self._formatter_locator.minor_locator(self._fl_spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
 
         # We want to allow non-standard rectangular frames, so we just rely on
         # the parent axes to tell us what the bounding frame is.
@@ -478,7 +493,7 @@ class CoordinateHelper(object):
                                     w2, tick_angle, ticks='minor')
 
         # format tick labels, add to scene
-        text = self._formatter_locator.formatter(self.lbl_world * tick_world_coordinates.unit, spacing=spacing)
+        text = self._formatter_locator.formatter(self.lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing)
         for kwargs, txt in zip(self.lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 

@@ -404,7 +404,6 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
             # values were manually specified
             return self.values, 1.1 * self._unit
-
         else:
 
             if self.spacing is not None:

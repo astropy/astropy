@@ -4,13 +4,16 @@ from matplotlib.transforms import Affine2D, Bbox, Transform
 from matplotlib.patches import Patch
 
 from astropy.wcs import WCS
-# from astropy.coordinates import frame_transform_graph
+from astropy import units as u
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
+from .formatter_locator import AngleFormatterLocator
 from .utils import get_coordinate_frame, get_coord_meta
 from .frame import RectangularFrame
+import numpy as np
+from warnings import warn
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
 
@@ -41,8 +44,40 @@ class WCSAxes(Axes):
 
         self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
         self._hide_parent_artists()
-
+        self._cursor_world = True
+        self.format_coord = self._display_world_coords
+        self._display_overlay_coords = False
+        fig.canvas.mpl_connect('key_press_event', self._set_cursor_prefs)
         self.patch = self.coords.frame.patch
+
+    def _display_world_coords(self, x, y):
+        if not self._cursor_world:
+            return "x=%s y=%s" % (x, y)
+
+        transform = self.coords._transform
+        x_index = self.slices.index('x')
+        y_index = self.slices.index('y')
+        pixel = np.array([x, y])
+        world = transform.transform(np.array([pixel]))[0]
+        xw = self.coords[x_index].format_coord(world[x_index])
+        yw = self.coords[y_index].format_coord(world[y_index])
+
+        if not self._display_overlay_coords:
+            return "%s %s (world)" % (xw, yw)
+        else:
+            overlay_world = self.overlay_coords._transform.transform(np.array([pixel]))[0]
+            overlay_xw = self.overlay_coords[0].format_coord(overlay_world[0])
+            overlay_yw = self.overlay_coords[0].format_coord(overlay_world[1])
+            return "%s %s (world), %s %s (overlay coords)" % (xw, yw, overlay_xw, overlay_yw)
+
+    def _set_cursor_prefs(self, event, **kwargs):
+        if event.key == 'p':
+            self._cursor_world = not self._cursor_world
+        if event.key == 'o':
+            if not hasattr(self, 'overlay_coords'):
+                warn("No overlay coordinates are available")
+            else:
+                self._display_overlay_coords = not self._display_overlay_coords
 
     def _hide_parent_artists(self):
         # Turn off spines and current axes
@@ -80,15 +115,17 @@ class WCSAxes(Axes):
         self._all_coords = [self.coords]
 
         if slices is None:
-            slices = ('x', 'y')
+            self.slices = ('x', 'y')
+        else:
+            self.slices = slices
 
         # Common default settings for Rectangular Frame
         if self.frame_class is RectangularFrame:
-            for coord_index in range(len(slices)):
-                if slices[coord_index] == 'x':
+            for coord_index in range(len(self.slices)):
+                if self.slices[coord_index] == 'x':
                     self.coords[coord_index].set_axislabel_position('b')
                     self.coords[coord_index].set_ticklabel_position('b')
-                elif slices[coord_index] == 'y':
+                elif self.slices[coord_index] == 'y':
                     self.coords[coord_index].set_axislabel_position('l')
                     self.coords[coord_index].set_ticklabel_position('l')
                 else:
@@ -158,6 +195,8 @@ class WCSAxes(Axes):
         coords[1].set_axislabel_position('r')
         coords[0].set_ticklabel_position('t')
         coords[1].set_ticklabel_position('r')
+
+        self.overlay_coords = coords
 
         return coords
 
@@ -270,6 +309,5 @@ class WCSAxes(Axes):
         """
         if draw_grid:
             self.coords.grid(draw_grid=draw_grid, **kwargs)
-
 
 WCSAxesSubplot = subplot_class_factory(WCSAxes)
