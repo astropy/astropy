@@ -1,8 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-Tests for polynomial models.
-"""
+"""Tests for polynomial models."""
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -25,6 +23,7 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
+
 linear1d = {
     Chebyshev1D: {'parameters': [3],
                   'kwargs': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2,
@@ -36,7 +35,8 @@ linear1d = {
                    'kwargs': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2}},
     Linear1D: {'parameters': [1.2, 23.1],
                'kwargs': {}}
-    }
+}
+
 
 linear2d = {
     Chebyshev2D: {'parameters': [1, 1],
@@ -47,14 +47,12 @@ linear2d = {
                             'x_domain': [0, 99], 'y_domain': [0, 82]}},
     Polynomial2D: {'parameters': [1],
                    'kwargs': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3}},
-    }
+}
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
 class TestFitting(object):
-    """
-    Test linear fitter
-    """
+    """Test linear fitter with polynomial models."""
 
     def setup_class(self):
         self.N = 100
@@ -70,49 +68,56 @@ class TestFitting(object):
 
     @pytest.mark.parametrize(('model_class'), linear1d.keys())
     def test_linear_fitter_1D(self, model_class):
-        """ Test fitting with LinearLSQFitter"""
+        """Test fitting with LinearLSQFitter"""
+
         parameters = linear1d[model_class]['parameters']
         kwargs = linear1d[model_class]['kwargs']
         model = model_class(*parameters, **kwargs)
         y1 = model(self.x1)
         model_lin = self.linear_fitter(model, self.x1, y1 + self.n1)
-        utils.assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
+        utils.assert_allclose(model_lin.parameters, model.parameters,
+                              atol=0.2)
 
     @pytest.mark.parametrize(('model_class'), linear1d.keys())
     def test_non_linear_fitter_1D(self, model_class):
-        """ Test fitting with non-linear LevMarLSQFitter"""
+        """Test fitting with non-linear LevMarLSQFitter"""
+
         parameters = linear1d[model_class]['parameters']
         kwargs = linear1d[model_class]['kwargs']
         model = model_class(*parameters, **kwargs)
         y1 = model(self.x1)
         model_nlin = self.non_linear_fitter(model, self.x1, y1 + self.n1)
-        utils.assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
+        utils.assert_allclose(model_nlin.parameters, model.parameters,
+                              atol=0.2)
 
     @pytest.mark.parametrize(('model_class'), linear2d.keys())
     def test_linear_fitter_2D(self, model_class):
-        """ Test fitting with LinearLSQFitter"""
+        """Test fitting with LinearLSQFitter"""
+
         parameters = linear2d[model_class]['parameters']
         kwargs = linear2d[model_class]['kwargs']
         model = model_class(*parameters, **kwargs)
         z = model(self.x2, self.y2)
         model_lin = self.linear_fitter(model, self.x2, self.y2, z + self.n2)
-        utils.assert_allclose(model_lin.parameters, model.parameters, atol=0.2)
+        utils.assert_allclose(model_lin.parameters, model.parameters,
+                              atol=0.2)
 
     @pytest.mark.parametrize(('model_class'), linear2d.keys())
     def test_non_linear_fitter_2D(self, model_class):
-        """ Test fitting with non-linear LevMarLSQFitter"""
+        """Test fitting with non-linear LevMarLSQFitter"""
+
         parameters = linear2d[model_class]['parameters']
         kwargs = linear2d[model_class]['kwargs']
         model = model_class(*parameters, **kwargs)
         z = model(self.x2, self.y2)
-        model_nlin = self.non_linear_fitter(model, self.x2, self.y2, z + self.n2)
-        utils.assert_allclose(model_nlin.parameters, model.parameters, atol=0.2)
+        model_nlin = self.non_linear_fitter(model, self.x2, self.y2,
+                                            z + self.n2)
+        utils.assert_allclose(model_nlin.parameters, model.parameters,
+                              atol=0.2)
 
 
 def test_sip_hst():
-    """
-    Test SIP againts astropy.wcs
-    """
+    """Test SIP against astropy.wcs"""
 
     test_file = get_pkg_data_filename(os.path.join('data', 'hst_sip.hdr'))
     hdr = fits.Header.fromtextfile(test_file)
@@ -131,9 +136,7 @@ def test_sip_hst():
 
 
 def test_sip_irac():
-    """
-    Test forward and inverse SIP againts astropy.wcs
-    """
+    """Test forward and inverse SIP againts astropy.wcs"""
 
     test_file = get_pkg_data_filename(os.path.join('data', 'irac_sip.hdr'))
     hdr = fits.Header.fromtextfile(test_file)

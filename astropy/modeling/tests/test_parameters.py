@@ -78,8 +78,7 @@ def test_parameter_properties():
 
 
 def test_parameter_operators():
-    """Test if the parameter arithmetic operators works,
-    i.e. whether parameters behave like numbers."""
+    """Test if the parameter arithmetic operators work."""
 
     m = MockModel()
     par = m.alpha
@@ -102,7 +101,8 @@ def test_parameter_operators():
 
 
 def test_parameter_name_attribute_mismatch():
-    """It should not be possible to define Parameters on a model with different
+    """
+    It should not be possible to define Parameters on a model with different
     names from the attributes they are assigned to.
     """
 
@@ -129,9 +129,9 @@ class TestParameters(object):
         """
         Unit tests for parameters
 
-        Read an iraf database file created by onedspec.identify.
-        Use the information to create a 1D Chebyshev model and
-        perform the same fit.
+        Read an iraf database file created by onedspec.identify.  Use the
+        information to create a 1D Chebyshev model and perform the same fit.
+
         Create also a gausian model.
         """
         test_file = get_pkg_data_filename('data/idcompspec.fits')
@@ -152,29 +152,27 @@ class TestParameters(object):
     def test_set_slice(self):
         """
         Tests updating the parameters attribute with a slice.
+
         This is what fitters internally do.
         """
+
         self.model.parameters[:] = np.array([3, 4, 5, 6, 7])
         assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
 
     def test_set_parameters_as_list(self):
-        """
-        Tests updating parameters using a list.
-        """
+        """Tests updating parameters using a list."""
+
         self.model.parameters = [30, 40, 50, 60, 70]
         assert (self.model.parameters == [30., 40., 50., 60, 70]).all()
 
     def test_set_parameters_as_array(self):
-        """
-        Tests updating parameters using an array.
-        """
+        """Tests updating parameters using an array."""
+
         self.model.parameters = np.array([3, 4, 5, 6, 7])
         assert (self.model.parameters == [3., 4., 5., 6., 7.]).all()
 
     def test_set_as_tuple(self):
-        """
-        Tests updating parameters using a tuple.
-        """
+        """Tests updating parameters using a tuple."""
 
         self.model.parameters = (1, 2, 3, 4, 5)
         assert (self.model.parameters == [1, 2, 3, 4, 5]).all()
@@ -184,21 +182,20 @@ class TestParameters(object):
         Tests updating the parameters attribute when a model's
         parameter (in this case coeff) is updated.
         """
+
         self.model.parameters = [0, 0., 0., 0, 0]
         self.model.c0 = 7
         assert (self.model.parameters == [7, 0., 0., 0, 0]).all()
 
     def test_set_model_attr_num(self):
-        """
-        Update the parameter list when a model's parameter is updated.
-        """
+        """Update the parameter list when a model's parameter is updated."""
+
         self.gmodel.amplitude = 7
         assert (self.gmodel.parameters == [7, 3, 4]).all()
 
     def test_set_item(self):
-        """
-        Update the parameters using indexing.
-        """
+        """Update the parameters using indexing."""
+
         self.model.parameters = [1, 2, 3, 4, 5]
         self.model.parameters[0] = 10.
         assert (self.model.parameters == [10, 2, 3, 4, 5]).all()
@@ -209,6 +206,7 @@ class TestParameters(object):
         Tests raising an error when attempting to reset the parameters
         using a list of a different size.
         """
+
         with pytest.raises(InputParameterError):
             self.model.parameters = [1, 2, 3]
 
@@ -217,6 +215,7 @@ class TestParameters(object):
         Tests raising an exception when attemppting to update a model's
         parameter (in this case coeff) with a sequence of the wrong size.
         """
+
         with pytest.raises(InputParameterError):
             self.model.c0 = [1, 2, 3]
 
@@ -225,6 +224,7 @@ class TestParameters(object):
         Tests raising an exception when attemppting to update a model's
         parameter and the new value has the wrong shape.
         """
+
         with pytest.raises(InputParameterError):
             self.gmodel.amplitude = [1, 2]
 
@@ -234,6 +234,7 @@ class TestParameters(object):
 
         Uses an iraf example.
         """
+
         new_model = self.linear_fitter(self.model, self.x, self.y)
         print(self.y, self.x)
         utils.assert_allclose(new_model.parameters,
@@ -308,8 +309,7 @@ class TestMultipleParameterSets(object):
 
     def test_change_par(self):
         """
-        Test that a change to one parameter as a set propagates
-        to param_sets.
+        Test that a change to one parameter as a set propagates to param_sets.
         """
         self.gmodel.amplitude = [1, 10]
         utils.assert_almost_equal(
@@ -324,8 +324,8 @@ class TestMultipleParameterSets(object):
 
     def test_change_par2(self):
         """
-        Test that a change to one single parameter in a set propagates
-        to param_sets.
+        Test that a change to one single parameter in a set propagates to
+        param_sets.
         """
         self.gmodel.amplitude[0] = 11
         utils.assert_almost_equal(
@@ -569,8 +569,8 @@ class TestParameterInitialization(object):
 
     def test_array_parameter4(self):
         """
-        Test multiple parameter model with array-valued parameters of the
-        same size as the number of parameter sets.
+        Test multiple parameter model with array-valued parameters of the same
+        size as the number of parameter sets.
         """
 
         t4 = TestParModel([[1, 2], [3, 4]], [5, 6], model_set_axis=False)

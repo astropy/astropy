@@ -16,9 +16,8 @@ except ImportError:
 
 
 def test_Trapezoid1D():
-    """Regression test for
-    https://github.com/astropy/astropy/issues/1721
-    """
+    """Regression test for https://github.com/astropy/astropy/issues/1721"""
+
     model = models.Trapezoid1D(amplitude=4.2, x_0=2.0, width=1.0, slope=3)
     xx = np.linspace(0, 4, 8)
     yy = model(xx)
@@ -40,6 +39,7 @@ def test_Gaussian2D():
     Test rotated elliptical Gaussian2D model.
     https://github.com/astropy/astropy/pull/2038
     """
+
     model = models.Gaussian2D(4.2, 1.7, 3.1, x_stddev=5.1, y_stddev=3.3,
                               theta=np.pi/6.)
     y, x = np.mgrid[0:5, 0:5]
@@ -57,6 +57,7 @@ def test_Gaussian2DCovariance():
     Test rotated elliptical Gaussian2D model when cov_matrix is input.
     https://github.com/astropy/astropy/pull/2199
     """
+
     cov_matrix = [[49., -16.], [-16., 9.]]
     model = models.Gaussian2D(17., 2.0, 2.5, cov_matrix=cov_matrix)
     y, x = np.mgrid[0:5, 0:5]
@@ -88,6 +89,7 @@ def test_Gaussian2DRotation():
 
 def test_Redshift():
     """Like ``test_ScaleModel()``."""
+
     # Scale by a scalar
     m = models.Redshift(0.4)
     assert m(0) == 0

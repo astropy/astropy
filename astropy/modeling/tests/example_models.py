@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Here are all the test parameters and values for the each `~astropy.modeling.FittableModel`
-defined. There is a dictionary for 1D and a dictionary for 2D models.
+Here are all the test parameters and values for the each
+`~astropy.modeling.FittableModel` defined. There is a dictionary for 1D and a
+dictionary for 2D models.
 
 Explanation of keywords of the dictionaries:
 

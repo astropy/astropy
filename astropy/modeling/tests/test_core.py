@@ -15,7 +15,7 @@ from .. import models
 
 
 class NonFittableModel(Model):
-    """An example class directly subclassing Model for testing"""
+    """An example class directly subclassing Model for testing."""
 
     a = Parameter()
 
@@ -28,8 +28,7 @@ class NonFittableModel(Model):
         pass
 
 
-def test_Model():
-    """Some silly tests just to have all lines in the Model code covered by unit tests"""
+def test_Model_instance_repr_and_str():
     m = NonFittableModel(42)
     assert repr(m) == "<NonFittableModel(a=42.0)>"
     assert (str(m) ==
