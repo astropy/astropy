@@ -1400,6 +1400,7 @@ class _CompoundModelMeta(_ModelMeta):
 
     _param_names = None
     _param_map = None
+    _fittable = None
 
     def __getitem__(cls, index):
         if isinstance(index, int):
@@ -1478,6 +1479,13 @@ class _CompoundModelMeta(_ModelMeta):
             cls._init_param_names()
 
         return cls._param_names
+
+    @property
+    def fittable(cls):
+        if cls._fittable is None:
+            cls._fittable = all(m.fittable for m in cls._get_submodels())
+
+        return cls._fittable
 
     # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
     # leaf nodes is something the ExpressionTree class itself could just know
@@ -1567,6 +1575,8 @@ class _CompoundModelMeta(_ModelMeta):
 @six.add_metaclass(_CompoundModelMeta)
 class _CompoundModel(Model):
     _submodels = None
+    fit_deriv = None
+    col_fit_deriv = False
 
     def __getattr__(self, attr):
         return getattr(self.__class__, attr)
@@ -1578,6 +1588,10 @@ class _CompoundModel(Model):
     @property
     def param_names(self):
         return self.__class__.param_names
+
+    @property
+    def fittable(self):
+        return self.__class__.fittable
 
     def evaluate(self, *args):
         inputs = args[:self.n_inputs]
