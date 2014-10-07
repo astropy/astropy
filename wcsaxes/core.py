@@ -52,7 +52,7 @@ class WCSAxes(Axes):
 
     def _display_world_coords(self, x, y):
         if not self._cursor_world:
-            return 'x=%s y=%s' % (x, y)
+            return "x=%s y=%s" % (x, y)
 
         transform = self.coords._transform
         x_index = self.slices.index('x')
