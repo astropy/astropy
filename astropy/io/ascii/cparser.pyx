@@ -131,6 +131,8 @@ cdef class FileString:
             self.mmap_ptr = buf.buf
 
     def __dealloc__(self):
+        self.mmap_ptr = NULL
+        self.mmap.close()
         self.fhandle.close()
 
     def __len__(self):
