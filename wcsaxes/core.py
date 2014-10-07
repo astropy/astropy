@@ -10,7 +10,6 @@ from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
 from .formatter_locator import AngleFormatterLocator
-from .coordinate_helpers import wrap_angle_at
 from .utils import get_coordinate_frame, get_coord_meta
 from .frame import RectangularFrame
 import numpy as np
@@ -51,40 +50,24 @@ class WCSAxes(Axes):
         fig.canvas.mpl_connect('key_press_event', self._set_cursor_prefs)
 
     def _display_world_coords(self, x, y):
-
         if not self._cursor_world:
             return 'x=%s y=%s' % (x, y)
-        # Doesn't work for cubes..Need to fix..
+
         transform = self.coords._transform
         x_index = self.slices.index('x')
         y_index = self.slices.index('y')
         pixel = np.array([x, y])
         world = transform.transform(np.array([pixel]))[0]
-        coords_map = self.coords
-        xw = self._format_values(world[x_index], coords_map, x_index)
-        yw = self._format_values(world[y_index], coords_map, y_index)
+        xw = self.coords[x_index].format_coord(world[x_index])
+        yw = self.coords[y_index].format_coord(world[y_index])
 
         if not self._display_overlay_coords:
             return "%s %s (world)" % (xw, yw)
         else:
-            coords_map = self.overlay_coords
-            overlay_transform = self.overlay_coords._transform
-            overlay_world = overlay_transform.transform(np.array([pixel]))[0]
-            overlay_xw = self._format_values(overlay_world[0], coords_map, 0)
-            overlay_yw = self._format_values(overlay_world[1], coords_map, 1)
+            overlay_world = self.overlay_coords._transform.transform(np.array([pixel]))[0]
+            overlay_xw = self.overlay_coords[0].format_coord(overlay_world[0])
+            overlay_yw = self.overlay_coords[0].format_coord(overlay_world[1])
             return "%s %s (world), %s %s (overlay coords)" % (xw, yw, overlay_xw, overlay_yw)
-
-    def _format_values(self, value, coords_map, coord):
-        formatter_locator = coords_map[coord]._formatter_locator
-        unit = formatter_locator._unit
-        if isinstance(formatter_locator, AngleFormatterLocator):
-            if coords_map[coord].coord_type == 'longitude':
-                value = wrap_angle_at(value, coords_map[coord].coord_wrap)
-            value = value * u.degree
-            value = value.to(unit).value
-        spacing = coords_map[coord]._fl_spacing
-        string = formatter_locator.formatter(values=[value] * unit, spacing=spacing)
-        return string[0]
 
     def _set_cursor_prefs(self, event, **kwargs):
         if event.key == 'p':

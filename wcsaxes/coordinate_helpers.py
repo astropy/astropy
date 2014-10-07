@@ -169,6 +169,21 @@ class CoordinateHelper(object):
             raise TypeError("formatter should be a string or a Formatter "
                             "instance")
 
+    def format_coord(self, value):
+        """
+        Given the value of a coordinate, will format it according to the
+        format of the formatter_locator.
+        """
+        fl = self._formatter_locator
+        if isinstance(fl, AngleFormatterLocator):
+            if self.coord_type == 'longitude':
+                value = wrap_angle_at(value, self.coord_wrap)
+            value = value * u.degree
+            value = value.to(fl._unit).value
+        spacing = self._fl_spacing
+        string = fl.formatter(values=[value] * fl._unit, spacing=spacing)
+        return string[0]
+
     def set_separator(self, separator):
         """
         Set the separator to use for the angle major tick labels.
