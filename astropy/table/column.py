@@ -210,6 +210,11 @@ class BaseColumn(np.ndarray):
     def __setitem__(self, index, value):
         self.data[index] = value
 
+    # Set slices using a view of the underlying data, as it gives an
+    # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
+    def __setslice__(self, start, stop, value):
+        self.data.__setslice__(start, stop, value)
+
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
         if obj is None:
