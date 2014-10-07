@@ -264,6 +264,16 @@ class TestQuantityMathFuncs(object):
         assert np.all(np.reciprocal(np.array([1., 2., 4.]) * u.m)
                       == np.array([1., 0.5, 0.25]) / u.m)
 
+    # cbrt only introduced in numpy 1.10
+    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
+    def test_cbrt_scalar(self):
+        assert np.cbrt(8. * u.m**3) == 2. * u.m
+
+    @pytest.mark.skipif("not hasattr(np, 'cbrt')")
+    def test_cbrt_array(self):
+        assert np.all(np.cbrt(np.array([1., 8., 64.]) * u.m**3)
+                      == np.array([1., 2., 4.]) * u.m)
+
     def test_power_scalar(self):
         assert np.power(4. * u.m, 2.) == 16. * u.m ** 2
         assert np.power(4., 200. * u.cm / u.m) == \
@@ -451,6 +461,18 @@ class TestInvariantUfuncs(object):
         assert isinstance(q_o, u.Quantity)
         assert q_o.unit == q_i1.unit
         assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to(q_i1.unit).value))
+
+    @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
+                                         np.maximum, np.minimum, np.nextafter,
+                                         np.remainder, np.mod, np.fmod])
+    def test_invariant_twoarg_one_arbitrary(self, ufunc):
+
+        q_i1 = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
+        arbitrary_unit_value = np.array([0.])
+        q_o = ufunc(q_i1, arbitrary_unit_value)
+        assert isinstance(q_o, u.Quantity)
+        assert q_o.unit == q_i1.unit
+        assert_allclose(q_o.value, ufunc(q_i1.value, arbitrary_unit_value))
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,

@@ -28,18 +28,18 @@ is first created::
 
     >>> from astropy.coordinates import ICRS, FK5
     >>> FK5(equinox='J1975')
-    <FK5 Frame: equinox=J1975.000>
+    <FK5 Frame (equinox=J1975.000)>
     >>> ICRS()  # has no attributes
     <ICRS Frame>
     >>> FK5()  # uses default equinox
-    <FK5 Frame: equinox=J2000.000>
+    <FK5 Frame (equinox=J2000.000)>
 
 The specific names of attributes available for a particular frame (and
 their default values)  are available as the class method
 ``get_frame_attr_names``::
 
     >>> FK5.get_frame_attr_names()
-    {'equinox': <Time object: scale='utc' format='jyear_str' value=J2000.000>}
+    OrderedDict([('equinox', <Time object: scale='utc' format='jyear_str' value=J2000.000>)])
 
 You can access any of the attributes on a frame by using standard Python
 attribute access.  Note that for cases like ``equinox``, which are time
@@ -72,7 +72,7 @@ equatorial systems)::
     >>> ICRS(ra=1.1*u.deg, dec=2.2*u.deg)
     <ICRS Coordinate: ra=1.1 deg, dec=2.2 deg>
     >>> FK5(ra=1.1*u.deg, dec=2.2*u.deg, equinox='J1975')
-    <FK5 Coordinate: equinox=J1975.000, ra=1.1 deg, dec=2.2 deg>
+    <FK5 Coordinate (equinox=J1975.000): ra=1.1 deg, dec=2.2 deg>
 
 These same attributes can be used to access the data in the frames, as
 |Angle| objects (or |Angle| subclasses)::
@@ -136,7 +136,7 @@ any  frame attributes required::
     >>> from astropy.coordinates import SphericalRepresentation
     >>> rep = SphericalRepresentation(lon=1.1*u.deg, lat=2.2*u.deg, distance=3.3*u.kpc)
     >>> FK5(rep, equinox='J1975')
-    <FK5 Coordinate: equinox=J1975.000, ra=1.1 deg, dec=2.2 deg, distance=3.3 kpc>
+    <FK5 Coordinate (equinox=J1975.000): ra=1.1 deg, dec=2.2 deg, distance=3.3 kpc>
 
 A final way is to create a frame object from an already existing frame
 (either one with or without data), using the ``realize_frame`` method. This
@@ -144,10 +144,10 @@ will yield a frame with the same attributes, but new data::
 
     >>> f1 = FK5(equinox='J1975')
     >>> f1
-    <FK5 Frame: equinox=J1975.000>
+    <FK5 Frame (equinox=J1975.000)>
     >>> rep = SphericalRepresentation(lon=1.1*u.deg, lat=2.2*u.deg, distance=3.3*u.kpc)
     >>> f1.realize_frame(rep)
-    <FK5 Coordinate: equinox=J1975.000, ra=1.1 deg, dec=2.2 deg, distance=3.3 kpc>
+    <FK5 Coordinate (equinox=J1975.000): ra=1.1 deg, dec=2.2 deg, distance=3.3 kpc>
 
 You can check if a frame object has data using the ``has_data`` attribute, and
 if it is preset, it can be accessed from the ``data`` attribute::
@@ -194,9 +194,9 @@ data)::
 
     >>> cooi = ICRS(1.5*u.deg, 2.5*u.deg)
     >>> cooi.transform_to(FK5)  # doctest: +FLOAT_CMP
-    <FK5 Coordinate: equinox=J2000.000, ra=1.50000660527 deg, dec=2.50000238221 deg>
+    <FK5 Coordinate (equinox=J2000.000): ra=1.50000660527 deg, dec=2.50000238221 deg>
     >>> cooi.transform_to(FK5(equinox='J1975'))  # doctest: +FLOAT_CMP
-    <FK5 Coordinate: equinox=J1975.000, ra=1.17960348105 deg, dec=2.36085320826 deg>
+    <FK5 Coordinate (equinox=J1975.000): ra=1.17960348105 deg, dec=2.36085320826 deg>
 
 The :ref:`astropy-coordinates-api` includes a list of all of the frames built
 into `astropy.coordinates`, as well as the defined transformations between
@@ -246,8 +246,8 @@ the way you want.  As an example::
   ...      obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
   >>> c = MyFrame(R=10*u.deg, D=20*u.deg)
-  >>> c
-  <MyFrame Coordinate: equinox=B1950.000, location=None, obstime=B1950.000, R=0.174532... rad, D=0.349065... rad>
+  >>> c  # doctest: +FLOAT_CMP
+  <MyFrame Coordinate (location=None, equinox=B1950.000, obstime=B1950.000): R=0.174532925199 rad, D=0.349065850399 rad>
   >>> c.equinox
   <Time object: scale='utc' format='byear_str' value=B1950.000>
 

@@ -416,7 +416,7 @@ One can explicitly specify ``in_subfmt`` in order to strictly require a
 certain subformat::
 
   >>> t = Time('2000:002:03:04', in_subfmt='date_hm')
-  >>> t = Time('2000:002', in_subfmt='date_hm')
+  >>> t = Time('2000:002', in_subfmt='date_hm')  # doctest: +SKIP
   Traceback (most recent call last):
     ...
   ValueError: Input values did not match any of the formats where the
@@ -626,9 +626,9 @@ calculations following different IAU resolutions.  Sample usage::
   >>> t.sidereal_time('mean')
   <Longitude 13.089521870640... hourangle>
   >>> t.sidereal_time('apparent')
-  <Longitude 13.089503675087... hourangle>
+  <Longitude 13.08950367508... hourangle>
   >>> t.sidereal_time('apparent', 'greenwich')
-  <Longitude 5.089503675087... hourangle>
+  <Longitude 5.08950367508... hourangle>
   >>> t.sidereal_time('apparent', '-90d')
   <Longitude 23.08950367508... hourangle>
   >>> t.sidereal_time('apparent', '-90d', 'IAU1994')

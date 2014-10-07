@@ -77,7 +77,7 @@ class IllegalMinuteError(RangeError):
 
     Examples
     --------
-    
+
     .. code-block:: python
 
         if not 0 <= min < 60:

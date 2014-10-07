@@ -35,6 +35,7 @@ import contextlib
 import errno
 import imp
 import io
+import locale
 import os
 import re
 import subprocess as sp
@@ -48,8 +49,12 @@ except ImportError:
 
 if sys.version_info[0] < 3:
     _str_types = (str, unicode)
+    _text_type = unicode
+    PY3 = False
 else:
     _str_types = (str, bytes)
+    _text_type = str
+    PY3 = True
 
 # Some pre-setuptools checks to ensure that either distribute or setuptools >=
 # 0.7 is used (over pre-distribute setuptools) if it is available on the path;
@@ -60,7 +65,7 @@ try:
     import pkg_resources
     _setuptools_req = pkg_resources.Requirement.parse('setuptools>=0.7')
     # This may raise a DistributionNotFound in which case no version of
-    # setuptools or distribute is properly instlaled
+    # setuptools or distribute is properly installed
     _setuptools = pkg_resources.get_distribution('setuptools')
     if _setuptools not in _setuptools_req:
         # Older version of setuptools; check if we have distribute; again if
@@ -157,7 +162,10 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
     if '--offline' in sys.argv:
         download_if_needed = False
         auto_upgrade = False
+        offline = True
         sys.argv.remove('--offline')
+    else:
+        offline = False
 
     if '--no-git' in sys.argv:
         use_git = False
@@ -194,7 +202,8 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
     elif not os.path.exists(path) or os.path.isdir(path):
         # Even if the given path does not exist on the filesystem, if it *is* a
         # submodule, `git submodule init` will create it
-        is_submodule = _check_submodule(path, use_git=use_git)
+        is_submodule = _check_submodule(path, use_git=use_git,
+                                        offline=offline)
 
         if is_submodule or os.path.isdir(path):
             log.info(
@@ -207,7 +216,7 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
         if dist is None:
             msg = (
                 'The requested path {0!r} for importing {1} does not '
-                'exist, or does not contain a copy of the {1} pacakge.  '
+                'exist, or does not contain a copy of the {1} package.  '
                 'Attempting download instead.'.format(path, PACKAGE_NAME))
             if download_if_needed:
                 log.warn(msg)
@@ -375,7 +384,7 @@ def _directory_import(path):
     return dist
 
 
-def _check_submodule(path, use_git=True):
+def _check_submodule(path, use_git=True, offline=False):
     """
     Check if the given path is a git submodule.
 
@@ -384,12 +393,12 @@ def _check_submodule(path, use_git=True):
     """
 
     if use_git:
-        return _check_submodule_using_git(path)
+        return _check_submodule_using_git(path, offline)
     else:
         return _check_submodule_no_git(path)
 
 
-def _check_submodule_using_git(path):
+def _check_submodule_using_git(path, offline):
     """
     Check if the given path is a git submodule.  If so, attempt to initialize
     and/or update the submodule if needed.
@@ -398,6 +407,11 @@ def _check_submodule_using_git(path):
     ``_check_submodule_no_git`` option uses pure Python to check if the given
     path looks like a git submodule, but it cannot perform updates.
     """
+
+    if PY3 and not isinstance(path, _text_type):
+        fs_encoding = sys.getfilesystemencoding()
+        path = path.decode(fs_encoding)
+
     try:
         p = sp.Popen(['git', 'submodule', 'status', '--', path],
                      stdout=sp.PIPE, stderr=sp.PIPE)
@@ -419,27 +433,49 @@ def _check_submodule_using_git(path):
                 '`git submodule status` command:\n{0}'.format(str(e)))
 
 
+    # Can fail of the default locale is not configured properly.  See
+    # https://github.com/astropy/astropy/issues/2749.  For the purposes under
+    # consideration 'latin1' is an acceptable fallback.
+    try:
+        stdio_encoding = locale.getdefaultlocale()[1] or 'latin1'
+    except ValueError:
+        # Due to an OSX oddity locale.getdefaultlocale() can also crash
+        # depending on the user's locale/language settings.  See:
+        # http://bugs.python.org/issue18378
+        stdio_encoding = 'latin1'
+
     if p.returncode != 0 or stderr:
         # Unfortunately the return code alone cannot be relied on, as
-        # earler versions of git returned 0 even if the requested submodule
+        # earlier versions of git returned 0 even if the requested submodule
         # does not exist
-        log.debug('git submodule command failed '
-                  'unexpectedly:\n{0}'.format(stderr))
-        return False
-    else:
-        # The stdout should only contain one line--the status of the
-        # requested submodule
-        m = _git_submodule_status_re.match(stdout)
-        if m:
-            # Yes, the path *is* a git submodule
-            _update_submodule(m.group('submodule'), m.group('status'))
-            return True
-        else:
-            log.warn(
-                'Unexected output from `git submodule status`:\n{0}\n'
-                'Will attempt import from {1!r} regardless.'.format(
-                    stdout, path))
+        stderr = stderr.decode(stdio_encoding)
+
+        # This is a warning that occurs in perl (from running git submodule)
+        # which only occurs with a malformatted locale setting which can
+        # happen sometimes on OSX.  See again
+        # https://github.com/astropy/astropy/issues/2749
+        perl_warning = ('perl: warning: Falling back to the standard locale '
+                        '("C").')
+        if not stderr.strip().endswith(perl_warning):
+            # Some other uknown error condition occurred
+            log.warn('git submodule command failed '
+                     'unexpectedly:\n{0}'.format(stderr))
             return False
+
+    stdout = stdout.decode(stdio_encoding)
+    # The stdout should only contain one line--the status of the
+    # requested submodule
+    m = _git_submodule_status_re.match(stdout)
+    if m:
+        # Yes, the path *is* a git submodule
+        _update_submodule(m.group('submodule'), m.group('status'), offline)
+        return True
+    else:
+        log.warn(
+            'Unexpected output from `git submodule status`:\n{0}\n'
+            'Will attempt import from {1!r} regardless.'.format(
+                stdout, path))
+        return False
 
 
 def _check_submodule_no_git(path):
@@ -484,9 +520,9 @@ def _check_submodule_no_git(path):
     try:
         cfg.readfp(gitmodules_fileobj)
     except Exception as exc:
-        log.warning('Malformatted .gitmodules file: {0}\n'
-                    '{1} cannot be assumed to be a git submodule.'.format(
-                        exc, path))
+        log.warn('Malformatted .gitmodules file: {0}\n'
+                 '{1} cannot be assumed to be a git submodule.'.format(
+                     exc, path))
         return False
 
     for section in cfg.sections():
@@ -501,17 +537,24 @@ def _check_submodule_no_git(path):
     return False
 
 
-def _update_submodule(submodule, status):
-    if status == b' ':
+def _update_submodule(submodule, status, offline):
+    if status == ' ':
         # The submodule is up to date; no action necessary
         return
-    elif status == b'-':
+    elif status == '-':
+        if offline:
+            raise _AHBootstrapSystemExit(
+                "Cannot initialize the {0} submodule in --offline mode; this "
+                "requires being able to clone the submodule from an online "
+                "repository.".format(submodule))
         cmd = ['update', '--init']
-        log.warn('Initializing submodule {0!r}'.format(submodule))
-    elif status == b'+':
+        action = 'Initializing'
+    elif status == '+':
         cmd = ['update']
-        log.warn('Updating submodule {0!r}'.format(submodule))
-    elif status == b'U':
+        action = 'Updating'
+        if offline:
+            cmd.append('--no-fetch')
+    elif status == 'U':
         raise _AHBoostrapSystemExit(
             'Error: Submodule {0} contains unresolved merge conflicts.  '
             'Please complete or abandon any changes in the submodule so that '
@@ -526,15 +569,19 @@ def _update_submodule(submodule, status):
 
     err_msg = None
 
+    cmd = ['git', 'submodule'] + cmd + ['--', submodule]
+    log.warn('{0} {1} submodule with: `{2}`'.format(
+        action, submodule, ' '.join(cmd)))
+
     try:
-        p = sp.Popen(['git', 'submodule'] + cmd + ['--', submodule],
-                     stdout=sp.PIPE, stderr=sp.PIPE)
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
         stdout, stderr = p.communicate()
     except OSError as e:
         err_msg = str(e)
     else:
         if p.returncode != 0:
-            err_msg = stderr
+            stderr_encoding = locale.getdefaultlocale()[1]
+            err_msg = stderr.decode(stderr_encoding)
 
     if err_msg:
         log.warn('An unexpected error occurred updating the git submodule '
@@ -650,7 +697,7 @@ if sys.version_info[:2] < (2, 7):
 # includes for example what branches the commit is on) but only if the
 # submodule is initialized.  We ignore this information for now
 _git_submodule_status_re = re.compile(
-    b'^(?P<status>[+-U ])(?P<commit>[0-9a-f]{40}) (?P<submodule>\S+)( .*)?$')
+    '^(?P<status>[+-U ])(?P<commit>[0-9a-f]{40}) (?P<submodule>\S+)( .*)?$')
 
 
 # Implement the auto-use feature; this allows use_astropy_helpers() to be used

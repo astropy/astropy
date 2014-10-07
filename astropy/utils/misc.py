@@ -11,210 +11,22 @@ from __future__ import (absolute_import, division, print_function,
 
 import contextlib
 import difflib
-import functools
 import inspect
 import json
 import os
+import re
 import signal
 import sys
-import textwrap
 import traceback
 import unicodedata
-import warnings
-
-from .exceptions import AstropyDeprecationWarning, AstropyPendingDeprecationWarning
 
 from ..extern import six
 from ..extern.six.moves import urllib
 
 
-__all__ = ['find_current_module', 'isiterable', 'deprecated', 'lazyproperty',
-           'deprecated_attribute', 'silence', 'format_exception',
-           'NumpyRNGContext', 'find_api_page', 'is_path_hidden',
-           'walk_skip_hidden', 'JsonCustomEncoder', 'indent',
-           'InheritDocstrings']
-
-__doctest_skip__ = ['find_current_module']
-
-
-def find_current_module(depth=1, finddiff=False):
-    """ Determines the module/package from which this function is called.
-
-    This function has two modes, determined by the ``finddiff`` option. it
-    will either simply go the requested number of frames up the call
-    stack (if ``finddiff`` is False), or it will go up the call stack until
-    it reaches a module that is *not* in a specified set.
-
-    Parameters
-    ----------
-    depth : int
-        Specifies how far back to go in the call stack (0-indexed, so that
-        passing in 0 gives back `astropy.utils.misc`).
-    finddiff : bool or list
-        If False, the returned ``mod`` will just be ``depth`` frames up from
-        the current frame. Otherwise, the function will start at a frame
-        ``depth`` up from current, and continue up the call stack to the
-        first module that is *different* from those in the provided list.
-        In this case, ``finddiff`` can be a list of modules or modules
-        names. Alternatively, it can be True, which will use the module
-        ``depth`` call stack frames up as the module the returned module
-        most be different from.
-
-    Returns
-    -------
-    mod : module or None
-        The module object or None if the package cannot be found. The name of
-        the module is available as the ``__name__`` attribute of the returned
-        object (if it isn't None).
-
-    Raises
-    ------
-    ValueError
-        If ``finddiff`` is a list with an invalid entry.
-
-    Examples
-    --------
-    The examples below assume that there are two modules in a package named
-    ``pkg``. ``mod1.py``::
-
-        def find1():
-            from astropy.utils import find_current_module
-            print find_current_module(1).__name__
-        def find2():
-            from astropy.utils import find_current_module
-            cmod = find_current_module(2)
-            if cmod is None:
-                print 'None'
-            else:
-                print cmod.__name__
-        def find_diff():
-            from astropy.utils import find_current_module
-            print find_current_module(0,True).__name__
-
-    ``mod2.py``::
-
-        def find():
-            from .mod1 import find2
-            find2()
-
-    With these modules in place, the following occurs::
-
-        >>> from pkg import mod1, mod2
-        >>> from astropy.utils import find_current_module
-        >>> mod1.find1()
-        pkg.mod1
-        >>> mod1.find2()
-        None
-        >>> mod2.find()
-        pkg.mod2
-        >>> find_current_module(0)
-        <module 'astropy.utils.misc' from 'astropy/utils/misc.py'>
-        >>> mod1.find_diff()
-        pkg.mod1
-
-    """
-
-    # using a patched version of getmodule because the py 3.1 and 3.2 stdlib
-    # is broken if the list of modules changes during import
-    from .compat import inspect_getmodule
-
-    frm = inspect.currentframe()
-    for i in range(depth):
-        frm = frm.f_back
-        if frm is None:
-            return None
-
-    if finddiff:
-        currmod = inspect_getmodule(frm)
-        if finddiff is True:
-            diffmods = [currmod]
-        else:
-            diffmods = []
-            for fd in finddiff:
-                if inspect.ismodule(fd):
-                    diffmods.append(fd)
-                elif isinstance(fd, six.string_types):
-                    diffmods.append(__import__(fd))
-                elif fd is True:
-                    diffmods.append(currmod)
-                else:
-                    raise ValueError('invalid entry in finddiff')
-
-        while frm:
-            frmb = frm.f_back
-            modb = inspect_getmodule(frmb)
-            if modb not in diffmods:
-                return modb
-            frm = frmb
-    else:
-        return inspect_getmodule(frm)
-
-
-def find_mod_objs(modname, onlylocals=False):
-    """ Returns all the public attributes of a module referenced by name.
-
-    .. note::
-        The returned list *not* include subpackages or modules of
-        ``modname``, nor does it include private attributes (those that
-        beginwith '_' or are not in `__all__`).
-
-    Parameters
-    ----------
-    modname : str
-        The name of the module to search.
-    onlylocals : bool or list of str
-        If `True`, only attributes that are either members of ``modname`` OR
-        one of its modules or subpackages will be included. If it is a list
-        of strings, those specify the possible packages that will be
-        considered "local".
-
-    Returns
-    -------
-    localnames : list of str
-        A list of the names of the attributes as they are named in the
-        module ``modname`` .
-    fqnames : list of str
-        A list of the full qualified names of the attributes (e.g.,
-        ``astropy.utils.misc.find_mod_objs``). For attributes that are
-        simple variables, this is based on the local name, but for
-        functions or classes it can be different if they are actually
-        defined elsewhere and just referenced in ``modname``.
-    objs : list of objects
-        A list of the actual attributes themselves (in the same order as
-        the other arguments)
-
-    """
-
-    __import__(modname)
-    mod = sys.modules[modname]
-
-    if hasattr(mod, '__all__'):
-        pkgitems = [(k, mod.__dict__[k]) for k in mod.__all__]
-    else:
-        pkgitems = [(k, mod.__dict__[k]) for k in dir(mod) if k[0] != '_']
-
-    # filter out modules and pull the names and objs out
-    ismodule = inspect.ismodule
-    localnames = [k for k, v in pkgitems if not ismodule(v)]
-    objs = [v for k, v in pkgitems if not ismodule(v)]
-
-    # fully qualified names can be determined from the object's module
-    fqnames = []
-    for obj, lnm in zip(objs, localnames):
-        if hasattr(obj, '__module__') and hasattr(obj, '__name__'):
-            fqnames.append(obj.__module__ + '.' + obj.__name__)
-        else:
-            fqnames.append(modname + '.' + lnm)
-
-    if onlylocals:
-        if onlylocals is True:
-            onlylocals = [modname]
-        valids = [any([fqn.startswith(nm) for nm in onlylocals]) for fqn in fqnames]
-        localnames = [e for i, e in enumerate(localnames) if valids[i]]
-        fqnames = [e for i, e in enumerate(fqnames) if valids[i]]
-        objs = [e for i, e in enumerate(objs) if valids[i]]
-
-    return localnames, fqnames, objs
+__all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
+           'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
+           'JsonCustomEncoder', 'indent', 'InheritDocstrings']
 
 
 def isiterable(obj):
@@ -236,360 +48,6 @@ def indent(s, shift=1, width=4):
         indented += '\n'
 
     return indented
-
-
-class lazyproperty(object):
-    """
-    Works similarly to property(), but computes the value only once.
-
-    This essentially memoizes the value of the property by storing the result
-    of its computation in the ``__dict__`` of the object instance.  This is
-    useful for computing the value of some property that should otherwise be
-    invariant.  For example::
-
-        >>> class LazyTest(object):
-        ...     @lazyproperty
-        ...     def complicated_property(self):
-        ...         print('Computing the value for complicated_property...')
-        ...         return 42
-        ...
-        >>> lt = LazyTest()
-        >>> lt.complicated_property
-        Computing the value for complicated_property...
-        42
-        >>> lt.complicated_property
-        42
-
-    If a setter for this property is defined, it will still be possible to
-    manually update the value of the property, if that capability is desired.
-
-    Adapted from the recipe at
-    http://code.activestate.com/recipes/363602-lazy-property-evaluation
-    """
-
-    def __init__(self, fget, fset=None, fdel=None, doc=None):
-        self._fget = fget
-        self._fset = fset
-        self._fdel = fdel
-        if doc is None:
-            self.__doc__ = fget.__doc__
-        else:
-            self.__doc__ = doc
-        self._key = self._fget.__name__
-
-    def __get__(self, obj, owner=None):
-        if obj is None:
-            return self
-        try:
-            return obj.__dict__[self._key]
-        except KeyError:
-            val = self._fget(obj)
-            obj.__dict__[self._key] = val
-            return val
-
-    def __set__(self, obj, val):
-        obj_dict = obj.__dict__
-        if self._fset:
-            ret = self._fset(obj, val)
-            if ret is not None and obj_dict.get(self._key) is ret:
-                # By returning the value set the setter signals that it took
-                # over setting the value in obj.__dict__; this mechanism allows
-                # it to override the input value
-                return
-        obj_dict[self._key] = val
-
-    def __delete__(self, obj):
-        if self._fdel:
-            self._fdel(obj)
-        if self._key in obj.__dict__:
-            del obj.__dict__[self._key]
-
-    def getter(self, fget):
-        return self.__ter(fget, 0)
-
-    def setter(self, fset):
-        return self.__ter(fset, 1)
-
-    def deleter(self, fdel):
-        return self.__ter(fdel, 2)
-
-    def __ter(self, f, arg):
-        args = [self._fget, self._fset, self._fdel, self.__doc__]
-        args[arg] = f
-        cls_ns = sys._getframe(1).f_locals
-        for k, v in six.iteritems(cls_ns):
-            if v is self:
-                property_name = k
-                break
-
-        cls_ns[property_name] = lazyproperty(*args)
-
-        return cls_ns[property_name]
-
-
-def deprecated(since, message='', name='', alternative='', pending=False,
-               obj_type=None):
-    """
-    Used to mark a function or class as deprecated.
-
-    To mark an attribute as deprecated, use `deprecated_attribute`.
-
-    Parameters
-    ------------
-    since : str
-        The release at which this API became deprecated.  This is
-        required.
-
-    message : str, optional
-        Override the default deprecation message.  The format
-        specifier ``func`` may be used for the name of the function,
-        and ``alternative`` may be used in the deprecation message
-        to insert the name of an alternative to the deprecated
-        function. ``obj_type`` may be used to insert a friendly name
-        for the type of object being deprecated.
-
-    name : str, optional
-        The name of the deprecated function or class; if not provided
-        the name is automatically determined from the passed in
-        function or class, though this is useful in the case of
-        renamed functions, where the new function is just assigned to
-        the name of the deprecated function.  For example::
-
-            def new_function():
-                ...
-            oldFunction = new_function
-
-    alternative : str, optional
-        An alternative function or class name that the user may use in
-        place of the deprecated object.  The deprecation warning will
-        tell the user about this alternative if provided.
-
-    pending : bool, optional
-        If True, uses a AstropyPendingDeprecationWarning instead of a
-        AstropyDeprecationWarning.
-
-    obj_type : str, optional
-        The type of this object, if the automatically determined one
-        needs to be overridden.
-    """
-    def deprecate_doc(old_doc, message):
-        """
-        Returns a given docstring with a deprecation message prepended
-        to it.
-        """
-        if not old_doc:
-            old_doc = ''
-        old_doc = textwrap.dedent(old_doc).strip('\n')
-        new_doc = (('\n.. deprecated:: %(since)s'
-                    '\n    %(message)s\n\n' %
-                    {'since': since, 'message': message.strip()}) + old_doc)
-        if not old_doc:
-            # This is to prevent a spurious 'unexected unindent' warning from
-            # docutils when the original docstring was blank.
-            new_doc += r'\ '
-        return new_doc
-
-    def get_function(func):
-        """
-        Given a function or classmethod, get the function object.
-        """
-        if isinstance(func, classmethod):
-            try:
-                func = func.__func__
-            except AttributeError:
-                # classmethods in Python2.6 and below lack the __func__
-                # attribute so we need to hack around to get it
-                method = func.__get__(None, object)
-                if hasattr(method, '__func__'):
-                    func = method.__func__
-                elif hasattr(method, 'im_func'):
-                    func = method.im_func
-                else:
-                    # Nothing we can do really...  just return the original
-                    # classmethod
-                    return func
-        return func
-
-    def deprecate_function(func, message):
-        """
-        Returns a wrapped function that displays an
-        ``AstropyDeprecationWarning`` when it is called.
-        """
-        is_classmethod = isinstance(func, classmethod)
-        func = get_function(func)
-
-        def deprecated_func(*args, **kwargs):
-            if pending:
-                category = AstropyPendingDeprecationWarning
-            else:
-                category = AstropyDeprecationWarning
-
-            warnings.warn(message, category, stacklevel=2)
-
-            return func(*args, **kwargs)
-
-        # If this is an extension function, we can't call
-        # functools.wraps on it, but we normally don't care.
-        # This crazy way to get the type of a wrapper descriptor is
-        # straight out of the Python 3.3 inspect module docs.
-        if type(func) != type(str.__dict__['__add__']):
-            deprecated_func = functools.wraps(func)(deprecated_func)
-
-        deprecated_func.__doc__ = deprecate_doc(
-            deprecated_func.__doc__, message)
-
-        if is_classmethod:
-            return classmethod(deprecated_func)
-        return deprecated_func
-
-    def deprecate_class(cls, message):
-        """
-        Returns a wrapper class with the docstrings updated and an
-        __init__ function that will raise an
-        ``AstropyDeprectationWarning`` warning when called.
-        """
-        # Creates a new class with the same name and bases as the
-        # original class, but updates the dictionary with a new
-        # docstring and a wrapped __init__ method.  __module__ needs
-        # to be manually copied over, since otherwise it will be set
-        # to *this* module (astropy.utils.misc).
-
-        # This approach seems to make Sphinx happy (the new class
-        # looks enough like the original class), and works with
-        # extension classes (which functools.wraps does not, since
-        # it tries to modify the original class).
-
-        # We need to add a custom pickler or you'll get
-        #     Can't pickle <class ..>: it's not found as ...
-        # errors. Picklability is required for any class that is
-        # documented by Sphinx.
-
-        def __getstate__(self):
-            return super(cls, self).__getstate__()
-
-        def __setstate__(self, state):
-            return super(cls, self).__setstate__(state)
-
-        d = {
-            '__doc__': deprecate_doc(cls.__doc__, message),
-            '__init__': deprecate_function(cls.__init__, message),
-            '__module__': cls.__module__,
-            '__getstate__': __getstate__,
-            '__setstate__': __setstate__
-        }
-
-        return type(cls.__name__, (cls,), d)
-
-    def deprecate(obj, message=message, name=name, alternative=alternative,
-                  pending=pending):
-        if obj_type is None:
-            if isinstance(obj, type):
-                obj_type_name = 'class'
-            elif inspect.isfunction(obj):
-                obj_type_name = 'function'
-            elif inspect.ismethod(obj):
-                obj_type_name = 'method'
-            else:
-                obj_type_name = 'object'
-        else:
-            obj_type_name = obj_type
-
-        if not name:
-            name = get_function(obj).__name__
-
-        altmessage = ''
-        if not message or type(message) == type(deprecate):
-            if pending:
-                message = ('The %(func)s %(obj_type)s will be deprecated in a '
-                           'future version.')
-            else:
-                message = ('The %(func)s %(obj_type)s is deprecated and may '
-                           'be removed in a future version.')
-            if alternative:
-                altmessage = '\n        Use %s instead.' % alternative
-
-        message = ((message % {
-            'func': name,
-            'name': name,
-            'alternative': alternative,
-            'obj_type': obj_type_name}) +
-            altmessage)
-
-        if not altmessage:
-            altmessage = message
-
-        if isinstance(obj, type):
-            return deprecate_class(obj, altmessage)
-        else:
-            return deprecate_function(obj, altmessage)
-
-    if type(message) == type(deprecate):
-        return deprecate(message)
-
-    return deprecate
-
-
-def deprecated_attribute(name, since, message=None, alternative=None,
-                         pending=False):
-    """
-    Used to mark a public attribute as deprecated.  This creates a
-    property that will warn when the given attribute name is accessed.
-    To prevent the warning (i.e. for internal code), use the private
-    name for the attribute by prepending an underscore
-    (i.e. ``self._name``).
-
-    Parameters
-    ----------
-    name : str
-        The name of the deprecated attribute.
-
-    since : str
-        The release at which this API became deprecated.  This is
-        required.
-
-    message : str, optional
-        Override the default deprecation message.  The format
-        specifier ``name`` may be used for the name of the attribute,
-        and ``alternative`` may be used in the deprecation message
-        to insert the name of an alternative to the deprecated
-        function.
-
-    alternative : str, optional
-        An alternative attribute that the user may use in place of the
-        deprecated attribute.  The deprecation warning will tell the
-        user about this alternative if provided.
-
-    pending : bool, optional
-        If True, uses a AstropyPendingDeprecationWarning instead of a
-        AstropyDeprecationWarning.
-
-    Examples
-    --------
-
-    ::
-
-        class MyClass:
-            # Mark the old_name as deprecated
-            old_name = misc.deprecated_attribute('old_name', '0.1')
-
-            def method(self):
-                self._old_name = 42
-    """
-    private_name = '_' + name
-
-    @deprecated(since, name=name, obj_type='attribute')
-    def get(self):
-        return getattr(self, private_name)
-
-    @deprecated(since, name=name, obj_type='attribute')
-    def set(self, val):
-        setattr(self, private_name, val)
-
-    @deprecated(since, name=name, obj_type='attribute')
-    def delete(self):
-        delattr(self, private_name)
-
-    return property(get, set, delete)
 
 
 class _DummyFile(object):
@@ -928,7 +386,7 @@ def strip_accents(s):
         if unicodedata.category(c) != 'Mn')
 
 
-def did_you_mean(s, candidates, n=3, cutoff=0.8):
+def did_you_mean(s, candidates, n=3, cutoff=0.8, fix=None):
     """
     When a string isn't found in a set of candidates, we can be nice
     to provide a list of alternatives in the exception.  This
@@ -948,6 +406,11 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         In the range [0, 1]. Possibilities that don't score at least
         that similar to word are ignored.  See
         `difflib.get_close_matches`.
+
+    fix : callable
+        A callable to modify the results after matching.  It should
+        take a single string and return a sequence of strings
+        containing the fixed matches.
 
     Returns
     -------
@@ -980,13 +443,22 @@ def did_you_mean(s, candidates, n=3, cutoff=0.8):
         capitalized_matches = set()
         for match in matches:
             capitalized_matches.update(candidates_lower[match])
+        matches = capitalized_matches
 
-        matches = sorted(capitalized_matches)
+        if fix is not None:
+            mapped_matches = []
+            for match in matches:
+                mapped_matches.extend(fix(match))
+            matches = mapped_matches
+
+        matches = list(set(matches))
+        matches = sorted(matches)
 
         if len(matches) == 1:
             matches = matches[0]
         else:
-            matches = ', '.join(matches[:-1]) + ' or ' + matches[-1]
+            matches = (', '.join(matches[:-1]) + ' or ' +
+                       matches[-1])
         return 'Did you mean {0}?'.format(matches)
 
     return ''

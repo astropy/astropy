@@ -481,27 +481,6 @@ class Time(object):
         """Time value(s) in current format"""
         return self._shaped_like_input(self._time.value)
 
-    @property
-    @deprecated("0.3", name="val", alternative="value")
-    def val(self):
-        return self.value
-
-    @property
-    @deprecated("0.3", name="vals", alternative="value")
-    def vals(self):
-        """Time values in current format as a numpy array."""
-        return self.value
-
-    @property
-    @deprecated("0.4", name="lon", alternative="location.longitude")
-    def lon(self):
-        return self.location.longitude
-
-    @property
-    @deprecated("0.4", name="lat", alternative="location.latitude")
-    def lat(self):
-        return self.location.latitude
-
     def sidereal_time(self, kind, longitude=None, model=None):
         """Calculate sidereal time.
 
@@ -2096,8 +2075,10 @@ def _make_1d_array(val, copy=False):
         # Maybe lift this restriction later to allow multi-dim in/out?
         raise TypeError('Input val must be zero or one dimensional')
 
-    # Allow only string or float arrays as input (XXX datetime later...)
-    if val.dtype.kind == 'i':
+    # Allow only float64, string or object arrays as input
+    # (object is for datetime, maybe add more specific test later?)
+    # This also ensures the right byteorder for float64 (closes #2942).
+    if not (val.dtype == np.float64 or val.dtype.kind in 'OSUa'):
         val = np.asanyarray(val, dtype=np.float64)
 
     return val, val_ndim

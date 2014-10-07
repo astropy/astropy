@@ -8,20 +8,12 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern.six.moves import zip
 
+import copy
 import keyword
-import warnings
-
-from ...utils.exceptions import AstropyDeprecationWarning
 
 from . import generic
 from . import utils
-from ...utils.misc import did_you_mean
 
-class UnitScaleError(ValueError):
-    """
-    Used to catch the errors involving scaled units, 
-    which are not recognized by FITS format.
-    """
 
 class Fits(generic.Generic):
     """
@@ -57,7 +49,7 @@ class Fits(generic.Generic):
             'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', 'c', 'd',
             '', 'da', 'h', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
-        special_cases = {'dbyte': u.Unit(0.1*u.byte)}
+        special_cases = {'dbyte': u.Unit('dbyte', 0.1*u.byte)}
 
         for base in bases + deprecated_bases:
             for prefix in prefixes:
@@ -75,8 +67,8 @@ class Fits(generic.Generic):
         simple_units = [
             'deg', 'arcmin', 'arcsec', 'mas', 'min', 'h', 'd', 'Ry',
             'solMass', 'u', 'solLum', 'solRad', 'AU', 'lyr', 'count',
-            'photon', 'ph', 'pixel', 'pix', 'D', 'Sun', 'chan', 'bin',
-            'voxel', 'adu', 'beam'
+            'ct', 'photon', 'ph', 'pixel', 'pix', 'D', 'Sun', 'chan',
+            'bin', 'voxel', 'adu', 'beam'
         ]
         deprecated_units = ['erg', 'Angstrom', 'angstrom']
 
@@ -88,56 +80,65 @@ class Fits(generic.Generic):
         return names, deprecated_names
 
     @classmethod
-    def _parse_unit(cls, unit, detailed_exception=True):
+    def _validate_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
             if detailed_exception:
                 raise ValueError(
-                    "Unit {0!r} not supported by the FITS standard. {1}".format(
-                        unit, did_you_mean(
-                            unit, cls._units)))
+                    "Unit '{0}' not supported by the FITS standard. {1}".format(
+                        unit, utils.did_you_mean_units(
+                            unit, cls._units, cls._deprecated_units,
+                            cls._to_decomposed_alternative)))
             else:
                 raise ValueError()
 
         if unit in cls._deprecated_units:
-            warnings.warn(
-                "The unit {0!r} has been deprecated in the FITS "
-                "standard.".format(unit),
-                AstropyDeprecationWarning)
+            utils.unit_deprecation_warning(
+                unit, cls._units[unit], 'FITS',
+                cls._to_decomposed_alternative)
 
+    @classmethod
+    def _parse_unit(cls, unit, detailed_exception=True):
+        cls._validate_unit(unit)
         return cls._units[unit]
 
-    def _get_unit_name(self, unit):
+    @classmethod
+    def _get_unit_name(cls, unit):
         name = unit.get_format_name('fits')
-
-        if name not in self._units:
-            raise ValueError(
-                "Unit {0!r} is not part of the FITS standard".format(name))
-
-        if name in self._deprecated_units:
-            warnings.warn(
-                "The unit {0!r} has been deprecated in the FITS "
-                "standard.".format(name),
-                AstropyDeprecationWarning)
-
+        cls._validate_unit(name)
         return name
 
-    def to_string(self, unit):
+    @classmethod
+    def to_string(cls, unit):
         from .. import core
 
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, self._get_unit_name)
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
             if unit.scale != 1:
-                raise UnitScaleError(
+                raise core.UnitScaleError(
                     "The FITS unit format is not able to represent scale. "
                     "Multiply your data by {0:e}.".format(unit.scale))
 
             pairs = list(zip(unit.bases, unit.powers))
             pairs.sort(key=lambda x: x[1], reverse=True)
 
-            s = self._format_unit_list(pairs)
+            s = cls._format_unit_list(pairs)
         elif isinstance(unit, core.NamedUnit):
-            s = self._get_unit_name(unit)
+            s = cls._get_unit_name(unit)
 
+        return s
+
+    @classmethod
+    def _to_decomposed_alternative(cls, unit):
+        from .. import core
+
+        try:
+            s = cls.to_string(unit)
+        except core.UnitScaleError:
+            scale = unit.scale
+            unit = copy.copy(unit)
+            unit._scale = 1.0
+            return '{0} (with data multiplied by {1})'.format(
+                cls.to_string(unit), scale)
         return s

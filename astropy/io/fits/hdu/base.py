@@ -757,9 +757,9 @@ class _BaseHDU(object):
         self._data_size = datsize
         self._data_replaced = False
 
-_AllHDU = _BaseHDU  # For backwards-compatibility, though nobody should have
-                    # been using this directly
-
+# For backwards-compatibility, though nobody should have
+# been using this directly:
+_AllHDU = _BaseHDU
 
 # For convenience...
 # TODO: register_hdu could be made into a class decorator which would be pretty

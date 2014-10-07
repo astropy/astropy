@@ -18,16 +18,6 @@ else:
     HAS_SCIPY = True
 
 
-def setup_function(function):
-    # Make sure that tests don't affect default cosmology
-    core.set_current('no_default')
-
-
-def teardown_function(function):
-    # Make sure that tests don't affect default cosmology
-    core.set_current('no_default')
-
-
 def test_init():
     """ Tests to make sure the code refuses inputs it is supposed to"""
     with pytest.raises(ValueError):
@@ -48,12 +38,24 @@ def test_init():
     with pytest.raises(ValueError):
         bad_mnu = u.Quantity([-0.3, 0.2], u.eV)  # 2, expecting 3
         cosmo = core.FlatLambdaCDM(H0=70, Om0=0.2, m_nu=bad_mnu)
+    with pytest.raises(ValueError):
+        cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Ob0=-0.04)
+    with pytest.raises(ValueError):
+        cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Ob0=0.4)
+    with pytest.raises(ValueError):
+        cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27)
+        cosmo.Ob(1)
+    with pytest.raises(ValueError):
+        cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27)
+        cosmo.Odm(1)
 
 
 def test_basic():
-    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04)
+    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04, Ob0=0.05)
     assert np.allclose(cosmo.Om0, 0.27)
     assert np.allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
+    assert np.allclose(cosmo.Ob0, 0.05)
+    assert np.allclose(cosmo.Odm0, 0.27 - 0.05)
     # This next test will fail if astropy.const starts returning non-mks
     #  units by default; see the comment at the top of core.py
     assert np.allclose(cosmo.Ogamma0, 1.463285e-5, rtol=1e-4)
@@ -72,9 +74,11 @@ def test_basic():
     # Make sure setting them as quantities gives the same results
     H0 = u.Quantity(70, u.km / (u.s * u.Mpc))
     T = u.Quantity(2.0, u.K)
-    cosmo = core.FlatLambdaCDM(H0=H0, Om0=0.27, Tcmb0=T, Neff=3.04)
+    cosmo = core.FlatLambdaCDM(H0=H0, Om0=0.27, Tcmb0=T, Neff=3.04, Ob0=0.05)
     assert np.allclose(cosmo.Om0, 0.27)
     assert np.allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
+    assert np.allclose(cosmo.Ob0, 0.05)
+    assert np.allclose(cosmo.Odm0, 0.27 - 0.05)
     assert np.allclose(cosmo.Ogamma0, 1.463285e-5, rtol=1e-4)
     assert np.allclose(cosmo.Onu0, 1.01026e-5, rtol=1e-4)
     assert np.allclose(cosmo.Ok0, 0.0)
@@ -117,58 +121,164 @@ def test_units():
     assert cosmo.age(1.0).unit == u.Gyr
     assert cosmo.distmod(1.0).unit == u.mag
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_clone():
+    """ Test clone operation"""
+
+    cosmo = core.FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.27,
+                               Tcmb0=3.0 * u.K)
+    z = np.linspace(0.1, 3, 15)
+
+    # First, test with no changes, which should return same object
+    newclone = cosmo.clone()
+    assert newclone is cosmo
+
+    # Now change H0
+    #  Note that H0 affects Ode0 because it changes Ogamma0
+    newclone = cosmo.clone(H0=60 * u.km / u.s / u.Mpc)
+    assert newclone is not cosmo
+    assert newclone.__class__ == cosmo.__class__
+    assert newclone.name == cosmo.name
+    assert not np.allclose(newclone.H0.value, cosmo.H0.value)
+    assert np.allclose(newclone.H0.value, 60.0)
+    assert np.allclose(newclone.Om0, cosmo.Om0)
+    assert np.allclose(newclone.Ok0, cosmo.Ok0)
+    assert not np.allclose(newclone.Ogamma0, cosmo.Ogamma0)
+    assert not np.allclose(newclone.Onu0, cosmo.Onu0)
+    assert np.allclose(newclone.Tcmb0.value, cosmo.Tcmb0.value)
+    assert np.allclose(newclone.m_nu.value, cosmo.m_nu.value)
+    assert np.allclose(newclone.Neff, cosmo.Neff)
+
+    # Compare modified version with directly instantiated one
+    cmp = core.FlatLambdaCDM(H0=60 * u.km / u.s / u.Mpc, Om0=0.27,
+                             Tcmb0=3.0 * u.K)
+    assert newclone.__class__ == cmp.__class__
+    assert newclone.name == cmp.name
+    assert np.allclose(newclone.H0.value, cmp.H0.value)
+    assert np.allclose(newclone.Om0, cmp.Om0)
+    assert np.allclose(newclone.Ode0, cmp.Ode0)
+    assert np.allclose(newclone.Ok0, cmp.Ok0)
+    assert np.allclose(newclone.Ogamma0, cmp.Ogamma0)
+    assert np.allclose(newclone.Onu0, cmp.Onu0)
+    assert np.allclose(newclone.Tcmb0, cmp.Tcmb0)
+    assert np.allclose(newclone.m_nu.value, cmp.m_nu.value)
+    assert np.allclose(newclone.Neff, cmp.Neff)
+    assert np.allclose(newclone.Om(z), cmp.Om(z))
+    assert np.allclose(newclone.H(z).value, cmp.H(z).value)
+    assert np.allclose(newclone.luminosity_distance(z).value,
+                       cmp.luminosity_distance(z).value)
+
+    # Now try changing multiple things
+    newclone = cosmo.clone(name="New name", H0=65 * u.km / u.s / u.Mpc,
+                         Tcmb0=2.8 * u.K)
+    assert newclone.__class__ == cosmo.__class__
+    assert not newclone.name == cosmo.name
+    assert not np.allclose(newclone.H0.value, cosmo.H0.value)
+    assert np.allclose(newclone.H0.value, 65.0)
+    assert np.allclose(newclone.Om0, cosmo.Om0)
+    assert np.allclose(newclone.Ok0, cosmo.Ok0)
+    assert not np.allclose(newclone.Ogamma0, cosmo.Ogamma0)
+    assert not np.allclose(newclone.Onu0, cosmo.Onu0)
+    assert not np.allclose(newclone.Tcmb0.value, cosmo.Tcmb0.value)
+    assert np.allclose(newclone.Tcmb0.value, 2.8)
+    assert np.allclose(newclone.m_nu.value, cosmo.m_nu.value)
+    assert np.allclose(newclone.Neff, cosmo.Neff)
+
+    # And direct comparison
+    cmp = core.FlatLambdaCDM(name="New name", H0=65 * u.km / u.s / u.Mpc,
+                             Om0=0.27, Tcmb0=2.8 * u.K)
+    assert newclone.__class__ == cmp.__class__
+    assert newclone.name == cmp.name
+    assert np.allclose(newclone.H0.value, cmp.H0.value)
+    assert np.allclose(newclone.Om0, cmp.Om0)
+    assert np.allclose(newclone.Ode0, cmp.Ode0)
+    assert np.allclose(newclone.Ok0, cmp.Ok0)
+    assert np.allclose(newclone.Ogamma0, cmp.Ogamma0)
+    assert np.allclose(newclone.Onu0, cmp.Onu0)
+    assert np.allclose(newclone.Tcmb0, cmp.Tcmb0)
+    assert np.allclose(newclone.m_nu.value, cmp.m_nu.value)
+    assert np.allclose(newclone.Neff, cmp.Neff)
+    assert np.allclose(newclone.Om(z), cmp.Om(z))
+    assert np.allclose(newclone.H(z).value, cmp.H(z).value)
+    assert np.allclose(newclone.luminosity_distance(z).value,
+                       cmp.luminosity_distance(z).value)
+
+    # Try a dark energy class, make sure it can handle w params
+    cosmo = core.w0waCDM(name="test w0wa", H0=70 * u.km / u.s / u.Mpc,
+                         Om0=0.27, Ode0=0.5, wa=0.1, Tcmb0=4.0 * u.K)
+    newclone = cosmo.clone(w0=-1.1, wa=0.2)
+    assert newclone.__class__ == cosmo.__class__
+    assert newclone.name == cosmo.name
+    assert np.allclose(newclone.H0.value, cosmo.H0.value)
+    assert np.allclose(newclone.Om0, cosmo.Om0)
+    assert np.allclose(newclone.Ode0, cosmo.Ode0)
+    assert np.allclose(newclone.Ok0, cosmo.Ok0)
+    assert not np.allclose(newclone.w0, cosmo.w0)
+    assert np.allclose(newclone.w0, -1.1)
+    assert not np.allclose(newclone.wa, cosmo.wa)
+    assert np.allclose(newclone.wa, 0.2)
+
+    # Now test exception if user passes non-parameter
+    with pytest.raises(AttributeError):
+        newclone = cosmo.clone(not_an_arg=4)
+
 
 def test_repr():
     """ Test string representation of built in classes"""
     cosmo = core.LambdaCDM(70, 0.3, 0.5)
     expected = 'LambdaCDM(H0=70 km / (Mpc s), Om0=0.3, '\
-               'Ode0=0.5, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
+               'Ode0=0.5, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV, '\
+               'Ob0=None)'
     assert str(cosmo) == expected
 
     cosmo = core.LambdaCDM(70, 0.3, 0.5, m_nu=u.Quantity(0.01, u.eV))
     expected = 'LambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Ode0=0.5, '\
-               'Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.01  0.01  0.01] eV)'
+               'Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.01  0.01  0.01] eV, '\
+               'Ob0=None)'
     assert str(cosmo) == expected
 
-    cosmo = core.FlatLambdaCDM(50.0, 0.27)
+    cosmo = core.FlatLambdaCDM(50.0, 0.27, Ob0=0.05)
     expected = 'FlatLambdaCDM(H0=50 km / (Mpc s), Om0=0.27, '\
-               'Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
+               'Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=0.05)'
     assert str(cosmo) == expected
 
     cosmo = core.wCDM(60.0, 0.27, 0.6, w0=-0.8, name='test1')
     expected = 'wCDM(name="test1", H0=60 km / (Mpc s), Om0=0.27, '\
                'Ode0=0.6, w0=-0.8, Tcmb0=2.725 K, Neff=3.04, '\
-               'm_nu=[ 0.  0.  0.] eV)'
+               'm_nu=[ 0.  0.  0.] eV, Ob0=None)'
     assert str(cosmo) == expected
 
     cosmo = core.FlatwCDM(65.0, 0.27, w0=-0.6, name='test2')
     expected = 'FlatwCDM(name="test2", H0=65 km / (Mpc s), Om0=0.27, '\
-               'w0=-0.6, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
+               'w0=-0.6, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV, '\
+               'Ob0=None)'
     assert str(cosmo) == expected
 
     cosmo = core.w0waCDM(60.0, 0.25, 0.4, w0=-0.6, wa=0.1, name='test3')
     expected = 'w0waCDM(name="test3", H0=60 km / (Mpc s), Om0=0.25, '\
                'Ode0=0.4, w0=-0.6, wa=0.1, Tcmb0=2.725 K, Neff=3.04, '\
-               'm_nu=[ 0.  0.  0.] eV)'
+               'm_nu=[ 0.  0.  0.] eV, Ob0=None)'
     assert str(cosmo) == expected
 
-    cosmo = core.Flatw0waCDM(55.0, 0.35, w0=-0.9, wa=-0.2, name='test4')
+    cosmo = core.Flatw0waCDM(55.0, 0.35, w0=-0.9, wa=-0.2, name='test4',
+                             Ob0=0.0456789)
     expected = 'Flatw0waCDM(name="test4", H0=55 km / (Mpc s), Om0=0.35, '\
-               'w0=-0.9, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
+               'w0=-0.9, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV, '\
+               'Ob0=0.0457)'
     assert str(cosmo) == expected
 
     cosmo = core.wpwaCDM(50.0, 0.3, 0.3, wp=-0.9, wa=-0.2,
                          zp=0.3, name='test5')
     expected = 'wpwaCDM(name="test5", H0=50 km / (Mpc s), Om0=0.3, '\
                'Ode0=0.3, wp=-0.9, wa=-0.2, zp=0.3, Tcmb0=2.725 K, '\
-               'Neff=3.04, m_nu=[ 0.  0.  0.] eV)'
+               'Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)'
     assert str(cosmo) == expected
 
     cosmo = core.w0wzCDM(55.0, 0.4, 0.8, w0=-1.05, wz=-0.2,
                          m_nu=u.Quantity([0.001, 0.01, 0.015], u.eV))
     expected = 'w0wzCDM(H0=55 km / (Mpc s), Om0=0.4, Ode0=0.8, w0=-1.05, '\
                'wz=-0.2 Tcmb0=2.725 K, Neff=3.04, '\
-               'm_nu=[ 0.001  0.01   0.015] eV)'
+               'm_nu=[ 0.001  0.01   0.015] eV, Ob0=None)'
     assert str(cosmo) == expected
 
 
@@ -207,6 +317,9 @@ def test_zeroing():
     # Ogamma0
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=0.0)
     assert np.allclose(cosmo.Ogamma([0, 1, 2, 3]), [0, 0, 0, 0])
+    # Obaryon
+    cosmo = core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.73, Ob0=0.0)
+    assert np.allclose(cosmo.Ob([0, 1, 2, 3]), [0, 0, 0, 0])
 
 
 # This class is to test whether the routines work correctly
@@ -288,15 +401,23 @@ def test_varyde_lumdist_mathematica():
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_omatter():
-    # Test Om evolution
-    tcos = core.FlatLambdaCDM(70.0, 0.3)
+def test_matter():
+    # Test non-relativistic matter evolution
+    tcos = core.FlatLambdaCDM(70.0, 0.3, Ob0=0.045)
     assert np.allclose(tcos.Om0, 0.3)
     assert np.allclose(tcos.H0.value, 70.0)
     assert np.allclose(tcos.Om(0), 0.3)
+    assert np.allclose(tcos.Ob(0), 0.045)
     z = np.array([0.0, 0.5, 1.0, 2.0])
     assert np.allclose(tcos.Om(z), [0.3, 0.59112134, 0.77387435, 0.91974179],
                        rtol=1e-4)
+    assert np.allclose(tcos.Ob(z), [0.045, 0.08866820, 0.11608115,
+                                    0.13796127], rtol=1e-4)
+    assert np.allclose(tcos.Odm(z), [0.255, 0.50245314, 0.6577932, 0.78178052],
+                       rtol=1e-4)
+    # Consistency of dark and baryonic matter evolution with all
+    # non-relativistic matter
+    assert np.allclose(tcos.Ob(z) + tcos.Odm(z), tcos.Om(z))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -484,54 +605,6 @@ def test_kpc_methods():
     assert np.allclose(cosmo.arcsec_per_kpc_proper(3).value, 0.1268716668)
     assert np.allclose(cosmo.kpc_comoving_per_arcmin(3).value, 1891.6753126)
     assert np.allclose(cosmo.kpc_proper_per_arcmin(3).value, 472.918828)
-
-
-@pytest.mark.skipif('not HAS_SCIPY')
-def test_convenience():
-    # these are all for WMAP7 with Tcmb = 0
-    tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    core.set_current(tcos)
-
-    # scalars
-    assert np.allclose(funcs.arcsec_per_kpc_comoving(3).value, 0.0317179)
-    assert funcs.arcsec_per_kpc_comoving(3).unit == u.arcsec / u.kpc
-    assert np.allclose(funcs.arcsec_per_kpc_proper(3).value, 0.1268716668)
-    assert funcs.arcsec_per_kpc_proper(3).unit == u.arcsec / u.kpc
-    assert np.allclose(funcs.kpc_comoving_per_arcmin(3).value, 1891.6753126)
-    assert funcs.kpc_comoving_per_arcmin(3).unit == u.kpc / u.arcmin
-    assert np.allclose(funcs.kpc_proper_per_arcmin(3).value, 472.918828)
-    assert funcs.kpc_proper_per_arcmin(3).unit == u.kpc / u.arcmin
-    assert np.allclose(funcs.distmod(3).value, 47.075902)
-    assert funcs.distmod(3).unit == u.mag
-    assert np.allclose(funcs.H(3).value, 299.80813491298068)
-    assert funcs.H(3).unit == u.km / (u.Mpc * u.s)
-    assert np.allclose(funcs.scale_factor(3), 0.25)
-    assert np.allclose(funcs.scale_factor([3, 4]), [0.25, 0.2])
-    assert np.allclose(funcs.critical_density(3).value, 1.6884621680232328e-28)
-    assert funcs.critical_density(3).unit == u.g / u.cm ** 3
-    assert np.allclose(funcs.lookback_time(3).value, 11.555469926558361)
-    assert funcs.lookback_time(3).unit == u.Gyr
-    assert np.allclose(funcs.lookback_time([3, 4]).value,
-                       [11.555469927, 12.17718555], rtol=1e-5)
-    assert np.allclose(funcs.comoving_distance(3).value, 6503.100697385924)
-    assert funcs.comoving_distance(3).unit == u.Mpc
-    assert np.allclose(funcs.angular_diameter_distance(3).value,
-                       1625.775174346481)
-    assert funcs.angular_diameter_distance(3).unit == u.Mpc
-    assert np.allclose(funcs.luminosity_distance(3).value, 26012.402789543696)
-    assert funcs.luminosity_distance(3).unit == u.Mpc
-
-    # arrays
-    assert np.allclose(funcs.arcsec_per_kpc_comoving([0.1, 0.5]).value,
-                       [0.4946986, 0.10876163])
-    assert np.allclose(funcs.arcsec_per_kpc_proper([0.1, 0.5]).value,
-                       [0.54416846354697479, 0.16314245192751084])
-    assert np.allclose(funcs.kpc_comoving_per_arcmin([0.1, 0.5]).value,
-                       [121.2859701, 551.66511804])
-    assert np.allclose(funcs.kpc_proper_per_arcmin([0.1, 0.5]).value,
-                       [110.25997282, 367.77674536])
-    assert np.allclose(funcs.distmod([0.1, 0.5]).value,
-                       [38.30738567, 42.27020333])
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -739,21 +812,6 @@ def test_integral():
                        cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7)
 
 
-def test_current():
-    with core.default_cosmology.set('WMAP7'):
-        cosmo = core.get_current()
-        assert cosmo == core.WMAP7
-    with core.default_cosmology.set('WMAP5'):
-        core.set_current('WMAP5')
-        assert core.get_current() == core.WMAP5
-    with core.default_cosmology.set('WMAP9'):
-        core.set_current('WMAP9')
-        assert core.get_current() == core.WMAP9
-    with core.default_cosmology.set('Planck13'):
-        core.set_current('Planck13')
-        assert core.get_current() == core.Planck13
-
-
 def test_wz():
     cosmo = core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.70)
     assert np.allclose(cosmo.w([0.1, 0.2, 0.5, 1.5, 2.5, 11.5]),
@@ -849,12 +907,9 @@ def test_age():
 def test_distmod():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
-    core.set_current(tcos)
     assert np.allclose(tcos.hubble_distance.value, 4258.415596590909)
     assert np.allclose(tcos.distmod([1, 5]).value, [44.124857, 48.40167258])
     assert np.allclose(tcos.distmod([1., 5.]).value, [44.124857, 48.40167258])
-    assert np.allclose(funcs.distmod([1, 5], cosmo=tcos).value,
-                       [44.124857, 48.40167258])
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -870,7 +925,7 @@ def test_neg_distmod():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_critical_density():
-    # WMAP7 but with Omega_relativisitic = 0
+    # WMAP7 but with Omega_relativistic = 0
     # These tests will fail if astropy.const starts returning non-mks
     #  units by default; see the comment at the top of core.py
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
@@ -1035,6 +1090,9 @@ def test_massivenu_density():
 def test_z_at_value():
     z_at_value = funcs.z_at_value
     cosmo = core.Planck13
+    d = cosmo.luminosity_distance(3)
+    assert np.allclose(z_at_value(cosmo.luminosity_distance, d, ztol=1e-8), 3,
+                       rtol=1e-8)
     assert np.allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.1981191749374)
     assert np.allclose(z_at_value(cosmo.luminosity_distance, 1e4 * u.Mpc),
                        1.3685792789133948)
@@ -1063,24 +1121,16 @@ def test_z_at_value_roundtrip():
     """
     z = 0.5
 
-    skip = ('z_at_value', 'angular_diameter_distance_z1z2', 'CosmologyError',
-            'deprecated')
+    skip = ('Ok', 'angular_diameter_distance_z1z2', 'clone', 'de_density_scale', 'w')
 
-    core.set_current('Planck13')
-    for name in funcs.__all__:
+    import inspect
+    methods = inspect.getmembers(core.Planck13, predicate=inspect.ismethod)
+
+    for name, func in methods:
         if name.startswith('_') or name in skip:
             continue
-        f = getattr(funcs, name)
-        if not hasattr(f, '__call__'):
-            continue
         print('Round-trip testing {0}'.format(name))
-        fval = f(z)
+        fval = func(z)
         # we need zmax here to pick the right solution for
         # angular_diameter_distance and related methods.
-        assert np.allclose(z, funcs.z_at_value(f, fval, zmax=1.5))
-
-
-def test_default_reset():
-    # Check that the default is being reset after tests. This test should be
-    # updated if the default cosmology is updated.
-    assert core.get_current() == core.WMAP9
+        assert np.allclose(z, funcs.z_at_value(func, fval, zmax=1.5))

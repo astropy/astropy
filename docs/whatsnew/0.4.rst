@@ -9,13 +9,71 @@ What's New in Astropy 0.4?
 Overview
 --------
 
-Astropy 0.4 is a major release that adds new functionality since the 0.3.x
-series of releases. One new sub-package is included (see `SAMP`_), and many
-new features have been implemented in the existing sub-pacakges, a few of
-which are described below. In addition to usability improvements, we have
-made a number of changes in the infrastructure for setting up/installing the
-package, and for the configuration system (see `astropy-helpers`_ and
-`Configuration`_).
+Astropy 0.4 is a major release that adds new functionality since the
+0.3.x series of releases. A new sub-package is included (see `SAMP`_),
+a major overhaul of the :ref:`Coordinates <astropy-coordinates>` 
+sub-package has been completed (see `Coordinates`_),
+and many new features and improvements have been implemented for the
+existing sub-packages. In addition to usability improvements, we have
+made a number of changes in the infrastructure for setting up/installing
+the package (see `astropy-helpers package`_), as well as reworking the
+configuration system (see `Configuration`_).
+
+In addition to these major changes, a large number of smaller
+improvements have occurred.  Since v0.3, by the numbers:
+
+* 819 issues have been closed
+* 511 pull requests have been merged
+* 57 distinct people have contributed code
+
+
+Coordinates
+-----------
+
+The :ref:`astropy-coordinates` sub-package has been largely re-designed based
+on broad community discussion and experience with v0.2 and v0.3.  The key
+motivation was to implement coordinates within an extensible framework that
+cleanly separates the distinct aspects of data representation, coordinate
+frame representation and transformation, and user interface.  This is described
+in the `APE5 <https://github.com/astropy/astropy-APEs/blob/master/APE5.rst>`_
+document. Details of the new usage are given in the :ref:`astropy-coordinates`
+section of the documentation.
+
+*An important point is that this sub-package is now considered stable and we do
+not expect any further major interface changes.*
+
+For most users the major change is that the recommended user interface to
+coordinate functionality is the  `~astropy.coordinates.SkyCoord` class
+instead of classes like `~astropy.coordinates.ICRS` or
+`~astropy.coordinates.Galactic` (which are now
+called "frame" classes).  For example::
+
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> coordinate = SkyCoord(123.4*u.deg, 56.7*u.deg, frame='icrs')
+
+The frame classes can still be used to create coordinate objects as before, but
+they are now more powerful because they can represent abstract coordinate
+frames without underlying data.  The more typical use for frame classes is now::
+
+    >>> from astropy.coordinates import FK4  # Or ICRS, Galactic, or similar
+    >>> fk4_frame = FK4(equinox='J1980.0', obstime='2011-06-12T01:12:34')
+    >>> coordinate.transform_to(fk4_frame)
+    <SkyCoord (FK4): equinox=J1980.000, obstime=2011-06-12T01:12:34.000, ra=123.001698182 deg, dec=56.7609162301 deg>
+
+At the lowest level of the framework are the representation classes which
+describe how to represent a point in a frame as a tuple of quantities, for
+instance as spherical, cylindrical, or cartesian coordinates.  Any coordinate
+object can now be created using values in a number of common representations
+and be displayed using those representations.  For example::
+
+    >>> coordinate = SkyCoord(1*u.pc, 2*u.pc, 3*u.pc, representation='cartesian')
+    >>> coordinate
+    <SkyCoord (ICRS): x=1.0 pc, y=2.0 pc, z=3.0 pc>
+
+    >>> coordinate.representation = 'physicsspherical'
+    >>> coordinate
+    <SkyCoord (ICRS): phi=63.4349488229 deg, theta=36.6992252005 deg, r=3.74165738677 pc>
 
 SAMP
 ----
@@ -29,7 +87,7 @@ with any SAMP-enabled application (such as `TOPCAT
 <http://hea-www.harvard.edu/RD/ds9>`_, and `Aladin
 <http://aladin.u-strasbg.fr>`_). This sub-package includes both classes for a
 hub and a client, as well as an *integrated client* which automatically
-starts up a hub and acts as a client::
+connects to any running SAMP hub and acts as a client::
 
     >>> from astropy.vo.samp import SAMPIntegratedClient
     >>> client = SAMPIntegratedClient()
@@ -53,6 +111,15 @@ We can then use the client to communicate with other clients::
 and we can then send for example tables and images over SAMP to other
 applications (see :ref:`vo-samp` for examples of how to do this).
 
+Quantity
+--------
+The `~astropy.units.Quantity` class has seen a series of optimizations
+and is now substantially faster.  Additionally, the `~astropy.time`,
+`~astropy.coordinates`, and `~astropy.table` subpackages integrate
+better with `~astropy.units.Quantity`, with further improvements on the
+way for `~astropy.table`. See :doc:`/units/quantity` and the other
+subpackage documentation sections for more details.
+
 Inspecting FITS headers from the command line
 ---------------------------------------------
 
@@ -62,23 +129,37 @@ inspecting the header(s) of a FITS file. With Astropy 0.4 installed, run
 the screen in a human-readable format. Run ``fitsheader --help`` to see the
 full usage documentation.
 
-Documentation/Sphinx extension changes
---------------------------------------
+Reading and writing HTML tables
+-------------------------------
 
-Starting in v0.4, astropy documentation will now show the full name of functions
-and classes prefixed by the intended user-facing location.  This is in contrast
-to previous versions, which pointed to the actual implementation module, rather
-than the intended public API location.
+The :ref:`io-ascii` sub-package now provides the capability to read a table
+within an HTML file or web URL into an astropy `~astropy.table.Table` object.
+This requires the `BeautifulSoup4
+<http://www.crummy.com/software/BeautifulSoup/>`_ package to be installed.
+Conversely a `~astropy.table.Table` object can now be written out as an HTML
+table.
 
-This will affect URLs pointing to specific documentation pages.  For example,
-this URL points to the v0.3 location of the
-`astropy.cosmology.luminosity_distance` function:
-http://docs.astropy.org/en/v0.3/api/astropy.cosmology.funcs.luminosity_distance.html
+Documentation URL changes
+-------------------------
+
+Starting in v0.4, the astropy documentation (and any package that uses
+``astropy-helpers``) will show the full name of functions and classes
+prefixed by the intended user-facing location.  This is in contrast to
+previous versions, which pointed to the actual implementation module,
+rather than the intended public API location.
+
+This will affect URLs pointing to specific documentation pages.  For
+example, this URL points to the v0.3 location of the
+``astropy.cosmology.luminosity_distance`` function:
+
+* http://docs.astropy.org/en/v0.3/api/astropy.cosmology.funcs.luminosity_distance.html
+
 while the appropriate URL for v0.4 and later is:
-http://docs.astropy.org/en/v0.4/api/astropy.cosmology.luminosity_distance.html
 
-astropy-helpers
----------------
+* http://docs.astropy.org/en/v0.4/api/astropy.cosmology.luminosity_distance.html
+
+astropy-helpers package
+-----------------------
 
 We have now extracted our set-up and documentation utilities into a separate
 package, `astropy-helpers <https://github.com/astropy/astropy-helpers>`_. In
@@ -90,9 +171,11 @@ astropy.
 Configuration
 -------------
 
-The configuration framework has been re-factored. If you have previously
-edited the astropy configuration file (typically located in
-``~/.astropy/config/astropy.cfg``) then you should read over
+The configuration framework has been re-factored based on the design
+described in
+`APE3 <https://github.com/astropy/astropy-APEs/blob/master/APE3.rst>`_.
+If you have previously edited the astropy configuration file (typically
+located at ``~/.astropy/config/astropy.cfg``) then you should read over
 :ref:`config-0-4-transition` in order to understand how to update it
 to the new mechanism.
 
@@ -104,14 +187,35 @@ Deprecation and backward-incompatible changes
   used to be raised).  [#2328]
 
 - The functional interface for `astropy.cosmology` (e.g.
-  ``cosmology.H(0.5)`` is now deprecated in favor of the objected-oriented
-  approach (``WMAP9.H(0.5)``). [#2343]
+  ``cosmology.H(z=0.5)`` is now deprecated in favor of the
+  objected-oriented approach (``WMAP9.H(z=0.5)``). [#2343]
 
-- The `astropy.coordinates` package has undergone large changes for implementing the
+- The `astropy.coordinates` sub-package has undergone major changes for
+  implementing the
   `APE5 <https://github.com/astropy/astropy-APEs/blob/master/APE5.rst>`_ plan
-  for the package.  Pre-v0.4 coordinates may no longer work, and should be
-  adapted to the new framework.  From this point on, major changes to the
+  for the package.  A compatibility layer has been added that will allow
+  common use cases of pre-v0.4 coordinates to work, but this layer will be
+  removed in the next major version.  Hence, any use of the coordinates
+  package should be adapted to the new framework.  Additionally, the
+  compatibility layer cannot be used for convenience functions (like the
+  ``match_catalog_*()`` functions), as these have been moved to
+  `~astropy.coordinates.SkyCoord`. From this point on, major changes to the
   coordinates classes are not expected.  [#2422]
+
+- The configuration framework has been re-designed to the scheme of
+  `APE3 <https://github.com/astropy/astropy-APEs/blob/master/APE3.rst>`_.
+  The previous framework based on `~astropy.config.ConfigurationItem` is
+  deprecated, and  will be removed in a future release. Affiliated
+  packages should update to the new configuration system, and any users
+  who have customized their configuration file should migrate to the new
+  configuration approach.  Until they do, warnings will appear prompting
+  them to do so.
+
+Full change log
+---------------
+
+To see a detailed list of all changes in version 0.4 and prior, please see the
+:ref:`changelog`.
 
 Note on future versions
 -----------------------

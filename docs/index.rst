@@ -21,7 +21,7 @@ Astropy Core Package Documentation
     :height: 96px
     :target: http://www.astropy.org/
 
-Welcome to the ``astropy`` documentation! ``astropy`` is a community-driven
+Welcome to the Astropy documentation! Astropy is a community-driven
 package intended to contain much of the core functionality and some common
 tools needed for performing astronomy and astrophysics with Python.
 
@@ -31,8 +31,17 @@ tools needed for performing astronomy and astrophysics with Python.
 User Documentation
 ******************
 
-:doc:`whatsnew/0.4`
--------------------
+.. only:: html
+
+    :doc:`whatsnew/0.4`
+    -------------------
+
+.. only:: latex
+
+    .. toctree::
+       :maxdepth: 1
+
+       whatsnew/0.4
 
 **Astropy at a glance**
 
@@ -135,6 +144,20 @@ information about your operating system and a full Python stack trace; the
 Astropy developers will walk you through obtaining a stack trace if it is
 necessary.
 
+
+For astropy-helpers
+-------------------
+
+As of Astropy v0.4, Astropy and many affiliated packages use a package of
+utilities called astropy-helpers during building and installation.  If you have
+any build/installation issue--particularly if you're getting a traceback
+mentioning the ``astropy_helpers`` or ``ah_bootstrap`` modules--please send a
+report to the `astropy-helpers issue tracker
+<https://github.com/astropy/astropy-helpers/issues>`_.  If you're not sure,
+however, it's fine to report via the main Astropy issue tracker or one of the
+other avenues described above.
+
+
 ************
 Contributing
 ************
@@ -179,6 +202,7 @@ as a whole, see :doc:`development/vision`.
    development/ccython
    development/releasing
    development/workflow/maintainer_workflow
+   development/affiliated-packages
    changelog
 
 ******************

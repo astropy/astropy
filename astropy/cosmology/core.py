@@ -11,8 +11,8 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 from .. import constants as const
-from ..utils.misc import isiterable, deprecated
 from .. import units as u
+from ..utils import isiterable, deprecated
 from ..utils.state import ScienceState, ScienceStateAlias
 
 from . import parameters
@@ -25,9 +25,8 @@ from . import parameters
 # and Linder 2003, PRL 90, 91301
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
-           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "get_current",
-           "set_current", "WMAP5", "WMAP7", "WMAP9", "Planck13",
-           "default_cosmology"]
+           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "WMAP5", "WMAP7",
+           "WMAP9", "Planck13", "default_cosmology"]
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
@@ -102,6 +101,10 @@ class FLRW(Cosmology):
     name : str
         Optional name for this cosmological object.
 
+    Ob0 : float
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
+
     Notes
     -----
     Class instances are static -- you can't change the values
@@ -109,13 +112,25 @@ class FLRW(Cosmology):
     read only.
     """
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), name=None):
+                 m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
         if self._Om0 < 0.0:
             raise ValueError("Matter density can not be negative")
         self._Ode0 = float(Ode0)
+        if Ob0 is not None:
+            self._Ob0 = float(Ob0)
+            if self._Ob0 < 0.0:
+                raise ValueError("Baryonic density can not be negative")
+            if self._Ob0 > self._Om0:
+                raise ValueError("Baryonic density can not be larger than "
+                                 "total matter density")
+            self._Odm0 = self._Om0 - self._Ob0
+        else:
+            self._Ob0 = None
+            self._Odm0 = None
+
         self._Neff = float(Neff)
         if self._Neff < 0.0:
             raise ValueError("Effective number of neutrinos can "
@@ -193,7 +208,8 @@ class FLRW(Cosmology):
                 else:
                     self._massivenu = True
                     if len(m_nu) != self._nneutrinos:
-                        raise ValueError("Unexpected number of neutrino masses")
+                        errstr = "Unexpected number of neutrino masses"
+                        raise ValueError(errstr)
                     # Segregate out the massless ones
                     try:
                         # Numpy < 1.6 doesn't have count_nonzero
@@ -249,9 +265,11 @@ class FLRW(Cosmology):
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, "\
-                 "Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6})"
+                 "Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6}, "\
+                 "Ob0={7:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._Ode0,
-                             self._Tcmb0, self._Neff, self.m_nu)
+                             self._Tcmb0, self._Neff, self.m_nu,
+                             _float_or_none(self._Ob0))
 
     # Set up a set of properties for H0, Om0, Ode0, Ok0, etc. for user access.
     # Note that we don't let these be set (so, obj.Om0 = value fails)
@@ -270,6 +288,16 @@ class FLRW(Cosmology):
     def Ode0(self):
         """ Omega dark energy; dark energy density/critical density at z=0"""
         return self._Ode0
+
+    @property
+    def Ob0(self):
+        """ Omega baryon; baryonic matter density/critical density at z=0"""
+        return self._Ob0
+
+    @property
+    def Odm0(self):
+        """ Omega dark matter; dark matter density/critical density at z=0"""
+        return self._Odm0
 
     @property
     def Ok0(self):
@@ -347,6 +375,68 @@ class FLRW(Cosmology):
         """ Omega nu; the density/critical density of neutrinos at z=0"""
         return self._Onu0
 
+    def clone(self, **kwargs):
+        """ Returns a copy of this object, potentially with some changes.
+
+        Returns
+        -------
+        newcos : Subclass of FLRW
+        A new instance of this class with the specified changes.
+
+        Notes
+        -----
+        This assumes that the values of all constructor arguments
+        are available as properties, which is true of all the provided
+        subclasses but may not be true of user-provided ones.  You can't
+        change the type of class, so this can't be used to change between
+        flat and non-flat.  If no modifications are requested, then
+        a reference to this object is returned.
+
+        Examples
+        --------
+        To make a copy of the Planck13 cosmology with a different Omega_m
+        and a new name:
+
+        >>> from astropy.cosmology import Planck13
+        >>> newcos = Planck13.clone(name="Modified Planck 2013", Om0=0.35)
+        """
+
+        # Quick return check, taking advantage of the
+        # immutability of cosmological objects
+        if len(kwargs) == 0:
+            return self
+
+        # Get constructor arguments
+        import inspect
+        arglist = inspect.getargspec(self.__init__).args
+
+        # Build the dictionary of values used to construct this
+        #  object.  This -assumes- every argument to __init__ has a
+        #  property.  This is true of all the classes we provide, but
+        #  maybe a user won't do that.  So at least try to have a useful
+        #  error message.
+        argdict = {}
+        for arg in arglist[1:]:  # Skip self, which should always be first
+            try:
+                val = getattr(self, arg)
+                argdict[arg] = val
+            except AttributeError as e:
+                # We didn't find a property -- complain usefully
+                errstr = "Object did not have property corresponding "\
+                         "to constructor argument '%s'; perhaps it is a "\
+                         "user provided subclass that does not do so"
+                raise AttributeError(errstr % arg)
+
+        # Now substitute in new arguments
+        for newarg in kwargs:
+            if newarg not in argdict:
+                errstr = "User provided argument '%s' not found in "\
+                         "constructor for this object"
+                raise AttributeError(errstr % newarg)
+            argdict[newarg] = kwargs[newarg]
+
+        return self.__class__(**argdict)
+
     @abstractmethod
     def w(self, z):
         """ The dark energy equation of state.
@@ -391,6 +481,59 @@ class FLRW(Cosmology):
         if isiterable(z):
             z = np.asarray(z)
         return self._Om0 * (1. + z) ** 3 * self.inv_efunc(z) ** 2
+
+    def Ob(self, z):
+        """ Return the density parameter for baryonic matter at redshift ``z``.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        Ob : ndarray, or float if input scalar
+          The density of baryonic matter relative to the critical density at
+          each redshift.
+
+        Raises
+        ------
+        ValueError
+          If Ob0 is None.
+        """
+
+        if self._Ob0 is None:
+            raise ValueError("Baryon density not set for this cosmology")
+        if isiterable(z):
+            z = np.asarray(z)
+        return self._Ob0 * (1. + z) ** 3 * self.inv_efunc(z) ** 2
+
+    def Odm(self, z):
+        """ Return the density parameter for dark matter at redshift ``z``.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.
+
+        Returns
+        -------
+        Odm : ndarray, or float if input scalar
+          The density of non-relativistic dark matter relative to the critical
+          density at each redshift.
+
+        Raises
+        ------
+        ValueError
+          If Ob0 is None.
+        """
+
+        if self._Odm0 is None:
+            raise ValueError("Baryonic density not set for this cosmology, "
+                             "unclear meaning of dark matter density")
+        if isiterable(z):
+            z = np.asarray(z)
+        return self._Odm0 * (1. + z) ** 3 * self.inv_efunc(z) ** 2
 
     def Ok(self, z):
         """ Return the equivalent density parameter for curvature
@@ -1294,9 +1437,10 @@ class LambdaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), name=None):
+                 m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
+                      Ob0=Ob0)
 
     def w(self, z):
         """Returns dark energy equation of state at redshift ``z``.
@@ -1455,9 +1599,10 @@ class FlatLambdaCDM(LambdaCDM):
     """
 
     def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), name=None):
+                 m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name,
+                      Ob0=Ob0)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -1525,9 +1670,10 @@ class FlatLambdaCDM(LambdaCDM):
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
-                 "Neff={4:.3g}, m_nu={5})"
+                 "Neff={4:.3g}, m_nu={5}, Ob0={6:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
-                             self._Tcmb0, self._Neff, self.m_nu)
+                             self._Tcmb0, self._Neff, self.m_nu,
+                             _float_or_none(self._Ob0))
 
 
 class wCDM(FLRW):
@@ -1572,6 +1718,10 @@ class wCDM(FLRW):
     name : str
         Optional name for this cosmological object.
 
+    Ob0 : float
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
+
     Examples
     --------
     >>> from astropy.cosmology import wCDM
@@ -1584,9 +1734,10 @@ class wCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
+                      Ob0=None)
         self._w0 = float(w0)
 
     @property
@@ -1707,10 +1858,10 @@ class wCDM(FLRW):
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, w0={4:.3g}, "\
-                 "Tcmb0={5:.4g}, Neff={6:.3g}, m_nu={7})"
+                 "Tcmb0={5:.4g}, Neff={6:.3g}, m_nu={7}, Ob0={8:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._Tcmb0, self._Neff,
-                             self.m_nu)
+                             self.m_nu, _float_or_none(self._Ob0))
 
 
 class FlatwCDM(wCDM):
@@ -1751,6 +1902,10 @@ class FlatwCDM(wCDM):
     name : str
         Optional name for this cosmological object.
 
+    Ob0 : float
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
+
     Examples
     --------
     >>> from astropy.cosmology import FlatwCDM
@@ -1763,9 +1918,10 @@ class FlatwCDM(wCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name,
+                      Ob0=Ob0)
         self._w0 = float(w0)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
@@ -1833,9 +1989,10 @@ class FlatwCDM(wCDM):
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, w0={3:.3g}, Tcmb0={4:.4g}, "\
-                 "Neff={5:.3g}, m_nu={6})"
+                 "Neff={5:.3g}, m_nu={6}, Ob0={7:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
-                             self._Tcmb0, self._Neff, self.m_nu)
+                             self._Tcmb0, self._Neff, self.m_nu,
+                             _float_or_none(self._Ob0))
 
 
 class w0waCDM(FLRW):
@@ -1884,6 +2041,10 @@ class w0waCDM(FLRW):
     name : str
         Optional name for this cosmological object.
 
+    Ob0 : float
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
+
     Examples
     --------
     >>> from astropy.cosmology import w0waCDM
@@ -1896,9 +2057,10 @@ class w0waCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
+                      Ob0=Ob0)
         self._w0 = float(w0)
         self._wa = float(wa)
 
@@ -1972,10 +2134,11 @@ class w0waCDM(FLRW):
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
                  "Ode0={3:.3g}, w0={4:.3g}, wa={5:.3g}, Tcmb0={6:.4g}, "\
-                 "Neff={7:.3g}, m_nu={8})"
+                 "Neff={7:.3g}, m_nu={8}, Ob0={9:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._wa,
-                             self._Tcmb0, self._Neff, self.m_nu)
+                             self._Tcmb0, self._Neff, self.m_nu,
+                             _float_or_none(self._Ob0))
 
 
 class Flatw0waCDM(w0waCDM):
@@ -2021,6 +2184,10 @@ class Flatw0waCDM(w0waCDM):
     name : str
         Optional name for this cosmological object.
 
+    Ob0 : float
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
+
     Examples
     --------
     >>> from astropy.cosmology import Flatw0waCDM
@@ -2033,9 +2200,10 @@ class Flatw0waCDM(w0waCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
-        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name,
+                      Ob0=Ob0)
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
@@ -2044,9 +2212,11 @@ class Flatw0waCDM(w0waCDM):
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
-                 "w0={3:.3g}, Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6})"
+                 "w0={3:.3g}, Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6}, "\
+                 "Ob0={7:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
-                             self._Tcmb0, self._Neff, self.m_nu)
+                             self._Tcmb0, self._Neff, self.m_nu,
+                             _float_or_none(self._Ob0))
 
 
 class wpwaCDM(FLRW):
@@ -2102,6 +2272,10 @@ class wpwaCDM(FLRW):
     name : str
         Optional name for this cosmological object.
 
+    Ob0 : float
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
+
     Examples
     --------
     >>> from astropy.cosmology import wpwaCDM
@@ -2115,9 +2289,10 @@ class wpwaCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0,
                  Tcmb0=2.725, Neff=3.04, m_nu=u.Quantity(0.0, u.eV),
-                 name=None):
+                 name=None, Ob0=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
+                      Ob0=Ob0)
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
@@ -2202,10 +2377,11 @@ class wpwaCDM(FLRW):
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, wp={4:.3g}, "\
                  "wa={5:.3g}, zp={6:.3g}, Tcmb0={7:.4g}, Neff={8:.3g}, "\
-                 "m_nu={9})"
+                 "m_nu={9}, Ob0={10:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._wp, self._wa, self._zp,
-                             self._Tcmb0, self._Neff, self.m_nu)
+                             self._Tcmb0, self._Neff, self.m_nu,
+                             _float_or_none(self._Ob0))
 
 
 class w0wzCDM(FLRW):
@@ -2256,6 +2432,10 @@ class w0wzCDM(FLRW):
     name : str
         Optional name for this cosmological object.
 
+    Ob0 : float
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
+
     Examples
     --------
     >>> from astropy.cosmology import w0wzCDM
@@ -2268,9 +2448,10 @@ class w0wzCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
-        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name)
+        FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
+                      Ob0=Ob0)
         self._w0 = float(w0)
         self._wz = float(wz)
 
@@ -2344,10 +2525,17 @@ class w0wzCDM(FLRW):
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
                  "Ode0={3:.3g}, w0={4:.3g}, wz={5:.3g} Tcmb0={6:.4g}, "\
-                 "Neff={7:.3g}, m_nu={8})"
+                 "Neff={7:.3g}, m_nu={8}, Ob0={9:s})"
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._wz, self._Tcmb0,
-                             self._Neff, self.m_nu)
+                             self._Neff, self.m_nu, _float_or_none(self._Ob0))
+
+def _float_or_none(x, digits=3):
+    """ Helper function to format a variable that can be a float or None"""
+    if x is None:
+        return str(x)
+    fmtstr = "{0:.{digits}g}".format(x, digits=digits)
+    return fmtstr.format(x)
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a LambdaCDM or FlatLambdaCDM instance
@@ -2361,13 +2549,15 @@ for key in parameters.available:
         cosmo = FlatLambdaCDM(par['H0'], par['Om0'], Tcmb0=par['Tcmb0'],
                               Neff=par['Neff'],
                               m_nu=u.Quantity(par['m_nu'], u.eV),
-                              name=key)
+                              name=key,
+                              Ob0=par['Ob0'])
         docstr = "%s instance of FlatLambdaCDM cosmology\n\n(from %s)"
         cosmo.__doc__ = docstr % (key, par['reference'])
     else:
         cosmo = LambdaCDM(par['H0'], par['Om0'], par['Ode0'],
                           Tcmb0=par['Tcmb0'], Neff=par['Neff'],
-                          m_nu=u.Quantity(par['m_nu'], u.eV), name=key)
+                          m_nu=u.Quantity(par['m_nu'], u.eV), name=key,
+                          Ob0=par['Ob0'])
         docstr = "%s instance of LambdaCDM cosmology\n\n(from %s)"
         cosmo.__doc__ = docstr % (key, par['reference'])
     setattr(sys.modules[__name__], key, cosmo)
@@ -2420,42 +2610,6 @@ class default_cosmology(ScienceState):
             return value
         else:
             raise TypeError("default_cosmology must be a string or Cosmology instance.")
-
-
-@deprecated('0.4', alternative='astropy.cosmology.default_cosmology.get_cosmology_from_string')
-def get_cosmology_from_string(arg):
-    """ Return a cosmology instance from a string.
-    """
-    return default_cosmology.get_cosmology_from_string(arg)
-
-
-@deprecated('0.4', alternative='astropy.cosmology.default_cosmology.get')
-def get_current():
-    """ Get the current cosmology.
-
-    If no current has been set, the WMAP9 comology is returned and a
-    warning is given.
-
-    Returns
-    -------
-    cosmo : ``Cosmology`` instance
-    """
-    return default_cosmology.get()
-
-
-@deprecated('0.4', alternative='astropy.cosmology.default_cosmology.set')
-def set_current(cosmo):
-    """ Set the current cosmology.
-
-    Call this with an empty string ('') to get a list of the strings
-    that map to available pre-defined cosmologies.
-
-    Parameters
-    ----------
-    cosmo : str or ``Cosmology`` instance
-      The cosmology to use.
-    """
-    return default_cosmology.set(cosmo)
 
 
 DEFAULT_COSMOLOGY = ScienceStateAlias(

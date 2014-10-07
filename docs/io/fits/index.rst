@@ -23,7 +23,8 @@ Getting Started
 This section provides a quick introduction of using :mod:`astropy.io.fits`. The
 goal is to demonstrate the package's basic features without getting into too
 much detail. If you are a first time user or have never used Astropy or PyFITS,
-this is where you should start.
+this is where you should start.  See also the :ref:`FAQ <io-fits-faq>` for
+answers to common questions/issues.
 
 Reading and Updating Existing FITS Files
 ----------------------------------------
@@ -85,6 +86,16 @@ as reading the array data sequentially, may incur some additional overhead.  On
 because by that point you're likely to run out of physical memory anyways), but
 64-bit systems are much less limited in this respect.
 
+.. warning::
+	When opening a file with ``memmap=True``, because of how mmap works this means that 
+	when the HDU data is accessed (i.e. ``hdul[0].data``) another handle to the FITS file
+	is opened by mmap. This means that even after calling ``hdul.close()`` the mmap still
+	holds an open handle to the data so that it can still be accessed by unwary programs
+	that were built with the assumption that the .data attribute has all the data in-memory.
+	
+	In order to force the mmap to close either wait for the containing ``HDUList`` object to go 
+	out of scope, or manually call del ``hdul[0].data`` (this works so long as there are no other
+	references held to the data array).
 
 Working with FITS Headers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -679,8 +690,8 @@ Other Information
 .. toctree::
     :maxdepth: 1
 
-    appendix/header_transition
     appendix/faq
+    appendix/header_transition
     appendix/history
 
 Reference/API

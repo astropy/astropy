@@ -416,7 +416,7 @@ class Trapezoid1DKernel(Kernel1D):
     Parameters
     ----------
     width : number
-        Width of the filter kernel, defined as the width of the constant part, 
+        Width of the filter kernel, defined as the width of the constant part,
         before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails
@@ -474,7 +474,7 @@ class TrapezoidDisk2DKernel(Kernel2D):
     Parameters
     ----------
     radius : number
-        Width of the filter kernel, defined as the width of the constant part, 
+        Width of the filter kernel, defined as the width of the constant part,
         before it begins to slope down.
     slope : number
         Slope of the filter kernel's tails

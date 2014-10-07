@@ -60,12 +60,6 @@ else:
     importer = extern_pytest.DictImporter(unpacked_sources)
     sys.meta_path.insert(0, importer)
 
-    # On Python 3.1, we need to forcibly import the py.test-"bundled"
-    # argparse before importing py.test, since it isn't in the
-    # standard library, and py.test's workaround doesn't appear to
-    # work with the "absolute imports" of Python 3.x.
-    if six.PY3 and sys.version_info[1] <= 1:
-        argparse = importer.load_module(str('argparse'))
     pytest = importer.load_module(str('pytest'))
 
 
@@ -114,6 +108,14 @@ class TestRunner(object):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
+        try:
+            get_ipython()
+        except NameError:
+            pass
+        else:
+            raise RuntimeError(
+                "Running astropy tests inside of IPython is not supported.")
+
         if coverage:
             warnings.warn(
                 "The coverage option is ignored on run_tests, since it "
@@ -144,24 +146,34 @@ class TestRunner(object):
 
         if test_path:
             base, ext = os.path.splitext(test_path)
-            if ext == '.py':
-                test_path = os.path.abspath(test_path)
-                all_args.append(test_path)
-            elif ext == '.rst':
+
+            if ext in ('.rst', ''):
                 if docs_path is None:
                     # This shouldn't happen from "python setup.py test"
                     raise ValueError(
-                        "Can not test .rst files without a docs_path specified.")
-                else:
+                        "Can not test .rst files without a docs_path "
+                        "specified.")
+
+                abs_docs_path = os.path.abspath(docs_path)
+                abs_test_path = os.path.abspath(
+                    os.path.join(abs_docs_path, os.pardir, test_path))
+
+                common = os.path.commonprefix((abs_docs_path, abs_test_path))
+
+                if os.path.exists(abs_test_path) and common == abs_docs_path:
                     # Since we aren't testing any Python files within
                     # the astropy tree, we need to forcibly load the
                     # astropy py.test plugins, and then turn on the
                     # doctest_rst plugin.
-                    all_args.extend(['-p', 'astropy.tests.pytest_plugins', '--doctest-rst'])
-                    test_path = os.path.join(docs_path, '..', test_path)
-                    all_args.append(test_path)
-            else:
-                raise ValueError("Test file path must be to a .py or .rst file")
+                    all_args.extend(['-p', 'astropy.tests.pytest_plugins',
+                                     '--doctest-rst'])
+                    test_path = abs_test_path
+
+            if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
+                raise ValueError("Test path must be a directory or a path to "
+                                 "a .py or .rst file")
+
+            all_args.append(test_path)
         else:
             all_args.append(package_path)
             if docs_path is not None and not skip_docs:

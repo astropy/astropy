@@ -321,7 +321,7 @@ def _mod_info(modname, toskip=[], onlylocals=True):
     it has classes or functions.
     """
 
-    from ...utils.misc import find_mod_objs
+    from ...utils.introspection import find_mod_objs
 
     hascls = hasfunc = False
 

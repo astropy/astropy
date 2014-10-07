@@ -604,6 +604,16 @@ def test_masked_array_input():
     assert_array_equal(nd.mask, marr.mask)
     assert_array_equal(nd.data, marr.data)
 
+def test_unmasked_masked_array_input():
+    # Test for #2784
+    marr = np.ma.array([1,2,5]) # Masked array with no masked entries
+    nd = NDData(marr) # Before fix this raised a ValueError
+
+    # Check that masks are correct
+    assert marr.mask is np.ma.nomask
+    assert nd.mask is None  # Internal representation is np.ma.nomask but getter returns None
+
+
 # Check that the meta descriptor is working as expected. The MetaBaseTest class
 # takes care of defining all the tests, and we simply have to define the class
 # and any minimal set of args to pass.

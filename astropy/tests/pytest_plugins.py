@@ -316,7 +316,8 @@ class DocTestFinderPlus(doctest.DocTestFinder):
     def check_required_modules(cls, mods):
         for mod in mods:
             if mod in cls._import_cache:
-                return cls._import_cache[mod]
+                if not cls._import_cache[mod]:
+                    return False
             try:
                 imp.find_module(mod)
             except ImportError:
@@ -596,7 +597,7 @@ class ModifiedModule(pytest.Module):
     def _importtestmodule(self):
         # We have to remove the __future__ statements *before* parsing
         # with compile, otherwise the flags are ignored.
-        content = re.sub(_RE_FUTURE_IMPORTS, b'', self.content)
+        content = re.sub(_RE_FUTURE_IMPORTS, b'\n', self.content)
 
         new_mod = types.ModuleType(self.mod_name)
         new_mod.__file__ = six.text_type(self.fspath)

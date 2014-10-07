@@ -57,24 +57,37 @@ def test_create_angles():
     with pytest.raises(ValueError):
         a13 = Angle(12.34, unit="not a unit")
 
-    a14 = Angle("12h43m32") # no trailing 's', but unambiguous
+    a14 = Angle("03h36m29.7888000120") # no trailing 's', but unambiguous
 
     a15 = Angle("5h4m3s") # single digits, no decimal
 
     a16 = Angle("1 d")
     a17 = Angle("1 degree")
+
     assert a16.degree == 1
     assert a17.degree == 1
 
+    a18 = Angle("54 07.4472", unit=u.degree)
+    a19 = Angle("54:07.4472", unit=u.degree)
+    a20 = Angle("54d07.4472m", unit=u.degree)
+    a21 = Angle("3h36m", unit=u.hour)
+    a22 = Angle("3.6h", unit=u.hour)
+    a23 = Angle("- 3h", unit=u.hour)
+    a24 = Angle("+ 3h", unit=u.hour)
+
     #ensure the above angles that should match do
-    assert a1 == a2 == a3 == a4 == a5 == a6 == a7
+    assert a1 == a2 == a3 == a4 == a5 == a6 == a7 == a8 == a18 == a19 == a20
     assert_allclose(a1.radian, a2.radian)
     assert_allclose(a2.degree, a3.degree)
     assert_allclose(a3.radian, a4.radian)
     assert_allclose(a4.radian, a5.radian)
     assert_allclose(a5.radian, a6.radian)
     assert_allclose(a6.radian, a7.radian)
-    #assert a10 == a11 == a12
+
+    assert_allclose(a10.degree, a11.degree)
+    assert a11 == a12 == a14
+    assert a21 == a22
+    assert a23 == -a24
 
     # check for illegal ranges / values
     with pytest.raises(IllegalSecondError):
@@ -108,7 +121,8 @@ def test_angle_ops():
     # Angles can be added and subtracted. Multiplication and division by a
     # scalar is also permitted. A negative operator is also valid.  All of
     # these operate in a single dimension. Attempting to multiply or divide two
-    # Angle objects will raise an exception.
+    # Angle objects will return a quantity.  An exception will be raised if it
+    # is attempted to store output with a non-angular unit in an Angle [#2718].
 
     a1 = Angle(3.60827466667, unit=u.hour)
     a2 = Angle("54:07:26.832", unit=u.degree)
@@ -134,6 +148,16 @@ def test_angle_ops():
     assert a5 >= a1
     assert a1 < a5
     assert a1 <= a5
+
+    a6 = Angle(45., u.degree)
+    a7 = a6 * a5
+    assert type(a7) is u.Quantity
+
+    with pytest.raises(TypeError):
+        a6 *= a5
+
+    with pytest.raises(TypeError):
+        np.sin(a6, out=a6)
 
 
 def test_angle_convert():
@@ -627,6 +651,14 @@ def test_longitude():
     lon.wrap_angle = '90d'
     assert lon == Angle('-260d')
 
+    #check that if we initialize a longitude with another longitude,
+    #wrap_angle is kept by default
+    lon2 = Longitude(lon)
+    assert lon2.wrap_angle == lon.wrap_angle
+    #but not if we explicitly set it
+    lon3 = Longitude(lon, wrap_angle='180d')
+    assert lon3.wrap_angle == 180 * u.deg
+
     #check for problem reported in #2037 about Longitude initializing to -0
     lon = Longitude(0, u.deg)
     lonstr = lon.to_string()
@@ -797,3 +829,7 @@ def test_angle_axis():
     assert an2 - 89*u.deg < 1e-10*u.deg
     assert_allclose(ax2, [-2**-0.5, -2**-0.5, 0])
 
+def test_array_angle_tostring():
+    aobj = Angle([1, 2], u.deg)
+    assert aobj.to_string().dtype.kind == 'U'
+    assert np.all(aobj.to_string() == ['1d00m00s', '2d00m00s'])

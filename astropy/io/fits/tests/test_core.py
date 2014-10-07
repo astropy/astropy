@@ -24,7 +24,7 @@ from . import FitsTestCase
 from .util import ignore_warnings
 from ..convenience import _getext
 from ..diff import FITSDiff
-from ..file import _File
+from ..file import _File, GZIP_MAGIC
 
 
 class TestCore(FitsTestCase):
@@ -572,7 +572,7 @@ class TestFileFunctions(FitsTestCase):
         try:
             fits.open(self.temp('foobar.fits'))
         except IOError as e:
-            assert 'File does not exist' in str(e)
+            assert 'No such file or directory' in str(e)
         except:
             raise
 
@@ -644,6 +644,22 @@ class TestFileFunctions(FitsTestCase):
         pytest.raises(IOError, fits.open, zf, 'update')
         pytest.raises(IOError, fits.open, zf, 'append')
 
+    def test_read_open_astropy_gzip_file(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2774
+
+        This tests reading from a ``GzipFile`` object from Astropy's
+        compatibility copy of the ``gzip`` module.
+        """
+
+        from ....utils.compat import gzip
+
+        gf = gzip.GzipFile(self._make_gzip_file())
+        try:
+            assert len(fits.open(gf)) == 5
+        finally:
+            gf.close()
+
     @raises(IOError)
     def test_open_multiple_member_zipfile(self):
         """
@@ -692,6 +708,23 @@ class TestFileFunctions(FitsTestCase):
             # normal writes should work too...
             assert h[0].header['EXPFLAG'] == 'ABNORMAL'
 
+    def test_write_read_gzip_file(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2794
+
+        Ensure files written through gzip are readable.
+        """
+
+        data = np.arange(100)
+        hdu = fits.PrimaryHDU(data=data)
+        hdu.writeto(self.temp('test.fits.gz'))
+
+        with open(self.temp('test.fits.gz'), 'rb') as f:
+            assert f.read(3) == GZIP_MAGIC
+
+        with fits.open(self.temp('test.fits.gz')) as hdul:
+            assert np.all(hdul[0].data == data)
+
     def test_read_file_like_object(self):
         """Test reading a FITS file from a file-like object."""
 
@@ -723,6 +756,52 @@ class TestFileFunctions(FitsTestCase):
         hdul.close()
 
         assert old_mode == os.stat(filename).st_mode
+
+    def test_fileobj_mode_guessing(self):
+        """Tests whether a file opened without a specified pyfits mode
+        ('readonly', etc.) is opened in a mode appropriate for the given file
+        object.
+        """
+
+        self.copy_file('test0.fits')
+
+        # Opening in text mode should outright fail
+        for mode in ('r', 'w', 'a'):
+            with open(self.temp('test0.fits'), mode) as f:
+                pytest.raises(ValueError, fits.HDUList.fromfile, f)
+
+        # Need to re-copy the file since opening it in 'w' mode blew it away
+        self.copy_file('test0.fits')
+
+        with open(self.temp('test0.fits'), 'rb') as f:
+            with fits.HDUList.fromfile(f) as h:
+                assert h.fileinfo(0)['filemode'] == 'readonly'
+
+        for mode in ('wb', 'ab'):
+            with open(self.temp('test0.fits'), mode) as f:
+                with fits.HDUList.fromfile(f) as h:
+                    # Basically opening empty files for output streaming
+                    assert len(h) == 0
+
+        # Need to re-copy the file since opening it in 'w' mode blew it away
+        self.copy_file('test0.fits')
+
+        with open(self.temp('test0.fits'), 'wb+') as f:
+            with fits.HDUList.fromfile(f) as h:
+                # wb+ still causes an existing file to be overwritten so there
+                # are no HDUs
+                assert len(h) == 0
+
+        # Need to re-copy the file since opening it in 'w' mode blew it away
+        self.copy_file('test0.fits')
+
+        with open(self.temp('test0.fits'), 'rb+') as f:
+            with fits.HDUList.fromfile(f) as h:
+                assert h.fileinfo(0)['filemode'] == 'update'
+
+        with open(self.temp('test0.fits'), 'ab+') as f:
+            with fits.HDUList.fromfile(f) as h:
+                assert h.fileinfo(0)['filemode'] == 'append'
 
     def test_mmap_unwriteable(self):
         """Regression test for https://github.com/astropy/astropy/issues/968
@@ -838,6 +917,26 @@ class TestFileFunctions(FitsTestCase):
         """
 
         self._test_write_string_bytes_io(StringIO.StringIO())
+
+    @pytest.mark.skipif('not HAVE_STRINGIO')
+    def test_write_stringio_discontiguous(self):
+        """
+        Regression test related to
+        https://github.com/astropy/astropy/issues/2794#issuecomment-55441539
+
+        Demonstrates that writing an HDU containing a discontiguous Numpy array
+        should work properly.
+        """
+
+        data = np.arange(100)[::3]
+        hdu = fits.PrimaryHDU(data=data)
+        fileobj = StringIO.StringIO()
+        hdu.writeto(fileobj)
+
+        fileobj.seek(0)
+
+        with fits.open(fileobj) as h:
+            assert np.all(h[0].data == data)
 
     def test_write_bytesio(self):
         """

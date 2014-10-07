@@ -11,7 +11,7 @@ if __name__ == '__main__':
     sys.path.insert(0, astropy_path)
 
     from astropy import wcs
-    from astropy import setup_helpers
+    import numpy as np
     from distutils.core import setup, Extension
 
     if sys.platform == 'win32':
@@ -27,10 +27,15 @@ if __name__ == '__main__':
     else:
         define_macros = []
 
+    try:
+        numpy_include = np.get_include()
+    except AttributeError:
+        numpy_include = np.get_numpy_include()
+
     wcsapi_test_module = Extension(
         str('wcsapi_test'),
         include_dirs=[
-            setup_helpers.get_numpy_include_path(),
+            numpy_include,
             os.path.join(wcs.get_include(), 'astropy_wcs'),
             os.path.join(wcs.get_include(), 'wcslib')
         ],

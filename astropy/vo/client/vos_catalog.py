@@ -9,6 +9,7 @@ import fnmatch
 import json
 import os
 import re
+import socket
 import warnings
 
 from collections import defaultdict
@@ -16,7 +17,7 @@ from copy import deepcopy
 
 # LOCAL
 from .exceptions import VOSError, MissingCatalog, DuplicateCatalogName, DuplicateCatalogURL, InvalidAccessURL
-from ...io.votable import parse_single_table, table, tree
+from ...io.votable import parse_single_table, table, tree, conf
 from ...config import ConfigAlias
 from ...io.votable.exceptions import vo_raise, vo_warn, E19, W24, W25
 from ...utils.console import color_print
@@ -841,11 +842,12 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         If VO service request fails.
 
     """
+    n_timed_out = 0
     catalogs = _get_catalogs(service_type, catalog_db, cache=cache,
                              verbose=verbose)
 
     if pedantic is None:  # pragma: no cover
-        pedantic = votable.conf.pedantic
+        pedantic = conf.pedantic
 
     for name, catalog in catalogs:
         if isinstance(catalog, six.string_types):
@@ -866,8 +868,13 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
             return _vo_service_request(url, pedantic, kwargs, verbose=verbose)
         except Exception as e:
             vo_warn(W25, (url, str(e)))
+            if hasattr(e, 'reason') and isinstance(e.reason, socket.timeout):
+                n_timed_out += 1
 
-    raise VOSError('None of the available catalogs returned valid results.')
+    err_msg = 'None of the available catalogs returned valid results.'
+    if n_timed_out > 0:
+        err_msg += ' ({0} URL(s) timed out.)'.format(n_timed_out)
+    raise VOSError(err_msg)
 
 
 def list_catalogs(service_type, cache=True, verbose=True, **kwargs):

@@ -41,6 +41,12 @@ file::
   \end{tabular}
   \end{table}
 
+There is also a faster Cython engine for writing simple formats,
+which is enabled by default for these formats (see :ref:`fast_ascii_io`).
+To disable this engine, use the parameter ``fast_writer``::
+
+   >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
+
 Input data format
 ^^^^^^^^^^^^^^^^^
 
@@ -202,9 +208,9 @@ details.
 
 **fill_values**: fill value specifier of lists
   This can be used to fill missing values in the table or replace values with special meaning.
-  The syntax is the same as used on input.
-  See the :ref:`replace_bad_or_missing_values` section for more information on the syntax.
 
+  See the :ref:`replace_bad_or_missing_values` section for more information on the syntax.
+  The syntax is almost the same as when reading a table.
   There is a special value ``astropy.io.ascii.masked`` that is used a say "output this string
   for all masked values in a masked table (the default is to use a ``'--'``)::
 
@@ -244,12 +250,21 @@ details.
       "no data" 3
       2.00 4
 
+  Similarly, if you replace a value in a column that has a fixed length format,
+  e.g. ``'f4.2'``, then the string you want to replace must have the same
+  number of characters, in the example above ``fill_values=[(' nan',' N/A')]``
+  would work.
 
 **fill_include_names**: list of column names, which are affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
 
 **fill_exclude_names**: list of column names, which are not affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
+
+**fast_writer**: whether to use the fast Cython writer
+  If this parameter is ``None`` (which it is by default), |write| will attempt
+  to use the faster writer (described in :ref:`fast_ascii_io`) if possible.
+  Specifying ``fast_writer=False`` disables this behavior.
 
 **Writer** : Writer class (*deprecated* in favor of ``format``)
   This specifies the top-level format of the ASCII table to be written, for

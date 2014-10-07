@@ -25,7 +25,7 @@ def dimensionless_angles():
 
     It is special compared to other equivalency pairs in that it
     allows this independent of the power to which the angle is raised,
-    and indepedent of whether it is part of a more complicated unit.
+    and independent of whether it is part of a more complicated unit.
     """
     return [(si.radian, None)]
 

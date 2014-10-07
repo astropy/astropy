@@ -29,3 +29,4 @@ from ..io.ascii import connect
 from ..io.fits import connect
 from ..io.misc import connect
 from ..io.votable import connect
+from . import jsviewer

@@ -2,12 +2,50 @@
 Building Astropy and its Subpackages
 ====================================
 
-The build process currently uses the
-`Distribute <http://packages.python.org/distribute/>`_ package to build and
-install the astropy core (and any affiliated packages that use the template).
-The user doesn't necessarily need to have `distribute`_ installed, as it will
-automatically bootstrap itself using the ``distribute_setup.py`` file in the
-source distribution if it isn't installed for the user.
+The build process currently uses the `setuptools
+<https://bitbucket.org/pypa/setuptools>`_ package to build and install the
+astropy core (and any affiliated packages that use the template).  The user
+doesn't necessarily need to have `setuptools`_ installed, as it will
+automatically bootstrap itself using the ``ez_setup.py`` file in the source
+distribution if it isn't installed for the user.
+
+
+Astropy-helpers
+---------------
+
+As of Astropy v0.4, Astropy also uses an external package called
+`astropy-helpers <https://github.com/astropy/astropy-helpers>`_ to provide some
+of its build and installation functionality.  A copy of astropy-helpers is
+included with the Astropy source distribution, but also includes a mechanism to
+automatically download bug fixes from PyPI.  The reason for providing these
+helpers as a separate package is that it makes it easier for affiliated
+packages to take advantage of these same utilities without requiring Astropy to
+be installed *first*.  See `APE4
+<https://github.com/astropy/astropy-APEs/blob/master/APE4.rst>`_ for the full
+background on this.
+
+Astropy-helpers is automatically bootstrapped to the Astropy build/installation
+script (``setup.py``) via a script called ``ah_bootstrap.py`` that is imported
+by ``setup.py``.  This script will do its best to ensure that the user has an
+up-to-date copy of astropy-helpers before building the package.  The
+auto-upgrade mechanism in particular allows pushing platform-specific fixes for
+the build process without releasing a new version of Astropy (or any affiliated
+package that uses astropy-helpers).
+
+The behavior of the ``ah_bootstrap.py`` script can also be modified by options
+in the project's ``setup.cfg`` file under a section called ``[ah_boostrap]``.
+APE4 provides `more details
+<https://github.com/astropy/astropy-APEs/blob/master/APE4.rst#astropy_helpers-bootstrap-script>`_.
+
+The astropy-helpers distribution provides a Python package called
+``astropy_helpers``.  Code that previously referenced the modules
+``astropy.setup_helpers`` and ``astropy.version_helpers`` should now depend on
+astropy-helpers and use ``astrop_helpers.setup_helpers`` and
+``astropy_helpers.version_helpers`` respectively.  Likewise, astropy-helpers
+includes tools for building Astropy's documentation.  The ``astropy.sphinx``
+package is deprecated in favor of ``astropy_helpers.sphinx``.  As such,
+astropy-helpers is a dependency of building Astropy's documentation.
+
 
 Customizing setup/build for subpackages
 ---------------------------------------
@@ -51,7 +89,7 @@ process:
       option and doesn't have an associated value.
 
     Once an option has been added, its value can be looked up using
-    ``astropy.setup_helpers.get_distutils_build_option``.
+    ``astropy_helpers.setup_helpers.get_distutils_build_option``.
 
 * ``get_external_libraries``
     This function declares that the package uses libraries that are
@@ -60,7 +98,7 @@ process:
     names.  For each library, a new build option is created,
     ``'--use-system-X'`` which allows the user to request to use the
     system's copy of the library.  The package would typically call
-    ``astropy.setup_helpers.use_system_library`` from its
+    ``astropy_helpers.setup_helpers.use_system_library`` from its
     ``get_extensions`` function to determine if the package should use
     the system library or the included one.
 
@@ -71,11 +109,11 @@ process:
     astropy, in favor of using `six`_ instead.  See :ref:`dev-portable`
     for more information.
 
-The ``astropy.setup_helpers`` modules includes an ``update_package_files``
-function which automatically searches the given source path for
-``setup_package.py`` modules and calls each of the above functions, if they
-exist.  This makes it easy for affiliated packages to use this machinery in
-their own ``setup.py``.
+The ``astropy_helpers.setup_helpers`` modules includes an
+``update_package_files`` function which automatically searches the given source
+path for ``setup_package.py`` modules and calls each of the above functions, if
+they exist.  This makes it easy for affiliated packages to use this machinery
+in their own ``setup.py``.
 
 .. _six: http://pythonhosted.org/six/
 .. _2to3: https://docs.python.org/2/library/2to3.html

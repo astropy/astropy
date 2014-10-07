@@ -116,7 +116,7 @@ A dictionary of column data can be used to initialize a |Table|.
   ...        'b': [2.0, 5.0],
   ...        'c': ['x', 'y']}
   >>>
-  >>> Table(arr)
+  >>> Table(arr)  # doctest: +SKIP
   <Table rows=2 names=('a','c','b')>
   array([(1, 'x', 2.0), (4, 'y', 5.0)],
         dtype=[('a', '<i8'), ('c', 'S1'), ('b', '<f8')])
@@ -427,7 +427,7 @@ for the ``data`` argument.
     ``data`` list provides a row of data values and must be a dict.  The
     key values in each dict define the column names and each row must
     have identical column names.  The ``names`` argument may be supplied
-    to specify colum ordering.  If it is not provided, the column order will
+    to specify column ordering.  If it is not provided, the column order will
     default to alphabetical.  The ``dtype`` list may be specified, and must
     correspond to the order of output columns.  If any row's keys do no match
     the rest of the rows, a ValueError will be thrown.
@@ -613,10 +613,24 @@ Format specifier
 ''''''''''''''''
 
 The format specifier controls the output of column values when a table or column
-is printed or written to an ASCII table.  The format specifier can be either
-a "old-style" or "new-style" format string or a function:
+is printed or written to an ASCII table.  In the simplest case, it is a string
+that can be passed to python's built-in `format
+<https://docs.python.org/library/functions.html#format>`_ function.  For more
+complicated formatting, one can also give "old-style" or "new-style"
+format strings, or even a function:
 
-**Old-style**
+**Plain format specification**
+
+This type of string specifies directly how the value should be formatted,
+using a `format specification mini-language
+<https://docs.python.org/library/string.html#formatspec>`_ that is
+quite similar to C.
+
+   ``".4f"`` will give four digits after the decimal in float format, or
+
+   ``"6d"`` will give integers in 6-character fields.
+
+**Old-style format string**
 
 This corresponds to syntax like ``"%.4f" % value`` as documented in
 `String formatting operations <http://docs.python.org/library/stdtypes.html#string-formatting-operations>`_.
@@ -625,7 +639,7 @@ This corresponds to syntax like ``"%.4f" % value`` as documented in
 
    ``"%6d"`` to print an integer in a 6-character wide field.
 
-**New-style**
+**New-style format string**
 
 This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 `format string syntax
@@ -635,8 +649,9 @@ This corresponds to syntax like ``"{:.4f}".format(value)`` as documented in
 
    ``"{:6d}"`` to print an integer in a 6-character wide field.
 
-Note that in either case any Python format string that formats exactly
-one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both work.
+Note that in either format string case any Python string that formats exactly
+one value is valid, so ``{:.4f} angstroms`` or ``Value: %12.2f`` would both
+work.
 
 **Function**
 
@@ -652,7 +667,7 @@ following example this is used to make a LaTeX ready output::
     ...     exp = exp[0] + exp[1:].lstrip('0')
     ...     return '$ {0} \\times 10^{{ {1} }}$' .format(mant, exp)
     >>> t['b'].format = latex_exp
-    >>> t['a'].format = '{0:.4f}'
+    >>> t['a'].format = '.4f'
     >>> import sys
     >>> t.write(sys.stdout, format='latex')
     \begin{table}
@@ -784,7 +799,7 @@ First make a table and add a couple of rows::
   >>> t = ParamsTable(names=['a', 'b', 'params'], dtype=['i', 'f', 'O'])
   >>> t.add_row((1, 2.0, {'x': 1.5, 'y': 2.5}))
   >>> t.add_row((2, 3.0, {'z': 'hello', 'id': 123123}))
-  >>> print(t)
+  >>> print(t)  # doctest: +SKIP
    a   b             params
   --- --- ----------------------------
     1 2.0         {'y': 2.5, 'x': 1.5}

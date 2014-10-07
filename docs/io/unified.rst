@@ -236,13 +236,18 @@ It is also possible to write a table to an existing file using ``append=True``::
 
     >>> t.write('observations.hdf5', path='updated_data', append=True)
 
+As with other formats, the ``overwrite=True`` argument is supported for
+overwriting existing files. To overwrite only a single table within an HDF5
+file that has multiple datasets, use *both* the ``overwrite=True`` and
+``append=True`` arguments.
+
 Finally, when writing to HDF5 files, the ``compression=`` argument can be
 used to ensure that the data is compressed on disk::
 
     >>> t.write('new_file.hdf5', path='updated_data', compression=True)
 
-As with other formats, the ``overwrite=True`` argument is supported for
-overwriting existing files.
+
+
 
 .. _table_io_votable:
 

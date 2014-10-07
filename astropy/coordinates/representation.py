@@ -27,14 +27,14 @@ __all__ = ["BaseRepresentation", "CartesianRepresentation",
 REPRESENTATION_CLASSES = {}
 
 
-def broadcast_quantity(*args, **kwargs):
+def broadcast_quantity(*args):
     """
     A Quantity-aware version of np.broadcast_arrays
     """
     new_arrays = np.broadcast_arrays(*args)
     new_quantities = []
     for i in range(len(new_arrays)):
-        new_quantities.append(args[i].__class__(new_arrays[i], unit=args[i].unit, **kwargs))
+        new_quantities.append(args[i]._new_view(new_arrays[i]))
     return tuple(new_quantities)
 
 
@@ -140,7 +140,7 @@ class BaseRepresentation(object):
         """
         allcomp = np.array([getattr(self, component).value
                             for component in self.components])
-        dtype = np.dtype([(str(component), np.float)
+        dtype = np.dtype([(str(component), getattr(self, component).dtype)
                           for component in self.components])
         return (np.rollaxis(allcomp, 0, len(allcomp.shape))
                 .copy().view(dtype).squeeze())
@@ -213,24 +213,24 @@ class CartesianRepresentation(BaseRepresentation):
         elif (y is None and z is not None) or (y is not None and z is None):
             raise ValueError("x, y, and z are required to instantiate CartesianRepresentation")
 
-        if not isinstance(x, u.Quantity):
-            raise TypeError('x should be a Quantity')
+        if not isinstance(x, self.attr_classes['x']):
+            raise TypeError('x should be a {0}'.format(self.attr_classes['x'].__name__))
 
-        if not isinstance(y, u.Quantity):
-            raise TypeError('y should be a Quantity')
+        if not isinstance(y, self.attr_classes['x']):
+            raise TypeError('y should be a {0}'.format(self.attr_classes['y'].__name__))
 
-        if not isinstance(z, u.Quantity):
-            raise TypeError('z should be a Quantity')
+        if not isinstance(z, self.attr_classes['x']):
+            raise TypeError('z should be a {0}'.format(self.attr_classes['z'].__name__))
 
-        x = u.Quantity(x, copy=copy)
-        y = u.Quantity(y, copy=copy)
-        z = u.Quantity(z, copy=copy)
+        x = self.attr_classes['x'](x, copy=copy)
+        y = self.attr_classes['y'](y, copy=copy)
+        z = self.attr_classes['z'](z, copy=copy)
 
         if not (x.unit.physical_type == y.unit.physical_type == z.unit.physical_type):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
         try:
-            x, y, z = broadcast_quantity(x, y, z, copy=copy)
+            x, y, z = broadcast_quantity(x, y, z)
         except ValueError:
             raise ValueError("Input parameters x, y, and z cannot be broadcast")
 
@@ -307,15 +307,15 @@ class SphericalRepresentation(BaseRepresentation):
             raise TypeError('lat should be a Quantity, Angle, or Latitude')
 
         # Let the Longitude and Latitude classes deal with e.g. parsing
-        lon = Longitude(lon, copy=copy)
-        lat = Latitude(lat, copy=copy)
+        lon = self.attr_classes['lon'](lon, copy=copy)
+        lat = self.attr_classes['lat'](lat, copy=copy)
 
-        distance = u.Quantity(distance, copy=copy)
+        distance = self.attr_classes['distance'](distance, copy=copy)
         if distance.unit.physical_type == 'length':
             distance = distance.view(Distance)
 
         try:
-            lon, lat, distance = broadcast_quantity(lon, lat, distance, copy=copy)
+            lon, lat, distance = broadcast_quantity(lon, lat, distance)
         except ValueError:
             raise ValueError("Input parameters lon, lat, and distance cannot be broadcast")
 
@@ -386,7 +386,7 @@ class SphericalRepresentation(BaseRepresentation):
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
 
-        return SphericalRepresentation(lon=lon, lat=lat, distance=r)
+        return cls(lon=lon, lat=lat, distance=r)
 
 
 class UnitSphericalRepresentation(BaseRepresentation):
@@ -407,7 +407,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
     """
 
     attr_classes = OrderedDict([('lon', Longitude),
-                                 ('lat', Latitude)])
+                                ('lat', Latitude)])
     recommended_units = {'lon': u.deg, 'lat': u.deg}
 
     def __init__(self, lon, lat, copy=True):
@@ -417,13 +417,12 @@ class UnitSphericalRepresentation(BaseRepresentation):
 
         if not isinstance(lat, u.Quantity) or isinstance(lat, Longitude):
             raise TypeError('lat should be a Quantity, Angle, or Latitude')
-
         # Let the Longitude and Latitude classes deal with e.g. parsing
-        lon = Longitude(lon, copy=copy)
-        lat = Latitude(lat, copy=copy)
+        lon = self.attr_classes['lon'](lon, copy=copy)
+        lat = self.attr_classes['lat'](lat, copy=copy)
 
         try:
-            lon, lat = broadcast_quantity(lon, lat, copy=copy)
+            lon, lat = broadcast_quantity(lon, lat)
         except ValueError:
             raise ValueError("Input parameters lon and lat cannot be broadcast")
 
@@ -470,7 +469,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         lon = np.arctan2(cart.y, cart.x)
         lat = np.arctan2(cart.z, s)
 
-        return UnitSphericalRepresentation(lon=lon, lat=lat)
+        return cls(lon=lon, lat=lat)
 
     def represent_as(self, other_class):
         # Take a short cut if the other clsss is a spherical representation
@@ -522,8 +521,8 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             raise TypeError('phi should be a Quantity or Angle')
 
         # Let the Longitude and Latitude classes deal with e.g. parsing
-        phi = Angle(phi, copy=copy)
-        theta = Angle(theta, copy=copy)
+        phi = self.attr_classes['phi'](phi, copy=copy)
+        theta = self.attr_classes['theta'](theta, copy=copy)
 
         # Wrap/validate phi/theta
         if copy:
@@ -535,12 +534,12 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             raise ValueError('Inclination angle(s) must be within 0 deg <= angle <= 180 deg, '
                              'got {0}'.format(theta.to(u.degree)))
 
-        r = u.Quantity(r, copy=copy)
+        r = self.attr_classes['r'](r, copy=copy)
         if r.unit.physical_type == 'length':
             r = r.view(Distance)
 
         try:
-            phi, theta, r = broadcast_quantity(phi, theta, r, copy=copy)
+            phi, theta, r = broadcast_quantity(phi, theta, r)
         except ValueError:
             raise ValueError("Input parameters phi, theta, and r cannot be broadcast")
 
@@ -612,7 +611,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         theta = np.arctan2(s, cart.z)
 
-        return PhysicsSphericalRepresentation(phi=phi, theta=theta, r=r)
+        return cls(phi=phi, theta=theta, r=r)
 
 
 class CylindricalRepresentation(BaseRepresentation):
@@ -646,15 +645,15 @@ class CylindricalRepresentation(BaseRepresentation):
         if not isinstance(phi, u.Quantity) or isinstance(phi, Latitude):
             raise TypeError('phi should be a Quantity or Angle')
 
-        rho = u.Quantity(rho, copy=copy)
-        phi = Angle(phi, copy=copy)
-        z = u.Quantity(z, copy=copy)
+        rho = self.attr_classes['rho'](rho, copy=copy)
+        phi = self.attr_classes['phi'](phi, copy=copy)
+        z = self.attr_classes['z'](z, copy=copy)
 
         if not (rho.unit.physical_type == z.unit.physical_type):
             raise u.UnitsError("rho and z should have matching physical types")
 
         try:
-            rho, phi, z = broadcast_quantity(rho, phi, z, copy=copy)
+            rho, phi, z = broadcast_quantity(rho, phi, z)
         except ValueError:
             raise ValueError("Input parameters rho, phi, and z cannot be broadcast")
 
@@ -694,7 +693,7 @@ class CylindricalRepresentation(BaseRepresentation):
         phi = np.arctan2(cart.y, cart.x)
         z = cart.z
 
-        return CylindricalRepresentation(rho=rho, phi=phi, z=z)
+        return cls(rho=rho, phi=phi, z=z)
 
     def to_cartesian(self):
         """

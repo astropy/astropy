@@ -22,6 +22,8 @@ from . import sextractor
 from . import ipac
 from . import latex
 from . import html
+from . import fastbasic
+from . import cparser
 
 from ...table import Table
 
@@ -107,6 +109,7 @@ def read(table, guess=None, **kwargs):
     :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
+    :param fast_reader: whether to use the C engine, can also be a dict with options which default to False (default=True)
     :param Reader: Reader class (DEPRECATED) (default=``ascii.Basic``)
     """
 
@@ -116,12 +119,18 @@ def read(table, guess=None, **kwargs):
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
     new_kwargs['Outputter'] = core.TableOutputter
+    fast_reader_param = kwargs.get('fast_reader', True)
+    if 'Outputter' in kwargs: # user specified Outputter, not supported for fast reading
+        fast_reader_param = False
+    format = kwargs.get('format')
     new_kwargs.update(kwargs)
 
     # Get the Reader class based on possible format and Reader kwarg inputs.
-    Reader = _get_format_class(kwargs.get('format'), kwargs.get('Reader'), 'Reader')
+    Reader = _get_format_class(format, kwargs.get('Reader'), 'Reader')
     if Reader is not None:
         new_kwargs['Reader'] = Reader
+        format = Reader._format_name
+
     # Remove format keyword if there, this is only allowed in read() not get_reader()
     if 'format' in new_kwargs:
         del new_kwargs['format']
@@ -129,15 +138,29 @@ def read(table, guess=None, **kwargs):
     if guess is None:
         guess = _GUESS
     if guess:
-        dat = _guess(table, new_kwargs)
+        dat = _guess(table, new_kwargs, format, fast_reader_param)
     else:
         reader = get_reader(**new_kwargs)
-        dat = reader.read(table)
+        # Try the fast reader first if applicable
+        if fast_reader_param and format is not None and 'fast_{0}'.format(format) \
+                                                        in core.FAST_CLASSES:
+            new_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
+            fast_reader = get_reader(**new_kwargs)
+            try:
+                return fast_reader.read(table)
+            except (core.ParameterError, cparser.CParserError) as e:
+                # special testing value to avoid falling back on the slow reader
+                if fast_reader_param == 'force':
+                    raise e
+                # If the fast reader doesn't work, try the slow version
+                dat = reader.read(table)
+        else:
+            dat = reader.read(table)
 
     return dat
 
 
-def _guess(table, read_kwargs):
+def _guess(table, read_kwargs, format, fast_reader):
     """Try to read the table using various sets of keyword args. First try the
     original args supplied in the read() call. Then try the standard guess
     keyword args. For each key/val pair specified explicitly in the read()
@@ -146,16 +169,25 @@ def _guess(table, read_kwargs):
 
     # Keep a trace of all failed guesses kwarg
     failed_kwargs = []
+    fast_kwargs = []
+
+    first_kwargs = [read_kwargs.copy()]
+    if fast_reader and format is not None and 'fast_{0}'.format(format) in \
+                                                         core.FAST_CLASSES:
+        # If a fast version of the reader is available, try that before the slow version
+        fast_kwargs = read_kwargs.copy()
+        fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
+        first_kwargs = [fast_kwargs] + first_kwargs
 
     # First try guessing
-    for guess_kwargs in [read_kwargs.copy()] + _get_guess_kwargs_list():
+    for guess_kwargs in first_kwargs + _get_guess_kwargs_list():
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
         for key, val in read_kwargs.items():
             # Do guess_kwargs.update(read_kwargs) except that if guess_args has
             # a conflicting key/val pair then skip this guess entirely.
             if key not in guess_kwargs:
                 guess_kwargs[key] = val
-            elif val != guess_kwargs[key]:
+            elif val != guess_kwargs[key] and guess_kwargs != fast_kwargs:
                 guess_kwargs_ok = False
                 break
 
@@ -175,11 +207,13 @@ def _guess(table, read_kwargs):
 
             # When guessing require at least two columns
             if len(dat.colnames) <= 1:
+                del dat
                 raise ValueError
+
             return dat
 
         except (core.InconsistentTableError, ValueError, TypeError,
-                core.OptionalTableImportError):
+                core.OptionalTableImportError, core.ParameterError, cparser.CParserError) as e:
             failed_kwargs.append(guess_kwargs)
     else:
         # failed all guesses, try the original read_kwargs without column requirements
@@ -187,7 +221,7 @@ def _guess(table, read_kwargs):
             reader = get_reader(**read_kwargs)
             return reader.read(table)
         except (core.InconsistentTableError, ValueError, ImportError,
-                                            core.OptionalTableImportError):
+                core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
             for kwargs in failed_kwargs:
@@ -206,6 +240,7 @@ def _guess(table, read_kwargs):
 
 def _get_guess_kwargs_list():
     guess_kwargs_list = [dict(Reader=basic.Rdb),
+                         dict(Reader=fastbasic.FastTab),
                          dict(Reader=basic.Tab),
                          dict(Reader=cds.Cds),
                          dict(Reader=daophot.Daophot),
@@ -215,7 +250,8 @@ def _get_guess_kwargs_list():
                          dict(Reader=latex.AASTex),
                          dict(Reader=html.HTML)
                          ]
-    for Reader in (basic.CommentedHeader, basic.Basic, basic.NoHeader):
+    for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
+                   fastbasic.FastNoHeader, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
             for quotechar in ('"', "'"):
                 guess_kwargs_list.append(dict(
@@ -226,7 +262,7 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'names', 'include_names', 'exclude_names', 'strip_whitespace')
 
 
-def get_writer(Writer=None, **kwargs):
+def get_writer(Writer=None, fast_writer=True, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
@@ -239,16 +275,17 @@ def get_writer(Writer=None, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param fast_writer: whether to use the fast Cython writer (default=True)
     """
     if Writer is None:
         Writer = basic.Basic
     if 'strip_whitespace' not in kwargs:
         kwargs['strip_whitespace'] = True
-    writer = core._get_writer(Writer, **kwargs)
+    writer = core._get_writer(Writer, fast_writer, **kwargs)
     return writer
 
 
-def write(table, output=None,  format=None, Writer=None, **kwargs):
+def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwargs):
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
@@ -263,6 +300,7 @@ def write(table, output=None,  format=None, Writer=None, **kwargs):
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param fast_writer: whether to use the fast Cython writer (default=True)
     :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
     """
     if output is None:
@@ -271,7 +309,11 @@ def write(table, output=None,  format=None, Writer=None, **kwargs):
     table = Table(table, names=kwargs.get('names'))
 
     Writer = _get_format_class(format, Writer, 'Writer')
-    writer = get_writer(Writer=Writer, **kwargs)
+    writer = get_writer(Writer=Writer, fast_writer=fast_writer, **kwargs)
+    if writer._format_name in core.FAST_CLASSES:
+        writer.write(table, output)
+        return
+
     lines = writer.write(table)
 
     # Write the lines to output

@@ -6,15 +6,16 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import collections
+import inspect
 
 from textwrap import dedent
 
 import numpy as np
 
-from .core import (Fittable1DModel, Fittable2DModel,
-                   Model, format_input, ModelDefinitionError)
+from .core import (Fittable1DModel, Fittable2DModel, Model,
+                   ModelDefinitionError, custom_model)
 from .parameters import Parameter, InputParameterError
-from ..utils import find_current_module
+from ..utils import deprecated
 from ..extern import six
 
 __all__ = sorted([
@@ -99,7 +100,7 @@ class Gaussian1D(Fittable1DModel):
             amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
     @staticmethod
-    def eval(x, amplitude, mean, stddev):
+    def evaluate(x, amplitude, mean, stddev):
         """
         Gaussian1D model function.
         """
@@ -151,11 +152,11 @@ class GaussianAbsorption1D(Fittable1DModel):
             amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
     @staticmethod
-    def eval(x, amplitude, mean, stddev):
+    def evaluate(x, amplitude, mean, stddev):
         """
         GaussianAbsorption1D model function.
         """
-        return 1.0 - Gaussian1D.eval(x, amplitude, mean, stddev)
+        return 1.0 - Gaussian1D.evaluate(x, amplitude, mean, stddev)
 
     @staticmethod
     def fit_deriv(x, amplitude, mean, stddev):
@@ -281,7 +282,7 @@ class Gaussian2D(Fittable2DModel):
             x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **kwargs)
 
     @staticmethod
-    def eval(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
+    def evaluate(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
         """Two dimensional Gaussian function"""
 
         cost2 = np.cos(theta) ** 2
@@ -370,18 +371,9 @@ class Shift(Model):
         inv.offsets *= -1
         return inv
 
-    @format_input
-    def __call__(self, x, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        ----------
-        x : array like or a number
-            input
-        """
-
-        return self.offsets + x
+    @staticmethod
+    def evaluate(x, offsets):
+        return x + offsets
 
 
 class Scale(Model):
@@ -405,18 +397,9 @@ class Scale(Model):
         inv.factors = 1 / self.factors
         return inv
 
-    @format_input
-    def __call__(self, x, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        ----------
-        x : array like or a number
-            input
-        """
-
-        return self.factors * x
+    @staticmethod
+    def evaluate(x, factors):
+        return factors * x
 
 
 class Redshift(Fittable1DModel):
@@ -441,8 +424,9 @@ class Redshift(Fittable1DModel):
         super(Redshift, self).__init__(z=z, **kwargs)
 
     @staticmethod
-    def eval(x, z):
+    def evaluate(x, z):
         """One dimensional Redshift model function"""
+
         return (1 + z) * x
 
     @staticmethod
@@ -490,7 +474,7 @@ class Sine1D(Fittable1DModel):
             amplitude=amplitude, frequency=frequency, **kwargs)
 
     @staticmethod
-    def eval(x, amplitude, frequency):
+    def evaluate(x, amplitude, frequency):
         """One dimensional Sine model function"""
 
         return amplitude * np.sin(2 * np.pi * frequency * x)
@@ -537,7 +521,7 @@ class Linear1D(Fittable1DModel):
             slope=slope, intercept=intercept, **kwargs)
 
     @staticmethod
-    def eval(x, slope, intercept):
+    def evaluate(x, slope, intercept):
         """One dimensional Line model function"""
 
         return slope * x + intercept
@@ -586,7 +570,7 @@ class Lorentz1D(Fittable1DModel):
             amplitude=amplitude, x_0=x_0, fwhm=fwhm, **kwargs)
 
     @staticmethod
-    def eval(x, amplitude, x_0, fwhm):
+    def evaluate(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model function"""
 
         return (amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 +
@@ -630,7 +614,7 @@ class Const1D(Fittable1DModel):
         super(Const1D, self).__init__(amplitude=amplitude, **kwargs)
 
     @staticmethod
-    def eval(x, amplitude):
+    def evaluate(x, amplitude):
         """One dimensional Constant model function"""
 
         return amplitude * np.ones_like(x)
@@ -670,7 +654,7 @@ class Const2D(Fittable2DModel):
         super(Const2D, self).__init__(amplitude=amplitude, **kwargs)
 
     @staticmethod
-    def eval(x, y, amplitude):
+    def evaluate(x, y, amplitude):
         """Two dimensional Constant model function"""
 
         return amplitude * np.ones_like(x)
@@ -719,7 +703,7 @@ class Disk2D(Fittable2DModel):
             amplitude=amplitude, x_0=x_0, y_0=y_0, R_0=R_0, **kwargs)
 
     @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, R_0):
+    def evaluate(x, y, amplitude, x_0, y_0, R_0):
         """Two dimensional Disk model function"""
 
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
@@ -784,7 +768,7 @@ class Ring2D(Fittable2DModel):
             **kwargs)
 
     @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, r_in, width):
+    def evaluate(x, y, amplitude, x_0, y_0, r_in, width):
         """Two dimensional Ring model function."""
 
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
@@ -846,7 +830,7 @@ class Box1D(Fittable1DModel):
             amplitude=amplitude, x_0=x_0, width=width, **kwargs)
 
     @staticmethod
-    def eval(x, amplitude, x_0, width):
+    def evaluate(x, amplitude, x_0, width):
         """One dimensional Box model function"""
 
         return np.select([np.logical_and(x >= x_0 - width / 2.,
@@ -857,7 +841,7 @@ class Box1D(Fittable1DModel):
     def fit_deriv(cls, x, amplitude, x_0, width):
         """One dimensional Box model derivative with respect to parameters"""
 
-        d_amplitude = cls.eval(x, 1, x_0, width)
+        d_amplitude = cls.evaluate(x, 1, x_0, width)
         d_x_0 = np.zeros_like(x)
         d_width = np.zeros_like(x)
         return [d_amplitude, d_x_0, d_width]
@@ -912,8 +896,9 @@ class Box2D(Fittable2DModel):
             y_width=y_width, **kwargs)
 
     @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, x_width, y_width):
+    def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):
         """Two dimensional Box model function"""
+
         x_range = np.logical_and(x >= x_0 - x_width / 2.,
                                  x <= x_0 + x_width / 2.)
         y_range = np.logical_and(y >= y_0 - y_width / 2.,
@@ -951,8 +936,9 @@ class Trapezoid1D(Fittable1DModel):
             amplitude=amplitude, x_0=x_0, width=width, slope=slope, **kwargs)
 
     @staticmethod
-    def eval(x, amplitude, x_0, width, slope):
+    def evaluate(x, amplitude, x_0, width, slope):
         """One dimensional Trapezoid model function"""
+
         # Compute the four points where the trapezoid changes slope
         # x1 <= x2 <= x3 <= x4
         x2 = x_0 - width / 2.
@@ -1004,7 +990,7 @@ class TrapezoidDisk2D(Fittable2DModel):
             **kwargs)
 
     @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, R_0, slope):
+    def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
         """Two dimensional Trapezoid Disk model function"""
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
@@ -1052,7 +1038,7 @@ class MexicanHat1D(Fittable1DModel):
             amplitude=amplitude, x_0=x_0, sigma=sigma, **kwargs)
 
     @staticmethod
-    def eval(x, amplitude, x_0, sigma):
+    def evaluate(x, amplitude, x_0, sigma):
         """One dimensional Mexican Hat model function"""
 
         xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
@@ -1100,7 +1086,7 @@ class MexicanHat2D(Fittable2DModel):
             amplitude=amplitude, x_0=x_0, y_0=y_0, sigma=sigma, **kwargs)
 
     @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, sigma):
+    def evaluate(x, y, amplitude, x_0, y_0, sigma):
         """Two dimensional Mexican Hat model function"""
 
         rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma ** 2)
@@ -1169,6 +1155,9 @@ class AiryDisk2D(Fittable2DModel):
         super(AiryDisk2D, self).__init__(
             amplitude=amplitude, x_0=x_0, y_0=y_0, radius=radius, **kwargs)
 
+    # TODO: Why does this particular model have its own special __deepcopy__
+    # and __copy__?  If it has anything to do with the use of the j_1 function
+    # that should be reworked.
     def __deepcopy__(self, memo):
         new_model = self.__class__(self.amplitude.value, self.x_0.value,
                                    self.y_0.value, self.radius.value)
@@ -1180,7 +1169,7 @@ class AiryDisk2D(Fittable2DModel):
         return new_model
 
     @classmethod
-    def eval(cls, x, y, amplitude, x_0, y_0, radius):
+    def evaluate(cls, x, y, amplitude, x_0, y_0, radius):
         """Two dimensional Airy model function"""
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2) / (radius / cls._rz)
@@ -1231,7 +1220,7 @@ class Beta1D(Fittable1DModel):
             amplitude=amplitude, x_0=x_0, gamma=gamma, alpha=alpha, **kwargs)
 
     @staticmethod
-    def eval(x, amplitude, x_0, gamma, alpha):
+    def evaluate(x, amplitude, x_0, gamma, alpha):
         """One dimensional Beta model function"""
 
         return amplitude * (1 + ((x - x_0) / gamma) ** 2) ** (-alpha)
@@ -1292,7 +1281,7 @@ class Beta2D(Fittable2DModel):
             **kwargs)
 
     @staticmethod
-    def eval(x, y, amplitude, x_0, y_0, gamma, alpha):
+    def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):
         """Two dimensional Beta model function"""
 
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
@@ -1313,118 +1302,17 @@ class Beta2D(Fittable2DModel):
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
+@deprecated('1.0', alternative='astropy.modeling.models.custom_model',
+            pending=True)
 def custom_model_1d(func, func_fit_deriv=None):
-    """
-    Create a one dimensional model from a user defined function. The
-    parameters of the model will be inferred from the arguments of
-    the function.
-
-    .. note::
-
-        All model parameters have to be defined as keyword arguments
-        with default values in the model function.
-
-    If you want to use parameter sets in the model, the parameters should be
-    treated as lists or arrays.
-
-    Parameters
-    ----------
-    func : function
-        Function which defines the model.  It should take one positional
-        argument (the independent variable in the model), and any number of
-        keyword arguments (the parameters).  It must return the value of the
-        model (typically as an array, but can also be a scalar for scalar
-        inputs).  This corresponds to the
-        `~astropy.modeling.Fittable1DModel.eval` method.
-    func_fit_deriv : function, optional
-        Function which defines the Jacobian derivative of the model. I.e., the
-        derivive with respect to the *parameters* of the model.  It should
-        have the same argument signature as ``func``, but should return a
-        sequence where each element of the sequence is the derivative
-        with respect to the correseponding argument. This corresponds to the
-        :meth:`~astropy.modeling.FittableModel.fit_deriv` method.
-
-
-    Examples
-    --------
-    Define a sinusoidal model function as a custom 1D model:
-
-        >>> from astropy.modeling.models import custom_model_1d
-        >>> import numpy as np
-        >>> def sine_model(x, amplitude=1., frequency=1.):
-        ...     return amplitude * np.sin(2 * np.pi * frequency * x)
-        >>> def sine_deriv(x, amplitude=1., frequency=1.):
-        ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
-        >>> SineModel = custom_model_1d(sine_model, func_fit_deriv=sine_deriv)
-
-    Create an instance of the custom model and evaluate it:
-
-        >>> model = SineModel()
-        >>> model(0.25)
-        1.0
-
-    This model instance can now be used like a usual astropy model.
-    """
-
-    if not six.callable(func):
-        raise ModelDefinitionError("Not callable. Must be function")
-
-    if func_fit_deriv is not None and not six.callable(func_fit_deriv):
-        raise ModelDefinitionError(
-                "func_fit_deriv not callable. Must be function")
-
-    model_name = func.__name__
-    param_values = six.get_function_defaults(func)
-
-    # Check if all parameters are keyword arguments
+    argspec = inspect.getargspec(func)
+    param_values = argspec.defaults
     nparams = len(param_values)
 
-    if (func_fit_deriv is not None and
-            len(six.get_function_defaults(func_fit_deriv)) != nparams):
-        raise ModelDefinitionError("derivative function should accept "
-                                   "same number of parameters as func.")
-
-    func_code = six.get_function_code(func)
-    if func_code.co_argcount == nparams + 1:
-        param_names = func_code.co_varnames[1:nparams + 1]
+    if len(argspec.args) == nparams + 1:
+        param_names = argspec.args[-nparams:]
     else:
         raise ModelDefinitionError(
             "All parameters must be keyword arguments")
 
-    params = dict((name, Parameter(name, default=default))
-                  for name, default in zip(param_names, param_values))
-
-    arg_signature_1 = ', '.join('{0}=None'.format(name)
-                                for name in param_names)
-    arg_signature_2 = ', '.join('{0}={0}'.format(name)
-                                for name in param_names)
-
-    mod = find_current_module(2)
-    if mod:
-        filename = mod.__file__
-        modname = mod.__name__
-    else:
-        filename = '<string>'
-        modname = '__main__'
-
-    members = {'eval': staticmethod(func)}
-
-    eval_globals = {}
-
-    init_code_string = dedent("""
-        def __init__(self, {0}, **kwargs):
-            super(self.__class__, self).__init__({1}, **kwargs)
-    """).format(arg_signature_1, arg_signature_2)
-
-    eval(compile(init_code_string, filename, 'single'), eval_globals)
-
-    if func_fit_deriv is not None:
-        members['fit_deriv'] = staticmethod(func_fit_deriv)
-
-    members['__init__'] = eval_globals['__init__']
-    members.update(params)
-
-    cls = type(model_name, (Fittable1DModel,), members)
-    cls.__module__ = modname
-
-    return cls
+    return custom_model(func, fit_deriv=func_fit_deriv)

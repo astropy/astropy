@@ -19,13 +19,27 @@ and development is occuring at the
 For installation instructions, see the `online documentation <http://docs.astropy.org/>`_
 or  ``docs/install.rst`` in this source distribution.
 
+For system packagers: Please install Astropy with the command::
+
+    $ python setup.py --offline install
+
+This will prevent the astropy_helpers bootstrap script from attempting to
+reach out to PyPI.
+
+
 Travis Build Status
 -------------------
 .. image:: https://travis-ci.org/astropy/astropy.png
     :target: https://travis-ci.org/astropy/astropy
+
 
 Test Coverage Status
 --------------------
 
 .. image:: https://coveralls.io/repos/astropy/astropy/badge.png
     :target: https://coveralls.io/r/astropy/astropy
+
+License
+-------
+Astropy is licensed under a 3-clause BSD style license - see the
+``licenses/LICENSE.rst`` file.

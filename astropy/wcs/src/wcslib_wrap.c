@@ -737,21 +737,22 @@ PyWcsprm_compare(
 
   int cmp = 0;
   PyWcsprm *other;
+  double tolerance = 0.0;
   int equal;
   int status;
 
-  const char* keywords[] = {"other", "cmp", NULL};
+  const char* keywords[] = {"other", "cmp", "tolerance", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!|i:compare", (char **)keywords,
-          &PyWcsprmType, &other, &cmp)) {
+          args, kwds, "O!|id:compare", (char **)keywords,
+          &PyWcsprmType, &other, &cmp, &tolerance)) {
     return NULL;
   }
 
 
   wcsprm_python2c(&self->x);
   wcsprm_python2c(&other->x);
-  status = wcscompare(cmp, &self->x, &other->x, &equal);
+  status = wcscompare(cmp, tolerance, &self->x, &other->x, &equal);
   wcsprm_c2python(&self->x);
   wcsprm_c2python(&other->x);
 
@@ -1697,7 +1698,7 @@ PyObject *PyWcsprm_richcompare(PyObject *a, PyObject *b, int op) {
     wcsprm_python2c(ax);
     wcsprm_python2c(bx);
     status = wcscompare(
-        WCSCOMPARE_ANCILLARY,
+        WCSCOMPARE_ANCILLARY, 0.0,
         ax, bx, &equal);
     wcsprm_c2python(ax);
     wcsprm_c2python(bx);

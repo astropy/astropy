@@ -17,6 +17,7 @@ import itertools
 import functools
 import numpy
 import warnings
+import copy
 
 from ...extern import six
 from ...extern.six.moves import zip
@@ -31,6 +32,9 @@ from . import connect
 
 # Global dictionary mapping format arg to the corresponding Reader class
 FORMAT_CLASSES = {}
+
+# Similar dictionary for fast readers
+FAST_CLASSES = {}
 
 class MaskedConstant(numpy.ma.core.MaskedConstant):
     """A trivial extension of numpy.ma.masked
@@ -64,6 +68,20 @@ class OptionalTableImportError(ImportError):
     an ImportError.
     """
 
+class ParameterError(NotImplementedError):
+    """
+    Indicates that a reader cannot handle a passed parameter.
+
+    The C-based fast readers in ``io.ascii`` raise an instance of
+    this error class upon encountering a parameter that the
+    C engine cannot handle.
+    """
+
+class FastOptionsError(NotImplementedError):
+    """
+    Indicates that one of the specified options for fast
+    reading is invalid.
+    """
 
 class NoType(object):
     """
@@ -245,6 +263,9 @@ class DefaultSplitter(BaseSplitter):
     escapechar = None
     quoting = csv.QUOTE_MINIMAL
     skipinitialspace = True
+    csv_writer = None
+    csv_writer_out = StringIO()
+
 
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line.  This is especially useful for
@@ -254,9 +275,6 @@ class DefaultSplitter(BaseSplitter):
             line = _replace_tab_with_space(line, self.escapechar, self.quotechar)
         return line.strip()
 
-    def __init__(self):
-        self.csv_writer = None
-        self.csv_writer_out = StringIO()
 
     def __call__(self, lines):
         """Return an iterator over the table ``lines``, where each iterator output
@@ -365,7 +383,7 @@ class BaseHeader(object):
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
     def __init__(self):
-        self.splitter = self.__class__.splitter_class()
+        self.splitter = self.splitter_class()
 
     def _set_cols_from_names(self):
         self.cols = [Column(name=x) for x in self.names]
@@ -458,16 +476,18 @@ class BaseData(object):
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     fill_include_names = None
     fill_exclude_names = None
+    # Currently, the default matches the numpy default for masked values.
+    fill_values = [(masked, '--')]
+    formats = {}
 
     def __init__(self):
         # Need to make sure fill_values list is instance attribute, not class attribute.
         # On read, this will be overwritten by the default in the ui.read (thus, in
         # the current implementation there can be no different default for different
         # Readers). On write, ui.py does not specify a default, so this line here matters.
-        # Currently, the default matches the numpy default for masked values. 
-        self.fill_values = [(masked, '--')]
-        self.formats = {}
-        self.splitter = self.__class__.splitter_class()
+        self.fill_values = copy.copy(self.fill_values)
+        self.formats = copy.copy(self.formats)
+        self.splitter = self.splitter_class()
 
     def process_lines(self, lines):
         """Strip out comment lines and blank lines from list of ``lines``
@@ -715,6 +735,10 @@ class MetaBaseReader(type):
         if format is None:
             return
 
+        fast = dct.get('_fast')
+        if fast is not None:
+            FAST_CLASSES[format] = cls
+
         FORMAT_CLASSES[format] = cls
 
         io_formats = ['ascii.' + format] + dct.get('_io_registry_format_aliases', [])
@@ -807,11 +831,16 @@ class BaseReader(object):
     exclude_names = None
     strict_names = False
 
+    header_class = BaseHeader
+    data_class = BaseData
+    inputter_class = BaseInputter
+    outputter_class = TableOutputter
+
     def __init__(self):
-        self.header = BaseHeader()
-        self.data = BaseData()
-        self.inputter = BaseInputter()
-        self.outputter = TableOutputter()
+        self.header = self.header_class()
+        self.data = self.data_class()
+        self.inputter = self.inputter_class()
+        self.outputter = self.outputter_class()
         # Data and Header instances benefit from a little cross-coupling.  Header may need to
         # know about number of data columns for auto-column name generation and Data may
         # need to know about header (e.g. for fixed-width tables where widths are spec'd in header.
@@ -848,10 +877,6 @@ class BaseReader(object):
             if os.linesep not in table + '':
                 self.data.table_name = os.path.basename(table)
 
-        # Same from __init__.  ??? Do these need to be here?
-        self.data.header = self.header
-        self.header.data = self.data
-
         # Get a list of the lines (rows) in the table
         self.lines = self.inputter.get_lines(table)
 
@@ -864,23 +889,24 @@ class BaseReader(object):
         # Get the table column definitions
         self.header.get_cols(self.lines)
 
-        cols = self.header.cols
+        self.cols = cols = self.header.cols
+        n_cols = len(cols)
         self.data.splitter.cols = cols
 
         for i, str_vals in enumerate(self.data.get_str_vals()):
-            if len(str_vals) != len(cols):
-                str_vals = self.inconsistent_handler(str_vals, len(cols))
+            if len(str_vals) != n_cols:
+                str_vals = self.inconsistent_handler(str_vals, n_cols)
 
                 # if str_vals is None, we skip this row
                 if str_vals is None:
                     continue
 
                 # otherwise, we raise an error only if it is still inconsistent
-                if len(str_vals) != len(cols):
+                if len(str_vals) != n_cols:
                     errmsg = ('Number of header columns (%d) inconsistent with '
                               'data columns (%d) at data line %d\n'
                               'Header values: %s\n'
-                              'Data values: %s' % (len(cols), len(str_vals), i,
+                              'Data values: %s' % (n_cols, len(str_vals), i,
                                                    [x.name for x in cols], str_vals))
                     raise InconsistentTableError(errmsg)
 
@@ -889,7 +915,6 @@ class BaseReader(object):
 
         self.data.masks(cols)
         table = self.outputter(cols, self.meta)
-        self.cols = self.header.cols
 
         _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names,
                                      self.strict_names)
@@ -1017,12 +1042,19 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     because it depends only on the "core" module.
     """
 
+    from .fastbasic import FastBasic
+    if issubclass(Reader, FastBasic): # Fast readers handle args separately
+        if Inputter is not None:
+            kwargs['Inputter'] = Inputter
+        return Reader(**kwargs)
+
+    if 'fast_reader' in kwargs:
+        del kwargs['fast_reader'] # ignore fast_reader parameter for slow readers
     reader_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_reader_pars)
     reader = Reader(**reader_kwargs)
 
     if Inputter is not None:
         reader.inputter = Inputter()
-    reader.outputter = TableOutputter()
 
     if Outputter is not None:
         reader.outputter = Outputter()
@@ -1093,10 +1125,19 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
                      'fill_exclude_names')
 
 
-def _get_writer(Writer, **kwargs):
+def _get_writer(Writer, fast_writer, **kwargs):
     """Initialize a table writer allowing for common customizations. This
     routine is for internal (package) use only and is useful because it depends
     only on the "core" module. """
+
+    from .fastbasic import FastBasic
+
+    if issubclass(Writer, FastBasic): # Fast writers handle args separately
+        return Writer(**kwargs)
+    elif fast_writer and 'fast_{0}'.format(Writer._format_name) in FAST_CLASSES:
+        # Switch to fast writer
+        kwargs['fast_writer'] = fast_writer
+        return FAST_CLASSES['fast_{0}'.format(Writer._format_name)](**kwargs)
 
     writer_kwargs = dict([k, v] for k, v in kwargs.items() if k not in extra_writer_pars)
     writer = Writer(**writer_kwargs)
@@ -1117,9 +1158,7 @@ def _get_writer(Writer, **kwargs):
             # Restore the default SplitterClass process_val method which strips
             # whitespace.  This may have been changed in the Writer
             # initialization (e.g. Rdb and Tab)
-            Class = writer.data.splitter.__class__
-            obj = writer.data.splitter
-            writer.data.splitter.process_val = Class.process_val.__get__(obj, Class)
+            writer.data.splitter.process_val = lambda x: x.strip()
         else:
             writer.data.splitter.process_val = None
     if 'names' in kwargs:

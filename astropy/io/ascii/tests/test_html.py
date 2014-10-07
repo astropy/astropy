@@ -27,7 +27,7 @@ except ImportError:
 # Check to see if the BeautifulSoup dependency is present.
 
 try:
-    from bs4 import BeautifulSoup
+    from bs4 import BeautifulSoup, FeatureNotFound
     HAS_BEAUTIFUL_SOUP = True
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
@@ -37,19 +37,19 @@ def test_soupstring():
     """
     Test to make sure the class SoupString behaves properly.
     """
-    
-    soup = BeautifulSoup('<html><body><p>foo</p></body></html>')
+
+    soup = BeautifulSoup('<html><head></head><body><p>foo</p></body></html>')
     soup_str = html.SoupString(soup)
     assert isinstance(soup_str, str)
     assert isinstance(soup_str, html.SoupString)
-    assert soup_str == '<html><body><p>foo</p></body></html>'
+    assert soup_str == '<html><head></head><body><p>foo</p></body></html>'
     assert soup_str.soup is soup
 
 def test_listwriter():
     """
     Test to make sure the class ListWriter behaves properly.
     """
-    
+
     lst = []
     writer = html.ListWriter(lst)
 
@@ -174,6 +174,26 @@ def test_identify_table_fail():
     assert str(err).endswith("ERROR: HTML table number 3 not found")
 
 
+@pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
+def test_backend_parsers():
+    """
+    Make sure the user can specify which back-end parser to use
+    and that an error is raised if the parser is invalid.
+    """
+    for parser in ('lxml', 'xml', 'html.parser', 'html5lib'):
+        try:
+            table = Table.read('t/html2.html', format='ascii.html',
+                               htmldict={'parser': parser}, guess=False)
+        except FeatureNotFound:
+            if parser == 'html.parser':
+                raise
+            # otherwise ignore if the dependency isn't present
+
+    # reading should fail if the parser is invalid
+    with pytest.raises(FeatureNotFound):
+        Table.read('t/html2.html', format='ascii.html',
+                   htmldict={'parser': 'foo'}, guess=False)
+
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():
     """
@@ -184,7 +204,7 @@ def test_htmlinputter_no_bs4():
     inputter = html.HTMLInputter()
     with pytest.raises(core.OptionalTableImportError):
         inputter.process_lines([])
-    
+
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter():
     """
@@ -198,14 +218,14 @@ def test_htmlinputter():
 
     inputter = html.HTMLInputter()
     inputter.html = {}
-    
+
     # In absence of table_id, defaults to the first table
     expected = ['<tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr>',
                 '<tr><td>1</td><td>a</td><td>1.05</td></tr>',
                 '<tr><td>2</td><td>b</td><td>2.75</td></tr>',
                 '<tr><td>3</td><td>c</td><td>-1.25</td></tr>']
     assert [str(x) for x in inputter.get_lines(table)] == expected
-    
+
     # Should raise an InconsistentTableError if the table is not found
     inputter.html = {'table_id': 4}
     with pytest.raises(core.InconsistentTableError):
@@ -237,8 +257,8 @@ def test_htmlsplitter():
 
     splitter = html.HTMLSplitter()
 
-    lines = [html.SoupString(BeautifulSoup('<tr><th>Col 1</th><th>Col 2</th></tr>').tr),
-            html.SoupString(BeautifulSoup('<tr><td>Data 1</td><td>Data 2</td></tr>').tr)]
+    lines = [html.SoupString(BeautifulSoup('<table><tr><th>Col 1</th><th>Col 2</th></tr></table>').tr),
+            html.SoupString(BeautifulSoup('<table><tr><td>Data 1</td><td>Data 2</td></tr></table>').tr)]
     expected_data = [['Col 1', 'Col 2'], ['Data 1', 'Data 2']]
     assert list(splitter(lines)) == expected_data
 
@@ -280,7 +300,7 @@ def test_htmlheader_start():
            '<tr><th>C1</th><th>C2</th><th>C3</th></tr>'
 
     # start_line should return None if no valid header is found
-    lines = [html.SoupString(BeautifulSoup('<tr><td>Data</td></tr>').tr),
+    lines = [html.SoupString(BeautifulSoup('<table><tr><td>Data</td></tr></table>').tr),
              html.SoupString(BeautifulSoup('<p>Text</p>').p)]
     assert header.start_line(lines) is None
 
@@ -318,16 +338,16 @@ def test_htmldata():
            '<tr><td>4</td><td>d</td><td>10.5</td></tr>'
     assert str(lines[data.end_line(lines) - 1]) == \
            '<tr><td>6</td><td>f</td><td>-12.5</td></tr>'
-    
+
     inputter.html['table_id'] = 3
     lines = inputter.get_lines(table)
     assert str(lines[data.start_line(lines)]) == \
            '<tr><td>7</td><td>g</td><td>105.0</td></tr>'
     assert str(lines[data.end_line(lines) - 1]) == \
            '<tr><td>9</td><td>i</td><td>-125.0</td></tr>'
-    
+
     # start_line should raise an error if no table data exists
-    lines = [html.SoupString(BeautifulSoup('<tr></tr>').tr),
+    lines = [html.SoupString(BeautifulSoup('<div></div>').div),
              html.SoupString(BeautifulSoup('<p>Text</p>').p)]
     with pytest.raises(core.InconsistentTableError):
         data.start_line(lines)
@@ -361,11 +381,13 @@ def test_multicolumn_write():
  </head>
  <body>
   <table>
-   <tr>
-    <th>C1</th>
-    <th colspan="2">C2</th>
-    <th colspan="3">C3</th>
-   </tr>
+   <thead>
+    <tr>
+     <th>C1</th>
+     <th colspan="2">C2</th>
+     <th colspan="3">C3</th>
+    </tr>
+   </thead>
    <tr>
     <td>1</td>
     <td>1.0</td>
@@ -415,11 +437,13 @@ def test_write_no_multicols():
  </head>
  <body>
   <table>
-   <tr>
-    <th>C1</th>
-    <th>C2</th>
-    <th>C3</th>
-   </tr>
+   <thead>
+    <tr>
+     <th>C1</th>
+     <th>C2</th>
+     <th>C3</th>
+    </tr>
+   </thead>
    <tr>
     <td>1</td>
     <td>1.0 .. 1.0</td>

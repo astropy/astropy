@@ -53,6 +53,14 @@ class TestSphericalRepresentation(object):
         assert isinstance(s2.lat, Latitude)
         assert isinstance(s2.distance, Distance)
 
+        # also test that wrap_angle is preserved
+        s3 = SphericalRepresentation(Longitude(-90, u.degree,
+                                               wrap_angle=180*u.degree),
+                                     Latitude(-45, u.degree),
+                                     Distance(1., u.Rsun))
+        assert s3.lon == -90. * u.degree
+        assert s3.lon.wrap_angle == 180 * u.degree
+
     def test_init_array(self):
 
         s1 = SphericalRepresentation(lon=[8, 9] * u.hourangle,
@@ -82,6 +90,16 @@ class TestSphericalRepresentation(object):
         assert_allclose_quantity(lon, s1.lon)
         assert_allclose_quantity(lat, s1.lat)
         assert_allclose_quantity(distance, s1.distance)
+
+    def test_init_float32_array(self):
+        """Regression test against #2983"""
+        lon = Longitude(np.float32([1., 2.]), u.degree)
+        lat = Latitude(np.float32([3., 4.]), u.degree)
+        s1 = UnitSphericalRepresentation(lon=lon, lat=lat, copy=False)
+        assert s1.lon.dtype == np.float32
+        assert s1.lat.dtype == np.float32
+        assert s1._values['lon'].dtype == np.float32
+        assert s1._values['lat'].dtype == np.float32
 
     def test_reprobj(self):
 
@@ -894,3 +912,32 @@ def test_representation_str():
 
     r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
     assert str(r3) == '[(1.0, 4.0, 9.0) (2.0, 4.0, 10.0) (3.0, 4.0, 11.0)] kpc'
+
+
+def test_subclass_representation():
+    from ...utils import OrderedDict
+    from ..builtin_frames import ICRS
+
+    class Longitude180(Longitude):
+        def __new__(cls, angle, unit=None, wrap_angle=180 * u.deg, **kwargs):
+            self = super(Longitude180, cls).__new__(cls, angle, unit=unit,
+                                                    wrap_angle=wrap_angle, **kwargs)
+            return self
+
+    class SphericalWrap180Representation(SphericalRepresentation):
+        attr_classes = OrderedDict([('lon', Longitude180),
+                                    ('lat', Latitude),
+                                    ('distance', u.Quantity)])
+        recommended_units = {'lon': u.deg, 'lat': u.deg}
+
+    class ICRSWrap180(ICRS):
+        frame_specific_representation_info = ICRS._frame_specific_representation_info.copy()
+        frame_specific_representation_info['sphericalwrap180'] = \
+            frame_specific_representation_info['spherical']
+        default_representation = SphericalWrap180Representation
+
+    c = ICRSWrap180(ra=-1 * u.deg, dec=-2 * u.deg, distance=1 * u.m)
+    assert c.ra.value == -1
+    assert c.ra.unit is u.deg
+    assert c.dec.value == -2
+    assert c.dec.unit is u.deg

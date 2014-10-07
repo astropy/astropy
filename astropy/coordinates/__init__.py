@@ -19,5 +19,6 @@ from .name_resolve import *
 from .matching import *
 from .representation import *
 from .sky_coordinate import *
+from .funcs import *
 
 __doc__ += builtin_frames._transform_graph_docs

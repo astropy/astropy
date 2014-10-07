@@ -17,12 +17,12 @@ import math
 import os
 import warnings
 
-from .generic import Generic
+from . import generic
 from . import utils
 from ...utils.compat.fractions import Fraction
 
 
-class OGIP(Generic):
+class OGIP(generic.Generic):
     """
     Support the units in `Office of Guest Investigator Programs (OGIP)
     FITS files
@@ -76,7 +76,7 @@ class OGIP(Generic):
         # Create a separate, disconnected unit for the special case of
         # Crab and mCrab, since OGIP doesn't define their quantities.
         Crab = u.def_unit(['Crab'], prefixes=False, doc='Crab (X-ray flux)')
-        mCrab = 10 ** -3 * Crab
+        mCrab = u.Unit(10 ** -3 * Crab)
         names['Crab'] = Crab
         names['mCrab'] = mCrab
 
@@ -356,26 +356,32 @@ class OGIP(Generic):
     def _get_unit(cls, t):
         try:
             return cls._parse_unit(t.value)
-        except ValueError:
+        except ValueError as e:
             raise ValueError(
-                "At col {0}, {1!r} is not a valid unit according to the "
-                "OGIP standard".format(
-                    t.lexpos, t.value))
+                "At col {0}, '{1}': {2}".format(
+                    t.lexpos, t.value, six.text_type(e)))
 
     @classmethod
-    def _parse_unit(cls, unit):
+    def _validate_unit(cls, unit, detailed_exception=True):
         if unit not in cls._units:
-            raise ValueError(
-                "Unit {0!r} not supported by the OGIP "
-                "standard".format(unit))
+            if detailed_exception:
+                raise ValueError(
+                    "Unit '{0}' not supported by the OGIP "
+                    "standard. {1}".format(
+                        unit, utils.did_you_mean_units(
+                            unit, cls._units, cls._deprecated_units,
+                            cls._to_decomposed_alternative)))
+            else:
+                raise ValueError()
 
         if unit in cls._deprecated_units:
-            from ..core import UnitsWarning
-            warnings.warn(
-                "The unit {0!r} is discouraged in the OGIP "
-                "standard".format(unit),
-                UnitsWarning)
+            utils.unit_deprecation_warning(
+                unit, cls._units[unit], 'OGIP',
+                cls._to_decomposed_alternative)
 
+    @classmethod
+    def _parse_unit(cls, unit, detailed_exception=True):
+        cls._validate_unit(unit, detailed_exception=detailed_exception)
         return cls._units[unit]
 
     def parse(self, s, debug=False):
@@ -383,7 +389,7 @@ class OGIP(Generic):
         try:
             # This is a short circuit for the case where the string is
             # just a single unit name
-            return self._parse_unit(s)
+            return self._parse_unit(s, detailed_exception=False)
         except ValueError:
             from ..core import Unit
             try:
@@ -391,50 +397,41 @@ class OGIP(Generic):
                     self._parser.parse(s, lexer=self._lexer, debug=debug))
             except ValueError as e:
                 if six.text_type(e):
-                    raise ValueError("{0} in unit {1!r}".format(
-                        six.text_type(e), s))
+                    raise
                 else:
                     raise ValueError(
-                        "Syntax error parsing unit {0!r}".format(s))
+                        "Syntax error parsing unit '{0}'".format(s))
 
-    def _get_unit_name(self, unit):
+    @classmethod
+    def _get_unit_name(cls, unit):
         name = unit.get_format_name('ogip')
-
-        if name not in self._units:
-            raise ValueError(
-                "Unit {0!r} is not part of the OGIP standard".format(name))
-
-        if unit in self._deprecated_units:
-            from ..core import UnitsWarning
-            warnings.warn(
-                "The unit {0!r} is discouraged in the OGIP "
-                "standard".format(unit),
-                UnitsWarning)
-
+        cls._validate_unit(name)
         return name
 
-    def _format_unit_list(self, units):
+    @classmethod
+    def _format_unit_list(cls, units):
         out = []
-        units.sort(key=lambda x: self._get_unit_name(x[0]).lower())
+        units.sort(key=lambda x: cls._get_unit_name(x[0]).lower())
 
         for base, power in units:
             if power == 1:
-                out.append(self._get_unit_name(base))
+                out.append(cls._get_unit_name(base))
             else:
                 power = utils.format_power(power)
                 if '/' in power:
                     out.append('{0}**({1})'.format(
-                        self._get_unit_name(base), power))
+                        cls._get_unit_name(base), power))
                 else:
                     out.append('{0}**{1}'.format(
-                        self._get_unit_name(base), power))
+                        cls._get_unit_name(base), power))
         return ' '.join(out)
 
-    def to_string(self, unit):
+    @classmethod
+    def to_string(cls, unit):
         from .. import core
 
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, self._get_unit_name)
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
@@ -445,4 +442,22 @@ class OGIP(Generic):
                         unit.scale),
                     core.UnitsWarning)
 
-        return Generic.to_string(self, unit)
+        return generic._to_string(cls, unit)
+
+    @classmethod
+    def _to_decomposed_alternative(cls, unit):
+        from .. import core
+
+        # Remove units that aren't known to the format
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
+
+        if isinstance(unit, core.CompositeUnit):
+            # Can't use np.log10 here, because p[0] may be a Python long.
+            if math.log10(unit.scale) % 1.0 != 0.0:
+                scale = unit.scale
+                unit = copy.copy(unit)
+                unit._scale = 1.0
+                return '{0} (with data multiplied by {1})'.format(
+                    generic._to_string(cls, unit), scale)
+
+        return generic._to_string(unit)

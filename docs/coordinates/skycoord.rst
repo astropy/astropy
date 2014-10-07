@@ -364,7 +364,7 @@ Another important attribute is ``frame_attr_names``, which defines the
 additional attributes that are required to fully define the frame::
 
   >>> sc_fk4 = SkyCoord(1, 2, 'fk4', unit='deg')
-  >>> sc_fk4.get_frame_attr_names()
+  >>> sc_fk4.get_frame_attr_names()  # doctest: +SKIP
   {u'equinox': <Time object: scale='tai' format='byear_str' value=B1950.000>,
    u'obstime': None}
 
@@ -434,17 +434,17 @@ name, frame class, frame instance, or |SkyCoord|::
   <SkyCoord (Galactic): l=99.6379436471 deg, b=-58.7096055983 deg>
 
   >>> sc.transform_to('fk5')  # Same as sc.fk5 and sc.transform_to(FK5)  # doctest: +FLOAT_CMP
-  <SkyCoord (FK5): equinox=J2000.000, ra=1.00000655566 deg, dec=2.00000243092 deg>
+  <SkyCoord (FK5: equinox=J2000.000): ra=1.00000655566 deg, dec=2.00000243092 deg>
 
   >>> sc.transform_to(FK5(equinox='J1975'))  # Transform to FK5 with a different equinox  # doctest: +FLOAT_CMP
-  <SkyCoord (FK5): equinox=J1975.000, ra=0.679672818323 deg, dec=1.86083014099 deg>
+  <SkyCoord (FK5: equinox=J1975.000): ra=0.679672818323 deg, dec=1.86083014099 deg>
 
 Transforming to a |SkyCoord| instance is an easy way of ensuring that two
 coordinates are in the exact same reference frame::
 
   >>> sc2 = SkyCoord(3, 4, 'fk4', unit='deg', obstime='J1978.123', equinox='B1960.0')
   >>> sc.transform_to(sc2)
-  <SkyCoord (FK4): equinox=B1960.000, obstime=J1978.123, ra=0.48726331438 deg, dec=1.77731617297 deg>
+  <SkyCoord (FK4: equinox=B1960.000, obstime=J1978.123): ra=0.48726331438 deg, dec=1.77731617297 deg>
 
 .. _astropy-skycoord-representations:
 

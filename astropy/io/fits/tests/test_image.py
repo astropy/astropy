@@ -786,6 +786,47 @@ class TestImageFunctions(FitsTestCase):
             assert 'NAXIS1' not in h[1].header
             assert 'NAXIS2' not in h[1].header
 
+    def test_invalid_blank(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2711
+
+        If the BLANK keyword contains an invalid value it should be ignored for
+        any calculations (though a warning should be issued).
+        """
+
+        data = np.arange(100, dtype=np.float64)
+        hdu = fits.PrimaryHDU(data)
+        hdu.header['BLANK'] = 'nan'
+        hdu.writeto(self.temp('test.fits'))
+
+        with catch_warnings() as w:
+            with fits.open(self.temp('test.fits')) as hdul:
+                assert np.all(hdul[0].data == data)
+
+        assert len(w) == 2
+        msg = "Invalid value for 'BLANK' keyword in header"
+        assert msg in str(w[0].message)
+        msg = "Invalid 'BLANK' keyword"
+        assert msg in str(w[1].message)
+
+    def test_scaled_image_fromfile(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2710
+        """
+
+        # Make some sample data
+        a = np.arange(100, dtype=np.float32)
+
+        hdu = fits.PrimaryHDU(data=a.copy())
+        hdu.scale(bscale=1.1)
+        hdu.writeto(self.temp('test.fits'))
+
+        with open(self.temp('test.fits'), 'rb') as f:
+            file_data = f.read()
+
+        hdul = fits.HDUList.fromstring(file_data)
+        assert np.allclose(hdul[0].data, a)
+
 
 class TestCompressedImage(FitsTestCase):
     def test_empty(self):
@@ -1323,3 +1364,27 @@ class TestCompressedImage(FitsTestCase):
             assert np.all(comp_hdu.data[0] == arr[0])
             # The second tile uses lossy compression and may be somewhat off,
             # so we don't bother comparing it exactly
+
+    def test_duplicate_compression_header_keywords(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/2750
+
+        Tests that the fake header (for the compressed image) can still be read
+        even if the real header contained a duplicate ZTENSION keyword (the
+        issue applies to any keyword specific to the compression convention,
+        however).
+        """
+
+        arr = np.arange(100, dtype=np.int32)
+        hdu = fits.CompImageHDU(data=arr)
+
+        header = hdu._header
+        # append the duplicate keyword
+        hdu._header.append(('ZTENSION', 'IMAGE'))
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert header == hdul[1]._header
+            # There's no good reason to have a duplicate keyword, but
+            # technically it isn't invalid either :/
+            assert hdul[1]._header.count('ZTENSION') == 2

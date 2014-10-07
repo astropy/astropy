@@ -6,6 +6,7 @@
 from __future__ import absolute_import, division, print_function
 
 from .core import (InconsistentTableError,
+                   ParameterError,
                    NoType, StrType, NumType, FloatType, IntType, AllType,
                    Column,
                    BaseInputter, ContinuationLinesInputter,
@@ -17,12 +18,18 @@ from .core import (InconsistentTableError,
                    convert_numpy,
                    masked
                    )
-from .basic import (Basic,
+from .basic import (Basic, BasicHeader, BasicData,
                     Rdb,
                     Csv,
                     Tab,
                     NoHeader,
                     CommentedHeader)
+from .fastbasic import (FastBasic,
+                        FastCsv,
+                        FastTab,
+                        FastNoHeader,
+                        FastCommentedHeader,
+                        FastRdb)
 from .cds import Cds
 from .latex import Latex, AASTex, latexdicts
 from .html import HTML

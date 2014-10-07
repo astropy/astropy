@@ -122,10 +122,10 @@ formats:
     Unlike the "generic" string format, this will only accept or
     generate units defined in the FITS standard.
 
-  - ``"vounit"``: The `proposed IVOA standard
-    <http://www.ivoa.net/Documents/VOUnits/>`__ for representing units
-    in the VO.  Again, based on the FITS syntax, but the collection of
-    supported units is different.
+  - ``"vounit"``: The `Units in the VO 1.0
+    <http://www.ivoa.net/Documents/VOUnits/>`__ standard for
+    representing units in the VO.  Again, based on the FITS syntax,
+    but the collection of supported units is different.
 
   - ``"cds"``: `Standards for astronomical catalogues from Centre de
     Données astronomiques de Strasbourg
@@ -151,6 +151,20 @@ following formats:
     .. math::
 
        \mathrm{\frac{erg}{s\,cm^{2}}}
+
+  - ``"latex_inline"``: Writes units out using LaTeX math syntax using the
+    `IAU Style Manual
+    <http://www.iau.org/static/publications/stylemanual1989.pdf>`__
+    recommendations for unit presentation, using negative powers instead of
+    fractions, as required by some journals (e.g., `Apj and AJ
+    <http://aas.org/authors/manuscript-preparation-aj-apj-author-instructions#_Toc2.2>`_.)
+    Best suited for unit representation inline with text::
+
+      >>> fluxunit.to_string('latex_inline')  # doctest: +SKIP
+
+    .. math::
+
+       \mathrm{erg\,s^{-1}\,cm^{-2}}
 
   - ``"console"``: Writes a multi-line representation of the unit
     useful for display in a text console::
@@ -183,8 +197,9 @@ Normally, passing an unrecognized unit string raises an exception::
   Traceback (most recent call last):
     ...
   ValueError: 'Angstroem' did not parse as fits unit: At col 0, Unit
-  u'Angstroem' not supported by the FITS standard. Did you mean
-  Angstrom or angstrom?
+  'Angstroem' not supported by the FITS standard. Did you mean
+  Angstrom (deprecated), angstrom (deprecated) or nm (with data
+  multiplied by 0.1)?
 
 However, the `~astropy.units.Unit` constructor has the keyword
 argument ``parse_strict`` that can take one of three values to control

@@ -20,6 +20,7 @@ from ...extern.six.moves import zip
 
 from . import core
 from . import fixedwidth
+from . import basic
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from ...table.pprint import _format_funcs, _auto_format_func
@@ -37,155 +38,6 @@ class IpacFormatError(Exception):
         return '{0}\nSee {1}'.format(
             super(Exception, self).__str__(),
             'http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html')
-
-
-class Ipac(fixedwidth.FixedWidth):
-    """Read or write an IPAC format table.  See
-    http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
-
-      \\name=value
-      \\ Comment
-      |  column1 |   column2 | column3 | column4  |    column5    |
-      |  double  |   double  |   int   |   double |     char      |
-      |  unit    |   unit    |   unit  |    unit  |     unit      |
-      |  null    |   null    |   null  |    null  |     null      |
-       2.0978     29.09056    73765     2.06000    B8IVpMnHg
-
-    Or::
-
-      |-----ra---|----dec---|---sao---|------v---|----sptype--------|
-        2.09708   29.09056     73765   2.06000    B8IVpMnHg
-
-    The comments and keywords defined in the header are available via the output
-    table ``meta`` attribute::
-
-      >>> import os
-      >>> from astropy.io import ascii
-      >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
-      >>> data = ascii.read(filename)
-      >>> print(data.meta['comments'])
-      ['This is an example of a valid comment']
-      >>> for name, keyword in data.meta['keywords'].items():
-      ...     print(name, keyword['value'])
-      ...
-      intval 1
-      floatval 2300.0
-      date Wed Sp 20 09:48:36 1995
-      key_continue IPAC keywords can continue across lines
-
-    Note that there are different conventions for characters occuring below the
-    position of the ``|`` symbol in IPAC tables. By default, any character
-    below a ``|`` will be ignored (since this is the current standard),
-    but if you need to read files that assume characters below the ``|``
-    symbols belong to the column before or after the ``|``, you can specify
-    ``definition='left'`` or ``definition='right'`` respectively when reading
-    the table (the default is ``definition='ignore'``). The following examples
-    demonstrate the different conventions:
-
-    * ``definition='ignore'``::
-
-        |   ra  |  dec  |
-        | float | float |
-          1.2345  6.7890
-
-    * ``definition='left'``::
-
-        |   ra  |  dec  |
-        | float | float |
-           1.2345  6.7890
-
-    * ``definition='right'``::
-
-        |   ra  |  dec  |
-        | float | float |
-        1.2345  6.7890
-
-    Parameters
-    ----------
-    definition : str, optional
-        Specify the convention for characters in the data table that occur
-        directly below the pipe (``|``) symbol in the header column definition:
-
-          * 'ignore' - Any character beneath a pipe symbol is ignored (default)
-          * 'right' - Character is associated with the column to the right
-          * 'left' - Character is associated with the column to the left
-
-    DBMS : bool, optional
-        If true, this varifies that written tables adhere (semantically)
-        to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
-        definiton of IPAC tables. If 'False' it only checks for the (less strict)
-        `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
-        definition.
-    """
-    _format_name = 'ipac'
-    _io_registry_format_aliases = ['ipac']
-    _io_registry_can_write = True
-    _description = 'IPAC format table'
-
-    def __init__(self, definition='ignore', DBMS=False):
-        super(fixedwidth.FixedWidth, self).__init__()
-        self.header = IpacHeader(definition=definition)
-        self.data = IpacData()
-        self.data.header = self.header
-        self.header.data = self.data
-        self.header.DBMS = DBMS
-        self.data.splitter.delimiter = ' '
-        self.data.splitter.delimiter_pad = ''
-        self.data.splitter.bookend = True
-
-    def write(self, table):
-        """Write ``table`` as list of strings.
-
-        :param table: input table data (astropy.table.Table object)
-        :returns: list of strings corresponding to ASCII table
-        """
-
-        core._apply_include_exclude_names(table, self.names, self.include_names,
-                                          self.exclude_names, self.strict_names)
-
-        # link information about the columns to the writer object (i.e. self)
-        self.header.cols = list(six.itervalues(table.columns))
-        self.data.cols = list(six.itervalues(table.columns))
-
-        # Write header and data to lines list
-        lines = []
-        # Write meta information
-        if 'comments' in table.meta:
-            for comment in table.meta['comments']:
-                if len(str(comment)) > 78:
-                    warn('Comment string > 78 characters was automatically wrapped.',
-                         AstropyUserWarning)
-                for line in wrap(str(comment), 80, initial_indent='\\ ', subsequent_indent='\\ '):
-                    lines.append(line)
-        if 'keywords' in table.meta:
-            keydict = table.meta['keywords']
-            for keyword in keydict:
-                try:
-                    val = keydict[keyword]['value']
-                    lines.append('\\{0}={1!r}'.format(keyword.strip(), val))
-                    # meta is not standardized: Catch some common Errors.
-                except TypeError:
-                    pass
-
-        # get header and data as strings to find width of each column
-        for i, col in enumerate(table.columns.values()):
-            col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
-        # keep data_str_vals because they take some time to make
-        data_str_vals = self.data.str_vals()
-        for i, col in enumerate(table.columns.values()):
-            # FIXME: In Python 3.4, use max([], default=0).
-            # See: https://docs.python.org/3/library/functions.html#max
-            if data_str_vals:
-                col.width = max([len(vals[i]) for vals in data_str_vals])
-            else:
-                col.width = 0
-
-        widths = [max(col.width, col.headwidth) for col in table.columns.values()]
-        # then write table
-        self.header.write(lines, widths)
-        self.data.write(lines, widths, data_str_vals)
-
-        return lines
 
 
 class IpacHeaderSplitter(core.BaseSplitter):
@@ -232,14 +84,8 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                     'f': core.FloatType,
                     'r': core.FloatType,
                     'c': core.StrType}
-
-    def __init__(self, definition='ignore'):
-
-        fixedwidth.FixedWidthHeader.__init__(self)
-        if definition in ['ignore', 'left', 'right']:
-            self.ipac_definition = definition
-        else:
-            raise ValueError("definition should be one of ignore/left/right")
+    definition='ignore'
+    start_line = None
 
     def process_lines(self, lines):
         """Generator to yield IPAC header lines, i.e. those starting and ending with
@@ -440,9 +286,18 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         return lines
 
 
+class IpacDataSplitter(fixedwidth.FixedWidthSplitter):
+    delimiter = ' '
+    delimiter_pad = ''
+    bookend = True
+
+
 class IpacData(fixedwidth.FixedWidthData):
     """IPAC table data reader"""
     comment = r'[|\\]'
+    start_line = 0
+    splitter_class = IpacDataSplitter
+
 
     def str_vals(self):
         '''return str vals for each in the table'''
@@ -459,4 +314,155 @@ class IpacData(fixedwidth.FixedWidthData):
         """ IPAC writer, modified from FixedWidth writer """
         for vals in vals_list:
             lines.append(self.splitter.join(vals, widths))
+        return lines
+
+
+class Ipac(basic.Basic):
+    """Read or write an IPAC format table.  See
+    http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html::
+
+      \\name=value
+      \\ Comment
+      |  column1 |   column2 | column3 | column4  |    column5    |
+      |  double  |   double  |   int   |   double |     char      |
+      |  unit    |   unit    |   unit  |    unit  |     unit      |
+      |  null    |   null    |   null  |    null  |     null      |
+       2.0978     29.09056    73765     2.06000    B8IVpMnHg
+
+    Or::
+
+      |-----ra---|----dec---|---sao---|------v---|----sptype--------|
+        2.09708   29.09056     73765   2.06000    B8IVpMnHg
+
+    The comments and keywords defined in the header are available via the output
+    table ``meta`` attribute::
+
+      >>> import os
+      >>> from astropy.io import ascii
+      >>> filename = os.path.join(ascii.__path__[0], 'tests/t/ipac.dat')
+      >>> data = ascii.read(filename)
+      >>> print(data.meta['comments'])
+      ['This is an example of a valid comment']
+      >>> for name, keyword in data.meta['keywords'].items():
+      ...     print(name, keyword['value'])
+      ...
+      intval 1
+      floatval 2300.0
+      date Wed Sp 20 09:48:36 1995
+      key_continue IPAC keywords can continue across lines
+
+    Note that there are different conventions for characters occuring below the
+    position of the ``|`` symbol in IPAC tables. By default, any character
+    below a ``|`` will be ignored (since this is the current standard),
+    but if you need to read files that assume characters below the ``|``
+    symbols belong to the column before or after the ``|``, you can specify
+    ``definition='left'`` or ``definition='right'`` respectively when reading
+    the table (the default is ``definition='ignore'``). The following examples
+    demonstrate the different conventions:
+
+    * ``definition='ignore'``::
+
+        |   ra  |  dec  |
+        | float | float |
+          1.2345  6.7890
+
+    * ``definition='left'``::
+
+        |   ra  |  dec  |
+        | float | float |
+           1.2345  6.7890
+
+    * ``definition='right'``::
+
+        |   ra  |  dec  |
+        | float | float |
+        1.2345  6.7890
+
+    Parameters
+    ----------
+    definition : str, optional
+        Specify the convention for characters in the data table that occur
+        directly below the pipe (``|``) symbol in the header column definition:
+
+          * 'ignore' - Any character beneath a pipe symbol is ignored (default)
+          * 'right' - Character is associated with the column to the right
+          * 'left' - Character is associated with the column to the left
+
+    DBMS : bool, optional
+        If true, this varifies that written tables adhere (semantically)
+        to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
+        definiton of IPAC tables. If 'False' it only checks for the (less strict)
+        `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
+        definition.
+    """
+    _format_name = 'ipac'
+    _io_registry_format_aliases = ['ipac']
+    _io_registry_can_write = True
+    _description = 'IPAC format table'
+
+    data_class = IpacData
+    header_class = IpacHeader
+
+    def __init__(self, definition='ignore', DBMS=False):
+        super(Ipac, self).__init__()
+        # Usually the header is not defined in __init__, but here it need a keyword
+        if definition in ['ignore', 'left', 'right']:
+            self.header.ipac_definition = definition
+        else:
+            raise ValueError("definition should be one of ignore/left/right")
+        self.header.DBMS = DBMS
+
+
+    def write(self, table):
+        """Write ``table`` as list of strings.
+
+        :param table: input table data (astropy.table.Table object)
+        :returns: list of strings corresponding to ASCII table
+        """
+
+        core._apply_include_exclude_names(table, self.names, self.include_names,
+                                          self.exclude_names, self.strict_names)
+
+        # link information about the columns to the writer object (i.e. self)
+        self.header.cols = list(six.itervalues(table.columns))
+        self.data.cols = list(six.itervalues(table.columns))
+
+        # Write header and data to lines list
+        lines = []
+        # Write meta information
+        if 'comments' in table.meta:
+            for comment in table.meta['comments']:
+                if len(str(comment)) > 78:
+                    warn('Comment string > 78 characters was automatically wrapped.',
+                         AstropyUserWarning)
+                for line in wrap(str(comment), 80, initial_indent='\\ ', subsequent_indent='\\ '):
+                    lines.append(line)
+        if 'keywords' in table.meta:
+            keydict = table.meta['keywords']
+            for keyword in keydict:
+                try:
+                    val = keydict[keyword]['value']
+                    lines.append('\\{0}={1!r}'.format(keyword.strip(), val))
+                    # meta is not standardized: Catch some common Errors.
+                except TypeError:
+                    pass
+
+        # get header and data as strings to find width of each column
+        for i, col in enumerate(table.columns.values()):
+            col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
+        # keep data_str_vals because they take some time to make
+        data_str_vals = self.data.str_vals()
+        for i, col in enumerate(table.columns.values()):
+            # FIXME: In Python 3.4, use max([], default=0).
+            # See: https://docs.python.org/3/library/functions.html#max
+            if data_str_vals:
+                col.width = max([len(vals[i]) for vals in data_str_vals])
+            else:
+                col.width = 0
+
+        widths = [max(col.width, col.headwidth) for col in table.columns.values()]
+        # then write table
+        self.header.write(lines, widths)
+        self.data.write(lines, widths, data_str_vals)
+
         return lines

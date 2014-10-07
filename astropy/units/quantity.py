@@ -13,6 +13,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numbers
 
 import numpy as np
+NUMPY_LT_1P9 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 9]
 
 # AstroPy
 from ..extern import six
@@ -205,16 +206,16 @@ class Quantity(np.ndarray):
             # if the value has a `unit` attribute, treat it like a quantity by
             # rescaling the value appropriately
             if hasattr(value, 'unit'):
-                    try:
-                        value_unit = Unit(value.unit)
-                    except TypeError:
-                        if unit is None:
-                            unit = dimensionless_unscaled
+                try:
+                    value_unit = Unit(value.unit)
+                except TypeError:
+                    if unit is None:
+                        unit = dimensionless_unscaled
+                else:
+                    if unit is None:
+                        unit = value_unit
                     else:
-                        if unit is None:
-                            unit = value_unit
-                        else:
-                            rescale_value = value_unit.to(unit)
+                        rescale_value = value_unit.to(unit)
 
             #if it has no unit, default to dimensionless_unscaled
             elif unit is None:
@@ -232,7 +233,8 @@ class Quantity(np.ndarray):
                             "Numpy numeric type.")
 
         # by default, cast any integer, boolean, etc., to float
-        if dtype is None and not np.can_cast(np.float32, value.dtype):
+        if dtype is None and (not np.can_cast(np.float32, value.dtype)
+                              or value.dtype.kind == 'O'):
             value = value.astype(np.float)
 
         if rescale_value is not None:
@@ -292,14 +294,23 @@ class Quantity(np.ndarray):
             # can just have the unit of the quantity
             # (this allows, e.g., `q > 0.` independent of unit)
             maybe_arbitrary_arg = args[scales.index(0.)]
-            if _can_have_arbitrary_unit(maybe_arbitrary_arg):
-                scales = [1., 1.]
-            else:
-                raise UnitsError("Can only apply '{0}' function to "
-                                 "dimensionless quantities when other "
-                                 "argument is not a quantity (unless the "
-                                 "latter is all zero/infinity/nan)"
-                                 .format(function.__name__))
+            try:
+                if _can_have_arbitrary_unit(maybe_arbitrary_arg):
+                    scales = [1., 1.]
+                else:
+                    raise UnitsError("Can only apply '{0}' function to "
+                                     "dimensionless quantities when other "
+                                     "argument is not a quantity (unless the "
+                                     "latter is all zero/infinity/nan)"
+                                     .format(function.__name__))
+            except TypeError:
+                # _can_have_arbitrary_unit failed: arg could not be compared
+                # with zero or checked to be finite.  Then, ufunc will fail too.
+                raise TypeError("Unsupported operand type(s) for ufunc {0}: "
+                                "'{1}' and '{2}'"
+                                .format(function.__name__,
+                                        args[0].__class__.__name__,
+                                        args[1].__class__.__name__))
 
         # In the case of np.power, the unit itself needs to be modified by an
         # amount that depends on one of the input values, so we need to treat
@@ -316,15 +327,24 @@ class Quantity(np.ndarray):
 
         # We now prepare the output object
 
-        if self is obj:  # happens if the output object is self, which happens
-                         # for in-place operations such as q1 += q2
+        if self is obj:
+
+            # this happens if the output object is self, which happens
+            # for in-place operations such as q1 += q2
 
             # In some cases, the result of a ufunc should be a plain Numpy
             # array, which we can't do if we are doing an in-place operation.
             if result_unit is None:
                 raise TypeError("Cannot store non-quantity output from {0} "
-                                "function in Quantity object"
-                                .format(function.__name__))
+                                "function in {1} instance"
+                                .format(function.__name__, type(self)))
+
+            if self.__quantity_subclass__(result_unit)[0] is not type(self):
+                raise TypeError(
+                    "Cannot store output with unit '{0}' from {1} function "
+                    "in {2} instance.  Use {3} instance instead."
+                    .format(result_unit, function.__name__, type(self),
+                            self.__quantity_subclass__(result_unit)[0]))
 
             # If the Quantity has an integer dtype, in-place operations are
             # dangerous because in some cases the quantity will be e.g.
@@ -630,8 +650,6 @@ class Quantity(np.ndarray):
             (e.g. ``np.array(1)``), while this is True for quantities,
             since quantities cannot represent true numpy scalars.
         """
-        from ..utils.misc import isiterable
-
         return not isiterable(self.value)
 
     # This flag controls whether convenience conversion members, such
@@ -687,6 +705,34 @@ class Quantity(np.ndarray):
                     self.__class__.__name__, attr))
         else:
             return value
+
+    if not NUMPY_LT_1P9:
+        # Equality (return False if units do not match) needs to be handled
+        # explicitly for numpy >=1.9, since it no longer traps errors.
+        def __eq__(self, other):
+            try:
+                try:
+                    return super(Quantity, self).__eq__(other)
+                except DeprecationWarning:
+                    # We treat the DeprecationWarning separately, since it may
+                    # mask another Exception.  But we do not want to just use
+                    # np.equal, since super's __eq__ treats recarrays correctly.
+                    return np.equal(self, other)
+            except UnitsError:
+                return False
+            except TypeError:
+                return NotImplemented
+
+        def __ne__(self, other):
+            try:
+                try:
+                    return super(Quantity, self).__ne__(other)
+                except DeprecationWarning:
+                    return np.not_equal(self, other)
+            except UnitsError:
+                return True
+            except TypeError:
+                return NotImplemented
 
     # Arithmetic operations
     def __mul__(self, other):
@@ -1004,19 +1050,28 @@ class Quantity(np.ndarray):
 
     def _to_own_unit(self, value, check_precision=True):
         try:
-            value = value.to(self.unit).value
+            _value = value.to(self.unit).value
         except AttributeError:
             try:
-                value = dimensionless_unscaled.to(self.unit, value)
+                _value = dimensionless_unscaled.to(self.unit, value)
             except UnitsError as exc:
-                if not _can_have_arbitrary_unit(value):
+                if _can_have_arbitrary_unit(value):
+                    _value = value
+                else:
                     raise exc
 
-        if(check_precision and
-           np.any(np.array(value, self.dtype) != np.array(value))):
-            raise TypeError("cannot convert value type to array type without "
-                            "precision loss")
-        return value
+        if check_precision:
+            value_dtype = getattr(value, 'dtype', None)
+            if self.dtype != value_dtype:
+                self_dtype_array = np.array(_value, self.dtype)
+                value_dtype_array = np.array(_value, dtype=value_dtype,
+                                             copy=False)
+                if not np.all(np.logical_or(self_dtype_array ==
+                                            value_dtype_array,
+                                            np.isnan(value_dtype_array))):
+                    raise TypeError("cannot convert value type to array type "
+                                    "without precision loss")
+        return _value
 
     def itemset(self, *args):
         if len(args) == 0:

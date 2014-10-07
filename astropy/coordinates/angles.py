@@ -10,6 +10,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import math
 from collections import namedtuple
+from distutils.version import LooseVersion
 
 import numpy as np
 
@@ -28,6 +29,10 @@ TWOPI = math.pi * 2.0  # no need to calculate this all the time
 hms_tuple = namedtuple('hms_tuple', ('h', 'm', 's'))
 dms_tuple = namedtuple('dms_tuple', ('d', 'm', 's'))
 signed_dms_tuple = namedtuple('signed_dms_tuple', ('sign', 'd', 'm', 's'))
+
+#TODO: remove this when numpy 1.5 is no longer supported, as well as the
+#workaround below
+_NUMPY_GTR_15 = LooseVersion(np.__version__) >= LooseVersion('1.6')
 
 
 class Angle(u.Quantity):
@@ -48,6 +53,8 @@ class Angle(u.Quantity):
       Angle(u'1°2′3″')
       Angle('1d2m3.4s')
       Angle('-1h2m3s')
+      Angle('-1h2.5m')
+      Angle('-1:2.5', unit=u.deg)
       Angle((-1, 2, 3), unit=u.deg)  # (d, m, s)
       Angle(10.2345 * u.deg)
       Angle(Angle(10.2345 * u.deg))
@@ -137,13 +144,12 @@ class Angle(u.Quantity):
     @staticmethod
     def _tuple_to_float(angle, unit):
         """
-        Converts an angle represented as a 3-tuple into a floating
+        Converts an angle represented as a 3-tuple or 2-tuple into a floating
         point number in the given unit.
         """
         if isinstance(angle, tuple):
             # TODO: Numpy array of tuples?
             if unit is u.hourangle:
-                util.check_hms_ranges(*angle)
                 angle = util.hms_to_hours(*angle)
             elif unit is u.degree:
                 angle = util.dms_to_degrees(*angle)
@@ -267,8 +273,10 @@ class Angle(u.Quantity):
 
         Returns
         -------
-        strrepr : str
-            A string representation of the angle.
+        strrepr : str or array
+            A string representation of the angle. If the angle is an array, this
+            will be an array with a unicode dtype.
+
 
         """
         if unit is None:
@@ -366,8 +374,20 @@ class Angle(u.Quantity):
                 s = '${0}$'.format(s)
             return s
 
-        format_ufunc = np.vectorize(do_format, otypes=[np.object])
-        result = format_ufunc(values)
+        # we want unicode outputs for degree signs and such
+        if _NUMPY_GTR_15:
+            #for newer numpy's, this just works as you would expect
+            format_ufunc = np.vectorize(do_format, otypes=['U'])
+            result = format_ufunc(values)
+        else:
+            format_ufunc = np.vectorize(do_format, otypes=[np.object])
+            #In Numpy 1.5, unicode output is broken.  vectorize always seems to
+            # yieled U2 even if you tell it something else.  So we convert in
+            # a second step with 60 chars, on the theory that you'll never want
+            # better than what double-precision decimals give, which end up
+            # around that many characters.
+            result = format_ufunc(values).astype('U60')
+
         if result.ndim == 0:
             result = result[()]
         return result
@@ -460,13 +480,6 @@ class Angle(u.Quantity):
         if ok and upper is not None:
             ok &= np.all(self < Angle(upper))
         return bool(ok)
-
-    @deprecated("0.3", name="format", alternative="to_string")
-    def format(self, unit=u.degree, decimal=False, sep='fromunit', precision=5,
-               alwayssign=False, pad=False):
-        return self.to_string(
-            unit=unit, decimal=decimal, sep=sep, precision=precision,
-            alwayssign=alwayssign, pad=pad)
 
     def __str__(self):
         return str(self.to_string())
@@ -604,8 +617,11 @@ class Longitude(Angle):
         better to give an actual unit object.  Must be an angular
         unit.
 
-    wrap_angle : :class:`~astropy.coordinates.Angle` or equivalent
+    wrap_angle : :class:`~astropy.coordinates.Angle` or equivalent, or None
         Angle at which to wrap back to ``wrap_angle - 360 deg``.
+        If ``None`` (default), it will be taken to be 360 deg unless ``angle``
+        has a ``wrap_angle`` attribute already (i.e., is a ``Longitude``),
+        in which case it will be taken from there.
 
     Raises
     ------
@@ -617,12 +633,13 @@ class Longitude(Angle):
 
     _wrap_angle = None
 
-    def __new__(cls, angle, unit=None, wrap_angle=360 * u.deg, **kwargs):
+    def __new__(cls, angle, unit=None, wrap_angle=None, **kwargs):
         # Forbid creating a Long from a Lat.
         if isinstance(angle, Latitude):
             raise TypeError("A Longitude angle cannot be created from a Latitude angle")
         self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
-        self.wrap_angle = wrap_angle
+        self.wrap_angle = (wrap_angle if wrap_angle is not None
+                           else getattr(angle, 'wrap_angle', 360 * u.deg))
         return self
 
     def __setitem__(self, item, value):

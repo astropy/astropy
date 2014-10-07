@@ -36,9 +36,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
             self.end_headers()
             self.wfile.write(SAMP_ICON)
 
-    if ((six.PY2 and sys.version_info[:2] >= (2,7))
-        or (six.PY3 and sys.version_info[:2] >= (3,2))):
-
+    if sys.version_info[:2] >= (2, 7):
         def do_POST(self):
             """
             Handles the HTTP POST request.

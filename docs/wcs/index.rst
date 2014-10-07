@@ -46,6 +46,10 @@ The basic workflow is as follows:
        - `~astropy.wcs.wcs.WCS.wcs_pix2world`: Perform just the core
          WCS transformation from pixel to world coordinates.
 
+       - `~astropy.wcs.wcs.WCS.all_world2pix`: Perform all three
+         transformations from world to pixel coordinates, using an
+         iterative method if necessary.
+
        - `~astropy.wcs.wcs.WCS.wcs_world2pix`: Perform just the core
          WCS transformation from world to pixel coordinates.
 
@@ -67,9 +71,9 @@ The basic workflow is as follows:
 
 For example, to convert pixel coordinates to world coordinates::
 
-    >>> from astropy import wcs
-    >>> wcs = wcs.WCS('image.fits')
-    >>> lon, lat = wcs.all_pix2world(30, 40, 0)
+    >>> from astropy.wcs import WCS
+    >>> w = WCS('image.fits')
+    >>> lon, lat = w.all_pix2world(30, 40, 0)
     >>> print(lon, lat)
 
 
@@ -119,6 +123,14 @@ keywords in a FITS file::
           'length': have 'Hz', want 'm''.
         - 'unitfix' made the change 'Changed units: 'HZ      ' -> 'Hz''.
 
+Bounds checking
+---------------
+
+Bounds checking is enabled by default, and any computed world
+coordinates outside of [-180°, 180°] for longitude and [-90°, 90°] in
+latitude are marked as invalid.  To disable this behavior, use
+`astropy.wcs.Wcsprm.bounds_check`.
+
 Supported projections
 =====================
 
@@ -157,6 +169,19 @@ through `Wcsprm.cunit <astropy.wcs.Wcsprm.cunit>`), for example,
 - ``HPX``: HEALPix
 - ``XPH``: HEALPix polar, aka "butterfly"
 
+Subsetting and Pixel Scales
+===========================
+
+WCS objects can be broken apart into their constituent axes using the
+`~astropy.wcs.WCS.sub` function.  There is also a `~astropy.wcs.WCS.celestial`
+convenience function that will return a WCS object with only the celestial axes
+included.
+
+The pixel scale of a celestial image or the pixel dimensions of a non-celestial
+image can be extracted with the utility functions
+`~astropy.wcs.utils.celestial_pixel_scale` and
+`~astropy.wcs.utils.non_celestial_pixel_scales`.
+
 Other information
 =================
 
@@ -178,6 +203,7 @@ Reference/API
 
 .. automodapi:: astropy.wcs
 
+.. automodapi:: astropy.wcs.utils
 
 Acknowledgments and Licenses
 ============================

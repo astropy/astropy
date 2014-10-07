@@ -12,10 +12,9 @@ from numpy.testing.utils import assert_allclose
 
 from .. import models
 from .. import fitting
-from ..core import Model, Fittable1DModel, format_input
+from ..core import Model, Fittable1DModel
 from ..parameters import Parameter
 from ...tests.helper import pytest
-
 
 try:
     from scipy import optimize  # pylint: disable=W0611
@@ -332,7 +331,7 @@ class TestModel_1_1(Fittable1DModel):
     p2 = Parameter()
 
     @staticmethod
-    def eval(x, p1, p2):
+    def evaluate(x, p1, p2):
         return x + p1 + p2
 
 
@@ -648,17 +647,14 @@ class TestSingleInputSingleOutputTwoModel(object):
 
 class TestInputFormatter(Model):
     """
-    A toy model to test format_input
+    A toy model to test input/output formatting.
     """
 
     n_inputs = 2
     n_outputs = 2
 
-    def __init__(self):
-        super(TestInputFormatter, self).__init__()
-
-    @format_input
-    def __call__(self, x, y):
+    @staticmethod
+    def evaluate(x, y):
         return x, y
 
 
@@ -674,9 +670,9 @@ def test_format_input_arrays():
     assert_allclose(result, (np.array([1, 1]), np.array([2, 2])))
 
 
+
 def test_format_input_arrays_transposed():
     model = TestInputFormatter()
     input = np.array([[1, 1]]).T, np.array([[2, 2]]).T
     result = model(*input)
     assert_allclose(result, input)
-

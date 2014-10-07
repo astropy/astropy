@@ -35,14 +35,7 @@ def _initialize_module():
 
     # The CDS format also supports power-of-2 prefixes as defined here:
     # http://physics.nist.gov/cuu/Units/binary.html
-    prefixes = core.si_prefixes + [
-        (['Ki'], ['kibi'], 2. ** 10),
-        (['Mi'], ['mebi'], 2. ** 20),
-        (['Gi'], ['gibi'], 2. ** 30),
-        (['Ti'], ['tebi'], 2. ** 40),
-        (['Pi'], ['pebi'], 2. ** 50),
-        (['Ei'], ['exbi'], 2. ** 60)
-        ]
+    prefixes = core.si_prefixes + core.binary_prefixes
 
     # CDS only uses the short prefixes
     prefixes = [(short, short, factor) for (short, long, factor) in prefixes]

@@ -4,6 +4,7 @@
 # TEST_UNICODE_LITERALS
 
 import copy
+import gc
 import platform
 import sys
 
@@ -709,6 +710,15 @@ class TestRemove(SetupData):
         assert self.t._data.dtype.names == ('b',)
         assert np.all(self.t['b'] == np.array([4, 5, 6]))
 
+    def test_3(self, table_types):
+        """Check remove_columns works for a single column with a name of
+        more than one character.  Regression test against #2699"""
+        self._setup(table_types)
+        self.t['new_column'] = self.t['a']
+        assert 'new_column' in self.t.columns.keys()
+        self.t.remove_columns('new_column')
+        assert 'new_column' not in self.t.columns.keys()
+
     def test_remove_nonexistent_row(self, table_types):
         self._setup(table_types)
         with pytest.raises(IndexError):
@@ -1276,3 +1286,28 @@ def test_unicode_bytestring_conversion(table_types):
     assert t1['col0'][0] == six.text_type('abc')
     assert t1['col1'][0] == six.text_type('def')
     assert t1['col2'][0] == 1
+
+
+def test_table_deletion():
+    """
+    Regression test for the reference cycle discussed in
+    https://github.com/astropy/astropy/issues/2877
+    """
+
+    deleted = set()
+
+    # A special table subclass which leaves a record when it is finalized
+    class TestTable(table.Table):
+        def __del__(self):
+            deleted.add(id(self))
+
+    t = TestTable({'a': [1, 2, 3]})
+    the_id = id(t)
+    assert t['a'].parent_table is t
+
+    del t
+
+    # Cleanup
+    gc.collect()
+
+    assert the_id in deleted

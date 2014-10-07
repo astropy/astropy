@@ -7,9 +7,11 @@ This module provides utility functions for the models package
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+
 import numpy as np
 
 from ..extern.six.moves import xrange, zip_longest
+
 
 __all__ = ['check_broadcast', 'poly_map_domain', 'comb']
 

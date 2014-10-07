@@ -2,7 +2,8 @@
 
 from __future__ import division, with_statement
 
-import gzip
+from ...utils.compat import gzip as _astropy_gzip
+import gzip as _system_gzip
 import mmap
 import os
 import tempfile
@@ -70,6 +71,7 @@ MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
 GZIP_MAGIC = b('\x1f\x8b\x08')
 PKZIP_MAGIC = b('\x50\x4b\x03\x04')
 
+_GZIP_FILE_TYPES = (_astropy_gzip, _system_gzip)
 
 class _File(object):
     """
@@ -107,25 +109,9 @@ class _File(object):
             raise ValueError("Mode '%s' not recognized" % mode)
 
         if (isinstance(fileobj, string_types) and
-                mode not in ('ostream', 'append') and
-                not os.path.exists(fileobj)):
-
-            # Not writing file and file does not exist on local machine and
-            # name does not begin with a drive letter (Windows), try to get it
-            # over the web.
-            try:
-                if not os.path.splitdrive(fileobj)[0]:
-                    # Basically if the filename (on Windows anyways) doesn't
-                    # have a drive letter try to open it as a URL
-                    self.name, _ = urllib.request.urlretrieve(fileobj)
-                else:
-                    # Otherwise the file was already not found so just raise
-                    # a ValueError
-                    raise ValueError("File not found")
-            except (TypeError, ValueError, IOError):
-                # A couple different exceptions can occur here when passing a
-                # filename into urlretrieve in Python 3
-                raise IOError('File does not exist: {0!r}'.format(fileobj))
+            mode not in ('ostream', 'append') and
+            len(urllib.parse.urlparse(fileobj).scheme) > 1): # This is an URL.
+                self.name, _ = urllib.request.urlretrieve(fileobj)
         else:
             self.name = fileobj_name(fileobj)
 
@@ -152,7 +138,7 @@ class _File(object):
 
         self.fileobj_mode = fileobj_mode(self.__file)
 
-        if isinstance(fileobj, gzip.GzipFile):
+        if isinstance(fileobj, (_astropy_gzip.GzipFile, _system_gzip.GzipFile)):
             self.compression = 'gzip'
         elif isinstance(fileobj, zipfile.ZipFile):
             # Reading from zip files is supported but not writing (yet)
@@ -297,7 +283,7 @@ class _File(object):
         # present, we implement our own support for it here
         if not hasattr(self.__file, 'seek'):
             return
-        if isinstance(self.__file, gzip.GzipFile):
+        if isinstance(self.__file, (_astropy_gzip.GzipFile, _system_gzip.GzipFile)):
             if whence:
                 if whence == 1:
                     offset = self.__file.offset + offset
@@ -340,13 +326,9 @@ class _File(object):
         """
 
         # The file will be overwritten...
-        if ((self.file_like and
-                (hasattr(fileobj, 'len') and fileobj.len > 0)) or
-                (os.path.exists(self.name) and
-                 os.path.getsize(self.name) != 0)):
+        if ((self.file_like and hasattr(fileobj, 'len') and fileobj.len > 0) or
+            (os.path.exists(self.name) and os.path.getsize(self.name) != 0)):
             if clobber:
-                warnings.warn("Overwriting existing file %r." % self.name,
-                              AstropyUserWarning)
                 if self.file_like and hasattr(fileobj, 'truncate'):
                     fileobj.truncate(0)
                 else:
@@ -383,7 +365,7 @@ class _File(object):
         elif isfile(fileobj):
             self.__file = fileobj_open(self.name, PYFITS_MODES[mode])
         else:
-            self.__file = gzip.open(self.name, PYFITS_MODES[mode])
+            self.__file = _astropy_gzip.open(self.name, PYFITS_MODES[mode])
 
         if fmode == 'ab+':
             # Return to the beginning of the file--in Python 3 when opening in
@@ -447,7 +429,7 @@ class _File(object):
 
         if ext == '.gz' or magic.startswith(GZIP_MAGIC):
             # Handle gzip files
-            self.__file = gzip.open(self.name, PYFITS_MODES[mode])
+            self.__file = _astropy_gzip.open(self.name, PYFITS_MODES[mode])
             self.compression = 'gzip'
         elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
             # Handle zip files
@@ -538,4 +520,4 @@ def _is_random_access_file_backed(fileobj):
     from an already opened `zipfile.ZipFile` object.
     """
 
-    return isfile(fileobj) or isinstance(fileobj, gzip.GzipFile)
+    return isfile(fileobj) or isinstance(fileobj, (_astropy_gzip.GzipFile, _system_gzip.GzipFile))

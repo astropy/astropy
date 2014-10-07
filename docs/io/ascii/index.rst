@@ -10,7 +10,9 @@ Introduction
 ============
 
 `astropy.io.ascii` provides methods for reading and writing a wide range of ASCII data table
-formats via built-in :ref:`extension_reader_classes`.  The emphasis is on flexibility and ease of use.
+formats via built-in :ref:`extension_reader_classes`.  The emphasis is on flexibility and ease of use,
+although readers can optionally use a less flexible C/Cython engine for reading and writing for
+improved performance.
 
 The following shows a few of the ASCII formats that are available, while the section on
 `Supported formats`_ contains the full list.
@@ -82,6 +84,15 @@ of the values in the `supported formats`_.  For example::
 
    >>> data = ascii.read(lines, format='fixed_width_two_line', delimiter='&')
 
+For simpler formats such as CSV, |read| will automatically try reading with the
+Cython/C parsing engine, which is significantly faster than the ordinary Python
+implementation (described in :ref:`fast_ascii_io`). If the fast engine fails,
+|read| will fall back on the Python reader by default. The argument
+``fast_reader`` can be specified to control this behavior. For example, to
+disable the fast engine::
+
+   >>> data = ascii.read(lines, format='csv', fast_reader=False)
+
 Writing Tables
 --------------
 
@@ -119,6 +130,12 @@ the option to send the output to ``sys.stdout`` instead of a file::
   \end{tabular}
   \end{table}
 
+There is also a faster Cython engine for writing simple formats,
+which is enabled by default for these formats (see :ref:`fast_ascii_io`).
+To disable this engine, use the parameter ``fast_writer``::
+
+   >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
+
 .. _supported_formats:
 
 Supported formats
@@ -126,28 +143,29 @@ Supported formats
 
 A full list of the supported ``format`` values and corresponding format types for ASCII
 tables is given below.  The ``Write`` column indicates which formats support write
-functionality.
+functionality, and the ``Fast`` column indicates which formats are compatible with
+the fast Cython/C engine for reading and writing.
 
-========================= ===== ============================================================================================
-           Format         Write                                          Description
-========================= ===== ============================================================================================
-``aastex``                  Yes :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
-``basic``                   Yes :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
-``cds``                         :class:`~astropy.io.ascii.Cds`: CDS format table
-``commented_header``        Yes :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
-``csv``                     Yes :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
-``daophot``                     :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
-``fixed_width``             Yes :class:`~astropy.io.ascii.FixedWidth`: Fixed width
-``fixed_width_no_header``   Yes :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
-``fixed_width_two_line``    Yes :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
-``html``                    Yes :class:`~astropy.io.ascii.HTML`: HTML format table
-``ipac``                    Yes :class:`~astropy.io.ascii.Ipac`: IPAC format table
-``latex``                   Yes :class:`~astropy.io.ascii.Latex`: LaTeX table
-``no_header``               Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
-``rdb``                     Yes :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
-``sextractor``                  :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
-``tab``                     Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
-========================= ===== ============================================================================================
+========================= ===== ==== ============================================================================================
+           Format         Write Fast                                          Description
+========================= ===== ==== ============================================================================================
+``aastex``                  Yes      :class:`~astropy.io.ascii.AASTex`: AASTeX deluxetable used for AAS journals
+``basic``                   Yes  Yes :class:`~astropy.io.ascii.Basic`: Basic table with custom delimiters
+``cds``                              :class:`~astropy.io.ascii.Cds`: CDS format table
+``commented_header``        Yes  Yes :class:`~astropy.io.ascii.CommentedHeader`: Column names in a commented line
+``csv``                     Yes  Yes :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
+``daophot``                          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
+``fixed_width``             Yes      :class:`~astropy.io.ascii.FixedWidth`: Fixed width
+``fixed_width_no_header``   Yes      :class:`~astropy.io.ascii.FixedWidthNoHeader`: Fixed width with no header
+``fixed_width_two_line``    Yes      :class:`~astropy.io.ascii.FixedWidthTwoLine`: Fixed width with second header line
+``html``                    Yes      :class:`~astropy.io.ascii.HTML`: HTML format table
+``ipac``                    Yes      :class:`~astropy.io.ascii.Ipac`: IPAC format table
+``latex``                   Yes      :class:`~astropy.io.ascii.Latex`: LaTeX table
+``no_header``               Yes  Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
+``rdb``                     Yes  Yes :class:`~astropy.io.ascii.Rdb`: Tab-separated with a type definition header line
+``sextractor``                       :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
+``tab``                     Yes  Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
+========================= ===== ==== ============================================================================================
 
 
 Using `astropy.io.ascii`
@@ -178,6 +196,14 @@ Fixed-width Gallery
    :maxdepth: 2
 
    fixed_width_gallery
+
+Fast ASCII Engine
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   fast_ascii_io
 
 Base class elements
 -------------------

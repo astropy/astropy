@@ -69,7 +69,23 @@ class UnsupportedConstraintError(ModelsError, ValueError):
     """
 
 
-@six.add_metaclass(abc.ABCMeta)
+class _FitterMeta(abc.ABCMeta):
+    """
+    Currently just provides a registry for all Fitter classes.
+    """
+
+    registry = set()
+
+    def __new__(mcls, name, bases, members):
+        cls = super(_FitterMeta, mcls).__new__(mcls, name, bases, members)
+
+        if not inspect.isabstract(cls) and not name.startswith('_'):
+            mcls.registry.add(cls)
+
+        return cls
+
+
+@six.add_metaclass(_FitterMeta)
 class Fitter(object):
     """
     Base class for all fitters.
@@ -137,6 +153,10 @@ class Fitter(object):
         raise NotImplementedError("Subclasses should implement this method.")
 
 
+# TODO: I have ongoing branch elsewhere that's refactoring this module so that
+# all the fitter classes in here are Fitter subclasses.  In the meantime we
+# need to specify that _FitterMeta is its metaclass.
+@six.add_metaclass(_FitterMeta)
 class LinearLSQFitter(object):
     """
     A class performing a linear least square fitting.
@@ -322,6 +342,7 @@ class LinearLSQFitter(object):
         return model_copy
 
 
+@six.add_metaclass(_FitterMeta)
 class LevMarLSQFitter(object):
     """
     Levenberg-Marquardt algorithm and least squares statistic.
@@ -385,7 +406,7 @@ class LevMarLSQFitter(object):
         if weights is None:
             return np.ravel(model(*args[2 : -1]) - meas)
         else:
-            return np.ravel(weights * (model(*args[1 : -1]) - meas))
+            return np.ravel(weights * (model(*args[2 : -1]) - meas))
 
     def __call__(self, model, x, y, z=None, weights=None,
                  maxiter=DEFAULT_MAXITER, acc=DEFAULT_ACC,
@@ -403,7 +424,7 @@ class LevMarLSQFitter(object):
            input coordinates
         z : array (optional)
            input coordinates
-        weights : array (optional
+        weights : array (optional)
            weights
         maxiter : int
             maximum number of iterations
@@ -629,6 +650,7 @@ class SimplexLSQFitter(Fitter):
         return model_copy
 
 
+@six.add_metaclass(_FitterMeta)
 class JointFitter(object):
     """
     Fit models which share a parameter.
@@ -714,7 +736,7 @@ class JointFitter(object):
                     plen = slc.stop - slc.start
                     mparams.extend(mfparams[:plen])
                     del mfparams[:plen]
-            modelfit = model.eval(margs[:-1], *mparams)
+            modelfit = model.evaluate(margs[:-1], *mparams)
             fitted.extend(modelfit - margs[-1])
         return np.ravel(fitted)
 

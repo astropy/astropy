@@ -37,7 +37,7 @@ def_unit(['micron'], um, namespace=_ns,
 def_unit(['Angstrom', 'AA', 'angstrom'], 0.1 * nm, namespace=_ns,
          doc="ångström: 10 ** -10 m",
          format={'latex': r'\overset{\circ}{A}', 'unicode': 'Å',
-                 'vounit': 'angstrom'})
+                 'vounit': 'Angstrom'})
 
 
 ###########################################################################
@@ -55,6 +55,7 @@ def_unit(['rad', 'radian'], namespace=_ns, prefixes=True,
          doc="radian: angular measurement of the ratio between the length "
          "on an arc and its radius")
 def_unit(['deg', 'degree'], _numpy.pi / 180.0 * rad, namespace=_ns,
+         prefixes=True,
          doc="degree: angular measurement 1/360 of full rotation",
          format={'latex': r'{}^{\circ}', 'unicode': '°'})
 def_unit(['hourangle'], 15.0 * deg, namespace=_ns, prefixes=False,
@@ -86,9 +87,11 @@ def_unit(['s', 'second'], namespace=_ns, prefixes=True,
          exclude_prefixes=['a'],
          doc="second: base unit of time in SI.")
 
-def_unit(['min', 'minute'], 60 * s, namespace=_ns)
-def_unit(['h', 'hour', 'hr'], 3600 * s, namespace=_ns)
-def_unit(['d', 'day'], 24 * h, namespace=_ns)
+def_unit(['min', 'minute'], 60 * s, prefixes=True, namespace=_ns)
+def_unit(['h', 'hour', 'hr'], 3600 * s, namespace=_ns, prefixes=True,
+         exclude_prefixes=['p'])
+def_unit(['d', 'day'], 24 * h, namespace=_ns, prefixes=True,
+         exclude_prefixes=['c', 'y'])
 def_unit(['sday'], 86164.09053 * s, namespace=_ns,
          doc="Sidereal day (sday) is the time of one rotation of the Earth.")
 def_unit(['wk', 'week'], 7 * day, namespace=_ns)

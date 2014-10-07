@@ -5,7 +5,6 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
-import collections
 import warnings
 import re
 
@@ -25,6 +24,7 @@ from ..utils.metadata import MetaData
 from . import groups
 from .pprint import TableFormatter
 from .column import BaseColumn, Column, MaskedColumn, _auto_names
+from .row import Row
 from .np_utils import fix_column_name
 
 
@@ -107,131 +107,6 @@ class TableColumns(OrderedDict):
 
     def values(self):
         return list(OrderedDict.values(self))
-
-
-class Row(object):
-    """A class to represent one row of a Table object.
-
-    A Row object is returned when a Table object is indexed with an integer
-    or when iterating over a table::
-
-      >>> table = Table([(1, 2), (3, 4)], names=('a', 'b'),
-      ...               dtype=('int32', 'int32'))
-      >>> row = table[1]
-      >>> row
-      <Row 1 of table
-       values=(2, 4)
-       dtype=[('a', '<i4'), ('b', '<i4')]>
-      >>> row['a']
-      2
-      >>> row[1]
-      4
-    """
-
-    def __init__(self, table, index):
-        self._table = table
-        self._index = index
-        try:
-            self._data = table._data[index]
-
-            # MaskedArray __getitem__ has a strange behavior where if a
-            # row mask is all False then it returns a np.void which
-            # has no mask attribute. This makes it impossible to then set
-            # the mask. Here we recast back to mvoid. This was fixed in
-            # Numpy following issue numpy/numpy#483, and the fix should be
-            # included in Numpy 1.8.0.
-            if self._table.masked and isinstance(self._data, np.void):
-                self._data = ma.core.mvoid(self._data,
-                                           mask=self._table._mask[index])
-        except ValueError as err:
-            # Another bug (or maybe same?) that is fixed in 1.8 prevents
-            # accessing a row in masked array if it has object-type members.
-            # >>> x = np.ma.empty(1, dtype=[('a', 'O')])
-            # >>> x['a'] = 1
-            # >>> x['a'].mask = True
-            # >>> x[0]
-            # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
-            #
-            # All we do here is re-raise with a more informative message
-            if (six.text_type(err).startswith('Setting void-array with object members')
-                    and version.LooseVersion(np.__version__) < version.LooseVersion('1.8')):
-                raise ValueError('Cannot access table row with Object type columns, due to '
-                                 'a bug in numpy {0}.  Please upgrade to numpy 1.8 or newer.'
-                                 .format(np.__version__))
-            else:
-                raise
-
-    def __getitem__(self, item):
-        return self.data[item]
-
-    def __setitem__(self, item, val):
-        self.data[item] = val
-
-    def __eq__(self, other):
-        if self._table.masked:
-            # Sent bug report to numpy-discussion group on 2012-Oct-21, subject:
-            # "Comparing rows in a structured masked array raises exception"
-            # No response, so this is still unresolved.
-            raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
-        return self.data == other
-
-    def __ne__(self, other):
-        if self._table.masked:
-            raise ValueError('Unable to compare rows for masked table due to numpy.ma bug')
-        return self.data != other
-
-    @property
-    def _mask(self):
-        return self._data.mask
-
-    def __array__(self, dtype=None):
-        """Support converting Row to np.array via np.array(table).
-
-        Coercion to a different dtype via np.array(table, dtype) is not
-        supported and will raise a ValueError.
-        """
-        if dtype is not None:
-            raise ValueError('Datatype coercion is not allowed')
-
-        return np.array(self._data)
-
-    def __len__(self):
-        return len(self._data.dtype)
-
-    @property
-    def table(self):
-        return self._table
-
-    @property
-    def index(self):
-        return self._index
-
-    @property
-    def data(self):
-        return self._data
-
-    @property
-    def meta(self):
-        return self.table.meta
-
-    @property
-    def columns(self):
-        return self.table.columns
-
-    @property
-    def colnames(self):
-        return self.table.colnames
-
-    @property
-    def dtype(self):
-        return self.data.dtype
-
-    def __repr__(self):
-        return "<{3} {0} of table\n values={1!r}\n dtype={2}>".format(
-            self.index, self.data, self.dtype, self.__class__.__name__)
-
-
-collections.Sequence.register(Row)
 
 
 class Table(object):
@@ -705,13 +580,11 @@ class Table(object):
                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
                         max_lines=5000,
                         jsviewer=False,
-                        jskwargs={},
+                        jskwargs={'use_local_files': True},
                         tableid=None,
                         browser='default'):
         """
-        Render the table in HTML and show it in a web browser.  In order to
-        make a persistent html file, i.e. one that survives refresh, the
-        returned file object must be kept in memory.
+        Render the table in HTML and show it in a web browser.
 
         Parameters
         ----------
@@ -737,45 +610,30 @@ class Table(object):
             ``'safari'`` (for mac, you may need to use ``'open -a
             "/Applications/Google Chrome.app" %s'`` for Chrome).  If
             ``'default'``, will use the system default browser.
-
-        Returns
-        -------
-        file :
-            A `~tempfile.NamedTemporaryFile` object pointing to the
-            html file on disk.
         """
+
+        import os
         import webbrowser
         import tempfile
-        from .jsviewer import JSViewer
 
-        tmp = tempfile.NamedTemporaryFile(suffix='.html')
+        # We can't use NamedTemporaryFile here because it gets deleted as
+        # soon as it gets garbage collected.
 
-        if tableid is None:
-            tableid = 'table{id}'.format(id=id(self))
-        linelist = self.pformat(html=True, max_width=np.inf,
-                                max_lines=max_lines, tableid=tableid)
+        tmpdir = tempfile.mkdtemp()
+        path = os.path.join(tmpdir, 'table.html')
 
-        if jsviewer:
-            jsv = JSViewer(**jskwargs)
-            js = jsv.command_line(tableid=tableid)
-        else:
-            js = []
+        with open(path, 'w') as tmp:
 
-        css = ["<style>{0}</style>".format(css)]
-        html = "\n".join(['<!DOCTYPE html>','<html>'] + css + js + linelist + ['</html>'])
+            if jsviewer:
+                self.write(tmp, format='jsviewer', css=css, max_lines=max_lines,
+                           jskwargs=jskwargs, table_id=tableid)
+            else:
+                self.write(tmp, format='html')
 
-        try:
-            tmp.write(html)
-        except TypeError:
-            tmp.write(html.encode('utf8'))
-        tmp.flush()
-
-        if browser == 'default':
-            webbrowser.open("file://" + tmp.name)
-        else:
-            webbrowser.get(browser).open("file://" + tmp.name)
-
-        return tmp
+            if browser == 'default':
+                webbrowser.open("file://" + path)
+            else:
+                webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=None, html=False, tableid=None):
@@ -1379,6 +1237,8 @@ class Table(object):
 
         This gives the same as using remove_column.
         '''
+        if isinstance(names, six.string_types):
+            names = [names]
 
         for name in names:
             if name not in self.columns:
