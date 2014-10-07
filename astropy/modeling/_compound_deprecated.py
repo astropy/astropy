@@ -17,7 +17,7 @@ import warnings
 
 import numpy as np
 
-from ..utils import deprecated
+from ..utils import deprecated, indent
 from ..utils.compat.odict import OrderedDict
 from ..utils.exceptions import AstropyDeprecationWarning
 from .core import Model
