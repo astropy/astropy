@@ -1643,7 +1643,7 @@ class Table(object):
         # If no errors have been raised, then the table can be resized
         columns = self.TableColumns()
         for name, col in self.columns.items():
-            newcol = self.ColumnClass(length=newlen, dtype=col.dtype, name=name,
+            newcol = self.ColumnClass(length=newlen, dtype=col.dtype, shape=col.shape[1:], name=name,
                                       description=col.description, unit=col.unit,
                                       format=col.format, meta=deepcopy(col.meta))
 
@@ -1738,7 +1738,7 @@ class Table(object):
 
         indexes = self.argsort(keys)  # Allow different sort algorithm??
         for col in self.columns.values():
-            col[:] = col.take(indexes)
+            col[:] = col.take(indexes, axis=0)
 
     def reverse(self):
         '''

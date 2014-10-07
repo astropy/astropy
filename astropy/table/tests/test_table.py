@@ -511,6 +511,13 @@ class TestAddRow(SetupData):
             return self._c
 
     @property
+    def d(self):
+        if self._column_type is not None:
+            if not hasattr(self, '_d'):
+                self._d = self._column_type(name='d', data=[[1, 2], [3, 4], [5, 6]])
+            return self._d
+
+    @property
     def t(self):
         if self._table_type is not None:
             if not hasattr(self, '_t'):
@@ -519,39 +526,41 @@ class TestAddRow(SetupData):
 
     def test_add_none_to_empty_table(self, table_types):
         self._setup(table_types)
-        t = table_types.Table(names=('a', 'b', 'c'), dtype=('i', 'S4', 'O'))
+        t = table_types.Table(names=('a', 'b', 'c'), dtype=('(2,)i', 'S4', 'O'))
         t.add_row()
-        assert t['a'][0] == 0
+        assert np.all(t['a'][0] == [0, 0])
         assert t['b'][0] == b''
         assert t['c'][0] == 0
         t.add_row()
-        assert t['a'][1] == 0
+        assert np.all(t['a'][1] == [0, 0])
         assert t['b'][1] == b''
         assert t['c'][1] == 0
 
     def test_add_stuff_to_empty_table(self, table_types):
         self._setup(table_types)
-        t = table_types.Table(names=('a', 'b', 'obj'), dtype=('i', 'S8', 'O'))
-        t.add_row([1, 'hello', 'world'])
-        assert t['a'][0] == 1
+        t = table_types.Table(names=('a', 'b', 'obj'), dtype=('(2,)i', 'S8', 'O'))
+        t.add_row([[1, 2], 'hello', 'world'])
+        assert np.all(t['a'][0] == [1, 2])
         assert t['b'][0] == b'hello'
         assert t['obj'][0] == 'world'
         # Make sure it is not repeating last row but instead
         # adding zeros (as documented)
         t.add_row()
-        assert t['a'][1] == 0
+        assert np.all(t['a'][1] == [0, 0])
         assert t['b'][1] == b''
         assert t['obj'][1] == 0
 
     def test_add_table_row(self, table_types):
         self._setup(table_types)
         t = self.t
-        t2 = table_types.Table([self.a, self.b, self.c])
+        t['d'] = self.d
+        t2 = table_types.Table([self.a, self.b, self.c, self.d])
         t.add_row(t2[0])
         assert len(t) == 4
         assert np.all(t['a'] == np.array([1, 2, 3, 1]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
         assert np.all(t['c'] == np.array(['7', '8', '9', '7']))
+        assert np.all(t['d'] == np.array([[1, 2], [3, 4], [5, 6], [1, 2]]))
 
     def test_add_table_row_obj(self, table_types):
         self._setup(table_types)
@@ -865,14 +874,21 @@ class TestSort():
         t = table_types.Table()
         t.add_column(table_types.Column(name='a', data=[2, 1, 3]))
         t.add_column(table_types.Column(name='b', data=[6, 5, 4]))
+        t.add_column(table_types.Column(name='c', data=[(1, 2), (3, 4), (4, 5)]))
         assert np.all(t['a'] == np.array([2, 1, 3]))
         assert np.all(t['b'] == np.array([6, 5, 4]))
         t.sort('a')
         assert np.all(t['a'] == np.array([1, 2, 3]))
         assert np.all(t['b'] == np.array([5, 6, 4]))
+        assert np.all(t['c'] == np.array([[3, 4],
+                                          [1, 2],
+                                          [4, 5]]))
         t.sort('b')
         assert np.all(t['a'] == np.array([3, 1, 2]))
         assert np.all(t['b'] == np.array([4, 5, 6]))
+        assert np.all(t['c'] == np.array([[4, 5],
+                                          [3, 4],
+                                          [1, 2]]))
 
     def test_single_big(self, table_types):
         """Sort a big-ish table with a non-trivial sort order"""
