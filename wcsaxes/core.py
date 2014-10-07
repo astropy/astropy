@@ -48,6 +48,7 @@ class WCSAxes(Axes):
         self.format_coord = self._display_world_coords
         self._display_overlay_coords = False
         fig.canvas.mpl_connect('key_press_event', self._set_cursor_prefs)
+        self.patch = self.coords.frame.patch
 
     def _display_world_coords(self, x, y):
         if not self._cursor_world:
@@ -77,8 +78,6 @@ class WCSAxes(Axes):
                 warn("No overlay coordinates are available")
             else:
                 self._display_overlay_coords = not self._display_overlay_coords
-
-        self.patch = self.coords.frame.patch
 
     def _hide_parent_artists(self):
         # Turn off spines and current axes
