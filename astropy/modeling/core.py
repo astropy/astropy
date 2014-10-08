@@ -855,6 +855,37 @@ class Model(object):
         return new_model
 
     # *** Internal methods ***
+    @classmethod
+    def _from_existing(cls, existing, param_names):
+        """
+        Creates a new instance of ``cls`` that shares its underlying parameter
+        values with an existing model instance given by ``existing``.
+
+        This is used primarily by compound models to return a view of an
+        individual component of a compound model.  ``param_names`` should be
+        the names of the parameters in the *existing* model to use as the
+        parameters in this new model.  Its length should equal the number of
+        parameters this model takes, so that it can map parameters on the
+        existing model to parameters on this model one-to-one.
+        """
+
+        # Basically this is an alternative __init__
+        # TODO: Support kwargs properly
+        self = cls.__new__(cls)
+        self._name = None
+        self._initialize_constraints({})
+        self._n_models = existing._n_models
+        self._model_set_axis = existing._model_set_axis
+        self._parameters = existing._parameters
+
+        self._param_metrics = {}
+        for param_a, param_b in zip(self.param_names, param_names):
+            # Take the param metrics info for the giving parameters in the
+            # existing model, and hand them to the appropriate parameters in
+            # the new model
+            self._param_metrics[param_a] = existing._param_metrics[param_b]
+
+        return self
 
     def _initialize_constraints(self, kwargs):
         """
@@ -1337,7 +1368,19 @@ class _CompoundModelMeta(_ModelMeta):
     _nextid = 0
 
     _param_names = None
+    # _param_map is a mapping of the compound model's generated param names to
+    # the parameters of submodels they are associated with.  The values in this
+    # mapping are (idx, name) tuples were idx is the index of the submodel this
+    # parameter is associated with, and name is the same parameter's name on
+    # the submodel
+    # In principle this will allow compound models to give entirely new names
+    # to parameters that don't have to be the same as their original names on
+    # the submodels, but right now that isn't taken advantage of
     _param_map = None
+
+    # This just inverts _param_map, swapping keys with values.  This is also
+    # useful to have.
+    _param_map_inverse = None
     _fittable = None
 
     def __getitem__(cls, index):
@@ -1582,6 +1625,7 @@ class _CompoundModelMeta(_ModelMeta):
 
         cls._param_names = tuple(names)
         cls._param_map = param_map
+        cls._param_map_inverse = dict((v, k) for k, v in param_map.items())
 
     def _format_expression(cls):
         # TODO: At some point might be useful to make a public version of this,
@@ -1599,7 +1643,11 @@ class _CompoundModel(Model):
         return getattr(self.__class__, attr)
 
     def __getitem__(self, index):
-        return self.__class__[index]
+        model = self.__class__[index]
+
+        param_map = self.__class__._param_map_inverse
+        param_names = (param_map[index, name] for name in model.param_names)
+        return model._from_existing(self, param_names)
 
     @property
     def submodel_names(self):
