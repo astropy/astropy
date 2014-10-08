@@ -62,8 +62,8 @@ class WCSAxes(Axes):
 
         x_index = self.slices.index('x')
         y_index = self.slices.index('y')
-        xw = self.coords[x_index].format_coord(world[x_index])
-        yw = self.coords[y_index].format_coord(world[y_index])
+        xw = coords[x_index].format_coord(world[x_index])
+        yw = coords[y_index].format_coord(world[y_index])
 
         if self._display_coords_index == 0:
             system = "world"
