@@ -44,40 +44,41 @@ class WCSAxes(Axes):
 
         self.reset_wcs(wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta)
         self._hide_parent_artists()
-        self._cursor_world = True
         self.format_coord = self._display_world_coords
-        self._display_overlay_coords = False
+        self._display_coords_index = 0
         fig.canvas.mpl_connect('key_press_event', self._set_cursor_prefs)
         self.patch = self.coords.frame.patch
 
     def _display_world_coords(self, x, y):
-        if not self._cursor_world:
-            return "x=%s y=%s" % (x, y)
 
-        transform = self.coords._transform
+        if self._display_coords_index == -1:
+            return "%s %s (pixel)" % (x, y)
+
+        pixel = np.array([x, y])
+
+        coords = self._all_coords[self._display_coords_index]
+
+        world = coords._transform.transform(np.array([pixel]))[0]
+
         x_index = self.slices.index('x')
         y_index = self.slices.index('y')
-        pixel = np.array([x, y])
-        world = transform.transform(np.array([pixel]))[0]
         xw = self.coords[x_index].format_coord(world[x_index])
         yw = self.coords[y_index].format_coord(world[y_index])
 
-        if not self._display_overlay_coords:
-            return "%s %s (world)" % (xw, yw)
+        if self._display_coords_index == 0:
+            system = "world"
         else:
-            overlay_world = self.overlay_coords._transform.transform(np.array([pixel]))[0]
-            overlay_xw = self.overlay_coords[0].format_coord(overlay_world[0])
-            overlay_yw = self.overlay_coords[0].format_coord(overlay_world[1])
-            return "%s %s (world), %s %s (overlay coords)" % (xw, yw, overlay_xw, overlay_yw)
+            system = "world, overlay {0}".format(self._display_coords_index)
+
+        coord_string = "%s %s (%s)" % (xw, yw, system)
+
+        return coord_string
 
     def _set_cursor_prefs(self, event, **kwargs):
-        if event.key == 'p':
-            self._cursor_world = not self._cursor_world
-        if event.key == 'o':
-            if not hasattr(self, 'overlay_coords'):
-                warn("No overlay coordinates are available")
-            else:
-                self._display_overlay_coords = not self._display_overlay_coords
+        if event.key == 'w':
+            self._display_coords_index += 1
+            if self._display_coords_index + 1 > len(self._all_coords):
+                self._display_coords_index = -1
 
     def _hide_parent_artists(self):
         # Turn off spines and current axes
