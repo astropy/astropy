@@ -56,10 +56,7 @@ class WCSAxes(Axes):
 
         pixel = np.array([x, y])
 
-        if self._display_coords_index == 0:
-            coords = self.coords
-        else:
-            coords = self._all_coords[self._display_coords_index]
+        coords = self._all_coords[self._display_coords_index]
 
         world = coords._transform.transform(np.array([pixel]))[0]
 
