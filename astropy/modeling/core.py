@@ -1359,6 +1359,7 @@ OPERATOR_PRECEDENCE = {}
 for idx, ops in enumerate(_ORDER_OF_OPERATORS):
     for op in ops:
         OPERATOR_PRECEDENCE[op] = idx
+del idx, op, ops
 
 
 class _CompoundModelMeta(_ModelMeta):
