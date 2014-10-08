@@ -870,20 +870,26 @@ class Model(object):
         """
 
         # Basically this is an alternative __init__
-        # TODO: Support kwargs properly
-        self = cls.__new__(cls)
-        self._name = None
+        # TODO: Support constraints properly
+        dummy_args = (0,) * len(param_names)
+        self = cls.__new__(cls, *dummy_args)
         self._initialize_constraints({})
         self._n_models = existing._n_models
         self._model_set_axis = existing._model_set_axis
         self._parameters = existing._parameters
 
         self._param_metrics = {}
+        self._param_broadcast_shapes = {}
         for param_a, param_b in zip(self.param_names, param_names):
             # Take the param metrics info for the giving parameters in the
             # existing model, and hand them to the appropriate parameters in
             # the new model
             self._param_metrics[param_a] = existing._param_metrics[param_b]
+            if param_b in existing._param_broadcast_shapes:
+                broadcast = existing._param_broadcast_shapes[param_b]
+                self._param_broadcast_shape[param_a] = broadcast
+
+        self.__init__(*dummy_args)
 
         return self
 
@@ -892,6 +898,11 @@ class Model(object):
         Pop parameter constraint values off the keyword arguments passed to
         `Model.__init__` and store them in private instance attributes.
         """
+
+        if hasattr(self, '_constraints'):
+            # Skip constraint initialization if it has already been handled via
+            # an alternate initialization
+            return
 
         self._constraints = {}
         # Pop any constraints off the keyword arguments
@@ -919,6 +930,11 @@ class Model(object):
         FittableModels the _param_name attributes actually just reference
         slices of this array.
         """
+
+        if hasattr(self, '_parameters'):
+            # Skip parameter initialization if it has already been handled via
+            # an alternate initialization
+            return
 
         n_models = None
         # Pop off param_dim and handle backwards compatibility
@@ -1646,8 +1662,13 @@ class _CompoundModel(Model):
     def __getitem__(self, index):
         model = self.__class__[index]
 
+        if isinstance(model, Model):
+            return model
+
         param_map = self.__class__._param_map_inverse
-        param_names = (param_map[index, name] for name in model.param_names)
+        param_names = tuple(param_map[index, name]
+                            for name in model.param_names)
+
         return model._from_existing(self, param_names)
 
     @property
