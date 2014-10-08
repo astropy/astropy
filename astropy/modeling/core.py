@@ -1341,10 +1341,16 @@ class _CompoundModelMeta(_ModelMeta):
     _fittable = None
 
     def __getitem__(cls, index):
+        try:
+            if isinstance(index, str):
+                index = cls.submodel_names.index(index)
+        except ValueError:
+            raise IndexError(
+                'Compound model {0} does not have a component named '
+                '{1}'.format(cls.name, index))
+
         if isinstance(index, int):
             return cls._get_submodels()[index]
-        elif isinstance(index, str):
-            return cls._get_submodels()[cls.submodel_names.index(index)]
 
         raise TypeError(
             'Submodels can be indexed either by their integer order or '
@@ -1592,6 +1598,9 @@ class _CompoundModel(Model):
     def __getattr__(self, attr):
         return getattr(self.__class__, attr)
 
+    def __getitem__(self, index):
+        return self.__class__[index]
+
     @property
     def submodel_names(self):
         return self.__class__.submodel_names
@@ -1645,7 +1654,9 @@ class _CompoundModel(Model):
         else:
             return result
 
-    _get_submodels = sharedmethod(_CompoundModelMeta._get_submodels)
+    @sharedmethod
+    def _get_submodels(self):
+        return self.__class__._get_submodels()
 
 
 def custom_model(*args, **kwargs):
