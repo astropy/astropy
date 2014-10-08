@@ -313,25 +313,25 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
     # *** Arithmetic operators for creating compound models ***
     def __add__(cls, other):
-        return _make_compound_model(cls, other, '+')
+        return _CompoundModelMeta._from_operator('+', cls, other)
 
     def __sub__(cls, other):
-        return _make_compound_model(cls, other, '-')
+        return _CompoundModelMeta._from_operator('-', cls, other)
 
     def __mul__(cls, other):
-        return _make_compound_model(cls, other, '*')
+        return _CompoundModelMeta._from_operator('*', cls, other)
 
     def __truediv__(cls, other):
-        return _make_compound_model(cls, other, '/')
+        return _CompoundModelMeta._from_operator('/', cls, other)
 
     def __pow__(cls, other):
-        return _make_compound_model(cls, other, '**')
+        return _CompoundModelMeta._from_operator('**', cls, other)
 
     def __or__(cls, other):
-        return _make_compound_model(cls, other, '|')
+        return _CompoundModelMeta._from_operator('|', cls, other)
 
     def __and__(cls, other):
-        return _make_compound_model(cls, other, '&')
+        return _CompoundModelMeta._from_operator('&', cls, other)
 
     # *** Other utilities ***
 
@@ -558,25 +558,25 @@ class Model(object):
 
     # *** Arithmetic operators for creating compound models ***
     def __add__(self, other):
-        return _make_compound_model(self, other, '+')
+        return _CompoundModelMeta._from_operator('+', self, other)
 
     def __sub__(self, other):
-        return _make_compound_model(self, other, '-')
+        return _CompoundModelMeta._from_operator('-', self, other)
 
     def __mul__(self, other):
-        return _make_compound_model(self, other, '*')
+        return _CompoundModelMeta._from_operator('*', self, other)
 
     def __truediv__(self, other):
-        return _make_compound_model(self, other, '/')
+        return _CompoundModelMeta._from_operator('/', self, other)
 
     def __pow__(self, other):
-        return _make_compound_model(self, other, '**')
+        return _CompoundModelMeta._from_operator('**', self, other)
 
     def __or__(self, other):
-        return _make_compound_model(self, other, '|')
+        return _CompoundModelMeta._from_operator('|', self, other)
 
     def __and__(self, other):
-        return _make_compound_model(self, other, '&')
+        return _CompoundModelMeta._from_operator('&', self, other)
 
     # *** Properties ***
     @property
@@ -1286,68 +1286,6 @@ class Identity(Mapping):
         return 'Identity({0})'.format(self.n_inputs)
 
 
-def _make_compound_model(left, right, operator):
-    name = str('CompoundModel{0}'.format(_CompoundModelMeta._nextid))
-    _CompoundModelMeta._nextid += 1
-
-    children = []
-    for child in (left, right):
-        if isinstance(child, _CompoundModel):
-            children.append(child._tree)
-        elif isinstance(child, _CompoundModelMeta):
-            children.append(child._tree)
-        else:
-            children.append(ExpressionTree(child))
-
-    tree = ExpressionTree(operator, left=children[0], right=children[1])
-
-    mod = find_current_module(3)
-    if mod:
-        modname = mod.__name__
-    else:
-        modname = '__main__'
-
-    # TODO: These aren't the full rules for handling inputs and outputs, but
-    # this will handle most basic cases correctly
-    if operator == '|':
-        inputs = left.inputs
-        outputs = right.outputs
-    elif operator == '&':
-        inputs = combine_labels(left.inputs, right.inputs)
-        outputs = combine_labels(left.outputs, right.outputs)
-    else:
-        # Without loss of generality
-        inputs = left.inputs
-        outputs = left.outputs
-
-    if operator in ('|', '+', '-'):
-        linear = left.linear and right.linear
-    else:
-        # Which is not to say it is *definitely* not linear but it would be
-        # trickier to determine
-        linear = False
-
-
-    members = {'_tree': tree,
-               # TODO: These are temporary until we implement the full rules
-               # for handling inputs/outputs
-               'inputs': inputs,
-               'outputs': outputs,
-               'linear': linear,
-               '__module__': str(modname)}
-
-    new_cls = _CompoundModelMeta(name, (_CompoundModel,), members)
-
-    if isinstance(left, Model) and isinstance(right, Model):
-        # Both models used in the operator were already instantiated models,
-        # not model *classes*.  As such it's not particularly useful to return
-        # the class itself, but to instead produce a new instance:
-        return new_cls()
-
-    # Otherwise return the new uninstantiated class itself
-    return new_cls
-
-
 def _make_arithmetic_operator(oper):
     def op(f, g):
         f, f_in, f_out = f
@@ -1486,6 +1424,71 @@ class _CompoundModelMeta(_ModelMeta):
             cls._fittable = all(m.fittable for m in cls._get_submodels())
 
         return cls._fittable
+
+    @classmethod
+    def _from_operator(mcls, operator, left, right):
+        # Note, currently this only supports binary operators, but could be
+        # easily extended to support unary operators (namely '-') if/when
+        # needed
+        children = []
+        for child in (left, right):
+            if isinstance(child, _CompoundModel):
+                children.append(child._tree)
+            elif isinstance(child, _CompoundModelMeta):
+                children.append(child._tree)
+            else:
+                children.append(ExpressionTree(child))
+
+        tree = ExpressionTree(operator, left=children[0], right=children[1])
+
+        name = str('CompoundModel{0}'.format(_CompoundModelMeta._nextid))
+        _CompoundModelMeta._nextid += 1
+
+        mod = find_current_module(3)
+        if mod:
+            modname = mod.__name__
+        else:
+            modname = '__main__'
+
+        # TODO: These aren't the full rules for handling inputs and outputs, but
+        # this will handle most basic cases correctly
+        if operator == '|':
+            inputs = left.inputs
+            outputs = right.outputs
+        elif operator == '&':
+            inputs = combine_labels(left.inputs, right.inputs)
+            outputs = combine_labels(left.outputs, right.outputs)
+        else:
+            # Without loss of generality
+            inputs = left.inputs
+            outputs = left.outputs
+
+        if operator in ('|', '+', '-'):
+            linear = left.linear and right.linear
+        else:
+            # Which is not to say it is *definitely* not linear but it would be
+            # trickier to determine
+            linear = False
+
+
+        members = {'_tree': tree,
+                   # TODO: These are temporary until we implement the full rules
+                   # for handling inputs/outputs
+                   'inputs': inputs,
+                   'outputs': outputs,
+                   'linear': linear,
+                   '__module__': str(modname)}
+
+        new_cls = mcls(name, (_CompoundModel,), members)
+
+        if isinstance(left, Model) and isinstance(right, Model):
+            # Both models used in the operator were already instantiated models,
+            # not model *classes*.  As such it's not particularly useful to return
+            # the class itself, but to instead produce a new instance:
+            return new_cls()
+
+        # Otherwise return the new uninstantiated class itself
+        return new_cls
 
     # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
     # leaf nodes is something the ExpressionTree class itself could just know
