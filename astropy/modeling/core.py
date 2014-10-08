@@ -1425,6 +1425,14 @@ class _CompoundModelMeta(_ModelMeta):
 
         return cls._fittable
 
+    # TODO: This supports creating a new compound model from two existing
+    # compound models (or normal models) and a single operator.  However, it
+    # ought also to be possible to create a new model from an *entire*
+    # expression, represented as a sequence of operators and their operands (or
+    # an exiting ExpressionTree) and build that into a compound model without
+    # creating an intermediate _CompoundModel class for every single operator
+    # in the expression.  This will prove to be a useful optimization in many
+    # cases
     @classmethod
     def _from_operator(mcls, operator, left, right):
         # Note, currently this only supports binary operators, but could be
