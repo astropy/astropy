@@ -1402,7 +1402,7 @@ class _CompoundModelMeta(_ModelMeta):
 
     def __getitem__(cls, index):
         try:
-            if isinstance(index, str):
+            if isinstance(index, six.string_types):
                 index = cls.submodel_names.index(index)
         except ValueError:
             raise IndexError(

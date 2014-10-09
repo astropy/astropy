@@ -263,3 +263,41 @@ def test_expression_formatting():
 
     M = G & (G | G)
     assert M._format_expression() == '[0] & ([1] | [2])'
+
+
+def test_indexing_on_class():
+    """
+    Test indexing on compound model class objects, including cases where the
+    submodels are classes, as well as instances, or both.
+    """
+
+    g = Gaussian1D(1, 2, 3, name='g')
+    p = Polynomial1D(2, name='p')
+
+    M = Gaussian1D + Const1D
+    assert M[0] is Gaussian1D
+    assert M[1] is Const1D
+    assert M['Gaussian1D'] is M[0]
+    assert M['Const1D'] is M[1]
+
+    M = Gaussian1D + p
+    assert M[0] is Gaussian1D
+    assert M[1] is p
+    assert M['Gaussian1D'] is M[0]
+    assert M['p'] is M[1]
+
+    M = g + p
+    assert M[0] is g
+    assert M[1] is p
+    assert M['g'] is M[0]
+    assert M['p'] is M[1]
+
+    # Test negative indexing
+    assert M[-1] is p
+    assert M[-2] is g
+
+    with pytest.raises(IndexError):
+        M[42]
+
+    with pytest.raises(IndexError):
+        M['foobar']
