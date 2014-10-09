@@ -208,16 +208,6 @@ class BaseColumn(np.ndarray):
     def __ne__(self, other):
         return self.data.__ne__(other)
 
-    # Set items using a view of the underlying data, as it gives an
-    # order-of-magnitude speed-up. [#2994]
-    def __setitem__(self, index, value):
-        self.data[index] = value
-
-    # Set slices using a view of the underlying data, as it gives an
-    # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
-    def __setslice__(self, start, stop, value):
-        self.data.__setslice__(start, stop, value)
-
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
         if obj is None:
@@ -655,6 +645,16 @@ class Column(BaseColumn):
     if six.PY2:
         __str__ = __bytes__
 
+    # Set items using a view of the underlying data, as it gives an
+    # order-of-magnitude speed-up. [#2994]
+    # def __setitem__(self, index, value):
+    #     self.data[index] = value
+
+    # # Set slices using a view of the underlying data, as it gives an
+    # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
+    # def __setslice__(self, start, stop, value):
+    #     self.data.__setslice__(start, stop, value)
+
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name
     unit = BaseColumn.unit
@@ -861,6 +861,15 @@ class MaskedColumn(Column, ma.MaskedArray):
             out.meta = deepcopy(getattr(self, 'meta', {}))
 
         return out
+
+    # Set items and slices using MaskedArray method, instead of falling through
+    # to the (faster) Column version which uses an ndarray view.  This doesn't
+    # copy the mask properly. See test_setting_from_masked_column test.
+    def __setitem__(self, index, value):
+        ma.MaskedArray.__setitem__(self, index, value)
+
+    def __setslice__(self, start, stop, value):
+        ma.MaskedArray.__setslice__(self, start, stop, value)
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name

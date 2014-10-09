@@ -390,8 +390,8 @@ def test_setting_from_masked_column():
         assert t['b'][1] == t[1]['b']
         assert t['b'][0] is np.ma.masked  # Original state since t['c'][0] is masked
         assert t['b'][1] == 222  # New from t['c'] since t['c'][1] is unmasked
-        assert t['b'][1] == 33
-        assert t['b'][1] == 44
+        assert t['b'][2] == 33
+        assert t['b'][3] == 44
         assert np.all(t['b'].mask == t.mask['b'])  # Avoid t.mask in general, this is for testing
 
         mask_before_add = t.mask.copy()
