@@ -337,7 +337,7 @@ def test_mapping_basic_permutations():
 
     x, y = Rotation2D(90)(1, 2)
 
-    RS = Rotation2D | Mapping([1, 0])
+    RS = Rotation2D | Mapping((1, 0))
     x_prime, y_prime = RS(90)(1, 2)
     assert_allclose((x, y), (y_prime, x_prime))
 
@@ -346,7 +346,7 @@ def test_mapping_basic_permutations():
     m = M(90, 2)
     x, y, z = m(1, 2, 3)
 
-    MS = M | Mapping([2, 0, 1])
+    MS = M | Mapping((2, 0, 1))
     ms = MS(90, 2)
     x_prime, y_prime, z_prime = ms(1, 2, 3)
     assert_allclose((x, y, z), (y_prime, z_prime, x_prime))
