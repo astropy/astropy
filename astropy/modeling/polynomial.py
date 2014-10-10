@@ -1103,6 +1103,7 @@ class SIP(Model):
 
         return '\n'.join(parts)
 
+    @property
     def inverse(self):
         if (self._ap_order is not None and self._bp_order is not None):
             return InverseSIP(self._ap_order, self._bp_order,

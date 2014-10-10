@@ -30,8 +30,8 @@ def test_native_celestial_native():
     utils.assert_allclose(nnphi2, nnphi)
     utils.assert_allclose(ntheta2, ntheta)
 
-    assert n2c.inverse()(nnphi, ntheta) == c2n(nnphi, ntheta)
-    assert c2n.inverse()(nnphi, ntheta) == n2c(nnphi, ntheta)
+    assert n2c.inverse(nnphi, ntheta) == c2n(nnphi, ntheta)
+    assert c2n.inverse(nnphi, ntheta) == n2c(nnphi, ntheta)
 
 
 def test_native_celestial_theta90():
@@ -49,6 +49,5 @@ def test_Rotation2D():
 
 def test_Rotation2D_inverse():
     model = models.Rotation2D(angle=234.23494)
-    inverse = model.inverse()
-    x, y = inverse(*model(1, 0))
+    x, y = model.inverse(*model(1, 0))
     utils.assert_allclose([x, y], [1, 0])

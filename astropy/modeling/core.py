@@ -99,6 +99,8 @@ class _ModelMeta(abc.ABCMeta):
         if parameters:
             mcls._check_parameters(name, members, param_names, parameters)
 
+        mcls._create_inverse_property(members)
+
         # Backwards compatibility check for 'eval' -> 'evaluate'
         # TODO: Remove sometime after Astropy 1.0 release.
         if 'eval' in members and 'evaluate' not in members:
@@ -137,6 +139,38 @@ class _ModelMeta(abc.ABCMeta):
             members['param_names'] = param_names
             members['_param_orders'] = \
                     dict((name, idx) for idx, name in enumerate(param_names))
+
+    @staticmethod
+    def _create_inverse_property(members):
+        inverse = members.get('inverse', None)
+        if inverse is None:
+            return
+
+        if isinstance(inverse, property):
+            fget = inverse.fget
+        else:
+            # We allow the @property decoratore to be ommitted entirely from
+            # the class definition, though its use should be encouraged for
+            # clarity
+            fget = inverse
+
+        def wrapped_fget(self):
+            if self._custom_inverse is not None:
+                return self._custom_inverse
+
+            return fget(self)
+
+        def fset(self, value):
+            if not isinstance(value, (Model, type(None))):
+                raise ValueError(
+                    "The ``inverse`` attribute may be assigned a `Model` "
+                    "instance or `None` (where `None` restores the default "
+                    "inverse for this model if one is defined.")
+
+            self._custom_inverse = value
+
+        members['inverse'] = property(wrapped_fget, fset,
+                                      doc=inverse.__doc__)
 
 
 @six.add_metaclass(_ModelMeta)
@@ -242,6 +276,8 @@ class Model(object):
     standard_broadcasting = True
     fittable = False
     linear = True
+
+    _custom_inverse = None
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
@@ -376,8 +412,22 @@ class Model(object):
 
         return self._constraints['ineqcons']
 
+    @property
     def inverse(self):
-        """Returns a callable object which performs the inverse transform."""
+        """
+        Returns a new `Model` instance which performs the inverse
+        transform, if an analytic inverse is defined for this model.
+
+        Even on models that don't have an inverse defined, this property can be
+        set with a manually-defined inverse, such a pre-computed or
+        experimentally determined inverse (often given as a `PolynomialModel`,
+        but not by requirement).
+
+        Note to authors of `Model` subclasses:  To define an inverse for a
+        model simply override this property to return the appropriate model
+        representing the inverse.  The machinery that will make the inverse
+        manually-overridable is added automatically by the base class.
+        """
 
         raise NotImplementedError("An analytical inverse transform has not "
                                   "been implemented for this model.")
@@ -1059,11 +1109,12 @@ class SerialCompositeModel(_CompositeModel):
         self._inmap = inmap
         self._outmap = outmap
 
+    @property
     def inverse(self):
         try:
             transforms = []
             for transform in self._transforms[::-1]:
-                transforms.append(transform.inverse())
+                transforms.append(transform.inverse)
         except NotImplementedError:
             raise NotImplementedError(
                 "An analytical inverse has not been implemented for "
