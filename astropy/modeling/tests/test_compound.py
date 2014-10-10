@@ -10,7 +10,7 @@ from numpy.testing.utils import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import pytest
 
-from ..core import Model, Identity
+from ..core import Model, Identity, Mapping
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                       Polynomial1D, Polynomial2D, AffineTransformation2D)
 
@@ -301,3 +301,52 @@ def test_indexing_on_class():
 
     with pytest.raises(IndexError):
         M['foobar']
+
+
+def test_basic_compound_inverse():
+    """
+    Test basic inversion of compound models in the limited sense supported for
+    models made from compositions and joins only.
+    """
+
+    t = (Shift(2) & Shift(3)) | (Scale(2) & Scale(3)) | Rotation2D(90)
+    assert_allclose(t.inverse(*t(0, 1)), (0, 1))
+
+
+@pytest.mark.parametrize('model', [
+    Shift(0) + Shift(0) | Shift(0),
+    Shift(0) - Shift(0) | Shift(0),
+    Shift(0) * Shift(0) | Shift(0),
+    Shift(0) / Shift(0) | Shift(0),
+    Shift(0) ** Shift(0) | Shift(0),
+    Gaussian1D(1, 2, 3) | Gaussian1D(4, 5, 6)])
+def test_compound_unsupported_inverse(model):
+    """
+    Ensure inverses aren't supported in cases where it shouldn't be.
+    """
+
+    with pytest.raises(NotImplementedError):
+        model.inverse
+
+
+def test_mapping_basic_permutations():
+    """
+    Tests a couple basic examples of the Mapping model--specifically examples
+    that merely permute the outputs.
+    """
+
+    x, y = Rotation2D(90)(1, 2)
+
+    RS = Rotation2D | Mapping([1, 0])
+    x_prime, y_prime = RS(90)(1, 2)
+    assert_allclose((x, y), (y_prime, x_prime))
+
+    # A more complicated permutation
+    M = Rotation2D & Scale
+    m = M(90, 2)
+    x, y, z = m(1, 2, 3)
+
+    MS = M | Mapping([2, 0, 1])
+    ms = MS(90, 2)
+    x_prime, y_prime, z_prime = ms(1, 2, 3)
+    assert_allclose((x, y, z), (y_prime, z_prime, x_prime))

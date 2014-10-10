@@ -45,7 +45,7 @@ from .parameters import Parameter, InputParameterError
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
-           'custom_model', 'ModelDefinitionError']
+           'Mapping', 'Identity', 'custom_model', 'ModelDefinitionError']
 
 
 class ModelDefinitionError(Exception):
@@ -1723,6 +1723,37 @@ class _CompoundModel(Model):
             return result[0]
         else:
             return result
+
+    # TODO: The way this works is highly inefficient--the inverse is created by
+    # making a new model for each operator in the compound model, which could
+    # potentially mean creating a large number of temporary throwaway model
+    # classes.  This can definitely be optimized in the future by implementing
+    # a way to construct a single model class from an existing tree
+    @property
+    def inverse(self):
+        def _not_implemented(oper):
+            def _raise(x, y):
+                raise NotImplementedError(
+                    "The inverse is not currently defined for compound "
+                    "models created using the {0} operator.".format(oper))
+            return _raise
+
+        operators = dict((oper, _not_implemented(oper))
+                         for oper in ('+', '-', '*', '/', '**'))
+        operators['&'] = operator.and_
+        # Reverse the order of compositions
+        operators['|'] = lambda x, y: operator.or_(y, x)
+
+        def getter(model):
+            try:
+                return model.inverse
+            except NotImplementedError:
+                raise NotImplementedError(
+                    "All models in a composite model must have an inverse "
+                    "defined in order for the composite model to have an "
+                    "inverse.  {0!r} does not have an inverse.".format(model))
+
+        return self._tree.evaluate(operators, getter=getter)
 
     @sharedmethod
     def _get_submodels(self):
