@@ -1511,9 +1511,7 @@ class _CompoundModelMeta(_ModelMeta):
         # needed
         children = []
         for child in (left, right):
-            if isinstance(child, _CompoundModel):
-                children.append(child._tree)
-            elif isinstance(child, _CompoundModelMeta):
+            if isinstance(child, _CompoundModelMeta):
                 children.append(child._tree)
             else:
                 children.append(ExpressionTree(child))
