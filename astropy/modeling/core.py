@@ -420,8 +420,9 @@ class Model(object):
 
         Even on models that don't have an inverse defined, this property can be
         set with a manually-defined inverse, such a pre-computed or
-        experimentally determined inverse (often given as a `PolynomialModel`,
-        but not by requirement).
+        experimentally determined inverse (often given as a
+        `~astropy.modeling.polynomial.PolynomialModel`, but not by
+        requirement).
 
         Note to authors of `Model` subclasses:  To define an inverse for a
         model simply override this property to return the appropriate model
