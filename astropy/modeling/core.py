@@ -1439,7 +1439,12 @@ class _CompoundModelMeta(_ModelMeta):
         return cls._format_cls_repr(keywords=keywords)
 
     def __dir__(cls):
-        basedir = super(_CompoundModelMeta, cls).__dir__()
+        try:
+            # Annoyingly, this will only work for Python 3.3+
+            basedir = super(_CompoundModelMeta, cls).__dir__()
+        except AttributeError:
+            basedir = list(set((dir(type(cls)) + list(cls.__dict__))))
+
         if cls._tree is not None:
             for name in cls.param_names:
                 basedir.append(name)
