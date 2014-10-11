@@ -230,6 +230,15 @@ class TestEmptyData():
         t.add_column(table_types.Column(name='a'))  # dtype is not specified
         assert len(t['a']) == 0
 
+    def test_add_via_setitem_and_slice(self, table_types):
+        """Test related to #3023 where a MaskedColumn is created with name=None
+        and then gets changed to name='a'.  After PR #2790 this test fails
+        without the #3023 fix."""
+        t = table_types.Table()
+        t['a'] = table_types.Column([1, 2, 3])
+        t2 = t[:]
+        assert t2.colnames == t.colnames
+
 
 @pytest.mark.usefixtures('table_types')
 class TestNewFromColumns():
