@@ -160,6 +160,33 @@ class TestColumn():
         assert np.all(c.data == np.array([100,200,300]))
         assert np.all(c.unit == u.cm)
 
+    def test_attrs_survive_getitem_after_change(self, Column):
+        """
+        Test for issue #3023: when calling getitem with a MaskedArray subclass
+        the original object attributes are not copied.
+        """
+        c1 = Column([1, 2, 3], name='a', unit='m', format='i',
+                    description='aa', meta={'a': 1})
+        c1.name = 'b'
+        c1.unit = 'km'
+        c1.format = 'i2'
+        c1.description = 'bb'
+        c1.meta = {'bbb': 2}
+
+        for item in (slice(None, None), slice(None, 1), np.array([0, 2]),
+                     np.array([False, True, False])):
+            c2 = c1[item]
+            assert c2.name == 'b'
+            assert c2.unit is u.km
+            assert c2.format == 'i2'
+            assert c2.description == 'bb'
+            assert c2.meta == {'bbb': 2}
+
+        # Make sure that calling getitem resulting in a scalar does
+        # not copy attributes.
+        val = c1[1]
+        for attr in ('name', 'unit', 'format', 'description', 'meta'):
+            assert not hasattr(val, attr)
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
