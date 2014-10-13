@@ -124,3 +124,13 @@ def test_Ellipse2D():
     e1 = models.Ellipse2D(amplitude, x0, y0, 7, 3, theta=0.)
     e2 = models.Ellipse2D(amplitude, x0, y0, 7, 3, theta=theta.radian)
     assert e1(*point1) == e2(*point2)
+
+
+def test_Scale_inverse():
+    m = models.Scale(1.2345)
+    assert_allclose(m.inverse(m(6.789)), 6.789)
+
+
+def test_Shift_inverse():
+    m = models.Shift(1.2345)
+    assert_allclose(m.inverse(m(6.789)), 6.789)

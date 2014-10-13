@@ -344,26 +344,24 @@ class Shift(Model):
 
     Parameters
     ----------
-    offsets : float or a list of floats
-        offsets to be applied to a coordinate
-        if a list - each value in the list is an offset to be applied to a
-        column in the input coordinate array
+    offset : float
+        Offset to add to a coordinate.
     """
 
     inputs = ('x',)
     outputs = ('x',)
 
-    offsets = Parameter()
+    offset = Parameter()
 
     @property
     def inverse(self):
         inv = self.copy()
-        inv.offsets *= -1
+        inv.offset *= -1
         return inv
 
     @staticmethod
-    def evaluate(x, offsets):
-        return x + offsets
+    def evaluate(x, offset):
+        return x + offset
 
 
 class Scale(Model):
@@ -372,25 +370,25 @@ class Scale(Model):
 
     Parameters
     ----------
-    factors : float or a list of floats
-        scale for a coordinate
+    factor : float
+        Factor by which to scale a coordinate.
     """
 
     inputs = ('x',)
     outputs = ('x',)
 
-    factors = Parameter()
+    factor = Parameter()
     linear = True
 
     @property
     def inverse(self):
         inv = self.copy()
-        inv.factors = 1 / self.factors
+        inv.factor = 1 / self.factor
         return inv
 
     @staticmethod
-    def evaluate(x, factors):
-        return factors * x
+    def evaluate(x, factor):
+        return factor * x
 
 
 class Redshift(Fittable1DModel):
