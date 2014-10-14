@@ -151,10 +151,11 @@ if eval(setup_cfg.get('edit_on_github')):
     edit_on_github_source_root = ""
     edit_on_github_doc_root = "docs"
 
-# Remove matplotlib plot_directive and replace with our own for now
-import matplotlib.sphinxext.plot_directive
-extensions.remove(matplotlib.sphinxext.plot_directive.__name__)
-extensions += ['plot_directive']
+# Make sure we have a recent version of matplotlib for the plot directive
+from distutils.version import LooseVersion
+import matplotlib
+if LooseVersion(matplotlib.__version__) < LooseVersion('1.4'):
+    raise ValueError("matplotlib 1.4+ is required to build the docs")
 
 plot_rcparams = {'figure.figsize': (6,6),
                  'savefig.facecolor':'none'}
