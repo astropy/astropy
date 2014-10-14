@@ -171,8 +171,8 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
 try:
 
-    from astropy.coordinates import SkyCoord
-    from astropy.coordinates import frame_transform_graph
+    from astropy.coordinates import (SkyCoord, frame_transform_graph,
+                                     SphericalRepresentation, UnitSphericalRepresentation)
 
     class CoordinateTransform(CurvedTransform):
         def __init__(self, input_system, output_system):
@@ -220,7 +220,15 @@ try:
 
             c_out = c_in.transform_to(self.output_system)
 
-            return np.concatenate((c_out.spherical.lon.deg[:, np.newaxis], c_out.spherical.lat.deg[:, np.newaxis]), 1)
+            if (c_out.representation is SphericalRepresentation or
+                c_out.representation is UnitSphericalRepresentation):
+                lon = c_out.data.lon.deg
+                lat = c_out.data.lat.deg
+            else:
+                lon = c_out.spherical.lon.deg
+                lat = c_out.spherical.lat.deg
+
+            return np.concatenate((lon[:, np.newaxis], lat[:, np.newaxis]), axis=1)
 
         transform_non_affine = transform
 
