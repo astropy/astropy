@@ -1,6 +1,6 @@
 -e git+http://github.com/astropy/astropy-helpers.git#egg=astropy_helpers
 numpy
-matplotlib
+matplotlib>=1.4
 astropy
 git+git://github.com/astrofrog/wcsaxes-plot-directive.git#egg=plot_directive
 
