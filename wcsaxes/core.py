@@ -313,4 +313,9 @@ class WCSAxes(Axes):
         if draw_grid:
             self.coords.grid(draw_grid=draw_grid, **kwargs)
 
-WCSAxesSubplot = subplot_class_factory(WCSAxes)
+# In the following, we put the generated subplot class in a temporary class and
+# we then inherit it - if we don't do this, the generated class appears to
+# belong in matplotlib, not in WCSAxes, from the API's point of view.
+
+class WCSAxesSubplot(subplot_class_factory(WCSAxes)):
+    pass

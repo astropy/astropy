@@ -7,7 +7,7 @@ Welcome to WCSAxes's documentation!
 ===================================
 
 WCSAxes is a framework for making plots of Astronomical data in Matplotlib. It
-is affiliated with the `Astropy <http://www.astropy.org>`_ project and is
+is affiliated with the `Astropy <http://www.astropy.org>`__ project and is
 intended for inclusion in the Astropy package once stable.
 
 .. toctree::
