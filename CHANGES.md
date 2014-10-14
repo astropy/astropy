@@ -16,6 +16,9 @@
 
 - Added new feature to display world coordinates in interactive mode. [#112]
 
+- When converting celestial coordinates, don't compute a new representation if
+  the old one was already spherical or unit spherical. [#125]
+
 0.2 (2014-08-11)
 ----------------
 
