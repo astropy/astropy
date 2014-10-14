@@ -13,7 +13,7 @@ from numpy import ma
 from libc cimport stdio
 from cpython.buffer cimport PyBUF_SIMPLE
 from cpython.buffer cimport Py_buffer
-from cpython.buffer cimport PyObject_GetBuffer
+from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 
 from ...utils.data import get_readable_fileobj
 from ...table import pprint
@@ -116,6 +116,7 @@ cdef class FileString:
         object fhandle
         object mmap
         void *mmap_ptr
+        Py_buffer buf
 
     def __cinit__(self, fname):
         self.fhandle = open(fname, 'r')
@@ -123,15 +124,18 @@ cdef class FileString:
             raise IOError('File "{0}" could not be opened'.format(fname))
         self.mmap = mmap.mmap(self.fhandle.fileno(), 0, prot=mmap.PROT_READ)
         cdef Py_ssize_t buf_len = len(self.mmap)
-        cdef Py_buffer buf
         if six.PY2:
             PyObject_AsReadBuffer(self.mmap, &self.mmap_ptr, &buf_len)
         else:            
-            PyObject_GetBuffer(self.mmap, &buf, PyBUF_SIMPLE)
-            self.mmap_ptr = buf.buf
+            PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)
+            self.mmap_ptr = self.buf.buf
 
     def __dealloc__(self):
-        self.fhandle.close()
+        if self.mmap:
+            if not six.PY2: # free buffer memory to prevent a resource leak
+                PyBuffer_Release(&self.buf)
+            self.mmap.close()
+            self.fhandle.close()
 
     def __len__(self):
         return len(self.mmap)
