@@ -60,10 +60,8 @@ class WCSAxes(Axes):
 
         world = coords._transform.transform(np.array([pixel]))[0]
 
-        x_index = self.slices.index('x')
-        y_index = self.slices.index('y')
-        xw = coords[x_index].format_coord(world[x_index])
-        yw = coords[y_index].format_coord(world[y_index])
+        xw = coords[self._x_index].format_coord(world[self._x_index])
+        yw = coords[self._y_index].format_coord(world[self._y_index])
 
         if self._display_coords_index == 0:
             system = "world"
@@ -117,8 +115,12 @@ class WCSAxes(Axes):
 
         if slices is None:
             self.slices = ('x', 'y')
+            self._x_index = 0
+            self._y_index = 1
         else:
             self.slices = slices
+            self._x_index = self.slices.index('x')
+            self._y_index = self.slices.index('y')
 
         # Common default settings for Rectangular Frame
         if self.frame_class is RectangularFrame:
@@ -166,16 +168,16 @@ class WCSAxes(Axes):
         self.coords.frame.draw(renderer)
 
     def set_xlabel(self, label):
-        self.coords[0].set_axislabel(label)
+        self.coords[self._x_index].set_axislabel(label)
 
     def set_ylabel(self, label):
-        self.coords[1].set_axislabel(label)
+        self.coords[self._y_index].set_axislabel(label)
 
     def get_xlabel(self):
-        return self.coords[0].get_axislabel()
+        return self.coords[self._x_index].get_axislabel()
 
     def get_ylabel(self):
-        return self.coords[1].get_axislabel()
+        return self.coords[self._y_index].get_axislabel()
 
     def get_coords_overlay(self, frame, equinox=None, obstime=None, coord_meta=None):
 
