@@ -192,3 +192,9 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # otherwise, readthedocs.org uses their theme by default, so no need to specify it
+
+# Enable nitpicky mode - which ensures that all references in the docs
+# resolve.
+
+nitpicky = True
+nitpick_ignore = [('py:class', 'matplotlib.axes._subplots.WCSAxesSubplot')]
