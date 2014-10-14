@@ -537,7 +537,7 @@ class Table(object):
         __str__ = __bytes__
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_unit=None):
+               show_unit=None, align='right'):
         """Print a formatted string representation of the table.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -566,10 +566,12 @@ class Table(object):
             for units only if one or more columns has a defined value
             for the unit.
 
+        align : str
+            Left/right alignment of a column. Default is 'right'.
         """
 
         lines, n_header = self.formatter._pformat_table(self, max_lines, max_width, show_name,
-                                                        show_unit)
+                                                        show_unit,align=align)
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -636,7 +638,7 @@ class Table(object):
                 webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=None, html=False, tableid=None):
+                show_unit=None, html=False, tableid=None, align='right'):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -674,6 +676,9 @@ class Table(object):
             "table{id}", where id is the unique integer id of the table object,
             id(self)
 
+        align : str
+            Left/right alignment of a column. Default is 'right'.
+
         Returns
         -------
         lines : list
@@ -682,7 +687,7 @@ class Table(object):
         """
         lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
                                                         show_name, show_unit, html,
-                                                        tableid=tableid)
+                                                        tableid=tableid,align=align)
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
