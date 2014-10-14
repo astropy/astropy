@@ -101,6 +101,7 @@ install:
     # this matplotlib will *not* work with py 3.x, but our sphinx build is
     # currently 2.7, so that's fine
     - if [[ $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION Sphinx matplotlib; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_INSTALL sphinx_rtd_theme; fi
 
     # COVERAGE DEPENDENCIES
     - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then $PIP_INSTALL coverage coveralls; fi
