@@ -4,6 +4,8 @@ from astropy.utils import OrderedDict
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
 
+__all__ = ['Spine', 'BaseFrame', 'RectangularFrame', 'EllipticalFrame']
+
 
 class Spine(object):
 
