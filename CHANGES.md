@@ -14,6 +14,8 @@
 
 - Added ``CoordinateHelper.get_axislabel()`` method. [#122]
 
+- Improve handling of get/set_xlabel/ylabel. [#94, #126]
+
 - Added new feature to display world coordinates in interactive mode. [#112]
 
 0.2 (2014-08-11)
