@@ -548,8 +548,9 @@ class Model(object):
         """
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
+        parameters = self._param_sets(raw=True)
 
-        outputs = self.evaluate(*itertools.chain(inputs, self.param_sets))
+        outputs = self.evaluate(*itertools.chain(inputs, parameters))
 
         if self.n_outputs == 1:
             outputs = (outputs,)
@@ -1172,6 +1173,53 @@ class Model(object):
 
         return broadcast_shapes
 
+    def _param_sets(self, raw=False):
+        """
+        Implementation of the Model.param_sets property.
+
+        This internal implementation has a ``raw`` argument which controls
+        whether or not to return the raw parameter values (i.e. the values that
+        are actually stored in the ._parameters array, as opposed to the values
+        displayed to users.  In most cases these are one in the same but there
+        are currently a few exceptions.
+
+        Note: This is notably an overcomplicated device and may be removed
+        entirely in the near future.
+        """
+
+        if raw:
+            values = [getattr(self, name)._raw_value
+                      for name in self.param_names]
+        else:
+            values = [getattr(self, name).value for name in self.param_names]
+
+        # Ensure parameter values are broadcastable
+        for name, shape in six.iteritems(self._param_broadcast_shapes):
+            idx = self._param_orders[name]
+            values[idx] = values[idx].reshape(shape)
+
+        shapes = [np.shape(value) for value in values]
+
+        if len(self) == 1:
+            # Add a single param set axis to the parameter's value (thus
+            # converting scalars to shape (1,) array values) for consistency
+            values = [np.array([value]) for value in values]
+
+        if len(set(shapes)) != 1:
+            # If the parameters are not all the same shape, converting to an
+            # array is going to produce an object array
+            # However the way Numpy creates object arrays is tricky in that it
+            # will recurse into array objects in the list and break them up
+            # into separate objects.  Doing things this way ensures a 1-D
+            # object array the elements of which are the individual parameter
+            # arrays.  There's not much reason to do this over returning a list
+            # except for consistency
+            psets = np.empty(len(values), dtype=object)
+            psets[:] = values
+            return psets
+
+        return np.array(values)
+
     def _format_repr(self, args=[], kwargs={}, defaults={}):
         """
         Internal implementation of ``__repr__``.
@@ -1697,7 +1745,7 @@ class _CompoundModel(Model):
 
             if isinstance(model, Model):
                 # Use the fixed model instance's parameters in the evaluation
-                param_values = tuple(model.param_sets)
+                param_values = tuple(model._param_sets(raw=True))
             else:
                 param_values = tuple(itertools.islice(params, nparams))
 

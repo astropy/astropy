@@ -222,11 +222,6 @@ class _CompositeModel(Model):
         raise NotImplementedError("Subclasses should implement this")
 
     @property
-    def param_sets(self):
-        all_params = tuple(m.param_sets for m in self._transforms)
-        return np.vstack(all_params)
-
-    @property
     def parameters(self):
         raise NotImplementedError(
             "Composite models do not currently support the .parameters "
@@ -274,6 +269,10 @@ class _CompositeModel(Model):
         """
 
         return self.evaluate(*inputs)
+
+    def _param_sets(self, raw=False):
+        all_params = tuple(m._param_sets(raw=raw) for m in self._transforms)
+        return np.vstack(all_params)
 
     def _make_labeled_transform(self, labeled_input):
         """

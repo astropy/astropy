@@ -432,6 +432,21 @@ class Parameter(object):
 
         return self.__class__(**kwargs)
 
+    @property
+    def _raw_value(self):
+        """
+        Currently for internal use only.
+
+        Like Parameter.value but does not pass the result through
+        Parameter.getter.  By design this should only be used from bound
+        parameters.
+
+        This will probably be removed are retweaked at some point in the
+        process of rethinking how parameter values are stored/updated.
+        """
+
+        return self._get_model_value(self._model)
+
     @classmethod
     def _get_nextid(cls):
         """Returns a monotonically increasing ID used to order Parameter
