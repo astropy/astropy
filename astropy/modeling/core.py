@@ -1370,6 +1370,18 @@ class Mapping(Model):
 
         return result
 
+    @property
+    def inverse(self):
+        try:
+            mapping = tuple(self.mapping.index(idx)
+                            for idx in range(self.n_inputs))
+        except ValueError:
+            raise NotImplementedError(
+                "Mappings such as {0} that drop one or more of their inputs "
+                "are not invertible at this time.".format(self.mapping))
+
+        return self.__class__(mapping)
+
 
 class Identity(Mapping):
     def __init__(self, n_inputs):
@@ -1379,6 +1391,10 @@ class Identity(Mapping):
     @property
     def name(self):
         return 'Identity({0})'.format(self.n_inputs)
+
+    @property
+    def inverse(self):
+        return self
 
 
 def _make_arithmetic_operator(oper):
@@ -1683,13 +1699,17 @@ class _CompoundModelMeta(_ModelMeta):
         names = []
         param_map = {}
 
-        for idx, model in enumerate(model for model in cls._get_submodels()
-                                    if isinstance(model, type) and
-                                    model.param_names):
+        param_suffix = 0
+        for idx, model in enumerate(cls._get_submodels()):
+            if not (isinstance(model, type) and model.param_names):
+                continue
+
             for param_name in model.param_names:
-                name = '{0}_{1}'.format(param_name, idx)
+                name = '{0}_{1}'.format(param_name, param_suffix)
                 names.append(name)
                 param_map[name] = (idx, param_name)
+
+            param_suffix += 1
 
         cls._param_names = tuple(names)
         cls._param_map = param_map
@@ -1738,7 +1758,7 @@ class _CompoundModel(Model):
         inputs = args[:self.n_inputs]
         params = iter(args[self.n_inputs:])
 
-        def getter(model, params=params):
+        def getter(idx, model, params=params):
             # Returns partial evaluation of the model's evaluate() method witht
             # the parameter values already applied
             nparams = len(model.param_names)
@@ -1795,14 +1815,20 @@ class _CompoundModel(Model):
         # Reverse the order of compositions
         operators['|'] = lambda x, y: operator.or_(y, x)
 
-        def getter(model):
+        leaf_idx = -1
+
+        def getter(idx, model):
             try:
-                return model.inverse
+                # By indexing on self[] this will return an instance of the
+                # model, with all the appropriate parameters set, which is
+                # currently required to return an inverse
+                return self[idx].inverse
             except NotImplementedError:
                 raise NotImplementedError(
                     "All models in a composite model must have an inverse "
                     "defined in order for the composite model to have an "
                     "inverse.  {0!r} does not have an inverse.".format(model))
+
 
         return self._tree.evaluate(operators, getter=getter)
 

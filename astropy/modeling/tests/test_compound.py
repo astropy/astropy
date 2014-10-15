@@ -191,7 +191,6 @@ class TestCompositeLegacy(object):
         assert_almost_equal(x, m(self.x, self.y)[0])
         assert_almost_equal(y, m(self.x, self.y)[1])
 
-    @pytest.mark.xfail
     def test_multiple_input(self):
         """
         Despite the name, this actually tests inverting composite models,
@@ -201,8 +200,7 @@ class TestCompositeLegacy(object):
         rot = Rotation2D(-60)
         m = rot | rot
         xx, yy = m(self.x, self.y)
-        inv = m.inverse()
-        x0, y0 = inv(xx, yy)
+        x0, y0 = m.inverse(xx, yy)
         assert_almost_equal(x0, self.x)
         assert_almost_equal(y0, self.y)
 
@@ -350,3 +348,18 @@ def test_mapping_basic_permutations():
     ms = MS(90, 2)
     x_prime, y_prime, z_prime = ms(1, 2, 3)
     assert_allclose((x, y, z), (y_prime, z_prime, x_prime))
+
+
+def test_mapping_inverse():
+    """Tests inverting a compound model that includes a `Mapping`."""
+
+    RS = Rotation2D & Scale
+
+    # Rotates 2 of the coordinates and scales the third--then rotates on a
+    # different axis and scales on the axis of rotation.  No physical meaning
+    # here just a simple test
+    M = RS | Mapping([2, 0, 1]) | RS
+
+    m = M(12.1, 13.2, 14.3, 15.4)
+
+    assert_allclose((0, 1, 2), m.inverse(*m(0, 1, 2)), atol=1e-08)

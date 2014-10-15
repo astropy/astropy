@@ -86,15 +86,19 @@ class ExpressionTree(object):
         If given, ``getter`` is a function evaluated on each *leaf* node's
         value before applying the operator between them.  This could be used,
         for example, to operate on an attribute of the node values rather than
-        directly on the node values.
+        directly on the node values.  The ``getter`` is passed both the index
+        of the leaf (a count starting at 0 that is incremented after each leaf
+        is found) and the leaf node itself.
         """
 
         operands = deque()
 
+        leaf_idx = 0
         for node in self.traverse_postorder():
             if node.isleaf:
                 # For a "tree" containing just a single operator at the root
-                operands.append(getter(node.value))
+                operands.append(getter(leaf_idx, node.value))
+                leaf_idx += 1
             else:
                 operator = operators[node.value]
                 right = operands.pop()
