@@ -300,7 +300,7 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
 
     default_erfa_loc = os.path.join(os.path.split(__file__)[0],
-                                    '../../cextern/erfa/erfa.c')
+                                    '../../cextern/erfa')
 
     ap = ArgumentParser()
     ap.add_argument('srcdir', default=default_erfa_loc, nargs='?',

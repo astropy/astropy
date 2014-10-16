@@ -16,7 +16,10 @@ def get_extensions():
     if setup_helpers.use_system_library('erfa'):
         libraries.append('erfa')
     else:
-        sources.append("cextern/erfa/erfa.c")
+        # get all of the .c files in the cextern/erfa directory
+        erfafns = os.listdir(os.path.join(TIMEROOT, '..', '..', 'cextern', 'erfa'))
+        sources.extend(['cextern/erfa/'+fn for fn in erfafns if fn.endswith('.c')])
+
         include_dirs.append('cextern/erfa')
 
     time_ext = Extension(
