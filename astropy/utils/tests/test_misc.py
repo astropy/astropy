@@ -14,6 +14,7 @@ import numpy as np
 from .. import data, misc
 from ..exceptions import AstropyDeprecationWarning
 from ...tests.helper import remote_data, catch_warnings
+from ...extern import six
 
 
 def test_pkg_finder():
@@ -228,3 +229,17 @@ def test_JsonCustomEncoder():
                       cls=misc.JsonCustomEncoder) == '"hello world \\u00c5"'
     assert json.dumps({1: 2},
                       cls=misc.JsonCustomEncoder) == '{"1": 2}'  # default
+
+
+def test_inherit_docstrings():
+    @six.add_metaclass(misc.InheritDocstrings)
+    class Base(object):
+        def __call__(self, *args):
+            "FOO"
+            pass
+
+    class Subclass(Base):
+        def __call__(self, *args):
+            pass
+
+    assert Subclass.__call__.__doc__ == "FOO"

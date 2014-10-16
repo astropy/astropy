@@ -1024,9 +1024,15 @@ class InheritDocstrings(type):
         u'Wiggle the thingamajig'
     """
     def __init__(cls, name, bases, dct):
+        def is_public_member(key):
+            return (
+                (key.startswith('__') and key.endswith('__')
+                 and len(key) > 4) or
+                not key.startswith('_'))
+
         for key, val in six.iteritems(dct):
             if (inspect.isfunction(val) and
-                not key.startswith('_') and
+                is_public_member(key) and
                 val.__doc__ is None):
                 for base in cls.__mro__[1:]:
                     super_method = getattr(base, key, None)
