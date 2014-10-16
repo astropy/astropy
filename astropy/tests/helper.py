@@ -372,14 +372,18 @@ class raises(object):
 
 
 _deprecations_as_exceptions = False
+_include_astropy_deprecations = True
 
-
-def enable_deprecations_as_exceptions():
+def enable_deprecations_as_exceptions(include_astropy_deprecations=True):
     """
     Turn on the feature that turns deprecations into exceptions.
     """
+
     global _deprecations_as_exceptions
     _deprecations_as_exceptions = True
+
+    global _include_astropy_deprecations
+    _include_astropy_deprecations = include_astropy_deprecations
 
 
 def treat_deprecations_as_exceptions():
@@ -427,8 +431,11 @@ def treat_deprecations_as_exceptions():
     warnings.resetwarnings()
     # Now, turn DeprecationWarnings into exceptions
     warnings.filterwarnings("error", ".*", DeprecationWarning)
-    warnings.filterwarnings("error", ".*", AstropyDeprecationWarning)
-    warnings.filterwarnings("error", ".*", AstropyPendingDeprecationWarning)
+
+    # Only turn astropy deprecation warnings into exceptions if requested
+    if _include_astropy_deprecations:
+        warnings.filterwarnings("error", ".*", AstropyDeprecationWarning)
+        warnings.filterwarnings("error", ".*", AstropyPendingDeprecationWarning)
 
     if sys.version_info[:2] == (2, 6):
         # py.test's warning.showwarning does not include the line argument
