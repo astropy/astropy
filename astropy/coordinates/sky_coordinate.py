@@ -736,7 +736,7 @@ class SkyCoord(object):
     @classmethod
     def from_pixel(cls, xp, yp, wcs, origin=0, mode='all'):
         """
-        Create a new `SkyCoord from pixel coordinates using an
+        Create a new `SkyCoord` from pixel coordinates using an
         `~astropy.wcs.WCS` object.
 
         Parameters
