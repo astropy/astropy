@@ -30,6 +30,18 @@ Currently `astropy.table` is used when reading an ASCII table using
 `astropy.io.ascii`.  Future releases of AstroPy are expected to use
 the |Table| class for other subpackages such as `astropy.io.votable` and `astropy.io.fits` .
 
+.. Note::
+
+   Starting with version 1.0 of astropy the internal implementation of the
+   |Table| class changed so that it no longer uses numpy structured arrays as
+   the core table data container.  Instead the table is stored as a collection
+   of individual column objects.  *For most users there is NO CHANGE to the
+   interface and behavior of |Table| objects.*
+
+   The page on :ref:`table_implementation_details` provides details about the
+   change.  This includes discussion of the table architecture, key differences,
+   and benefits of the change.
+
 Getting Started
 ===============
 
@@ -264,6 +276,14 @@ I/O with tables
    :maxdepth: 2
 
    io.rst
+
+Implementation
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   implementation_details.rst
 
 Reference/API
 =============
