@@ -259,6 +259,9 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - ``treat_deprecations_as_exceptions`` has been fixed to recognize Astropy
+    deprecation warnings.
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
