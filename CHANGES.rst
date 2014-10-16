@@ -260,7 +260,7 @@ Bug Fixes
 - ``astropy.utils``
 
   - ``treat_deprecations_as_exceptions`` has been fixed to recognize Astropy
-    deprecation warnings.
+    deprecation warnings. [#3015]
 
 - ``astropy.vo``
 
