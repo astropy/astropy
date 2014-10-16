@@ -51,9 +51,13 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     """
     
     {%- if func.args_by_inout('in|inout') %}
-    shape = numpy.broadcast({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}).shape
+    {%- if func.args_by_inout('in|inout')|map(attribute='name')|list|length < 2 %}
+    in_shape = numpy.broadcast({{ func.args_by_inout('in|inout')|map(attribute='name')|first }}, 0).shape
+    {%- else %}
+    in_shape = numpy.broadcast({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}).shape
+    {%- endif %}
     {%- for arg in func.args_by_inout('out|ret') %}
-    {{ arg.name }}_out = numpy.empty(shape, dtype={{ arg.dtype }})
+    {{ arg.name }}_out = numpy.empty(in_shape, dtype={{ arg.dtype }})
     {%- endfor %}
     {%- for arg in func.args_by_inout('inout') %}
     {{ arg.name }}_out = numpy.array(numpy.broadcast_arrays({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }})[{{ func.args.index(arg) }}], dtype={{ arg.dtype }})
@@ -82,9 +86,9 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
         
         numpy.PyArray_MultiIter_NEXT(it)
     {%- else %}
-    shape = []
+    in_shape = ()
     {%- for arg in func.args_by_inout('out') %}
-    {{ arg.name }}_out = numpy.empty(shape, dtype={{ arg.dtype }})
+    {{ arg.name }}_out = numpy.empty(in_shape, dtype={{ arg.dtype }})
     {%- endfor %}
     
     cdef numpy.broadcast it = numpy.broadcast({{ (func.args_by_inout('in')|map(attribute='name')|list + func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|list) |join(', ') }})
