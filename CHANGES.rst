@@ -70,6 +70,10 @@ New Features
 
 - ``astropy.table``
 
+  - Changed the internal implementation of the ``Table`` class changed so that
+    it no longer uses numpy structured arrays as the core table data container.
+    [#2790]
+
   - Tables can now be written to an html file that includes interactive
     browsing capabilities. To write out to this format, use
     ``Table.write('filename.html', format='jsviewer')``. [#2875]
@@ -182,6 +186,10 @@ API Changes
 
   - The ``Column.units`` property (deprecated in v0.3) has now been removed.
     [#2990]
+
+  - The ``Row.data`` and ``Table._data`` attributes have been deprecated
+    related to the change in Table implementation.  They are replaced by
+    ``Row.as_void()`` and ``Table.as_array()`` methods, respectively. [#2790]
 
 - ``astropy.time``
 
