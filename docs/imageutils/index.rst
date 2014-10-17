@@ -39,8 +39,8 @@ Related Astropy packages
 ========================
 
 * The `astropy.convolution` and `astropy.wcs` sub-packages in the Astropy core.
-* The `reproject` package which is planned to be moved into Astropy core as `astropy.reproject`.
-  It only contains reprojection routines that use `WCS` ... image resampling methods
+* The `reproject` package which is planned to be moved into Astropy core as ``astropy.reproject``.
+  It only contains reprojection routines that use WCS. Image resampling methods
   that don't use WCS info belong in this `imageutils` package.
 * The `photutils <http://photutils.readthedocs.org/en/latest/photutils/index.html>`__ affiliated
   package contains methods for source detection and photometry.

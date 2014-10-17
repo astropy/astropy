@@ -2,6 +2,7 @@ import warnings
 
 from .stretch import *
 from .interval import *
+from .transform import *
 
 try:
     from .normalize import *

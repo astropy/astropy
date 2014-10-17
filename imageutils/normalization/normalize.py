@@ -21,7 +21,7 @@ class ImageNormalize(Normalize):
     ----------
     vmin, vmax : float
         The minimum and maximum levels to show for the data
-    stretch : :class:`~imageutils.scaling.stretch.BaseStretch` instance
+    stretch : :class:`~imageutils.normalization.BaseStretch` instance
         The stretch to use for the normalization
     clip : bool, optional
         Whether to clip the output values to the [0:1] range
