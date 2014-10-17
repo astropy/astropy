@@ -7,7 +7,7 @@ from astropy.tests.pytest_plugins import pytest_addoption as astropy_pytest_addo
 
 # Uncomment the following line to treat all DeprecationWarnings as
 # exceptions
-# enable_deprecations_as_exceptions()
+enable_deprecations_as_exceptions()
 
 import os
 from astropy.tests.helper import pytest
