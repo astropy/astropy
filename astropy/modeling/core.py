@@ -433,11 +433,6 @@ class Model(object):
         raise NotImplementedError("An analytical inverse transform has not "
                                   "been implemented for this model.")
 
-    def invert(self):
-        """Invert coordinates iteratively if possible."""
-
-        raise NotImplementedError("Subclasses should implement this")
-
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
         """Evaluate the model on some input variables."""
@@ -1012,9 +1007,6 @@ class _CompositeModel(Model):
 
     def add_model(self, transf, inmap, outmap):
         self[transf] = [inmap, outmap]
-
-    def invert(self):
-        raise NotImplementedError("Subclasses should implement this")
 
     @staticmethod
     def evaluate(x, y, *coeffs):
