@@ -764,7 +764,7 @@ class SkyCoord(object):
         """
         from astropy.wcs.utils import pixel_to_skycoord
 
-        return pixel_to_skycoord(xp, yp, wcs=wc, origin=origin, mode=mode, cls=cls)
+        return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
 
 
