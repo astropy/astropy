@@ -731,7 +731,7 @@ class SkyCoord(object):
         """
         from astropy.wcs.utils import skycoord_to_pixel
 
-        return skycoord_to_pixel(self, wcs=wcs, origin=origin)
+        return skycoord_to_pixel(self, wcs=wcs, origin=origin, mode=mode)
 
     @classmethod
     def from_pixel(cls, xp, yp, wcs, origin=0, mode='all'):
@@ -764,7 +764,7 @@ class SkyCoord(object):
         """
         from astropy.wcs.utils import pixel_to_skycoord
 
-        return pixel_to_skycoord(xp, yp, wcs, origin, mode, cls)
+        return pixel_to_skycoord(xp, yp, wcs=wc, origin=origin, mode=mode, cls)
 
 
 
