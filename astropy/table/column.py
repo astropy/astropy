@@ -64,7 +64,7 @@ class BaseColumn(np.ndarray):
             # BaseColumn with none of the expected attributes.  In this case
             # do NOT execute this block which initializes from ``data``
             # attributes.
-            self_data = np.asarray(data.data, dtype=dtype)
+            self_data = np.array(data.data, dtype=dtype, copy=copy)
             if description is None:
                 description = data.description
             if unit is None:
@@ -77,15 +77,12 @@ class BaseColumn(np.ndarray):
                 name = data.name
         elif isinstance(data, Quantity):
             if unit is None:
-                self_data = np.asarray(data, dtype=dtype)
+                self_data = np.array(data, dtype=dtype, copy=copy)
                 unit = data.unit
             else:
-                self_data = np.asarray(data.to(unit), dtype=dtype)
+                self_data = np.array(data.to(unit), dtype=dtype, copy=copy)
         else:
-            self_data = np.asarray(data, dtype=dtype)
-
-        if copy:
-            self_data = self_data.copy()
+            self_data = np.array(data, dtype=dtype, copy=copy)
 
         self = self_data.view(cls)
         self._name = fix_column_name(name)
