@@ -153,6 +153,9 @@ class Return(object):
         self.inout_state = 'ret'
         self.ctype_ptr = ctype
 
+    def __repr__(self):
+        return "Return(name='{0}', ctype='{1}', inout_state='{2}')".format(self.name, self.ctype, self.inout_state)
+
     @property
     def dtype(self):
         return ctype_to_dtype[self.ctype]
@@ -227,6 +230,10 @@ class Function(object):
         else:
             return result
 
+    def __repr__(self):
+        return "Function(name='{0}', pyname='{1}', filename='{2}', filepath='{3}')".format(self.name, self.pyname, self.filename, self.filepath)
+
+
 
 def main(srcdir, outfn, templateloc):
     from jinja2 import Environment, FileSystemLoader
@@ -295,24 +302,26 @@ def main(srcdir, outfn, templateloc):
     with open(outfn, "w") as f:
         f.write(erfa_pyx)
 
+    return funcs
+
+DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
+                                '../../cextern/erfa')
+DEFAULT_TEMPLATE_LOC = os.path.split(__file__)[0]
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
-    default_erfa_loc = os.path.join(os.path.split(__file__)[0],
-                                    '../../cextern/erfa')
-
     ap = ArgumentParser()
-    ap.add_argument('srcdir', default=default_erfa_loc, nargs='?',
+    ap.add_argument('srcdir', default=DEFAULT_ERFA_LOC, nargs='?',
                     help='Directory where the ERFA c and header files '
                          'can be found or to a single erfa.c file '
                          '(which must be in the same directory as '
                          'erfa.h). Defaults to the builtin astropy '
-                         'erfa: "{0}"'.format(default_erfa_loc))
+                         'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
     ap.add_argument('-o', '--output', default='erfa.pyx',
                     help='the output filename')
     ap.add_argument('-t', '--template-loc',
-                    default=os.path.split(__file__)[0],
+                    default=DEFAULT_TEMPLATE_LOC,
                     help='the location where the "erfa.pyx.templ" '
                          'template can be found.')
 
