@@ -42,6 +42,16 @@ Work-arounds are available for some cases.  For the above::
     <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
                 5., 6., 7., 8., 9.] m>
 
+An incomplete list of specific functions which are known to exhibit this behavior follows.
+
+* `numpy.dot`
+* `numpy.hstack`, `numpy.vstack`, ``numpy.c_``, ``numpy.r_``, `numpy.append`
+* `numpy.where`
+* `numpy.choose`
+* `numpy.vectorize`
+* pandas DataFrame(s)
+
+
 See: https://github.com/astropy/astropy/issues/1274
 
 Quantities float comparison with np.isclose fails
