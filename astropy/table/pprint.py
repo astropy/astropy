@@ -336,7 +336,8 @@ class TableFormatter(object):
         n_print2 = max_lines // 2
         n_rows = len(col)
 
-        col_format = getattr(col, 'format', None)
+        col_format = (col._table_format if hasattr(col, '_table_format')
+                      else getattr(col, 'format', None))
         format_func = _format_funcs.get(col_format, _auto_format_func)
         if len(col) > max_lines:
             if show_length is None:

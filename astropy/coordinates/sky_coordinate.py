@@ -129,6 +129,10 @@ class SkyCoord(object):
             Cartesian coordinates values for the Galactic frame.
     """
 
+
+    # Declare that SkyCoord can be used as a Table columm
+    _astropy_table_compatible = True
+
     def __init__(self, *args, **kwargs):
 
         # Parse the args and kwargs to assemble a sanitized and validated

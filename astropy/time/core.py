@@ -153,6 +153,10 @@ class Time(object):
     # gets called over the __mul__ of Numpy arrays.
     __array_priority__ = 20000
 
+    # Declare that SkyCoord can be used as a Table columm
+    _astropy_table_compatible = True
+    _table_format = None
+
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
                 location=None, copy=False):

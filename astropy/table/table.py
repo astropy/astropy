@@ -39,6 +39,15 @@ __doctest_skip__ = ['Table.read', 'Table.write',
                     ]
 
 
+def is_table_compatible(obj):
+    """
+    Determine if `obj` meets the protocol for a Table column.
+    """
+    # Temporary but minimal test
+    ok = getattr(obj, '_astropy_table_compatible', False)
+    return ok
+
+
 def descr(col):
     """Array-interface compliant full description of a column.
 
@@ -414,6 +423,15 @@ class Table(object):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype,
                                        copy=copy)
+            elif is_table_compatible(col):
+                if copy:
+                    if hasattr(col, 'copy'):
+                        col = col.copy()
+                    else:
+                        from copy import copy as copy_function
+                        col = copy_function(col)
+                col.name = name
+                # TODO: What about dtype?
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
                                        copy=copy)
@@ -481,6 +499,14 @@ class Table(object):
             for name, col in zip(names, cols):
                 if isinstance(col, (self.Column, self.MaskedColumn)):
                     col = self.ColumnClass(col, name=name, copy=copy)
+                elif is_table_compatible(col):
+                    # Non-Column objects that are compatible with Table
+                    try:
+                        col = col.__class__(col, copy=copy)
+                    except:
+                        col = col.__class__(col)
+                    col.name = name
+                    # TODO: What about dtype?
                 else:
                     raise ValueError('Elements in Table initialization must be '
                                      'either Column or Table compatible')
@@ -831,6 +857,9 @@ class Table(object):
             name = item
             if isinstance(value, BaseColumn):
                 new_column = value.copy(copy_data=False)
+                new_column.name = name
+            elif is_table_compatible(value):
+                new_column = value
                 new_column.name = name
             elif len(self) == 0:
                 new_column = NewColumn(value, name=name)
