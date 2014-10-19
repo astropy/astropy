@@ -39,15 +39,6 @@ __doctest_skip__ = ['Table.read', 'Table.write',
                     ]
 
 
-def is_table_compatible(obj):
-    """
-    Determine if `obj` meets the protocol for a Table column.
-    """
-    # Temporary but minimal test
-    ok = getattr(obj, '_astropy_table_compatible', False)
-    return ok
-
-
 def descr(col):
     """Array-interface compliant full description of a column.
 
@@ -157,6 +148,8 @@ class Table(object):
         Copy the input data (default=True).
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument
+    use_quantity : bool
+        Use Quantity class to represent unmasked columns with units
     """
 
     meta = MetaData()
@@ -204,12 +197,14 @@ class Table(object):
         return data
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None):
+                 meta=None, copy=True, rows=None, use_quantity=None):
 
         # Set up a placeholder empty table
         self._set_masked(masked)
         self.columns = self.TableColumns()
         self.meta = meta
+        if use_quantity is not None:
+            self.use_quantity = use_quantity
         self.formatter = self.TableFormatter()
 
         # Must copy if dtype are changing
@@ -301,11 +296,11 @@ class Table(object):
             raise TypeError("masked property has not been set to True or False")
 
     def __getstate__(self):
-        return (self.columns.values(), self.meta)
+        return (self.columns.values(), self.meta, self.use_quantity)
 
     def __setstate__(self, state):
-        columns, meta = state
-        self.__init__(columns, meta=meta)
+        columns, meta, use_quantity = state
+        self.__init__(columns, meta=meta, use_quantity=use_quantity)
 
     @property
     def mask(self):
@@ -324,6 +319,19 @@ class Table(object):
     def _mask(self):
         """This is needed due to intricacies in numpy.ma, don't remove it."""
         return self.as_array().mask
+
+    @property
+    def use_quantity(self):
+        if not hasattr(self, '_use_quantity'):
+            self._use_quantity = False
+        return self._use_quantity
+
+    @use_quantity.setter
+    def use_quantity(self, val):
+        if hasattr(self, '_use_quantity'):
+            raise ValueError('Cannot set use_quantity once it has already been set')
+        else:
+            self._use_quantity = bool(val)
 
     def filled(self, fill_value=None):
         """Return a copy of self, with masked values filled.
@@ -347,7 +355,8 @@ class Table(object):
             data = [col.filled(fill_value) for col in six.itervalues(self.columns)]
         else:
             data = self
-        return self.__class__(data, meta=deepcopy(self.meta))
+        return self.__class__(data, meta=deepcopy(self.meta),
+                              use_quantity=self.use_quantity)
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
@@ -423,7 +432,7 @@ class Table(object):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype,
                                        copy=copy)
-            elif is_table_compatible(col):
+            elif self._is_table_compatible(col):
                 if copy:
                     if hasattr(col, 'copy'):
                         col = col.copy()
@@ -484,6 +493,9 @@ class Table(object):
         data_names = table.colnames
         self.meta.clear()
         self.meta.update(deepcopy(table.meta))
+        # If not use_quantity not explicitly set then inherit from table
+        if not hasattr(self, '_use_quantity'):
+            self.use_quantity = table.use_quantity
         cols = list(six.itervalues(table.columns))
 
         # Set self.masked appropriately from cols
@@ -499,7 +511,7 @@ class Table(object):
             for name, col in zip(names, cols):
                 if isinstance(col, (self.Column, self.MaskedColumn)):
                     col = self.ColumnClass(col, name=name, copy=copy)
-                elif is_table_compatible(col):
+                elif self._is_table_compatible(col):
                     # Non-Column objects that are compatible with Table
                     try:
                         col = col.__class__(col, copy=copy)
@@ -537,7 +549,7 @@ class Table(object):
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
 
-        table = self.__class__(masked=self.masked)
+        table = self.__class__(masked=self.masked, use_quantity=self.use_quantity)
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
@@ -607,6 +619,16 @@ class Table(object):
         return six.text_type(self).encode('utf-8')
     if six.PY2:
         __str__ = __bytes__
+
+    def _is_table_compatible(self, obj):
+        """
+        Determine if `obj` meets the protocol for a Table column.
+        """
+        if isinstance(obj, Quantity):
+            ok = self.use_quantity
+        else:
+            ok = getattr(obj, '_astropy_table_compatible', False)
+        return ok
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
                show_unit=None, show_dtype=False):
@@ -820,7 +842,8 @@ class Table(object):
             if bad_names:
                 raise ValueError('Slice name(s) {0} not valid column name(s)'
                                  .format(', '.join(bad_names)))
-            out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
+            out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta),
+                                 use_quantity=self.use_quantity)
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
             return out
@@ -858,7 +881,7 @@ class Table(object):
             if isinstance(value, BaseColumn):
                 new_column = value.copy(copy_data=False)
                 new_column.name = name
-            elif is_table_compatible(value):
+            elif self._is_table_compatible(value):
                 new_column = value
                 new_column.name = name
             elif len(self) == 0:
