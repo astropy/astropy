@@ -400,33 +400,37 @@ class Table(object):
             if any(np.any(col.mask) for col in cols if isinstance(col, (MaskedColumn, ma.MaskedArray))):
                 self._set_masked(True)
 
+    def _init_from_list_of_dicts(self, data, names, dtype, n_cols, copy):
+        names_from_data = set()
+        for row in data:
+            names_from_data.update(row)
+
+        cols = {}
+        for name in names_from_data:
+            cols[name] = []
+            for i, row in enumerate(data):
+                try:
+                    cols[name].append(row[name])
+                except KeyError:
+                    raise ValueError('Row {0} has no value for column {1}'.format(i, name))
+        if all(name is None for name in names):
+            names = sorted(names_from_data)
+        self._init_from_dict(cols, names, dtype, n_cols, copy)
+        return
+
     def _init_from_list(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of columns.  A column can be a
         Column object, np.ndarray, or any other iterable object.
         """
+        if data and all(isinstance(row, dict) for row in data):
+            self._init_from_list_of_dicts(data, names, dtype, n_cols, copy)
+            return
+
         # Set self.masked appropriately, then get class to create column instances.
         self._set_masked_from_cols(data)
 
         cols = []
         def_names = _auto_names(n_cols)
-
-        if data and all(isinstance(row, dict) for row in data):
-            names_from_data = set()
-            for row in data:
-                names_from_data.update(row)
-
-            cols = {}
-            for name in names_from_data:
-                cols[name] = []
-                for i, row in enumerate(data):
-                    try:
-                        cols[name].append(row[name])
-                    except KeyError:
-                        raise ValueError('Row {0} has no value for column {1}'.format(i, name))
-            if all(name is None for name in names):
-                names = sorted(names_from_data)
-            self._init_from_dict(cols, names, dtype, n_cols, copy)
-            return
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
@@ -1686,11 +1690,7 @@ class Table(object):
         # If no errors have been raised, then the table can be resized
         columns = self.TableColumns()
         for name, col in self.columns.items():
-<<<<<<< HEAD
             newcol = self.ColumnClass(length=newlen, dtype=col.dtype, shape=col.shape[1:], name=name,
-=======
-            newcol = self.ColumnClass(length=newlen, dtype=col.dtype, name=name,
->>>>>>> Continued migration, down 117 test fails
                                       description=col.description, unit=col.unit,
                                       format=col.format, meta=deepcopy(col.meta))
 
