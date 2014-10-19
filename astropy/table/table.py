@@ -490,41 +490,14 @@ class Table(object):
         """Initialize table from an existing Table object """
 
         table = data  # data is really a Table, rename for clarity
-        data_names = table.colnames
         self.meta.clear()
         self.meta.update(deepcopy(table.meta))
         # If not use_quantity not explicitly set then inherit from table
         if not hasattr(self, '_use_quantity'):
             self.use_quantity = table.use_quantity
-        cols = list(six.itervalues(table.columns))
+        cols = list(table.columns.values())
 
-        # Set self.masked appropriately from cols
-        self._set_masked_from_cols(cols)
-
-        if copy:
-            self._init_from_list(cols, names, dtype, n_cols, copy)
-        else:
-            # Make new columns with possibly new names, but with references to the
-            # original data values.
-            names = [vals[0] or vals[1] for vals in zip(names, data_names)]
-            newcols = []
-            for name, col in zip(names, cols):
-                if isinstance(col, (self.Column, self.MaskedColumn)):
-                    col = self.ColumnClass(col, name=name, copy=copy)
-                elif self._is_table_compatible(col):
-                    # Non-Column objects that are compatible with Table
-                    try:
-                        col = col.__class__(col, copy=copy)
-                    except:
-                        col = col.__class__(col)
-                    col.name = name
-                    # TODO: What about dtype?
-                else:
-                    raise ValueError('Elements in Table initialization must be '
-                                     'either Column or Table compatible')
-                newcols.append(col)
-
-            self._update_table_from_cols(self, newcols)
+        self._init_from_list(cols, names, dtype, n_cols, copy)
 
     def _init_from_cols(self, cols):
         """Initialize table from a list of Column objects"""
