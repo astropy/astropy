@@ -13,9 +13,6 @@ import re
 import os.path
 
 
-__all__ = ['Function']
-
-
 ctype_to_dtype = {'double'       : "numpy.double",
                   'double *'     : "numpy.double",
                   'int'          : "numpy.int",
@@ -296,13 +293,17 @@ def main(srcdir, outfn, templateloc):
                                          "found in the string that "
                                          "spawned it.  This should be "
                                          "impossible!")
-    print("Done!")
-    #Render the template and save
+    print("Rendering template")
     erfa_pyx = erfa_pyx_in.render(funcs=funcs)
-    with open(outfn, "w") as f:
-        f.write(erfa_pyx)
 
-    return funcs
+    if outfn is not None:
+        print("Saving to", outfn)
+        with open(outfn, "w") as f:
+            f.write(erfa_pyx)
+
+    print("Done!")
+
+    return erfa_pyx, funcs
 
 DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
                                 '../../cextern/erfa')
