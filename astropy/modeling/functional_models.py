@@ -633,7 +633,16 @@ class Const1D(Fittable1DModel):
     def eval(x, amplitude):
         """One dimensional Constant model function"""
 
-        return amplitude * np.ones_like(x)
+        if amplitude.size == 1:
+            # This is slighly faster than using ones_like and multiplying
+            x = np.empty_like(x)
+            x.fill(amplitude.item())
+        else:
+            # This case is less likely but could occur if the amplitude
+            # parameter is given an array-like value
+            x = amplitude * np.ones_like(x)
+
+        return x
 
     @staticmethod
     def fit_deriv(x, amplitude):
@@ -673,7 +682,16 @@ class Const2D(Fittable2DModel):
     def eval(x, y, amplitude):
         """Two dimensional Constant model function"""
 
-        return amplitude * np.ones_like(x)
+        if amplitude.size == 1:
+            # This is slighly faster than using ones_like and multiplying
+            x = np.empty_like(x)
+            x.fill(amplitude.item())
+        else:
+            # This case is less likely but could occur if the amplitude
+            # parameter is given an array-like value
+            x = amplitude * np.ones_like(x)
+
+        return x
 
 
 class Disk2D(Fittable2DModel):
