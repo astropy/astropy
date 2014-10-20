@@ -460,6 +460,35 @@ class BaseHeader(object):
             raise ValueError('Unknown data type ""%s"" for column "%s"' % (
                 col.raw_type, col.name))
 
+    def check_column_names(self, names, strict_names, guessing):
+        """Check column names.
+
+        This must be done before applying the names transformation
+        so that guessing will fail appropriately if `names` is supplied.
+        For instance if the basic reader is given a table with no column header
+        row.
+
+        :param names: user-supplied list of column names
+        :param strict_names: whether to impose extra requirements on names
+        """
+        if strict_names:
+            # Impose strict requirements on column names (normally used in guessing)
+            bads = [" ", ",", "|", "\t", "'", '"']
+            for name in self.colnames:
+                if (_is_number(name) or
+                    len(name) == 0 or
+                    name[0] in bads or
+                    name[-1] in bads):
+                    raise ValueError('Column name {0!r} does not meet strict name requirements'
+                                     .format(name))
+        # When guessing require at least two columns
+        if guessing and len(self.colnames) <= 1:
+            raise ValueError
+
+        if names is not None and len(names) != len(self.colnames):
+            raise ValueError('Length of names argument ({0}) does not match number'
+                             ' of table columns ({1})'.format(len(names), len(self.colnames)))
+
 
 class BaseData(object):
     """Base table data reader.
@@ -762,36 +791,17 @@ def _is_number(x):
         return True
     return False
 
-
-def _apply_include_exclude_names(table, names, include_names, exclude_names, strict_names):
+def _apply_include_exclude_names(table, names, include_names, exclude_names):
     """Apply names, include_names and exclude_names to a table.
 
     :param table: input table (Reader object, NumPy struct array, list of lists, etc)
     :param names: list of names to override those in table (default=None uses existing names)
     :param include_names: list of names to include in output (default=None selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param strict_names: apply strict checks on column names
     """
-    # Check column names.  This must be done before applying the names transformation
-    # so that guessing will fail appropriately if `names` is supplied.  For instance
-    # if the basic reader is given a table with no column header row.
-    if strict_names:
-        # Impose strict requirements on column names (normally used in guessing)
-        bads = [" ", ",", "|", "\t", "'", '"']
-        for name in table.colnames:
-            if (_is_number(name) or
-                    len(name) == 0 or
-                    name[0] in bads or
-                    name[-1] in bads):
-                raise ValueError('Column name {0!r} does not meet strict name requirements'
-                                 .format(name))
 
     if names is not None:
         # Rename table column names to those passed by user
-        if len(names) != len(table.colnames):
-            raise ValueError('Length of names argument ({0}) does not match number'
-                             ' of table columns ({1})'.format(len(names), len(table.colnames)))
-
         # Temporarily rename with names that are not in `names` or `table.colnames`.
         # This ensures that rename succeeds regardless of existing names.
         xxxs = 'x' * max(len(name) for name in list(names) + list(table.colnames))
@@ -830,6 +840,7 @@ class BaseReader(object):
     include_names = None
     exclude_names = None
     strict_names = False
+    guessing = False
 
     header_class = BaseHeader
     data_class = BaseData
@@ -889,9 +900,12 @@ class BaseReader(object):
         # Get the table column definitions
         self.header.get_cols(self.lines)
 
+        # Make sure columns are valid
+        self.header.check_column_names(self.names, self.strict_names, self.guessing)
+
         self.cols = cols = self.header.cols
-        n_cols = len(cols)
         self.data.splitter.cols = cols
+        n_cols = len(cols)
 
         for i, str_vals in enumerate(self.data.get_str_vals()):
             if len(str_vals) != n_cols:
@@ -916,8 +930,7 @@ class BaseReader(object):
         self.data.masks(cols)
         table = self.outputter(cols, self.meta)
 
-        _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names,
-                                     self.strict_names)
+        _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 
         return table
 
@@ -960,12 +973,17 @@ class BaseReader(object):
         :returns: list of strings corresponding to ASCII table
         """
 
-        _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names,
-                                     self.strict_names)
-
-        # link information about the columns to the writer object (i.e. self)
+        # Check column names before altering
         self.header.cols = list(six.itervalues(table.columns))
-        self.data.cols = list(six.itervalues(table.columns))
+        self.header.check_column_names(self.names, self.strict_names, False)
+
+        _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
+
+        # Now use altered columns
+        new_cols = list(six.itervalues(table.columns))
+        # link information about the columns to the writer object (i.e. self)
+        self.header.cols = new_cols
+        self.data.cols = new_cols
 
         # Write header and data to lines list
         lines = []
@@ -1106,7 +1124,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
     # Strict names is normally set only within the guessing process to
     # indicate that column names cannot be numeric or have certain
     # characters at the beginning or end.  It gets used in
-    # core._apply_include_exclude_names().
+    # BaseHeader.check_column_names().
     if 'strict_names' in kwargs:
         reader.strict_names = kwargs['strict_names']
     if 'fill_values' in kwargs:

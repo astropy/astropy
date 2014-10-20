@@ -20,6 +20,8 @@ class FastBasic(object):
     _description = 'Basic table with custom delimiter using the fast C engine'
     _fast = True
     fill_extra_cols = False
+    guessing = False
+    strict_names = False
 
     def __init__(self, default_kwargs={}, **user_kwargs):
         kwargs = default_kwargs.copy()
@@ -85,6 +87,7 @@ class FastBasic(object):
                                       fill_extra_cols=self.fill_extra_cols,
                                       **self.kwargs)
         conversion_info = self._read_header()
+        self.check_header()
         if conversion_info is not None:
             try_int, try_float, try_string = conversion_info
         else:
@@ -94,6 +97,21 @@ class FastBasic(object):
 
         data = self.engine.read(try_int, try_float, try_string)
         return Table(data, names=list(self.engine.get_names()))
+
+    def check_header(self):
+        if self.strict_names:
+            # Impose strict requirements on column names (normally used in guessing)
+            bads = [" ", ",", "|", "\t", "'", '"']
+            for name in self.engine.get_names():
+                if (_is_number(name) or
+                    len(name) == 0 or
+                    name[0] in bads or
+                    name[-1] in bads):
+                    raise ValueError('Column name {0!r} does not meet strict name requirements'
+                                     .format(name))
+        # When guessing require at least two columns
+        if self.guessing and len(self.engine.get_names()) <= 1:
+            raise ValueError
 
     def write(self, table, output):
         """

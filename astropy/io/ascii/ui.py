@@ -196,24 +196,17 @@ def _guess(table, read_kwargs, format, fast_reader):
             # user supplies delimiter="|" but the guess wants to try delimiter=" ",
             # so skip the guess entirely.
             continue
-
         try:
             # If guessing will try all Readers then use strict req'ts on column names
             if 'Reader' not in read_kwargs:
                 guess_kwargs['strict_names'] = True
 
             reader = get_reader(**guess_kwargs)
-            dat = reader.read(table)
-
-            # When guessing require at least two columns
-            if len(dat.colnames) <= 1:
-                del dat
-                raise ValueError
-
-            return dat
+            reader.guessing = True
+            return reader.read(table)
 
         except (core.InconsistentTableError, ValueError, TypeError,
-                core.OptionalTableImportError, core.ParameterError, cparser.CParserError) as e:
+                core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(guess_kwargs)
     else:
         # failed all guesses, try the original read_kwargs without column requirements
