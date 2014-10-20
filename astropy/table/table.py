@@ -15,7 +15,7 @@ from numpy import ma
 
 from .. import log
 from ..io import registry as io_registry
-from ..units import Quantity
+from ..units import Quantity, Unit
 from ..utils import OrderedDict, isiterable, deprecated
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
@@ -118,6 +118,12 @@ class TableColumns(OrderedDict):
         return list(OrderedDict.values(self))
 
 
+class QTable(object):
+    def __new__(cls, data=None, masked=None, names=None, dtype=None,
+                 meta=None, copy=True, rows=None, use_quantity=True):
+        return Table(data, masked, names, dtype, meta, copy, rows, use_quantity)
+
+
 class Table(object):
     """A class to represent tables of heterogeneous data.
 
@@ -197,14 +203,13 @@ class Table(object):
         return data
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None, use_quantity=None):
+                 meta=None, copy=True, rows=None, use_quantity=False):
 
         # Set up a placeholder empty table
         self._set_masked(masked)
         self.columns = self.TableColumns()
         self.meta = meta
-        if use_quantity is not None:
-            self.use_quantity = use_quantity
+        self.use_quantity = use_quantity
         self.formatter = self.TableFormatter()
 
         # Must copy if dtype are changing
@@ -322,16 +327,14 @@ class Table(object):
 
     @property
     def use_quantity(self):
-        if not hasattr(self, '_use_quantity'):
-            self._use_quantity = False
         return self._use_quantity
 
     @use_quantity.setter
     def use_quantity(self, val):
-        if hasattr(self, '_use_quantity'):
-            raise ValueError('Cannot set use_quantity once it has already been set')
-        else:
-            self._use_quantity = bool(val)
+        val = bool(val)
+        if hasattr(self, '_use_quantity') and val != self._use_quantity:
+            raise ValueError('Cannot change use_quantity attribute')
+        self._use_quantity = val
 
     def filled(self, fill_value=None):
         """Return a copy of self, with masked values filled.
@@ -496,9 +499,6 @@ class Table(object):
         table = data  # data is really a Table, rename for clarity
         self.meta.clear()
         self.meta.update(deepcopy(table.meta))
-        # If not use_quantity not explicitly set then inherit from table
-        if not hasattr(self, '_use_quantity'):
-            self.use_quantity = table.use_quantity
         cols = list(table.columns.values())
 
         self._init_from_list(cols, names, dtype, n_cols, copy)
@@ -517,6 +517,21 @@ class Table(object):
         # Make sure that all Column-based objects have class self.ColumnClass
         newcols = []
         for col in cols:
+            if (not self.masked and self.use_quantity
+                    and isinstance(col, Column) and hasattr(col, 'unit')
+                    and col.unit is not None):
+                try:
+                    qcol = Quantity(col, unit=col.unit, copy=False)
+                except:
+                    pass
+                else:
+                    qcol.name = col.name
+                    qcol.description = col.description
+                    qcol.format = col.format
+                    qcol.meta = deepcopy(col.meta)
+                    newcols.append(qcol)
+                    continue
+
             if isinstance(col, Column) and not col.__class__ is self.ColumnClass:
                 col = self.ColumnClass(col)  # copy attributes and reference data
             newcols.append(col)
@@ -1864,7 +1879,7 @@ class Table(object):
             If `True` (the default), copy the underlying data array.
             Otherwise, use the same data array
         '''
-        out = self.__class__(self, copy=copy_data)
+        out = self.__class__(self, copy=copy_data, use_quantity=self.use_quantity)
 
         # If the current table is grouped then do the same in the copy
         if hasattr(self, '_groups'):
