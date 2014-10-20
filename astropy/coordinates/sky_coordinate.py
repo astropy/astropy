@@ -34,11 +34,12 @@ class SkyCoord(object):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
 
-    The `SkyCoord` class accepts a wide variety of inputs for initialization.
-    At a minimum these must provide one or more celestial coordinate values
-    with unambiguous units.  Typically one also specifies the coordinate
-    frame, though this is not required.  The general pattern is for spherical
-    representations is::
+    The `SkyCoord` class accepts a wide variety of inputs for initialization. At
+    a minimum these must provide one or more celestial coordinate values with
+    unambiguous units.  Inputs may be scalars or lists/tuples/arrays, yielding
+    scalar or array coordinates (can be checked via ``SkyCoord.isscalar``).
+    Typically one also specifies the coordinate frame, though this is not
+    required. The general pattern for spherical representations is::
 
       SkyCoord(COORD, [FRAME], keyword_args ...)
       SkyCoord(LON, LAT, [FRAME], keyword_args ...)
@@ -82,6 +83,8 @@ class SkyCoord(object):
       >>> c = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
 
       >>> c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic', representation='cartesian')
+
+      >>> c = SkyCoord([ICRS(ra=1*u.deg, dec=2*u.deg), ICRS(ra=3*u.deg, dec=4*u.deg)])
 
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
@@ -857,10 +860,14 @@ def _parse_coordinate_arg(coords, frame, units):
     """
     Single unnamed arg supplied.  This must be:
     - Coordinate frame with data
+    - SkyCoord
     - Representation
     - List or tuple of:
       - String which splits into two values
       - Iterable with two values
+      - Coordinate frame with scalar data
+      - SkyCoord with scalar data
+      - Representation with scalar data
     """
     is_scalar = False  # Differentiate between scalar and list input
     valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
@@ -924,32 +931,109 @@ def _parse_coordinate_arg(coords, frame, units):
 
             vals.append(coord)  # This assumes coord is a sequence at this point
 
-        # Do some basic validation of the list elements: all have a length and all
-        # lengths the same
-        try:
-            n_coords = sorted(set(len(x) for x in vals))
-        except:
-            raise ValueError('One or more elements of input sequence does not have a length')
+        # Now check to see if the first element is a SkyCoord or frame or a
+        # representation.  If so, we do some validation and then short-circuit
+        # try to construct a consistent frame
+        if isinstance(vals[0], (SkyCoord, BaseCoordinateFrame)):
+            if not all([v.has_data for v in vals]):
+                raise ValueError("Gave a list of SkyCoord or frames to "
+                                 "SkyCoord, but they do not all have data.")
 
-        if len(n_coords) > 1:
-            raise ValueError('Input coordinate values must have same number of elements, found {0}'
-                             .format(n_coords))
-        n_coords = n_coords[0]
+            # the baseline object is just the first in the list
+            templateobj = vals[0]
 
-        # Must have no more coord inputs than representation attributes
-        if n_coords > n_attr_names:
-            raise ValueError('Input coordinates have {0} values but {1} representation '
-                             'only accepts {2}'
-                             .format(n_coords, frame.representation.get_name(), n_attr_names))
+            # try to convert them all to a shared frame from the first
+            # element of the list
+            sharedframe = getattr(templateobj, 'frame', templateobj)
+            convertedframes = [v.transform_to(sharedframe) for v in vals]
 
-        # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
-        # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
-        # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
-        # while (a1, a2, ..) doesn't work.
-        values = [list(x) for x in zip(*vals)]
+            #now pull apart the components of each and re-assemble into a
+            #single frame object.
+            component_dct = {}
+            for component in templateobj.data.components:
+                component_data = []
+                for f in convertedframes:
+                    fcdata = getattr(f.data, component)
+                    if fcdata.isscalar:
+                        component_data.append(fcdata)
+                    else:
+                        component_data.extend(fcdata.ravel())
+                component_dct[component] = u.Quantity(component_data)
+            reassembledrepres = templateobj.data.__class__(**component_dct)
+            reassembledframe = templateobj.realize_frame(reassembledrepres)
 
-        if is_scalar:
-            values = [x[0] for x in values]
+            #now convert into the requested frame, extract the data, and copy
+            #over relevant attributes
+            data = reassembledframe.transform_to(frame).data.represent_as(frame.representation)
+
+            values = []  # List of values corresponding to representation attrs
+            for repr_attr_name in repr_attr_names:
+                # If coords did not have an explicit distance then don't include in initializers.
+                if (isinstance(templateobj.data, UnitSphericalRepresentation) and
+                        repr_attr_name == 'distance'):
+                    continue
+
+                # Get the value from `data` in the eventual representation
+                values.append(getattr(data, repr_attr_name))
+
+            for attr in FRAME_ATTR_NAMES_SET():
+                value = getattr(templateobj, attr, None)
+                use_value = (isinstance(templateobj, SkyCoord)
+                             or attr not in templateobj._attr_names_with_defaults)
+                if use_value and value is not None:
+                    valid_kwargs[attr] = value
+
+        elif isinstance(vals[0], BaseRepresentation):
+            # split the components of the representations out into pieces, when
+            # necessary converting to the same representation.  Then re-assemble
+            # into a single representation object
+            represcls = vals[0].__class__
+            component_dct = {}
+            for component in vals[0].components:
+                compdata = []
+                for v in vals:
+                    if isinstance(v, represcls):
+                        vcomp = getattr(v, component)
+                    else:
+                        vcomp = getattr(v.represent_as(represcls), component)
+                    if vcomp.isscalar:
+                        compdata.append(vcomp)
+                    else:
+                        compdata.extend(vcomp.ravel())
+                component_dct[component] = u.Quantity(compdata)
+            valrepr = represcls(**component_dct)
+
+            # now convert to the actual requested representation for the desired frame
+            data = valrepr.represent_as(frame.representation)
+            values = [getattr(data, repr_attr_name) for repr_attr_name in repr_attr_names]
+
+        else:
+            # Do some basic validation of the list elements: all have a length
+            # and all lengths the same
+            try:
+                n_coords = sorted(set(len(x) for x in vals))
+            except:
+                raise ValueError('One or more elements of input sequence does not have a length')
+
+            if len(n_coords) > 1:
+                raise ValueError('Input coordinate values must have same number of elements, found {0}'
+                                 .format(n_coords))
+            n_coords = n_coords[0]
+
+            # Must have no more coord inputs than representation attributes
+            if n_coords > n_attr_names:
+                raise ValueError('Input coordinates have {0} values but {1} representation '
+                                 'only accepts {2}'
+                                 .format(n_coords, frame.representation.get_name(), n_attr_names))
+
+            # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
+            # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
+            # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
+            # while (a1, a2, ..) doesn't work.
+            values = [list(x) for x in zip(*vals)]
+
+            if is_scalar:
+                values = [x[0] for x in values]
 
     else:
         raise ValueError('Cannot parse coordinates from first argument')

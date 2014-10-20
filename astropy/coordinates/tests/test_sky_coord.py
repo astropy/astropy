@@ -710,6 +710,67 @@ def test_units_known_fail():
     with pytest.raises(u.UnitsError):
         SkyCoord(1, 2, 3, unit=u.deg, representation='spherical')
 
+
 def test_nodata_failure():
     with pytest.raises(ValueError):
         SkyCoord()
+
+
+def test_create_w_list_of_reprs():
+    """
+    Try to create a single skycoord with a list of scalar representations
+    """
+    rscalar1 = SphericalRepresentation(lon=7*u.deg, lat=5*u.deg, distance=1*u.kpc)
+    rscalar2 = SphericalRepresentation(lon=8*u.deg, lat=5*u.deg, distance=1*u.kpc)
+    scsc = SkyCoord([rscalar1, rscalar2])
+
+    assert scsc.ra[0] == rscalar1.lon
+    assert scsc.ra[1] == rscalar2.lon
+
+    rarr = SphericalRepresentation(lon=[8, 8.1]*u.deg, lat=[5, 5.1]*u.deg, distance=[1, 1.1]*u.kpc)
+    scarr = SkyCoord([rscalar1, rarr])
+    assert len(scarr) == 3
+
+    r2d = SphericalRepresentation([[1,2],[3,4]]*u.deg, [[5,6],[7,8]]*u.deg, distance=1*u.kpc)
+    assert SkyCoord([r2d, rscalar1]).shape == (5,)
+
+
+def test_create_w_list_of_frames():
+    """
+    Try to create a single skycoord with a list of frame objects or SkyCoords
+    """
+    scalarsc1 = SkyCoord(5*u.deg, 6*u.deg)
+    scalarsc2 = SkyCoord(7*u.deg, 8*u.deg)
+
+    scsc = SkyCoord([scalarsc1, scalarsc2])
+    assert scsc.ra[0] == scalarsc1.ra
+    assert scsc.ra[1] == scalarsc2.ra
+
+    frame1 = ICRS(1*u.deg, 2*u.deg)
+    frame2 = FK5(3*u.deg, 4*u.deg)
+
+    framesc = SkyCoord([frame1, frame2])
+    assert framesc.ra[0] == frame1.ra
+    assert framesc.ra[1] != frame2.ra  # because FK5 got converted to ICRS
+
+    framescfk5 = SkyCoord([frame1, frame2], frame='fk5')
+    # this time the conversion went the other way, but at the *end*, so there's
+    # floating point error
+    assert not np.allclose(framescfk5.ra[0], frame1.ra, rtol=1e-10)
+    assert np.allclose(framescfk5.ra[1], frame2.ra, rtol=1e-10)
+
+    # now both should be different
+    framescfk4 = SkyCoord([frame1, frame2], frame='fk4')
+    assert not np.allclose(framescfk4.ra[0], frame1.ra, rtol=1e-8)
+    assert not np.allclose(framescfk4.ra[1], frame2.ra, rtol=1e-8)
+
+    scarr = SkyCoord([framesc, scalarsc1])
+    assert len(scarr) == 3
+
+    #check that nd arrays get flattened
+    sc2d = SkyCoord([[1,2],[3,4]]*u.deg, [[5,6],[7,8]]*u.deg)
+    assert SkyCoord([sc2d, scalarsc1]).shape == (5,)
+
+    with pytest.raises(ValueError):
+        #data-less frame should fail
+        SkyCoord([frame1, ICRS()])
