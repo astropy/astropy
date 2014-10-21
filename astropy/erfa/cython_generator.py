@@ -5,6 +5,9 @@ of erfa.pyx when ERFA is updated (or this generator is enhanced).
 
 `Jinja2 <http://jinja.pocoo.org/>`_ must be installed for this
 module/script to function.
+
+Note that this does *not* currently automate the process of creating structs
+or dtypes for those structs.  The should be added manually in the template file.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
