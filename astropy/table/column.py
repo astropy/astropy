@@ -817,6 +817,20 @@ class MaskedColumn(Column, ma.MaskedArray):
                          meta=deepcopy(self.meta))
         return out
 
+    def __getitem__(self, item):
+        out = super(MaskedColumn, self).__getitem__(item)
+
+        # Fixes issue #3023: when calling getitem with a MaskedArray subclass
+        # the original object attributes are not copied.
+        if out.__class__ is self.__class__:
+            out.parent_table = None
+            for attr in ('name', 'unit', 'format', 'description'):
+                val = getattr(self, attr, None)
+                setattr(out, attr, val)
+            out.meta = deepcopy(getattr(self, 'meta', {}))
+
+        return out
+
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name
     copy = BaseColumn.copy

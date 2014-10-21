@@ -45,6 +45,9 @@ Bug Fixes
 
   - Fix a bug that caused join to fail for multi-dimensional columns. [#2984]
 
+  - Fix a bug where MaskedColumn attributes which had been changed since
+    the object was created were not being carried through when slicing. [#3023]
+
 - ``astropy.time``
 
 - ``astropy.units``
