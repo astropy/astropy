@@ -423,7 +423,7 @@ class Table(object):
         if copy:
             self._init_from_list(cols, names, dtype, n_cols, copy)
         else:
-            dtype = [(name, col.dtype) for name, col in zip(names, cols)]
+            dtype = [(name, col.dtype, col.shape[1:]) for name, col in zip(names, cols)]
             self._data = data.view(dtype).ravel()
             columns = self.TableColumns()
 

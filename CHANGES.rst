@@ -48,6 +48,9 @@ Bug Fixes
   - Fix a bug where MaskedColumn attributes which had been changed since
     the object was created were not being carried through when slicing. [#3023]
 
+  - Fix a bug that prevented initializing a table from a structured array
+    with multi-dimensional columns with copy=True. [#3034]
+
 - ``astropy.time``
 
 - ``astropy.units``

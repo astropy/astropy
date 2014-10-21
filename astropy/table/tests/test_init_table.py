@@ -433,3 +433,27 @@ class TestInitFromRows():
         with pytest.raises(ValueError) as err:
             table_type(data=[[1]], rows=[[1]])
         assert "Cannot supply both `data` and `rows` values" in str(err)
+
+@pytest.mark.usefixtures('table_type')
+def test_init_and_ref_from_multidim_ndarray(table_type):
+    """
+    Test that initializing from an ndarray structured array with
+    a multi-dim column works for both copy=False and True and that
+    the referencing is as expected.
+    """
+    for copy in (False, True):
+        nd = np.array([(1, [10, 20]),
+                       (3, [30, 40])],
+                      dtype=[(str('a'), 'i8'), (str('b'), 'i8', (2,))])
+        t = table_type(nd, copy=copy)
+        assert t.colnames == ['a', 'b']
+        assert t['a'].shape == (2,)
+        assert t['b'].shape == (2, 2)
+        t['a'][0] = -200
+        t['b'][1][1] = -100
+        if copy:
+            assert nd[str('a')][0] == 1
+            assert nd[str('b')][1][1] == 40
+        else:
+            assert nd[str('a')][0] == -200
+            assert nd[str('b')][1][1] == -100
