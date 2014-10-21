@@ -15,8 +15,8 @@ import os.path
 
 ctype_to_dtype = {'double'       : "numpy.double",
                   'double *'     : "numpy.double",
-                  'int'          : "numpy.int",
-                  'int *'        : "numpy.int",
+                  'int'          : "numpy.intc",
+                  'int *'        : "numpy.intc",
                   'int[4]'       : "numpy.dtype([('', 'i', (4,))])",
                   'double[2]'    : "numpy.dtype([('', 'd', (2,))])",
                   'double[3]'    : "numpy.dtype([('p', 'd', (3,))])",
@@ -33,6 +33,7 @@ class FunctionDoc(object):
         self.doc = doc.replace("**", "  ").replace("/*", "  ").replace("*/", "  ")
         self.__input = None
         self.__output = None
+        self.__ret_info = None
 
     @property
     def input(self):
@@ -73,6 +74,23 @@ class FunctionDoc(object):
                     if arg_doc.name is not None:
                         self.__output.append(arg_doc)
         return self.__output
+
+    @property
+    def ret_info(self):
+        if self.__ret_info is None:
+            ret_info = []
+            result = re.search("Returned \\(function value\\)([^\n]*):\n(.+?)  \n", self.doc, re.DOTALL)
+            if result is not None:
+                ret_info.append(ReturnDoc(result.group(2)))
+
+            if len(ret_info) == 0:
+                self.__ret_info = ''
+            elif len(ret_info) == 1:
+                self.__ret_info = ret_info[0]
+            else:
+                raise ValueError("Multiple C return sections found in this doc:\n" + self.doc)
+
+        return self.__ret_info
 
     def __repr__(self):
         return self.doc
@@ -142,13 +160,44 @@ class Argument(object):
         return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
 
 
+class ReturnDoc(object):
+
+    def __init__(self, doc):
+        self.doc = doc
+
+        self.infoline = doc.split('\n')[0].strip()
+        self.type = self.infoline.split()[0]
+        self.descr = self.infoline.split()[1]
+
+        if self.descr.startswith('status'):
+            self.statuscodes = statuscodes = {}
+
+            code = None
+            for line in doc[doc.index(':')+1:].split('\n'):
+                ls = line.strip()
+                if ls != '':
+                    if ' = ' in ls:
+                        code, msg = ls.split(' = ')
+                        if code != 'else':
+                            code = int(code)
+                        statuscodes[code] = msg
+                    elif code is not None:
+                        statuscodes[code] += ls
+        else:
+            self.statuscodes = None
+
+    def __repr__(self):
+        return "Return value, type={0:15}, {1}, {2}".format(self.type, self.descr, self.doc)
+
+
 class Return(object):
 
     def __init__(self, ctype, doc):
-        self.name = 'ret'
+        self.name = 'c_retval'
+        self.inout_state = 'stat' if ctype == 'int' else 'ret'
         self.ctype = ctype
-        self.inout_state = 'ret'
         self.ctype_ptr = ctype
+        self.doc = doc
 
     def __repr__(self):
         return "Return(name='{0}', ctype='{1}', inout_state='{2}')".format(self.name, self.ctype, self.inout_state)
@@ -156,6 +205,10 @@ class Return(object):
     @property
     def dtype(self):
         return ctype_to_dtype[self.ctype]
+
+    @property
+    def doc_info(self):
+        return self.doc.ret_info
 
 
 class Function(object):
@@ -211,10 +264,26 @@ class Function(object):
         for arg in re.search("\(([^)]+)\)", self.cfunc, flags=re.MULTILINE|re.DOTALL).group(1).split(','):
             self.args.append(Argument(arg, self.doc))
         self.ret = re.search("^(.*){0}".format(name), self.cfunc).group(1).strip()
-        if self.ret == 'double':
+        if self.ret == 'double' or self.ret == 'int':
             self.args.append(Return(self.ret, self.doc))
 
     def args_by_inout(self, inout_filter, prop=None, join=None):
+        """
+        Gives all of the arguments and/or returned values, depending on whether
+        they are inputs, outputs, etc.
+
+        The value for `inout_filter` should be a string containing anything
+        that arguments' `inout_state` attribute produces.  Currently, that can be:
+
+          * "in" : input
+          * "out" : output
+          * "inout" : something that's could be input or output (e.g. a struct)
+          * "ret" : the return value of the C function
+          * "stat" : the return value of the C function if it is a status code
+
+        It can also be a "|"-separated string giving inout states to OR
+        together.
+        """
         result = []
         for arg in self.args:
             if arg.inout_state in inout_filter.split('|'):

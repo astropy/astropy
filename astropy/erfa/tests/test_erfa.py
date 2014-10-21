@@ -41,3 +41,29 @@ def test_erfa_wrapper():
     astrom = erfa.aper(theta[:, None], astrom[None, :])
     assert astrom.shape == (10, 2)
     assert astrom.dtype == erfa.dt_eraASTROM
+
+
+def test_errwarn_reporting(recwarn):
+    """
+    Test that the ERFA error reporting mechanism works as it should
+    """
+    from .. import _erfa as erfa
+
+    erfa.dat(1990, 1, 1, 0.5)
+
+    erfa.dat([100, 200, 1990], 1, 1, 0.5)
+    w = recwarn.pop(erfa.ErfaWarning)
+    assert '2 of "dubious year (Note 1)"' in w.message[0]
+
+    try:
+        erfa.dat(1990, [1, 34, 2], [1, 1, 43], 0.5)
+    except erfa.ErfaError as e:
+        if '1 of "bad day (Note 3)", 1 of "bad month"' not in e.args[0]:
+            assert False, 'Raised the correct type of error, but wrong message: ' + e.args[0]
+
+    try:
+        erfa.dat(200, [1, 34, 2], [1, 1, 43], 0.5)
+    except erfa.ErfaError as e:
+        if 'warning' in e.args[0]:
+            assert False, 'Raised the correct type of error, but there were warnings mixed in: ' + e.args[0]
+
