@@ -30,6 +30,11 @@ so on. The built-in representation classes are:
   cylindrical polar coordinates, represented by a cylindrical radius
   (``rho``), azimuthal angle (``phi``), and height (``z``).
 
+.. Note::
+   For information about using and changing the representation of
+   `~astropy.coordinates.SkyCoord` objects, see the
+   :ref:`astropy-skycoord-representations` section.
+
 Instantiating and converting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
