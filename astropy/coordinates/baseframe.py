@@ -667,7 +667,12 @@ class BaseCoordinateFrame(object):
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
-        Generate and return a new representation of this frame's `data`.
+        Generate and return a new representation of this frame's `data`
+        as a Representation object.
+
+        Note: In order to make an in-place change of the representation
+        of a Frame or SkyCoord object, set the ``representation``
+        attribute of that object to the desired new representation.
 
         Parameters
         ----------
@@ -682,7 +687,7 @@ class BaseCoordinateFrame(object):
 
         Returns
         -------
-        newrep : whatever ``new_representation`` is
+        newrep : BaseRepresentation-derived object
             A new representation object of this frame's `data`.
 
         Raises
