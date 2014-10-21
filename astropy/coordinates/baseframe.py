@@ -698,10 +698,14 @@ class BaseCoordinateFrame(object):
         Examples
         --------
         >>> from astropy import units as u
-        >>> from astropy.coordinates import ICRS, CartesianRepresentation
-        >>> coord = ICRS(0*u.deg, 0*u.deg)
+        >>> from astropy.coordinates import SkyCoord, CartesianRepresentation
+        >>> coord = SkyCoord(0*u.deg, 0*u.deg)
         >>> coord.represent_as(CartesianRepresentation)
         <CartesianRepresentation x=1.0 , y=0.0 , z=0.0 >
+
+        >>> coord.representation = CartesianRepresentation
+        >>> coord
+        <SkyCoord (ICRS): x=1.0 , y=0.0 , z=0.0 >
         """
         new_representation = _get_repr_cls(new_representation)
 
