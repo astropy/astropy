@@ -626,7 +626,12 @@ class BaseCoordinateFrame(object):
 
     def represent_as(self, new_representation, in_frame_units=False):
         """
-        Generate and return a new representation of this frame's `data`.
+        Generate and return a new representation of this frame's `data`
+        as a Representation object.
+
+        Note: In order to make an in-place change of the representation
+        of a Frame or SkyCoord object, set the ``representation``
+        attribute of that object to the desired new representation.
 
         Parameters
         ----------
@@ -641,7 +646,7 @@ class BaseCoordinateFrame(object):
 
         Returns
         -------
-        newrep : whatever ``new_representation`` is
+        newrep : BaseRepresentation-derived object
             A new representation object of this frame's `data`.
 
         Raises
@@ -652,10 +657,14 @@ class BaseCoordinateFrame(object):
         Examples
         --------
         >>> from astropy import units as u
-        >>> from astropy.coordinates import ICRS, CartesianRepresentation
-        >>> coord = ICRS(0*u.deg, 0*u.deg)
+        >>> from astropy.coordinates import SkyCoord, CartesianRepresentation
+        >>> coord = SkyCoord(0*u.deg, 0*u.deg)
         >>> coord.represent_as(CartesianRepresentation)
         <CartesianRepresentation x=1.0 , y=0.0 , z=0.0 >
+
+        >>> coord.representation = CartesianRepresentation
+        >>> coord
+        <SkyCoord (ICRS): x=1.0 , y=0.0 , z=0.0 >
         """
         new_representation = _get_repr_cls(new_representation)
 
