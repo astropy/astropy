@@ -76,6 +76,54 @@ class TestQuantityArrayCopy(object):
         assert q[2,2] == -1. * u.km / u.s
 
 
+class TestQuantityReshapeFuncs(object):
+    """Test different ndarray methods that alter the array shape
+
+    tests: reshape, squeeze, ravel, flatten, transpose, swapaxes
+    """
+    def test_reshape(self):
+        q = np.arange(6.) * u.m
+        q_reshape = q.reshape(3, 2)
+        assert isinstance(q_reshape, u.Quantity)
+        assert q_reshape.unit == q.unit
+        assert np.all(q_reshape.value == q.value.reshape(3, 2))
+
+    def test_squeeze(self):
+        q = np.arange(6.).reshape(6, 1) * u.m
+        q_squeeze = q.squeeze()
+        assert isinstance(q_squeeze, u.Quantity)
+        assert q_squeeze.unit == q.unit
+        assert np.all(q_squeeze.value == q.value.squeeze())
+
+    def test_ravel(self):
+        q = np.arange(6.).reshape(3, 2) * u.m
+        q_ravel = q.ravel()
+        assert isinstance(q_ravel, u.Quantity)
+        assert q_ravel.unit == q.unit
+        assert np.all(q_ravel.value == q.value.ravel())
+
+    def test_flatten(self):
+        q = np.arange(6.).reshape(3, 2) * u.m
+        q_flatten = q.flatten()
+        assert isinstance(q_flatten, u.Quantity)
+        assert q_flatten.unit == q.unit
+        assert np.all(q_flatten.value == q.value.flatten())
+
+    def test_transpose(self):
+        q = np.arange(6.).reshape(3, 2) * u.m
+        q_transpose = q.transpose()
+        assert isinstance(q_transpose, u.Quantity)
+        assert q_transpose.unit == q.unit
+        assert np.all(q_transpose.value == q.value.transpose())
+
+    def test_swapaxes(self):
+        q = np.arange(6.).reshape(3, 1, 2) * u.m
+        q_swapaxes = q.swapaxes(0, 2)
+        assert isinstance(q_swapaxes, u.Quantity)
+        assert q_swapaxes.unit == q.unit
+        assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
+
+
 class TestQuantityStatsFuncs(object):
     """
     Test statistical functions
