@@ -147,6 +147,16 @@ API Changes
 
 - ``astropy.modeling``
 
+  - The ``Model.inverse`` method has been changed to a *property*, so that
+    now accessing ``model.inverse`` on a model returns a new model that
+    implements that model's inverse, and *calling* ``model.inverse(...)``` on
+    some idependent variable computes the value of the inverse (similar to what
+    the old ``Model.invert()`` method was meant to do).  [#3024]
+
+  - The ``Model.invert()`` method has been removed entirely (it was never
+    implemented and there should not be any existing code that relies on it).
+    [#3024]
+
   - ``custom_model_1d`` is deprecated in favor of the new ``custom_model``
     (see "New Features" above).  [#1763]
 

@@ -155,11 +155,12 @@ def test_sip_irac():
     sip = SIP([crpix1, crpix2], a_order, b_order, a_pars, b_pars,
               ap_order=ap_order, ap_coeff=ap_pars, bp_order=bp_order,
               bp_coeff=bp_pars)
-    invsip = sip.inverse()
+
     foc = wobj.sip_pix2foc([pix], 1)
     newpix = wobj.sip_foc2pix(foc, 1)[0]
     utils.assert_allclose(sip(*pix), foc[0] - rel_pix)
-    utils.assert_allclose(invsip(*foc[0]) + foc[0] - rel_pix, newpix - pix)
+    utils.assert_allclose(sip.inverse(*foc[0]) +
+                          foc[0] - rel_pix, newpix - pix)
 
 
 def test_sip_no_coeff():
@@ -167,4 +168,4 @@ def test_sip_no_coeff():
     utils.assert_allclose(sip.sip1d_a.parameters, [0., 0., 0])
     utils.assert_allclose(sip.sip1d_b.parameters, [0., 0., 0])
     with pytest.raises(NotImplementedError):
-        invsip = sip.inverse()
+        sip.inverse

@@ -86,6 +86,7 @@ class RotateNative2Celestial(EulerAngleRotation):
         Euler angles in deg
     """
 
+    @property
     def inverse(self):
         return RotateCelestial2Native(self.phi, self.theta, self.psi)
 
@@ -136,6 +137,7 @@ class RotateCelestial2Native(EulerAngleRotation):
         Euler angles in deg
     """
 
+    @property
     def inverse(self):
         return RotateNative2Celestial(self.phi, self.theta, self.psi)
 
@@ -195,6 +197,7 @@ class Rotation2D(Model):
         super(Rotation2D, self).__init__(angle)
         self._matrix = self._compute_matrix(np.deg2rad(angle))
 
+    @property
     def inverse(self):
         """Inverse rotation."""
 
