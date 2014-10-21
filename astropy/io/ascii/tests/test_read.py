@@ -857,3 +857,12 @@ def test_commented_csv():
     assert t.colnames == ['#a', 'b']
     assert len(t) == 2
     assert t['#a'][1] == '#3'
+
+def test_guess_fail():
+    """
+    Check the error message when guess fails
+    """
+    with pytest.raises(ascii.InconsistentTableError) as err:
+        ascii.read('asfdasdf\n1 2 3', format='html')
+
+    assert "** To figure out why the table did not read, use guess=False and" in str(err.value)
