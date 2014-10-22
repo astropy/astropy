@@ -94,6 +94,16 @@ from setuptools import Distribution
 from setuptools.package_index import PackageIndex
 from setuptools.sandbox import run_setup
 
+# Note: The following import is required as a workaround to
+# https://github.com/astropy/astropy-helpers/issues/89; if we don't import this
+# module now, it will get cleaned up after `run_setup` is called, but that will
+# later cause the TemporaryDirectory class defined in it to stop working when
+# used later on by setuptools
+try:
+    import setuptools.py31compat
+except ImportError:
+    pass
+
 # TODO: Maybe enable checking for a specific version of astropy_helpers?
 DIST_NAME = 'astropy-helpers'
 PACKAGE_NAME = 'astropy_helpers'
@@ -185,6 +195,12 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
 
     if auto_upgrade is None:
         auto_upgrade = AUTO_UPGRADE
+
+    # If this is a release then the .git directory will not exist so we
+    # should not use git.
+    git_dir_exists = os.path.exists(os.path.join(os.path.dirname(__file__), '.git'))
+    if use_git is None and not git_dir_exists:
+        use_git = False
 
     # Declared as False by default--later we check if astropy-helpers can be
     # upgraded from PyPI, but only if not using a source distribution (as in
