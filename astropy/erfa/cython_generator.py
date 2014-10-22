@@ -20,14 +20,19 @@ ctype_to_dtype = {'double'       : "numpy.double",
                   'double *'     : "numpy.double",
                   'int'          : "numpy.intc",
                   'int *'        : "numpy.intc",
-                  'int[4]'       : "numpy.dtype([('', 'i', (4,))])",
-                  'double[2]'    : "numpy.dtype([('', 'd', (2,))])",
-                  'double[3]'    : "numpy.dtype([('p', 'd', (3,))])",
-                  'double[2][3]' : "numpy.dtype([('pv', 'd', (2,3))])",
-                  'double[3][3]' : "numpy.dtype([('r', 'd', (3,3))])",
+                  'int[4]'       : "numpy.dtype([('fi0', 'i', (4,))])",
+                  'double[2]'    : "numpy.dtype([('fi0', 'd', (2,))])",
+                  'double[3]'    : "numpy.dtype([('fi0', 'd', (3,))])",
+                  'double[2][3]' : "numpy.dtype([('fi0', 'd', (2,3))])",
+                  'double[3][3]' : "numpy.dtype([('fi0', 'd', (3,3))])",
                   'eraASTROM *'  : "dt_eraASTROM",
-                  'char *'       : "numpy.dtype('S1')",
+                  'eraLDBODY[]'  : "dt_eraLDBODY",
+                  'char *'       : "numpy.dtype('S16')",
+                  'const char *' : "numpy.dtype('S16')",
                   }
+
+
+NDIMS_REX = re.compile(re.escape("numpy.dtype([('fi0', '.*', <(.*)>)])").replace(r'\.\*','.*').replace(r'\<', '(').replace(r'\>',')'))
 
 
 class FunctionDoc(object):
@@ -159,6 +164,21 @@ class Argument(object):
     def dtype(self):
         return ctype_to_dtype[self.ctype]
 
+    @property
+    def ndims(self):
+        """
+        This is an argument that has a multi-dimensional output, like
+        double[3][3]
+        """
+        if self.dtype.startswith('numpy.dtype'):
+            mtch = NDIMS_REX.match(self.dtype)
+            if mtch:
+                return len(eval(mtch.group(1)))
+            else:
+                return 0
+        else:
+            return 0
+
     def __repr__(self):
         return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
 
@@ -208,6 +228,14 @@ class Return(object):
     @property
     def dtype(self):
         return ctype_to_dtype[self.ctype]
+
+    @property
+    def nd_dtype(self):
+        """
+        This if the return type has a multi-dimensional output, like
+        double[3][3]
+        """
+        return "'fi0'" in self.dtype
 
     @property
     def doc_info(self):
@@ -365,6 +393,7 @@ def main(srcdir, outfn, templateloc):
                                          "found in the string that "
                                          "spawned it.  This should be "
                                          "impossible!")
+
     print("Rendering template")
     erfa_pyx = erfa_pyx_in.render(funcs=funcs)
 

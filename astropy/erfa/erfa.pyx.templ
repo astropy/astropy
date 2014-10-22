@@ -5,9 +5,24 @@
 # and run cython_generator.py from the source directory to update it.
 
 """
-This module uses Cython to wrap the ERFA library in numpy-vectorized equivalents.
+This module uses Cython to wrap the ERFA library in numpy-vectorized
+equivalents.
 
-This is currently *not* part of the public Astropy API, and may change in the future.
+..warning::
+    This is currently *not* part of the public Astropy API, and may change in
+    the future.
+
+
+The key idea is that any function can be called with inputs that are arrays,
+and the wrappers will automatically vectorize and call the ERFA functions for
+each item using broadcasting rules for numpy.  So the return values are always
+numpy arrays of some sort.
+
+For ERFA functions that take/return vectors or matricies, the vector/matrix
+dimension(s) are always the *last* dimension(s).  For example, if you 
+want to give ten matricies (i.e., the ERFA input type is double[3][3]),
+you would pass in a (10, 3, 3) numpy array.  If the output of the ERFA 
+function is scalar, you'll get back a length-10 1D array. 
 """
 from __future__ import (absolute_import, division, print_function)
 
@@ -102,6 +117,9 @@ dt_eraASTROM = numpy.dtype([('pmt','d'),
                          ('refa','d'),
                          ('refb','d')], align=True)
 
+dt_eraLDBODY = numpy.dtype([('bm','d'),
+                         ('dl','d'),
+                         ('pv','d',(2,3))], align=True)
 
 
 
@@ -115,6 +133,14 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     ERFA documentation:
     {{ func.doc }}
     """
+    {%- for arg in func.args_by_inout('in') %}
+    {%- if arg.ndims > 0 %}
+    # convert nd-array to single-field structured array for argument "{{ arg.name }}"
+    {{ arg.name }}_arr = numpy.empty(numpy.shape({{ arg.name }})[:-{{ arg.ndims }}], dtype={{ arg.dtype }})
+    {{ arg.name }}_arr['fi0'] = {{ arg.name }}
+    {{ arg.name }} = {{ arg.name }}_arr
+    {% endif %}
+    {%- endfor %}
     
     {%- if func.args_by_inout('in|inout') %}
     {%- if func.args_by_inout('in|inout')|map(attribute='name')|list|length < 2 %}
@@ -189,7 +215,19 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     if not stat_ok:
         check_errwarn({{ stat.name }}_out, '{{ func.pyname }}')
     {%- endfor %}
-    
+
+    {%- set nd_comment_done = False %}
+    {%- for arg in func.args_by_inout('out') %}
+    {%- if arg.ndims > 0 %}
+    {%- if not nd_comment_done%} 
+
+    # convert from single-field structured dtype to regular nd-array
+    {%- set nd_comment_done = True %}
+    {%- endif %}
+    {{ arg.name }}_out = {{ arg.name }}_out['fi0']
+    {%- endif %}
+    {%- endfor %}
+
     return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
 
 {%- for stat in func.args_by_inout('stat') %}
