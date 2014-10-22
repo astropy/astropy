@@ -66,4 +66,3 @@ def test_errwarn_reporting(recwarn):
     except erfa.ErfaError as e:
         if 'warning' in e.args[0]:
             assert False, 'Raised the correct type of error, but there were warnings mixed in: ' + e.args[0]
-
