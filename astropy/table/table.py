@@ -119,12 +119,6 @@ class TableColumns(OrderedDict):
         return list(OrderedDict.values(self))
 
 
-class QTable(object):
-    def __new__(cls, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None, use_quantity=True):
-        return Table(data, masked, names, dtype, meta, copy, rows, use_quantity)
-
-
 class Table(object):
     """A class to represent tables of heterogeneous data.
 
@@ -155,8 +149,6 @@ class Table(object):
         Copy the input data (default=True).
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument
-    use_quantity : bool
-        Use Quantity class to represent unmasked columns with units
     """
 
     meta = MetaData()
@@ -204,13 +196,12 @@ class Table(object):
         return data
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None, use_quantity=False):
+                 meta=None, copy=True, rows=None):
 
         # Set up a placeholder empty table
         self._set_masked(masked)
         self.columns = self.TableColumns()
         self.meta = meta
-        self.use_quantity = use_quantity
         self.formatter = self.TableFormatter()
 
         # Must copy if dtype are changing
@@ -302,11 +293,11 @@ class Table(object):
             raise TypeError("masked property has not been set to True or False")
 
     def __getstate__(self):
-        return (self.columns.values(), self.meta, self.use_quantity)
+        return (self.columns.values(), self.meta)
 
     def __setstate__(self, state):
-        columns, meta, use_quantity = state
-        self.__init__(columns, meta=meta, use_quantity=use_quantity)
+        columns, meta = state
+        self.__init__(columns, meta=meta)
 
     @property
     def mask(self):
@@ -325,17 +316,6 @@ class Table(object):
     def _mask(self):
         """This is needed due to intricacies in numpy.ma, don't remove it."""
         return self.as_array().mask
-
-    @property
-    def use_quantity(self):
-        return self._use_quantity
-
-    @use_quantity.setter
-    def use_quantity(self, val):
-        val = bool(val)
-        if hasattr(self, '_use_quantity') and val != self._use_quantity:
-            raise ValueError('Cannot change use_quantity attribute')
-        self._use_quantity = val
 
     def filled(self, fill_value=None):
         """Return a copy of self, with masked values filled.
@@ -359,8 +339,7 @@ class Table(object):
             data = [col.filled(fill_value) for col in six.itervalues(self.columns)]
         else:
             data = self
-        return self.__class__(data, meta=deepcopy(self.meta),
-                              use_quantity=self.use_quantity)
+        return self.__class__(data, meta=deepcopy(self.meta))
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
@@ -518,7 +497,7 @@ class Table(object):
         # Make sure that all Column-based objects have class self.ColumnClass
         newcols = []
         for col in cols:
-            if (not self.masked and self.use_quantity
+            if (not self.masked and isinstance(self, QTable)
                     and isinstance(col, Column) and hasattr(col, 'unit')
                     and col.unit is not None):
                 try:
@@ -542,7 +521,7 @@ class Table(object):
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
 
-        table = self.__class__(masked=self.masked, use_quantity=self.use_quantity)
+        table = self.__class__(masked=self.masked)
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
@@ -618,7 +597,7 @@ class Table(object):
         Determine if `obj` meets the protocol for a Table column.
         """
         if isinstance(obj, Quantity):
-            ok = self.use_quantity
+            ok = isinstance(self, QTable)
         else:
             ok = getattr(obj, '_astropy_table_compatible', False)
         return ok
@@ -835,8 +814,7 @@ class Table(object):
             if bad_names:
                 raise ValueError('Slice name(s) {0} not valid column name(s)'
                                  .format(', '.join(bad_names)))
-            out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta),
-                                 use_quantity=self.use_quantity)
+            out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
             return out
@@ -1880,7 +1858,7 @@ class Table(object):
             If `True` (the default), copy the underlying data array.
             Otherwise, use the same data array
         '''
-        out = self.__class__(self, copy=copy_data, use_quantity=self.use_quantity)
+        out = self.__class__(self, copy=copy_data)
 
         # If the current table is grouped then do the same in the copy
         if hasattr(self, '_groups'):
@@ -1981,3 +1959,36 @@ class Table(object):
             New table with groups set
         """
         return groups.table_group_by(self, keys)
+
+
+class QTable(Table):
+    """A class to represent tables of heterogeneous data.
+
+    `QTable` provides a class for heterogeneous tabular data which can be
+    easily modified, for instance adding columns or new rows.
+
+    The `QTable` class is identical to `Table` except that columns with an
+    associated ``unit`` attribute are converted to `~astropy.units.Quantity`
+    objects.
+
+    Parameters
+    ----------
+    data : numpy ndarray, dict, list, or Table, optional
+        Data to initialize table.
+    masked : bool, optional
+        Specify whether the table is masked.
+    names : list, optional
+        Specify column names
+    dtype : list, optional
+        Specify column data types
+    meta : dict, optional
+        Metadata associated with the table.
+    copy : bool, optional
+        Copy the input data (default=True).
+    rows : numpy ndarray, list of lists, optional
+        Row-oriented data for table instead of ``data`` argument
+
+    """
+    def __init__(self, data=None, masked=None, names=None, dtype=None,
+                 meta=None, copy=True, rows=None):
+        super(QTable, self).__init__(data, masked, names, dtype, meta, copy, rows)
