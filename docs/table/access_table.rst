@@ -48,6 +48,8 @@ the data contained in that object relate to the original table data
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
   t['a', 'c']  # Table with cols 'a', 'c' (copy)
   dat = np.array(t)  # Copy table data to numpy structured array object
+  t['a'].quantity  # an astropy.units.Quantity for Column 'a'
+  t['a'].to('km')  # an astropy.units.Quantity for Column 'a' in units of kilometers
 
 **Print table or column**
 ::
@@ -413,3 +415,34 @@ any array::
           [30, 40]],
          [[ 5,  6],
           [50, 60]]])
+
+
+Columns and Quantities
+''''''''''''''''''''''
+Columns with units that the `astropy.units` package understands can be
+converted explicitly to ``~astropy.units.Quantity`` objects via the
+``quantity`` property and the ``to`` method::
+
+
+
+  >>> from astropy.table import Table, Column
+  >>> from astropy import units as u
+  >>> data = [[1., 2., 3.],[40000., 50000., 60000.]]
+  >>> t = Table(data, names=('a', 'b'))
+  >>> t['a'].unit = u.m
+  >>> t['b'].unit = 'km/s'
+  >>> t['a'].quantity
+  <Quantity [ 1., 2., 3.] m>
+  >>> t['b'].to(u.kpc/u.Myr)  # doctest: +FLOAT_CMP
+  <Quantity [ 40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
+
+Even without explicit conversion, columns with units can be treated in
+arithmetic expressions just like an Astropy ``~astropy.units.Quantity``
+and have the expected ``~astropy.units.Quantity`` units be propogated
+correctly::
+
+  >>> t['a'] + .005*u.km
+  <Quantity [ 6., 7., 8.] m>
+  >>> from astropy.constants import c
+  >>> (t['b'] / c).decompose()  # doctest: +FLOAT_CMP
+  <Quantity [ 0.13342564, 0.16678205, 0.20013846]>
