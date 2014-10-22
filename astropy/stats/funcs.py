@@ -700,7 +700,7 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     .. math::
 
-      C_{bl}= n^{1/2} \\frac{[\Sigma_{|u_i|<1} (x_i-M)**2(1-u_i^2)^4]^{0.5}}
+      C_{bl}= (n')^{1/2} \\frac{[\Sigma_{|u_i|<1} (x_i-M)^2(1-u_i^2)^4]^{0.5}}
       {|\Sigma_{|u_i|<1} (1-u_i^2)(1-5u_i^2)|}
 
     where :math:`u_i` is given by
@@ -709,8 +709,19 @@ def biweight_midvariance(a, c=9.0, M=None):
 
       u_{i} = \\frac{(x_i-M)}{cMAD}
 
-    where MAD is the median absolute deviation.  For the midvariance
-    parameter, c is typically uses a value of 9.0.
+    where MAD is the median absolute deviation.
+
+    :math:`n'` is the number of data for which :math:`|u_i| < 1` holds, while the
+    summations are over all i up to n:
+
+    .. math::
+
+        n' = \Sigma_{|u_i|<1}^n 1
+
+    This is slightly different than given in the reference below, but
+    results in a value closer to the true midvariance.
+
+    The midvariance parameter c is typically 9.0.
 
     For more details, see Beers, Flynn, and Gebhardt, 1990, AJ, 100, 32B
 
