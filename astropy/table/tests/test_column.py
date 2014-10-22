@@ -188,12 +188,16 @@ class TestColumn():
         for attr in ('name', 'unit', 'format', 'description', 'meta'):
             assert not hasattr(val, attr)
 
-    def test_to(self, Column):
+    def test_to_quantity(self, Column):
         d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
+
+        assert np.all(d.quantity == ([1, 2, 3.] * u.m))
+        assert np.all(d.quantity.value == ([1, 2, 3.] * u.m).value)
+        assert np.all(d.quantity == d.to('m'))
+        assert np.all(d.quantity.value == d.to('m').value)
 
         assert np.all(d.to(u.km) == ([.001, .002, .003] * u.km))
         assert np.all(d.to('km') == ([.001, .002, .003] * u.km))
-        assert np.all(d.to(None) == ([1, 2, 3.] * u.m))
 
         assert d.to(u.km, ndmin=2).shape == (1, 3)
 
@@ -201,6 +205,7 @@ class TestColumn():
         with pytest.raises(u.UnitsError):
             d_nounit.to(u.km)
         assert np.all(d_nounit.to(u.dimensionless_unscaled) == np.array([1, 2, 3]))
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
