@@ -1280,3 +1280,72 @@ class Quantity(np.ndarray):
     def any(self, axis=None, out=None):
         raise NotImplementedError("cannot evaluate truth value of quantities. "
                                   "Evaluate array with q.value.any(...)")
+
+    def insert(self, index, value):
+        """
+        Return a copy with ``value`` inserted before ``index`` position.
+
+        The ``index`` refers to the position along axis=0 in the quantity array.
+        The ``value`` must be broadcastable to the selected index position and must
+        be a Quantity with compatible units.
+
+        Parameters
+        ----------
+        index : integer
+            Insert value before the given index position along axis=0
+        value : Quantity
+            Value to insert
+
+        Returns
+        -------
+        out : Quantity or appropriate subclass
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> q = [1, 2] * u.m
+        >>> q.insert(0, 10 * u.m)
+        <Quantity [ 10.,  1.,  2.] m>
+
+        >>> q = [[1, 2], [3, 4]] * u.m
+        >>> q.insert(1, [10, 20] * u.m)
+        <Quantity [[  1.,  2.],
+                   [ 10., 20.],
+                   [  3.,  4.]] m>
+
+        >>> q.insert(1, 10 * u.m)
+       <Quantity [[  1.,  2.],
+                  [ 10., 10.],
+                  [  3.,  4.]] m>
+
+        """
+        if not self.shape:
+            raise TypeError('Cannot insert into a scalar Quantity')
+
+        if not isinstance(index, (int, np.integer)):
+            raise TypeError('integer argument expected, got {0}'.format(type(index)))
+
+        new_shape = list(self.shape)
+        new_shape[0] += 1
+        new_value = np.empty(new_shape, self.dtype)
+        len_self = len(self)
+
+        # Allow for negative index and clip after that like list.insert
+        while (index < 0):
+            index += len_self
+        if index < 0:
+            index = 0
+
+        if index == 0:
+            new_value[1:] = self.value
+        elif index < len_self:
+            new_value[:index] = self.value[:index]
+            new_value[index+1:] = self.value[index:]
+        else:
+            new_value[:-1] = self.value
+            index = len_self
+
+        out = self.__class__(value=new_value, unit=self.unit, copy=False)
+        out[index] = value
+
+        return out
