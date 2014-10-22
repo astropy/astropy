@@ -9,6 +9,7 @@ from ..extern import six
 from ..extern.six.moves import zip
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
+from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -729,8 +730,6 @@ class SkyCoord(object):
         from_pixel : to do the inverse operation
         astropy.wcs.utils.skycoord_to_pixel : the implementation of this method
         """
-        from astropy.wcs.utils import skycoord_to_pixel
-
         return skycoord_to_pixel(self, wcs=wcs, origin=origin, mode=mode)
 
     @classmethod
@@ -762,8 +761,6 @@ class SkyCoord(object):
         to_pixel : to do the inverse operation
         astropy.wcs.utils.pixel_to_skycoord : the implementation of this method
         """
-        from astropy.wcs.utils import pixel_to_skycoord
-
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
 
