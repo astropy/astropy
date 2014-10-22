@@ -70,6 +70,10 @@ New Features
     browsing capabilities. To write out to this format, use
     ``Table.write('filename.html', format='jsviewer')``. [#2875]
 
+  - A ``quantity`` property and ``to`` method were added to ``table``
+    columns that allow the column values to be easily converted to
+    ``astropy.units.Quantity`` objects. [#2950]
+
 - ``astropy.time``
 
 - ``astropy.units``
