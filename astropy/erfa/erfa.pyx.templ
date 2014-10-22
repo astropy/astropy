@@ -228,7 +228,7 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     {%- endif %}
     {%- endfor %}
 
-    return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
+    return {{ func.args_by_inout('out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
 
 {%- for stat in func.args_by_inout('stat') %}
 {%- if stat.doc_info.statuscodes %}

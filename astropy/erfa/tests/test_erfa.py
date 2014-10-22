@@ -33,15 +33,6 @@ def test_erfa_wrapper():
     assert ihmsf.shape == (4,)
     assert ihmsf.dtype == np.dtype('i4')
 
-    astrom = np.zeros([2], dtype=erfa.dt_eraASTROM)
-    theta = np.arange(0, 10.0)
-    assert theta.shape == (10,)
-    assert astrom.shape == (2,)
-
-    astrom = erfa.aper(theta[:, None], astrom[None, :])
-    assert astrom.shape == (10, 2)
-    assert astrom.dtype == erfa.dt_eraASTROM
-
 
 def test_errwarn_reporting(recwarn):
     """
@@ -102,3 +93,24 @@ def test_vector_inouts():
     res3 = erfa.ab(arrin[::5], v, s, bm1)
     assert res3.shape == (4, 3)
     np.testing.assert_allclose(res3, [expected]*4)
+
+
+def test_structs():
+    """
+    Checks producing and consuming of ERFA c structs
+    """
+
+    am, eo = erfa.apci13(2456165.5, [0.401182685, 1])
+    assert am.shape == (2, )
+    assert am.dtype == erfa.dt_eraASTROM
+    assert eo.shape == (2, )
+
+    # a few spotchecks from test_erfa.c
+    np.testing.assert_allclose(am[0]['pmt'], 12.65133794027378508)
+    np.testing.assert_allclose(am[0]['v'], [0.4289638897157027528e-4,
+                                            0.8115034002544663526e-4,
+                                            0.3517555122593144633e-4])
+
+    ri, di = erfa.atciqz(2.71, 0.174, am[0])
+    np.testing.assert_allclose(ri, 2.709994899247599271)
+    np.testing.assert_allclose(di, 0.1728740720983623469)
