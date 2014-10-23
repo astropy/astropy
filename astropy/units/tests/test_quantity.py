@@ -1033,3 +1033,43 @@ def test_quantity_from_table():
     qbp = u.Quantity(t['b'], u.pc)
     assert qbp.unit == u.pc
     assert_array_equal(qbp.value, t['b'])
+
+def test_insert():
+    """
+    Test Quantity.insert method.  This does not test the full capabilities
+    of the underlying np.insert, but hits the key functionality for
+    Quantity.
+    """
+    q = u.Quantity([1, 2], dtype=int, unit='m')
+
+    # Insert a compatible float with different units
+    q2 = q.insert(0, 1.0 * u.km)
+    assert np.all(q2.value == [ 1000,  1,  2])
+    assert q2.unit is u.m
+    assert q2.dtype.kind == 'i'
+
+    q2 = q.insert(1, [1, 2] * u.km)
+    assert np.all(q2.value == [1, 1000, 2000, 2])
+
+    # Cannot convert 1.5 to int without precision loss
+    with pytest.raises(TypeError):
+        q.insert(1, 1.5 * u.m)
+
+    # Cannot convert 1.5 * u.s to m
+    with pytest.raises(u.UnitsError):
+        q.insert(1, 1.5 * u.s)
+
+    # Tests with multi-dim quantity
+    q = u.Quantity([[1, 2], [3, 4]], dtype=int, unit='m')
+    q2 = q.insert(1, [10, 20] * u.m, axis=0)
+    assert np.all(q2.value == [[  1,  2],
+                               [ 10, 20],
+                               [  3,  4]])
+
+    q2 = q.insert(1, [10, 20] * u.m, axis=1)
+    assert np.all(q2.value == [[  1, 10,  2],
+                               [  3, 20,  4]])
+
+    q2 = q.insert(1, 10 * u.m, axis=1)
+    assert np.all(q2.value == [[  1,  10, 2],
+                               [  3,  10, 4]])
