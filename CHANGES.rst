@@ -77,6 +77,9 @@ New Features
   - Support for VOUnit has been updated to be compliant with version
     1.0 of the standard. [#2901]
 
+  - Added an ``insert`` method to insert values into a ``Quantity`` object.
+    This is similar to the ``numpy.insert`` function. [#3049]
+
 - ``astropy.utils``
 
   - Added a new decorator ``astropy.utils.wraps`` which acts as a replacement
