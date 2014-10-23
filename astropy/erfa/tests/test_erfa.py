@@ -95,6 +95,55 @@ def test_vector_inouts():
     np.testing.assert_allclose(res3, [expected]*4)
 
 
+def test_matrix_in():
+    jd1 = 2456165.5
+    jd2 = 0.401182685
+
+    pvmat = np.empty((2, 3))
+    pvmat[0][0] = -6241497.16
+    pvmat[0][1] = 401346.896
+    pvmat[0][2] = -1251136.04
+    pvmat[1][0] = -29.264597
+    pvmat[1][1] = -455.021831
+    pvmat[1][2] = 0.0266151194
+
+    jd1 = 2456165.5
+    jd2 = 0.401182685
+
+    astrom = erfa.apcs13(jd1, jd2, pvmat)
+    assert astrom.shape == ()
+
+    # values from t_erfa_c
+    np.testing.assert_allclose(astrom['pmt'], 12.65133794027378508)
+    np.testing.assert_allclose(astrom['em'], 1.010428384373318379)
+    np.testing.assert_allclose(astrom['eb'], [.9012691529023298391,
+                                             -.4173999812023068781,
+                                             -.1809906511146821008])
+    np.testing.assert_allclose(astrom['bpn'], np.eye(3))
+
+    #first make sure it *fails* if we mess with the input orders
+    pvmatbad = np.roll(pvmat.ravel(), 1).reshape((2, 3))
+    astrombad = erfa.apcs13(jd1, jd2, pvmatbad)
+    assert not np.allclose(astrombad['em'], 1.010428384373318379)
+
+    pvmatarr = np.array([pvmat]*3)
+    astrom2 = erfa.apcs13(jd1, jd2, pvmatarr)
+    assert astrom2.shape == (3,)
+    np.testing.assert_allclose(astrom2['em'], 1.010428384373318379)
+
+    #try striding of the input array to make non-contiguous
+    pvmatarr = np.array([pvmat]*9)[::3]
+    astrom3 = erfa.apcs13(jd1, jd2, pvmatarr)
+    assert astrom3.shape == (3,)
+    np.testing.assert_allclose(astrom3['em'], 1.010428384373318379)
+
+    #try fortran-order
+    pvmatarr = np.array([pvmat]*3, order='F')
+    astrom4 = erfa.apcs13(jd1, jd2, pvmatarr)
+    assert astrom4.shape == (3,)
+    np.testing.assert_allclose(astrom4['em'], 1.010428384373318379)
+
+
 def test_structs():
     """
     Checks producing and consuming of ERFA c structs
