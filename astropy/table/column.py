@@ -553,7 +553,7 @@ class BaseColumn(np.ndarray):
             A quantity object with the cotents of this column.
         """
         kwargs['copy'] = False  # `to` always makes a copy anyway
-        return Quantity(self, **kwargs).to(unit)
+        return Quantity(self, **kwargs).to(unit, equivalencies)
 
 
 class Column(BaseColumn):
