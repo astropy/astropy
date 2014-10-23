@@ -1040,28 +1040,18 @@ def test_insert():
     of the underlying np.insert, but hits the key functionality for
     Quantity.
     """
-    q = u.Quantity([1, 2], dtype=int, unit='m')
+    q = [1, 2] * u.m
 
     # Insert a compatible float with different units
-    q2 = q.insert(0, 1.0 * u.km)
+    q2 = q.insert(0, 1 * u.km)
     assert np.all(q2.value == [ 1000,  1,  2])
     assert q2.unit is u.m
-    assert q2.dtype.kind == 'i'
+    assert q2.dtype.kind == 'f'
 
-    q2 = q.insert(1, u.Quantity([1, 2], unit='km'))
-    assert np.all(q2.value == [1, 1000, 2000, 2])
-
-    # Cannot convert 1.5 to int without precision loss
-    with pytest.raises(TypeError):
-        q.insert(1, 1.5 * u.m)
-
-    # Automatically casting 1.0 to int is not allowed before numpy 1.8
-    if NUMPY_VERSION < version.LooseVersion('1.8.0'):
-        with pytest.raises(TypeError):
-            q.insert(1, 1.0 * u.m)
-    else:
-        # Just make sure no exception gets raised
-        q.insert(1, 1.0 * u.m)
+    if NUMPY_VERSION >= version.LooseVersion('1.8.0'):
+        q2 = q.insert(1, [1, 2] * u.km)
+        assert np.all(q2.value == [1, 1000, 2000, 2])
+        assert q2.unit is u.m
 
     # Cannot convert 1.5 * u.s to m
     with pytest.raises(u.UnitsError):
