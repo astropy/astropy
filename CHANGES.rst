@@ -12,6 +12,10 @@ New Features
 
 - ``astropy.coordinates``
 
+  - ``SkyCoord`` now has ``to_pixel`` and ``from_pixel`` methods that convert
+    between celestial coordinates as ``SkyCoord`` objects and pixel coordinates
+    given an ``astropy.wcs.WCS`` object. [#3002]
+
 - ``astropy.cosmology``
 
   - Add baryonic matter density and dark matter only density parameters

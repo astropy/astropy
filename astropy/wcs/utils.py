@@ -235,6 +235,10 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
     -------
     xp, yp : `numpy.ndarray`
         The pixel coordinates
+
+    See Also
+    --------
+    astropy.coordinates.SkyCoord.from_pixel
     """
 
     from .. import units as u
@@ -282,9 +286,10 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
     return xp, yp
 
 
-def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all'):
+def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
     """
-    Convert a set of pixel coordinates into a SkyCoord coordinate.
+    Convert a set of pixel coordinates into a `~astropy.coordinates.SkyCoord`
+    coordinate.
 
     Parameters
     ----------
@@ -297,16 +302,30 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all'):
     mode : 'all' or 'wcs'
         Whether to do the transformation including distortions (``'all'``) or
         only including only the core WCS transformation (``'wcs'``).
+    cls : class or None
+        The class of object to create.  Should be a
+        `~astropy.coordinates.SkyCoord` subclass.  If None, defaults to
+        `~astropy.coordinates.SkyCoord`.
 
     Returns
     -------
-    coords : `~astropy.coordinates.SkyCoord`
+    coords : Whatever ``cls`` is (a subclass of `~astropy.coordinates.SkyCoord`)
         The celestial coordinates
+
+    See Also
+    --------
+    astropy.coordinates.SkyCoord.from_pixel
     """
 
     from .. import units as u
     from . import WCSSUB_CELESTIAL
     from ..coordinates import SkyCoord, UnitSphericalRepresentation
+
+    # we have to do this instead of actually setting the default to SkyCoord
+    # because importing SkyCoord at the module-level leads to circular
+    # dependencies.
+    if cls is None:
+        cls = SkyCoord
 
     if wcs.has_distortion and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
@@ -336,8 +355,8 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all'):
     lon = lon * lon_unit
     lat = lat * lat_unit
 
-    # Create SkyCoord object
+    # Create a SkyCoord-like object
     data = UnitSphericalRepresentation(lon=lon, lat=lat)
-    coords = SkyCoord(frame.realize_frame(data))
+    coords = cls(frame.realize_frame(data))
 
     return coords

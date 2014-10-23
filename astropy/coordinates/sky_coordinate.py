@@ -9,6 +9,7 @@ from ..extern import six
 from ..extern.six.moves import zip
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
+from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -703,6 +704,66 @@ class SkyCoord(object):
         olon = other_in_self_frame.represent_as(UnitSphericalRepresentation).lon
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
+
+    def to_pixel(self, wcs, origin=0, mode='all'):
+        """
+        Convert this coordinate to pixel coordinates using a `~astropy.wcs.WCS`
+        object.
+
+        Parameters
+        ----------
+        wcs : `~astropy.wcs.WCS`
+            The WCS to use for convert
+        origin : int
+            Whether to return 0 or 1-based pixel coordinates.
+        mode : 'all' or 'wcs'
+            Whether to do the transformation including distortions (``'all'``) or
+            only including only the core WCS transformation (``'wcs'``).
+
+        Returns
+        -------
+        xp, yp : `numpy.ndarray`
+            The pixel coordinates
+
+        See Also
+        --------
+        from_pixel : to do the inverse operation
+        astropy.wcs.utils.skycoord_to_pixel : the implementation of this method
+        """
+        return skycoord_to_pixel(self, wcs=wcs, origin=origin, mode=mode)
+
+    @classmethod
+    def from_pixel(cls, xp, yp, wcs, origin=0, mode='all'):
+        """
+        Create a new `SkyCoord` from pixel coordinates using an
+        `~astropy.wcs.WCS` object.
+
+        Parameters
+        ----------
+        xp, yp : float or `numpy.ndarray`
+            The coordinates to convert.
+        wcs : `~astropy.wcs.WCS`
+            The WCS to use for convert
+        origin : int
+            Whether to return 0 or 1-based pixel coordinates.
+        mode : 'all' or 'wcs'
+            Whether to do the transformation including distortions (``'all'``) or
+            only including only the core WCS transformation (``'wcs'``).
+
+        Returns
+        -------
+        coord : an instance of this class
+            A new object with sky coordinates corresponding to the input ``xp``
+            and ``yp``.
+
+        See Also
+        --------
+        to_pixel : to do the inverse operation
+        astropy.wcs.utils.pixel_to_skycoord : the implementation of this method
+        """
+        return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
+
+
 
     # Name resolve
     @classmethod
