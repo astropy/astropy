@@ -206,6 +206,12 @@ class TestColumn():
             d_nounit.to(u.km)
         assert np.all(d_nounit.to(u.dimensionless_unscaled) == np.array([1, 2, 3]))
 
+        #also try quantity *setting*
+        q = [1, 3, 5]*u.km
+        d.quantity = q
+        assert d.unit == u.km
+        np.testing.assert_allclose(d, [1, 3, 5])
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""

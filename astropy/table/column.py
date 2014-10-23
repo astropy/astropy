@@ -526,9 +526,20 @@ class BaseColumn(np.ndarray):
     def quantity(self):
         """
         This table column to a `~astropy.units.Quantity` object with units given
-        by the Column's `unit` parameter
+        by the Column's `unit` parameter.
+
+        This attribute can also be set, which will update the column's unit
+        to what's in the `~astropy.units.Quantity` object it is set to.
         """
         return Quantity(self)
+    @quantity.setter
+    def quantity(self, qin):
+        if hasattr(qin, 'value') and hasattr(qin, 'unit'):
+            self[:] = qin.value
+            self.unit = qin.unit
+        else:
+            raise TypeError("Tried to set a column's quantity attribute with "
+                            "a non-Quantity object")
 
     def to(self, unit, equivalencies=[], **kwargs):
         """
