@@ -1280,3 +1280,51 @@ class Quantity(np.ndarray):
     def any(self, axis=None, out=None):
         raise NotImplementedError("cannot evaluate truth value of quantities. "
                                   "Evaluate array with q.value.any(...)")
+
+    def insert(self, obj, values, axis=None):
+        """
+        Insert values along the given axis before the given indices and return
+        a new `~astropy.units.Quantity` object.
+
+        This is a thin wrapper around the `numpy.insert` function.
+
+        Parameters
+        ----------
+        obj : int, slice or sequence of ints
+            Object that defines the index or indices before which ``values`` is
+            inserted.
+        values : array_like
+            Values to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+            ``values`` should be shaped so that it can be broadcast appropriately
+            The unit of ``values`` must be consistent with this quantity.
+        axis : int, optional
+            Axis along which to insert ``values``.  If ``axis`` is None then
+            the quantity array is flattened before insertion.
+
+        Returns
+        -------
+        out : `~astropy.units.Quantity`
+            A copy of quantity with ``values`` inserted.  Note that the
+            insertion does not occur in-place: a new quantity array is returned.
+
+        Examples
+        --------
+        >>> import astropy.units as u
+        >>> q = [1, 2] * u.m
+        >>> q.insert(0, 50 * u.cm)
+        <Quantity [ 0.5,  1.,  2.] m>
+
+        >>> q = [[1, 2], [3, 4]] * u.m
+        >>> q.insert(1, [10, 20] * u.m, axis=0)
+        <Quantity [[  1.,  2.],
+                   [ 10., 20.],
+                   [  3.,  4.]] m>
+
+        >>> q.insert(1, 10 * u.m, axis=1)
+        <Quantity [[  1., 10.,  2.],
+                   [  3., 10.,  4.]] m>
+
+        """
+        out_array = np.insert(self.value, obj, self._to_own_unit(values), axis)
+        return self._new_view(out_array)
