@@ -79,9 +79,6 @@ A column with a unit works with and can be easily converted to an
   <Quantity [ 2. , 5. , 8.2] s>
   >>> t['b'].to('min')  # doctest: +FLOAT_CMP
   <Quantity [ 0.03333333, 0.08333333, 0.13666667] min>
-  >>> from astropy import units as u
-  >>> t['b'] + 10*u.s
-  <Quantity [ 12. , 15. , 18.2] s>
 
 From within the IPython notebook, the table is displayed as a formatted HTML table:
 
