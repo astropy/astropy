@@ -1281,24 +1281,32 @@ class Quantity(np.ndarray):
         raise NotImplementedError("cannot evaluate truth value of quantities. "
                                   "Evaluate array with q.value.any(...)")
 
-    def insert(self, index, value):
+    def insert(self, obj, values, axis=None):
         """
-        Return a copy with ``value`` inserted before ``index`` position.
+        Insert values along the given axis before the given indices and return
+        a new `~astropy.units.Quantity` object.
 
-        The ``index`` refers to the position along axis=0 in the quantity array.
-        The ``value`` must be broadcastable to the selected index position and must
-        be a Quantity with compatible units.
+        This is a thin wrapper around the `np.insert` function.
 
         Parameters
         ----------
-        index : integer
-            Insert value before the given index position along axis=0
-        value : Quantity
-            Value to insert
+        obj : int, slice or sequence of ints
+            Object that defines the index or indices before which ``values`` is
+            inserted.
+        values : array_like
+            Values to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+            ``values`` should be shaped so that it can be broadcast appropriately
+            The unit of ``values`` must be consistent with this quantity.
+        axis : int, optional
+            Axis along which to insert ``values``.  If ``axis`` is None then
+            the quantity array is flattened before insertion.
 
         Returns
         -------
-        out : Quantity or appropriate subclass
+        out : `~astropy.units.Quantity`
+            A copy of quantity with ``values`` inserted.  Note that the
+            insertion does not occur in-place: a new quantity array is returned.
 
         Examples
         --------
@@ -1308,44 +1316,15 @@ class Quantity(np.ndarray):
         <Quantity [ 10.,  1.,  2.] m>
 
         >>> q = [[1, 2], [3, 4]] * u.m
-        >>> q.insert(1, [10, 20] * u.m)
+        >>> q.insert(1, [10, 20] * u.m, axis=0)
         <Quantity [[  1.,  2.],
                    [ 10., 20.],
                    [  3.,  4.]] m>
 
-        >>> q.insert(1, 10 * u.m)
-       <Quantity [[  1.,  2.],
-                  [ 10., 10.],
-                  [  3.,  4.]] m>
+        >>> q.insert(1, 10 * u.m, axis=1)
+        <Quantity [[  1., 10.,  2.],
+                   [  3., 10.,  4.]] m>
 
         """
-        if not self.shape:
-            raise TypeError('Cannot insert into a scalar Quantity')
-
-        if not isinstance(index, (int, np.integer)):
-            raise TypeError('integer argument expected, got {0}'.format(type(index)))
-
-        new_shape = list(self.shape)
-        new_shape[0] += 1
-        new_value = np.empty(new_shape, self.dtype)
-        len_self = len(self)
-
-        # Allow for negative index and clip after that like list.insert
-        while (index < 0):
-            index += len_self
-        if index < 0:
-            index = 0
-
-        if index == 0:
-            new_value[1:] = self.value
-        elif index < len_self:
-            new_value[:index] = self.value[:index]
-            new_value[index+1:] = self.value[index:]
-        else:
-            new_value[:-1] = self.value
-            index = len_self
-
-        out = self.__class__(value=new_value, unit=self.unit, copy=False)
-        out[index] = value
-
-        return out
+        out_array = np.insert(self.value, obj, self._to_own_unit(values), axis)
+        return self._new_view(out_array)
