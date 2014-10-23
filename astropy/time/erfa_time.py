@@ -1,3 +1,14 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+This module is a compatibility layer, mapping the `astropy.erfa` function names
+to the names used in the ``astropy/time/erfa_time.pyx`` wrapper that was used
+before `astropy.erfa` was implemented.
+
+This module will probably remove in a future version - either `time` will be
+changed to use names fully compatible with `astropy.erfa`, or `astropy.erfa`
+will gain the ability to have "official" aliases to match these names.
+"""
+
 from ..erfa import *
 
 d_tai_utc = dat
