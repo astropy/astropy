@@ -206,11 +206,20 @@ class TestColumn():
             d_nounit.to(u.km)
         assert np.all(d_nounit.to(u.dimensionless_unscaled) == np.array([1, 2, 3]))
 
-        #also try quantity *setting*
+        #make sure the correct copy/no copy behavior is happening
         q = [1, 3, 5]*u.km
-        d.quantity = q
-        assert d.unit == u.km
-        np.testing.assert_allclose(d, [1, 3, 5])
+
+        # to should always make a copy
+        d.to(u.km)[:] = q
+        np.testing.assert_allclose(d, [1, 2, 3])
+
+        # explcit copying of the quantity should not change the column
+        d.quantity.copy()[:] = q
+        np.testing.assert_allclose(d, [1, 2, 3])
+
+        # but quantity directly is a "view", accessing the underlying column
+        d.quantity[:] = q
+        np.testing.assert_allclose(d, [1000, 3000, 5000])
 
 
 class TestAttrEqual():

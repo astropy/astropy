@@ -525,21 +525,10 @@ class BaseColumn(np.ndarray):
     @property
     def quantity(self):
         """
-        This table column to a `~astropy.units.Quantity` object with units given
-        by the Column's `unit` parameter.
-
-        This attribute can also be set, which will update the column's unit
-        to what's in the `~astropy.units.Quantity` object it is set to.
+        A view of this table column as a `~astropy.units.Quantity` object with
+        units given by the Column's `unit` parameter.
         """
-        return Quantity(self)
-    @quantity.setter
-    def quantity(self, qin):
-        if hasattr(qin, 'value') and hasattr(qin, 'unit'):
-            self[:] = qin.value
-            self.unit = qin.unit
-        else:
-            raise TypeError("Tried to set a column's quantity attribute with "
-                            "a non-Quantity object")
+        return Quantity(self, copy=False)
 
     def to(self, unit, equivalencies=[], **kwargs):
         """
@@ -563,6 +552,7 @@ class BaseColumn(np.ndarray):
         quantity : `~astropy.units.Quantity`
             A quantity object with the cotents of this column.
         """
+        kwargs['copy'] = False  # `to` always makes a copy anyway
         return Quantity(self, **kwargs).to(unit)
 
 
