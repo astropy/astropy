@@ -1286,7 +1286,7 @@ class Quantity(np.ndarray):
         Insert values along the given axis before the given indices and return
         a new `~astropy.units.Quantity` object.
 
-        This is a thin wrapper around the `np.insert` function.
+        This is a thin wrapper around the `numpy.insert` function.
 
         Parameters
         ----------
@@ -1312,8 +1312,8 @@ class Quantity(np.ndarray):
         --------
         >>> import astropy.units as u
         >>> q = [1, 2] * u.m
-        >>> q.insert(0, 10 * u.m)
-        <Quantity [ 10.,  1.,  2.] m>
+        >>> q.insert(0, 50 * u.cm)
+        <Quantity [ 0.5,  1.,  2.] m>
 
         >>> q = [[1, 2], [3, 4]] * u.m
         >>> q.insert(1, [10, 20] * u.m, axis=0)
