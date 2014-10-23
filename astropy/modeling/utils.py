@@ -76,7 +76,7 @@ class ExpressionTree(object):
                 yield stack.pop()
             last = node
 
-    def evaluate(self, operators, getter=None):
+    def evaluate(self, operators, getter=None, start=0, stop=None):
         """Evaluate the expression represented by this tree.
 
         ``Operators`` should be a dictionary mapping operator names ('tensor',
@@ -89,23 +89,65 @@ class ExpressionTree(object):
         directly on the node values.  The ``getter`` is passed both the index
         of the leaf (a count starting at 0 that is incremented after each leaf
         is found) and the leaf node itself.
+
+        The ``start`` and ``stop`` arguments allow evaluating a sub-expression
+        within the expression tree.
+
+        TODO: Document this better.
         """
 
-        operands = deque()
+        stack = deque()
+
+        if getter is None:
+            getter = lambda idx, value: value
+
+        if start is None:
+            start = 0
 
         leaf_idx = 0
         for node in self.traverse_postorder():
             if node.isleaf:
                 # For a "tree" containing just a single operator at the root
-                operands.append(getter(leaf_idx, node.value))
+                # Also push the index of this leaf onto the stack, which will
+                # prove useful for evaluating subexpressions
+                stack.append((getter(leaf_idx, node.value), leaf_idx))
                 leaf_idx += 1
             else:
                 operator = operators[node.value]
-                right = operands.pop()
-                left = operands.pop()
-                operands.append(operator(left, right))
 
-        return operands.pop()
+                if len(stack) < 2:
+                    # Skip this operator if there are not enough operands on
+                    # the stack; this can happen if some operands were skipped
+                    # when evaluating a sub-expression
+                    continue
+
+                right = stack.pop()
+                left = stack.pop()
+                operands = []
+
+                for operand in (left, right):
+                    # idx is the leaf index; -1 if not a leaf node
+                    if operand[-1] == -1:
+                        operands.append(operand)
+                    else:
+                        operand, idx = operand
+                        if start <= idx and (stop is None or idx < stop):
+                            operands.append((operand, idx))
+
+                if len(operands) == 2:
+                    # evaluate the operator with the given operands and place
+                    # the result on the stack (with -1 for the "leaf index"
+                    # since this result is not a leaf node
+                    left, right = operands
+                    stack.append((operator(left[0], right[0]), -1))
+                else:
+                    # one or more of the operands was not included in the
+                    # sub-expression slice, so don't evaluate the operator;
+                    # instead place left over operands (if any) back on the
+                    # stack for later use
+                    stack.extend(operands)
+
+        return stack.pop()[0]
 
     def copy(self):
         # Hopefully this won't blow the stack for any practical case; if such a

@@ -1459,6 +1459,11 @@ class _CompoundModelMeta(_ModelMeta):
     # the submodels, but right now that isn't taken advantage of
     _param_map = None
 
+    _slice_offset = 0
+    # When taking slices of a compound model, this keeps track of how offset
+    # the first model in the slice is from the first model in the original
+    # compound model it was taken from
+
     # This just inverts _param_map, swapping keys with values.  This is also
     # useful to have.
     _param_map_inverse = None
@@ -1472,6 +1477,9 @@ class _CompoundModelMeta(_ModelMeta):
             raise IndexError(
                 'Compound model {0} does not have a component named '
                 '{1}'.format(cls.name, index))
+
+        if isinstance(index, slice):
+            return cls._get_slice(index.start, index.stop)
 
         if isinstance(index, int):
             return cls._get_submodels()[index]
@@ -1699,7 +1707,11 @@ class _CompoundModelMeta(_ModelMeta):
         names = []
         param_map = {}
 
-        param_suffix = 0
+        # Start counting the suffix indices to put on parameter names from the
+        # slice_offset.  Usually this will just be zero, but for compound
+        # models that were sliced from another compound model this may be > 0
+        param_suffix = cls._slice_offset
+
         for idx, model in enumerate(cls._get_submodels()):
             if not (isinstance(model, type) and model.param_names):
                 continue
@@ -1719,6 +1731,28 @@ class _CompoundModelMeta(_ModelMeta):
         # TODO: At some point might be useful to make a public version of this,
         # albeit with more formatting options
         return cls._tree.format_expression(OPERATOR_PRECEDENCE)
+
+    def _get_slice(cls, start, stop):
+        """
+        Return a new model build from a sub-expression of the expression
+        represented by this model.
+
+        Right now this is highly inefficient, as it creates a new temporary
+        model for each operator that appears in the sub-expression.  It would
+        be better if this just built a new expression tree, and the new model
+        instantiated directly from that tree.
+
+        Once tree -> model instantiation is possible this should be fixed to
+        use that instead.
+        """
+
+        operators = {'+': operator.add, '-': operator.sub, '*': operator.mul,
+                     '/': operator.truediv, '**': operator.pow,
+                     '|': operator.or_, '&': operator.and_}
+
+        new_cls = cls._tree.evaluate(operators, start=start, stop=stop)
+        new_cls._slice_offset += start
+        return new_cls
 
 
 @six.add_metaclass(_CompoundModelMeta)
