@@ -190,17 +190,17 @@ def use_astropy_helpers(path=None, download_if_needed=None, index_url=None,
     if index_url is None:
         index_url = INDEX_URL
 
-    if use_git is None:
-        use_git = USE_GIT
-
-    if auto_upgrade is None:
-        auto_upgrade = AUTO_UPGRADE
-
     # If this is a release then the .git directory will not exist so we
     # should not use git.
     git_dir_exists = os.path.exists(os.path.join(os.path.dirname(__file__), '.git'))
     if use_git is None and not git_dir_exists:
         use_git = False
+
+    if use_git is None:
+        use_git = USE_GIT
+
+    if auto_upgrade is None:
+        auto_upgrade = AUTO_UPGRADE
 
     # Declared as False by default--later we check if astropy-helpers can be
     # upgraded from PyPI, but only if not using a source distribution (as in
