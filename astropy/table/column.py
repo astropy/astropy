@@ -262,6 +262,9 @@ class BaseColumn(np.ndarray):
 
     @property
     def name(self):
+        """
+        The name of this column.
+        """
         return self._name
 
     @name.setter
@@ -522,12 +525,12 @@ class BaseColumn(np.ndarray):
     @property
     def quantity(self):
         """
-        Converts this table column to a `~astropy.units.Quantity` object with
-        units given by the Column's `unit` parameter
+        This table column to a `~astropy.units.Quantity` object with units given
+        by the Column's `unit` parameter
         """
         return Quantity(self)
 
-    def to(self, unit, **kwargs):
+    def to(self, unit, equivalencies=[], **kwargs):
         """
         Converts this table column to a `~astropy.units.Quantity` object with
         the requested units.
@@ -537,7 +540,10 @@ class BaseColumn(np.ndarray):
         unit : `~astropy.units.Unit` or str
             The unit to convert to (i.e., a valid argument to the
             :meth:`astropy.units.Quantity.to` method).
-        kwargs :
+        equivalencies : list of equivalence pairs, optional
+            Equivalencies to use for this conversion.  See
+            :meth:`astropy.units.Quantity.to` for more details.
+        kwargs : optional
             Any additional keywords are passed into the Quantity constructor
             *before* converting to the new ``unit``.
 
@@ -650,11 +656,14 @@ class Column(BaseColumn):
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name
+    unit = BaseColumn.unit
     copy = BaseColumn.copy
     more = BaseColumn.more
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
     convert_unit_to = BaseColumn.convert_unit_to
+    quantity = BaseColumn.quantity
+    to = BaseColumn.to
 
 
 class MaskedColumn(Column, ma.MaskedArray):
