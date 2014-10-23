@@ -527,6 +527,11 @@ class BaseColumn(np.ndarray):
         """
         A view of this table column as a `~astropy.units.Quantity` object with
         units given by the Column's `unit` parameter.
+
+        .. warning::
+          If the dtype for this column is not a float, this will make a *copy*,
+          rather than a view, because `~astropy.units.Quantity` objects have
+          to be floats.
         """
         return Quantity(self, copy=False)
 
