@@ -435,6 +435,19 @@ converted explicitly to ``~astropy.units.Quantity`` objects via the
   >>> t['b'].to(u.kpc/u.Myr)  # doctest: +FLOAT_CMP
   <Quantity [ 40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
 
+Note that the :attr:`~astropy.table.Column.quantity` property is actally
+a view of the data in the column, not a copy.  Hence, you can set the
+values of a column in a way that respects units by making in-place
+changes to the :attr:`~astropy.table.Column.quantity` property::
+
+  >>> t['b']
+  <Column name='b' unit=u'km / s' format=None description=None>
+  array([ 40000.,  50000.,  60000.])
+  >>> t['b'].quantity[0] = 45000000*u.m/u.s
+  >>> t['b']
+  <Column name='b' unit=u'km / s' format=None description=None>
+  array([ 45000.,  50000.,  60000.])
+
 Even without explicit conversion, columns with units can be treated like
 like an Astropy `~astropy.units.Quantity` in *some* arithmetic
 expressions (see the warning below for caveats to this)::
@@ -443,7 +456,7 @@ expressions (see the warning below for caveats to this)::
   <Quantity [ 6., 7., 8.] m>
   >>> from astropy.constants import c
   >>> (t['b'] / c).decompose()  # doctest: +FLOAT_CMP
-  <Quantity [ 0.13342564, 0.16678205, 0.20013846]>
+  <Quantity [ 0.15010384, 0.16678205, 0.20013846]>
 
 .. warning::
 
