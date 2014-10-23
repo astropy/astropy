@@ -63,7 +63,7 @@ about the table values and column definitions as follows::
   array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
 
-One can also assign a unit to the columns. If any column has a unit
+You can also assign a unit to the columns. If any column has a unit
 assigned, all units would be shown as follows::
 
   >>> t['b'].unit = 's'
@@ -145,7 +145,7 @@ Access the data by column or row using familiar `numpy` structured array syntax:
   >>> t[1]['a']    # Column 'a' of row 1
   4
 
-One can retrieve a subset of a table by rows (using a slice) or
+You can retrieve a subset of a table by rows (using a slice) or
 columns (using column names), where the subset is returned as a new table::
 
   >>> print(t[0:2])      # Table object with rows 0 and 1
@@ -191,7 +191,7 @@ Adding a new row of data to the table is as follows::
   >>> len(t)
   4
 
-Lastly, one can create a table with support for missing values, for example by setting
+Lastly, you can create a table with support for missing values, for example by setting
 ``masked=True``::
 
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True)

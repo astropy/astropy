@@ -117,7 +117,7 @@ meta-data is simply an ordered dictionary (OrderedDict_) by default.
 Accessing data
 """"""""""""""
 
-As expected one can access a table column by name and get an element from that
+As expected you can access a table column by name and get an element from that
 column with a numerical index::
 
   >>> t['a']  # Column 'a'
@@ -201,7 +201,7 @@ selected rows or columns.  ::
        9.000  11
       12.000  14
 
-Finally, one can access the underlying table data as a native `numpy`
+Finally, you can access the underlying table data as a native `numpy`
 structured array by creating a copy or reference with ``np.array``::
 
   >>> data = np.array(t)  # copy of data in t as a structured array
@@ -326,7 +326,7 @@ meaning as shown below::
 
 In order to force printing all values regardless of the output length or width
 set ``max_lines`` or ``max_width`` to ``-1``, respectively.  For the wide
-table in this example one sees 6 lines of wrapped output like the following::
+table in this example you see 6 lines of wrapped output like the following::
 
   >>> t.pprint(max_lines=6, max_width=-1)  # doctest: +SKIP
       col0         col1     col2   col3   col4   col5   col6   col7   col8   col
