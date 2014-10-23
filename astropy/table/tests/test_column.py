@@ -196,8 +196,8 @@ class TestColumn():
         assert np.all(d.quantity == d.to('m'))
         assert np.all(d.quantity.value == d.to('m').value)
 
-        assert np.all(d.to(u.km) == ([.001, .002, .003] * u.km))
-        assert np.all(d.to('km') == ([.001, .002, .003] * u.km))
+        np.testing.assert_allclose(d.to(u.km).value, ([.001, .002, .003] * u.km).value)
+        np.testing.assert_allclose(d.to('km').value, ([.001, .002, .003] * u.km).value)
 
         assert d.to(u.km, ndmin=2).shape == (1, 3)
 
