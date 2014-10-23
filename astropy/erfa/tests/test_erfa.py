@@ -43,7 +43,7 @@ def test_errwarn_reporting(recwarn):
 
     erfa.dat([100, 200, 1990], 1, 1, 0.5)
     w = recwarn.pop(erfa.ErfaWarning)
-    assert '2 of "dubious year (Note 1)"' in w.message[0]
+    assert '2 of "dubious year (Note 1)"' in str(w.message)
 
     try:
         erfa.dat(1990, [1, 34, 2], [1, 1, 43], 0.5)
