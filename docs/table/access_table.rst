@@ -436,8 +436,8 @@ converted explicitly to ``~astropy.units.Quantity`` objects via the
   <Quantity [ 40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
 
 Even without explicit conversion, columns with units can be treated like
-like an Astropy `~astropy.units.Quantity` *some* arithmetic expressions
-(see the warning below for caveats to this)::
+like an Astropy `~astropy.units.Quantity` in *some* arithmetic
+expressions (see the warning below for caveats to this)::
 
   >>> t['a'] + .005*u.km
   <Quantity [ 6., 7., 8.] m>

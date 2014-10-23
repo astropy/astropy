@@ -63,7 +63,7 @@ about the table values and column definitions as follows::
   array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
 
-One can also assign an unit to the columns. If any column has an unit
+One can also assign an unit to the columns. If any column has a unit
 assigned, all units would be shown as follows::
 
   >>> t['b'].unit = 's'
