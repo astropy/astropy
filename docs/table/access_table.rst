@@ -421,11 +421,10 @@ Columns and Quantities
 ''''''''''''''''''''''
 Columns with units that the `astropy.units` package understands can be
 converted explicitly to ``~astropy.units.Quantity`` objects via the
-``quantity`` property and the ``to`` method::
+:attr:`~astropy.table.Column.quantity` property and the
+:meth:`~astropy.table.Column.to` method::
 
-
-
-  >>> from astropy.table import Table, Column
+  >>> from astropy.table import Table
   >>> from astropy import units as u
   >>> data = [[1., 2., 3.],[40000., 50000., 60000.]]
   >>> t = Table(data, names=('a', 'b'))
@@ -436,13 +435,39 @@ converted explicitly to ``~astropy.units.Quantity`` objects via the
   >>> t['b'].to(u.kpc/u.Myr)  # doctest: +FLOAT_CMP
   <Quantity [ 40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
 
-Even without explicit conversion, columns with units can be treated in
-arithmetic expressions just like an Astropy ``~astropy.units.Quantity``
-and have the expected ``~astropy.units.Quantity`` units be propogated
-correctly::
+Even without explicit conversion, columns with units can be treated like
+like an Astropy `~astropy.units.Quantity` *some* arithmetic expressions
+(see the warning below for caveats to this)::
 
   >>> t['a'] + .005*u.km
   <Quantity [ 6., 7., 8.] m>
   >>> from astropy.constants import c
   >>> (t['b'] / c).decompose()  # doctest: +FLOAT_CMP
   <Quantity [ 0.13342564, 0.16678205, 0.20013846]>
+
+.. warning::
+
+  Table columns do *not* always behave the same as
+  `~astropy.units.Quantity`. Table columns act more like regular numpy
+  arrays unless either explicitly converted to a
+  `~astropy.units.Quantity` or combined with an
+  `~astropy.units.Quantity` using an arithmetic operator.For example,
+  the following does not work the way you would expect::
+
+    >>> import numpy as np
+    >>> from astropy.table import Table
+    >>> data = [[30, 90]]
+    >>> t = Table(data, names=('angle',))
+    >>> t['angle'].unit = 'deg'
+    >>> np.sin(t['angle'])  # doctest: +FLOAT_CMP
+    <Column name='angle' unit=u'deg' format=None description=None>
+    array([-0.98803162,  0.89399666])
+
+  This is wrong both in that it says the unit is degrees, *and* ``sin``
+  treated the values and radians rather than degrees.  If at all in
+  doubt that you'll get the right result, the safest choice is to
+  explicitly convert to `~astropy.units.Quantity`::
+
+    >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
+    <Quantity [ 0.5, 1. ]>
+
