@@ -219,10 +219,7 @@ class BaseColumn(np.ndarray):
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
         self.parent_table = None
-        for attr in ('name', 'unit', 'format', 'description'):
-            val = getattr(obj, attr, None)
-            setattr(self, attr, val)
-        self.meta = deepcopy(getattr(obj, 'meta', {}))
+        self._copy_attrs(obj)
 
     def __array_wrap__(self, out_arr, context=None):
         """
@@ -560,6 +557,15 @@ class BaseColumn(np.ndarray):
         """
         return self.quantity.to(unit, equivalencies)
 
+    def _copy_attrs(self, obj):
+        """
+        Copy key column attributes from ``obj`` to self
+        """
+        for attr in ('name', 'unit', 'format', 'description'):
+            val = getattr(obj, attr, None)
+            setattr(self, attr, val)
+        self.meta = deepcopy(getattr(obj, 'meta', {}))
+
 
 class Column(BaseColumn):
     """Define a data column for use in a Table object.
@@ -694,6 +700,35 @@ class Column(BaseColumn):
     # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
     def __setslice__(self, start, stop, value):
         self.data.__setslice__(start, stop, value)
+
+    def insert(self, obj, values, axis=None):
+        """
+        Insert values along the given axis before the given indices and return
+        a new `~astropy.table.Column` object.
+
+        Parameters
+        ----------
+        obj : int, slice or sequence of ints
+            Object that defines the index or indices before which ``values`` is
+            inserted.
+        values : array_like
+            Value(s) to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+            ``values`` should be shaped so that it can be broadcast appropriately
+        axis : int, optional
+            Axis along which to insert ``values``.  If ``axis`` is None then
+            the quantity array is flattened before insertion.
+
+        Returns
+        -------
+        out : `~astropy.table.Column`
+            A copy of column with ``values`` and ``mask`` inserted.  Note that the
+            insertion does not occur in-place: a new column is returned.
+        """
+        data = np.insert(self, obj, values, axis)
+        out = data.view(self.__class__)
+        out.__array_finalize__(self)
+        return out
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name
@@ -888,6 +923,46 @@ class MaskedColumn(Column, ma.MaskedArray):
                          meta=deepcopy(self.meta))
         return out
 
+    def insert(self, obj, values, axis=None, mask=None):
+        """
+        Insert values along the given axis before the given indices and return
+        a new `~astropy.table.MaskedColumn` object.
+
+        Parameters
+        ----------
+        obj : int, slice or sequence of ints
+            Object that defines the index or indices before which ``values`` is
+            inserted.
+        values : array_like
+            Value(s) to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+            ``values`` should be shaped so that it can be broadcast appropriately
+        axis : int, optional
+            Axis along which to insert ``values``.  If ``axis`` is None then
+            the quantity array is flattened before insertion.
+        mask : boolean array_like
+            Mask value(s) to insert.  If not supplied then False is used.
+
+        Returns
+        -------
+        out : `~astropy.table.MaskedColumn`
+            A copy of column with ``values`` and ``mask`` inserted.  Note that the
+            insertion does not occur in-place: a new masked column is returned.
+        """
+        self_ma = self.data  # self viewed as MaskedArray
+
+        new_data = np.insert(self_ma.data, obj, values, axis)
+        if mask is None:
+            mask = np.zeros(np.asarray(values).shape, dtype=bool)
+        new_mask = np.insert(self_ma.mask, obj, mask, axis)
+        new_ma = np.ma.array(new_data, mask=new_mask, copy=False)
+
+        out = new_ma.view(self.__class__)
+        out.parent_table = None
+        out._copy_attrs(self)
+
+        return out
+
     def __getitem__(self, item):
         out = super(MaskedColumn, self).__getitem__(item)
 
@@ -895,10 +970,7 @@ class MaskedColumn(Column, ma.MaskedArray):
         # the original object attributes are not copied.
         if out.__class__ is self.__class__:
             out.parent_table = None
-            for attr in ('name', 'unit', 'format', 'description'):
-                val = getattr(self, attr, None)
-                setattr(out, attr, val)
-            out.meta = deepcopy(getattr(self, 'meta', {}))
+            out._copy_attrs(self)
 
         return out
 
