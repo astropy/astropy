@@ -465,6 +465,20 @@ def test_equivalency_context():
         with pytest.raises(u.UnitsError):
             phase.to(1, equivalencies=None)
 
+        # test the manager also works in the Quantity constructor.
+        q1 = u.Quantity(phase, u.dimensionless_unscaled)
+        assert_allclose(q1.value, u.cycle.to(u.radian))
+
+        # and also if we use a class that happens to have a unit attribute.
+        class MyQuantityLookalike(np.ndarray):
+            pass
+
+        mylookalike = np.array(1.).view(MyQuantityLookalike)
+        mylookalike.unit = 'cycle'
+        # test the manager also works in the Quantity constructor.
+        q2 = u.Quantity(mylookalike, u.dimensionless_unscaled)
+        assert_allclose(q2.value, u.cycle.to(u.radian))
+
     with u.set_enabled_equivalencies(u.spectral()):
         u.GHz.to(u.cm)
         eq_on = u.GHz.find_equivalent_units()
