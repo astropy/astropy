@@ -52,8 +52,7 @@ Instead use ``table[column][row]`` order::
 
 You can also modify data columns with ``unit`` set in a way that follows
 the conventions of `~astropy.units.Quantity` by using the
-:attr:`~astropy.table.Column.quantity` property (although only if the
-values in the column are floats)::
+:attr:`~astropy.table.Column.quantity` property::
 
   >>> from astropy import units as u
   >>> tu = Table([[1, 2.5]], names=('a',))

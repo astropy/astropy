@@ -436,7 +436,7 @@ converted explicitly to ``~astropy.units.Quantity`` objects via the
   <Quantity [ 40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
 
 Note that the :attr:`~astropy.table.Column.quantity` property is actally
-a view of the data in the column, not a copy.  Hence, you can set the
+a *view* of the data in the column, not a copy.  Hence, you can set the
 values of a column in a way that respects units by making in-place
 changes to the :attr:`~astropy.table.Column.quantity` property::
 
