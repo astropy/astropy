@@ -527,13 +527,12 @@ class BaseColumn(np.ndarray):
         """
         A view of this table column as a `~astropy.units.Quantity` object with
         units given by the Column's `unit` parameter.
-
-        .. warning::
-          If the dtype for this column is not a float, this will make a *copy*,
-          rather than a view, because `~astropy.units.Quantity` objects have
-          to be floats.
         """
-        return Quantity(self, copy=False)
+        quantity_view = self.view(Quantity)
+        if quantity_view._unit is None:
+            # this will happen if the unit is None/not initialized
+            quantity_view._unit = u.dimensionless_unscaled
+        return quantity_view
 
     def to(self, unit, equivalencies=[], **kwargs):
         """
@@ -548,17 +547,14 @@ class BaseColumn(np.ndarray):
         equivalencies : list of equivalence pairs, optional
             Equivalencies to use for this conversion.  See
             :meth:`astropy.units.Quantity.to` for more details.
-        kwargs : optional
-            Any additional keywords are passed into the Quantity constructor
-            *before* converting to the new ``unit``.
 
         Returns
         -------
         quantity : `~astropy.units.Quantity`
-            A quantity object with the cotents of this column.
+            A quantity object with the contents of this column in the units
+            ``unit``.
         """
-        kwargs['copy'] = False  # `to` always makes a copy anyway
-        return Quantity(self, **kwargs).to(unit, equivalencies)
+        return self.quantity.to(unit, equivalencies)
 
 
 class Column(BaseColumn):
