@@ -528,11 +528,7 @@ class BaseColumn(np.ndarray):
         A view of this table column as a `~astropy.units.Quantity` object with
         units given by the Column's `unit` parameter.
         """
-        quantity_view = self.view(Quantity)
-        if quantity_view._unit is None:
-            # this will happen if the unit is None/not initialized
-            quantity_view._unit = dimensionless_unscaled
-        return quantity_view
+        return Quantity(self, copy=False, dtype=self.dtype, order='A')
 
     def to(self, unit, equivalencies=[], **kwargs):
         """

@@ -222,6 +222,16 @@ class TestColumn():
         d.quantity[:] = q
         np.testing.assert_allclose(d, [1000, 3000, 5000])
 
+        #view should also work for integers
+        d2 = Column([1, 2, 3], name='a', dtype=int, unit="m")
+        d2.quantity[:] = q
+        np.testing.assert_allclose(d2, [1000, 3000, 5000])
+
+        #but it should fail for strings or other non-numeric tables
+        d3 = Column(['arg', 'name', 'stuff'], name='a', unit="m")
+        with pytest.raises(TypeError):
+            d3.quantity
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
