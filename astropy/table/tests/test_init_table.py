@@ -418,6 +418,9 @@ class TestInitFromRows():
             assert t.colnames == ['a', 'b']
             assert t['a'].dtype.kind == 'i'
             assert t['b'].dtype.kind in ('S', 'U')
+            # Regression test for
+            # https://github.com/astropy/astropy/issues/3052
+            assert t['b'].dtype.str.endswith('1')
 
         rows = np.arange(6).reshape(2, 3)
         t = table_type(rows=rows, names=('a', 'b', 'c'), dtype=['f8', 'f4', 'i8'])
