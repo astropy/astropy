@@ -13,7 +13,7 @@ from distutils import version
 import numpy as np
 from numpy import ma
 
-from ..units import Unit, Quantity
+from ..units import Unit, Quantity, dimensionless_unscaled
 from ..utils import deprecated
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
@@ -531,7 +531,7 @@ class BaseColumn(np.ndarray):
         quantity_view = self.view(Quantity)
         if quantity_view._unit is None:
             # this will happen if the unit is None/not initialized
-            quantity_view._unit = u.dimensionless_unscaled
+            quantity_view._unit = dimensionless_unscaled
         return quantity_view
 
     def to(self, unit, equivalencies=[], **kwargs):
