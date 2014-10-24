@@ -199,7 +199,8 @@ class TestColumn():
         np.testing.assert_allclose(d.to(u.km).value, ([.001, .002, .003] * u.km).value)
         np.testing.assert_allclose(d.to('km').value, ([.001, .002, .003] * u.km).value)
 
-        assert d.to(u.km, ndmin=2).shape == (1, 3)
+        np.testing.assert_allclose(d.to(u.MHz,u.equivalencies.spectral()).value,
+                                   [299.792458, 149.896229,  99.93081933])
 
         d_nounit = Column([1, 2, 3], name='a', dtype="f8", unit=None)
         with pytest.raises(u.UnitsError):
