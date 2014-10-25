@@ -55,6 +55,11 @@ class _ModelMeta(abc.ABCMeta):
     Parameter descriptors declared at the class-level of Model subclasses.
     """
 
+    registry = set()
+    """
+    A registry of all known concrete (non-abstract) Model subclasses.
+    """
+
     def __new__(mcls, name, bases, members):
         param_names = members.get('param_names', [])
         parameters = {}
@@ -91,9 +96,33 @@ class _ModelMeta(abc.ABCMeta):
         # If no parameters were defined get out early--this is especially
         # important for PolynomialModels which take a different approach to
         # parameters, since they can have a variable number of them
-        if not parameters:
-            return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+        if parameters:
+            mcls._check_parameters(name, members, param_names, parameters)
 
+        mcls._create_inverse_property(members)
+
+        # Backwards compatibility check for 'eval' -> 'evaluate'
+        # TODO: Remove sometime after Astropy 1.0 release.
+        if 'eval' in members and 'evaluate' not in members:
+            warnings.warn(
+                "Use of an 'eval' method when defining subclasses of "
+                "FittableModel is deprecated; please rename this method to "
+                "'evaluate'.  Otherwise its semantics remain the same.",
+                AstropyDeprecationWarning)
+            members['evaluate'] = members['eval']
+        elif 'evaluate' in members:
+            alt = '.'.join((name, 'evaluate'))
+            deprecate = deprecated('1.0', alternative=alt, name='eval')
+            members['eval'] = deprecate(members['evaluate'])
+
+        cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+
+        if not inspect.isabstract(cls) and not name.startswith('_'):
+            mcls.registry.add(cls)
+        return cls
+
+    @staticmethod
+    def _check_parameters(name, members, param_names, parameters):
         # If param_names was declared explicitly we use only the parameters
         # listed manually in param_names, but still check that all listed
         # parameters were declared
@@ -111,21 +140,37 @@ class _ModelMeta(abc.ABCMeta):
             members['_param_orders'] = \
                     dict((name, idx) for idx, name in enumerate(param_names))
 
-        # Backwards compatibility check for 'eval' -> 'evaluate'
-        # TODO: Remove sometime after Astropy 1.0 release.
-        if 'eval' in members and 'evaluate' not in members:
-            warnings.warn(
-                "Use of an 'eval' method when defining subclasses of "
-                "FittableModel is deprecated; please rename this method to "
-                "'evaluate'.  Otherwise its semantics remain the same.",
-                AstropyDeprecationWarning)
-            members['evaluate'] = members['eval']
-        elif 'evaluate' in members:
-            alt = '.'.join((name, 'evaluate'))
-            deprecate = deprecated('1.0', alternative=alt, name='eval')
-            members['eval'] = deprecate(members['evaluate'])
+    @staticmethod
+    def _create_inverse_property(members):
+        inverse = members.get('inverse', None)
+        if inverse is None:
+            return
 
-        return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+        if isinstance(inverse, property):
+            fget = inverse.fget
+        else:
+            # We allow the @property decoratore to be ommitted entirely from
+            # the class definition, though its use should be encouraged for
+            # clarity
+            fget = inverse
+
+        def wrapped_fget(self):
+            if self._custom_inverse is not None:
+                return self._custom_inverse
+
+            return fget(self)
+
+        def fset(self, value):
+            if not isinstance(value, (Model, type(None))):
+                raise ValueError(
+                    "The ``inverse`` attribute may be assigned a `Model` "
+                    "instance or `None` (where `None` restores the default "
+                    "inverse for this model if one is defined.")
+
+            self._custom_inverse = value
+
+        members['inverse'] = property(wrapped_fget, fset,
+                                      doc=inverse.__doc__)
 
 
 @six.add_metaclass(_ModelMeta)
@@ -232,6 +277,8 @@ class Model(object):
     fittable = False
     linear = True
 
+    _custom_inverse = None
+
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
         self._initialize_constraints(kwargs)
@@ -258,11 +305,6 @@ class Model(object):
             outputs = (outputs,)
 
         return self.prepare_outputs(format_info, *outputs, **kwargs)
-
-    @property
-    @deprecated('0.4', alternative='len(model)')
-    def param_dim(self):
-        return self._n_models
 
     @property
     def model_set_axis(self):
@@ -370,16 +412,26 @@ class Model(object):
 
         return self._constraints['ineqcons']
 
+    @property
     def inverse(self):
-        """Returns a callable object which performs the inverse transform."""
+        """
+        Returns a new `Model` instance which performs the inverse
+        transform, if an analytic inverse is defined for this model.
+
+        Even on models that don't have an inverse defined, this property can be
+        set with a manually-defined inverse, such a pre-computed or
+        experimentally determined inverse (often given as a
+        `~astropy.modeling.polynomial.PolynomialModel`, but not by
+        requirement).
+
+        Note to authors of `Model` subclasses:  To define an inverse for a
+        model simply override this property to return the appropriate model
+        representing the inverse.  The machinery that will make the inverse
+        manually-overridable is added automatically by the base class.
+        """
 
         raise NotImplementedError("An analytical inverse transform has not "
                                   "been implemented for this model.")
-
-    def invert(self):
-        """Invert coordinates iteratively if possible."""
-
-        raise NotImplementedError("Subclasses should implement this")
 
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
@@ -956,9 +1008,6 @@ class _CompositeModel(Model):
     def add_model(self, transf, inmap, outmap):
         self[transf] = [inmap, outmap]
 
-    def invert(self):
-        raise NotImplementedError("Subclasses should implement this")
-
     @staticmethod
     def evaluate(x, y, *coeffs):
         # TODO: Refactor how these are evaluated so that they can work like
@@ -1053,11 +1102,12 @@ class SerialCompositeModel(_CompositeModel):
         self._inmap = inmap
         self._outmap = outmap
 
+    @property
     def inverse(self):
         try:
             transforms = []
             for transform in self._transforms[::-1]:
-                transforms.append(transform.inverse())
+                transforms.append(transform.inverse)
         except NotImplementedError:
             raise NotImplementedError(
                 "An analytical inverse has not been implemented for "

@@ -49,7 +49,7 @@ class Projection(Model):
     # the radius of the projection sphere, by which x,y are scaled
     r0 = 180 / np.pi
 
-    @abc.abstractmethod
+    @abc.abstractproperty
     def inverse(self):
         """
         Inverse projection--all projection models must provide an inverse.
@@ -95,6 +95,7 @@ class Pix2Sky_AZP(Zenithal):
         if val == -1:
             raise ValueError("AZP projection is not defined for mu=-1")
 
+    @property
     def inverse(self):
         return Sky2Pix_AZP(self.mu.value, self.gamma.value)
 
@@ -160,6 +161,7 @@ class Sky2Pix_AZP(Zenithal):
         if val == -1:
             raise ValueError("AZP projection is not defined for mu=-1")
 
+    @property
     def inverse(self):
         return Pix2Sky_AZP(self.mu.value, self.gamma.value)
 
@@ -191,6 +193,7 @@ class Pix2Sky_TAN(Zenithal):
     TAN : Gnomonic projection - pixel to sky.
     """
 
+    @property
     def inverse(self):
         return Sky2Pix_TAN()
 
@@ -212,6 +215,7 @@ class Sky2Pix_TAN(Zenithal):
     TAN : Gnomonic Projection - sky to pixel.
     """
 
+    @property
     def inverse(self):
         return Pix2Sky_TAN()
 
@@ -240,6 +244,7 @@ class Pix2Sky_STG(Zenithal):
     STG : Stereographic Projection - pixel to sky.
     """
 
+    @property
     def inverse(self):
         return Sky2Pix_STG()
 
@@ -261,6 +266,7 @@ class Sky2Pix_STG(Zenithal):
     STG : Stereographic Projection - sky to pixel.
     """
 
+    @property
     def inverse(self):
         return Pix2Sky_STG()
 
@@ -289,6 +295,7 @@ class Pix2Sky_SIN(Zenithal):
     SIN : Slant orthographic projection - pixel to sky.
     """
 
+    @property
     def inverse(self):
         return Sky2Pix_SIN()
 
@@ -310,6 +317,7 @@ class Sky2Pix_SIN(Zenithal):
     SIN : Slant othographic projection - sky to pixel.
     """
 
+    @property
     def inverse(self):
         return Pix2Sky_SIN()
 
@@ -365,6 +373,7 @@ class Pix2Sky_CYP(Cylindrical):
     def __init__(self, mu, lam):
         super(Pix2Sky_CYP, self).__init__(mu, lam)
 
+    @property
     def inverse(self):
         return Sky2Pix_CYP(self.mu.value, self.lam.value)
 
@@ -404,6 +413,7 @@ class Sky2Pix_CYP(Cylindrical):
     def __init__(self, mu, lam):
         super(Sky2Pix_CYP, self).__init__(mu, lam)
 
+    @property
     def inverse(self):
         return Pix2Sky_CYP(self.mu, self.lam)
 
@@ -430,6 +440,7 @@ class Pix2Sky_CEA(Cylindrical):
     def __init__(self, lam=lam.default):
         super(Pix2Sky_CEA, self).__init__(lam)
 
+    @property
     def inverse(self):
         return Sky2Pix_CEA(self.lam)
 
@@ -451,6 +462,7 @@ class Sky2Pix_CEA(Cylindrical):
     def __init__(self, lam=lam.default):
         super(Sky2Pix_CEA, self).__init__(lam)
 
+    @property
     def inverse(self):
         return Pix2Sky_CEA(self.lam)
 
@@ -472,6 +484,7 @@ class Pix2Sky_CAR(Cylindrical):
     CAR: Plate carree projection - pixel to sky.
     """
 
+    @property
     def inverse(self):
         return Sky2Pix_CAR()
 
@@ -489,6 +502,7 @@ class Sky2Pix_CAR(Cylindrical):
     CAR: Plate carree projection - sky to pixel.
     """
 
+    @property
     def inverse(self):
         return Pix2Sky_CAR()
 
@@ -510,6 +524,7 @@ class Pix2Sky_MER(Cylindrical):
     MER: Mercator - pixel to sky.
     """
 
+    @property
     def inverse(self):
         return Sky2Pix_MER()
 
@@ -526,6 +541,7 @@ class Sky2Pix_MER(Cylindrical):
     MER: Mercator - sky to pixel.
     """
 
+    @property
     def inverse(self):
         return Pix2Sky_MER()
 
@@ -573,6 +589,7 @@ class AffineTransformation2D(Model):
         super(AffineTransformation2D, self).__init__(matrix, translation,
                                                      **kwargs)
 
+    @property
     def inverse(self):
         """
         Inverse transformation.

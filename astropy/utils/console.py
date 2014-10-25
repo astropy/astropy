@@ -652,40 +652,6 @@ class ProgressBar(six.Iterator):
 
         return results
 
-    @deprecated('0.3', alternative='ProgressBar')
-    @classmethod
-    def iterate(cls, items, file=None):
-        """
-        Iterate over a sequence while indicating progress with a progress
-        bar in the terminal.
-
-        ::
-
-            for item in ProgressBar.iterate(items):
-                pass
-
-        Parameters
-        ----------
-        items : sequence
-            A sequence of items to iterate over
-
-        file : writeable file-like object, optional
-            The file to write the progress bar to.  Defaults to
-            `sys.stdout`.  If `file` is not a tty (as determined by
-            calling its `isatty` member, if any), the scrollbar will
-            be completely silent.
-
-        Returns
-        -------
-        generator :
-            A generator over ``items``.
-        """
-
-        if file is None:
-            file = _get_stdout()
-
-        return cls(items, file=file)
-
 
 class Spinner(object):
     """

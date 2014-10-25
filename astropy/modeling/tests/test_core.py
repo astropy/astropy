@@ -148,3 +148,26 @@ def test_custom_model_parametrized_decorator():
     s = sine(2)
     assert_allclose(s(np.pi / 2), 2)
     assert_allclose(s.fit_deriv(0, 2), 2)
+
+
+def test_custom_inverse():
+    """Test setting a custom inverse on a model."""
+
+    p = models.Polynomial1D(1, c0=-2, c1=3)
+    # A trivial inverse for a trivial polynomial
+    inv = models.Polynomial1D(1, c0=(2./3.), c1=(1./3.))
+
+    with pytest.raises(NotImplementedError):
+        p.inverse
+
+    p.inverse = inv
+
+    x = np.arange(100)
+
+    assert_allclose(x, p(p.inverse(x)))
+    assert_allclose(x, p.inverse(p(x)))
+
+    p.inverse = None
+
+    with pytest.raises(NotImplementedError):
+        p.inverse

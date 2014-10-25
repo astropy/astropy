@@ -242,7 +242,7 @@ class NDData(object):
                 class_name = self.__class__.__name__
                 if self.unit and value._unit:
                     try:
-                        scaling = (1 * value._unit).to(self.unit)
+                        scaling = value._unit.to(self.unit)
                     except UnitsError:
                         raise UnitsError('Cannot convert unit of uncertainty '
                                          'to unit of '

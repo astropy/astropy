@@ -93,8 +93,7 @@ def test_Redshift():
     assert m(0) == 0
     assert_array_equal(m([1, 2]), [1.4, 2.8])
 
-    inv_m = m.inverse()
-    assert_allclose(inv_m(m([1, 2])), [1, 2])
+    assert_allclose(m.inverse(m([1, 2])), [1, 2])
 
     # Scale by a list
     m = models.Redshift([-0.5, 0, 0.5], model_set_axis=0)
@@ -102,6 +101,5 @@ def test_Redshift():
     assert_array_equal(m([1, 2], model_set_axis=False),
                        [[0.5, 1], [1, 2], [1.5, 3]])
 
-    inv_m = m.inverse()
-    assert_allclose(inv_m(m([1, 2], model_set_axis=False)),
+    assert_allclose(m.inverse(m([1, 2], model_set_axis=False)),
                     [[1, 2], [1, 2], [1, 2]])

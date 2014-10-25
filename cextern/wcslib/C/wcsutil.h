@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.23 - an implementation of the FITS WCS standard.
+  WCSLIB 4.24 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.h,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: wcsutil.h,v 4.24 2014/09/18 15:25:00 mcalabre Exp $
 *=============================================================================
 *
 * Summary of the wcsutil routines
@@ -109,10 +109,15 @@
 * -----------------------------------------------------
 * INTERNAL USE ONLY.
 *
-* wcsutil_Eq() tests for equality of two arrays.
+* wcsutil_Eq() tests for equality of two double-precision arrays.
 *
 * Given:
 *   nelem     int       The number of elements in each array.
+*
+*   tol       double    Tolerance for comparison of the floating-point values.
+*                       For example, for tol == 1e-6, all floating-point
+*                       values in the arrays must be equal to the first 6
+*                       decimal places.  A value of 0 implies exact equality.
 *
 *   arr1      const double*
 *                       The first array.
@@ -323,9 +328,10 @@ void wcsutil_blank_fill(int n, char c[]);
 void wcsutil_null_fill (int n, char c[]);
 
 int  wcsutil_allEq (int nvec, int nelem, const double *first);
-int  wcsutil_Eq(int nelem, const double *arr1, const double *arr2);
+int  wcsutil_Eq(int nelem, double tol, const double *arr1,
+                const double *arr2);
 int  wcsutil_intEq(int nelem, const int *arr1, const int *arr2);
-int wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72]);
+int  wcsutil_strEq(int nelem, char (*arr1)[72], char (*arr2)[72]);
 void wcsutil_setAll(int nvec, int nelem, double *first);
 void wcsutil_setAli(int nvec, int nelem, int *first);
 void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);

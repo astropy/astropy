@@ -363,9 +363,7 @@ class Shift(Model):
     def __init__(self, offsets, **kwargs):
         super(Shift, self).__init__(offsets, **kwargs)
 
-    # TODO: Might need to do some work to ensure that cases like this work
-    # consistently.  Should iterating over self.offsets mean iterating over its
-    # parameter sets?  Maybe something like this should just work seamlessly
+    @property
     def inverse(self):
         inv = self.copy()
         inv.offsets *= -1
@@ -392,6 +390,7 @@ class Scale(Model):
     def __init__(self, factors, **kwargs):
         super(Scale, self).__init__(factors, **kwargs)
 
+    @property
     def inverse(self):
         inv = self.copy()
         inv.factors = 1 / self.factors
@@ -435,6 +434,7 @@ class Redshift(Fittable1DModel):
         d_z = x
         return [d_z]
 
+    @property
     def inverse(self):
         """Inverse Redshift model"""
 
@@ -617,7 +617,16 @@ class Const1D(Fittable1DModel):
     def evaluate(x, amplitude):
         """One dimensional Constant model function"""
 
-        return amplitude * np.ones_like(x)
+        if amplitude.size == 1:
+            # This is slighly faster than using ones_like and multiplying
+            x = np.empty_like(x)
+            x.fill(amplitude.item())
+        else:
+            # This case is less likely but could occur if the amplitude
+            # parameter is given an array-like value
+            x = amplitude * np.ones_like(x)
+
+        return x
 
     @staticmethod
     def fit_deriv(x, amplitude):
@@ -657,7 +666,16 @@ class Const2D(Fittable2DModel):
     def evaluate(x, y, amplitude):
         """Two dimensional Constant model function"""
 
-        return amplitude * np.ones_like(x)
+        if amplitude.size == 1:
+            # This is slighly faster than using ones_like and multiplying
+            x = np.empty_like(x)
+            x.fill(amplitude.item())
+        else:
+            # This case is less likely but could occur if the amplitude
+            # parameter is given an array-like value
+            x = amplitude * np.ones_like(x)
+
+        return x
 
 
 class Disk2D(Fittable2DModel):

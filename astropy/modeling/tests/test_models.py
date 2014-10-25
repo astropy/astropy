@@ -96,8 +96,7 @@ class TestSerialComposite(object):
         rot = models.Rotation2D(angle=-60)
         model = SerialCompositeModel([rot, rot])
         xx, yy = model(self.x, self.y)
-        inverse_model = model.inverse()
-        x1, y1 = inverse_model(xx, yy)
+        x1, y1 = model.inverse(xx, yy)
         utils.assert_almost_equal(x1, self.x)
         utils.assert_almost_equal(y1, self.y)
 

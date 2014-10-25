@@ -1,3 +1,23 @@
+WCSLIB version 4.24 (2014/09/19)
+----------------------------------
+
+* C library
+
+  - Changed API to wcscompare() to allow a tolerance to be specified for
+    floating-point comparisons.  Contributed by Michael Droettboom.
+
+  - Documentation generation moved to doxygen 1.8.8 (was 1.8.4).
+
+* Fortran wrappers
+
+    Track the change to wcscompare().
+
+* User manual
+
+  - Added mention of WCSLIB in "homebrew-science" (MacOSX) in the
+    section on other packages.
+
+
 WCSLIB version 4.23 (2014/05/11)
 --------------------------------
 
@@ -2136,4 +2156,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 4.23 2014/05/11 04:09:39 mcalabre Exp $
+$Id: CHANGES,v 4.24 2014/09/18 15:25:02 mcalabre Exp $

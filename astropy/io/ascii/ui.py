@@ -196,24 +196,17 @@ def _guess(table, read_kwargs, format, fast_reader):
             # user supplies delimiter="|" but the guess wants to try delimiter=" ",
             # so skip the guess entirely.
             continue
-
         try:
             # If guessing will try all Readers then use strict req'ts on column names
             if 'Reader' not in read_kwargs:
                 guess_kwargs['strict_names'] = True
 
             reader = get_reader(**guess_kwargs)
-            dat = reader.read(table)
-
-            # When guessing require at least two columns
-            if len(dat.colnames) <= 1:
-                del dat
-                raise ValueError
-
-            return dat
+            reader.guessing = True
+            return reader.read(table)
 
         except (core.InconsistentTableError, ValueError, TypeError,
-                core.OptionalTableImportError, core.ParameterError, cparser.CParserError) as e:
+                core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(guess_kwargs)
     else:
         # failed all guesses, try the original read_kwargs without column requirements
@@ -232,11 +225,17 @@ def _guess(table, read_kwargs, format, fast_reader):
                 kwargs_sorted = ((key, kwargs[key]) for key in sorted_keys)
                 keys_vals.extend(['%s: %s' % (key, repr(val)) for key, val in kwargs_sorted])
                 lines.append(' '.join(keys_vals))
-            lines.append('ERROR: Unable to guess table format with the guesses listed above.')
-            lines.append('Check the table and try with guess=False '
-                         'and appropriate arguments to read()')
-            raise core.InconsistentTableError('\n'.join(lines))
 
+            msg = ['',
+                   '************************************************************************',
+                   '** ERROR: Unable to guess table format with the guesses listed above. **',
+                   '**                                                                    **',
+                   '** To figure out why the table did not read, use guess=False and      **',
+                   '** appropriate arguments to read().  In particular specify the format **',
+                   '** and any known attributes like the delimiter.                       **',
+                   '************************************************************************']
+            lines.extend(msg)
+            raise core.InconsistentTableError('\n'.join(lines))
 
 def _get_guess_kwargs_list():
     guess_kwargs_list = [dict(Reader=basic.Rdb),

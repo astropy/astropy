@@ -13,7 +13,7 @@ from numpy import ma
 from libc cimport stdio
 from cpython.buffer cimport PyBUF_SIMPLE
 from cpython.buffer cimport Py_buffer
-from cpython.buffer cimport PyObject_GetBuffer
+from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
 
 from ...utils.data import get_readable_fileobj
 from ...table import pprint
@@ -116,6 +116,7 @@ cdef class FileString:
         object fhandle
         object mmap
         void *mmap_ptr
+        Py_buffer buf
 
     def __cinit__(self, fname):
         self.fhandle = open(fname, 'r')
@@ -123,15 +124,18 @@ cdef class FileString:
             raise IOError('File "{0}" could not be opened'.format(fname))
         self.mmap = mmap.mmap(self.fhandle.fileno(), 0, prot=mmap.PROT_READ)
         cdef Py_ssize_t buf_len = len(self.mmap)
-        cdef Py_buffer buf
         if six.PY2:
             PyObject_AsReadBuffer(self.mmap, &self.mmap_ptr, &buf_len)
         else:            
-            PyObject_GetBuffer(self.mmap, &buf, PyBUF_SIMPLE)
-            self.mmap_ptr = buf.buf
+            PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)
+            self.mmap_ptr = self.buf.buf
 
     def __dealloc__(self):
-        self.fhandle.close()
+        if self.mmap:
+            if not six.PY2: # free buffer memory to prevent a resource leak
+                PyBuffer_Release(&self.buf)
+            self.mmap.close()
+            self.fhandle.close()
 
     def __len__(self):
         return len(self.mmap)
@@ -208,6 +212,8 @@ cdef class CParser:
         parallel = fast_reader.pop('parallel', False)
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
+        if parallel and os.name == 'nt':
+            raise NotImplementedError("Multiprocessing is not yet supported on Windows")
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
@@ -720,7 +726,8 @@ cdef class CParser:
         self.names = names
 
     def __reduce__(self):
-        return (_copy_cparser, (self.source_ptr, self.source_bytes, self.use_cols, self.fill_names,
+        cdef bytes source_ptr = self.source_ptr if self.source_ptr else b''
+        return (_copy_cparser, (source_ptr, self.source_bytes, self.use_cols, self.fill_names,
                                 self.fill_values, self.tokenizer.strip_whitespace_lines,
                                 self.tokenizer.strip_whitespace_fields,
                                 dict(delimiter=chr(self.tokenizer.delimiter),
@@ -739,12 +746,13 @@ cdef class CParser:
                                 use_fast_converter=self.tokenizer.use_fast_converter,
                                 parallel=False)))
 
-def _copy_cparser(char *src_ptr, bytes source_bytes, use_cols, fill_names, fill_values,
+def _copy_cparser(bytes src_ptr, bytes source_bytes, use_cols, fill_names, fill_values,
                   strip_whitespace_lines, strip_whitespace_fields, kwargs):
     parser = CParser(None, strip_whitespace_lines, strip_whitespace_fields, **kwargs)
     parser.use_cols = use_cols
     parser.fill_names = fill_names
     parser.fill_values = fill_values
+
     if src_ptr:
         parser.tokenizer.source = src_ptr
     else:

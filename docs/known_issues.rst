@@ -1,3 +1,5 @@
+.. doctest-skip-all
+
 ============
 Known Issues
 ============
@@ -18,31 +20,54 @@ Quantities are subclassed from numpy's `~numpy.ndarray` and in some numpy operat
 means that either a plain array is returned, or a `~astropy.units.quantity.Quantity` without units.
 E.g.::
 
-    In [1]: import astropy.units as u
+    >>> import astropy.units as u
 
-    In [2]: import numpy as np
+    >>> import numpy as np
 
-    In [3]: q = u.Quantity(np.arange(10.), u.m)
+    >>> q = u.Quantity(np.arange(10.), u.m)
 
-    In [4]: np.dot(q,q)
-    Out[4]: 285.0
+    >>> np.dot(q,q)
+    285.0
 
-    In [5]: np.hstack((q,q))
-    Out[5]: 
+    >>> np.hstack((q,q))
     <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
                 5., 6., 7., 8., 9.] (Unit not initialised)>
 
 Work-arounds are available for some cases.  For the above::
 
-    In [6]: q.dot(q)
-    Out[6]: <Quantity 285.0 m2>
+    >>> q.dot(q)
+    <Quantity 285.0 m2>
 
-    In [7]: u.Quantity([q, q]).flatten()
-    Out[7]: 
+    >>> u.Quantity([q, q]).flatten()
     <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
                 5., 6., 7., 8., 9.] m>
 
 See: https://github.com/astropy/astropy/issues/1274
+
+Quantities float comparison with np.isclose fails
+-------------------------------------------------
+
+Comparing Quantities floats using the numpy function `~numpy.isclose` fails on
+numpy 1.9 as the comparison between ``a`` and ``b`` is made using the formula
+
+.. math::
+
+    |a - b| \le (a_\textrm{tol} + r_\textrm{tol} \times |b|)
+
+This will result in the following traceback when using this with Quantities::
+
+    >>> from astropy import units as u, constants as const
+    >>> import numpy as np
+    >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s)
+    UnitsError: Can only apply 'add' function to dimensionless quantities when
+    other argument is not a quantity (unless the latter is all zero/infinity/nan)
+
+An easy solution is::
+
+    >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
+    array([False], dtype=bool)
+
+
 
 Some docstrings can not be displayed in IPython < 0.13.2
 --------------------------------------------------------
@@ -51,9 +76,9 @@ Displaying long docstrings that contain Unicode characters may fail on
 some platforms in the IPython console (prior to IPython version
 0.13.2)::
 
-    In [1]: import astropy.units as u
+    >>> import astropy.units as u
 
-    In [2]: u.Angstrom?
+    >>> u.Angstrom?
     ERROR: UnicodeEncodeError: 'ascii' codec can't encode character u'\xe5' in
     position 184: ordinal not in range(128) [IPython.core.page]
 

@@ -5,7 +5,6 @@ from ..extern import six
 
 import operator
 
-import warnings
 import weakref
 
 from copy import deepcopy
@@ -17,7 +16,6 @@ from numpy import ma
 from ..units import Unit, Quantity
 from ..utils import deprecated
 from ..utils.console import color_print
-from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData
 from . import groups
 from . import pprint
@@ -41,31 +39,18 @@ def _auto_names(n_cols):
     return [str(conf.auto_colname).format(i) for i in range(n_cols)]
 
 
-def _column_compare(op):
-    """
-    Convenience function to return a function that properly does a
-    comparison between a column object and something else.
-    """
-    def compare(self, other):
-        # We have to define this to ensure that we always return boolean arrays
-        # (otherwise in some cases, Column objects are returned).
-        if isinstance(other, BaseColumn):
-            other = other.data
-        return op(self.data, other)
-    return compare
+# list of one and two-dimensional comparison functions, which sometimes return
+# a Column class and sometimes a plain array. Used in __array_wrap__ to ensure
+# they only return plain (masked) arrays (see #1446 and #1685)
+_comparison_functions = set(
+    [np.greater, np.greater_equal, np.less, np.less_equal,
+     np.not_equal, np.equal,
+     np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
 class BaseColumn(np.ndarray):
 
     meta = MetaData()
-
-    # Define comparison operators
-    __eq__ = _column_compare(operator.eq)
-    __ne__ = _column_compare(operator.ne)
-    __lt__ = _column_compare(operator.lt)
-    __le__ = _column_compare(operator.le)
-    __gt__ = _column_compare(operator.gt)
-    __ge__ = _column_compare(operator.ge)
 
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
@@ -161,16 +146,12 @@ class BaseColumn(np.ndarray):
             if copy_data:
                 data = data.copy(order)
 
-        # Create the new instance with all available kwargs.
-        kwargs = dict(name=self.name, data=data, unit=self.unit,
-                      format=self.format, description=self.description,
-                      meta=deepcopy(self.meta))
-        # Use `kwargs.update` instead of `kwargs['fill_value'] =` since some
-        # versions of Python 2.6.x will blow up on unicode keyword arguments
-        if hasattr(self, 'fill_value'):
-            kwargs.update(fill_value=self.fill_value)
-
-        out = self.__class__(**kwargs)
+        out = data.view(self.__class__)
+        out.__array_finalize__(self)
+        # for MaskedColumn, MaskedArray.__array_finalize__ also copies mask
+        # from self, which is not the idea here, so undo
+        if isinstance(self, MaskedColumn):
+            out._mask = data._mask
 
         self._copy_groups(out)
 
@@ -215,6 +196,25 @@ class BaseColumn(np.ndarray):
 
         return reconstruct_func, reconstruct_func_args, state
 
+
+    # avoid == and != to be done based on type of subclass
+    # (helped solve #1446; see also __array_wrap__)
+    def __eq__(self, other):
+        return self.data.__eq__(other)
+
+    def __ne__(self, other):
+        return self.data.__ne__(other)
+
+    # Set items using a view of the underlying data, as it gives an
+    # order-of-magnitude speed-up. [#2994]
+    def __setitem__(self, index, value):
+        self.data[index] = value
+
+    # Set slices using a view of the underlying data, as it gives an
+    # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
+    def __setslice__(self, start, stop, value):
+        self.data.__setslice__(start, stop, value)
+
     def __array_finalize__(self, obj):
         # Obj will be none for direct call to Column() creator
         if obj is None:
@@ -236,20 +236,29 @@ class BaseColumn(np.ndarray):
         """
         __array_wrap__ is called at the end of every ufunc.
 
-        If the output is the same shape as the column then call the standard
-        ndarray __array_wrap__ which will return a Column object.
+        Normally, we want a Column object back and do not have to do anything
+        special. But there are two exceptions:
 
-        If instead the output shape is different (e.g. for reduction ufuncs
-        like sum() or mean()) then return the output viewed as a standard
-        np.ndarray.  The "[()]" selects everything, but also converts a zero
-        rank array to a scalar.  For some reason np.sum() returns a zero rank
-        scalar array while np.mean() returns a scalar.  So the [()] is needed
-        for this case.
+        1) If the output shape is different (e.g. for reduction ufuncs
+           like sum() or mean()), a Column still linking to a parent_table
+           makes little sense, so we return the output viewed as the
+           column content (ndarray or MaskedArray).
+           For this case, we use "[()]" to select everything, and to ensure we
+           convert a zero rank array to a scalar. (For some reason np.sum()
+           returns a zero rank scalar array while np.mean() returns a scalar;
+           So the [()] is needed for this case.
+
+        2) When the output is created by any function that returns a boolean
+           we also want to consistently return an array rather than a column
+           (see #1446 and #1685)
         """
-        if self.shape == out_arr.shape:
-            return np.ndarray.__array_wrap__(self, out_arr, context)
+        out_arr = super(BaseColumn, self).__array_wrap__(out_arr, context)
+        if (self.shape != out_arr.shape or
+            (isinstance(out_arr, BaseColumn) and
+             (context is not None and context[0] in _comparison_functions))):
+            return out_arr.data[()]
         else:
-            return out_arr.view(np.ndarray)[()]
+            return out_arr
 
     @property
     def name(self):
@@ -434,21 +443,6 @@ class BaseColumn(np.ndarray):
     @unit.deleter
     def unit(self):
         self._unit = None
-
-    @property
-    @deprecated('0.3', alternative=':attr:`Column.unit`')
-    def units(self):
-        return self.unit
-
-    @units.setter
-    @deprecated('0.3', alternative=':attr:`Column.unit`')
-    def units(self, unit):
-        self.unit = unit
-
-    @units.deleter
-    @deprecated('0.3', alternative=':attr:`Column.unit`')
-    def units(self):
-        del self.unit
 
     def convert_unit_to(self, new_unit, equivalencies=[]):
         """
@@ -816,6 +810,20 @@ class MaskedColumn(Column, ma.MaskedArray):
         out = column_cls(name=self.name, data=data, unit=self.unit,
                          format=self.format, description=self.description,
                          meta=deepcopy(self.meta))
+        return out
+
+    def __getitem__(self, item):
+        out = super(MaskedColumn, self).__getitem__(item)
+
+        # Fixes issue #3023: when calling getitem with a MaskedArray subclass
+        # the original object attributes are not copied.
+        if out.__class__ is self.__class__:
+            out.parent_table = None
+            for attr in ('name', 'unit', 'format', 'description'):
+                val = getattr(self, attr, None)
+                setattr(out, attr, val)
+            out.meta = deepcopy(getattr(self, 'meta', {}))
+
         return out
 
     # We do this to make the methods show up in the API docs

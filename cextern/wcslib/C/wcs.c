@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.23 - an implementation of the FITS WCS standard.
+  WCSLIB 4.24 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 4.23 2014/05/11 04:09:38 mcalabre Exp $
+  $Id: wcs.c,v 4.24 2014/09/18 15:25:00 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -982,6 +982,7 @@ cleanup:
 
 int wcscompare(
   int cmp,
+  double tol,
   const struct wcsprm *wcs1,
   const struct wcsprm *wcs2,
   int *equal)
@@ -1015,20 +1016,20 @@ int wcscompare(
       }
     }
   } else {
-    if (!wcsutil_Eq(naxis, wcs1->crpix, wcs2->crpix)) {
+    if (!wcsutil_Eq(naxis, tol, wcs1->crpix, wcs2->crpix)) {
       return 0;
     }
   }
 
-  if (!wcsutil_Eq(naxis2, wcs1->pc, wcs2->pc) ||
-      !wcsutil_Eq(naxis, wcs1->cdelt, wcs2->cdelt) ||
-      !wcsutil_Eq(naxis, wcs1->crval, wcs2->crval) ||
+  if (!wcsutil_Eq(naxis2, tol, wcs1->pc, wcs2->pc) ||
+      !wcsutil_Eq(naxis, tol, wcs1->cdelt, wcs2->cdelt) ||
+      !wcsutil_Eq(naxis, tol, wcs1->crval, wcs2->crval) ||
       !wcsutil_strEq(naxis, wcs1->cunit, wcs2->cunit) ||
       !wcsutil_strEq(naxis, wcs1->ctype, wcs2->ctype) ||
-      wcs1->lonpole != wcs2->lonpole ||
-      wcs1->latpole != wcs2->latpole ||
-      wcs1->restfrq != wcs2->restfrq ||
-      wcs1->restwav != wcs2->restwav ||
+      !wcsutil_Eq(1, tol, &wcs1->lonpole, &wcs2->lonpole) ||
+      !wcsutil_Eq(1, tol, &wcs1->latpole, &wcs2->latpole) ||
+      !wcsutil_Eq(1, tol, &wcs1->restfrq, &wcs2->restfrq) ||
+      !wcsutil_Eq(1, tol, &wcs1->restwav, &wcs2->restwav) ||
       wcs1->npv != wcs2->npv ||
       wcs1->nps != wcs2->nps) {
     return 0;
@@ -1039,7 +1040,7 @@ int wcscompare(
     for (j = 0; j < wcs2->npv; ++j) {
       if (wcs1->pv[i].i == wcs2->pv[j].i &&
           wcs1->pv[i].m == wcs2->pv[j].m) {
-        if (wcs1->pv[i].value != wcs2->pv[j].value) {
+        if (!wcsutil_Eq(1, tol, &wcs1->pv[i].value, &wcs2->pv[j].value)) {
           return 0;
         }
         break;
@@ -1069,8 +1070,8 @@ int wcscompare(
   }
 
   if (wcs1->flag != WCSSET || wcs2->flag != WCSSET) {
-    if (!wcsutil_Eq(naxis2, wcs1->cd, wcs2->cd) ||
-        !wcsutil_Eq(naxis, wcs1->crota, wcs2->crota) ||
+    if (!wcsutil_Eq(naxis2, tol, wcs1->cd, wcs2->cd) ||
+        !wcsutil_Eq(naxis, tol, wcs1->crota, wcs2->crota) ||
         wcs1->altlin != wcs2->altlin ||
         wcs1->velref != wcs2->velref) {
       return 0;
@@ -1082,21 +1083,21 @@ int wcscompare(
         wcs1->colnum != wcs2->colnum ||
         !wcsutil_intEq(naxis, wcs1->colax, wcs2->colax) ||
         !wcsutil_strEq(naxis, wcs1->cname, wcs2->cname) ||
-        !wcsutil_Eq(naxis, wcs1->crder, wcs2->crder) ||
-        !wcsutil_Eq(naxis, wcs1->csyer, wcs2->csyer) ||
+        !wcsutil_Eq(naxis, tol, wcs1->crder, wcs2->crder) ||
+        !wcsutil_Eq(naxis, tol, wcs1->csyer, wcs2->csyer) ||
         strncmp(wcs1->dateavg, wcs2->dateavg, 72) ||
         strncmp(wcs1->dateobs, wcs2->dateobs, 72) ||
-        wcs1->equinox != wcs2->equinox ||
-        wcs1->mjdavg != wcs2->mjdavg ||
-        wcs1->mjdobs != wcs2->mjdobs ||
-        !wcsutil_Eq(3, wcs1->obsgeo, wcs2->obsgeo) ||
+        !wcsutil_Eq(1, tol, &wcs1->equinox, &wcs2->equinox) ||
+        !wcsutil_Eq(1, tol, &wcs1->mjdavg, &wcs2->mjdavg) ||
+        !wcsutil_Eq(1, tol, &wcs1->mjdobs, &wcs2->mjdobs) ||
+        !wcsutil_Eq(3, tol, wcs1->obsgeo, wcs2->obsgeo) ||
         strncmp(wcs1->radesys, wcs2->radesys, 72) ||
         strncmp(wcs1->specsys, wcs2->specsys, 72) ||
         strncmp(wcs1->ssysobs, wcs2->ssysobs, 72) ||
-        wcs1->velosys != wcs2->velosys ||
-        wcs1->zsource != wcs2->zsource ||
+        !wcsutil_Eq(1, tol, &wcs1->velosys, &wcs2->velosys) ||
+        !wcsutil_Eq(1, tol, &wcs1->zsource, &wcs2->zsource) ||
         strncmp(wcs1->ssyssrc, wcs2->ssyssrc, 72) ||
-        wcs1->velangl != wcs2->velangl ||
+        !wcsutil_Eq(1, tol, &wcs1->velangl, &wcs2->velangl) ||
         strncmp(wcs1->wcsname, wcs2->wcsname, 72)) {
       return 0;
     }
@@ -1108,7 +1109,7 @@ int wcscompare(
   }
 
   for (i = 0; i < wcs1->ntab; ++i) {
-    if ((status = tabcmp(0, &wcs1->tab[i], &wcs2->tab[i], &tab_equal))) {
+    if ((status = tabcmp(0, tol, &wcs1->tab[i], &wcs2->tab[i], &tab_equal))) {
       return status;
     }
     if (!tab_equal) {

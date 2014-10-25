@@ -828,3 +828,8 @@ def test_angle_axis():
 
     assert an2 - 89*u.deg < 1e-10*u.deg
     assert_allclose(ax2, [-2**-0.5, -2**-0.5, 0])
+
+def test_array_angle_tostring():
+    aobj = Angle([1, 2], u.deg)
+    assert aobj.to_string().dtype.kind == 'U'
+    assert np.all(aobj.to_string() == ['1d00m00s', '2d00m00s'])

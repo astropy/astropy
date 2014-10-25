@@ -2,8 +2,17 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
+import warnings
+from .. import units as u
+from ..utils.exceptions import AstropyUserWarning
 
 __doctest_skip__ = ['wcs_to_celestial_frame']
+
+__all__ = ['add_stokes_axis_to_wcs',
+           'wcs_to_celestial_frame', 'custom_frame_mappings',
+           'wcs_to_celestial_frame', 'celestial_pixel_scale',
+           'non_celestial_pixel_scales', 'skycoord_to_pixel',
+           'pixel_to_skycoord']
 
 
 def add_stokes_axis_to_wcs(wcs, add_before_ind):
@@ -107,15 +116,15 @@ def wcs_to_celestial_frame(wcs):
     For a given WCS, return the coordinate frame that matches the celestial
     component of the WCS.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     wcs : :class:`~astropy.wcs.WCS` instance
         The WCS to find the frame for
 
     Returns
     -------
-    frame : :class:`~astropy.coordinates.base_frame.BaseFrame` subclass instance
-        An instance of a :class:`~astropy.coordinates.base_frame.BaseFrame`
+    frame : :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame` subclass instance
+        An instance of a :class:`~astropy.coordinates.baseframe.BaseCoordinateFrame`
         subclass instance that best matches the specified WCS.
 
     Notes
@@ -126,9 +135,10 @@ def wcs_to_celestial_frame(wcs):
     instance and should return either an instance of a frame, or `None` if no
     matching frame was found. You can register this function temporarily with::
 
-    >>> from astropy.wcs.utils import wcs_to_celestial_frame, custom_frame_mappings
-    >>> with custom_frame_mappings(my_function):
-    ...     wcs_to_celestial_frame(...)
+        >>> from astropy.wcs.utils import wcs_to_celestial_frame, custom_frame_mappings
+        >>> with custom_frame_mappings(my_function):
+        ...     wcs_to_celestial_frame(...)
+
     """
     for mapping_set in WCS_FRAME_MAPPINGS:
         for func in mapping_set:
@@ -137,3 +147,216 @@ def wcs_to_celestial_frame(wcs):
                 return frame
     raise ValueError("Could not determine celestial frame corresponding to "
                      "the specified WCS object")
+
+
+def celestial_pixel_scale(inwcs, allow_nonsquare=False):
+    """
+    For a WCS, if the pixels are square, return the pixel scale in the spatial
+    dimensions
+
+    Parameters
+    ----------
+    inwcs: `astropy.wcs.WCS`
+        The world coordinate system object
+    allow_nonsquare : bool
+        Return the average of the X and Y scales if True
+
+    Returns
+    -------
+    scale : float
+        The square pixel scale
+
+    Raises
+    ------
+    ValueError if the pixels are nonsquare and ``allow_nonsquare==False``
+    """
+    cwcs = inwcs.celestial
+    if cwcs.wcs.ctype[0][-3:] != 'CAR':
+        warnings.warn("Pixel sizes may very over the image for "
+                      "projection class {0}".format(cwcs.wcs.ctype[0][-3:]),
+                      AstropyUserWarning)
+    scale = (cwcs.pixel_scale_matrix**2).sum(axis=0)**0.5
+    if not np.allclose(scale[0],scale[1]):
+        if allow_nonsquare:
+            warnings.warn("Pixels are not square, using an average pixel scale")
+            return np.mean(scale)*u.deg
+        else:
+            raise ValueError("Pixels are not square: 'pixel scale' is ambiguous")
+    # Return a quantity: WCS always stores in degrees
+    return scale[0]*u.deg
+
+
+def non_celestial_pixel_scales(inwcs):
+    """
+    For a non-celestial WCS, e.g. one with mixed spectral and spatial axes, it
+    is still sometimes possible to define a pixel scale.
+
+    Parameters
+    ----------
+    inwcs: `astropy.wcs.WCS`
+        The world coordinate system object
+
+    Returns
+    -------
+    scale : `numpy.ndarray`
+        The pixel scale along each axis
+    """
+
+    if inwcs.is_celestial:
+        raise ValueError("WCS is celestial, use celestial_pixel_scale instead")
+
+    pccd = inwcs.pixel_scale_matrix
+
+    if np.allclose(np.extract(1-np.eye(*pccd.shape), pccd), 0):
+        return np.abs(np.diagonal(pccd))*u.deg
+    else:
+        raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
+
+# TODO: in future, we should think about how the following two functions can be
+# integrated better into the WCS class.
+
+def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
+    """
+    Convert a set of SkyCoord coordinates into pixels.
+
+    Parameters
+    ----------
+    coords : `~astropy.coordinates.SkyCoord`
+        The coordinates to convert.
+    wcs : `~astropy.wcs.WCS`
+        The WCS transformation to use.
+    origin : int
+        Whether to return 0 or 1-based pixel coordinates.
+    mode : 'all' or 'wcs'
+        Whether to do the transformation including distortions (``'all'``) or
+        only including only the core WCS transformation (``'wcs'``).
+
+    Returns
+    -------
+    xp, yp : `numpy.ndarray`
+        The pixel coordinates
+
+    See Also
+    --------
+    astropy.coordinates.SkyCoord.from_pixel
+    """
+
+    from .. import units as u
+    from . import WCSSUB_CELESTIAL
+
+    if wcs.has_distortion and wcs.naxis != 2:
+        raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
+
+    # Keep only the celestial part of the axes, also re-orders lon/lat
+    wcs = wcs.sub([WCSSUB_CELESTIAL])
+
+    if wcs.naxis != 2:
+        raise ValueError("WCS should contain celestial component")
+
+    # Check which frame the WCS uses
+    frame = wcs_to_celestial_frame(wcs)
+
+    # Check what unit the WCS needs
+    xw_unit = u.Unit(wcs.wcs.cunit[0])
+    yw_unit = u.Unit(wcs.wcs.cunit[1])
+
+    # Convert positions to frame
+    coords = coords.transform_to(frame)
+
+    # Extract longitude and latitude. We first try and use lon/lat directly,
+    # but if the representation is not spherical or unit spherical this will
+    # fail. We should then force the use of the unit spherical
+    # representation. We don't do that directly to make sure that we preserve
+    # custom lon/lat representations if available.
+    try:
+        lon = coords.data.lon.to(xw_unit)
+        lat = coords.data.lat.to(yw_unit)
+    except AttributeError:
+        lon = coords.spherical.lon.to(xw_unit)
+        lat = coords.spherical.lat.to(yw_unit)
+
+    # Convert to pixel coordinates
+    if mode == 'all':
+        xp, yp = wcs.all_world2pix(lon.value, lat.value, origin)
+    elif mode == 'wcs':
+        xp, yp = wcs.wcs_world2pix(lon.value, lat.value, origin)
+    else:
+        raise ValueError("mode should be either 'all' or 'wcs'")
+
+    return xp, yp
+
+
+def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
+    """
+    Convert a set of pixel coordinates into a `~astropy.coordinates.SkyCoord`
+    coordinate.
+
+    Parameters
+    ----------
+    xp, yp : float or `numpy.ndarray`
+        The coordinates to convert.
+    wcs : `~astropy.wcs.WCS`
+        The WCS transformation to use.
+    origin : int
+        Whether to return 0 or 1-based pixel coordinates.
+    mode : 'all' or 'wcs'
+        Whether to do the transformation including distortions (``'all'``) or
+        only including only the core WCS transformation (``'wcs'``).
+    cls : class or None
+        The class of object to create.  Should be a
+        `~astropy.coordinates.SkyCoord` subclass.  If None, defaults to
+        `~astropy.coordinates.SkyCoord`.
+
+    Returns
+    -------
+    coords : Whatever ``cls`` is (a subclass of `~astropy.coordinates.SkyCoord`)
+        The celestial coordinates
+
+    See Also
+    --------
+    astropy.coordinates.SkyCoord.from_pixel
+    """
+
+    from .. import units as u
+    from . import WCSSUB_CELESTIAL
+    from ..coordinates import SkyCoord, UnitSphericalRepresentation
+
+    # we have to do this instead of actually setting the default to SkyCoord
+    # because importing SkyCoord at the module-level leads to circular
+    # dependencies.
+    if cls is None:
+        cls = SkyCoord
+
+    if wcs.has_distortion and wcs.naxis != 2:
+        raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
+
+    # Keep only the celestial part of the axes, also re-orders lon/lat
+    wcs = wcs.sub([WCSSUB_CELESTIAL])
+
+    if wcs.naxis != 2:
+        raise ValueError("WCS should contain celestial component")
+
+    # Check which frame the WCS uses
+    frame = wcs_to_celestial_frame(wcs)
+
+    # Check what unit the WCS gives
+    lon_unit = u.Unit(wcs.wcs.cunit[0])
+    lat_unit = u.Unit(wcs.wcs.cunit[1])
+
+    # Convert pixel coordinates to celestial coordinates
+    if mode == 'all':
+        lon, lat = wcs.all_pix2world(xp, yp, origin)
+    elif mode == 'wcs':
+        lon, lat = wcs.wcs_pix2world(xp, yp, origin)
+    else:
+        raise ValueError("mode should be either 'all' or 'wcs'")
+
+    # Add units to longitude/latitude
+    lon = lon * lon_unit
+    lat = lat * lat_unit
+
+    # Create a SkyCoord-like object
+    data = UnitSphericalRepresentation(lon=lon, lat=lat)
+    coords = cls(frame.realize_frame(data))
+
+    return coords

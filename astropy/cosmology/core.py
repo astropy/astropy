@@ -25,9 +25,8 @@ from . import parameters
 # and Linder 2003, PRL 90, 91301
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
-           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "get_current",
-           "set_current", "WMAP5", "WMAP7", "WMAP9", "Planck13",
-           "default_cosmology"]
+           "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "WMAP5", "WMAP7",
+           "WMAP9", "Planck13", "default_cosmology"]
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
@@ -2611,42 +2610,6 @@ class default_cosmology(ScienceState):
             return value
         else:
             raise TypeError("default_cosmology must be a string or Cosmology instance.")
-
-
-@deprecated('0.4', alternative='astropy.cosmology.default_cosmology.get_cosmology_from_string')
-def get_cosmology_from_string(arg):
-    """ Return a cosmology instance from a string.
-    """
-    return default_cosmology.get_cosmology_from_string(arg)
-
-
-@deprecated('0.4', alternative='astropy.cosmology.default_cosmology.get')
-def get_current():
-    """ Get the current cosmology.
-
-    If no current has been set, the WMAP9 comology is returned and a
-    warning is given.
-
-    Returns
-    -------
-    cosmo : ``Cosmology`` instance
-    """
-    return default_cosmology.get()
-
-
-@deprecated('0.4', alternative='astropy.cosmology.default_cosmology.set')
-def set_current(cosmo):
-    """ Set the current cosmology.
-
-    Call this with an empty string ('') to get a list of the strings
-    that map to available pre-defined cosmologies.
-
-    Parameters
-    ----------
-    cosmo : str or ``Cosmology`` instance
-      The cosmology to use.
-    """
-    return default_cosmology.set(cosmo)
 
 
 DEFAULT_COSMOLOGY = ScienceStateAlias(
