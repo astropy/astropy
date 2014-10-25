@@ -289,18 +289,22 @@ class TableFormatter(object):
         # Add formatted values if within bounds allowed by max_lines
         for i in xrange(n_rows):
             if i < i0 or i > i1:
-                if multidims:
-                    # Prevents colums like Column(data=[[(1,)],[(2,)]], name='a')
-                    # with shape (n,1,...,1) from being printed as if there was
-                    # more than one element in a row
-                    if trivial_multidims:
-                        col_str = format_func(col.format, col[(i,) + multidim0])
+                try:
+                    if multidims:
+                        # Prevents colums like Column(data=[[(1,)],[(2,)]], name='a')
+                        # with shape (n,1,...,1) from being printed as if there was
+                        # more than one element in a row
+                        if trivial_multidims:
+                            col_str = format_func(col.format, col[(i,) + multidim0])
+                        else:
+                            col_str = (format_func(col.format, col[(i,) + multidim0]) +
+                                      ' .. ' +
+                                      format_func(col.format, col[(i,) + multidim1]))
                     else:
-                        col_str = (format_func(col.format, col[(i,) + multidim0]) +
-                                  ' .. ' +
-                                  format_func(col.format, col[(i,) + multidim1]))
-                else:
-                    col_str = format_func(col.format, col[i])
+                        col_str = format_func(col.format, col[i])
+                except TypeError:
+                    raise TypeError('Unable to parse format string {0} for entry {1} in column {2}'.format(col.format, col[i], col.name))
+
                 yield col_str
             elif i == i0:
                 yield '...'
