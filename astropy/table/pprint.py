@@ -117,7 +117,7 @@ def _auto_format_func(format_, val):
                 break
         else:
             # None of the possible string functions passed muster.
-            raise ValueError('Unable to parse format string {0}'
+            raise TypeError('Unable to parse format string {0} for its column'
                              .format(format_))
 
         # String-based format functions will fail on masked elements;
