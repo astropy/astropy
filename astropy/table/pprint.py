@@ -133,8 +133,8 @@ def get_auto_format_func(
                     break
             else:
                 # None of the possible string functions passed muster.
-                raise ValueError('Unable to parse format string {0}'
-                                 .format(format_))
+                raise TypeError('Unable to parse format string {0} for its '
+                                'column'.format(format_))
 
             # String-based format functions will fail on masked elements;
             # wrap them in a function that traps them.
@@ -350,6 +350,7 @@ class TableFormatter(object):
             Include column length at end.  Default is to show this only
             if the column is not shown completely.
         """
+
         max_lines, _ = self._get_pprint_size(max_lines, -1)
 
         multidims = getattr(col, 'shape', [0])[1:]
@@ -436,24 +437,32 @@ class TableFormatter(object):
             i0 = -1
             ii = np.arange(len(col))
 
-        # Add formatted values if within bounds allowed by max_lines
-        for i in ii:
-            if i == i0:
-                yield '...'
-            else:
-                if multidims:
-                    # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
-                    # with shape (n,1,...,1) from being printed as if there was
-                    # more than one element in a row
-                    if trivial_multidims:
-                        col_str = format_func(col_format, col[(i,) + multidim0])
-                    else:
-                        col_str = (format_func(col_format, col[(i,) + multidim0]) +
-                                  ' .. ' +
-                                  format_func(col_format, col[(i,) + multidim1]))
+        def format_col_str(idx):
+            if multidims:
+                # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
+                # with shape (n,1,...,1) from being printed as if there was
+                # more than one element in a row
+                if trivial_multidims:
+                    return format_func(col_format, col[(idx,) + multidim0])
                 else:
-                    col_str = format_func(col_format, col[i])
-                yield col_str
+                    left = format_func(col_format, col[(idx,) + multidim0])
+                    right = format_func(col_format, col[(idx,) + multidim1])
+                    return '{0} .. {1}'.format(left, right)
+            else:
+                return format_func(col_format, col[idx])
+
+        # Add formatted values if within bounds allowed by max_lines
+        for idx in xrange(n_rows):
+            if idx < i0 or idx > i1:
+                try:
+                    yield format_col_str(idx)
+                except TypeError:
+                    raise TypeError(
+                        'Unable to parse format string "{0}" for entry "{1}" '
+                        'in column "{2}"'.format(col.format, col[idx],
+                                                 col.name))
+            elif idx == i0:
+                yield '...'
 
         outs['show_length'] = show_length
         outs['n_header'] = n_header
