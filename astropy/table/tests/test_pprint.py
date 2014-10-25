@@ -287,7 +287,7 @@ class TestFormat():
 
         #  Invalid format spec
         t['a'].format = 'fail'
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             str(t['a'])
 
     def test_column_format_with_threshold(self, table_type):

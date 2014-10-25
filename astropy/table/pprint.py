@@ -122,7 +122,7 @@ def _auto_format_func(format_, val):
                 break
         else:
             # None of the possible string functions passed muster.
-            raise ValueError('Unable to parse format string {0}'
+            raise TypeError('Unable to parse format string {0} for its column'
                              .format(format_))
 
         # String-based format functions will fail on masked elements;
@@ -262,7 +262,7 @@ class TableFormatter(object):
             col_strs.insert(0, '<table>')
             col_strs.append('</table>')
 
-        # Now bring all the column string values to the same fixed width        
+        # Now bring all the column string values to the same fixed width
         else:
             col_width = max(len(x) for x in col_strs) if col_strs else 1
 
@@ -311,7 +311,7 @@ class TableFormatter(object):
                         justify = (lambda col_str, col_width:
                                    getattr(col_str, 'rjust')(col_width))
                 col_strs[i] = justify(col_str, col_width)
-                
+
         if outs['show_length']:
             col_strs.append('Length = {0} rows'.format(len(col)))
 
@@ -346,6 +346,7 @@ class TableFormatter(object):
             Must be a dict which is used to pass back additional values
             defined within the iterator.
         """
+
         max_lines, _ = self._get_pprint_size(max_lines, -1)
 
         multidims = getattr(col, 'shape', [0])[1:]
@@ -399,24 +400,32 @@ class TableFormatter(object):
             i0 = -1
             ii = np.arange(len(col))
 
-        # Add formatted values if within bounds allowed by max_lines
-        for i in ii:
-            if i == i0:
-                yield '...'
-            else:
-                if multidims:
-                    # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
-                    # with shape (n,1,...,1) from being printed as if there was
-                    # more than one element in a row
-                    if trivial_multidims:
-                        col_str = format_func(col_format, col[(i,) + multidim0])
-                    else:
-                        col_str = (format_func(col_format, col[(i,) + multidim0]) +
-                                  ' .. ' +
-                                  format_func(col_format, col[(i,) + multidim1]))
+        def format_col_str(idx):
+            if multidims:
+                # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
+                # with shape (n,1,...,1) from being printed as if there was
+                # more than one element in a row
+                if trivial_multidims:
+                    return format_func(col_format, col[(idx,) + multidim0])
                 else:
-                    col_str = format_func(col_format, col[i])
-                yield col_str
+                    left = format_func(col_format, col[(idx,) + multidim0])
+                    right = format_func(col_format, col[(idx,) + multidim1])
+                    return '{0} .. {1}'.format(left, right)
+            else:
+                return format_func(col_format, col[idx])
+
+        # Add formatted values if within bounds allowed by max_lines
+        for idx in xrange(n_rows):
+            if idx < i0 or idx > i1:
+                try:
+                    yield format_col_str(idx)
+                except TypeError:
+                    raise TypeError(
+                        'Unable to parse format string "{0}" for entry "{1}" '
+                        'in column "{2}"'.format(col.format, col[idx],
+                                                 col.name))
+            elif idx == i0:
+                yield '...'
 
         outs['show_length'] = show_length
         outs['n_header'] = n_header
