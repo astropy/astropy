@@ -278,6 +278,26 @@ class BaseColumn(np.ndarray):
         self._name = val
 
     @property
+    def format(self):
+        return self._formatstring
+
+    @format.setter
+    def format(self, format_string):
+        try:
+            prev_format = self._formatstring # save current format string
+        except AttributeError: # nothing set at all yet
+            prev_format = None
+
+        self._formatstring = format_string # set new format string
+
+        try:
+            self.pformat() # test whether it formats without error
+        except TypeError as err:
+            self._formatstring = prev_format # revert to restore previous format if ther was one
+            raise TypeError(err.args[0]) # propagate the error upwards
+
+
+    @property
     def descr(self):
         """Array-interface compliant full description of the column.
 
