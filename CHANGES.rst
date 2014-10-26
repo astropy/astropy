@@ -238,6 +238,9 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - In the ``CommentedHeader`` the ``data_start`` parameter now defaults to 
+    ``0``, which is the first uncommented line. Discussed in #2692. [#3054]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
