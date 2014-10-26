@@ -303,7 +303,8 @@ class TableFormatter(object):
                     else:
                         col_str = format_func(col.format, col[i])
                 except TypeError:
-                    raise TypeError('Unable to parse format string {0} for entry {1} in column {2}'.format(col.format, col[i], col.name))
+                    raise TypeError('Unable to parse format string "{0}" for entry "{1}" in column "{2}"'
+                            .format(col.format, col[i], col.name))
 
                 yield col_str
             elif i == i0:
