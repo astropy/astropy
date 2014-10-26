@@ -291,7 +291,11 @@ class BaseColumn(np.ndarray):
         self._formatstring = format_string # set new format string
 
         try:
-            self.pformat(max_lines=-1) # test whether it formats without error for all entries
+            if type(self[0]) in ['numpy.object', 'numpy.object0', 'numpy.object_']:
+                self.pformat(max_lines=-1) # test whether it formats without error for all entries
+            else:
+                self.pformat(max_lines=1) # test whether it formats without error exemplarily
+
         except TypeError as err:
             self._formatstring = prev_format # revert to restore previous format if ther was one
             raise TypeError(err.args[0]) # propagate the error upwards
