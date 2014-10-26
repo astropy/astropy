@@ -291,7 +291,7 @@ class BaseColumn(np.ndarray):
         self._formatstring = format_string # set new format string
 
         try:
-            self.pformat() # test whether it formats without error
+            self.pformat(max_lines=-1) # test whether it formats without error for all entries
         except TypeError as err:
             self._formatstring = prev_format # revert to restore previous format if ther was one
             raise TypeError(err.args[0]) # propagate the error upwards
