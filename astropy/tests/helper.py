@@ -106,7 +106,7 @@ class TestRunner(object):
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
                   pdb=False, coverage=False, open_files=False, parallel=0,
-                  docs_path=None, skip_docs=False):
+                  docs_path=None, skip_docs=False, kselect=None):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -247,6 +247,14 @@ class TestRunner(object):
             if parallel < 0:
                 parallel = multiprocessing.cpu_count()
             all_args.extend(['-n', six.text_type(parallel)])
+
+        #add anything that was -k'ed
+        if kselect:
+            if '-k' in all_args:
+                raise ValueError('Cannot give two different -k arguments.')
+
+            all_args.append('-k')
+            all_args.append(kselect)
 
         if six.PY2:
             all_args = [x.encode('utf-8') for x in all_args]
