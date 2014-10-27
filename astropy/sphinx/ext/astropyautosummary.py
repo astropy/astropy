@@ -72,7 +72,10 @@ class AstropyAutosummary(Autosummary):
 
             # -- Grab the summary
 
-            doc = list(documenter.process_doc(documenter.get_doc()))
+            raw_doc = documenter.get_doc()
+            if len(raw_doc) == 0:
+                self.warn('[astropyautosummary] public object {0} does not have a docstring'.format(display_name))
+            doc = list(documenter.process_doc(raw_doc))
 
             while doc and not doc[0].strip():
                 doc.pop(0)
