@@ -1042,7 +1042,7 @@ class Quantity(np.ndarray):
         # item returns python built-ins, so use initializer, not _new_view
         return self.__class__(super(Quantity, self).item(*args), self.unit)
 
-    def list(self):
+    def tolist(self):
         raise NotImplementedError("cannot make a list of Quantities.  Get "
                                   "list of values with q.value.list()")
 

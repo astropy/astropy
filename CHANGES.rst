@@ -58,6 +58,9 @@ Bug Fixes
   - Operations on quantities with incompatible types now raises a much
     more informative ``TypeError``. [#2934]
 
+  - ``Quantity.tolist`` now overrides the ``ndarray`` method to give a 
+    ``NotImplementedError`` (by renaming the previous ``list`` method). [#3050]
+
 - ``astropy.utils``
 
   - Fixed an issue with the ``deprecated`` decorator on classes that invoke

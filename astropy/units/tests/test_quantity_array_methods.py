@@ -464,7 +464,7 @@ class TestArrayConversion(object):
             q1.choose([0, 0, 1])
 
         with pytest.raises(NotImplementedError):
-            q1.list()
+            q1.tolist()
         with pytest.raises(NotImplementedError):
             q1.tostring()
         with pytest.raises(NotImplementedError):
