@@ -98,10 +98,12 @@ class TestQuantityStatsFuncs(object):
 
     def test_std_inplace(self):
 
-        # can't use decorator since test causes a segfault in Numpy < 1.7, and
-        # py.test will run the test anyway to see if it works
-        if NUMPY_LT_1P7:
-            pytest.xfail()
+        # For Numpy >= 1.7, inplace causes the variance to be stored instead
+        # of the standard deviation.
+        # see https://github.com/numpy/numpy/issues/5240
+        # For Numpy < 1.7, the test segfaults.  Hence, we cannot use the xfail
+        # decorator since py.test will run the test anyway to see if it works.
+        pytest.xfail()
 
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
@@ -114,8 +116,8 @@ class TestQuantityStatsFuncs(object):
 
     def test_var_inplace(self):
 
-        # can't use decorator since test causes a segfault in Numpy < 1.7, and
-        # py.test will run the test anyway to see if it works
+        # For Numpy < 1.7, the test segfaults.  Hence, we cannot use the xfail
+        # decorator since py.test will run the test anyway to see if it works.
         if NUMPY_LT_1P7:
             pytest.xfail()
 
