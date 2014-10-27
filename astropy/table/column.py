@@ -13,7 +13,7 @@ from distutils import version
 import numpy as np
 from numpy import ma
 
-from ..units import Unit, Quantity, dimensionless_unscaled
+from ..units import Unit, Quantity
 from ..utils import deprecated
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
@@ -528,6 +528,9 @@ class BaseColumn(np.ndarray):
         A view of this table column as a `~astropy.units.Quantity` object with
         units given by the Column's `unit` parameter.
         """
+        # the Quantity initializer is used herew because it correctly fails
+        # if the column's values are non-numeric (like strings), while .view
+        # will happily return a quantity with gibberish for numerical values
         return Quantity(self, copy=False, dtype=self.dtype, order='A')
 
     def to(self, unit, equivalencies=[], **kwargs):
