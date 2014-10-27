@@ -140,6 +140,17 @@ class ExpressionTree(object):
                     # since this result is not a leaf node
                     left, right = operands
                     stack.append((operator(left[0], right[0]), -1))
+                elif len(operands) == 0:
+                    # Just push the left one back on the stack
+                    # TODO: Explain and/or refactor this better
+                    # This is here because even if both operands were "skipped"
+                    # due to being outside the (start, stop) range, we've only
+                    # skipped one operator.  But there should be at least 2
+                    # operators involving these operands, so we push the one
+                    # from the left back onto the stack so that the next
+                    # operator will be skipped as well.  Should probably come
+                    # up with an easier to follow way to write this algorithm
+                    stack.append(left)
                 else:
                     # one or more of the operands was not included in the
                     # sub-expression slice, so don't evaluate the operator;

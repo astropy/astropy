@@ -5,6 +5,8 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import operator
 
+import numpy as np
+
 from ..utils import ExpressionTree as ET
 
 
@@ -33,29 +35,34 @@ def test_tree_evaluate_subexpression():
     tree = ET('+', ET(1.0), ET('-', ET(2.0),
                    ET('*', ET(3.0), ET('/', ET(4.0),
                    ET('**', ET(5.0), ET(6.0))))))
-    tree.evaluate(operators) == (1.0 + 2.0 - 3.0 * 4.0 / 5.0 ** 6.0)
-    tree.evaluate(operators, start=0, stop=5) == (1.0 + 2.0 - 3.0 * 4.0 / 5.0)
-    tree.evaluate(operators, start=0, stop=4) == (1.0 + 2.0 - 3.0 * 4.0)
-    tree.evaluate(operators, start=0, stop=3) == (1.0 + 2.0 - 3.0)
-    tree.evaluate(operators, start=0, stop=2) == (1.0 + 2.0)
-    tree.evaluate(operators, start=0, stop=1) == 1.0
 
-    tree.evaluate(operators, start=1, stop=6) == (2.0 - 3.0 * 4.0 / 5.0 ** 6.0)
-    tree.evaluate(operators, start=1, stop=5) == (2.0 - 3.0 * 4.0 / 5.0)
-    tree.evaluate(operators, start=1, stop=4) == (2.0 - 3.0 * 4.0)
-    tree.evaluate(operators, start=1, stop=3) == (2.0 - 3.0)
-    tree.evaluate(operators, start=1, stop=2) == 2.0
+    def test_slice(start, stop, expected):
+        assert np.allclose(tree.evaluate(operators, start=start, stop=stop),
+                           expected)
 
-    tree.evaluate(operators, start=2, stop=6) == (3.0 * 4.0 / 5.0 ** 6.0)
-    tree.evaluate(operators, start=2, stop=5) == (3.0 * 4.0 / 5.0)
-    tree.evaluate(operators, start=2, stop=4) == (3.0 * 4.0)
-    tree.evaluate(operators, start=2, stop=3) == 3.0
+    assert tree.evaluate(operators) == (1.0 + 2.0 - 3.0 * 4.0 / 5.0 ** 6.0)
+    test_slice(0, 5, (1.0 + 2.0 - 3.0 * 4.0 / 5.0))
+    test_slice(0, 4, (1.0 + 2.0 - 3.0 * 4.0))
+    test_slice(0, 3, (1.0 + 2.0 - 3.0))
+    test_slice(0, 2, (1.0 + 2.0))
+    test_slice(0, 1, 1.0)
 
-    tree.evaluate(operators, start=3, stop=6) == (4.0 / 5.0 ** 6.0)
-    tree.evaluate(operators, start=3, stop=5) == (4.0 / 5.0)
-    tree.evaluate(operators, start=3, stop=4) == 4.0
+    test_slice(1, 6, (2.0 - 3.0 * 4.0 / 5.0 ** 6.0))
+    test_slice(1, 5, (2.0 - 3.0 * 4.0 / 5.0))
+    test_slice(1, 4, (2.0 - 3.0 * 4.0))
+    test_slice(1, 3, (2.0 - 3.0))
+    test_slice(1, 2, 2.0)
 
-    tree.evaluate(operators, start=4, stop=6) == (5.0 ** 6.0)
-    tree.evaluate(operators, start=4, stop=5) == 5.0
+    test_slice(2, 6, (3.0 * 4.0 / 5.0 ** 6.0))
+    test_slice(2, 5, (3.0 * 4.0 / 5.0))
+    test_slice(2, 4, (3.0 * 4.0))
+    test_slice(2, 3, 3.0)
 
-    tree.evaluate(operators, start=5, stop=6) == 6.0
+    test_slice(3, 6, (4.0 / 5.0 ** 6.0))
+    test_slice(3, 5, (4.0 / 5.0))
+    test_slice(3, 4, 4.0)
+
+    test_slice(4, 6, (5.0 ** 6.0))
+    test_slice(4, 5, 5.0)
+
+    test_slice(5, 6, 6.0)
