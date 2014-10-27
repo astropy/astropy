@@ -279,26 +279,26 @@ class BaseColumn(np.ndarray):
 
     @property
     def format(self):
-        return self._formatstring
+        return self._format
 
     @format.setter
     def format(self, format_string):
         try:
-            prev_format = self._formatstring # save current format string
-        except AttributeError: # nothing set at all yet
+            prev_format = self._format  # save current format string
+        except AttributeError:  # nothing set at all yet
             prev_format = None
 
-        self._formatstring = format_string # set new format string
+        self._format = format_string  # set new format string
 
         try:
             if type(self[0]) in ['numpy.object', 'numpy.object0', 'numpy.object_']:
-                self.pformat(max_lines=-1) # test whether it formats without error for all entries
+                self.pformat(max_lines=-1)  # test whether it formats without error for all entries
             else:
-                self.pformat(max_lines=1) # test whether it formats without error exemplarily
+                self.pformat(max_lines=1)  # test whether it formats without error exemplarily
 
         except TypeError as err:
-            self._formatstring = prev_format # revert to restore previous format if ther was one
-            raise TypeError(err.args[0]) # propagate the error upwards
+            self._format = prev_format  # revert to restore previous format if there was one
+            raise  # propagate the error upwards
 
 
     @property
