@@ -152,12 +152,12 @@ class TestColumn():
 
     def test_quantity_init(self, Column):
 
-        c = Column(data=np.array([1,2,3]) * u.m)
-        assert np.all(c.data == np.array([1,2,3]))
+        c = Column(data=np.array([1, 2, 3]) * u.m)
+        assert np.all(c.data == np.array([1, 2, 3]))
         assert np.all(c.unit == u.m)
 
-        c = Column(data=np.array([1,2,3]) * u.m, unit=u.cm)
-        assert np.all(c.data == np.array([100,200,300]))
+        c = Column(data=np.array([1, 2, 3]) * u.m, unit=u.cm)
+        assert np.all(c.data == np.array([100, 200, 300]))
         assert np.all(c.unit == u.cm)
 
     def test_attrs_survive_getitem_after_change(self, Column):
@@ -187,6 +187,51 @@ class TestColumn():
         val = c1[1]
         for attr in ('name', 'unit', 'format', 'description', 'meta'):
             assert not hasattr(val, attr)
+
+    def test_to_quantity(self, Column):
+        d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
+
+        assert np.all(d.quantity == ([1, 2, 3.] * u.m))
+        assert np.all(d.quantity.value == ([1, 2, 3.] * u.m).value)
+        assert np.all(d.quantity == d.to('m'))
+        assert np.all(d.quantity.value == d.to('m').value)
+
+        np.testing.assert_allclose(d.to(u.km).value, ([.001, .002, .003] * u.km).value)
+        np.testing.assert_allclose(d.to('km').value, ([.001, .002, .003] * u.km).value)
+
+        np.testing.assert_allclose(d.to(u.MHz,u.equivalencies.spectral()).value,
+                                   [299.792458, 149.896229,  99.93081933])
+
+        d_nounit = Column([1, 2, 3], name='a', dtype="f8", unit=None)
+        with pytest.raises(u.UnitsError):
+            d_nounit.to(u.km)
+        assert np.all(d_nounit.to(u.dimensionless_unscaled) == np.array([1, 2, 3]))
+
+        #make sure the correct copy/no copy behavior is happening
+        q = [1, 3, 5]*u.km
+
+        # to should always make a copy
+        d.to(u.km)[:] = q
+        np.testing.assert_allclose(d, [1, 2, 3])
+
+        # explcit copying of the quantity should not change the column
+        d.quantity.copy()[:] = q
+        np.testing.assert_allclose(d, [1, 2, 3])
+
+        # but quantity directly is a "view", accessing the underlying column
+        d.quantity[:] = q
+        np.testing.assert_allclose(d, [1000, 3000, 5000])
+
+        #view should also work for integers
+        d2 = Column([1, 2, 3], name='a', dtype=int, unit="m")
+        d2.quantity[:] = q
+        np.testing.assert_allclose(d2, [1000, 3000, 5000])
+
+        #but it should fail for strings or other non-numeric tables
+        d3 = Column(['arg', 'name', 'stuff'], name='a', unit="m")
+        with pytest.raises(TypeError):
+            d3.quantity
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""

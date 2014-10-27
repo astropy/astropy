@@ -262,6 +262,9 @@ class BaseColumn(np.ndarray):
 
     @property
     def name(self):
+        """
+        The name of this column.
+        """
         return self._name
 
     @name.setter
@@ -519,6 +522,39 @@ class BaseColumn(np.ndarray):
     def __repr__(self):
         return np.asarray(self).__repr__()
 
+    @property
+    def quantity(self):
+        """
+        A view of this table column as a `~astropy.units.Quantity` object with
+        units given by the Column's `unit` parameter.
+        """
+        # the Quantity initializer is used herew because it correctly fails
+        # if the column's values are non-numeric (like strings), while .view
+        # will happily return a quantity with gibberish for numerical values
+        return Quantity(self, copy=False, dtype=self.dtype, order='A')
+
+    def to(self, unit, equivalencies=[], **kwargs):
+        """
+        Converts this table column to a `~astropy.units.Quantity` object with
+        the requested units.
+
+        Parameters
+        ----------
+        unit : `~astropy.units.Unit` or str
+            The unit to convert to (i.e., a valid argument to the
+            :meth:`astropy.units.Quantity.to` method).
+        equivalencies : list of equivalence pairs, optional
+            Equivalencies to use for this conversion.  See
+            :meth:`astropy.units.Quantity.to` for more details.
+
+        Returns
+        -------
+        quantity : `~astropy.units.Quantity`
+            A quantity object with the contents of this column in the units
+            ``unit``.
+        """
+        return self.quantity.to(unit, equivalencies)
+
 
 class Column(BaseColumn):
     """Define a data column for use in a Table object.
@@ -621,11 +657,14 @@ class Column(BaseColumn):
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name
+    unit = BaseColumn.unit
     copy = BaseColumn.copy
     more = BaseColumn.more
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
     convert_unit_to = BaseColumn.convert_unit_to
+    quantity = BaseColumn.quantity
+    to = BaseColumn.to
 
 
 class MaskedColumn(Column, ma.MaskedArray):
