@@ -88,7 +88,8 @@ class TestQuantityStatsFuncs(object):
     def test_mean_inplace(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         qi = 1.5 * u.s
-        np.mean(q1, out=qi)
+        qi2 = np.mean(q1, out=qi)
+        assert qi2 is qi
         assert qi == 3.6 * u.m
 
     def test_std(self):
@@ -99,7 +100,8 @@ class TestQuantityStatsFuncs(object):
 
         # can't use decorator since test causes a segfault in Numpy < 1.7, and
         # py.test will run the test anyway to see if it works
-        pytest.xfail()
+        if NUMPY_LT_1P7:
+            pytest.xfail()
 
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
@@ -188,8 +190,19 @@ class TestQuantityStatsFuncs(object):
         assert qi == 5. * u.m
 
     def test_round(self):
-        q1 = np.array([1.2, 2.2, 3.2]) * u.kg
+        q1 = np.array([1.253, 2.253, 3.253]) * u.kg
         assert np.all(np.round(q1) == np.array([1, 2, 3]) * u.kg)
+        assert np.all(np.round(q1, decimals=2) ==
+                      np.round(q1.value, decimals=2) * u.kg)
+        assert np.all(q1.round(decimals=2) ==
+                      q1.value.round(decimals=2) * u.kg)
+
+    def test_round_inplace(self):
+        q1 = np.array([1.253, 2.253, 3.253]) * u.kg
+        qi = np.zeros(3) * u.s
+        a = q1.round(decimals=2, out=qi)
+        assert a is qi
+        assert np.all(q1.round(decimals=2) == qi)
 
     def test_sum(self):
 
