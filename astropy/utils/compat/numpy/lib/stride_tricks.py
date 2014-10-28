@@ -15,12 +15,11 @@ if one sets ``subok=True``; see https://github.com/numpy/numpy/pull/4622
 from __future__ import division, absolute_import, print_function
 
 import numpy as np
-from numpy.lib.stride_tricks import DummyArray, as_strided, broadcast_arrays
 
-__all__ = ['broadcast_arrays', 'PR4622']
+__all__ = ['broadcast_arrays', 'GE1P10']
 
 
-def PR4622(function=np.broadcast_arrays):
+def GE1P10(function=np.broadcast_arrays):
     """Test whether the broadcast_arrays function respects subclasses
 
     By default, ``np.broadcast_arrays`` is checked
@@ -38,7 +37,12 @@ def PR4622(function=np.broadcast_arrays):
         return False
 
 
-if not PR4622():
+if GE1P10():
+    from numpy.lib.stride_tricks import broadcast_arrays
+
+else:
+    from numpy.lib.stride_tricks import DummyArray
+
     def as_strided(x, shape=None, strides=None, subok=False):
         """ Make an ndarray from the given array with the given shape and strides.
         """

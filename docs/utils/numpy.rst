@@ -27,7 +27,7 @@ NumPy_, the following procedure should be used to add a patched routine:
 * Define a function that tests whether or not a patched version is needed, by
   directly testing whether the desired functionality is present. Suggested
   function names are ``PR####`` with a relevant numpy pull request number,
-  or ``GT####`` with a version number.
+  or ``GE####`` with a version number.
 * Place the redefinition of the relevant piece of code inside an ``if``
   statement that uses the function just defined.  This should ensure that if a
   sufficiently high version of numpy is used, no replacement is made.
@@ -39,8 +39,8 @@ NumPy_, the following procedure should be used to add a patched routine:
 For an example, see ``numpy/lib/stride_tricks.py`` and the corresponding
 ``numpy/tests/test_broadcast_arrays.py``.
 
-Note that patched routines will only be considered if they are part of
-NumPy_. Thus, if the patch concerns a new bug discovered in numpy, a `pull
+Note that patched routines will normally only be considered if they are part 
+of NumPy_. Thus, if the patch concerns a new bug discovered in numpy, a `pull
 request <https://github.com/numpy/numpy/pulls>`__ should first be made to
 NumPy_ (which can of course form the basis of a `pull request 
 <https://github.com/astropy/astropy/pulls>`__ to ``astropy``).

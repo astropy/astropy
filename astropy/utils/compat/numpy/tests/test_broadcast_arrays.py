@@ -11,7 +11,7 @@ import numpy as np
 from astropy.tests.helper import pytest
 import astropy.units as u
 
-from ..lib.stride_tricks import broadcast_arrays, PR4622
+from ..lib.stride_tricks import broadcast_arrays, GE1P10
 
 
 def test_import():
@@ -20,15 +20,15 @@ def test_import():
     assert anp.broadcast_arrays is broadcast_arrays
 
 
-def test_PR():
+def test_test_function():
     """Test the test function
 
     The possibly patched version of broadcast_arrays should always be OK
     The numpy version may be, in which case we just use it, or it may not,
     it which case we use the patched version.
     """
-    assert PR4622(broadcast_arrays) is True
-    if PR4622():
+    assert GE1P10(broadcast_arrays) is True
+    if GE1P10():
         assert broadcast_arrays is np.broadcast_arrays
     else:
         assert broadcast_arrays is not np.broadcast_arrays
