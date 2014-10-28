@@ -14,6 +14,7 @@ import numbers
 
 import numpy as np
 NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
+NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
 NUMPY_LT_1P9 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 9]
 
 # AstroPy
@@ -1141,17 +1142,47 @@ class Quantity(np.ndarray):
                                *args, **kwargs)  # avoid numpy 1.6 problem
 
     def argmax(self, axis=None, out=None):
-        return self.view(np.ndarray).argmax(axis=axis, out=out)
+        return self.view(np.ndarray).argmax(axis, out=out)
 
     def argmin(self, axis=None, out=None):
-        return self.view(np.ndarray).argmin(axis=axis, out=out)
+        return self.view(np.ndarray).argmin(axis, out=out)
 
     # Calculation -- override ndarray methods to take into account units.
     # We use the corresponding numpy functions to evaluate the results, since
     # the methods do not always allow calling with keyword arguments.
     # For instance, np.array([0.,2.]).clip(a_min=0., a_max=1.) gives
     # TypeError: 'a_max' is an invalid keyword argument for this function
-    def _wrap_function(self, function, unit=None, out=None, **kwargs):
+    def _wrap_function(self, function, *args, **kwargs):
+        """Wrap a numpy function, returning a Quantity with the proper unit
+
+        Parameters
+        ----------
+        function : callable
+            numpy function to wrap
+        args : positional arguments
+            any positional arguments to the function (probably better to use
+            keyword arguments, but those do not work for, e.g., np.dot in
+            numpy 1.5).
+        kwargs : keyword arguments
+            Keyword arguments to the function.
+
+        The following keyword arguments are treated specially:
+
+        unit : `~astropy.units.Unit` or `None`
+            unit of the output result.  If not given or `None` (default),
+            the unit of `self`.
+        out : `~astropy.units.Quantity`
+            A Quantity instance in which to store the output.
+
+
+        Returns
+        -------
+        out : `~astropy.units.Quantity`
+            Result of the function call, with the unit set properly.
+        """
+
+        unit = kwargs.pop('unit', None)
+        out = kwargs.get('out', None)
         if out is not None:
             if unit is None:
                 unit = self.unit
@@ -1164,9 +1195,7 @@ class Quantity(np.ndarray):
                                 "use a {1} instance instead.".format(
                                     out.__class__, ok_class))
 
-            kwargs['out'] = out
-
-        value = function(self.view(np.ndarray), **kwargs)
+        value = function(self.view(np.ndarray), *args, **kwargs)
         if out is None:
             return self._new_view(value, unit)
         else:
@@ -1174,82 +1203,81 @@ class Quantity(np.ndarray):
             return out
 
     def clip(self, a_min, a_max, out=None):
-        return self._wrap_function(np.clip, a_min=self._to_own_unit(a_min),
-                                   a_max=self._to_own_unit(a_max), out=out)
+        return self._wrap_function(np.clip, self._to_own_unit(a_min),
+                                   self._to_own_unit(a_max), out=out)
 
     def trace(self, offset=0, axis1=0, axis2=1, dtype=None, out=None):
-        return self._wrap_function(np.trace, offset=offset, axis1=axis1,
-                                   axis2=axis2, dtype=None, out=out)
-
-    def var(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(np.var, axis=axis, dtype=dtype, ddof=ddof,
-                                   out=out, unit=self.unit**2)
-
-    def std(self, axis=None, dtype=None, out=None, ddof=0):
-        return self._wrap_function(np.std, axis=axis, dtype=dtype, ddof=ddof,
+        return self._wrap_function(np.trace, offset, axis1, axis2, dtype,
                                    out=out)
 
+    def var(self, axis=None, dtype=None, out=None, ddof=0):
+        return self._wrap_function(np.var, axis, dtype,
+                                   out=out, ddof=ddof, unit=self.unit**2)
+
+    def std(self, axis=None, dtype=None, out=None, ddof=0):
+        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof)
+
     def mean(self, axis=None, dtype=None, out=None):
-        return self._wrap_function(np.mean, axis=axis, dtype=dtype, out=out)
+        return self._wrap_function(np.mean, axis, dtype, out=out)
 
     def ptp(self, axis=None, out=None):
-        return self._wrap_function(np.ptp, axis=axis, out=out)
+        return self._wrap_function(np.ptp, axis, out=out)
 
     def round(self, decimals=0, out=None):
-        return self._wrap_function(np.round, decimals=decimals, out=out)
+        return self._wrap_function(np.round, decimals, out=out)
 
     if NUMPY_LT_1P7:
+        # 'keepdims' was not yet available.
         def max(self, axis=None, out=None):
-            return self._wrap_function(np.max, axis=axis, out=out)
+            return self._wrap_function(np.max, axis, out=out)
 
         def min(self, axis=None, out=None):
-            return self._wrap_function(np.min, axis=axis, out=out)
-
-        def dot(self, b):
-            result_unit = self.unit * getattr(b, 'unit', dimensionless_unscaled)
-            return self._wrap_function(np.dot, b=b, unit=result_unit)
+            return self._wrap_function(np.min, axis, out=out)
 
         def sum(self, axis=None, dtype=None, out=None):
-            return self._wrap_function(np.sum, axis=axis, dtype=dtype, out=out)
+            return self._wrap_function(np.sum, axis, dtype, out=out)
 
         def prod(self, axis=None, dtype=None, out=None):
             if not self.unit.is_unity():
                 raise ValueError("cannot use prod on scaled or "
                                  "non-dimensionless Quantity arrays")
-            return self._wrap_function(np.prod, axis=axis, dtype=dtype, out=out)
+            return self._wrap_function(np.prod, axis, dtype, out=out)
+
+        # 'out' was not yet available.
+        def dot(self, b):
+            result_unit = self.unit * getattr(b, 'unit', dimensionless_unscaled)
+            return self._wrap_function(np.dot, b, unit=result_unit)
 
     else:
         def max(self, axis=None, out=None, keepdims=False):
-            return self._wrap_function(np.max, axis=axis, out=out,
-                                       keepdims=keepdims)
+            return self._wrap_function(np.max, axis, out=out, keepdims=keepdims)
 
         def min(self, axis=None, out=None, keepdims=False):
-            return self._wrap_function(np.min, axis=axis, out=out,
-                                       keepdims=keepdims)
-
-        def dot(self, b, out=None):
-            result_unit = self.unit * getattr(b, 'unit', dimensionless_unscaled)
-            return self._wrap_function(np.dot, b=b, out=out, unit=result_unit)
+            return self._wrap_function(np.min, axis, out=out, keepdims=keepdims)
 
         def sum(self, axis=None, dtype=None, out=None, keepdims=False):
-            return self._wrap_function(np.sum, axis=axis, dtype=dtype, out=out,
+            return self._wrap_function(np.sum, axis, dtype, out=out,
                                        keepdims=keepdims)
 
         def prod(self, axis=None, dtype=None, out=None, keepdims=False):
             if not self.unit.is_unity():
                 raise ValueError("cannot use prod on scaled or "
                                  "non-dimensionless Quantity arrays")
-            return self._wrap_function(np.prod, axis=axis, dtype=dtype,
-                                       out=out, keepdims=keepdims)
+            return self._wrap_function(np.prod, axis, dtype, out=out,
+                                       keepdims=keepdims)
+
+        def dot(self, b, out=None):
+            result_unit = self.unit * getattr(b, 'unit', dimensionless_unscaled)
+            return self._wrap_function(np.dot, b, out=out, unit=result_unit)
 
     def cumsum(self, axis=None, dtype=None, out=None):
-        return self._wrap_function(np.cumsum, axis=axis, dtype=dtype, out=out)
+        return self._wrap_function(np.cumsum, axis, dtype, out=out)
 
     def cumprod(self, axis=None, dtype=None, out=None):
         if not self.unit.is_unity():
             raise ValueError("cannot use cumprod on scaled or "
                              "non-dimensionless Quantity arrays")
-        return self._wrap_function(np.cumprod, axis=axis, dtype=dtype, out=out)
+        return self._wrap_function(np.cumprod, axis, dtype, out=out)
 
 
     # Calculation: override methods that do not make sense.
@@ -1265,13 +1293,17 @@ class Quantity(np.ndarray):
     # Calculation --numpy functions that can be overridden with methods
 
     def diff(self, n=1, axis=-1):
-        return self._wrap_function(np.diff, n=n, axis=axis)
+        return self._wrap_function(np.diff, n, axis)
 
     def ediff1d(self, to_end=None, to_begin=None):
-        return self._wrap_function(np.ediff1d, to_end=to_end, to_begin=to_begin)
+        return self._wrap_function(np.ediff1d, to_end, to_begin)
 
-    def nansum(self, axis=None):
-        return self._wrap_function(np.nansum, axis=axis)
+    if NUMPY_LT_1P8:
+        def nansum(self, axis=None):
+            return self._wrap_function(np.nansum, axis)
+    else:
+        def nansum(self, axis=None, out=None, keepdims=False):
+            return self._wrap_function(np.nansum, axis, out=out, keepdims=False)
 
     def insert(self, obj, values, axis=None):
         """
