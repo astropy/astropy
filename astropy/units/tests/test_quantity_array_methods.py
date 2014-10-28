@@ -2,12 +2,12 @@
 # array methods returns quantities with the right units, or raises exceptions.
 
 import numpy as np
-from numpy.testing.utils import assert_allclose
 
 from ... import units as u
 from ...tests.helper import pytest
 
 NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
+NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
 
 
 class TestQuantityArrayCopy(object):
@@ -250,6 +250,20 @@ class TestQuantityStatsFuncs(object):
         q2 = np.array([[np.nan, 5., 9.], [1., np.nan, 1.]]) * u.s
         assert np.all(q2.nansum(0) == np.array([1., 5., 10.]) * u.s)
         assert np.all(np.nansum(q2, 0) == np.array([1., 5., 10.]) * u.s)
+
+    @pytest.mark.xfail("NUMPY_LT_1P8")
+    def test_nansum_inplace(self):
+
+        q1 = np.array([1., 2., np.nan]) * u.m
+        qi = 1.5 * u.s
+        qout = q1.nansum(out=qi)
+        assert qout is qi
+        assert qi == np.nansum(q1.value) * q1.unit
+
+        qi2 = 1.5 * u.s
+        qout2 = np.nansum(q1, out=qi2)
+        assert qout2 is qi2
+        assert qi2 == np.nansum(q1.value) * q1.unit
 
     def test_prod(self):
 

@@ -1160,13 +1160,11 @@ class Quantity(np.ndarray):
         function : callable
             numpy function to wrap
         args : positional arguments
-            any positional arguments to the function (probably better to use
-            keyword arguments, but those do not work for, e.g., np.dot in
-            numpy 1.5).
+            any positional arguments to the function.
         kwargs : keyword arguments
             Keyword arguments to the function.
 
-        The following keyword arguments are treated specially:
+        If present, the following arguments are treated specially:
 
         unit : `~astropy.units.Unit` or `None`
             unit of the output result.  If not given or `None` (default),
@@ -1174,6 +1172,9 @@ class Quantity(np.ndarray):
         out : `~astropy.units.Quantity`
             A Quantity instance in which to store the output.
 
+        Notes
+        -----
+        Output should always be assigned via a keyword argument.
 
         Returns
         -------
@@ -1303,7 +1304,8 @@ class Quantity(np.ndarray):
             return self._wrap_function(np.nansum, axis)
     else:
         def nansum(self, axis=None, out=None, keepdims=False):
-            return self._wrap_function(np.nansum, axis, out=out, keepdims=False)
+            return self._wrap_function(np.nansum, axis,
+                                       out=out, keepdims=keepdims)
 
     def insert(self, obj, values, axis=None):
         """
