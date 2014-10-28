@@ -301,6 +301,105 @@ def test_indexing_on_class():
         M['foobar']
 
 
+# TODO: It would be good if there were an easier way to interrogate a compound
+# model class for what expression it represents.  Not sure what that would look
+# like though.
+def test_slicing_on_class():
+    """
+    Test slicing a simple compound model class using integers.
+    """
+
+    A = Const1D.rename('A')
+    B = Const1D.rename('B')
+    C = Const1D.rename('C')
+    D = Const1D.rename('D')
+    E = Const1D.rename('E')
+    F = Const1D.rename('F')
+
+    M = A + B - C * D / E ** F
+
+    assert M[0:1] is A
+    # This looks goofy but if you slice by name to the sub-model of the same
+    # name it should just return that model, logically.
+    assert M['A':'A'] is A
+    assert M[5:6] is F
+    assert M['F':'F'] is F
+
+    # 1 + 2
+    assert M[:2](1, 2)(0) == 3
+    assert M[:'B'](1, 2)(0) == 3
+    # 2 - 3
+    assert M[1:3](2, 3)(0) == -1
+    assert M['B':'C'](2, 3)(0) == -1
+    # 3 * 4
+    assert M[2:4](3, 4)(0) == 12
+    assert M['C':'D'](3, 4)(0) == 12
+    # 4 / 5
+    assert M[3:5](4, 5)(0) == 0.8
+    assert M['D':'E'](4, 5)(0) == 0.8
+    # 5 ** 6
+    assert M[4:6](5, 6)(0) == 15625
+    assert M['E':'F'](5, 6)(0) == 15625
+
+
+def test_slicing_on_instance():
+    """
+    Test slicing a simple compound model class using integers.
+    """
+
+    A = Const1D.rename('A')
+    B = Const1D.rename('B')
+    C = Const1D.rename('C')
+    D = Const1D.rename('D')
+    E = Const1D.rename('E')
+    F = Const1D.rename('F')
+
+    M = A + B - C * D / E ** F
+    m = M(1, 2, 3, 4, 5, 6)
+
+    assert isinstance(m[0:1], A)
+    assert isinstance(m['A':'A'], A)
+    assert isinstance(m[5:6], F)
+    assert isinstance(m['F':'F'], F)
+
+    # 1 + 2
+    assert m[:'B'](0) == 3
+    # 2 - 3
+    assert m['B':'C'](0) == -1
+    # 3 * 4
+    assert m['C':'D'](0) == 12
+    # 4 / 5
+    assert m['D':'E'](0) == 0.8
+    # 5 ** 6
+    assert m['E':'F'](0) == 15625
+
+
+def test_indexing_on_instance():
+    """Test indexing on compound model instances."""
+
+    M = Gaussian1D + Const1D
+    m = M(1, 0, 0.1, 2)
+    assert isinstance(m[0], Gaussian1D)
+    assert isinstance(m[1], Const1D)
+    assert isinstance(m['Gaussian1D'], Gaussian1D)
+    assert isinstance(m['Const1D'], Const1D)
+
+    assert m[0].amplitude == 1 == m.amplitude_0
+    assert m[0].mean == 0 == m.mean_0
+    assert m[0].stddev == 0.1 == m.stddev_0
+    assert m[1].amplitude == 2 == m.amplitude_1
+
+    # Test negative indexing
+    assert isinstance(m[-1], Const1D)
+    assert isinstance(m[-2], Gaussian1D)
+
+    with pytest.raises(IndexError):
+        m[42]
+
+    with pytest.raises(IndexError):
+        m['foobar']
+
+
 def test_basic_compound_inverse():
     """
     Test basic inversion of compound models in the limited sense supported for

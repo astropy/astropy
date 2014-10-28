@@ -1470,23 +1470,12 @@ class _CompoundModelMeta(_ModelMeta):
     _fittable = None
 
     def __getitem__(cls, index):
-        try:
-            if isinstance(index, six.string_types):
-                index = cls.submodel_names.index(index)
-        except ValueError:
-            raise IndexError(
-                'Compound model {0} does not have a component named '
-                '{1}'.format(cls.name, index))
-
-        if isinstance(index, slice):
-            return cls._get_slice(index.start, index.stop)
+        index = cls._normalize_index(index)
 
         if isinstance(index, int):
             return cls._get_submodels()[index]
-
-        raise TypeError(
-            'Submodels can be indexed either by their integer order or '
-            'their name (got {0!r}).'.format(index))
+        else:
+            return cls._get_slice(index.start, index.stop)
 
     def __getattr__(cls, attr):
         if attr in cls.param_names:
@@ -1732,6 +1721,63 @@ class _CompoundModelMeta(_ModelMeta):
         # albeit with more formatting options
         return cls._tree.format_expression(OPERATOR_PRECEDENCE)
 
+    def _normalize_index(cls, index):
+        """
+        Converts an index given to __getitem__ to either an integer, or
+        a slice with integer start and stop values.
+
+        If the length of the slice is exactly 1 this converts the index to a
+        simple integer lookup.
+
+        Negative integers are converted to positive integers.
+        """
+
+        def get_index_from_name(name):
+            try:
+                return cls.submodel_names.index(name)
+            except ValueError:
+                raise IndexError(
+                    'Compound model {0} does not have a component named '
+                    '{1}'.format(cls.name, index))
+
+        if isinstance(index, six.string_types):
+            return get_index_from_name(index)
+        elif isinstance(index, slice):
+            if index.step not in (1, None):
+                # In principle it could be but I can scarecely imagine a case
+                # where it would be useful.  If someone can think of one then
+                # we can enable it.
+                raise ValueError(
+                    "Step not supported for compound model slicing.")
+            start = index.start if index.start is not None else 0
+            stop = (index.stop
+                    if index.stop is not None else len(cls.submodel_names))
+            if isinstance(start, six.string_types):
+                start = cls.submodel_names.index(start)
+            if isinstance(stop, six.string_types):
+                stop = cls.submodel_names.index(stop) + 1
+
+            length = stop - start
+
+            if length == 1:
+                return start
+            elif length <= 0:
+                raise ValueError("Empty slice of a compound model.")
+
+            return slice(start, stop)
+        elif isinstance(index, int):
+            if index < 0:
+                index = len(cls.submodel_names) + index
+
+            if index < 0 or index >= len(cls.submodel_names):
+                # If still < 0 then this is an invalid index
+                raise IndexError("Model index out of range.")
+            return index
+
+        raise TypeError(
+            'Submodels can be indexed either by their integer order or '
+            'their name (got {0!r}).'.format(index))
+
     def _get_slice(cls, start, stop):
         """
         Return a new model build from a sub-expression of the expression
@@ -1751,7 +1797,8 @@ class _CompoundModelMeta(_ModelMeta):
                      '|': operator.or_, '&': operator.and_}
 
         new_cls = cls._tree.evaluate(operators, start=start, stop=stop)
-        new_cls._slice_offset += start
+        if isinstance(new_cls, _CompoundModelMeta):
+            new_cls._slice_offset += start
         return new_cls
 
 
@@ -1765,14 +1812,22 @@ class _CompoundModel(Model):
         return getattr(self.__class__, attr)
 
     def __getitem__(self, index):
+        index = self.__class__._normalize_index(index)
         model = self.__class__[index]
 
         if isinstance(model, Model):
             return model
 
-        param_map = self.__class__._param_map_inverse
-        param_names = tuple(param_map[index, name]
-                            for name in model.param_names)
+        # TODO: Really what this needs to test is if this was a slice, did it
+        # return a single model or multiple-submodule slice of the original
+        # compound model.  The current test might not be correct in some corner
+        # cases
+        if isinstance(index, slice):
+            param_names = model.param_names
+        else:
+            param_map = self.__class__._param_map_inverse
+            param_names = tuple(param_map[index, name]
+                                for name in model.param_names)
 
         return model._from_existing(self, param_names)
 
