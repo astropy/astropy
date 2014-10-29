@@ -29,7 +29,8 @@ projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
              'CYP', 'CEA', 'MER']
 
 
-__all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
+__all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
+           'Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
            'Pix2Sky_CEA', 'Sky2Pix_CEA', 'Pix2Sky_CYP', 'Sky2Pix_CYP',
            'Pix2Sky_MER', 'Sky2Pix_MER',
            'Pix2Sky_SIN', 'Sky2Pix_SIN', 'Pix2Sky_STG', 'Sky2Pix_STG',
@@ -38,13 +39,7 @@ __all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
 
 
 class Projection(Model):
-    """
-    Base class for all sky projections.
-
-    """
-
-    n_inputs = 2
-    n_outputs = 2
+    """Base class for all sky projections."""
 
     # the radius of the projection sphere, by which x,y are scaled
     r0 = 180 / np.pi
@@ -57,19 +52,21 @@ class Projection(Model):
 
 
 class Pix2SkyProjection(Projection):
+    """Base class for all Pix2Sky projections."""
+
     inputs = ('x', 'y')
     outputs = ('phi', 'theta')
 
 
 class Sky2PixProjection(Projection):
+    """Base class for all Sky2Pix projections."""
+
     inputs = ('phi', 'theta')
     outputs = ('x', 'y')
 
 
 class Zenithal(Projection):
-    """
-    Base class for all Zenithal projections.
-    """
+    """Base class for all Zenithal projections."""
 
 
 class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
@@ -331,9 +328,7 @@ class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
 
 
 class Cylindrical(Projection):
-    """
-    Base class for Cylindrical projections.
-    """
+    """Base class for Cylindrical projections."""
 
 
 class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
