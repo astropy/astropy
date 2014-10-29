@@ -836,3 +836,13 @@ def test_search_around():
 
     idx1_sky, idx2_sky, d2d_sky, d3d_sky = sc1.search_around_sky(sc2, 10*u.deg)
     idx1_3d, idx2_3d, d2d_3d, d3d_3d = sc1ds.search_around_3d(sc2ds, 250*u.pc)
+
+
+def test_init_with_frame_instance():
+
+    c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'))
+    assert c.equinox == Time('J2010')
+
+    with pytest.raises(ValueError) as exc:
+        c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'), equinox='J2001')
+    assert exc.value.args[0] == "cannot specify frame attribute 'equinox' directly in SkyCoord since a frame instance was passed in"

@@ -961,6 +961,18 @@ def _get_frame(args, kwargs):
     """
     frame = kwargs.pop('frame', None)
 
+    # If the frame is an instance, we split up the attributes and make it
+    # into a class.
+    if isinstance(frame, BaseCoordinateFrame):
+
+        for attr in frame.get_frame_attr_names():
+            if attr in kwargs:
+                raise ValueError("cannot specify frame attribute '{0}' directly in SkyCoord since a frame instance was passed in".format(attr))
+            else:
+                kwargs[attr] = getattr(frame, attr)
+
+        frame = frame.__class__
+
     if frame is not None:
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)

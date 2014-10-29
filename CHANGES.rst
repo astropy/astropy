@@ -30,6 +30,9 @@ New Features
     convenience methods that allow searching for all coordinates within
     a certain distance of another ``SkyCoord``. [#2953]
 
+  - ``SkyCoord`` can now accept a frame instance for the ``frame=`` keyword
+    argument. [#3063]
+
 - ``astropy.cosmology``
 
   - Add baryonic matter density and dark matter only density parameters
