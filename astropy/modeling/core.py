@@ -61,13 +61,13 @@ class _ModelMeta(abc.ABCMeta):
     """
 
     def __new__(mcls, name, bases, members):
-        parameters = mcls._handle_parameters(name, members)
+        mcls._handle_parameters(name, members)
         mcls._create_inverse_property(members)
         mcls._handle_backwards_compat(name, members)
 
         cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
-        mcls._handle_special_methods(members, cls, parameters)
+        mcls._handle_special_methods(members, cls)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
             mcls.registry.add(cls)
@@ -180,7 +180,7 @@ class _ModelMeta(abc.ABCMeta):
             members['eval'] = deprecate(members['evaluate'])
 
     @classmethod
-    def _handle_special_methods(mcls, members, cls, parameters):
+    def _handle_special_methods(mcls, members, cls):
         # Handle init creation from inputs
         if '__call__' not in members and 'inputs' in members:
             inputs = members['inputs']
@@ -194,15 +194,15 @@ class _ModelMeta(abc.ABCMeta):
             cls.__call__ = make_function_with_signature(
                     __call__, args, [('model_set_axis', None)])
 
-        if '__init__' not in members and parameters:
+        if '__init__' not in members and not inspect.isabstract(cls):
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional
             # arguments
-            if all(p.default is not None
-                   for p in six.itervalues(parameters)):
+            parameters = [getattr(cls, param_name)
+                          for param_name in cls.param_names]
+            if all(p.default is not None for p in parameters):
                 args = ('self',)
-                kwargs = [(name, parameters[name].default)
-                          for name in cls.param_names]
+                kwargs = [(p.name, p.default) for p in parameters]
             else:
                 args = ('self',) + cls.param_names
                 kwargs = {}
