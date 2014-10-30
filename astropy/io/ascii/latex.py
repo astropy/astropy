@@ -116,8 +116,11 @@ class LatexHeader(core.BaseHeader):
         add_dictval_to_list(self.latex, 'header_start', lines)
         lines.append(self.splitter.join([x.name for x in self.cols]))
         if 'units' in self.latex:
-            lines.append(self.splitter.join([self.latex['units'].get(x.name, ' ')
-                                             for x in self.cols]))
+            units = [self.latex['units'][x.name] if x.name in self.latex['units'] \
+                     else str(x.unit or ' ') for x in self.cols]
+            lines.append(self.splitter.join(units))
+        elif any(x.unit for x in self.cols):
+            lines.append(self.splitter.join([str(x.unit or ' ') for x in self.cols]))
         add_dictval_to_list(self.latex, 'header_end', lines)
 
 
@@ -216,7 +219,8 @@ class Latex(core.BaseReader):
                                latexdict = {'units': {'mass': 'kg', 'speed': 'km/h'}})
 
             If the column has no entry in the ``units`` dictionary, it defaults
-            to ``' '``.
+            to the **unit** attribute of the column. If this attribute is not
+            specified (i.e. it is None), the unit will be written as ``' '``.
 
         Run the following code to see where each element of the
         dictionary is inserted in the LaTeX table::
@@ -337,8 +341,11 @@ class AASTexHeader(LatexHeader):
             lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
         tablehead = ' & '.join([r'\colhead{' + x.name + '}' for x in self.cols])
         if 'units' in self.latex:
-            tablehead += r'\\ ' + (self.splitter.join([self.latex[
-                                   'units'].get(x.name, ' ') for x in self.cols]))
+            units = [self.latex['units'][x.name] if x.name in self.latex['units'] \
+                     else str(x.unit or ' ') for x in self.cols]
+            tablehead += r'\\ ' + self.splitter.join(units)
+        elif any(x.unit for x in self.cols):
+            tablehead += r'\\ ' + self.splitter.join([str(x.unit or ' ') for x in self.cols])
         lines.append(r'\tablehead{' + tablehead + '}')
 
 
