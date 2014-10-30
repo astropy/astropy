@@ -78,13 +78,13 @@ class CoordinateHelper(object):
             ' ': 'none',
             '': 'none'
         }
-        self.grid_lines_kwargs = {'visible':False,
-                                  'facecolor':'none',
+        self.grid_lines_kwargs = {'visible': False,
+                                  'facecolor': 'none',
                                   'edgecolor': rcParams['grid.color'],
                                   'linestyle': lines_to_patches_linestyle[rcParams['grid.linestyle']],
                                   'linewidth': rcParams['grid.linewidth'],
                                   'alpha': rcParams.get('grid.alpha', 1.0),
-                                  'transform':self.parent_axes.transData}
+                                  'transform': self.parent_axes.transData}
 
     def grid(self, draw_grid=True, grid_type='lines', **kwargs):
         """
