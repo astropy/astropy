@@ -60,6 +60,20 @@ def pytest_addoption(parser):
                   "Run the doctests in the rst documentation",
                   default=False)
 
+    parser.addoption('--repeat', action='store',
+                     help='Number of times to repeat each test')
+
+
+def pytest_generate_tests(metafunc):
+
+    # If the repeat option is set, we add a fixture for the repeat count and
+    # parametrize the tests over the repeats. Solution adapted from:
+    # http://stackoverflow.com/q/21764473/180783
+
+    if metafunc.config.option.repeat is not None:
+        count = int(metafunc.config.option.repeat)
+        metafunc.fixturenames.append('tmp_ct')
+        metafunc.parametrize('tmp_ct', range(count))
 
 # We monkey-patch in our replacement doctest OutputChecker.  Not
 # great, but there isn't really an API to replace the checker when

@@ -110,7 +110,7 @@ class TestRunner(object):
     def run_tests(self, package=None, test_path=None, args=None, plugins=None,
                   verbose=False, pastebin=None, remote_data=False, pep8=False,
                   pdb=False, coverage=False, open_files=False, parallel=0,
-                  docs_path=None, skip_docs=False):
+                  docs_path=None, skip_docs=False, repeat=None):
         """
         The docstring for this method lives in astropy/__init__.py:test
         """
@@ -241,6 +241,9 @@ class TestRunner(object):
             if parallel < 0:
                 parallel = multiprocessing.cpu_count()
             all_args.extend(['-n', six.text_type(parallel)])
+
+        if repeat:
+            all_args.append('--repeat={0}'.format(repeat))
 
         if six.PY2:
             all_args = [x.encode('utf-8') for x in all_args]

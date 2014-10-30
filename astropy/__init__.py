@@ -126,7 +126,7 @@ def _get_test_runner():
 def test(package=None, test_path=None, args=None, plugins=None,
          verbose=False, pastebin=None, remote_data=False, pep8=False,
          pdb=False, open_files=False, parallel=0, docs_path=None,
-         skip_docs=False):
+         skip_docs=False, repeat=None):
     """
     Run Astropy tests using py.test. A proper set of arguments is
     constructed and passed to `pytest.main`.
@@ -189,6 +189,10 @@ def test(package=None, test_path=None, args=None, plugins=None,
     skip_docs : bool, optional
         When `True`, skips running the doctests in the .rst files.
 
+    repeat : int, optional
+        If set, specifies how many times each test should be run. This is
+        useful for diagnosing sporadic failures.
+
     See Also
     --------
     pytest.main : py.test function wrapped by `run_tests`.
@@ -200,7 +204,7 @@ def test(package=None, test_path=None, args=None, plugins=None,
         plugins=plugins, verbose=verbose, pastebin=pastebin,
         remote_data=remote_data, pep8=pep8, pdb=pdb,
         open_files=open_files, parallel=parallel, docs_path=docs_path,
-        skip_docs=skip_docs)
+        skip_docs=skip_docs, repeat=repeat)
 
 
 # if we are *not* in setup mode, import the logger and possibly populate the
