@@ -6,8 +6,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from ...extern import six
 
+import io
 import os
-import sys
 import warnings
 
 import numpy as np
@@ -19,7 +19,7 @@ from ... import wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...io import fits
 
 try:
     import scipy  # pylint: disable=W0611
@@ -565,6 +565,7 @@ def test_sip():
     assert_allclose(200, x1, 1e-3)
     assert_allclose(200, y1, 1e-3)
 
+
 def test_printwcs():
     """
     Just make sure that it runs
@@ -575,3 +576,35 @@ def test_printwcs():
     h = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
     w = wcs.WCS(h)
     w.printwcs()
+
+
+def test_invalid_spherical():
+    header = six.text_type("""
+SIMPLE  =                    T / conforms to FITS standard
+BITPIX  =                    8 / array data type
+WCSAXES =                    2 / no comment
+CTYPE1  = 'RA---TAN' / TAN (gnomic) projection
+CTYPE2  = 'DEC--TAN' / TAN (gnomic) projection
+EQUINOX =               2000.0 / Equatorial coordinates definition (yr)
+LONPOLE =                180.0 / no comment
+LATPOLE =                  0.0 / no comment
+CRVAL1  =        16.0531567459 / RA  of reference point
+CRVAL2  =        23.1148929108 / DEC of reference point
+CRPIX1  =                 2129 / X reference pixel
+CRPIX2  =                 1417 / Y reference pixel
+CUNIT1  = 'deg     ' / X pixel scale units
+CUNIT2  = 'deg     ' / Y pixel scale units
+CD1_1   =    -0.00912247310646 / Transformation matrix
+CD1_2   =    -0.00250608809647 / no comment
+CD2_1   =     0.00250608809647 / no comment
+CD2_2   =    -0.00912247310646 / no comment
+IMAGEW  =                 4256 / Image width,  in pixels.
+IMAGEH  =                 2832 / Image height, in pixels.
+""")
+
+    f = io.StringIO(header)
+    header = fits.Header.fromtextfile(f)
+
+    w = wcs.WCS(header)
+    x, y = w.wcs_world2pix(211, -26, 0)
+    assert np.isnan(x) and np.isnan(y)

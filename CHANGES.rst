@@ -77,6 +77,10 @@ Bug Fixes
   - Astropy will now work if your Python interpreter does not have the
     ``bz2`` module installed. [#3104]
 
+  - Invalid or out of range values passed to ``wcs_world2pix`` will
+    now be correctly identified and returned as ``nan``
+    values. [#2965]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -179,7 +183,6 @@ Other Changes and Additions
 
 - Ensure numpy master is supported, by making ``np.cbrt`` work with quantities.
   [#2937]
-
 
 0.4.1 (2014-08-08)
 ------------------

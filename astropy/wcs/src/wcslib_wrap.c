@@ -1456,7 +1456,7 @@ PyWcsprm_s2p(
   /* unoffset_array(world, origin); */
   unoffset_array(pixcrd, origin);
   unoffset_array(imgcrd, origin);
-  if (status == 8) {
+  if (status == 9) {
     set_invalid_to_nan(
         ncoord, 1, (double*)PyArray_DATA(phi), (int*)PyArray_DATA(stat));
     set_invalid_to_nan(
