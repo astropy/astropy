@@ -91,11 +91,11 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
     mu = Parameter(default=0.0, setter=_validate_mu)
     gamma = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
-    def __init__(self, mu=mu.default, gamma=gamma.default):
+    def __init__(self, mu=mu.default, gamma=gamma.default, **kwargs):
         self.check_mu(mu)
         # units : mu - in spherical radii, gamma - in deg
         # TODO: Support quantity objects here and in similar contexts
-        super(Pix2Sky_AZP, self).__init__(mu, gamma)
+        super(Pix2Sky_AZP, self).__init__(mu, gamma, **kwargs)
 
     def check_mu(self, val):
         if np.asarray(val == -1).any():
