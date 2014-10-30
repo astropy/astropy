@@ -244,6 +244,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -371,7 +373,7 @@ Bug Fixes
   - Operations on quantities with incompatible types now raises a much
     more informative ``TypeError``. [#2934]
 
-  - ``Quantity.tolist`` now overrides the ``ndarray`` method to give a 
+  - ``Quantity.tolist`` now overrides the ``ndarray`` method to give a
     ``NotImplementedError`` (by renaming the previous ``list`` method). [#3050]
 
 - ``astropy.utils``
