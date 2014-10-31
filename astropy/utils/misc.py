@@ -491,6 +491,7 @@ class InheritDocstrings(type):
         >>> B.wiggle.__doc__
         u'Wiggle the thingamajig'
     """
+
     def __init__(cls, name, bases, dct):
         def is_public_member(key):
             return (
@@ -507,3 +508,5 @@ class InheritDocstrings(type):
                     if super_method is not None:
                         val.__doc__ = super_method.__doc__
                         break
+
+        super(InheritDocstrings, cls).__init__(name, bases, dct)

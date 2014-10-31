@@ -30,7 +30,7 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 from ..table import Table
-from ..utils import deprecated, find_current_module
+from ..utils import deprecated, find_current_module, InheritDocstrings
 from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import array_repr_oneline, check_broadcast, IncompatibleShapeError
@@ -47,7 +47,7 @@ class ModelDefinitionError(Exception):
     """Used for incorrect models definitions"""
 
 
-class _ModelMeta(abc.ABCMeta):
+class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     """
     Metaclass for Model.
 
@@ -182,6 +182,17 @@ class _ModelMeta(abc.ABCMeta):
     @classmethod
     def _handle_special_methods(mcls, members, cls):
         # Handle init creation from inputs
+        def update_wrapper(wrapper, cls):
+            # Set up the new __call__'s metadata attributes as though it were
+            # manually defined in the class definition
+            # A bit like functools.update_wrapper but uses the class instead of
+            # the wrapped function
+            wrapper.__module__ = cls.__module__
+            wrapper.__doc__ = getattr(cls, wrapper.__name__).__doc__
+            if hasattr(cls, '__qualname__'):
+                wrapper.__qualname__ = '{0}.{1}'.format(
+                        cls.__qualname__, wrapper.__name__)
+
         if '__call__' not in members and 'inputs' in members:
             inputs = members['inputs']
             # Done create a custom __call__ for classes that already have one
@@ -191,8 +202,10 @@ class _ModelMeta(abc.ABCMeta):
                 return super(cls, self).__call__(*inputs, **kwargs)
 
             args = ('self',) + inputs
-            cls.__call__ = make_function_with_signature(
+            new_call = make_function_with_signature(
                     __call__, args, [('model_set_axis', None)])
+            update_wrapper(new_call, cls)
+            cls.__call__ = new_call
 
         if '__init__' not in members and not inspect.isabstract(cls):
             # If *all* the parameters have default values we can make them
@@ -210,8 +223,10 @@ class _ModelMeta(abc.ABCMeta):
             def __init__(self, *params, **kwargs):
                 return super(cls, self).__init__(*params, **kwargs)
 
-            cls.__init__ = make_function_with_signature(
+            new_init = make_function_with_signature(
                     __init__, args, kwargs, varkwargs='kwargs')
+            update_wrapper(new_init, cls)
+            cls.__init__ = new_init
 
 
 @six.add_metaclass(_ModelMeta)
@@ -300,7 +315,15 @@ class Model(object):
     """
 
     parameter_constraints = ('fixed', 'tied', 'bounds')
+    """
+    Primarily for informational purposes, these are the types of constraints
+    that can be set on a model's parameters.
+    """
     model_constraints = ('eqcons', 'ineqcons')
+    """
+    Primarily for informational purposes, these are the types of constraints
+    that constrain model evaluation.
+    """
 
     param_names = ()
     """
@@ -310,10 +333,16 @@ class Model(object):
     when initializing a model of a specific type.  Some types of models, such
     as polynomial models, have a different number of parameters depending on
     some other property of the model, such as the degree.
+
+    When defining a custom model class the value of this attribute is
+    automatically set by the `~astropy.modeling.Parameter` attributes defined
+    in the class body.
     """
 
     inputs = ()
+    """The name(s) of the input variable(s) on which a model is evaluated."""
     outputs = ()
+    """The name(s) of the output(s) of the model."""
 
     standard_broadcasting = True
     fittable = False
@@ -339,6 +368,11 @@ class Model(object):
         return self._n_models
 
     def __call__(self, *inputs, **kwargs):
+        """
+        Evaluate this model using the given input(s) and the parameter values
+        that were specified when the model was instantiated.
+        """
+
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
 
         outputs = self.evaluate(*itertools.chain(inputs, self.param_sets))
@@ -355,14 +389,35 @@ class Model(object):
 
     @property
     def n_inputs(self):
+        """
+        The number of inputs to this model.
+
+        Equivalent to ``len(model.inputs)``.
+        """
+
         return len(self.inputs)
 
     @property
     def n_outputs(self):
+        """
+        The number of outputs from this model.
+
+        Equivalent to ``len(model.outputs)``.
+        """
         return len(self.outputs)
 
     @property
     def model_set_axis(self):
+        """
+        The index of the model set axis--that is the axis of a parameter array
+        that pertains to which model a parameter value pertains to--as
+        specified when the model was initialized.
+
+        See the documentation on `Model Sets
+        <http://docs.astropy.org/en/stable/modeling/models.html#model-sets>`_
+        for more details.
+        """
+
         return self._model_set_axis
 
     @property
@@ -494,10 +549,10 @@ class Model(object):
 
     def prepare_inputs(self, *inputs, **kwargs):
         """
-        This method is used in `Model.__call__` to ensure that all the inputs
-        to the model can be broadcast into compatible shapes (if one or both of
-        them are input as arrays), particularly if there are more than one
-        parameter sets.
+        This method is used in `~astropy.modeling.Model.__call__` to ensure
+        that all the inputs to the model can be broadcast into compatible
+        shapes (if one or both of them are input as arrays), particularly if
+        there are more than one parameter sets.
         """
 
         model_set_axis = kwargs.pop('model_set_axis', None)
