@@ -229,7 +229,7 @@ class TestBasic(BaseImageTests):
                 'xtick.major.size': 20,
                 'xtick.major.width': 2,
                 'grid.color': 'blue',
-                'grid.linestle': ':.',
+                'grid.linestyle': ':',
                 'grid.linewidth': 1,
                 'grid.alpha': 0.5}):
             fig = plt.figure(figsize=(6, 6))
