@@ -100,7 +100,7 @@ inputs (eg. ``inputs = ('x', 'y')`` and ``outputs = ('x', 'y')``).  However,
 inputs must not conflict with each other (eg. ``inputs = ('x', 'x')`` is
 incorrect) and likewise for outputs.  The lengths of these tuples, however, are
 important for specifying the correct number of inputs and outputs.  These
-attributes supercede the ``n_inputs`` and ``n_outputs`` attributes in older
+attributes supersede the ``n_inputs`` and ``n_outputs`` attributes in older
 versions of this package.
 
 There are two helpful base classes in the modeling package that can be used to
