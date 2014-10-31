@@ -242,10 +242,10 @@ class Gaussian2D(Fittable2DModel):
     y_mean = Parameter()
     x_stddev = Parameter()
     y_stddev = Parameter()
-    theta = Parameter()
+    theta = Parameter(default=0.0)
 
     def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
-                 theta=0.0, cov_matrix=None, **kwargs):
+                 theta=theta.default, cov_matrix=None, **kwargs):
         if y_stddev is None and cov_matrix is None:
             raise InputParameterError(
                 "Either x/y_stddev must be specified, or a "
