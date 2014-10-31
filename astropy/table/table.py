@@ -25,7 +25,7 @@ from . import groups
 from .pprint import TableFormatter
 from .column import BaseColumn, Column, MaskedColumn, _auto_names
 from .row import Row
-from .np_utils import fix_column_name
+from .np_utils import fix_column_name, recarray_fromrecords
 
 
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
@@ -178,7 +178,7 @@ class Table(object):
             elif isinstance(rows, self.Row):
                 data = rows
             else:
-                rec_data = np.rec.fromrecords(rows)
+                rec_data = recarray_fromrecords(rows)
                 data = [rec_data[name] for name in rec_data.dtype.names]
 
         # Infer the type of the input data and set up the initialization

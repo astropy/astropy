@@ -578,3 +578,26 @@ def fix_column_name(val):
             raise
 
     return val
+
+
+def recarray_fromrecords(rec_list):
+    """
+    Partial replacement for `~numpy.core.records.fromrecords` which includes
+    a workaround for the bug with unicode arrays described at:
+    https://github.com/astropy/astropy/issues/3052
+
+    This should not serve as a full replacement for the original function;
+    this only does enough to fulfill the needs of the table module.
+    """
+
+    # Note: This is just copying what Numpy does for converting arbitrary rows
+    # to column arrays in the recarray module; it could be there is a better
+    # way
+    nfields = len(rec_list[0])
+    obj = np.array(rec_list, dtype=object)
+    array_list = [np.array(obj[..., i].tolist()) for i in range(nfields)]
+    formats = []
+    for obj in array_list:
+        formats.append(obj.dtype.str)
+    formats = ','.join(formats)
+    return np.rec.fromarrays(array_list, formats=formats)

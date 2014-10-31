@@ -51,6 +51,9 @@ Bug Fixes
   - Fix a bug that prevented initializing a table from a structured array
     with multi-dimensional columns with copy=True. [#3034]
 
+  - Fixed unnecessarily large unicode columns when instantiating a table from
+    row data on Python 3. [#3052]
+
 - ``astropy.time``
 
 - ``astropy.units``
