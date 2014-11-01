@@ -5,8 +5,8 @@ from ...extern.six.moves import cPickle
 from ... import convolution as conv
 from ...tests.helper import pytest, pickle_protocol, check_pickling_recovery
 
-@pytest.mark.parametrize("name,args,kwargs,xfail", 
-                         [(conv.CustomKernel, [], 
+@pytest.mark.parametrize("name,args,kwargs,xfail",
+                         [(conv.CustomKernel, [],
                            {'array':np.random.rand(15)},
                            False),
                           (conv.Gaussian1DKernel, [1.0],

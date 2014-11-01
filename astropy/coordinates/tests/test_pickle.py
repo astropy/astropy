@@ -26,7 +26,6 @@ def test_pickle_longitude_wrap_angle():
 
 
 _names = [coord.Angle,
-          coord.CartesianPoints,
           coord.Distance,
           coord.DynamicMatrixTransform,
           coord.ICRS,
@@ -36,7 +35,6 @@ _names = [coord.Angle,
           ]
 
 _xfail = [False,
-          False,
           not HAS_SCIPY,
           True,
           True,
@@ -45,18 +43,15 @@ _xfail = [False,
           False]
 
 _args = [[0.0],
-         [0,0,0],
          [],
-         [lambda *args: np.identity(3),
-          coord.ICRS, coord.ICRS],
+         [lambda *args: np.identity(3), coord.ICRS, coord.ICRS],
          [0, 0],
          [0],
          [0],
          [np.identity(3), coord.ICRS, coord.ICRS],
          ]
-    
+
 _kwargs = [{'unit':'radian'},
-           {'unit':'au'},
            {'z':0.23},
            {},
            {'unit':['radian', 'radian']},

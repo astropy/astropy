@@ -576,7 +576,7 @@ def generic_recursive_equality_test(a, b, class_history):
             if '__iter__' in dir(eq):
                 eq = (False not in eq)
             assert eq, "Value of {0} changed by pickling".format(key)
-            
+
         if hasattr(dict_a[key], '__dict__'):
             if dict_a[key].__class__ in class_history:
                 #attempt to prevent infinite recursion
@@ -590,8 +590,8 @@ def generic_recursive_equality_test(a, b, class_history):
 
 
 def check_pickling_recovery(original, protocol):
-    """ 
-    Try to pickle an object. If successful, make sure 
+    """
+    Try to pickle an object. If successful, make sure
     the object's attributes survived pickling and unpickling.
     """
     f = pickle.dumps(original, protocol=protocol)
