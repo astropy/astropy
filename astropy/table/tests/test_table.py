@@ -643,6 +643,32 @@ class TestAddRow(SetupData):
         assert len(t) == 3
         assert np.all(t.as_array() == t_copy.as_array())
 
+    def test_insert_table_row(self, table_types):
+        """
+        Light testing of Table.insert_row() method.  The deep testing is done via
+        the add_row() tests which calls insert_row(index=len(self), ...), so
+        here just test that the added index parameter is handled correctly.
+        """
+        self._setup(table_types)
+        row = (10, 40.0, 'x', [10, 20])
+        for index in xrange(-3, 4):
+            indices = np.insert(np.arange(3), index, 3)
+            t = table_types.Table([self.a, self.b, self.c, self.d])
+            t2 = t.copy()
+            t.add_row(row)  # By now we know this works
+            t2.insert_row(index, row)
+            for name in t.colnames:
+                if t[name].dtype.kind == 'f':
+                    assert np.allclose(t[name][indices], t2[name])
+                else:
+                    assert np.all(t[name][indices] == t2[name])
+
+        for index in (-4, 4):
+            t = table_types.Table([self.a, self.b, self.c, self.d])
+            with pytest.raises(IndexError):
+                t.insert_row(index, row)
+
+
 @pytest.mark.usefixtures('table_types')
 class TestTableColumn(SetupData):
 
