@@ -961,8 +961,6 @@ class MaskedColumn(Column, ma.MaskedArray):
         else:
             new_data = np.insert(self_ma.data, obj, values, axis=0)
 
-        if mask is None:
-            mask = np.zeros(np.asarray(values).shape, dtype=bool)
         new_mask = np.insert(self_ma.mask, obj, mask, axis=0)
         new_ma = np.ma.array(new_data, mask=new_mask, copy=False)
 
