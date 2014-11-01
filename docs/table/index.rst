@@ -38,7 +38,7 @@ the |Table| class for other subpackages such as `astropy.io.votable` and `astrop
    of individual column objects.  *For most users there is NO CHANGE to the
    interface and behavior of |Table| objects.*
 
-   The page on :ref:`table_implementation_details` provides details about the
+   The page on :ref:`table_implementation_change` provides details about the
    change.  This includes discussion of the table architecture, key differences,
    and benefits of the change.
 
@@ -284,6 +284,7 @@ Implementation
    :maxdepth: 2
 
    implementation_details.rst
+   implementation_change_1.0.rst
 
 Reference/API
 =============
