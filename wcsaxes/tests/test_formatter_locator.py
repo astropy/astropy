@@ -190,6 +190,14 @@ class TestAngleFormatterLocator(object):
         fl.format = 'dd:mm:ss'
         assert_almost_equal(fl.spacing.to(u.arcsec).value, 115.)
 
+    @pytest.mark.parametrize(('spacing', 'string'), [(2 * u.deg, six.u('15\xb0')),
+                                                     (2 * u.arcmin, six.u('15\xb024\'')),
+                                                     (2 * u.arcsec, six.u('15\xb023\'32"')),
+                                                     (0.1 * u.arcsec, six.u('15\xb023\'32.0"'))])
+    def test_formatter_no_format(self, spacing, string):
+        fl = AngleFormatterLocator()
+        assert fl.formatter([15.392231] * u.degree, spacing)[0] == string
+
 
 class TestScalarFormatterLocator(object):
 
