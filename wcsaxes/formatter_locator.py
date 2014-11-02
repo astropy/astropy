@@ -266,6 +266,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
             return values * spacing_deg * u.degree, spacing_deg * u.degree
 
     def formatter(self, values, spacing):
+
         if not isinstance(values, u.Quantity) and values is not None:
             raise TypeError("values should be a Quantities array")
 
@@ -283,7 +284,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     precision = 0
                 else:
                     fields = 3
-                    precision = -int(np.floor(np.log10(spacing.value)))
+                    precision = -int(np.floor(np.log10(spacing)))
                 decimal = False
                 unit = u.degree
             else:
