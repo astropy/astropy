@@ -184,8 +184,11 @@ class HDUList(list, _Verify):
         """
         Used by the 'in' operator
         """
-        names = [hdu.name.lower() for hdu in self]
-        return item in names
+        try:
+            self.index_of(item)
+            return True
+        except KeyError:
+            return False
 
     def __setitem__(self, key, hdu):
         """
