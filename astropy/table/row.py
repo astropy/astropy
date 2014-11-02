@@ -36,38 +36,6 @@ class Row(object):
         self._table = table
         self._index = index
 
-        # TODO: Make sure these corner cases are still handled.
-        #
-        # try:
-        #     self._data = self._table._data[0]
-        #     # MaskedArray __getitem__ has a strange behavior where if a
-        #     # row mask is all False then it returns a np.void which
-        #     # has no mask attribute. This makes it impossible to then set
-        #     # the mask. Here we recast back to mvoid. This was fixed in
-        #     # Numpy following issue numpy/numpy#483, and the fix should be
-        #     # included in Numpy 1.8.0.
-        #     if self._table.masked and isinstance(self._data, np.void):
-        #         self._data = ma.core.mvoid(self._data,
-        #                                    mask=self._table._mask[index])
-        # except ValueError as err:
-        #     # Another bug (or maybe same?) that is fixed in 1.8 prevents
-        #     # accessing a row in masked array if it has object-type members.
-        #     # >>> x = np.ma.empty(1, dtype=[('a', 'O')])
-        #     # >>> x['a'] = 1
-        #     # >>> x['a'].mask = True
-        #     # >>> x[0]
-        #     # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
-        #     #
-        #     # All we do here is re-raise with a more informative message
-        #     if (six.text_type(err).startswith('Setting void-array with object members')
-        #             and version.LooseVersion(np.__version__) < version.LooseVersion('1.8')):
-        #         raise ValueError('Cannot access table row with Object type columns, due to '
-        #                          'a bug in numpy {0}.  Please upgrade to numpy 1.8 or newer.'
-        #                          .format(np.__version__))
-        #     else:
-        #         raise
-
-
     def __getitem__(self, item):
         return self._table.columns[item][self._index]
 

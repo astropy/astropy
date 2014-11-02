@@ -628,19 +628,6 @@ class TestAddRow(SetupData):
         with pytest.raises(TypeError):
             t.add_row(1)
 
-    # ADD_ROW always just makes a copy so this restriction no longer applies
-    #
-    # def test_add_without_own_fails(self, table_types):
-    #     """Add row to a table that doesn't own the data"""
-    #     self._setup(table_types)
-    #     data = np.array([(1, 2, 3),
-    #                      (3, 4, 5)],
-    #                     dtype='i4')
-    #     t = table_types.Table(data, copy=False)
-    #     if not t.masked:
-    #         with pytest.raises(ValueError):
-    #             t.add_row([6, 7, 8])
-
     def test_add_row_failures(self, table_types):
         self._setup(table_types)
         t = self.t
