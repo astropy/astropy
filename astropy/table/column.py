@@ -644,13 +644,13 @@ class Column(BaseColumn):
 
     # Set items using a view of the underlying data, as it gives an
     # order-of-magnitude speed-up. [#2994]
-    # def __setitem__(self, index, value):
-    #     self.data[index] = value
+    def __setitem__(self, index, value):
+        self.data[index] = value
 
     # # Set slices using a view of the underlying data, as it gives an
     # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
-    # def __setslice__(self, start, stop, value):
-    #     self.data.__setslice__(start, stop, value)
+    def __setslice__(self, start, stop, value):
+        self.data.__setslice__(start, stop, value)
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name
