@@ -9,18 +9,15 @@ For the example in the following page we start from the example introduced in
    :context: reset
    :nofigs:
 
-    from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from wcsaxes import datasets, WCS
+
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
+
     fig = plt.figure()
-
-    from wcsaxes import WCSAxes
-
-    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
-    fig.add_axes(ax)  # note that the axes have to be added to the figure
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=wcs)
 
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
               origin='lower')
@@ -84,7 +81,7 @@ coordinates:
    :context:
    :include-source:
    :align: center
-    
+
     from matplotlib.patches import Rectangle
     r = Rectangle((60., 20.), 10., 12., edgecolor='yellow', facecolor='none')
     ax.add_patch(r)
@@ -96,7 +93,7 @@ to plot for example in FK5 equatorial coordinates:
    :context:
    :include-source:
    :align: center
-   
+
     r = Rectangle((266.0, -28.9), 0.3, 0.15, edgecolor='green', facecolor='none',
                   transform=ax.get_transform('fk5'))
     ax.add_patch(r)
@@ -139,7 +136,7 @@ it can also be used to plot objects in various coordinate systems:
    :context:
    :include-source:
    :align: center
-   
+
     l = [0.25, 0.20, 0.30, 0.27]
     b = [0.20, 0.23, 0.27, 0.30]
 

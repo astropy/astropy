@@ -17,21 +17,20 @@ information. In this example, we will use a FITS file from the
    :include-source:
    :align: center
 
-    from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from wcsaxes import datasets, WCS
+
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
 If you have the original FITS file, this is equivalent to doing::
 
     from astropy.io import fits
+
     hdu = fits.open('msx.fits')[0]
     wcs = WCS(hdu.header)
 
-
-We then create a figure using Matplotlib and instantiate the
-`~wcsaxes.WCSAxes` class using the :class:`~astropy.wcs.WCS` object
-created above:
+We then create a figure using Matplotlib and create the axes using the
+:class:`~astropy.wcs.WCS` object created above:
 
 .. plot::
    :context:
@@ -40,13 +39,27 @@ created above:
 
     import matplotlib.pyplot as plt
     fig = plt.figure()
+    ax = fig.add_subplot(1,1,1, projection=wcs)
+
+The ``ax`` object created is an instance of the :class:`~wcsaxes.WCSAxes`
+class.
+
+In the above example, and in the rest of the documentation, we use the
+:class:`wcsaxes.WCS` class, which is almost identical to
+:class:`astropy.wcs.WCS` but includes a couple of additional methods that are
+needed to allow us to use the matplotlib ``projection=`` option. You can
+also use the :class:`astropy.wcs.WCS` class, but you will need to instantiate
+the :class:`~wcsaxes.WCSAxes` class directly. You can do this by replacing::
+
+    ax = fig.add_subplot(1,1,1, projection=wcs)
+
+by::
 
     from wcsaxes import WCSAxes
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], projection=wcs)
+    fig.add_axes(ax)  # note that the axes have to be explicitly added to the figure
 
-    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
-    fig.add_axes(ax)  # note that the axes have to be added to the figure
-
-By default, the field of view shown is, as for standard matplotlib axes, 0 to
+In either case, the field of view shown is, as for standard matplotlib axes, 0 to
 1 in both directions, in pixel coordinates. The
 :meth:`~matplotlib.axes.Axes.set_xlim` and
 :meth:`~matplotlib.axes.Axes.set_ylim` methods can be used to re-set the

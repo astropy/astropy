@@ -12,21 +12,17 @@ following example shows how to use the built-in
    :include-source:
    :align: center
 
-    from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from wcsaxes import datasets, WCS
     from wcsaxes.frame import EllipticalFrame
 
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
+
     fig = plt.figure()
-
-    from wcsaxes import WCSAxes
-
-    ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=wcs,
-                 frame_class=EllipticalFrame)
-    fig.add_axes(ax)
+    ax = fig.add_axes([0.15, 0.15, 0.7, 0.7], projection=wcs,
+                      frame_class=EllipticalFrame)
 
     ax.coords.grid(color='white')
 
@@ -77,20 +73,16 @@ which we can then use:
     :include-source:
     :align: center
 
-     from astropy.wcs import WCS
-     from wcsaxes import datasets
+     from wcsaxes import datasets, WCS
 
      hdu = datasets.fetch_msx_hdu()
      wcs = WCS(hdu.header)
 
      import matplotlib.pyplot as plt
+
      fig = plt.figure()
-
-     from wcsaxes import WCSAxes
-
-     ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=wcs,
-                  frame_class=HexagonalFrame)
-     fig.add_axes(ax)
+     ax = fig.add_axes([0.15, 0.15, 0.7, 0.7], projection=wcs,
+                       frame_class=HexagonalFrame)
 
      ax.coords.grid(color='white')
 

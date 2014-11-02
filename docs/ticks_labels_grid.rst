@@ -9,18 +9,15 @@ For the example in the following page we start from the example introduced in
    :context: reset
    :nofigs:
 
-    from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from wcsaxes import datasets, WCS
+
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
+
     fig = plt.figure()
-
-    from wcsaxes import WCSAxes
-
-    ax = WCSAxes(fig, [0.25, 0.25, 0.6, 0.6], wcs=wcs)
-    fig.add_axes(ax)  # note that the axes have to be added to the figure
+    ax = fig.add_axes([0.25, 0.25, 0.6, 0.6], projection=wcs)
 
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
               origin='lower')
@@ -54,7 +51,7 @@ or, in the case of common coordinate systems, by their name:
 
 In this example, the image is in Galactic coordinates, so the coordinates are
 called ``glon`` and ``glat``. For an image in equatorial coordinates, you
-would use ``ra`` and ``dec``. The names are only available for specific 
+would use ``ra`` and ``dec``. The names are only available for specific
 celestial coordinate systems - for all other systems, you should use the index
 of the coordinate (``0`` or ``1``).
 
@@ -79,7 +76,7 @@ Axis labels can be added using the
 
 The padding of the axis label with respect to the axes can also be adjusted by
 using the ``minpad`` option. The default value for ``minpad`` is 1 and is in
-terms of the font size of the axis label text. Negative values are also 
+terms of the font size of the axis label text. Negative values are also
 allowed.
 
 .. plot::
