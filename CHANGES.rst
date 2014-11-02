@@ -18,6 +18,10 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - The ``in`` operator now works correctly for checking if an extension
+    is in an ``HDUList`` (as given via EXTNAME, (EXTNAME, EXTVER) tuples,
+    etc.) [#3060]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
