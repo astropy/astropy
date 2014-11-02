@@ -80,7 +80,6 @@ double str_to_double(tokenizer_t *self, char *str);
 double xstrtod(const char *str, char **endptr, char decimal,
                char sci, char tsep, int skip_trailing);
 void start_iteration(tokenizer_t *self, int col);
-int finished_iteration(tokenizer_t *self);
 char *next_field(tokenizer_t *self, int *size);
 long file_len(FILE *fhandle);
 char *get_line(char *ptr, int *len, int map_len);

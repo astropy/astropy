@@ -86,7 +86,6 @@ cdef extern from "src/tokenizer.h":
     double fast_str_to_double(tokenizer_t *self, char *str)
     double str_to_double(tokenizer_t *self, char *str)
     void start_iteration(tokenizer_t *self, int col)
-    int finished_iteration(tokenizer_t *self)
     char *next_field(tokenizer_t *self, int *size)
     char *get_line(char *ptr, int *len, int map_len)
 
