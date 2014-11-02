@@ -9,18 +9,15 @@ For the example in the following page we start from the example introduced in
    :context: reset
    :nofigs:
 
-    from astropy.wcs import WCS
-    from wcsaxes import datasets
+    from wcsaxes import datasets, WCS
+
     hdu = datasets.fetch_msx_hdu()
     wcs = WCS(hdu.header)
 
     import matplotlib.pyplot as plt
+
     fig = plt.figure()
-
-    from wcsaxes import WCSAxes
-
-    ax = WCSAxes(fig, [0.25, 0.25, 0.6, 0.6], wcs=wcs)
-    fig.add_axes(ax)  # note that the axes have to be added to the figure
+    ax = fig.add_axes([0.25, 0.25, 0.6, 0.6], projection=wcs)
 
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, cmap=plt.cm.gist_heat,
               origin='lower')
