@@ -764,3 +764,22 @@ class TestHDUListFunctions(FitsTestCase):
 
             # Finally, without mmaping B
             test(True, False)
+
+    def test_extname_in_hdulist(self):
+        """
+        Tests to make sure that the 'in' operator works.
+
+        Regression test for https://github.com/astropy/astropy/issues/3060
+        """
+
+        hdulist = fits.HDUList()
+        hdulist.append(fits.ImageHDU(name='a'))
+
+        assert 'a' in hdulist
+        assert 'A' in hdulist
+        assert ('a', 1) in hdulist
+        assert ('A', 1) in hdulist
+        assert 'b' not in hdulist
+        assert ('a', 2) not in hdulist
+        assert ('b', 1) not in hdulist
+        assert ('b', 2) not in hdulist
