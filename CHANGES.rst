@@ -436,6 +436,10 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - The ``in`` operator now works correctly for checking if an extension
+    is in an ``HDUList`` (as given via EXTNAME, (EXTNAME, EXTVER) tuples,
+    etc.) [#3060]
+
   - Added workaround for bug in MacOS X <= 10.8 that caused np.fromfile to
     fail. [#3078]
 

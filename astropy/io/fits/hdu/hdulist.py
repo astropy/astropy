@@ -180,6 +180,16 @@ class HDUList(list, _Verify):
         idx = self.index_of(key)
         return super(HDUList, self).__getitem__(idx)
 
+    def __contains__(self, item):
+        """
+        Returns `True` if HDUList.index_of(item) succeeds.
+        """
+        try:
+            self.index_of(item)
+            return True
+        except KeyError:
+            return False
+
     def __setitem__(self, key, hdu):
         """
         Set an HDU to the `HDUList`, indexed by number or name.
