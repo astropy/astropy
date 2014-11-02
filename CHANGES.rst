@@ -191,6 +191,10 @@ API Changes
     related to the change in Table implementation.  They are replaced by
     ``Row.as_void()`` and ``Table.as_array()`` methods, respectively. [#2790]
 
+  - The ``Table.create_mask`` method has been removed.  This undocumented
+    method was a development orphan and would cause corruption of the
+    table if called. [#2790]
+
 - ``astropy.time``
 
   - The ``Time.val`` and ``Time.vals`` properties (deprecated in v0.3) and the
