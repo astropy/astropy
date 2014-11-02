@@ -388,10 +388,6 @@ class Table(object):
         """Initialize table from a list of columns.  A column can be a
         Column object, np.ndarray, or any other iterable object.
         """
-        # SINCE WE ARE NOT GOING INTO A SEPARATE NDARRAY there is no restriction!
-        # if not copy:
-        #    raise ValueError('Cannot use copy=False with a list data input')
-
         # Set self.masked appropriately, then get class to create column instances.
         self._set_masked_from_cols(data)
 
@@ -827,8 +823,6 @@ class Table(object):
             self.add_column(new_column)
 
         else:
-            # NO. Otherwise just delegate to the numpy item setter.
-            # self._data[item] = value
             n_cols = len(self.columns)
 
             if isinstance(item, six.string_types):
@@ -837,7 +831,9 @@ class Table(object):
 
             elif isinstance(item, (int, np.integer)):
                 # Set the corresponding row assuming value is an interable.
-                # TODO catch exception if value has no len
+                if not hasattr(value, '__len__'):
+                    raise TypeError('Right side value must be iterable')
+
                 if len(value) != n_cols:
                     raise ValueError('Right side value needs {0} elements (one for each column)'
                                      .format(n_cols))
@@ -862,7 +858,6 @@ class Table(object):
                     vals = itertools.repeat(value, n_cols)
 
                 else:  # Assume this is an iterable that will work
-                    # TODO catch exception if value has no len
                     if len(value) != n_cols:
                         raise ValueError('Right side value needs {0} elements (one for each column)'
                                          .format(n_cols))
@@ -951,7 +946,6 @@ class Table(object):
 
     @property
     def dtype(self):
-        # TODO caching, which gets invalidated when column is added or removed
         return np.dtype([descr(col) for col in self.columns.values()])
 
     @property
@@ -1736,7 +1730,7 @@ class Table(object):
         if type(keys) is not list:
             keys = [keys]
 
-        indexes = self.argsort(keys)  # Allow different sort algorithm??
+        indexes = self.argsort(keys)
         for col in self.columns.values():
             col[:] = col.take(indexes, axis=0)
 

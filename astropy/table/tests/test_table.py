@@ -94,7 +94,7 @@ class TestSetTableColumn(SetupData):
         assert t[0][1] == 5
 
     def test_set_row_fail_1(self, table_types):
-        """Set a row from an incorrectly-sized set of values"""
+        """Set a row from an incorrectly-sized or typed set of values"""
         self._setup(table_types)
         t = table_types.Table([self.a, self.b])
         with pytest.raises(ValueError):
