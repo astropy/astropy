@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.io import fits
 from astropy.tests.helper import pytest
 from astropy.tests.helper import remote_data
-from .. import datasets, WCS
+from .. import datasets, WCS, WCSAxes
 
 
 class BaseImageTests(object):
@@ -147,9 +147,8 @@ class TestBasic(BaseImageTests):
 
     # Test for cube slicing
     def test_cube_slice_image(self, generate):
-        w = WCS(self.cube_header)
         fig = plt.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=WCS(self.cube_header), slices=(50, 'y', 'x'), aspect='equal')
         ax.coords[1].grid(grid_type='contours')
         ax.coords[2].grid(grid_type='contours')
         ax.set_xlim(-0.5, 52.5)
@@ -166,9 +165,8 @@ class TestBasic(BaseImageTests):
 
     # Test to see if changing the units of axis works
     def test_changed_axis_units(self, generate):
-        w = WCS(self.cube_header)
         fig = plt.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=WCS(self.cube_header), slices=(50, 'y', 'x'), aspect='equal')
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
         ax.coords[2].set_major_formatter('x.xx')
@@ -181,9 +179,8 @@ class TestBasic(BaseImageTests):
 
     # Test to for drawing minor ticks
     def test_minor_ticks(self, generate):
-        w = WCS(self.cube_header)
         fig = plt.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=WCS(self.cube_header), slices=(50, 'y', 'x'), aspect='equal')
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
         ax.coords[2].set_ticks(exclude_overlapping=True)
@@ -197,7 +194,8 @@ class TestBasic(BaseImageTests):
 
     def test_ticks_labels(self, generate):
         fig = plt.figure(figsize=(6, 6))
-        ax = fig.add_axes([0.1, 0.1, 0.7, 0.7], projection=None)
+        ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
+        fig.add_axes(ax)
         ax.set_xlim(-0.5, 2)
         ax.set_ylim(-0.5, 2)
         ax.coords[0].set_ticks(size=10, color='blue', alpha=0.2, width=1)
@@ -226,7 +224,8 @@ class TestBasic(BaseImageTests):
                 'grid.linewidth': 1,
                 'grid.alpha': 0.5}):
             fig = plt.figure(figsize=(6, 6))
-            ax = fig.add_axes([0.1, 0.1, 0.7, 0.7], projection=None)
+            ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
+            fig.add_axes(ax)
             ax.set_xlim(-0.5, 2)
             ax.set_ylim(-0.5, 2)
             ax.grid()
