@@ -8,6 +8,12 @@ Astropy
 .. image:: https://pypip.in/d/astropy/badge.png
     :target: https://pypi.python.org/pypi/astropy
 
+.. image:: https://travis-ci.org/astropy/astropy.png
+    :target: https://travis-ci.org/astropy/astropy
+
+.. image:: https://coveralls.io/repos/astropy/astropy/badge.png
+    :target: https://coveralls.io/r/astropy/astropy
+
 Astropy (http://astropy.org/) is a package intended to contain much of
 the core functionality and some common tools needed for performing
 astronomy and astrophysics with Python.
@@ -31,19 +37,6 @@ Project Status
 
 For an overview of the testing and build status of all packages associated 
 with the Astropy Project, see http://dashboard.astropy.org.
-
-Core Package Travis Build Status
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. image:: https://travis-ci.org/astropy/astropy.png
-    :target: https://travis-ci.org/astropy/astropy
-
-
-
-Core Package Test Coverage Status
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. image:: https://coveralls.io/repos/astropy/astropy/badge.png
-    :target: https://coveralls.io/r/astropy/astropy
 
 License
 -------
