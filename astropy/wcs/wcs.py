@@ -1997,6 +1997,12 @@ naxis kwarg.
         # (wcs[i] -> wcs.sub([i+1])
         return self.slice(item)
 
+    def __iter__(self):
+        # Having __getitem__ makes Python think WCS is iterable. However,
+        # Python first checks whether __iter__ is present, so we can raise an
+        # exception here.
+        raise TypeError("'{0}' object is not iterable".format(self.__class__.__name__))
+
     @property
     def axis_type_names(self):
         """

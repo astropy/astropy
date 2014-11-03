@@ -608,3 +608,23 @@ IMAGEH  =                 2832 / Image height, in pixels.
     w = wcs.WCS(header)
     x, y = w.wcs_world2pix(211, -26, 0)
     assert np.isnan(x) and np.isnan(y)
+
+
+def test_no_iteration():
+
+    # Regression test for #3066
+
+    w = wcs.WCS(naxis=2)
+
+    with pytest.raises(TypeError) as exc:
+        iter(w)
+    assert exc.value.args[0] == "'WCS' object is not iterable"
+
+    class NewWCS(wcs.WCS):
+        pass
+
+    w = NewWCS(naxis=2)
+
+    with pytest.raises(TypeError) as exc:
+        iter(w)
+    assert exc.value.args[0] == "'NewWCS' object is not iterable"

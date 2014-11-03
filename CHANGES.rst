@@ -84,6 +84,9 @@ Bug Fixes
     now be correctly identified and returned as ``nan``
     values. [#2965]
 
+  - Fixed an issue which meant that Python thought ``WCS`` objects were
+    iterable. [#3066]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
