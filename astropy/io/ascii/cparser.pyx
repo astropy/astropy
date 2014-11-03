@@ -86,7 +86,6 @@ cdef extern from "src/tokenizer.h":
     double fast_str_to_double(tokenizer_t *self, char *str)
     double str_to_double(tokenizer_t *self, char *str)
     void start_iteration(tokenizer_t *self, int col)
-    int finished_iteration(tokenizer_t *self)
     char *next_field(tokenizer_t *self, int *size)
     char *get_line(char *ptr, int *len, int map_len)
 
@@ -551,7 +550,6 @@ cdef class CParser:
             num_rows = nrows
         # intialize ndarray
         cdef np.ndarray col = np.empty(num_rows, dtype=np.int_)
-        cdef np.ndarray str_col = np.empty(num_rows, dtype=object) 
         cdef long converted
         cdef int row = 0
         cdef long *data = <long *> col.data # pointer to raw data
@@ -561,9 +559,7 @@ cdef class CParser:
         mask = set() # set of indices for masked values
         start_iteration(t, i) # begin the iteration process in C
 
-        while not finished_iteration(t):
-            if row == num_rows: # end prematurely if we aren't using every row
-                break
+        for row in range(num_rows):
             # retrieve the next field as a C pointer
             field = next_field(t, <int *>0)
             replace_info = None
@@ -597,7 +593,7 @@ cdef class CParser:
                 # no dice
                 t.code = NO_ERROR
                 raise ValueError()
-            
+
             data[row] = converted
             row += 1
 
@@ -625,9 +621,7 @@ cdef class CParser:
         mask = set()
 
         start_iteration(t, i)
-        while not finished_iteration(t):
-            if row == num_rows:
-                break
+        for row in range(num_rows):
             field = next_field(t, <int *>0)
             replace_info = None
             replacing = False
@@ -686,9 +680,7 @@ cdef class CParser:
         mask = set()
 
         start_iteration(t, i)
-        while not finished_iteration(t):
-            if row == num_rows:
-                break
+        for row in range(num_rows):
             field = next_field(t, &field_len)
             replace_info = None
 

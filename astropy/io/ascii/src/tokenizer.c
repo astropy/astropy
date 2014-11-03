@@ -68,7 +68,7 @@ void resize_col(tokenizer_t *self, int index)
 {
     // Temporarily store the position in output_cols[index] to
     // which col_ptrs[index] points
-    int diff = self->col_ptrs[index] - self->output_cols[index];
+    long diff = self->col_ptrs[index] - self->output_cols[index];
 
     // Double the size of the column string
     self->output_cols[index] = (char *) realloc(self->output_cols[index], 2 *
@@ -120,7 +120,8 @@ static inline void push(tokenizer_t *self, char c, int col)
 
 static inline void end_field(tokenizer_t *self, int *col, int header)
 {
-    if (self->strip_whitespace_fields)
+    if (self->strip_whitespace_fields && self->col_ptrs[*col]
+	!= self->output_cols[*col])
     {
         --self->col_ptrs[*col];
         while (*self->col_ptrs[*col] == ' ' || *self->col_ptrs[*col] == '\t')
@@ -772,15 +773,6 @@ void start_iteration(tokenizer_t *self, int col)
     self->iter_col = col;
     // Start at the initial pointer position
     self->curr_pos = self->output_cols[col];
-}
-
-int finished_iteration(tokenizer_t *self)
-{
-    // Iteration is finished if we've exceeded the length of the column string
-    // or the pointer is at an empty byte
-    return (self->curr_pos - self->output_cols[self->iter_col] >=
-            self->output_len[self->iter_col] * sizeof(char)
-	    || *self->curr_pos == '\x00');
 }
 
 char *next_field(tokenizer_t *self, int *size)
