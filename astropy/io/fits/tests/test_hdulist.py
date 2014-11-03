@@ -776,3 +776,7 @@ class TestHDUListFunctions(FitsTestCase):
         assert('A' in hdulist)
         assert(('a', 1) in hdulist)
         assert(('A', 1) in hdulist)
+        assert('b' not in hdulist)
+        assert(('a', 2) not in hdulist)
+        assert(('b', 1) not in hdulist)
+        assert(('b', 2) not in hdulist)
