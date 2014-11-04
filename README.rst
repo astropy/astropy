@@ -29,21 +29,14 @@ reach out to PyPI.
 Project Status
 --------------
 
-For an overview of the testing and build status of all packages associated 
-with the Astropy Project, see http://dashboard.astropy.org.
-
-Core Package Travis Build Status
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. image:: https://travis-ci.org/astropy/astropy.png
     :target: https://travis-ci.org/astropy/astropy
 
-
-
-Core Package Test Coverage Status
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 .. image:: https://coveralls.io/repos/astropy/astropy/badge.png
     :target: https://coveralls.io/r/astropy/astropy
+
+For an overview of the testing and build status of all packages associated 
+with the Astropy Project, see http://dashboard.astropy.org.
 
 License
 -------
