@@ -81,7 +81,7 @@ Rows
 A |Row| object corresponds to a single row in the table.  For versions before
 1.0, when a |Row| object is requested it uses numpy indexing into the table
 ``_data`` array to generate a ``numpy.void`` or ``numpy.ma.mvoid`` object as the
-``data`` attribute.  This delegates most of the row access functionality like
+``data`` attribute [#]_.  This delegates most of the row access functionality like
 ``row['a']`` to the numpy void classes. For unmasked tables this ``data``
 attribute is a memory view of the parent table row, though for masked tables
 (due to the implementation of numpy masked arrays), the ``data`` attribute is
@@ -103,6 +103,9 @@ copy of the original data, not a view.  Code which was relying on the row
 
 |row_after|
 
+.. [#] ``numpy.void`` is a ``dtype`` that can be used to represent structures
+         of arbitrary byte width.
+
 Differences
 ^^^^^^^^^^^
 
@@ -119,7 +122,7 @@ row data, not a view.
 ``Table._data``
 """""""""""""""
 
-While the ``_data`` attribute of the |Table| object is not part of the public
+While the ``_data`` property of the |Table| object is not part of the public
 API in any astropy release, some users may have let this creep into their
 code as back-door access to the numpy object.  In version 1.0 this attribute is
 formally deprecated and will generate a warning.
@@ -127,7 +130,9 @@ formally deprecated and will generate a warning.
 From 1.0 the public method for getting the corresponding numpy structured array
 or masked array version of a table is the |Table| method
 `~astropy.table.Table.as_array()`.  This dynamically generates the requested
-object.
+object, making a copy of the table data.  Be aware that the ``_data`` property
+calls `~astropy.table.Table.as_array()`, so accessing ``_data`` will
+effectively double the memory usage of the table.
 
 An alternative is to use `~numpy.array` to do the conversion, e.g. for an
 astropy |Table| object named ``dat`` use ``np_dat = np.array(dat)``.  Be aware that
@@ -174,7 +179,7 @@ The key benefits of the version 1.0 change are as follows:
   beyond just |Column| and |MaskedColumn|.  This includes
   `~astropy.units.Quantity`, `~astropy.time.Time`, and
   `~astropy.coordinates.SkyCoord` objects.  Other ideas like nested |Table|
-  objets are also possible.
+  objects are also possible.
  
 - Generally faster because of improved implementation in key areas.
   Column-based access is faster because the column data are held in contiguous
