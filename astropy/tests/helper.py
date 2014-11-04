@@ -555,6 +555,55 @@ def assert_follows_unicode_guidelines(
             assert eval(repr_x, roundtrip) == x
 
 
+@pytest.fixture(params=[0, 1, -1])
+def pickle_protocol(request):
+    """
+    Fixture to run all the tests for protocols 0 and 1, and -1 (most advanced).
+    (Originally from astropy.table.tests.test_pickle)
+    """
+    return request.param
+
+
+def generic_recursive_equality_test(a, b, class_history):
+    """
+    Check if the attributes of a and b are equal. Then,
+    check if the attributes of the attributes are equal.
+    """
+    dict_a = a.__dict__
+    dict_b = b.__dict__
+    for key in dict_a:
+        assert key in dict_b,\
+          "Did not pickle {0}".format(key)
+        if hasattr(dict_a[key], '__eq__'):
+            eq = (dict_a[key] == dict_b[key])
+            if '__iter__' in dir(eq):
+                eq = (False not in eq)
+            assert eq, "Value of {0} changed by pickling".format(key)
+
+        if hasattr(dict_a[key], '__dict__'):
+            if dict_a[key].__class__ in class_history:
+                #attempt to prevent infinite recursion
+                pass
+            else:
+                new_class_history = [dict_a[key].__class__]
+                new_class_history.extend(class_history)
+                generic_recursive_equality_test(dict_a[key],
+                                                dict_b[key],
+                                                new_class_history)
+
+
+def check_pickling_recovery(original, protocol):
+    """
+    Try to pickle an object. If successful, make sure
+    the object's attributes survived pickling and unpickling.
+    """
+    f = pickle.dumps(original, protocol=protocol)
+    unpickled = pickle.loads(f)
+    class_history = [original.__class__]
+    generic_recursive_equality_test(original, unpickled,
+                                    class_history)
+
+
 ##############################################################################
 # Note: the following class exists only for backward-compatibility purposes. #
 #       It has been moved to the separate astropy-helpers package, located   #
