@@ -1763,7 +1763,7 @@ class Table(object):
                   Max  Miller  12
         '''
         for col in self.columns.values():
-            col[:] = col[::-1]
+            col[:] = col[::-1].copy()  # Copy required for numpy 1.5
 
     @classmethod
     def read(cls, *args, **kwargs):
