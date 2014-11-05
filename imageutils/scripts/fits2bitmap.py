@@ -5,9 +5,11 @@ from __future__ import (absolute_import, division, print_function,
 import argparse
 from astropy import log
 import astropy.io.fits as fits
-import imageutils
+
 import matplotlib.cm as cm
 import matplotlib.image as mimg
+
+from ..normalization.ui import scale_image
 
 
 def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
@@ -90,12 +92,12 @@ def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
                      'name'.format(cmap))
         raise SystemExit()
 
-    image_scaled = imageutils.scale_image(image, scale=scale, power=power,
-                                          noise_level=noise_level,
-                                          min_cut=min_cut, max_cut=max_cut,
-                                          min_percent=min_percent,
-                                          max_percent=max_percent,
-                                          percent=percent)
+    image_scaled = scale_image(image, scale=scale, power=power,
+                               noise_level=noise_level,
+                               min_cut=min_cut, max_cut=max_cut,
+                               min_percent=min_percent,
+                               max_percent=max_percent,
+                               percent=percent)
 
     mimg.imsave(out_fn, image_scaled, cmap=cmap)
     log.info('Saved file to {0}'.format(out_fn))
