@@ -25,6 +25,9 @@ New Features
     of cosmological objects to be created with the specified variables
     modified [#2592].
 
+  - Increase default numerical precision of ``z_at_value`` following
+    the accurate by default, fast by explicit request model [#3074].
+
 - ``astropy.io.ascii``
 
   - Simplify the way new Reader classes are defined, allowing custom behavior
