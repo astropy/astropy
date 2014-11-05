@@ -8,15 +8,14 @@ from matplotlib.patches import Circle
 from ..rc_utils import rc_context
 
 from astropy import units as u
-from astropy.wcs import WCS
 from astropy.io import fits
 from astropy.tests.helper import pytest
 from astropy.tests.helper import remote_data
-from .. import WCSAxes
-from .. import datasets
+from .. import datasets, WCS, WCSAxes
 
 
 class BaseImageTests(object):
+
     @classmethod
     def setup_class(cls):
         cls._moduledir = os.path.dirname(__file__)
@@ -76,8 +75,7 @@ class TestBasic(BaseImageTests):
     # Test for plotting image and also setting values of ticks
     def test_image_plot(self, generate):
         fig = plt.figure(figsize=(6, 6))
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(self.msx_header), aspect='equal')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=WCS(self.msx_header), aspect='equal')
         ax.set_xlim(-0.5, 148.5)
         ax.set_ylim(-0.5, 148.5)
         ax.coords[0].set_ticks([-0.30, 0., 0.20] * u.degree, size=5, width=1)
@@ -87,16 +85,20 @@ class TestBasic(BaseImageTests):
     # Test for overlaying contours on images
     @remote_data
     def test_contour_overlay(self, generate):
+
         hdu_msx = datasets.fetch_msx_hdu()
         wcs_msx = WCS(self.msx_header)
 
         fig = plt.figure(figsize=(6, 6))
-        ax = WCSAxes(fig, [0.15, 0.15, 0.8, 0.8], wcs=WCS(self.twoMASS_k_header), aspect='equal')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.15, 0.15, 0.8, 0.8],
+                          projection=WCS(self.twoMASS_k_header),
+                          aspect='equal')
         ax.set_xlim(-0.5, 720.5)
         ax.set_ylim(-0.5, 720.5)
+
         # Overplot contour
-        ax.contour(hdu_msx.data, transform=ax.get_transform(wcs_msx), colors='orange', levels=[2.5e-5, 5e-5, 1.e-4])
+        ax.contour(hdu_msx.data, transform=ax.get_transform(wcs_msx),
+                   colors='orange', levels=[2.5e-5, 5e-5, 1.e-4])
         ax.coords[0].set_ticks(size=5, width=1)
         ax.coords[1].set_ticks(size=5, width=1)
         ax.set_xlim(0., 720.)
@@ -106,9 +108,11 @@ class TestBasic(BaseImageTests):
 
     # Test for overlaying grid, changing format of ticks, setting spacing and number of ticks
     def test_overlay_features_image(self, generate):
+
         fig = plt.figure(figsize=(6, 6))
-        ax = WCSAxes(fig, [0.25, 0.25, 0.65, 0.65], wcs=WCS(self.msx_header), aspect='equal')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.25, 0.25, 0.65, 0.65],
+                          projection=WCS(self.msx_header), aspect='equal')
+
         # Change the format of the ticks
         ax.coords[0].set_major_formatter('dd:mm:ss')
         ax.coords[1].set_major_formatter('dd:mm:ss.ssss')
@@ -118,11 +122,14 @@ class TestBasic(BaseImageTests):
 
         # Set the spacing of ticks on the 'glon' axis to 4 arcsec
         ax.coords['glon'].set_ticks(spacing=4 * u.arcsec, size=5, width=1)
+
         # Set the number of ticks on the 'glat' axis to 9
         ax.coords['glat'].set_ticks(number=9, size=5, width=1)
+
         # Set labels on axes
         ax.coords['glon'].set_axislabel('Galactic Longitude', minpad=1.6)
         ax.coords['glat'].set_axislabel('Galactic Latitude', minpad=-0.75)
+
         # Change the frame linewidth and color
         ax.coords.frame.set_color('red')
         ax.coords.frame.set_linewidth(2)
@@ -131,38 +138,57 @@ class TestBasic(BaseImageTests):
 
     # Overlay curvilinear grid and patches on image
     def test_curvilinear_grid_patches_image(self, generate):
+
         fig = plt.figure(figsize=(8, 8))
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(self.rosat_header), aspect='equal')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8],
+                          projection=WCS(self.rosat_header), aspect='equal')
+
         ax.set_xlim(-0.5, 479.5)
         ax.set_ylim(-0.5, 239.5)
+
         ax.grid(color='black', alpha=1.0, lw=1, linestyle='dashed')
+
         p = Circle((300, 100), radius=40, ec='yellow', fc='none')
         ax.add_patch(p)
-        p = Circle((30., 20.), radius=20., ec='orange', fc='none', transform=ax.get_transform('world'))
+
+        p = Circle((30., 20.), radius=20., ec='orange', fc='none',
+                   transform=ax.get_transform('world'))
         ax.add_patch(p)
-        p = Circle((60., 50.), radius=20., ec='red', fc='none', transform=ax.get_transform('fk5'))
+
+        p = Circle((60., 50.), radius=20., ec='red', fc='none',
+                   transform=ax.get_transform('fk5'))
         ax.add_patch(p)
-        p = Circle((40., 60.), radius=20., ec='green', fc='none', transform=ax.get_transform('galactic'))
+
+        p = Circle((40., 60.), radius=20., ec='green', fc='none',
+                   transform=ax.get_transform('galactic'))
         ax.add_patch(p)
 
         self.generate_or_test(generate, fig, 'curvlinear_grid_patches_image.png')
 
     # Test for cube slicing
     def test_cube_slice_image(self, generate):
-        w = WCS(self.cube_header)
+
         fig = plt.figure()
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8],
+                          projection=WCS(self.cube_header),
+                          slices=(50, 'y', 'x'), aspect='equal')
+
         ax.coords[1].grid(grid_type='contours')
         ax.coords[2].grid(grid_type='contours')
+
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
+
         ax.coords[2].set_axislabel('Velocity m/s')
+
         ax.coords[1].grid(grid_type='contours', color='red')
         ax.coords[2].grid(grid_type='contours', color='red')
-        ax.coords[1].set_ticks(spacing=0.2 * u.deg, width=1, exclude_overlapping=True)
-        ax.coords[2].set_ticks(spacing=400 * u.m / u.s, width=1, exclude_overlapping=True)
+
+        ax.coords[1].set_ticks(spacing=0.2 * u.deg, width=1,
+                               exclude_overlapping=True)
+        ax.coords[2].set_ticks(spacing=400 * u.m / u.s, width=1,
+                               exclude_overlapping=True)
+
         ax.coords[1].grid(grid_type='contours', linestyle='solid')
         ax.coords[2].grid(grid_type='contours', linestyle='solid')
 
@@ -170,10 +196,10 @@ class TestBasic(BaseImageTests):
 
     # Test to see if changing the units of axis works
     def test_changed_axis_units(self, generate):
-        w = WCS(self.cube_header)
         fig = plt.figure()
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8],
+                          projection=WCS(self.cube_header),
+                          slices=(50, 'y', 'x'), aspect='equal')
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
         ax.coords[2].set_major_formatter('x.xx')
@@ -186,10 +212,10 @@ class TestBasic(BaseImageTests):
 
     # Test to for drawing minor ticks
     def test_minor_ticks(self, generate):
-        w = WCS(self.cube_header)
         fig = plt.figure()
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], w, slices=(50, 'y', 'x'), aspect='equal')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8],
+                          projection=WCS(self.cube_header),
+                          slices=(50, 'y', 'x'), aspect='equal')
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
         ax.coords[2].set_ticks(exclude_overlapping=True)
@@ -212,15 +238,21 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_ticks_position('all')
         ax.coords[1].set_ticks_position('all')
         ax.coords[0].set_axislabel('X-axis', size=20)
-        ax.coords[1].set_axislabel('Y-axis', color='green', size=25, weight='regular', style='normal', family='monospace')
+        ax.coords[1].set_axislabel('Y-axis', color='green', size=25,
+                                   weight='regular', style='normal',
+                                   family='monospace')
         ax.coords[0].set_axislabel_position('t')
         ax.coords[1].set_axislabel_position('r')
-        ax.coords[0].set_ticklabel(color='purple', size=15, alpha=1, weight='light', style='normal', family='sans-serif')
-        ax.coords[1].set_ticklabel(color='black', size=18, alpha=0.9, weight='bold', family='serif')
+        ax.coords[0].set_ticklabel(color='purple', size=15, alpha=1,
+                                   weight='light', style='normal',
+                                   family='sans-serif')
+        ax.coords[1].set_ticklabel(color='black', size=18, alpha=0.9,
+                                   weight='bold', family='serif')
         ax.coords[0].set_ticklabel_position('all')
         ax.coords[1].set_ticklabel_position('r')
 
-        self.generate_or_test(generate, fig, 'ticks_labels.png', bbox_inches='tight')
+        self.generate_or_test(generate, fig, 'ticks_labels.png',
+                              bbox_inches='tight')
 
     # Test default style (matplotlib.rcParams) for ticks and gridlines
     def test_rcparams(self, generate):
@@ -253,8 +285,7 @@ class TestBasic(BaseImageTests):
         w.wcs.radesys = 'ICRS'
         w.wcs.equinox = 2000.0
         fig = plt.figure(figsize=(3, 3))
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=w)
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=w)
         ax.set_xlim(1, -1)
         ax.set_ylim(-1, 1)
         ax.grid(color='gray', alpha=0.5, linestyle='solid')
@@ -274,8 +305,7 @@ class TestBasic(BaseImageTests):
         w.wcs.radesys = 'ICRS'
         w.wcs.equinox = 2000.0
         fig = plt.figure(figsize=(6, 3))
-        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=w)
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], projection=w)
         ax.set_xlim(1, -1)
         ax.set_ylim(-1, 1)
         ax.grid(color='gray', alpha=0.5, linestyle='solid')
@@ -286,8 +316,9 @@ class TestBasic(BaseImageTests):
     # Test for setting coord_type
     def test_set_coord_type(self, generate):
         fig = plt.figure(figsize=(3, 3))
-        ax = WCSAxes(fig, [0.2, 0.2, 0.6, 0.6], wcs=WCS(self.msx_header), aspect='equal')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.2, 0.2, 0.6, 0.6],
+                          projection=WCS(self.msx_header),
+                          aspect='equal')
         ax.set_xlim(-0.5, 148.5)
         ax.set_ylim(-0.5, 148.5)
         ax.coords[0].set_coord_type('scalar')
@@ -308,8 +339,8 @@ class TestBasic(BaseImageTests):
         # NaN).
         wcs = WCS(self.slice_header)
         fig = plt.figure(figsize=(3, 3))
-        ax = WCSAxes(fig, [0.25, 0.25, 0.5, 0.5], wcs=wcs, aspect='auto')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.25, 0.25, 0.5, 0.5],
+                          projection=wcs, aspect='auto')
         limits = wcs.wcs_world2pix([0, 0], [35e3, 80e3],0)[1]
         ax.set_ylim(*limits)
         ax.coords[0].set_ticks(spacing=0.002 * u.deg)
@@ -327,9 +358,9 @@ class TestBasic(BaseImageTests):
         # to 1, which caused issues.
         wcs = WCS(self.msx_header)
         fig = plt.figure(figsize=(3, 3))
-        ax = WCSAxes(fig, [0.25, 0.25, 0.5, 0.5], wcs=wcs, aspect='auto')
-        fig.add_axes(ax)
+        ax = fig.add_axes([0.25, 0.25, 0.5, 0.5], projection=wcs, aspect='auto')
         ax.coords[0].set_axislabel("Label 1")
         ax.coords[1].set_axislabel("Label 2")
         ax.coords[1].ticklabels.set_visible(False)
-        self.generate_or_test(generate, fig, 'test_axislabels_regression.png', bbox_inches='tight')
+        self.generate_or_test(generate, fig, 'test_axislabels_regression.png',
+                              bbox_inches='tight')
