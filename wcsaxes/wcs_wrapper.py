@@ -1,7 +1,14 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 from astropy.wcs import WCS as AstropyWCS
 
 from .core import WCSAxes
 
+
+# The purpose of the following class is to implement the ``_as_mpl_axes`` method
+# which allows us to use the ``projection=`` API for Matplotlib. Once WCSAxes is
+# merged into Astropy, we can just add this method directly to the 'real' WCS
+# class.
 
 class WCS(AstropyWCS):
 

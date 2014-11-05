@@ -2,7 +2,7 @@
 Slicing Multidimensional Data
 =============================
 
-WCSAxes can utlimately only plot two-dimensional data. If we have an
+WCSAxes can ultimately only plot two-dimensional data. If we have an
 n-dimensional dataset, we have to select which dimensions to use for
 the x and y axis of the image. This example will show how to slice a FITS
 data cube and plot an image from it.
