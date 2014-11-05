@@ -2,15 +2,12 @@
 
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
-from matplotlib.patches import Patch
 
 from astropy.wcs import WCS
-from astropy import units as u
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
-from .formatter_locator import AngleFormatterLocator
 from .utils import get_coordinate_frame, get_coord_meta
 from .frame import RectangularFrame
 import numpy as np
