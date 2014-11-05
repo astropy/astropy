@@ -3,11 +3,12 @@ Initializing axes
 =================
 
 As in Matplotlib, there are several ways you can initialize the
-:class:`~wcsaxes.WCSAxes`. As use in the rest of the documentation, the
+:class:`~wcsaxes.WCSAxes`.
+
+As shown in the rest of the documentation, the
 simplest way is to make use of the :class:`wcsaxes.WCS` class (instead of
 :class:`astropy.wcs.WCS`) and pass this to the
-:meth:`~matplotlib.figure.Figure.add_subplot` method:: on the
-:class:`~matplotlib.figure.Figure` instance::
+:meth:`~matplotlib.figure.Figure.add_subplot` method::
 
     from wcsaxes import WCS
     import matplotlib.pyplot as plt
@@ -23,7 +24,7 @@ If you normally make plots directly with pyplot directly instead of creating
 axes and figure instances, you can do::
 
 
-    plt.subplot(1, 1, 1, projection=w)
+    plt.subplot(1, 1, 1, projection=wcs)
     plt.imshow(...)
 
 Note that this also works with :meth:`~matplotlib.figure.Figure.add_axes` and :func:`~matplotlib.pyplot.axes`, e.g.::
@@ -58,7 +59,7 @@ directly and add it to the figure::
 
     fig = plt.figure()
 
-    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], projection=wcs)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
     fig.add_axes(ax)  # note that the axes have to be explicitly added to the figure
 
 Note that in this example, we can use :class:`astropy.wcs.WCS` (but
