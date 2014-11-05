@@ -352,6 +352,8 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Fixed a test failure on Debian/PowerPC and Debian/s390x. [#2708]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
