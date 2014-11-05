@@ -39,7 +39,7 @@ We then create a figure using Matplotlib and create the axes using the
 
     import matplotlib.pyplot as plt
     fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
 
 The ``ax`` object created is an instance of the :class:`~wcsaxes.WCSAxes`
 class. For more information about the different ways of initializing axes,
