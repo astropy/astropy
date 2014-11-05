@@ -1,4 +1,4 @@
--e git+http://github.com/astropy/astropy-helpers.git#egg=astropy_helpers
+astropy-helpers
 numpy
 matplotlib>=1.4
 astropy
