@@ -13,7 +13,6 @@ from .formatter_locator import AngleFormatterLocator
 from .utils import get_coordinate_frame, get_coord_meta
 from .frame import RectangularFrame
 import numpy as np
-from warnings import warn
 
 __all__ = ['WCSAxes', 'WCSAxesSubplot']
 
