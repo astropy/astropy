@@ -2293,24 +2293,28 @@ one = dimensionless_unscaled
 
 def quantity_input(*f_args, **f_kwargs):
     """
-    A decorator for a function that accepts some inputs a Quantity objects.
+    A decorator for a function that accepts some inputs as Quantity objects.
     
     This decorator attempts to convert the given Quantites to the units specified
-    to the decortator, and fails nicely if the a non-Quantity or a incompatible 
+    to the decorator, and fails nicely if a non-Quantity or a incompatible 
     unit was passed.
     
     Examples
     --------
     
-    @quantity_input(u.deg, u.deg, None)
-    def myfunc(ra, dec, someflag):
-        ra.value # this is now in deg
-        dec.value # now in deg
+    @quantity_input(u.arcsec, u.arcsec, None)
+    def myfunc(solarx, solary, someflag):
+        pass
     """
-    
+    equivalencies = f_kwargs.pop('equivalencies', [])
     def check_quantities(f):
         # Number of args in decorator must equal number of args in function
-        if len(f_args) != f.func_code.co_argcount - len(f.func_defaults):
+        if f.func_defaults:
+            num_kwargs = len(f.func_defaults)
+        else:
+            num_kwargs = 0
+        num_args = f.func_code.co_argcount - num_kwargs
+        if len(f_args) != num_args:
             raise ValueError("Number of decorator arguments does not equal number of function arguments")
 
         def new_f(*args, **kwds):
@@ -2319,21 +2323,29 @@ def quantity_input(*f_args, **f_kwargs):
             for i, (arg, f_arg) in enumerate(zip(args, f_args)):
                 if f_arg is not None:
                     try:
-                        args[i] = args[i].to(f_arg)
+                        arg.to(f_arg, equivalencies=equivalencies)
                     except UnitsError:
-                        raise TypeError("Argument '{}' to function '{}' must be in units convertable to '{}'.".format(f.func_code.co_varnames[i], f.func_code.co_name, f_arg.to_string()))
+                        raise TypeError(
+"Argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
+            f.func_code.co_varnames[i], f.func_code.co_name, f_arg.to_string()))
                     except AttributeError:
-                        raise TypeError("Argument '{}' to function '{}' must be an astropy Quantity object".format(f.func_code.co_varnames[i], f.func_code.co_name))
+                        raise TypeError(
+"Argument '{0}' to function '{1}' must be an astropy Quantity object".format(
+                                        f.func_code.co_varnames[i], f.func_code.co_name))
 
             # Check kwargs, only kwargs specified in the decorator are modified
-            for kwarg, value in f_kwargs.items():
+            for j, (kwarg, value) in enumerate(f_kwargs.items()):
                 if kwarg in kwds:
                     try:
-                        kwds[kwarg] = kwds[kwarg].to(value)
+                        kwds[kwarg].to(value, equivalencies=equivalencies)
                     except UnitsError:
-                        raise TypeError("Keyword argument '{}' to function '{}' must be an astropy Quantity object in units convertable to '{}'.".format(kwarg, f.func_code.co_name, value.to_string()))
+                        raise TypeError(
+"Keyword argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
+                                kwarg, f.func_code.co_name, value.to_string()))
                     except AttributeError:
-                        raise TypeError("Argument '{}' to function '{}' must be an astropy Quantity object".format(f.func_code.co_varnames[i], f.func_code.co_name))
+                        raise TypeError(
+"Argument '{0}' to function '{1}' must be an astropy Quantity object".format(
+                    f.func_code.co_varnames[j+num_args], f.func_code.co_name))
 
             return f(*args, **kwds)
 
