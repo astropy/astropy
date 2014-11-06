@@ -50,4 +50,4 @@ def test_Rotation2D():
 def test_Rotation2D_inverse():
     model = models.Rotation2D(angle=234.23494)
     x, y = model.inverse(*model(1, 0))
-    utils.assert_allclose([x, y], [1, 0])
+    utils.assert_allclose([x, y], [1, 0], atol=1e-10)
