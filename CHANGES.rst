@@ -404,7 +404,7 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Make sure that doctests are run from a temporary directory. [#1821]
 
 
 0.4.2 (2014-09-23)
