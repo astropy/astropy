@@ -1088,22 +1088,29 @@ def test_massivenu_density():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_z_at_value():
+    # These are tests of expected values, and hence have less precision
+    # than the roundtrip tests below (test_z_at_value_roundtrip);
+    # here we have to worry about the cosmological calculations
+    # giving slightly different values on different architectures,
+    # there we are checking internal consistency on the same architecture
+    # and so can be more demanding
     z_at_value = funcs.z_at_value
     cosmo = core.Planck13
     d = cosmo.luminosity_distance(3)
-    assert np.allclose(z_at_value(cosmo.luminosity_distance, d, ztol=1e-8), 3,
+    assert np.allclose(z_at_value(cosmo.luminosity_distance, d), 3,
                        rtol=1e-8)
-    assert np.allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.1981191749374)
+    assert np.allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.198122684356,
+                       rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.luminosity_distance, 1e4 * u.Mpc),
-                       1.3685792789133948)
+                       1.3685790653802761, rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.lookback_time, 7 * u.Gyr),
-                       0.7951983674601507)
+                       0.7951983674601507, rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
-                                  zmax=2), 0.681277696252886)
+                                  zmax=2), 0.68127769625288614, rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
-                                  zmin=2.5), 3.7914918534022011)
+                                  zmin=2.5), 3.7914908028272083, rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.distmod, 46 * u.mag),
-                       1.9913870174451891)
+                       1.9913891680278133, rtol=1e-6)
 
     # test behaviour when the solution is outside z limits (should
     # raise a CosmologyError)
@@ -1121,7 +1128,13 @@ def test_z_at_value_roundtrip():
     """
     z = 0.5
 
-    skip = ('Ok', 'angular_diameter_distance_z1z2', 'clone', 'de_density_scale', 'w')
+    # Skip Ok, w, de_density_scale because in the Planck13 cosmolgy
+    # they are redshift independent and hence uninvertable,
+    # angular_diameter_distance_z1z2 takes multiple arguments, so requires
+    #  special handling
+    # clone isn't a redshift-dependent method
+    skip = ('Ok', 'angular_diameter_distance_z1z2', 'clone',
+            'de_density_scale', 'w')
 
     import inspect
     methods = inspect.getmembers(core.Planck13, predicate=inspect.ismethod)
@@ -1133,4 +1146,14 @@ def test_z_at_value_roundtrip():
         fval = func(z)
         # we need zmax here to pick the right solution for
         # angular_diameter_distance and related methods.
-        assert np.allclose(z, funcs.z_at_value(func, fval, zmax=1.5))
+        # Be slightly more generous with rtol than the default 1e-8
+        # used in z_at_value
+        assert np.allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
+                           rtol=2e-8)
+
+    # Test angular_diameter_distance_z1z2
+    z2 = 2.0
+    func = lambda z1: core.Planck13.angular_diameter_distance_z1z2(z1, z2)
+    fval = func(z)
+    assert np.allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
+                       rtol=2e-8)
