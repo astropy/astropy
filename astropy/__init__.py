@@ -6,6 +6,8 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
+from __future__ import absolute_import
+
 # this indicates whether or not we are in astropy's setup.py
 try:
     _ASTROPY_SETUP_
@@ -235,11 +237,21 @@ def _initialize_astropy():
         from .utils import _compiler
     except ImportError:
         if is_astropy_source_dir:
-            _rollback_import(
-                'You appear to be trying to import astropy from within a '
-                'source checkout; please run `./setup.py develop` or '
-                '`./setup.py build_ext --inplace` first so that extension '
-                'modules can be compiled and made importable.')
+            log.warn('You appear to be trying to import astropy from '
+                     'within a source checkout without building the '
+                     'extension modules first.  Attempting to (re)build '
+                     'extension modules:')
+
+            try:
+                _rebuild_extensions()
+            except:
+                _rollback_import(
+                    'An error occurred while attempting to rebuild the '
+                    'extension modules.  Please try manually running '
+                    '`./setup.py develop` or `./setup.py build_ext '
+                    '--inplace` to see what the issue was.  Extension '
+                    'modules must be successfully compiled and importable '
+                    'in order to import astropy.')
         else:
             # Outright broken installation; don't be nice.
             raise
@@ -253,6 +265,34 @@ def _initialize_astropy():
         wmsg = (e.args[0] + " Cannot install default profile. If you are "
                 "importing from source, this is expected.")
         warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
+
+
+def _rebuild_extensions():
+    import os
+    import subprocess
+    import sys
+    import time
+    from .utils.console import Spinner
+
+    devnull = open(os.devnull, 'w')
+    old_cwd = os.getcwd()
+    os.chdir(os.path.join(os.path.dirname(__file__), os.pardir))
+    try:
+        sp = subprocess.Popen([sys.executable, 'setup.py', 'build_ext',
+                               '--inplace'], stdout=devnull,
+                               stderr=devnull)
+        with Spinner('Rebuilding extension modules') as spinner:
+            while sp.poll() is None:
+                spinner.next()
+                time.sleep(0.05)
+    finally:
+        os.chdir(old_cwd)
+
+    if sp.returncode != 0:
+        raise OSError('Running setup.py build_ext --inplace failed '
+                      'with error code {0}: try rerunning this command '
+                      'manually to check what the error was.'.format(
+                          sp.returncode))
 
 
 import logging
