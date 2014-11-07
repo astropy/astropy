@@ -113,7 +113,7 @@ def pytest_configure(config):
             dirname = tempfile.mkdtemp()
             try:
                 os.chdir(dirname)
-                super(DocTestRunnerPlus, self).run(*args, **kwargs)
+                doctest.DebugRunner.run(self, *args, **kwargs)
             finally:
                 os.chdir(curdir)
 
