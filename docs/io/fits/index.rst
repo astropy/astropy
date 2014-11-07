@@ -503,7 +503,7 @@ variables for the individual columns and without manually creating a
 
 Now you may write this new table HDU directly to a FITS file like so::
 
-    >>> hdu = fits.PrimaryHDU(n)
+    >>> tbhdu.writeto('table.fits')
 
 This shortcut will automatically create a minimal primary HDU with no data and
 prepend it to the table HDU to create a valid FITS file.  If you require
