@@ -263,3 +263,11 @@ behavior of `numpy.array` and cannot easily be worked around.  We recommend
 that users upgrade to a newer version of Numpy.  For Numpy >= 1.6 a warning
 is printed and the values are treated as strings to preserve all information.
 
+Issue with reading large FITS files with memory mapping turned off on MacOS X
+-----------------------------------------------------------------------------
+
+On certain versions of MacOS X (<=10.8), when reading very large FITS files
+using ``astropy.io.fits``, most values in the resulting array are set to
+zero. This is due to a bug in MacOS X itself which affects Numpy, which in
+turn affects Astropy. Since there is no easy workaround for this, the easiest
+solution is to upgrade to MacOS X 10.9 or later.
