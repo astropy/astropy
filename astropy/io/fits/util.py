@@ -602,7 +602,7 @@ def _array_from_file(infile, dtype, count, sep):
 
     if isfile(infile):
         if CHUNKED_FROMFILE:
-            chunk_size = int(1024 ** 3 / dtype.itemsize)
+            chunk_size = int(1024 ** 3 / dtype.itemsize)  # 1Gb to be safe
             if count < chunk_size:
                 return np.fromfile(infile, dtype=dtype, count=count, sep=sep)
             else:
