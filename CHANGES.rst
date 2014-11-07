@@ -319,6 +319,8 @@ Other Changes and Additions
 
 - The version of ERFA included with Astropy is now v1.1.1 [#2971]
 
+- The code base is now fully Python 2 and 3 compatible and no longer requires
+  2to3. [#2033]
 
 0.4.3 (unreleased)
 ------------------

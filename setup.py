@@ -107,7 +107,7 @@ setup(name=NAME,
       ],
       cmdclass=cmdclassd,
       zip_safe=False,
-      use_2to3=True,
+      use_2to3=False,
       entry_points=entry_points,
       **package_info
 )
