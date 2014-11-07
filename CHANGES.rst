@@ -347,6 +347,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Added workaround for bug in MacOS X <= 10.8 that caused np.fromfile to
+    fail. [#3078]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
