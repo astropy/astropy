@@ -83,7 +83,7 @@ def _register_builtins():
         register_identifier('csv', Table, ('astropy.io.ascii.connect.io_identify', ['csv'], {}))
         register_identifier('rdb', Table, ('astropy.io.ascii.connect.io_identify', ['rdb'], {}))
         register_identifier('html', Table, ('astropy.io.ascii.connect.io_identify', ['html'], {}))
-        register_identifier('tex', Table, ('astropy.io.ascii.connect.io_identify', ['tex'], {}))
+        register_identifier('latex', Table, ('astropy.io.ascii.connect.io_identify', ['tex'], {}))
 
 
 DEFERRED_TYPES = six.string_types + (tuple,)
