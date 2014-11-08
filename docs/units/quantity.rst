@@ -167,7 +167,7 @@ resulting object **has units of the object on the left**:
 Addition and subtraction is not supported between |quantity| objects and basic
 numeric types:
 
-    >>> 13.5 * u.km + 19.412
+    >>> 13.5 * u.km + 19.412  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     UnitsError: Can only apply 'add' function to dimensionless

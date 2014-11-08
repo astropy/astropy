@@ -823,7 +823,7 @@ differenced::
 
   >>> dt.tt  # doctest: +FLOAT_CMP
   <TimeDelta object: scale='tt' format='jd' value=364.999999746>
-  >>> dt.tdb
+  >>> dt.tdb  # doctest: +IGNORE_EXCEPTION_DETAIL
   Traceback (most recent call last):
     ...
   ScaleValueError: Cannot convert TimeDelta with scale 'tcg' to scale 'tdb'

@@ -162,7 +162,7 @@ Parameter examples
   each other::
 
       >>> models.Polynomial1D(degree=2, c0=1.0, c1=[2.0, 3.0],
-      ...                     c2=[4.0, 5.0, 6.0])
+      ...                     c2=[4.0, 5.0, 6.0])  # doctest: +IGNORE_EXCEPTION_DETAIL
       Traceback (most recent call last):
       ...
       InputParameterError: Parameter u'c1' of shape (2,) cannot be broadcast

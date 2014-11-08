@@ -70,7 +70,7 @@ used with the amplitudes of 1 and 3, and 0.2 is used with amplitudes 2 and 4.
 If any of the parameters have incompatible values this will result in an
 error::
 
-    >>> g = Gaussian1D(amplitude=1, mean=[1, 2], stddev=[1, 2, 3])
+    >>> g = Gaussian1D(amplitude=1, mean=[1, 2], stddev=[1, 2, 3])  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     InputParameterError: Parameter 'mean' of shape (2,) cannot be broadcast
@@ -114,7 +114,7 @@ If instead we treat the rows as values for two different model sets, this
 particular instantiation will fail, since only one value is given for mean::
 
     >>> g = Gaussian1D(amplitude=[[1, 2], [3, 4]], mean=0.1, stddev=[0.1, 0.2],
-    ...                n_models=2)
+    ...                n_models=2)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     InputParameterError: All parameter values must be arrays of dimension at

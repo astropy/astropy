@@ -113,7 +113,7 @@ are passed to the :meth:`~astropy.units.quantity.Quantity.to` conversion
 method. For instance, a conversion from wavelength to frequency doesn't
 normally work:
 
-    >>> (1000 * u.nm).to(u.Hz)
+    >>> (1000 * u.nm).to(u.Hz)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
     UnitConversionError: 'nm' (length) and 'Hz' (frequency) are not convertible
