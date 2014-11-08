@@ -238,21 +238,21 @@ To update existing COMMENT or HISTORY cards, reference them by index::
 
 
 To see the entire header as it appears in the FITS file (with the END card and
-padding stripped), simply enter the header object by itself, or ``print
-repr(header)``::
+padding stripped), simply enter the header object by itself, or
+``print(repr(header))``::
 
     >>> header
     SIMPLE  =                    T / file does conform to FITS standard
     BITPIX  =                   16 / number of bits per data pixel
     NAXIS   =                    0 / number of data axes
     all cards are shown...
-    >>> print repr(header)
-    identical...
+    >>> print(repr(header))
+    ... identical ...
 
-Entering simply ``print header`` will also work, but may not be very legible on
-most displays, as this displays the header as it is written in the FITS file
+Entering simply ``print(header)`` will also work, but may not be very legible
+on most displays, as this displays the header as it is written in the FITS file
 itself, which means there are no linebreaks between cards.  This is a common
-confusion in new users.
+source of confusion for new users.
 
 It's also possible to view a slice of the header::
 
@@ -307,7 +307,7 @@ information about the array, e.g.
 Since image data is a numpy object, we can slice it, view it, and perform
 mathematical operations on it. To see the pixel value at x=5, y=2::
 
-    >>> print scidata[1, 4]
+    >>> print(scidata[1, 4])
 
 Note that, like C (and unlike FORTRAN), Python is 0-indexed and the indices
 have the slowest axis first and fastest changing axis last; i.e. for a 2-D
@@ -365,7 +365,7 @@ guide.
 
 To see the first row of the table::
 
-    >>> print tbdata[0]
+    >>> print(tbdata[0])
     (1, 'abc', 3.7000002861022949, 0)
 
 Each row in the table is a :class:`FITS_record` object which looks like a
