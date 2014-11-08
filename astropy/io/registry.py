@@ -73,6 +73,13 @@ def _register_builtins():
             register_writer('ascii.{0}'.format(ascii_format), Table,
                             ('astropy.io.ascii.ui.write', [], {'format':ascii_format}))
 
+        # Deprecated ASCII formats
+        for ascii_format in ['cds', 'daophot', 'html', 'ipac', 'latex', 'rdb']:
+            register_reader('{0}'.format(ascii_format), Table,
+                            ('astropy.io.ascii.ui.read', [], {'format':ascii_format}))
+            register_writer('{0}'.format(ascii_format), Table,
+                            ('astropy.io.ascii.ui.write', [], {'format':ascii_format}))
+
         register_identifier('csv', Table, ('astropy.io.ascii.connect.io_identify', ['csv'], {}))
         register_identifier('rdb', Table, ('astropy.io.ascii.connect.io_identify', ['rdb'], {}))
         register_identifier('html', Table, ('astropy.io.ascii.connect.io_identify', ['html'], {}))
