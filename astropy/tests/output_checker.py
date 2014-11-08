@@ -10,6 +10,8 @@ from __future__ import (absolute_import, division, print_function,
 import doctest
 import re
 
+import numpy as np
+
 # Much of this code, particularly the parts of floating point handling, is
 # borrowed from the SymPy project with permission.  See licenses/SYMPY.rst
 # for the full SymPy license.
@@ -110,7 +112,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
                 else:
                     nw_.append(nw)
 
-                if abs(float(ng)-float(nw)) > 1e-5:
+                if not np.allclose(float(ng), float(nw)):
                     return False
 
             got = self.num_got_rgx.sub(r'%s', got)
