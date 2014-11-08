@@ -96,10 +96,13 @@ def _resolve_deferred(function):
 
 
 def _get_function_by_string(path_to_function):
-    import importlib
     module, function = path_to_function.rsplit('.', 1)
-    return getattr(importlib.import_module(module), function)
-
+    if sys.version_info[:2] < (2, 7):
+        __import__(module)
+        return getattr(sys.modules[module], function)
+    else:
+        from importlib import import_module
+        return getattr(import_module(module), function)
 
 def get_formats(data_class=None):
     """
