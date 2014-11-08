@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import re
 import sys
+from functools import partial
 
 import numpy as np
 
@@ -23,6 +24,13 @@ _builtin_registered = False
 _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
+
+BUILTIN_ASCII_FORMATS = ['aastex', 'basic', 'cds', 'commented_header', 'csv',
+                         'daophot', 'fast_basic', 'fast_commented_header',
+                         'fast_csv', 'fast_no_header', 'fast_rdb',
+                         'fast_tab', 'fixed_width', 'fixed_width_no_header',
+                         'fixed_width_two_line', 'html', 'ipac', 'latex',
+                         'no_header', 'rdb', 'sextractor', 'tab']
 
 # Add built-in readers/writers to the registry manually, and refer to the
 # functions by strings to avoid importing those modules.
@@ -58,9 +66,27 @@ def _register_builtins():
         register_reader('ascii', Table, 'astropy.io.ascii.connect.read_asciitable')
         register_writer('ascii', Table, 'astropy.io.ascii.connect.write_asciitable')
 
-        # Remaining ASCII formats - for now can only import io.ascii to force
-        # meta-classes to register.
-        from . import ascii
+        # Specific ASCII formats
+        for ascii_format in BUILTIN_ASCII_FORMATS:
+            register_reader('ascii.{0}'.format(ascii_format), Table,
+                            ('astropy.io.ascii.ui.read', [], {'format':ascii_format}))
+            register_writer('ascii.{0}'.format(ascii_format), Table,
+                            ('astropy.io.ascii.ui.write', [], {'format':ascii_format}))
+
+        register_identifier('csv', Table, ('astropy.io.ascii.connect.io_identify', ['csv'], {}))
+        register_identifier('rdb', Table, ('astropy.io.ascii.connect.io_identify', ['rdb'], {}))
+        register_identifier('html', Table, ('astropy.io.ascii.connect.io_identify', ['html'], {}))
+        register_identifier('tex', Table, ('astropy.io.ascii.connect.io_identify', ['tex'], {}))
+
+
+DEFERRED_TYPES = six.string_types + (tuple,)
+
+def _resolve_deferred(function):
+    if isinstance(function, six.string_types):
+        return _get_function_by_string(function)
+    elif isinstance(function, tuple):
+        return partial(_get_function_by_string(function[0]), *function[1], **function[2])
+
 
 def _get_function_by_string(path_to_function):
     import importlib
@@ -290,9 +316,8 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
     for data_format, data_class in _identifiers:
         if _is_best_match(data_class_required, data_class, _identifiers):
             identifier = _identifiers[(data_format, data_class)]
-            if isinstance(identifier, six.string_types):
-                identifier = _get_function_by_string(identifier)
-                _identifiers[(data_format, data_class)] = identifier
+            if isinstance(identifier, DEFERRED_TYPES):
+                identifier = _identifiers[(data_format, data_class)] = _resolve_deferred(identifier)
             if identifier(
                 origin, path, fileobj, *args, **kwargs):
                 valid_formats.append(data_format)
@@ -317,9 +342,8 @@ def get_reader(data_format, data_class):
     for reader_format, reader_class in readers:
         if _is_best_match(data_class, reader_class, readers):
             reader = _readers[(reader_format, reader_class)]
-            if isinstance(reader, six.string_types):
-                reader = _get_function_by_string(reader)
-                _readers[(reader_format, reader_class)] = reader
+            if isinstance(reader, DEFERRED_TYPES):
+                reader = _readers[(data_format, data_class)] = _resolve_deferred(reader)
             return reader
     else:
         format_table_str = _get_format_table_str(data_class, 'Read')
@@ -335,9 +359,8 @@ def get_writer(data_format, data_class):
     for writer_format, writer_class in writers:
         if _is_best_match(data_class, writer_class, writers):
             writer = _writers[(writer_format, writer_class)]
-            if isinstance(writer, six.string_types):
-                writer = _get_function_by_string(writer)
-                _writers[(writer_format, writer_class)] = writer
+            if isinstance(writer, DEFERRED_TYPES):
+                writer = _writers[(data_format, data_class)] = _resolve_deferred(writer)
             return writer
     else:
         format_table_str = _get_format_table_str(data_class, 'Write')
