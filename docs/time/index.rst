@@ -782,7 +782,7 @@ Use of the |TimeDelta| object is easily illustrated in the few examples below::
   >>> t2 - dt2  # Subtract a TimeDelta from a Time
   <Time object: scale='utc' format='iso' value=2010-01-31 23:59:10.000>
 
-  >>> dt + dt2
+  >>> dt + dt2  # doctest: +FLOAT_CMP
   <TimeDelta object: scale='tai' format='jd' value=31.0005787037>
 
   >>> import numpy as np
