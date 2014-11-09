@@ -111,7 +111,12 @@ Starting a new package
 Updating to the latest template files
 -------------------------------------
 
-.. TODO
+From time to time we will make changes to the package-template to fix bugs or
+add functionality. Updating to the latest version is simple - simply check
+the `TEMPLATE_CHANGES.md`_ file, which provides a changelog of the package
+template. You can also re-copy over all the files listed in the above section
+and see if any of the changes should be committed (some of the changes will
+be reverting some of your edits, so do not include those!)
 
 Managing the template files via git
 ===================================
@@ -410,3 +415,4 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 .. _Cython: http://cython.org/
 .. _package-template: https://github.com/astropy/package-template
 .. _astropy-helpers: https://github.com/astropy/astropy-helpers
+.. _TEMPLATE_CHANGES.md: https://github.com/astropy/package-template/blob/master/TEMPLATE_CHANGES.md
