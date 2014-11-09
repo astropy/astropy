@@ -116,7 +116,16 @@ add functionality. Updating to the latest version is simple - simply check
 the `TEMPLATE_CHANGES.md`_ file, which provides a changelog of the package
 template. You can also re-copy over all the files listed in the above section
 and see if any of the changes should be committed (some of the changes will
-be reverting some of your edits, so do not include those!)
+be reverting some of your edits, so do not include those!). Remember to
+update the astropy-helpers sub-module to the latest stable version, for
+example::
+
+    cd astropy_helpers
+    git fetch origin
+    git checkout v0.4.3
+    cd ..
+    git add astropy_helpers
+    git commit -m "Updated astropy-helpers to v0.4.3"
 
 Managing the template files via git
 ===================================
