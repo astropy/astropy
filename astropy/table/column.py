@@ -196,6 +196,11 @@ class BaseColumn(np.ndarray):
 
         return reconstruct_func, reconstruct_func_args, state
 
+    def __getitem__(self, item):
+        if isinstance(item, (int, np.integer)):
+            return self.data[item]  # Return as plain ndarray or ma.MaskedArray
+        else:
+            return super(BaseColumn, self).__getitem__(item)
 
     # avoid == and != to be done based on type of subclass
     # (helped solve #1446; see also __array_wrap__)
