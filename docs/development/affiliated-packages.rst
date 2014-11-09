@@ -117,15 +117,17 @@ the `TEMPLATE_CHANGES.md`_ file, which provides a changelog of the package
 template. You can also re-copy over all the files listed in the above section
 and see if any of the changes should be committed (some of the changes will
 be reverting some of your edits, so do not include those!). Remember to
-update the astropy-helpers sub-module to the latest stable version, for
-example::
+update the astropy-helpers sub-module to the latest stable version, and
+update the corresponding ``ah_bootstrap.py`` file, for example::
 
     cd astropy_helpers
     git fetch origin
     git checkout v0.4.3
     cd ..
-    git add astropy_helpers
+    cp astropy_helpers/ah_bootstrap.py .
+    git add astropy_helpers ah_bootstrap.py
     git commit -m "Updated astropy-helpers to v0.4.3"
+
 
 Managing the template files via git
 ===================================
