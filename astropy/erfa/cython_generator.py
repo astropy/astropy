@@ -303,7 +303,7 @@ class Function(object):
         p = re.compile(pattern, flags=re.DOTALL|re.MULTILINE)
 
         search = p.search(filecontents)
-        self.cfunc = search.group(1)
+        self.cfunc = " ".join(search.group(1).split())
         self.doc = FunctionDoc(search.group(2))
 
         self.args = []
