@@ -158,6 +158,20 @@ class Argument(object):
             return self.ctype+" *"
         else:
             return self.ctype
+    
+    @property
+    def name_in_broadcast(self):
+        if len(self.shape)>0:
+            return "{0}_in[...{1}]".format(self.name, ",0"*len(self.shape))
+        else:
+            return "{0}_in".format(self.name)
+
+    @property
+    def name_out_broadcast(self):
+        if len(self.shape)>0:
+            return "{0}_out[...{1}]".format(self.name, ",0"*len(self.shape))
+        else:
+            return "{0}_out".format(self.name)
 
     @property
     def dtype(self):
