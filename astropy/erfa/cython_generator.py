@@ -16,19 +16,12 @@ import re
 import os.path
 
 
-ctype_to_dtype = {'double'       : "numpy.double",
-                  'double *'     : "numpy.double",
-                  'int'          : "numpy.intc",
-                  'int *'        : "numpy.intc",
-                  'int[4]'       : "numpy.dtype([('fi0', 'i', (4,))])",
-                  'double[2]'    : "numpy.dtype([('fi0', 'd', (2,))])",
-                  'double[3]'    : "numpy.dtype([('fi0', 'd', (3,))])",
-                  'double[2][3]' : "numpy.dtype([('fi0', 'd', (2,3))])",
-                  'double[3][3]' : "numpy.dtype([('fi0', 'd', (3,3))])",
-                  'eraASTROM *'  : "dt_eraASTROM",
-                  'eraLDBODY[]'  : "dt_eraLDBODY",
-                  'char *'       : "numpy.dtype('S16')",
-                  'const char *' : "numpy.dtype('S16')",
+ctype_to_dtype = {'double'     : "numpy.double",
+                  'int'        : "numpy.intc",
+                  'eraASTROM'  : "dt_eraASTROM",
+                  'eraLDBODY'  : "dt_eraLDBODY",
+                  'char'       : "numpy.dtype('S16')",
+                  'const char' : "numpy.dtype('S16')",
                   }
 
 
