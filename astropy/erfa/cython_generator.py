@@ -154,10 +154,8 @@ class Argument(object):
 
     @property
     def ctype_ptr(self):
-        if self.ctype[-1] == ']':
-            return self.ctype.split('[')[0]+" *"
-        elif self.ctype[:6] == 'const ':
-            return self.ctype[6:]
+        if (self.is_ptr) | (len(self.shape)>0):
+            return self.ctype+" *"
         else:
             return self.ctype
 
