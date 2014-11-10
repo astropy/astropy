@@ -108,11 +108,13 @@ cdef inline NpyIter* GetNpyIter(object iter):
 
 #<--------------------------Actual ERFA-wrapping code------------------------->
 
-cdef extern from "erfa.h":
+cdef extern from "erfam.h":
     struct eraASTROM:
         pass
     struct eraLDBODY:
         pass
+
+cdef extern from "erfa.h":
 {%- for func in funcs %}
     {{ func.ret }} {{ func.name }}({{ func.args_by_inout('in|inout|out')|map(attribute='ctype_ptr')|join(', ') }})
 {%- endfor %}
