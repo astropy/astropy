@@ -182,7 +182,6 @@ class HDUList(list, _Verify):
 
     def __contains__(self, item):
         """
-        Used by the 'in' operator.
         Returns `True` if HDUList.index_of(item) succeeds.
         """
         try:
