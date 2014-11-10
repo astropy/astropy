@@ -278,7 +278,7 @@ class Function(object):
     def __init__(self, name, source_path, match_line=None):
         self.name = name
         self.pyname = name.split('era')[-1].lower()
-        self.filename = name.split("era")[-1].lower()+".c"
+        self.filename = self.pyname+".c"
         if os.path.isdir(source_path):
             self.filepath = os.path.join(os.path.normpath(source_path), self.filename)
         else:
