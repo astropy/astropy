@@ -153,106 +153,62 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     ERFA documentation:
     {{ func.doc }}
     """
-    {%- for arg in func.args_by_inout('in') %}
-    {%- if arg.ndims > 0 %}
-    # convert nd-array to single-field structured array for argument "{{ arg.name }}"
-    {{ arg.name }}_arr = numpy.empty(numpy.shape({{ arg.name }})[:-{{ arg.ndims }}], dtype={{ arg.dtype }})
-    {{ arg.name }}_arr['fi0'] = {{ arg.name }}
-    {{ arg.name }} = {{ arg.name }}_arr
-    {% endif %}
+    
+    #Turn all inputs into arrays
+    {%- for arg in func.args_by_inout('in|inout') %}
+    {{ arg.name }}_in = numpy.array({{ arg.name }}, dtype={{ arg.dtype }}, order="C", copy=False, subok=True)
     {%- endfor %}
     
-    {%- if func.args_by_inout('in|inout') %}
-    {%- if func.args_by_inout('in|inout')|map(attribute='name')|list|length < 2 %}
-    in_shape = numpy.broadcast({{ func.args_by_inout('in|inout')|map(attribute='name')|first }}, 0).shape
-    {%- else %}
-    in_shape = numpy.broadcast({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}).shape
-    {%- endif %}
-    {%- for arg in func.args_by_inout('out|ret|stat') %}
-    {{ arg.name }}_out = numpy.empty(in_shape, dtype={{ arg.dtype }})
+    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
+    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), {{ func.args_by_inout('in|inout')|map(attribute='name_in_broadcast')|join(', ') }})
+    {%- for arg in func.args_by_inout('inout|out|ret|stat') %}
+    {{ arg.name }}_out = numpy.empty(broadcast.shape+{{ arg.shape }}, dtype={{ arg.dtype }})
     {%- endfor %}
     {%- for arg in func.args_by_inout('inout') %}
-    {{ arg.name }}_out = numpy.array(numpy.broadcast_arrays({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }})[{{ func.args.index(arg) }}], dtype={{ arg.dtype }})
+    numpy.copyto({{ arg.name }}_out, {{ arg.name }}_in)
     {%- endfor %}
     
-    cdef numpy.broadcast it = numpy.broadcast({{ (func.args_by_inout('in')|map(attribute='name')|list + func.args_by_inout('inout|out|ret|stat')|map(attribute='name')|postfix('_out')|list) |join(', ') }})
+    #Create the iterator, broadcasting on all but the consumed dimensions
+    op_axes = [[-1]*(broadcast.nd-arr.ndim)+range(arr.ndim) for arr in [{{ func.args_by_inout('in')|map(attribute='name_in_broadcast')|join(', ') }}]+[{{ func.args_by_inout('inout|out|ret|stat')|map(attribute='name_out_broadcast')|join(', ') }}]]
+    op_flags = [['readonly']]*{{ func.args_by_inout('in')|count }}+[['readwrite']]*{{ func.args_by_inout('inout|out|ret|stat')|count }}
+    it = numpy.nditer([{{ func.args_by_inout('in')|map(attribute='name')|postfix('_in')|join(', ') }}]+[{{ func.args_by_inout('inout|out|ret|stat')|map(attribute='name')|postfix('_out')|join(', ') }}], op_axes=op_axes, op_flags=op_flags)
+    
+    #Iterate
     {%- for arg in func.args_by_inout('in|inout|out|ret|stat') %}
     cdef {{ arg.ctype_ptr }} _{{ arg.name }}
     {%- endfor %}
     {%- if func.args_by_inout('stat')|length > 0 %}
     cdef bint stat_ok = True
     {%- endif %}
-    
-    while numpy.PyArray_MultiIter_NOTDONE(it):
-        
+    cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
+    cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
+    cdef int status = 1
+    while status:
         {%- for arg in func.args_by_inout('in|inout|out') %}
-        {%- if arg.ctype_ptr[-1] == '*' %}
-        _{{ arg.name }} = (<{{ arg.ctype_ptr }}>numpy.PyArray_MultiIter_DATA(it, {{ func.args.index(arg) }}))
-        {%- else %}
-        _{{ arg.name }} = (<{{ arg.ctype_ptr }}*>numpy.PyArray_MultiIter_DATA(it, {{ func.args.index(arg) }}))[0]
-        {%- endif %}
+        _{{ arg.name }} = (<{{ arg.ctype }} *>(dataptrarray[{{ func.args.index(arg) }}])){%- if arg.ctype_ptr[-1] != '*' %}[0]{% endif %}
         {%- endfor %}
-        
-        {{ func.args_by_inout('ret|stat')|map(attribute='name')|surround('_',' = ')|join }}{{ func.name }}({{ func.args_by_inout('in|out|inout')|map(attribute='name')|prefix('_')|join(', ') }})
-        
+        {{ func.args_by_inout('ret|stat')|map(attribute='name')|surround('_',' = ')|join }}{{ func.name }}({{ func.args_by_inout('in|inout|out')|map(attribute='name')|prefix('_')|join(', ') }})
         {%- for arg in func.args_by_inout('ret|stat') %}
-        (<{{ arg.ctype_ptr }}*>numpy.PyArray_MultiIter_DATA(it, {{ func.args.index(arg) }}))[0] = _{{ arg.name }}
-        {%- if arg.inout_state == 'stat' %}
+        (<{{ arg.ctype }} *>(dataptrarray[{{ func.args.index(arg) }}]))[0] = _{{ arg.name }}
+        {%- endfor %}
+        {%- for arg in func.args_by_inout('stat') %}
         if _{{ arg.name }} != 0:
             stat_ok = False
-        {%- endif %}
         {%- endfor %}
-        
-        numpy.PyArray_MultiIter_NEXT(it)
-    {%- else %}
-    in_shape = ()
-    {%- for arg in func.args_by_inout('out') %}
-    {{ arg.name }}_out = numpy.empty(in_shape, dtype={{ arg.dtype }})
-    {%- endfor %}
+        status = iternext(GetNpyIter(it))
     
-    cdef numpy.broadcast it = numpy.broadcast({{ (func.args_by_inout('in')|map(attribute='name')|list + func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|list) |join(', ') }})
-    {%- for arg in func.args_by_inout('out') %}
-    cdef {{ arg.ctype_ptr }} _{{ arg.name }}
-    {%- endfor %}
+    {%- for arg in func.args_by_inout('stat') %}
     
-    while numpy.PyArray_MultiIter_NOTDONE(it):
-        
-        {%- for arg in func.args_by_inout('in|inout|out') %}
-        {%- if arg.ctype_ptr[-1] == '*' %}
-        _{{ arg.name }} = (<{{ arg.ctype_ptr }}>numpy.PyArray_MultiIter_DATA(it, {{ func.args.index(arg) }}))
-        {%- else %}
-        _{{ arg.name }} = (<{{ arg.ctype_ptr }}*>numpy.PyArray_MultiIter_DATA(it, {{ func.args.index(arg) }}))[0]
-        {%- endif %}
-        {%- endfor %}
-    
-        {{ func.name }}({{ func.args_by_inout('in|out|inout')|map(attribute='name')|prefix('_')|join(', ') }})
-        
-        numpy.PyArray_MultiIter_NEXT(it)
-    {%- endif %}
-    
-    {%- for stat in func.args_by_inout('stat') %}
-
     if not stat_ok:
-        check_errwarn({{ stat.name }}_out, '{{ func.pyname }}')
+        check_errwarn({{ arg.name }}_out, '{{ func.pyname }}')
     {%- endfor %}
-
-    {%- set nd_comment_done = False %}
-    {%- for arg in func.args_by_inout('out') %}
-    {%- if arg.ndims > 0 %}
-    {%- if not nd_comment_done%} 
-
-    # convert from single-field structured dtype to regular nd-array
-    {%- set nd_comment_done = True %}
-    {%- endif %}
-    {{ arg.name }}_out = {{ arg.name }}_out['fi0']
-    {%- endif %}
-    {%- endfor %}
-
-    return {{ func.args_by_inout('out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
+    
+    return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
 
 {%- for stat in func.args_by_inout('stat') %}
 {%- if stat.doc_info.statuscodes %}
 STATUS_CODES['{{ func.pyname }}'] = {{ stat.doc_info.statuscodes|string }}
 {% endif %}
 {%- endfor %}
+
 {% endfor %}
