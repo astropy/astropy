@@ -31,6 +31,7 @@ from ..utils.exceptions import AstropyUserWarning
 
 import numpy
 cimport numpy
+from cpython.ref cimport PyObject
 
 numpy.import_array()
 
@@ -86,6 +87,23 @@ def check_errwarn(statcodes, func_name):
 
         wmsg = ', '.join(['{0} of "{1}"'.format(warncounts[w], warnmsgs[w]) for w in warncodes])
         warnings.warn('ERFA function "' + func_name + '" yielded ' + wmsg, ErfaWarning)
+
+
+#<-----------------------------NpyIter handling------------------------------->
+
+ctypedef void NpyIter
+ctypedef int (*IterNextFunc)(NpyIter * iter) nogil
+
+cdef extern from "numpy/arrayobject.h":
+    IterNextFunc GetIterNext "NpyIter_GetIterNext" (NpyIter *iter, char **)
+    char** GetDataPtrArray "NpyIter_GetDataPtrArray" (NpyIter* iter)
+
+ctypedef struct NewNpyArrayIterObject:
+    PyObject base
+    NpyIter *iter
+
+cdef inline NpyIter* GetNpyIter(object iter):
+    return (<NewNpyArrayIterObject*>iter).iter
 
 
 #<--------------------------Actual ERFA-wrapping code------------------------->
