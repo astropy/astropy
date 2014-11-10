@@ -230,9 +230,11 @@ class Return(object):
 
     def __init__(self, ctype, doc):
         self.name = 'c_retval'
+        self.name_out_broadcast = self.name+"_out"
         self.inout_state = 'stat' if ctype == 'int' else 'ret'
         self.ctype = ctype
         self.ctype_ptr = ctype
+        self.shape = ()
         self.doc = doc
 
     def __repr__(self):
