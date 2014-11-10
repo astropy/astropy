@@ -119,15 +119,23 @@ class Argument(object):
     def __init__(self, definition, doc):
         self.doc = doc
         self.__inout_state = None
-        self.definition = definition.strip()
-        if "*" in self.definition:
-            self.ctype, self.name = self.definition.split("*", 1)
-            self.ctype += "*"
+        self.ctype, ptr_name_arr = definition.strip().rsplit(" ", 1)
+        print(ptr_name_arr)
+        if "*" == ptr_name_arr[0]:
+            self.is_ptr = True
+            name_arr = ptr_name_arr[1:]
         else:
-            self.ctype, self.name = self.definition.rsplit(" ", 1)
-            if "[" in self.name:
-                self.name, arr = self.name.split("[", 1)
-                self.ctype += ("["+arr)
+            self.is_ptr = False
+            name_arr = ptr_name_arr
+        if "[]" in ptr_name_arr:
+            self.is_ptr = True
+            name_arr = name_arr[:-2]
+        if "[" in name_arr:
+            self.name, arr = name_arr.split("[", 1)
+            self.shape = tuple([int(size) for size in arr[:-1].split("][")])
+        else:
+            self.name = name_arr
+            self.shape = ()
 
     @property
     def inout_state(self):
