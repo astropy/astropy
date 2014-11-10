@@ -307,7 +307,7 @@ class Function(object):
         self.doc = FunctionDoc(search.group(2))
 
         self.args = []
-        for arg in re.search("\(([^)]+)\)", self.cfunc, flags=re.MULTILINE|re.DOTALL).group(1).split(','):
+        for arg in re.search("\(([^)]+)\)", self.cfunc).group(1).split(', '):
             self.args.append(Argument(arg, self.doc))
         self.ret = re.search("^(.*){0}".format(name), self.cfunc).group(1).strip()
         if self.ret == 'double' or self.ret == 'int':
