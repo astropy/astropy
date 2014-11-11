@@ -131,7 +131,7 @@ class TestJoin():
         # Check that the common keys are 'a', 'b'
         t12a = table.join(t1, t2, join_type='outer')
         t12b = table.join(t1, t2, join_type='outer', keys=['a', 'b'])
-        assert np.all(t12a._data == t12b._data)
+        assert np.all(t12a.as_array() == t12b.as_array())
 
     def test_both_unmasked_single_key_inner(self):
         t1 = self.t1
@@ -200,7 +200,7 @@ class TestJoin():
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
-        assert np.all(t12._data == np.array(t1m2._data))
+        assert np.all(t12.as_array() == np.array(t1m2))
 
         # Mask out some values in left table and make sure they propagate
         t1m['b'].mask[1] = True
@@ -236,7 +236,7 @@ class TestJoin():
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
-        assert np.all(t12._data == np.array(t1m2m._data))
+        assert np.all(t12.as_array() == np.array(t1m2m))
 
         # Mask out some values in both tables and make sure they propagate
         t1m['b'].mask[1] = True

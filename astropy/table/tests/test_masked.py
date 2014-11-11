@@ -128,7 +128,6 @@ class TestFillValue(SetupData):
         self.t['b'].fill_value = 1
         assert self.t['b'].fill_value == 1
         assert np.all(self.t['b'].filled() == [1, 1, 1])
-        assert self.t._data['b'].fill_value == 1
 
     def test_data_attribute_fill_and_mask(self):
         """Check that .data attribute preserves fill_value and mask"""
@@ -376,3 +375,25 @@ class TestAddRow(object):
         assert np.all(t['a'].mask == np.array([0, 0, 0], bool))
         assert np.all(np.array(t['b']) == np.array([4, 5, 6]))
         assert np.all(t['b'].mask == np.array([0, 0, 1], bool))
+
+
+def test_setting_from_masked_column():
+    """Test issue in #2997"""
+    mask_b =  np.array([True, True, False, False])
+    for select in (mask_b, slice(0, 2)):
+        t = Table(masked=True)
+        t['a'] = Column([1, 2, 3, 4])
+        t['b'] = MaskedColumn([11, 22, 33, 44], mask=mask_b)
+        t['c'] = MaskedColumn([111, 222, 333, 444], mask=[True, False, True, False])
+
+        t['b'][select] = t['c'][select]
+        assert t['b'][1] == t[1]['b']
+        assert t['b'][0] is np.ma.masked  # Original state since t['c'][0] is masked
+        assert t['b'][1] == 222  # New from t['c'] since t['c'][1] is unmasked
+        assert t['b'][2] == 33
+        assert t['b'][3] == 44
+        assert np.all(t['b'].mask == t.mask['b'])  # Avoid t.mask in general, this is for testing
+
+        mask_before_add = t.mask.copy()
+        t['d'] = np.arange(len(t))
+        assert np.all(t.mask['b'] == mask_before_add['b'])

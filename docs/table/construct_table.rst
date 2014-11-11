@@ -522,19 +522,9 @@ occurs::
     ...
   ValueError: Cannot specify dtype when copy=False
 
-Another caveat in using referenced data is that you cannot add new row to the
-table.  This generates an error because of conflict between the two references
-to the same underlying memory.  Internally, adding a row may involve moving
-the data to a new memory location which would corrupt the input data object.
-`numpy` does not allow this::
-
-  >>> t.add_row([1, 2, 3])
-  Traceback (most recent call last):
-    File "<stdin>", line 1, in <module>
-    File "astropy/table/table.py", line 760, in add_row
-      self._data.resize((newlen,), refcheck=False)
-  ValueError: cannot resize this array: it does not own its data
-
+Another caveat in using referenced data is that you if add a new row to the
+table then the reference to the original data array is lost and instead the
+table will now hold a copy of the original values (in addition to the new row).
 
 Column and TableColumns classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -777,13 +767,13 @@ are contained in a numpy object-dtype column named ``params``::
   ...    """
   ...    def __getitem__(self, item):
   ...        if item not in self.colnames:
-  ...            return self.data['params'][item]
+  ...            return super(ParamsRow, self).__getitem__('params')[item]
   ...        else:
-  ...            return self.data[item]
+  ...            return super(ParamsRow, self).__getitem__(item)
   ...
   ...    def keys(self):
   ...        out = [name for name in self.colnames if name != 'params']
-  ...        params = [key.lower() for key in sorted(self.data['params'])]
+  ...        params = [key.lower() for key in sorted(self['params'])]
   ...        return out + params
   ...
   ...    def values(self):

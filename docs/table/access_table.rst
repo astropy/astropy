@@ -51,6 +51,12 @@ the data contained in that object relate to the original table data
   t['a'].quantity  # an astropy.units.Quantity for Column 'a'
   t['a'].to('km')  # an astropy.units.Quantity for Column 'a' in units of kilometers
 
+.. Note::
+   Although they appear nearly equivalent, there is a factor of two performance
+   difference between ``t[1]['a']`` (slower, because an intermediate |Row|
+   object gets created) versus ``t['a'][1]`` (faster).  Always use the latter
+   when possible.
+
 **Print table or column**
 ::
 

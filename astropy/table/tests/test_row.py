@@ -25,10 +25,10 @@ def test_masked_row_with_object_col():
     if numpy_lt_1p8:
         with pytest.raises(ValueError):
             t['col0'].mask = False
-            t[0]
+            t[0].as_void()
         with pytest.raises(ValueError):
             t['col0'].mask = True
-            t[0]
+            t[0].as_void()
     else:
         t['col0'].mask = False
         assert t[0]['col0'] == 1
@@ -92,7 +92,7 @@ class TestRow():
     def test_left_equal(self, table_types):
         """Compare a table row to the corresponding structured array row"""
         self._setup(table_types)
-        np_t = self.t._data.copy()
+        np_t = self.t.as_array()
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
                 self.t[0] == np_t[0]
@@ -103,7 +103,7 @@ class TestRow():
     def test_left_not_equal(self, table_types):
         """Compare a table row to the corresponding structured array row"""
         self._setup(table_types)
-        np_t = self.t._data.copy()
+        np_t = self.t.as_array()
         np_t['a'] = [0, 0, 0]
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
@@ -115,7 +115,7 @@ class TestRow():
     def test_right_equal(self, table_types):
         """Test right equal"""
         self._setup(table_types)
-        np_t = self.t._data.copy()
+        np_t = self.t.as_array()
         if table_types.Table is MaskedTable:
             with pytest.raises(ValueError):
                 self.t[0] == np_t[0]
@@ -129,14 +129,14 @@ class TestRow():
 
         np_data = np.array(d)
         if table_types.Table is not MaskedTable:
-            assert np.all(np_data == d._data)
-        assert not np_data is d._data
+            assert np.all(np_data == d.as_void())
+        assert not np_data is d.as_void()
         assert d.colnames == list(np_data.dtype.names)
 
         np_data = np.array(d, copy=False)
         if table_types.Table is not MaskedTable:
-            assert np.all(np_data == d._data)
-        assert not np_data is d._data
+            assert np.all(np_data == d.as_void())
+        assert not np_data is d.as_void()
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):
@@ -148,3 +148,55 @@ class TestRow():
         table = self.t
         row = table[0]
         assert format(row, "").startswith("<{0} 0 of table".format(row.__class__.__name__))
+
+    def test_data_and_as_void(self, table_types):
+        """Test the deprecated data property and as_void() method"""
+        self._setup(table_types)
+        table = self.t
+        row = table[0]
+
+        # row.data is now deprecated because it is slow, generic and abusable
+        with catch_warnings(AstropyDeprecationWarning) as warning_lines:
+            row_data = row.data
+            assert isinstance(row_data, (np.void, np.ma.mvoid))
+
+            assert warning_lines[0].category == AstropyDeprecationWarning
+            assert ("The data function is deprecated" in str(warning_lines[0].message))
+
+        # If masked then with no masks, issue numpy/numpy#483 should come into play.
+        # Make sure as_void() code is working.
+        row_void = row.as_void()
+        if table.masked:
+            assert isinstance(row_void, np.ma.mvoid)
+        else:
+            assert isinstance(row_void, np.void)
+        assert row_void['a'] == 1
+        assert row_void['b'] == 4
+
+        # Confirm row is a view of table but row_void is not.
+        table['a'][0] = -100
+        assert row['a'] == -100
+        assert row_void['a'] == 1
+
+        # Make sure it works for a table that has masked elements
+        if table.masked:
+            table['a'].mask = True
+
+            # row_void is not a view, need to re-make
+            assert row_void['a'] == 1
+            row_void = row.as_void()  # but row is a view
+            assert row['a'] is np.ma.masked
+
+    def test_row_and_as_void_with_objects(self, table_types):
+        """Test the deprecated data property and as_void() method"""
+        t = table_types.Table([[{'a': 1}, {'b': 2}]], names=('a',))
+        assert t[0][0] == {'a': 1}
+        assert t[0]['a'] == {'a': 1}
+        if numpy_lt_1p8 and t.masked:
+            # With numpy < 1.8 there is a bug setting mvoid with
+            # an object.
+            with pytest.raises(ValueError):
+                t[0].as_void()
+        else:
+            assert t[0].as_void()[0] == {'a': 1}
+            assert t[0].as_void()['a'] == {'a': 1}

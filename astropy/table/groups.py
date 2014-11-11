@@ -107,7 +107,7 @@ def column_group_by(column, keys):
     from .table import Table
 
     if isinstance(keys, Table):
-        keys = keys._data
+        keys = keys.as_array()
 
     if not isinstance(keys, np.ndarray):
         raise TypeError('Keys input must be numpy array, but got {0}'
