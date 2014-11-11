@@ -479,7 +479,6 @@ def create_model(model_class, test_parameters, use_constraints=True, parameter_k
         return model_class(**test_parameters[parameter_key])
 
 
-<<<<<<< HEAD
 @pytest.mark.parametrize(('model_class', 'test_parameters'), list(models_1D.items()))
 class TestFittable1DModels(Fittable1DModelTester):
     pass
@@ -522,20 +521,3 @@ def test_parametric_model_repr():
 
     m = models.Gaussian1D(1, 2, 3)
     assert repr(m) == '<Gaussian1D(amplitude=1.0, mean=2.0, stddev=3.0)>'
-
-def test_planck():
-    from astropy import units as u
-    from astropy import constants as const
-    import matplotlib.pyplot as plt
-    import math
-    from scipy import integrate
-    #generate some input wavelengths tha should work
-    t = 100.*u.K
-    l = np.logspace(0, 8, 1e6)
-    l = l*u.AA
-    full = planck(l, t)
-    lum = l.to(u.um)
-    intflux = integrate.trapz(full.value, x=lum.value)
-    check = const.sigma_sb * t**4 / math.pi
-    assert ((intflux/check).value >= 0.99)
-    return (intflux/check).value
