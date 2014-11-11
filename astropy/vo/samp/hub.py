@@ -37,7 +37,8 @@ __all__ = ['SAMPHubServer', 'WebProfileDialog']
 
 __doctest_skip__ = ['.', 'SAMPHubServer.*']
 
-N_RETRIES = ConfigurationItem('N_RETRIES', 10)
+# N_RETRIES = ConfigurationItem('N_RETRIES', 10)
+N_RETRIES = 10
 
 class SAMPHubServer(object):
     """
@@ -1052,10 +1053,10 @@ class SAMPHubServer(object):
                          recipient_public_id))
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
-            params = (sender_public_id, message)
+            arg_params = (sender_public_id, message)
             samp_method_name = "receiveNotification"
 
-            self._retry_method_(self, N_RETRIES(), "notification", params, recipient_private_key, recipient_public_id, samp_method_name)
+            self._retry_method_(self, N_RETRIES, "notification", recipient_private_key, recipient_public_id, samp_method_name, *arg_params)
 
         except Exception as exc:
             warnings.warn("%s notification from client %s to client %s failed [%s]"
@@ -1124,10 +1125,10 @@ class SAMPHubServer(object):
                          recipient_public_id, message["samp.mtype"]))
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
-            params = (sender_public_id, msg_id, message)
+            arg_params = (sender_public_id, msg_id, message)
             samp_methodName = "receiveCall"
 
-            self._retry_method(self, N_RETRIES(), "call", params, recipient_private_key, recipient_public_id, samp_methodName)
+            self._retry_method(self, N_RETRIES, "call", recipient_private_key, recipient_public_id, samp_methodName, *arg_params)
 
         except Exception as exc:
             warnings.warn("%s call %s from client %s to client %s failed [%s,%s]"
@@ -1236,10 +1237,10 @@ class SAMPHubServer(object):
             else:
 
                 recipient_private_key = self._public_id_to_private_key(recipient_public_id)
-                params = (responder_public_id, msg_id, response)
+                arg_params = (responder_public_id, msg_id, response)
                 samp_method_name = "receiveResponse"
 
-                self._retry_method_(self, N_RETRIES(), "reply", params, recipient_private_key, recipient_public_id, samp_method_name)
+                self._retry_method_(self, N_RETRIES, "reply", recipient_private_key, recipient_public_id, samp_method_name, *arg_params)
 
         except Exception as exc:
             warnings.warn("%s reply from client %s to client %s failed [%s]"
@@ -1247,7 +1248,7 @@ class SAMPHubServer(object):
                              recipient_public_id, exc),
                           SAMPWarning)
 
-    def _retry_method_(self, tries, method_name, params, recipient_private_key, recipient_public_id, samp_method_name):
+    def _retry_method_(self, tries, method_name, recipient_private_key, recipient_public_id, samp_method_name, *arg_params):
 
         if recipient_private_key is None:
             raise SAMPHubError("Invalid client ID")
@@ -1265,14 +1266,14 @@ class SAMPHubServer(object):
 
                     # Web Profile
                     callback = {"samp.methodName": samp_method_name,
-                                "samp.params": params}
+                                "samp.params": *arg_params}
                     self._web_profile_callbacks[recipient_private_key].put(callback)
 
                 else:
 
                     # Standard Profile
                     hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                    getattr(hub.samp.client, samp_method_name)(recipient_private_key, params)
+                    getattr(hub.samp.client, samp_method_name)(recipient_private_key, *arg_params)
 
             except xmlrpc.Fault as exc:
                 log.debug("%s XML-RPC endpoint error (attempt %d): %s"
