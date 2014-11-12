@@ -101,6 +101,8 @@ New Features
     for the standard library's ``functools.wraps``, the only difference being
     that the decorated function also preserves the wrapped function's call
     signature. [#2849]
+  - Added utility to determine whether code is being executed within an ipython
+    notebook [#2793]
 
 - ``astropy.vo``
 
