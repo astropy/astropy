@@ -477,7 +477,8 @@ class Parameter(object):
 
         # Use the _param_metrics to extract the parameter value from the
         # _parameters array
-        param_slice, param_shape = model._param_metrics[self._name]
+        param_slice = model._param_metrics[self._name]['slice']
+        param_shape = model._param_metrics[self._name]['shape']
         value = model._parameters[param_slice]
         if param_shape:
             value = value.reshape(param_shape)
@@ -496,7 +497,8 @@ class Parameter(object):
         """
 
         # TODO: Maybe handle exception on invalid input shape
-        param_slice, param_shape = model._param_metrics[self._name]
+        param_slice = model._param_metrics[self._name]['slice']
+        param_shape = model._param_metrics[self._name]['shape']
         param_size = np.prod(param_shape)
 
         if np.size(value) != param_size:

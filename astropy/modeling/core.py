@@ -879,16 +879,12 @@ class Model(object):
         self._model_set_axis = existing._model_set_axis
         self._parameters = existing._parameters
 
-        self._param_metrics = {}
-        self._param_broadcast_shapes = {}
+        self._param_metrics = defaultdict(dict)
         for param_a, param_b in zip(self.param_names, param_names):
             # Take the param metrics info for the giving parameters in the
             # existing model, and hand them to the appropriate parameters in
             # the new model
             self._param_metrics[param_a] = existing._param_metrics[param_b]
-            if param_b in existing._param_broadcast_shapes:
-                broadcast = existing._param_broadcast_shapes[param_b]
-                self._param_broadcast_shape[param_a] = broadcast
 
         self.__init__(*dummy_args)
 
@@ -1018,6 +1014,9 @@ class Model(object):
                     '{0}.__init__() got an unrecognized parameter '
                     '{1!r}'.format(self.__class__.__name__, kwarg))
 
+        self._model_set_axis = model_set_axis
+        self._param_metrics = defaultdict(dict)
+
         # Determine the number of model sets: If the model_set_axis is
         # None then there is just one parameter set; otherwise it is determined
         # by the size of that axis on the first parameter--if the other
@@ -1052,25 +1051,20 @@ class Model(object):
                         "same for all input parameter values".format(
                         name, n_models, model_set_axis))
 
-            self._param_broadcast_shapes = self._check_param_broadcast(
-                    params, max_ndim, model_set_axis)
+            self._check_param_broadcast(params, max_ndim)
         else:
             if n_models is None:
                 n_models = 1
 
-            self._param_broadcast_shapes = self._check_param_broadcast(
-                    params, None, None)
+            self._check_param_broadcast(params, None)
 
-        # First we need to determine how much array space is needed by all the
-        # parameters based on the number of parameters, the shape each input
-        # parameter, and the param_dim
         self._n_models = n_models
-        self._model_set_axis = model_set_axis
-
         self._initialize_parameter_values(params)
 
     def _initialize_parameter_values(self, params):
-        self._param_metrics = {}
+        # self._param_metrics should have been initialized in
+        # self._initialize_parameters
+        param_metrics = self._param_metrics
         total_size = 0
 
         for name in self.param_names:
@@ -1093,16 +1087,19 @@ class Model(object):
             param_shape = np.shape(value)
 
             param_slice = slice(total_size, total_size + param_size)
-            self._param_metrics[name] = (param_slice, param_shape)
+
+            param_metrics[name]['slice'] = param_slice
+            param_metrics[name]['shape'] = param_shape
             total_size += param_size
 
+        self._param_metrics = param_metrics
         self._parameters = np.empty(total_size, dtype=np.float64)
         # Now set the parameter values (this will also fill
         # self._parameters)
         for name, value in params.items():
             setattr(self, name, value)
 
-    def _check_param_broadcast(self, params, max_ndim, model_set_axis):
+    def _check_param_broadcast(self, params, max_ndim):
         """
         This subroutine checks that all parameter arrays can be broadcast
         against each other, and determimes the shapes parameters must have in
@@ -1113,9 +1110,9 @@ class Model(object):
         single model sets.
         """
 
-        broadcast_shapes = {}
         all_shapes = []
         param_names = []
+        model_set_axis = self._model_set_axis
 
         for name in self.param_names:
             # Previously this just used iteritems(params), but we loop over all
@@ -1151,7 +1148,7 @@ class Model(object):
                     broadcast_shape = (param_shape[:model_set_axis + 1] +
                                        new_axes +
                                        param_shape[model_set_axis + 1:])
-                broadcast_shapes[name] = broadcast_shape
+                self._param_metrics[name]['broadcast_shape'] = broadcast_shape
                 all_shapes.append(broadcast_shape)
             else:
                 all_shapes.append(param_shape)
@@ -1171,8 +1168,6 @@ class Model(object):
                 "to the broadcasting rules.".format(param_a, shape_a,
                                                     param_b, shape_b))
 
-        return broadcast_shapes
-
     def _param_sets(self, raw=False):
         """
         Implementation of the Model.param_sets property.
@@ -1187,16 +1182,19 @@ class Model(object):
         entirely in the near future.
         """
 
-        if raw:
-            values = [getattr(self, name)._raw_value
-                      for name in self.param_names]
-        else:
-            values = [getattr(self, name).value for name in self.param_names]
+        param_metrics = self._param_metrics
+        values = []
+        for name in self.param_names:
+            if raw:
+                value = getattr(self, name)._raw_value
+            else:
+                value = getattr(self, name).value
 
-        # Ensure parameter values are broadcastable
-        for name, shape in six.iteritems(self._param_broadcast_shapes):
-            idx = self._param_orders[name]
-            values[idx] = values[idx].reshape(shape)
+            broadcast_shape = param_metrics[name].get('broadcast_shape')
+            if broadcast_shape is not None:
+                value = value.reshape(broadcast_shape)
+
+            values.append(value)
 
         shapes = [np.shape(value) for value in values]
 
