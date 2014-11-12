@@ -405,8 +405,13 @@ class Quantity(np.ndarray):
         return result
 
     def __array_wrap__(self, obj, context=None):
-        if context is not None:
+        if context is None:
+            # Methods like .squeeze() created a new `ndarray` and then call
+            # __array_wrap__ to turn the array into self's subclass.
+            return self._new_view(obj)
 
+        else:
+            # with context defined, we are continuing after a ufunc evaluation.
             if hasattr(obj, '_result_unit'):
                 result_unit = obj._result_unit
                 del obj._result_unit

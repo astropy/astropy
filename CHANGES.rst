@@ -72,6 +72,9 @@ Bug Fixes
   - ``Quantity.round`` now always returns a ``Quantity`` (previously it
     returned an ``ndarray`` for ``decimals>0``). [#3062]
 
+  - Ensured ``np.squeeze`` always returns a ``Quantity`` (it only worked if
+    no dimensions were removed). [#3045]
+
 - ``astropy.utils``
 
   - Fixed an issue with the ``deprecated`` decorator on classes that invoke
