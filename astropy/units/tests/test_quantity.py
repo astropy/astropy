@@ -662,6 +662,11 @@ class TestQuantityDisplay(object):
         assert str(bad_quantity).endswith(_UNIT_NOT_INITIALISED)
         assert repr(bad_quantity).endswith(_UNIT_NOT_INITIALISED + '>')
 
+    def test_no_unit(self):
+        q1 = u.Quantity(3.14)
+        assert repr(q1) == '<Quantity 3.14>'
+        assert format(q1, '.2f') == '3.14'
+
     def test_repr_latex(self):
         q2 = u.Quantity(1.5e14, 'm/s')
         assert self.scalarintq._repr_latex_() == '$1 \\; \\mathrm{m}$'

@@ -977,10 +977,16 @@ class Quantity(np.ndarray):
         except ValueError:
             value = self.value
             full_format_spec = format_spec
-        return format("{0} {1:s}".format(value,
-                                         self.unit.to_string()
-                                         if self.unit is not None
-                                         else _UNIT_NOT_INITIALISED),
+
+        if self.unit is None:
+            unitstr = _UNIT_NOT_INITIALISED
+        else:
+            unitstr = self.unit.to_string()
+
+        if unitstr:
+            unitstr = ' ' + unitstr
+
+        return format("{0}{1:s}".format(value, unitstr),
                       full_format_spec)
 
     def decompose(self, bases=[]):
