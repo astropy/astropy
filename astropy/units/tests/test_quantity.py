@@ -212,6 +212,10 @@ class TestQuantityCreation(object):
         assert q4[2] == 0.
         assert mylookalike[2] == 2.
 
+        mylookalike.unit = 'nonsense'
+        with pytest.raises(TypeError):
+            u.Quantity(mylookalike)
+
 
 class TestQuantityOperations(object):
     q1 = u.Quantity(11.42, u.meter)

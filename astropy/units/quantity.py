@@ -208,9 +208,9 @@ class Quantity(np.ndarray):
                 try:
                     value_unit = Unit(value_unit)
                 except Exception as exc:
-                    raise TypeError("The unit attribute '{0}' could not be "
-                                    "parsed as an astropy Unit, raising "
-                                    "exception '{1}'."
+                    raise TypeError("The unit attribute {0} of the input could "
+                                    "not be parsed as an astropy Unit, raising "
+                                    "the following exception:\n{1}"
                                     .format(repr(value.unit), exc))
 
                 if unit is None:
