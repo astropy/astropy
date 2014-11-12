@@ -904,9 +904,8 @@ class Quantity(np.ndarray):
                 raise TypeError('Only dimensionless scalar quantities can be '
                                 'converted to Python scalars')
 
-    # Display
-    # TODO: we may want to add a hook for dimensionless quantities?
-    def __str__(self):
+    @property
+    def _unitstr(self):
         if self.unit is None:
             unitstr = _UNIT_NOT_INITIALISED
         else:
@@ -915,21 +914,18 @@ class Quantity(np.ndarray):
         if unitstr:
             unitstr = ' ' + unitstr
 
-        return '{0}{1:s}'.format(self.value, unitstr)
+        return unitstr
+
+    # Display
+    # TODO: we may want to add a hook for dimensionless quantities?
+    def __str__(self):
+        return '{0}{1:s}'.format(self.value, self._unitstr)
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
         arrstr = np.array2string(self.view(np.ndarray), separator=',',
                                  prefix=prefixstr)
-        if self.unit is None:
-            unitstr = _UNIT_NOT_INITIALISED
-        else:
-            unitstr = self.unit.to_string()
-
-        if unitstr:
-            unitstr = ' ' + unitstr
-
-        return '{0}{1}{2:s}>'.format(prefixstr, arrstr, unitstr)
+        return '{0}{1}{2:s}>'.format(prefixstr, arrstr, self._unitstr)
 
     def _repr_latex_(self):
         """
@@ -978,15 +974,7 @@ class Quantity(np.ndarray):
             value = self.value
             full_format_spec = format_spec
 
-        if self.unit is None:
-            unitstr = _UNIT_NOT_INITIALISED
-        else:
-            unitstr = self.unit.to_string()
-
-        if unitstr:
-            unitstr = ' ' + unitstr
-
-        return format("{0}{1:s}".format(value, unitstr),
+        return format("{0}{1:s}".format(value, self._unitstr),
                       full_format_spec)
 
     def decompose(self, bases=[]):
