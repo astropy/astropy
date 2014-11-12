@@ -15,6 +15,7 @@ import ast
 import doctest
 import fnmatch
 import imp
+import importlib
 import io
 import locale
 import math
@@ -415,10 +416,12 @@ def _get_open_file_list():
             # Ignore extension modules -- they may be imported by a
             # test but are never again closed by the runtime.  That's
             # ok.
-            for suffix, mode, filetype in imp.get_suffixes():
-                if mapping[b'n'].decode(fsencoding).endswith(suffix):
-                    break
+            if 'machinery' in importlib.__dict__:
+                suffixes = tuple(importlib.machinery.all_suffixes())
             else:
+                suffixes = tuple(info[0] for info in imp.get_suffixes())
+
+            if not mapping[b'n'].decode(fsencoding).endswith(suffixes):
                 files.append(mapping[b'n'])
 
     return set(files)
