@@ -1519,7 +1519,7 @@ class _CompoundModelMeta(_ModelMeta):
         if cls._submodel_names is not None:
             return cls._submodel_names
 
-        by_name = defaultdict(lambda: [])
+        by_name = defaultdict(list)
 
         for idx, submodel in enumerate(cls._get_submodels()):
             # Keep track of the original sort order of the submodels
