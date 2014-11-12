@@ -15,7 +15,6 @@ import ast
 import doctest
 import fnmatch
 import imp
-import importlib
 import io
 import locale
 import math
@@ -31,6 +30,12 @@ from .helper import (
     pytest, treat_deprecations_as_exceptions, enable_deprecations_as_exceptions)
 from .disable_internet import turn_off_internet, turn_on_internet
 from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
+
+# Needed for Python 2.6 compatibility
+try:
+    import importlib
+except ImportError:
+    importlib = object
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
