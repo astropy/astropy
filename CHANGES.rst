@@ -69,6 +69,9 @@ Bug Fixes
   - ``Quantity.tolist`` now overrides the ``ndarray`` method to give a 
     ``NotImplementedError`` (by renaming the previous ``list`` method). [#3050]
 
+  - ``Quantity.round`` now always returns a ``Quantity`` (previously it
+    returned an ``ndarray`` for ``decimals>0``). [#3062]
+
 - ``astropy.utils``
 
   - Fixed an issue with the ``deprecated`` decorator on classes that invoke

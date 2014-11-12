@@ -58,7 +58,7 @@ def test_wcs_swapping():
 @pytest.mark.parametrize('ndim',(2,3))
 def test_add_stokes(ndim):
     wcs = WCS(naxis=ndim)
-    
+
     for ii in range(ndim+1):
         outwcs = utils.add_stokes_axis_to_wcs(wcs,ii)
         assert outwcs.wcs.naxis == ndim+1
@@ -133,7 +133,7 @@ def test_invalid_slice():
 def test_axis_names():
     mywcs = WCS(naxis=4)
     mywcs.wcs.ctype = ['RA---TAN','DEC---TAN','VOPT-LSR','STOKES']
-    
+
     assert mywcs.axis_type_names == ['RA','DEC','VOPT','STOKES']
 
     mywcs.wcs.cname = ['RA','DEC','VOPT-LSR','STOKES']
