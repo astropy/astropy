@@ -58,6 +58,12 @@ matrix:
         - python: 2.7
           env: NUMPY_VERSION=1.5 SETUP_CMD='test'
 
+        # Try open files test
+        - python: 2.7
+          env: SETUP_CMD='test --open-files'
+        - python: 3.4
+          env: SETUP_CMD='test --open-files'
+
 before_install:
 
     # Use utf8 encoding. Should be default, but this is insurance against
