@@ -75,7 +75,7 @@ removed, and the points are still located on a unit sphere:
 
     >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
     >>> sph_unit.represent_as(CartesianRepresentation)
-    <CartesianRepresentation x=0.4242... , y=0.7071... , z=0.5656... >
+    <CartesianRepresentation x=0.4242..., y=0.7071..., z=0.5656...>
 
 Array values
 ^^^^^^^^^^^^
