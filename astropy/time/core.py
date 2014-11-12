@@ -1247,13 +1247,13 @@ class TimeDelta(Time):
 
         try:
             jd1, jd2 = day_frac(self.jd1, self.jd2, factor=other)
+            out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
         except Exception as err:  # try downgrading self to a quantity
             try:
                 return self.to(u.day) * other
             except:
                 raise err
 
-        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
         if self.format != 'jd':
             out = out.replicate(format=self.format)
         return out
@@ -1280,13 +1280,12 @@ class TimeDelta(Time):
 
         try:   # convert to straight float if dimensionless quantity
             jd1, jd2 = day_frac(self.jd1, self.jd2, divisor=other)
+            out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
         except Exception as err:  # try downgrading self to a quantity
             try:
                 return self.to(u.day) / other
             except:
                 raise err
-
-        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
 
         if self.format != 'jd':
             out = out.replicate(format=self.format)

@@ -2,12 +2,12 @@
 # array methods returns quantities with the right units, or raises exceptions.
 
 import numpy as np
-from numpy.testing.utils import assert_allclose
 
 from ... import units as u
 from ...tests.helper import pytest
 
 NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
+NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
 
 
 class TestQuantityArrayCopy(object):
@@ -88,7 +88,8 @@ class TestQuantityStatsFuncs(object):
     def test_mean_inplace(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         qi = 1.5 * u.s
-        np.mean(q1, out=qi)
+        qi2 = np.mean(q1, out=qi)
+        assert qi2 is qi
         assert qi == 3.6 * u.m
 
     def test_std(self):
@@ -97,8 +98,11 @@ class TestQuantityStatsFuncs(object):
 
     def test_std_inplace(self):
 
-        # can't use decorator since test causes a segfault in Numpy < 1.7, and
-        # py.test will run the test anyway to see if it works
+        # For Numpy >= 1.7, inplace causes the variance to be stored instead
+        # of the standard deviation.
+        # see https://github.com/numpy/numpy/issues/5240
+        # For Numpy < 1.7, the test segfaults.  Hence, we cannot use the xfail
+        # decorator since py.test will run the test anyway to see if it works.
         pytest.xfail()
 
         q1 = np.array([1., 2.]) * u.m
@@ -112,8 +116,8 @@ class TestQuantityStatsFuncs(object):
 
     def test_var_inplace(self):
 
-        # can't use decorator since test causes a segfault in Numpy < 1.7, and
-        # py.test will run the test anyway to see if it works
+        # For Numpy < 1.7, the test segfaults.  Hence, we cannot use the xfail
+        # decorator since py.test will run the test anyway to see if it works.
         if NUMPY_LT_1P7:
             pytest.xfail()
 
@@ -188,8 +192,19 @@ class TestQuantityStatsFuncs(object):
         assert qi == 5. * u.m
 
     def test_round(self):
-        q1 = np.array([1.2, 2.2, 3.2]) * u.kg
+        q1 = np.array([1.253, 2.253, 3.253]) * u.kg
         assert np.all(np.round(q1) == np.array([1, 2, 3]) * u.kg)
+        assert np.all(np.round(q1, decimals=2) ==
+                      np.round(q1.value, decimals=2) * u.kg)
+        assert np.all(q1.round(decimals=2) ==
+                      q1.value.round(decimals=2) * u.kg)
+
+    def test_round_inplace(self):
+        q1 = np.array([1.253, 2.253, 3.253]) * u.kg
+        qi = np.zeros(3) * u.s
+        a = q1.round(decimals=2, out=qi)
+        assert a is qi
+        assert np.all(q1.round(decimals=2) == qi)
 
     def test_sum(self):
 
@@ -235,6 +250,20 @@ class TestQuantityStatsFuncs(object):
         q2 = np.array([[np.nan, 5., 9.], [1., np.nan, 1.]]) * u.s
         assert np.all(q2.nansum(0) == np.array([1., 5., 10.]) * u.s)
         assert np.all(np.nansum(q2, 0) == np.array([1., 5., 10.]) * u.s)
+
+    @pytest.mark.xfail("NUMPY_LT_1P8")
+    def test_nansum_inplace(self):
+
+        q1 = np.array([1., 2., np.nan]) * u.m
+        qi = 1.5 * u.s
+        qout = q1.nansum(out=qi)
+        assert qout is qi
+        assert qi == np.nansum(q1.value) * q1.unit
+
+        qi2 = 1.5 * u.s
+        qout2 = np.nansum(q1, out=qi2)
+        assert qout2 is qi2
+        assert qi2 == np.nansum(q1.value) * q1.unit
 
     def test_prod(self):
 
