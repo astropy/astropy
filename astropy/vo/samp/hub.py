@@ -1266,14 +1266,14 @@ class SAMPHubServer(object):
 
                     # Web Profile
                     callback = {"samp.methodName": samp_method_name,
-                                "samp.params": *arg_params}
+                                "samp.params": arg_params}
                     self._web_profile_callbacks[recipient_private_key].put(callback)
 
                 else:
 
                     # Standard Profile
                     hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                    getattr(hub.samp.client, samp_method_name)(recipient_private_key, *arg_params)
+                    getattr(hub.samp.client, samp_method_name)(recipient_private_key, arg_params)
 
             except xmlrpc.Fault as exc:
                 log.debug("%s XML-RPC endpoint error (attempt %d): %s"
