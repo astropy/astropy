@@ -27,6 +27,8 @@ function is scalar, you'll get back a length-10 1D array.
 from __future__ import (absolute_import, division, print_function)
 
 import warnings
+from distutils.version import LooseVersion
+
 from ..utils.exceptions import AstropyUserWarning
 
 import numpy
@@ -34,6 +36,8 @@ cimport numpy
 from cpython.ref cimport PyObject
 
 numpy.import_array()
+
+cdef bint NPYLT18 = LooseVersion(numpy.__version__) < LooseVersion('1.8')
 
 
 __all__ = ['ErfaError', 'ErfaWarning',
@@ -158,6 +162,20 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     {%- for arg in func.args_by_inout('in|inout') %}
     {{ arg.name }}_in = numpy.array({{ arg.name }}, dtype={{ arg.dtype }}, order="C", copy=False, subok=True)
     {%- endfor %}
+
+    {%- if func.args_by_inout('in|inout') %}
+    cdef bint make_outputs_scalar = False
+    if NPYLT18:
+        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
+        # so we replace all scalars with 1d arrays
+        make_outputs_scalar = True
+        {%- for arg in func.args_by_inout('in|inout') %}
+        if {{ arg.name_in_broadcast }}.shape == tuple():
+            {{ arg.name }}_in = {{ arg.name }}_in.reshape((1,) + {{ arg.name }}_in.shape)
+        else:
+            make_outputs_scalar = False
+        {%- endfor %}
+    {%- endif %}
     
     #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
     broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), {{ func.args_by_inout('in|inout')|map(attribute='name_in_broadcast')|join(', ') }})
@@ -203,6 +221,17 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     if not stat_ok:
         check_errwarn({{ arg.name }}_out, '{{ func.pyname }}')
     {%- endfor %}
+
+    {%- if func.args_by_inout('in|inout') %}
+    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
+    if make_outputs_scalar:
+        {%- for arg in func.args_by_inout('inout|out|ret') %}
+        assert len({{ arg.name }}_out.shape) > 0 and {{ arg.name }}_out.shape[0] == 1
+        {{ arg.name }}_out = {{ arg.name }}_out[0]
+        {%- else %}
+        pass
+        {%- endfor %}
+    {%- endif %}
     
     return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
 
