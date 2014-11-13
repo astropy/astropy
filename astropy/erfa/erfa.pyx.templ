@@ -169,9 +169,10 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     {%- endfor %}
     
     #Create the iterator, broadcasting on all but the consumed dimensions
-    op_axes = [[-1]*(broadcast.nd-arr.ndim)+list(range(arr.ndim)) for arr in [{{ func.args_by_inout('in')|map(attribute='name_in_broadcast')|join(', ') }}]+[{{ func.args_by_inout('inout|out|ret|stat')|map(attribute='name_out_broadcast')|join(', ') }}]]
-    op_flags = [['readonly']]*{{ func.args_by_inout('in')|count }}+[['readwrite']]*{{ func.args_by_inout('inout|out|ret|stat')|count }}
-    it = numpy.nditer([{{ func.args_by_inout('in')|map(attribute='name')|postfix('_in')|join(', ') }}]+[{{ func.args_by_inout('inout|out|ret|stat')|map(attribute='name')|postfix('_out')|join(', ') }}], op_axes=op_axes, op_flags=op_flags)
+    arrs = [{{ (func.args_by_inout('in')|map(attribute='name_in_broadcast')|list + func.args_by_inout('inout|out|ret|stat')|map(attribute='name_out_broadcast')|list)|join(', ') }}]
+    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
+    op_flags = [['readonly']]*{{ func.args_by_inout('in')|count }} + [['readwrite']]*{{ func.args_by_inout('inout|out|ret|stat')|count }}
+    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
     {%- for arg in func.args_by_inout('in|inout|out|ret|stat') %}
