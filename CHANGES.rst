@@ -168,6 +168,8 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - The ``in`` operator works for checking if an extension is in Hdulist [#3060]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
