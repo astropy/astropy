@@ -120,7 +120,6 @@ class Argument(object):
         self.doc = doc
         self.__inout_state = None
         self.ctype, ptr_name_arr = definition.strip().rsplit(" ", 1)
-        print(ptr_name_arr)
         if "*" == ptr_name_arr[0]:
             self.is_ptr = True
             name_arr = ptr_name_arr[1:]
@@ -158,7 +157,7 @@ class Argument(object):
             return self.ctype+" *"
         else:
             return self.ctype
-    
+
     @property
     def name_in_broadcast(self):
         if len(self.shape)>0:
