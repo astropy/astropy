@@ -167,8 +167,8 @@ class _CompositeModel(Model):
             param_names.extend(tr.param_names)
         super(_CompositeModel, self).__init__()
         self.param_names = param_names
-        self.n_inputs = n_inputs
-        self.n_outputs = n_outputs
+        self._n_inputs = n_inputs
+        self._n_outputs = n_outputs
         self._basic_transform = None
 
         self._inmap = inmap
@@ -232,7 +232,7 @@ class _CompositeModel(Model):
         Specialized `Model.evaluate` implementation that allows `LabeledInput`
         inputs to be handled when calling this model.
 
-        This ignores any passed in parameter values, as _CompoundModels can't
+        This ignores any passed in parameter values, as _CompositeModels can't
         be fitted anyways.
         """
 

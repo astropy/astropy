@@ -216,11 +216,13 @@ class Parameter(object):
                     "dimension {2}".format(key, self.name, n_models))
 
     def __repr__(self):
+        args = "'{0}'".format(self._name)
         if self._model is None:
-            return "Parameter('{0}')".format(self._name)
+            if self._default is not None:
+                args += ', default={0}'.format(self._default)
         else:
-            return "Parameter('{0}', value={1})".format(
-                self._name, self.value)
+            args += ', value={0}'.format(self.value)
+        return "Parameter({0})".format(args)
 
     @property
     def name(self):

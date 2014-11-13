@@ -86,9 +86,12 @@ def test_two_model_mixed_arithmetic_1d(expr, result):
         assert cls.n_inputs == 1
         assert cls.n_outputs == 1
 
-    # Takes only one argument--the one unspecified amplitude
-    s1 = S1(2)
-    s2 = S2(3)
+    # Requires values for both amplitudes even though one of them them has a
+    # default
+    # TODO: We may wish to fix that eventually, so that if a parameter has a
+    # default it doesn't *have* to be given in the init
+    s1 = S1(2, 3)
+    s2 = S2(2, 3)
 
     for out in (s1(0), s2(0)):
         assert out == result
@@ -284,21 +287,21 @@ def test_indexing_on_class():
     assert M['Gaussian1D'] is M[0]
     assert M['p'] is M[1]
 
-    M = g + p
-    assert M[0] is g
-    assert M[1] is p
-    assert M['g'] is M[0]
-    assert M['p'] is M[1]
+    m = g + p
+    assert isinstance(m[0], Gaussian1D)
+    assert isinstance(m[1], Polynomial1D)
+    assert isinstance(m['g'], Gaussian1D)
+    assert isinstance(m['p'], Polynomial1D)
 
     # Test negative indexing
-    assert M[-1] is p
-    assert M[-2] is g
+    assert isinstance(m[-1], Polynomial1D)
+    assert isinstance(m[-2], Gaussian1D)
 
     with pytest.raises(IndexError):
-        M[42]
+        m[42]
 
     with pytest.raises(IndexError):
-        M['foobar']
+        m['foobar']
 
 
 # TODO: It would be good if there were an easier way to interrogate a compound
@@ -384,13 +387,43 @@ def test_indexing_on_instance():
     assert isinstance(m['Gaussian1D'], Gaussian1D)
     assert isinstance(m['Const1D'], Const1D)
 
+    # Test parameter equivalence
     assert m[0].amplitude == 1 == m.amplitude_0
     assert m[0].mean == 0 == m.mean_0
     assert m[0].stddev == 0.1 == m.stddev_0
     assert m[1].amplitude == 2 == m.amplitude_1
 
+    # Test that parameter value updates are symmetric between the compound
+    # model and the submodel returned by indexing
+    const = m[1]
+    m.amplitude_1 = 42
+    assert const.amplitude == 42
+    const.amplitude = 137
+    assert m.amplitude_1 == 137
+
+
+    # Similar couple of tests, but now where the compound model was created
+    # from model instances
+    g = Gaussian1D(1, 2, 3, name='g')
+    p = Polynomial1D(2, name='p')
+    m = g + p
+    assert m[0].name == 'g'
+    assert m[1].name == 'p'
+    assert m['g'].name == 'g'
+    assert m['p'].name == 'p'
+
+    poly = m[1]
+    m.c0_1 = 12345
+    assert poly.c0 == 12345
+    poly.c1 = 6789
+    assert m.c1_1 == 6789
+
+    # Ensure this did *not* modify the original models we used as templates
+    assert p.c0 == 0
+    assert p.c1 == 0
+
     # Test negative indexing
-    assert isinstance(m[-1], Const1D)
+    assert isinstance(m[-1], Polynomial1D)
     assert isinstance(m[-2], Gaussian1D)
 
     with pytest.raises(IndexError):

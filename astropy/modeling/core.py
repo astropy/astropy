@@ -634,34 +634,7 @@ class Model(object):
         associated with the parameter set.
         """
 
-        values = [getattr(self, name).value for name in self.param_names]
-
-        # Ensure parameter values are broadcastable
-        for name, shape in six.iteritems(self._param_broadcast_shapes):
-            idx = self._param_orders[name]
-            values[idx] = values[idx].reshape(shape)
-
-        shapes = [np.shape(value) for value in values]
-
-        if len(self) == 1:
-            # Add a single param set axis to the parameter's value (thus
-            # converting scalars to shape (1,) array values) for consistency
-            values = [np.array([value]) for value in values]
-
-        if len(set(shapes)) != 1:
-            # If the parameters are not all the same shape, converting to an
-            # array is going to produce an object array
-            # However the way Numpy creates object arrays is tricky in that it
-            # will recurse into array objects in the list and break them up
-            # into separate objects.  Doing things this way ensures a 1-D
-            # object array the elements of which are the individual parameter
-            # arrays.  There's not much reason to do this over returning a list
-            # except for consistency
-            psets = np.empty(len(values), dtype=object)
-            psets[:] = values
-            return psets
-
-        return np.array(values)
+        return self._param_sets()
 
     @property
     def parameters(self):
@@ -856,8 +829,8 @@ class Model(object):
         return new_model
 
     # *** Internal methods ***
-    @classmethod
-    def _from_existing(cls, existing, param_names):
+    @sharedmethod
+    def _from_existing(self, existing, param_names):
         """
         Creates a new instance of ``cls`` that shares its underlying parameter
         values with an existing model instance given by ``existing``.
@@ -872,8 +845,15 @@ class Model(object):
 
         # Basically this is an alternative __init__
         # TODO: Support constraints properly
-        dummy_args = (0,) * len(param_names)
-        self = cls.__new__(cls, *dummy_args)
+        if isinstance(self, type):
+            # self is a class, not an instance
+            needs_initialization = True
+            dummy_args = (0,) * len(param_names)
+            self = self.__new__(self, *dummy_args)
+        else:
+            needs_initialization = False
+            self = self.copy()
+
         self._initialize_constraints({})
         self._n_models = existing._n_models
         self._model_set_axis = existing._model_set_axis
@@ -886,7 +866,8 @@ class Model(object):
             # the new model
             self._param_metrics[param_a] = existing._param_metrics[param_b]
 
-        self.__init__(*dummy_args)
+        if needs_initialization:
+            self.__init__(*dummy_args)
 
         return self
 
@@ -1666,12 +1647,31 @@ class _CompoundModelMeta(_ModelMeta):
             submodel_idx, submodel_param = cls._param_map[param_name]
             submodel = cls[submodel_idx]
 
-            orig_param = getattr(submodel, submodel_param)
+            orig_param = getattr(submodel, submodel_param, None)
+            if not isinstance(orig_param, Parameter):
+                # This is just a pathological case that is only really needed
+                # to support the deprecated _CompositeModel--composite models
+                # claim to have some parameters, but don't actually implement
+                # the parameter descriptors, so we just make one up basically,
+                # with a default value of zero.  This value will just be thrown
+                # away, basically.
+                # TODO: Remove this special case once the legacy interfaces
+                # have been removed (basically this entire if statement--keep
+                # only the parts in the else: clause.
+                new_param = Parameter(name=param_name, default=0)
+            else:
+                if isinstance(submodel, Model):
+                    # Take the parameter's default from the model's value for that
+                    # parameter
+                    default = orig_param.value
+                else:
+                    default = orig_param.default
 
-            # Note: Parameter.copy() returns a new unbound Parameter, never a
-            # bound Parameter even if submodel is a Model instance (as opposed
-            # to a Model subclass)
-            new_param = orig_param.copy(name=param_name)
+                # Note: Parameter.copy() returns a new unbound Parameter, never
+                # a bound Parameter even if submodel is a Model instance (as
+                # opposed to a Model subclass)
+                new_param = orig_param.copy(name=param_name, default=default)
+
             setattr(cls, param_name, new_param)
 
     def _init_param_names(cls):
@@ -1700,10 +1700,26 @@ class _CompoundModelMeta(_ModelMeta):
         param_suffix = cls._slice_offset
 
         for idx, model in enumerate(cls._get_submodels()):
-            if not (isinstance(model, type) and model.param_names):
+            if not model.param_names:
+                # Skip models that don't have parameters in the numbering
+                # TODO: Reevaluate this if it turns out to be confusing, though
+                # parameter-less models are not very common in practice (there
+                # are a few projections that don't take parameters)
                 continue
 
             for param_name in model.param_names:
+                # This is sort of heuristic, but we want to check that
+                # model.param_name *actually* returns a Paramter descriptor,
+                # and that the model isn't some insconsistent type that happens
+                # to have a param_names attribute but does not actually
+                # implement settable parameters.
+                # In the future we can probably remove this check, but this is
+                # here specifically to support the legacy compat
+                # _CompositeModel which can be considered a pathological case
+                # in the context of the new framework
+                #if not isinstance(getattr(model, param_name, None),
+                #                  Parameter):
+                #    break
                 name = '{0}_{1}'.format(param_name, param_suffix)
                 names.append(name)
                 param_map[name] = (idx, param_name)
@@ -1813,13 +1829,6 @@ class _CompoundModel(Model):
         index = self.__class__._normalize_index(index)
         model = self.__class__[index]
 
-        if isinstance(model, Model):
-            return model
-
-        # TODO: Really what this needs to test is if this was a slice, did it
-        # return a single model or multiple-submodule slice of the original
-        # compound model.  The current test might not be correct in some corner
-        # cases
         if isinstance(index, slice):
             param_names = model.param_names
         else:
@@ -1846,24 +1855,21 @@ class _CompoundModel(Model):
         params = iter(args[self.n_inputs:])
 
         def getter(idx, model, params=params):
-            # Returns partial evaluation of the model's evaluate() method witht
+            # Returns partial evaluation of the model's evaluate() method with
             # the parameter values already applied
             nparams = len(model.param_names)
 
-            if isinstance(model, Model):
-                # Use the fixed model instance's parameters in the evaluation
-                param_values = tuple(model._param_sets(raw=True))
-            else:
-                param_values = tuple(itertools.islice(params, nparams))
+            param_values = tuple(itertools.islice(params, nparams))
 
-                # There is currently an unfortunate iconsistency in some
-                # models, which requires them to be instantiated for their
-                # evaluate to work.  I think that needs to be reconsidered and
-                # fixed somehow, but in the meantime we need to check for that
-                # case
-                if isinstancemethod(model, model.evaluate):
-                    # Where previously model was a class, now make an instance
-                    model = model(*param_values)
+            # There is currently an unfortunate iconsistency in some
+            # models, which requires them to be instantiated for their
+            # evaluate to work.  I think that needs to be reconsidered and
+            # fixed somehow, but in the meantime we need to check for that
+            # case
+            if (not isinstance(model, Model) and
+                    isinstancemethod(model, model.evaluate)):
+                # Where previously model was a class, now make an instance
+                model = model(*param_values)
 
             if model.n_outputs == 1:
                 f = lambda *inputs: \
