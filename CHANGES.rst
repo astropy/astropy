@@ -11,7 +11,8 @@ New Features
 
 - ``astropy.analytic_functions``
 
-  - New module to store analytic functions [#3077].
+  - The ``astropy.analytic_functions`` was added to contain analytic functions
+    useful for astronomy [#3077].
 
 - ``astropy.config``
 
