@@ -107,9 +107,6 @@ def test_matrix_in():
     pvmat[1][1] = -455.021831
     pvmat[1][2] = 0.0266151194
 
-    jd1 = 2456165.5
-    jd2 = 0.401182685
-
     astrom = erfa.apcs13(jd1, jd2, pvmat)
     assert astrom.shape == ()
 
