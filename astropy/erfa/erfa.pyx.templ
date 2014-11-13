@@ -38,7 +38,7 @@ from cpython.ref cimport PyObject
 numpy.import_array()
 
 cdef bint NPYLT18 = LooseVersion(numpy.__version__) < LooseVersion('1.8')
-
+# TODO: remove the above variable and the code using it and make_outputs_scalar when numpy < 1.8 is no longer supported
 
 __all__ = ['ErfaError', 'ErfaWarning',
            {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }}, 'dt_eraASTROM']
