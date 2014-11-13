@@ -34,13 +34,13 @@ matrix:
 
         # Try all python versions with the latest numpy
         - python: 2.6
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --open-files'
         - python: 2.7
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --open-files'
         - python: 3.3
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --open-files'
         - python: 3.4
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --open-files'
 
         # Now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
         - python: 2.7

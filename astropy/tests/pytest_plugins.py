@@ -31,6 +31,12 @@ from .helper import (
 from .disable_internet import turn_off_internet, turn_on_internet
 from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
 
+# Needed for Python 2.6 compatibility
+try:
+    import importlib.machinery as importlib_machinery
+except ImportError:
+    importlib_machinery = None
+
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
 
@@ -415,10 +421,12 @@ def _get_open_file_list():
             # Ignore extension modules -- they may be imported by a
             # test but are never again closed by the runtime.  That's
             # ok.
-            for suffix, mode, filetype in imp.get_suffixes():
-                if mapping[b'n'].decode(fsencoding).endswith(suffix):
-                    break
+            if importlib_machinery is not None:
+                suffixes = tuple(importlib_machinery.all_suffixes())
             else:
+                suffixes = tuple(info[0] for info in imp.get_suffixes())
+
+            if not mapping[b'n'].decode(fsencoding).endswith(suffixes):
                 files.append(mapping[b'n'])
 
     return set(files)
