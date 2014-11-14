@@ -34,14 +34,6 @@ __all__ = ["Quantity"]
 __doctest_skip__ = ['Quantity.*']
 
 
-def _can_cast(arg, dtype):
-    """
-    This is needed for compatibility with Numpy < 1.6, in which ``can_cast``
-    can only take a dtype or type as its first argument.
-    """
-    return np.can_cast(getattr(arg, 'dtype', type(arg)), dtype)
-
-
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
 
 
@@ -353,7 +345,7 @@ class Quantity(np.ndarray):
             # decomposed, which involves being scaled by a float, but since
             # the array is an integer the output then gets converted to an int
             # and truncated.
-            if(any(not _can_cast(arg, obj.dtype) for arg in args) or
+            if(any(not np.can_cast(arg, obj.dtype) for arg in args) or
                np.any(np.array(scales, dtype=obj.dtype) != np.array(scales))):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
@@ -457,7 +449,7 @@ class Quantity(np.ndarray):
                 # array is not integral. Here, we set the obj_array to `None`
                 # when it can not be used to store the scaled result.
                 if(result_unit is not None and
-                   any(not _can_cast(scaled_arg, obj_array.dtype)
+                   any(not np.can_cast(scaled_arg, obj_array.dtype)
                        for scaled_arg in inputs)):
                     obj_array = None
 

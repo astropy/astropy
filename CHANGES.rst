@@ -1,6 +1,11 @@
 1.0 (unreleased)
 ----------------
 
+General
+^^^^^^^
+
+The minimum supported Numpy version is now 1.6.0.
+
 New Features
 ^^^^^^^^^^^^
 

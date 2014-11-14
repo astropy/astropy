@@ -43,7 +43,7 @@ def test_angle_arrays():
     npt.assert_almost_equal(a6.value, 945.0)
     assert a6.unit is u.degree
 
-    with pytest.raises((TypeError, ValueError)):  # ValueError for numpy 1.5.x
+    with pytest.raises(TypeError):
         # Arrays where the elements are Angle objects are not supported -- it's
         # really tricky to do correctly, if at all, due to the possibility of
         # nesting.
