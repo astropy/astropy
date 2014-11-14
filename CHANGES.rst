@@ -327,6 +327,9 @@ API Changes
   - The ``Model.param_dim`` property (deprecated in v0.4) has now been removed.
     [#2990]
 
+  - The ``Beta1D`` and ``Beta2D`` models have been renamed to
+    ``Moffat1D`` and ``Moffat2D`` [#3029]
+
 - ``astropy.nddata``
 
   - ``flags``, ``shape``, ``size``, ``dtype`` and ``ndim`` properties removed
