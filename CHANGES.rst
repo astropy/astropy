@@ -125,6 +125,9 @@ New Features
     well as a ``has_distortion`` property on the ``WCS`` class that indicates
     whether any distortions are present. [#2885]
 
+  - ``all_world2pix`` now uses a much more sophisticated and complete
+    algorithm to iteratively compute the inverse WCS transform. [#2816]
+
 API Changes
 ^^^^^^^^^^^
 
