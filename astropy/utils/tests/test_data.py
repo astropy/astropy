@@ -22,6 +22,14 @@ TESTURL = 'http://www.astropy.org'
 # General file object function
 
 
+try:
+    import bz2
+except ImportError:
+    HAS_BZ2 = False
+else:
+    HAS_BZ2 = True
+
+
 @remote_data
 def test_download_nocache():
     from ..data import download_file
@@ -94,17 +102,29 @@ def test_find_by_hash():
 def test_local_data_obj(filename):
     from ..data import get_pkg_data_fileobj
 
-    with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
-        f.readline()
-        assert f.read().rstrip() == b'CONTENT'
+    try:
+        with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
+            f.readline()
+            assert f.read().rstrip() == b'CONTENT'
+    except ValueError:
+        if not HAS_BZ2 and 'bz2' in filename:
+            pass
+        else:
+            raise
 
 
 @pytest.mark.parametrize(('filename'), ['invalid.dat.gz', 'invalid.dat.bz2'])
 def test_local_data_obj_invalid(filename):
     from ..data import get_pkg_data_fileobj
 
-    with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
-        assert f.read().rstrip().endswith(b'invalid')
+    try:
+        with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
+            assert f.read().rstrip().endswith(b'invalid')
+    except ValueError:
+        if not HAS_BZ2 and 'bz2' in filename:
+            pass
+        else:
+            raise
 
 
 def test_local_data_name():
