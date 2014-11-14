@@ -53,9 +53,9 @@ from __future__ import (absolute_import, division, print_function,
 
 from ..functional_models import (
     Gaussian1D, Sine1D, Box1D, Linear1D, Lorentz1D,
-    MexicanHat1D, Trapezoid1D, Const1D, Beta1D,
+    MexicanHat1D, Trapezoid1D, Const1D, Moffat1D,
     Gaussian2D, Const2D, Box2D, MexicanHat2D,
-    TrapezoidDisk2D, AiryDisk2D, Beta2D, Disk2D,
+    TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
     Ring2D)
 from ..polynomial import Polynomial1D, Polynomial2D
 from ..powerlaws import (
@@ -129,7 +129,7 @@ models_1D = {
         'integral': 20
     },
 
-    Beta1D: {
+    Moffat1D: {
         'parameters': [1, 0, 1, 2],
         'x_values': [0, 1, -1, 3, -3],
         'y_values': [1.0, 0.25, 0.25, 0.01, 0.01],
@@ -252,7 +252,7 @@ models_2D = {
         'requires_scipy': True
     },
 
-    Beta2D: {
+    Moffat2D: {
         'parameters': [1, 0, 0, 1, 2],
         'x_values': [0, 1, -1, 3, -3],
         'y_values': [0, -1, 3, 1, -3],
