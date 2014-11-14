@@ -1451,20 +1451,20 @@ def custom_model(*args, **kwargs):
 
     This model instance can now be used like a usual astropy model.
 
-    The next example demonstrates a 2D beta function model, and also
+    The next example demonstrates a 2D moffat function model, and also
     demonstrates the support for docstrings (this example could also include
     a derivative, but it has been ommitted for simplicity)::
 
         >>> @custom_model
-        ... def Beta2D(x, y, amplitude=1.0, x_0=0.0, y_0=0.0, gamma=1.0,
+        ... def Moffat2D(x, y, amplitude=1.0, x_0=0.0, y_0=0.0, gamma=1.0,
         ...            alpha=1.0):
-        ...     \"\"\"Two dimensional beta function.\"\"\"
+        ...     \"\"\"Two dimensional moffat function.\"\"\"
         ...     rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
         ...     return amplitude * (1 + rr_gg) ** (-alpha)
         ...
-        >>> print(Beta2D.__doc__)
-        Two dimensional beta function.
-        >>> model = Beta2D()
+        >>> print(Moffat2D.__doc__)
+        Two dimensional moffat function.
+        >>> model = Moffat2D()
         >>> model(1, 1)  # doctest: +FLOAT_CMP
         0.3333333333333333
     """
