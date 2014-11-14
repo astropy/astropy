@@ -70,6 +70,10 @@ if isinstance(getattr(np, 'cbrt', None), np.ufunc):
     UFUNC_HELPERS[np.cbrt] = lambda f, unit: ([1.], unit ** Fraction(1, 3)
                                               if unit is not None
                                               else dimensionless_unscaled)
+# ones_like was not private in numpy <= 1.6
+if isinstance(getattr(np.core.umath, 'ones_like', None), np.ufunc):
+    UFUNC_HELPERS[np.core.umath.ones_like] = (lambda f, unit:
+                                              ([1.], dimensionless_unscaled))
 if isinstance(getattr(np.core.umath, '_ones_like', None), np.ufunc):
     UFUNC_HELPERS[np.core.umath._ones_like] = (lambda f, unit:
                                               ([1.], dimensionless_unscaled))
