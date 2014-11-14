@@ -177,19 +177,8 @@ class Argument(object):
         return ctype_to_dtype[self.ctype]
 
     @property
-    def ndims(self):
-        """
-        This is an argument that has a multi-dimensional output, like
-        double[3][3]
-        """
-        if self.dtype.startswith('numpy.dtype'):
-            mtch = NDIMS_REX.match(self.dtype)
-            if mtch:
-                return len(eval(mtch.group(1)))
-            else:
-                return 0
-        else:
-            return 0
+    def ndim(self):
+        return len(self.shape)
 
     def __repr__(self):
         return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)

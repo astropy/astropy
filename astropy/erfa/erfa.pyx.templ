@@ -110,6 +110,15 @@ cdef inline NpyIter* GetNpyIter(object iter):
     return (<NewNpyArrayIterObject*>iter).iter
 
 
+#<-------------------------trailing shape verification------------------------>
+
+def check_trailing_shape(arr, shape, name):
+    try:
+        if arr.shape[-len(shape):] != shape:
+            raise Exception()
+    except:
+        raise ValueError("{0} must be of trailing dimensions {1}".format(name, shape))
+
 #<--------------------------Actual ERFA-wrapping code------------------------->
 
 cdef extern from "erfam.h":
@@ -161,6 +170,11 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     #Turn all inputs into arrays
     {%- for arg in func.args_by_inout('in|inout') %}
     {{ arg.name }}_in = numpy.array({{ arg.name }}, dtype={{ arg.dtype }}, order="C", copy=False, subok=True)
+    {%- endfor %}
+    {%- for arg in func.args_by_inout('in|inout') %}
+    {%- if arg.ndim > 0 %}
+    check_trailing_shape({{ arg.name }}_in, {{ arg.shape }}, "{{arg.name}}")
+    {%- endif %}
     {%- endfor %}
 
     {%- if func.args_by_inout('in|inout') %}
