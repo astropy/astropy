@@ -4,7 +4,7 @@
 General
 ^^^^^^^
 
-The minimum supported Numpy version is now 1.6.0.
+astropy now requires a Numpy 1.6.0 or later.
 
 New Features
 ^^^^^^^^^^^^
