@@ -75,6 +75,9 @@ Bug Fixes
   - Ensured ``np.squeeze`` always returns a ``Quantity`` (it only worked if
     no dimensions were removed). [#3045]
 
+  - Remove trailing space in ``__format__`` calls for dimensionless quantites.
+    [#3097]
+
 - ``astropy.utils``
 
   - Fixed an issue with the ``deprecated`` decorator on classes that invoke

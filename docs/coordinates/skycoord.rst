@@ -476,7 +476,7 @@ supplying the corresponding components for that representation::
 Other variations include::
 
     >>> SkyCoord(1, 2*u.deg, 3, representation='cylindrical')
-    <SkyCoord (ICRS): rho=1.0 , phi=2.0 deg, z=3.0 >
+    <SkyCoord (ICRS): rho=1.0, phi=2.0 deg, z=3.0>
 
     >>> SkyCoord(rho=1*u.km, phi=2*u.deg, z=3*u.m, representation='cylindrical')
     <SkyCoord (ICRS): rho=1.0 km, phi=2.0 deg, z=3.0 m>
@@ -485,7 +485,7 @@ Other variations include::
     <SkyCoord (ICRS): rho=1.0 km, phi=2.0 deg, z=3.0 m>
 
     >>> SkyCoord(1, 2, 3, unit=(None, u.deg, None), representation='cylindrical')
-    <SkyCoord (ICRS): rho=1.0 , phi=2.0 deg, z=3.0 >
+    <SkyCoord (ICRS): rho=1.0, phi=2.0 deg, z=3.0>
 
 In general terms, the allowed syntax is as follows::
 
