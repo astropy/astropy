@@ -115,12 +115,11 @@ class LatexHeader(core.BaseHeader):
         lines.append(self.header_start + r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
         lines.append(self.splitter.join([x.name for x in self.cols]))
+        units = {x.name: x.unit.to_string(format='latex_inline') for x in self.cols if x.unit}
         if 'units' in self.latex:
-            units = [self.latex['units'][x.name] if x.name in self.latex['units'] \
-                     else str(x.unit or ' ') for x in self.cols]
-            lines.append(self.splitter.join(units))
-        elif any(x.unit for x in self.cols):
-            lines.append(self.splitter.join([str(x.unit or ' ') for x in self.cols]))
+            units.update(self.latex['units'])
+        if units:
+            lines.append(self.splitter.join([units.get(x.name, ' ') for x in self.cols]))
         add_dictval_to_list(self.latex, 'header_end', lines)
 
 
@@ -340,12 +339,11 @@ class AASTexHeader(LatexHeader):
         if 'caption' in self.latex:
             lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
         tablehead = ' & '.join([r'\colhead{' + x.name + '}' for x in self.cols])
+        units = {x.name: x.unit.to_string(format='latex_inline') for x in self.cols if x.unit}
         if 'units' in self.latex:
-            units = [self.latex['units'][x.name] if x.name in self.latex['units'] \
-                     else str(x.unit or ' ') for x in self.cols]
-            tablehead += r'\\ ' + self.splitter.join(units)
-        elif any(x.unit for x in self.cols):
-            tablehead += r'\\ ' + self.splitter.join([str(x.unit or ' ') for x in self.cols])
+            units.update(self.latex['units'])
+        if units:
+            tablehead += r'\\ ' + self.splitter.join([units.get(x.name, ' ') for x in self.cols])
         lines.append(r'\tablehead{' + tablehead + '}')
 
 

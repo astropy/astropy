@@ -482,6 +482,9 @@ b & 2 \\\\
     assert out.getvalue() == expected
     # use unit attribute instead
     t['NUV exp.time'].unit = units.s
+    t['date'].unit = units.yr
     out = StringIO()
     ascii.write(t, out, format='aastex', latexdict=ascii.latexdicts['AA'])
-    assert out.getvalue() == expected
+    assert out.getvalue() == expected.replace(
+        'colhead{s}', 'colhead{$\mathrm{s}$}').replace(
+        'colhead{ }', 'colhead{$\mathrm{yr}$}')
