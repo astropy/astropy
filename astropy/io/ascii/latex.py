@@ -115,7 +115,7 @@ class LatexHeader(core.BaseHeader):
         lines.append(self.header_start + r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
         lines.append(self.splitter.join([x.name for x in self.cols]))
-        units = {x.name: x.unit.to_string(format='latex_inline') for x in self.cols if x.unit}
+        units = dict((x.name, x.unit.to_string(format='latex_inline')) for x in self.cols if x.unit)
         if 'units' in self.latex:
             units.update(self.latex['units'])
         if units:
@@ -339,7 +339,7 @@ class AASTexHeader(LatexHeader):
         if 'caption' in self.latex:
             lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
         tablehead = ' & '.join([r'\colhead{' + x.name + '}' for x in self.cols])
-        units = {x.name: x.unit.to_string(format='latex_inline') for x in self.cols if x.unit}
+        units = dict((x.name, x.unit.to_string(format='latex_inline')) for x in self.cols if x.unit)
         if 'units' in self.latex:
             units.update(self.latex['units'])
         if units:
