@@ -748,3 +748,32 @@ def test_wcs_methods(mode, origin):
     scnew2 = SkyCoord2.from_pixel(xp, yp, wcs, mode=mode, origin=origin)
     assert scnew.__class__ is SkyCoord
     assert scnew2.__class__ is SkyCoord2
+
+def test_frame_attr_transform_inherit():
+    """
+    Test that frame attributes get inherited as expected during transform.
+    Driven by #3106.
+    """
+    c = SkyCoord(1 * u.deg, 2 * u.deg, frame=FK5)
+    c2 = c.transform_to(FK4)
+    assert c2.equinox.value == 'B1950.000'
+    assert c2.obstime.value == 'B1950.000'
+
+    c2 = c.transform_to(FK4(equinox='J1975', obstime='J1980'))
+    assert c2.equinox.value == 'J1975.000'
+    assert c2.obstime.value == 'J1980.000'
+
+    c = SkyCoord(1 * u.deg, 2 * u.deg, frame=FK4)
+    c2 = c.transform_to(FK5)
+    assert c2.equinox.value == 'J2000.000'
+    assert c2.obstime is None
+
+    c = SkyCoord(1 * u.deg, 2 * u.deg, frame=FK4, obstime='J1980')
+    c2 = c.transform_to(FK5)
+    assert c2.equinox.value == 'J2000.000'
+    assert c2.obstime.value == 'J1980.000'
+
+    c = SkyCoord(1 * u.deg, 2 * u.deg, frame=FK4, equinox='J1975', obstime='J1980')
+    c2 = c.transform_to(FK5)
+    assert c2.equinox.value == 'J1975.000'
+    assert c2.obstime.value == 'J1980.000'
