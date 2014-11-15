@@ -114,7 +114,7 @@ itself which represents a point in 3d space.
     >>> from astropy.coordinates import CartesianRepresentation
     >>> icrs.representation = CartesianRepresentation
     >>> icrs  # doctest: +FLOAT_CMP
-    <ICRS Coordinate: x=0.999238614955 , y=0.0174417749028 , z=0.0348994967025 >
+    <ICRS Coordinate: x=0.999238614955, y=0.0174417749028, z=0.0348994967025>
     >>> icrs.x  # doctest: +FLOAT_CMP
     <Quantity 0.9992386149554826>
 

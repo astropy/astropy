@@ -638,6 +638,10 @@ class TestQuantityDisplay(object):
         assert str(self.scalarintq * q3) == "1"
         assert str(self.arrq * q2) == "[ 1.   2.3  8.9]"
 
+    def test_dimensionless_quantity_format(self):
+        q1 = u.Quantity(3.14)
+        assert format(q1, '.2f') == '3.14'
+
     def test_scalar_quantity_str(self):
         assert str(self.scalarintq) == "1 m"
         assert str(self.scalarfloatq) == "1.3 m"
