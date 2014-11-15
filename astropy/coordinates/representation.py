@@ -16,6 +16,7 @@ from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
 from ..utils import OrderedDict
+from ..utils.compat.numpy import broadcast_arrays
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
@@ -25,17 +26,6 @@ __all__ = ["BaseRepresentation", "CartesianRepresentation",
 # This is populated by the metaclass init so all representation classes
 # get registered automatically.
 REPRESENTATION_CLASSES = {}
-
-
-def broadcast_quantity(*args):
-    """
-    A Quantity-aware version of np.broadcast_arrays
-    """
-    new_arrays = np.broadcast_arrays(*args)
-    new_quantities = []
-    for i in range(len(new_arrays)):
-        new_quantities.append(args[i]._new_view(new_arrays[i]))
-    return tuple(new_quantities)
 
 
 class MetaBaseRepresentation(type):
@@ -230,7 +220,7 @@ class CartesianRepresentation(BaseRepresentation):
             raise u.UnitsError("x, y, and z should have matching physical types")
 
         try:
-            x, y, z = broadcast_quantity(x, y, z)
+            x, y, z = broadcast_arrays(x, y, z, subok=True)
         except ValueError:
             raise ValueError("Input parameters x, y, and z cannot be broadcast")
 
@@ -315,7 +305,8 @@ class SphericalRepresentation(BaseRepresentation):
             distance = distance.view(Distance)
 
         try:
-            lon, lat, distance = broadcast_quantity(lon, lat, distance)
+            lon, lat, distance = broadcast_arrays(lon, lat, distance,
+                                                  subok=True)
         except ValueError:
             raise ValueError("Input parameters lon, lat, and distance cannot be broadcast")
 
@@ -422,7 +413,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         lat = self.attr_classes['lat'](lat, copy=copy)
 
         try:
-            lon, lat = broadcast_quantity(lon, lat)
+            lon, lat = broadcast_arrays(lon, lat, subok=True)
         except ValueError:
             raise ValueError("Input parameters lon and lat cannot be broadcast")
 
@@ -539,7 +530,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             r = r.view(Distance)
 
         try:
-            phi, theta, r = broadcast_quantity(phi, theta, r)
+            phi, theta, r = broadcast_arrays(phi, theta, r, subok=True)
         except ValueError:
             raise ValueError("Input parameters phi, theta, and r cannot be broadcast")
 
@@ -653,7 +644,7 @@ class CylindricalRepresentation(BaseRepresentation):
             raise u.UnitsError("rho and z should have matching physical types")
 
         try:
-            rho, phi, z = broadcast_quantity(rho, phi, z)
+            rho, phi, z = broadcast_arrays(rho, phi, z, subok=True)
         except ValueError:
             raise ValueError("Input parameters rho, phi, and z cannot be broadcast")
 
