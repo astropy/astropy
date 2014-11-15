@@ -19,7 +19,7 @@ The simplest method of transformation is shown below::
     >>> from astropy.coordinates import SkyCoord
     >>> gc = SkyCoord(l=0*u.degree, b=45*u.degree, frame='galactic')
     >>> gc.fk5  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5: equinox=J2000.000): ra=229.27250215 deg, dec=-1.12841764184 deg>
+    <SkyCoord (FK5: equinox=J2000.000): ra=229.272514629 deg, dec=-1.12844288043 deg>
 
 While this appears to be simple attribute-style access, it is actually
 syntactic sugar for the more general

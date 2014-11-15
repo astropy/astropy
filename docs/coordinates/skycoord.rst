@@ -331,7 +331,7 @@ new |SkyCoord| object in the requested frame::
 
   >>> sc_gal = sc.galactic
   >>> sc_gal  # doctest: +FLOAT_CMP
-  <SkyCoord (Galactic): l=99.6379436471 deg, b=-58.7096055983 deg>
+  <SkyCoord (Galactic): l=99.6378552814 deg, b=-58.7096929334 deg>
 
 Other attributes you should recognize are ``distance``, ``equinox``,
 ``obstime``, ``shape``.

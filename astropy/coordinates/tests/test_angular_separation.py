@@ -92,7 +92,7 @@ def test_proj_separations():
 
     # distance from the north galactic pole to celestial pole
     npt.assert_allclose(ncp.separation(ngp.transform_to(ICRS)).degree,
-                        62.8716627659)
+                        62.87174758503201)
 
 
 def test_3d_separations():
