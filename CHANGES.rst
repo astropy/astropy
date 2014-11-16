@@ -39,6 +39,8 @@ New Features
     reading will fall back on an ordinary reader in case of a parsing
     failure. Their behavior can be altered with the parameter ``fast_reader``
     in ``read`` and ``fast_writer`` in ``write``. [#2716]
+    
+  - Make Latex/AASTex tables use unit attribute of Column for output. [#3064]
 
 - ``astropy.io.fits``
 
