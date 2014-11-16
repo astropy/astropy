@@ -196,6 +196,10 @@ API Changes
     ``parser``, which allows the user to specify which parser
     BeautifulSoup should use as a backend. [#2815]
 
+  - Add ``FixedWidthTwoLine`` reader to guessing. This will allows to read tables
+    that a copied from screen output like ``print my_table`` to be read 
+    automatically. Discussed in #3025 and #3099 [#3109]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
@@ -314,6 +318,10 @@ Bug Fixes
 
   - In the ``CommentedHeader`` the ``data_start`` parameter now defaults to
     ``0``, which is the first uncommented line. Discussed in #2692. [#3054]
+
+  - Position lines in ``FixedWidthTwoLine`` reader could consist of many characters.
+    Now, only one character in addition to the delimiter is allowed. This bug was 
+    discovered as part of [#3109]
 
 - ``astropy.io.fits``
 

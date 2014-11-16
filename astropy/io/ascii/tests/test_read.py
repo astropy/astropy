@@ -760,6 +760,10 @@ def get_testfiles(name=None):
          'name': 't/latex2.tex',
          'nrows': 3,
          'opts': {'Reader': ascii.AASTex}},
+        {'cols': ('Col1', 'Col2', 'Col3', 'Col4'),
+         'name': 't/fixed_width_2_line.txt',
+         'nrows': 2,
+         'opts': {'Reader': ascii.FixedWidthTwoLine}},
     ]
 
     try:
@@ -860,9 +864,24 @@ def test_guess_fail():
 
     assert "** To figure out why the table did not read, use guess=False and" in str(err.value)
 
+
 def test_guessing_file_object():
     """
     Test guessing a file object.  Fixes #3013 and similar issue noted in #3019.
     """
     t = ascii.read(open('t/ipac.dat.bz2', 'rb'))
     assert t.colnames == ['ra','dec','sai','v2','sptype']
+
+
+def test_pformat_roundtrip():
+    """Check that the screen output of ``print tab`` can be read. See #3025."""
+    """Read a table with empty values and ensure that corresponding entries are masked"""
+    table = '\n'.join(['a,b,c,d',
+                       '1,3,1.11,1',
+                       '2, 2, 4.0 , ss '])
+    dat = ascii.read(table)
+    out = ascii.read(dat.pformat())
+    assert len(dat) == len(out)
+    assert dat.colnames == out.colnames
+    for c in dat.colnames:
+        assert np.all(dat[c] == out[c])

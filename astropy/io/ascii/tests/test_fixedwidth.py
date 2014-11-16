@@ -8,9 +8,10 @@ except ImportError:
     from io import StringIO
 
 from ... import ascii
+from ..core import InconsistentTableError
 from .common import (assert_equal, assert_almost_equal,
                      setup_function, teardown_function)
-
+from ....tests.helper import pytest
 
 def assert_equal_splitlines(arg1, arg2):
     assert_equal(arg1.splitlines(), arg2.splitlines())
@@ -382,6 +383,21 @@ def test_read_twoline_human():
     assert_almost_equal(dat[1][0], 2.4)
     assert_equal(dat[0][1], '"hello"')
     assert_equal(dat[1][1], "'s worlds")
+
+
+def test_read_twoline_fail():
+    """The position line shall consist of only one character in addition to the delimiter."""
+    table = """
+| Col1 |   Col2   |
+|------|==========|
+|  1.2 | "hello"  |
+|  2.4 | 's worlds|
+"""
+    with pytest.raises(InconsistentTableError) as excinfo:
+        dat = ascii.read(table, Reader=ascii.FixedWidthTwoLine,
+                         delimiter='|', guess=False)
+    assert 'Position line should only contain delimiters and one other character' in str(excinfo.value)
+
 
 
 def test_write_twoline_normal():

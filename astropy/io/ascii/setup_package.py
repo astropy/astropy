@@ -75,6 +75,7 @@ def get_package_data():
                                    't/whitespace.dat',
                                    't/simple_csv.csv',
                                    't/simple_csv_missing.csv',
+                                   't/fixed_width_2_line.txt',
                                    ]
     }
 
