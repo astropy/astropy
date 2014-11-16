@@ -44,6 +44,10 @@ New Features
 
 - ``astropy.io.fits``
 
+  - The ``fitsdiff`` script ignore some things be default when comparing fits 
+    files (e.g. empty header lines). This add as ``--exact`` option where
+    nothing is ignored. [#2782], finished in [#3110]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

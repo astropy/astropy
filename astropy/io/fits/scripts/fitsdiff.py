@@ -243,7 +243,6 @@ def main():
         argv = os.environ['FITSDIFF_SETTINGS'].split() + sys.argv[1:]
     else:
         argv = sys.argv[1:]
-    print argv
 
     opts, args = handle_options(argv)
 
