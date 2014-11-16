@@ -585,7 +585,7 @@ def get_testfiles(name=None):
         {'cols': ('a', 'b', 'c'),
          'name': 't/commented_header2.dat',
          'nrows': 2,
-         'opts': {'Reader': ascii.CommentedHeader, 'header_start': -1, 'data_start': 0}},
+         'opts': {'Reader': ascii.CommentedHeader, 'header_start': -1}},
         {'cols': ('col1', 'col2', 'col3', 'col4', 'col5'),
          'name': 't/continuation.dat',
          'nrows': 2,

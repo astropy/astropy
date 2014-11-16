@@ -268,6 +268,9 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - In the ``CommentedHeader`` the ``data_start`` parameter now defaults to 
+    ``0``, which is the first uncommented line. Discussed in #2692. [#3054]
+
 - ``astropy.io.fits``
 
   - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
