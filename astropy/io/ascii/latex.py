@@ -115,9 +115,11 @@ class LatexHeader(core.BaseHeader):
         lines.append(self.header_start + r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
         lines.append(self.splitter.join([x.name for x in self.cols]))
+        units = dict((x.name, x.unit.to_string(format='latex_inline')) for x in self.cols if x.unit)
         if 'units' in self.latex:
-            lines.append(self.splitter.join([self.latex['units'].get(x.name, ' ')
-                                             for x in self.cols]))
+            units.update(self.latex['units'])
+        if units:
+            lines.append(self.splitter.join([units.get(x.name, ' ') for x in self.cols]))
         add_dictval_to_list(self.latex, 'header_end', lines)
 
 
@@ -216,7 +218,8 @@ class Latex(core.BaseReader):
                                latexdict = {'units': {'mass': 'kg', 'speed': 'km/h'}})
 
             If the column has no entry in the ``units`` dictionary, it defaults
-            to ``' '``.
+            to the **unit** attribute of the column. If this attribute is not
+            specified (i.e. it is None), the unit will be written as ``' '``.
 
         Run the following code to see where each element of the
         dictionary is inserted in the LaTeX table::
@@ -336,9 +339,11 @@ class AASTexHeader(LatexHeader):
         if 'caption' in self.latex:
             lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
         tablehead = ' & '.join([r'\colhead{' + x.name + '}' for x in self.cols])
+        units = dict((x.name, x.unit.to_string(format='latex_inline')) for x in self.cols if x.unit)
         if 'units' in self.latex:
-            tablehead += r'\\ ' + (self.splitter.join([self.latex[
-                                   'units'].get(x.name, ' ') for x in self.cols]))
+            units.update(self.latex['units'])
+        if units:
+            tablehead += r'\\ ' + self.splitter.join([units.get(x.name, ' ') for x in self.cols])
         lines.append(r'\tablehead{' + tablehead + '}')
 
 
