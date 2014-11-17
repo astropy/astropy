@@ -13,7 +13,7 @@ from ....table import Table
 from ....units import Unit
 
 from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true)
+                     assert_true, setup_function, teardown_function)
 from .. import core
 
 
