@@ -71,6 +71,7 @@ if COMPRESSION_SUPPORTED:
 COMPRESSION_KEYWORDS = set(['ZIMAGE', 'ZCMPTYPE', 'ZBITPIX', 'ZNAXIS',
                             'ZMASKCMP', 'ZSIMPLE', 'ZTENSION', 'ZEXTEND'])
 
+CMTYPE_ALIASES = {'RICE_ONE': 'RICE_1'}
 
 class CompImageHeader(Header):
     """
@@ -598,6 +599,8 @@ class CompImageHDU(BinTableHDU):
             raise Exception('The astropy.io.fits.compression module is not '
                             'available.  Creation of compressed image HDUs is '
                             'disabled.')
+
+        compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
         # Handle deprecated keyword arguments
         compression_opts = {}
