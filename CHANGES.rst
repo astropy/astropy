@@ -39,7 +39,7 @@ New Features
     reading will fall back on an ordinary reader in case of a parsing
     failure. Their behavior can be altered with the parameter ``fast_reader``
     in ``read`` and ``fast_writer`` in ``write``. [#2716]
-    
+
   - Make Latex/AASTex tables use unit attribute of Column for output. [#3064]
 
 - ``astropy.io.fits``
@@ -254,11 +254,6 @@ API Changes
 Bug Fixes
 ^^^^^^^^^
 
-- General
-
-  - astropy will now work if your Python interpreter does not have the
-    ``bz2`` module installed. [#3104]
-
 - ``astropy.config``
 
 - ``astropy.constants``
@@ -447,6 +442,11 @@ Bug Fixes
 
   - Fixed an issue which meant that Python thought ``WCS`` objects were
     iterable. [#3066]
+
+- Misc
+
+  - Astropy will now work if your Python interpreter does not have the
+    ``bz2`` module installed. [#3104]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
