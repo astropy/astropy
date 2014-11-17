@@ -71,7 +71,9 @@ if COMPRESSION_SUPPORTED:
 COMPRESSION_KEYWORDS = set(['ZIMAGE', 'ZCMPTYPE', 'ZBITPIX', 'ZNAXIS',
                             'ZMASKCMP', 'ZSIMPLE', 'ZTENSION', 'ZEXTEND'])
 
-CMTYPE_ALIASES = {'RICE_ONE': 'RICE_1'}
+CMTYPE_ALIASES = {}
+if compression.CFITSIO_VERSION >= 3.35:
+    CMTYPE_ALIASES['RICE_ONE'] = 'RICE_1'
 
 class CompImageHeader(Header):
     """
