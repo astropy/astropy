@@ -2768,6 +2768,9 @@ naxis kwarg.
 
     @property
     def has_distortion(self):
+        """
+        `True` if contains any SIP or image distortion components.
+        """
         return any(getattr(self, dist_attr) is not None
                    for dist_attr in ['cpdis1', 'cpdis2', 'det2im1', 'det2im2', 'sip'])
 
