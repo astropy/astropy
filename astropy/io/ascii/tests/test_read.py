@@ -11,12 +11,10 @@ from ....tests.helper import pytest
 from ... import ascii
 from ....table import Table
 from ....units import Unit
-from distutils import version
 
 from .common import (raises, assert_equal, assert_almost_equal,
-                     assert_true, setup_function, teardown_function)
+                     assert_true)
 from .. import core
-from ....tests.helper import pytest
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])

@@ -5,7 +5,6 @@ import os
 import math
 import multiprocessing
 import mmap
-from distutils import version
 
 import numpy as np
 cimport numpy as np
