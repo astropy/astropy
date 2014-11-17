@@ -254,6 +254,11 @@ API Changes
 Bug Fixes
 ^^^^^^^^^
 
+- General
+
+  - astropy will now work if your Python interpreter does not have the
+    ``bz2`` module installed. [#3104]
+
 - ``astropy.config``
 
 - ``astropy.constants``
