@@ -805,6 +805,8 @@ class CompImageHDU(BinTableHDU):
         else:
             compression_type = self._header.get('ZCMPTYPE',
                                                 DEFAULT_COMPRESSION_TYPE)
+            compression_type = CMTYPE_ALIASES.get(compression_type,
+                                                  compression_type)
 
         # If the input image header had BSCALE/BZERO cards, then insert
         # them in the table header.
