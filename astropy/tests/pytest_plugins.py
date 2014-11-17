@@ -110,6 +110,19 @@ def pytest_configure(config):
             doctest.NORMALIZE_WHITESPACE |
             FIX)
 
+    class DocTestRunnerPlus(doctest.DebugRunner):
+        # This class ensures that we run the doctests in a temporary
+        # directory. Once only Python 3 is supported, we can use the
+        # tempfile.TemporaryDirectory context manager.
+        def run(self, *args, **kwargs):
+            curdir = os.getcwd()
+            dirname = tempfile.mkdtemp()
+            try:
+                os.chdir(dirname)
+                doctest.DebugRunner.run(self, *args, **kwargs)
+            finally:
+                os.chdir(curdir)
+
     class DocTestModulePlus(doctest_plugin.DoctestModule):
         # pytest 2.4.0 defines "collect".  Prior to that, it defined
         # "runtest".  The "collect" approach is better, because we can
@@ -130,7 +143,7 @@ def pytest_configure(config):
 
             # uses internal doctest module parsing mechanism
             finder = DocTestFinderPlus()
-            runner = doctest.DebugRunner(verbose=False, optionflags=opts)
+            runner = DocTestRunnerPlus(verbose=False, optionflags=opts)
             for test in finder.find(module):
                 if test.examples:  # skip empty doctests
                     if not config.getvalue("remote_data"):
