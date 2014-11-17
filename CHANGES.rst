@@ -42,6 +42,11 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+- Misc
+
+  - Astropy will now work if your Python interpreter does not have the
+    ``bz2`` module installed. [#3104]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
