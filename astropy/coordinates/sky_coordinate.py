@@ -257,6 +257,14 @@ class SkyCoord(object):
         """
         Transform this coordinate to a new frame.
 
+        The frame attributes (e.g. equinox or obstime) for the returned object
+        depend on the corresponding attributes of SkyCoord object and the
+        supplied ``frame``, with the following precedence:
+
+        1. Non-default value in the supplied frame
+        2. Non-default value in the SkyCoord instance
+        3. Default value in the supplied frame
+
         Parameters
         ----------
         frame : str or `BaseCoordinateFrame` class / instance or `SkyCoord` instance
