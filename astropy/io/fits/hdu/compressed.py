@@ -55,12 +55,15 @@ DEFAULT_HCOMP_SMOOTH = 0
 DEFAULT_BLOCK_SIZE = 32
 DEFAULT_BYTE_PIX = 4
 
+CMTYPE_ALIASES = {}
 
 # CFITSIO version-specific features
 if COMPRESSION_SUPPORTED:
     try:
         CFITSIO_SUPPORTS_GZIPDATA = compression.CFITSIO_VERSION >= 3.28
         CFITSIO_SUPPORTS_Q_FORMAT = compression.CFITSIO_VERSION >= 3.35
+        if compression.CFITSIO_VERSION >= 3.35:
+            CMTYPE_ALIASES['RICE_ONE'] = 'RICE_1'
     except AttributeError:
         # This generally shouldn't happen unless running setup.py in an
         # environment where an old build of pyfits exists
@@ -71,9 +74,6 @@ if COMPRESSION_SUPPORTED:
 COMPRESSION_KEYWORDS = set(['ZIMAGE', 'ZCMPTYPE', 'ZBITPIX', 'ZNAXIS',
                             'ZMASKCMP', 'ZSIMPLE', 'ZTENSION', 'ZEXTEND'])
 
-CMTYPE_ALIASES = {}
-if compression.CFITSIO_VERSION >= 3.35:
-    CMTYPE_ALIASES['RICE_ONE'] = 'RICE_1'
 
 class CompImageHeader(Header):
     """
