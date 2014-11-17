@@ -633,3 +633,11 @@ def test_composite_compose():
 
 def test_data_quantities():
     assert u.byte.is_equivalent(u.bit)
+
+
+def test_compare_with_none():
+    # Ensure that equality comparisons with `None` work, and don't
+    # raise exceptions.  We are deliberately not using `is None` here
+    # because that doesn't trigger the bug.  See #3108.
+    assert not (u.m == None)
+    assert u.m != None
