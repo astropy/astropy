@@ -306,9 +306,10 @@ class Galactic(BaseCoordinateFrame):
     #
     # >>> FK4NoETerms(ra=192.25*u.degree, dec=27.4*u.degree).transform_to(FK5)
     #
-    # This gives the best consistency with other codes and the best
-    # self-consistency between FK5 -> Galactic and FK5 -> FK4 -> Galactic.
-    # The lon0 angle was found by optimizing the self-consistency.
+    # This gives better consistency with other codes than using the values
+    # from Reid & Brunthaler 2004 and the best self-consistency between FK5
+    # -> Galactic and FK5 -> FK4 -> Galactic. The lon0 angle was found by
+    # optimizing the self-consistency.
     _ngp_J2000 = FK5(ra=192.8594812065348*u.degree, dec=27.12825118085622*u.degree)
     _lon0_J2000 = Angle(122.9319185680026, u.degree)
 
