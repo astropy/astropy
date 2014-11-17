@@ -225,7 +225,15 @@ int compress_type_from_string(char* zcmptype) {
         return PLIO_1;
     } else if (0 == strcmp(zcmptype, "HCOMPRESS_1")) {
         return HCOMPRESS_1;
-    } else {
+    }
+#ifdef CFITSIO_SUPPORTS_SUBTRACTIVE_DITHER_2
+    /* CFITSIO adds a compression type alias for RICE_1 compression
+       as a flag for using subtractive_dither_2 */
+    else if (0 == strcmp(zcmptype, "RICE_ONE")) {
+        return RICE_1;
+    }
+#endif
+    else {
         PyErr_Format(PyExc_ValueError, "Unrecognized compression type: %s",
                      zcmptype);
         return -1;
