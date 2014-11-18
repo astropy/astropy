@@ -13,7 +13,7 @@ from ..normalization.ui import scale_image
 
 
 def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
-                power=1.0, noise_level=None, min_cut=None, max_cut=None,
+                power=1.0, asinh_a=0.1, min_cut=None, max_cut=None,
                 min_percent=None, max_percent=None, percent=None,
                 cmap='Greys_r'):
     """
@@ -39,14 +39,14 @@ def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
         is 'linear'.
 
     power : float, optional
-        The power index for the image scaling.  The default is 1.0.
+        The power index for ``scale='power'`` image scaling.  The
+        default is 1.0.
 
-    noise_level : float, optional
-        The noise level of the image.  Pixel values less than
-        ``noise_level`` will approximately be linearly scaled, while
-        pixel values greater than ``noise_level`` will approximately be
-        logarithmically scaled.  If ``noise_level`` is not input, an
-        estimate of the 2-sigma level above the background will be used.
+    asinh_a : float, optional
+        For ``scale='asinh'`` image scaling, the value where the asinh
+        curve transitions from linear to logarithmic behavior, expressed
+        as a fraction of the normalized image.  Must be in the range
+        between 0 and 1.
 
     min_cut : float, optional
         The pixel value of the minimum cut level.  Data values less than
@@ -93,11 +93,9 @@ def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
         raise SystemExit()
 
     image_scaled = scale_image(image, scale=scale, power=power,
-                               noise_level=noise_level,
-                               min_cut=min_cut, max_cut=max_cut,
-                               min_percent=min_percent,
-                               max_percent=max_percent,
-                               percent=percent)
+                               asinh_a=asinh_a, min_cut=min_cut,
+                               max_cut=max_cut, min_percent=min_percent,
+                               max_percent=max_percent, percent=percent)
 
     mimg.imsave(out_fn, image_scaled, cmap=cmap)
     log.info('Saved file to {0}'.format(out_fn))
@@ -117,9 +115,10 @@ def main(args=None):
                         '"power", "log", or "asinh")')
     parser.add_argument('--power', type=float, default=1.0,
                         help='Power index for "power" scaling')
-    parser.add_argument('--noise', type=float, default=None,
-                        help=('The noise level of the image (used only for '
-                              '"asinh" scaling)'))
+    parser.add_argument('--asinh_a', type=float, default=0.1,
+                        help=('The value in normalized image where the asinh '
+                              'curve transitions from linear to logarithmic '
+                              'behavior (used only for "asinh" scaling)'))
     parser.add_argument('--min_cut', type=float, default=None,
                         help='The pixel value of the minimum cut level')
     parser.add_argument('--max_cut', type=float, default=None,
@@ -145,4 +144,4 @@ def main(args=None):
                     scale=args.scale, min_cut=args.min_cut,
                     max_cut=args.max_cut, min_percent=args.min_percent,
                     max_percent=args.max_percent, percent=args.percent,
-                    power=args.power, noise_level=args.noise, cmap=args.cmap)
+                    power=args.power, asinh_a=args.asinh_a, cmap=args.cmap)
