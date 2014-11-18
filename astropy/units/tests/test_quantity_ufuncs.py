@@ -7,8 +7,6 @@ from numpy.testing.utils import assert_allclose
 from ... import units as u
 from ...tests.helper import pytest, raises
 
-NUMPY_LT_1P6 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 6]
-
 
 class TestUfuncCoverage(object):
     """Test that we cover all ufunc's"""
@@ -522,7 +520,6 @@ class TestComparisonUfuncs(object):
 
 class TestInplaceUfuncs(object):
 
-    @pytest.mark.skipif("NUMPY_LT_1P6")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_ufunc_inplace(self, value):
         # without scaling
@@ -539,7 +536,6 @@ class TestInplaceUfuncs(object):
         assert check2.unit == u.dimensionless_unscaled
         assert_allclose(s.value, s2.value)
 
-    @pytest.mark.skipif("NUMPY_LT_1P6")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_one_argument_ufunc_inplace_2(self, value):
         """Check inplace works with non-quantity input and quantity output"""
@@ -600,7 +596,6 @@ class TestInplaceUfuncs(object):
         assert check is s
         assert np.all(check == value * u.cycle)
 
-    @pytest.mark.skipif("NUMPY_LT_1P6")
     @pytest.mark.parametrize(('value'), [1., np.arange(10.)])
     def test_two_argument_ufunc_inplace_2(self, value):
         s = value * u.cycle
@@ -622,7 +617,6 @@ class TestInplaceUfuncs(object):
         assert check is s
         assert check.unit == u.deg / u.s
 
-    @pytest.mark.skipif("NUMPY_LT_1P6")
     def test_two_argument_ufunc_inplace_3(self):
         s = np.array([1., 2., 3.]) * u.dimensionless_unscaled
         np.add(np.array([1., 2., 3.]), np.array([1., 2., 3.]) * 2., out=s)

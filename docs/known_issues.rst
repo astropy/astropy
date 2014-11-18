@@ -251,15 +251,3 @@ One workaround is to install the ``bsddb3`` module.
 .. [#] Continuum `says
        <https://groups.google.com/a/continuum.io/forum/#!topic/anaconda/mCQL6fVx55A>`_
        this will be fixed in their next Python build.
-
-
-Very long integers in ASCII tables silently converted to float for Numpy 1.5
-----------------------------------------------------------------------------
-
-For Numpy 1.5, when reading an ASCII table that has integers which are too
-large to fit into the native C long int type for the machine, then the
-values get converted to float type with no warning.  This is due to the
-behavior of `numpy.array` and cannot easily be worked around.  We recommend
-that users upgrade to a newer version of Numpy.  For Numpy >= 1.6 a warning
-is printed and the values are treated as strings to preserve all information.
-

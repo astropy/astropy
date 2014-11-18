@@ -211,11 +211,7 @@ class FLRW(Cosmology):
                         errstr = "Unexpected number of neutrino masses"
                         raise ValueError(errstr)
                     # Segregate out the massless ones
-                    try:
-                        # Numpy < 1.6 doesn't have count_nonzero
-                        self._nmasslessnu = np.count_nonzero(m_nu.value == 0)
-                    except AttributeError:
-                        self._nmasslessnu = len(np.nonzero(m_nu.value == 0)[0])
+                    self._nmasslessnu = len(np.nonzero(m_nu.value == 0)[0])
                     self._nmassivenu = self._nneutrinos - self._nmasslessnu
                     w = np.nonzero(m_nu.value > 0)[0]
                     self._massivenu_mass = m_nu[w]

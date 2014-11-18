@@ -57,11 +57,7 @@ def get_formats(data_class=None):
         # of the full 'ascii.rdb'.
         ascii_format_class = ('ascii.' + format_class[0], format_class[1])
 
-        # In the following, we use '   ' instead of '' because if the first
-        # format that is added is not deprecated, the data type for this
-        # element would be U0, which Numpy 1.5.x in Python 3 doesn't support,
-        # so we have to give it a non-zero length.
-        deprecated = 'Yes' if ascii_format_class in format_classes else '   '
+        deprecated = 'Yes' if ascii_format_class in format_classes else ''
 
         rows.append((format_class[1].__name__, format_class[0], has_read, has_write,
                      has_identify, deprecated))

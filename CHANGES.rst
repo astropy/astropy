@@ -1,6 +1,11 @@
 1.0 (unreleased)
 ----------------
 
+General
+^^^^^^^
+
+astropy now requires a Numpy 1.6.0 or later.
+
 New Features
 ^^^^^^^^^^^^
 

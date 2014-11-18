@@ -5,7 +5,6 @@ import os
 import math
 import multiprocessing
 import mmap
-from distutils import version
 
 import numpy as np
 cimport numpy as np
@@ -125,7 +124,7 @@ cdef class FileString:
         cdef Py_ssize_t buf_len = len(self.mmap)
         if six.PY2:
             PyObject_AsReadBuffer(self.mmap, &self.mmap_ptr, &buf_len)
-        else:            
+        else:
             PyObject_GetBuffer(self.mmap, &self.buf, PyBUF_SIMPLE)
             self.mmap_ptr = self.buf.buf
 
@@ -466,7 +465,7 @@ cdef class CParser:
                 reconvert_cols.append(i)
 
         reconvert_queue.put(reconvert_cols)
-        for process in processes:            
+        for process in processes:
             process.join() # wait for each process to finish
         try:
             while True:
@@ -574,7 +573,7 @@ cdef class CParser:
                 replace_info = self.fill_values[field]
 
             if replace_info is not None:
-                # Either this column applies to the field as specified in the 
+                # Either this column applies to the field as specified in the
                 # fill_values parameter, or no specific columns are specified
                 # and this column should apply fill_values.
                 if (len(replace_info) > 1 and self.names[i] in replace_info[1:]) \
@@ -649,13 +648,7 @@ cdef class CParser:
                 raise ValueError()
             elif t.code == OVERFLOW_ERROR:
                 t.code = NO_ERROR
-                # In numpy < 1.6, using type inference yields a float for 
-                # overflow values because the error raised is not specific.
-                # This replicates the old reading behavior (see #2234).
-                if version.LooseVersion(np.__version__) < version.LooseVersion('1.6'):
-                    col[row] = new_value if replacing else field
-                else:
-                    raise ValueError()
+                raise ValueError()
             else:
                 data[row] = converted
             row += 1
@@ -896,7 +889,7 @@ cdef class FastWriter:
         if header_output is not None:
             if header_output == 'comment':
                 output.write(self.comment)
-            writer.writerow([x.strip() for x in self.use_names] if 
+            writer.writerow([x.strip() for x in self.use_names] if
                             self.strip_whitespace else self.use_names)
 
         if output_types:
@@ -916,7 +909,7 @@ cdef class FastWriter:
                             quoting=csv.QUOTE_MINIMAL,
                             lineterminator=os.linesep)
         self._write_header(output, writer, header_output, output_types)
-                                         
+
         # Split rows into N-sized chunks, since we don't want to
         # store all the rows in memory at one time (inefficient)
         # or fail to take advantage of the speed boost of writerows()
@@ -925,7 +918,7 @@ cdef class FastWriter:
         cdef int num_cols = len(self.use_names)
         cdef int num_rows = len(self.table)
         # cache string columns beforehand
-        cdef set string_rows = set([i for i, type in enumerate(self.types) if 
+        cdef set string_rows = set([i for i, type in enumerate(self.types) if
                                     type == 'S'])
         cdef list rows = [[None] * num_cols for i in range(N)]
 

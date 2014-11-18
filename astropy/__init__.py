@@ -31,7 +31,7 @@ except ImportError:
     __githash__ = ''
 
 
-__minimum_numpy_version__ = '1.5.1'
+__minimum_numpy_version__ = '1.6.0'
 
 
 # The location of the online documentation for astropy
