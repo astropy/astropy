@@ -21,6 +21,16 @@ Bug Fixes
     that the default attribute value (e.g. equinox) for the destination frame
     gets used if no corresponding value was explicitly specified. [#3106]
 
+  - ``Angle`` accepts hours:mins or deg:mins initializers (without
+     seconds). In these cases float minutes are also accepted.
+
+  - ``astropy.coordinates.SkyCoord`` objects are now copyable. [#2888]
+
+  - ``astropy.coordinates.SkyCoord`` object attributes are now
+    immutable.  It is still technically possible to change the
+    internal data for an array-valued coordinate object but this leads
+    to inconsistencies [#2889] and should not be done. [#2888]
+
 - ``astropy.cosmology``
 
   - The ``ztol`` keyword argument to z_at_value now works correctly [#2993].

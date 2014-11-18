@@ -9,6 +9,7 @@ test_api_ape5.py
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import copy
 import functools
 
 import numpy as np
@@ -742,3 +743,27 @@ def test_frame_attr_transform_inherit():
     c2 = c.transform_to(FK5(equinox='J1990'))
     assert c2.equinox.value == 'J1990.000'
     assert c2.obstime.value == 'J1980.000'
+
+
+def test_deepcopy():
+    c1 = SkyCoord(1 * u.deg, 2 * u.deg)
+    c2 = copy.copy(c1)
+    c3 = copy.deepcopy(c1)
+
+    c4 = SkyCoord([1, 2] * u.m, [2, 3] *u.m, [3, 4] * u.m, representation='cartesian', frame='fk5',
+                  obstime='J1999.9', equinox='J1988.8')
+    c5 = copy.deepcopy(c4)
+    assert np.all(c5.x == c4.x)  # and y and z
+    assert c5.frame.name == c4.frame.name
+    assert c5.obstime == c4.obstime
+    assert c5.equinox == c4.equinox
+    assert c5.representation == c4.representation
+
+
+def test_immutable():
+    c1 = SkyCoord(1 * u.deg, 2 * u.deg)
+    with pytest.raises(AttributeError):
+        c1.ra = 3.0
+
+    c1.foo = 42
+    assert c1.foo == 42

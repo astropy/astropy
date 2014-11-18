@@ -339,32 +339,50 @@ class SkyCoord(object):
         Overrides getattr to return coordinates that this can be transformed
         to, based on the alias attr in the master transform graph.
         """
+        if '_sky_coord_frame' in self.__dict__:
+            if self.frame.name == attr:
+                return self  # Should this be a deepcopy of self?
 
-        if self.frame.name == attr:
-            return self  # Should this be a deepcopy of self?
+            # Anything in the set of all possible frame_attr_names is handled
+            # here. If the attr is relevant for the current frame then delegate
+            # to self.frame otherwise get it from self._<attr>.
+            if attr in FRAME_ATTR_NAMES_SET():
+                if attr in self.frame.get_frame_attr_names():
+                    return getattr(self.frame, attr)
+                else:
+                    return getattr(self, '_' + attr)
 
-        # Anything in the set of all possible frame_attr_names is handled
-        # here. If the attr is relevant for the current frame then delegate
-        # to self.frame otherwise get it from self._<attr>.
-        if attr in FRAME_ATTR_NAMES_SET():
-            if attr in self.frame.get_frame_attr_names():
-                return getattr(self.frame, attr)
-            else:
-                return getattr(self, '_' + attr)
+            # Some attributes might not fall in the above category but still
+            # are available through self._sky_coord_frame.
+            if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
+                return getattr(self._sky_coord_frame, attr)
 
-        # Some attributes might not fall in the above category but still
-        # are available through self._sky_coord_frame.
-        if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
-            return getattr(self._sky_coord_frame, attr)
-
-        # Try to interpret as a new frame for transforming.
-        frame_cls = frame_transform_graph.lookup_name(attr)
-        if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
-            return self.transform_to(attr)
+            # Try to interpret as a new frame for transforming.
+            frame_cls = frame_transform_graph.lookup_name(attr)
+            if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
+                return self.transform_to(attr)
 
         # Fail
         raise AttributeError("'{0}' object has no attribute '{1}'"
                              .format(self.__class__.__name__, attr))
+
+    def __setattr__(self, attr, val):
+        # This is to make anything available through __getattr__ immutable
+        if '_sky_coord_frame' in self.__dict__:
+            if self.frame.name == attr:
+                raise AttributeError("'{0}' is immutable".format(attr))
+
+            if (attr in FRAME_ATTR_NAMES_SET() or
+                (not attr.startswith('_') and
+                 hasattr(self._sky_coord_frame, attr))):
+                setattr(self._sky_coord_frame, attr, val)
+
+            frame_cls = frame_transform_graph.lookup_name(attr)
+            if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
+                raise AttributeError("'{0}' is immutable".format(attr))
+
+        # Otherwise, do the standard Python attribute setting
+        super(SkyCoord, self).__setattr__(attr, val)
 
     @override__dir__
     def __dir__(self):
@@ -743,6 +761,7 @@ class SkyCoord(object):
             return icrs_sky_coord
         else:
             return icrs_sky_coord.transform_to(frame)
+
 
 # <----------------Private utility functions below here------------------------->
 
