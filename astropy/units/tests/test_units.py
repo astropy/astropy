@@ -283,7 +283,7 @@ def test_complex_compose():
 
 def test_equiv_compose():
     composed = u.m.compose(equivalencies=u.spectral())
-    assert u.Hz in composed
+    assert any([u.Hz] == x.bases for x in composed)
 
 
 def test_empty_compose():
@@ -350,8 +350,8 @@ def test_compose_si_to_cgs():
 
 
 def test_to_cgs():
-    assert u.Pa.to_system(u.cgs)[0]._bases[0] is u.Ba
-    assert u.Pa.to_system(u.cgs)[0]._scale == 10.0
+    assert u.Pa.to_system(u.cgs)[1]._bases[0] is u.Ba
+    assert u.Pa.to_system(u.cgs)[1]._scale == 10.0
 
 
 def test_decompose_to_cgs():
