@@ -256,6 +256,14 @@ class SkyCoord(object):
         """
         Transform this coordinate to a new frame.
 
+        The frame attributes (e.g. equinox or obstime) for the returned object
+        depend on the corresponding attributes of SkyCoord object and the
+        supplied ``frame``, with the following precedence:
+
+        1. Non-default value in the supplied frame
+        2. Non-default value in the SkyCoord instance
+        3. Default value in the supplied frame
+
         Parameters
         ----------
         frame : str or `BaseCoordinateFrame` class / instance or `SkyCoord` instance
@@ -288,17 +296,20 @@ class SkyCoord(object):
             new_frame_cls = frame.__class__
 
             # Set the keyword args for making a new frame instance for the
-            # transform.  If the supplied frame instance has a non-default
-            # value set then use that, otherwise use the self attribute value
-            # if it is not None.
+            # transform.  Frame attributes track whether they were explicitly
+            # set by user or are just reflecting default values.  Precedence:
+            # 1. Non-default value in the supplied frame instance
+            # 2. Non-default value in the self instance
+            # 3. Default value in the supplied frame instance
             for attr in FRAME_ATTR_NAMES_SET():
                 self_val = getattr(self, attr, None)
                 frame_val = getattr(frame, attr, None)
-                if (frame_val is not None and
-                        attr not in frame._attr_names_with_defaults):
+                if frame_val is not None and not frame.is_frame_attr_default(attr):
                     frame_kwargs[attr] = frame_val
-                elif self_val is not None:
+                elif self_val is not None and not self.is_frame_attr_default(attr):
                     frame_kwargs[attr] = self_val
+                elif frame_val is not None:
+                    frame_kwargs[attr] = frame_val
         else:
             raise ValueError('Transform `frame` must be a frame name, class, or instance')
 

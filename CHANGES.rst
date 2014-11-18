@@ -17,6 +17,10 @@ Bug Fixes
 
   - Ensure ``float32`` values can be used in coordinate representations. [#2983]
 
+  - Fix frame attribute inheritance in ``SkyCoord.transform_to()`` method so
+    that the default attribute value (e.g. equinox) for the destination frame
+    gets used if no corresponding value was explicitly specified. [#3106]
+
 - ``astropy.cosmology``
 
   - The ``ztol`` keyword argument to z_at_value now works correctly [#2993].
