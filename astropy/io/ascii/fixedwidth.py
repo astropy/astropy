@@ -133,8 +133,12 @@ class FixedWidthHeader(basic.BasicHeader):
                 # slice col_ends but expects inclusive col_ends on input (for
                 # more intuitive user interface).
                 line = self.get_line(lines, position_line)
-                if len(set(line) - set(self.splitter.delimiter)) != 1:
+                if len(set(line) - set([self.splitter.delimiter, ' '])) != 1:
                     raise InconsistentTableError('Position line should only contain delimiters and one other character, e.g. "--- ------- ---".')
+                    # The line above lies. It accepts white space as well.
+                    # We don't wnat to encourage using three different characters, because
+                    # that can cause ambiguities, but white spaces are so common everywhere
+                    # that practicality beats purity here.
                 vals, self.col_starts, col_ends = self.get_fixedwidth_params(line)
                 self.col_ends = [x - 1 for x in col_ends]
 
