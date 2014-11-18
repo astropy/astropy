@@ -777,3 +777,7 @@ def test_frame_attr_transform_inherit():
     c2 = c.transform_to(FK5)
     assert c2.equinox.value == 'J1975.000'
     assert c2.obstime.value == 'J1980.000'
+
+    c2 = c.transform_to(FK5(equinox='J1990'))
+    assert c2.equinox.value == 'J1990.000'
+    assert c2.obstime.value == 'J1980.000'
