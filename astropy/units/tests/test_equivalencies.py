@@ -13,6 +13,7 @@ from numpy.testing.utils import assert_allclose
 
 # LOCAL
 from ... import units as u
+from ... import constants
 from ...tests.helper import pytest
 
 
@@ -516,9 +517,32 @@ def test_temperature():
     assert_allclose(t_k.to(u.deg_C, u.temperature()).value, -273.15)
     assert_allclose(t_k.to(deg_F, u.temperature()).value, -459.67)
 
+
 def test_temperature_energy():
     from ... import constants
     x = 1000 * u.K
     y = (x * constants.k_B).to(u.keV)
-    assert_allclose(x.to(u.keV, u.temperature_energy()).value, y)           
-    assert_allclose(y.to(u.K, u.temperature_energy()).value, x)               
+    assert_allclose(x.to(u.keV, u.temperature_energy()).value, y)
+    assert_allclose(y.to(u.K, u.temperature_energy()).value, x)
+
+
+def test_compose_equivalencies():
+    x = u.Unit("arcsec").compose(units=(u.pc,), equivalencies=u.parallax())
+    assert x[0] == u.pc
+
+    x = u.Unit("2 arcsec").compose(units=(u.pc,), equivalencies=u.parallax())
+    assert x[0] == u.Unit(0.5 * u.pc)
+
+    x = u.degree.compose(equivalencies=u.dimensionless_angles())
+    assert u.Unit(u.degree.to(u.radian)) in x
+
+    x = (u.nm).compose(units=(u.m, u.s), equivalencies=u.doppler_optical(0.55*u.micron))
+    for y in x:
+        if y.bases == [u.m, u.s]:
+            assert y.powers == [1, -1]
+            assert_allclose(
+                y.scale,
+                u.nm.to(u.m / u.s, equivalencies=u.doppler_optical(0.55 * u.micron)))
+            break
+    else:
+        assert False, "Didn't find speed in compose results"
