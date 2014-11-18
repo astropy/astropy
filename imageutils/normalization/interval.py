@@ -27,7 +27,8 @@ class BaseInterval(BaseTransform):
                 raise TypeError("Can only do in-place scaling for floating-point arrays")
             values = np.subtract(values, float(vmin), out=out)
 
-        np.true_divide(values, vmax - vmin, out=values)
+        if (vmax - vmin) != 0:
+            np.true_divide(values, vmax - vmin, out=values)
 
         if clip:
             np.clip(values, 0., 1., out=values)
