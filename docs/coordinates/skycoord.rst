@@ -669,7 +669,7 @@ Example 1: Plotting random data in Aitoff projection
 ====================================================
 
 This is an example how to make a plot in the Aitoff projection using data 
-in a `SkyCoord` object. Here a randomly generated data set will be used. The
+in a |SkyCoord| object. Here a randomly generated data set will be used. The
 final script can be found below.
 
 First we need to import the required packages. We use 
@@ -695,7 +695,7 @@ of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
     >>> dec_random = (np.random.rand(100)*180.0-90.0) * u.degree
 
 As next step, those coordinates are transformed into an astropy.coordinates
-`~astropy.coordinates.SkyCoord` object.
+|SkyCoord| object.
 
 .. doctest-requires:: matplotlib
 
@@ -726,7 +726,7 @@ a markersize of 2 and an alpha value of 0.3.
 .. plot::
 
     # This is an example how to make a plot in the Aitoff projection using data 
-    # in a `SkyCoord` object. Here a randomly generated data set will be used. The
+    # in a SkyCoord object. Here a randomly generated data set will be used. The
     # final script can be found below.
 
     # First we need to import the required packages. We use 
@@ -746,7 +746,7 @@ a markersize of 2 and an alpha value of 0.3.
     dec_random = (np.random.rand(100)*180.0-90.0) * u.degree
 
     # As next step, those coordinates are transformed into an astropy.coordinates
-    # `~astropy.coordinates.SkyCoord` object.
+    # astropy.coordinates.SkyCoord object.
     c = SkyCoord(ra=ra_random, dec=dec_random, frame='icrs')
 
     # Because matplotlib needs the coordinates in radians and between :math:`-\pi`
@@ -766,7 +766,7 @@ Example 2: Plotting star positions in bulge and disk
 ====================================================
 
 This is more realitic example how to make a plot in the Aitoff projection
-using data in a `SkyCoord` object.
+using data in a |SkyCoord| object.
 Here a randomly generated data set (multivariante
 normal distribution) for both stars in the bulge and in the disk of a galaxy
 will be used. Both types will be plotted with different number counts. The
@@ -791,7 +791,7 @@ We now generate random data for visualisation using
     >>> galaxy = np.concatenate([disk, bulge])
 
 As next step, those coordinates are transformed into an astropy.coordinates
-`~astropy.coordinates.SkyCoord` object.
+|SkyCoord| object.
 
 .. doctest-requires:: matplotlib
 
@@ -819,7 +819,7 @@ We use the same plotting setup as in the last example:
 .. plot::
 
     # This is more realitic example how to make a plot in the Aitoff projection
-    # using data in a `SkyCoord` object.
+    # using data in a SkyCoord object.
     # Here a randomly generated data set (multivariante normal distribution) 
     # for both stars in the bulge and in the disk of a galaxy
     # will be used. Both types will be plotted with different number counts. The
@@ -838,7 +838,7 @@ We use the same plotting setup as in the last example:
     galaxy = np.concatenate([disk, bulge])
 
     # As next step, those coordinates are transformed into an astropy.coordinates
-    # `~astropy.coordinates.SkyCoord` object.
+    # astropy.coordinates.SkyCoord object.
     c_gal = SkyCoord(galaxy, representation='cartesian', frame='galactic')
     c_gal_icrs = c_gal.icrs
 
