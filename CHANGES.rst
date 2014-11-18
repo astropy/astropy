@@ -104,7 +104,10 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- ``astropy.coordinates``
+
+  - Improved the agreement of the FK5 <-> Galactic conversion with other
+    codes, and with the FK5 <-> FK4 <-> Galactic route. [#3107]
 
 
 0.4.2 (2014-09-23)

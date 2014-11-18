@@ -109,7 +109,7 @@ which accepts a frame name, frame class, or frame instance::
 
     >>> from astropy.coordinates import FK5
     >>> c_icrs.galactic  # doctest: +FLOAT_CMP
-    <SkyCoord (Galactic): l=121.174302631 deg, b=-21.5728000618 deg>
+    <SkyCoord (Galactic): l=121.174241811 deg, b=-21.5728855724 deg>
     >>> c_fk5 = c_icrs.transform_to('fk5')  # c_icrs.fk5 does the same thing
     >>> c_fk5  # doctest: +FLOAT_CMP
     <SkyCoord (FK5): equinox=J2000.000, ra=10.6845915393 deg, dec=41.2691714591 deg>

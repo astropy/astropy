@@ -331,7 +331,7 @@ new |SkyCoord| object in the requested frame::
 
   >>> sc_gal = sc.galactic
   >>> sc_gal  # doctest: +FLOAT_CMP
-  <SkyCoord (Galactic): l=99.6379436471 deg, b=-58.7096055983 deg>
+  <SkyCoord (Galactic): l=99.6378552814 deg, b=-58.7096929334 deg>
 
 Other attributes you should recognize are ``distance``, ``equinox``,
 ``obstime``, ``shape``.
@@ -411,8 +411,8 @@ much bother (duck typing!).
 The lowest layer in the stack is the abstract
 `~astropy.coordinates.UnitSphericalRepresentation` object:
 
-  >>> sc_gal.frame.data
-  <UnitSphericalRepresentation lon=1.739010... rad, lat=-1.024675... rad>
+  >>> sc_gal.frame.data  # doctest: +FLOAT_CMP
+  <UnitSphericalRepresentation lon=1.73900863429 rad, lat=-1.02467744452 rad>
 
 Transformations
 ^^^^^^^^^^^^^^^^^
@@ -431,7 +431,7 @@ name, frame class, frame instance, or |SkyCoord|::
   >>> from astropy.coordinates import FK5
   >>> sc = SkyCoord(1, 2, 'icrs', unit='deg')
   >>> sc.galactic  # doctest: +FLOAT_CMP
-  <SkyCoord (Galactic): l=99.6379436471 deg, b=-58.7096055983 deg>
+  <SkyCoord (Galactic): l=99.6378552814 deg, b=-58.7096929334 deg>
 
   >>> sc.transform_to('fk5')  # Same as sc.fk5 and sc.transform_to(FK5)  # doctest: +FLOAT_CMP
   <SkyCoord (FK5): equinox=J2000.000, ra=1.00000655566 deg, dec=2.00000243092 deg>

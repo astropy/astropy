@@ -162,8 +162,8 @@ def test_array_coordinates_transformations(arrshape, distance):
 
     assert g.l.shape == arrshape
 
-    npt.assert_array_almost_equal(g.l.degree, 121.17447049007306)
-    npt.assert_array_almost_equal(g.b.degree, -21.57291080408368)
+    npt.assert_array_almost_equal(g.l.degree, 121.17440967)
+    npt.assert_array_almost_equal(g.b.degree, -21.57299631)
 
     if distance is not None:
         assert g.distance.unit == c.distance.unit

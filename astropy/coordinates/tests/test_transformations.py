@@ -277,3 +277,21 @@ def test_obstime():
     # because the obstime is different
     assert icrs_50.ra.degree != icrs_75.ra.degree
     assert icrs_50.dec.degree != icrs_75.dec.degree
+
+
+def test_fk5_galactic():
+    """
+    Check that FK5 -> Galactic gives the same as FK5 -> FK4 -> Galactic.
+    """
+
+    fk5 = FK5(ra=1*u.deg, dec=2*u.deg)
+
+    direct = fk5.transform_to(Galactic)
+    indirect = fk5.transform_to(FK4).transform_to(Galactic)
+
+    assert direct.separation(indirect).degree < 1.e-10
+
+    direct = fk5.transform_to(Galactic)
+    indirect = fk5.transform_to(FK4NoETerms).transform_to(Galactic)
+
+    assert direct.separation(indirect).degree < 1.e-10

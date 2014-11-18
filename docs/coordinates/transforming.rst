@@ -19,7 +19,7 @@ The simplest method of transformation is shown below::
     >>> from astropy.coordinates import SkyCoord
     >>> gc = SkyCoord(l=0*u.degree, b=45*u.degree, frame='galactic')
     >>> gc.fk5  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250215 deg, dec=-1.12841764184 deg>
+    <SkyCoord (FK5): equinox=J2000.000, ra=229.272514629 deg, dec=-1.12844288043 deg>
 
 While this appears to be simple attribute-style access, it is actually
 syntactic sugar for the more general
@@ -28,11 +28,11 @@ accept either a frame name, class or instance::
 
     >>> from astropy.coordinates import FK5
     >>> gc.transform_to('fk5')  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250215 deg, dec=-1.12841764184 deg>
+    <SkyCoord (FK5): equinox=J2000.000, ra=229.272514629 deg, dec=-1.12844288043 deg>
     >>> gc.transform_to(FK5)  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5): equinox=J2000.000, ra=229.27250215 deg, dec=-1.12841764184 deg>
+    <SkyCoord (FK5): equinox=J2000.000, ra=229.272514629 deg, dec=-1.12844288043 deg>
     >>> gc.transform_to(FK5(equinox='J1980.0'))  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5): equinox=J1980.000, ra=229.014681064 deg, dec=-1.05557823687 deg>
+    <SkyCoord (FK5): equinox=J1980.000, ra=229.014693505 deg, dec=-1.05560349378 deg>
 
 As a convenience it is also possible to use a |SkyCoord| object as the frame in
 :meth:`~astropy.coordinates.SkyCoord.transform_to`.  This allows easily putting one
@@ -40,7 +40,7 @@ coordinate object into the frame of another::
 
     >>> sc = SkyCoord(ra=1.0, dec=2.0, unit='deg', frame=FK5, equinox='J1980.0')
     >>> gc.transform_to(sc)  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5): equinox=J1980.000, ra=229.014681064 deg, dec=-1.05557823687 deg>
+    <SkyCoord (FK5): equinox=J1980.000, ra=229.014693505 deg, dec=-1.05560349378 deg>
 
 The table below summarizes the built-in coordinate frames.  For details of
 these frames and the transformations between them see the `astropy.coordinates`
