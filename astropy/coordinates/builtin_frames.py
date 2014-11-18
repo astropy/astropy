@@ -296,12 +296,22 @@ class Galactic(BaseCoordinateFrame):
 
     # North galactic pole and zeropoint of l in FK4/FK5 coordinates. Needed for
     # transformations to/from FK4/5
-    # These are from Reid & Brunthaler 2004
-    _ngp_J2000 = FK5(ra=192.859508*u.degree, dec=27.128336*u.degree)
-    _lon0_J2000 = Angle(122.932, u.degree)
+
     # These are from the IAU's definition of galactic coordinates
-    _ngp_B1950 = FK4(ra=192.25*u.degree, dec=27.4*u.degree)
+    _ngp_B1950 = FK4NoETerms(ra=192.25*u.degree, dec=27.4*u.degree)
     _lon0_B1950 = Angle(123, u.degree)
+
+    # These are *not* from Reid & Brunthaler 2004 - instead, they were
+    # derived by doing:
+    #
+    # >>> FK4NoETerms(ra=192.25*u.degree, dec=27.4*u.degree).transform_to(FK5)
+    #
+    # This gives better consistency with other codes than using the values
+    # from Reid & Brunthaler 2004 and the best self-consistency between FK5
+    # -> Galactic and FK5 -> FK4 -> Galactic. The lon0 angle was found by
+    # optimizing the self-consistency.
+    _ngp_J2000 = FK5(ra=192.8594812065348*u.degree, dec=27.12825118085622*u.degree)
+    _lon0_J2000 = Angle(122.9319185680026, u.degree)
 
 
 class AltAz(BaseCoordinateFrame):
