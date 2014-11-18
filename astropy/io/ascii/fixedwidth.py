@@ -80,6 +80,7 @@ class FixedWidthHeader(basic.BasicHeader):
     """
     splitter_class = FixedWidthHeaderSplitter
     position_line = None   # secondary header line position
+    set_of_position_line_characters = set(r'`~!#$%^&*-_+=\|":' + "'")
 
     def get_line(self, lines, index):
         for i, line in enumerate(self.process_lines(lines)):
@@ -136,9 +137,13 @@ class FixedWidthHeader(basic.BasicHeader):
                 if len(set(line) - set([self.splitter.delimiter, ' '])) != 1:
                     raise InconsistentTableError('Position line should only contain delimiters and one other character, e.g. "--- ------- ---".')
                     # The line above lies. It accepts white space as well.
-                    # We don't wnat to encourage using three different characters, because
-                    # that can cause ambiguities, but white spaces are so common everywhere
-                    # that practicality beats purity here.
+                    # We don't wnat to encourage using three different
+                    # characters, because that can cause ambiguities, but white
+                    # spaces are so common everywhere that practicality beats
+                    # purity here.
+                charset = self.set_of_position_line_characters.union(set(self.splitter.delimiter))
+                if not set(line).issubset(charset):
+                    raise InconsistentTableError('Characters in position line must be part of {0}'.format(charset))
                 vals, self.col_starts, col_ends = self.get_fixedwidth_params(line)
                 self.col_ends = [x - 1 for x in col_ends]
 
