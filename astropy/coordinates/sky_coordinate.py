@@ -723,6 +723,11 @@ class SkyCoord(object):
         This method requires `SciPy <http://www.scipy.org>`_ to be
         installed or it will fail.
 
+        In the current implementation, the return values are always sorted in
+        the same order as the ``searcharoundcoords`` (so ``idxsearcharound`` is
+        in ascending order).  This is considered an implementation detail,
+        though, so it could change in a future release.
+
         See Also
         --------
         astropy.coordinates.search_around_sky
@@ -764,6 +769,11 @@ class SkyCoord(object):
         -----
         This method requires `SciPy <http://www.scipy.org>`_ to be
         installed or it will fail.
+
+        In the current implementation, the return values are always sorted in
+        the same order as the ``searcharoundcoords`` (so ``idxsearcharound`` is
+        in ascending order).  This is considered an implementation detail,
+        though, so it could change in a future release.
 
         See Also
         --------

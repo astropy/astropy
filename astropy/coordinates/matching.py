@@ -206,6 +206,11 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     ``coords1`` are the points to search around.  While these operations are
     mathematically the same if ``coords1`` and ``coords2`` are flipped, some of
     the optimizations may work better if this convention is obeyed.
+
+    In the current implementation, the return values are always sorted in the
+    same order as the ``coords1`` (so ``idx1`` is in ascending order).  This is
+    considered an implementation detail, though, so it could change in a future
+    release.
     """
     if not distlimit.isscalar:
         raise ValueError('distlimit must be a scalar in search_around_3d')
@@ -283,6 +288,11 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     -----
     This function requires `SciPy <http://www.scipy.org>`_ to be installed
     or it will fail.
+
+    In the current implementation, the return values are always sorted in the
+    same order as the ``coords1`` (so ``idx1`` is in ascending order).  This is
+    considered an implementation detail, though, so it could change in a future
+    release.
     """
     from . import Angle
 
