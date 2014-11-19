@@ -715,7 +715,7 @@ class SkyCoord(object):
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
         dist3d : `~astropy.units.Quantity`
-            The 3D distance between the coordinates`. Shape matches
+            The 3D distance between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
 
         Notes
@@ -757,7 +757,7 @@ class SkyCoord(object):
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
         dist3d : `~astropy.units.Quantity`
-            The 3D distance between the coordinates`. Shape matches
+            The 3D distance between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
 
         Notes

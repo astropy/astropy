@@ -193,7 +193,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
         The on-sky separation between the coordinates. Shape matches ``idx1``
         and ``idx2``.
     dist3d : `~astropy.units.Quantity`
-        The 3D distance between the coordinates`. Shape matches ``idx1`` and
+        The 3D distance between the coordinates. Shape matches ``idx1`` and
         ``idx2``.
 
     Notes
@@ -271,10 +271,10 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
         Indices into ``coords2`` that matches to the corresponding element of
         ``idx1``. Shape matches ``idx1``.
     sep2d : `~astropy.coordinates.Angle`
-        The on-sky separation between the coordinates`. Shape matches ``idx1``
+        The on-sky separation between the coordinates. Shape matches ``idx1``
         and ``idx2``.
     dist3d : `~astropy.units.Quantity`
-        The 3D distance between the coordinates`. Shape matches ``idx1`` and
+        The 3D distance between the coordinates. Shape matches ``idx1`` and
         ``idx2``. If either ``coords1`` or ``coords2`` don't have a distance,
         this is the 3D distance on the unit sphere, rather than a physical
         distance.
