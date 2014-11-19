@@ -667,7 +667,7 @@ class UnitBase(object):
 
         try:
             other = Unit(other, parse_strict='silent')
-        except (ValueError, UnitsError):
+        except (ValueError, UnitsError, TypeError):
             return False
         try:
             return is_effectively_unity(self._to(other))

@@ -629,3 +629,11 @@ def test_composite_compose():
     # Issue #2382
     composite_unit = u.s.compose(units=[u.Unit("s")])[0]
     u.s.compose(units=[composite_unit])
+
+
+def test_compare_with_none():
+    # Ensure that equality comparisons with `None` work, and don't
+    # raise exceptions.  We are deliberately not using `is None` here
+    # because that doesn't trigger the bug.  See #3108.
+    assert not (u.m == None)
+    assert u.m != None

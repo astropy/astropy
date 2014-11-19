@@ -92,8 +92,11 @@ Bug Fixes
   - Input to ``Quantity`` with a ``unit`` attribute no longer can get mangled
     with ``copy=False``. [#3051]
 
-  - Remove trailing space in ``__format__`` calls for dimensionless quantites.
+  - Remove trailing space in ``__format__`` calls for dimensionless quantities.
     [#3097]
+
+  - Comparisons between units and non-unit-like objects now works
+    correctly. [#3108]
 
 - ``astropy.utils``
 
