@@ -23,7 +23,7 @@ New Features
 
   - ``SkyCoord`` now has ``search_around_sky`` and ``search_around_3d``
     convinience methods that allow searching for all coordinates within
-    a certain distance of another `SkyCoord``. [#2953]
+    a certain distance of another ``SkyCoord``. [#2953]
 
 - ``astropy.cosmology``
 
