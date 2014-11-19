@@ -388,8 +388,8 @@ class DocTestFinderPlus(doctest.DocTestFinder):
 
 # Open file detection.
 #
-# This works by calling out to lsof to get the list of open files held
-# by the process both before and after the test.  If something is
+# This works by calling out to psutil to get the list of open files
+# held by the process both before and after the test.  If something is
 # still open after the test that wasn't open before the test, an
 # AssertionError is raised.
 #
@@ -410,9 +410,7 @@ def _get_open_file_list():
     else:
         suffixes = tuple(info[0] for info in imp.get_suffixes())
 
-    for open_file in p.open_files():
-        if not open_file.path.endswith(suffixes):
-            files.append(open_file.path)
+    files = [x.path for x in p.open_files() if not x.path.endswith(suffixes)]
 
     return set(files)
 
