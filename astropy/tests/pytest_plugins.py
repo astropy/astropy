@@ -401,33 +401,18 @@ SUPPORTS_OPEN_FILE_DETECTION = (
 
 
 def _get_open_file_list():
-    fsencoding = sys.getfilesystemencoding()
-
-    sproc = subprocess.Popen(
-        ['lsof -F0 -n -p {0}'.format(os.getpid())],
-        shell=True, stdout=subprocess.PIPE)
-    output = sproc.communicate()[0].strip()
+    import psutil
     files = []
-    for line in output.split(b'\n'):
-        columns = line.split(b'\0')
-        mapping = {}
-        for column in columns:
-            if len(column) >= 2:
-                mapping[column[0:1]] = column[1:]
+    p = psutil.Process()
 
-        if (mapping.get(b'f') and
-            mapping.get(b'a', b' ') != b' ' and
-                mapping.get(b't') == b'REG'):
-            # Ignore extension modules -- they may be imported by a
-            # test but are never again closed by the runtime.  That's
-            # ok.
-            if importlib_machinery is not None:
-                suffixes = tuple(importlib_machinery.all_suffixes())
-            else:
-                suffixes = tuple(info[0] for info in imp.get_suffixes())
+    if importlib_machinery is not None:
+        suffixes = tuple(importlib_machinery.all_suffixes())
+    else:
+        suffixes = tuple(info[0] for info in imp.get_suffixes())
 
-            if not mapping[b'n'].decode(fsencoding).endswith(suffixes):
-                files.append(mapping[b'n'])
+    for open_file in p.open_files():
+        if not open_file.path.endswith(suffixes):
+            files.append(open_file.path)
 
     return set(files)
 
