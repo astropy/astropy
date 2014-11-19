@@ -216,15 +216,17 @@ class TestRunner(object):
 
         # check for opened files after each test
         if open_files:
-            try:
-                subproc = subprocess.Popen(
-                    ['lsof -F0 -n -p {0}'.format(os.getpid())],
-                    shell=True, stdout=subprocess.PIPE)
-                output = subproc.communicate()[0].strip()
-            except subprocess.CalledProcessError:
+            if parallel != 0:
                 raise SystemError(
-                    "open file detection requested, but could not "
-                    "successfully run the 'lsof' command")
+                    "open file detection may not be used in conjunction with "
+                    "parallel testing.")
+
+            try:
+                import psutil
+            except ImportError:
+                raise SystemError(
+                    "open file detection requested, but psutil package "
+                    "is not installed.")
 
             all_args.append('--open-files')
 
