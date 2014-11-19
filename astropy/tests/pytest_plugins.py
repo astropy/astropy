@@ -452,8 +452,7 @@ def pytest_runtest_teardown(item, nextitem):
     if len(not_closed):
         msg = ['File(s) not closed:']
         for name in not_closed:
-            msg.append('  {0}'.format(
-                name.decode(sys.getfilesystemencoding())))
+            msg.append('  {0}'.format(name))
         raise AssertionError('\n'.join(msg))
 
 
