@@ -89,6 +89,9 @@ Bug Fixes
   - Ensured ``np.squeeze`` always returns a ``Quantity`` (it only worked if
     no dimensions were removed). [#3045]
 
+  - Input to ``Quantity`` with a ``unit`` attribute no longer can get mangled
+    with ``copy=False``. [#3051]
+
   - Remove trailing space in ``__format__`` calls for dimensionless quantites.
     [#3097]
 

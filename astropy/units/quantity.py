@@ -194,34 +194,37 @@ class Quantity(np.ndarray):
             return np.array(value, dtype=dtype, copy=copy, order=order,
                             subok=True, ndmin=ndmin)
 
-        rescale_value = None
-
         # Maybe list/tuple of Quantity? short-circuit array for speed
         if(not isinstance(value, np.ndarray) and isiterable(value) and
            all(isinstance(v, Quantity) for v in value)):
             if unit is None:
                 unit = value[0].unit
             value = [q.to(unit).value for q in value]
+            value_unit = unit  # signal below that conversion has been done
             copy = False  # copy already made
 
         else:
-            # if the value has a `unit` attribute, treat it like a quantity by
-            # rescaling the value appropriately
-            if hasattr(value, 'unit'):
-                    try:
-                        value_unit = Unit(value.unit)
-                    except TypeError:
-                        if unit is None:
-                            unit = dimensionless_unscaled
-                    else:
-                        if unit is None:
-                            unit = value_unit
-                        else:
-                            rescale_value = value_unit.to(unit)
+            # If the value has a `unit` attribute and if not None
+            # (for Columns with uninitialized unit), treat it like a quantity.
+            value_unit = getattr(value, 'unit', None)
+            if value_unit is None:
+                # Default to dimensionless for no (initialized) unit attribute.
+                if unit is None:
+                    unit = dimensionless_unscaled
+                value_unit = unit  # signal below that no conversion is needed
+            else:
+                try:
+                    value_unit = Unit(value_unit)
+                except Exception as exc:
+                    raise TypeError("The unit attribute {0} of the input could "
+                                    "not be parsed as an astropy Unit, raising "
+                                    "the following exception:\n{1}"
+                                    .format(repr(value.unit), exc))
 
-            #if it has no unit, default to dimensionless_unscaled
-            elif unit is None:
-                unit = dimensionless_unscaled
+                if unit is None:
+                    unit = value_unit
+                elif unit is not value_unit:
+                    copy = False  # copy will be made in conversion at end
 
         value = np.array(value, dtype=dtype, copy=copy, order=order,
                          subok=False, ndmin=ndmin)
@@ -239,13 +242,14 @@ class Quantity(np.ndarray):
                               or value.dtype.kind == 'O'):
             value = value.astype(np.float)
 
-        if rescale_value is not None:
-            value *= rescale_value
-
         value = value.view(cls)
-        value._unit = unit
-
-        return value
+        value._unit = value_unit
+        if unit is value_unit:
+            return value
+        else:
+            # here we had non-Quantity input that had a "unit" attribute
+            # with a unit different from the desired one.  So, convert.
+            return value.to(unit)
 
     def __array_finalize__(self, obj):
         self._unit = getattr(obj, '_unit', None)

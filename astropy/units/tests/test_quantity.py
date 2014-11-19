@@ -182,6 +182,40 @@ class TestQuantityCreation(object):
         q3 = u.Quantity(q1, u.m, ndmin=3)
         assert q3.ndim == 3 and q3.shape == (1, 1, 10)
 
+    def test_non_quantity_with_unit(self):
+        """Test that unit attributes in objects get recognized."""
+        class MyQuantityLookalike(np.ndarray):
+            pass
+
+        a = np.arange(3.)
+        mylookalike = a.copy().view(MyQuantityLookalike)
+        mylookalike.unit = 'm'
+        q1 = u.Quantity(mylookalike)
+        assert isinstance(q1, u.Quantity)
+        assert q1.unit is u.m
+        assert np.all(q1.value == a)
+
+        q2 = u.Quantity(mylookalike, u.mm)
+        assert q2.unit is u.mm
+        assert np.all(q2.value == 1000.*a)
+
+        q3 = u.Quantity(mylookalike, copy=False)
+        assert np.all(q3.value == mylookalike)
+        q3[2] = 0
+        assert q3[2] == 0.
+        assert mylookalike[2] == 0.
+
+        mylookalike = a.copy().view(MyQuantityLookalike)
+        mylookalike.unit = u.m
+        q4 = u.Quantity(mylookalike, u.mm, copy=False)
+        q4[2] = 0
+        assert q4[2] == 0.
+        assert mylookalike[2] == 2.
+
+        mylookalike.unit = 'nonsense'
+        with pytest.raises(TypeError):
+            u.Quantity(mylookalike)
+
 
 class TestQuantityOperations(object):
     q1 = u.Quantity(11.42, u.meter)
