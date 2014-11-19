@@ -98,8 +98,8 @@ def blackbody_lambda(in_x, temperature):
         :math:`erg \\; cm^{-2} s^{-1} \\AA^{-1} sr^{-1}`.
 
     """
-    if not isinstance(in_x, u.Quantity):
-        in_x = in_x * u.AA
+    if getattr(in_x, 'unit', None) is None:
+        in_x = u.Quantity(in_x, u.AA)
 
     bb_nu = blackbody_nu(in_x, temperature) * u.sr  # Remove sr for conversion
     flux = bb_nu.to(FLAM, u.spectral_density(in_x))

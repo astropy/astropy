@@ -64,14 +64,6 @@ def test_blackbody_overflow():
     assert flux.value == 0
 
 
-@pytest.mark.xfail(reason='This is not catched anymore')
-def test_blackbody_overflow_nocatch():
-    """No catch for when np.expm1(x) is near zero."""
-    with np.errstate(all='ignore'):
-        flux = blackbody_nu(10 * u.m, 1.e10)
-    assert flux.value == 0
-
-
 def test_blackbody_synphot():
     """Test that it is consistent with IRAF SYNPHOT BBFUNC."""
     # Solid angle of solar radius at 1 kpc
