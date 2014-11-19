@@ -48,7 +48,7 @@ def match_coordinates_3d(matchcoord, catalogcoord, nthneighbor=1, storekdtree='_
     Returns
     -------
     idx : integer array
-        Indecies into ``catalogcoord`` to get the matched points for each
+        Indices into ``catalogcoord`` to get the matched points for each
         ``matchcoord``. Shape matches ``matchcoord``.
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the closest match for each ``matchcoord``
@@ -114,7 +114,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
     Returns
     -------
     idx : integer array
-        Indecies into ``catalogcoord`` to get the matched points for each
+        Indices into ``catalogcoord`` to get the matched points for each
         ``matchcoord``. Shape matches ``matchcoord``.
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the closest match for each
@@ -184,10 +184,10 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     Returns
     -------
     idx1 : integer array
-        Indecies into ``coords1`` that matches to the corresponding element of
+        Indices into ``coords1`` that matches to the corresponding element of
         ``idx2``. Shape matches ``idx2``.
     idx2 : integer array
-        Indecies into ``coords2`` that matches to the corresponding element of
+        Indices into ``coords2`` that matches to the corresponding element of
         ``idx1``. Shape matches ``idx1``.
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the coordinates. Shape matches ``idx1``
@@ -268,10 +268,10 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     Returns
     -------
     idx1 : integer array
-        Indecies into ``coords1`` that matches to the corresponding element of
+        Indices into ``coords1`` that matches to the corresponding element of
         ``idx2``. Shape matches ``idx2``.
     idx2 : integer array
-        Indecies into ``coords2`` that matches to the corresponding element of
+        Indices into ``coords2`` that matches to the corresponding element of
         ``idx1``. Shape matches ``idx1``.
     sep2d : `~astropy.coordinates.Angle`
         The on-sky separation between the coordinates`. Shape matches ``idx1``
