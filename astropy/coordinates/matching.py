@@ -244,7 +244,7 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
 
 def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     """
-    Searches for pairs of points that are have an angular separation at least as
+    Searches for pairs of points that have an angular separation at least as
     close as a specified angle.
 
     Parameters
