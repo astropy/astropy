@@ -20,10 +20,7 @@ import locale
 import math
 import os
 import re
-import shutil
-import subprocess
 import sys
-import tempfile
 import types
 
 from .helper import (
@@ -396,9 +393,6 @@ class DocTestFinderPlus(doctest.DocTestFinder):
 # This is not thread-safe.  We're not currently running our tests
 # multi-threaded, but that is worth noting.
 
-SUPPORTS_OPEN_FILE_DETECTION = (
-    sys.platform in ('linux', 'linux2', 'darwin'))
-
 
 def _get_open_file_list():
     import psutil
@@ -418,7 +412,7 @@ def _get_open_file_list():
 def pytest_runtest_setup(item):
     # Store a list of the currently opened files so we can compare
     # against them when the test is done.
-    if SUPPORTS_OPEN_FILE_DETECTION and item.config.getvalue('open_files'):
+    if item.config.getvalue('open_files'):
         item.open_files = _get_open_file_list()
 
     if ('remote_data' in item.keywords and
@@ -426,42 +420,41 @@ def pytest_runtest_setup(item):
         pytest.skip("need --remote-data option to run")
 
 
-if SUPPORTS_OPEN_FILE_DETECTION:
-    def pytest_runtest_teardown(item, nextitem):
-        # a "skipped" test will not have been called with
-        # pytest_runtest_setup, so therefore won't have an
-        # "open_files" member
-        if (not item.config.getvalue('open_files') or
-                not hasattr(item, 'open_files')):
-            return
+def pytest_runtest_teardown(item, nextitem):
+    # a "skipped" test will not have been called with
+    # pytest_runtest_setup, so therefore won't have an
+    # "open_files" member
+    if (not item.config.getvalue('open_files') or
+            not hasattr(item, 'open_files')):
+        return
 
-        start_open_files = item.open_files
-        del item.open_files
+    start_open_files = item.open_files
+    del item.open_files
 
-        open_files = _get_open_file_list()
+    open_files = _get_open_file_list()
 
-        # This works in tandem with the test_open_file_detection test to
-        # ensure that it creates one extra open file.
-        if item.name == 'test_open_file_detection':
-            assert len(start_open_files) + 1 == len(open_files)
-            return
+    # This works in tandem with the test_open_file_detection test to
+    # ensure that it creates one extra open file.
+    if item.name == 'test_open_file_detection':
+        assert len(start_open_files) + 1 == len(open_files)
+        return
 
-        not_closed = set()
-        for filename in open_files:
-            # astropy.log files are allowed to continue to exist
-            # between test runs
-            if os.path.basename(filename) == 'astropy.log':
-                continue
+    not_closed = set()
+    for filename in open_files:
+        # astropy.log files are allowed to continue to exist
+        # between test runs
+        if os.path.basename(filename) == 'astropy.log':
+            continue
 
-            if filename not in start_open_files:
-                not_closed.add(filename)
+        if filename not in start_open_files:
+            not_closed.add(filename)
 
-        if len(not_closed):
-            msg = ['File(s) not closed:']
-            for name in not_closed:
-                msg.append('  {0}'.format(
-                    name.decode(sys.getfilesystemencoding())))
-            raise AssertionError('\n'.join(msg))
+    if len(not_closed):
+        msg = ['File(s) not closed:']
+        for name in not_closed:
+            msg.append('  {0}'.format(
+                name.decode(sys.getfilesystemencoding())))
+        raise AssertionError('\n'.join(msg))
 
 
 def pytest_report_header(config):
