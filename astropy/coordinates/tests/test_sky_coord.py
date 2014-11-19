@@ -31,6 +31,12 @@ J2001 = Time('J2001', scale='utc')
 
 allclose = functools.partial(np.allclose, rtol=0.0, atol=1e-8)
 
+try:
+    import scipy
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
+
 
 def test_transform_to():
     for frame in (FK5, FK5(equinox=Time('J1975.0')),
