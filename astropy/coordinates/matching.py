@@ -207,9 +207,6 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     mathematically the same if ``coords1`` and ``coords2`` are flipped, some of
     the optimizations may work better if this convention is obeyed.
     """
-    from . import Angle
-    from ..table import Table
-
     if not distlimit.isscalar:
         raise ValueError('distlimit must be a scalar in search_around_3d')
 
@@ -288,7 +285,6 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     or it will fail.
     """
     from . import Angle
-    from ..table import Table
 
     if not seplimit.isscalar:
         raise ValueError('seplimit must be a scalar in search_around_sky')
