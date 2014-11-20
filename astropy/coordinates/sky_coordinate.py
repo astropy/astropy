@@ -690,6 +690,100 @@ class SkyCoord(object):
 
         return res
 
+    def search_around_sky(self, searcharoundcoords, seplimit):
+        """
+        Searches for all coordinates in this object around a supplied set of
+        points within a given on-sky separation.
+
+        Parameters
+        ----------
+        searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate(s) to search around to try to find matching points in
+            this `SkyCoord`.
+        seplimit : `~astropy.units.Quantity` with angle units
+            The on-sky separation to search within.
+
+        Returns
+        -------
+        idxsearcharound : integer array
+            Indices into ``coords1`` that matches to the corresponding element of
+            ``idxself``. Shape matches ``idxself``.
+        idxself : integer array
+            Indices into ``coords2`` that matches to the corresponding element of
+            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+        sep2d : `~astropy.coordinates.Angle`
+            The on-sky separation between the coordinates. Shape matches
+            ``idxsearcharound`` and ``idxself``.
+        dist3d : `~astropy.units.Quantity`
+            The 3D distance between the coordinates. Shape matches
+            ``idxsearcharound`` and ``idxself``.
+
+        Notes
+        -----
+        This method requires `SciPy <http://www.scipy.org>`_ to be
+        installed or it will fail.
+
+        In the current implementation, the return values are always sorted in
+        the same order as the ``searcharoundcoords`` (so ``idxsearcharound`` is
+        in ascending order).  This is considered an implementation detail,
+        though, so it could change in a future release.
+
+        See Also
+        --------
+        astropy.coordinates.search_around_sky
+        """
+        from .matching import search_around_sky
+
+        return search_around_sky(searcharoundcoords, self, seplimit,
+                                 storekdtree='_kdtree_sky')
+
+    def search_around_3d(self, searcharoundcoords, distlimit):
+        """
+        Searches for all coordinates in this object around a supplied set of
+        points within a given 3D radius.
+
+        Parameters
+        ----------
+        searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate(s) to search around to try to find matching points in
+            this `SkyCoord`.
+        distlimit : `~astropy.units.Quantity` with distance units
+            The physical radius to search within.
+
+        Returns
+        -------
+        idxsearcharound : integer array
+            Indices into ``coords1`` that matches to the corresponding element of
+            ``idxself``. Shape matches ``idxself``.
+        idxself : integer array
+            Indices into ``coords2`` that matches to the corresponding element of
+            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+        sep2d : `~astropy.coordinates.Angle`
+            The on-sky separation between the coordinates. Shape matches
+            ``idxsearcharound`` and ``idxself``.
+        dist3d : `~astropy.units.Quantity`
+            The 3D distance between the coordinates. Shape matches
+            ``idxsearcharound`` and ``idxself``.
+
+        Notes
+        -----
+        This method requires `SciPy <http://www.scipy.org>`_ to be
+        installed or it will fail.
+
+        In the current implementation, the return values are always sorted in
+        the same order as the ``searcharoundcoords`` (so ``idxsearcharound`` is
+        in ascending order).  This is considered an implementation detail,
+        though, so it could change in a future release.
+
+        See Also
+        --------
+        astropy.coordinates.search_around_3d
+        """
+        from .matching import search_around_3d
+
+        return search_around_3d(searcharoundcoords, self, distlimit,
+                                storekdtree='_kdtree_3d')
+
     def position_angle(self, other):
         """
         Computes the on-sky position angle (East of North) between this

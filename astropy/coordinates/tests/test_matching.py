@@ -112,5 +112,29 @@ def test_matching_method():
     npt.assert_allclose(d2d1, d2d2)
     npt.assert_allclose(d3d1, d3d2)
 
-
     assert len(idx1) == len(d2d1) == len(d3d1) == 20
+
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
+def test_search_around():
+    from .. import ICRS
+    from ..matching import search_around_sky, search_around_3d
+
+    coo1 = ICRS([4, 2.1]*u.degree, [0, 0]*u.degree, distance=[1, 5] * u.kpc)
+    coo2 = ICRS([1, 2, 3, 4]*u.degree, [0, 0, 0, 0]*u.degree, distance=[1, 1, 1, 5] * u.kpc)
+
+    idx1_1deg, idx2_1deg, d2d_1deg, d3d_1deg = search_around_sky(coo1, coo2, 1.01*u.deg)
+    idx1_0p05deg, idx2_0p05deg, d2d_0p05deg, d3d_0p05deg = search_around_sky(coo1, coo2, 0.05*u.deg)
+
+    assert list(zip(idx1_1deg, idx2_1deg)) == [(0, 2), (0, 3), (1, 1), (1, 2)]
+    assert d2d_1deg[0] == 1.0*u.deg
+    npt.assert_allclose(d2d_1deg, [1, 0, .1, .9]*u.deg)
+
+    assert list(zip(idx1_0p05deg, idx2_0p05deg)) == [(0, 3)]
+
+    idx1_1kpc, idx2_1kpc, d2d_1kpc, d3d_1kpc = search_around_3d(coo1, coo2, 1*u.kpc)
+    idx1_sm, idx2_sm, d2d_sm, d3d_sm = search_around_3d(coo1, coo2, 0.05*u.kpc)
+
+    assert list(zip(idx1_1kpc, idx2_1kpc)) == [(0, 0), (0, 1), (0, 2), (1, 3)]
+    assert list(zip(idx1_sm, idx2_sm)) == [(0, 1), (0, 2)]
+    npt.assert_allclose(d2d_sm, [2, 1]*u.deg)
