@@ -210,7 +210,7 @@ def validate_power(p, support_tuples=False):
                 scaled = p * float(i)
                 if((scaled + 4. * _float_finfo.eps) % 1.0 <
                    8. * _float_finfo.eps):
-                    p = Fraction(int(scaled), i)
+                    p = Fraction(int(round(scaled)), i)
                     break
 
     return p

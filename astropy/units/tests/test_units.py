@@ -21,6 +21,7 @@ from ...utils.compat.fractions import Fraction
 
 from ... import units as u
 from ... import constants as c
+from .. import utils
 
 
 def test_getting_started():
@@ -645,3 +646,10 @@ def test_compare_with_none():
     # because that doesn't trigger the bug.  See #3108.
     assert not (u.m == None)
     assert u.m != None
+
+
+def test_validate_power_detect_fraction():
+    frac = utils.validate_power(1.1666666666666665)
+    assert type(frac) == Fraction
+    assert frac.numerator == 7
+    assert frac.denominator == 6
