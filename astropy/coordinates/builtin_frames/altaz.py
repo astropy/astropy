@@ -3,20 +3,14 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ...time import Time
+from warnings import warn
+
+from ...utils.exceptions import AstropyWarning
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
                          TimeFrameAttribute, RepresentationMapping)
 
-
-from warnings import warn
-from ...utils.exceptions import AstropyWarning
-
-# The UTC time scale is not properly defined prior to 1960, so Time('B1950',
-# scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
-# which is equivalent, but does not emit a warning.
-_EQUINOX_J2000 = Time('J2000', scale='utc')
-_EQUINOX_B1950 = Time('B1950', scale='tai')
+from .consts import EQUINOX_B1950
 
 
 class AltAz(BaseCoordinateFrame):
@@ -52,7 +46,7 @@ class AltAz(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
-    equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+    equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     location = FrameAttribute(default=None)
     obstime = TimeFrameAttribute(default=None)
 

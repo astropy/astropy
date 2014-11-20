@@ -3,21 +3,15 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from ...time import Time
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
                          TimeFrameAttribute, RepresentationMapping)
 from ..transformations import DynamicMatrixTransform
-
 from .. import earth_orientation as earth
+
 from .icrs import ICRS
 
-
-# The UTC time scale is not properly defined prior to 1960, so Time('B1950',
-# scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
-# which is equivalent, but does not emit a warning.
-_EQUINOX_J2000 = Time('J2000', scale='utc')
-_EQUINOX_B1950 = Time('B1950', scale='tai')
+from .consts import EQUINOX_J2000
 
 
 class FK5(BaseCoordinateFrame):
@@ -48,7 +42,7 @@ class FK5(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
-    equinox = TimeFrameAttribute(default=_EQUINOX_J2000)
+    equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
     @staticmethod
     def _precession_matrix(oldequinox, newequinox):
@@ -81,7 +75,7 @@ def fk5_to_fk5(fk5coord1, fk5frame2):
 @frame_transform_graph.transform(DynamicMatrixTransform, ICRS, FK5)
 def icrs_to_fk5(icrscoord, fk5frame):
     # ICRS is by design very close to J2000 equinox
-    pmat = fk5frame._precession_matrix(_EQUINOX_J2000, fk5frame.equinox)
+    pmat = fk5frame._precession_matrix(EQUINOX_J2000, fk5frame.equinox)
     return pmat * icrscoord._ICRS_TO_FK5_J2000_MAT
 
 
@@ -89,5 +83,5 @@ def icrs_to_fk5(icrscoord, fk5frame):
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, ICRS)
 def fk5_to_icrs(fk5coord, icrsframe):
     # ICRS is by design very close to J2000 equinox
-    pmat = fk5coord._precession_matrix(fk5coord.equinox, _EQUINOX_J2000)
+    pmat = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
     return icrsframe._ICRS_TO_FK5_J2000_MAT.T * pmat

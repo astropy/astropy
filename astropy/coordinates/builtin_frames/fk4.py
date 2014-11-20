@@ -6,22 +6,15 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 
 from ... import units as u
-from ...time import Time
 from ..representation import (SphericalRepresentation, CartesianRepresentation,
                               UnitSphericalRepresentation)
 from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
                          TimeFrameAttribute, RepresentationMapping)
 from ..transformations import FunctionTransform, DynamicMatrixTransform
-
 from .. import earth_orientation as earth
+
 from .fk5 import FK5
-
-
-# The UTC time scale is not properly defined prior to 1960, so Time('B1950',
-# scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
-# which is equivalent, but does not emit a warning.
-_EQUINOX_J2000 = Time('J2000', scale='utc')
-_EQUINOX_B1950 = Time('B1950', scale='tai')
+from .consts import EQUINOX_B1950, EQUINOX_J2000
 
 
 class FK4(BaseCoordinateFrame):
@@ -55,7 +48,7 @@ class FK4(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
-    equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+    equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
 
@@ -98,7 +91,7 @@ class FK4NoETerms(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
-    equinox = TimeFrameAttribute(default=_EQUINOX_B1950)
+    equinox = TimeFrameAttribute(default=EQUINOX_B1950)
     obstime = TimeFrameAttribute(default=None, secondary_attribute='equinox')
 
     @staticmethod
@@ -280,8 +273,8 @@ def fk4_no_e_to_fk5(fk4noecoord, fk5frame):
 
     # construct both precession matricies - if the equinoxes are B1950 and
     # J2000, these are just identity matricies
-    pmat1 = fk4noecoord._precession_matrix(fk4noecoord.equinox, _EQUINOX_B1950)
-    pmat2 = fk5frame._precession_matrix(_EQUINOX_J2000, fk5frame.equinox)
+    pmat1 = fk4noecoord._precession_matrix(fk4noecoord.equinox, EQUINOX_B1950)
+    pmat2 = fk5frame._precession_matrix(EQUINOX_J2000, fk5frame.equinox)
 
     return pmat2 * B * pmat1
 
@@ -295,7 +288,7 @@ def fk5_to_fk4_no_e(fk5coord, fk4noeframe):
 
     # construct both precession matricies - if the equinoxes are B1950 and
     # J2000, these are just identity matricies
-    pmat1 = fk5coord._precession_matrix(fk5coord.equinox, _EQUINOX_J2000)
-    pmat2 = fk4noeframe._precession_matrix(_EQUINOX_B1950, fk4noeframe.equinox)
+    pmat1 = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
+    pmat2 = fk4noeframe._precession_matrix(EQUINOX_B1950, fk4noeframe.equinox)
 
     return pmat2 * B * pmat1
