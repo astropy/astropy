@@ -20,7 +20,7 @@ from ..extern import six
 
 __all__ = sorted([
     'AiryDisk2D', 'Beta1D', 'Beta2D', 'Box1D',
-    'Box2D', 'Const1D', 'Const2D', 'Disk2D',
+    'Box2D', 'Const1D', 'Const2D', 'Ellipse2D', 'Disk2D',
     'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D',
     'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Redshift', 'Shift',
     'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D',
@@ -648,6 +648,63 @@ class Const2D(Fittable2DModel):
             x = amplitude * np.ones_like(x)
 
         return x
+
+
+class Ellipse2D(Fittable2DModel):
+    """
+    A 2D Ellipse model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Value of the ellipse.
+
+    x_0 : float
+        x position of the center of the disk.
+
+    y_0 : float
+        y position of the center of the disk.
+
+    a : float
+        The length of the semimajor axis.
+
+    b : float
+        The length of the semiminor axis.
+
+    theta : float
+        The rotation angle in radians of the semimajor axis.  The
+        rotation angle increases counterclockwise from the positive x
+        axis.
+
+    See Also
+    --------
+    Disk2D, Box2D
+    """
+
+    amplitude = Parameter()
+    x_0 = Parameter()
+    y_0 = Parameter()
+    a = Parameter()
+    b = Parameter()
+    theta = Parameter()
+
+    def __init__(self, amplitude, x_0, y_0, a, b, theta=0., **kwargs):
+        super(Ellipse2D, self).__init__(
+            amplitude=amplitude, x_0=x_0, y_0=y_0, a=a, b=b, theta=theta,
+            **kwargs)
+
+    @staticmethod
+    def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
+        """Two dimensional Ellipse model function."""
+
+        xx = x - x_0
+        yy = y - y_0
+        cost = np.cos(theta)
+        sint = np.sin(theta)
+        numerator1 = (xx * cost) + (yy * sint)
+        numerator2 = -(xx * sint) + (yy * cost)
+        in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) < 1.)
+        return np.select([in_ellipse], [amplitude])
 
 
 class Disk2D(Fittable2DModel):
