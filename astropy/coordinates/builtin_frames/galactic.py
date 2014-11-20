@@ -1,27 +1,15 @@
-
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-# Standard library
-import inspect
-
-# Dependencies
-import numpy as np
-
-# Project
-from ...extern import six
-from ...utils.compat.odict import OrderedDict
 from ... import units as u
 from ...time import Time
-from ..angles import Angle
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
-                             UnitSphericalRepresentation)
-from ..baseframe import (BaseCoordinateFrame, frame_transform_graph, GenericFrame,
-                        FrameAttribute, TimeFrameAttribute,
-                        RepresentationMapping)
-from ..transformations import FunctionTransform, DynamicMatrixTransform
-
-
+from ..angles import Angle, rotation_matrix
+from ..representation import SphericalRepresentation
+from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
+                         RepresentationMapping)
+from ..transformations import DynamicMatrixTransform
 
 from .fk5 import FK5
 from .fk4 import FK4NoETerms
@@ -88,8 +76,6 @@ class Galactic(BaseCoordinateFrame):
 # can't be static because the equinox is needed
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, Galactic)
 def fk5_to_gal(fk5coord, galframe):
-    from ..angles import rotation_matrix
-
     #need precess to J2000 first
     pmat = fk5coord._precession_matrix(fk5coord.equinox, _EQUINOX_J2000)
     mat1 = rotation_matrix(180 - Galactic._lon0_J2000.degree, 'z')
@@ -106,8 +92,6 @@ def _gal_to_fk5(galcoord, fk5frame):
 
 @frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, Galactic)
 def fk4_to_gal(fk4coords, galframe):
-    from ..angles import rotation_matrix
-
     mat1 = rotation_matrix(180 - Galactic._lon0_B1950.degree, 'z')
     mat2 = rotation_matrix(90 - Galactic._ngp_B1950.dec.degree, 'y')
     mat3 = rotation_matrix(Galactic._ngp_B1950.ra.degree, 'z')

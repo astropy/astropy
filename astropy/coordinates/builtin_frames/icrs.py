@@ -1,25 +1,12 @@
-
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-# Standard library
-import inspect
+from ..representation import SphericalRepresentation
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from ..angles import rotation_matrix
 
-# Dependencies
-import numpy as np
-
-# Project
-from ...extern import six
-from ...utils.compat.odict import OrderedDict
-from ... import units as u
-from ...time import Time
-from ..angles import Angle
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
-                             UnitSphericalRepresentation)
-from ..baseframe import (BaseCoordinateFrame, frame_transform_graph, GenericFrame,
-                        FrameAttribute, TimeFrameAttribute,
-                        RepresentationMapping)
-from ..transformations import FunctionTransform, DynamicMatrixTransform
 
 class ICRS(BaseCoordinateFrame):
     """
@@ -60,7 +47,6 @@ class ICRS(BaseCoordinateFrame):
         B-matrix from USNO circular 179.  Used by the ICRS->FK5 transformation
         functions.
         """
-        from ..angles import rotation_matrix
 
         eta0 = -19.9 / 3600000.
         xi0 = 9.1 / 3600000.

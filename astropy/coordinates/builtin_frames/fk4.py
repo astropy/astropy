@@ -1,28 +1,21 @@
-
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-# Standard library
-import inspect
-
-# Dependencies
 import numpy as np
 
-# Project
-from ...extern import six
-from ...utils.compat.odict import OrderedDict
 from ... import units as u
 from ...time import Time
-from ..angles import Angle
 from ..representation import (SphericalRepresentation, CartesianRepresentation,
-                             UnitSphericalRepresentation)
-from ..baseframe import (BaseCoordinateFrame, frame_transform_graph, GenericFrame,
-                        FrameAttribute, TimeFrameAttribute,
-                        RepresentationMapping)
+                              UnitSphericalRepresentation)
+from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
+                         TimeFrameAttribute, RepresentationMapping)
 from ..transformations import FunctionTransform, DynamicMatrixTransform
 
-
+from .. import earth_orientation as earth
 from .fk5 import FK5
+
 
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
 # scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
@@ -126,9 +119,7 @@ class FK4NoETerms(BaseCoordinateFrame):
         newcoord : array
             The precession matrix to transform to the new equinox
         """
-        from ..earth_orientation import _precession_matrix_besselian
-
-        return _precession_matrix_besselian(oldequinox.byear, newequinox.byear)
+        return earth._precession_matrix_besselian(oldequinox.byear, newequinox.byear)
 
     @staticmethod
     def _fk4_B_matrix(obstime):
@@ -146,9 +137,7 @@ def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
     return fk4necoord1._precession_matrix(fk4necoord1.equinox, fk4neframe2.equinox)
 
 
-
-    # FK4-NO-E to/from FK4 ----------------------------->
-
+# FK4-NO-E to/from FK4 ----------------------------->
 # In the present framework, we include two coordinate classes for FK4
 # coordinates - one including the E-terms of aberration (FK4), and
 # one not including them (FK4NoETerms). The following functions
@@ -162,9 +151,6 @@ def fk4_e_terms(equinox):
     equinox : Time object
         The equinox for which to compute the e-terms
     """
-
-    from .. import earth_orientation as earth
-
     # Constant of aberration at J2000
     k = 0.0056932
 
@@ -187,8 +173,6 @@ def fk4_e_terms(equinox):
 
 @frame_transform_graph.transform(FunctionTransform, FK4, FK4NoETerms)
 def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
-    from ..representation import CartesianRepresentation, UnitSphericalRepresentation
-
     # Extract cartesian vector
     c = fk4coord.cartesian.xyz
     r = np.asarray(c.reshape((3, c.size // 3)))
@@ -233,8 +217,6 @@ def fk4_to_fk4_no_e(fk4coord, fk4noeframe):
 
 @frame_transform_graph.transform(FunctionTransform, FK4NoETerms, FK4)
 def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
-    from ..representation import CartesianRepresentation, UnitSphericalRepresentation
-
     #first precess, if necessary
     if fk4noecoord.equinox != fk4frame.equinox:
         fk4noe_w_fk4equinox = FK4NoETerms(equinox=fk4frame.equinox,
@@ -276,8 +258,8 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
 
     return fk4frame.realize_frame(representation)
 
-# FK5 to/from FK4 ------------------->
 
+# FK5 to/from FK4 ------------------->
 # B1950->J2000 matrix from Murray 1989 A&A 218,325 eqn 28
 _B1950_TO_J2000_M = \
     np.mat([[0.9999256794956877, -0.0111814832204662, -0.0048590038153592],

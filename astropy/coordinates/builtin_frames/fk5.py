@@ -1,26 +1,15 @@
-
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-# Standard library
-import inspect
-
-# Dependencies
-import numpy as np
-
-# Project
-from ...extern import six
-from ...utils.compat.odict import OrderedDict
-from ... import units as u
 from ...time import Time
-from ..angles import Angle
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
-                             UnitSphericalRepresentation)
-from ..baseframe import (BaseCoordinateFrame, frame_transform_graph, GenericFrame,
-                        FrameAttribute, TimeFrameAttribute,
-                        RepresentationMapping)
-from ..transformations import FunctionTransform, DynamicMatrixTransform
+from ..representation import SphericalRepresentation
+from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
+                         TimeFrameAttribute, RepresentationMapping)
+from ..transformations import DynamicMatrixTransform
 
+from .. import earth_orientation as earth
 from .icrs import ICRS
 
 
@@ -29,7 +18,6 @@ from .icrs import ICRS
 # which is equivalent, but does not emit a warning.
 _EQUINOX_J2000 = Time('J2000', scale='utc')
 _EQUINOX_B1950 = Time('B1950', scale='tai')
-
 
 
 class FK5(BaseCoordinateFrame):
@@ -80,16 +68,13 @@ class FK5(BaseCoordinateFrame):
         newcoord : array
             The precession matrix to transform to the new equinox
         """
-        from ..earth_orientation import precession_matrix_Capitaine
-
-        return precession_matrix_Capitaine(oldequinox, newequinox)
+        return earth.precession_matrix_Capitaine(oldequinox, newequinox)
 
 
 # Has to be defined at module level, because `transform` needs an FK5 reference
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, FK5)
 def fk5_to_fk5(fk5coord1, fk5frame2):
     return fk5coord1._precession_matrix(fk5coord1.equinox, fk5frame2.equinox)
-
 
 
 # ICRS to/from FK5 -------------------------------->
@@ -106,5 +91,3 @@ def fk5_to_icrs(fk5coord, icrsframe):
     # ICRS is by design very close to J2000 equinox
     pmat = fk5coord._precession_matrix(fk5coord.equinox, _EQUINOX_J2000)
     return icrsframe._ICRS_TO_FK5_J2000_MAT.T * pmat
-
-

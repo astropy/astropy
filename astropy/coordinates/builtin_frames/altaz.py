@@ -1,33 +1,22 @@
-
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-# Standard library
-import inspect
-
-# Dependencies
-import numpy as np
-
-# Project
-from ...extern import six
-from ...utils.compat.odict import OrderedDict
-from ... import units as u
 from ...time import Time
-from ..angles import Angle
-from ..representation import (SphericalRepresentation, CartesianRepresentation,
-                             UnitSphericalRepresentation)
-from ..baseframe import (BaseCoordinateFrame, frame_transform_graph, GenericFrame,
-                        FrameAttribute, TimeFrameAttribute,
-                        RepresentationMapping)
-from ..transformations import FunctionTransform, DynamicMatrixTransform
+from ..representation import SphericalRepresentation
+from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
+                         TimeFrameAttribute, RepresentationMapping)
 
+
+from warnings import warn
+from ...utils.exceptions import AstropyWarning
 
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
 # scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
 # which is equivalent, but does not emit a warning.
 _EQUINOX_J2000 = Time('J2000', scale='utc')
 _EQUINOX_B1950 = Time('B1950', scale='tai')
-
 
 
 class AltAz(BaseCoordinateFrame):
@@ -68,8 +57,6 @@ class AltAz(BaseCoordinateFrame):
     obstime = TimeFrameAttribute(default=None)
 
     def __init__(self, *args, **kwargs):
-        from warnings import warn
-        from astropy.utils.exceptions import AstropyWarning
 
         warn(AstropyWarning('The AltAz class currently does not support any '
                             'transformations.  In a future version, it will '
