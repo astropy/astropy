@@ -9,6 +9,11 @@ astropy now requires a Numpy 1.6.0 or later.
 New Features
 ^^^^^^^^^^^^
 
+- ``astropy.analytic_functions``
+
+  - The ``astropy.analytic_functions`` was added to contain analytic functions
+    useful for astronomy [#3077].
+
 - ``astropy.config``
 
 - ``astropy.constants``

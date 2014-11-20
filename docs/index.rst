@@ -65,6 +65,7 @@ User Documentation
    coordinates/index
    wcs/index
    modeling/index
+   analytic_functions/index
 
 **Connecting up: Files and I/O**
 

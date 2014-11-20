@@ -62,6 +62,17 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
+                astropy.analytic_functions
+            </td>
+            <td align='center'>
+                <img alt="dev" src="_images/dev.png">
+            </td>
+            <td>
+                New in v1.0.
+            </td>
+        </tr>
+        <tr>
+            <td>
                 astropy.constants
             </td>
             <td align='center'>
