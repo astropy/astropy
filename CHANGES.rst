@@ -53,7 +53,7 @@ New Features
 
 - ``astropy.io.fits``
 
-  - The ``fitsdiff`` script ignore some things be default when comparing fits 
+  - The ``fitsdiff`` script ignore some things be default when comparing fits
     files (e.g. empty header lines). This add as ``--exact`` option where
     nothing is ignored. [#2782], finished in [#3110]
 
@@ -456,6 +456,9 @@ Bug Fixes
 
   - Comparisons between units and non-unit-like objects now works
     correctly. [#3108]
+
+  - Units with fractional powers are now correctly multiplied together
+    by using rational arithmetic.  [#3121]
 
 - ``astropy.utils``
 
