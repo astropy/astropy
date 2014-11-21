@@ -45,7 +45,7 @@ Parameter examples
 
       >>> from astropy.modeling import models
       >>> models.Gaussian1D.param_names
-      ['amplitude', 'mean', 'stddev']
+      ('amplitude', 'mean', 'stddev')
 
   The order of the items in the ``param_names`` list is relevant--this
   is the same order in which values for those parameters should be passed in
@@ -74,7 +74,7 @@ Parameter examples
 
       >>> p1 = models.Polynomial1D(degree=3, c0=1.0, c1=0.0, c2=2.0, c3=3.0)
       >>> p1.param_names
-      ['c0', 'c1', 'c2', 'c3']
+      ('c0', 'c1', 'c2', 'c3')
       >>> p1
       <Polynomial1D(3, c0=1.0, c1=0.0, c2=2.0, c3=3.0)>
 

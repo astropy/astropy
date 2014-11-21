@@ -200,6 +200,20 @@ API Changes
 
 - ``astropy.modeling``
 
+  - Model classes should now specify ``inputs`` and ``outputs`` class
+    attributes instead of the old ``n_inputs`` and ``n_outputs``.  These
+    should be tuples providing human-readable *labels* for all inputs and
+    outputs of the model.  The length of the tuple indicates the numbers
+    of inputs and outputs.  See "What's New in Astropy 1.0" for more
+    details. [#2835]
+
+  - It is no longer necessary to include ``__init__`` or ``__call__``
+    definitions in ``Model`` subclasses if all they do is wrap the
+    super-method in order to provide a nice call signature to the docs.
+    The ``inputs`` class attribute is now used to generate a nice call
+    signature, so these methods should only be overridden by ``Model``
+    subclasses in order to provide new functionality. [#2835]
+
   - The ``Model.inverse`` method has been changed to a *property*, so that
     now accessing ``model.inverse`` on a model returns a new model that
     implements that model's inverse, and *calling* ``model.inverse(...)``` on

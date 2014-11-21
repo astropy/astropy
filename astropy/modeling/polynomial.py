@@ -38,7 +38,7 @@ class PolynomialBase(FittableModel):
 
     # Default _param_names list; this will be filled in by the implementation's
     # __init__
-    _param_names = []
+    _param_names = ()
 
     linear = True
     col_fit_deriv = False
@@ -161,7 +161,7 @@ class PolynomialModel(PolynomialBase):
                 for j in range(1, self.degree):
                     if i + j < self.degree + 1:
                         names.append('c{0}_{1}'.format(i, j))
-        return names
+        return tuple(names)
 
 
 class OrthoPolynomialBase(PolynomialBase):
@@ -191,8 +191,8 @@ class OrthoPolynomialBase(PolynomialBase):
         {keyword: value} pairs, representing {parameter_name: value}
     """
 
-    n_inputs = 2
-    n_outputs = 1
+    inputs = ('x', 'y')
+    outputs = ('z',)
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
                  y_domain=None, y_window=None, n_models=None,
@@ -304,7 +304,7 @@ class OrthoPolynomialBase(PolynomialBase):
         for j in range(self.y_degree + 1):
             for i in range(self.x_degree + 1):
                 names.append('c{0}_{1}'.format(i, j))
-        return names
+        return tuple(names)
 
     def _fcache(self, x, y):
         # TODO: Write a docstring explaining the actual purpose of this method
@@ -349,6 +349,9 @@ class Chebyshev1D(PolynomialModel):
     **params : dict
         keyword : value pairs, representing parameter_name: value
     """
+
+    inputs = ('x',)
+    outputs = ('y',)
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, **params):
@@ -438,6 +441,9 @@ class Legendre1D(PolynomialModel):
         keyword: value pairs, representing parameter_name: value
     """
 
+    inputs = ('x',)
+    outputs = ('y',)
+
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
                  model_set_axis=None, **params):
         self.domain = domain
@@ -524,6 +530,9 @@ class Polynomial1D(PolynomialModel):
         keyword: value pairs, representing parameter_name: value
     """
 
+    inputs = ('x',)
+    outputs = ('y',)
+
     def __init__(self, degree, domain=[-1, 1], window=[-1, 1], n_models=None,
                  model_set_axis=None, **params):
         self.domain = domain
@@ -609,7 +618,8 @@ class Polynomial2D(PolynomialModel):
         keyword: value pairs, representing parameter_name: value
     """
 
-    n_inputs = 2
+    inputs = ('x', 'y')
+    outputs = ('z',)
 
     def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
                  x_window=[-1, 1], y_window=[-1, 1], n_models=None,
@@ -949,7 +959,8 @@ class _SIP1D(PolynomialBase):
     and SIP should be used instead.
     """
 
-    n_inputs = 2
+    inputs = ('u', 'v')
+    outputs = ('w',)
 
     def __init__(self, order, coeff_prefix, n_models=None,
                  model_set_axis=None, **params):
@@ -1067,8 +1078,9 @@ class SIP(Model):
     .. [1] `David Shupe, et al, ADASS, ASP Conference Series, Vol. 347, 2005 <http://adsabs.harvard.edu/abs/2005ASPC..347..491S>`_
     """
 
-    n_inputs = 2
-    n_outputs = 2
+
+    inputs = ('u', 'v')
+    outputs = ('x', 'y')
 
     def __init__(self, crpix, a_order, b_order, a_coeff={}, b_coeff={},
                  ap_order=None, bp_order=None, ap_coeff={}, bp_coeff={},
@@ -1138,8 +1150,8 @@ class InverseSIP(Model):
 
     """
 
-    n_inputs = 2
-    n_outputs = 2
+    inputs = ('x', 'y')
+    outputs = ('u', 'v')
 
     def __init__(self, ap_order, bp_order, ap_coeff={}, bp_coeff={},
                  n_models=None, model_set_axis=None):

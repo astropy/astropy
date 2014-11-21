@@ -29,7 +29,8 @@ projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
              'CYP', 'CEA', 'MER']
 
 
-__all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
+__all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
+           'Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
            'Pix2Sky_CEA', 'Sky2Pix_CEA', 'Pix2Sky_CYP', 'Sky2Pix_CYP',
            'Pix2Sky_MER', 'Sky2Pix_MER',
            'Pix2Sky_SIN', 'Sky2Pix_SIN', 'Pix2Sky_STG', 'Sky2Pix_STG',
@@ -38,13 +39,7 @@ __all__ = ['Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
 
 
 class Projection(Model):
-    """
-    Base class for all sky projections.
-
-    """
-
-    n_inputs = 2
-    n_outputs = 2
+    """Base class for all sky projections."""
 
     # the radius of the projection sphere, by which x,y are scaled
     r0 = 180 / np.pi
@@ -56,14 +51,25 @@ class Projection(Model):
         """
 
 
+class Pix2SkyProjection(Projection):
+    """Base class for all Pix2Sky projections."""
+
+    inputs = ('x', 'y')
+    outputs = ('phi', 'theta')
+
+
+class Sky2PixProjection(Projection):
+    """Base class for all Sky2Pix projections."""
+
+    inputs = ('phi', 'theta')
+    outputs = ('x', 'y')
+
+
 class Zenithal(Projection):
-    """
-    Base class for all Zenithal projections.
-
-    """
+    """Base class for all Zenithal projections."""
 
 
-class Pix2Sky_AZP(Zenithal):
+class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
     """
     AZP : Zenital perspective projection - pixel to sky.
 
@@ -78,21 +84,21 @@ class Pix2Sky_AZP(Zenithal):
 
 
     def _validate_mu(mu):
-        if mu == -1:
+        if np.asarray(mu == -1).any():
             raise ValueError("AZP projection is not defined for mu=-1")
         return mu
 
     mu = Parameter(default=0.0, setter=_validate_mu)
     gamma = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
-    def __init__(self, mu=mu.default, gamma=gamma.default):
+    def __init__(self, mu=mu.default, gamma=gamma.default, **kwargs):
         self.check_mu(mu)
         # units : mu - in spherical radii, gamma - in deg
         # TODO: Support quantity objects here and in similar contexts
-        super(Pix2Sky_AZP, self).__init__(mu, gamma)
+        super(Pix2Sky_AZP, self).__init__(mu, gamma, **kwargs)
 
     def check_mu(self, val):
-        if val == -1:
+        if np.asarray(val == -1).any():
             raise ValueError("AZP projection is not defined for mu=-1")
 
     @property
@@ -133,7 +139,7 @@ class Pix2Sky_AZP(Zenithal):
         return np.sqrt(x ** 2 + y ** 2 * (np.cos(gamma)) ** 2)
 
 
-class Sky2Pix_AZP(Zenithal):
+class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
     """
     AZP : Zenital perspective projection - sky to pixel.
 
@@ -147,18 +153,15 @@ class Sky2Pix_AZP(Zenithal):
     """
 
     def _validate_mu(mu):
-        if mu == -1:
+        if np.asarray(mu == -1).any():
             raise ValueError("AZP projection is not defined for mu=-1")
         return mu
 
     mu = Parameter(default=0.0, setter=_validate_mu)
     gamma = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
-    def __init__(self, mu=mu.default, gamma=gamma.default):
-        super(Sky2Pix_AZP, self).__init__(mu, gamma)
-
     def check_mu(self, val):
-        if val == -1:
+        if np.asarray(val == -1).any():
             raise ValueError("AZP projection is not defined for mu=-1")
 
     @property
@@ -177,10 +180,6 @@ class Sky2Pix_AZP(Zenithal):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_AZP, self).__call__(
-            phi, theta,  model_set_axis=model_set_axis)
-
     @classmethod
     def _compute_r_theta(cls, phi, theta, mu, gamma):
         return ((cls.r0 * (mu + 1) * np.cos(theta)) /
@@ -188,7 +187,7 @@ class Sky2Pix_AZP(Zenithal):
                  np.cos(theta) * np.cos(phi) * np.tan(gamma)))
 
 
-class Pix2Sky_TAN(Zenithal):
+class Pix2Sky_TAN(Pix2SkyProjection, Zenithal):
     """
     TAN : Gnomonic projection - pixel to sky.
     """
@@ -210,7 +209,7 @@ class Pix2Sky_TAN(Zenithal):
         return np.sqrt(x ** 2 + y ** 2)
 
 
-class Sky2Pix_TAN(Zenithal):
+class Sky2Pix_TAN(Sky2PixProjection, Zenithal):
     """
     TAN : Gnomonic Projection - sky to pixel.
     """
@@ -230,16 +229,12 @@ class Sky2Pix_TAN(Zenithal):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_TAN, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
-
     @staticmethod
     def _compute_r_theta(theta):
         return 1 / np.tan(theta)
 
 
-class Pix2Sky_STG(Zenithal):
+class Pix2Sky_STG(Pix2SkyProjection, Zenithal):
     """
     STG : Stereographic Projection - pixel to sky.
     """
@@ -261,7 +256,7 @@ class Pix2Sky_STG(Zenithal):
         return np.sqrt(x ** 2 + y ** 2)
 
 
-class Sky2Pix_STG(Zenithal):
+class Sky2Pix_STG(Sky2PixProjection, Zenithal):
     """
     STG : Stereographic Projection - sky to pixel.
     """
@@ -281,16 +276,12 @@ class Sky2Pix_STG(Zenithal):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_STG, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
-
     @classmethod
     def _compute_r_theta(cls, theta):
         return (cls.r0 * 2 * np.cos(theta)) / (1 + np.sin(theta))
 
 
-class Pix2Sky_SIN(Zenithal):
+class Pix2Sky_SIN(Pix2SkyProjection, Zenithal):
     """
     SIN : Slant orthographic projection - pixel to sky.
     """
@@ -312,7 +303,7 @@ class Pix2Sky_SIN(Zenithal):
         return np.sqrt(x ** 2 + y ** 2)
 
 
-class Sky2Pix_SIN(Zenithal):
+class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
     """
     SIN : Slant othographic projection - sky to pixel.
     """
@@ -331,22 +322,16 @@ class Sky2Pix_SIN(Zenithal):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_SIN, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
-
     @classmethod
     def _compute_r_theta(cls, theta):
         return cls.r0 * np.cos(theta)
 
 
 class Cylindrical(Projection):
-    """
-    Base class for Cylindrical projections.
-    """
+    """Base class for Cylindrical projections."""
 
 
-class Pix2Sky_CYP(Cylindrical):
+class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
     """
     CYP : Cylindrical perspective - pixel to sky.
     """
@@ -354,7 +339,7 @@ class Pix2Sky_CYP(Cylindrical):
     def _validate_mu(mu, model):
         with ignored(AttributeError):
             # An attribute error can occur if model.lam has not been set yet
-            if mu == -model.lam:
+            if np.asarray(mu == -model.lam).any():
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
         return mu
@@ -362,16 +347,13 @@ class Pix2Sky_CYP(Cylindrical):
     def _validate_lam(lam, model):
         with ignored(AttributeError):
             # An attribute error can occur if model.lam has not been set yet
-            if lam == -model.mu:
+            if np.asarray(lam == -model.mu).any():
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
         return lam
 
     mu = Parameter(setter=_validate_mu)
     lam = Parameter(setter=_validate_lam)
-
-    def __init__(self, mu, lam):
-        super(Pix2Sky_CYP, self).__init__(mu, lam)
 
     @property
     def inverse(self):
@@ -387,7 +369,7 @@ class Pix2Sky_CYP(Cylindrical):
         return phi, np.rad2deg(theta)
 
 
-class Sky2Pix_CYP(Cylindrical):
+class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
     """
     CYP : Cylindrical Perspective - sky to pixel.
     """
@@ -395,23 +377,20 @@ class Sky2Pix_CYP(Cylindrical):
     # TODO: Eliminate duplication on these
     def _validate_mu(mu, model):
         with ignored(AttributeError):
-            if mu == -model.lam:
+            if np.asarray(mu == -model.lam).any():
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
         return mu
 
     def _validate_lam(lam, model):
         with ignored(AttributeError):
-            if lam == -model.mu:
+            if np.asarray(lam == -model.mu).any():
                 raise ValueError(
                     "CYP projection is not defined for mu=-lambda")
         return lam
 
     mu = Parameter(setter=_validate_mu)
     lam = Parameter(setter=_validate_lam)
-
-    def __init__(self, mu, lam):
-        super(Sky2Pix_CYP, self).__init__(mu, lam)
 
     @property
     def inverse(self):
@@ -425,20 +404,13 @@ class Sky2Pix_CYP(Cylindrical):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_CYP, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
 
-
-class Pix2Sky_CEA(Cylindrical):
+class Pix2Sky_CEA(Pix2SkyProjection, Cylindrical):
     """
     CEA : Cylindrical equal area projection - pixel to sky.
     """
 
     lam = Parameter(default=1)
-
-    def __init__(self, lam=lam.default):
-        super(Pix2Sky_CEA, self).__init__(lam)
 
     @property
     def inverse(self):
@@ -452,15 +424,12 @@ class Pix2Sky_CEA(Cylindrical):
         return phi, theta
 
 
-class Sky2Pix_CEA(Cylindrical):
+class Sky2Pix_CEA(Sky2PixProjection, Cylindrical):
     """
     CEA: Cylindrical equal area projection - sky to pixel.
     """
 
     lam = Parameter(default=1)
-
-    def __init__(self, lam=lam.default):
-        super(Sky2Pix_CEA, self).__init__(lam)
 
     @property
     def inverse(self):
@@ -474,12 +443,8 @@ class Sky2Pix_CEA(Cylindrical):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_CEA, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
 
-
-class Pix2Sky_CAR(Cylindrical):
+class Pix2Sky_CAR(Pix2SkyProjection, Cylindrical):
     """
     CAR: Plate carree projection - pixel to sky.
     """
@@ -497,7 +462,7 @@ class Pix2Sky_CAR(Cylindrical):
         return phi, theta
 
 
-class Sky2Pix_CAR(Cylindrical):
+class Sky2Pix_CAR(Sky2PixProjection, Cylindrical):
     """
     CAR: Plate carree projection - sky to pixel.
     """
@@ -514,12 +479,8 @@ class Sky2Pix_CAR(Cylindrical):
 
         return x, y
 
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_CAR, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
 
-
-class Pix2Sky_MER(Cylindrical):
+class Pix2Sky_MER(Pix2SkyProjection, Cylindrical):
     """
     MER: Mercator - pixel to sky.
     """
@@ -536,7 +497,7 @@ class Pix2Sky_MER(Cylindrical):
         return phi, theta
 
 
-class Sky2Pix_MER(Cylindrical):
+class Sky2Pix_MER(Sky2PixProjection, Cylindrical):
     """
     MER: Mercator - sky to pixel.
     """
@@ -552,10 +513,6 @@ class Sky2Pix_MER(Cylindrical):
         y = cls.r0 * np.log(np.tan((np.pi / 2 + theta) / 2))
 
         return x, y
-
-    def __call__(self, phi, theta, model_set_axis=None):
-        return super(Sky2Pix_MER, self).__call__(
-            phi, theta, model_set_axis=model_set_axis)
 
 
 class AffineTransformation2D(Model):
@@ -573,8 +530,9 @@ class AffineTransformation2D(Model):
         translation to apply to the inputs
     """
 
-    n_inputs = 2
-    n_outputs = 2
+    inputs = ('x', 'y')
+    outputs = ('x', 'y')
+
     standard_broadcasting = False
 
     matrix = Parameter(
@@ -583,11 +541,6 @@ class AffineTransformation2D(Model):
     translation = Parameter(
         setter=lambda t: AffineTransformation2D._validate_vector(t),
         default=[0.0, 0.0])
-
-    def __init__(self, matrix=matrix.default,
-                 translation=translation.default, **kwargs):
-        super(AffineTransformation2D, self).__init__(matrix, translation,
-                                                     **kwargs)
 
     @property
     def inverse(self):
