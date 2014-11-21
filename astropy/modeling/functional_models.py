@@ -679,6 +679,22 @@ class Ellipse2D(Fittable2DModel):
     See Also
     --------
     Disk2D, Box2D
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        f(x, y) = \\left \\{
+                    \\begin{array}{ll}
+                      \\mathrm{amplitude} & : \\left[\\frac{(x - x_0) \\cos
+                        \\theta + (y - y_0) \\sin \\theta}{a}\\right]^2 +
+                        \\left[\\frac{-(x - x_0) \\sin \\theta + (y - y_0)
+                        \\cos \\theta}{b}\\right]^2  \\leq 1 \\\\
+                      0 & : \\mathrm{otherwise}
+                    \\end{array}
+                  \\right.
     """
 
     amplitude = Parameter()
