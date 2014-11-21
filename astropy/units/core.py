@@ -13,6 +13,7 @@ if six.PY2:
     import cmath
 
 import inspect
+import collections
 import textwrap
 import warnings
 import numpy as np
@@ -2291,66 +2292,88 @@ dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 one = dimensionless_unscaled
 
 
-def quantity_input(*f_args, **f_kwargs):
+def _parse_argspec(wrapped_function):
     """
-    A decorator for a function that accepts some inputs as Quantity objects.
-    
-    This decorator attempts to convert the given Quantites to the units specified
-    to the decorator, and fails nicely if a non-Quantity or a incompatible 
-    unit was passed.
-    
-    Examples
-    --------
-    
-    @quantity_input(u.arcsec, u.arcsec, None)
-    def myfunc(solarx, solary, someflag):
-        pass
+    Parse the argspec of the function in a 2 / 3 independant way
     """
-    equivalencies = f_kwargs.pop('equivalencies', [])
-    def check_quantities(f):
-        # Number of args in decorator must equal number of args in function
-        if f.func_defaults:
-            num_kwargs = len(f.func_defaults)
+    
+    outargspec = collections.namedtuple('FullArgSpec',
+                                        ['args', 'varargs', 'defaults',
+                                         'annotations'])
+    if hasattr(inspect, 'getfullargspec'):
+        # Update the annotations to include any kwargs passed to the decorator
+        argspec = inspect.getfullargspec(wrapped_function)
+        outargspec.args=argspec.args
+        outargspec.varargs=argspec.varargs
+        outargspec.varkw=argspec.varkw
+        outargspec.defaults=argspec.defaults
+        outargspec.annotations=argspec.annotations
+
+    else:
+        argspec = inspect.getargspec(wrapped_function)
+        if hasattr(wrapped_function, '__annotations__'):
+            annotations = wrapped_function.__annotations__
         else:
-            num_kwargs = 0
-        num_args = f.func_code.co_argcount - num_kwargs
-        if len(f_args) != num_args:
-            raise ValueError("Number of decorator arguments does not equal number of function arguments")
+            annotations = {}
 
-        def new_f(*args, **kwds):
-            # Check args, number of args in decorator must equal number of args in function
-            args = list(args)
-            for i, (arg, f_arg) in enumerate(zip(args, f_args)):
-                if f_arg is not None:
-                    try:
-                        arg.to(f_arg, equivalencies=equivalencies)
-                    except UnitsError:
-                        raise TypeError(
+        outargspec.args=argspec[0]
+        outargspec.varargs=argspec[1]
+        outargspec.varkw=argspec[2]
+        outargspec.defaults=argspec[3]
+        outargspec.annotations=annotations
+    
+    return outargspec
+
+class QuantityInput(object):
+    # __init__ is called when the function is parsed, it creates the decorator
+    def __init__(self, **kwargs):
+        self.equivalencies = kwargs.pop('equivalencies', [])
+        self.f_kwargs = kwargs
+
+    # __call__ is called when the wrapped function is called.
+    def __call__(self, wrapped_function):
+        
+        # Update the annotations to include any kwargs passed to the decorator
+        argspec = _parse_argspec(wrapped_function)
+        argspec.annotations.update(self.f_kwargs)
+
+        #Define a new function to return in place of the wrapped one
+        def wrapper(*func_args, **func_kwargs):
+            
+            # Update func_kwargs with the default values
+            func_kwargs.update(dict(zip(argspec.args[len(func_args):],
+                                        argspec.defaults)))
+
+            for var, target_unit in argspec.annotations.items():
+                loc = argspec.args.index(var)
+
+                if loc < len(func_args):
+                    arg = func_args[loc]
+
+                elif var in func_kwargs:
+                    arg = func_kwargs[var]
+                    
+                else:
+                    raise ValueError("I have no idea what you are doing")
+
+                # Now we have the arg or the kwarg we check to see if it is 
+                # convertable to the unit specified in the decorator.
+                try:
+                    equivalent = arg.unit.is_equivalent(target_unit,
+                                              equivalencies=self.equivalencies)
+
+                    if not equivalent:
+                        raise UnitsError(
 "Argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
-            f.func_code.co_varnames[i], f.func_code.co_name, f_arg.to_string()))
-                    except AttributeError:
-                        raise TypeError(
+                var, wrapped_function.__name__, target_unit.to_string()))
+
+                # AttributeError is raised if there is no `to` method.
+                # i.e. not something that quacks like a Quantity.
+                except AttributeError:
+                    raise TypeError(
 "Argument '{0}' to function '{1}' must be an astropy Quantity object".format(
-                                        f.func_code.co_varnames[i], f.func_code.co_name))
+                                     var, wrapped_function.__name__))
+        
+            return wrapped_function(*func_args, **func_kwargs)
 
-            # Check kwargs, only kwargs specified in the decorator are modified
-            for j, (kwarg, value) in enumerate(f_kwargs.items()):
-                if kwarg in kwds:
-                    try:
-                        kwds[kwarg].to(value, equivalencies=equivalencies)
-                    except UnitsError:
-                        raise TypeError(
-"Keyword argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
-                                kwarg, f.func_code.co_name, value.to_string()))
-                    except AttributeError:
-                        raise TypeError(
-"Argument '{0}' to function '{1}' must be an astropy Quantity object".format(
-                    f.func_code.co_varnames[j+num_args], f.func_code.co_name))
-
-            return f(*args, **kwds)
-
-
-        new_f.func_name = f.func_name
-        return new_f
-
-    return check_quantities
+        return wrapper
