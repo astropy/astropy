@@ -17,5 +17,5 @@ The key elements in :mod:`astropy.io.ascii` are:
 
 Each of these elements is an inheritable class with attributes that control the
 corresponding functionality.  In this way the large number of tweakable
-parameters is modularized into managable groups.  Where it makes sense these
+parameters is modularized into manageable groups.  Where it makes sense these
 attributes are actually functions that make it easy to handle special cases.

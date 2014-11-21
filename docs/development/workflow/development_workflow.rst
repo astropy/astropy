@@ -432,12 +432,12 @@ The actual rebasing is usually easy::
     git fetch astropy/master  # get the latest development astropy
     git rebase astropy/master my-new-feature
 
-You are more likely to run into *conflics* here--places where the changes you
+You are more likely to run into *conflicts* here--places where the changes you
 made conflict with changes that someone else made--than anywhere else. Ask for
 help if you need it.
 
 After the rebase you need to push your changes to GitHub; you will need force
-the push because `git`_ objects to re-writing the history of the respository
+the push because `git`_ objects to re-writing the history of the repository
 after you have pushed it somewhere::
 
     git push -f

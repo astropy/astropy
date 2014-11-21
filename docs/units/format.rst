@@ -14,7 +14,7 @@ You can control the way that |quantity| and |unit| objects are rendered as
 strings using the new `Format String Syntax
 <http://docs.python.org/library/string.html#format-string-syntax>`__.
 New-style format strings use the ``"{}".format()`` syntax.  Most of
-the format speficiers are simliar to the old ``%``-style formatting,
+the format specifiers are similar to the old ``%``-style formatting,
 so things like ``0.003f`` still work, just in the form
 ``"{:0.003f}".format()``.
 

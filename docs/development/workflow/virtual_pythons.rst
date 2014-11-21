@@ -39,7 +39,7 @@ accomplish each step are given for both `conda`_ and `virtualenvwrapper`_:
 * :ref:`delete_env`
 
 .. note::
-    + You **cannot** use `virtualenvwrapper`_ or `virtualenv`_ within anadoncda.
+    + You **cannot** use `virtualenvwrapper`_ or `virtualenv`_ within anaconda.
     + `virtualenvwrapper`_ works with bash and bash-like shells; see
       :ref:`using-virtualenv` for alternatives.
 
@@ -152,7 +152,7 @@ addition to activating new ones.
 
       workon ENV
 
-* ` conda`: Activiate the environment ``ENV`` with::
+* ` conda`: Activate the environment ``ENV`` with::
 
       source activate ENV
 

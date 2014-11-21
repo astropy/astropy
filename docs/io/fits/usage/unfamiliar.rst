@@ -107,7 +107,7 @@ ASCII tables it is not technically a valid format.  ASCII table format codes
 technically require a character width for each column, such as ``'I10'`` to
 create a column that can hold integers up to 10 characters wide.
 
-However, PyFITS allows the width specification to be ommitted in some cases.
+However, PyFITS allows the width specification to be omitted in some cases.
 When it is ommitted from ``'I'`` format columns the minimum width needed to
 accurately represent all integers in the column is used.  The only problem with
 using this shortcut is its ambiguity with the binary table ``'I'`` format, so
@@ -290,7 +290,7 @@ random access group, and it means to add the values together. Thus::
     2445728.0
     >>> print f[0].data.par(5)[99]
     0.10
-    >>> # When accessed by name, it adds the values together if the name is 
+    >>> # When accessed by name, it adds the values together if the name is
     >>> # shared by more than one parameter
     >>> print f[0].data.par('date')[99]
     2445728.10
