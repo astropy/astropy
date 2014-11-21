@@ -671,7 +671,7 @@ class Ellipse2D(Fittable2DModel):
     b : float
         The length of the semiminor axis.
 
-    theta : float
+    theta : float, optional
         The rotation angle in radians of the semimajor axis.  The
         rotation angle increases counterclockwise from the positive x
         axis.
