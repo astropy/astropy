@@ -669,8 +669,7 @@ Example 1: Plotting random data in Aitoff projection
 ====================================================
 
 This is an example how to make a plot in the Aitoff projection using data 
-in a |SkyCoord| object. Here a randomly generated data set will be used. The
-final script can be found below.
+in a |SkyCoord| object. Here a randomly generated data set will be used.
 
 First we need to import the required packages. We use 
 `matplotlib <http://www.matplotlib.org/>`_ here for
@@ -713,15 +712,20 @@ which we use here to wrap at 180:
 
 As last step we set up the plotting environment with matplotlib using the
 Aitoff projection with a specific title, a grid, filled circles as markers with
-a markersize of 2 and an alpha value of 0.3.
+a markersize of 2 and an alpha value of 0.3. We use a figure with an x-y ratio 
+that is well suited for such a projection and we move the title upwards from 
+its usual position to avoid overlap with the axis labels.
 
 .. doctest-requires:: matplotlib
 
+    >>> plt.figure(figsize=(8,4.2))
     >>> plt.subplot(111, projection="aitoff")
     >>> plt.title("Aitoff projection of our random data")
     >>> plt.grid(True)
     >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    >>> plt.subplots_adjust(top=0.95,bottom=0.0) 
     >>> plt.show()
+
 
 .. plot::
 
@@ -759,6 +763,13 @@ a markersize of 2 and an alpha value of 0.3.
     # As last step we set up the plotting environment with matplotlib using the
     # Aitoff projection with a specific title, a grid, filled circles as markers with
     # a markersize of 2 and an alpha value of 0.3.
+    plt.figure(figsize=(8,4.2))
+    plt.subplot(111, projection="aitoff")
+    plt.title("Aitoff projection of our random data", y=1.08)
+    plt.grid(True)
+    plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    plt.subplots_adjust(top=0.95,bottom=0.0) 
+    plt.show()
 
 
 
@@ -769,8 +780,7 @@ This is more realitic example how to make a plot in the Aitoff projection
 using data in a |SkyCoord| object.
 Here a randomly generated data set (multivariante
 normal distribution) for both stars in the bulge and in the disk of a galaxy
-will be used. Both types will be plotted with different number counts. The
-final script can be found below.
+will be used. Both types will be plotted with different number counts. 
 
 As in the last example, we first import the required packages.
 
@@ -810,11 +820,14 @@ We use the same plotting setup as in the last example:
 
 .. doctest-requires:: matplotlib
 
+    >>> plt.figure(figsize=(8,4.2))
     >>> plt.subplot(111, projection="aitoff")
     >>> plt.title("Aitoff projection of our random data")
     >>> plt.grid(True)
     >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    >>> plt.subplots_adjust(top=0.95,bottom=0.0) 
     >>> plt.show()
+
 
 .. plot::
 
@@ -848,10 +861,12 @@ We use the same plotting setup as in the last example:
     dec_rad = c_gal_icrs.dec.radian
 
     # We use the same plotting setup as in the last example:
+    plt.figure(figsize=(8,4.2))
     plt.subplot(111, projection="aitoff")
-    plt.title("Aitoff projection of our random data")
+    plt.title("Aitoff projection of our random data", y=1.08)
     plt.grid(True)
     plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    plt.subplots_adjust(top=0.95,bottom=0.0) 
     plt.show()
 
 
