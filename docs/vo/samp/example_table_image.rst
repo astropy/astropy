@@ -265,7 +265,7 @@ Receiving a table from Ds9 or Aladin
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Receiving images over SAMP is identical to `Receiving a table from TOPCAT`_,
-with the execption that the message type should be ``image.load.fits`` instead
+with the exception that the message type should be ``image.load.fits`` instead
 of ``table.load.votable``. Once the URL has been received, the FITS image can
 be opened with::
 

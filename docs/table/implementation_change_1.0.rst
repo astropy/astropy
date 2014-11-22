@@ -35,7 +35,7 @@ Data container
 """"""""""""""
 
 The images below illustrate the basic architecture of the |Table| class for
-astropy versions 0.4.x and earlier (left) and after version 1.0 (right).  
+astropy versions 0.4.x and earlier (left) and after version 1.0 (right).
 
 On the left side (before 1.0) the fundamental data container is a numpy
 structured array referenced as an internal attribute ``_data``.  All public
@@ -151,12 +151,12 @@ Performance regressions
 """""""""""""""""""""""
 
 From version 1.0 most common operations run at the same speed or are faster
-(sometimes significantly faster).  The only operations which are noticably
+(sometimes significantly faster).  The only operations which are noticeably
 slower are adding a row in a masked table (~2 times slower) and setting a
 column like ``dat['a'][:] = 10`` in a masked table (~6 times slower).
 
 
-Benefits 
+Benefits
 ^^^^^^^^
 
 The key benefits of the version 1.0 change are as follows:
@@ -180,7 +180,7 @@ The key benefits of the version 1.0 change are as follows:
   `~astropy.units.Quantity`, `~astropy.time.Time`, and
   `~astropy.coordinates.SkyCoord` objects.  Other ideas like nested |Table|
   objects are also possible.
- 
+
 - Generally faster because of improved implementation in key areas.
   Column-based access is faster because the column data are held in contiguous
   memory instead of being strided within the numpy structure array.

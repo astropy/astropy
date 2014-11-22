@@ -448,7 +448,7 @@ If the data must be returned to integers before saving, use the `ImageHDU.scale
 Alternatively, if a file is opened with ``mode='update'`` along with the
 ``scale_back=True`` argument, the original BSCALE and BZERO scaling will
 be automatically re-applied to the data before saving.  Usually this is
-not desireable, especially when converting from floating point back to
+not desirable, especially when converting from floating point back to
 unsigned integer values.  But this may be useful in cases where the raw
 data needs to be modified corresponding to changes in the physical values.
 
@@ -503,7 +503,7 @@ Underlying every table data array returned by `astropy.io.fits` is a Numpy
 structured array data (i.e. a table).  As with normal image arrays, Astropy
 accesses the underlying binary data from the FITS file via mmap (see the
 question "`What performance differences are there between astropy.io.fits and
-fitsio?`_" for a deeper explanation fo this).  The underlying mmap is then
+fitsio?`_" for a deeper explanation of this).  The underlying mmap is then
 exposed as a `~numpy.recarray` and in general this is a very efficient way to
 read the data.
 

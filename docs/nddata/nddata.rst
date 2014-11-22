@@ -95,7 +95,7 @@ Arithmetic
 ----------
 
 Provided that the world coordinate system (WCS) and shape match, and that the
-units are consisten, two :class:`~astropy.nddata.NDData` instances can be
+units are consistent, two :class:`~astropy.nddata.NDData` instances can be
 added, subtracted, multiplied or divided from each other, with uncertainty
 propagation, creating a new :class:`~astropy.nddata.NDData` object::
 

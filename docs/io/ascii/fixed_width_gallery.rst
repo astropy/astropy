@@ -16,7 +16,7 @@ for example::
    2.4 's worlds    2    2
 
 There are a number of common variations in the formatting of fixed-width tables
-which :mod:`astropy.io.ascii` can read and write.  The most signicant difference is
+which :mod:`astropy.io.ascii` can read and write.  The most significant difference is
 whether there is no header line (:class:`~astropy.io.ascii.FixedWidthNoHeader`), one
 header line (:class:`~astropy.io.ascii.FixedWidth`), or two header lines
 (:class:`~astropy.io.ascii.FixedWidthTwoLine`).  Next, there are variations in the

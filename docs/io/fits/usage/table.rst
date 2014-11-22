@@ -74,7 +74,7 @@ table.  To recap, the simple example in the Quick Tutorial::
     >>> print tbdata[:2]  # show the first two rows
     [(1, 'Sirius', -1.4500000476837158, 'A1V'),
     (2, 'Canopus', -0.73000001907348633, 'F0Ib')]
-    
+
     >>> print tbdata['mag']  # show the values in field "mag"
     [-1.45000005 -0.73000002 -0.1 ]
     >>> print tbdata.field(1)  # columns can be referenced by index too
@@ -92,7 +92,7 @@ and format in TFORM1.
     which that column contains no data.  In such files, the zero-width columns
     are ommitted when accessing the table data, so the indexes of fields might
     change when using the ``field()`` method.  For this reason, if you expect
-    to encounter files containg zero-width columns it is recommended to access
+    to encounter files containing zero-width columns it is recommended to access
     fields by name rather than by index.
 
 

@@ -93,7 +93,7 @@ essential items:
 
 + Set up authentication so you don't have to type your github password every
   time you need to access github from the command line. The default method at
-  `Set Up Git at GitHub`_ may require administrative privleges; if that is a
+  `Set Up Git at GitHub`_ may require administrative privileges; if that is a
   problem, set up authentication
   `using SSH keys instead <https://help.github.com/articles/generating-ssh-keys>`_
 

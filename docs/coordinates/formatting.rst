@@ -3,7 +3,7 @@ Formatting Coordinate Strings
 
 .. todo: @taldcroft should change this to start with a discussion of SkyCoord's capabilities
 
-Getting a string representation of a coordinate is most powerfuly
+Getting a string representation of a coordinate is most powerfully
 approached by treating the components (e.g., RA and Dec) separately.
 For example::
 

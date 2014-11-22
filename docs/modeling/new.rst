@@ -62,7 +62,7 @@ A step by step definition of a 1-D Gaussian model
 
 The example described in `Basic custom models`_ can be used for most simple
 cases, but the following section describes how to construct model classes in
-general.  Defining a full model class may be desireable, for example, to
+general.  Defining a full model class may be desirable, for example, to
 provide more specialized parameters, or to implement special functionality not
 supported by the basic `~astropy.modeling.custom_model` factory function.
 

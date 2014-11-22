@@ -153,7 +153,7 @@ yday       :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.
 =========  =================================================  ==============================
 
 Subformat
-""""""""""
+"""""""""
 
 The time format classes :class:`~astropy.time.TimeISO`,
 :class:`~astropy.time.TimeISOT`, and
