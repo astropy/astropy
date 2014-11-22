@@ -5,7 +5,6 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from ..representation import SphericalRepresentation
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping
-from ..angles import rotation_matrix
 
 
 class ICRS(BaseCoordinateFrame):
@@ -40,23 +39,3 @@ class ICRS(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
-
-    @staticmethod
-    def _icrs_to_fk5_matrix():
-        """
-        B-matrix from USNO circular 179.  Used by the ICRS->FK5 transformation
-        functions.
-        """
-
-        eta0 = -19.9 / 3600000.
-        xi0 = 9.1 / 3600000.
-        da0 = -22.9 / 3600000.
-
-        m1 = rotation_matrix(-eta0, 'x')
-        m2 = rotation_matrix(xi0, 'y')
-        m3 = rotation_matrix(da0, 'z')
-
-        return m1 * m2 * m3
-
-# define this because it only needs to be computed once
-ICRS._ICRS_TO_FK5_J2000_MAT = ICRS._icrs_to_fk5_matrix()

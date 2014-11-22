@@ -9,8 +9,6 @@ from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
 from ..transformations import DynamicMatrixTransform
 from .. import earth_orientation as earth
 
-from .icrs import ICRS
-
 from .consts import EQUINOX_J2000
 
 
@@ -65,23 +63,8 @@ class FK5(BaseCoordinateFrame):
         return earth.precession_matrix_Capitaine(oldequinox, newequinox)
 
 
-# Has to be defined at module level, because `transform` needs an FK5 reference
+# This is the "self-transform".  Defined at module level because the decorator
+#  needs a reference to the FK5 class
 @frame_transform_graph.transform(DynamicMatrixTransform, FK5, FK5)
 def fk5_to_fk5(fk5coord1, fk5frame2):
     return fk5coord1._precession_matrix(fk5coord1.equinox, fk5frame2.equinox)
-
-
-# ICRS to/from FK5 -------------------------------->
-@frame_transform_graph.transform(DynamicMatrixTransform, ICRS, FK5)
-def icrs_to_fk5(icrscoord, fk5frame):
-    # ICRS is by design very close to J2000 equinox
-    pmat = fk5frame._precession_matrix(EQUINOX_J2000, fk5frame.equinox)
-    return pmat * icrscoord._ICRS_TO_FK5_J2000_MAT
-
-
-# can't be static because the equinox is needed
-@frame_transform_graph.transform(DynamicMatrixTransform, FK5, ICRS)
-def fk5_to_icrs(fk5coord, icrsframe):
-    # ICRS is by design very close to J2000 equinox
-    pmat = fk5coord._precession_matrix(fk5coord.equinox, EQUINOX_J2000)
-    return icrsframe._ICRS_TO_FK5_J2000_MAT.T * pmat
