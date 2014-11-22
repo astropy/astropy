@@ -121,7 +121,7 @@ def fk4noe_to_fk4noe(fk4necoord1, fk4neframe2):
 
 
 # FK4-NO-E to/from FK4 ----------------------------->
-# In the present framework, we include two coordinate classes for FK4
+# Unlike other frames, this module include *two* frame classes for FK4
 # coordinates - one including the E-terms of aberration (FK4), and
 # one not including them (FK4NoETerms). The following functions
 # implement the transformation between these two.
