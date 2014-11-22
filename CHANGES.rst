@@ -91,6 +91,10 @@ New Features
     provide sets of all loaded ``Model`` and ``Fitter`` classes (this is
     useful for building UIs for models and fitting). [#2725]
 
+  - A dict-like ``meta`` member was added to ``Model``. it is to be used to
+    store any optional information which is relevant to a project and is not 
+    in the standard ``Model`` class.
+
 - ``astropy.nddata``
 
 - ``astropy.stats``

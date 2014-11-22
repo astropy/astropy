@@ -82,6 +82,7 @@ class PolynomialBase(FittableModel):
             super(PolynomialBase, self).__setattr__(attr, value)
 
     def _validate_params(self, **params):
+        params.pop('meta', None)
         valid_params = set(self._param_names)
         provided_params = set(params)
         intersection = valid_params.intersection(provided_params)
