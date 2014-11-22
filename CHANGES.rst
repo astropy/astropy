@@ -93,7 +93,7 @@ New Features
 
   - A dict-like ``meta`` member was added to ``Model``. it is to be used to
     store any optional information which is relevant to a project and is not 
-    in the standard ``Model`` class.
+    in the standard ``Model`` class. [#3142]
 
 - ``astropy.nddata``
 
