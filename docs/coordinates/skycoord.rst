@@ -26,7 +26,7 @@ The key distinctions between |SkyCoord| and the low-level classes
   all attributes, such a round-trip transformation will return to the same
   coordinate object.
 
-- The |SkyCoord| class is more flexible with inputs to accomodate a wide
+- The |SkyCoord| class is more flexible with inputs to accommodate a wide
   variety of user preferences and available data formats.
 
 - The |SkyCoord| class has a number of convenience methods that are useful
@@ -201,7 +201,7 @@ to astropy are `~astropy.coordinates.ICRS`, `~astropy.coordinates.FK5`,
 The string aliases are simply lower-case versions of the class name.
 
 If the frame is not supplied then you will see a special ``ICRS``
-identifer.  This indicates that the frame is unspecified and operations
+identifier.  This indicates that the frame is unspecified and operations
 that require comparing coordinates (even within that object) are not allowed.
 
 **unit=UNIT**
@@ -337,7 +337,7 @@ Other attributes you should recognize are ``distance``, ``equinox``,
 ``obstime``, ``shape``.
 
 Digger deeper
-"""""""""""""""
+"""""""""""""
 *[Casual users can skip this section]*
 
 After transforming to Galactic the longitude and latitude values are now

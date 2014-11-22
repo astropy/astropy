@@ -224,7 +224,7 @@ This background information is not necessary for simply using
 `~astropy.coordinates`, particularly if you use the |skycoord| high-
 level class, but it is helpful for more advanced usage, particularly
 creating your own frame, transformations, or representations. Another
-useful piece of background infromation are some
+useful piece of background information are some
 :ref:`astropy-coordinates-definitions` as they are used in
 `~astropy.coordinates`.
 

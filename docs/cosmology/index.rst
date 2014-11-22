@@ -251,7 +251,7 @@ Photons and Neutrinos
 ---------------------
 The cosmology classes include the contribution to the energy density
 from both photons and neutrinos.  By default, the latter are assumed
-massless.  The three parameters controlling the proporties of these
+massless.  The three parameters controlling the properties of these
 species, which are arguments to the initializers of all the
 cosmological classes, are ``Tcmb0`` (the temperature of the CMB at z=0),
 ``Neff``, the effective number of neutrino species, and ``m_nu``, the rest

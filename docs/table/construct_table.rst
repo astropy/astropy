@@ -141,7 +141,7 @@ The input column data can be any data type that can initialize a |Column| object
   array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
         dtype=[('a', '<i8'), ('b', '<i8', (2,)), ('c', 'S1')])
 
-Notice that the key ``'c'`` takes precendence over the existing column name
+Notice that the key ``'c'`` takes precedence over the existing column name
 ``'axis'`` in the third column.  Also see that the ``'b'`` column is a vector
 column where each row element is itself a 2-element array.
 
@@ -169,7 +169,7 @@ need to use the ``rows`` keyword to create a table::
   ...              (5, 8.2, 'z')]
   >>> t = Table(rows=data_rows, names=('a', 'b', 'c'))
   >>> print(t)
-   a   b   c 
+   a   b   c
   --- --- ---
     1 2.0   x
     4 5.0   y
@@ -221,13 +221,14 @@ the difference between a scalar ``1`` (length 0) and an array like
 
 NumPy structured array
 """"""""""""""""""""""
-The structured array is the standard mechanism in `numpy` for storing heterogenous
-table data.  Most scientific I/O packages that read table files (e.g.
-`PyFITS <http://www.stsci.edu/resources/software_hardware/pyfits>`_,
-`vo.table <http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_,
-`asciitable <http://cxc.harvard.edu/contrib/asciitable/>`_)
-will return the table in an object that is based on the structured array.
-A structured array can be created using::
+The structured array is the standard mechanism in `numpy` for storing
+heterogeneous table data.  Most scientific I/O packages that read table
+files (e.g.  `PyFITS
+<http://www.stsci.edu/resources/software_hardware/pyfits>`_, `vo.table
+<http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_, `asciitable
+<http://cxc.harvard.edu/contrib/asciitable/>`_) will return the table in an
+object that is based on the structured array.  A structured array can be
+created using::
 
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
@@ -761,7 +762,7 @@ subclasses, but in practice you would override only the necessary subcomponents:
 
 
 Example
-""""""""
+"""""""
 
 As a more practical example, suppose you have a table of data with a certain set of fixed
 columns, but you also want to carry an arbitrary dictionary of keyword=value
@@ -789,7 +790,7 @@ are contained in a numpy object-dtype column named ``params``::
   ...    def values(self):
   ...        return [self[key] for key in self.keys()]
 
-Now we put this into action with a trival |Table| subclass::
+Now we put this into action with a trivial |Table| subclass::
 
   >>> class ParamsTable(Table):
   ...     Row = ParamsRow
