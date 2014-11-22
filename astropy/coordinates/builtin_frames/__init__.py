@@ -31,9 +31,9 @@ from .galactic import Galactic
 from .altaz import AltAz
 
 #need to import transformations so that they get registered in the graph
-import icrs_fk5_transformations
-import fk4_fk5_transformations
-import galactic_transformations
+import icrs_fk5_transforms
+import fk4_fk5_transforms
+import galactic_transforms
 
 # we define an __all__ because otherwise the transformation modules get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'AltAz']
