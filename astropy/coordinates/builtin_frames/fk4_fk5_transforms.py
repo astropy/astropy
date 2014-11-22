@@ -42,7 +42,7 @@ def _fk4_B_matrix(obstime):
 @frame_transform_graph.transform(DynamicMatrixTransform, FK4NoETerms, FK5)
 def fk4_no_e_to_fk5(fk4noecoord, fk5frame):
     # Correction terms for FK4 being a rotating system
-    B = FK4NoETerms._fk4_B_matrix(fk4noecoord.obstime)
+    B = _fk4_B_matrix(fk4noecoord.obstime)
 
     # construct both precession matricies - if the equinoxes are B1950 and
     # J2000, these are just identity matricies
@@ -57,7 +57,7 @@ def fk4_no_e_to_fk5(fk4noecoord, fk5frame):
 def fk5_to_fk4_no_e(fk5coord, fk4noeframe):
     # Get transposed version of the rotating correction terms... so with the
     # transpose this takes us from FK5/J200 to FK4/B1950
-    B = FK4NoETerms._fk4_B_matrix(fk4noeframe.obstime).T
+    B = _fk4_B_matrix(fk4noeframe.obstime).T
 
     # construct both precession matricies - if the equinoxes are B1950 and
     # J2000, these are just identity matricies
