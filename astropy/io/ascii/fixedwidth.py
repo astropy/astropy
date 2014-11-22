@@ -141,7 +141,7 @@ class FixedWidthHeader(basic.BasicHeader):
                     # characters, because that can cause ambiguities, but white
                     # spaces are so common everywhere that practicality beats
                     # purity here.
-                charset = self.set_of_position_line_characters.union(set(self.splitter.delimiter))
+                charset = self.set_of_position_line_characters.union(set([self.splitter.delimiter, ' ']))
                 if not set(line).issubset(charset):
                     raise InconsistentTableError('Characters in position line must be part of {0}'.format(charset))
                 vals, self.col_starts, col_ends = self.get_fixedwidth_params(line)
