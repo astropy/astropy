@@ -73,6 +73,9 @@ Bug Fixes
   - Fixed unnecessarily large unicode columns when instantiating a table from
     row data on Python 3. [#3052]
 
+  - Improved the warning message when unable to aggregate non-numeric
+    columns. [#2700]
+
 - ``astropy.time``
 
 - ``astropy.units``
