@@ -84,7 +84,7 @@ run::
 
 .. note::
 
-    There may be a delay of a day or to between when a new version of Astropy
+    There may be a delay of a day or two between when a new version of Astropy
     is released and when a package is available for Anaconda. You can check
     for the list of available versions with ``conda search astropy``.
 
