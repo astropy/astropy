@@ -33,10 +33,10 @@ up. It is well worth your time.
 Not sure what your first contribution should be? Take a look at the `Astropy
 issue list`_ and grab one labeled "package-novice". These issues are the
 most accessible ones if you are not familiar with the Astropy source
-code. Choose an issue labeled "effort-low" or "effort-medium", these are
-expected to take a few hours to a few days to address. The developers are
-friendly and want you to help, so don't be shy about asking questions on the
-`astropy-dev mailing list`_.
+code. Issues labeled as "effort-low" are expected to take a few hours (at
+most) to address, while the "effort-medium" ones may take a few days. The
+developers are friendly and want you to help, so don't be shy about asking
+questions on the `astropy-dev mailing list`_.
 
 New to `git`_?
 ==============
