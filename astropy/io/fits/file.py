@@ -114,7 +114,6 @@ class _File(object):
 
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
-            len(urllib.parse.urlparse(fileobj).scheme) in [3,4,5] and
             str(urllib.parse.urlparse(fileobj).scheme) in ['http' , 'https', 'ftp']):
             #The above verifies the given file is an URL by matching the scheme to HTTP(S) and FTP protocols
                 self.name, _ = urllib.request.urlretrieve(fileobj)
