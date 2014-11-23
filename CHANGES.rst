@@ -166,7 +166,7 @@ API Changes
   - The previous ``astropy.coordinates.builtin_frames`` module is now a
     subpackage.  Everything that was in the
     ``astropy.coordinates.builtin_frames`` module is still accessible from the
-    new package, but the class are now in separate modules.  This should have
+    new package, but the classes are now in separate modules.  This should have
     no direct impact at the user level. [#3120]
 
 - ``astropy.cosmology``
