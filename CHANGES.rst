@@ -64,7 +64,7 @@ New Features
 
 - ``astropy.io.fits``
 
-  - The ``fitsdiff`` script ignore some things be default when comparing fits 
+  - The ``fitsdiff`` script ignore some things be default when comparing fits
     files (e.g. empty header lines). This add as ``--exact`` option where
     nothing is ignored. [#2782], finished in [#3110]
 
@@ -177,6 +177,12 @@ API Changes
 
   - The ``CartesianPoints`` class (deprecated in v0.4) has now been removed.
     [#2990]
+
+  - The previous ``astropy.coordinates.builtin_frames`` module is now a
+    subpackage.  Everything that was in the
+    ``astropy.coordinates.builtin_frames`` module is still accessible from the
+    new package, but the classes are now in separate modules.  This should have
+    no direct impact at the user level. [#3120]
 
 - ``astropy.cosmology``
 
