@@ -320,16 +320,21 @@ def _save_coverage(cov, result, rootdir, testing_path):
 
     # The coverage report includes the full path to the temporary
     # directory, so we replace all the paths with the true source
-    # path.
-    d = cov.data
-    cov._harvest_data()
-    for key in d.lines.keys():
-        new_path = os.path.relpath(
-            os.path.realpath(key),
-            os.path.realpath(testing_path))
-        new_path = os.path.abspath(
-            os.path.join(rootdir, new_path))
-        d.lines[new_path] = d.lines.pop(key)
+    # path. This means that the coverage line-by-line report will only
+    # be correct for Python 2 code (since the Python 3 code will be
+    # different in the build directory from the source directory as
+    # long as 2to3 is needed). Therefore we only do this fix for
+    # Python 2.x.
+    if six.PY2:
+        d = cov.data
+        cov._harvest_data()
+        for key in d.lines.keys():
+            new_path = os.path.relpath(
+                os.path.realpath(key),
+                os.path.realpath(testing_path))
+            new_path = os.path.abspath(
+                os.path.join(rootdir, new_path))
+            d.lines[new_path] = d.lines.pop(key)
 
     color_print('Saving coverage data in .coverage...', 'green')
     cov.save()
