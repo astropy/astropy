@@ -392,11 +392,9 @@ class TestVal2():
         assert t.mjd[0] == t.mjd[1]
         assert t.jd[0] == t.jd[1]
 
-    def test_val_matches_val2(self):
+    def test_val_broadcasts_against_val2(self):
         with pytest.raises(ValueError):
-            Time([0.0, 50000.0], [0.0], format='mjd', scale='tai')
-        with pytest.raises(ValueError):
-            Time([0.0], 0.0, format='mjd', scale='tai')
+            Time([0.0, 50000.0], [0.0, 1.0, 2.0], format='mjd', scale='tai')
 
 
 class TestSubFormat():
