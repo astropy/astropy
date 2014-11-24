@@ -19,7 +19,8 @@ import numpy as np
 
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings, lazyproperty
-from .utils import is_effectively_unity, sanitize_scale, validate_power
+from .utils import (is_effectively_unity, sanitize_scale, validate_power,
+                    add_powers)
 from . import format as unit_format
 
 # TODO: Support functional units, e.g. log(x), ln(x)
@@ -1988,7 +1989,7 @@ class CompositeUnit(UnitBase):
                         break
 
             if unit in new_parts:
-                new_parts[unit] += power
+                new_parts[unit] = add_powers(new_parts[unit], power)
             else:
                 new_parts[unit] = power
             return scale

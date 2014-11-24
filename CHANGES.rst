@@ -104,6 +104,9 @@ Bug Fixes
   - Comparisons between units and non-unit-like objects now works
     correctly. [#3108]
 
+  - Units with fractional powers are now correctly multiplied together
+    by using rational arithmetic.  [#3121]
+
 - ``astropy.utils``
 
   - Fixed an issue with the ``deprecated`` decorator on classes that invoke
