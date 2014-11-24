@@ -216,8 +216,9 @@ def _initialize_astropy():
 
     # If this __init__.py file is in ./astropy/ then import is within a source dir
     source_dir = os.path.abspath(os.path.dirname(__file__))
-    is_astropy_source_dir = os.path.exists(
-            os.path.join(source_dir, os.pardir, 'static', '.astropy-root'))
+    is_astropy_source_dir = (
+            os.path.exists(os.path.join(source_dir, os.pardir, '.git')) and
+            os.path.isfile(os.path.join(source_dir, os.pardir, 'setup.py')))
 
     def _rollback_import(message):
         log.error(message)
@@ -272,7 +273,9 @@ def _rebuild_extensions():
     import subprocess
     import sys
     import time
+
     from .utils.console import Spinner
+    from .extern.six import next
 
     devnull = open(os.devnull, 'w')
     old_cwd = os.getcwd()
@@ -283,7 +286,7 @@ def _rebuild_extensions():
                                stderr=devnull)
         with Spinner('Rebuilding extension modules') as spinner:
             while sp.poll() is None:
-                spinner.next()
+                next(spinner)
                 time.sleep(0.05)
     finally:
         os.chdir(old_cwd)
