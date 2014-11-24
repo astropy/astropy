@@ -24,6 +24,7 @@ from . import latex
 from . import html
 
 from ...table import Table
+from ...utils.data import get_readable_fileobj
 
 # Default setting for guess parameter in read()
 _GUESS = True
@@ -143,6 +144,16 @@ def _guess(table, read_kwargs):
     keyword args. For each key/val pair specified explicitly in the read()
     call make sure that if there is a corresponding definition in the guess
     then it must have the same val.  If not then skip this guess."""
+
+    # If `table` is a readable file object then read in the file now.  This
+    # prevents problems in Python 3 with the file object getting closed or
+    # left at the file end.  See #3132, #3013, #3109.
+    if hasattr(table, 'read'):
+        try:
+            with get_readable_fileobj(table) as fileobj:
+                table = fileobj.read()
+        except:
+            pass
 
     # Keep a trace of all failed guesses kwarg
     failed_kwargs = []

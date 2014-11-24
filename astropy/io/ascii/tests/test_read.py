@@ -813,3 +813,10 @@ def test_list_with_newlines():
     assert len(t) == 2
     assert t[0][0] == 123
     assert t[1][0] == 456
+
+def test_guessing_file_object():
+    """
+    Test guessing a file object.  Fixes #3013 and similar issue noted in #3019.
+    """
+    t = ascii.read(open('t/ipac.dat.bz2', 'rb'))
+    assert t.colnames == ['ra','dec','sai','v2','sptype']
