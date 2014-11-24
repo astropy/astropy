@@ -13,8 +13,8 @@ def main(args=None):
         description=("Check a VOTable file for compliance to the "
                      "VOTable specification"
                      "This script is part of the Astropy package " + __version__ +  "."
-                     "More documentation can be found here: 
-                     http://astropy.readthedocs.org/en/latest/io/votable/index.htmll"))
+                     "More documentation can be found here: "
+                     "http://astropy.readthedocs.org/en/latest/io/votable/index.htmll"))
     parser.add_argument(
         'filename', nargs=1, help='Path to VOTable file to check')
     args = parser.parse_args(args)
