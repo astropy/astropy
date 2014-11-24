@@ -859,3 +859,10 @@ def test_guess_fail():
         ascii.read('asfdasdf\n1 2 3', format='html')
 
     assert "** To figure out why the table did not read, use guess=False and" in str(err.value)
+
+def test_guessing_file_object():
+    """
+    Test guessing a file object.  Fixes #3013 and similar issue noted in #3019.
+    """
+    t = ascii.read(open('t/ipac.dat.bz2', 'rb'))
+    assert t.colnames == ['ra','dec','sai','v2','sptype']
