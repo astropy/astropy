@@ -176,6 +176,7 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
+    stat_ok = _erfa._{{ func.pyname }}(it)
     
     {%- for arg in func.args_by_inout('stat') %}
     

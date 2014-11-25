@@ -93,4 +93,8 @@ def _{{ func.pyname }}(it):
             stat_ok = False
         {%- endfor %}
         status = iternext(GetNpyIter(it))
+    {%- if func.args_by_inout('stat')|length > 0 %}
+    return stat_ok
+    {%- endif %}
+
 {% endfor %}
