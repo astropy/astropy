@@ -220,27 +220,11 @@ class SkyCoord(object):
         # and returns a dict with appropriate key/values for initializing frame class.
         if args:
             if len(args) == 1:
-                if hasattr(args[0], 'colnames'):
-                    # quacks like an astropy table, so treat it as such.
-                    simplified_colnames = [cnm.lower() for cnm in args[0].colnames]
-
-                    coord_kwargs = {}
-                    for (nm, reprnm), unit in zip(frame.representation_component_names.items(),
-                                                  units):
-                        for colnm in simplified_colnames:
-                            if colnm.startswith(nm):
-                                attr_class = frame.representation.attr_classes[reprnm]
-                                if unit is None:
-                                    # use the unit from the table if not overrridden
-                                    unit = args[0][colnm].unit
-                                coord_kwargs[nm] = attr_class(args[0][colnm], unit=unit)
-                                break  # moves on to the next `nm`
-                else:
-                    # One arg which must be a coordinate.  In this case
-                    # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
-                    # along with any frame attributes like equinox or obstime which
-                    # were explicitly specified in the coordinate object (i.e. non-default).
-                    coord_kwargs = _parse_coordinate_arg(args[0], frame, units)
+                # One arg which must be a coordinate.  In this case
+                # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
+                # along with any frame attributes like equinox or obstime which
+                # were explicitly specified in the coordinate object (i.e. non-default).
+                coord_kwargs = _parse_coordinate_arg(args[0], frame, units)
 
             elif len(args) <= 3:
                 frame_attr_names = frame.representation_component_names.keys()
