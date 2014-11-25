@@ -565,7 +565,7 @@ Bug Fixes
     [#2710]
 
   - Fixed a crash when reading data from an HDU whose header contained in
-    invalid value for the BLANK keyword (eg. a string value instead of an
+    invalid value for the BLANK keyword (e.g., a string value instead of an
     integer as required by the FITS Standard). Invalid BLANK keywords are now
     warned about, but are otherwise ignored. [#2711]
 
@@ -1510,7 +1510,7 @@ Bug Fixes
   - Allow pickling of ``FITS_rec`` objects. [#1597]
 
   - Improved behavior when writing large compressed images on OSX by removing
-    an unncessary check for platform architecture. [#2345]
+    an unnecessary check for platform architecture. [#2345]
 
   - Fixed an issue where Astropy ``Table`` objects containing boolean columns
     were not correctly written out to FITS files. [#1953]
@@ -2526,7 +2526,7 @@ Other Changes and Additions
 
 - ``astropy.coordinates``
 
-  - Angles containing out of bounds minutes or seconds (eg. 60) can be
+  - Angles containing out of bounds minutes or seconds (e.g. 60) can be
     parsed--the value modulo 60 is used with carry to the hours/minutes, and a
     warning is issued rather than raising an exception. [#990]
 
@@ -3260,7 +3260,7 @@ see the "What's New" section of the documentation for more details.
 
 - ``astropy.wcs``
 
-  - From updating the the underlying wcslib 4.16:
+  - From updating the underlying wcslib 4.16:
 
     - When ``astropy.wcs.WCS`` constructs a default coordinate representation
       it will give it the special name "DEFAULTS", and will not report "Found
