@@ -37,6 +37,7 @@ from cpython.ref cimport PyObject
 
 numpy.import_array()
 
+__all__ = [{{ funcs|map(attribute='pyname')|surround("'_","'")|join(", ") }}]
 
 #<-----------------------------NpyIter handling------------------------------->
 
