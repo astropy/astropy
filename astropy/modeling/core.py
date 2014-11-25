@@ -25,7 +25,7 @@ import warnings
 
 import numpy as np
 
-from ..utils import indent, isiterable
+from ..utils import indent, isiterable, metadata
 from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
@@ -350,8 +350,14 @@ class Model(object):
 
     _custom_inverse = None
 
+    meta = metadata.MetaData()
+    """A dict-like object to store optional information."""
+
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
+        meta = kwargs.pop('meta', None)
+        if meta is not None:
+            self.meta = meta
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
         # Parameter values must be passed in as keyword arguments in order to
