@@ -94,7 +94,7 @@ class FunctionDoc(object):
         return self.__ret_info
 
     def __repr__(self):
-        return self.doc
+        return self.doc.replace("  \n", "\n")
 
 
 class ArgumentDoc(object):
