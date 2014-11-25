@@ -197,7 +197,7 @@ API Changes
     BeautifulSoup should use as a backend. [#2815]
 
   - Add ``FixedWidthTwoLine`` reader to guessing. This will allows to read tables
-    that a copied from screen output like ``print my_table`` to be read 
+    that a copied from screen output like ``print my_table`` to be read
     automatically. Discussed in #3025 and #3099 [#3109]
 
 - ``astropy.io.fits``
@@ -320,7 +320,7 @@ Bug Fixes
     ``0``, which is the first uncommented line. Discussed in #2692. [#3054]
 
   - Position lines in ``FixedWidthTwoLine`` reader could consist of many characters.
-    Now, only one character in addition to the delimiter is allowed. This bug was 
+    Now, only one character in addition to the delimiter is allowed. This bug was
     discovered as part of [#3109]
 
 - ``astropy.io.fits``
