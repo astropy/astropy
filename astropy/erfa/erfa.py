@@ -38,7 +38,7 @@ NPYLT18 = LooseVersion(numpy.__version__) < LooseVersion('1.8')
 # TODO: remove the above variable and the code using it and make_outputs_scalar when numpy < 1.8 is no longer supported
 
 __all__ = ['ErfaError', 'ErfaWarning',
-           'cal2jd', 'epb', 'epb2jd', 'epj', 'epj2jd', 'jd2cal', 'jdcalf', 'ab', 'apcg', 'apcg13', 'apci', 'apci13', 'apco', 'apco13', 'apcs', 'apcs13', 'aper', 'aper13', 'apio', 'apio13', 'atci13', 'atciq', 'atciqn', 'atciqz', 'atco13', 'atic13', 'aticq', 'aticqn', 'atio13', 'atioq', 'atoc13', 'atoi13', 'atoiq', 'ld', 'ldn', 'ldsun', 'pmpx', 'pmsafe', 'refco', 'epv00', 'plan94', 'fad03', 'fae03', 'faf03', 'faju03', 'fal03', 'falp03', 'fama03', 'fame03', 'fane03', 'faom03', 'fapa03', 'fasa03', 'faur03', 'fave03', 'bi00', 'bp00', 'bp06', 'bpn2xy', 'c2i00a', 'c2i00b', 'c2i06a', 'c2ibpn', 'c2ixy', 'c2ixys', 'c2t00a', 'c2t00b', 'c2t06a', 'c2tcio', 'c2teqx', 'c2tpe', 'c2txy', 'eo06a', 'eors', 'fw2m', 'fw2xy', 'num00a', 'num00b', 'num06a', 'numat', 'nut00a', 'nut00b', 'nut06a', 'nut80', 'nutm80', 'obl06', 'obl80', 'p06e', 'pb06', 'pfw06', 'pmat00', 'pmat06', 'pmat76', 'pn00', 'pn00a', 'pn00b', 'pn06', 'pn06a', 'pnm00a', 'pnm00b', 'pnm06a', 'pnm80', 'pom00', 'pr00', 'prec76', 's00', 's00a', 's00b', 's06', 's06a', 'sp00', 'xy06', 'xys00a', 'xys00b', 'xys06a', 'ee00', 'ee00a', 'ee00b', 'ee06a', 'eect00', 'eqeq94', 'era00', 'gmst00', 'gmst06', 'gmst82', 'gst00a', 'gst00b', 'gst06', 'gst06a', 'gst94', 'pmsafe', 'pvstar', 'starpv', 'fk52h', 'fk5hip', 'fk5hz', 'h2fk5', 'hfk5z', 'starpm', 'eform', 'gc2gd', 'gc2gde', 'gd2gc', 'gd2gce', 'pvtob', 'd2dtf', 'dat', 'dtdb', 'dtf2d', 'taitt', 'taiut1', 'taiutc', 'tcbtdb', 'tcgtt', 'tdbtcb', 'tdbtt', 'tttai', 'tttcg', 'tttdb', 'ttut1', 'ut1tai', 'ut1tt', 'ut1utc', 'utctai', 'utcut1', 'dt_eraASTROM']
+           'cal2jd', 'epb', 'epb2jd', 'epj', 'epj2jd', 'jd2cal', 'jdcalf', 'ab', 'apcg', 'apcg13', 'apci', 'apci13', 'apco', 'apco13', 'apcs', 'apcs13', 'aper', 'aper13', 'apio', 'apio13', 'atci13', 'atciq', 'atciqn', 'atciqz', 'atco13', 'atic13', 'aticq', 'aticqn', 'atio13', 'atioq', 'atoc13', 'atoi13', 'atoiq', 'ld', 'ldn', 'ldsun', 'pmpx', 'pmsafe', 'refco', 'epv00', 'plan94', 'fad03', 'fae03', 'faf03', 'faju03', 'fal03', 'falp03', 'fama03', 'fame03', 'fane03', 'faom03', 'fapa03', 'fasa03', 'faur03', 'fave03', 'bi00', 'bp00', 'bp06', 'bpn2xy', 'c2i00a', 'c2i00b', 'c2i06a', 'c2ibpn', 'c2ixy', 'c2ixys', 'c2t00a', 'c2t00b', 'c2t06a', 'c2tcio', 'c2teqx', 'c2tpe', 'c2txy', 'eo06a', 'eors', 'fw2m', 'fw2xy', 'num00a', 'num00b', 'num06a', 'numat', 'nut00a', 'nut00b', 'nut06a', 'nut80', 'nutm80', 'obl06', 'obl80', 'p06e', 'pb06', 'pfw06', 'pmat00', 'pmat06', 'pmat76', 'pn00', 'pn00a', 'pn00b', 'pn06', 'pn06a', 'pnm00a', 'pnm00b', 'pnm06a', 'pnm80', 'pom00', 'pr00', 'prec76', 's00', 's00a', 's00b', 's06', 's06a', 'sp00', 'xy06', 'xys00a', 'xys00b', 'xys06a', 'ee00', 'ee00a', 'ee00b', 'ee06a', 'eect00', 'eqeq94', 'era00', 'gmst00', 'gmst06', 'gmst82', 'gst00a', 'gst00b', 'gst06', 'gst06a', 'gst94', 'pmsafe', 'pvstar', 'starpv', 'fk52h', 'fk5hip', 'fk5hz', 'h2fk5', 'hfk5z', 'starpm', 'eform', 'gc2gd', 'gc2gde', 'gd2gc', 'gd2gce', 'pvtob', 'd2dtf', 'dat', 'dtdb', 'dtf2d', 'taitt', 'taiut1', 'taiutc', 'tcbtdb', 'tcgtt', 'tdbtcb', 'tdbtt', 'tttai', 'tttcg', 'tttdb', 'ttut1', 'ut1tai', 'ut1tt', 'ut1utc', 'utctai', 'utcut1', 'dt_eraASTROM', 'dt_eraLDBODY']
 
 
 #<---------------------------------Error-handling----------------------------->
@@ -215,7 +215,7 @@ def cal2jd(iy, im, id):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.cal2jd(it)
+    stat_ok = _erfa._cal2jd(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'cal2jd')
@@ -296,7 +296,7 @@ def epb(dj1, dj2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.epb(it)
+    stat_ok = _erfa._epb(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -366,7 +366,7 @@ def epb2jd(epb):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.epb2jd(it)
+    stat_ok = _erfa._epb2jd(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(djm0_out.shape) > 0 and djm0_out.shape[0] == 1
@@ -442,7 +442,7 @@ def epj(dj1, dj2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.epj(it)
+    stat_ok = _erfa._epj(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -512,7 +512,7 @@ def epj2jd(epj):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.epj2jd(it)
+    stat_ok = _erfa._epj2jd(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(djm0_out.shape) > 0 and djm0_out.shape[0] == 1
@@ -615,7 +615,7 @@ def jd2cal(dj1, dj2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.jd2cal(it)
+    stat_ok = _erfa._jd2cal(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'jd2cal')
@@ -735,7 +735,7 @@ def jdcalf(ndp, dj1, dj2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.jdcalf(it)
+    stat_ok = _erfa._jdcalf(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'jdcalf')
@@ -847,7 +847,7 @@ def ab(pnat, v, s, bm1):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ab(it)
+    stat_ok = _erfa._ab(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(ppr_out.shape) > 0 and ppr_out.shape[0] == 1
@@ -1007,7 +1007,7 @@ def apcg(date1, date2, ebpv, ehp):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apcg(it)
+    stat_ok = _erfa._apcg(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
@@ -1159,7 +1159,7 @@ def apcg13(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apcg13(it)
+    stat_ok = _erfa._apcg13(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
@@ -1343,7 +1343,7 @@ def apci(date1, date2, ebpv, ehp, x, y, s):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apci(it)
+    stat_ok = _erfa._apci(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
@@ -1501,7 +1501,7 @@ def apci13(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apci13(it)
+    stat_ok = _erfa._apci13(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
@@ -1773,7 +1773,7 @@ def apco(date1, date2, ebpv, ehp, x, y, s, theta, elong, phi, hm, xp, yp, sp, re
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apco(it)
+    stat_ok = _erfa._apco(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(refa_out.shape) > 0 and refa_out.shape[0] == 1
@@ -2047,7 +2047,7 @@ def apco13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apco13(it)
+    stat_ok = _erfa._apco13(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'apco13')
@@ -2240,7 +2240,7 @@ def apcs(date1, date2, pv, ebpv, ehp):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apcs(it)
+    stat_ok = _erfa._apcs(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
@@ -2404,7 +2404,7 @@ def apcs13(date1, date2, pv):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apcs13(it)
+    stat_ok = _erfa._apcs13(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
@@ -2542,7 +2542,7 @@ def aper(theta, astrom):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.aper(it)
+    stat_ok = _erfa._aper(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
@@ -2704,7 +2704,7 @@ def aper13(ut11, ut12, astrom):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.aper13(it)
+    stat_ok = _erfa._aper13(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
@@ -2901,7 +2901,7 @@ def apio(sp, theta, elong, phi, hm, xp, yp, refa, refb):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apio(it)
+    stat_ok = _erfa._apio(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(refa_out.shape) > 0 and refa_out.shape[0] == 1
@@ -3163,7 +3163,7 @@ def apio13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.apio13(it)
+    stat_ok = _erfa._apio13(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'apio13')
@@ -3323,7 +3323,7 @@ def atci13(rc, dc, pr, pd, px, rv, date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atci13(it)
+    stat_ok = _erfa._atci13(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
@@ -3463,7 +3463,7 @@ def atciq(rc, dc, pr, pd, px, rv, astrom):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atciq(it)
+    stat_ok = _erfa._atciq(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
@@ -3648,7 +3648,7 @@ def atciqn(rc, dc, pr, pd, px, rv, astrom, n, b):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atciqn(it)
+    stat_ok = _erfa._atciqn(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
@@ -3766,7 +3766,7 @@ def atciqz(rc, dc, astrom):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atciqz(it)
+    stat_ok = _erfa._atciqz(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
@@ -4047,7 +4047,7 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atco13(it)
+    stat_ok = _erfa._atco13(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'atco13')
@@ -4192,7 +4192,7 @@ def atic13(ri, di, date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atic13(it)
+    stat_ok = _erfa._atic13(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc_out.shape) > 0 and rc_out.shape[0] == 1
@@ -4308,7 +4308,7 @@ def aticq(ri, di, astrom):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.aticq(it)
+    stat_ok = _erfa._aticq(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc_out.shape) > 0 and rc_out.shape[0] == 1
@@ -4470,7 +4470,7 @@ def aticqn(ri, di, astrom, n, b):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.aticqn(it)
+    stat_ok = _erfa._aticqn(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc_out.shape) > 0 and rc_out.shape[0] == 1
@@ -4714,7 +4714,7 @@ def atio13(ri, di, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atio13(it)
+    stat_ok = _erfa._atio13(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'atio13')
@@ -4877,7 +4877,7 @@ def atioq(ri, di, astrom):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atioq(it)
+    stat_ok = _erfa._atioq(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(aob_out.shape) > 0 and aob_out.shape[0] == 1
@@ -5137,7 +5137,7 @@ def atoc13(type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, r
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atoc13(it)
+    stat_ok = _erfa._atoc13(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'atoc13')
@@ -5395,7 +5395,7 @@ def atoi13(type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, r
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atoi13(it)
+    stat_ok = _erfa._atoi13(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'atoi13')
@@ -5547,7 +5547,7 @@ def atoiq(type, ob1, ob2, astrom):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.atoiq(it)
+    stat_ok = _erfa._atoiq(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
@@ -5687,7 +5687,7 @@ def ld(bm, p, q, e, em, dlim):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ld(it)
+    stat_ok = _erfa._ld(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(p1_out.shape) > 0 and p1_out.shape[0] == 1
@@ -5824,7 +5824,7 @@ def ldn(n, b, ob, sc):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ldn(it)
+    stat_ok = _erfa._ldn(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(sn_out.shape) > 0 and sn_out.shape[0] == 1
@@ -5911,7 +5911,7 @@ def ldsun(p, e, em):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ldsun(it)
+    stat_ok = _erfa._ldsun(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(p1_out.shape) > 0 and p1_out.shape[0] == 1
@@ -6034,7 +6034,7 @@ def pmpx(rc, dc, pr, pd, px, rv, pmt, pob):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pmpx(it)
+    stat_ok = _erfa._pmpx(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(pco_out.shape) > 0 and pco_out.shape[0] == 1
@@ -6229,7 +6229,7 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pmsafe(it)
+    stat_ok = _erfa._pmsafe(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'pmsafe')
@@ -6447,7 +6447,7 @@ def refco(phpa, tc, rh, wl):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.refco(it)
+    stat_ok = _erfa._refco(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(refa_out.shape) > 0 and refa_out.shape[0] == 1
@@ -6592,7 +6592,7 @@ def epv00(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.epv00(it)
+    stat_ok = _erfa._epv00(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'epv00')
@@ -6810,7 +6810,7 @@ def plan94(date1, date2, np):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.plan94(it)
+    stat_ok = _erfa._plan94(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'plan94')
@@ -6889,7 +6889,7 @@ def fad03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fad03(it)
+    stat_ok = _erfa._fad03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -6966,7 +6966,7 @@ def fae03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fae03(it)
+    stat_ok = _erfa._fae03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7041,7 +7041,7 @@ def faf03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.faf03(it)
+    stat_ok = _erfa._faf03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7118,7 +7118,7 @@ def faju03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.faju03(it)
+    stat_ok = _erfa._faju03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7192,7 +7192,7 @@ def fal03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fal03(it)
+    stat_ok = _erfa._fal03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7266,7 +7266,7 @@ def falp03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.falp03(it)
+    stat_ok = _erfa._falp03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7343,7 +7343,7 @@ def fama03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fama03(it)
+    stat_ok = _erfa._fama03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7420,7 +7420,7 @@ def fame03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fame03(it)
+    stat_ok = _erfa._fame03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7494,7 +7494,7 @@ def fane03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fane03(it)
+    stat_ok = _erfa._fane03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7568,7 +7568,7 @@ def faom03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.faom03(it)
+    stat_ok = _erfa._faom03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7646,7 +7646,7 @@ def fapa03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fapa03(it)
+    stat_ok = _erfa._fapa03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7723,7 +7723,7 @@ def fasa03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fasa03(it)
+    stat_ok = _erfa._fasa03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7797,7 +7797,7 @@ def faur03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.faur03(it)
+    stat_ok = _erfa._faur03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7874,7 +7874,7 @@ def fave03(t):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fave03(it)
+    stat_ok = _erfa._fave03(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -7950,7 +7950,7 @@ def bi00():
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.bi00(it)
+    stat_ok = _erfa._bi00(it)
     
     return dpsibi_out, depsbi_out, dra_out
 
@@ -8065,7 +8065,7 @@ def bp00(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.bp00(it)
+    stat_ok = _erfa._bp00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rb_out.shape) > 0 and rb_out.shape[0] == 1
@@ -8182,7 +8182,7 @@ def bp06(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.bp06(it)
+    stat_ok = _erfa._bp06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rb_out.shape) > 0 and rb_out.shape[0] == 1
@@ -8265,7 +8265,7 @@ def bpn2xy(rbpn):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.bpn2xy(it)
+    stat_ok = _erfa._bpn2xy(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(x_out.shape) > 0 and x_out.shape[0] == 1
@@ -8383,7 +8383,7 @@ def c2i00a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2i00a(it)
+    stat_ok = _erfa._c2i00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
@@ -8499,7 +8499,7 @@ def c2i00b(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2i00b(it)
+    stat_ok = _erfa._c2i00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
@@ -8606,7 +8606,7 @@ def c2i06a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2i06a(it)
+    stat_ok = _erfa._c2i06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
@@ -8730,7 +8730,7 @@ def c2ibpn(date1, date2, rbpn):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2ibpn(it)
+    stat_ok = _erfa._c2ibpn(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
@@ -8852,7 +8852,7 @@ def c2ixy(date1, date2, x, y):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2ixy(it)
+    stat_ok = _erfa._c2ixy(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
@@ -8952,7 +8952,7 @@ def c2ixys(x, y, s):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2ixys(it)
+    stat_ok = _erfa._c2ixys(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
@@ -9093,7 +9093,7 @@ def c2t00a(tta, ttb, uta, utb, xp, yp):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2t00a(it)
+    stat_ok = _erfa._c2t00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
@@ -9233,7 +9233,7 @@ def c2t00b(tta, ttb, uta, utb, xp, yp):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2t00b(it)
+    stat_ok = _erfa._c2t00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
@@ -9372,7 +9372,7 @@ def c2t06a(tta, ttb, uta, utb, xp, yp):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2t06a(it)
+    stat_ok = _erfa._c2t06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
@@ -9478,7 +9478,7 @@ def c2tcio(rc2i, era, rpom):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2tcio(it)
+    stat_ok = _erfa._c2tcio(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
@@ -9584,7 +9584,7 @@ def c2teqx(rbpn, gst, rpom):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2teqx(it)
+    stat_ok = _erfa._c2teqx(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
@@ -9743,7 +9743,7 @@ def c2tpe(tta, ttb, uta, utb, dpsi, deps, xp, yp):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2tpe(it)
+    stat_ok = _erfa._c2tpe(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
@@ -9898,7 +9898,7 @@ def c2txy(tta, ttb, uta, utb, x, y, xp, yp):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.c2txy(it)
+    stat_ok = _erfa._c2txy(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
@@ -10000,7 +10000,7 @@ def eo06a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.eo06a(it)
+    stat_ok = _erfa._eo06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -10082,7 +10082,7 @@ def eors(rnpb, s):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.eors(it)
+    stat_ok = _erfa._eors(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -10204,7 +10204,7 @@ def fw2m(gamb, phib, psi, eps):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fw2m(it)
+    stat_ok = _erfa._fw2m(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(r_out.shape) > 0 and r_out.shape[0] == 1
@@ -10312,7 +10312,7 @@ def fw2xy(gamb, phib, psi, eps):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fw2xy(it)
+    stat_ok = _erfa._fw2xy(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(x_out.shape) > 0 and x_out.shape[0] == 1
@@ -10414,7 +10414,7 @@ def num00a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.num00a(it)
+    stat_ok = _erfa._num00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
@@ -10514,7 +10514,7 @@ def num00b(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.num00b(it)
+    stat_ok = _erfa._num00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
@@ -10613,7 +10613,7 @@ def num06a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.num06a(it)
+    stat_ok = _erfa._num06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
@@ -10707,7 +10707,7 @@ def numat(epsa, dpsi, deps):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.numat(it)
+    stat_ok = _erfa._numat(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
@@ -10904,7 +10904,7 @@ def nut00a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.nut00a(it)
+    stat_ok = _erfa._nut00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
@@ -11071,7 +11071,7 @@ def nut00b(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.nut00b(it)
+    stat_ok = _erfa._nut00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
@@ -11197,7 +11197,7 @@ def nut06a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.nut06a(it)
+    stat_ok = _erfa._nut06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
@@ -11296,7 +11296,7 @@ def nut80(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.nut80(it)
+    stat_ok = _erfa._nut80(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
@@ -11391,7 +11391,7 @@ def nutm80(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.nutm80(it)
+    stat_ok = _erfa._nutm80(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
@@ -11481,7 +11481,7 @@ def obl06(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.obl06(it)
+    stat_ok = _erfa._obl06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -11573,7 +11573,7 @@ def obl80(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.obl80(it)
+    stat_ok = _erfa._obl80(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -11751,7 +11751,7 @@ def p06e(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.p06e(it)
+    stat_ok = _erfa._p06e(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(eps0_out.shape) > 0 and eps0_out.shape[0] == 1
@@ -11893,7 +11893,7 @@ def pb06(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pb06(it)
+    stat_ok = _erfa._pb06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(bzeta_out.shape) > 0 and bzeta_out.shape[0] == 1
@@ -12020,7 +12020,7 @@ def pfw06(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pfw06(it)
+    stat_ok = _erfa._pfw06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(gamb_out.shape) > 0 and gamb_out.shape[0] == 1
@@ -12124,7 +12124,7 @@ def pmat00(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pmat00(it)
+    stat_ok = _erfa._pmat00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
@@ -12223,7 +12223,7 @@ def pmat06(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pmat06(it)
+    stat_ok = _erfa._pmat06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
@@ -12337,7 +12337,7 @@ def pmat76(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pmat76(it)
+    stat_ok = _erfa._pmat76(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rmatp_out.shape) > 0 and rmatp_out.shape[0] == 1
@@ -12492,7 +12492,7 @@ def pn00(date1, date2, dpsi, deps):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pn00(it)
+    stat_ok = _erfa._pn00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(epsa_out.shape) > 0 and epsa_out.shape[0] == 1
@@ -12649,7 +12649,7 @@ def pn00a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pn00a(it)
+    stat_ok = _erfa._pn00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
@@ -12810,7 +12810,7 @@ def pn00b(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pn00b(it)
+    stat_ok = _erfa._pn00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
@@ -12977,7 +12977,7 @@ def pn06(date1, date2, dpsi, deps):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pn06(it)
+    stat_ok = _erfa._pn06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(epsa_out.shape) > 0 and epsa_out.shape[0] == 1
@@ -13124,7 +13124,7 @@ def pn06a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pn06a(it)
+    stat_ok = _erfa._pn06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
@@ -13239,7 +13239,7 @@ def pnm00a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pnm00a(it)
+    stat_ok = _erfa._pnm00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rbpn_out.shape) > 0 and rbpn_out.shape[0] == 1
@@ -13340,7 +13340,7 @@ def pnm00b(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pnm00b(it)
+    stat_ok = _erfa._pnm00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rbpn_out.shape) > 0 and rbpn_out.shape[0] == 1
@@ -13438,7 +13438,7 @@ def pnm06a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pnm06a(it)
+    stat_ok = _erfa._pnm06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rnpb_out.shape) > 0 and rnpb_out.shape[0] == 1
@@ -13538,7 +13538,7 @@ def pnm80(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pnm80(it)
+    stat_ok = _erfa._pnm80(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rmatpn_out.shape) > 0 and rmatpn_out.shape[0] == 1
@@ -13637,7 +13637,7 @@ def pom00(xp, yp, sp):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pom00(it)
+    stat_ok = _erfa._pom00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rpom_out.shape) > 0 and rpom_out.shape[0] == 1
@@ -13752,7 +13752,7 @@ def pr00(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pr00(it)
+    stat_ok = _erfa._pr00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(dpsipr_out.shape) > 0 and dpsipr_out.shape[0] == 1
@@ -13879,7 +13879,7 @@ def prec76(date01, date02, date11, date12):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.prec76(it)
+    stat_ok = _erfa._prec76(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(zeta_out.shape) > 0 and zeta_out.shape[0] == 1
@@ -14017,7 +14017,7 @@ def s00(date1, date2, x, y):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.s00(it)
+    stat_ok = _erfa._s00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -14134,7 +14134,7 @@ def s00a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.s00a(it)
+    stat_ok = _erfa._s00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -14251,7 +14251,7 @@ def s00b(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.s00b(it)
+    stat_ok = _erfa._s00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -14382,7 +14382,7 @@ def s06(date1, date2, x, y):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.s06(it)
+    stat_ok = _erfa._s06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -14501,7 +14501,7 @@ def s06a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.s06a(it)
+    stat_ok = _erfa._s06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -14596,7 +14596,7 @@ def sp00(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.sp00(it)
+    stat_ok = _erfa._sp00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -14730,7 +14730,7 @@ def xy06(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.xy06(it)
+    stat_ok = _erfa._xy06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(x_out.shape) > 0 and x_out.shape[0] == 1
@@ -14840,7 +14840,7 @@ def xys00a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.xys00a(it)
+    stat_ok = _erfa._xys00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(x_out.shape) > 0 and x_out.shape[0] == 1
@@ -14952,7 +14952,7 @@ def xys00b(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.xys00b(it)
+    stat_ok = _erfa._xys00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(x_out.shape) > 0 and x_out.shape[0] == 1
@@ -15064,7 +15064,7 @@ def xys06a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.xys06a(it)
+    stat_ok = _erfa._xys06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(x_out.shape) > 0 and x_out.shape[0] == 1
@@ -15186,7 +15186,7 @@ def ee00(date1, date2, epsa, dpsi):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ee00(it)
+    stat_ok = _erfa._ee00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -15292,7 +15292,7 @@ def ee00a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ee00a(it)
+    stat_ok = _erfa._ee00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -15404,7 +15404,7 @@ def ee00b(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ee00b(it)
+    stat_ok = _erfa._ee00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -15502,7 +15502,7 @@ def ee06a(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ee06a(it)
+    stat_ok = _erfa._ee06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -15641,7 +15641,7 @@ def eect00(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.eect00(it)
+    stat_ok = _erfa._eect00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -15740,7 +15740,7 @@ def eqeq94(date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.eqeq94(it)
+    stat_ok = _erfa._eqeq94(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -15842,7 +15842,7 @@ def era00(dj1, dj2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.era00(it)
+    stat_ok = _erfa._era00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -15968,7 +15968,7 @@ def gmst00(uta, utb, tta, ttb):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gmst00(it)
+    stat_ok = _erfa._gmst00(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -16084,7 +16084,7 @@ def gmst06(uta, utb, tta, ttb):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gmst06(it)
+    stat_ok = _erfa._gmst06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -16192,7 +16192,7 @@ def gmst82(dj1, dj2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gmst82(it)
+    stat_ok = _erfa._gmst82(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -16319,7 +16319,7 @@ def gst00a(uta, utb, tta, ttb):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gst00a(it)
+    stat_ok = _erfa._gst00a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -16444,7 +16444,7 @@ def gst00b(uta, utb):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gst00b(it)
+    stat_ok = _erfa._gst00b(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -16571,7 +16571,7 @@ def gst06(uta, utb, tta, ttb, rnpb):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gst06(it)
+    stat_ok = _erfa._gst06(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -16689,7 +16689,7 @@ def gst06a(uta, utb, tta, ttb):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gst06a(it)
+    stat_ok = _erfa._gst06a(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -16799,7 +16799,7 @@ def gst94(uta, utb):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gst94(it)
+    stat_ok = _erfa._gst94(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -16994,7 +16994,7 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pmsafe(it)
+    stat_ok = _erfa._pmsafe(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'pmsafe')
@@ -17151,7 +17151,7 @@ def pvstar(pv):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pvstar(it)
+    stat_ok = _erfa._pvstar(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'pvstar')
@@ -17346,7 +17346,7 @@ def starpv(ra, dec, pmr, pmd, px, rv):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.starpv(it)
+    stat_ok = _erfa._starpv(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'starpv')
@@ -17474,7 +17474,7 @@ def fk52h(r5, d5, dr5, dd5, px5, rv5):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fk52h(it)
+    stat_ok = _erfa._fk52h(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rh_out.shape) > 0 and rh_out.shape[0] == 1
@@ -17554,7 +17554,7 @@ def fk5hip():
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fk5hip(it)
+    stat_ok = _erfa._fk5hip(it)
     
     return r5h_out, s5h_out
 
@@ -17677,7 +17677,7 @@ def fk5hz(r5, d5, date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.fk5hz(it)
+    stat_ok = _erfa._fk5hz(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(rh_out.shape) > 0 and rh_out.shape[0] == 1
@@ -17804,7 +17804,7 @@ def h2fk5(rh, dh, drh, ddh, pxh, rvh):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.h2fk5(it)
+    stat_ok = _erfa._h2fk5(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(r5_out.shape) > 0 and r5_out.shape[0] == 1
@@ -17948,7 +17948,7 @@ def hfk5z(rh, dh, date1, date2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.hfk5z(it)
+    stat_ok = _erfa._hfk5z(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(r5_out.shape) > 0 and r5_out.shape[0] == 1
@@ -18150,7 +18150,7 @@ def starpm(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.starpm(it)
+    stat_ok = _erfa._starpm(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'starpm')
@@ -18265,7 +18265,7 @@ def eform(n):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.eform(it)
+    stat_ok = _erfa._eform(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'eform')
@@ -18374,7 +18374,7 @@ def gc2gd(n, xyz):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gc2gd(it)
+    stat_ok = _erfa._gc2gd(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'gc2gd')
@@ -18495,7 +18495,7 @@ def gc2gde(a, f, xyz):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gc2gde(it)
+    stat_ok = _erfa._gc2gde(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'gc2gde')
@@ -18616,7 +18616,7 @@ def gd2gc(n, elong, phi, height):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gd2gc(it)
+    stat_ok = _erfa._gd2gc(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'gd2gc')
@@ -18739,7 +18739,7 @@ def gd2gce(a, f, elong, phi, height):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.gd2gce(it)
+    stat_ok = _erfa._gd2gce(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'gd2gce')
@@ -18876,7 +18876,7 @@ def pvtob(elong, phi, hm, xp, yp, sp, theta):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.pvtob(it)
+    stat_ok = _erfa._pvtob(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(pv_out.shape) > 0 and pv_out.shape[0] == 1
@@ -19007,7 +19007,7 @@ def d2dtf(scale, ndp, d1, d2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.d2dtf(it)
+    stat_ok = _erfa._d2dtf(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'd2dtf')
@@ -19192,7 +19192,7 @@ def dat(iy, im, id, fd):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.dat(it)
+    stat_ok = _erfa._dat(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'dat')
@@ -19421,7 +19421,7 @@ def dtdb(date1, date2, ut, elong, u, v):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.dtdb(it)
+    stat_ok = _erfa._dtdb(it)
     #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
     if make_outputs_scalar:
         assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
@@ -19569,7 +19569,7 @@ def dtf2d(scale, iy, im, id, ihr, imn, sec):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.dtf2d(it)
+    stat_ok = _erfa._dtf2d(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'dtf2d')
@@ -19659,7 +19659,7 @@ def taitt(tai1, tai2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.taitt(it)
+    stat_ok = _erfa._taitt(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'taitt')
@@ -19755,7 +19755,7 @@ def taiut1(tai1, tai2, dta):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.taiut1(it)
+    stat_ok = _erfa._taiut1(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'taiut1')
@@ -19868,7 +19868,7 @@ def taiutc(tai1, tai2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.taiutc(it)
+    stat_ok = _erfa._taiutc(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'taiutc')
@@ -19972,7 +19972,7 @@ def tcbtdb(tcb1, tcb2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.tcbtdb(it)
+    stat_ok = _erfa._tcbtdb(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'tcbtdb')
@@ -20061,7 +20061,7 @@ def tcgtt(tcg1, tcg2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.tcgtt(it)
+    stat_ok = _erfa._tcgtt(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'tcgtt')
@@ -20165,7 +20165,7 @@ def tdbtcb(tdb1, tdb2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.tdbtcb(it)
+    stat_ok = _erfa._tdbtcb(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'tdbtcb')
@@ -20271,7 +20271,7 @@ def tdbtt(tdb1, tdb2, dtr):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.tdbtt(it)
+    stat_ok = _erfa._tdbtt(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'tdbtt')
@@ -20361,7 +20361,7 @@ def tttai(tt1, tt2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.tttai(it)
+    stat_ok = _erfa._tttai(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'tttai')
@@ -20450,7 +20450,7 @@ def tttcg(tt1, tt2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.tttcg(it)
+    stat_ok = _erfa._tttcg(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'tttcg')
@@ -20556,7 +20556,7 @@ def tttdb(tt1, tt2, dtr):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.tttdb(it)
+    stat_ok = _erfa._tttdb(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'tttdb')
@@ -20651,7 +20651,7 @@ def ttut1(tt1, tt2, dt):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ttut1(it)
+    stat_ok = _erfa._ttut1(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'ttut1')
@@ -20747,7 +20747,7 @@ def ut1tai(ut11, ut12, dta):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ut1tai(it)
+    stat_ok = _erfa._ut1tai(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'ut1tai')
@@ -20842,7 +20842,7 @@ def ut1tt(ut11, ut12, dt):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ut1tt(it)
+    stat_ok = _erfa._ut1tt(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'ut1tt')
@@ -20965,7 +20965,7 @@ def ut1utc(ut11, ut12, dut1):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.ut1utc(it)
+    stat_ok = _erfa._ut1utc(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'ut1utc')
@@ -21080,7 +21080,7 @@ def utctai(utc1, utc2):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.utctai(it)
+    stat_ok = _erfa._utctai(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'utctai')
@@ -21204,7 +21204,7 @@ def utcut1(utc1, utc2, dut1):
     it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
     
     #Iterate
-    _erfa.utcut1(it)
+    stat_ok = _erfa._utcut1(it)
     
     if not stat_ok:
         check_errwarn(c_retval_out, 'utcut1')

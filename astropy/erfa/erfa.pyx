@@ -37,6 +37,7 @@ from cpython.ref cimport PyObject
 
 numpy.import_array()
 
+__all__ = ['_cal2jd', '_epb', '_epb2jd', '_epj', '_epj2jd', '_jd2cal', '_jdcalf', '_ab', '_apcg', '_apcg13', '_apci', '_apci13', '_apco', '_apco13', '_apcs', '_apcs13', '_aper', '_aper13', '_apio', '_apio13', '_atci13', '_atciq', '_atciqn', '_atciqz', '_atco13', '_atic13', '_aticq', '_aticqn', '_atio13', '_atioq', '_atoc13', '_atoi13', '_atoiq', '_ld', '_ldn', '_ldsun', '_pmpx', '_pmsafe', '_refco', '_epv00', '_plan94', '_fad03', '_fae03', '_faf03', '_faju03', '_fal03', '_falp03', '_fama03', '_fame03', '_fane03', '_faom03', '_fapa03', '_fasa03', '_faur03', '_fave03', '_bi00', '_bp00', '_bp06', '_bpn2xy', '_c2i00a', '_c2i00b', '_c2i06a', '_c2ibpn', '_c2ixy', '_c2ixys', '_c2t00a', '_c2t00b', '_c2t06a', '_c2tcio', '_c2teqx', '_c2tpe', '_c2txy', '_eo06a', '_eors', '_fw2m', '_fw2xy', '_num00a', '_num00b', '_num06a', '_numat', '_nut00a', '_nut00b', '_nut06a', '_nut80', '_nutm80', '_obl06', '_obl80', '_p06e', '_pb06', '_pfw06', '_pmat00', '_pmat06', '_pmat76', '_pn00', '_pn00a', '_pn00b', '_pn06', '_pn06a', '_pnm00a', '_pnm00b', '_pnm06a', '_pnm80', '_pom00', '_pr00', '_prec76', '_s00', '_s00a', '_s00b', '_s06', '_s06a', '_sp00', '_xy06', '_xys00a', '_xys00b', '_xys06a', '_ee00', '_ee00a', '_ee00b', '_ee06a', '_eect00', '_eqeq94', '_era00', '_gmst00', '_gmst06', '_gmst82', '_gst00a', '_gst00b', '_gst06', '_gst06a', '_gst94', '_pmsafe', '_pvstar', '_starpv', '_fk52h', '_fk5hip', '_fk5hz', '_h2fk5', '_hfk5z', '_starpm', '_eform', '_gc2gd', '_gc2gde', '_gd2gc', '_gd2gce', '_pvtob', '_d2dtf', '_dat', '_dtdb', '_dtf2d', '_taitt', '_taiut1', '_taiutc', '_tcbtdb', '_tcgtt', '_tdbtcb', '_tdbtt', '_tttai', '_tttcg', '_tttdb', '_ttut1', '_ut1tai', '_ut1tt', '_ut1utc', '_utctai', '_utcut1']
 
 #<-----------------------------NpyIter handling------------------------------->
 
@@ -231,7 +232,7 @@ cdef extern from "erfa.h":
     int eraUtcut1(double, double, double, double *, double *)
 
 
-def cal2jd(it):
+def _cal2jd(it):
     #Iterate
     cdef int _iy
     cdef int _im
@@ -254,8 +255,10 @@ def cal2jd(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def epb(it):
+
+def _epb(it):
     #Iterate
     cdef double _dj1
     cdef double _dj2
@@ -270,7 +273,8 @@ def epb(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def epb2jd(it):
+
+def _epb2jd(it):
     #Iterate
     cdef double _epb
     cdef double * _djm0
@@ -285,7 +289,8 @@ def epb2jd(it):
         eraEpb2jd(_epb, _djm0, _djm)
         status = iternext(GetNpyIter(it))
 
-def epj(it):
+
+def _epj(it):
     #Iterate
     cdef double _dj1
     cdef double _dj2
@@ -300,7 +305,8 @@ def epj(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def epj2jd(it):
+
+def _epj2jd(it):
     #Iterate
     cdef double _epj
     cdef double * _djm0
@@ -315,7 +321,8 @@ def epj2jd(it):
         eraEpj2jd(_epj, _djm0, _djm)
         status = iternext(GetNpyIter(it))
 
-def jd2cal(it):
+
+def _jd2cal(it):
     #Iterate
     cdef double _dj1
     cdef double _dj2
@@ -340,8 +347,10 @@ def jd2cal(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def jdcalf(it):
+
+def _jdcalf(it):
     #Iterate
     cdef int _ndp
     cdef double _dj1
@@ -362,8 +371,10 @@ def jdcalf(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def ab(it):
+
+def _ab(it):
     #Iterate
     cdef double * _pnat
     cdef double * _v
@@ -382,7 +393,8 @@ def ab(it):
         eraAb(_pnat, _v, _s, _bm1, _ppr)
         status = iternext(GetNpyIter(it))
 
-def apcg(it):
+
+def _apcg(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -401,7 +413,8 @@ def apcg(it):
         eraApcg(_date1, _date2, _ebpv, _ehp, _astrom)
         status = iternext(GetNpyIter(it))
 
-def apcg13(it):
+
+def _apcg13(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -416,7 +429,8 @@ def apcg13(it):
         eraApcg13(_date1, _date2, _astrom)
         status = iternext(GetNpyIter(it))
 
-def apci(it):
+
+def _apci(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -441,7 +455,8 @@ def apci(it):
         eraApci(_date1, _date2, _ebpv, _ehp, _x, _y, _s, _astrom)
         status = iternext(GetNpyIter(it))
 
-def apci13(it):
+
+def _apci13(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -458,7 +473,8 @@ def apci13(it):
         eraApci13(_date1, _date2, _astrom, _eo)
         status = iternext(GetNpyIter(it))
 
-def apco(it):
+
+def _apco(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -501,7 +517,8 @@ def apco(it):
         eraApco(_date1, _date2, _ebpv, _ehp, _x, _y, _s, _theta, _elong, _phi, _hm, _xp, _yp, _sp, _refa, _refb, _astrom)
         status = iternext(GetNpyIter(it))
 
-def apco13(it):
+
+def _apco13(it):
     #Iterate
     cdef double _utc1
     cdef double _utc2
@@ -542,8 +559,10 @@ def apco13(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def apcs(it):
+
+def _apcs(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -564,7 +583,8 @@ def apcs(it):
         eraApcs(_date1, _date2, _pv, _ebpv, _ehp, _astrom)
         status = iternext(GetNpyIter(it))
 
-def apcs13(it):
+
+def _apcs13(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -581,7 +601,8 @@ def apcs13(it):
         eraApcs13(_date1, _date2, _pv, _astrom)
         status = iternext(GetNpyIter(it))
 
-def aper(it):
+
+def _aper(it):
     #Iterate
     cdef double _theta
     cdef eraASTROM * _astrom
@@ -594,7 +615,8 @@ def aper(it):
         eraAper(_theta, _astrom)
         status = iternext(GetNpyIter(it))
 
-def aper13(it):
+
+def _aper13(it):
     #Iterate
     cdef double _ut11
     cdef double _ut12
@@ -609,7 +631,8 @@ def aper13(it):
         eraAper13(_ut11, _ut12, _astrom)
         status = iternext(GetNpyIter(it))
 
-def apio(it):
+
+def _apio(it):
     #Iterate
     cdef double _sp
     cdef double _theta
@@ -638,7 +661,8 @@ def apio(it):
         eraApio(_sp, _theta, _elong, _phi, _hm, _xp, _yp, _refa, _refb, _astrom)
         status = iternext(GetNpyIter(it))
 
-def apio13(it):
+
+def _apio13(it):
     #Iterate
     cdef double _utc1
     cdef double _utc2
@@ -677,8 +701,10 @@ def apio13(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def atci13(it):
+
+def _atci13(it):
     #Iterate
     cdef double _rc
     cdef double _dc
@@ -709,7 +735,8 @@ def atci13(it):
         eraAtci13(_rc, _dc, _pr, _pd, _px, _rv, _date1, _date2, _ri, _di, _eo)
         status = iternext(GetNpyIter(it))
 
-def atciq(it):
+
+def _atciq(it):
     #Iterate
     cdef double _rc
     cdef double _dc
@@ -736,7 +763,8 @@ def atciq(it):
         eraAtciq(_rc, _dc, _pr, _pd, _px, _rv, _astrom, _ri, _di)
         status = iternext(GetNpyIter(it))
 
-def atciqn(it):
+
+def _atciqn(it):
     #Iterate
     cdef double _rc
     cdef double _dc
@@ -767,7 +795,8 @@ def atciqn(it):
         eraAtciqn(_rc, _dc, _pr, _pd, _px, _rv, _astrom, _n, _b, _ri, _di)
         status = iternext(GetNpyIter(it))
 
-def atciqz(it):
+
+def _atciqz(it):
     #Iterate
     cdef double _rc
     cdef double _dc
@@ -786,7 +815,8 @@ def atciqz(it):
         eraAtciqz(_rc, _dc, _astrom, _ri, _di)
         status = iternext(GetNpyIter(it))
 
-def atco13(it):
+
+def _atco13(it):
     #Iterate
     cdef double _rc
     cdef double _dc
@@ -847,8 +877,10 @@ def atco13(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def atic13(it):
+
+def _atic13(it):
     #Iterate
     cdef double _ri
     cdef double _di
@@ -871,7 +903,8 @@ def atic13(it):
         eraAtic13(_ri, _di, _date1, _date2, _rc, _dc, _eo)
         status = iternext(GetNpyIter(it))
 
-def aticq(it):
+
+def _aticq(it):
     #Iterate
     cdef double _ri
     cdef double _di
@@ -890,7 +923,8 @@ def aticq(it):
         eraAticq(_ri, _di, _astrom, _rc, _dc)
         status = iternext(GetNpyIter(it))
 
-def aticqn(it):
+
+def _aticqn(it):
     #Iterate
     cdef double _ri
     cdef double _di
@@ -913,7 +947,8 @@ def aticqn(it):
         eraAticqn(_ri, _di, _astrom, _n, _b, _rc, _dc)
         status = iternext(GetNpyIter(it))
 
-def atio13(it):
+
+def _atio13(it):
     #Iterate
     cdef double _ri
     cdef double _di
@@ -964,8 +999,10 @@ def atio13(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def atioq(it):
+
+def _atioq(it):
     #Iterate
     cdef double _ri
     cdef double _di
@@ -990,7 +1027,8 @@ def atioq(it):
         eraAtioq(_ri, _di, _astrom, _aob, _zob, _hob, _dob, _rob)
         status = iternext(GetNpyIter(it))
 
-def atoc13(it):
+
+def _atoc13(it):
     #Iterate
     cdef const char * _type
     cdef double _ob1
@@ -1037,8 +1075,10 @@ def atoc13(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def atoi13(it):
+
+def _atoi13(it):
     #Iterate
     cdef const char * _type
     cdef double _ob1
@@ -1085,8 +1125,10 @@ def atoi13(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def atoiq(it):
+
+def _atoiq(it):
     #Iterate
     cdef const char * _type
     cdef double _ob1
@@ -1107,7 +1149,8 @@ def atoiq(it):
         eraAtoiq(_type, _ob1, _ob2, _astrom, _ri, _di)
         status = iternext(GetNpyIter(it))
 
-def ld(it):
+
+def _ld(it):
     #Iterate
     cdef double _bm
     cdef double * _p
@@ -1130,7 +1173,8 @@ def ld(it):
         eraLd(_bm, _p, _q, _e, _em, _dlim, _p1)
         status = iternext(GetNpyIter(it))
 
-def ldn(it):
+
+def _ldn(it):
     #Iterate
     cdef int _n
     cdef eraLDBODY * _b
@@ -1149,7 +1193,8 @@ def ldn(it):
         eraLdn(_n, _b, _ob, _sc, _sn)
         status = iternext(GetNpyIter(it))
 
-def ldsun(it):
+
+def _ldsun(it):
     #Iterate
     cdef double * _p
     cdef double * _e
@@ -1166,7 +1211,8 @@ def ldsun(it):
         eraLdsun(_p, _e, _em, _p1)
         status = iternext(GetNpyIter(it))
 
-def pmpx(it):
+
+def _pmpx(it):
     #Iterate
     cdef double _rc
     cdef double _dc
@@ -1193,7 +1239,8 @@ def pmpx(it):
         eraPmpx(_rc, _dc, _pr, _pd, _px, _rv, _pmt, _pob, _pco)
         status = iternext(GetNpyIter(it))
 
-def pmsafe(it):
+
+def _pmsafe(it):
     #Iterate
     cdef double _ra1
     cdef double _dec1
@@ -1238,8 +1285,10 @@ def pmsafe(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def refco(it):
+
+def _refco(it):
     #Iterate
     cdef double _phpa
     cdef double _tc
@@ -1260,7 +1309,8 @@ def refco(it):
         eraRefco(_phpa, _tc, _rh, _wl, _refa, _refb)
         status = iternext(GetNpyIter(it))
 
-def epv00(it):
+
+def _epv00(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1281,8 +1331,10 @@ def epv00(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def plan94(it):
+
+def _plan94(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1303,8 +1355,10 @@ def plan94(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def fad03(it):
+
+def _fad03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1317,7 +1371,8 @@ def fad03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def fae03(it):
+
+def _fae03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1330,7 +1385,8 @@ def fae03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def faf03(it):
+
+def _faf03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1343,7 +1399,8 @@ def faf03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def faju03(it):
+
+def _faju03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1356,7 +1413,8 @@ def faju03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def fal03(it):
+
+def _fal03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1369,7 +1427,8 @@ def fal03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def falp03(it):
+
+def _falp03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1382,7 +1441,8 @@ def falp03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def fama03(it):
+
+def _fama03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1395,7 +1455,8 @@ def fama03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def fame03(it):
+
+def _fame03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1408,7 +1469,8 @@ def fame03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def fane03(it):
+
+def _fane03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1421,7 +1483,8 @@ def fane03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def faom03(it):
+
+def _faom03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1434,7 +1497,8 @@ def faom03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def fapa03(it):
+
+def _fapa03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1447,7 +1511,8 @@ def fapa03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def fasa03(it):
+
+def _fasa03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1460,7 +1525,8 @@ def fasa03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def faur03(it):
+
+def _faur03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1473,7 +1539,8 @@ def faur03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def fave03(it):
+
+def _fave03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
@@ -1486,7 +1553,8 @@ def fave03(it):
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def bi00(it):
+
+def _bi00(it):
     #Iterate
     cdef double * _dpsibi
     cdef double * _depsbi
@@ -1501,7 +1569,8 @@ def bi00(it):
         eraBi00(_dpsibi, _depsbi, _dra)
         status = iternext(GetNpyIter(it))
 
-def bp00(it):
+
+def _bp00(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1520,7 +1589,8 @@ def bp00(it):
         eraBp00(_date1, _date2, _rb, _rp, _rbp)
         status = iternext(GetNpyIter(it))
 
-def bp06(it):
+
+def _bp06(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1539,7 +1609,8 @@ def bp06(it):
         eraBp06(_date1, _date2, _rb, _rp, _rbp)
         status = iternext(GetNpyIter(it))
 
-def bpn2xy(it):
+
+def _bpn2xy(it):
     #Iterate
     cdef double * _rbpn
     cdef double * _x
@@ -1554,7 +1625,8 @@ def bpn2xy(it):
         eraBpn2xy(_rbpn, _x, _y)
         status = iternext(GetNpyIter(it))
 
-def c2i00a(it):
+
+def _c2i00a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1569,7 +1641,8 @@ def c2i00a(it):
         eraC2i00a(_date1, _date2, _rc2i)
         status = iternext(GetNpyIter(it))
 
-def c2i00b(it):
+
+def _c2i00b(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1584,7 +1657,8 @@ def c2i00b(it):
         eraC2i00b(_date1, _date2, _rc2i)
         status = iternext(GetNpyIter(it))
 
-def c2i06a(it):
+
+def _c2i06a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1599,7 +1673,8 @@ def c2i06a(it):
         eraC2i06a(_date1, _date2, _rc2i)
         status = iternext(GetNpyIter(it))
 
-def c2ibpn(it):
+
+def _c2ibpn(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1616,7 +1691,8 @@ def c2ibpn(it):
         eraC2ibpn(_date1, _date2, _rbpn, _rc2i)
         status = iternext(GetNpyIter(it))
 
-def c2ixy(it):
+
+def _c2ixy(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1635,7 +1711,8 @@ def c2ixy(it):
         eraC2ixy(_date1, _date2, _x, _y, _rc2i)
         status = iternext(GetNpyIter(it))
 
-def c2ixys(it):
+
+def _c2ixys(it):
     #Iterate
     cdef double _x
     cdef double _y
@@ -1652,7 +1729,8 @@ def c2ixys(it):
         eraC2ixys(_x, _y, _s, _rc2i)
         status = iternext(GetNpyIter(it))
 
-def c2t00a(it):
+
+def _c2t00a(it):
     #Iterate
     cdef double _tta
     cdef double _ttb
@@ -1675,7 +1753,8 @@ def c2t00a(it):
         eraC2t00a(_tta, _ttb, _uta, _utb, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
 
-def c2t00b(it):
+
+def _c2t00b(it):
     #Iterate
     cdef double _tta
     cdef double _ttb
@@ -1698,7 +1777,8 @@ def c2t00b(it):
         eraC2t00b(_tta, _ttb, _uta, _utb, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
 
-def c2t06a(it):
+
+def _c2t06a(it):
     #Iterate
     cdef double _tta
     cdef double _ttb
@@ -1721,7 +1801,8 @@ def c2t06a(it):
         eraC2t06a(_tta, _ttb, _uta, _utb, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
 
-def c2tcio(it):
+
+def _c2tcio(it):
     #Iterate
     cdef double * _rc2i
     cdef double _era
@@ -1738,7 +1819,8 @@ def c2tcio(it):
         eraC2tcio(_rc2i, _era, _rpom, _rc2t)
         status = iternext(GetNpyIter(it))
 
-def c2teqx(it):
+
+def _c2teqx(it):
     #Iterate
     cdef double * _rbpn
     cdef double _gst
@@ -1755,7 +1837,8 @@ def c2teqx(it):
         eraC2teqx(_rbpn, _gst, _rpom, _rc2t)
         status = iternext(GetNpyIter(it))
 
-def c2tpe(it):
+
+def _c2tpe(it):
     #Iterate
     cdef double _tta
     cdef double _ttb
@@ -1782,7 +1865,8 @@ def c2tpe(it):
         eraC2tpe(_tta, _ttb, _uta, _utb, _dpsi, _deps, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
 
-def c2txy(it):
+
+def _c2txy(it):
     #Iterate
     cdef double _tta
     cdef double _ttb
@@ -1809,7 +1893,8 @@ def c2txy(it):
         eraC2txy(_tta, _ttb, _uta, _utb, _x, _y, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
 
-def eo06a(it):
+
+def _eo06a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1824,7 +1909,8 @@ def eo06a(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def eors(it):
+
+def _eors(it):
     #Iterate
     cdef double * _rnpb
     cdef double _s
@@ -1839,7 +1925,8 @@ def eors(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def fw2m(it):
+
+def _fw2m(it):
     #Iterate
     cdef double _gamb
     cdef double _phib
@@ -1858,7 +1945,8 @@ def fw2m(it):
         eraFw2m(_gamb, _phib, _psi, _eps, _r)
         status = iternext(GetNpyIter(it))
 
-def fw2xy(it):
+
+def _fw2xy(it):
     #Iterate
     cdef double _gamb
     cdef double _phib
@@ -1879,7 +1967,8 @@ def fw2xy(it):
         eraFw2xy(_gamb, _phib, _psi, _eps, _x, _y)
         status = iternext(GetNpyIter(it))
 
-def num00a(it):
+
+def _num00a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1894,7 +1983,8 @@ def num00a(it):
         eraNum00a(_date1, _date2, _rmatn)
         status = iternext(GetNpyIter(it))
 
-def num00b(it):
+
+def _num00b(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1909,7 +1999,8 @@ def num00b(it):
         eraNum00b(_date1, _date2, _rmatn)
         status = iternext(GetNpyIter(it))
 
-def num06a(it):
+
+def _num06a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1924,7 +2015,8 @@ def num06a(it):
         eraNum06a(_date1, _date2, _rmatn)
         status = iternext(GetNpyIter(it))
 
-def numat(it):
+
+def _numat(it):
     #Iterate
     cdef double _epsa
     cdef double _dpsi
@@ -1941,7 +2033,8 @@ def numat(it):
         eraNumat(_epsa, _dpsi, _deps, _rmatn)
         status = iternext(GetNpyIter(it))
 
-def nut00a(it):
+
+def _nut00a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1958,7 +2051,8 @@ def nut00a(it):
         eraNut00a(_date1, _date2, _dpsi, _deps)
         status = iternext(GetNpyIter(it))
 
-def nut00b(it):
+
+def _nut00b(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1975,7 +2069,8 @@ def nut00b(it):
         eraNut00b(_date1, _date2, _dpsi, _deps)
         status = iternext(GetNpyIter(it))
 
-def nut06a(it):
+
+def _nut06a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -1992,7 +2087,8 @@ def nut06a(it):
         eraNut06a(_date1, _date2, _dpsi, _deps)
         status = iternext(GetNpyIter(it))
 
-def nut80(it):
+
+def _nut80(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2009,7 +2105,8 @@ def nut80(it):
         eraNut80(_date1, _date2, _dpsi, _deps)
         status = iternext(GetNpyIter(it))
 
-def nutm80(it):
+
+def _nutm80(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2024,7 +2121,8 @@ def nutm80(it):
         eraNutm80(_date1, _date2, _rmatn)
         status = iternext(GetNpyIter(it))
 
-def obl06(it):
+
+def _obl06(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2039,7 +2137,8 @@ def obl06(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def obl80(it):
+
+def _obl80(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2054,7 +2153,8 @@ def obl80(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def p06e(it):
+
+def _p06e(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2099,7 +2199,8 @@ def p06e(it):
         eraP06e(_date1, _date2, _eps0, _psia, _oma, _bpa, _bqa, _pia, _bpia, _epsa, _chia, _za, _zetaa, _thetaa, _pa, _gam, _phi, _psi)
         status = iternext(GetNpyIter(it))
 
-def pb06(it):
+
+def _pb06(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2118,7 +2219,8 @@ def pb06(it):
         eraPb06(_date1, _date2, _bzeta, _bz, _btheta)
         status = iternext(GetNpyIter(it))
 
-def pfw06(it):
+
+def _pfw06(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2139,7 +2241,8 @@ def pfw06(it):
         eraPfw06(_date1, _date2, _gamb, _phib, _psib, _epsa)
         status = iternext(GetNpyIter(it))
 
-def pmat00(it):
+
+def _pmat00(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2154,7 +2257,8 @@ def pmat00(it):
         eraPmat00(_date1, _date2, _rbp)
         status = iternext(GetNpyIter(it))
 
-def pmat06(it):
+
+def _pmat06(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2169,7 +2273,8 @@ def pmat06(it):
         eraPmat06(_date1, _date2, _rbp)
         status = iternext(GetNpyIter(it))
 
-def pmat76(it):
+
+def _pmat76(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2184,7 +2289,8 @@ def pmat76(it):
         eraPmat76(_date1, _date2, _rmatp)
         status = iternext(GetNpyIter(it))
 
-def pn00(it):
+
+def _pn00(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2213,7 +2319,8 @@ def pn00(it):
         eraPn00(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
 
-def pn00a(it):
+
+def _pn00a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2242,7 +2349,8 @@ def pn00a(it):
         eraPn00a(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
 
-def pn00b(it):
+
+def _pn00b(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2271,7 +2379,8 @@ def pn00b(it):
         eraPn00b(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
 
-def pn06(it):
+
+def _pn06(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2300,7 +2409,8 @@ def pn06(it):
         eraPn06(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
 
-def pn06a(it):
+
+def _pn06a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2329,7 +2439,8 @@ def pn06a(it):
         eraPn06a(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
 
-def pnm00a(it):
+
+def _pnm00a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2344,7 +2455,8 @@ def pnm00a(it):
         eraPnm00a(_date1, _date2, _rbpn)
         status = iternext(GetNpyIter(it))
 
-def pnm00b(it):
+
+def _pnm00b(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2359,7 +2471,8 @@ def pnm00b(it):
         eraPnm00b(_date1, _date2, _rbpn)
         status = iternext(GetNpyIter(it))
 
-def pnm06a(it):
+
+def _pnm06a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2374,7 +2487,8 @@ def pnm06a(it):
         eraPnm06a(_date1, _date2, _rnpb)
         status = iternext(GetNpyIter(it))
 
-def pnm80(it):
+
+def _pnm80(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2389,7 +2503,8 @@ def pnm80(it):
         eraPnm80(_date1, _date2, _rmatpn)
         status = iternext(GetNpyIter(it))
 
-def pom00(it):
+
+def _pom00(it):
     #Iterate
     cdef double _xp
     cdef double _yp
@@ -2406,7 +2521,8 @@ def pom00(it):
         eraPom00(_xp, _yp, _sp, _rpom)
         status = iternext(GetNpyIter(it))
 
-def pr00(it):
+
+def _pr00(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2423,7 +2539,8 @@ def pr00(it):
         eraPr00(_date1, _date2, _dpsipr, _depspr)
         status = iternext(GetNpyIter(it))
 
-def prec76(it):
+
+def _prec76(it):
     #Iterate
     cdef double _date01
     cdef double _date02
@@ -2446,7 +2563,8 @@ def prec76(it):
         eraPrec76(_date01, _date02, _date11, _date12, _zeta, _z, _theta)
         status = iternext(GetNpyIter(it))
 
-def s00(it):
+
+def _s00(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2465,7 +2583,8 @@ def s00(it):
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def s00a(it):
+
+def _s00a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2480,7 +2599,8 @@ def s00a(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def s00b(it):
+
+def _s00b(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2495,7 +2615,8 @@ def s00b(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def s06(it):
+
+def _s06(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2514,7 +2635,8 @@ def s06(it):
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def s06a(it):
+
+def _s06a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2529,7 +2651,8 @@ def s06a(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def sp00(it):
+
+def _sp00(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2544,7 +2667,8 @@ def sp00(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def xy06(it):
+
+def _xy06(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2561,7 +2685,8 @@ def xy06(it):
         eraXy06(_date1, _date2, _x, _y)
         status = iternext(GetNpyIter(it))
 
-def xys00a(it):
+
+def _xys00a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2580,7 +2705,8 @@ def xys00a(it):
         eraXys00a(_date1, _date2, _x, _y, _s)
         status = iternext(GetNpyIter(it))
 
-def xys00b(it):
+
+def _xys00b(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2599,7 +2725,8 @@ def xys00b(it):
         eraXys00b(_date1, _date2, _x, _y, _s)
         status = iternext(GetNpyIter(it))
 
-def xys06a(it):
+
+def _xys06a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2618,7 +2745,8 @@ def xys06a(it):
         eraXys06a(_date1, _date2, _x, _y, _s)
         status = iternext(GetNpyIter(it))
 
-def ee00(it):
+
+def _ee00(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2637,7 +2765,8 @@ def ee00(it):
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def ee00a(it):
+
+def _ee00a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2652,7 +2781,8 @@ def ee00a(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def ee00b(it):
+
+def _ee00b(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2667,7 +2797,8 @@ def ee00b(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def ee06a(it):
+
+def _ee06a(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2682,7 +2813,8 @@ def ee06a(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def eect00(it):
+
+def _eect00(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2697,7 +2829,8 @@ def eect00(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def eqeq94(it):
+
+def _eqeq94(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -2712,7 +2845,8 @@ def eqeq94(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def era00(it):
+
+def _era00(it):
     #Iterate
     cdef double _dj1
     cdef double _dj2
@@ -2727,7 +2861,8 @@ def era00(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def gmst00(it):
+
+def _gmst00(it):
     #Iterate
     cdef double _uta
     cdef double _utb
@@ -2746,7 +2881,8 @@ def gmst00(it):
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def gmst06(it):
+
+def _gmst06(it):
     #Iterate
     cdef double _uta
     cdef double _utb
@@ -2765,7 +2901,8 @@ def gmst06(it):
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def gmst82(it):
+
+def _gmst82(it):
     #Iterate
     cdef double _dj1
     cdef double _dj2
@@ -2780,7 +2917,8 @@ def gmst82(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def gst00a(it):
+
+def _gst00a(it):
     #Iterate
     cdef double _uta
     cdef double _utb
@@ -2799,7 +2937,8 @@ def gst00a(it):
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def gst00b(it):
+
+def _gst00b(it):
     #Iterate
     cdef double _uta
     cdef double _utb
@@ -2814,7 +2953,8 @@ def gst00b(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def gst06(it):
+
+def _gst06(it):
     #Iterate
     cdef double _uta
     cdef double _utb
@@ -2835,7 +2975,8 @@ def gst06(it):
         (<double *>(dataptrarray[5]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def gst06a(it):
+
+def _gst06a(it):
     #Iterate
     cdef double _uta
     cdef double _utb
@@ -2854,7 +2995,8 @@ def gst06a(it):
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def gst94(it):
+
+def _gst94(it):
     #Iterate
     cdef double _uta
     cdef double _utb
@@ -2869,7 +3011,8 @@ def gst94(it):
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def pmsafe(it):
+
+def _pmsafe(it):
     #Iterate
     cdef double _ra1
     cdef double _dec1
@@ -2914,8 +3057,10 @@ def pmsafe(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def pvstar(it):
+
+def _pvstar(it):
     #Iterate
     cdef double * _pv
     cdef double * _ra
@@ -2942,8 +3087,10 @@ def pvstar(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def starpv(it):
+
+def _starpv(it):
     #Iterate
     cdef double _ra
     cdef double _dec
@@ -2970,8 +3117,10 @@ def starpv(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def fk52h(it):
+
+def _fk52h(it):
     #Iterate
     cdef double _r5
     cdef double _d5
@@ -3004,7 +3153,8 @@ def fk52h(it):
         eraFk52h(_r5, _d5, _dr5, _dd5, _px5, _rv5, _rh, _dh, _drh, _ddh, _pxh, _rvh)
         status = iternext(GetNpyIter(it))
 
-def fk5hip(it):
+
+def _fk5hip(it):
     #Iterate
     cdef double * _r5h
     cdef double * _s5h
@@ -3017,7 +3167,8 @@ def fk5hip(it):
         eraFk5hip(_r5h, _s5h)
         status = iternext(GetNpyIter(it))
 
-def fk5hz(it):
+
+def _fk5hz(it):
     #Iterate
     cdef double _r5
     cdef double _d5
@@ -3038,7 +3189,8 @@ def fk5hz(it):
         eraFk5hz(_r5, _d5, _date1, _date2, _rh, _dh)
         status = iternext(GetNpyIter(it))
 
-def h2fk5(it):
+
+def _h2fk5(it):
     #Iterate
     cdef double _rh
     cdef double _dh
@@ -3071,7 +3223,8 @@ def h2fk5(it):
         eraH2fk5(_rh, _dh, _drh, _ddh, _pxh, _rvh, _r5, _d5, _dr5, _dd5, _px5, _rv5)
         status = iternext(GetNpyIter(it))
 
-def hfk5z(it):
+
+def _hfk5z(it):
     #Iterate
     cdef double _rh
     cdef double _dh
@@ -3096,7 +3249,8 @@ def hfk5z(it):
         eraHfk5z(_rh, _dh, _date1, _date2, _r5, _d5, _dr5, _dd5)
         status = iternext(GetNpyIter(it))
 
-def starpm(it):
+
+def _starpm(it):
     #Iterate
     cdef double _ra1
     cdef double _dec1
@@ -3141,8 +3295,10 @@ def starpm(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def eform(it):
+
+def _eform(it):
     #Iterate
     cdef int _n
     cdef double * _a
@@ -3161,8 +3317,10 @@ def eform(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def gc2gd(it):
+
+def _gc2gd(it):
     #Iterate
     cdef int _n
     cdef double * _xyz
@@ -3185,8 +3343,10 @@ def gc2gd(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def gc2gde(it):
+
+def _gc2gde(it):
     #Iterate
     cdef double _a
     cdef double _f
@@ -3211,8 +3371,10 @@ def gc2gde(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def gd2gc(it):
+
+def _gd2gc(it):
     #Iterate
     cdef int _n
     cdef double _elong
@@ -3235,8 +3397,10 @@ def gd2gc(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def gd2gce(it):
+
+def _gd2gce(it):
     #Iterate
     cdef double _a
     cdef double _f
@@ -3261,8 +3425,10 @@ def gd2gce(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def pvtob(it):
+
+def _pvtob(it):
     #Iterate
     cdef double _elong
     cdef double _phi
@@ -3287,7 +3453,8 @@ def pvtob(it):
         eraPvtob(_elong, _phi, _hm, _xp, _yp, _sp, _theta, _pv)
         status = iternext(GetNpyIter(it))
 
-def d2dtf(it):
+
+def _d2dtf(it):
     #Iterate
     cdef const char * _scale
     cdef int _ndp
@@ -3316,8 +3483,10 @@ def d2dtf(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def dat(it):
+
+def _dat(it):
     #Iterate
     cdef int _iy
     cdef int _im
@@ -3340,8 +3509,10 @@ def dat(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def dtdb(it):
+
+def _dtdb(it):
     #Iterate
     cdef double _date1
     cdef double _date2
@@ -3364,7 +3535,8 @@ def dtdb(it):
         (<double *>(dataptrarray[6]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
 
-def dtf2d(it):
+
+def _dtf2d(it):
     #Iterate
     cdef const char * _scale
     cdef int _iy
@@ -3395,8 +3567,10 @@ def dtf2d(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def taitt(it):
+
+def _taitt(it):
     #Iterate
     cdef double _tai1
     cdef double _tai2
@@ -3417,8 +3591,10 @@ def taitt(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def taiut1(it):
+
+def _taiut1(it):
     #Iterate
     cdef double _tai1
     cdef double _tai2
@@ -3441,8 +3617,10 @@ def taiut1(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def taiutc(it):
+
+def _taiutc(it):
     #Iterate
     cdef double _tai1
     cdef double _tai2
@@ -3463,8 +3641,10 @@ def taiutc(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def tcbtdb(it):
+
+def _tcbtdb(it):
     #Iterate
     cdef double _tcb1
     cdef double _tcb2
@@ -3485,8 +3665,10 @@ def tcbtdb(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def tcgtt(it):
+
+def _tcgtt(it):
     #Iterate
     cdef double _tcg1
     cdef double _tcg2
@@ -3507,8 +3689,10 @@ def tcgtt(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def tdbtcb(it):
+
+def _tdbtcb(it):
     #Iterate
     cdef double _tdb1
     cdef double _tdb2
@@ -3529,8 +3713,10 @@ def tdbtcb(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def tdbtt(it):
+
+def _tdbtt(it):
     #Iterate
     cdef double _tdb1
     cdef double _tdb2
@@ -3553,8 +3739,10 @@ def tdbtt(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def tttai(it):
+
+def _tttai(it):
     #Iterate
     cdef double _tt1
     cdef double _tt2
@@ -3575,8 +3763,10 @@ def tttai(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def tttcg(it):
+
+def _tttcg(it):
     #Iterate
     cdef double _tt1
     cdef double _tt2
@@ -3597,8 +3787,10 @@ def tttcg(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def tttdb(it):
+
+def _tttdb(it):
     #Iterate
     cdef double _tt1
     cdef double _tt2
@@ -3621,8 +3813,10 @@ def tttdb(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def ttut1(it):
+
+def _ttut1(it):
     #Iterate
     cdef double _tt1
     cdef double _tt2
@@ -3645,8 +3839,10 @@ def ttut1(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def ut1tai(it):
+
+def _ut1tai(it):
     #Iterate
     cdef double _ut11
     cdef double _ut12
@@ -3669,8 +3865,10 @@ def ut1tai(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def ut1tt(it):
+
+def _ut1tt(it):
     #Iterate
     cdef double _ut11
     cdef double _ut12
@@ -3693,8 +3891,10 @@ def ut1tt(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def ut1utc(it):
+
+def _ut1utc(it):
     #Iterate
     cdef double _ut11
     cdef double _ut12
@@ -3717,8 +3917,10 @@ def ut1utc(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def utctai(it):
+
+def _utctai(it):
     #Iterate
     cdef double _utc1
     cdef double _utc2
@@ -3739,8 +3941,10 @@ def utctai(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
-def utcut1(it):
+
+def _utcut1(it):
     #Iterate
     cdef double _utc1
     cdef double _utc2
@@ -3763,3 +3967,5 @@ def utcut1(it):
         if _c_retval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
+    return stat_ok
+
