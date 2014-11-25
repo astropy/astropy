@@ -24,6 +24,7 @@ from . import latex
 from . import html
 from . import fastbasic
 from . import cparser
+from . import fixedwidth
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
@@ -180,18 +181,19 @@ def _guess(table, read_kwargs, format, fast_reader):
 
     # Keep a trace of all failed guesses kwarg
     failed_kwargs = []
-    fast_kwargs = []
+    full_list_guess = _get_guess_kwargs_list(read_kwargs)
 
-    first_kwargs = [read_kwargs.copy()]
     if fast_reader and format is not None and 'fast_{0}'.format(format) in \
                                                          core.FAST_CLASSES:
         # If a fast version of the reader is available, try that before the slow version
         fast_kwargs = read_kwargs.copy()
         fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
-        first_kwargs = [fast_kwargs] + first_kwargs
+        full_list_guess = [fast_kwargs] + full_list_guess
+    else:
+        fast_kwargs = None
 
     # First try guessing
-    for guess_kwargs in first_kwargs + _get_guess_kwargs_list():
+    for guess_kwargs in full_list_guess:
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
         for key, val in read_kwargs.items():
             # Do guess_kwargs.update(read_kwargs) except that if guess_args has
@@ -248,18 +250,32 @@ def _guess(table, read_kwargs, format, fast_reader):
             lines.extend(msg)
             raise core.InconsistentTableError('\n'.join(lines))
 
-def _get_guess_kwargs_list():
-    guess_kwargs_list = [dict(Reader=basic.Rdb),
-                         dict(Reader=fastbasic.FastTab),
-                         dict(Reader=basic.Tab),
-                         dict(Reader=cds.Cds),
-                         dict(Reader=daophot.Daophot),
-                         dict(Reader=sextractor.SExtractor),
-                         dict(Reader=ipac.Ipac),
-                         dict(Reader=latex.Latex),
-                         dict(Reader=latex.AASTex),
-                         dict(Reader=html.HTML)
-                         ]
+def _get_guess_kwargs_list(read_kwargs):
+    guess_kwargs_list = []
+    # First try readers that accept the common arguments with the input arguments
+    # (Unless there are not arguments - we try that in the next step anyway.)
+    # FixedWidthTwoLine would also be read by Basic, so it needs to come first.
+    if len(read_kwargs) > 0:
+        for reader in [fixedwidth.FixedWidthTwoLine,
+                       basic.Basic]:
+            first_kwargs = read_kwargs.copy()
+            first_kwargs.update(dict(Reader=reader))
+            guess_kwargs_list.append(first_kwargs)
+    # Then try a list of readers with default arguments
+    guess_kwargs_list.extend([dict(Reader=fixedwidth.FixedWidthTwoLine),
+                              dict(Reader=fastbasic.FastBasic),
+                              dict(Reader=basic.Basic),
+                              dict(Reader=basic.Rdb),
+                              dict(Reader=fastbasic.FastTab),
+                              dict(Reader=basic.Tab),
+                              dict(Reader=cds.Cds),
+                              dict(Reader=daophot.Daophot),
+                              dict(Reader=sextractor.SExtractor),
+                              dict(Reader=ipac.Ipac),
+                              dict(Reader=latex.Latex),
+                              dict(Reader=latex.AASTex),
+                              dict(Reader=html.HTML)
+                              ])
     for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastNoHeader, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
