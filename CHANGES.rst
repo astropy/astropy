@@ -442,6 +442,8 @@ Bug Fixes
   - Fix a bug in Python 3 when guessing file format using a file object as
     input.  Also improve performance in same situation for Python 2. [#3132]
 
+  - Fix a problem where URL was being downloaded for each guess. [#2001]
+
 - ``astropy.io.fits``
 
   - Added workaround for bug in MacOS X <= 10.8 that caused np.fromfile to
