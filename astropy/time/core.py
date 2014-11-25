@@ -16,11 +16,8 @@ import time
 from datetime import datetime
 
 import numpy as np
-import functools
 
 from .. import units as u
-from ..utils import deprecated, deprecated_attribute
-from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 
@@ -104,23 +101,6 @@ SIDEREAL_TIME_MODELS = {
         'IAU1994': {'function': erfa_time.gst94, 'scales': ('ut1',)}}}
 
 
-# TODO: remove in version beyond 0.4
-# with longitude and latitude swapped to get them in the right order,
-# insist that these are given as keyword arguments
-def kwargs_after_scale(func):
-    @functools.wraps(func)
-    def new_func(*args, **kwargs):
-        if len(args) > 5:
-            AstropyBackwardsIncompatibleChangeWarning(
-                'lon and lat have been replaced with location in version 0.4. '
-                'Code should be changed to set the location explicitly using '
-                'a keyword argument: location=EarthLocation(...), or via a '
-                'shortcut with a tuple: location=(lon, lat, [height]) or '
-                'location=(x, y, z)')
-        return func(*args, **kwargs)
-    return new_func
-
-
 class Time(object):
     """
     Represent and manipulate times and dates for astronomy.
@@ -158,9 +138,6 @@ class Time(object):
         Make a copy of the input values
     """
 
-    is_scalar = deprecated_attribute(name='is_scalar', since='0.3',
-                                     alternative='isscalar')
-
     _precision = 3  # Precision when for seconds as floating point
     _in_subfmt = '*'  # Select subformat for inputting string times
     _out_subfmt = '*'  # Select subformat for outputting string times
@@ -175,10 +152,9 @@ class Time(object):
     # gets called over the __mul__ of Numpy arrays.
     __array_priority__ = 20000
 
-    @kwargs_after_scale
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
-                location=None, copy=False, **kwargs):
+                location=None, copy=False):
 
         if isinstance(val, cls):
             self = val.replicate(format=format, copy=copy)
@@ -190,19 +166,9 @@ class Time(object):
     def __getnewargs__(self):
         return (self._time,)
 
-    @kwargs_after_scale
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
-                 location=None, copy=False, **kwargs):
-
-        if 'lon' in kwargs or 'lat' in kwargs:
-            AstropyBackwardsIncompatibleChangeWarning(
-                'lon and lat have been replaced with location in version 0.4. '
-                'Code should be changed to set the location explicitly using '
-                'a keyword argument: location=(lon, lat, [height]) or '
-                'location=(x, y, z)')
-            if location is None:
-                location = (kwargs.pop('lon', None), kwargs.pop('lat', None))
+                 location=None, copy=False):
 
         if location is not None:
             from ..coordinates import EarthLocation
