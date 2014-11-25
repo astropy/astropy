@@ -242,7 +242,7 @@ class TestBasic():
         lon = -155.933222
         for scale1 in TIME_SCALES:
             t1 = Time('2006-01-15 21:24:37.5', format='iso', scale=scale1,
-                      lat=lat, lon=lon)
+                      location=(lon, lat))
             for scale2 in TIME_SCALES:
                 t2 = getattr(t1, scale2)
                 t21 = getattr(t2, scale1)
