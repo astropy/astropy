@@ -352,6 +352,7 @@ def main(srcdir, outfn, templateloc):
     env.filters['surround'] = surround
 
     erfa_pyx_in = env.get_template('erfa.pyx.templ')
+    erfa_py_in  = env.get_template('erfa.py.templ')
 
     #Extract all the ERFA function names from erfa.h
     if os.path.isdir(srcdir):
@@ -399,10 +400,13 @@ def main(srcdir, outfn, templateloc):
 
     print("Rendering template")
     erfa_pyx = erfa_pyx_in.render(funcs=funcs)
+    erfa_py  = erfa_py_in.render(funcs=funcs)
 
     if outfn is not None:
         print("Saving to", outfn)
         with open(outfn, "w") as f:
+            f.write(erfa_py)
+        with open(outfn+"x", "w") as f:
             f.write(erfa_pyx)
 
     print("Done!")
@@ -423,7 +427,7 @@ if __name__ == '__main__':
                          '(which must be in the same directory as '
                          'erfa.h). Defaults to the builtin astropy '
                          'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
-    ap.add_argument('-o', '--output', default='erfa.pyx',
+    ap.add_argument('-o', '--output', default='erfa.py',
                     help='the output filename')
     ap.add_argument('-t', '--template-loc',
                     default=DEFAULT_TEMPLATE_LOC,
