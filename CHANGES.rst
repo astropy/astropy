@@ -33,6 +33,9 @@ New Features
   - ``SkyCoord`` can now accept a frame instance for the ``frame=`` keyword
     argument. [#3063]
 
+  - ``SkyCoord`` now has a ``guess_from_table`` method that can be used to
+    quickly create ``SkyCoord`` objects from an ``astropy.table.Table`` object.
+
 - ``astropy.cosmology``
 
   - Add baryonic matter density and dark matter only density parameters
