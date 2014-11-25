@@ -828,6 +828,7 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
+    # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
         """
         Convert this coordinate to pixel coordinates using a `~astropy.wcs.WCS`
@@ -886,7 +887,54 @@ class SkyCoord(object):
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
+    # Table interactions
+    @classmethod
+    def guess_from_table(cls, table, **coord_kwargs):
+        """
+        A convinience method to create and return a new `SkyCoord` from the data
+        in an astropy Table.
 
+        This method currently uses a basic heuristic that just checks for table
+        columns that match the names of the the default attribute names for the
+        requested frame.  The heuristic may improve in future versions of
+        Astropy.
+
+        Parameters
+        ----------
+        table : astropy.Table
+            The table to load data from.
+        coord_kwargs
+            Any additional keyword arguments are passed directly to this class's
+            constructor.
+
+        Returns
+        -------
+        newsc : same as this class
+            The new `SkyCoord` (or subclass) object.
+        """
+        # if it quacks like an astropy table, treat it as such.
+
+        initframe = coord_kwargs.pop('frame', None)
+        frame = _get_frame([], coord_kwargs)
+        units = _get_units([], coord_kwargs)
+
+        coord_kwargs = {}
+        for (nm, reprnm), unit in zip(frame.representation_component_names.items(),
+                                      units):
+            for colnm in table.colnames:
+                simple_colnm = colnm.lower()
+                if simple_colnm.startswith(nm.lower()):
+                    attr_class = frame.representation.attr_classes[reprnm]
+                    if unit is None:
+                        # use the unit from the table if not overrridden
+                        unit = table[colnm].unit
+                    coord_kwargs[nm] = attr_class(table[colnm], unit=unit)
+                    break  # moves on to the next `nm`
+        coord_kwargs['frame'] = initframe
+        try:
+            return cls(**coord_kwargs)
+        except TypeError as e:
+            raise TypeError('')
 
     # Name resolve
     @classmethod

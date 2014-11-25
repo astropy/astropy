@@ -875,3 +875,17 @@ def test_init_with_frame_instance_positional():
     with pytest.raises(ValueError) as exc:
         SkyCoord(3 * u.deg, 4 * u.deg, SkyCoord(1. * u.deg, 2 * u.deg, equinox='J2010'))
     assert exc.value.args[0] == "SkyCoord cannot be used as frame as a positional argument, pass it using the frame= keyword instead."
+
+
+def test_guess_from_table():
+    from ...table import Table, Column
+    from ...utils import NumpyRNGContext
+
+    tab = Table()
+    with NumpyRNGContext(987654321):
+        tab.add_column(Column(data=np.random.rand(1000),unit='deg',name='RA[J2000]'))
+        tab.add_column(Column(data=np.random.rand(1000),unit='deg',name='DEC[J2000]'))
+
+    sc = SkyCoord.guess_from_table(tab)
+    npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
+    npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
