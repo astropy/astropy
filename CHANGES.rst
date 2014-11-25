@@ -27,7 +27,7 @@ New Features
     given an ``astropy.wcs.WCS`` object. [#3002]
 
   - ``SkyCoord`` now has ``search_around_sky`` and ``search_around_3d``
-    convinience methods that allow searching for all coordinates within
+    convenience methods that allow searching for all coordinates within
     a certain distance of another ``SkyCoord``. [#2953]
 
 - ``astropy.cosmology``
@@ -227,7 +227,7 @@ API Changes
   - The ``Model.inverse`` method has been changed to a *property*, so that
     now accessing ``model.inverse`` on a model returns a new model that
     implements that model's inverse, and *calling* ``model.inverse(...)``` on
-    some idependent variable computes the value of the inverse (similar to what
+    some independent variable computes the value of the inverse (similar to what
     the old ``Model.invert()`` method was meant to do).  [#3024]
 
   - The ``Model.invert()`` method has been removed entirely (it was never
@@ -376,7 +376,7 @@ Other Changes and Additions
 
 - ``astropy.coordinates``
 
-  - The ``repr`` of ``SkyCoord`` and coordinate frame classes now seperate
+  - The ``repr`` of ``SkyCoord`` and coordinate frame classes now separate
     frame attributes and coordinate information.  [#2704, #2882]
 
 - ``astropy.io.fits``
@@ -553,7 +553,7 @@ Bug Fixes
   - ``Angle`` accepts hours:mins or deg:mins initializers (without
      seconds). In these cases float minutes are also accepted.
 
-  - The ``repr`` for coordinate frames now displayes the frame attributes
+  - The ``repr`` for coordinate frames now displays the frame attributes
     (ex: ra, dec) in a consistent order.  It should be noted that as part of
     this fix, the ``BaseCoordinateFrame.get_frame_attr_names()`` method now
     returns an ``OrderedDict`` instead of just a ``dict``. [#2845]
