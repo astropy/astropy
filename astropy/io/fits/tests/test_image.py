@@ -335,6 +335,11 @@ class TestImageFunctions(FitsTestCase):
         assert (fs[0].section[3:6, 3, :] == dat[3:6, 3, :]).all()
         assert (fs[0].section[3:6, 3:7, :] == dat[3:6, 3:7, :]).all()
 
+        assert (fs[0].section[:, ::2] == dat[:, ::2]).all()
+        assert (fs[0].section[:, [1, 2, 4], 3] == dat[:, [1, 2, 4], 3]).all()
+        assert (fs[0].section[:, np.array([True, False, True]), :] ==
+                dat[:, np.array([True, False, True]), :]).all()
+
     def test_section_data_square(self):
         a = np.arange(4).reshape((2, 2))
         hdu = fits.PrimaryHDU(a)
