@@ -866,12 +866,12 @@ def test_init_with_frame_instance_positional():
     c1 = SkyCoord(3 * u.deg, 4 * u.deg, FK5(equinox='J2010'))
     assert c1.equinox == Time('J2010')
 
-    # Frame instance with data (data gets ignored)
+    # Positional frame instance with data raises exception
     with pytest.raises(ValueError) as exc:
         SkyCoord(3 * u.deg, 4 * u.deg, FK5(1. * u.deg, 2 * u.deg, equinox='J2010'))
     assert exc.value.args[0] == "frame instance with data cannot be passed as positional argument, pass it using the frame= keyword instead."
 
-    # Frame instance with data (data gets ignored)
+    # Positional SkyCoord instance (for frame) raises exception
     with pytest.raises(ValueError) as exc:
         SkyCoord(3 * u.deg, 4 * u.deg, SkyCoord(1. * u.deg, 2 * u.deg, equinox='J2010'))
     assert exc.value.args[0] == "SkyCoord cannot be used as frame as a positional argument, pass it using the frame= keyword instead."
