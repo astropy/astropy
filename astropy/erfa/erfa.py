@@ -133,7 +133,6 @@ def cal2jd(iy, im, id):
     Returns: djm0_out, djm_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C a l 2 j d
     - - - - - - - - - -
@@ -238,7 +237,6 @@ def epb(dj1, dj2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - -
      e r a E p b
     - - - - - - -
@@ -312,7 +310,6 @@ def epb2jd(epb):
     Returns: djm0_out, djm_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a E p b 2 j d
     - - - - - - - - - -
@@ -384,7 +381,6 @@ def epj(dj1, dj2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - -
      e r a E p j
     - - - - - - -
@@ -458,7 +454,6 @@ def epj2jd(epj):
     Returns: djm0_out, djm_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a E p j 2 j d
     - - - - - - - - - -
@@ -530,7 +525,6 @@ def jd2cal(dj1, dj2):
     Returns: iy_out, im_out, id_out, fd_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a J d 2 c a l
     - - - - - - - - - -
@@ -642,7 +636,6 @@ def jdcalf(ndp, dj1, dj2):
     Returns: iymdf_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a J d c a l f
     - - - - - - - - - -
@@ -756,7 +749,6 @@ def ab(pnat, v, s, bm1):
     Returns: ppr_out
 
     ERFA documentation:
-    
     - - - - - -
      e r a A b
     - - - - - -
@@ -863,7 +855,6 @@ def apcg(date1, date2, ebpv, ehp):
     Returns: astrom_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a A p c g
     - - - - - - - -
@@ -1023,7 +1014,6 @@ def apcg13(date1, date2):
     Returns: astrom_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A p c g 1 3
     - - - - - - - - - -
@@ -1175,7 +1165,6 @@ def apci(date1, date2, ebpv, ehp, x, y, s):
     Returns: astrom_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a A p c i
     - - - - - - - -
@@ -1359,7 +1348,6 @@ def apci13(date1, date2):
     Returns: astrom_out, eo_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A p c i 1 3
     - - - - - - - - - -
@@ -1519,7 +1507,6 @@ def apco(date1, date2, ebpv, ehp, x, y, s, theta, elong, phi, hm, xp, yp, sp, re
     Returns: refa_out, refb_out, astrom_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a A p c o
     - - - - - - - -
@@ -1793,7 +1780,6 @@ def apco13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
     Returns: astrom_out, eo_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A p c o 1 3
     - - - - - - - - - -
@@ -2070,7 +2056,6 @@ def apcs(date1, date2, pv, ebpv, ehp):
     Returns: astrom_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a A p c s
     - - - - - - - -
@@ -2256,7 +2241,6 @@ def apcs13(date1, date2, pv):
     Returns: astrom_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A p c s 1 3
     - - - - - - - - - -
@@ -2420,7 +2404,6 @@ def aper(theta, astrom):
     Returns: astrom_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a A p e r
     - - - - - - - -
@@ -2558,7 +2541,6 @@ def aper13(ut11, ut12, astrom):
     Returns: astrom_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A p e r 1 3
     - - - - - - - - - -
@@ -2720,7 +2702,6 @@ def apio(sp, theta, elong, phi, hm, xp, yp, refa, refb):
     Returns: refa_out, refb_out, astrom_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a A p i o
     - - - - - - - -
@@ -2921,7 +2902,6 @@ def apio13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
     Returns: astrom_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A p i o 1 3
     - - - - - - - - - -
@@ -3184,7 +3164,6 @@ def atci13(rc, dc, pr, pd, px, rv, date1, date2):
     Returns: ri_out, di_out, eo_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A t c i 1 3
     - - - - - - - - - -
@@ -3343,7 +3322,6 @@ def atciq(rc, dc, pr, pd, px, rv, astrom):
     Returns: ri_out, di_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a A t c i q
     - - - - - - - - -
@@ -3481,7 +3459,6 @@ def atciqn(rc, dc, pr, pd, px, rv, astrom, n, b):
     Returns: ri_out, di_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A t c i q n
     - - - - - - - - - -
@@ -3666,7 +3643,6 @@ def atciqz(rc, dc, astrom):
     Returns: ri_out, di_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A t c i q z
     - - - - - - - - - -
@@ -3784,7 +3760,6 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
     Returns: aob_out, zob_out, hob_out, dob_out, rob_out, eo_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A t c o 1 3
     - - - - - - - - - -
@@ -4078,7 +4053,6 @@ def atic13(ri, di, date1, date2):
     Returns: rc_out, dc_out, eo_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A t i c 1 3
     - - - - - - - - - -
@@ -4212,7 +4186,6 @@ def aticq(ri, di, astrom):
     Returns: rc_out, dc_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a A t i c q
     - - - - - - - - -
@@ -4326,7 +4299,6 @@ def aticqn(ri, di, astrom, n, b):
     Returns: rc_out, dc_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a A t i c q n
     - - - - - - - - -
@@ -4488,7 +4460,6 @@ def atio13(ri, di, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
     Returns: aob_out, zob_out, hob_out, dob_out, rob_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A t i o 1 3
     - - - - - - - - - -
@@ -4743,7 +4714,6 @@ def atioq(ri, di, astrom):
     Returns: aob_out, zob_out, hob_out, dob_out, rob_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a A t i o q
     - - - - - - - - -
@@ -4901,7 +4871,6 @@ def atoc13(type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, r
     Returns: rc_out, dc_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A t o c 1 3
     - - - - - - - - - -
@@ -5160,7 +5129,6 @@ def atoi13(type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, r
     Returns: ri_out, di_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a A t o i 1 3
     - - - - - - - - - -
@@ -5418,7 +5386,6 @@ def atoiq(type, ob1, ob2, astrom):
     Returns: ri_out, di_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a A t o i q
     - - - - - - - - -
@@ -5565,7 +5532,6 @@ def ld(bm, p, q, e, em, dlim):
     Returns: p1_out
 
     ERFA documentation:
-    
     - - - - - -
      e r a L d
     - - - - - -
@@ -5703,7 +5669,7 @@ def ldn(n, b, ob, sc):
     Returns: sn_out
 
     ERFA documentation:
-      +
+/*+
     - - - - - - -
      e r a L d n
     - - - - - - -
@@ -5840,7 +5806,6 @@ def ldsun(p, e, em):
     Returns: p1_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a L d s u n
     - - - - - - - - -
@@ -5927,7 +5892,6 @@ def pmpx(rc, dc, pr, pd, px, rv, pmt, pob):
     Returns: pco_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a P m p x
     - - - - - - - -
@@ -6050,7 +6014,6 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
     Returns: ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P m s a f e
     - - - - - - - - - -
@@ -6249,7 +6212,7 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
         rv2_out = rv2_out[0]
 
     return ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
-STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above warnings', -1: 'system error (should not occur)'}
+STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 'else': 'binary logical OR of the above warnings', 4: "solution didn't converge (Note 8)", -1: 'system error (should not occur)'}
 
 
 
@@ -6260,7 +6223,6 @@ def refco(phpa, tc, rh, wl):
     Returns: refa_out, refb_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a R e f c o
     - - - - - - - - -
@@ -6465,7 +6427,6 @@ def epv00(date1, date2):
     Returns: pvh_out, pvb_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a E p v 0 0
     - - - - - - - - -
@@ -6615,7 +6576,6 @@ def plan94(date1, date2, np):
     Returns: pv_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P l a n 9 4
     - - - - - - - - - -
@@ -6831,7 +6791,6 @@ def fad03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a F a d 0 3
     - - - - - - - - -
@@ -6905,7 +6864,6 @@ def fae03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a F a e 0 3
     - - - - - - - - -
@@ -6982,7 +6940,6 @@ def faf03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a F a f 0 3
     - - - - - - - - -
@@ -7057,7 +7014,6 @@ def faju03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a j u 0 3
     - - - - - - - - - -
@@ -7134,7 +7090,6 @@ def fal03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a F a l 0 3
     - - - - - - - - -
@@ -7208,7 +7163,6 @@ def falp03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a l p 0 3
     - - - - - - - - - -
@@ -7282,7 +7236,6 @@ def fama03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a m a 0 3
     - - - - - - - - - -
@@ -7359,7 +7312,6 @@ def fame03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a m e 0 3
     - - - - - - - - - -
@@ -7436,7 +7388,6 @@ def fane03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a n e 0 3
     - - - - - - - - - -
@@ -7510,7 +7461,6 @@ def faom03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a o m 0 3
     - - - - - - - - - -
@@ -7584,7 +7534,6 @@ def fapa03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a p a 0 3
     - - - - - - - - - -
@@ -7662,7 +7611,6 @@ def fasa03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a s a 0 3
     - - - - - - - - - -
@@ -7739,7 +7687,6 @@ def faur03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a u r 0 3
     - - - - - - - - - -
@@ -7813,7 +7760,6 @@ def fave03(t):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F a v e 0 3
     - - - - - - - - - -
@@ -7890,7 +7836,6 @@ def bi00():
     Returns: dpsibi_out, depsbi_out, dra_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a B i 0 0
     - - - - - - - -
@@ -7962,7 +7907,6 @@ def bp00(date1, date2):
     Returns: rb_out, rp_out, rbp_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a B p 0 0
     - - - - - - - -
@@ -8085,7 +8029,6 @@ def bp06(date1, date2):
     Returns: rb_out, rp_out, rbp_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a B p 0 6
     - - - - - - - -
@@ -8202,7 +8145,6 @@ def bpn2xy(rbpn):
     Returns: x_out, y_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a B p n 2 x y
     - - - - - - - - - -
@@ -8283,7 +8225,6 @@ def c2i00a(date1, date2):
     Returns: rc2i_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 i 0 0 a
     - - - - - - - - - -
@@ -8399,7 +8340,6 @@ def c2i00b(date1, date2):
     Returns: rc2i_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 i 0 0 b
     - - - - - - - - - -
@@ -8515,7 +8455,6 @@ def c2i06a(date1, date2):
     Returns: rc2i_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 i 0 6 a
     - - - - - - - - - -
@@ -8622,7 +8561,6 @@ def c2ibpn(date1, date2, rbpn):
     Returns: rc2i_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 i b p n
     - - - - - - - - - -
@@ -8746,7 +8684,6 @@ def c2ixy(date1, date2, x, y):
     Returns: rc2i_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a C 2 i x y
     - - - - - - - - -
@@ -8868,7 +8805,6 @@ def c2ixys(x, y, s):
     Returns: rc2i_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 i x y s
     - - - - - - - - - -
@@ -8968,7 +8904,6 @@ def c2t00a(tta, ttb, uta, utb, xp, yp):
     Returns: rc2t_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 t 0 0 a
     - - - - - - - - - -
@@ -9109,7 +9044,6 @@ def c2t00b(tta, ttb, uta, utb, xp, yp):
     Returns: rc2t_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 t 0 0 b
     - - - - - - - - - -
@@ -9249,7 +9183,6 @@ def c2t06a(tta, ttb, uta, utb, xp, yp):
     Returns: rc2t_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 t 0 6 a
     - - - - - - - - - -
@@ -9388,7 +9321,6 @@ def c2tcio(rc2i, era, rpom):
     Returns: rc2t_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 t c i o
     - - - - - - - - - -
@@ -9494,7 +9426,6 @@ def c2teqx(rbpn, gst, rpom):
     Returns: rc2t_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a C 2 t e q x
     - - - - - - - - - -
@@ -9600,7 +9531,6 @@ def c2tpe(tta, ttb, uta, utb, dpsi, deps, xp, yp):
     Returns: rc2t_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a C 2 t p e
     - - - - - - - - -
@@ -9759,7 +9689,6 @@ def c2txy(tta, ttb, uta, utb, x, y, xp, yp):
     Returns: rc2t_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a C 2 t x y
     - - - - - - - - -
@@ -9914,7 +9843,6 @@ def eo06a(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a E o 0 6 a
     - - - - - - - - -
@@ -10016,7 +9944,6 @@ def eors(rnpb, s):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a E o r s
     - - - - - - - -
@@ -10098,7 +10025,6 @@ def fw2m(gamb, phib, psi, eps):
     Returns: r_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a F w 2 m
     - - - - - - - -
@@ -10220,7 +10146,6 @@ def fw2xy(gamb, phib, psi, eps):
     Returns: x_out, y_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a F w 2 x y
     - - - - - - - - -
@@ -10330,7 +10255,6 @@ def num00a(date1, date2):
     Returns: rmatn_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a N u m 0 0 a
     - - - - - - - - - -
@@ -10430,7 +10354,6 @@ def num00b(date1, date2):
     Returns: rmatn_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a N u m 0 0 b
     - - - - - - - - - -
@@ -10530,7 +10453,6 @@ def num06a(date1, date2):
     Returns: rmatn_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a N u m 0 6 a
     - - - - - - - - - -
@@ -10629,7 +10551,6 @@ def numat(epsa, dpsi, deps):
     Returns: rmatn_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a N u m a t
     - - - - - - - - -
@@ -10723,7 +10644,6 @@ def nut00a(date1, date2):
     Returns: dpsi_out, deps_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a N u t 0 0 a
     - - - - - - - - - -
@@ -10922,7 +10842,6 @@ def nut00b(date1, date2):
     Returns: dpsi_out, deps_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a N u t 0 0 b
     - - - - - - - - - -
@@ -11089,7 +11008,6 @@ def nut06a(date1, date2):
     Returns: dpsi_out, deps_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a N u t 0 6 a
     - - - - - - - - - -
@@ -11215,7 +11133,6 @@ def nut80(date1, date2):
     Returns: dpsi_out, deps_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a N u t 8 0
     - - - - - - - - -
@@ -11314,7 +11231,6 @@ def nutm80(date1, date2):
     Returns: rmatn_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a N u t m 8 0
     - - - - - - - - - -
@@ -11407,7 +11323,6 @@ def obl06(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a O b l 0 6
     - - - - - - - - -
@@ -11497,7 +11412,6 @@ def obl80(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a O b l 8 0
     - - - - - - - - -
@@ -11589,7 +11503,6 @@ def p06e(date1, date2):
     Returns: eps0_out, psia_out, oma_out, bpa_out, bqa_out, pia_out, bpia_out, epsa_out, chia_out, za_out, zetaa_out, thetaa_out, pa_out, gam_out, phi_out, psi_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a P 0 6 e
     - - - - - - - -
@@ -11797,7 +11710,6 @@ def pb06(date1, date2):
     Returns: bzeta_out, bz_out, btheta_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a P b 0 6
     - - - - - - - -
@@ -11913,7 +11825,6 @@ def pfw06(date1, date2):
     Returns: gamb_out, phib_out, psib_out, epsa_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a P f w 0 6
     - - - - - - - - -
@@ -12042,7 +11953,6 @@ def pmat00(date1, date2):
     Returns: rbp_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P m a t 0 0
     - - - - - - - - - -
@@ -12140,7 +12050,6 @@ def pmat06(date1, date2):
     Returns: rbp_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P m a t 0 6
     - - - - - - - - - -
@@ -12239,7 +12148,6 @@ def pmat76(date1, date2):
     Returns: rmatp_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P m a t 7 6
     - - - - - - - - - -
@@ -12353,7 +12261,6 @@ def pn00(date1, date2, dpsi, deps):
     Returns: epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a P n 0 0
     - - - - - - - -
@@ -12518,7 +12425,6 @@ def pn00a(date1, date2):
     Returns: dpsi_out, deps_out, epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a P n 0 0 a
     - - - - - - - - -
@@ -12679,7 +12585,6 @@ def pn00b(date1, date2):
     Returns: dpsi_out, deps_out, epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a P n 0 0 b
     - - - - - - - - -
@@ -12840,7 +12745,6 @@ def pn06(date1, date2, dpsi, deps):
     Returns: epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a P n 0 6
     - - - - - - - -
@@ -13003,7 +12907,6 @@ def pn06a(date1, date2):
     Returns: dpsi_out, deps_out, epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a P n 0 6 a
     - - - - - - - - -
@@ -13154,7 +13057,6 @@ def pnm00a(date1, date2):
     Returns: rbpn_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P n m 0 0 a
     - - - - - - - - - -
@@ -13255,7 +13157,6 @@ def pnm00b(date1, date2):
     Returns: rbpn_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P n m 0 0 b
     - - - - - - - - - -
@@ -13356,7 +13257,6 @@ def pnm06a(date1, date2):
     Returns: rnpb_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P n m 0 6 a
     - - - - - - - - - -
@@ -13454,7 +13354,6 @@ def pnm80(date1, date2):
     Returns: rmatpn_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a P n m 8 0
     - - - - - - - - -
@@ -13554,7 +13453,6 @@ def pom00(xp, yp, sp):
     Returns: rpom_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P o m 0 0
     - - - - - - - - - -
@@ -13653,7 +13551,6 @@ def pr00(date1, date2):
     Returns: dpsipr_out, depspr_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a P r 0 0
     - - - - - - - -
@@ -13770,7 +13667,6 @@ def prec76(date01, date02, date11, date12):
     Returns: zeta_out, z_out, theta_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P r e c 7 6
     - - - - - - - - - -
@@ -13899,7 +13795,6 @@ def s00(date1, date2, x, y):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - -
      e r a S 0 0
     - - - - - - -
@@ -14033,7 +13928,6 @@ def s00a(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a S 0 0 a
     - - - - - - - -
@@ -14150,7 +14044,6 @@ def s00b(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a S 0 0 b
     - - - - - - - -
@@ -14267,7 +14160,6 @@ def s06(date1, date2, x, y):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - -
      e r a S 0 6
     - - - - - - -
@@ -14398,7 +14290,6 @@ def s06a(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a S 0 6 a
     - - - - - - - -
@@ -14517,7 +14408,6 @@ def sp00(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a S p 0 0
     - - - - - - - -
@@ -14612,7 +14502,6 @@ def xy06(date1, date2):
     Returns: x_out, y_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a X y 0 6
     - - - - - - - -
@@ -14748,7 +14637,6 @@ def xys00a(date1, date2):
     Returns: x_out, y_out, s_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a X y s 0 0 a
     - - - - - - - - - -
@@ -14860,7 +14748,6 @@ def xys00b(date1, date2):
     Returns: x_out, y_out, s_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a X y s 0 0 b
     - - - - - - - - - -
@@ -14972,7 +14859,6 @@ def xys06a(date1, date2):
     Returns: x_out, y_out, s_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a X y s 0 6 a
     - - - - - - - - - -
@@ -15084,7 +14970,6 @@ def ee00(date1, date2, epsa, dpsi):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a E e 0 0
     - - - - - - - -
@@ -15202,7 +15087,6 @@ def ee00a(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a E e 0 0 a
     - - - - - - - - -
@@ -15308,7 +15192,6 @@ def ee00b(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a E e 0 0 b
     - - - - - - - - -
@@ -15420,7 +15303,6 @@ def ee06a(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a E e 0 6 a
     - - - - - - - - -
@@ -15518,7 +15400,6 @@ def eect00(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a E e c t 0 0
     - - - - - - - - - -
@@ -15657,7 +15538,6 @@ def eqeq94(date1, date2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a E q e q 9 4
     - - - - - - - - - -
@@ -15756,7 +15636,6 @@ def era00(dj1, dj2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a E r a 0 0
     - - - - - - - - -
@@ -15858,7 +15737,6 @@ def gmst00(uta, utb, tta, ttb):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a G m s t 0 0
     - - - - - - - - - -
@@ -15984,7 +15862,6 @@ def gmst06(uta, utb, tta, ttb):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a G m s t 0 6
     - - - - - - - - - -
@@ -16100,7 +15977,6 @@ def gmst82(dj1, dj2):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a G m s t 8 2
     - - - - - - - - - -
@@ -16208,7 +16084,6 @@ def gst00a(uta, utb, tta, ttb):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a G s t 0 0 a
     - - - - - - - - - -
@@ -16335,7 +16210,6 @@ def gst00b(uta, utb):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a G s t 0 0 b
     - - - - - - - - - -
@@ -16460,7 +16334,6 @@ def gst06(uta, utb, tta, ttb, rnpb):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a G s t 0 6
     - - - - - - - - -
@@ -16587,7 +16460,6 @@ def gst06a(uta, utb, tta, ttb):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a G s t 0 6 a
     - - - - - - - - - -
@@ -16705,7 +16577,6 @@ def gst94(uta, utb):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a G s t 9 4
     - - - - - - - - -
@@ -16815,7 +16686,6 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
     Returns: ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P m s a f e
     - - - - - - - - - -
@@ -17014,7 +16884,7 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
         rv2_out = rv2_out[0]
 
     return ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
-STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above warnings', -1: 'system error (should not occur)'}
+STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 'else': 'binary logical OR of the above warnings', 4: "solution didn't converge (Note 8)", -1: 'system error (should not occur)'}
 
 
 
@@ -17025,7 +16895,6 @@ def pvstar(pv):
     Returns: ra_out, dec_out, pmr_out, pmd_out, px_out, rv_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a P v s t a r
     - - - - - - - - - -
@@ -17182,7 +17051,6 @@ def starpv(ra, dec, pmr, pmd, px, rv):
     Returns: pv_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a S t a r p v
     - - - - - - - - - -
@@ -17356,7 +17224,7 @@ def starpv(ra, dec, pmr, pmd, px, rv):
         pv_out = pv_out[0]
 
     return pv_out
-STATUS_CODES['starpv'] = {0: 'no warnings', 1: 'distance overridden (Note 6)', 2: 'excessive speed (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above'}
+STATUS_CODES['starpv'] = {0: 'no warnings', 1: 'distance overridden (Note 6)', 2: 'excessive speed (Note 7)', 'else': 'binary logical OR of the above', 4: "solution didn't converge (Note 8)"}
 
 
 
@@ -17367,7 +17235,6 @@ def fk52h(r5, d5, dr5, dd5, px5, rv5):
     Returns: rh_out, dh_out, drh_out, ddh_out, pxh_out, rvh_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a F k 5 2 h
     - - - - - - - - -
@@ -17500,7 +17367,6 @@ def fk5hip():
     Returns: r5h_out, s5h_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a F k 5 h i p
     - - - - - - - - - -
@@ -17566,7 +17432,6 @@ def fk5hz(r5, d5, date1, date2):
     Returns: rh_out, dh_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a F k 5 h z
     - - - - - - - - -
@@ -17695,7 +17560,6 @@ def h2fk5(rh, dh, drh, ddh, pxh, rvh):
     Returns: r5_out, d5_out, dr5_out, dd5_out, px5_out, rv5_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a H 2 f k 5
     - - - - - - - - -
@@ -17830,7 +17694,6 @@ def hfk5z(rh, dh, date1, date2):
     Returns: r5_out, d5_out, dr5_out, dd5_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a H f k 5 z
     - - - - - - - - -
@@ -17970,7 +17833,6 @@ def starpm(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
     Returns: ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a S t a r p m
     - - - - - - - - - -
@@ -18170,7 +18032,7 @@ def starpm(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
         rv2_out = rv2_out[0]
 
     return ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
-STATUS_CODES['starpm'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above warnings', -1: 'system error (should not occur)'}
+STATUS_CODES['starpm'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 'else': 'binary logical OR of the above warnings', 4: "solution didn't converge (Note 8)", -1: 'system error (should not occur)'}
 
 
 
@@ -18181,7 +18043,6 @@ def eform(n):
     Returns: a_out, f_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a E f o r m
     - - - - - - - - -
@@ -18288,7 +18149,6 @@ def gc2gd(n, xyz):
     Returns: elong_out, phi_out, height_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a G c 2 g d
     - - - - - - - - -
@@ -18399,7 +18259,6 @@ def gc2gde(a, f, xyz):
     Returns: elong_out, phi_out, height_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a G c 2 g d e
     - - - - - - - - - -
@@ -18520,7 +18379,6 @@ def gd2gc(n, elong, phi, height):
     Returns: xyz_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a G d 2 g c
     - - - - - - - - -
@@ -18637,7 +18495,6 @@ def gd2gce(a, f, elong, phi, height):
     Returns: xyz_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a G d 2 g c e
     - - - - - - - - - -
@@ -18760,7 +18617,6 @@ def pvtob(elong, phi, hm, xp, yp, sp, theta):
     Returns: pv_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a P v t o b
     - - - - - - - - -
@@ -18892,7 +18748,6 @@ def d2dtf(scale, ndp, d1, d2):
     Returns: iy_out, im_out, id_out, ihmsf_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a D 2 d t f
     - - - - - - - - -
@@ -19034,7 +18889,6 @@ def dat(iy, im, id, fd):
     Returns: deltat_out
 
     ERFA documentation:
-    
     - - - - - - -
      e r a D a t
     - - - - - - -
@@ -19213,7 +19067,6 @@ def dtdb(date1, date2, ut, elong, u, v):
     Returns: c_retval_out
 
     ERFA documentation:
-    
     - - - - - - - -
      e r a D t d b
     - - - - - - - -
@@ -19437,7 +19290,6 @@ def dtf2d(scale, iy, im, id, ihr, imn, sec):
     Returns: d1_out, d2_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a D t f 2 d
     - - - - - - - - -
@@ -19592,7 +19444,6 @@ def taitt(tai1, tai2):
     Returns: tt1_out, tt2_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a T a i t t
     - - - - - - - - -
@@ -19682,7 +19533,6 @@ def taiut1(tai1, tai2, dta):
     Returns: ut11_out, ut12_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a T a i u t 1
     - - - - - - - - - -
@@ -19778,7 +19628,6 @@ def taiutc(tai1, tai2):
     Returns: utc1_out, utc2_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a T a i u t c
     - - - - - - - - - -
@@ -19891,7 +19740,6 @@ def tcbtdb(tcb1, tcb2):
     Returns: tdb1_out, tdb2_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a T c b t d b
     - - - - - - - - - -
@@ -19995,7 +19843,6 @@ def tcgtt(tcg1, tcg2):
     Returns: tt1_out, tt2_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a T c g t t
     - - - - - - - - -
@@ -20084,7 +19931,6 @@ def tdbtcb(tdb1, tdb2):
     Returns: tcb1_out, tcb2_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a T d b t c b
     - - - - - - - - - -
@@ -20188,7 +20034,6 @@ def tdbtt(tdb1, tdb2, dtr):
     Returns: tt1_out, tt2_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a T d b t t
     - - - - - - - - -
@@ -20294,7 +20139,6 @@ def tttai(tt1, tt2):
     Returns: tai1_out, tai2_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a T t t a i
     - - - - - - - - -
@@ -20384,7 +20228,6 @@ def tttcg(tt1, tt2):
     Returns: tcg1_out, tcg2_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a T t t c g
     - - - - - - - - -
@@ -20473,7 +20316,6 @@ def tttdb(tt1, tt2, dtr):
     Returns: tdb1_out, tdb2_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a T t t d b
     - - - - - - - - -
@@ -20579,7 +20421,6 @@ def ttut1(tt1, tt2, dt):
     Returns: ut11_out, ut12_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a T t u t 1
     - - - - - - - - -
@@ -20674,7 +20515,6 @@ def ut1tai(ut11, ut12, dta):
     Returns: tai1_out, tai2_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a U t 1 t a i
     - - - - - - - - - -
@@ -20770,7 +20610,6 @@ def ut1tt(ut11, ut12, dt):
     Returns: tt1_out, tt2_out
 
     ERFA documentation:
-    
     - - - - - - - - -
      e r a U t 1 t t
     - - - - - - - - -
@@ -20865,7 +20704,6 @@ def ut1utc(ut11, ut12, dut1):
     Returns: utc1_out, utc2_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a U t 1 u t c
     - - - - - - - - - -
@@ -20988,7 +20826,6 @@ def utctai(utc1, utc2):
     Returns: tai1_out, tai2_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a U t c t a i
     - - - - - - - - - -
@@ -21103,7 +20940,6 @@ def utcut1(utc1, utc2, dut1):
     Returns: ut11_out, ut12_out
 
     ERFA documentation:
-    
     - - - - - - - - - -
      e r a U t c u t 1
     - - - - - - - - - -
