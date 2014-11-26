@@ -92,8 +92,10 @@ New Features
     useful for building UIs for models and fitting). [#2725]
 
   - A dict-like ``meta`` member was added to ``Model``. it is to be used to
-    store any optional information which is relevant to a project and is not 
+    store any optional information which is relevant to a project and is not
     in the standard ``Model`` class. [#2189]
+
+  - Added ``Ellipse2D`` model. [#3124]
 
 - ``astropy.nddata``
 
