@@ -853,13 +853,11 @@ def test_init_with_frame_instance():
     assert c.equinox == Time('J2010')
 
     # Check what happens if we pass a frame with data
-    c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(1 * u.deg, 2 * u.deg, equinox='J2010'))
-    assert c.equinox == Time('J2010')
-    assert allclose(c.ra.degree, 3.)
-    assert allclose(c.dec.degree, 4.)
+    with pytest.raises(ValueError) as exc:
+        c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(1 * u.deg, 2 * u.deg, equinox='J2010'))
+    assert exc.value.args[0] == "frame instance should not have associated data if used as a frame for SkyCoord"
 
     # And a frame with data but as a positional argument
-    c = SkyCoord(3 * u.deg, 4 * u.deg, FK5(1 * u.deg, 2 * u.deg, equinox='J2010'))
-    assert c.equinox == Time('J2010')
-    assert allclose(c.ra.degree, 3.)
-    assert allclose(c.dec.degree, 4.)
+    with pytest.raises(ValueError) as exc:
+        c = SkyCoord(3 * u.deg, 4 * u.deg, FK5(1 * u.deg, 2 * u.deg, equinox='J2010'))
+    assert exc.value.args[0] == "frame instance should not have associated data if used as a frame for SkyCoord"

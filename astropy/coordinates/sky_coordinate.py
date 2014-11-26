@@ -975,6 +975,14 @@ def _get_frame(args, kwargs):
     # into a class.
     if isinstance(frame, BaseCoordinateFrame):
 
+        # Check if frame has data
+        try:
+            frame.data
+        except ValueError:
+            pass
+        else:
+            raise ValueError("frame instance should not have associated data if used as a frame for SkyCoord")
+
         for attr in frame.get_frame_attr_names():
             if attr in kwargs:
                 raise ValueError("cannot specify frame attribute '{0}' directly in SkyCoord since a frame instance was passed in".format(attr))
