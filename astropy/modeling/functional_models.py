@@ -727,11 +727,6 @@ class Ellipse2D(Fittable2DModel):
     b = Parameter()
     theta = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, a, b, theta=0., **kwargs):
-        super(Ellipse2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, a=a, b=b, theta=theta,
-            **kwargs)
-
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
         """Two dimensional Ellipse model function."""
