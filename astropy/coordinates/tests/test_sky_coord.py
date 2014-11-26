@@ -852,3 +852,14 @@ def test_init_with_frame_instance():
     c = SkyCoord("1:12:43.2 +1:12:43", FK5(equinox='J2010'), unit='deg,deg')
     assert c.equinox == Time('J2010')
 
+    # Check what happens if we pass a frame with data
+    c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(1 * u.deg, 2 * u.deg, equinox='J2010'))
+    assert c.equinox == Time('J2010')
+    assert allclose(c.ra.degree, 3.)
+    assert allclose(c.dec.degree, 4.)
+
+    # And a frame with data but as a positional argument
+    c = SkyCoord(3 * u.deg, 4 * u.deg, FK5(1 * u.deg, 2 * u.deg, equinox='J2010'))
+    assert c.equinox == Time('J2010')
+    assert allclose(c.ra.degree, 3.)
+    assert allclose(c.dec.degree, 4.)
