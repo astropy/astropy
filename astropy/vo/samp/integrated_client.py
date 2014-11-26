@@ -190,18 +190,7 @@ class SAMPIntegratedClient(object):
         # backwards compatibility.
         self.client = SAMPClient(
             self.hub,
-            self.client_arguments['name'],
-            self.client_arguments['description'],
-            self.client_arguments['metadata'],
-            self.client_arguments['addr'],
-            self.client_arguments['port'],
-            self.client_arguments['https'],
-            self.client_arguments['key_file'],
-            self.client_arguments['cert_file'],
-            self.client_arguments['cert_reqs'],
-            self.client_arguments['ca_certs'],
-            self.client_arguments['ssl_version'],
-            self.client_arguments['callable'],
+            **self.client_arguments
         )
         self.client.start()
         self.client.register()
