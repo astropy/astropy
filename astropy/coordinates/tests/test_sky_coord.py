@@ -846,3 +846,9 @@ def test_init_with_frame_instance():
     with pytest.raises(ValueError) as exc:
         c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'), equinox='J2001')
     assert exc.value.args[0] == "cannot specify frame attribute 'equinox' directly in SkyCoord since a frame instance was passed in"
+
+    # Test with string as input since there was a regression when adding
+    # support for frame instances (note frame is passed as positional argument).
+    c = SkyCoord("1:12:43.2 +1:12:43", FK5(equinox='J2010'), unit='deg,deg')
+    assert c.equinox == Time('J2010')
+

@@ -961,6 +961,16 @@ def _get_frame(args, kwargs):
     """
     frame = kwargs.pop('frame', None)
 
+    if frame is None:
+        # Here we check only if a frame instance is present in the positional
+        # arguments, we check later whether it could be specificed as a string
+        # or class in the positional arguments.
+        for arg in args:
+            if isinstance(arg, BaseCoordinateFrame):
+                frame = arg
+                args.remove(frame)
+                break
+
     # If the frame is an instance, we split up the attributes and make it
     # into a class.
     if isinstance(frame, BaseCoordinateFrame):
