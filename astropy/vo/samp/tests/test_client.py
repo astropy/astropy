@@ -32,13 +32,17 @@ def test_SAMPIntegratedClient():
 
 @pytest.fixture
 def samp_hub(request):
+    """A fixture that can be used by client tests that require a HUB."""
     my_hub = SAMPHubServer()
     my_hub.start()
     request.addfinalizer(my_hub.stop)
 
 
 def test_reconnect(samp_hub):
-    """Test that SAMPIntegratedClient can reconnect."""
+    """Test that SAMPIntegratedClient can reconnect.
+    This is a regression test for #2673
+    https://github.com/astropy/astropy/issues/2673
+    """
     my_client = SAMPIntegratedClient()
     my_client.connect()
     my_client.disconnect()
