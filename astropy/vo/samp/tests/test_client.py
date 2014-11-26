@@ -40,7 +40,7 @@ def samp_hub(request):
 
 def test_reconnect(samp_hub):
     """Test that SAMPIntegratedClient can reconnect.
-    This is a regression test for #2673
+    This is a regression test for bug [#2673]
     https://github.com/astropy/astropy/issues/2673
     """
     my_client = SAMPIntegratedClient()
