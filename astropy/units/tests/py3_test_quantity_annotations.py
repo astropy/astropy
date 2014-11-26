@@ -72,7 +72,19 @@ def test_not_quantity3():
         solarx, solary = myfunc_args(1*u.arcsec, 100)
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be an astropy Quantity object"
 
-
+def test_decorator_override():
+    @u.QuantityInput(solarx=u.arcsec)
+    def myfunc_args(solarx: u.km, solary: u.arcsec):
+        return solarx, solary
+    
+    solarx, solary = myfunc_args(1*u.arcsec, 1*u.arcsec)
+    
+    assert isinstance(solarx, u.Quantity)
+    assert isinstance(solary, u.Quantity)
+    
+    assert solarx.unit == u.arcsec
+    assert solary.unit == u.arcsec
+    
 def test_kwargs3():
     @u.QuantityInput()
     def myfunc_args(solarx: u.arcsec, solary, myk: u.arcsec=1*u.arcsec):
@@ -131,3 +143,10 @@ def test_kwarg_not_quantity3():
     with pytest.raises(TypeError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100)
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be an astropy Quantity object"
+
+def test_kwarg_default3():
+    @u.QuantityInput()
+    def myfunc_args(solarx: u.arcsec, solary: u.deg=10*u.deg):
+        return solarx, solary
+   
+    solarx, solary = myfunc_args(1*u.arcsec)

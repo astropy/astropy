@@ -2291,34 +2291,6 @@ dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 # Abbreviation of the above, see #1980
 one = dimensionless_unscaled
 
-
-def _parse_argspec(wrapped_function):
-    """
-    Parse the argspec of the function in a 2 / 3 independant way
-    """
-    
-    if hasattr(inspect, 'getfullargspec'):
-        # Update the annotations to include any kwargs passed to the decorator
-        outargspec = inspect.getfullargspec(wrapped_function)
-
-    else:
-        argspec = inspect.getargspec(wrapped_function)
-        if hasattr(wrapped_function, '__annotations__'):
-            annotations = wrapped_function.__annotations__  # pragma: no cover 
-        else:
-            annotations = {}
-
-        outargspec = collections.namedtuple('FullArgSpec',
-                                            ['args', 'varargs', 'defaults',
-                                             'annotations'])
-        outargspec.args = argspec[0]
-        outargspec.varargs = argspec[1]
-        outargspec.varkw = argspec[2]
-        outargspec.defaults = argspec[3]
-        outargspec.annotations = annotations
-    
-    return outargspec
-
 class QuantityInput(object):
     # __init__ is called when the function is parsed, it creates the decorator
     def __init__(self, **kwargs):
@@ -2329,49 +2301,54 @@ class QuantityInput(object):
     def __call__(self, wrapped_function):
         
         # Update the annotations to include any kwargs passed to the decorator
-        argspec = _parse_argspec(wrapped_function)
-        argspec.annotations.update(self.f_kwargs)
-
+        wrapped_signature = inspect.signature(wrapped_function)
+        
         #Define a new function to return in place of the wrapped one
         def wrapper(*func_args, **func_kwargs):
-            
-            if argspec.defaults:
-                # Update func_kwargs with the default values
-                defaults = dict(zip(argspec.args[len(func_args):],
-                                            argspec.defaults))
-                defaults.update(func_kwargs)
-                func_kwargs = defaults
-
-            for var, target_unit in argspec.annotations.items():
-                loc = argspec.args.index(var)
+            # Iterate through the parameters of the function and extract the 
+            # decorator kwarg or the annotation.
+            for var, parameter in wrapped_signature.parameters.items():
+                if var in self.f_kwargs:
+                    target_unit = self.f_kwargs[var]
+                else:
+                    target_unit = parameter.annotation
+                
+                # Find the location of the var in the arguments to the function.
+                loc = tuple(wrapped_signature.parameters.values()).index(parameter)
 
                 if loc < len(func_args):
                     arg = func_args[loc]
 
                 elif var in func_kwargs:
                     arg = func_kwargs[var]
+                
+                # If we are a kwarg without the default being overriden
+                elif not parameter.default is inspect.Parameter.empty:
+                    arg = parameter.default
                     
                 else:
                     raise ValueError("Inconsistent function specification!")  # pragma: no cover
-
-                # Now we have the arg or the kwarg we check to see if it is 
-                # convertable to the unit specified in the decorator.
-                try:
-                    equivalent = arg.unit.is_equivalent(target_unit,
-                                              equivalencies=self.equivalencies)
-
-                    if not equivalent:
-                        raise UnitsError(
-"Argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
-                var, wrapped_function.__name__, target_unit.to_string()))
-
-                # AttributeError is raised if there is no `to` method.
-                # i.e. not something that quacks like a Quantity.
-                except AttributeError:
-                    raise TypeError(
-"Argument '{0}' to function '{1}' must be an astropy Quantity object".format(
-                                     var, wrapped_function.__name__))
+                
+                # If the target unit is empty, then no unit was specified so we
+                # move past it
+                if not target_unit is inspect.Parameter.empty:
+                    try:
+                        equivalent = arg.unit.is_equivalent(target_unit,
+                                                  equivalencies=self.equivalencies)
         
+                        if not equivalent:
+                            raise UnitsError(
+        "Argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
+                    var, wrapped_function.__name__, target_unit.to_string()))
+        
+                    # AttributeError is raised if there is no `to` method.
+                    # i.e. not something that quacks like a Quantity.
+                    except AttributeError:
+                        raise TypeError(
+        "Argument '{0}' to function '{1}' must be an astropy Quantity object".format(
+                                         var, wrapped_function.__name__))
+
             return wrapped_function(*func_args, **func_kwargs)
+
 
         return wrapper

@@ -137,3 +137,10 @@ def test_kwarg_not_quantity():
     with pytest.raises(TypeError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100)
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be an astropy Quantity object"
+
+def test_kwarg_default():
+    @u.QuantityInput(solarx=u.arcsec, solary=u.deg)
+    def myfunc_args(solarx, solary=10*u.deg):
+        return solarx, solary
+   
+    solarx, solary = myfunc_args(1*u.arcsec)
