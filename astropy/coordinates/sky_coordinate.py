@@ -889,7 +889,7 @@ class SkyCoord(object):
 
     # Table interactions
     @classmethod
-    def guess_from_table(cls, table, **coord_kwargs):
+    def guess_from_table(cls, table, get_coord_columns_func=None, **coord_kwargs):
         """
         A convenience method to create and return a new `SkyCoord` from the data
         in an astropy Table.
@@ -903,6 +903,10 @@ class SkyCoord(object):
         ----------
         table : astropy.Table
             The table to load data from.
+        get_coord_columns_func : function or None
+            A function that takes ``(frame, table)`` (``frame`` is a frame
+            *object*, not a frame name) and returns a dictionary mapping
+            the components of the coordinate data to arrays.
         coord_kwargs
             Any additional keyword arguments are passed directly to this class's
             constructor.
@@ -912,30 +916,25 @@ class SkyCoord(object):
         newsc : same as this class
             The new `SkyCoord` (or subclass) object.
         """
-        # if it quacks like an astropy table, treat it as such.
 
-        initframe = coord_kwargs.pop('frame', None)
+        def default_get_coord_columns(frame, table):
+            """
+            Return a dict of ``frame`` components from ``table``
+            """
+            comp_kwargs = {}
+            for comp_name in frame.representation_component_names:
+                if comp_name in table.colnames:
+                    comp_kwargs[comp_name] = table[comp_name]
+            return comp_kwargs
+
+        inital_frame = coord_kwargs.get('frame')
         frame = _get_frame([], coord_kwargs)
-        units = _get_units([], coord_kwargs)
+        coord_kwargs['frame'] = inital_frame
 
-        coord_kwargs = {}
-        for (nm, reprnm), unit in zip(frame.representation_component_names.items(),
-                                      units):
-            for colnm in table.colnames:
-                simple_colnm = colnm.lower()
-                if simple_colnm.startswith(nm.lower()):
-                    attr_class = frame.representation.attr_classes[reprnm]
-                    if unit is None:
-                        # use the unit from the table if not overrridden
-                        unit = table[colnm].unit
-                    elif table[colnm].unit is not None:
-                        raise ValueError('Unit present in both the table column'
-                                         ' "{0}" and given by user. This is '
-                                         'ambiguous, instead update the column '
-                                         'unit'.format(colnm))
-                    coord_kwargs[nm] = attr_class(table[colnm], unit=unit)
-                    break  # moves on to the next `nm`
-        coord_kwargs['frame'] = initframe
+        if get_coord_columns_func is None:
+            get_coord_columns_func = default_get_coord_columns
+        coord_kwargs.update(get_coord_columns_func(frame, table))
+
         return cls(**coord_kwargs)
 
     # Name resolve
