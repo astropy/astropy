@@ -891,7 +891,7 @@ class SkyCoord(object):
     @classmethod
     def guess_from_table(cls, table, **coord_kwargs):
         """
-        A convinience method to create and return a new `SkyCoord` from the data
+        A convenience method to create and return a new `SkyCoord` from the data
         in an astropy Table.
 
         This method currently uses a basic heuristic that just checks for table
