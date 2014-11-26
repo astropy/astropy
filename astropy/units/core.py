@@ -2292,11 +2292,19 @@ dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 # Abbreviation of the above, see #1980
 one = dimensionless_unscaled
 
-class quantity_input(object):
+class QuantityInput(object):
 
     def __init__(self, func=None, **kwargs):
         self.equivalencies = kwargs.pop('equivalencies', [])
         self.f_kwargs = kwargs
+
+    @classmethod
+    def as_decorator(cls, func=None, **kwargs):
+        self = cls(**kwargs)
+        if func is not None and not kwargs:
+            return self(func)
+        else:
+            return self
 
     def __call__(self, wrapped_function):
         
@@ -2356,3 +2364,5 @@ class quantity_input(object):
 
 
         return wrapper
+
+quantity_input = QuantityInput.as_decorator
