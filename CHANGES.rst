@@ -407,6 +407,10 @@ Other Changes and Additions
 - The code base is now fully Python 2 and 3 compatible and no longer requires
   2to3. [#2033]
 
+- `funcsigs <https://pypi.python.org/pypi/funcsigs>`_ is included in 
+  utils.compat, but defaults to the inspect module components where available
+  (3.3+) [#3151].
+
 0.4.3 (unreleased)
 ------------------
 
