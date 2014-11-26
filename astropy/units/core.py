@@ -33,7 +33,7 @@ __all__ = [
     'PrefixUnit', 'UnrecognizedUnit', 'get_current_unit_registry',
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
-    'dimensionless_unscaled', 'one', 'quantity_input']
+    'dimensionless_unscaled', 'one', 'QuantityInput']
 
 
 def _flatten_units_collection(items):
@@ -2297,30 +2297,25 @@ def _parse_argspec(wrapped_function):
     Parse the argspec of the function in a 2 / 3 independant way
     """
     
-    outargspec = collections.namedtuple('FullArgSpec',
-                                        ['args', 'varargs', 'defaults',
-                                         'annotations'])
     if hasattr(inspect, 'getfullargspec'):
         # Update the annotations to include any kwargs passed to the decorator
-        argspec = inspect.getfullargspec(wrapped_function)
-        outargspec.args=argspec.args
-        outargspec.varargs=argspec.varargs
-        outargspec.varkw=argspec.varkw
-        outargspec.defaults=argspec.defaults
-        outargspec.annotations=argspec.annotations
+        outargspec = inspect.getfullargspec(wrapped_function)
 
     else:
         argspec = inspect.getargspec(wrapped_function)
         if hasattr(wrapped_function, '__annotations__'):
-            annotations = wrapped_function.__annotations__
+            annotations = wrapped_function.__annotations__  # pragma: no cover 
         else:
             annotations = {}
 
-        outargspec.args=argspec[0]
-        outargspec.varargs=argspec[1]
-        outargspec.varkw=argspec[2]
-        outargspec.defaults=argspec[3]
-        outargspec.annotations=annotations
+        outargspec = collections.namedtuple('FullArgSpec',
+                                            ['args', 'varargs', 'defaults',
+                                             'annotations'])
+        outargspec.args = argspec[0]
+        outargspec.varargs = argspec[1]
+        outargspec.varkw = argspec[2]
+        outargspec.defaults = argspec[3]
+        outargspec.annotations = annotations
     
     return outargspec
 
@@ -2340,9 +2335,12 @@ class QuantityInput(object):
         #Define a new function to return in place of the wrapped one
         def wrapper(*func_args, **func_kwargs):
             
-            # Update func_kwargs with the default values
-            func_kwargs.update(dict(zip(argspec.args[len(func_args):],
-                                        argspec.defaults)))
+            if argspec.defaults:
+                # Update func_kwargs with the default values
+                defaults = dict(zip(argspec.args[len(func_args):],
+                                            argspec.defaults))
+                defaults.update(func_kwargs)
+                func_kwargs = defaults
 
             for var, target_unit in argspec.annotations.items():
                 loc = argspec.args.index(var)
@@ -2354,7 +2352,7 @@ class QuantityInput(object):
                     arg = func_kwargs[var]
                     
                 else:
-                    raise ValueError("I have no idea what you are doing")
+                    raise ValueError("Inconsistent function specification!")  # pragma: no cover
 
                 # Now we have the arg or the kwarg we check to see if it is 
                 # convertable to the unit specified in the decorator.
