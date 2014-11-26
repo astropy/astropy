@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
-from collections.abc import Iterable
 import sys
 import warnings
 
@@ -13,7 +12,7 @@ from ..verify import VerifyWarning
 
 from ....extern.six import string_types
 from ....extern.six.moves import xrange
-from ....utils import lazyproperty
+from ....utils import isiterable, lazyproperty
 
 
 class _ImageBaseHDU(_ValidHDU):
@@ -779,7 +778,7 @@ class Section(object):
             if isinstance(key, slice):
                 ks = range(*key.indices(axis))
                 break
-            elif isinstance(key, Iterable):
+            elif isiterable(key):
                 # Handle both integer and boolean arrays.
                 ks = np.arange(axis, dtype=int)[key]
                 break
@@ -787,7 +786,8 @@ class Section(object):
 
         data = [self[keys[:idx] + (k,) + keys[idx + 1:]] for k in ks]
 
-        if any(isinstance(key, (slice, Iterable)) for key in keys[idx + 1:]):
+        if any(isinstance(key, slice) or isiterable(key)
+               for key in keys[idx + 1:]):
             # data contains multidimensional arrays; combine them.
             return np.array(data)
         else:
@@ -973,7 +973,7 @@ class _IndexInfo(object):
             self.npts = (stop - start) // step
             self.offset = start
             self.contiguous = step == 1
-        elif isinstance(indx, Iterable):
+        elif isiterable(indx):
             self.npts = len(indx)
             self.offset = 0
             self.contiguous = False
