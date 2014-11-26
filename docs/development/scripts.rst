@@ -7,8 +7,8 @@ readability and compatibility.
 
 The actual script should be in the ``/scripts`` directory of the Astropy
 source distribution, and should do nothing aside from importing a ``main``
-function from astropy and execute it.  This is partly necessary because the
-"2to3" utility that converts python 2.x code to 3.x does not convert scripts.
+function from astropy and execute it.  This was partly necessary because the
+"2to3" utility that converted python 2.x code to 3.x does not convert scripts.
 These scripts should be executable, include ``#!/usr/bin/env python`` at the
 top, and should *not* end in ``.py``.
 

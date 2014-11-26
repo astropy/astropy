@@ -105,9 +105,9 @@ process:
 * ``requires_2to3``
     This function declares whether the package requires processing
     through the `2to3`_ tool to run on Python 3.  If not included, it
-    defaults to `True`.  The use of `2to3`_ is being phased out in
-    astropy, in favor of using `six`_ instead.  See :ref:`dev-portable`
-    for more information.
+    defaults to `True`.  The use of `2to3`_ is phased out in astropy
+    and is retained for use in affliate packages which have not switched
+    to using `six`_ instead.  See :ref:`dev-portable` for more information.
 
 The ``astropy_helpers.setup_helpers`` modules includes an
 ``update_package_files`` function which automatically searches the given source
