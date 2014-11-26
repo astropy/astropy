@@ -520,6 +520,8 @@ Bug Fixes
 
 - ``astropy.vo``
 
+  - Fixed an issue with reconnecting to a SAMP Hub. [#2674]
+
 - ``astropy.wcs``
 
   - WCS allows slices of the form slice(None, x, y), which previously resulted
