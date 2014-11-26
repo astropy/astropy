@@ -2317,9 +2317,12 @@ class QuantityInput(object):
                 # Find the location of the var in the arguments to the function.
                 loc = tuple(wrapped_signature.parameters.values()).index(parameter)
 
+                # loc is an integer which includes the kwargs, so we check if
+                # we are talking about an arg or a kwarg.
                 if loc < len(func_args):
                     arg = func_args[loc]
 
+                # If kwarg then we get it by name.
                 elif var in func_kwargs:
                     arg = func_kwargs[var]
                 
@@ -2339,14 +2342,14 @@ class QuantityInput(object):
         
                         if not equivalent:
                             raise UnitsError(
-        "Argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
+"Argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
                     var, wrapped_function.__name__, target_unit.to_string()))
         
                     # AttributeError is raised if there is no `to` method.
                     # i.e. not something that quacks like a Quantity.
                     except AttributeError:
                         raise TypeError(
-        "Argument '{0}' to function '{1}' must be an astropy Quantity object".format(
+"Argument '{0}' to function '{1}' must be an astropy Quantity object".format(
                                          var, wrapped_function.__name__))
 
             return wrapped_function(*func_args, **func_kwargs)
