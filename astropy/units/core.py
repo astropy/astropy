@@ -11,6 +11,7 @@ from ..extern import six
 from ..extern.six.moves import zip
 if six.PY2:
     import cmath
+from ..extern import funcsigs
 
 import inspect
 import collections
@@ -2301,7 +2302,7 @@ class QuantityInput(object):
     def __call__(self, wrapped_function):
         
         # Update the annotations to include any kwargs passed to the decorator
-        wrapped_signature = inspect.signature(wrapped_function)
+        wrapped_signature = funcsigs.signature(wrapped_function)
         
         #Define a new function to return in place of the wrapped one
         def wrapper(*func_args, **func_kwargs):
@@ -2323,7 +2324,7 @@ class QuantityInput(object):
                     arg = func_kwargs[var]
                 
                 # If we are a kwarg without the default being overriden
-                elif not parameter.default is inspect.Parameter.empty:
+                elif not parameter.default is funcsigs.Parameter.empty:
                     arg = parameter.default
                     
                 else:
@@ -2331,7 +2332,7 @@ class QuantityInput(object):
                 
                 # If the target unit is empty, then no unit was specified so we
                 # move past it
-                if not target_unit is inspect.Parameter.empty:
+                if not target_unit is funcsigs.Parameter.empty:
                     try:
                         equivalent = arg.unit.is_equivalent(target_unit,
                                                   equivalencies=self.equivalencies)
