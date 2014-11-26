@@ -11,7 +11,7 @@ from ..extern import six
 from ..extern.six.moves import zip
 if six.PY2:
     import cmath
-from ..extern import funcsigs
+from ..utils.compat import funcsigs
 
 import inspect
 import collections
