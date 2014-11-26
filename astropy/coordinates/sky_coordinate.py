@@ -931,10 +931,7 @@ class SkyCoord(object):
                     coord_kwargs[nm] = attr_class(table[colnm], unit=unit)
                     break  # moves on to the next `nm`
         coord_kwargs['frame'] = initframe
-        try:
-            return cls(**coord_kwargs)
-        except TypeError as e:
-            raise TypeError('')
+        return cls(**coord_kwargs)
 
     # Name resolve
     @classmethod
