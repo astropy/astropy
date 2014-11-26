@@ -928,6 +928,11 @@ class SkyCoord(object):
                     if unit is None:
                         # use the unit from the table if not overrridden
                         unit = table[colnm].unit
+                    elif table[colnm].unit is not None:
+                        raise ValueError('Unit present in both the table column'
+                                         ' "{0}" and given by user. This is '
+                                         'ambiguous, instead update the column '
+                                         'unit'.format(colnm))
                     coord_kwargs[nm] = attr_class(table[colnm], unit=unit)
                     break  # moves on to the next `nm`
         coord_kwargs['frame'] = initframe

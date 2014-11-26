@@ -889,3 +889,15 @@ def test_guess_from_table():
     sc = SkyCoord.guess_from_table(tab)
     npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
     npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
+
+    #try withoout units in the table
+    tab['RA[J2000]'].unit = None
+    tab['DEC[J2000]'].unit = None
+    sc2 = SkyCoord.guess_from_table(tab, unit=u.deg)
+    npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
+    npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
+
+    #if the units are double-specified, should fail
+    tab['RA[J2000]'].unit = 'deg'
+    with pytest.raises(ValueError):
+        sc3 = SkyCoord.guess_from_table(tab, unit=u.deg)
