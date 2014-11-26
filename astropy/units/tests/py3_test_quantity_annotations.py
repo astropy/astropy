@@ -4,7 +4,7 @@ import pytest
 import astropy.units as u
 
 def test_args3():
-    @u.QuantityInput()
+    @u.quantity_input
     def myfunc_args(solarx: u.arcsec, solary: u.arcsec):
         return solarx, solary
     
@@ -17,7 +17,7 @@ def test_args3():
     assert solary.unit == u.arcsec
 
 def test_args_noconvert3():
-    @u.QuantityInput()
+    @u.quantity_input()
     def myfunc_args(solarx: u.arcsec, solary: u.arcsec):
         return solarx, solary
 
@@ -30,7 +30,7 @@ def test_args_noconvert3():
     assert solary.unit == u.arcmin
 
 def test_args_nonquantity3():
-    @u.QuantityInput()
+    @u.quantity_input
     def myfunc_args(solarx: u.arcsec, solary):
         return solarx, solary
     
@@ -42,7 +42,7 @@ def test_args_nonquantity3():
     assert solarx.unit == u.arcsec
 
 def test_arg_equivalencies3():
-    @u.QuantityInput(equivalencies=u.mass_energy())
+    @u.quantity_input(equivalencies=u.mass_energy())
     def myfunc_args(solarx: u.arcsec, solary: u.eV):
         return solarx, solary
     
@@ -55,7 +55,7 @@ def test_arg_equivalencies3():
     assert solary.unit == u.gram
 
 def test_wrong_unit3():
-    @u.QuantityInput()
+    @u.quantity_input
     def myfunc_args(solarx: u.arcsec, solary: u.deg):
         return solarx, solary
    
@@ -64,7 +64,7 @@ def test_wrong_unit3():
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertable to 'deg'."
 
 def test_not_quantity3():
-    @u.QuantityInput()
+    @u.quantity_input
     def myfunc_args(solarx: u.arcsec, solary: u.deg):
         return solarx, solary
    
@@ -73,7 +73,7 @@ def test_not_quantity3():
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be an astropy Quantity object"
 
 def test_decorator_override():
-    @u.QuantityInput(solarx=u.arcsec)
+    @u.quantity_input(solarx=u.arcsec)
     def myfunc_args(solarx: u.km, solary: u.arcsec):
         return solarx, solary
     
@@ -86,7 +86,7 @@ def test_decorator_override():
     assert solary.unit == u.arcsec
     
 def test_kwargs3():
-    @u.QuantityInput()
+    @u.quantity_input
     def myfunc_args(solarx: u.arcsec, solary, myk: u.arcsec=1*u.arcsec):
         return solarx, solary, myk
     
@@ -99,7 +99,7 @@ def test_kwargs3():
     assert myk.unit == u.deg
 
 def test_unused_kwargs3():
-    @u.QuantityInput()
+    @u.quantity_input
     def myfunc_args(solarx: u.arcsec, solary, myk: u.arcsec=1*u.arcsec, myk2=1000):
         return solarx, solary, myk, myk2
     
@@ -114,7 +114,7 @@ def test_unused_kwargs3():
     assert myk2 == 10
 
 def test_kwarg_equivalencies3():
-    @u.QuantityInput(equivalencies=u.mass_energy())
+    @u.quantity_input(equivalencies=u.mass_energy())
     def myfunc_args(solarx: u.arcsec, energy: u.eV=10*u.eV):
         return solarx, energy
     
@@ -127,7 +127,7 @@ def test_kwarg_equivalencies3():
     assert energy.unit == u.gram
 
 def test_kwarg_wrong_unit3():
-    @u.QuantityInput()
+    @u.quantity_input
     def myfunc_args(solarx: u.arcsec, solary: u.deg=10*u.deg):
         return solarx, solary
    
@@ -136,7 +136,7 @@ def test_kwarg_wrong_unit3():
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertable to 'deg'."
 
 def test_kwarg_not_quantity3():
-    @u.QuantityInput()
+    @u.quantity_input
     def myfunc_args(solarx: u.arcsec, solary: u.deg=10*u.deg):
         return solarx, solary
    
@@ -145,7 +145,7 @@ def test_kwarg_not_quantity3():
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be an astropy Quantity object"
 
 def test_kwarg_default3():
-    @u.QuantityInput()
+    @u.quantity_input
     def myfunc_args(solarx: u.arcsec, solary: u.deg=10*u.deg):
         return solarx, solary
    

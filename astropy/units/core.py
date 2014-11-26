@@ -19,7 +19,7 @@ import textwrap
 import warnings
 import numpy as np
 
-from ..utils.decorators import lazyproperty
+from ..utils.decorators import lazyproperty, wraps
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import (is_effectively_unity, sanitize_scale, validate_power,
@@ -34,7 +34,7 @@ __all__ = [
     'PrefixUnit', 'UnrecognizedUnit', 'get_current_unit_registry',
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
-    'dimensionless_unscaled', 'one', 'QuantityInput']
+    'dimensionless_unscaled', 'one', 'quantity_input']
 
 
 def _flatten_units_collection(items):
@@ -2292,19 +2292,19 @@ dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 # Abbreviation of the above, see #1980
 one = dimensionless_unscaled
 
-class QuantityInput(object):
-    # __init__ is called when the function is parsed, it creates the decorator
-    def __init__(self, **kwargs):
+class quantity_input(object):
+
+    def __init__(self, func=None, **kwargs):
         self.equivalencies = kwargs.pop('equivalencies', [])
         self.f_kwargs = kwargs
 
-    # __call__ is called when the wrapped function is called.
     def __call__(self, wrapped_function):
         
         # Update the annotations to include any kwargs passed to the decorator
         wrapped_signature = funcsigs.signature(wrapped_function)
         
         #Define a new function to return in place of the wrapped one
+        @wraps(wrapped_function)
         def wrapper(*func_args, **func_kwargs):
             # Iterate through the parameters of the function and extract the 
             # decorator kwarg or the annotation.
