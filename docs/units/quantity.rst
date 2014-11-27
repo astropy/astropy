@@ -274,11 +274,11 @@ be compatible with:
 
 Under Python 3 you can use the annotations syntax to provide the units:
 
-    >>> @u.quantity_input
+    >>> @u.quantity_input  # doctest: +SKIP
     ... def myfunction(myarg: u.arcsec):
     ...     return myarg.unit
 
-    >>> myfunction(100*u.arcsec)
+    >>> myfunction(100*u.arcsec)  # doctest: +SKIP
     Unit("arcsec")
 
 Known issues with conversion to numpy arrays
