@@ -1,5 +1,6 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import re
 import collections
 
 import numpy as np
@@ -918,8 +919,22 @@ class SkyCoord(object):
 
         comp_kwargs = {}
         for comp_name in frame.representation_component_names:
-            if comp_name in table.colnames:
-                comp_kwargs[comp_name] = table[comp_name]
+            rex = re.compile(comp_name + r'(\W|\b)', re.IGNORECASE)
+            for col_name in table.colnames:
+                if rex.match(col_name):
+                    if comp_name in comp_kwargs:
+                        if hasattr(comp_kwargs[comp_name], 'name'):
+                            #it's a column
+                            oldname = comp_kwargs[comp_name].name
+                        else:
+                            # it came in some other way - perhaps the user gave
+                            # it manually despite it being in the table?
+                            oldname = '{0}'.format(type(comp_kwargs[comp_name]))
+                        msg = ('Found at least two matches for  component "{0}"'
+                               ': "{1}" and "{2}". Cannot continue with this '
+                               'ambiguity.')
+                        raise ValueError(msg.format(comp_name, oldname, col_name))
+                    comp_kwargs[comp_name] = table[col_name]
 
         coord_kwargs.update(comp_kwargs)
         return cls(**coord_kwargs)
