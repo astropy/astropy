@@ -890,14 +890,40 @@ def test_guess_from_table():
     npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
     npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
 
-    #try withoout units in the table
+    # try without units in the table
     tab['RA[J2000]'].unit = None
     tab['DEC[J2000]'].unit = None
+    # should fail if not given explicitly
+    with pytest.raises(u.UnitsError):
+        sc2 = SkyCoord.guess_from_table(tab)
+
+    # but should work if provided
     sc2 = SkyCoord.guess_from_table(tab, unit=u.deg)
     npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
     npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
 
-    #if the units are double-specified, should fail
-    tab['RA[J2000]'].unit = 'deg'
-    with pytest.raises(ValueError):
+    # should fail if two options are available - ambiguity bad!
+    tab.add_column(Column(data=np.random.rand(1000), name='RA[J1900]'))
+    try:
+        # try/except instead of pytest.raises to check the exception message
         sc3 = SkyCoord.guess_from_table(tab, unit=u.deg)
+        assert False, 'Should have raised ValueError!'
+    except ValueError as e:
+        if 'J1900' not in e.args[0] or 'J2000' not in e.args[0]:
+            raise
+
+    # check a few non-ICRS/spherical systems
+    x, y, z = np.arange(3).reshape(3, 1) * u.pc
+    l, b = np.arange(2).reshape(2, 1) * u.deg
+
+    tabcart = Table([x, y, z], names=('x', 'y', 'z'))
+    tabgal = Table([b, l], names=('b', 'l'))
+
+    sc3 = SkyCoord.guess_from_table(tabcart, representation='cartesian')
+    npt.assert_array_equal(sc3.x, x)
+    npt.assert_array_equal(sc3.y, y)
+    npt.assert_array_equal(sc3.z, z)
+
+    sc4 = SkyCoord.guess_from_table(tabgal, frame='galactic')
+    npt.assert_array_equal(sc4.l, l)
+    npt.assert_array_equal(sc4.b, b)
