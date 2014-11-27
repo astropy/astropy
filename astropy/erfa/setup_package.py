@@ -8,7 +8,17 @@ from astropy_helpers import setup_helpers
 ERFAPKGDIR = os.path.relpath(os.path.dirname(__file__))
 
 
+def _generate_erfa_wrapper():
+    import astropy.erfa.cython_generator as cython_generator
+    srcdir = cython_generator.DEFAULT_ERFA_LOC
+    templateloc = cython_generator.DEFAULT_TEMPLATE_LOC
+    cython_generator.main(srcdir, 'astropy/erfa/erfa.py', templateloc)
+
+
 def get_extensions():
+
+    _generate_erfa_wrapper()
+
     sources = [os.path.join(ERFAPKGDIR, "erfa.pyx")]
     include_dirs = ['numpy']
     libraries = []
