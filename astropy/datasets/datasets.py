@@ -5,7 +5,7 @@ import json
 from ..io import fits
 from ..utils.data import download_file, get_readable_fileobj
 
-__all__ = ['dataset']
+__all__ = ['get_filename']
 
 URL = 'http://data.astropy.org/'
 
@@ -19,7 +19,7 @@ DATASETS = {
 }
 
 
-def dataset(name, cache=True):
+def get_filename(name, cache=True):
     """
     Return the path to a local version of dataset ``name``
     """
