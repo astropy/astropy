@@ -903,7 +903,7 @@ def test_guess_from_table():
     npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
 
     # should fail if two options are available - ambiguity bad!
-    tab.add_column(Column(data=np.random.rand(1000), name='RA[J1900]'))
+    tab.add_column(Column(data=np.random.rand(1000), name='RA_J1900'))
     try:
         # try/except instead of pytest.raises to check the exception message
         sc3 = SkyCoord.guess_from_table(tab, unit=u.deg)

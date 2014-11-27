@@ -919,7 +919,11 @@ class SkyCoord(object):
 
         comp_kwargs = {}
         for comp_name in frame.representation_component_names:
-            rex = re.compile(comp_name + r'(\W|\b)', re.IGNORECASE)
+            # this matches things like 'ra[...]'' but *not* 'rad'.
+            # note that the "_" must be in there explicitly, because
+            # "alphanumeric" usually includes underscores.
+            rex = re.compile(comp_name + r'(\W|\b|_)', re.IGNORECASE)
+
             for col_name in table.colnames:
                 if rex.match(col_name):
                     if comp_name in comp_kwargs:
