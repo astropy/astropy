@@ -836,3 +836,42 @@ def test_search_around():
 
     idx1_sky, idx2_sky, d2d_sky, d3d_sky = sc1.search_around_sky(sc2, 10*u.deg)
     idx1_3d, idx2_3d, d2d_3d, d3d_3d = sc1ds.search_around_3d(sc2ds, 250*u.pc)
+
+
+def test_init_with_frame_instance_keyword():
+
+    # Frame instance
+    c1 = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'))
+    assert c1.equinox == Time('J2010')
+
+    # Frame instance with data (data gets ignored)
+    c2 = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(1. * u.deg, 2 * u.deg, equinox='J2010'))
+    assert c2.equinox == Time('J2010')
+    assert allclose(c2.ra.degree, 3)
+    assert allclose(c2.dec.degree, 4)
+
+    # SkyCoord instance
+    c3 = SkyCoord(3 * u.deg, 4 * u.deg, frame=c1)
+    assert c3.equinox == Time('J2010')
+
+    # Check duplicate arguments
+    with pytest.raises(ValueError) as exc:
+        c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'), equinox='J2001')
+    assert exc.value.args[0] == "cannot specify frame attribute 'equinox' directly in SkyCoord since a frame instance was passed in"
+
+
+def test_init_with_frame_instance_positional():
+
+    # Frame instance
+    c1 = SkyCoord(3 * u.deg, 4 * u.deg, FK5(equinox='J2010'))
+    assert c1.equinox == Time('J2010')
+
+    # Positional frame instance with data raises exception
+    with pytest.raises(ValueError) as exc:
+        SkyCoord(3 * u.deg, 4 * u.deg, FK5(1. * u.deg, 2 * u.deg, equinox='J2010'))
+    assert exc.value.args[0] == "frame instance with data cannot be passed as positional argument, pass it using the frame= keyword instead."
+
+    # Positional SkyCoord instance (for frame) raises exception
+    with pytest.raises(ValueError) as exc:
+        SkyCoord(3 * u.deg, 4 * u.deg, SkyCoord(1. * u.deg, 2 * u.deg, equinox='J2010'))
+    assert exc.value.args[0] == "SkyCoord cannot be used as frame as a positional argument, pass it using the frame= keyword instead."

@@ -961,6 +961,48 @@ def _get_frame(args, kwargs):
     """
     frame = kwargs.pop('frame', None)
 
+    if frame is None and len(args) > 1:
+
+        # Here we check only if a frame instance is present in the positional
+        # arguments, we check later whether it could be specificed as a string
+        # or class in the positional arguments. We only allow a frame instance
+        # without data to be used in this case, and we don't allow SkyCoord to
+        # be used just to specify the frame, unless passed as keyword argument.
+
+        for arg in args:
+
+            if isinstance(arg, SkyCoord):
+                raise ValueError("SkyCoord cannot be used as frame as a positional argument, pass it using the frame= keyword instead.")
+
+            if isinstance(arg, BaseCoordinateFrame):
+
+                try:  # Check if frame has data
+                    arg.data
+                except ValueError:
+                    pass
+                else:
+                    raise ValueError("frame instance with data cannot be passed as positional argument, pass it using the frame= keyword instead.")
+
+                frame = arg
+                args.remove(frame)
+                break
+
+    # If the frame is an instance or SkyCoord, we split up the attributes and
+    # make it into a class.
+
+    if isinstance(frame, SkyCoord):
+        frame = frame.frame
+
+    if isinstance(frame, BaseCoordinateFrame):
+
+        for attr in frame.get_frame_attr_names():
+            if attr in kwargs:
+                raise ValueError("cannot specify frame attribute '{0}' directly in SkyCoord since a frame instance was passed in".format(attr))
+            else:
+                kwargs[attr] = getattr(frame, attr)
+
+        frame = frame.__class__
+
     if frame is not None:
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)

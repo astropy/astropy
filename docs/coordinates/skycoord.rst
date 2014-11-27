@@ -84,16 +84,23 @@ explicitly specify the frame when it is known to be ICRS, however, as
 anyone reading the code will be better able to understand the intent.
 
 String inputs in common formats are acceptable, and the frame can be supplied
-as either a class type like `~astropy.coordinates.FK4` or the lower-case
-version of the name as a string, e.g. ``"fk4"``::
+as either a class type like `~astropy.coordinates.FK4`, an instance of a
+frame class, a `~astropy.coordinates.SkyCoord` instance (from which the frame
+will be extracted), or the lower-case version of a frame name as a string,
+e.g. ``"fk4"``::
 
   >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
   >>> sc = SkyCoord(coords, FK4, unit=(u.hourangle, u.deg), obstime="J1992.21")
+  >>> sc = SkyCoord(coords, FK4(obstime="J1992.21"), unit=(u.hourangle, u.deg))
   >>> sc = SkyCoord(coords, 'fk4', unit='hourangle,deg', obstime="J1992.21")
 
   >>> sc = SkyCoord("1h12m43.2s", "+1d12m43s", Galactic)  # Units from strings
   >>> sc = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
   >>> sc = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
+
+Note that frame instances with data and `~astropy.coordinates.SkyCoord` instances
+can only be passed as frames using the ``frame=`` keyword argument and not as
+positional arguments.
 
 Astropy `~astropy.units.Quantity`-type objects are acceptable and encouraged
 as a form of input::
@@ -193,12 +200,13 @@ represented in the standard spherical coordinates:
 
 **FRAME**
 
-This can be a `~astropy.coordinates.BaseCoordinateFrame` frame
-class or the corresponding string alias.  The frame classes that are built in
-to astropy are `~astropy.coordinates.ICRS`, `~astropy.coordinates.FK5`,
-`~astropy.coordinates.FK4`, `~astropy.coordinates.FK4NoETerms`,
-`~astropy.coordinates.Galactic`, and `~astropy.coordinates.AltAz`.
-The string aliases are simply lower-case versions of the class name.
+This can be a `~astropy.coordinates.BaseCoordinateFrame` frame class, an
+instance of such a class, or the corresponding string alias. The frame
+classes that are built in to astropy are `~astropy.coordinates.ICRS`,
+`~astropy.coordinates.FK5`, `~astropy.coordinates.FK4`,
+`~astropy.coordinates.FK4NoETerms`, `~astropy.coordinates.Galactic`, and
+`~astropy.coordinates.AltAz`. The string aliases are simply lower-case
+versions of the class name.
 
 If the frame is not supplied then you will see a special ``ICRS``
 identifier.  This indicates that the frame is unspecified and operations
