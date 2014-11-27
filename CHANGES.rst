@@ -191,6 +191,9 @@ New Features
   - Add ability to use ``WCS`` object to define projections in Matplotlib,
     using the ``WCSAxes`` package. [#3183]
 
+  - Added units.quantity_input decorator to validate quantity inputs to a 
+    function for unit compatibility. [#3072]
+
 API Changes
 ^^^^^^^^^^^
 

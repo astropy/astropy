@@ -2294,17 +2294,48 @@ one = dimensionless_unscaled
 
 class QuantityInput(object):
 
-    def __init__(self, func=None, **kwargs):
-        self.equivalencies = kwargs.pop('equivalencies', [])
-        self.f_kwargs = kwargs
-
     @classmethod
     def as_decorator(cls, func=None, **kwargs):
+        """
+        A decorator for validating the units of arguments to functions.
+        
+        Unit specifications can be provided as keyword arguments to the decorator,
+        or by usng Python 3's function annotation syntax. Arguments to the decorator
+        take precidence over any function annotations present.
+        
+        A `~astropy.units.UnitsError` will be raised if the unit attribute of 
+        the argument is not equivalent to the unit specified to the decorator 
+        or in the annotation.
+        If the argument has no unit attribute, i.e. it is not a Quantity object, a 
+        `~exceptions.ValueError` will be raised.    
+            
+        Examples
+        --------
+        
+        Python 2::
+            
+            import astropy.units as u
+            @u.quantity_input(myangle=u.arcsec)
+            def myfunction(myangle):
+                return myangle**2
+
+        Python 3::
+
+            import astropy.units as u
+            @u.quantity_input
+            def myfunction(myangle: u.arcsec):
+                return myangle**2
+
+        """
         self = cls(**kwargs)
         if func is not None and not kwargs:
             return self(func)
         else:
             return self
+
+    def __init__(self, func=None, **kwargs):
+        self.equivalencies = kwargs.pop('equivalencies', [])
+        self.f_kwargs = kwargs
 
     def __call__(self, wrapped_function):
         
