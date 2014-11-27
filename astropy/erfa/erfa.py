@@ -176,7 +176,7 @@ def cal2jd(iy, im, id):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -263,7 +263,7 @@ def epb(dj1, dj2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -336,7 +336,7 @@ def epb2jd(epb):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -407,7 +407,7 @@ def epj(dj1, dj2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -480,7 +480,7 @@ def epj2jd(epj):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -574,7 +574,7 @@ def jd2cal(dj1, dj2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -691,7 +691,7 @@ def jdcalf(ndp, dj1, dj2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -796,7 +796,7 @@ def ab(pnat, v, s, bm1):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -955,7 +955,7 @@ def apcg(date1, date2, ebpv, ehp):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -1118,7 +1118,7 @@ def apcg13(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -1274,7 +1274,7 @@ def apci(date1, date2, ebpv, ehp, x, y, s):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -1457,7 +1457,7 @@ def apci13(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -1653,7 +1653,7 @@ def apco(date1, date2, ebpv, ehp, x, y, s, theta, elong, phi, hm, xp, yp, sp, re
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -1950,7 +1950,7 @@ def apco13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -2176,7 +2176,7 @@ def apcs(date1, date2, pv, ebpv, ehp):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -2351,7 +2351,7 @@ def apcs13(date1, date2, pv):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -2493,7 +2493,7 @@ def aper(theta, astrom):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -2649,7 +2649,7 @@ def aper13(ut11, ut12, astrom):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -2812,7 +2812,7 @@ def apio(sp, theta, elong, phi, hm, xp, yp, refa, refb):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -3061,7 +3061,7 @@ def apio13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -3239,7 +3239,7 @@ def atci13(rc, dc, pr, pd, px, rv, date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -3384,7 +3384,7 @@ def atciq(rc, dc, pr, pd, px, rv, astrom):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -3558,7 +3558,7 @@ def atciqn(rc, dc, pr, pd, px, rv, astrom, n, b):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -3705,7 +3705,7 @@ def atciqz(rc, dc, astrom):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -3905,7 +3905,7 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -4123,7 +4123,7 @@ def atic13(ri, di, date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -4244,7 +4244,7 @@ def aticq(ri, di, astrom):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -4395,7 +4395,7 @@ def aticqn(ri, di, astrom, n, b):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -4589,7 +4589,7 @@ def atio13(ri, di, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -4807,7 +4807,7 @@ def atioq(ri, di, astrom):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -5008,7 +5008,7 @@ def atoc13(type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, r
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -5265,7 +5265,7 @@ def atoi13(type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, r
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -5472,7 +5472,7 @@ def atoiq(type, ob1, ob2, astrom):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -5599,7 +5599,7 @@ def ld(bm, p, q, e, em, dlim):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -5747,7 +5747,7 @@ def ldn(n, b, ob, sc):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -5838,7 +5838,7 @@ def ldsun(p, e, em):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -5936,7 +5936,7 @@ def pmpx(rc, dc, pr, pd, px, rv, pmt, pob):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -6115,7 +6115,7 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -6212,7 +6212,7 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
         rv2_out = rv2_out[0]
 
     return ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
-STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 'else': 'binary logical OR of the above warnings', 4: "solution didn't converge (Note 8)", -1: 'system error (should not occur)'}
+STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above warnings', -1: 'system error (should not occur)'}
 
 
 
@@ -6367,7 +6367,7 @@ def refco(phpa, tc, rh, wl):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -6520,7 +6520,7 @@ def epv00(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -6733,7 +6733,7 @@ def plan94(date1, date2, np):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -6822,7 +6822,7 @@ def fad03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -6898,7 +6898,7 @@ def fae03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -6972,7 +6972,7 @@ def faf03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7048,7 +7048,7 @@ def faju03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7121,7 +7121,7 @@ def fal03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7194,7 +7194,7 @@ def falp03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7270,7 +7270,7 @@ def fama03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7346,7 +7346,7 @@ def fame03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7419,7 +7419,7 @@ def fane03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7492,7 +7492,7 @@ def faom03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7569,7 +7569,7 @@ def fapa03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7645,7 +7645,7 @@ def fasa03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7718,7 +7718,7 @@ def faur03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7794,7 +7794,7 @@ def fave03(t):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7877,7 +7877,7 @@ def bi00():
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -7976,7 +7976,7 @@ def bp00(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -8092,7 +8092,7 @@ def bp06(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -8179,7 +8179,7 @@ def bpn2xy(rbpn):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -8293,7 +8293,7 @@ def c2i00a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -8408,7 +8408,7 @@ def c2i00b(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -8514,7 +8514,7 @@ def c2i06a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -8631,7 +8631,7 @@ def c2ibpn(date1, date2, rbpn):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -8748,7 +8748,7 @@ def c2ixy(date1, date2, x, y):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -8852,7 +8852,7 @@ def c2ixys(x, y, s):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -8977,7 +8977,7 @@ def c2t00a(tta, ttb, uta, utb, xp, yp):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -9116,7 +9116,7 @@ def c2t00b(tta, ttb, uta, utb, xp, yp):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -9254,7 +9254,7 @@ def c2t06a(tta, ttb, uta, utb, xp, yp):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -9372,7 +9372,7 @@ def c2tcio(rc2i, era, rpom):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -9477,7 +9477,7 @@ def c2teqx(rbpn, gst, rpom):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -9612,7 +9612,7 @@ def c2tpe(tta, ttb, uta, utb, dpsi, deps, xp, yp):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -9766,7 +9766,7 @@ def c2txy(tta, ttb, uta, utb, x, y, xp, yp):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -9897,7 +9897,7 @@ def eo06a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -9977,7 +9977,7 @@ def eors(rnpb, s):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -10089,7 +10089,7 @@ def fw2m(gamb, phib, psi, eps):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -10195,7 +10195,7 @@ def fw2xy(gamb, phib, psi, eps):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -10307,7 +10307,7 @@ def num00a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -10406,7 +10406,7 @@ def num00b(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -10504,7 +10504,7 @@ def num06a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -10592,7 +10592,7 @@ def numat(epsa, dpsi, deps):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -10792,7 +10792,7 @@ def nut00a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -10958,7 +10958,7 @@ def nut00b(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -11083,7 +11083,7 @@ def nut06a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -11181,7 +11181,7 @@ def nut80(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -11276,7 +11276,7 @@ def nutm80(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -11365,7 +11365,7 @@ def obl06(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -11456,7 +11456,7 @@ def obl80(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -11618,7 +11618,7 @@ def p06e(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -11772,7 +11772,7 @@ def pb06(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -11897,7 +11897,7 @@ def pfw06(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -12003,7 +12003,7 @@ def pmat00(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -12101,7 +12101,7 @@ def pmat06(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -12214,7 +12214,7 @@ def pmat76(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -12353,7 +12353,7 @@ def pn00(date1, date2, dpsi, deps):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -12517,7 +12517,7 @@ def pn00a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -12677,7 +12677,7 @@ def pn00b(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -12835,7 +12835,7 @@ def pn06(date1, date2, dpsi, deps):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -12989,7 +12989,7 @@ def pn06a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -13110,7 +13110,7 @@ def pnm00a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -13210,7 +13210,7 @@ def pnm00b(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -13307,7 +13307,7 @@ def pnm06a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -13406,7 +13406,7 @@ def pnm80(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -13499,7 +13499,7 @@ def pom00(xp, yp, sp):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -13617,7 +13617,7 @@ def pr00(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -13732,7 +13732,7 @@ def prec76(date01, date02, date11, date12):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -13871,7 +13871,7 @@ def s00(date1, date2, x, y):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -13997,7 +13997,7 @@ def s00a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -14113,7 +14113,7 @@ def s00b(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -14233,7 +14233,7 @@ def s06(date1, date2, x, y):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -14361,7 +14361,7 @@ def s06a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -14455,7 +14455,7 @@ def sp00(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -14587,7 +14587,7 @@ def xy06(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -14695,7 +14695,7 @@ def xys00a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -14806,7 +14806,7 @@ def xys00b(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -14917,7 +14917,7 @@ def xys06a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -15030,7 +15030,7 @@ def ee00(date1, date2, epsa, dpsi):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -15145,7 +15145,7 @@ def ee00a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -15256,7 +15256,7 @@ def ee00b(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -15353,7 +15353,7 @@ def ee06a(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -15491,7 +15491,7 @@ def eect00(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -15589,7 +15589,7 @@ def eqeq94(date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -15690,7 +15690,7 @@ def era00(dj1, dj2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -15805,7 +15805,7 @@ def gmst00(uta, utb, tta, ttb):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -15920,7 +15920,7 @@ def gmst06(uta, utb, tta, ttb):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -16037,7 +16037,7 @@ def gmst82(dj1, dj2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -16153,7 +16153,7 @@ def gst00a(uta, utb, tta, ttb):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -16287,7 +16287,7 @@ def gst00b(uta, utb):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -16397,7 +16397,7 @@ def gst06(uta, utb, tta, ttb, rnpb):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -16520,7 +16520,7 @@ def gst06a(uta, utb, tta, ttb):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -16639,7 +16639,7 @@ def gst94(uta, utb):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -16787,7 +16787,7 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -16884,7 +16884,7 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
         rv2_out = rv2_out[0]
 
     return ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
-STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 'else': 'binary logical OR of the above warnings', 4: "solution didn't converge (Note 8)", -1: 'system error (should not occur)'}
+STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above warnings', -1: 'system error (should not occur)'}
 
 
 
@@ -16987,7 +16987,7 @@ def pvstar(pv):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -17162,7 +17162,7 @@ def starpv(ra, dec, pmr, pmd, px, rv):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -17224,7 +17224,7 @@ def starpv(ra, dec, pmr, pmd, px, rv):
         pv_out = pv_out[0]
 
     return pv_out
-STATUS_CODES['starpv'] = {0: 'no warnings', 1: 'distance overridden (Note 6)', 2: 'excessive speed (Note 7)', 'else': 'binary logical OR of the above', 4: "solution didn't converge (Note 8)"}
+STATUS_CODES['starpv'] = {0: 'no warnings', 1: 'distance overridden (Note 6)', 2: 'excessive speed (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above'}
 
 
 
@@ -17285,7 +17285,7 @@ def fk52h(r5, d5, dr5, dd5, px5, rv5):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -17403,7 +17403,7 @@ def fk5hip():
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -17500,7 +17500,7 @@ def fk5hz(r5, d5, date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -17612,7 +17612,7 @@ def h2fk5(rh, dh, drh, ddh, pxh, rvh):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -17767,7 +17767,7 @@ def hfk5z(rh, dh, date1, date2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -17935,7 +17935,7 @@ def starpm(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -18032,7 +18032,7 @@ def starpm(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
         rv2_out = rv2_out[0]
 
     return ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
-STATUS_CODES['starpm'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 'else': 'binary logical OR of the above warnings', 4: "solution didn't converge (Note 8)", -1: 'system error (should not occur)'}
+STATUS_CODES['starpm'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above warnings', -1: 'system error (should not occur)'}
 
 
 
@@ -18098,7 +18098,7 @@ def eform(n):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -18199,7 +18199,7 @@ def gc2gd(n, xyz):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -18314,7 +18314,7 @@ def gc2gde(a, f, xyz):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -18432,7 +18432,7 @@ def gd2gc(n, elong, phi, height):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -18549,7 +18549,7 @@ def gd2gce(a, f, elong, phi, height):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -18676,7 +18676,7 @@ def pvtob(elong, phi, hm, xp, yp, sp, theta):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -18817,7 +18817,7 @@ def d2dtf(scale, ndp, d1, d2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -19004,7 +19004,7 @@ def dat(iy, im, id, fd):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -19223,7 +19223,7 @@ def dtdb(date1, date2, ut, elong, u, v):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -19363,7 +19363,7 @@ def dtf2d(scale, iy, im, id, ihr, imn, sec):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -19477,7 +19477,7 @@ def taitt(tai1, tai2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -19567,7 +19567,7 @@ def taiut1(tai1, tai2, dta):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -19684,7 +19684,7 @@ def taiutc(tai1, tai2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -19787,7 +19787,7 @@ def tcbtdb(tcb1, tcb2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -19875,7 +19875,7 @@ def tcgtt(tcg1, tcg2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -19978,7 +19978,7 @@ def tdbtcb(tdb1, tdb2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -20078,7 +20078,7 @@ def tdbtt(tdb1, tdb2, dtr):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -20172,7 +20172,7 @@ def tttai(tt1, tt2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -20260,7 +20260,7 @@ def tttcg(tt1, tt2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -20360,7 +20360,7 @@ def tttdb(tt1, tt2, dtr):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -20454,7 +20454,7 @@ def ttut1(tt1, tt2, dt):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -20549,7 +20549,7 @@ def ut1tai(ut11, ut12, dta):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -20643,7 +20643,7 @@ def ut1tt(ut11, ut12, dt):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -20765,7 +20765,7 @@ def ut1utc(ut11, ut12, dut1):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -20884,7 +20884,7 @@ def utctai(utc1, utc2):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
@@ -21002,7 +21002,7 @@ def utcut1(utc1, utc2, dut1):
 
     Copyright (C) 2013-2014, NumFOCUS Foundation.
     Derived, with permission, from the SOFA library.  See notes at end of file.
-  
+
     """
 
     #Turn all inputs into arrays
