@@ -896,9 +896,9 @@ class SkyCoord(object):
         in an astropy Table.
 
         This method currently uses a basic heuristic that just checks for table
-        columns that match the names of the the default attribute names for the
-        requested frame.  The heuristic may improve in future versions of
-        Astropy.
+        columns that start with the (case-insensitive) names of the the
+        attribute names for the requested frame. The heuristic may improve in
+        future versions of Astropy.
 
         Parameters
         ----------
