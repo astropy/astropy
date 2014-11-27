@@ -60,8 +60,10 @@ STATUS_CODES = {}  # populated below before each function that returns an int
 def check_errwarn(statcodes, func_name):
     if numpy.any(statcodes<0):
         # errors present - only report the errors.
+        if statcodes.shape:
+            statcodes = statcodes[statcodes<0]
 
-        errcodes = numpy.unique(statcodes[statcodes<0])
+        errcodes = numpy.unique(statcodes)
 
         errcounts = dict([(e, numpy.sum(statcodes==e)) for e in errcodes])
 
@@ -76,7 +78,10 @@ def check_errwarn(statcodes, func_name):
 
     elif numpy.any(statcodes>0):
         #only warnings present
-        warncodes = numpy.unique(statcodes[statcodes>0])
+        if statcodes.shape:
+            statcodes = statcodes[statcodes>0]
+
+        warncodes = numpy.unique(statcodes)
 
         warncounts = dict([(w, numpy.sum(statcodes==w)) for w in warncodes])
 
