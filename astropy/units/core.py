@@ -2298,22 +2298,22 @@ class QuantityInput(object):
     def as_decorator(cls, func=None, **kwargs):
         """
         A decorator for validating the units of arguments to functions.
-        
+
         Unit specifications can be provided as keyword arguments to the decorator,
         or by usng Python 3's function annotation syntax. Arguments to the decorator
         take precidence over any function annotations present.
-        
-        A `~astropy.units.UnitsError` will be raised if the unit attribute of 
-        the argument is not equivalent to the unit specified to the decorator 
+
+        A `~astropy.units.UnitsError` will be raised if the unit attribute of
+        the argument is not equivalent to the unit specified to the decorator
         or in the annotation.
-        If the argument has no unit attribute, i.e. it is not a Quantity object, a 
-        `~exceptions.ValueError` will be raised.    
-            
+        If the argument has no unit attribute, i.e. it is not a Quantity object, a
+        `~exceptions.ValueError` will be raised.
+
         Examples
         --------
-        
+
         Python 2::
-            
+
             import astropy.units as u
             @u.quantity_input(myangle=u.arcsec)
             def myfunction(myangle):
@@ -2338,21 +2338,21 @@ class QuantityInput(object):
         self.f_kwargs = kwargs
 
     def __call__(self, wrapped_function):
-        
+
         # Update the annotations to include any kwargs passed to the decorator
         wrapped_signature = funcsigs.signature(wrapped_function)
-        
+
         #Define a new function to return in place of the wrapped one
         @wraps(wrapped_function)
         def wrapper(*func_args, **func_kwargs):
-            # Iterate through the parameters of the function and extract the 
+            # Iterate through the parameters of the function and extract the
             # decorator kwarg or the annotation.
             for var, parameter in wrapped_signature.parameters.items():
                 if var in self.f_kwargs:
                     target_unit = self.f_kwargs[var]
                 else:
                     target_unit = parameter.annotation
-                
+
                 # Find the location of the var in the arguments to the function.
                 loc = tuple(wrapped_signature.parameters.values()).index(parameter)
 
@@ -2364,26 +2364,26 @@ class QuantityInput(object):
                 # If kwarg then we get it by name.
                 elif var in func_kwargs:
                     arg = func_kwargs[var]
-                
+
                 # If we are a kwarg without the default being overriden
                 elif not parameter.default is funcsigs.Parameter.empty:
                     arg = parameter.default
-                    
+
                 else:
                     raise ValueError("Inconsistent function specification!")  # pragma: no cover
-                
+
                 # If the target unit is empty, then no unit was specified so we
                 # move past it
                 if not target_unit is funcsigs.Parameter.empty:
                     try:
                         equivalent = arg.unit.is_equivalent(target_unit,
                                                   equivalencies=self.equivalencies)
-        
+
                         if not equivalent:
                             raise UnitsError(
 "Argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
                     var, wrapped_function.__name__, target_unit.to_string()))
-        
+
                     # AttributeError is raised if there is no `to` method.
                     # i.e. not something that quacks like a Quantity.
                     except AttributeError:
