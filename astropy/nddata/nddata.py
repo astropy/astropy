@@ -105,24 +105,24 @@ class NDData(object):
                  meta=None, unit=None):
 
         if isinstance(data, self.__class__):
-            self.data = np.array(data.data, subok=True, copy=False)
-            self.uncertainty = data.uncertainty
-            self.mask = data.mask
-            self.wcs = data.wcs
+            self._data = np.array(data.data, subok=True, copy=False)
+            self._uncertainty = data.uncertainty
+            self._mask = data.mask
+            self._wcs = data.wcs
             self.meta = data.meta
-            self.unit = data.unit
+            self._unit = data.unit
 
             if uncertainty is not None:
-                self.uncertainty = uncertainty
+                self._uncertainty = uncertainty
                 log.info("Overwriting NDData's current uncertainty being"
                          " overwritten with specified uncertainty")
 
             if mask is not None:
-                self.mask = mask
+                self._mask = mask
                 log.info("Overwriting NDData's current mask with specified mask")
 
             if wcs is not None:
-                self.wcs = wcs
+                self._wcs = wcs
                 log.info("Overwriting NDData's current wcs with specified wcs")
 
             if meta is not None:
@@ -133,37 +133,40 @@ class NDData(object):
                 raise ValueError('To convert to different unit please use .to')
         else:
             if hasattr(data, 'mask'):
-                self.data = np.array(data.data, subok=True, copy=False)
+                self._data = np.array(data.data, subok=True, copy=False)
 
                 if mask is not None:
-                    self.mask = mask
+                    self._mask = mask
                     log.info("NDData was created with a masked array, and a "
                              "mask was explictly provided to NDData. The explicitly "
                              "passed-in mask will be used and the masked array's "
                              "mask will be ignored.")
                 else:
-                    self.mask = data.mask
+                    self._mask = data.mask
             elif isinstance(data, Quantity):
-                self.data = np.array(data.value, subok=True, copy=False)
-                self.mask = mask
+                self._data = np.array(data.value, subok=True, copy=False)
+                self._mask = mask
             else:
-                self.data = np.array(data, subok=True, copy=False)
-                self.mask = mask
+                self._data = np.array(data, subok=True, copy=False)
+                self._mask = mask
 
-            self.wcs = wcs
+            self._wcs = wcs
             self.meta = meta
             if isinstance(data, Quantity):
                 if unit is not None:
                     raise ValueError("Cannot use the unit argument when data "
                                      "is a Quantity")
                 else:
-                    self.unit = data.unit
+                    self._unit = data.unit
             else:
-                self.unit = unit
+                if unit is not None:
+                    self._unit = Unit(unit)
+                else:
+                    self._unit = None
             # This must come after self's unit has been set so that the unit
             # of the uncertainty, if any, can be converted to the unit of the
             # unit of self.
-            self.uncertainty = uncertainty
+            self._uncertainty = uncertainty
 
     def __str__(self):
         return str(self.data)
@@ -174,52 +177,24 @@ class NDData(object):
         return ''.join([prefix, body, ')'])
 
     @property
+    def data(self):
+        return self._data
+
+    @property
     def mask(self):
         return self._mask
-
-    @mask.setter
-    def mask(self, value):
-        self._mask = value
 
     @property
     def uncertainty(self):
         return self._uncertainty
 
-    @uncertainty.setter
-    def uncertainty(self, value):
-        self._uncertainty = value
-
     @property
     def unit(self):
         return self._unit
 
-    @unit.setter
-    def unit(self, value):
-        from . import conf
-
-        try:
-            if self._unit is not None and conf.warn_setting_unit_directly:
-                log.info('Setting the unit directly changes the unit without '
-                         'updating the data or uncertainty. Use the '
-                         '.convert_unit_to() method to change the unit and '
-                         'scale values appropriately.')
-        except AttributeError:
-            # raised if self._unit has not been set yet, in which case the
-            # warning is irrelevant
-            pass
-
-        if value is None:
-            self._unit = None
-        else:
-            self._unit = Unit(value)
-
     @property
     def wcs(self):
         return self._wcs
-
-    @wcs.setter
-    def wcs(self, value):
-        self._wcs = value
 
     @property
     def shape(self):
@@ -271,53 +246,6 @@ class NDData(object):
         return self.__class__(new_data, uncertainty=new_uncertainty,
                               mask=new_mask, wcs=new_wcs,
                               meta=self.meta, unit=self.unit)
-
-    def convert_unit_to(self, unit, equivalencies=[]):
-        """
-        Returns a new `NDData` object whose values have been converted
-        to a new unit.
-
-        Parameters
-        ----------
-        unit : `astropy.units.UnitBase` instance or str
-            The unit to convert to.
-
-        equivalencies : list of equivalence pairs, optional
-           A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`unit_equivalencies`.
-
-        Returns
-        -------
-        result : `~astropy.nddata.NDData`
-            The resulting dataset
-
-        Raises
-        ------
-        UnitsError
-            If units are inconsistent.
-
-        """
-        if self.unit is None:
-            raise ValueError("No unit specified on source data")
-        data = self.unit.to(unit, self.data, equivalencies=equivalencies)
-        if self.uncertainty is not None:
-            uncertainty_values = self.unit.to(unit, self.uncertainty.array,
-                                              equivalencies=equivalencies)
-            # should work for any uncertainty class
-            uncertainty = self.uncertainty.__class__(uncertainty_values)
-        else:
-            uncertainty = None
-        if self.mask is not None:
-            new_mask = self.mask.copy()
-        else:
-            new_mask = None
-        # Call __class__ in case we are dealing with an inherited type
-        result = self.__class__(data, uncertainty=uncertainty,
-                                mask=new_mask,
-                                wcs=self.wcs,
-                                meta=self.meta, unit=unit)
-
-        return result
 
     read = classmethod(io_registry.read)
     write = io_registry.write

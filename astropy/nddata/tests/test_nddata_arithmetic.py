@@ -8,7 +8,9 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from ..arithmetic import NDDataArithmetic
-from ..nduncertainty import StdDevUncertainty, IncompatibleUncertaintiesException, NDUncertainty
+from ..nduncertainty import (StdDevUncertainty,
+                             IncompatibleUncertaintiesException,
+                             NDUncertainty)
 from ...tests.helper import pytest
 from ... import units as u
 from ...utils import NumpyRNGContext
@@ -149,7 +151,7 @@ def test_initializing_nduncertainty_from_quantity():
     assert_array_equal(std_data, 1000 * ndd.uncertainty.array)
 
     # If ndd has no unit but the uncertainty does an error should be raised.
-    ndd.unit = None
+    ndd = NDDataArithmetic(np.array([1, 2, 3]), unit=None)
     with pytest.raises(ValueError):
         ndd.uncertainty = std_error
 
@@ -345,7 +347,10 @@ def test_arithmetic_result_not_tied_to_operands_mask(op1_mask, op2_mask):
         assert op2.mask[0] == (not result.mask[0])
 
 
-def test_arithmetic_result_not_tied_to_operands_wcs_unit():
+def test_arithmetic_result_not_tied_to_operands_wcs():
+    # unit is no longer settable, so test that result unit is different object
+    # than operands was removed.
+
     # Unlike the previous two tests, we only need to check a case where both
     # operands have the same wcs because operands with different wcs is not
     # supported
@@ -355,9 +360,6 @@ def test_arithmetic_result_not_tied_to_operands_wcs_unit():
     result.wcs[0] = 12345
     assert op1.wcs[0] != result.wcs[0]
     assert op2.wcs[0] != result.wcs[0]
-    result.unit = u.km
-    assert op1.unit != u.km
-    assert op2.unit != u.km
 
 
 # first operand has unit km, second has unit m

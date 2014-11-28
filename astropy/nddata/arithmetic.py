@@ -226,6 +226,19 @@ class NDDataArithmetic(NDArithmetic, NDData):
     An ``NDData`` object with arithmetic. This class is functionally equivalent
     to ``NDData`` in astropy  versions prior to 1.0.
     """
+
+    def __init__(self, *arg, **kwd):
+        # Initialize with the parent...
+        super(NDDataArithmetic, self).__init__(*arg, **kwd)
+
+        # ...then reset uncertainty to force it to go through the
+        # setter logic below. In base NDData all that is done is to
+        # set self._uncertainty to whatever uncertainty is passed in.
+        self.uncertainty = self._uncertainty
+
+        # Same thing for mask...
+        self.mask = self._mask
+
     # Implement uncertainty as NDUncertainty to support propagation of
     # uncertainties in arithmetic operations
     @property

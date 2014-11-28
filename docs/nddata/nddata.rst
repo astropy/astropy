@@ -61,7 +61,8 @@ Mask
 Values can be masked using the ``mask`` attribute, which should be a boolean
 Numpy array with the same dimensions as the data, e.g.::
 
-     >>> ndd.mask = ndd.data > 0.9
+     >>> ndd_masked = NDData(ndd, mask = ndd.data > 0.9)
+     INFO: Overwriting NDData's current mask with specified mask [astropy.nddata.nddata]
 
 or by initializing with a masked array. A mask value of `True` indicates a
 value that should be ignored, while a mask value of `False` indicates a valid
@@ -76,7 +77,9 @@ to represent the uncertainties of a given type. For example, to set standard
 deviation uncertainties on the pixel values, you can do::
 
     >>> from astropy.nddata import StdDevUncertainty
-    >>> ndd.uncertainty = StdDevUncertainty(np.ones((12, 12, 12)) * 0.1)
+    >>> ndd_uncertainty = NDData(ndd,
+    ...                          uncertainty=StdDevUncertainty(np.ones((12, 12, 12)) * 0.1))
+    INFO: Overwriting NDData's current uncertainty being overwritten with specified uncertainty [astropy.nddata.nddata]
 
 .. note:: For information on creating your own uncertainty classes,
           see :doc:`subclassing`.

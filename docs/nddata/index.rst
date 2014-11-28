@@ -46,14 +46,14 @@ Although the underlying Numpy array can be accessed via the ``data`` attribute::
 the preferred way to access that data (because it will incorporate mask
 information) is either by using ``numpy.asarray`` or using the ``NDData`` object as if it were a numpy array::
 
-    >>> np.asarray(ndd)
+    >>> np.asarray(ndd)  # doctest: +SKIP
     array([[[ 0., 0., 0., ...
     ...
 
-Values can be masked using the ``mask`` attribute, which should be a boolean
-Numpy array with the same dimensions as the data, e.g.::
+Values can be masked using the ``mask`` attribute::
 
-     >>> ndd.mask = ndd.data > 0.9
+     >>> ndd_masked = NDData(ndd, mask = ndd.data > 0.9)
+     INFO: Overwriting NDData's current mask with specified mask [astropy.nddata.nddata]
 
 A mask value of `True` indicates a value that should be ignored, while a mask
 value of `False` indicates a valid value.

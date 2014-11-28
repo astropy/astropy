@@ -123,26 +123,6 @@ def test_nddata_conversion():
     assert nd.dtype == np.dtype(int)
 
 
-def test_convert_unit_to():
-    # convert_unit_to should return a copy of its input
-    d = NDData(np.ones((5, 5)))
-    d.unit = 'km'
-    d.uncertainty = StdDevUncertainty(0.1 + np.zeros_like(d))
-    # workaround because zeros_like does not support dtype arg until v1.6
-    # and NDData accepts only bool ndarray as mask
-    tmp = np.zeros_like(d.data)
-    d.mask = np.array(tmp, dtype=np.bool)
-    d1 = d.convert_unit_to('m')
-    assert np.all(d1.data == np.array(1000.0))
-    assert np.all(d1.uncertainty.array == 1000.0 * d.uncertainty.array)
-    assert d1.unit == u.m
-    # changing the output mask should not change the original
-    d1.mask[0, 0] = True
-    assert d.mask[0, 0] != d1.mask[0, 0]
-    d.flags = np.zeros_like(d.data)
-    d1 = d.convert_unit_to('m')
-
-
 @raises(ValueError)
 def test_invalid_unit():
     d = NDData(np.ones((5, 5)), unit="NotAValidUnit")
@@ -252,11 +232,3 @@ class SubNDData(NDData):
             raise ValueError("Unit for subclass must be specified")
         if self.wcs is None:
             raise ValueError("WCS for subclass must be specified")
-
-
-def test_init_of_subclass_in_convert_unit_to():
-    with NumpyRNGContext(12345):
-        data = np.ones([10, 10])
-    arr1 = SubNDData(data, unit='m', wcs=5)
-    result = arr1.convert_unit_to('km')
-    assert_array_equal(arr1.data, 1000 * result.data)
