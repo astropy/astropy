@@ -411,6 +411,9 @@ Other Changes and Additions
   utils.compat, but defaults to the inspect module components where available
   (3.3+) [#3151].
 
+- The list of modules displayed in the pytest header can now be customized.
+  [#3157]
+
 0.4.3 (unreleased)
 ------------------
 
