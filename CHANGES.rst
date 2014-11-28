@@ -44,6 +44,8 @@ Bug Fixes
 
 - ``astropy.vo``
 
+  - Fixed an issue with reconnecting to a SAMP Hub. [#2674]
+
 - ``astropy.wcs``
 
 - Misc

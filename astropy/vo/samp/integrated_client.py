@@ -88,9 +88,29 @@ class SAMPIntegratedClient(object):
 
         self.hub = SAMPHubProxy()
 
-        self.client = SAMPClient(self.hub, name, description, metadata, addr,
-                                 port, https, key_file, cert_file, cert_reqs,
-                                 ca_certs, ssl_version, callable)
+        self.client_arguments = {
+            'name': name,
+            'description': description,
+            'metadata': metadata,
+            'addr': addr,
+            'port': port,
+            'https': https,
+            'key_file': key_file,
+            'cert_file': cert_file,
+            'cert_reqs': cert_reqs,
+            'ca_certs': ca_certs,
+            'ssl_version': ssl_version,
+            'callable': callable,
+        }
+        """
+        Collected arguments that should be passed on to the SAMPClient below.
+        The SAMPClient used to be instantiated in __init__; however, this
+        caused problems with disconnecting and reconnecting to the HUB.
+        The client_arguments is used to maintain backwards compatibility.
+        """
+
+        self.client = None
+        "The client will be instantiated upon connect()."
 
     # GENERAL
 
@@ -162,6 +182,16 @@ class SAMPIntegratedClient(object):
         """
         self.hub.connect(hub, hub_params, key_file, cert_file,
                          cert_reqs, ca_certs, ssl_version, pool_size)
+
+        # The client has to be instantiated here and not in __init__() because
+        # this allows disconnecting and reconnecting to the HUB. Nonetheless,
+        # the client_arguments are set in __init__() because the
+        # instantiation of the client used to happen there and this retains
+        # backwards compatibility.
+        self.client = SAMPClient(
+            self.hub,
+            **self.client_arguments
+        )
         self.client.start()
         self.client.register()
 
