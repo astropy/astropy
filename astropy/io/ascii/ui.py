@@ -147,8 +147,10 @@ def _guess(table, read_kwargs):
 
     # If `table` is a readable file object then read in the file now.  This
     # prevents problems in Python 3 with the file object getting closed or
-    # left at the file end.  See #3132, #3013, #3109.
-    if hasattr(table, 'read'):
+    # left at the file end.  See #3132, #3013, #3109, #2001.  If a `readme`
+    # arg was passed that implies CDS format, in which case the original
+    # `table` as the data filename must be left intact.
+    if 'readme' not in read_kwargs:
         try:
             with get_readable_fileobj(table) as fileobj:
                 table = fileobj.read()

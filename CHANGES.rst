@@ -40,6 +40,8 @@ Bug Fixes
   - Fix a bug in Python 3 when guessing file format using a file object as
     input.  Also improve performance in same situation for Python 2. [#3132]
 
+  - Fix a problem where URL was being downloaded for each guess. [#2001]
+
 - ``astropy.io.fits``
 
   - The ``in`` operator now works correctly for checking if an extension
