@@ -335,6 +335,12 @@ class Function(object):
         return "Function(name='{0}', pyname='{1}', filename='{2}', filepath='{3}')".format(self.name, self.pyname, self.filename, self.filepath)
 
 
+class Constant(object):
+
+    def __init__(self, name, value):
+        self.name = name.replace("ERFA_","")
+        self.value = value.replace("ERFA_","")
+
 
 def main(srcdir, outfn, templateloc, verbose=True):
     from jinja2 import Environment, FileSystemLoader
@@ -404,9 +410,17 @@ def main(srcdir, outfn, templateloc, verbose=True):
                                          "spawned it.  This should be "
                                          "impossible!")
 
+    #Extract all the ERFA constants from erfam.h
+    erfamhfn = os.path.join(srcdir, 'erfam.h')
+    with open(erfamhfn, 'r') as f:
+        erfa_m_h = f.read()
+    constants = []
+    for (name, value) in re.findall("#define (ERFA_\w+?) (.+?)\n", erfa_m_h, flags=re.DOTALL):
+        constants.append(Constant(name, value))
+
     print_("Rendering template")
     erfa_pyx = erfa_pyx_in.render(funcs=funcs)
-    erfa_py = erfa_py_in.render(funcs=funcs)
+    erfa_py = erfa_py_in.render(funcs=funcs, constants=constants)
 
     if outfn is not None:
         outfnx = outfn + "x"

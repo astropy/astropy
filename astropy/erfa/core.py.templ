@@ -45,7 +45,9 @@ NPYLT18 = LooseVersion(numpy.__version__) < LooseVersion('1.8')
 # TODO: remove the above variable and the code using it and make_outputs_scalar when numpy < 1.8 is no longer supported
 
 __all__ = ['ErfaError', 'ErfaWarning',
-           {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }}, 'dt_eraASTROM', 'dt_eraLDBODY']
+           {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }},
+           {{ constants|map(attribute='name')|surround("'","'")|join(", ") }},
+           'dt_eraASTROM', 'dt_eraLDBODY']
 
 
 #<---------------------------------Error-handling----------------------------->
@@ -136,6 +138,9 @@ dt_eraLDBODY = numpy.dtype([('bm','d'),
                          ('pv','d',(2,3))], align=True)
 
 
+{% for constant in constants %}
+{{ constant.name }} = {{ constant.value }}
+{%- endfor %}
 
 {% for func in funcs %}
 def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}):
