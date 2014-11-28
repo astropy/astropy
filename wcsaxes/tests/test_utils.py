@@ -9,7 +9,7 @@ from ..utils import (select_step_degree, select_step_hour, select_step_scalar,
 
 
 def assert_almost_equal_quantity(q1, q2):
-    assert_almost_equal(q1, q2.to(q1.unit))
+    assert_almost_equal(q1.value, q2.to(q1.unit).value)
 
 
 def test_select_step_degree():
