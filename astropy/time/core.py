@@ -18,8 +18,10 @@ from datetime import datetime
 import numpy as np
 
 from .. import units as u
+from .. import erfa
 from ..utils.compat.misc import override__dir__
 from ..extern import six
+
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS',
@@ -40,9 +42,6 @@ try:
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
-
-MJD_ZERO = 2400000.5
-SECS_PER_DAY = 86400
 
 # These both get filled in at end after TimeFormat subclasses defined
 TIME_FORMATS = {}
@@ -72,21 +71,23 @@ TIME_DELTA_TYPES = dict((scale, scales)
                         for scales in (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES,
                                        ROTATIONAL_SCALES) for scale in scales)
 TIME_DELTA_SCALES = TIME_DELTA_TYPES.keys()
-# TODO: access these from erfa.h??
-# L_G = 1 - d(TT)/d(TCG) -> d(TT)/d(TCG) = 1-L_G
-# d(TCG)/d(TT) = 1/(1-L_G) = 1 + (1-(1-L_G))/(1-L_G) = 1 + L_G/(1-L_G)
-ERFA_ELG = 6.969290134e-10
-# L_B = 1 - d(TDB)/d(TCB)
-ERFA_ELB = 1.550519768e-8
+# For time scale changes, we need L_G and L_B, which are stored in erfam.h as
+#   /* L_G = 1 - d(TT)/d(TCG) */
+#   define ERFA_ELG (6.969290134e-10)
+#   /* L_B = 1 - d(TDB)/d(TCB), and TDB (s) at TAI 1977/1/1.0 */
+#   define ERFA_ELB (1.550519768e-8)
+# These are exposed in erfa as erfa.ELG and erfa.ELB.
+# Implied: d(TT)/d(TCG) = 1-L_G
+# and      d(TCG)/d(TT) = 1/(1-L_G) = 1 + (1-(1-L_G))/(1-L_G) = 1 + L_G/(1-L_G)
 # scale offsets as second = first + first * scale_offset[(first,second)]
 SCALE_OFFSETS = {('tt', 'tai'): None,
                  ('tai', 'tt'): None,
-                 ('tcg', 'tt'): -ERFA_ELG,
-                 ('tt', 'tcg'): ERFA_ELG / (1. - ERFA_ELG),
-                 ('tcg', 'tai'): -ERFA_ELG,
-                 ('tai', 'tcg'): ERFA_ELG / (1. - ERFA_ELG),
-                 ('tcb', 'tdb'): -ERFA_ELB,
-                 ('tdb', 'tcb'): ERFA_ELB / (1. - ERFA_ELB)}
+                 ('tcg', 'tt'): -erfa.ELG,
+                 ('tt', 'tcg'): erfa.ELG / (1. - erfa.ELG),
+                 ('tcg', 'tai'): -erfa.ELG,
+                 ('tai', 'tcg'): erfa.ELG / (1. - erfa.ELG),
+                 ('tcb', 'tdb'): -erfa.ELB,
+                 ('tdb', 'tcb'): erfa.ELB / (1. - erfa.ELB)}
 
 # triple-level dictionary, yay!
 SIDEREAL_TIME_MODELS = {
@@ -1432,11 +1433,11 @@ class TimeMJD(TimeFormat):
         # first one is probably biggest.
         self._check_scale(self._scale)  # Validate scale.
         self.jd1, self.jd2 = day_frac(val1, val2)
-        self.jd1 += MJD_ZERO
+        self.jd1 += erfa.DJM0  # erfa.DJM0=2400000.5 (from erfam.h)
 
     @property
     def value(self):
-        return (self.jd1 - MJD_ZERO) + self.jd2
+        return (self.jd1 - erfa.DJM0) + self.jd2
 
 
 class TimeFromEpoch(TimeFormat):
@@ -1518,7 +1519,7 @@ class TimeUnix(TimeFromEpoch):
     per UTC day.
     """
     name = 'unix'
-    unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
+    unit = 1.0 / erfa.DAYSEC  # in days (1 day == 86400 seconds)
     epoch_val = '1970-01-01 00:00:00'
     epoch_val2 = None
     epoch_scale = 'utc'
@@ -1531,7 +1532,7 @@ class TimeCxcSec(TimeFromEpoch):
     For example, 63072064.184 is midnight on January 1, 2000.
     """
     name = 'cxcsec'
-    unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
+    unit = 1.0 / erfa.DAYSEC  # in days (1 day == 86400 seconds)
     epoch_val = '1998-01-01 00:00:00'
     epoch_val2 = None
     epoch_scale = 'tt'
@@ -1552,7 +1553,7 @@ class TimeGPS(TimeFromEpoch):
     For details, see http://tycho.usno.navy.mil/gpstt.html
     """
     name = 'gps'
-    unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
+    unit = 1.0 / erfa.DAYSEC  # in days (1 day == 86400 seconds)
     epoch_val = '1980-01-06 00:00:19'
     # above epoch is the same as Time('1980-01-06 00:00:00', scale='utc').tai
     epoch_val2 = None
@@ -1930,7 +1931,7 @@ class TimeBesselianEpoch(TimeEpochDate):
 class TimeJulianEpoch(TimeEpochDate):
     """Julian Epoch year as floating point value(s) like 2000.0"""
     name = 'jyear'
-    unit = 365.25  # Length of the Julian year, for conversion to quantities
+    unit = erfa.DJY  # 365.25, the Julian year, for conversion to quantities
     epoch_to_jd = 'julian_epoch_jd'
     jd_to_epoch = 'jd_julian_epoch'
 
@@ -2017,7 +2018,7 @@ class TimeDeltaFormat(TimeFormat):
 class TimeDeltaSec(TimeDeltaFormat):
     """Time delta in SI seconds"""
     name = 'sec'
-    unit = 1. / SECS_PER_DAY  # for quantity input
+    unit = 1. / erfa.DAYSEC  # for quantity input
 
 
 class TimeDeltaJD(TimeDeltaFormat):
