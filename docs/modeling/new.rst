@@ -14,7 +14,7 @@ Basic custom models
 -------------------
 
 For most cases, the `~astropy.modeling.custom_model` decorator provides an
-easy way to made a new `~astropy.modeling.Model` class from an existing Python
+easy way to make a new `~astropy.modeling.Model` class from an existing Python
 callable. The following example demonstrates how to set up a model consisting
 of two Gaussians:
 
@@ -93,12 +93,12 @@ and custom getters/setters for the parameter value.
 The ``inputs`` and ``outputs`` class attributes must be tuples of strings
 indicating the number of independent variables that are input to evaluate the
 model, and the number of outputs it returns.  The labels of the inputs and
-outputs (in this case ``'x'`` and ``'y'`` respectively are currently used for
+outputs (in this case ``'x'`` and ``'y'`` respectively) are currently used for
 informational purposes only and have no requirements on them other than that
 they do not conflict with parameter names.  Outputs may have the same labels as
 inputs (eg. ``inputs = ('x', 'y')`` and ``outputs = ('x', 'y')``).  However,
 inputs must not conflict with each other (eg. ``inputs = ('x', 'x')`` is
-incorrect) and likewise for outputs.  The lengths of these tuples, however, are
+incorrect) and likewise for outputs.  The lengths of these tuples are
 important for specifying the correct number of inputs and outputs.  These
 attributes supersede the ``n_inputs`` and ``n_outputs`` attributes in older
 versions of this package.
@@ -287,7 +287,7 @@ squared residuals is used as a measure of fitting.::
 
 The ``__call__`` method performs the fitting. As a minimum it takes all
 coordinates as separate arguments. Additional arguments are passed as
-necessary.::
+necessary::
 
     def __call__(self, model, x, y , maxiter=MAXITER, epsilon=EPS):
         if model.linear:
@@ -311,7 +311,7 @@ This section describes how to write a new fitter with a user-defined statistic
 function.  The example below shows a specialized class which fits a straight
 line with uncertainties in both variables.
 
-The following import statements are needed.::
+The following import statements are needed::
 
     import numpy as np
     from astropy.modeling.fitting import (_validate_model,
@@ -356,7 +356,7 @@ class.::
 In general, to define a new fitter, all one needs to do is provide a statistic
 function and an optimizer. In this example we will let the optimizer be an
 optional argument to the fitter and will set the statistic to ``chi_line``
-above.::
+above::
 
     class LineFitter(Fitter):
         """
@@ -373,7 +373,7 @@ above.::
             super(LineFitter, self).__init__(optimizer,
                                              statistic=self.statistic)
 
-The last thing to define is the ``__call__`` method.::
+The last thing to define is the ``__call__`` method::
 
     def __call__(self, model, x, y, x_sigma=None, y_sigma=None, **kwargs):
         """
