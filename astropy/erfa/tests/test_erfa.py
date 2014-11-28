@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
-from .. import _erfa as erfa
+from .. import erfa
 
 
 def test_erfa_wrapper():
@@ -39,8 +39,15 @@ def test_errwarn_reporting(recwarn):
     Test that the ERFA error reporting mechanism works as it should
     """
 
+    # no warning
     erfa.dat(1990, 1, 1, 0.5)
 
+    # check warning is raised for a scalar
+    erfa.dat(100, 1, 1, 0.5)
+    w = recwarn.pop(erfa.ErfaWarning)
+    assert '1 of "dubious year (Note 1)"' in str(w.message)
+
+    # and that the count is right for a vector.
     erfa.dat([100, 200, 1990], 1, 1, 0.5)
     w = recwarn.pop(erfa.ErfaWarning)
     assert '2 of "dubious year (Note 1)"' in str(w.message)

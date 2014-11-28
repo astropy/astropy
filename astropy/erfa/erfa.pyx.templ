@@ -37,61 +37,7 @@ from cpython.ref cimport PyObject
 
 numpy.import_array()
 
-cdef bint NPYLT18 = LooseVersion(numpy.__version__) < LooseVersion('1.8')
-# TODO: remove the above variable and the code using it and make_outputs_scalar when numpy < 1.8 is no longer supported
-
-__all__ = ['ErfaError', 'ErfaWarning',
-           {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }}, 'dt_eraASTROM']
-
-
-#<---------------------------------Error-handling----------------------------->
-
-class ErfaError(ValueError):
-    """
-    A class for errors triggered by ERFA functions (status codes < 0)
-    """
-
-
-class ErfaWarning(AstropyUserWarning):
-    """
-    A class for warnings triggered by ERFA functions (status codes > 0)
-    """
-
-
-STATUS_CODES = {}  # populated below before each function that returns an int
-
-def check_errwarn(statcodes, func_name):
-    if numpy.any(statcodes<0):
-        # errors present - only report the errors.
-
-        errcodes = numpy.unique(statcodes[statcodes<0])
-
-        errcounts = dict([(e, numpy.sum(statcodes==e)) for e in errcodes])
-
-        elsemsg = STATUS_CODES[func_name].get('else', None)
-        if elsemsg is None:
-            errmsgs = dict([(e, STATUS_CODES[func_name].get(e, 'Return code ' + str(e))) for e in errcodes])
-        else:
-            errmsgs = dict([(e, STATUS_CODES[func_name].get(e, elsemsg)) for e in errcodes])
-
-        emsg = ', '.join(['{0} of "{1}"'.format(errcounts[e], errmsgs[e]) for e in errcodes])
-        raise ErfaError('ERFA function "' + func_name + '" yielded ' + emsg)
-
-    elif numpy.any(statcodes>0):
-        #only warnings present
-        warncodes = numpy.unique(statcodes[statcodes>0])
-
-        warncounts = dict([(w, numpy.sum(statcodes==w)) for w in warncodes])
-
-        elsemsg = STATUS_CODES[func_name].get('else', None)
-        if elsemsg is None:
-            warnmsgs = dict([(w, STATUS_CODES[func_name].get(w, 'Return code ' + str(w))) for w in warncodes])
-        else:
-            warnmsgs = dict([(w, STATUS_CODES[func_name].get(w, elsemsg)) for w in warncodes])
-
-        wmsg = ', '.join(['{0} of "{1}"'.format(warncounts[w], warnmsgs[w]) for w in warncodes])
-        warnings.warn('ERFA function "' + func_name + '" yielded ' + wmsg, ErfaWarning)
-
+__all__ = [{{ funcs|map(attribute='pyname')|surround("'_","'")|join(", ") }}]
 
 #<-----------------------------NpyIter handling------------------------------->
 
@@ -110,15 +56,6 @@ cdef inline NpyIter* GetNpyIter(object iter):
     return (<NewNpyArrayIterObject*>iter).iter
 
 
-#<-------------------------trailing shape verification------------------------>
-
-def check_trailing_shape(arr, shape, name):
-    try:
-        if arr.shape[-len(shape):] != shape:
-            raise Exception()
-    except:
-        raise ValueError("{0} must be of trailing dimensions {1}".format(name, shape))
-
 #<--------------------------Actual ERFA-wrapping code------------------------->
 
 cdef extern from "erfam.h":
@@ -132,80 +69,8 @@ cdef extern from "erfa.h":
     {{ func.ret }} {{ func.name }}({{ func.args_by_inout('in|inout|out')|map(attribute='ctype_ptr')|join(', ') }})
 {%- endfor %}
 
-dt_eraASTROM = numpy.dtype([('pmt','d'),
-                         ('eb','d',(3,)),
-                         ('eh','d',(3,)),
-                         ('em','d'),
-                         ('v','d',(3,)),
-                         ('bm1','d'),
-                         ('bpn','d',(3,3)),
-                         ('along','d'),
-                         ('phi','d'),
-                         ('xpl','d'),
-                         ('ypl','d'),
-                         ('sphi','d'),
-                         ('cphi','d'),
-                         ('diurab','d'),
-                         ('eral','d'),
-                         ('refa','d'),
-                         ('refb','d')], align=True)
-
-dt_eraLDBODY = numpy.dtype([('bm','d'),
-                         ('dl','d'),
-                         ('pv','d',(2,3))], align=True)
-
-
-
 {% for func in funcs %}
-def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}):
-    """
-    {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }})
-
-    Returns: {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
-
-    ERFA documentation:
-    {{ func.doc }}
-    """
-    
-    #Turn all inputs into arrays
-    {%- for arg in func.args_by_inout('in|inout') %}
-    {{ arg.name }}_in = numpy.array({{ arg.name }}, dtype={{ arg.dtype }}, order="C", copy=False, subok=True)
-    {%- endfor %}
-    {%- for arg in func.args_by_inout('in|inout') %}
-    {%- if arg.ndim > 0 %}
-    check_trailing_shape({{ arg.name }}_in, {{ arg.shape }}, "{{arg.name}}")
-    {%- endif %}
-    {%- endfor %}
-
-    {%- if func.args_by_inout('in|inout') %}
-    cdef bint make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        {%- for arg in func.args_by_inout('in|inout') %}
-        if {{ arg.name_in_broadcast }}.shape == tuple():
-            {{ arg.name }}_in = {{ arg.name }}_in.reshape((1,) + {{ arg.name }}_in.shape)
-        else:
-            make_outputs_scalar = False
-        {%- endfor %}
-    {%- endif %}
-    
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), {{ func.args_by_inout('in|inout')|map(attribute='name_in_broadcast')|join(', ') }})
-    {%- for arg in func.args_by_inout('inout|out|ret|stat') %}
-    {{ arg.name }}_out = numpy.empty(broadcast.shape + {{ arg.shape }}, dtype={{ arg.dtype }})
-    {%- endfor %}
-    {%- for arg in func.args_by_inout('inout') %}
-    numpy.copyto({{ arg.name }}_out, {{ arg.name }}_in)
-    {%- endfor %}
-    
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [{{ (func.args_by_inout('in')|map(attribute='name_in_broadcast')|list + func.args_by_inout('inout|out|ret|stat')|map(attribute='name_out_broadcast')|list)|join(', ') }}]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*{{ func.args_by_inout('in')|count }} + [['readwrite']]*{{ func.args_by_inout('inout|out|ret|stat')|count }}
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
-    
+def _{{ func.pyname }}(it):
     #Iterate
     {%- for arg in func.args_by_inout('in|inout|out|ret|stat') %}
     cdef {{ arg.ctype_ptr }} _{{ arg.name }}
@@ -229,30 +94,8 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
             stat_ok = False
         {%- endfor %}
         status = iternext(GetNpyIter(it))
-    
-    {%- for arg in func.args_by_inout('stat') %}
-    
-    if not stat_ok:
-        check_errwarn({{ arg.name }}_out, '{{ func.pyname }}')
-    {%- endfor %}
-
-    {%- if func.args_by_inout('in|inout') %}
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        {%- for arg in func.args_by_inout('inout|out|ret') %}
-        assert len({{ arg.name }}_out.shape) > 0 and {{ arg.name }}_out.shape[0] == 1
-        {{ arg.name }}_out = {{ arg.name }}_out[0]
-        {%- else %}
-        pass
-        {%- endfor %}
+    {%- if func.args_by_inout('stat')|length > 0 %}
+    return stat_ok
     {%- endif %}
-    
-    return {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
-
-{%- for stat in func.args_by_inout('stat') %}
-{%- if stat.doc_info.statuscodes %}
-STATUS_CODES['{{ func.pyname }}'] = {{ stat.doc_info.statuscodes|string }}
-{% endif %}
-{%- endfor %}
 
 {% endfor %}
