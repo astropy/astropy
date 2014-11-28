@@ -537,6 +537,9 @@ Bug Fixes
   - Astropy will now work if your Python interpreter does not have the
     ``bz2`` module installed. [#3104]
 
+  - Fixed ``ResourceWarning`` for ``astropy/extern/bundled/six.py`` that could
+    occur sometimes after using Astropy in Python 3.4. [#3156]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
