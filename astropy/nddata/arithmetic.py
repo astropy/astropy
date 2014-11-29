@@ -221,7 +221,32 @@ class NDArithmetic(object):
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
 
-class NDDataArithmetic(NDArithmetic, NDData):
+class NDSlicing(object):
+    def __getitem__(self, item):
+
+        new_data = self.data[item]
+
+        if self.uncertainty is not None:
+            new_uncertainty = self.uncertainty[item]
+        else:
+            new_uncertainty = None
+
+        if self.mask is not None:
+            new_mask = self.mask[item]
+        else:
+            new_mask = None
+
+        if self.wcs is not None:
+            raise NotImplementedError('Slicing for WCS is not currently implemented')
+        else:
+            new_wcs = None
+
+        return self.__class__(new_data, uncertainty=new_uncertainty,
+                              mask=new_mask, wcs=new_wcs,
+                              meta=self.meta, unit=self.unit)
+
+
+class NDDataArithmetic(NDArithmetic, NDSlicing, NDData):
     """
     An ``NDData`` object with arithmetic. This class is functionally equivalent
     to ``NDData`` in astropy  versions prior to 1.0.

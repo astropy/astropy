@@ -61,6 +61,33 @@ def test_nddata_uncertainty_invalid_type(uncertainty):
     assert exc.value.args[0] == 'Uncertainty must be an instance of a NDUncertainty object'
 
 
+# slicing tests
+def test_simple_slicing():
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
+    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
+    assert d1.shape == (5, 5)
+    d2 = d1[2:3, 2:3]
+    assert d2.shape == (1, 1)
+    d3 = d1[2, 2]
+    assert d3.shape == ()
+
+
+def test_slicing_reference():
+    u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
+    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
+    d2 = d1[2:3, 2:3]
+    # asserting that the new nddata contains references to the original nddata
+    assert d2.data.base is d1.data
+    assert d2.uncertainty.array.base is d1.uncertainty.array
+
+
+def test_slicing_with_mask_or_flag():
+    # Regression test for #2170
+    ndd = NDDataArithmetic([1, 2, 3], mask=np.array([False, False, False]))
+    assert ndd[0].shape == ()
+    assert not ndd[0].mask
+
+
 def test_nddata_add():
     d1 = NDDataArithmetic(np.ones((5, 5)))
     d2 = NDDataArithmetic(np.ones((5, 5)))

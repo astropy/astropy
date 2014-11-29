@@ -224,28 +224,5 @@ class NDData(object):
         """
         return self.data.ndim
 
-    def __getitem__(self, item):
-
-        new_data = self.data[item]
-
-        if self.uncertainty is not None:
-            new_uncertainty = self.uncertainty[item]
-        else:
-            new_uncertainty = None
-
-        if self.mask is not None:
-            new_mask = self.mask[item]
-        else:
-            new_mask = None
-
-        if self.wcs is not None:
-            raise NotImplementedError('Slicing for WCS is not currently implemented')
-        else:
-            new_wcs = None
-
-        return self.__class__(new_data, uncertainty=new_uncertainty,
-                              mask=new_mask, wcs=new_wcs,
-                              meta=self.meta, unit=self.unit)
-
     read = classmethod(io_registry.read)
     write = io_registry.write
