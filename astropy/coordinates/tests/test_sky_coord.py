@@ -912,6 +912,18 @@ def test_guess_from_table():
         if 'J1900' not in e.args[0] or 'J2000' not in e.args[0]:
             raise
 
+    # should also fail if user specifies something already in the table, but
+    # should succeed even if the user has to give one of the components
+    tab.remove_column('RA_J1900')
+    with pytest.raises(ValueError):
+        sc3 = SkyCoord.guess_from_table(tab, ra=tab['RA[J2000]'], unit=u.deg)
+
+    oldra = tab['RA[J2000]']
+    tab.remove_column('RA[J2000]')
+    sc3 = SkyCoord.guess_from_table(tab, ra=oldra, unit=u.deg)
+    npt.assert_array_equal(sc3.ra.deg, oldra)
+    npt.assert_array_equal(sc3.dec.deg, tab['DEC[J2000]'])
+
     # check a few non-ICRS/spherical systems
     x, y, z = np.arange(3).reshape(3, 1) * u.pc
     l, b = np.arange(2).reshape(2, 1) * u.deg
@@ -919,11 +931,11 @@ def test_guess_from_table():
     tabcart = Table([x, y, z], names=('x', 'y', 'z'))
     tabgal = Table([b, l], names=('b', 'l'))
 
-    sc3 = SkyCoord.guess_from_table(tabcart, representation='cartesian')
-    npt.assert_array_equal(sc3.x, x)
-    npt.assert_array_equal(sc3.y, y)
-    npt.assert_array_equal(sc3.z, z)
+    sc_cart = SkyCoord.guess_from_table(tabcart, representation='cartesian')
+    npt.assert_array_equal(sc_cart.x, x)
+    npt.assert_array_equal(sc_cart.y, y)
+    npt.assert_array_equal(sc_cart.z, z)
 
-    sc4 = SkyCoord.guess_from_table(tabgal, frame='galactic')
-    npt.assert_array_equal(sc4.l, l)
-    npt.assert_array_equal(sc4.b, b)
+    sc_gal = SkyCoord.guess_from_table(tabgal, frame='galactic')
+    npt.assert_array_equal(sc_gal.l, l)
+    npt.assert_array_equal(sc_gal.b, b)
