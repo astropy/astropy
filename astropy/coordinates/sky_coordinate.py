@@ -895,10 +895,12 @@ class SkyCoord(object):
         A convenience method to create and return a new `SkyCoord` from the data
         in an astropy Table.
 
-        This method currently uses a basic heuristic that just checks for table
-        columns that start with the (case-insensitive) names of the the
-        attribute names for the requested frame. The heuristic may improve in
-        future versions of Astropy.
+        This method matches table columns that start with the (case-insensitive)
+        names of the the components of the requested frames, if they also end in
+        a non-alphanumeric character.  So columns with names like
+        ``'RA[J2000]'`` or ``'ra'`` will be interpreted as ``ra`` attributes for
+        `~astropy.coordinates.ICRS` frames, but ``'RAJ2000'`` or ``'radius'``
+        are *not*.
 
         Parameters
         ----------
