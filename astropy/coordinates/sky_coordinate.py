@@ -902,6 +902,11 @@ class SkyCoord(object):
         `~astropy.coordinates.ICRS` frames, but ``'RAJ2000'`` or ``'radius'``
         are *not*.
 
+        It will also match columns that *end* with the component name if a
+        non-alphanumeric character is before it.  So columns with names like
+        ``'gal_l'`` will work, but ``gall`` or ``'fill'`` will not (for galactic
+        coordinates, which have ``l`` and ``b`` attributes).
+
         Parameters
         ----------
         table : astropy.Table
@@ -924,7 +929,13 @@ class SkyCoord(object):
             # this matches things like 'ra[...]'' but *not* 'rad'.
             # note that the "_" must be in there explicitly, because
             # "alphanumeric" usually includes underscores.
-            rex = re.compile(comp_name + r'(\W|\b|_)', re.IGNORECASE)
+            starts_with_comp = comp_name + r'(\W|\b|_)'
+            # this part matches stuff like 'center_ra', but *not*
+            # 'aura'
+            ends_with_comp = r'.*(\W|\b|_)' + comp_name + r'\b'
+            #the final regex ORs together the two patterns
+            rex = re.compile('(' +starts_with_comp + ')|(' + ends_with_comp + ')',
+                             re.IGNORECASE)
 
             for col_name in table.colnames:
                 if rex.match(col_name):

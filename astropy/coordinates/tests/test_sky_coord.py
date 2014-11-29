@@ -939,3 +939,13 @@ def test_guess_from_table():
     sc_gal = SkyCoord.guess_from_table(tabgal, frame='galactic')
     npt.assert_array_equal(sc_gal.l, l)
     npt.assert_array_equal(sc_gal.b, b)
+
+    #also try some column names that *end* with the attribute name
+    tabgal['b'].name = 'gal_b'
+    tabgal['l'].name = 'gal_l'
+    SkyCoord.guess_from_table(tabgal, frame='galactic')
+
+    tabgal['gal_b'].name = 'blob'
+    tabgal['gal_l'].name = 'central'
+    with pytest.raises(ValueError):
+        SkyCoord.guess_from_table(tabgal, frame='galactic')
