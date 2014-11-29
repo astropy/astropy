@@ -132,6 +132,9 @@ Bug Fixes
   - Fixed an issue which meant that Python thought ``WCS`` objects were
     iterable. [#3066]
 
+  - Fixed ``ResourceWarning`` for ``astropy/extern/bundled/six.py`` that could
+    occur sometimes after using Astropy in Python 3.4. [#3156]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
