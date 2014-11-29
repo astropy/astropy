@@ -214,7 +214,7 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
     if make_outputs_scalar:
         {%- for arg in func.args_by_inout('inout|out|ret') %}
         assert len({{ arg.name }}_out.shape) > 0 and {{ arg.name }}_out.shape[0] == 1
-        {{ arg.name }}_out = {{ arg.name }}_out[0]
+        {{ arg.name }}_out = {{ arg.name }}_out.reshape({{ arg.name }}_out.shape[1:])
         {%- else %}
         pass
         {%- endfor %}
