@@ -27,6 +27,7 @@ from .helper import (
     pytest, treat_deprecations_as_exceptions, enable_deprecations_as_exceptions)
 from .disable_internet import turn_off_internet, turn_on_internet
 from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
+from ..utils import OrderedDict
 
 # Needed for Python 2.6 compatibility
 try:
@@ -456,6 +457,12 @@ def pytest_runtest_teardown(item, nextitem):
         raise AssertionError('\n'.join(msg))
 
 
+PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
+                                     ('Scipy', 'scipy'),
+                                     ('Matplotlib', 'matplotlib'),
+                                     ('h5py', 'h5py')])
+
+
 def pytest_report_header(config):
     from .. import __version__
 
@@ -489,26 +496,13 @@ def pytest_report_header(config):
     s += "float info: dig: {0.dig}, mant_dig: {0.dig}\n\n".format(
         sys.float_info)
 
-    import numpy
-    s += "Numpy: {0}\n".format(numpy.__version__)
-
-    try:
-        import scipy
-        s += "Scipy: {0}\n".format(scipy.__version__)
-    except:
-        s += "Scipy: not available\n"
-
-    try:
-        import matplotlib
-        s += "Matplotlib: {0}\n".format(matplotlib.__version__)
-    except:
-        s += "Matplotlib: not available\n"
-
-    try:
-        import h5py.version
-        s += "h5py: {0}\n".format(h5py.version.version)
-    except:
-        s += "h5py: not available\n"
+    for module_display, module_name in six.iteritems(PYTEST_HEADER_MODULES):
+        try:
+            module = __import__(module_name)
+        except ImportError:
+            s += "{0}: not available\n".format(module_display)
+        else:
+            s += "{0}: {1}\n".format(module_display, module.__version__)
 
     special_opts = ["remote_data", "pep8"]
     opts = []
