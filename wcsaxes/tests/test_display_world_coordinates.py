@@ -45,7 +45,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
 
         # Regression test for bug that caused format to always be taken from
         # main world coordinates.
-        overlay[0].set_major_formatter('d.dddd')
+        overlay[0].set_major_formatter('d.ddd')
 
         # On some systems, fig.canvas.draw is not enough to force a draw, so we
         # save to a temporary file.
@@ -55,7 +55,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         fig.canvas.key_press_event(event4.key, guiEvent=event4)
         # Test that it displays the overlay world coordinates
         string_world3 = ax._display_world_coords(0.523412, 0.518311)
-        assert string_world3 == six.u('267.1757 -28\xb045\'56" (world, overlay 1)')
+
+        assert string_world3 == six.u('267.176 -28\xb045\'56" (world, overlay 1)')
 
     def test_cube_coords(self, tmpdir):
         wcs = WCS(self.cube_header)
