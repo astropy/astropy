@@ -743,6 +743,9 @@ class TestQuantityDisplay(object):
             # prevent side-effects from influencing other tests
             np.set_printoptions(**pops)
 
+        qinfnan = [np.inf, -np.inf, np.nan] * u.m
+        assert qinfnan._repr_latex_() == r'$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$'
+
 
 
 def test_decompose():

@@ -7,6 +7,8 @@ Handles the "LaTeX" unit format.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import numpy as np
+
 from . import base
 from . import utils
 from ...extern.six.moves import zip
@@ -100,15 +102,25 @@ class Latex(base.Base):
         latex_string : str
             The value in exponential notation in a format suitable for LaTeX.
         """
-        m, ex = utils.split_mantissa_exponent(val)
+        if np.isfinite(val):
+            m, ex = utils.split_mantissa_exponent(val)
 
-        parts = []
-        if m:
-            parts.append(m)
-        if ex:
-            parts.append("10^{{{0}}}".format(ex))
+            parts = []
+            if m:
+                parts.append(m)
+            if ex:
+                parts.append("10^{{{0}}}".format(ex))
 
-        return r" \times ".join(parts)
+            return r" \times ".join(parts)
+        else:
+            if np.isnan(val):
+                return r'{\rm NaN}'
+            elif val > 0:
+                #positive infinity
+                return r'\infty'
+            else:
+                #negative infinity
+                return r'-\infty'
 
 class LatexInline(Latex):
     """
