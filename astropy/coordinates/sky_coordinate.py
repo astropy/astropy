@@ -896,9 +896,10 @@ class SkyCoord(object):
         in an astropy Table.
 
         This method matches table columns that start with the (case-insensitive)
-        names of the the components of the requested frames, if they also end in
-        a non-alphanumeric character.  So columns with names like
-        ``'RA[J2000]'`` or ``'ra'`` will be interpreted as ``ra`` attributes for
+        names of the the components of the requested frames, if they are also
+        followed by a non-alphanumeric character (Based on Unicode's definition
+        of "alphanumeric"). Hence, columns with names like ``'RA[J2000]'`` or
+        ``'ra'`` will be interpreted as ``ra`` attributes for
         `~astropy.coordinates.ICRS` frames, but ``'RAJ2000'`` or ``'radius'``
         are *not*.
 
@@ -935,7 +936,7 @@ class SkyCoord(object):
             ends_with_comp = r'.*(\W|\b|_)' + comp_name + r'\b'
             #the final regex ORs together the two patterns
             rex = re.compile('(' +starts_with_comp + ')|(' + ends_with_comp + ')',
-                             re.IGNORECASE)
+                             re.IGNORECASE | re.UNICODE)
 
             for col_name in table.colnames:
                 if rex.match(col_name):
