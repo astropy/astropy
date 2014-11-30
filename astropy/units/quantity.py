@@ -935,27 +935,22 @@ class Quantity(np.ndarray):
         lstr
             LaTeX string
         """
+        # need to do try/finally because "threshold" cannot be overridden
+        # with array2string
+        pops = np.get_printoptions()
+        try:
+            # We set the threshold here to 100 instead of the numpy default
+            # of 1000 because 1000 of these will cause some browsers to
+            # to grind to a halt trying to show it.
+            threshold = 100 if pops['threshold'] == 1000 else pops['threshold']
+            formatter = {'all' : Latex.format_exponential_notation,
+                         'str_kind': lambda x: x}
 
-        if self.isscalar:
-            # Format value
-            latex_value = Latex.format_exponential_notation(self.value)
-        else:
-            # need to do try/finally because "threshold" cannot be overridden
-            # with array2string
-            pops = np.get_printoptions()
-            try:
-                # We set the threshold here to 100 instead of the numpy default
-                # of 1000 because 1000 of these will cause some browsers to
-                # to grind to a halt trying to show it.
-                threshold = 100 if pops['threshold'] == 1000 else pops['threshold']
-                formatter = {'all' : Latex.format_exponential_notation,
-                             'str_kind': lambda x: x}
-
-                np.set_printoptions(threshold=threshold, formatter=formatter)
-                latex_value = np.array2string(self.value, max_line_width=np.inf,
-                                              separator=',~')
-            finally:
-                np.set_printoptions(**pops)
+            np.set_printoptions(threshold=threshold, formatter=formatter)
+            latex_value = np.array2string(self.value, max_line_width=np.inf,
+                                          separator=',~')
+        finally:
+            np.set_printoptions(**pops)
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
