@@ -904,13 +904,9 @@ def test_guess_from_table():
 
     # should fail if two options are available - ambiguity bad!
     tab.add_column(Column(data=np.random.rand(1000), name='RA_J1900'))
-    try:
-        # try/except instead of pytest.raises to check the exception message
+    with pytest.raises(ValueError) as excinfo:
         sc3 = SkyCoord.guess_from_table(tab, unit=u.deg)
-        assert False, 'Should have raised ValueError!'
-    except ValueError as e:
-        if 'J1900' not in e.args[0] or 'J2000' not in e.args[0]:
-            raise
+    assert 'J1900' in excinfo.value.args[0] and 'J2000' in excinfo.value.args[0]
 
     # should also fail if user specifies something already in the table, but
     # should succeed even if the user has to give one of the components
