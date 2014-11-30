@@ -927,13 +927,18 @@ class Quantity(np.ndarray):
 
     def _repr_latex_(self):
         """
-        Generate latex representation of the quantity and its unit. This is
-        used by the IPython notebook to show the Quantity more prettily.
+        Generate a latex representation of the quantity and its unit.
+
+        Note that the number of entries can be altered via the
+        `numpy.set_printoptions` function and its ``threshold`` keyword.  The
+        default value of 1000 for ``threshold will be replaced by 100 (because
+        many browsers have trouble rendering ~1000 entries), but any other value
+        will be respected.
 
         Returns
         -------
         lstr
-            LaTeX string
+            A LaTeX string with the contents of this Quantity
         """
         # need to do try/finally because "threshold" cannot be overridden
         # with array2string
@@ -947,8 +952,12 @@ class Quantity(np.ndarray):
                          'str_kind': lambda x: x}
 
             np.set_printoptions(threshold=threshold, formatter=formatter)
-            latex_value = np.array2string(self.value, max_line_width=np.inf,
+
+            # np.array is needed for the scalar case - value might be a float
+            latex_value = np.array2string(np.array(self.value, copy=False),
+                                          max_line_width=np.inf,
                                           separator=',~')
+            latex_value = latex_value.replace('...', r'\dots')
         finally:
             np.set_printoptions(**pops)
 
