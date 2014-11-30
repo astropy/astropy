@@ -22,6 +22,7 @@ NUMPY_LT_1P9 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 9]
 from ..extern import six
 from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
+from .format.latex import Latex
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
@@ -33,9 +34,6 @@ __all__ = ["Quantity"]
 
 # We don't want to run doctests in the docstrings we inherit from Numpy
 __doctest_skip__ = ['Quantity.*']
-
-#Used in _repr_latex_
-_ARRAY_REPR_EXP_PATTERN = re.compile(r'e([+-]\d*)(,?)')
 
 
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
@@ -929,8 +927,8 @@ class Quantity(np.ndarray):
 
     def _repr_latex_(self):
         """
-        Generate latex representation of the quantity and its unit.
-        This is used by the IPython notebook to show it all latexified.
+        Generate latex representation of the quantity and its unit. This is
+        used by the IPython notebook to show the Quantity more prettily.
 
         Returns
         -------
@@ -940,22 +938,24 @@ class Quantity(np.ndarray):
 
         if self.isscalar:
             # Format value
-            latex_value = "{0:g}".format(self.value)
-            if "e" in latex_value:
-                latex_value = latex_value.replace('e', '\\times 10^{') + '}'
+            latex_value = Latex.format_exponential_notation(self.value)
         else:
-            # Not quite as good as {0:g} because 1 comes out as 1.00000, but
-            # better than nothing
-            latex_value = np.array2string(self.value, max_line_width=np.inf,
-                                          separator=',')
+            # need to do try/finally because "threshold" cannot be overridden
+            # with array2string
+            pops = np.get_printoptions()
+            try:
+                # We set the threshold here to 100 instead of the numpy default
+                # of 1000 because 1000 of these will cause some browsers to
+                # to grind to a halt trying to show it.
+                threshold = 100 if pops['threshold'] == 1000 else pops['threshold']
+                formatter = {'all' : Latex.format_exponential_notation,
+                             'str_kind': lambda x: x}
 
-            if "e" in latex_value:
-                latex_value_split = _ARRAY_REPR_EXP_PATTERN.split(latex_value)
-                for i in range(len(latex_value_split)//3):
-                    idx = i*3 + 1
-                    latex_value_split[idx] = ('\\times 10^{' +
-                                              latex_value_split[idx] + '}')
-                latex_value = ''.join(latex_value_split)
+                np.set_printoptions(threshold=threshold, formatter=formatter)
+                latex_value = np.array2string(self.value, max_line_width=np.inf,
+                                              separator=',~')
+            finally:
+                np.set_printoptions(**pops)
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
