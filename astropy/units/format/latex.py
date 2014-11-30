@@ -45,17 +45,6 @@ class Latex(base.Base):
                     utils.format_power(power)))
         return r'\,'.join(out)
 
-    def _format_exponential_notation(self, val):
-        m, ex = utils.split_mantissa_exponent(val)
-
-        parts = []
-        if m:
-            parts.append(m)
-        if ex:
-            parts.append("10^{{{0}}}".format(ex))
-
-        return r" \times ".join(parts)
-
     def _format_bases(self, unit):
         positives, negatives = utils.get_grouped_by_powers(
                 unit.bases, unit.powers)
@@ -86,7 +75,7 @@ class Latex(base.Base):
             if unit.scale == 1:
                 s = ''
             else:
-                s = self._format_exponential_notation(unit.scale) + r'\,'
+                s = self.format_exponential_notation(unit.scale) + r'\,'
 
             if len(unit.bases):
                 s += self._format_bases(unit)
@@ -95,6 +84,31 @@ class Latex(base.Base):
             s = self._latex_escape(unit.name)
 
         return r'$\mathrm{{{0}}}$'.format(s)
+
+    @staticmethod
+    def format_exponential_notation(val):
+        """
+        Formats a value in exponential notation for LaTeX.
+
+        Parameters
+        ----------
+        val : number
+            The value to be formatted
+
+        Returns
+        -------
+        latex_string : str
+            The value in exponential notation in a format suitable for LaTeX.
+        """
+        m, ex = utils.split_mantissa_exponent(val)
+
+        parts = []
+        if m:
+            parts.append(m)
+        if ex:
+            parts.append("10^{{{0}}}".format(ex))
+
+        return r" \times ".join(parts)
 
 class LatexInline(Latex):
     """
