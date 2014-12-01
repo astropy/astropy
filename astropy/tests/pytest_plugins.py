@@ -502,7 +502,11 @@ def pytest_report_header(config):
         except ImportError:
             s += "{0}: not available\n".format(module_display)
         else:
-            s += "{0}: {1}\n".format(module_display, module.__version__)
+            try:
+                version = module.__version__
+            except AttributeError:
+                version = 'unknown (no __version__ attribute)'
+            s += "{0}: {1}\n".format(module_display, version)
 
     special_opts = ["remote_data", "pep8"]
     opts = []
