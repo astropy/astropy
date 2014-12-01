@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
-from .. import erfa
+from .. import _erfa as erfa
+from ...tests.helper import pytest
 
 
 def test_erfa_wrapper():
@@ -34,6 +35,19 @@ def test_erfa_wrapper():
     assert ihmsf.dtype == np.dtype('i4')
 
 
+def test_check_trailing_shape():
+    with pytest.raises(ValueError) as e:
+        erfa.ldn(0, [(0, 0, [[0, 0, 0], [0, 0, 0]])], 0, 0)
+    assert "Arg 1 (ob) has wrong trailing dimensions, expected [3]" in str(e)
+
+
+def test_argument_types():
+    with pytest.raises(TypeError) as e:
+        erfa.ldn(0, 0, 0, 0)
+    assert "Arg 1 (b): expected a readable buffer object" in str(e)
+
+
+
 def test_errwarn_reporting(recwarn):
     """
     Test that the ERFA error reporting mechanism works as it should
@@ -55,7 +69,7 @@ def test_errwarn_reporting(recwarn):
     try:
         erfa.dat(1990, [1, 34, 2], [1, 1, 43], 0.5)
     except erfa.ErfaError as e:
-        if '1 of "bad day (Note 3)", 1 of "bad month"' not in e.args[0]:
+        if '1 of "bad month", 1 of "bad day (Note 3)"' not in e.args[0]:
             assert False, 'Raised the correct type of error, but wrong message: ' + e.args[0]
 
     try:
