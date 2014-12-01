@@ -12,7 +12,7 @@ from .. import log
 from .nddata import NDData
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
 
-__all__ = ['NDArithmetic', 'NDDataArithmetic']
+__all__ = ['NDArithmetic', 'NDDataArithmetic', 'NDSlicing']
 
 
 class NDArithmetic(object):
