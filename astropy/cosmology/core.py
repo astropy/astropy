@@ -12,7 +12,7 @@ import numpy as np
 
 from .. import constants as const
 from .. import units as u
-from ..utils import isiterable, deprecated
+from ..utils import isiterable
 from ..utils.state import ScienceState, ScienceStateAlias
 
 from . import parameters
@@ -416,7 +416,7 @@ class FLRW(Cosmology):
             try:
                 val = getattr(self, arg)
                 argdict[arg] = val
-            except AttributeError as e:
+            except AttributeError:
                 # We didn't find a property -- complain usefully
                 errstr = "Object did not have property corresponding "\
                          "to constructor argument '%s'; perhaps it is a "\
@@ -728,7 +728,6 @@ class FLRW(Cosmology):
             rel_mass = rel_mass_per.sum() + self._nmasslessnu
         else:
             z = np.asarray(z)
-            retarr = np.empty_like(z)
             curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
             rel_mass_per = (1. + (0.3173 * curr_nu_y) ** p) ** invp
             rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
