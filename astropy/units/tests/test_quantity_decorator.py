@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import pytest
-
 from astropy.extern import six
 
-import astropy.units as u
+from ... import units as u
+from ...extern import six
+from ...tests.helper import pytest
 
-if not six.PY2:
-    from .py3_test_quantity_annotations import *
+
+from .py3_test_quantity_annotations import *
+
 
 def test_args():
     @u.quantity_input(solarx=u.arcsec, solary=u.arcsec)
