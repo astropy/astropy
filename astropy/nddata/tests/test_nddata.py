@@ -113,6 +113,21 @@ def test_nddata_uncertainty_init():
     u = StdDevUncertainty(array=np.ones((5, 5)))
     d = NDData(np.ones((5, 5)), uncertainty=u)
 
+    # Expect a TypeError if the uncertainty is missing
+    # attribute uncertainty_type.
+    with pytest.raises(TypeError):
+        NDData(np.array([1]), uncertainty=5)
+
+    # Expect a TypeError if the uncertainty has attribute uncertainty_type
+    # but it is not a string.
+
+    class BadUncertainty(object):
+        def __init__(self):
+            self.uncertainty_type = 5
+
+    with pytest.raises(TypeError):
+        NDData(np.array([1]), uncertainty=BadUncertainty())
+
 
 def test_nddata_init_from_nddata_data_argument_only():
     ndd1 = NDData(np.array([1]))

@@ -11,6 +11,7 @@ from .. import log
 from ..io import registry as io_registry
 from ..config import ConfigAlias
 from ..utils.metadata import MetaData
+from ..extern import six
 
 __all__ = ['NDData']
 
@@ -106,7 +107,7 @@ class NDData(object):
 
         if isinstance(data, self.__class__):
             self._data = np.array(data.data, subok=True, copy=False)
-            self._uncertainty = data.uncertainty
+            self.uncertainty = data.uncertainty
             self._mask = data.mask
             self._wcs = data.wcs
             self.meta = data.meta
@@ -169,7 +170,7 @@ class NDData(object):
             # This must come after self's unit has been set so that the unit
             # of the uncertainty, if any, can be converted to the unit of the
             # unit of self.
-            self._uncertainty = uncertainty
+            self.uncertainty = uncertainty
 
     def __str__(self):
         return str(self.data)
@@ -187,9 +188,27 @@ class NDData(object):
     def mask(self):
         return self._mask
 
+    @mask.setter
+    def mask(self, value):
+        self._mask = value
+
     @property
     def uncertainty(self):
         return self._uncertainty
+
+    @uncertainty.setter
+    def uncertainty(self, value):
+        if value is not None:
+            try:
+                not_good_uncertainty = not isinstance(value.uncertainty_type,
+                                                      six.string_types)
+            except AttributeError:
+                not_good_uncertainty = True
+            finally:
+                if not_good_uncertainty:
+                    raise TypeError('Uncertainty must have attribute '
+                                    'uncertainty_type whose type is string.')
+        self._uncertainty = value
 
     @property
     def unit(self):

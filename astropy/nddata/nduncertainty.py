@@ -8,6 +8,7 @@ import numpy as np
 
 from ..utils.compat import ignored
 from ..units import Quantity
+from ..extern import six
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
@@ -59,6 +60,16 @@ class NDUncertainty(object):
     @parent_nddata.setter
     def parent_nddata(self, value):
         self._parent_nddata = value
+
+    @property
+    def uncertainty_type(self):
+        return self._uncertainty_type
+
+    @uncertainty_type.setter
+    def uncertainty_type(self, value):
+        if not isinstance(value, six.string_types):
+            raise ValueError('uncertainty_type must be a string.')
+        self._uncertainty_type = value
 
     @abc.abstractmethod
     def propagate_add(self, other_nddata, result_data):
@@ -152,6 +163,7 @@ class StdDevUncertainty(NDUncertainty):
 
     def __init__(self, array=None, copy=True):
         self._unit = None
+        self.uncertainty_type = 'std'
         if array is None:
             self.array = None
         elif isinstance(array, StdDevUncertainty):
