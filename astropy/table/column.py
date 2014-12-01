@@ -32,7 +32,7 @@ AUTO_COLNAME = ConfigAlias(
 # Create a generic TableFormatter object for use by bare columns with no
 # parent table.
 FORMATTER = pprint.TableFormatter()
-
+INTEGER_TYPES = (int, long, np.integer) if six.PY2 else (int, np.integer)
 
 def _auto_names(n_cols):
     from . import conf
@@ -197,7 +197,7 @@ class BaseColumn(np.ndarray):
         return reconstruct_func, reconstruct_func_args, state
 
     def __getitem__(self, item):
-        if isinstance(item, (int, np.integer)):
+        if isinstance(item, INTEGER_TYPES):
             return self.data[item]  # Return as plain ndarray or ma.MaskedArray
         else:
             return super(BaseColumn, self).__getitem__(item)
