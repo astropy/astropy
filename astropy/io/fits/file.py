@@ -3,6 +3,7 @@
 from __future__ import division, with_statement
 
 from ...utils.compat import gzip as _astropy_gzip
+from ...utils.data import download_file
 import gzip as _system_gzip
 import mmap
 import os
@@ -114,8 +115,8 @@ class _File(object):
 
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
-            len(urllib.parse.urlparse(fileobj).scheme) > 1): # This is an URL.
-                self.name, _ = urllib.request.urlretrieve(fileobj)
+            self.is_url(fileobj)): # This is an URL.
+                self.name = download_file(fileobj,cache=True)
         else:
             self.name = fileobj_name(fileobj)
 
@@ -179,6 +180,22 @@ class _File(object):
     def __repr__(self):
         return '<%s.%s %s>' % (self.__module__, self.__class__.__name__,
                                self.__file)
+
+    def is_url(self,url):
+        """
+        Test whether a string is a valid URL
+
+        Parameters
+        ----------
+        string : url
+        The string to test
+        """
+        url_retrieved = urllib.parse.urlparse(url)
+        # url[0]==url.scheme, but url[0] is py 2.6-compat
+        # we can't just check that url[0] is not an empty string, because
+        # file paths in windows would return a non-empty scheme (e.g. e:\\
+        # returns 'e').
+        return url_retrieved[0].lower() in ['http', 'https', 'ftp', 'sftp', 'ssh']
 
     # Support the 'with' statement
     def __enter__(self):
