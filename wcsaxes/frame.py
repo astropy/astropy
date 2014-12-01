@@ -1,6 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import abc
+
 import numpy as np
+
 from astropy.utils import OrderedDict
+from astropy.extern import six
+
 from matplotlib.lines import Line2D, Path
 from matplotlib.patches import PathPatch
 
@@ -68,11 +74,12 @@ class Spine(object):
 
     def _update_normal(self):
         # Find angle normal to border and inwards, in display coordinate
-        dx = self.pixel[1:,0] - self.pixel[:-1,0]
-        dy = self.pixel[1:,1] - self.pixel[:-1,1]
+        dx = self.pixel[1:, 0] - self.pixel[:-1, 0]
+        dy = self.pixel[1:, 1] - self.pixel[:-1, 1]
         self.normal_angle = np.degrees(np.arctan2(dx, -dy))
 
 
+@six.add_metaclass(abc.ABCMeta)
 class BaseFrame(OrderedDict):
 
     def __init__(self, parent_axes, transform, path=None):
@@ -108,8 +115,8 @@ class BaseFrame(OrderedDict):
         self.update_spines()
         x, y = [], []
         for axis in self:
-            x.append(self[axis].data[:,0])
-            y.append(self[axis].data[:,1])
+            x.append(self[axis].data[:, 0])
+            y.append(self[axis].data[:, 1])
         vertices = np.vstack([np.hstack(x), np.hstack(y)]).transpose()
 
         if self._path is None:
@@ -125,7 +132,7 @@ class BaseFrame(OrderedDict):
 
     def draw(self, renderer):
         for axis in self:
-            x, y = self[axis].pixel[:,0], self[axis].pixel[:,1]
+            x, y = self[axis].pixel[:, 0], self[axis].pixel[:, 1]
             line = Line2D(x, y, linewidth=self._linewidth, color=self._color, zorder=1000)
             line.draw(renderer)
 
@@ -141,8 +148,8 @@ class BaseFrame(OrderedDict):
             p = np.linspace(0., 1., data.shape[0])
             p_new = np.linspace(0., 1., n_samples)
             spines[axis] = Spine(self.parent_axes, self.transform)
-            spines[axis].data = np.array([np.interp(p_new, p, data[:,0]),
-                                          np.interp(p_new, p, data[:,1])]).transpose()
+            spines[axis].data = np.array([np.interp(p_new, p, data[:, 0]),
+                                          np.interp(p_new, p, data[:, 1])]).transpose()
 
         return spines
 
@@ -167,6 +174,10 @@ class BaseFrame(OrderedDict):
             The linewidth of the frame in points.
         """
         self._linewidth = linewidth
+
+    @abc.abstractmethod
+    def update_spines(self):
+        raise NotImplementedError("")
 
 
 class RectangularFrame(BaseFrame):
@@ -200,4 +211,5 @@ class EllipticalFrame(BaseFrame):
         dy = ymid - ymin
 
         theta = np.linspace(0., 2 * np.pi, 1000)
-        self['c'].data = np.array([xmid + dx * np.cos(theta), ymid + dy * np.sin(theta)]).transpose()
+        self['c'].data = np.array([xmid + dx * np.cos(theta),
+                                   ymid + dy * np.sin(theta)]).transpose()

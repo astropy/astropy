@@ -95,6 +95,7 @@ def select_step_scalar(dv):
 
 FRAME_IDENTIFIERS = []
 
+
 def register_frame_identifier(func):
     """
     Register a function that can identify frames from WCS objects.
@@ -112,6 +113,7 @@ def reset_frame_identifiers():
     """
     global FRAME_IDENTIFIERS
     FRAME_IDENTIFIERS = []
+
 
 def get_coordinate_frame(wcs):
     """
