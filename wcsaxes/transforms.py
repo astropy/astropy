@@ -45,11 +45,11 @@ class CurvedTransform(Transform):
 
     @abc.abstractmethod
     def transform(self, input):
-        raise NotImplemented("")
+        raise NotImplementedError("")
 
     @abc.abstractmethod
     def inverted(self):
-        raise NotImplemented("")
+        raise NotImplementedError("")
 
 
 class WCSWorld2PixelTransform(CurvedTransform):
@@ -90,8 +90,7 @@ class WCSWorld2PixelTransform(CurvedTransform):
         if self.slice is None:
             return pixel
         else:
-            return pixel[:,(self.x_index, self.y_index)]
-
+            return pixel[:, (self.x_index, self.y_index)]
 
     transform_non_affine = transform
 
@@ -125,7 +124,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
         Y, X = np.meshgrid(y, x)
         pixel = np.array([X.ravel(), Y.ravel()]).transpose()
         world = self.transform(pixel)
-        return X, Y, [world[:,i].reshape(nx, ny).transpose() for i in range(self.wcs.wcs.naxis)]
+        return X, Y, [world[:, i].reshape(nx, ny).transpose() for i in range(self.wcs.wcs.naxis)]
 
     def transform(self, pixel):
         """
@@ -221,7 +220,7 @@ try:
             c_out = c_in.transform_to(self.output_system)
 
             if (c_out.representation is SphericalRepresentation or
-                c_out.representation is UnitSphericalRepresentation):
+                    c_out.representation is UnitSphericalRepresentation):
                 lon = c_out.data.lon.deg
                 lat = c_out.data.lat.deg
             else:
@@ -256,7 +255,7 @@ except ImportError:
                 elif self._input_system_name == 'galactic':
                     self.input_system = Galactic
                 else:
-                    raise NotImplemented("frame {0} not implemented".format(self._input_system_name))
+                    raise NotImplementedError("frame {0} not implemented".format(self._input_system_name))
 
             if isinstance(self._output_system_name, WCS):
                 self.output_system = get_coordinate_frame(self._output_system_name)
@@ -266,7 +265,7 @@ except ImportError:
                 elif self._output_system_name == 'galactic':
                     self.output_system = Galactic
                 else:
-                    raise NotImplemented("frame {0} not implemented".format(self._output_system_name))
+                    raise NotImplementedError("frame {0} not implemented".format(self._output_system_name))
 
             if self.output_system == self.input_system:
                 self.same_frames = True

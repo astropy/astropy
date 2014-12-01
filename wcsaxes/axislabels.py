@@ -50,10 +50,10 @@ class AxisLabels(Text):
             # Find position of the axis label. For now we pick the mid-point
             # along the path but in future we could allow this to be a
             # parameter.
-            x_disp, y_disp = self._frame[axis].pixel[:,0], self._frame[axis].pixel[:,1]
-            d = np.hstack([0., np.cumsum(np.sqrt(np.diff(x_disp)**2 + np.diff(y_disp)**2))])
-            xcen = np.interp(d[-1]/2., d, x_disp)
-            ycen = np.interp(d[-1]/2., d, y_disp)
+            x_disp, y_disp = self._frame[axis].pixel[:, 0], self._frame[axis].pixel[:, 1]
+            d = np.hstack([0., np.cumsum(np.sqrt(np.diff(x_disp) ** 2 + np.diff(y_disp) ** 2))])
+            xcen = np.interp(d[-1] / 2., d, x_disp)
+            ycen = np.interp(d[-1] / 2., d, y_disp)
 
             # Find segment along which the mid-point lies
             imin = np.searchsorted(d, d[-1] / 2.) - 1

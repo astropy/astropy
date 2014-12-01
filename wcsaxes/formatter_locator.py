@@ -259,7 +259,6 @@ class AngleFormatterLocator(BaseFormatterLocator):
                         from .utils import select_step_hour
                         spacing_deg = select_step_hour(dv).to(u.degree).value
 
-
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this.
             values = self._locate_values(value_min, value_max, spacing_deg)
@@ -393,7 +392,6 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
         elif not value.startswith('%'):
             raise ValueError("Invalid format: {0}".format(value))
-
 
     @property
     def base_spacing(self):
