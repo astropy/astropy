@@ -9,5 +9,3 @@ it should get overwritten by the appropriate configobj docstring.
 """
 
 from .configobj import configobj, validate, __doc__
-
-del version_info #cleans up the namespace
