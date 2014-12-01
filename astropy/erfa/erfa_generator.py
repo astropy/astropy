@@ -337,9 +337,10 @@ class Function(object):
 
 class Constant(object):
 
-    def __init__(self, name, value):
+    def __init__(self, name, value, doc):
         self.name = name.replace("ERFA_","")
         self.value = value.replace("ERFA_","")
+        self.doc = doc
 
 
 def main(srcdir, outfn, templateloc, verbose=True):
@@ -415,8 +416,12 @@ def main(srcdir, outfn, templateloc, verbose=True):
     with open(erfamhfn, 'r') as f:
         erfa_m_h = f.read()
     constants = []
-    for (name, value) in re.findall("#define (ERFA_\w+?) (.+?)\n", erfa_m_h, flags=re.DOTALL):
-        constants.append(Constant(name, value))
+    for chunk in erfa_m_h.split("\n\n"):
+        result = re.findall("#define (ERFA_\w+?) (.+?)$", chunk, flags=re.DOTALL|re.MULTILINE)
+        if result:
+            doc = re.findall("/\* (.+?) \*/\n", chunk, flags=re.DOTALL)
+            for (name, value) in result:
+                constants.append(Constant(name, value, doc))
 
     print_("Rendering template")
     erfa_pyx = erfa_pyx_in.render(funcs=funcs)

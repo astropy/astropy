@@ -140,6 +140,7 @@ dt_eraLDBODY = numpy.dtype([('bm','d'),
 
 {% for constant in constants %}
 {{ constant.name }} = {{ constant.value }}
+"""{{ constant.doc|join(' ') }}"""
 {%- endfor %}
 
 {% for func in funcs %}
