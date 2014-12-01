@@ -1267,6 +1267,24 @@ class TimeDelta(Time):
                           u.day).to(*args, **kwargs)
 
 
+class TimeFormatMeta(type):
+    """
+    Metaclass that adds `TimeFormat` and `TimeDeltaFormat` to the
+    `TIME_FORMATS` and `TIME_DELTA_FORMATS` registries, respectively.
+    """
+
+    _registry = TIME_FORMATS
+
+    def __new__(mcls, name, bases, members):
+        cls = super(TimeFormatMeta, mcls).__new__(mcls, name, bases, members)
+
+        if 'name' in members:
+            mcls._registry[cls.name] = cls
+
+        return cls
+
+
+@six.add_metaclass(TimeFormatMeta)
 class TimeFormat(object):
     """
     Base class for time representations.
@@ -1968,6 +1986,11 @@ class TimeJulianEpochString(TimeEpochDateString):
     epoch_prefix = 'J'
 
 
+class TimeDeltaFormatMeta(TimeFormatMeta):
+    _registry = TIME_DELTA_FORMATS
+
+
+@six.add_metaclass(TimeDeltaFormatMeta)
 class TimeDeltaFormat(TimeFormat):
     """Base class for time delta representations"""
 
@@ -2005,21 +2028,6 @@ class TimeDeltaJD(TimeDeltaFormat):
 
 class ScaleValueError(Exception):
     pass
-
-
-# Set module constant with names of all available time formats
-for name, val in list(six.iteritems(locals())):
-    try:
-        is_timeformat = issubclass(val, TimeFormat)
-        is_timedeltaformat = issubclass(val, TimeDeltaFormat)
-    except:
-        pass
-    else:
-        if hasattr(val, 'name'):
-            if is_timedeltaformat:
-                TIME_DELTA_FORMATS[val.name] = val
-            elif is_timeformat:
-                TIME_FORMATS[val.name] = val
 
 
 def _make_1d_array(val, copy=False):
