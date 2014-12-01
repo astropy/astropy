@@ -232,6 +232,31 @@ class TestColumn():
         with pytest.raises(TypeError):
             d3.quantity
 
+    def test_item_access_type(self, Column):
+        """
+        Tests for #3095, which forces integer item access to always return a plain
+        ndarray or MaskedArray, even in the case of a multi-dim column.
+        """
+        c = Column([[1, 2], [3, 4]])
+
+        assert np.all(c[0] == [1, 2])
+        assert type(c[0]) == (np.ma.MaskedArray if hasattr(Column, 'mask') else np.ndarray)
+        assert c[0].shape == (2,)
+
+        c01 = c[0:1]
+        assert np.all(c01 == [[1, 2]])
+        assert isinstance(c01, Column)
+        assert c01.shape == (1, 2)
+
+        c = Column([1, 2])
+        assert np.all(c[0] == 1)
+        assert isinstance(c[0], np.integer)
+        assert c[0].shape == ()
+
+        c01 = c[0:1]
+        assert np.all(c01 == [1])
+        assert isinstance(c01, Column)
+        assert c01.shape == (1,)
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
