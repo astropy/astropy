@@ -31,7 +31,7 @@ def wrap_angle_at(values, coord_wrap):
 class CoordinateHelper(object):
 
     def __init__(self, parent_axes=None, parent_map=None, transform=None, coord_index=None,
-                 coord_type='scalar',coord_unit=None, coord_wrap=None, frame=None):
+                 coord_type='scalar', coord_unit=None, coord_wrap=None, frame=None):
 
         # Keep a reference to the parent axes and the transform
         self.parent_axes = parent_axes
@@ -436,21 +436,21 @@ class CoordinateHelper(object):
             # the normal angle in display coordinates.
 
             pixel0 = spine.data
-            world0 = spine.world[:,self.coord_index]
-            world0 = self.transform.transform(pixel0)[:,self.coord_index]
+            world0 = spine.world[:, self.coord_index]
+            world0 = self.transform.transform(pixel0)[:, self.coord_index]
             axes0 = transData.transform(pixel0)
 
             # Advance 2 pixels in figure coordinates
             pixel1 = axes0.copy()
-            pixel1[:,0] += 2.0
+            pixel1[:, 0] += 2.0
             pixel1 = invertedTransLimits.transform(pixel1)
-            world1 = self.transform.transform(pixel1)[:,self.coord_index]
+            world1 = self.transform.transform(pixel1)[:, self.coord_index]
 
             # Advance 2 pixels in figure coordinates
             pixel2 = axes0.copy()
-            pixel2[:,1] += 2.0 if self.frame.origin == 'lower' else -2.0
+            pixel2[:, 1] += 2.0 if self.frame.origin == 'lower' else -2.0
             pixel2 = invertedTransLimits.transform(pixel2)
-            world2 = self.transform.transform(pixel2)[:,self.coord_index]
+            world2 = self.transform.transform(pixel2)[:, self.coord_index]
 
             dx = (world1 - world0)
             dy = (world2 - world0)
@@ -468,7 +468,7 @@ class CoordinateHelper(object):
 
             normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
             reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
-                    ((tick_angle - normal_angle_full) % 360 > 90.))
+                     ((tick_angle - normal_angle_full) % 360 > 90.))
             tick_angle[reset] -= 180.
 
             # We find for each interval the starting and ending coordinate,
@@ -501,7 +501,7 @@ class CoordinateHelper(object):
         tick_world_coordinates_values = tick_world_coordinates.value
         if self.coord_type == 'longitude':
             tick_world_coordinates_values = np.hstack([tick_world_coordinates_values,
-                                                tick_world_coordinates_values + 360])
+                                                       tick_world_coordinates_values + 360])
 
         for t in tick_world_coordinates_values:
 
@@ -670,10 +670,10 @@ class CoordinateHelper(object):
             tick_world_coordinates_values = wrap_angle_at(tick_world_coordinates_values, mid)
 
             # Replace wraps by NaN
-            reset = (np.abs(np.diff(field[:,:-1], axis=0)) > 180) | (np.abs(np.diff(field[:-1,:], axis=1)) > 180)
-            field[:-1,:-1][reset] = np.nan
-            field[1:,:-1][reset] = np.nan
-            field[:-1,1:][reset] = np.nan
-            field[1:,1:][reset] = np.nan
+            reset = (np.abs(np.diff(field[:, :-1], axis=0)) > 180) | (np.abs(np.diff(field[:-1, :], axis=1)) > 180)
+            field[:-1, :-1][reset] = np.nan
+            field[1:, :-1][reset] = np.nan
+            field[:-1, 1:][reset] = np.nan
+            field[1:, 1:][reset] = np.nan
 
         self._grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)
