@@ -85,6 +85,7 @@ static PyObject *format_errors(int nerrors, const char **messages,
     int uniques;
     PyObject *str;
     PyObject *substr;
+    PyObject *tmp;
 
     for (i = 0; i < nerrors; ++i) {
         if (counts[i] > 0) {
@@ -92,29 +93,40 @@ static PyObject *format_errors(int nerrors, const char **messages,
         }
     }
 
-    str = PyString_FromStringAndSize(NULL, 0);
+    str = PyUnicode_FromStringAndSize(NULL, 0);
     if (str == NULL) {
         return NULL;
     }
 
     for (i = 0; i < nerrors; ++i) {
         if (counts[i] > 0) {
-            substr = PyString_FromFormat(
+            substr = PyUnicode_FromFormat(
                 "%d of \"%s\"", counts[i], messages[i]);
             if (substr == NULL) {
                 Py_DECREF(str);
                 return NULL;
             }
-            PyString_ConcatAndDel(&str, substr);
-            uniques--;
+            tmp = PyUnicode_Concat(str, substr);
+            if (tmp == NULL) {
+                Py_DECREF(str);
+                return NULL;
+            }
+            Py_DECREF(str);
+            str = tmp;
 
-            if (uniques) {
-                substr = PyString_FromString(", ");
+            if (--uniques) {
+                substr = PyUnicode_FromString(", ");
                 if (substr == NULL) {
                     Py_DECREF(str);
                     return NULL;
                 }
-                PyString_ConcatAndDel(&str, substr);
+                tmp = PyUnicode_Concat(str, substr);
+                if (tmp == NULL) {
+                    Py_DECREF(str);
+                    return NULL;
+                }
+                Py_DECREF(str);
+                str = tmp;
             }
         }
     }
@@ -182,7 +194,7 @@ static int check_errwarn(PyArrayObject *stat, const char *name, int nerrors,
 }
 
 
-static void setup_axes(int iter_nd, int narrs, PyArrayObject **arrs,
+static void setup_op_axes(int iter_nd, int narrs, PyArrayObject **arrs,
                        const int *extra_axes, int **op_axes)
 {
     int i;
@@ -346,7 +358,7 @@ static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
         }
     }
 
-    setup_axes(iter_nd, narrs, arrs, extra_axes, op_axes);
+    setup_op_axes(iter_nd, narrs, arrs, extra_axes, op_axes);
 
     iter = (NpyIter *)NpyIter_AdvancedNew(
         narrs, arrs, 0, NPY_KEEPORDER, NPY_NO_CASTING, flags, dtypes,
