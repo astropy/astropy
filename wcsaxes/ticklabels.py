@@ -7,7 +7,7 @@ from .frame import RectangularFrame
 
 
 def sort_using(X, Y):
-    return [x for (y,x) in sorted(zip(Y,X))]
+    return [x for (y, x) in sorted(zip(Y, X))]
 
 
 class TickLabels(Text):

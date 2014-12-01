@@ -63,7 +63,6 @@ class CoordinatesMap(object):
                                                  coord_unit=coord_unit,
                                                  frame=self.frame))
 
-
             # Set up aliases for coordinates
             self._aliases[name.lower()] = coord_index
 

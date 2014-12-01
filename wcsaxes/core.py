@@ -314,5 +314,6 @@ class WCSAxes(Axes):
 # we then inherit it - if we don't do this, the generated class appears to
 # belong in matplotlib, not in WCSAxes, from the API's point of view.
 
+
 class WCSAxesSubplot(subplot_class_factory(WCSAxes)):
     pass

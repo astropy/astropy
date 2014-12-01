@@ -8,7 +8,7 @@ try:
     from matplotlib import rc_context
 except ImportError:
     class rc_context(object):
-        
+
         def __init__(self, rc=None):
             self.rcdict = rc
             self._rcparams = rcParams.copy()
