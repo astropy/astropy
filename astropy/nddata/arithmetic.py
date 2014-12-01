@@ -237,7 +237,7 @@ class NDSlicing(object):
             new_mask = None
 
         if self.wcs is not None:
-            raise NotImplementedError('Slicing for WCS is not currently implemented')
+            new_wcs = self.wcs[item]
         else:
             new_wcs = None
 
