@@ -8,6 +8,15 @@ from astropy_helpers import setup_helpers
 ERFAPKGDIR = os.path.relpath(os.path.dirname(__file__))
 
 
+def preprocess_source():
+    import imp
+    gen = imp.load_source('cython_generator',
+                          os.path.join(ERFAPKGDIR, 'cython_generator.py'))
+    gen.main(gen.DEFAULT_ERFA_LOC,
+             os.path.join(ERFAPKGDIR, 'erfa.py'),
+             gen.DEFAULT_TEMPLATE_LOC)
+
+
 def get_extensions():
     sources = [os.path.join(ERFAPKGDIR, "erfa.pyx")]
     include_dirs = ['numpy']
