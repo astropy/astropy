@@ -132,6 +132,9 @@ class NDData(object):
             if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
         else:
+            if not hasattr(data, 'shape') or not hasattr(data, '__getitem__'):
+                raise TypeError('Data must have shape attribute '
+                                'and be slicable.')
             if hasattr(data, 'mask'):
                 self._data = np.array(data.data, subok=True, copy=False)
 
@@ -147,7 +150,7 @@ class NDData(object):
                 self._data = np.array(data.value, subok=True, copy=False)
                 self._mask = mask
             else:
-                self._data = np.array(data, subok=True, copy=False)
+                self._data = data #np.array(data, subok=True, copy=False)
                 self._mask = mask
 
             self._wcs = wcs

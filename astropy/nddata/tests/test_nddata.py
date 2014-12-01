@@ -51,16 +51,33 @@ def test_nddata_simple():
     assert nd.dtype == np.dtype(float)
 
 
+def test_nddata_data_properties():
+    # First one is slicable but has no shape, so should fail.
+    with pytest.raises(TypeError):
+        NDData({'a': 'dict'})
+
+    # This has a shape but is not slicable
+    class Shape(object):
+        def __init__(self):
+            self.shape = 5
+
+        def __repr__(self):
+            return '7'
+
+    with pytest.raises(TypeError):
+        NDData(Shape())
+
+
 def test_nddata_str():
-    arr1d = NDData([1, 2, 3])
+    arr1d = NDData(np.array([1, 2, 3]))
     assert str(arr1d) == '[1 2 3]'
 
-    arr2d = NDData([[1, 2], [3, 4]])
+    arr2d = NDData(np.array([[1, 2], [3, 4]]))
     assert str(arr2d) == textwrap.dedent("""
         [[1 2]
          [3 4]]"""[1:])
 
-    arr3d = NDData([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    arr3d = NDData(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
     assert str(arr3d) == textwrap.dedent("""
         [[[1 2]
           [3 4]]
@@ -70,15 +87,15 @@ def test_nddata_str():
 
 
 def test_nddata_repr():
-    arr1d = NDData([1, 2, 3])
+    arr1d = NDData(np.array([1, 2, 3]))
     assert repr(arr1d) == 'NDData([1, 2, 3])'
 
-    arr2d = NDData([[1, 2], [3, 4]])
+    arr2d = NDData(np.array([[1, 2], [3, 4]]))
     assert repr(arr2d) == textwrap.dedent("""
         NDData([[1, 2],
                 [3, 4]])"""[1:])
 
-    arr3d = NDData([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    arr3d = NDData(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
     assert repr(arr3d) == textwrap.dedent("""
         NDData([[[1, 2],
                  [3, 4]],
@@ -98,7 +115,7 @@ def test_nddata_uncertainty_init():
 
 
 def test_nddata_init_from_nddata_data_argument_only():
-    ndd1 = NDData([1])
+    ndd1 = NDData(np.array([1]))
     ndd2 = NDData(ndd1)
     assert ndd2.wcs == ndd1.wcs
     assert ndd2.uncertainty == ndd1.uncertainty
@@ -118,7 +135,7 @@ def test_nddata_copy_ref():
 
 
 def test_nddata_conversion():
-    nd = NDData([[1, 2, 3], [4, 5, 6]])
+    nd = NDData(np.array([[1, 2, 3], [4, 5, 6]]))
     assert nd.size == 6
     assert nd.dtype == np.dtype(int)
 

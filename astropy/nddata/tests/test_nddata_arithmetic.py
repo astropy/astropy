@@ -83,7 +83,8 @@ def test_slicing_reference():
 
 def test_slicing_with_mask_or_flag():
     # Regression test for #2170
-    ndd = NDDataArithmetic([1, 2, 3], mask=np.array([False, False, False]))
+    ndd = NDDataArithmetic(np.array([1, 2, 3]),
+                           mask=np.array([False, False, False]))
     assert ndd[0].shape == ()
     assert not ndd[0].mask
 
@@ -123,9 +124,9 @@ def test_nddata_add_with_masks():
     # numpy masked arrays mask the result of binary operations if the
     # mask of either operand is set.
     # Does NDData?
-    ndd1 = NDDataArithmetic([1, 2], mask=np.array([True, False]))
+    ndd1 = NDDataArithmetic(np.array([1, 2]), mask=np.array([True, False]))
     other_mask = ~ ndd1.mask
-    ndd2 = NDDataArithmetic([1, 2], mask=other_mask)
+    ndd2 = NDDataArithmetic(np.array([1, 2]), mask=other_mask)
     result = ndd1.add(ndd2)
     # The result should have all entries masked...
     assert result.mask.all()
@@ -196,7 +197,7 @@ def test_unmasked_masked_array_input():
 
 def test_nddata_unmasked_in_operation_with_masked_numpy_array():
     # test for #2417
-    ndd = NDDataArithmetic([1, 2, 3])
+    ndd = NDDataArithmetic(np.array([1, 2, 3]))
     np_data = -np.ones_like(ndd)
     np_mask = np.array([True, False, True])
     np_arr_masked = np.ma.masked_array(np_data, mask=np_mask, copy=True)
@@ -224,7 +225,7 @@ def test_nddata_mask_invalid_shape(shape):
                          [True, False],
                          [1, 0]])
 def test_nddata_mask_init_without_np_array(mask_in):
-    ndd = NDDataArithmetic([1, 1], mask=mask_in)
+    ndd = NDDataArithmetic(np.array([1, 1]), mask=mask_in)
     assert (ndd.mask == mask_in).all()
 
 
@@ -336,8 +337,8 @@ def test_arithmetic_result_not_tied_to_operands_uncertainty(op1_unc, op2_unc):
     # Only one of the arithmetic operations need to be checked because the
     # logic for propagating the uncertainties is common to all of the
     # operations.
-    op1 = NDDataArithmetic([1], uncertainty=op1_unc)
-    op2 = NDDataArithmetic([1], uncertainty=op2_unc)
+    op1 = NDDataArithmetic(np.array([1]), uncertainty=op1_unc)
+    op2 = NDDataArithmetic(np.array([1]), uncertainty=op2_unc)
 
     result = op1.add(op2)
     if result.uncertainty:
@@ -360,8 +361,8 @@ def test_arithmetic_result_not_tied_to_operands_uncertainty(op1_unc, op2_unc):
                          (np.array([False]), np.array([False]))])
 def test_arithmetic_result_not_tied_to_operands_mask(op1_mask, op2_mask):
     # See test_arithmetic_result_not_tied_to_operands_uncertainty for comments
-    op1 = NDDataArithmetic([1], mask=op1_mask)
-    op2 = NDDataArithmetic([1], mask=op2_mask)
+    op1 = NDDataArithmetic(np.array([1]), mask=op1_mask)
+    op2 = NDDataArithmetic(np.array([1]), mask=op2_mask)
     result = op1.add(op2)
 
     if result.mask is not None:
@@ -381,8 +382,8 @@ def test_arithmetic_result_not_tied_to_operands_wcs():
     # Unlike the previous two tests, we only need to check a case where both
     # operands have the same wcs because operands with different wcs is not
     # supported
-    op1 = NDDataArithmetic([1], wcs=np.array([1]), unit='m')
-    op2 = NDDataArithmetic([1], wcs=np.array([1]), unit='m')
+    op1 = NDDataArithmetic(np.array([1]), wcs=np.array([1]), unit='m')
+    op2 = NDDataArithmetic(np.array([1]), wcs=np.array([1]), unit='m')
     result = op1.add(op2)
     result.wcs[0] = 12345
     assert op1.wcs[0] != result.wcs[0]
@@ -396,7 +397,7 @@ def test_arithmetic_result_not_tied_to_operands_wcs():
                          ('multiply', u.km * u.m),
                          ('divide', u.km / u.m)])
 def test_uncertainty_unit_conversion_add_subtract(operation, result_unit):
-    in_km = NDDataArithmetic([1, 1], unit=u.km, uncertainty=StdDevUncertainty([.1, .1]))
+    in_km = NDDataArithmetic(np.array([1, 1]), unit=u.km, uncertainty=StdDevUncertainty([.1, .1]))
     in_m = NDDataArithmetic(in_km.data * 1000, unit=u.m)
     in_m.uncertainty = StdDevUncertainty(in_km.uncertainty.array * 1000)
     operator_km = in_km.__getattribute__(operation)
@@ -409,7 +410,7 @@ def test_uncertainty_unit_conversion_add_subtract(operation, result_unit):
     else:
         # uncertainty is scaled by result
         assert_array_equal(combined.uncertainty.array,
-                np.sqrt(2) * in_km.uncertainty.array * combined.data)
+            np.sqrt(2) * in_km.uncertainty.array * combined.data)
 
 
 @pytest.mark.parametrize('unit1,unit2,op,result_unit', [
@@ -425,8 +426,8 @@ def test_uncertainty_unit_conversion_add_subtract(operation, result_unit):
                          ])
 def test_arithmetic_unit_calculation(unit1, unit2, op, result_unit):
     # Test for #2413
-    ndd1 = NDDataArithmetic([1], unit=unit1)
-    ndd2 = NDDataArithmetic([1], unit=unit2)
+    ndd1 = NDDataArithmetic(np.array([1]), unit=unit1)
+    ndd2 = NDDataArithmetic(np.array([1]), unit=unit2)
     ndd1_method = ndd1.__getattribute__(op)
     result = ndd1_method(ndd2)
     assert result.unit == result_unit
