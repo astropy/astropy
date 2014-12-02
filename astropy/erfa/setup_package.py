@@ -17,6 +17,26 @@ SRC_FILES += [os.path.join(ERFAPKGDIR, filename)
 
 GEN_FILES = [os.path.join(ERFAPKGDIR, 'erfa.py'), os.path.join(ERFAPKGDIR, 'erfa.pyx')]
 
+
+class ERFAExtension(Extension):
+    """
+    This is, essentially, a hack. It defers the generation of the ERFA
+    wrappers until just before the Cythonization, which accesses the
+    ``include_dirs`` property of all extension objects. This means that the
+    files do not get generated for egg_info, but do get generated for sdist
+    and build.
+    """
+
+    @property
+    def include_dirs(self):
+        _generate_erfa_wrapper()
+        return self._include_dirs
+
+    @include_dirs.setter
+    def include_dirs(self, value):
+        self._include_dirs = value
+
+
 def _generate_erfa_wrapper():
 
     # Generating the ERFA wrappers should only be done if needed. This also
@@ -47,8 +67,6 @@ def _generate_erfa_wrapper():
 
 def get_extensions():
 
-    _generate_erfa_wrapper()
-
     sources = [os.path.join(ERFAPKGDIR, "erfa.pyx")]
     include_dirs = ['numpy']
     libraries = []
@@ -62,7 +80,7 @@ def get_extensions():
 
         include_dirs.append('cextern/erfa')
 
-    erfa_ext = Extension(
+    erfa_ext = ERFAExtension(
         name="astropy.erfa._erfa",
         sources=sources,
         include_dirs=include_dirs,
