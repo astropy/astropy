@@ -961,6 +961,13 @@ class Quantity(np.ndarray):
         lstr
             A LaTeX string with the contents of this Quantity
         """
+        if NUMPY_LT_1P7:
+            if self.isscalar:
+                pass
+            else:
+                raise NotImplementedError('Cannot represent Quantity arrays '
+                                          'in LaTex format for numpy < v1.7.')
+
         # need to do try/finally because "threshold" cannot be overridden
         # with array2string
         pops = np.get_printoptions()
@@ -968,13 +975,13 @@ class Quantity(np.ndarray):
             formatter = {'all' : Latex.format_exponential_notation,
                          'str_kind': lambda x: x}
             if conf.latex_array_threshold > -1:
-                np.set_printoptions(threshold=conf.latex_array_threshold)
+                np.set_printoptions(threshold=conf.latex_array_threshold,
+                                    formatter=formatter)
 
-            # np.array is needed for the scalar case - value might be a float
-            latex_value = np.array2string(np.array(self.value, copy=False),
+            # the view is needed for the scalar case - value might be a float
+            latex_value = np.array2string(self.view(np.ndarray),
                                           style=Latex.format_exponential_notation,
                                           max_line_width=np.inf,
-                                          formatter=formatter,
                                           separator=',~')
             latex_value = latex_value.replace('...', r'\dots')
         finally:
