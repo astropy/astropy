@@ -33,7 +33,7 @@ def test_extract_array_2d():
     assert np.all(extracted_array == small_test_array)
 
 
-def test_add_array_2d():
+def test_add_array_2d_odd_shape():
     """
     Test add_array_2D utility function.
 
@@ -45,6 +45,21 @@ def test_add_array_2d():
     large_test_array_ref[3:8, 3:8] += small_test_array
 
     added_array = add_array_2d(large_test_array, small_test_array, (5, 5))
+    assert np.all(added_array == large_test_array_ref)
+
+
+def test_add_array_2d_even_shape():
+    """
+    Test add_array_2D utility function.
+
+    Test by adding an array of ones out of an array of zeros.
+    """
+    large_test_array = np.zeros((11, 11))
+    small_test_array = np.ones((4, 4))
+    large_test_array_ref = large_test_array.copy()
+    large_test_array_ref[0:2, 0:2] += small_test_array[2:4, 2:4]
+
+    added_array = add_array_2d(large_test_array, small_test_array, (0, 0))
     assert np.all(added_array == large_test_array_ref)
 
 

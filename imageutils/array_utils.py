@@ -76,14 +76,14 @@ def extract_array_2d(array_large, shape, position):
 
     Examples
     --------
-    We consider a large array of zeros with the shape 11x10 and a small
-    array of ones with a shape of 3x4:
+    We consider a large array with the shape 11x10, from which we extract
+    a small array of shape 3x5:
 
     >>> import numpy as np
     >>> from imageutils.array_utils import extract_array_2d
     >>> large_array = np.arange(110).reshape((11, 10))
     >>> large_array[4:9, 4:9] = np.ones((5, 5))
-    >>> extract_array_2d(large_array, (3, 4), (7, 7))
+    >>> extract_array_2d(large_array, (3, 5), (7, 7))
     array([[ 1,  1,  1,  1, 69],
            [ 1,  1,  1,  1, 79],
            [ 1,  1,  1,  1, 89]])
