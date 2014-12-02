@@ -2300,7 +2300,7 @@ class QuantityInput(object):
         A decorator for validating the units of arguments to functions.
 
         Unit specifications can be provided as keyword arguments to the decorator,
-        or by usng Python 3's function annotation syntax. Arguments to the decorator
+        or by using Python 3's function annotation syntax. Arguments to the decorator
         take precidence over any function annotations present.
 
         A `~astropy.units.UnitsError` will be raised if the unit attribute of
@@ -2312,19 +2312,26 @@ class QuantityInput(object):
         Examples
         --------
 
-        Python 2::
+        Python 2 and 3::
 
             import astropy.units as u
             @u.quantity_input(myangle=u.arcsec)
             def myfunction(myangle):
                 return myangle**2
 
-        Python 3::
+        Python 3 only::
 
             import astropy.units as u
             @u.quantity_input
             def myfunction(myangle: u.arcsec):
                 return myangle**2
+        
+        Using equivalencies:
+        
+            import astropy.units as u
+            @u.quantity_input(myangle=u.eV, equivalencies=u.spectral())
+            def myfunction(myenergy):
+                return myenergy**2
 
         """
         self = cls(**kwargs)
@@ -2342,7 +2349,7 @@ class QuantityInput(object):
         # Update the annotations to include any kwargs passed to the decorator
         wrapped_signature = funcsigs.signature(wrapped_function)
 
-        #Define a new function to return in place of the wrapped one
+        # Define a new function to return in place of the wrapped one
         @wraps(wrapped_function)
         def wrapper(*func_args, **func_kwargs):
             # Iterate through the parameters of the function and extract the
@@ -2380,19 +2387,19 @@ class QuantityInput(object):
                                                   equivalencies=self.equivalencies)
 
                         if not equivalent:
-                            raise UnitsError(
-"Argument '{0}' to function '{1}' must be in units convertable to '{2}'.".format(
+                            raise UnitsError("Argument '{0}' to function '{1}'"
+                                             " must be in units convertable to"
+                                             " '{2}'.".format(
                     var, wrapped_function.__name__, target_unit.to_string()))
 
                     # AttributeError is raised if there is no `to` method.
                     # i.e. not something that quacks like a Quantity.
                     except AttributeError:
-                        raise TypeError(
-"Argument '{0}' to function '{1}' must be an astropy Quantity object".format(
+                        raise TypeError("Argument '{0}' to function '{1}' must"
+                                        " be an astropy Quantity object".format(
                                          var, wrapped_function.__name__))
 
             return wrapped_function(*func_args, **func_kwargs)
-
 
         return wrapper
 

@@ -252,10 +252,10 @@ Instead, only dimensionless values can be converted to plain Python scalars:
 Functions Accepting Quantities
 ------------------------------
 
-Validation of quanitty arguments to functions can lead to many repetitons 
+Validation of quantity arguments to functions can lead to many repetitons 
 of the same checking code. A decorator is provided which verifies that certain
 arguments to a function are `~astropy.units.Quantity` objects and that the units
-are compatitble with a desired unit.
+are compatible with a desired unit.
 
 The decorator does not convert the unit to the desired unit, say arcseconds
 to degrees, it merely checks that such a conversion is possible, thus verifying 
