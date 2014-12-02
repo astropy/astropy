@@ -212,6 +212,15 @@ def non_celestial_pixel_scales(inwcs):
     else:
         raise ValueError("WCS is rotated, cannot determine consistent pixel scales")
 
+
+def _has_distortion(wcs):
+    """
+    `True` if contains any SIP or image distortion components.
+    """
+    return any(getattr(wcs, dist_attr) is not None
+               for dist_attr in ['cpdis1', 'cpdis2', 'det2im1', 'det2im2', 'sip'])
+
+
 # TODO: in future, we should think about how the following two functions can be
 # integrated better into the WCS class.
 
@@ -244,7 +253,7 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode='all'):
     from .. import units as u
     from . import WCSSUB_CELESTIAL
 
-    if wcs.has_distortion and wcs.naxis != 2:
+    if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat
@@ -327,7 +336,7 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode='all', cls=None):
     if cls is None:
         cls = SkyCoord
 
-    if wcs.has_distortion and wcs.naxis != 2:
+    if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
     # Keep only the celestial part of the axes, also re-orders lon/lat

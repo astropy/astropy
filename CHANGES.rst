@@ -120,10 +120,9 @@ New Features
     and ``non_celestial_pixel_scales`` utility functions for retrieving WCS
     pixel scale information [#2832]
 
-  - Added two functions ``pixel_to_skycoord`` and ``skycoord_to_pixel`` that
-    make it easy to convert between SkyCoord objects and pixel coordinates, as
-    well as a ``has_distortion`` property on the ``WCS`` class that indicates
-    whether any distortions are present. [#2885]
+  - Added two functions ``pixel_to_skycoord`` and
+    ``skycoord_to_pixel`` that make it easy to convert between
+    SkyCoord objects and pixel coordinates. [#2885]
 
 API Changes
 ^^^^^^^^^^^
