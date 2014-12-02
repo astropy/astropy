@@ -150,8 +150,8 @@ class FLRW(Cosmology):
 
         # We are going to share Neff between the neutrinos equally.
         # In detail this is not correct, but it is a standard assumption
-        # because propertly calculating it is a) complicated b) depends
-        # on the details of the massive nuetrinos (e.g., their weak
+        # because properly calculating it is a) complicated b) depends
+        # on the details of the massive neutrinos (e.g., their weak
         # interactions, which could be unusual if one is considering sterile
         # neutrinos)
         self._massivenu = False
@@ -167,7 +167,7 @@ class FLRW(Cosmology):
 
             # Now, figure out if we have massive neutrinos to deal with,
             # and, if so, get the right number of masses
-            # It is worth the effort to keep track of massless ones seperately
+            # It is worth the effort to keep track of massless ones separately
             # (since they are quite easy to deal with, and a common use case
             # is to set only one neutrino to have mass)
             if m_nu.isscalar:
@@ -474,7 +474,7 @@ class FLRW(Cosmology):
         Returns
         -------
         Onu : ndarray, or float if input scalar
-          The energy density of photons relative to the critical
+          The energy density of neutrinos relative to the critical
           density at each redshift.  Note that this includes their
           kinetic energy (if they have mass), so it is not equal to
           the commonly used :math:`\\sum \\frac{m_{\\nu}}{94 eV}`,
@@ -572,7 +572,7 @@ class FLRW(Cosmology):
         # by computing the above for each mass, then summing
         prefac = 0.22710731766  # 7/8 (4/11)^4/3 -- see any cosmo book
 
-        # The massive and massless contribution must be handled seperately
+        # The massive and massless contribution must be handled separately
         # But check for common cases first
         if not self._massivenu:
             if np.isscalar(z):
@@ -589,7 +589,6 @@ class FLRW(Cosmology):
             rel_mass = rel_mass_per.sum() + self._nmasslessnu
         else:
             z = np.asarray(z)
-            retarr = np.empty_like(z)
             curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
             rel_mass_per = (1. + (0.3173 * curr_nu_y) ** p) ** invp
             rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
@@ -1360,7 +1359,7 @@ class LambdaCDM(FLRW):
         Returns
         -------
         E : ndarray, or float if input scalar
-          The redshift scaling of the Hubble consant.
+          The redshift scaling of the Hubble constant.
 
         Notes
         -----
@@ -1473,7 +1472,7 @@ class FlatLambdaCDM(LambdaCDM):
         Returns
         -------
         E : ndarray, or float if input scalar
-          The redshift scaling of the Hubble consant.
+          The redshift scaling of the Hubble constant.
 
         Notes
         -----
@@ -1656,7 +1655,7 @@ class wCDM(FLRW):
         Returns
         -------
         E : ndarray, or float if input scalar
-          The redshift scaling of the Hubble consant.
+          The redshift scaling of the Hubble constant.
 
         Notes
         -----
@@ -1782,7 +1781,7 @@ class FlatwCDM(wCDM):
         Returns
         -------
         E : ndarray, or float if input scalar
-          The redshift scaling of the Hubble consant.
+          The redshift scaling of the Hubble constant.
 
         Notes
         -----
