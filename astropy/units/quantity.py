@@ -954,7 +954,7 @@ class Quantity(np.ndarray):
             np.set_printoptions(threshold=threshold)
             # np.array is needed for the scalar case - value might be a float
             latex_value = np.array2string(np.array(self.value, copy=False),
-                                          style=Latex.format_exponential_notation, #scalar
+                                          style=Latex.format_exponential_notation,
                                           max_line_width=np.inf,
                                           formatter=formatter,
                                           separator=',~')
