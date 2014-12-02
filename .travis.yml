@@ -74,7 +74,7 @@ install:
     - source activate test
 
     # CORE DEPENDENCIES
-    - if [[ $SETUP_CMD == test* || $SETUP_CMD == build_sphinx* ]]; then conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION pytest pip Cython psutil; fi
+    - if [[ $SETUP_CMD == test* || $SETUP_CMD == build_sphinx* ]]; then conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION pytest pip Cython jinja2 psutil; fi
 
     # OPTIONAL DEPENDENCIES
     - if $OPTIONAL_DEPS; then conda install --yes numpy=$NUMPY_VERSION scipy h5py; fi
