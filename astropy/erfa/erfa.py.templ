@@ -24,8 +24,14 @@ dimension(s) are always the *last* dimension(s).  For example, if you
 want to give ten matricies (i.e., the ERFA input type is double[3][3]),
 you would pass in a (10, 3, 3) numpy array.  If the output of the ERFA
 function is scalar, you'll get back a length-10 1D array.
+
+Note that the Cython part of these functions are implemented in a separate
+module (compiled as ``_erfa``), derived from the ``erfa.pyx`` file.  Splitting
+the wrappers into separate pure-python and Cython portions dramatically reduces
+compilation time without notably impacting performance. (See issue [#3063] on the
+github repository for more about this.)
 """
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 import warnings
 from distutils.version import LooseVersion
