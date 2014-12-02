@@ -701,6 +701,8 @@ class TestQuantityDisplay(object):
         assert repr(bad_quantity).endswith(_UNIT_NOT_INITIALISED + '>')
 
     def test_repr_latex(self):
+        from ...units.quantity import conf
+
         q2scalar = u.Quantity(1.5e14, 'm/s')
         assert self.scalarintq._repr_latex_() == '$1 \\; \\mathrm{m}$'
         assert self.scalarfloatq._repr_latex_() == '$1.3 \\; \\mathrm{m}$'
@@ -714,9 +716,10 @@ class TestQuantityDisplay(object):
         qvbig = np.arange(10000)*1e9*u.m
 
         pops = np.get_printoptions()
+        oldlat = conf.latex_array_threshold
         try:
             #check thresholding behavior
-            np.set_printoptions(threshold=1000) # should be default
+            conf.latex_array_threshold = 100  # should be default
             lsmed = qmed._repr_latex_()
             assert r'\dots' not in lsmed
             lsbig = qbig._repr_latex_()
@@ -724,7 +727,7 @@ class TestQuantityDisplay(object):
             lsvbig = qvbig._repr_latex_()
             assert r'\dots' in lsvbig
 
-            np.set_printoptions(threshold=1001)
+            conf.latex_array_threshold = 1001
             lsmed = qmed._repr_latex_()
             assert r'\dots' not in lsmed
             lsbig = qbig._repr_latex_()
@@ -732,6 +735,8 @@ class TestQuantityDisplay(object):
             lsvbig = qvbig._repr_latex_()
             assert r'\dots' in lsvbig
 
+
+            conf.latex_array_threshold = -1  # means use the numpy threshold
             np.set_printoptions(threshold=99)
             lsmed = qmed._repr_latex_()
             assert r'\dots' in lsmed
@@ -742,6 +747,7 @@ class TestQuantityDisplay(object):
         finally:
             # prevent side-effects from influencing other tests
             np.set_printoptions(**pops)
+            conf.latex_array_threshold = oldlat
 
         qinfnan = [np.inf, -np.inf, np.nan] * u.m
         assert qinfnan._repr_latex_() == r'$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$'

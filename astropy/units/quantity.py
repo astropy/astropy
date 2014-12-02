@@ -27,6 +27,7 @@ from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import validate_power
+from .. import config as _config
 
 
 __all__ = ["Quantity"]
@@ -37,6 +38,25 @@ __doctest_skip__ = ['Quantity.*']
 
 
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
+
+
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for Quantity
+    """
+    latex_array_threshold = _config.ConfigItem(100, 'The maximum size an array '
+                                                    'Quantity can be before its'
+                                                    ' LaTeX representation for '
+                                                    'IPython gets "summarized" '
+                                                    '(meaning only the first '
+                                                    'and last few elements are'
+                                                    'shown with "..." between).'
+                                                    ' Setting this to a '
+                                                    'negative number means that'
+                                                    ' the value will instead be'
+                                                    ' whatever numpy gets from '
+                                                    'get_printoptions.')
+conf = Conf()
 
 
 def _can_have_arbitrary_unit(value):
@@ -929,11 +949,12 @@ class Quantity(np.ndarray):
         """
         Generate a latex representation of the quantity and its unit.
 
-        Note that the number of entries can be altered via the
-        `numpy.set_printoptions` function and its ``threshold`` keyword.  The
-        default value of 1000 for ``threshold will be replaced by 100 (because
-        many browsers have trouble rendering ~1000 entries), but any other value
-        will be respected.
+        The behavior of this function can be altered via the
+        `numpy.set_printoptions` function and its various keywords.  The
+        exception to this is the ``threshold`` keyword, which is controlled via
+        the ``[units.quantity]`` configuration item ``latex_array_threshold``.
+        This is treated separately because the numpy default of 1000 is too big
+        for most browsers to handle.
 
         Returns
         -------
@@ -944,14 +965,11 @@ class Quantity(np.ndarray):
         # with array2string
         pops = np.get_printoptions()
         try:
-            # We set the threshold here to 100 instead of the numpy default
-            # of 1000 because 1000 of these will cause some browsers to
-            # to grind to a halt trying to show it.
-            threshold = 100 if pops['threshold'] == 1000 else pops['threshold']
             formatter = {'all' : Latex.format_exponential_notation,
                          'str_kind': lambda x: x}
+            if conf.latex_array_threshold > -1:
+                np.set_printoptions(threshold=conf.latex_array_threshold)
 
-            np.set_printoptions(threshold=threshold)
             # np.array is needed for the scalar case - value might be a float
             latex_value = np.array2string(np.array(self.value, copy=False),
                                           style=Latex.format_exponential_notation,
