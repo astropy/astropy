@@ -895,18 +895,24 @@ class SkyCoord(object):
         A convenience method to create and return a new `SkyCoord` from the data
         in an astropy Table.
 
-        This method matches table columns that start with the (case-insensitive)
+        This method matches table columns that start with the case-insensitive
         names of the the components of the requested frames, if they are also
-        followed by a non-alphanumeric character (Based on Unicode's definition
-        of "alphanumeric"). Hence, columns with names like ``'RA[J2000]'`` or
-        ``'ra'`` will be interpreted as ``ra`` attributes for
-        `~astropy.coordinates.ICRS` frames, but ``'RAJ2000'`` or ``'radius'``
-        are *not*.
+        followed by a non-alphanumeric character. It will also match columns
+        that *end* with the component name if a non-alphanumeric character is
+        *before* it.
 
-        It will also match columns that *end* with the component name if a
-        non-alphanumeric character is before it.  So columns with names like
-        ``'gal_l'`` will work, but ``gall`` or ``'fill'`` will not (for galactic
-        coordinates, which have ``l`` and ``b`` attributes).
+        For example, the first rule means columns with names like
+        ``'RA[J2000]'`` or ``'ra'`` will be interpreted as ``ra`` attributes for
+        `~astropy.coordinates.ICRS` frames, but ``'RAJ2000'`` or ``'radius'``
+        are *not*. Similarly, the second rule applied to the
+        `~astropy.coordinates.Galactic` frame means that a column named
+        ``'gal_l'`` will be used as the the ``l`` component, but ``gall`` or
+        ``'fill'`` will not.
+
+        The definition of alphanumeric here is based on Unicode's definition
+        of alphanumeric, except without ``_`` (which is normally considered
+        alphanumeric).  So for ASCII, this means the non-alphanumeric characters
+        are ``<space>_!"#$%&'()*+,-./:;<=>?@[\]^`{|}~``).
 
         Parameters
         ----------
