@@ -264,6 +264,11 @@ API Changes
     method was a development orphan and would cause corruption of the
     table if called. [#2790]
 
+  - The return type for integer item access to a Column (e.g. col[12] or
+    t['a'][12]) is now always a numpy scalar, numpy ``ndarray``, or numpy
+    ``MaskedArray``.  Previously if the column was multidimensional then a
+    Column object would be returned. [#3095]
+
 - ``astropy.time``
 
   - The ``Time.val`` and ``Time.vals`` properties (deprecated in v0.3) and the

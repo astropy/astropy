@@ -12,6 +12,7 @@ from ...tests.helper import pytest, catch_warnings, assert_follows_unicode_guide
 from ...utils.exceptions import AstropyDeprecationWarning
 from ... import table
 from ... import units as u
+from ...extern import six
 
 NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
 
@@ -232,6 +233,35 @@ class TestColumn():
         with pytest.raises(TypeError):
             d3.quantity
 
+    def test_item_access_type(self, Column):
+        """
+        Tests for #3095, which forces integer item access to always return a plain
+        ndarray or MaskedArray, even in the case of a multi-dim column.
+        """
+        integer_types = (int, long, np.int) if six.PY2 else (int, np.int)
+
+        for int_type in integer_types:
+            c = Column([[1, 2], [3, 4]])
+            i0 = int_type(0)
+            i1 = int_type(1)
+            assert np.all(c[i0] == [1, 2])
+            assert type(c[i0]) == (np.ma.MaskedArray if hasattr(Column, 'mask') else np.ndarray)
+            assert c[i0].shape == (2,)
+
+            c01 = c[i0:i1]
+            assert np.all(c01 == [[1, 2]])
+            assert isinstance(c01, Column)
+            assert c01.shape == (1, 2)
+
+            c = Column([1, 2])
+            assert np.all(c[i0] == 1)
+            assert isinstance(c[i0], np.integer)
+            assert c[i0].shape == ()
+
+            c01 = c[i0:i1]
+            assert np.all(c01 == [1])
+            assert isinstance(c01, Column)
+            assert c01.shape == (1,)
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
