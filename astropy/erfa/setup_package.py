@@ -44,13 +44,19 @@ def _generate_erfa_wrapper():
     # include erfa.py and erfa.pyx.
     if all(os.path.exists(filename) for filename in GEN_FILES):
 
+        print("DEBUG: all output files present")
+
         # Determine modification times
         erfa_mtime = max(os.path.getmtime(filename) for filename in SRC_FILES)
         gen_mtime = min(os.path.getmtime(filename) for filename in GEN_FILES)
 
+        print("DEBUG: {0} {1}".format(erfa_mtime, gen_mtime))
+
         # If generated source is recent enough, don't update
         if gen_mtime > erfa_mtime:
             return
+
+    print("DEBUG: generating erfa.pyx and erfa.py")
 
     import imp
     gen = imp.load_source('cython_generator',
