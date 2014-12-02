@@ -140,11 +140,24 @@ dt_eraLDBODY = numpy.dtype([('bm','d'),
 {% for func in funcs %}
 def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}):
     """
-    {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }})
+    Wrapper for ERFA function ``{{ func.name }}``.
 
-    Returns: {{ func.args_by_inout('inout|out|ret')|map(attribute='name')|postfix('_out')|join(', ') }}
+    Parameters
+    ----------
+    {%- for arg in func.args_by_inout('in|inout') %}
+    {{ arg.name }} : {{ arg.ctype }} array
+    {%- endfor %}
 
-    ERFA documentation:
+    Returns
+    -------
+    {%- for arg in func.args_by_inout('inout|out|ret') %}
+    {{ arg.name }} : {{ arg.ctype }} array
+    {%- endfor %}
+
+    Notes
+    -----
+    The ERFA documentation is below.
+
 {{ func.doc }}
     """
 
