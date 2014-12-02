@@ -951,11 +951,12 @@ class Quantity(np.ndarray):
             formatter = {'all' : Latex.format_exponential_notation,
                          'str_kind': lambda x: x}
 
-            np.set_printoptions(threshold=threshold, formatter=formatter)
+            np.set_printoptions(threshold=threshold)
             # np.array is needed for the scalar case - value might be a float
             latex_value = np.array2string(np.array(self.value, copy=False),
                                           style=Latex.format_exponential_notation, #scalar
                                           max_line_width=np.inf,
+                                          formatter=formatter,
                                           separator=',~')
             latex_value = latex_value.replace('...', r'\dots')
         finally:
