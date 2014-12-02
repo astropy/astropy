@@ -2329,7 +2329,7 @@ class QuantityInput(object):
         Using equivalencies:
         
             import astropy.units as u
-            @u.quantity_input(myangle=u.eV, equivalencies=u.spectral())
+            @u.quantity_input(myenergy=u.eV, equivalencies=u.spectral())
             def myfunction(myenergy):
                 return myenergy**2
 
@@ -2373,7 +2373,7 @@ class QuantityInput(object):
                     arg = func_kwargs[var]
 
                 # If we are a kwarg without the default being overriden
-                elif not parameter.default is funcsigs.Parameter.empty:
+                elif parameter.default is not funcsigs.Parameter.empty:
                     arg = parameter.default
 
                 else:
@@ -2381,7 +2381,7 @@ class QuantityInput(object):
 
                 # If the target unit is empty, then no unit was specified so we
                 # move past it
-                if not target_unit is funcsigs.Parameter.empty:
+                if target_unit is not funcsigs.Parameter.empty:
                     try:
                         equivalent = arg.unit.is_equivalent(target_unit,
                                                   equivalencies=self.equivalencies)
@@ -2389,8 +2389,9 @@ class QuantityInput(object):
                         if not equivalent:
                             raise UnitsError("Argument '{0}' to function '{1}'"
                                              " must be in units convertable to"
-                                             " '{2}'.".format(
-                    var, wrapped_function.__name__, target_unit.to_string()))
+                                             " '{2}'.".format(var, 
+                                                     wrapped_function.__name__,
+                                                     target_unit.to_string()))
 
                     # AttributeError is raised if there is no `to` method.
                     # i.e. not something that quacks like a Quantity.
