@@ -78,3 +78,7 @@ def get_external_libraries():
 
 def requires_2to3():
     return False
+
+
+def get_package_data():
+    return {'astropy.erfa': ['erfa.py.templ', 'erfa.pyx.templ']}
