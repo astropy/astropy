@@ -72,7 +72,7 @@ def preprocess_source():
 
 
 def get_extensions():
-    sources = [os.path.join(ERFAPKGDIR, "erfa.pyx")]
+    sources = [os.path.join(ERFAPKGDIR, "core.pyx")]
     include_dirs = ['numpy']
     libraries = []
 
@@ -86,7 +86,7 @@ def get_extensions():
         include_dirs.append('cextern/erfa')
 
     erfa_ext = Extension(
-        name="astropy.erfa._erfa",
+        name="astropy.erfa._core",
         sources=sources,
         include_dirs=include_dirs,
         libraries=libraries,
@@ -104,4 +104,4 @@ def requires_2to3():
 
 
 def get_package_data():
-    return {'astropy.erfa': ['erfa.py.templ', 'erfa.pyx.templ']}
+    return {'astropy.erfa': ['core.py.templ', 'core.pyx.templ']}
