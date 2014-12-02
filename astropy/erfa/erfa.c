@@ -348,14 +348,13 @@ static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
             goto exit;
         }
         Py_INCREF(dtypes[i]);
-        arrs[i] = (PyArrayObject *)tmp;
         if (i < ninout) {
             if (PyArray_CopyInto((PyArrayObject *)tmp, arrs[i])) {
                 goto exit;
             }
             Py_DECREF(arrs[i]);
-            arrs[i] = (PyArrayObject *)tmp;
         }
+        arrs[i] = (PyArrayObject *)tmp;
     }
 
     setup_op_axes(iter_nd, narrs, arrs, extra_axes, op_axes);
