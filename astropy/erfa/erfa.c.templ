@@ -250,13 +250,20 @@ static int calculate_broadcast(int in_ndim, npy_intp *in_dim,
 }
 
 
-static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
-                           const int nin, const int ninout, PyArrayObject **arrs,
-                           PyArray_Descr **dtypes, const int *extra_axes,
-                           const npy_intp *extra_axes_shape, const char **arg_names)
+static int dummy_iternext(NpyIter *iter)
+{
+    return 0;
+}
+
+
+static int setup_iter(PyObject *args, const char *pyname, const int narrs,
+                      const int nin, const int ninout, PyArrayObject **arrs,
+                      PyArray_Descr **dtypes, const int *extra_axes,
+                      const npy_intp *extra_axes_shape, const char **arg_names,
+                      NpyIter **iter, NpyIter_IterNextFunc **iternext,
+                      char ***data)
 {
     int i, j;
-    NpyIter *iter = NULL;
     PyObject *tmp;
     int *op_axes[narrs];
     npy_uint32 flags[narrs];
@@ -270,6 +277,7 @@ static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
     PyObject *ptraceback;
     PyObject *pbytes;
     char *original_message;
+    int status = 1;
 
     for (i = 0; i < narrs; ++i) {
         arrs[i] = NULL;
@@ -357,14 +365,30 @@ static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
         arrs[i] = (PyArrayObject *)tmp;
     }
 
-    setup_op_axes(iter_nd, narrs, arrs, extra_axes, op_axes);
+    /* Prior to Numpy 1.8, we can't iterate over zero-dimensions.  In
+       that case, just create a fake iterator that will do one
+       step. */
+    if (iter_nd == 0) {
+        *iter = NULL;
+        *iternext = &dummy_iternext;
+        *data = malloc(sizeof(char *) * narrs);
+        for (i = 0; i < narrs; ++i) {
+            (*data)[i] = PyArray_DATA(arrs[i]);
+        }
+    } else {
+        setup_op_axes(iter_nd, narrs, arrs, extra_axes, op_axes);
 
-    iter = (NpyIter *)NpyIter_AdvancedNew(
-        narrs, arrs, 0, NPY_KEEPORDER, NPY_NO_CASTING, flags, dtypes,
-        iter_nd, op_axes, NULL, 8192);
-    if (iter == NULL) {
-        goto exit;
+        *iter = (NpyIter *)NpyIter_AdvancedNew(
+            narrs, arrs, 0, NPY_KEEPORDER, NPY_NO_CASTING, flags, dtypes,
+            iter_nd, op_axes, NULL, 8192);
+        if (*iter == NULL) {
+            goto exit;
+        }
+        *iternext = NpyIter_GetIterNext(*iter, NULL);
+        *data = NpyIter_GetDataPtrArray(*iter);
     }
+
+    status = 0;
 
  exit:
 
@@ -372,7 +396,7 @@ static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
         free(op_axes[i]);
     }
 
-    return iter;
+    return status;
 }
 
 
@@ -483,17 +507,14 @@ static PyObject *Py_{{ func.pyname }}(PyObject *self, PyObject *args, PyObject *
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         {%- for arg in func.args_by_inout('in|inout|out') %}
@@ -510,10 +531,13 @@ static PyObject *Py_{{ func.pyname }}(PyObject *self, PyObject *args, PyObject *
         {%- endfor %}
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);

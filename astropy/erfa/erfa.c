@@ -250,13 +250,20 @@ static int calculate_broadcast(int in_ndim, npy_intp *in_dim,
 }
 
 
-static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
-                           const int nin, const int ninout, PyArrayObject **arrs,
-                           PyArray_Descr **dtypes, const int *extra_axes,
-                           const npy_intp *extra_axes_shape, const char **arg_names)
+static int dummy_iternext(NpyIter *iter)
+{
+    return 0;
+}
+
+
+static int setup_iter(PyObject *args, const char *pyname, const int narrs,
+                      const int nin, const int ninout, PyArrayObject **arrs,
+                      PyArray_Descr **dtypes, const int *extra_axes,
+                      const npy_intp *extra_axes_shape, const char **arg_names,
+                      NpyIter **iter, NpyIter_IterNextFunc **iternext,
+                      char ***data)
 {
     int i, j;
-    NpyIter *iter = NULL;
     PyObject *tmp;
     int *op_axes[narrs];
     npy_uint32 flags[narrs];
@@ -270,6 +277,7 @@ static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
     PyObject *ptraceback;
     PyObject *pbytes;
     char *original_message;
+    int status = 1;
 
     for (i = 0; i < narrs; ++i) {
         arrs[i] = NULL;
@@ -357,14 +365,30 @@ static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
         arrs[i] = (PyArrayObject *)tmp;
     }
 
-    setup_op_axes(iter_nd, narrs, arrs, extra_axes, op_axes);
+    /* Prior to Numpy 1.8, we can't iterate over zero-dimensions.  In
+       that case, just create a fake iterator that will do one
+       step. */
+    if (iter_nd == 0) {
+        *iter = NULL;
+        *iternext = &dummy_iternext;
+        *data = malloc(sizeof(char *) * narrs);
+        for (i = 0; i < narrs; ++i) {
+            (*data)[i] = PyArray_DATA(arrs[i]);
+        }
+    } else {
+        setup_op_axes(iter_nd, narrs, arrs, extra_axes, op_axes);
 
-    iter = (NpyIter *)NpyIter_AdvancedNew(
-        narrs, arrs, 0, NPY_KEEPORDER, NPY_NO_CASTING, flags, dtypes,
-        iter_nd, op_axes, NULL, 8192);
-    if (iter == NULL) {
-        goto exit;
+        *iter = (NpyIter *)NpyIter_AdvancedNew(
+            narrs, arrs, 0, NPY_KEEPORDER, NPY_NO_CASTING, flags, dtypes,
+            iter_nd, op_axes, NULL, 8192);
+        if (*iter == NULL) {
+            goto exit;
+        }
+        *iternext = NpyIter_GetIterNext(*iter, NULL);
+        *data = NpyIter_GetDataPtrArray(*iter);
     }
+
+    status = 0;
 
  exit:
 
@@ -372,7 +396,7 @@ static NpyIter *setup_iter(PyObject *args, const char *pyname, const int narrs,
         free(op_axes[i]);
     }
 
-    return iter;
+    return status;
 }
 
 
@@ -652,17 +676,14 @@ static PyObject *Py_gd2gce(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _a = ((double *)(data[0]))[0];
@@ -678,10 +699,13 @@ static PyObject *Py_gd2gce(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -818,17 +842,14 @@ static PyObject *Py_fal03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -836,10 +857,13 @@ static PyObject *Py_fal03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -997,17 +1021,14 @@ static PyObject *Py_ttut1(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tt1 = ((double *)(data[0]))[0];
@@ -1022,10 +1043,13 @@ static PyObject *Py_ttut1(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -1243,17 +1267,14 @@ static PyObject *Py_ee06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -1262,10 +1283,13 @@ static PyObject *Py_ee06a(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -1485,17 +1509,14 @@ static PyObject *Py_jd2cal(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _dj1 = ((double *)(data[0]))[0];
@@ -1511,10 +1532,13 @@ static PyObject *Py_jd2cal(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -1870,17 +1894,14 @@ static PyObject *Py_xy06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -1890,10 +1911,13 @@ static PyObject *Py_xy06(PyObject *self, PyObject *args, PyObject *kwds)
         eraXy06(_date1, _date2, _x, _y);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -2015,17 +2039,14 @@ static PyObject *Py_epj2jd(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _epj = ((double *)(data[0]))[0];
@@ -2034,10 +2055,13 @@ static PyObject *Py_epj2jd(PyObject *self, PyObject *args, PyObject *kwds)
         eraEpj2jd(_epj, _djm0, _djm);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -2394,17 +2418,14 @@ static PyObject *Py_ldn(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _n = ((int *)(data[0]))[0];
@@ -2415,10 +2436,13 @@ static PyObject *Py_ldn(PyObject *self, PyObject *args, PyObject *kwds)
         eraLdn(_n, _b, _ob, _sc, _sn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -3232,17 +3256,14 @@ static PyObject *Py_apco13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _utc1 = ((double *)(data[0]))[0];
@@ -3266,10 +3287,13 @@ static PyObject *Py_apco13(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -3503,17 +3527,14 @@ static PyObject *Py_gd2gc(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _n = ((int *)(data[0]))[0];
@@ -3528,10 +3549,13 @@ static PyObject *Py_gd2gc(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -3688,17 +3712,14 @@ static PyObject *Py_tttai(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tt1 = ((double *)(data[0]))[0];
@@ -3712,10 +3733,13 @@ static PyObject *Py_tttai(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -4144,17 +4168,14 @@ static PyObject *Py_pvstar(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _pv = ((double *)(data[0]));
@@ -4171,10 +4192,13 @@ static PyObject *Py_pvstar(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -4870,17 +4894,14 @@ static PyObject *Py_atoi13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _type = ((const char *)(data[0]));
@@ -4907,10 +4928,13 @@ static PyObject *Py_atoi13(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -5196,17 +5220,14 @@ static PyObject *Py_ut1utc(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ut11 = ((double *)(data[0]))[0];
@@ -5221,10 +5242,13 @@ static PyObject *Py_ut1utc(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -5506,17 +5530,14 @@ static PyObject *Py_c2i00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -5525,10 +5546,13 @@ static PyObject *Py_c2i00b(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2i00b(_date1, _date2, _rc2i);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -5811,17 +5835,14 @@ static PyObject *Py_c2i00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -5830,10 +5851,13 @@ static PyObject *Py_c2i00a(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2i00a(_date1, _date2, _rc2i);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -6138,17 +6162,14 @@ static PyObject *Py_c2ibpn(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -6158,10 +6179,13 @@ static PyObject *Py_c2ibpn(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2ibpn(_date1, _date2, _rbpn, _rc2i);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -6595,17 +6619,14 @@ static PyObject *Py_apcg13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -6614,10 +6635,13 @@ static PyObject *Py_apcg13(PyObject *self, PyObject *args, PyObject *kwds)
         eraApcg13(_date1, _date2, _astrom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -6917,17 +6941,14 @@ static PyObject *Py_gst06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _uta = ((double *)(data[0]))[0];
@@ -6939,10 +6960,13 @@ static PyObject *Py_gst06(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[5]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -7177,17 +7201,14 @@ static PyObject *Py_c2tcio(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rc2i = ((double *)(data[0]));
@@ -7197,10 +7218,13 @@ static PyObject *Py_c2tcio(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2tcio(_rc2i, _era, _rpom, _rc2t);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -7444,17 +7468,14 @@ static PyObject *Py_eo06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -7463,10 +7484,13 @@ static PyObject *Py_eo06a(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -7755,17 +7779,14 @@ static PyObject *Py_pmat76(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -7774,10 +7795,13 @@ static PyObject *Py_pmat76(PyObject *self, PyObject *args, PyObject *kwds)
         eraPmat76(_date1, _date2, _rmatp);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -7929,17 +7953,14 @@ static PyObject *Py_fasa03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -7947,10 +7968,13 @@ static PyObject *Py_fasa03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -8286,17 +8310,14 @@ static PyObject *Py_atic13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ri = ((double *)(data[0]))[0];
@@ -8309,10 +8330,13 @@ static PyObject *Py_atic13(PyObject *self, PyObject *args, PyObject *kwds)
         eraAtic13(_ri, _di, _date1, _date2, _rc, _dc, _eo);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -8834,17 +8858,14 @@ static PyObject *Py_pmsafe(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ra1 = ((double *)(data[0]))[0];
@@ -8870,10 +8891,13 @@ static PyObject *Py_pmsafe(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -9385,17 +9409,14 @@ static PyObject *Py_starpv(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ra = ((double *)(data[0]))[0];
@@ -9412,10 +9433,13 @@ static PyObject *Py_starpv(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -9683,17 +9707,14 @@ static PyObject *Py_h2fk5(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rh = ((double *)(data[0]))[0];
@@ -9711,10 +9732,13 @@ static PyObject *Py_h2fk5(PyObject *self, PyObject *args, PyObject *kwds)
         eraH2fk5(_rh, _dh, _drh, _ddh, _pxh, _rvh, _r5, _d5, _dr5, _dd5, _px5, _rv5);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -9980,17 +10004,14 @@ static PyObject *Py_gmst82(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _dj1 = ((double *)(data[0]))[0];
@@ -9999,10 +10020,13 @@ static PyObject *Py_gmst82(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -10315,17 +10339,14 @@ static PyObject *Py_prec76(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date01 = ((double *)(data[0]))[0];
@@ -10338,10 +10359,13 @@ static PyObject *Py_prec76(PyObject *self, PyObject *args, PyObject *kwds)
         eraPrec76(_date01, _date02, _date11, _date12, _zeta, _z, _theta);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -10547,17 +10571,14 @@ static PyObject *Py_nutm80(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -10566,10 +10587,13 @@ static PyObject *Py_nutm80(PyObject *self, PyObject *args, PyObject *kwds)
         eraNutm80(_date1, _date2, _rmatn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -10751,17 +10775,14 @@ static PyObject *Py_numat(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _epsa = ((double *)(data[0]))[0];
@@ -10771,10 +10792,13 @@ static PyObject *Py_numat(PyObject *self, PyObject *args, PyObject *kwds)
         eraNumat(_epsa, _dpsi, _deps, _rmatn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -10914,17 +10938,14 @@ static PyObject *Py_faom03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -10932,10 +10953,13 @@ static PyObject *Py_faom03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -11190,17 +11214,14 @@ static PyObject *Py_xys00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -11211,10 +11232,13 @@ static PyObject *Py_xys00b(PyObject *self, PyObject *args, PyObject *kwds)
         eraXys00b(_date1, _date2, _x, _y, _s);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -11470,17 +11494,14 @@ static PyObject *Py_xys00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -11491,10 +11512,13 @@ static PyObject *Py_xys00a(PyObject *self, PyObject *args, PyObject *kwds)
         eraXys00a(_date1, _date2, _x, _y, _s);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -11850,17 +11874,14 @@ static PyObject *Py_eect00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -11869,10 +11890,13 @@ static PyObject *Py_eect00(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -12611,17 +12635,14 @@ static PyObject *Py_apio13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _utc1 = ((double *)(data[0]))[0];
@@ -12644,10 +12665,13 @@ static PyObject *Py_apio13(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -12927,17 +12951,14 @@ static PyObject *Py_utcut1(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _utc1 = ((double *)(data[0]))[0];
@@ -12952,10 +12973,13 @@ static PyObject *Py_utcut1(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -13653,17 +13677,14 @@ static PyObject *Py_atoc13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _type = ((const char *)(data[0]));
@@ -13690,10 +13711,13 @@ static PyObject *Py_atoc13(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -13918,17 +13942,14 @@ static PyObject *Py_pmat06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -13937,10 +13958,13 @@ static PyObject *Py_pmat06(PyObject *self, PyObject *args, PyObject *kwds)
         eraPmat06(_date1, _date2, _rbp);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -14471,17 +14495,14 @@ static PyObject *Py_apcs(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -14493,10 +14514,13 @@ static PyObject *Py_apcs(PyObject *self, PyObject *args, PyObject *kwds)
         eraApcs(_date1, _date2, _pv, _ebpv, _ehp, _astrom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -14719,17 +14743,14 @@ static PyObject *Py_pmat00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -14738,10 +14759,13 @@ static PyObject *Py_pmat00(PyObject *self, PyObject *args, PyObject *kwds)
         eraPmat00(_date1, _date2, _rbp);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -15382,17 +15406,14 @@ static PyObject *Py_plan94(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -15406,10 +15427,13 @@ static PyObject *Py_plan94(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -16126,17 +16150,14 @@ static PyObject *Py_apco(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -16159,10 +16180,13 @@ static PyObject *Py_apco(PyObject *self, PyObject *args, PyObject *kwds)
         eraApco(_date1, _date2, _ebpv, _ehp, _x, _y, _s, _theta, _elong, _phi, _hm, _xp, _yp, _sp, _refa, _refb, _astrom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -16449,17 +16473,14 @@ static PyObject *Py_pvtob(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _elong = ((double *)(data[0]))[0];
@@ -16473,10 +16494,13 @@ static PyObject *Py_pvtob(PyObject *self, PyObject *args, PyObject *kwds)
         eraPvtob(_elong, _phi, _hm, _xp, _yp, _sp, _theta, _pv);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -16966,17 +16990,14 @@ static PyObject *Py_apci(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -16990,10 +17011,13 @@ static PyObject *Py_apci(PyObject *self, PyObject *args, PyObject *kwds)
         eraApci(_date1, _date2, _ebpv, _ehp, _x, _y, _s, _astrom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -17429,17 +17453,14 @@ static PyObject *Py_apcg(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -17450,10 +17471,13 @@ static PyObject *Py_apcg(PyObject *self, PyObject *args, PyObject *kwds)
         eraApcg(_date1, _date2, _ebpv, _ehp, _astrom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -17679,17 +17703,14 @@ static PyObject *Py_num00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -17698,10 +17719,13 @@ static PyObject *Py_num00b(PyObject *self, PyObject *args, PyObject *kwds)
         eraNum00b(_date1, _date2, _rmatn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -17928,17 +17952,14 @@ static PyObject *Py_num00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -17947,10 +17968,13 @@ static PyObject *Py_num00a(PyObject *self, PyObject *args, PyObject *kwds)
         eraNum00a(_date1, _date2, _rmatn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -18215,17 +18239,14 @@ static PyObject *Py_utctai(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _utc1 = ((double *)(data[0]))[0];
@@ -18239,10 +18260,13 @@ static PyObject *Py_utctai(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -18394,17 +18418,14 @@ static PyObject *Py_faju03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -18412,10 +18433,13 @@ static PyObject *Py_faju03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -18725,17 +18749,14 @@ static PyObject *Py_s00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -18744,10 +18765,13 @@ static PyObject *Py_s00a(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -19056,17 +19080,14 @@ static PyObject *Py_s00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -19075,10 +19096,13 @@ static PyObject *Py_s00b(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -19453,17 +19477,14 @@ static PyObject *Py_atci13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rc = ((double *)(data[0]))[0];
@@ -19480,10 +19501,13 @@ static PyObject *Py_atci13(PyObject *self, PyObject *args, PyObject *kwds)
         eraAtci13(_rc, _dc, _pr, _pd, _px, _rv, _date1, _date2, _ri, _di, _eo);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -19755,17 +19779,14 @@ static PyObject *Py_bp06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -19776,10 +19797,13 @@ static PyObject *Py_bp06(PyObject *self, PyObject *args, PyObject *kwds)
         eraBp06(_date1, _date2, _rb, _rp, _rbp);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -19917,17 +19941,14 @@ static PyObject *Py_falp03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -19935,10 +19956,13 @@ static PyObject *Py_falp03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -20145,17 +20169,14 @@ static PyObject *Py_bi00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _dpsibi = ((double *)(data[0]));
@@ -20164,10 +20185,13 @@ static PyObject *Py_bi00(PyObject *self, PyObject *args, PyObject *kwds)
         eraBi00(_dpsibi, _depsbi, _dra);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -20470,17 +20494,14 @@ static PyObject *Py_bp00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -20491,10 +20512,13 @@ static PyObject *Py_bp00(PyObject *self, PyObject *args, PyObject *kwds)
         eraBp00(_date1, _date2, _rb, _rp, _rbp);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -20738,17 +20762,14 @@ static PyObject *Py_ee00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -20757,10 +20778,13 @@ static PyObject *Py_ee00a(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -21031,17 +21055,14 @@ static PyObject *Py_ee00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -21050,10 +21071,13 @@ static PyObject *Py_ee00b(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -21269,17 +21293,14 @@ static PyObject *Py_sp00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -21288,10 +21309,13 @@ static PyObject *Py_sp00(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -21846,17 +21870,14 @@ static PyObject *Py_refco(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _phpa = ((double *)(data[0]))[0];
@@ -21868,10 +21889,13 @@ static PyObject *Py_refco(PyObject *self, PyObject *args, PyObject *kwds)
         eraRefco(_phpa, _tc, _rh, _wl, _refa, _refb);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -22347,17 +22371,14 @@ static PyObject *Py_atioq(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ri = ((double *)(data[0]))[0];
@@ -22371,10 +22392,13 @@ static PyObject *Py_atioq(PyObject *self, PyObject *args, PyObject *kwds)
         eraAtioq(_ri, _di, _astrom, _aob, _zob, _hob, _dob, _rob);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -22580,17 +22604,14 @@ static PyObject *Py_cal2jd(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _iy = ((int *)(data[0]))[0];
@@ -22605,10 +22626,13 @@ static PyObject *Py_cal2jd(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -23080,17 +23104,14 @@ static PyObject *Py_apcs13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -23100,10 +23121,13 @@ static PyObject *Py_apcs13(PyObject *self, PyObject *args, PyObject *kwds)
         eraApcs13(_date1, _date2, _pv, _astrom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -23383,17 +23407,14 @@ static PyObject *Py_c2ixy(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -23404,10 +23425,13 @@ static PyObject *Py_c2ixy(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2ixy(_date1, _date2, _x, _y, _rc2i);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -23621,17 +23645,14 @@ static PyObject *Py_ab(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _pnat = ((double *)(data[0]));
@@ -23642,10 +23663,13 @@ static PyObject *Py_ab(PyObject *self, PyObject *args, PyObject *kwds)
         eraAb(_pnat, _v, _s, _bm1, _ppr);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -23972,17 +23996,14 @@ static PyObject *Py_s06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -23993,10 +24014,13 @@ static PyObject *Py_s06(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[4]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -24339,17 +24363,14 @@ static PyObject *Py_s00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -24360,10 +24381,13 @@ static PyObject *Py_s00(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[4]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -24667,17 +24691,14 @@ static PyObject *Py_pr00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -24687,10 +24708,13 @@ static PyObject *Py_pr00(PyObject *self, PyObject *args, PyObject *kwds)
         eraPr00(_date1, _date2, _dpsipr, _depspr);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -25054,17 +25078,14 @@ static PyObject *Py_dtf2d(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _scale = ((const char *)(data[0]));
@@ -25083,10 +25104,13 @@ static PyObject *Py_dtf2d(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -25344,17 +25368,14 @@ static PyObject *Py_xys06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -25365,10 +25386,13 @@ static PyObject *Py_xys06a(PyObject *self, PyObject *args, PyObject *kwds)
         eraXys06a(_date1, _date2, _x, _y, _s);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -25600,17 +25624,14 @@ static PyObject *Py_era00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _dj1 = ((double *)(data[0]))[0];
@@ -25619,10 +25640,13 @@ static PyObject *Py_era00(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -26146,17 +26170,14 @@ static PyObject *Py_starpm(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ra1 = ((double *)(data[0]))[0];
@@ -26182,10 +26203,13 @@ static PyObject *Py_starpm(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -26488,17 +26512,14 @@ static PyObject *Py_ld(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _bm = ((double *)(data[0]))[0];
@@ -26511,10 +26532,13 @@ static PyObject *Py_ld(PyObject *self, PyObject *args, PyObject *kwds)
         eraLd(_bm, _p, _q, _e, _em, _dlim, _p1);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -26665,17 +26689,14 @@ static PyObject *Py_fave03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -26683,10 +26704,13 @@ static PyObject *Py_fave03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -27133,17 +27157,14 @@ static PyObject *Py_aper13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ut11 = ((double *)(data[0]))[0];
@@ -27152,10 +27173,13 @@ static PyObject *Py_aper13(PyObject *self, PyObject *args, PyObject *kwds)
         eraAper13(_ut11, _ut12, _astrom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -27544,17 +27568,14 @@ static PyObject *Py_pn06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -27570,10 +27591,13 @@ static PyObject *Py_pn06a(PyObject *self, PyObject *args, PyObject *kwds)
         eraPn06a(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -27834,17 +27858,14 @@ static PyObject *Py_ee00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -27855,10 +27876,13 @@ static PyObject *Py_ee00(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[4]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -28130,17 +28154,14 @@ static PyObject *Py_gst06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _uta = ((double *)(data[0]))[0];
@@ -28151,10 +28172,13 @@ static PyObject *Py_gst06a(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[4]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -28373,17 +28397,14 @@ static PyObject *Py_pmpx(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rc = ((double *)(data[0]))[0];
@@ -28398,10 +28419,13 @@ static PyObject *Py_pmpx(PyObject *self, PyObject *args, PyObject *kwds)
         eraPmpx(_rc, _dc, _pr, _pd, _px, _rv, _pmt, _pob, _pco);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -28552,17 +28576,14 @@ static PyObject *Py_fk5hip(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _r5h = ((double *)(data[0]));
@@ -28570,10 +28591,13 @@ static PyObject *Py_fk5hip(PyObject *self, PyObject *args, PyObject *kwds)
         eraFk5hip(_r5h, _s5h);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -28763,17 +28787,14 @@ static PyObject *Py_obl06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -28782,10 +28803,13 @@ static PyObject *Py_obl06(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -28946,17 +28970,14 @@ static PyObject *Py_eors(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rnpb = ((double *)(data[0]));
@@ -28965,10 +28986,13 @@ static PyObject *Py_eors(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -29191,17 +29215,14 @@ static PyObject *Py_gc2gd(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _n = ((int *)(data[0]))[0];
@@ -29216,10 +29237,13 @@ static PyObject *Py_gc2gd(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -29885,17 +29909,14 @@ static PyObject *Py_dtdb(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -29908,10 +29929,13 @@ static PyObject *Py_dtdb(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[6]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -30138,17 +30162,14 @@ static PyObject *Py_pnm06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -30157,10 +30178,13 @@ static PyObject *Py_pnm06a(PyObject *self, PyObject *args, PyObject *kwds)
         eraPnm06a(_date1, _date2, _rnpb);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -30685,17 +30709,14 @@ static PyObject *Py_apio(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _sp = ((double *)(data[0]))[0];
@@ -30711,10 +30732,13 @@ static PyObject *Py_apio(PyObject *self, PyObject *args, PyObject *kwds)
         eraApio(_sp, _theta, _elong, _phi, _hm, _xp, _yp, _refa, _refb, _astrom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -31380,17 +31404,14 @@ static PyObject *Py_atio13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ri = ((double *)(data[0]))[0];
@@ -31419,10 +31440,13 @@ static PyObject *Py_atio13(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -31659,17 +31683,14 @@ static PyObject *Py_c2teqx(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rbpn = ((double *)(data[0]));
@@ -31679,10 +31700,13 @@ static PyObject *Py_c2teqx(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2teqx(_rbpn, _gst, _rpom, _rc2t);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -32346,17 +32370,14 @@ static PyObject *Py_nut00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -32366,10 +32387,13 @@ static PyObject *Py_nut00a(PyObject *self, PyObject *args, PyObject *kwds)
         eraNut00a(_date1, _date2, _dpsi, _deps);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -32905,17 +32929,14 @@ static PyObject *Py_nut00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -32925,10 +32946,13 @@ static PyObject *Py_nut00b(PyObject *self, PyObject *args, PyObject *kwds)
         eraNut00b(_date1, _date2, _dpsi, _deps);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -33079,17 +33103,14 @@ static PyObject *Py_fae03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -33097,10 +33118,13 @@ static PyObject *Py_fae03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -33534,17 +33558,14 @@ static PyObject *Py_pn00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -33560,10 +33581,13 @@ static PyObject *Py_pn00b(PyObject *self, PyObject *args, PyObject *kwds)
         eraPn00b(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -33770,17 +33794,14 @@ static PyObject *Py_nut80(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -33790,10 +33811,13 @@ static PyObject *Py_nut80(PyObject *self, PyObject *args, PyObject *kwds)
         eraNut80(_date1, _date2, _dpsi, _deps);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -33933,17 +33957,14 @@ static PyObject *Py_fane03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -33951,10 +33972,13 @@ static PyObject *Py_fane03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -34283,17 +34307,14 @@ static PyObject *Py_hfk5z(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rh = ((double *)(data[0]))[0];
@@ -34307,10 +34328,13 @@ static PyObject *Py_hfk5z(PyObject *self, PyObject *args, PyObject *kwds)
         eraHfk5z(_rh, _dh, _date1, _date2, _r5, _d5, _dr5, _dd5);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -34700,17 +34724,14 @@ static PyObject *Py_epv00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -34724,10 +34745,13 @@ static PyObject *Py_epv00(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -35026,17 +35050,14 @@ static PyObject *Py_gmst00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _uta = ((double *)(data[0]))[0];
@@ -35047,10 +35068,13 @@ static PyObject *Py_gmst00(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[4]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -35249,17 +35273,14 @@ static PyObject *Py_c2ixys(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _x = ((double *)(data[0]))[0];
@@ -35269,10 +35290,13 @@ static PyObject *Py_c2ixys(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2ixys(_x, _y, _s, _rc2i);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -35537,17 +35561,14 @@ static PyObject *Py_gmst06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _uta = ((double *)(data[0]))[0];
@@ -35558,10 +35579,13 @@ static PyObject *Py_gmst06(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[4]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -36042,17 +36066,14 @@ static PyObject *Py_atciqn(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rc = ((double *)(data[0]))[0];
@@ -36069,10 +36090,13 @@ static PyObject *Py_atciqn(PyObject *self, PyObject *args, PyObject *kwds)
         eraAtciqn(_rc, _dc, _pr, _pd, _px, _rv, _astrom, _n, _b, _ri, _di);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -36195,17 +36219,14 @@ static PyObject *Py_epb2jd(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _epb = ((double *)(data[0]))[0];
@@ -36214,10 +36235,13 @@ static PyObject *Py_epb2jd(PyObject *self, PyObject *args, PyObject *kwds)
         eraEpb2jd(_epb, _djm0, _djm);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -36551,17 +36575,14 @@ static PyObject *Py_c2t00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tta = ((double *)(data[0]))[0];
@@ -36574,10 +36595,13 @@ static PyObject *Py_c2t00a(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2t00a(_tta, _ttb, _uta, _utb, _xp, _yp, _rc2t);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -36931,17 +36955,14 @@ static PyObject *Py_c2txy(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tta = ((double *)(data[0]))[0];
@@ -36956,10 +36977,13 @@ static PyObject *Py_c2txy(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2txy(_tta, _ttb, _uta, _utb, _x, _y, _xp, _yp, _rc2t);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -37250,17 +37274,14 @@ static PyObject *Py_atciqz(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rc = ((double *)(data[0]))[0];
@@ -37271,10 +37292,13 @@ static PyObject *Py_atciqz(PyObject *self, PyObject *args, PyObject *kwds)
         eraAtciqz(_rc, _dc, _astrom, _ri, _di);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -37434,17 +37458,14 @@ static PyObject *Py_ldsun(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _p = ((double *)(data[0]));
@@ -37454,10 +37475,13 @@ static PyObject *Py_ldsun(PyObject *self, PyObject *args, PyObject *kwds)
         eraLdsun(_p, _e, _em, _p1);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -37891,17 +37915,14 @@ static PyObject *Py_pn00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -37917,10 +37938,13 @@ static PyObject *Py_pn00a(PyObject *self, PyObject *args, PyObject *kwds)
         eraPn00a(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -38301,17 +38325,14 @@ static PyObject *Py_c2tpe(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tta = ((double *)(data[0]))[0];
@@ -38326,10 +38347,13 @@ static PyObject *Py_c2tpe(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2tpe(_tta, _ttb, _uta, _utb, _dpsi, _deps, _xp, _yp, _rc2t);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -38840,17 +38864,14 @@ static PyObject *Py_dat(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _iy = ((int *)(data[0]))[0];
@@ -38865,10 +38886,13 @@ static PyObject *Py_dat(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -39197,17 +39221,14 @@ static PyObject *Py_c2t00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tta = ((double *)(data[0]))[0];
@@ -39220,10 +39241,13 @@ static PyObject *Py_c2t00b(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2t00b(_tta, _ttb, _uta, _utb, _xp, _yp, _rc2t);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -39433,17 +39457,14 @@ static PyObject *Py_eqeq94(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -39452,10 +39473,13 @@ static PyObject *Py_eqeq94(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -39709,17 +39733,14 @@ static PyObject *Py_c2i06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -39728,10 +39749,13 @@ static PyObject *Py_c2i06a(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2i06a(_date1, _date2, _rc2i);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -39974,17 +39998,14 @@ static PyObject *Py_gc2gde(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _a = ((double *)(data[0]))[0];
@@ -40000,10 +40021,13 @@ static PyObject *Py_gc2gde(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -40226,17 +40250,14 @@ static PyObject *Py_num06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -40245,10 +40266,13 @@ static PyObject *Py_num06a(PyObject *self, PyObject *args, PyObject *kwds)
         eraNum06a(_date1, _date2, _rmatn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -40399,17 +40423,14 @@ static PyObject *Py_fama03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -40417,10 +40438,13 @@ static PyObject *Py_fama03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -40558,17 +40582,14 @@ static PyObject *Py_fad03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -40576,10 +40597,13 @@ static PyObject *Py_fad03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -40890,17 +40914,14 @@ static PyObject *Py_s06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -40909,10 +40930,13 @@ static PyObject *Py_s06a(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -41214,17 +41238,14 @@ static PyObject *Py_gst00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _uta = ((double *)(data[0]))[0];
@@ -41235,10 +41256,13 @@ static PyObject *Py_gst00a(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[4]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -41558,17 +41582,14 @@ static PyObject *Py_gst00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _uta = ((double *)(data[0]))[0];
@@ -41577,10 +41598,13 @@ static PyObject *Py_gst00b(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -41744,17 +41768,14 @@ static PyObject *Py_bpn2xy(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rbpn = ((double *)(data[0]));
@@ -41763,10 +41784,13 @@ static PyObject *Py_bpn2xy(PyObject *self, PyObject *args, PyObject *kwds)
         eraBpn2xy(_rbpn, _x, _y);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -41970,17 +41994,14 @@ static PyObject *Py_tttdb(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tt1 = ((double *)(data[0]))[0];
@@ -41995,10 +42016,13 @@ static PyObject *Py_tttdb(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -42150,17 +42174,14 @@ static PyObject *Py_fame03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -42168,10 +42189,13 @@ static PyObject *Py_fame03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -42614,17 +42638,14 @@ static PyObject *Py_atoiq(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _type = ((const char *)(data[0]));
@@ -42636,10 +42657,13 @@ static PyObject *Py_atoiq(PyObject *self, PyObject *args, PyObject *kwds)
         eraAtoiq(_type, _ob1, _ob2, _astrom, _ri, _di);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -42796,17 +42820,14 @@ static PyObject *Py_taitt(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tai1 = ((double *)(data[0]))[0];
@@ -42820,10 +42841,13 @@ static PyObject *Py_taitt(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -43139,17 +43163,14 @@ static PyObject *Py_nut06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -43159,10 +43180,13 @@ static PyObject *Py_nut06a(PyObject *self, PyObject *args, PyObject *kwds)
         eraNut06a(_date1, _date2, _dpsi, _deps);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -43360,17 +43384,14 @@ static PyObject *Py_obl80(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -43379,10 +43400,13 @@ static PyObject *Py_obl80(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -43611,17 +43635,14 @@ static PyObject *Py_tcbtdb(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tcb1 = ((double *)(data[0]))[0];
@@ -43635,10 +43656,13 @@ static PyObject *Py_tcbtdb(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -43873,17 +43897,14 @@ static PyObject *Py_pnm00b(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -43892,10 +43913,13 @@ static PyObject *Py_pnm00b(PyObject *self, PyObject *args, PyObject *kwds)
         eraPnm00b(_date1, _date2, _rbpn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -44652,17 +44676,14 @@ static PyObject *Py_atco13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rc = ((double *)(data[0]))[0];
@@ -44696,10 +44717,13 @@ static PyObject *Py_atco13(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -44934,17 +44958,14 @@ static PyObject *Py_pnm00a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -44953,10 +44974,13 @@ static PyObject *Py_pnm00a(PyObject *self, PyObject *args, PyObject *kwds)
         eraPnm00a(_date1, _date2, _rbpn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -45122,17 +45146,14 @@ static PyObject *Py_taiut1(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tai1 = ((double *)(data[0]))[0];
@@ -45147,10 +45168,13 @@ static PyObject *Py_taiut1(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -45379,17 +45403,14 @@ static PyObject *Py_pnm80(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -45398,10 +45419,13 @@ static PyObject *Py_pnm80(PyObject *self, PyObject *args, PyObject *kwds)
         eraPnm80(_date1, _date2, _rmatpn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -45618,17 +45642,14 @@ static PyObject *Py_pom00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _xp = ((double *)(data[0]))[0];
@@ -45638,10 +45659,13 @@ static PyObject *Py_pom00(PyObject *self, PyObject *args, PyObject *kwds)
         eraPom00(_xp, _yp, _sp, _rpom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -45782,17 +45806,14 @@ static PyObject *Py_faf03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -45800,10 +45821,13 @@ static PyObject *Py_faf03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -46129,17 +46153,14 @@ static PyObject *Py_c2t06a(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tta = ((double *)(data[0]))[0];
@@ -46152,10 +46173,13 @@ static PyObject *Py_c2t06a(PyObject *self, PyObject *args, PyObject *kwds)
         eraC2t06a(_tta, _ttb, _uta, _utb, _xp, _yp, _rc2t);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -46474,17 +46498,14 @@ static PyObject *Py_d2dtf(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _scale = ((const char *)(data[0]));
@@ -46502,10 +46523,13 @@ static PyObject *Py_d2dtf(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -46786,17 +46810,14 @@ static PyObject *Py_pfw06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -46808,10 +46829,13 @@ static PyObject *Py_pfw06(PyObject *self, PyObject *args, PyObject *kwds)
         eraPfw06(_date1, _date2, _gamb, _phib, _psib, _epsa);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -47116,17 +47140,14 @@ static PyObject *Py_fk5hz(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _r5 = ((double *)(data[0]))[0];
@@ -47138,10 +47159,13 @@ static PyObject *Py_fk5hz(PyObject *self, PyObject *args, PyObject *kwds)
         eraFk5hz(_r5, _d5, _date1, _date2, _rh, _dh);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -47290,17 +47314,14 @@ static PyObject *Py_tttcg(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tt1 = ((double *)(data[0]))[0];
@@ -47314,10 +47335,13 @@ static PyObject *Py_tttcg(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -47859,17 +47883,14 @@ static PyObject *Py_p06e(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -47893,10 +47914,13 @@ static PyObject *Py_p06e(PyObject *self, PyObject *args, PyObject *kwds)
         eraP06e(_date1, _date2, _eps0, _psia, _oma, _bpa, _bqa, _pia, _bpia, _epsa, _chia, _za, _zetaa, _thetaa, _pa, _gam, _phi, _psi);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -48180,17 +48204,14 @@ static PyObject *Py_aticq(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ri = ((double *)(data[0]))[0];
@@ -48201,10 +48222,13 @@ static PyObject *Py_aticq(PyObject *self, PyObject *args, PyObject *kwds)
         eraAticq(_ri, _di, _astrom, _rc, _dc);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -48419,17 +48443,14 @@ static PyObject *Py_eform(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _n = ((int *)(data[0]))[0];
@@ -48442,10 +48463,13 @@ static PyObject *Py_eform(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -48710,17 +48734,14 @@ static PyObject *Py_gst94(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _uta = ((double *)(data[0]))[0];
@@ -48729,10 +48750,13 @@ static PyObject *Py_gst94(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -49148,17 +49172,14 @@ static PyObject *Py_pn06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -49174,10 +49195,13 @@ static PyObject *Py_pn06(PyObject *self, PyObject *args, PyObject *kwds)
         eraPn06(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -49606,17 +49630,14 @@ static PyObject *Py_pn00(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -49632,10 +49653,13 @@ static PyObject *Py_pn00(PyObject *self, PyObject *args, PyObject *kwds)
         eraPn00(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -49829,17 +49853,14 @@ static PyObject *Py_fw2xy(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _gamb = ((double *)(data[0]))[0];
@@ -49851,10 +49872,13 @@ static PyObject *Py_fw2xy(PyObject *self, PyObject *args, PyObject *kwds)
         eraFw2xy(_gamb, _phib, _psi, _eps, _x, _y);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -50099,17 +50123,14 @@ static PyObject *Py_fw2m(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _gamb = ((double *)(data[0]))[0];
@@ -50120,10 +50141,13 @@ static PyObject *Py_fw2m(PyObject *self, PyObject *args, PyObject *kwds)
         eraFw2m(_gamb, _phib, _psi, _eps, _r);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -50289,17 +50313,14 @@ static PyObject *Py_ut1tai(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ut11 = ((double *)(data[0]))[0];
@@ -50314,10 +50335,13 @@ static PyObject *Py_ut1tai(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -50546,17 +50570,14 @@ static PyObject *Py_tdbtcb(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tdb1 = ((double *)(data[0]))[0];
@@ -50570,10 +50591,13 @@ static PyObject *Py_tdbtcb(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -51023,17 +51047,14 @@ static PyObject *Py_aticqn(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ri = ((double *)(data[0]))[0];
@@ -51046,10 +51067,13 @@ static PyObject *Py_aticqn(PyObject *self, PyObject *args, PyObject *kwds)
         eraAticqn(_ri, _di, _astrom, _n, _b, _rc, _dc);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -51308,17 +51332,14 @@ static PyObject *Py_taiutc(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tai1 = ((double *)(data[0]))[0];
@@ -51332,10 +51353,13 @@ static PyObject *Py_taiutc(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -51475,17 +51499,14 @@ static PyObject *Py_faur03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -51493,10 +51514,13 @@ static PyObject *Py_faur03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -51732,17 +51756,14 @@ static PyObject *Py_jdcalf(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ndp = ((int *)(data[0]))[0];
@@ -51756,10 +51777,13 @@ static PyObject *Py_jdcalf(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -52019,17 +52043,14 @@ static PyObject *Py_fk52h(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _r5 = ((double *)(data[0]))[0];
@@ -52047,10 +52068,13 @@ static PyObject *Py_fk52h(PyObject *self, PyObject *args, PyObject *kwds)
         eraFk52h(_r5, _d5, _dr5, _dd5, _px5, _rv5, _rh, _dh, _drh, _ddh, _pxh, _rvh);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -52254,17 +52278,14 @@ static PyObject *Py_tdbtt(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tdb1 = ((double *)(data[0]))[0];
@@ -52279,10 +52300,13 @@ static PyObject *Py_tdbtt(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -52405,17 +52429,14 @@ static PyObject *Py_epj(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _dj1 = ((double *)(data[0]))[0];
@@ -52424,10 +52445,13 @@ static PyObject *Py_epj(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -52746,17 +52770,14 @@ static PyObject *Py_atciq(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _rc = ((double *)(data[0]))[0];
@@ -52771,10 +52792,13 @@ static PyObject *Py_atciq(PyObject *self, PyObject *args, PyObject *kwds)
         eraAtciq(_rc, _dc, _pr, _pd, _px, _rv, _astrom, _ri, _di);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -52933,17 +52957,14 @@ static PyObject *Py_ut1tt(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _ut11 = ((double *)(data[0]))[0];
@@ -52958,10 +52979,13 @@ static PyObject *Py_ut1tt(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -53085,17 +53109,14 @@ static PyObject *Py_epb(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _dj1 = ((double *)(data[0]))[0];
@@ -53104,10 +53125,13 @@ static PyObject *Py_epb(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[2]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -53259,17 +53283,14 @@ static PyObject *Py_fapa03(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _t = ((double *)(data[0]))[0];
@@ -53277,10 +53298,13 @@ static PyObject *Py_fapa03(PyObject *self, PyObject *args, PyObject *kwds)
         ((double *)(data[1]))[0] = _c_retval;
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -53429,17 +53453,14 @@ static PyObject *Py_tcgtt(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _tcg1 = ((double *)(data[0]))[0];
@@ -53453,10 +53474,13 @@ static PyObject *Py_tcgtt(PyObject *self, PyObject *args, PyObject *kwds)
         }
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -53748,17 +53772,14 @@ static PyObject *Py_pb06(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -53769,10 +53790,13 @@ static PyObject *Py_pb06(PyObject *self, PyObject *args, PyObject *kwds)
         eraPb06(_date1, _date2, _bzeta, _bz, _btheta);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -54139,17 +54163,14 @@ static PyObject *Py_aper(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _theta = ((double *)(data[0]))[0];
@@ -54157,10 +54178,13 @@ static PyObject *Py_aper(PyObject *self, PyObject *args, PyObject *kwds)
         eraAper(_theta, _astrom);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
@@ -54629,17 +54653,14 @@ static PyObject *Py_apci13(PyObject *self, PyObject *args, PyObject *kwds)
     int stat_ok = 1;
     NpyIter *iter = NULL;
     NpyIter_IterNextFunc *iternext = NULL;
-    char **data;
+    char **data = NULL;
     PyObject *result = NULL;
 
-    iter = setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
-                      extra_axes, extra_axes_shape, arg_names);
-    if (iter == NULL) {
+    if (setup_iter(args, pyname, narrs, nin, ninout, arrs, dtypes,
+                   extra_axes, extra_axes_shape, arg_names, &iter,
+                   &iternext, &data)) {
         goto exit;
     }
-
-    iternext = NpyIter_GetIterNext(iter, NULL);
-    data = NpyIter_GetDataPtrArray(iter);
 
     do {
         _date1 = ((double *)(data[0]))[0];
@@ -54649,10 +54670,13 @@ static PyObject *Py_apci13(PyObject *self, PyObject *args, PyObject *kwds)
         eraApci13(_date1, _date2, _astrom, _eo);
     } while (iternext(iter));
 
-    if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
-        goto exit;
+    if (iter != NULL) {
+        if (NpyIter_Deallocate(iter) != NPY_SUCCEED) {
+            goto exit;
+        }
+    } else {
+        free(data);
     }
-    iter = NULL;
 
     result = make_result(pyname, narrs, nin, nout, stat_index, stat_ok, arrs,
                          nerrorcodes, errorcodes, nwarningcodes, warningcodes);
