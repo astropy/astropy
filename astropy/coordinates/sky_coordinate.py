@@ -1,5 +1,6 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import re
 import collections
 
 import numpy as np
@@ -828,6 +829,7 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
+    # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
         """
         Convert this coordinate to pixel coordinates using a `~astropy.wcs.WCS`
@@ -886,7 +888,81 @@ class SkyCoord(object):
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
+    # Table interactions
+    @classmethod
+    def guess_from_table(cls, table, **coord_kwargs):
+        """
+        A convenience method to create and return a new `SkyCoord` from the data
+        in an astropy Table.
 
+        This method matches table columns that start with the case-insensitive
+        names of the the components of the requested frames, if they are also
+        followed by a non-alphanumeric character. It will also match columns
+        that *end* with the component name if a non-alphanumeric character is
+        *before* it.
+
+        For example, the first rule means columns with names like
+        ``'RA[J2000]'`` or ``'ra'`` will be interpreted as ``ra`` attributes for
+        `~astropy.coordinates.ICRS` frames, but ``'RAJ2000'`` or ``'radius'``
+        are *not*. Similarly, the second rule applied to the
+        `~astropy.coordinates.Galactic` frame means that a column named
+        ``'gal_l'`` will be used as the the ``l`` component, but ``gall`` or
+        ``'fill'`` will not.
+
+        The definition of alphanumeric here is based on Unicode's definition
+        of alphanumeric, except without ``_`` (which is normally considered
+        alphanumeric).  So for ASCII, this means the non-alphanumeric characters
+        are ``<space>_!"#$%&'()*+,-./:;<=>?@[\]^`{|}~``).
+
+        Parameters
+        ----------
+        table : astropy.Table
+            The table to load data from.
+        coord_kwargs
+            Any additional keyword arguments are passed directly to this class's
+            constructor.
+
+        Returns
+        -------
+        newsc : same as this class
+            The new `SkyCoord` (or subclass) object.
+        """
+        inital_frame = coord_kwargs.get('frame')
+        frame = _get_frame([], coord_kwargs)
+        coord_kwargs['frame'] = inital_frame
+
+        comp_kwargs = {}
+        for comp_name in frame.representation_component_names:
+            # this matches things like 'ra[...]'' but *not* 'rad'.
+            # note that the "_" must be in there explicitly, because
+            # "alphanumeric" usually includes underscores.
+            starts_with_comp = comp_name + r'(\W|\b|_)'
+            # this part matches stuff like 'center_ra', but *not*
+            # 'aura'
+            ends_with_comp = r'.*(\W|\b|_)' + comp_name + r'\b'
+            #the final regex ORs together the two patterns
+            rex = re.compile('(' +starts_with_comp + ')|(' + ends_with_comp + ')',
+                             re.IGNORECASE | re.UNICODE)
+
+            for col_name in table.colnames:
+                if rex.match(col_name):
+                    if comp_name in comp_kwargs:
+                        oldname = comp_kwargs[comp_name].name
+                        msg = ('Found at least two matches for  component "{0}"'
+                               ': "{1}" and "{2}". Cannot continue with this '
+                               'ambiguity.')
+                        raise ValueError(msg.format(comp_name, oldname, col_name))
+                    comp_kwargs[comp_name] = table[col_name]
+
+        for k, v in comp_kwargs.items():
+            if k in coord_kwargs:
+                raise ValueError('Found column "{0}" in table, but it was '
+                                 'already provided as "{1}" keyword to '
+                                 'guess_from_table function.'.format(v.name, k))
+            else:
+                coord_kwargs[k] = v
+
+        return cls(**coord_kwargs)
 
     # Name resolve
     @classmethod

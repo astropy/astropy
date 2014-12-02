@@ -875,3 +875,73 @@ def test_init_with_frame_instance_positional():
     with pytest.raises(ValueError) as exc:
         SkyCoord(3 * u.deg, 4 * u.deg, SkyCoord(1. * u.deg, 2 * u.deg, equinox='J2010'))
     assert exc.value.args[0] == "SkyCoord cannot be used as frame as a positional argument, pass it using the frame= keyword instead."
+
+
+def test_guess_from_table():
+    from ...table import Table, Column
+    from ...utils import NumpyRNGContext
+
+    tab = Table()
+    with NumpyRNGContext(987654321):
+        tab.add_column(Column(data=np.random.rand(1000),unit='deg',name='RA[J2000]'))
+        tab.add_column(Column(data=np.random.rand(1000),unit='deg',name='DEC[J2000]'))
+
+    sc = SkyCoord.guess_from_table(tab)
+    npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
+    npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
+
+    # try without units in the table
+    tab['RA[J2000]'].unit = None
+    tab['DEC[J2000]'].unit = None
+    # should fail if not given explicitly
+    with pytest.raises(u.UnitsError):
+        sc2 = SkyCoord.guess_from_table(tab)
+
+    # but should work if provided
+    sc2 = SkyCoord.guess_from_table(tab, unit=u.deg)
+    npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
+    npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
+
+    # should fail if two options are available - ambiguity bad!
+    tab.add_column(Column(data=np.random.rand(1000), name='RA_J1900'))
+    with pytest.raises(ValueError) as excinfo:
+        sc3 = SkyCoord.guess_from_table(tab, unit=u.deg)
+    assert 'J1900' in excinfo.value.args[0] and 'J2000' in excinfo.value.args[0]
+
+    # should also fail if user specifies something already in the table, but
+    # should succeed even if the user has to give one of the components
+    tab.remove_column('RA_J1900')
+    with pytest.raises(ValueError):
+        sc3 = SkyCoord.guess_from_table(tab, ra=tab['RA[J2000]'], unit=u.deg)
+
+    oldra = tab['RA[J2000]']
+    tab.remove_column('RA[J2000]')
+    sc3 = SkyCoord.guess_from_table(tab, ra=oldra, unit=u.deg)
+    npt.assert_array_equal(sc3.ra.deg, oldra)
+    npt.assert_array_equal(sc3.dec.deg, tab['DEC[J2000]'])
+
+    # check a few non-ICRS/spherical systems
+    x, y, z = np.arange(3).reshape(3, 1) * u.pc
+    l, b = np.arange(2).reshape(2, 1) * u.deg
+
+    tabcart = Table([x, y, z], names=('x', 'y', 'z'))
+    tabgal = Table([b, l], names=('b', 'l'))
+
+    sc_cart = SkyCoord.guess_from_table(tabcart, representation='cartesian')
+    npt.assert_array_equal(sc_cart.x, x)
+    npt.assert_array_equal(sc_cart.y, y)
+    npt.assert_array_equal(sc_cart.z, z)
+
+    sc_gal = SkyCoord.guess_from_table(tabgal, frame='galactic')
+    npt.assert_array_equal(sc_gal.l, l)
+    npt.assert_array_equal(sc_gal.b, b)
+
+    #also try some column names that *end* with the attribute name
+    tabgal['b'].name = 'gal_b'
+    tabgal['l'].name = 'gal_l'
+    SkyCoord.guess_from_table(tabgal, frame='galactic')
+
+    tabgal['gal_b'].name = 'blob'
+    tabgal['gal_l'].name = 'central'
+    with pytest.raises(ValueError):
+        SkyCoord.guess_from_table(tabgal, frame='galactic')
