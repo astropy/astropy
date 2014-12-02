@@ -90,13 +90,13 @@ will be extracted), or the lower-case version of a frame name as a string,
 e.g. ``"fk4"``::
 
   >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
-  >>> sc = SkyCoord(coords, FK4, unit=(u.hourangle, u.deg), obstime="J1992.21")
-  >>> sc = SkyCoord(coords, FK4(obstime="J1992.21"), unit=(u.hourangle, u.deg))
-  >>> sc = SkyCoord(coords, 'fk4', unit='hourangle,deg', obstime="J1992.21")
+  >>> sc = SkyCoord(coords, frame=FK4, unit=(u.hourangle, u.deg), obstime="J1992.21")
+  >>> sc = SkyCoord(coords, frame=FK4(obstime="J1992.21"), unit=(u.hourangle, u.deg))
+  >>> sc = SkyCoord(coords, frame='fk4', unit='hourangle,deg', obstime="J1992.21")
 
-  >>> sc = SkyCoord("1h12m43.2s", "+1d12m43s", Galactic)  # Units from strings
-  >>> sc = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
-  >>> sc = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
+  >>> sc = SkyCoord("1h12m43.2s", "+1d12m43s", frame=Galactic)  # Units from strings
+  >>> sc = SkyCoord("1h12m43.2s +1d12m43s", frame=Galactic)  # Units from string
+  >>> sc = SkyCoord(l="1h12m43.2s", b="+1d12m43s", frame='galactic')
 
 Note that frame instances with data and `~astropy.coordinates.SkyCoord` instances
 can only be passed as frames using the ``frame=`` keyword argument and not as
@@ -108,7 +108,7 @@ as a form of input::
   >>> ra = Longitude([1, 2, 3], unit=u.deg)  # Could also use Angle
   >>> dec = np.array([4.5, 5.2, 6.3]) * u.deg  # Astropy Quantity
   >>> sc = SkyCoord(ra, dec, frame='icrs')
-  >>> sc = SkyCoord(ICRS, ra=ra, dec=dec, obstime='2001-01-02T12:34:56')
+  >>> sc = SkyCoord(ra=ra, dec=dec, frame=ICRS, obstime='2001-01-02T12:34:56')
 
 Finally it is possible to initialize from a low-level coordinate frame object.
 
