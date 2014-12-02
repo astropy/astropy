@@ -64,7 +64,8 @@ def _generate_erfa_wrapper():
 
     gen.main(gen.DEFAULT_ERFA_LOC,
              os.path.join(ERFAPKGDIR, 'erfa.py'),
-             gen.DEFAULT_TEMPLATE_LOC)
+             gen.DEFAULT_TEMPLATE_LOC,
+             verbose=False)
 
 
 def get_extensions():
