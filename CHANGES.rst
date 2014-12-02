@@ -34,7 +34,8 @@ New Features
     argument. [#3063]
 
   - ``SkyCoord`` now has a ``guess_from_table`` method that can be used to
-    quickly create ``SkyCoord`` objects from an ``astropy.table.Table`` object.
+    quickly create ``SkyCoord`` objects from an ``astropy.table.Table`` 
+    object. [#2951]
 
 - ``astropy.cosmology``
 
