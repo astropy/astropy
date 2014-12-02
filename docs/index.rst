@@ -17,8 +17,6 @@ Astropy Core Package Documentation
 ##################################
 
 .. image:: astropy_banner_96.png
-    :width: 485px
-    :height: 96px
     :target: http://www.astropy.org/
 
 Welcome to the Astropy documentation! Astropy is a community-driven
