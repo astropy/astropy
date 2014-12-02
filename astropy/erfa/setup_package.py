@@ -44,10 +44,6 @@ def _generate_erfa_wrapper():
     # include erfa.py and erfa.pyx.
     if all(os.path.exists(filename) for filename in GEN_FILES):
 
-        # If templates don't exist, we are in a release so can exit
-        if any(not os.path.exists(filename) for filename in SRC_FILES):
-            return
-
         # Determine modification times
         erfa_mtime = max(os.path.getmtime(filename) for filename in SRC_FILES)
         gen_mtime = min(os.path.getmtime(filename) for filename in GEN_FILES)
