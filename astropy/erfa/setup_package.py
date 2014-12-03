@@ -9,7 +9,7 @@ from astropy_helpers import setup_helpers
 
 ERFAPKGDIR = os.path.relpath(os.path.dirname(__file__))
 
-ERFA_SRC = os.path.abspath(os.path.join('..','..','cextern','erfa'))
+ERFA_SRC = os.path.abspath(os.path.join(ERFAPKGDIR, '..','..','cextern','erfa'))
 
 SRC_FILES = glob.glob(os.path.join(ERFA_SRC, '*'))
 SRC_FILES += [os.path.join(ERFAPKGDIR, filename)
@@ -52,7 +52,7 @@ def get_extensions():
         libraries.append('erfa')
     else:
         # get all of the .c files in the cextern/erfa directory
-        erfafns = os.listdir(os.path.join(ERFAPKGDIR, '..', '..', 'cextern', 'erfa'))
+        erfafns = os.listdir(ERFA_SRC)
         sources.extend(['cextern/erfa/'+fn for fn in erfafns if fn.endswith('.c')])
 
         include_dirs.append('cextern/erfa')
