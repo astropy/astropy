@@ -9,11 +9,11 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import copy
 import decimal
+from distutils import version
 
 import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
-from distutils import version
 NUMPY_VERSION = version.LooseVersion(np.__version__)
 
 from ...tests.helper import raises, pytest
@@ -708,6 +708,11 @@ class TestQuantityDisplay(object):
         assert self.scalarfloatq._repr_latex_() == '$1.3 \\; \\mathrm{m}$'
         assert (q2scalar._repr_latex_() ==
                 '$1.5 \\times 10^{14} \\; \\mathrm{\\frac{m}{s}}$')
+
+        if NUMPY_VERSION < version.LooseVersion('1.7.0'):
+            with pytest.raises(NotImplementedError):
+                self.arrq._repr_latex_()
+            return  # all arrays should fail
 
         assert self.arrq._repr_latex_() == '$[1,~2.3,~8.9] \; \mathrm{m}$'
 
