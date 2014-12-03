@@ -113,6 +113,87 @@ def check_trailing_shape(arr, shape, name):
     except:
         raise ValueError("{0} must be of trailing dimensions {1}".format(name, shape))
 
+#<--------------------------calculate broadcast shape------------------------->
+
+def calculate_broadcast(in_dim, out_dim):
+    in_ndim = len(in_dim)
+    out_ndim = len(out_dim)
+    if in_ndim > out_ndim:
+    	out_dim += [1]*(in_ndim-out_ndim)
+    for i in range(in_ndim):
+        _in = in_dim[in_ndim - i - 1]
+        _out = out_dim[i]
+        if (_in != _out):
+            if (_out == 1):
+                out_dim[i] = _in
+            elif (_in == 1):
+                pass
+            else:
+                raise Exception("Input arrays are not broadcastable")
+
+#<-----------------------------Iterator definition---------------------------->
+
+def setup_iter(args, args_dtype, args_shape, args_name, nin):
+
+    #Turn all inputs into arrays
+    for i in range(len(args)):
+        args[i] = numpy.array(args[i], dtype=args_dtype[i], order="C", copy=False, subok=True)
+        if len(args_shape[i]) > 0:
+            check_trailing_shape(args[i], args_shape[i], args_name[i])
+
+    #Avoid 0d/scalars in numpy < 1.8
+    make_output_scalar = False
+    if NPYLT18:
+        make_outputs_scalar = True
+        for i in range(len(args)):
+            if args[i].shape == tuple():
+                args[i] = args[i].reshape((1,)+args_shape[i])
+            else:
+                make_outputs_scalar = False
+
+    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
+    iter_shape = []
+    for i in range(len(args)):
+        calculate_broadcast(args[i].shape[:len(args[i].shape)-len(args_shape[i])], iter_shape)
+    iter_shape = iter_shape[::-1]
+    for i in range(nin, len(args_dtype)):
+        arg_out = numpy.empty(iter_shape + list(args_shape[i]), dtype=args_dtype[i])
+        if i < len(args):
+            numpy.copyto(arg_out, args[i])
+            args[i] = arg_out
+        else:
+            args += [arg_out]
+
+    #Create the iterator, broadcasting on all but the consumed dimensions
+    op_axes = [[-1]*(len(iter_shape)-len(args[i].shape)+len(args_shape[i])) + list(range(len(args[i].shape)-len(args_shape[i]))) for i in range(len(args))]
+    op_flags = [['readonly']]*nin + [['readwrite']]*(len(args)-nin)
+    it = numpy.nditer(args, op_axes=op_axes, op_flags=op_flags)
+
+    return it, make_output_scalar
+
+#<---------------------------------Make results------------------------------->
+
+def make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar):
+
+    if not stat_ok:
+        check_errwarn(args[-1], func_name)
+
+    #Drop status code froms args
+    if args_name[-1] == 'c_statval':
+        args = args[:-1]
+
+    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
+    if make_outputs_scalar:
+        for i in range(nin, len(args)):
+            assert len(args[i].shape) > 0 and args[i].shape[0] == 1
+            args[i] = args[i][0]
+
+    result = args[nin:]
+    if len(result) == 1:
+        result = result[0]
+
+    return result
+
 #<--------------------------Actual ERFA-wrapping code------------------------->
 
 dt_eraASTROM = numpy.dtype([('pmt','d'),
@@ -167,44 +248,14 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
 {{ func.doc }}
     """
 
-    #Turn all inputs into arrays
-    {%- for arg in func.args_by_inout('in|inout') %}
-    {{ arg.name }}_in = numpy.array({{ arg.name }}, dtype={{ arg.dtype }}, order="C", copy=False, subok=True)
-    {%- endfor %}
-    {%- for arg in func.args_by_inout('in|inout') %}
-    {%- if arg.ndim > 0 %}
-    check_trailing_shape({{ arg.name }}_in, {{ arg.shape }}, "{{arg.name}}")
-    {%- endif %}
-    {%- endfor %}
+    func_name = "{{ func.pyname }}"
+    args = [{{ func.args_by_inout('in|inout')|map(attribute='name')|join(', ') }}]
+    args_dtype = [{{ func.args_by_inout('in|inout|out|ret|stat')|map(attribute='dtype')|join(', ') }}]
+    args_shape = [{{ func.args_by_inout('in|inout|out|ret|stat')|map(attribute='shape')|join(', ') }}]
+    args_name = [{{ func.args_by_inout('in|inout|out|ret|stat')|map(attribute='name')|surround('"', '"')|join(', ') }}]
+    nin = {{ func.args_by_inout('in')|length }}
 
-    {%- if func.args_by_inout('in|inout') %}
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        {%- for arg in func.args_by_inout('in|inout') %}
-        if {{ arg.name_in_broadcast }}.shape == tuple():
-            {{ arg.name }}_in = {{ arg.name }}_in.reshape((1,) + {{ arg.name }}_in.shape)
-        else:
-            make_outputs_scalar = False
-        {%- endfor %}
-    {%- endif %}
-
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), {{ func.args_by_inout('in|inout')|map(attribute='name_in_broadcast')|join(', ') }})
-    {%- for arg in func.args_by_inout('inout|out|ret|stat') %}
-    {{ arg.name }}_out = numpy.empty(broadcast.shape + {{ arg.shape }}, dtype={{ arg.dtype }})
-    {%- endfor %}
-    {%- for arg in func.args_by_inout('inout') %}
-    numpy.copyto({{ arg.name }}_out, {{ arg.name }}_in)
-    {%- endfor %}
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [{{ (func.args_by_inout('in')|map(attribute='name_in_broadcast')|list + func.args_by_inout('inout|out|ret|stat')|map(attribute='name_out_broadcast')|list)|join(', ') }}]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*{{ func.args_by_inout('in')|count }} + [['readwrite']]*{{ func.args_by_inout('inout|out|ret|stat')|count }}
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _core._{{ func.pyname }}(it)

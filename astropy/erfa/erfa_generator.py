@@ -218,7 +218,7 @@ class ReturnDoc(object):
 class Return(object):
 
     def __init__(self, ctype, doc):
-        self.name = 'c_retval'
+        self.name = 'c_statval' if ctype == 'int' else 'c_retval'
         self.name_out_broadcast = self.name+"_out"
         self.inout_state = 'stat' if ctype == 'int' else 'ret'
         self.ctype = ctype

@@ -65,9 +65,7 @@ def _{{ func.pyname }}(it):
     {%- for arg in func.args_by_inout('in|inout|out|ret|stat') %}
     cdef {{ arg.ctype_ptr }} _{{ arg.name }}
     {%- endfor %}
-    {%- if func.args_by_inout('stat')|length > 0 %}
     cdef bint stat_ok = True
-    {%- endif %}
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -84,8 +82,6 @@ def _{{ func.pyname }}(it):
             stat_ok = False
         {%- endfor %}
         status = iternext(GetNpyIter(it))
-    {%- if func.args_by_inout('stat')|length > 0 %}
     return stat_ok
-    {%- endif %}
 
 {% endfor %}
