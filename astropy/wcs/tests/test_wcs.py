@@ -670,17 +670,6 @@ def test_printwcs():
     w.printwcs()
 
 
-def test_has_distorion():
-
-    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
-    w = wcs.WCS(header)
-    assert not w.has_distortion
-
-    header = get_pkg_data_filename('data/sip.fits')
-    w = wcs.WCS(header)
-    assert w.has_distortion
-
-
 def test_invalid_spherical():
     header = six.text_type("""
 SIMPLE  =                    T / conforms to FITS standard
