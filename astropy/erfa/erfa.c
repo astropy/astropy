@@ -12,7 +12,17 @@
 #include "erfa.h"
 
 
-const char *module_docstring =
+#if PY_MAJOR_VERSION >= 3
+#define PY3K 1
+#else
+#define PY3K 0
+#ifndef Py_TYPE
+  #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
+#endif
+#endif
+
+
+static const char *const module_docstring =
     "This module uses Cython to wrap the ERFA library in numpy-vectorized\n"
     "equivalents.\n"
     "\n"
@@ -82,7 +92,7 @@ static PyObject *format_errors(int nerrors, const char **messages,
                                int *counts)
 {
     int i;
-    int uniques;
+    int uniques = 0;
     PyObject *str;
     PyObject *substr;
     PyObject *tmp;
@@ -145,6 +155,7 @@ static int check_errwarn(PyArrayObject *stat, const char *name, int nerrors,
     int warning_count = 0;
     int *warning_counts = NULL;
     PyObject *str;
+    PyObject *tmp;
     int result = 1;
 
     if (nerrors) {
@@ -178,7 +189,17 @@ static int check_errwarn(PyArrayObject *stat, const char *name, int nerrors,
         if (str == NULL) {
             goto exit;
         }
-        PyErr_Warn(ErfaWarning, PyString_AsString(str));
+        tmp = PyUnicode_AsUTF8String(str);
+        if (tmp == NULL) {
+            Py_DECREF(str);
+            goto exit;
+        }
+        if (PyErr_Warn(ErfaWarning, PyBytes_AsString(tmp))) {
+            Py_DECREF(tmp);
+            Py_DECREF(str);
+            goto exit;
+        }
+        Py_DECREF(tmp);
         Py_DECREF(str);
         result = 0;
     } else {
@@ -272,10 +293,11 @@ static int setup_iter(PyObject *args, const char *pyname, const int narrs,
     int out_nd = 0;
     npy_intp out_dims[NPY_MAXDIMS];
     const npy_intp *extra_axes_shape_p;
-    PyObject *ptype;
-    PyObject *pvalue;
-    PyObject *ptraceback;
-    PyObject *pbytes;
+    PyObject *ptype = NULL;
+    PyObject *pvalue = NULL;
+    PyObject *ptraceback = NULL;
+    PyObject *punicode = NULL;
+    PyObject *pbytes = NULL;
     char *original_message;
     int status = 1;
 
@@ -311,14 +333,20 @@ static int setup_iter(PyObject *args, const char *pyname, const int narrs,
                               NPY_MAXDIMS, NPY_C_CONTIGUOUS, 0);
         if (tmp == NULL) {
             PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-            pbytes = PyObject_Bytes(pvalue);
-            if (pbytes == NULL) {
-                original_message = "";
-            } else {
-                original_message = PyBytes_AsString(pbytes);
+            original_message = "";
+            punicode = PyUnicode_FromObject(pvalue);
+            if (punicode != NULL) {
+                pbytes = PyUnicode_AsUTF8String(punicode);
+                if (pbytes != NULL) {
+                    original_message = PyBytes_AsString(pbytes);
+                }
+                Py_DECREF(punicode);
             }
             PyErr_Format(ptype, "Arg %d (%s): %s",
                          i, arg_names[i], original_message);
+            Py_XDECREF(ptype);
+            Py_XDECREF(pvalue);
+            Py_XDECREF(ptraceback);
             Py_XDECREF(pbytes);
             goto exit;
         }
@@ -54868,7 +54896,7 @@ struct module_state
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     "_erfa",
-    module_docstring,
+    NULL,
     sizeof(struct module_state),
     module_functions,
     NULL,

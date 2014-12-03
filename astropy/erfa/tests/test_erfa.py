@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from ...extern import six
+
 import numpy as np
 from .. import _erfa as erfa
 from ...tests.helper import pytest
@@ -44,7 +46,10 @@ def test_check_trailing_shape():
 def test_argument_types():
     with pytest.raises(TypeError) as e:
         erfa.ldn(0, 0, 0, 0)
-    assert "Arg 1 (b): expected a readable buffer object" in str(e)
+    if six.PY3:
+        assert "Arg 1 (b): expected an object with a buffer interface" in str(e)
+    else:
+        assert "Arg 1 (b): expected a readable buffer object" in str(e)
 
 
 
