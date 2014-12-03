@@ -107,7 +107,7 @@ def test_configitem_options(tmpdir):
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
     f = tmpdir.join('astropy.cfg')
-    with io.open(f.strpath, 'w', encoding='utf-8') as fd:
+    with io.open(f.strpath, 'wb') as fd:
         apycfg.write(fd)
     with io.open(f.strpath, 'rU', encoding='utf-8') as fd:
         lns = [x.strip() for x in f.readlines()]
