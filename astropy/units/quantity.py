@@ -963,29 +963,29 @@ class Quantity(np.ndarray):
         """
         if NUMPY_LT_1P7:
             if self.isscalar:
-                pass
+                latex_value = Latex.format_exponential_notation(self.value)
             else:
                 raise NotImplementedError('Cannot represent Quantity arrays '
                                           'in LaTex format for numpy < v1.7.')
+        else:
+            # need to do try/finally because "threshold" cannot be overridden
+            # with array2string
+            pops = np.get_printoptions()
+            try:
+                formatter = {'all' : Latex.format_exponential_notation,
+                             'str_kind': lambda x: x}
+                if conf.latex_array_threshold > -1:
+                    np.set_printoptions(threshold=conf.latex_array_threshold,
+                                        formatter=formatter)
 
-        # need to do try/finally because "threshold" cannot be overridden
-        # with array2string
-        pops = np.get_printoptions()
-        try:
-            formatter = {'all' : Latex.format_exponential_notation,
-                         'str_kind': lambda x: x}
-            if conf.latex_array_threshold > -1:
-                np.set_printoptions(threshold=conf.latex_array_threshold,
-                                    formatter=formatter)
-
-            # the view is needed for the scalar case - value might be a float
-            latex_value = np.array2string(self.view(np.ndarray),
-                                          style=Latex.format_exponential_notation,
-                                          max_line_width=np.inf,
-                                          separator=',~')
-            latex_value = latex_value.replace('...', r'\dots')
-        finally:
-            np.set_printoptions(**pops)
+                # the view is needed for the scalar case - value might be float
+                latex_value = np.array2string(self.view(np.ndarray),
+                                              style=Latex.format_exponential_notation,
+                                              max_line_width=np.inf,
+                                              separator=',~')
+                latex_value = latex_value.replace('...', r'\dots')
+            finally:
+                np.set_printoptions(**pops)
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
