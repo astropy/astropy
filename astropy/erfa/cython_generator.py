@@ -335,8 +335,13 @@ class Function(object):
 
 
 
-def main(srcdir, outfn, templateloc):
+def main(srcdir, outfn, templateloc, verbose=True):
     from jinja2 import Environment, FileSystemLoader
+
+    if verbose:
+        print_ = lambda *args, **kwargs: print(*args, **kwargs)
+    else:
+        print_ = lambda *args, **kwargs: None
 
     #Prepare the jinja2 templating environment
     env = Environment(loader=FileSystemLoader(templateloc))
@@ -369,11 +374,11 @@ def main(srcdir, outfn, templateloc):
     section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
                                               erfa_h, flags=re.DOTALL|re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
-        print("{0}.{1}".format(section, subsection))
+        print_("{0}.{1}".format(section, subsection))
         if section == "Astronomy":
             func_names = re.findall(' (\w+)\(.*?\);', functions, flags=re.DOTALL)
             for name in func_names:
-                print("{0}.{1}.{2}...".format(section, subsection, name))
+                print_("{0}.{1}.{2}...".format(section, subsection, name))
                 if multifilserc:
                     # easy because it just looks in the file itself
                     funcs.append(Function(name, srcdir))
@@ -398,18 +403,18 @@ def main(srcdir, outfn, templateloc):
                                          "spawned it.  This should be "
                                          "impossible!")
 
-    print("Rendering template")
+    print_("Rendering template")
     erfa_pyx = erfa_pyx_in.render(funcs=funcs)
     erfa_py  = erfa_py_in.render(funcs=funcs)
 
     if outfn is not None:
-        print("Saving to", outfn)
+        print_("Saving to", outfn)
         with open(outfn, "w") as f:
             f.write(erfa_py)
         with open(outfn+"x", "w") as f:
             f.write(erfa_pyx)
 
-    print("Done!")
+    print_("Done!")
 
     return erfa_pyx, funcs
 
@@ -433,6 +438,8 @@ if __name__ == '__main__':
                     default=DEFAULT_TEMPLATE_LOC,
                     help='the location where the "erfa.pyx.templ" '
                          'template can be found.')
+    ap.add_argument('-q', '--quiet', action='store_false', dest='verbose',
+                    help='Suppress output normally printed to stdout.')
 
     args = ap.parse_args()
     main(args.srcdir, args.output, args.template_loc)
