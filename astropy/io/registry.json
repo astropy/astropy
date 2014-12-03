@@ -1,0 +1,37 @@
+{
+  "ascii": {
+    "identify": true,
+    "module": "astropy.io.ascii.connect",
+    "read": true,
+    "supported_class": "astropy.table.table.Table",
+    "write": true
+  },
+  "fits": {
+    "identify": true,
+    "module": "astropy.io.fits.connect",
+    "read": true,
+    "supported_class": "astropy.table.table.Table",
+    "write": true
+  },
+  "hdf5": {
+    "identify": true,
+    "module": "astropy.io.misc.hdf5",
+    "read": true,
+    "supported_class": "astropy.table.table.Table",
+    "write": true
+  },
+  "jsviewer": {
+    "identify": false,
+    "module": "astropy.table.jsviewer",
+    "read": false,
+    "supported_class": "astropy.table.table.Table",
+    "write": true
+  },
+  "votable": {
+    "identify": true,
+    "module": "astropy.io.votable.connect",
+    "read": true,
+    "supported_class": "astropy.table.table.Table",
+    "write": true
+  }
+}
