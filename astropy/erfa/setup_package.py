@@ -27,14 +27,10 @@ class ERFAExtension(Extension):
     and build.
     """
 
-    @property
-    def include_dirs(self):
-        _generate_erfa_wrapper()
-        return self._include_dirs
-
-    @include_dirs.setter
-    def include_dirs(self, value):
-        self._include_dirs = value
+    def __getattribute__(self, attr):
+        if attr == 'include_dirs':
+            _generate_erfa_wrapper()
+        return Extension.__getattribute__(self, attr)
 
 
 def _generate_erfa_wrapper():
