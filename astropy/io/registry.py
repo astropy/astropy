@@ -24,6 +24,7 @@ _builtin_registered = False
 _readers = OrderedDict()
 _writers = OrderedDict()
 _identifiers = OrderedDict()
+_formats = OrderedDict()
 
 BUILTIN_ASCII_FORMATS = ['aastex', 'basic', 'cds', 'commented_header', 'csv',
                          'daophot', 'fast_basic', 'fast_commented_header',
@@ -37,53 +38,53 @@ BUILTIN_ASCII_FORMATS = ['aastex', 'basic', 'cds', 'commented_header', 'csv',
 def _register_builtins():
 
     global _builtin_registered
-
-    if not _builtin_registered:
-
-        from ..table import Table
-
-        _builtin_registered = True
-
-        # FITS
-        register_reader("fits", Table, 'astropy.io.fits.connect.read_table_fits')
-        register_writer("fits", Table, 'astropy.io.fits.connect.write_table_fits')
-        register_identifier("fits", Table, 'astropy.io.fits.connect.is_fits')
-
-        # VOTABLE
-        register_reader('votable', Table, 'astropy.io.votable.connect.read_table_votable')
-        register_writer('votable', Table, 'astropy.io.votable.connect.write_table_votable')
-        register_identifier('votable', Table, 'astropy.io.votable.connect.is_votable')
-
-        # HDF5
-        register_reader('hdf5', Table, 'astropy.io.misc.hdf5.read_table_hdf5')
-        register_writer('hdf5', Table, 'astropy.io.misc.hdf5.write_table_hdf5')
-        register_identifier('hdf5', Table, 'astropy.io.misc.hdf5.is_hdf5')
-
-        # JSViewer
-        register_writer('jsviewer', Table, 'astropy.table.jsviewer.write_table_jsviewer')
-
-        # ASCII
-        register_reader('ascii', Table, 'astropy.io.ascii.connect.read_asciitable')
-        register_writer('ascii', Table, 'astropy.io.ascii.connect.write_asciitable')
-
-        # Specific ASCII formats
-        for ascii_format in BUILTIN_ASCII_FORMATS:
-            register_reader('ascii.{0}'.format(ascii_format), Table,
-                            ('astropy.io.ascii.ui.read', [], {'format':ascii_format}))
-            register_writer('ascii.{0}'.format(ascii_format), Table,
-                            ('astropy.io.ascii.ui.write', [], {'format':ascii_format}))
-
-        # Deprecated ASCII formats
-        for ascii_format in ['cds', 'daophot', 'html', 'ipac', 'latex', 'rdb']:
-            register_reader('{0}'.format(ascii_format), Table,
-                            ('astropy.io.ascii.ui.read', [], {'format':ascii_format}))
-            register_writer('{0}'.format(ascii_format), Table,
-                            ('astropy.io.ascii.ui.write', [], {'format':ascii_format}))
-
-        register_identifier('csv', Table, ('astropy.io.ascii.connect.io_identify', ['csv'], {}))
-        register_identifier('rdb', Table, ('astropy.io.ascii.connect.io_identify', ['rdb'], {}))
-        register_identifier('html', Table, ('astropy.io.ascii.connect.io_identify', ['html'], {}))
-        register_identifier('latex', Table, ('astropy.io.ascii.connect.io_identify', ['tex'], {}))
+#
+#     if not _builtin_registered:
+#
+#         from ..table import Table
+#
+#         _builtin_registered = True
+#
+#         # FITS
+#         register_reader("fits", Table, 'astropy.io.fits.connect.read_table_fits')
+#         register_writer("fits", Table, 'astropy.io.fits.connect.write_table_fits')
+#         register_identifier("fits", Table, 'astropy.io.fits.connect.is_fits')
+#
+#         # VOTABLE
+#         register_reader('votable', Table, 'astropy.io.votable.connect.read_table_votable')
+#         register_writer('votable', Table, 'astropy.io.votable.connect.write_table_votable')
+#         register_identifier('votable', Table, 'astropy.io.votable.connect.is_votable')
+#
+#         # HDF5
+#         register_reader('hdf5', Table, 'astropy.io.misc.hdf5.read_table_hdf5')
+#         register_writer('hdf5', Table, 'astropy.io.misc.hdf5.write_table_hdf5')
+#         register_identifier('hdf5', Table, 'astropy.io.misc.hdf5.is_hdf5')
+#
+#         # JSViewer
+#         register_writer('jsviewer', Table, 'astropy.table.jsviewer.write_table_jsviewer')
+#
+#         # ASCII
+#         register_reader('ascii', Table, 'astropy.io.ascii.connect.read_asciitable')
+#         register_writer('ascii', Table, 'astropy.io.ascii.connect.write_asciitable')
+#
+#         # Specific ASCII formats
+#         for ascii_format in BUILTIN_ASCII_FORMATS:
+#             register_reader('ascii.{0}'.format(ascii_format), Table,
+#                             ('astropy.io.ascii.ui.read', [], {'format':ascii_format}))
+#             register_writer('ascii.{0}'.format(ascii_format), Table,
+#                             ('astropy.io.ascii.ui.write', [], {'format':ascii_format}))
+#
+#         # Deprecated ASCII formats
+#         for ascii_format in ['cds', 'daophot', 'html', 'ipac', 'latex', 'rdb']:
+#             register_reader('{0}'.format(ascii_format), Table,
+#                             ('astropy.io.ascii.ui.read', [], {'format':ascii_format}))
+#             register_writer('{0}'.format(ascii_format), Table,
+#                             ('astropy.io.ascii.ui.write', [], {'format':ascii_format}))
+#
+#         register_identifier('csv', Table, ('astropy.io.ascii.connect.io_identify', ['csv'], {}))
+#         register_identifier('rdb', Table, ('astropy.io.ascii.connect.io_identify', ['rdb'], {}))
+#         register_identifier('html', Table, ('astropy.io.ascii.connect.io_identify', ['html'], {}))
+#         register_identifier('latex', Table, ('astropy.io.ascii.connect.io_identify', ['tex'], {}))
 
 
 DEFERRED_TYPES = six.string_types + (tuple,)
@@ -506,3 +507,40 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
                 ', '.join(sorted(valid_formats, key=lambda tup: tup[0]))))
 
     return valid_formats[0]
+
+
+class MetaRegisterBaseIO(type):
+
+    def __init__(cls, name, bases, members):
+
+        super(MetaRegisterBaseIO, cls).__init__(name, bases, members)
+
+        format_abbreviation = members.get('_format_name')
+        if format_abbreviation is None:
+            if cls.__name__ == 'BaseIO':
+                return
+            else:
+                raise ValueError("_format_name is not defined")
+
+        supported_class = members.get('_supported_class')
+        if supported_class is None:
+            raise ValueError("_supported_class is not defined")
+
+        import inspect
+        frm = inspect.stack()[1]
+        module = inspect.getmodule(frm[0])
+
+        _formats[format_abbreviation] = {
+            'supported_class': supported_class.__module__ + "." + supported_class.__name__,
+            'module': module.__name__,
+            'read': members.get('read') is not None,
+            'write':  members.get('write') is not None,
+            'identify':  members.get('identify') is not None
+        }
+
+
+@six.add_metaclass(MetaRegisterBaseIO)
+class BaseIO(object):
+
+    _format_name = None
+    _supported_class = None

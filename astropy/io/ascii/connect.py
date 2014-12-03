@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-from .. import registry as io_registry
+from ..registry import BaseIO
 from ...table import Table
 from ...extern.six.moves import zip
 
@@ -26,17 +26,23 @@ def write_asciitable(table, filename, **kwargs):
     return write(table, filename, **kwargs)
 
 
-def io_read(format, filename, **kwargs):
-    from .ui import read
-    format = re.sub(r'^ascii\.', '', format)
-    return read(filename, format=format, **kwargs)
+class ASCIITableIO(BaseIO):
 
+    _format_name = 'ascii'
+    _supported_class = Table
 
-def io_write(format, table, filename, **kwargs):
-    from .ui import write
-    format = re.sub(r'^ascii\.', '', format)
-    return write(table, filename, format=format, **kwargs)
+    @staticmethod
+    def read(format, filename, **kwargs):
+        from .ui import read
+        format = re.sub(r'^ascii\.', '', format)
+        return read(filename, format=format, **kwargs)
 
+    @staticmethod
+    def write(format, table, filename, **kwargs):
+        from .ui import write
+        format = re.sub(r'^ascii\.', '', format)
+        return write(table, filename, format=format, **kwargs)
 
-def io_identify(suffix, origin, filepath, fileobj, *args, **kwargs):
-    return filepath is not None and filepath.endswith(suffix)
+    @staticmethod
+    def identify(suffix, origin, filepath, fileobj, *args, **kwargs):
+        return filepath is not None and filepath.endswith(suffix)
