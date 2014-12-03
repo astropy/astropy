@@ -70,10 +70,10 @@ The coordinate values and frame specification can now be provided using
 positional and keyword arguments.  First we show positional arguments for
 RA and Dec::
 
-  >>> SkyCoord(10, 20, unit="deg")  # Defaults to ICRS
+  >>> SkyCoord(10, 20, unit='deg')  # Defaults to ICRS
   <SkyCoord (ICRS): ra=10.0 deg, dec=20.0 deg>
 
-  >>> SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")
+  >>> SkyCoord([1, 2, 3], [-30, 45, 8], frame='icrs', unit='deg')
   <SkyCoord (ICRS): (ra, dec) in deg
       [(1.0, -30.0), (2.0, 45.0), (3.0, 8.0)]>
 
@@ -263,11 +263,11 @@ looping over a list of individual |SkyCoord| objects::
   >>> ra = np.random.uniform(0, 360, size=1000) * u.deg
   >>> dec = np.random.uniform(-90, 90, size=1000) * u.deg
 
-  >>> sc_list = [SkyCoord(r, d, 'icrs') for r, d in zip(ra, dec)]
+  >>> sc_list = [SkyCoord(r, d, frame='icrs') for r, d in zip(ra, dec)]
   >>> timeit sc_gal_list = [c.galactic for c in sc_list]  # doctest: +SKIP
   1 loops, best of 3: 7.66 s per loop
 
-  >>> sc = SkyCoord(ra, dec, 'icrs')
+  >>> sc = SkyCoord(ra, dec, frame='icrs')
   >>> timeit sc_gal = sc.galactic  # doctest: +SKIP
   100 loops, best of 3: 8.92 ms per loop
 
@@ -299,7 +299,7 @@ within IPython you can type an object name, the period, and then the <TAB> key
 to see what's available.  This can often be faster than reading the
 documentation::
 
-  >>> sc = SkyCoord(1, 2, 'icrs', unit='deg', obstime='2013-01-02 14:25:36')
+  >>> sc = SkyCoord(1, 2, frame='icrs', unit='deg', obstime='2013-01-02 14:25:36')
   >>> sc.<TAB>  # doctest: +SKIP
   sc.cartesian                           sc.match_to_catalog_3d
   sc.data                                sc.match_to_catalog_sky
@@ -371,7 +371,7 @@ the coordinate keyword arguments that |SkyCoord| will accept.
 Another important attribute is ``frame_attr_names``, which defines the
 additional attributes that are required to fully define the frame::
 
-  >>> sc_fk4 = SkyCoord(1, 2, 'fk4', unit='deg')
+  >>> sc_fk4 = SkyCoord(1, 2, frame='fk4', unit='deg')
   >>> sc_fk4.get_frame_attr_names()  # doctest: +SKIP
   {u'equinox': <Time object: scale='tai' format='byear_str' value=B1950.000>,
    u'obstime': None}
@@ -437,7 +437,7 @@ previously).  For more control, you can use the
 name, frame class, frame instance, or |SkyCoord|::
 
   >>> from astropy.coordinates import FK5
-  >>> sc = SkyCoord(1, 2, 'icrs', unit='deg')
+  >>> sc = SkyCoord(1, 2, frame='icrs', unit='deg')
   >>> sc.galactic  # doctest: +FLOAT_CMP
   <SkyCoord (Galactic): l=99.6378552814 deg, b=-58.7096929334 deg>
 
@@ -450,7 +450,7 @@ name, frame class, frame instance, or |SkyCoord|::
 Transforming to a |SkyCoord| instance is an easy way of ensuring that two
 coordinates are in the exact same reference frame::
 
-  >>> sc2 = SkyCoord(3, 4, 'fk4', unit='deg', obstime='J1978.123', equinox='B1960.0')
+  >>> sc2 = SkyCoord(3, 4, frame='fk4', unit='deg', obstime='J1978.123', equinox='B1960.0')
   >>> sc.transform_to(sc2)
   <SkyCoord (FK4: equinox=B1960.000, obstime=J1978.123): ra=0.48726331438 deg, dec=1.77731617297 deg>
 
