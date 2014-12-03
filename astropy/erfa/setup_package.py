@@ -25,12 +25,29 @@ class ERFAExtension(Extension):
     ``include_dirs`` property of all extension objects. This means that the
     files do not get generated for egg_info, but do get generated for sdist
     and build.
+
+    This is complicated by the fact that Extension is an old-style class, so
+    we can't simply add a @property to the class.
     """
 
-    def __getattribute__(self, attr):
+    def __init__(self, *args, **kwargs):
+
+        # We first call the normal initializer
+        Extension.__init__(self, *args, **kwargs)
+
+        # Then we move include_dirs to a hidden property
+        self._include_dirs = self.include_dirs
+        del self.include_dirs
+
+    def __getattr__(self, attr):
+
+        # If include_dirs is requested, we first generate the ERFA wrappers
+        # if needed then we return the hidden property.
         if attr == 'include_dirs':
             _generate_erfa_wrapper()
-        return Extension.__getattribute__(self, attr)
+            return self._include_dirs
+        else:
+            raise AttributeError(attr)
 
 
 def _generate_erfa_wrapper():
@@ -40,19 +57,13 @@ def _generate_erfa_wrapper():
     # include erfa.py and erfa.pyx.
     if all(os.path.exists(filename) for filename in GEN_FILES):
 
-        print("DEBUG: all output files present")
-
         # Determine modification times
         erfa_mtime = max(os.path.getmtime(filename) for filename in SRC_FILES)
         gen_mtime = min(os.path.getmtime(filename) for filename in GEN_FILES)
 
-        print("DEBUG: {0} {1}".format(erfa_mtime, gen_mtime))
-
         # If generated source is recent enough, don't update
         if gen_mtime > erfa_mtime:
             return
-
-    print("DEBUG: generating erfa.pyx and erfa.py")
 
     import imp
     gen = imp.load_source('cython_generator',
