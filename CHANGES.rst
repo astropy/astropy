@@ -195,6 +195,10 @@ API Changes
     new package, but the classes are now in separate modules.  This should have
     no direct impact at the user level. [#3120]
 
+  - Support for passing a frame as a positional argument in the ``SkyCoord``
+    class has now been deprecated, except in the case where a frame with data
+    is passed as the sole positional argument. [#3152]
+
 - ``astropy.cosmology``
 
   - The functional interface to the cosmological routines as well as
