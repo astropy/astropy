@@ -24,42 +24,46 @@ class Latex(base.Base):
     def __init__(self):
         pass
 
-    def _latex_escape(self, name):
+    @classmethod
+    def _latex_escape(cls, name):
         # This doesn't escape arbitrary LaTeX strings, but it should
         # be good enough for unit names which are required to be alpha
         # + "_" anyway.
         return name.replace('_', r'\_')
 
-    def _get_unit_name(self, unit):
+    @classmethod
+    def _get_unit_name(cls, unit):
         name = unit.get_format_name('latex')
         if name == unit.name:
-            return self._latex_escape(name)
+            return cls._latex_escape(name)
         return name
 
-    def _format_unit_list(self, units):
+    @classmethod
+    def _format_unit_list(cls, units):
         out = []
         for base, power in units:
             if power == 1:
-                out.append(self._get_unit_name(base))
+                out.append(cls._get_unit_name(base))
             else:
                 out.append('{0}^{{{1}}}'.format(
-                    self._get_unit_name(base),
+                    cls._get_unit_name(base),
                     utils.format_power(power)))
         return r'\,'.join(out)
 
-    def _format_bases(self, unit):
+    @classmethod
+    def _format_bases(cls, unit):
         positives, negatives = utils.get_grouped_by_powers(
                 unit.bases, unit.powers)
 
         if len(negatives):
             if len(positives):
-                positives = self._format_unit_list(positives)
+                positives = cls._format_unit_list(positives)
             else:
                 positives = '1'
-            negatives = self._format_unit_list(negatives)
+            negatives = cls._format_unit_list(negatives)
             s = r'\frac{{{0}}}{{{1}}}'.format(positives, negatives)
         else:
-            positives = self._format_unit_list(positives)
+            positives = cls._format_unit_list(positives)
             s = positives
 
         return s
@@ -87,8 +91,8 @@ class Latex(base.Base):
 
         return r'$\mathrm{{{0}}}$'.format(s)
 
-    @staticmethod
-    def format_exponential_notation(val):
+    @classmethod
+    def format_exponential_notation(cls, val):
         """
         Formats a value in exponential notation for LaTeX.
 
@@ -134,5 +138,6 @@ class LatexInline(Latex):
     """
     name = 'latex_inline'
 
-    def _format_bases(self, unit):
-        return self._format_unit_list(zip(unit.bases, unit.powers))
+    @classmethod
+    def _format_bases(cls, unit):
+        return cls._format_unit_list(zip(unit.bases, unit.powers))
