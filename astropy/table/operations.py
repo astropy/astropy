@@ -215,14 +215,10 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
         5   7
         6   8
     """
-    from .table import Table
-
     tables = _get_list_of_tables(tables)  # validates input
-    arrays = [table.as_array() for table in tables]
     col_name_map = OrderedDict()
 
-    out_data = _vstack(arrays, join_type, col_name_map)
-    out = Table(out_data)
+    out = _vstack(tables, join_type, col_name_map)
 
     # Merge column and table metadata
     _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
@@ -289,14 +285,11 @@ def hstack(tables, join_type='outer',
         1   3   5   7
         2   4   6   8
     """
-    from .table import Table
-
     tables = _get_list_of_tables(tables)  # validates input
     col_name_map = OrderedDict()
 
-    out_data = _hstack(tables, join_type, uniq_col_name, table_names,
-                               col_name_map)
-    out = Table(out_data)
+    out = _hstack(tables, join_type, uniq_col_name, table_names,
+                  col_name_map)
 
     _merge_col_meta(out, tables, col_name_map, metadata_conflicts=metadata_conflicts)
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
@@ -628,31 +621,16 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
     Parameters
     ----------
 
-    arrays : list of structured arrays
-        Structured array(s) to stack by rows (vertically)
+    arrays : list of Tables
+        Tables to stack by rows (vertically)
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'exact'
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
-
-    Examples
-    --------
-
-    To stack two structured arrays by rows do::
-
-      >>> from astropy.table import np_utils
-      >>> t1 = np.array([(1, 2),
-      ...                (3, 4)], dtype=[(str('a'), 'i4'), (str('b'), 'i4')])
-      >>> t2 = np.array([(5, 6),
-      ...                (7, 8)], dtype=[(str('a'), 'i4'), (str('b'), 'i4')])
-      >>> np_utils.vstack([t1, t2])
-      array([(1, 2),
-             (3, 4),
-             (5, 6),
-             (7, 8)],
-            dtype=[('a', '<i4'), ('b', '<i4')])
     """
+    from .table import Table
+
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 
@@ -688,7 +666,7 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
     # If there are any output columns where one or more input arrays are missing
     # then the output must be masked.  If any input arrays are masked then
     # output is masked.
-    masked = any(isinstance(arr, ma.MaskedArray) for arr in arrays)
+    masked = any(getattr(arr, 'masked', False) for arr in arrays)
     for names in six.itervalues(col_name_map):
         if any(x is None for x in names):
             masked = True
@@ -696,15 +674,16 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
 
     lens = [len(arr) for arr in arrays]
     n_rows = sum(lens)
+    out = Table(masked=masked)
     out_descrs = get_descrs(arrays, col_name_map)
-    if masked:
-        # Make a masked array with all values initially masked.  Note
-        # that setting an array value automatically unmasks it.
-        # See comment in hstack for heritage of this code.
-        out = ma.masked_array(np.zeros(n_rows, out_descrs),
-                              mask=np.ones(n_rows, ma.make_mask_descr(out_descrs)))
-    else:
-        out = np.empty(n_rows, dtype=out_descrs)
+    for out_descr in out_descrs:
+        name = out_descr[0]
+        dtype = out_descr[1:]
+        if masked:
+            out[name] = ma.array(data=np.zeros(n_rows, dtype),
+                                 mask=np.ones(n_rows, ma.make_mask_descr(dtype)))
+        else:
+            out[name] = np.empty(n_rows, dtype=dtype)
 
     for out_name, in_names in six.iteritems(col_name_map):
         idx0 = 0
