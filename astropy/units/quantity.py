@@ -10,6 +10,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
+import re
 import numbers
 
 import numpy as np
@@ -21,10 +22,12 @@ NUMPY_LT_1P9 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 9]
 from ..extern import six
 from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
+from .format.latex import Latex
 from ..utils import lazyproperty
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import validate_power
+from .. import config as _config
 
 
 __all__ = ["Quantity"]
@@ -35,6 +38,19 @@ __doctest_skip__ = ['Quantity.*']
 
 
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
+
+
+class Conf(_config.ConfigNamespace):
+    """
+    Configuration parameters for Quantity
+    """
+    latex_array_threshold = _config.ConfigItem(100,
+        'The maximum size an array Quantity can be before its LaTeX '
+        'representation for IPython gets "summarized" (meaning only the first '
+        'and last few elements areshown with "..." between). Setting this to a '
+        'negative number means that the value will instead be whatever numpy '
+        'gets from get_printoptions.')
+conf = Conf()
 
 
 def _can_have_arbitrary_unit(value):
@@ -925,25 +941,45 @@ class Quantity(np.ndarray):
 
     def _repr_latex_(self):
         """
-        Generate latex representation of the quantity and its unit.
-        This is used by the IPython notebook to show it all latexified.
-        It only works for scalar quantities; for arrays, the standard
-        reprensation is returned.
+        Generate a latex representation of the quantity and its unit.
+
+        The behavior of this function can be altered via the
+        `numpy.set_printoptions` function and its various keywords.  The
+        exception to this is the ``threshold`` keyword, which is controlled via
+        the ``[units.quantity]`` configuration item ``latex_array_threshold``.
+        This is treated separately because the numpy default of 1000 is too big
+        for most browsers to handle.
 
         Returns
         -------
         lstr
-            LaTeX string
+            A LaTeX string with the contents of this Quantity
         """
+        if NUMPY_LT_1P7:
+            if self.isscalar:
+                latex_value = Latex.format_exponential_notation(self.value)
+            else:
+                raise NotImplementedError('Cannot represent Quantity arrays '
+                                          'in LaTex format for numpy < v1.7.')
+        else:
+            # need to do try/finally because "threshold" cannot be overridden
+            # with array2string
+            pops = np.get_printoptions()
+            try:
+                formatter = {'all' : Latex.format_exponential_notation,
+                             'str_kind': lambda x: x}
+                if conf.latex_array_threshold > -1:
+                    np.set_printoptions(threshold=conf.latex_array_threshold,
+                                        formatter=formatter)
 
-        if not self.isscalar:
-            raise NotImplementedError('Cannot represent Quantity arrays '
-                                      'in LaTex format')
-
-        # Format value
-        latex_value = "{0:g}".format(self.value)
-        if "e" in latex_value:
-            latex_value = latex_value.replace('e', '\\times 10^{') + '}'
+                # the view is needed for the scalar case - value might be float
+                latex_value = np.array2string(self.view(np.ndarray),
+                                              style=Latex.format_exponential_notation,
+                                              max_line_width=np.inf,
+                                              separator=',~')
+                latex_value = latex_value.replace('...', r'\dots')
+            finally:
+                np.set_printoptions(**pops)
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode

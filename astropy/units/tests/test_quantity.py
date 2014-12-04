@@ -9,11 +9,11 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import copy
 import decimal
+from distutils import version
 
 import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
-from distutils import version
 NUMPY_VERSION = version.LooseVersion(np.__version__)
 
 from ...tests.helper import raises, pytest
@@ -701,13 +701,62 @@ class TestQuantityDisplay(object):
         assert repr(bad_quantity).endswith(_UNIT_NOT_INITIALISED + '>')
 
     def test_repr_latex(self):
-        q2 = u.Quantity(1.5e14, 'm/s')
+        from ...units.quantity import conf
+
+        q2scalar = u.Quantity(1.5e14, 'm/s')
         assert self.scalarintq._repr_latex_() == '$1 \\; \\mathrm{m}$'
         assert self.scalarfloatq._repr_latex_() == '$1.3 \\; \\mathrm{m}$'
-        assert (q2._repr_latex_() ==
-                '$1.5\\times 10^{+14} \\; \\mathrm{\\frac{m}{s}}$')
-        with pytest.raises(NotImplementedError):
-            self.arrq._repr_latex_()
+        assert (q2scalar._repr_latex_() ==
+                '$1.5 \\times 10^{14} \\; \\mathrm{\\frac{m}{s}}$')
+
+        if NUMPY_VERSION < version.LooseVersion('1.7.0'):
+            with pytest.raises(NotImplementedError):
+                self.arrq._repr_latex_()
+            return  # all arrays should fail
+
+        assert self.arrq._repr_latex_() == '$[1,~2.3,~8.9] \; \mathrm{m}$'
+
+        qmed = np.arange(100)*u.m
+        qbig = np.arange(1000)*u.m
+        qvbig = np.arange(10000)*1e9*u.m
+
+        pops = np.get_printoptions()
+        oldlat = conf.latex_array_threshold
+        try:
+            #check thresholding behavior
+            conf.latex_array_threshold = 100  # should be default
+            lsmed = qmed._repr_latex_()
+            assert r'\dots' not in lsmed
+            lsbig = qbig._repr_latex_()
+            assert r'\dots' in lsbig
+            lsvbig = qvbig._repr_latex_()
+            assert r'\dots' in lsvbig
+
+            conf.latex_array_threshold = 1001
+            lsmed = qmed._repr_latex_()
+            assert r'\dots' not in lsmed
+            lsbig = qbig._repr_latex_()
+            assert r'\dots' not in lsbig
+            lsvbig = qvbig._repr_latex_()
+            assert r'\dots' in lsvbig
+
+
+            conf.latex_array_threshold = -1  # means use the numpy threshold
+            np.set_printoptions(threshold=99)
+            lsmed = qmed._repr_latex_()
+            assert r'\dots' in lsmed
+            lsbig = qbig._repr_latex_()
+            assert r'\dots' in lsbig
+            lsvbig = qvbig._repr_latex_()
+            assert r'\dots' in lsvbig
+        finally:
+            # prevent side-effects from influencing other tests
+            np.set_printoptions(**pops)
+            conf.latex_array_threshold = oldlat
+
+        qinfnan = [np.inf, -np.inf, np.nan] * u.m
+        assert qinfnan._repr_latex_() == r'$[\infty,~-\infty,~{\rm NaN}] \; \mathrm{m}$'
+
 
 
 def test_decompose():
