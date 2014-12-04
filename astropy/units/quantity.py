@@ -44,18 +44,12 @@ class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for Quantity
     """
-    latex_array_threshold = _config.ConfigItem(100, 'The maximum size an array '
-                                                    'Quantity can be before its'
-                                                    ' LaTeX representation for '
-                                                    'IPython gets "summarized" '
-                                                    '(meaning only the first '
-                                                    'and last few elements are'
-                                                    'shown with "..." between).'
-                                                    ' Setting this to a '
-                                                    'negative number means that'
-                                                    ' the value will instead be'
-                                                    ' whatever numpy gets from '
-                                                    'get_printoptions.')
+    latex_array_threshold = _config.ConfigItem(100,
+        'The maximum size an array Quantity can be before its LaTeX '
+        'representation for IPython gets "summarized" (meaning only the first '
+        'and last few elements areshown with "..." between). Setting this to a '
+        'negative number means that the value will instead be whatever numpy '
+        'gets from get_printoptions.')
 conf = Conf()
 
 
