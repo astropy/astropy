@@ -47,7 +47,8 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
 
             if right_name:
                 right_col = table[right_name]
-                out_col.meta = metadata.merge(left_col.meta, right_col.meta, metadata_conflicts=metadata_conflicts)
+                out_col.meta = metadata.merge(left_col.meta, right_col.meta,
+                                              metadata_conflicts=metadata_conflicts)
                 for attr in attrs:
 
                     # Pick the metadata item that is not None, or they are both
@@ -72,10 +73,12 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                                           .format(out_col.name, attr, left_attr, right_attr),
                                           metadata.MergeConflictWarning)
                         elif metadata_conflicts == 'error':
-                            raise metadata.MergeConflictError('In merged column {0!r} the {1!r} attribute does not match '
-                                          '({2} != {3})'.format(out_col.name, attr, left_attr, right_attr))
+                            raise metadata.MergeConflictError(
+                                'In merged column {0!r} the {1!r} attribute does not match '
+                                '({2} != {3})'.format(out_col.name, attr, left_attr, right_attr))
                         elif metadata_conflicts != 'silent':
-                            raise ValueError('metadata_conflict argument must be one of "silent", "warn", or "error"')
+                            raise ValueError('metadata_conflict argument must be one of "silent",'
+                                             ' "warn", or "error"')
                         merge_attr = right_attr
                     else:  # left_attr == right_attr
                         merge_attr = right_attr
@@ -289,10 +292,9 @@ def hstack(tables, join_type='outer',
     from .table import Table
 
     tables = _get_list_of_tables(tables)  # validates input
-    arrays = [table.as_array() for table in tables]
     col_name_map = OrderedDict()
 
-    out_data = _hstack(arrays, join_type, uniq_col_name, table_names,
+    out_data = _hstack(tables, join_type, uniq_col_name, table_names,
                                col_name_map)
     out = Table(out_data)
 
@@ -612,18 +614,6 @@ def _join(left, right, keys=None, join_type='inner',
     return out
 
 
-def _check_for_sequence_of_structured_arrays(arrays):
-    err = '`arrays` arg must be a sequence (e.g. list) of structured arrays'
-    if not isinstance(arrays, collections.Sequence):
-        raise TypeError(err)
-    for array in arrays:
-        # Must be structured array
-        if not isinstance(array, np.ndarray) or array.dtype.names is None:
-            raise TypeError(err)
-    if len(arrays) == 0:
-        raise ValueError('`arrays` arg must include at least one array')
-
-
 def _vstack(arrays, join_type='inner', col_name_map=None):
     """
     Stack structured arrays vertically (by rows)
@@ -669,8 +659,6 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
     # Input validation
     if join_type not in ('inner', 'exact', 'outer'):
         raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
-
-    _check_for_sequence_of_structured_arrays(arrays)
 
     # Trivial case of one input array
     if len(arrays) == 1:
@@ -736,7 +724,7 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
 def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
            table_names=None, col_name_map=None):
     """
-    Stack structured arrays by horizontally (by columns)
+    Stack tables horizontally (by columns)
 
     A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same number of rows.  If ``join_type`` is 'inner' then
@@ -747,8 +735,8 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     Parameters
     ----------
 
-    arrays : List of structured array objects
-        Structured arrays to stack by columns (horizontally)
+    arrays : List of tables
+        Tables to stack by columns (horizontally)
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'exact'
     uniq_col_name : str or None
@@ -757,29 +745,15 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     table_names : list of str or None
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2', ..].
-
-    Examples
-    --------
-
-    To stack two arrays horizontally (by columns) do::
-
-      >>> from astropy.table import np_utils
-      >>> t1 = np.array([(1, 2),
-      ...                (3, 4)], dtype=[(str('a'), 'i4'), (str('b'), 'i4')])
-      >>> t2 = np.array([(5, 6),
-      ...                (7, 8)], dtype=[(str('c'), 'i4'), (str('d'), 'i4')])
-      >>> np_utils.hstack([t1, t2])
-      array([(1, 2, 5, 6),
-             (3, 4, 7, 8)],
-            dtype=[('a', '<i4'), ('b', '<i4'), ('c', '<i4'), ('d', '<i4')])
     """
+    from .table import Table
+
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 
     # Input validation
     if join_type not in ('inner', 'exact', 'outer'):
         raise ValueError("join_type arg must be either 'inner', 'exact' or 'outer'")
-    _check_for_sequence_of_structured_arrays(arrays)
 
     if table_names is None:
         table_names = ['{0}'.format(ii + 1) for ii in range(len(arrays))]
@@ -801,28 +775,33 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
                                   "non-matching rows)")
         join_type = 'outer'
 
-    # For an inner join, keep only columns where all input arrays have that column
+    # For an inner join, keep only the common rows
     if join_type == 'inner':
         min_arr_len = min(arr_lens)
-        arrays = [arr[:min_arr_len] for arr in arrays]
+        if len(set(arr_lens)) > 1:
+            arrays = [arr[:min_arr_len] for arr in arrays]
         arr_lens = [min_arr_len for arr in arrays]
 
     # If there are any output rows where one or more input arrays are missing
     # then the output must be masked.  If any input arrays are masked then
     # output is masked.
-    masked = (any(isinstance(arr, ma.MaskedArray) for arr in arrays) or
-              len(set(arr_lens)) > 1)
+    masked = any(getattr(arr, 'masked', False) for arr in arrays) or len(set(arr_lens)) > 1
 
     n_rows = max(arr_lens)
+    out = Table(masked=masked)
     out_descrs = get_descrs(arrays, col_name_map)
-    if masked:
-        # Adapted from ma.all_masked() code.  Here the array is filled with
-        # zeros instead of empty.  This avoids the bug reported here:
-        # https://github.com/numpy/numpy/issues/3276
-        out = ma.masked_array(np.zeros(n_rows, out_descrs),
-                              mask=np.ones(n_rows, ma.make_mask_descr(out_descrs)))
-    else:
-        out = np.empty(n_rows, dtype=out_descrs)
+
+    for out_descr in out_descrs:
+        name = out_descr[0]
+        dtype = out_descr[1:]
+        if masked:
+            # Adapted from ma.all_masked() code.  Here the array is filled with
+            # zeros instead of empty.  This avoids the bug reported here:
+            # https://github.com/numpy/numpy/issues/3276
+            out[name] = ma.array(data=np.zeros(n_rows, dtype),
+                                 mask=np.ones(n_rows, ma.make_mask_descr(dtype)))
+        else:
+            out[name] = np.empty(n_rows, dtype=dtype)
 
     for out_name, in_names in six.iteritems(col_name_map):
         for name, array, arr_len in zip(in_names, arrays, arr_lens):
