@@ -11,13 +11,15 @@ from astropy_helpers import setup_helpers
 
 ERFAPKGDIR = os.path.relpath(os.path.dirname(__file__))
 
-ERFA_SRC = os.path.abspath(os.path.join(ERFAPKGDIR, '..', '..', 'cextern', 'erfa'))
+ERFA_SRC = os.path.abspath(os.path.join(ERFAPKGDIR, os.pardir, os.pardir,
+                                        'cextern', 'erfa'))
 
 SRC_FILES = glob.glob(os.path.join(ERFA_SRC, '*'))
 SRC_FILES += [os.path.join(ERFAPKGDIR, filename)
-              for filename in ['core.py.templ', 'core.pyx.templ', 'erfa_generator.py']]
+              for filename in ['core.pyx.templ', 'erfa_generator.py']]
 
-GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.py'), os.path.join(ERFAPKGDIR, 'core.pyx')]
+GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.pyx'),
+             os.path.join(ERFAPKGDIR, 'erfa.json')]
 
 
 def pre_build_py_hook(cmd_obj):
@@ -66,10 +68,7 @@ def preprocess_source():
         import imp
         gen = imp.load_source(name, filename)
 
-    gen.main(gen.DEFAULT_ERFA_LOC,
-             os.path.join(ERFAPKGDIR, 'core.py'),
-             gen.DEFAULT_TEMPLATE_LOC,
-             verbose=False)
+    gen.write_erfa_sources(out=ERFAPKGDIR)
 
 
 def get_extensions():
@@ -82,9 +81,10 @@ def get_extensions():
     else:
         # get all of the .c files in the cextern/erfa directory
         erfafns = os.listdir(ERFA_SRC)
-        sources.extend(['cextern/erfa/'+fn for fn in erfafns if fn.endswith('.c')])
+        sources.extend([os.path.join('cextern', 'erfa', fn)
+                       for fn in erfafns if fn.endswith('.c')])
 
-        include_dirs.append('cextern/erfa')
+        include_dirs.append(os.path.join('cextern', 'erfa'))
 
     erfa_ext = Extension(
         name="astropy.erfa._core",
