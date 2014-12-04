@@ -3,8 +3,10 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import os
 import re
 import sys
+import json
 from functools import partial
 
 import numpy as np
@@ -13,90 +15,21 @@ from ..utils import OrderedDict
 from ..extern import six
 from ..extern.six.moves import zip
 
-__all__ = ['register_reader', 'register_writer', 'register_identifier',
-           'identify_format', 'get_reader', 'get_writer', 'read', 'write',
-           'get_formats']
-
+__all__ = ['identify_format', 'get_reader', 'get_writer', 'read', 'write',
+           'get_formats', 'BaseIO']
 
 __doctest_skip__ = ['register_identifier']
 
-_builtin_registered = False
-_readers = OrderedDict()
-_writers = OrderedDict()
-_identifiers = OrderedDict()
-_formats = OrderedDict()
-
-BUILTIN_ASCII_FORMATS = ['aastex', 'basic', 'cds', 'commented_header', 'csv',
-                         'daophot', 'fast_basic', 'fast_commented_header',
-                         'fast_csv', 'fast_no_header', 'fast_rdb',
-                         'fast_tab', 'fixed_width', 'fixed_width_no_header',
-                         'fixed_width_two_line', 'html', 'ipac', 'latex',
-                         'no_header', 'rdb', 'sextractor', 'tab']
-
-# Add built-in readers/writers to the registry manually, and refer to the
-# functions by strings to avoid importing those modules.
-def _register_builtins():
-
-    global _builtin_registered
-#
-#     if not _builtin_registered:
-#
-#         from ..table import Table
-#
-#         _builtin_registered = True
-#
-#         # FITS
-#         register_reader("fits", Table, 'astropy.io.fits.connect.read_table_fits')
-#         register_writer("fits", Table, 'astropy.io.fits.connect.write_table_fits')
-#         register_identifier("fits", Table, 'astropy.io.fits.connect.is_fits')
-#
-#         # VOTABLE
-#         register_reader('votable', Table, 'astropy.io.votable.connect.read_table_votable')
-#         register_writer('votable', Table, 'astropy.io.votable.connect.write_table_votable')
-#         register_identifier('votable', Table, 'astropy.io.votable.connect.is_votable')
-#
-#         # HDF5
-#         register_reader('hdf5', Table, 'astropy.io.misc.hdf5.read_table_hdf5')
-#         register_writer('hdf5', Table, 'astropy.io.misc.hdf5.write_table_hdf5')
-#         register_identifier('hdf5', Table, 'astropy.io.misc.hdf5.is_hdf5')
-#
-#         # JSViewer
-#         register_writer('jsviewer', Table, 'astropy.table.jsviewer.write_table_jsviewer')
-#
-#         # ASCII
-#         register_reader('ascii', Table, 'astropy.io.ascii.connect.read_asciitable')
-#         register_writer('ascii', Table, 'astropy.io.ascii.connect.write_asciitable')
-#
-#         # Specific ASCII formats
-#         for ascii_format in BUILTIN_ASCII_FORMATS:
-#             register_reader('ascii.{0}'.format(ascii_format), Table,
-#                             ('astropy.io.ascii.ui.read', [], {'format':ascii_format}))
-#             register_writer('ascii.{0}'.format(ascii_format), Table,
-#                             ('astropy.io.ascii.ui.write', [], {'format':ascii_format}))
-#
-#         # Deprecated ASCII formats
-#         for ascii_format in ['cds', 'daophot', 'html', 'ipac', 'latex', 'rdb']:
-#             register_reader('{0}'.format(ascii_format), Table,
-#                             ('astropy.io.ascii.ui.read', [], {'format':ascii_format}))
-#             register_writer('{0}'.format(ascii_format), Table,
-#                             ('astropy.io.ascii.ui.write', [], {'format':ascii_format}))
-#
-#         register_identifier('csv', Table, ('astropy.io.ascii.connect.io_identify', ['csv'], {}))
-#         register_identifier('rdb', Table, ('astropy.io.ascii.connect.io_identify', ['rdb'], {}))
-#         register_identifier('html', Table, ('astropy.io.ascii.connect.io_identify', ['html'], {}))
-#         register_identifier('latex', Table, ('astropy.io.ascii.connect.io_identify', ['tex'], {}))
+# Read in registry of built-in formats
+with open(os.path.join(os.path.relpath(os.path.dirname(__file__)), "registry.json")) as f_reg:
+    _registry = json.load(f_reg)
 
 
-DEFERRED_TYPES = six.string_types + (tuple,)
-
-def _resolve_deferred(function):
-    if isinstance(function, six.string_types):
-        return _get_function_by_string(function)
-    elif isinstance(function, tuple):
-        return partial(_get_function_by_string(function[0]), *function[1], **function[2])
-
-
-def _get_function_by_string(path_to_function):
+def _get_object_by_string(path_to_function):
+    """
+    Given a path, e.g. 'astropy.table.table.Table', return the actual object at
+    that path.
+    """
     module, function = path_to_function.rsplit('.', 1)
     if sys.version_info[:2] < (2, 7):
         __import__(module)
@@ -104,6 +37,135 @@ def _get_function_by_string(path_to_function):
     else:
         from importlib import import_module
         return getattr(import_module(module), function)
+
+
+def _get_object_name(object_class):
+    """
+    Given either a class or a string giving the path to a class, return the
+    name of the class.
+    """
+    if isinstance(object_class, six.string_types):
+        return object_class.split('.')[-1]
+    else:
+        return object_class.__name__
+
+
+def get_registry_subset(data_class, identify=None, read=None, write=None, data_format=None, resolve=False):
+    """
+    Return a subset of the registry.
+
+    Parameters
+    ----------
+    data_class : class
+        The class to return a subset of the registry for. If this class matches
+        both a class in the registry as well as another class that it is a
+        subclass of, the formats that match the class directly take precedence
+        over the parent classes.
+    identify : bool
+        If set, only include the subset of the registry that have the identify
+        flag set to this value.
+    read : bool
+        If set, only include the subset of the registry that have the read
+        flag set to this value.
+    write : bool
+        If set, only include the subset of the registry that have the write
+        flag set to this value.
+    data_format : str
+        If set, only include the subset of the registry for this format.
+    resolve : bool
+        If set, resolve the module and io_class in the registry.
+    """
+
+    # We now need to resolve the data classes in the repository since we are
+    # doing subclass checks. This only imports e.g. Table, not all the IO
+    # classes.
+    resolve_data_classes()
+
+    # We start off by selecting the subset of the registry that matches the
+    # data class exactly.
+    if data_class in _registry:
+        registry_subset = _registry[data_class]
+    else:
+        registry_subset = {}
+
+    for dc in _registry:
+
+        if data_class is data_class:
+            continue  # we already did this
+
+        if not issubclass(data_class, dc):
+            continue
+
+        for fmt_name in _registry[dc]:
+            if fmt_name not in registry_subset:
+                registry_subset[fmt_name] = _registry[dc][fmt_name]
+
+    # Now remove non-matching formats
+    filtered_registry_subset = {}
+    for fmt_name in registry_subset:
+
+        if data_format is not None and fmt_name != data_format:
+            continue
+
+        fmt = registry_subset[fmt_name]
+
+        if identify is not None and identify is not fmt['identify']:
+            continue
+
+        if read is not None and read is not fmt['read']:
+            continue
+
+        if write is not None and write is not fmt['write']:
+            continue
+
+        filtered_registry_subset[fmt_name] = fmt
+
+    # Finally we resolve IO classes if requested
+    resolve_io_classes(filtered_registry_subset, subset=True)
+
+    return filtered_registry_subset
+
+
+def resolve_data_classes(registry_class=None):
+    """
+    Resolve the primary keys of the registry.
+    """
+
+    if registry_class is None:
+        registry_class = _registry
+
+    for data_class in registry_class:
+        if isinstance(data_class, six.string_types):
+            registry_class[_get_object_by_string(data_class)] = registry_class.pop(data_class)
+
+
+def resolve_io_classes(registry_class=None, subset=False):
+    """
+    Resolve the I/O classes in the registry
+
+    Parameters
+    ----------
+    registry_class : dict, optional
+        If specified, only resolve I/O classes in this registry class
+    subset : bool, optional
+        If specified, the registry class provided is a subset with no primary
+        data class key.
+    """
+
+    if registry_class is None:
+        if subset:
+            raise ValueError("Cannot use subset mode without specifying a registry class")
+        registry_class = _registry
+
+    if subset:
+        for fmt_name in registry_class:
+            fmt = registry_class[fmt_name]
+            if isinstance(fmt['io_class'], six.string_types):
+                fmt['io_class'] = _get_object_by_string(fmt['module'] + '.' + fmt['io_class'])
+    else:
+        for data_class in registry_class:
+            resolve_io_classes(registry_class[data_class], subset=True)
+
 
 def get_formats(data_class=None):
     """
@@ -120,30 +182,28 @@ def get_formats(data_class=None):
         Table of available I/O formats
     """
 
-    _register_builtins()
-
     from ..table import Table
-    format_classes = sorted(set(_readers) | set(_writers),
-                            key=lambda tup: tup[0])
+
     rows = []
 
-    for format_class in format_classes:
-        if (data_class is not None
-                and not _is_best_match(data_class, format_class[1], format_classes)):
-            continue
+    if data_class is None:
+        formats = _registry
+    else:
+        formats = {data_class: get_registry_subset(data_class)}
 
-        has_read = 'Yes' if format_class in _readers else 'No'
-        has_write = 'Yes' if format_class in _writers else 'No'
-        has_identify = 'Yes' if format_class in _identifiers else 'No'
+    for dc in formats:
 
-        # Check if this is a short name (e.g. 'rdb') which is deprecated in favor
-        # of the full 'ascii.rdb'.
-        ascii_format_class = ('ascii.' + format_class[0], format_class[1])
+        for fmt in formats[dc]:
 
-        deprecated = 'Yes' if ascii_format_class in format_classes else ''
+            has_read = 'Yes' if formats[dc][fmt]['read'] else 'No'
+            has_write = 'Yes' if formats[dc][fmt]['write'] else 'No'
+            has_identify = 'Yes' if formats[dc][fmt]['identify'] else 'No'
 
-        rows.append((format_class[1].__name__, format_class[0], has_read, has_write,
-                     has_identify, deprecated))
+            # TODO: add back support for deprecated ASCII formats
+            deprecated = ''
+
+            rows.append((_get_object_name(dc),
+                         fmt, has_read, has_write, has_identify, deprecated))
 
     data = list(zip(*rows)) if rows else None
     format_table = Table(data, names=('Data class', 'Format', 'Read', 'Write',
@@ -212,126 +272,23 @@ def _update__doc__(data_class, readwrite):
         class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
 
 
-def register_reader(data_format, data_class, function, force=False):
-    """
-    Register a reader function.
-
-    Parameters
-    ----------
-    data_format : str
-        The data type identifier. This is the string that will be used to
-        specify the data type when reading.
-    data_class : classobj
-        The class of the object that the reader produces
-    function : function
-        The function to read in a data object.
-    force : bool
-        Whether to override any existing function if already present.
-    """
-
-    if not (data_format, data_class) in _readers or force:
-        _readers[(data_format, data_class)] = function
-    else:
-        raise Exception("Reader for format '{0}' and class '{1}' is "
-                        'already defined'.format(data_format,
-                                                 data_class.__name__))
-
-    _update__doc__(data_class, 'read')
-
-
-def register_writer(data_format, data_class, function, force=False):
-    """
-    Register a table writer function.
-
-    Parameters
-    ----------
-    data_format : str
-        The data type identifier. This is the string that will be used to
-        specify the data type when writing.
-    data_class : classobj
-        The class of the object that can be written
-    function : function
-        The function to write out a data object.
-    force : bool
-        Whether to override any existing function if already present.
-    """
-
-    if not (data_format, data_class) in _writers or force:
-        _writers[(data_format, data_class)] = function
-    else:
-        raise Exception("Writer for format '{0}' and class '{1}' is "
-                        'already defined'.format(data_format,
-                                                 data_class.__name__))
-
-    _update__doc__(data_class, 'write')
-
-
-def register_identifier(data_format, data_class, identifier, force=False):
-    """
-    Associate an identifier function with a specific data type.
-
-    Parameters
-    ----------
-    data_format : str
-        The data type identifier. This is the string that is used to
-        specify the data type when reading/writing.
-    data_class : classobj
-        The class of the object that can be written
-    identifier : function
-        A function that checks the argument specified to `read` or `write` to
-        determine whether the input can be interpreted as a table of type
-        ``data_format``. This function should take the following arguments:
-
-           - ``origin``: A string `read` or `write` identifying whether
-             the file is to be opened for reading or writing.
-           - ``path``: The path to the file.
-           - ``fileobj``: An open file object to read the file's contents, or
-             `None` if the file could not be opened.
-           - ``*args``: A list of positional arguments to the `read` or
-             `write` function.
-           - ``**kwargs``: A list of keyword arguments to the `read` or
-             `write` function.
-
-        One or both of ``path`` or ``fileobj`` may be `None`.  If they are
-        both `None`, the identifier will need to work from ``args[0]``.
-
-        The function should return True if the input can be identified
-        as being of format ``data_format``, and False otherwise.
-    force : bool
-        Whether to override any existing function if already present.
-
-    Examples
-    --------
-
-    To set the identifier based on extensions, for formats that take a
-    filename as a first argument, you can do for example::
-
-        >>> def my_identifier(*args, **kwargs):
-        ...     return (isinstance(args[0], basestring) and
-        ...             args[0].endswith('.tbl'))
-        >>> register_identifier('ipac', Table, my_identifier)
-    """
-
-    if not (data_format, data_class) in _identifiers or force:
-        _identifiers[(data_format, data_class)] = identifier
-    else:
-        raise Exception("Identifier for format '{0}' and class '{1}' is "
-                        'already defined'.format(data_format,
-                                                 data_class.__name__))
+# TODO: add backward-compatibility with register_reader/writer_identifier
 
 
 def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
-    _register_builtins()
-    # Loop through identifiers to see which formats match
+
+    # Initialize list of valid formats
     valid_formats = []
-    for data_format, data_class in _identifiers:
-        if _is_best_match(data_class_required, data_class, _identifiers):
-            identifier = _identifiers[(data_format, data_class)]
-            if isinstance(identifier, DEFERRED_TYPES):
-                identifier = _identifiers[(data_format, data_class)] = _resolve_deferred(identifier)
-            if identifier(
-                origin, path, fileobj, *args, **kwargs):
-                valid_formats.append(data_format)
+
+    # Get only the entries in the registry that match the data class required.
+    # This returns a dictionary with unique entries for each format.
+    registry_subset = get_registry_subset(data_class_required, identify=True, resolve=True)
+
+    # We now loop over the supported formats and try all matching identifiers
+    for fmt_name in registry_subset:
+        identifier = registry_subset[fmt_name]["io_class"].identify
+        if identifier(origin, path, fileobj, *args, **kwargs):
+            valid_formats.append(fmt_name)
 
     return valid_formats
 
@@ -347,38 +304,43 @@ def _get_format_table_str(data_class, readwrite):
 
 
 def get_reader(data_format, data_class):
-    _register_builtins()
-    # Get all the readers that work for `data_format`
-    readers = [(fmt, cls) for fmt, cls in _readers if fmt == data_format]
-    for reader_format, reader_class in readers:
-        if _is_best_match(data_class, reader_class, readers):
-            reader = _readers[(reader_format, reader_class)]
-            if isinstance(reader, DEFERRED_TYPES):
-                reader = _readers[(data_format, data_class)] = _resolve_deferred(reader)
-            return reader
-    else:
+
+    # Get only the entries in the registry that match the data class required.
+    # This returns a dictionary with unique entries for each format.
+    registry_subset = get_registry_subset(data_class, read=True,
+                                          data_format=data_format, resolve=True)
+
+    if len(registry_subset) == 0:
+
         format_table_str = _get_format_table_str(data_class, 'Read')
         raise Exception("No reader defined for format '{0}' and class '{1}'.\n"
                         'The available formats are:\n'
                         '{2}'
                         .format(data_format, data_class.__name__, format_table_str))
 
+    else:
+
+        return registry_subset[data_format]['io_class'].read
+
 
 def get_writer(data_format, data_class):
-    _register_builtins()
-    writers = [(fmt, cls) for fmt, cls in _writers if fmt == data_format]
-    for writer_format, writer_class in writers:
-        if _is_best_match(data_class, writer_class, writers):
-            writer = _writers[(writer_format, writer_class)]
-            if isinstance(writer, DEFERRED_TYPES):
-                writer = _writers[(data_format, data_class)] = _resolve_deferred(writer)
-            return writer
-    else:
-        format_table_str = _get_format_table_str(data_class, 'Write')
+
+    # Get only the entries in the registry that match the data class required.
+    # This returns a dictionary with unique entries for each format.
+    registry_subset = get_registry_subset(data_class, write=True,
+                                          data_format=data_format, resolve=True)
+
+    if len(registry_subset) == 0:
+
+        format_table_str = _get_format_table_str(data_class, 'Read')
         raise Exception("No writer defined for format '{0}' and class '{1}'.\n"
                         'The available formats are:\n'
                         '{2}'
                         .format(data_format, data_class.__name__, format_table_str))
+
+    else:
+
+        return registry_subset[data_format]['io_class'].read
 
 
 def read(cls, *args, **kwargs):
@@ -469,20 +431,6 @@ def write(data, *args, **kwargs):
     writer(data, *args, **kwargs)
 
 
-def _is_best_match(class1, class2, format_classes):
-    """
-    Determine if class2 is the "best" match for class1 in the list
-    of classes.  It is assumed that (class2 in classes) is True.
-    class2 is the the best match if:
-      - class1 is class2 => class1 was directly registered.
-      - OR class1 is a subclass of class2 and class1 is not in classes.
-        In this case the subclass will use the parent reader/writer.
-    """
-    classes = [cls for fmt, cls in format_classes]
-    is_best_match = ((class1 is class2) or (issubclass(class1, class2)
-                                            and class1 not in classes))
-    return is_best_match
-
 def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
     """
     Returns the first valid format that can be used to read/write the data in
@@ -525,9 +473,14 @@ class MetaRegisterBaseIO(type):
         frm = inspect.stack()[1]
         module = inspect.getmodule(frm[0])
 
-        _formats[format_abbreviation] = {
-            'supported_class': supported_class.__module__ + "." + supported_class.__name__,
-            'module': module.__name__,
+        resolve_data_classes()
+
+        if not supported_class in _registry:
+            _registry[supported_class] = {}
+
+        _registry[supported_class][format_abbreviation] = {
+            'module': module,
+            'io_class': cls,
             'read': members.get('read') is not None,
             'write':  members.get('write') is not None,
             'identify':  members.get('identify') is not None
