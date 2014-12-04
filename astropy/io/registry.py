@@ -489,11 +489,6 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
     question.  Mode can be either 'read' or 'write'.
     """
 
-    if mode == 'read':
-        funcs = _readers
-    elif mode == 'write':
-        funcs = _writers
-
     valid_formats = identify_format(mode, cls, path, fileobj, args, kwargs)
 
     if len(valid_formats) == 0:
