@@ -117,6 +117,9 @@ New Features
   - ``Section`` now supports all advanced indexing features ``ndarray`` does
     (slices with any steps, integer arrays, boolean arrays, None, Ellipsis).
     It also properly returns scalars when this is appropriate.
+  - The ``fitsdiff`` script ignore some things be default when comparing fits
+    files (e.g. empty header lines). This add as ``--exact`` option where
+    nothing is ignored. [#2782], finished in [#3110]
 
 - ``astropy.io.misc``
 
@@ -321,6 +324,11 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - A new optional argument ``cached`` has been added to
+    ``astropy.io.fits.open()``.  When opening a FITS file from a URL,
+    ``cached`` is a boolean value specifying whether or not to save the
+    file locally in Astropy's download cache (``True`` by default). [#3041]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -486,6 +494,9 @@ Bug Fixes
     to fail. [#3342]
 
 - ``astropy.io.fits``
+
+  - Fixed the problem in ``fits.open`` of some filenames with colon (``:``) in
+    the name being recognized as URLs instead of file names. [#3122]
 
   - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
 
