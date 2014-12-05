@@ -105,4 +105,4 @@ def requires_2to3():
 
 
 def get_package_data():
-    return {'astropy.erfa': ['core.py.templ', 'core.pyx.templ']}
+    return {'astropy.erfa': ['erfa.json']}
