@@ -142,7 +142,7 @@ def setup_iter(args, args_dtype, args_shape, args_name, nin):
             check_trailing_shape(args[i], args_shape[i], args_name[i])
 
     #Avoid 0d/scalars in numpy < 1.8
-    make_output_scalar = False
+    make_outputs_scalar = False
     if NPYLT18:
         make_outputs_scalar = True
         for i in range(len(args)):
@@ -169,7 +169,7 @@ def setup_iter(args, args_dtype, args_shape, args_name, nin):
     op_flags = [['readonly']]*nin + [['readwrite']]*(len(args)-nin)
     it = numpy.nditer(args, op_axes=op_axes, op_flags=op_flags)
 
-    return it, make_output_scalar
+    return it, make_outputs_scalar
 
 #<---------------------------------Make results------------------------------->
 
