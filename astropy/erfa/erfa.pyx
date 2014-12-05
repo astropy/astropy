@@ -239,7 +239,7 @@ def _cal2jd(it):
     cdef int _id
     cdef double * _djm0
     cdef double * _djm
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -250,9 +250,9 @@ def _cal2jd(it):
         _id = (<int *>(dataptrarray[2]))[0]
         _djm0 = (<double *>(dataptrarray[3]))
         _djm = (<double *>(dataptrarray[4]))
-        _c_retval = eraCal2jd(_iy, _im, _id, _djm0, _djm)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraCal2jd(_iy, _im, _id, _djm0, _djm)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -263,6 +263,7 @@ def _epb(it):
     cdef double _dj1
     cdef double _dj2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -272,6 +273,7 @@ def _epb(it):
         _c_retval = eraEpb(_dj1, _dj2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _epb2jd(it):
@@ -279,6 +281,7 @@ def _epb2jd(it):
     cdef double _epb
     cdef double * _djm0
     cdef double * _djm
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -288,6 +291,7 @@ def _epb2jd(it):
         _djm = (<double *>(dataptrarray[2]))
         eraEpb2jd(_epb, _djm0, _djm)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _epj(it):
@@ -295,6 +299,7 @@ def _epj(it):
     cdef double _dj1
     cdef double _dj2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -304,6 +309,7 @@ def _epj(it):
         _c_retval = eraEpj(_dj1, _dj2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _epj2jd(it):
@@ -311,6 +317,7 @@ def _epj2jd(it):
     cdef double _epj
     cdef double * _djm0
     cdef double * _djm
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -320,6 +327,7 @@ def _epj2jd(it):
         _djm = (<double *>(dataptrarray[2]))
         eraEpj2jd(_epj, _djm0, _djm)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _jd2cal(it):
@@ -330,7 +338,7 @@ def _jd2cal(it):
     cdef int * _im
     cdef int * _id
     cdef double * _fd
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -342,9 +350,9 @@ def _jd2cal(it):
         _im = (<int *>(dataptrarray[3]))
         _id = (<int *>(dataptrarray[4]))
         _fd = (<double *>(dataptrarray[5]))
-        _c_retval = eraJd2cal(_dj1, _dj2, _iy, _im, _id, _fd)
-        (<int *>(dataptrarray[6]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraJd2cal(_dj1, _dj2, _iy, _im, _id, _fd)
+        (<int *>(dataptrarray[6]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -356,7 +364,7 @@ def _jdcalf(it):
     cdef double _dj1
     cdef double _dj2
     cdef int * _iymdf
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -366,9 +374,9 @@ def _jdcalf(it):
         _dj1 = (<double *>(dataptrarray[1]))[0]
         _dj2 = (<double *>(dataptrarray[2]))[0]
         _iymdf = (<int *>(dataptrarray[3]))
-        _c_retval = eraJdcalf(_ndp, _dj1, _dj2, _iymdf)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraJdcalf(_ndp, _dj1, _dj2, _iymdf)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -381,6 +389,7 @@ def _ab(it):
     cdef double _s
     cdef double _bm1
     cdef double * _ppr
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -392,6 +401,7 @@ def _ab(it):
         _ppr = (<double *>(dataptrarray[4]))
         eraAb(_pnat, _v, _s, _bm1, _ppr)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _apcg(it):
@@ -401,6 +411,7 @@ def _apcg(it):
     cdef double * _ebpv
     cdef double * _ehp
     cdef eraASTROM * _astrom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -412,6 +423,7 @@ def _apcg(it):
         _astrom = (<eraASTROM *>(dataptrarray[4]))
         eraApcg(_date1, _date2, _ebpv, _ehp, _astrom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _apcg13(it):
@@ -419,6 +431,7 @@ def _apcg13(it):
     cdef double _date1
     cdef double _date2
     cdef eraASTROM * _astrom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -428,6 +441,7 @@ def _apcg13(it):
         _astrom = (<eraASTROM *>(dataptrarray[2]))
         eraApcg13(_date1, _date2, _astrom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _apci(it):
@@ -440,6 +454,7 @@ def _apci(it):
     cdef double _y
     cdef double _s
     cdef eraASTROM * _astrom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -454,6 +469,7 @@ def _apci(it):
         _astrom = (<eraASTROM *>(dataptrarray[7]))
         eraApci(_date1, _date2, _ebpv, _ehp, _x, _y, _s, _astrom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _apci13(it):
@@ -462,6 +478,7 @@ def _apci13(it):
     cdef double _date2
     cdef eraASTROM * _astrom
     cdef double * _eo
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -472,6 +489,7 @@ def _apci13(it):
         _eo = (<double *>(dataptrarray[3]))
         eraApci13(_date1, _date2, _astrom, _eo)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _apco(it):
@@ -493,6 +511,7 @@ def _apco(it):
     cdef double _refa
     cdef double _refb
     cdef eraASTROM * _astrom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -516,6 +535,7 @@ def _apco(it):
         _astrom = (<eraASTROM *>(dataptrarray[16]))
         eraApco(_date1, _date2, _ebpv, _ehp, _x, _y, _s, _theta, _elong, _phi, _hm, _xp, _yp, _sp, _refa, _refb, _astrom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _apco13(it):
@@ -534,7 +554,7 @@ def _apco13(it):
     cdef double _wl
     cdef eraASTROM * _astrom
     cdef double * _eo
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -554,9 +574,9 @@ def _apco13(it):
         _wl = (<double *>(dataptrarray[11]))[0]
         _astrom = (<eraASTROM *>(dataptrarray[12]))
         _eo = (<double *>(dataptrarray[13]))
-        _c_retval = eraApco13(_utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _astrom, _eo)
-        (<int *>(dataptrarray[14]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraApco13(_utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _astrom, _eo)
+        (<int *>(dataptrarray[14]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -570,6 +590,7 @@ def _apcs(it):
     cdef double * _ebpv
     cdef double * _ehp
     cdef eraASTROM * _astrom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -582,6 +603,7 @@ def _apcs(it):
         _astrom = (<eraASTROM *>(dataptrarray[5]))
         eraApcs(_date1, _date2, _pv, _ebpv, _ehp, _astrom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _apcs13(it):
@@ -590,6 +612,7 @@ def _apcs13(it):
     cdef double _date2
     cdef double * _pv
     cdef eraASTROM * _astrom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -600,12 +623,14 @@ def _apcs13(it):
         _astrom = (<eraASTROM *>(dataptrarray[3]))
         eraApcs13(_date1, _date2, _pv, _astrom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _aper(it):
     #Iterate
     cdef double _theta
     cdef eraASTROM * _astrom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -614,6 +639,7 @@ def _aper(it):
         _astrom = (<eraASTROM *>(dataptrarray[1]))
         eraAper(_theta, _astrom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _aper13(it):
@@ -621,6 +647,7 @@ def _aper13(it):
     cdef double _ut11
     cdef double _ut12
     cdef eraASTROM * _astrom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -630,6 +657,7 @@ def _aper13(it):
         _astrom = (<eraASTROM *>(dataptrarray[2]))
         eraAper13(_ut11, _ut12, _astrom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _apio(it):
@@ -644,6 +672,7 @@ def _apio(it):
     cdef double _refa
     cdef double _refb
     cdef eraASTROM * _astrom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -660,6 +689,7 @@ def _apio(it):
         _astrom = (<eraASTROM *>(dataptrarray[9]))
         eraApio(_sp, _theta, _elong, _phi, _hm, _xp, _yp, _refa, _refb, _astrom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _apio13(it):
@@ -677,7 +707,7 @@ def _apio13(it):
     cdef double _rh
     cdef double _wl
     cdef eraASTROM * _astrom
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -696,9 +726,9 @@ def _apio13(it):
         _rh = (<double *>(dataptrarray[10]))[0]
         _wl = (<double *>(dataptrarray[11]))[0]
         _astrom = (<eraASTROM *>(dataptrarray[12]))
-        _c_retval = eraApio13(_utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _astrom)
-        (<int *>(dataptrarray[13]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraApio13(_utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _astrom)
+        (<int *>(dataptrarray[13]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -717,6 +747,7 @@ def _atci13(it):
     cdef double * _ri
     cdef double * _di
     cdef double * _eo
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -734,6 +765,7 @@ def _atci13(it):
         _eo = (<double *>(dataptrarray[10]))
         eraAtci13(_rc, _dc, _pr, _pd, _px, _rv, _date1, _date2, _ri, _di, _eo)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _atciq(it):
@@ -747,6 +779,7 @@ def _atciq(it):
     cdef eraASTROM * _astrom
     cdef double * _ri
     cdef double * _di
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -762,6 +795,7 @@ def _atciq(it):
         _di = (<double *>(dataptrarray[8]))
         eraAtciq(_rc, _dc, _pr, _pd, _px, _rv, _astrom, _ri, _di)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _atciqn(it):
@@ -777,6 +811,7 @@ def _atciqn(it):
     cdef eraLDBODY * _b
     cdef double * _ri
     cdef double * _di
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -794,6 +829,7 @@ def _atciqn(it):
         _di = (<double *>(dataptrarray[10]))
         eraAtciqn(_rc, _dc, _pr, _pd, _px, _rv, _astrom, _n, _b, _ri, _di)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _atciqz(it):
@@ -803,6 +839,7 @@ def _atciqz(it):
     cdef eraASTROM * _astrom
     cdef double * _ri
     cdef double * _di
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -814,6 +851,7 @@ def _atciqz(it):
         _di = (<double *>(dataptrarray[4]))
         eraAtciqz(_rc, _dc, _astrom, _ri, _di)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _atco13(it):
@@ -842,7 +880,7 @@ def _atco13(it):
     cdef double * _dob
     cdef double * _rob
     cdef double * _eo
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -872,9 +910,9 @@ def _atco13(it):
         _dob = (<double *>(dataptrarray[21]))
         _rob = (<double *>(dataptrarray[22]))
         _eo = (<double *>(dataptrarray[23]))
-        _c_retval = eraAtco13(_rc, _dc, _pr, _pd, _px, _rv, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _aob, _zob, _hob, _dob, _rob, _eo)
-        (<int *>(dataptrarray[24]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraAtco13(_rc, _dc, _pr, _pd, _px, _rv, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _aob, _zob, _hob, _dob, _rob, _eo)
+        (<int *>(dataptrarray[24]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -889,6 +927,7 @@ def _atic13(it):
     cdef double * _rc
     cdef double * _dc
     cdef double * _eo
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -902,6 +941,7 @@ def _atic13(it):
         _eo = (<double *>(dataptrarray[6]))
         eraAtic13(_ri, _di, _date1, _date2, _rc, _dc, _eo)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _aticq(it):
@@ -911,6 +951,7 @@ def _aticq(it):
     cdef eraASTROM * _astrom
     cdef double * _rc
     cdef double * _dc
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -922,6 +963,7 @@ def _aticq(it):
         _dc = (<double *>(dataptrarray[4]))
         eraAticq(_ri, _di, _astrom, _rc, _dc)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _aticqn(it):
@@ -933,6 +975,7 @@ def _aticqn(it):
     cdef eraLDBODY * _b
     cdef double * _rc
     cdef double * _dc
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -946,6 +989,7 @@ def _aticqn(it):
         _dc = (<double *>(dataptrarray[6]))
         eraAticqn(_ri, _di, _astrom, _n, _b, _rc, _dc)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _atio13(it):
@@ -969,7 +1013,7 @@ def _atio13(it):
     cdef double * _hob
     cdef double * _dob
     cdef double * _rob
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -994,9 +1038,9 @@ def _atio13(it):
         _hob = (<double *>(dataptrarray[16]))
         _dob = (<double *>(dataptrarray[17]))
         _rob = (<double *>(dataptrarray[18]))
-        _c_retval = eraAtio13(_ri, _di, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _aob, _zob, _hob, _dob, _rob)
-        (<int *>(dataptrarray[19]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraAtio13(_ri, _di, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _aob, _zob, _hob, _dob, _rob)
+        (<int *>(dataptrarray[19]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -1012,6 +1056,7 @@ def _atioq(it):
     cdef double * _hob
     cdef double * _dob
     cdef double * _rob
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1026,6 +1071,7 @@ def _atioq(it):
         _rob = (<double *>(dataptrarray[7]))
         eraAtioq(_ri, _di, _astrom, _aob, _zob, _hob, _dob, _rob)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _atoc13(it):
@@ -1047,7 +1093,7 @@ def _atoc13(it):
     cdef double _wl
     cdef double * _rc
     cdef double * _dc
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -1070,9 +1116,9 @@ def _atoc13(it):
         _wl = (<double *>(dataptrarray[14]))[0]
         _rc = (<double *>(dataptrarray[15]))
         _dc = (<double *>(dataptrarray[16]))
-        _c_retval = eraAtoc13(_type, _ob1, _ob2, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _rc, _dc)
-        (<int *>(dataptrarray[17]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraAtoc13(_type, _ob1, _ob2, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _rc, _dc)
+        (<int *>(dataptrarray[17]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -1097,7 +1143,7 @@ def _atoi13(it):
     cdef double _wl
     cdef double * _ri
     cdef double * _di
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -1120,9 +1166,9 @@ def _atoi13(it):
         _wl = (<double *>(dataptrarray[14]))[0]
         _ri = (<double *>(dataptrarray[15]))
         _di = (<double *>(dataptrarray[16]))
-        _c_retval = eraAtoi13(_type, _ob1, _ob2, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _ri, _di)
-        (<int *>(dataptrarray[17]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraAtoi13(_type, _ob1, _ob2, _utc1, _utc2, _dut1, _elong, _phi, _hm, _xp, _yp, _phpa, _tc, _rh, _wl, _ri, _di)
+        (<int *>(dataptrarray[17]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -1136,6 +1182,7 @@ def _atoiq(it):
     cdef eraASTROM * _astrom
     cdef double * _ri
     cdef double * _di
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1148,6 +1195,7 @@ def _atoiq(it):
         _di = (<double *>(dataptrarray[5]))
         eraAtoiq(_type, _ob1, _ob2, _astrom, _ri, _di)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _ld(it):
@@ -1159,6 +1207,7 @@ def _ld(it):
     cdef double _em
     cdef double _dlim
     cdef double * _p1
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1172,6 +1221,7 @@ def _ld(it):
         _p1 = (<double *>(dataptrarray[6]))
         eraLd(_bm, _p, _q, _e, _em, _dlim, _p1)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _ldn(it):
@@ -1181,6 +1231,7 @@ def _ldn(it):
     cdef double * _ob
     cdef double * _sc
     cdef double * _sn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1192,6 +1243,7 @@ def _ldn(it):
         _sn = (<double *>(dataptrarray[4]))
         eraLdn(_n, _b, _ob, _sc, _sn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _ldsun(it):
@@ -1200,6 +1252,7 @@ def _ldsun(it):
     cdef double * _e
     cdef double _em
     cdef double * _p1
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1210,6 +1263,7 @@ def _ldsun(it):
         _p1 = (<double *>(dataptrarray[3]))
         eraLdsun(_p, _e, _em, _p1)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pmpx(it):
@@ -1223,6 +1277,7 @@ def _pmpx(it):
     cdef double _pmt
     cdef double * _pob
     cdef double * _pco
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1238,6 +1293,7 @@ def _pmpx(it):
         _pco = (<double *>(dataptrarray[8]))
         eraPmpx(_rc, _dc, _pr, _pd, _px, _rv, _pmt, _pob, _pco)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pmsafe(it):
@@ -1258,7 +1314,7 @@ def _pmsafe(it):
     cdef double * _pmd2
     cdef double * _px2
     cdef double * _rv2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -1280,9 +1336,9 @@ def _pmsafe(it):
         _pmd2 = (<double *>(dataptrarray[13]))
         _px2 = (<double *>(dataptrarray[14]))
         _rv2 = (<double *>(dataptrarray[15]))
-        _c_retval = eraPmsafe(_ra1, _dec1, _pmr1, _pmd1, _px1, _rv1, _ep1a, _ep1b, _ep2a, _ep2b, _ra2, _dec2, _pmr2, _pmd2, _px2, _rv2)
-        (<int *>(dataptrarray[16]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraPmsafe(_ra1, _dec1, _pmr1, _pmd1, _px1, _rv1, _ep1a, _ep1b, _ep2a, _ep2b, _ra2, _dec2, _pmr2, _pmd2, _px2, _rv2)
+        (<int *>(dataptrarray[16]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -1296,6 +1352,7 @@ def _refco(it):
     cdef double _wl
     cdef double * _refa
     cdef double * _refb
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1308,6 +1365,7 @@ def _refco(it):
         _refb = (<double *>(dataptrarray[5]))
         eraRefco(_phpa, _tc, _rh, _wl, _refa, _refb)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _epv00(it):
@@ -1316,7 +1374,7 @@ def _epv00(it):
     cdef double _date2
     cdef double * _pvh
     cdef double * _pvb
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -1326,9 +1384,9 @@ def _epv00(it):
         _date2 = (<double *>(dataptrarray[1]))[0]
         _pvh = (<double *>(dataptrarray[2]))
         _pvb = (<double *>(dataptrarray[3]))
-        _c_retval = eraEpv00(_date1, _date2, _pvh, _pvb)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraEpv00(_date1, _date2, _pvh, _pvb)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -1340,7 +1398,7 @@ def _plan94(it):
     cdef double _date2
     cdef int _np
     cdef double * _pv
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -1350,9 +1408,9 @@ def _plan94(it):
         _date2 = (<double *>(dataptrarray[1]))[0]
         _np = (<int *>(dataptrarray[2]))[0]
         _pv = (<double *>(dataptrarray[3]))
-        _c_retval = eraPlan94(_date1, _date2, _np, _pv)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraPlan94(_date1, _date2, _np, _pv)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -1362,6 +1420,7 @@ def _fad03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1370,12 +1429,14 @@ def _fad03(it):
         _c_retval = eraFad03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fae03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1384,12 +1445,14 @@ def _fae03(it):
         _c_retval = eraFae03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _faf03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1398,12 +1461,14 @@ def _faf03(it):
         _c_retval = eraFaf03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _faju03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1412,12 +1477,14 @@ def _faju03(it):
         _c_retval = eraFaju03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fal03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1426,12 +1493,14 @@ def _fal03(it):
         _c_retval = eraFal03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _falp03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1440,12 +1509,14 @@ def _falp03(it):
         _c_retval = eraFalp03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fama03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1454,12 +1525,14 @@ def _fama03(it):
         _c_retval = eraFama03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fame03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1468,12 +1541,14 @@ def _fame03(it):
         _c_retval = eraFame03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fane03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1482,12 +1557,14 @@ def _fane03(it):
         _c_retval = eraFane03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _faom03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1496,12 +1573,14 @@ def _faom03(it):
         _c_retval = eraFaom03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fapa03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1510,12 +1589,14 @@ def _fapa03(it):
         _c_retval = eraFapa03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fasa03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1524,12 +1605,14 @@ def _fasa03(it):
         _c_retval = eraFasa03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _faur03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1538,12 +1621,14 @@ def _faur03(it):
         _c_retval = eraFaur03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fave03(it):
     #Iterate
     cdef double _t
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1552,6 +1637,7 @@ def _fave03(it):
         _c_retval = eraFave03(_t)
         (<double *>(dataptrarray[1]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _bi00(it):
@@ -1559,6 +1645,7 @@ def _bi00(it):
     cdef double * _dpsibi
     cdef double * _depsbi
     cdef double * _dra
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1568,6 +1655,7 @@ def _bi00(it):
         _dra = (<double *>(dataptrarray[2]))
         eraBi00(_dpsibi, _depsbi, _dra)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _bp00(it):
@@ -1577,6 +1665,7 @@ def _bp00(it):
     cdef double * _rb
     cdef double * _rp
     cdef double * _rbp
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1588,6 +1677,7 @@ def _bp00(it):
         _rbp = (<double *>(dataptrarray[4]))
         eraBp00(_date1, _date2, _rb, _rp, _rbp)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _bp06(it):
@@ -1597,6 +1687,7 @@ def _bp06(it):
     cdef double * _rb
     cdef double * _rp
     cdef double * _rbp
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1608,6 +1699,7 @@ def _bp06(it):
         _rbp = (<double *>(dataptrarray[4]))
         eraBp06(_date1, _date2, _rb, _rp, _rbp)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _bpn2xy(it):
@@ -1615,6 +1707,7 @@ def _bpn2xy(it):
     cdef double * _rbpn
     cdef double * _x
     cdef double * _y
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1624,6 +1717,7 @@ def _bpn2xy(it):
         _y = (<double *>(dataptrarray[2]))
         eraBpn2xy(_rbpn, _x, _y)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2i00a(it):
@@ -1631,6 +1725,7 @@ def _c2i00a(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rc2i
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1640,6 +1735,7 @@ def _c2i00a(it):
         _rc2i = (<double *>(dataptrarray[2]))
         eraC2i00a(_date1, _date2, _rc2i)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2i00b(it):
@@ -1647,6 +1743,7 @@ def _c2i00b(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rc2i
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1656,6 +1753,7 @@ def _c2i00b(it):
         _rc2i = (<double *>(dataptrarray[2]))
         eraC2i00b(_date1, _date2, _rc2i)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2i06a(it):
@@ -1663,6 +1761,7 @@ def _c2i06a(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rc2i
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1672,6 +1771,7 @@ def _c2i06a(it):
         _rc2i = (<double *>(dataptrarray[2]))
         eraC2i06a(_date1, _date2, _rc2i)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2ibpn(it):
@@ -1680,6 +1780,7 @@ def _c2ibpn(it):
     cdef double _date2
     cdef double * _rbpn
     cdef double * _rc2i
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1690,6 +1791,7 @@ def _c2ibpn(it):
         _rc2i = (<double *>(dataptrarray[3]))
         eraC2ibpn(_date1, _date2, _rbpn, _rc2i)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2ixy(it):
@@ -1699,6 +1801,7 @@ def _c2ixy(it):
     cdef double _x
     cdef double _y
     cdef double * _rc2i
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1710,6 +1813,7 @@ def _c2ixy(it):
         _rc2i = (<double *>(dataptrarray[4]))
         eraC2ixy(_date1, _date2, _x, _y, _rc2i)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2ixys(it):
@@ -1718,6 +1822,7 @@ def _c2ixys(it):
     cdef double _y
     cdef double _s
     cdef double * _rc2i
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1728,6 +1833,7 @@ def _c2ixys(it):
         _rc2i = (<double *>(dataptrarray[3]))
         eraC2ixys(_x, _y, _s, _rc2i)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2t00a(it):
@@ -1739,6 +1845,7 @@ def _c2t00a(it):
     cdef double _xp
     cdef double _yp
     cdef double * _rc2t
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1752,6 +1859,7 @@ def _c2t00a(it):
         _rc2t = (<double *>(dataptrarray[6]))
         eraC2t00a(_tta, _ttb, _uta, _utb, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2t00b(it):
@@ -1763,6 +1871,7 @@ def _c2t00b(it):
     cdef double _xp
     cdef double _yp
     cdef double * _rc2t
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1776,6 +1885,7 @@ def _c2t00b(it):
         _rc2t = (<double *>(dataptrarray[6]))
         eraC2t00b(_tta, _ttb, _uta, _utb, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2t06a(it):
@@ -1787,6 +1897,7 @@ def _c2t06a(it):
     cdef double _xp
     cdef double _yp
     cdef double * _rc2t
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1800,6 +1911,7 @@ def _c2t06a(it):
         _rc2t = (<double *>(dataptrarray[6]))
         eraC2t06a(_tta, _ttb, _uta, _utb, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2tcio(it):
@@ -1808,6 +1920,7 @@ def _c2tcio(it):
     cdef double _era
     cdef double * _rpom
     cdef double * _rc2t
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1818,6 +1931,7 @@ def _c2tcio(it):
         _rc2t = (<double *>(dataptrarray[3]))
         eraC2tcio(_rc2i, _era, _rpom, _rc2t)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2teqx(it):
@@ -1826,6 +1940,7 @@ def _c2teqx(it):
     cdef double _gst
     cdef double * _rpom
     cdef double * _rc2t
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1836,6 +1951,7 @@ def _c2teqx(it):
         _rc2t = (<double *>(dataptrarray[3]))
         eraC2teqx(_rbpn, _gst, _rpom, _rc2t)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2tpe(it):
@@ -1849,6 +1965,7 @@ def _c2tpe(it):
     cdef double _xp
     cdef double _yp
     cdef double * _rc2t
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1864,6 +1981,7 @@ def _c2tpe(it):
         _rc2t = (<double *>(dataptrarray[8]))
         eraC2tpe(_tta, _ttb, _uta, _utb, _dpsi, _deps, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _c2txy(it):
@@ -1877,6 +1995,7 @@ def _c2txy(it):
     cdef double _xp
     cdef double _yp
     cdef double * _rc2t
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1892,6 +2011,7 @@ def _c2txy(it):
         _rc2t = (<double *>(dataptrarray[8]))
         eraC2txy(_tta, _ttb, _uta, _utb, _x, _y, _xp, _yp, _rc2t)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _eo06a(it):
@@ -1899,6 +2019,7 @@ def _eo06a(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1908,6 +2029,7 @@ def _eo06a(it):
         _c_retval = eraEo06a(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _eors(it):
@@ -1915,6 +2037,7 @@ def _eors(it):
     cdef double * _rnpb
     cdef double _s
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1924,6 +2047,7 @@ def _eors(it):
         _c_retval = eraEors(_rnpb, _s)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fw2m(it):
@@ -1933,6 +2057,7 @@ def _fw2m(it):
     cdef double _psi
     cdef double _eps
     cdef double * _r
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1944,6 +2069,7 @@ def _fw2m(it):
         _r = (<double *>(dataptrarray[4]))
         eraFw2m(_gamb, _phib, _psi, _eps, _r)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fw2xy(it):
@@ -1954,6 +2080,7 @@ def _fw2xy(it):
     cdef double _eps
     cdef double * _x
     cdef double * _y
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1966,6 +2093,7 @@ def _fw2xy(it):
         _y = (<double *>(dataptrarray[5]))
         eraFw2xy(_gamb, _phib, _psi, _eps, _x, _y)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _num00a(it):
@@ -1973,6 +2101,7 @@ def _num00a(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rmatn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1982,6 +2111,7 @@ def _num00a(it):
         _rmatn = (<double *>(dataptrarray[2]))
         eraNum00a(_date1, _date2, _rmatn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _num00b(it):
@@ -1989,6 +2119,7 @@ def _num00b(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rmatn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -1998,6 +2129,7 @@ def _num00b(it):
         _rmatn = (<double *>(dataptrarray[2]))
         eraNum00b(_date1, _date2, _rmatn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _num06a(it):
@@ -2005,6 +2137,7 @@ def _num06a(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rmatn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2014,6 +2147,7 @@ def _num06a(it):
         _rmatn = (<double *>(dataptrarray[2]))
         eraNum06a(_date1, _date2, _rmatn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _numat(it):
@@ -2022,6 +2156,7 @@ def _numat(it):
     cdef double _dpsi
     cdef double _deps
     cdef double * _rmatn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2032,6 +2167,7 @@ def _numat(it):
         _rmatn = (<double *>(dataptrarray[3]))
         eraNumat(_epsa, _dpsi, _deps, _rmatn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _nut00a(it):
@@ -2040,6 +2176,7 @@ def _nut00a(it):
     cdef double _date2
     cdef double * _dpsi
     cdef double * _deps
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2050,6 +2187,7 @@ def _nut00a(it):
         _deps = (<double *>(dataptrarray[3]))
         eraNut00a(_date1, _date2, _dpsi, _deps)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _nut00b(it):
@@ -2058,6 +2196,7 @@ def _nut00b(it):
     cdef double _date2
     cdef double * _dpsi
     cdef double * _deps
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2068,6 +2207,7 @@ def _nut00b(it):
         _deps = (<double *>(dataptrarray[3]))
         eraNut00b(_date1, _date2, _dpsi, _deps)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _nut06a(it):
@@ -2076,6 +2216,7 @@ def _nut06a(it):
     cdef double _date2
     cdef double * _dpsi
     cdef double * _deps
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2086,6 +2227,7 @@ def _nut06a(it):
         _deps = (<double *>(dataptrarray[3]))
         eraNut06a(_date1, _date2, _dpsi, _deps)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _nut80(it):
@@ -2094,6 +2236,7 @@ def _nut80(it):
     cdef double _date2
     cdef double * _dpsi
     cdef double * _deps
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2104,6 +2247,7 @@ def _nut80(it):
         _deps = (<double *>(dataptrarray[3]))
         eraNut80(_date1, _date2, _dpsi, _deps)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _nutm80(it):
@@ -2111,6 +2255,7 @@ def _nutm80(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rmatn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2120,6 +2265,7 @@ def _nutm80(it):
         _rmatn = (<double *>(dataptrarray[2]))
         eraNutm80(_date1, _date2, _rmatn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _obl06(it):
@@ -2127,6 +2273,7 @@ def _obl06(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2136,6 +2283,7 @@ def _obl06(it):
         _c_retval = eraObl06(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _obl80(it):
@@ -2143,6 +2291,7 @@ def _obl80(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2152,6 +2301,7 @@ def _obl80(it):
         _c_retval = eraObl80(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _p06e(it):
@@ -2174,6 +2324,7 @@ def _p06e(it):
     cdef double * _gam
     cdef double * _phi
     cdef double * _psi
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2198,6 +2349,7 @@ def _p06e(it):
         _psi = (<double *>(dataptrarray[17]))
         eraP06e(_date1, _date2, _eps0, _psia, _oma, _bpa, _bqa, _pia, _bpia, _epsa, _chia, _za, _zetaa, _thetaa, _pa, _gam, _phi, _psi)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pb06(it):
@@ -2207,6 +2359,7 @@ def _pb06(it):
     cdef double * _bzeta
     cdef double * _bz
     cdef double * _btheta
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2218,6 +2371,7 @@ def _pb06(it):
         _btheta = (<double *>(dataptrarray[4]))
         eraPb06(_date1, _date2, _bzeta, _bz, _btheta)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pfw06(it):
@@ -2228,6 +2382,7 @@ def _pfw06(it):
     cdef double * _phib
     cdef double * _psib
     cdef double * _epsa
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2240,6 +2395,7 @@ def _pfw06(it):
         _epsa = (<double *>(dataptrarray[5]))
         eraPfw06(_date1, _date2, _gamb, _phib, _psib, _epsa)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pmat00(it):
@@ -2247,6 +2403,7 @@ def _pmat00(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rbp
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2256,6 +2413,7 @@ def _pmat00(it):
         _rbp = (<double *>(dataptrarray[2]))
         eraPmat00(_date1, _date2, _rbp)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pmat06(it):
@@ -2263,6 +2421,7 @@ def _pmat06(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rbp
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2272,6 +2431,7 @@ def _pmat06(it):
         _rbp = (<double *>(dataptrarray[2]))
         eraPmat06(_date1, _date2, _rbp)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pmat76(it):
@@ -2279,6 +2439,7 @@ def _pmat76(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rmatp
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2288,6 +2449,7 @@ def _pmat76(it):
         _rmatp = (<double *>(dataptrarray[2]))
         eraPmat76(_date1, _date2, _rmatp)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pn00(it):
@@ -2302,6 +2464,7 @@ def _pn00(it):
     cdef double * _rbp
     cdef double * _rn
     cdef double * _rbpn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2318,6 +2481,7 @@ def _pn00(it):
         _rbpn = (<double *>(dataptrarray[9]))
         eraPn00(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pn00a(it):
@@ -2332,6 +2496,7 @@ def _pn00a(it):
     cdef double * _rbp
     cdef double * _rn
     cdef double * _rbpn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2348,6 +2513,7 @@ def _pn00a(it):
         _rbpn = (<double *>(dataptrarray[9]))
         eraPn00a(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pn00b(it):
@@ -2362,6 +2528,7 @@ def _pn00b(it):
     cdef double * _rbp
     cdef double * _rn
     cdef double * _rbpn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2378,6 +2545,7 @@ def _pn00b(it):
         _rbpn = (<double *>(dataptrarray[9]))
         eraPn00b(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pn06(it):
@@ -2392,6 +2560,7 @@ def _pn06(it):
     cdef double * _rbp
     cdef double * _rn
     cdef double * _rbpn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2408,6 +2577,7 @@ def _pn06(it):
         _rbpn = (<double *>(dataptrarray[9]))
         eraPn06(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pn06a(it):
@@ -2422,6 +2592,7 @@ def _pn06a(it):
     cdef double * _rbp
     cdef double * _rn
     cdef double * _rbpn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2438,6 +2609,7 @@ def _pn06a(it):
         _rbpn = (<double *>(dataptrarray[9]))
         eraPn06a(_date1, _date2, _dpsi, _deps, _epsa, _rb, _rp, _rbp, _rn, _rbpn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pnm00a(it):
@@ -2445,6 +2617,7 @@ def _pnm00a(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rbpn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2454,6 +2627,7 @@ def _pnm00a(it):
         _rbpn = (<double *>(dataptrarray[2]))
         eraPnm00a(_date1, _date2, _rbpn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pnm00b(it):
@@ -2461,6 +2635,7 @@ def _pnm00b(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rbpn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2470,6 +2645,7 @@ def _pnm00b(it):
         _rbpn = (<double *>(dataptrarray[2]))
         eraPnm00b(_date1, _date2, _rbpn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pnm06a(it):
@@ -2477,6 +2653,7 @@ def _pnm06a(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rnpb
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2486,6 +2663,7 @@ def _pnm06a(it):
         _rnpb = (<double *>(dataptrarray[2]))
         eraPnm06a(_date1, _date2, _rnpb)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pnm80(it):
@@ -2493,6 +2671,7 @@ def _pnm80(it):
     cdef double _date1
     cdef double _date2
     cdef double * _rmatpn
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2502,6 +2681,7 @@ def _pnm80(it):
         _rmatpn = (<double *>(dataptrarray[2]))
         eraPnm80(_date1, _date2, _rmatpn)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pom00(it):
@@ -2510,6 +2690,7 @@ def _pom00(it):
     cdef double _yp
     cdef double _sp
     cdef double * _rpom
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2520,6 +2701,7 @@ def _pom00(it):
         _rpom = (<double *>(dataptrarray[3]))
         eraPom00(_xp, _yp, _sp, _rpom)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pr00(it):
@@ -2528,6 +2710,7 @@ def _pr00(it):
     cdef double _date2
     cdef double * _dpsipr
     cdef double * _depspr
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2538,6 +2721,7 @@ def _pr00(it):
         _depspr = (<double *>(dataptrarray[3]))
         eraPr00(_date1, _date2, _dpsipr, _depspr)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _prec76(it):
@@ -2549,6 +2733,7 @@ def _prec76(it):
     cdef double * _zeta
     cdef double * _z
     cdef double * _theta
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2562,6 +2747,7 @@ def _prec76(it):
         _theta = (<double *>(dataptrarray[6]))
         eraPrec76(_date01, _date02, _date11, _date12, _zeta, _z, _theta)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _s00(it):
@@ -2571,6 +2757,7 @@ def _s00(it):
     cdef double _x
     cdef double _y
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2582,6 +2769,7 @@ def _s00(it):
         _c_retval = eraS00(_date1, _date2, _x, _y)
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _s00a(it):
@@ -2589,6 +2777,7 @@ def _s00a(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2598,6 +2787,7 @@ def _s00a(it):
         _c_retval = eraS00a(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _s00b(it):
@@ -2605,6 +2795,7 @@ def _s00b(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2614,6 +2805,7 @@ def _s00b(it):
         _c_retval = eraS00b(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _s06(it):
@@ -2623,6 +2815,7 @@ def _s06(it):
     cdef double _x
     cdef double _y
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2634,6 +2827,7 @@ def _s06(it):
         _c_retval = eraS06(_date1, _date2, _x, _y)
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _s06a(it):
@@ -2641,6 +2835,7 @@ def _s06a(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2650,6 +2845,7 @@ def _s06a(it):
         _c_retval = eraS06a(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _sp00(it):
@@ -2657,6 +2853,7 @@ def _sp00(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2666,6 +2863,7 @@ def _sp00(it):
         _c_retval = eraSp00(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _xy06(it):
@@ -2674,6 +2872,7 @@ def _xy06(it):
     cdef double _date2
     cdef double * _x
     cdef double * _y
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2684,6 +2883,7 @@ def _xy06(it):
         _y = (<double *>(dataptrarray[3]))
         eraXy06(_date1, _date2, _x, _y)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _xys00a(it):
@@ -2693,6 +2893,7 @@ def _xys00a(it):
     cdef double * _x
     cdef double * _y
     cdef double * _s
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2704,6 +2905,7 @@ def _xys00a(it):
         _s = (<double *>(dataptrarray[4]))
         eraXys00a(_date1, _date2, _x, _y, _s)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _xys00b(it):
@@ -2713,6 +2915,7 @@ def _xys00b(it):
     cdef double * _x
     cdef double * _y
     cdef double * _s
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2724,6 +2927,7 @@ def _xys00b(it):
         _s = (<double *>(dataptrarray[4]))
         eraXys00b(_date1, _date2, _x, _y, _s)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _xys06a(it):
@@ -2733,6 +2937,7 @@ def _xys06a(it):
     cdef double * _x
     cdef double * _y
     cdef double * _s
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2744,6 +2949,7 @@ def _xys06a(it):
         _s = (<double *>(dataptrarray[4]))
         eraXys06a(_date1, _date2, _x, _y, _s)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _ee00(it):
@@ -2753,6 +2959,7 @@ def _ee00(it):
     cdef double _epsa
     cdef double _dpsi
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2764,6 +2971,7 @@ def _ee00(it):
         _c_retval = eraEe00(_date1, _date2, _epsa, _dpsi)
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _ee00a(it):
@@ -2771,6 +2979,7 @@ def _ee00a(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2780,6 +2989,7 @@ def _ee00a(it):
         _c_retval = eraEe00a(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _ee00b(it):
@@ -2787,6 +2997,7 @@ def _ee00b(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2796,6 +3007,7 @@ def _ee00b(it):
         _c_retval = eraEe00b(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _ee06a(it):
@@ -2803,6 +3015,7 @@ def _ee06a(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2812,6 +3025,7 @@ def _ee06a(it):
         _c_retval = eraEe06a(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _eect00(it):
@@ -2819,6 +3033,7 @@ def _eect00(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2828,6 +3043,7 @@ def _eect00(it):
         _c_retval = eraEect00(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _eqeq94(it):
@@ -2835,6 +3051,7 @@ def _eqeq94(it):
     cdef double _date1
     cdef double _date2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2844,6 +3061,7 @@ def _eqeq94(it):
         _c_retval = eraEqeq94(_date1, _date2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _era00(it):
@@ -2851,6 +3069,7 @@ def _era00(it):
     cdef double _dj1
     cdef double _dj2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2860,6 +3079,7 @@ def _era00(it):
         _c_retval = eraEra00(_dj1, _dj2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _gmst00(it):
@@ -2869,6 +3089,7 @@ def _gmst00(it):
     cdef double _tta
     cdef double _ttb
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2880,6 +3101,7 @@ def _gmst00(it):
         _c_retval = eraGmst00(_uta, _utb, _tta, _ttb)
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _gmst06(it):
@@ -2889,6 +3111,7 @@ def _gmst06(it):
     cdef double _tta
     cdef double _ttb
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2900,6 +3123,7 @@ def _gmst06(it):
         _c_retval = eraGmst06(_uta, _utb, _tta, _ttb)
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _gmst82(it):
@@ -2907,6 +3131,7 @@ def _gmst82(it):
     cdef double _dj1
     cdef double _dj2
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2916,6 +3141,7 @@ def _gmst82(it):
         _c_retval = eraGmst82(_dj1, _dj2)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _gst00a(it):
@@ -2925,6 +3151,7 @@ def _gst00a(it):
     cdef double _tta
     cdef double _ttb
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2936,6 +3163,7 @@ def _gst00a(it):
         _c_retval = eraGst00a(_uta, _utb, _tta, _ttb)
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _gst00b(it):
@@ -2943,6 +3171,7 @@ def _gst00b(it):
     cdef double _uta
     cdef double _utb
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2952,6 +3181,7 @@ def _gst00b(it):
         _c_retval = eraGst00b(_uta, _utb)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _gst06(it):
@@ -2962,6 +3192,7 @@ def _gst06(it):
     cdef double _ttb
     cdef double * _rnpb
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2974,6 +3205,7 @@ def _gst06(it):
         _c_retval = eraGst06(_uta, _utb, _tta, _ttb, _rnpb)
         (<double *>(dataptrarray[5]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _gst06a(it):
@@ -2983,6 +3215,7 @@ def _gst06a(it):
     cdef double _tta
     cdef double _ttb
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -2994,6 +3227,7 @@ def _gst06a(it):
         _c_retval = eraGst06a(_uta, _utb, _tta, _ttb)
         (<double *>(dataptrarray[4]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _gst94(it):
@@ -3001,6 +3235,7 @@ def _gst94(it):
     cdef double _uta
     cdef double _utb
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -3010,6 +3245,7 @@ def _gst94(it):
         _c_retval = eraGst94(_uta, _utb)
         (<double *>(dataptrarray[2]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _pmsafe(it):
@@ -3030,7 +3266,7 @@ def _pmsafe(it):
     cdef double * _pmd2
     cdef double * _px2
     cdef double * _rv2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3052,9 +3288,9 @@ def _pmsafe(it):
         _pmd2 = (<double *>(dataptrarray[13]))
         _px2 = (<double *>(dataptrarray[14]))
         _rv2 = (<double *>(dataptrarray[15]))
-        _c_retval = eraPmsafe(_ra1, _dec1, _pmr1, _pmd1, _px1, _rv1, _ep1a, _ep1b, _ep2a, _ep2b, _ra2, _dec2, _pmr2, _pmd2, _px2, _rv2)
-        (<int *>(dataptrarray[16]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraPmsafe(_ra1, _dec1, _pmr1, _pmd1, _px1, _rv1, _ep1a, _ep1b, _ep2a, _ep2b, _ra2, _dec2, _pmr2, _pmd2, _px2, _rv2)
+        (<int *>(dataptrarray[16]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3069,7 +3305,7 @@ def _pvstar(it):
     cdef double * _pmd
     cdef double * _px
     cdef double * _rv
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3082,9 +3318,9 @@ def _pvstar(it):
         _pmd = (<double *>(dataptrarray[4]))
         _px = (<double *>(dataptrarray[5]))
         _rv = (<double *>(dataptrarray[6]))
-        _c_retval = eraPvstar(_pv, _ra, _dec, _pmr, _pmd, _px, _rv)
-        (<int *>(dataptrarray[7]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraPvstar(_pv, _ra, _dec, _pmr, _pmd, _px, _rv)
+        (<int *>(dataptrarray[7]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3099,7 +3335,7 @@ def _starpv(it):
     cdef double _px
     cdef double _rv
     cdef double * _pv
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3112,9 +3348,9 @@ def _starpv(it):
         _px = (<double *>(dataptrarray[4]))[0]
         _rv = (<double *>(dataptrarray[5]))[0]
         _pv = (<double *>(dataptrarray[6]))
-        _c_retval = eraStarpv(_ra, _dec, _pmr, _pmd, _px, _rv, _pv)
-        (<int *>(dataptrarray[7]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraStarpv(_ra, _dec, _pmr, _pmd, _px, _rv, _pv)
+        (<int *>(dataptrarray[7]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3134,6 +3370,7 @@ def _fk52h(it):
     cdef double * _ddh
     cdef double * _pxh
     cdef double * _rvh
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -3152,12 +3389,14 @@ def _fk52h(it):
         _rvh = (<double *>(dataptrarray[11]))
         eraFk52h(_r5, _d5, _dr5, _dd5, _px5, _rv5, _rh, _dh, _drh, _ddh, _pxh, _rvh)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fk5hip(it):
     #Iterate
     cdef double * _r5h
     cdef double * _s5h
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -3166,6 +3405,7 @@ def _fk5hip(it):
         _s5h = (<double *>(dataptrarray[1]))
         eraFk5hip(_r5h, _s5h)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _fk5hz(it):
@@ -3176,6 +3416,7 @@ def _fk5hz(it):
     cdef double _date2
     cdef double * _rh
     cdef double * _dh
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -3188,6 +3429,7 @@ def _fk5hz(it):
         _dh = (<double *>(dataptrarray[5]))
         eraFk5hz(_r5, _d5, _date1, _date2, _rh, _dh)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _h2fk5(it):
@@ -3204,6 +3446,7 @@ def _h2fk5(it):
     cdef double * _dd5
     cdef double * _px5
     cdef double * _rv5
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -3222,6 +3465,7 @@ def _h2fk5(it):
         _rv5 = (<double *>(dataptrarray[11]))
         eraH2fk5(_rh, _dh, _drh, _ddh, _pxh, _rvh, _r5, _d5, _dr5, _dd5, _px5, _rv5)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _hfk5z(it):
@@ -3234,6 +3478,7 @@ def _hfk5z(it):
     cdef double * _d5
     cdef double * _dr5
     cdef double * _dd5
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -3248,6 +3493,7 @@ def _hfk5z(it):
         _dd5 = (<double *>(dataptrarray[7]))
         eraHfk5z(_rh, _dh, _date1, _date2, _r5, _d5, _dr5, _dd5)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _starpm(it):
@@ -3268,7 +3514,7 @@ def _starpm(it):
     cdef double * _pmd2
     cdef double * _px2
     cdef double * _rv2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3290,9 +3536,9 @@ def _starpm(it):
         _pmd2 = (<double *>(dataptrarray[13]))
         _px2 = (<double *>(dataptrarray[14]))
         _rv2 = (<double *>(dataptrarray[15]))
-        _c_retval = eraStarpm(_ra1, _dec1, _pmr1, _pmd1, _px1, _rv1, _ep1a, _ep1b, _ep2a, _ep2b, _ra2, _dec2, _pmr2, _pmd2, _px2, _rv2)
-        (<int *>(dataptrarray[16]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraStarpm(_ra1, _dec1, _pmr1, _pmd1, _px1, _rv1, _ep1a, _ep1b, _ep2a, _ep2b, _ra2, _dec2, _pmr2, _pmd2, _px2, _rv2)
+        (<int *>(dataptrarray[16]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3303,7 +3549,7 @@ def _eform(it):
     cdef int _n
     cdef double * _a
     cdef double * _f
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3312,9 +3558,9 @@ def _eform(it):
         _n = (<int *>(dataptrarray[0]))[0]
         _a = (<double *>(dataptrarray[1]))
         _f = (<double *>(dataptrarray[2]))
-        _c_retval = eraEform(_n, _a, _f)
-        (<int *>(dataptrarray[3]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraEform(_n, _a, _f)
+        (<int *>(dataptrarray[3]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3327,7 +3573,7 @@ def _gc2gd(it):
     cdef double * _elong
     cdef double * _phi
     cdef double * _height
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3338,9 +3584,9 @@ def _gc2gd(it):
         _elong = (<double *>(dataptrarray[2]))
         _phi = (<double *>(dataptrarray[3]))
         _height = (<double *>(dataptrarray[4]))
-        _c_retval = eraGc2gd(_n, _xyz, _elong, _phi, _height)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraGc2gd(_n, _xyz, _elong, _phi, _height)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3354,7 +3600,7 @@ def _gc2gde(it):
     cdef double * _elong
     cdef double * _phi
     cdef double * _height
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3366,9 +3612,9 @@ def _gc2gde(it):
         _elong = (<double *>(dataptrarray[3]))
         _phi = (<double *>(dataptrarray[4]))
         _height = (<double *>(dataptrarray[5]))
-        _c_retval = eraGc2gde(_a, _f, _xyz, _elong, _phi, _height)
-        (<int *>(dataptrarray[6]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraGc2gde(_a, _f, _xyz, _elong, _phi, _height)
+        (<int *>(dataptrarray[6]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3381,7 +3627,7 @@ def _gd2gc(it):
     cdef double _phi
     cdef double _height
     cdef double * _xyz
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3392,9 +3638,9 @@ def _gd2gc(it):
         _phi = (<double *>(dataptrarray[2]))[0]
         _height = (<double *>(dataptrarray[3]))[0]
         _xyz = (<double *>(dataptrarray[4]))
-        _c_retval = eraGd2gc(_n, _elong, _phi, _height, _xyz)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraGd2gc(_n, _elong, _phi, _height, _xyz)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3408,7 +3654,7 @@ def _gd2gce(it):
     cdef double _phi
     cdef double _height
     cdef double * _xyz
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3420,9 +3666,9 @@ def _gd2gce(it):
         _phi = (<double *>(dataptrarray[3]))[0]
         _height = (<double *>(dataptrarray[4]))[0]
         _xyz = (<double *>(dataptrarray[5]))
-        _c_retval = eraGd2gce(_a, _f, _elong, _phi, _height, _xyz)
-        (<int *>(dataptrarray[6]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraGd2gce(_a, _f, _elong, _phi, _height, _xyz)
+        (<int *>(dataptrarray[6]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3438,6 +3684,7 @@ def _pvtob(it):
     cdef double _sp
     cdef double _theta
     cdef double * _pv
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -3452,6 +3699,7 @@ def _pvtob(it):
         _pv = (<double *>(dataptrarray[7]))
         eraPvtob(_elong, _phi, _hm, _xp, _yp, _sp, _theta, _pv)
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _d2dtf(it):
@@ -3464,7 +3712,7 @@ def _d2dtf(it):
     cdef int * _im
     cdef int * _id
     cdef int * _ihmsf
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3478,9 +3726,9 @@ def _d2dtf(it):
         _im = (<int *>(dataptrarray[5]))
         _id = (<int *>(dataptrarray[6]))
         _ihmsf = (<int *>(dataptrarray[7]))
-        _c_retval = eraD2dtf(_scale, _ndp, _d1, _d2, _iy, _im, _id, _ihmsf)
-        (<int *>(dataptrarray[8]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraD2dtf(_scale, _ndp, _d1, _d2, _iy, _im, _id, _ihmsf)
+        (<int *>(dataptrarray[8]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3493,7 +3741,7 @@ def _dat(it):
     cdef int _id
     cdef double _fd
     cdef double * _deltat
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3504,9 +3752,9 @@ def _dat(it):
         _id = (<int *>(dataptrarray[2]))[0]
         _fd = (<double *>(dataptrarray[3]))[0]
         _deltat = (<double *>(dataptrarray[4]))
-        _c_retval = eraDat(_iy, _im, _id, _fd, _deltat)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraDat(_iy, _im, _id, _fd, _deltat)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3521,6 +3769,7 @@ def _dtdb(it):
     cdef double _u
     cdef double _v
     cdef double _c_retval
+    cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
     cdef int status = 1
@@ -3534,6 +3783,7 @@ def _dtdb(it):
         _c_retval = eraDtdb(_date1, _date2, _ut, _elong, _u, _v)
         (<double *>(dataptrarray[6]))[0] = _c_retval
         status = iternext(GetNpyIter(it))
+    return stat_ok
 
 
 def _dtf2d(it):
@@ -3547,7 +3797,7 @@ def _dtf2d(it):
     cdef double _sec
     cdef double * _d1
     cdef double * _d2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3562,9 +3812,9 @@ def _dtf2d(it):
         _sec = (<double *>(dataptrarray[6]))[0]
         _d1 = (<double *>(dataptrarray[7]))
         _d2 = (<double *>(dataptrarray[8]))
-        _c_retval = eraDtf2d(_scale, _iy, _im, _id, _ihr, _imn, _sec, _d1, _d2)
-        (<int *>(dataptrarray[9]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraDtf2d(_scale, _iy, _im, _id, _ihr, _imn, _sec, _d1, _d2)
+        (<int *>(dataptrarray[9]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3576,7 +3826,7 @@ def _taitt(it):
     cdef double _tai2
     cdef double * _tt1
     cdef double * _tt2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3586,9 +3836,9 @@ def _taitt(it):
         _tai2 = (<double *>(dataptrarray[1]))[0]
         _tt1 = (<double *>(dataptrarray[2]))
         _tt2 = (<double *>(dataptrarray[3]))
-        _c_retval = eraTaitt(_tai1, _tai2, _tt1, _tt2)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTaitt(_tai1, _tai2, _tt1, _tt2)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3601,7 +3851,7 @@ def _taiut1(it):
     cdef double _dta
     cdef double * _ut11
     cdef double * _ut12
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3612,9 +3862,9 @@ def _taiut1(it):
         _dta = (<double *>(dataptrarray[2]))[0]
         _ut11 = (<double *>(dataptrarray[3]))
         _ut12 = (<double *>(dataptrarray[4]))
-        _c_retval = eraTaiut1(_tai1, _tai2, _dta, _ut11, _ut12)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTaiut1(_tai1, _tai2, _dta, _ut11, _ut12)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3626,7 +3876,7 @@ def _taiutc(it):
     cdef double _tai2
     cdef double * _utc1
     cdef double * _utc2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3636,9 +3886,9 @@ def _taiutc(it):
         _tai2 = (<double *>(dataptrarray[1]))[0]
         _utc1 = (<double *>(dataptrarray[2]))
         _utc2 = (<double *>(dataptrarray[3]))
-        _c_retval = eraTaiutc(_tai1, _tai2, _utc1, _utc2)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTaiutc(_tai1, _tai2, _utc1, _utc2)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3650,7 +3900,7 @@ def _tcbtdb(it):
     cdef double _tcb2
     cdef double * _tdb1
     cdef double * _tdb2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3660,9 +3910,9 @@ def _tcbtdb(it):
         _tcb2 = (<double *>(dataptrarray[1]))[0]
         _tdb1 = (<double *>(dataptrarray[2]))
         _tdb2 = (<double *>(dataptrarray[3]))
-        _c_retval = eraTcbtdb(_tcb1, _tcb2, _tdb1, _tdb2)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTcbtdb(_tcb1, _tcb2, _tdb1, _tdb2)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3674,7 +3924,7 @@ def _tcgtt(it):
     cdef double _tcg2
     cdef double * _tt1
     cdef double * _tt2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3684,9 +3934,9 @@ def _tcgtt(it):
         _tcg2 = (<double *>(dataptrarray[1]))[0]
         _tt1 = (<double *>(dataptrarray[2]))
         _tt2 = (<double *>(dataptrarray[3]))
-        _c_retval = eraTcgtt(_tcg1, _tcg2, _tt1, _tt2)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTcgtt(_tcg1, _tcg2, _tt1, _tt2)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3698,7 +3948,7 @@ def _tdbtcb(it):
     cdef double _tdb2
     cdef double * _tcb1
     cdef double * _tcb2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3708,9 +3958,9 @@ def _tdbtcb(it):
         _tdb2 = (<double *>(dataptrarray[1]))[0]
         _tcb1 = (<double *>(dataptrarray[2]))
         _tcb2 = (<double *>(dataptrarray[3]))
-        _c_retval = eraTdbtcb(_tdb1, _tdb2, _tcb1, _tcb2)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTdbtcb(_tdb1, _tdb2, _tcb1, _tcb2)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3723,7 +3973,7 @@ def _tdbtt(it):
     cdef double _dtr
     cdef double * _tt1
     cdef double * _tt2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3734,9 +3984,9 @@ def _tdbtt(it):
         _dtr = (<double *>(dataptrarray[2]))[0]
         _tt1 = (<double *>(dataptrarray[3]))
         _tt2 = (<double *>(dataptrarray[4]))
-        _c_retval = eraTdbtt(_tdb1, _tdb2, _dtr, _tt1, _tt2)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTdbtt(_tdb1, _tdb2, _dtr, _tt1, _tt2)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3748,7 +3998,7 @@ def _tttai(it):
     cdef double _tt2
     cdef double * _tai1
     cdef double * _tai2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3758,9 +4008,9 @@ def _tttai(it):
         _tt2 = (<double *>(dataptrarray[1]))[0]
         _tai1 = (<double *>(dataptrarray[2]))
         _tai2 = (<double *>(dataptrarray[3]))
-        _c_retval = eraTttai(_tt1, _tt2, _tai1, _tai2)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTttai(_tt1, _tt2, _tai1, _tai2)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3772,7 +4022,7 @@ def _tttcg(it):
     cdef double _tt2
     cdef double * _tcg1
     cdef double * _tcg2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3782,9 +4032,9 @@ def _tttcg(it):
         _tt2 = (<double *>(dataptrarray[1]))[0]
         _tcg1 = (<double *>(dataptrarray[2]))
         _tcg2 = (<double *>(dataptrarray[3]))
-        _c_retval = eraTttcg(_tt1, _tt2, _tcg1, _tcg2)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTttcg(_tt1, _tt2, _tcg1, _tcg2)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3797,7 +4047,7 @@ def _tttdb(it):
     cdef double _dtr
     cdef double * _tdb1
     cdef double * _tdb2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3808,9 +4058,9 @@ def _tttdb(it):
         _dtr = (<double *>(dataptrarray[2]))[0]
         _tdb1 = (<double *>(dataptrarray[3]))
         _tdb2 = (<double *>(dataptrarray[4]))
-        _c_retval = eraTttdb(_tt1, _tt2, _dtr, _tdb1, _tdb2)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTttdb(_tt1, _tt2, _dtr, _tdb1, _tdb2)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3823,7 +4073,7 @@ def _ttut1(it):
     cdef double _dt
     cdef double * _ut11
     cdef double * _ut12
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3834,9 +4084,9 @@ def _ttut1(it):
         _dt = (<double *>(dataptrarray[2]))[0]
         _ut11 = (<double *>(dataptrarray[3]))
         _ut12 = (<double *>(dataptrarray[4]))
-        _c_retval = eraTtut1(_tt1, _tt2, _dt, _ut11, _ut12)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraTtut1(_tt1, _tt2, _dt, _ut11, _ut12)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3849,7 +4099,7 @@ def _ut1tai(it):
     cdef double _dta
     cdef double * _tai1
     cdef double * _tai2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3860,9 +4110,9 @@ def _ut1tai(it):
         _dta = (<double *>(dataptrarray[2]))[0]
         _tai1 = (<double *>(dataptrarray[3]))
         _tai2 = (<double *>(dataptrarray[4]))
-        _c_retval = eraUt1tai(_ut11, _ut12, _dta, _tai1, _tai2)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraUt1tai(_ut11, _ut12, _dta, _tai1, _tai2)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3875,7 +4125,7 @@ def _ut1tt(it):
     cdef double _dt
     cdef double * _tt1
     cdef double * _tt2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3886,9 +4136,9 @@ def _ut1tt(it):
         _dt = (<double *>(dataptrarray[2]))[0]
         _tt1 = (<double *>(dataptrarray[3]))
         _tt2 = (<double *>(dataptrarray[4]))
-        _c_retval = eraUt1tt(_ut11, _ut12, _dt, _tt1, _tt2)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraUt1tt(_ut11, _ut12, _dt, _tt1, _tt2)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3901,7 +4151,7 @@ def _ut1utc(it):
     cdef double _dut1
     cdef double * _utc1
     cdef double * _utc2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3912,9 +4162,9 @@ def _ut1utc(it):
         _dut1 = (<double *>(dataptrarray[2]))[0]
         _utc1 = (<double *>(dataptrarray[3]))
         _utc2 = (<double *>(dataptrarray[4]))
-        _c_retval = eraUt1utc(_ut11, _ut12, _dut1, _utc1, _utc2)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraUt1utc(_ut11, _ut12, _dut1, _utc1, _utc2)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3926,7 +4176,7 @@ def _utctai(it):
     cdef double _utc2
     cdef double * _tai1
     cdef double * _tai2
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3936,9 +4186,9 @@ def _utctai(it):
         _utc2 = (<double *>(dataptrarray[1]))[0]
         _tai1 = (<double *>(dataptrarray[2]))
         _tai2 = (<double *>(dataptrarray[3]))
-        _c_retval = eraUtctai(_utc1, _utc2, _tai1, _tai2)
-        (<int *>(dataptrarray[4]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraUtctai(_utc1, _utc2, _tai1, _tai2)
+        (<int *>(dataptrarray[4]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok
@@ -3951,7 +4201,7 @@ def _utcut1(it):
     cdef double _dut1
     cdef double * _ut11
     cdef double * _ut12
-    cdef int _c_retval
+    cdef int _c_statval
     cdef bint stat_ok = True
     cdef char** dataptrarray = GetDataPtrArray(GetNpyIter(it))
     cdef IterNextFunc iternext = GetIterNext(GetNpyIter(it), NULL)
@@ -3962,9 +4212,9 @@ def _utcut1(it):
         _dut1 = (<double *>(dataptrarray[2]))[0]
         _ut11 = (<double *>(dataptrarray[3]))
         _ut12 = (<double *>(dataptrarray[4]))
-        _c_retval = eraUtcut1(_utc1, _utc2, _dut1, _ut11, _ut12)
-        (<int *>(dataptrarray[5]))[0] = _c_retval
-        if _c_retval != 0:
+        _c_statval = eraUtcut1(_utc1, _utc2, _dut1, _ut11, _ut12)
+        (<int *>(dataptrarray[5]))[0] = _c_statval
+        if _c_statval != 0:
             stat_ok = False
         status = iternext(GetNpyIter(it))
     return stat_ok

@@ -104,6 +104,87 @@ def check_trailing_shape(arr, shape, name):
     except:
         raise ValueError("{0} must be of trailing dimensions {1}".format(name, shape))
 
+#<--------------------------calculate broadcast shape------------------------->
+
+def calculate_broadcast(in_dim, out_dim):
+    in_ndim = len(in_dim)
+    out_ndim = len(out_dim)
+    if in_ndim > out_ndim:
+        out_dim += [1]*(in_ndim-out_ndim)
+    for i in range(in_ndim):
+        _in = in_dim[in_ndim - i - 1]
+        _out = out_dim[i]
+        if (_in != _out):
+            if (_out == 1):
+                out_dim[i] = _in
+            elif (_in == 1):
+                pass
+            else:
+                raise Exception("Input arrays are not broadcastable")
+
+#<-----------------------------Iterator definition---------------------------->
+
+def setup_iter(args, args_dtype, args_shape, args_name, nin):
+
+    #Turn all inputs into arrays
+    for i in range(len(args)):
+        args[i] = numpy.array(args[i], dtype=args_dtype[i], order="C", copy=False, subok=True)
+        if len(args_shape[i]) > 0:
+            check_trailing_shape(args[i], args_shape[i], args_name[i])
+
+    #Avoid 0d/scalars in numpy < 1.8
+    make_outputs_scalar = False
+    if NPYLT18:
+        make_outputs_scalar = True
+        for i in range(len(args)):
+            if args[i].shape == args_shape[i]:
+                args[i] = args[i].reshape((1,)+args_shape[i])
+            else:
+                make_outputs_scalar = False
+
+    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
+    iter_shape = []
+    for i in range(len(args)):
+        calculate_broadcast(args[i].shape[:len(args[i].shape)-len(args_shape[i])], iter_shape)
+    iter_shape = iter_shape[::-1]
+    for i in range(nin, len(args_dtype)):
+        arg_out = numpy.empty(iter_shape + list(args_shape[i]), dtype=args_dtype[i])
+        if i < len(args):
+            numpy.copyto(arg_out, args[i])
+            args[i] = arg_out
+        else:
+            args += [arg_out]
+
+    #Create the iterator, broadcasting on all but the consumed dimensions
+    op_axes = [[-1]*(len(iter_shape)-len(args[i].shape)+len(args_shape[i])) + list(range(len(args[i].shape)-len(args_shape[i]))) for i in range(len(args))]
+    op_flags = [['readonly']]*nin + [['readwrite']]*(len(args)-nin)
+    it = numpy.nditer(args, op_axes=op_axes, op_flags=op_flags)
+
+    return it, make_outputs_scalar
+
+#<---------------------------------Make results------------------------------->
+
+def make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar):
+
+    if not stat_ok:
+        check_errwarn(args[-1], func_name)
+
+    #Drop status code froms args
+    if args_name[-1] == 'c_statval':
+        args = args[:-1]
+
+    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
+    if make_outputs_scalar:
+        for i in range(nin, len(args)):
+            assert len(args[i].shape) > 0 and args[i].shape[0] == 1
+            args[i] = args[i][0]
+
+    result = args[nin:]
+    if len(result) == 1:
+        result = result[0]
+
+    return result
+
 #<--------------------------Actual ERFA-wrapping code------------------------->
 
 dt_eraASTROM = numpy.dtype([('pmt','d'),
@@ -184,53 +265,19 @@ def cal2jd(iy, im, id):
 
     """
 
-    #Turn all inputs into arrays
-    iy_in = numpy.array(iy, dtype=numpy.intc, order="C", copy=False, subok=True)
-    im_in = numpy.array(im, dtype=numpy.intc, order="C", copy=False, subok=True)
-    id_in = numpy.array(id, dtype=numpy.intc, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if iy_in.shape == tuple():
-            iy_in = iy_in.reshape((1,) + iy_in.shape)
-        else:
-            make_outputs_scalar = False
-        if im_in.shape == tuple():
-            im_in = im_in.reshape((1,) + im_in.shape)
-        else:
-            make_outputs_scalar = False
-        if id_in.shape == tuple():
-            id_in = id_in.reshape((1,) + id_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "cal2jd"
+    args = [iy, im, id]
+    args_dtype = [numpy.intc, numpy.intc, numpy.intc, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["iy", "im", "id", "djm0", "djm", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), iy_in, im_in, id_in)
-    djm0_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    djm_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [iy_in, im_in, id_in, djm0_out, djm_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._cal2jd(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'cal2jd')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(djm0_out.shape) > 0 and djm0_out.shape[0] == 1
-        djm0_out = djm0_out[0]
-        assert len(djm_out.shape) > 0 and djm_out.shape[0] == 1
-        djm_out = djm_out[0]
-
-    return djm0_out, djm_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['cal2jd'] = {0: 'OK', -2: 'bad month  (JD not computed)', -1: 'bad year   (Note 3: JD not computed)', -3: 'bad day    (JD computed)'}
 
 
@@ -271,41 +318,19 @@ def epb(dj1, dj2):
 
     """
 
-    #Turn all inputs into arrays
-    dj1_in = numpy.array(dj1, dtype=numpy.double, order="C", copy=False, subok=True)
-    dj2_in = numpy.array(dj2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if dj1_in.shape == tuple():
-            dj1_in = dj1_in.reshape((1,) + dj1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dj2_in.shape == tuple():
-            dj2_in = dj2_in.reshape((1,) + dj2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "epb"
+    args = [dj1, dj2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["dj1", "dj2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), dj1_in, dj2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [dj1_in, dj2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._epb(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def epb2jd(epb):
@@ -344,39 +369,19 @@ def epb2jd(epb):
 
     """
 
-    #Turn all inputs into arrays
-    epb_in = numpy.array(epb, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if epb_in.shape == tuple():
-            epb_in = epb_in.reshape((1,) + epb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "epb2jd"
+    args = [epb]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["epb", "djm0", "djm"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), epb_in)
-    djm0_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    djm_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [epb_in, djm0_out, djm_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._epb2jd(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(djm0_out.shape) > 0 and djm0_out.shape[0] == 1
-        djm0_out = djm0_out[0]
-        assert len(djm_out.shape) > 0 and djm_out.shape[0] == 1
-        djm_out = djm_out[0]
 
-    return djm0_out, djm_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def epj(dj1, dj2):
@@ -415,41 +420,19 @@ def epj(dj1, dj2):
 
     """
 
-    #Turn all inputs into arrays
-    dj1_in = numpy.array(dj1, dtype=numpy.double, order="C", copy=False, subok=True)
-    dj2_in = numpy.array(dj2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if dj1_in.shape == tuple():
-            dj1_in = dj1_in.reshape((1,) + dj1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dj2_in.shape == tuple():
-            dj2_in = dj2_in.reshape((1,) + dj2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "epj"
+    args = [dj1, dj2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["dj1", "dj2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), dj1_in, dj2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [dj1_in, dj2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._epj(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def epj2jd(epj):
@@ -488,39 +471,19 @@ def epj2jd(epj):
 
     """
 
-    #Turn all inputs into arrays
-    epj_in = numpy.array(epj, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if epj_in.shape == tuple():
-            epj_in = epj_in.reshape((1,) + epj_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "epj2jd"
+    args = [epj]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["epj", "djm0", "djm"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), epj_in)
-    djm0_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    djm_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [epj_in, djm0_out, djm_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._epj2jd(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(djm0_out.shape) > 0 and djm0_out.shape[0] == 1
-        djm0_out = djm0_out[0]
-        assert len(djm_out.shape) > 0 and djm_out.shape[0] == 1
-        djm_out = djm_out[0]
 
-    return djm0_out, djm_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def jd2cal(dj1, dj2):
@@ -582,54 +545,19 @@ def jd2cal(dj1, dj2):
 
     """
 
-    #Turn all inputs into arrays
-    dj1_in = numpy.array(dj1, dtype=numpy.double, order="C", copy=False, subok=True)
-    dj2_in = numpy.array(dj2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if dj1_in.shape == tuple():
-            dj1_in = dj1_in.reshape((1,) + dj1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dj2_in.shape == tuple():
-            dj2_in = dj2_in.reshape((1,) + dj2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "jd2cal"
+    args = [dj1, dj2]
+    args_dtype = [numpy.double, numpy.double, numpy.intc, numpy.intc, numpy.intc, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), ()]
+    args_name = ["dj1", "dj2", "iy", "im", "id", "fd", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), dj1_in, dj2_in)
-    iy_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-    im_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-    id_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-    fd_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [dj1_in, dj2_in, iy_out, im_out, id_out, fd_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*5
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._jd2cal(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'jd2cal')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(iy_out.shape) > 0 and iy_out.shape[0] == 1
-        iy_out = iy_out[0]
-        assert len(im_out.shape) > 0 and im_out.shape[0] == 1
-        im_out = im_out[0]
-        assert len(id_out.shape) > 0 and id_out.shape[0] == 1
-        id_out = id_out[0]
-        assert len(fd_out.shape) > 0 and fd_out.shape[0] == 1
-        fd_out = fd_out[0]
-
-    return iy_out, im_out, id_out, fd_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['jd2cal'] = {0: 'OK', -1: 'unacceptable date (Note 3)'}
 
 
@@ -699,50 +627,19 @@ def jdcalf(ndp, dj1, dj2):
 
     """
 
-    #Turn all inputs into arrays
-    ndp_in = numpy.array(ndp, dtype=numpy.intc, order="C", copy=False, subok=True)
-    dj1_in = numpy.array(dj1, dtype=numpy.double, order="C", copy=False, subok=True)
-    dj2_in = numpy.array(dj2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ndp_in.shape == tuple():
-            ndp_in = ndp_in.reshape((1,) + ndp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dj1_in.shape == tuple():
-            dj1_in = dj1_in.reshape((1,) + dj1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dj2_in.shape == tuple():
-            dj2_in = dj2_in.reshape((1,) + dj2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "jdcalf"
+    args = [ndp, dj1, dj2]
+    args_dtype = [numpy.intc, numpy.double, numpy.double, numpy.intc, numpy.intc]
+    args_shape = [(), (), (), (4,), ()]
+    args_name = ["ndp", "dj1", "dj2", "iymdf", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ndp_in, dj1_in, dj2_in)
-    iymdf_out = numpy.empty(broadcast.shape + (4,), dtype=numpy.intc)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ndp_in, dj1_in, dj2_in, iymdf_out[...,0], c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._jdcalf(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'jdcalf')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(iymdf_out.shape) > 0 and iymdf_out.shape[0] == 1
-        iymdf_out = iymdf_out[0]
-
-    return iymdf_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['jdcalf'] = {0: 'OK', 1: 'NDP not 0-9 (interpreted as 0)', -1: 'date out of range'}
 
 
@@ -804,53 +701,19 @@ def ab(pnat, v, s, bm1):
 
     """
 
-    #Turn all inputs into arrays
-    pnat_in = numpy.array(pnat, dtype=numpy.double, order="C", copy=False, subok=True)
-    v_in = numpy.array(v, dtype=numpy.double, order="C", copy=False, subok=True)
-    s_in = numpy.array(s, dtype=numpy.double, order="C", copy=False, subok=True)
-    bm1_in = numpy.array(bm1, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(pnat_in, (3,), "pnat")
-    check_trailing_shape(v_in, (3,), "v")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if pnat_in[...,0].shape == tuple():
-            pnat_in = pnat_in.reshape((1,) + pnat_in.shape)
-        else:
-            make_outputs_scalar = False
-        if v_in[...,0].shape == tuple():
-            v_in = v_in.reshape((1,) + v_in.shape)
-        else:
-            make_outputs_scalar = False
-        if s_in.shape == tuple():
-            s_in = s_in.reshape((1,) + s_in.shape)
-        else:
-            make_outputs_scalar = False
-        if bm1_in.shape == tuple():
-            bm1_in = bm1_in.reshape((1,) + bm1_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ab"
+    args = [pnat, v, s, bm1]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(3,), (3,), (), (), (3,)]
+    args_name = ["pnat", "v", "s", "bm1", "ppr"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), pnat_in[...,0], v_in[...,0], s_in, bm1_in)
-    ppr_out = numpy.empty(broadcast.shape + (3,), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [pnat_in[...,0], v_in[...,0], s_in, bm1_in, ppr_out[...,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ab(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ppr_out.shape) > 0 and ppr_out.shape[0] == 1
-        ppr_out = ppr_out[0]
 
-    return ppr_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def apcg(date1, date2, ebpv, ehp):
@@ -963,53 +826,19 @@ def apcg(date1, date2, ebpv, ehp):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    ebpv_in = numpy.array(ebpv, dtype=numpy.double, order="C", copy=False, subok=True)
-    ehp_in = numpy.array(ehp, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(ebpv_in, (2, 3), "ebpv")
-    check_trailing_shape(ehp_in, (3,), "ehp")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ebpv_in[...,0,0].shape == tuple():
-            ebpv_in = ebpv_in.reshape((1,) + ebpv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ehp_in[...,0].shape == tuple():
-            ehp_in = ehp_in.reshape((1,) + ehp_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apcg"
+    args = [date1, date2, ebpv, ehp]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, dt_eraASTROM]
+    args_shape = [(), (), (2, 3), (3,), ()]
+    args_name = ["date1", "date2", "ebpv", "ehp", "astrom"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, ebpv_in[...,0,0], ehp_in[...,0])
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, ebpv_in[...,0,0], ehp_in[...,0], astrom_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apcg(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
 
-    return astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def apcg13(date1, date2):
@@ -1126,41 +955,19 @@ def apcg13(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apcg13"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, dt_eraASTROM]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "astrom"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, astrom_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apcg13(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
 
-    return astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def apci(date1, date2, ebpv, ehp, x, y, s):
@@ -1282,68 +1089,19 @@ def apci(date1, date2, ebpv, ehp, x, y, s):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    ebpv_in = numpy.array(ebpv, dtype=numpy.double, order="C", copy=False, subok=True)
-    ehp_in = numpy.array(ehp, dtype=numpy.double, order="C", copy=False, subok=True)
-    x_in = numpy.array(x, dtype=numpy.double, order="C", copy=False, subok=True)
-    y_in = numpy.array(y, dtype=numpy.double, order="C", copy=False, subok=True)
-    s_in = numpy.array(s, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(ebpv_in, (2, 3), "ebpv")
-    check_trailing_shape(ehp_in, (3,), "ehp")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ebpv_in[...,0,0].shape == tuple():
-            ebpv_in = ebpv_in.reshape((1,) + ebpv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ehp_in[...,0].shape == tuple():
-            ehp_in = ehp_in.reshape((1,) + ehp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if x_in.shape == tuple():
-            x_in = x_in.reshape((1,) + x_in.shape)
-        else:
-            make_outputs_scalar = False
-        if y_in.shape == tuple():
-            y_in = y_in.reshape((1,) + y_in.shape)
-        else:
-            make_outputs_scalar = False
-        if s_in.shape == tuple():
-            s_in = s_in.reshape((1,) + s_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apci"
+    args = [date1, date2, ebpv, ehp, x, y, s]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, dt_eraASTROM]
+    args_shape = [(), (), (2, 3), (3,), (), (), (), ()]
+    args_name = ["date1", "date2", "ebpv", "ehp", "x", "y", "s", "astrom"]
+    nin = 7
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, ebpv_in[...,0,0], ehp_in[...,0], x_in, y_in, s_in)
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, ebpv_in[...,0,0], ehp_in[...,0], x_in, y_in, s_in, astrom_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*7 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apci(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
 
-    return astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def apci13(date1, date2):
@@ -1465,44 +1223,19 @@ def apci13(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apci13"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, dt_eraASTROM, numpy.double]
+    args_shape = [(), (), (), ()]
+    args_name = ["date1", "date2", "astrom", "eo"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-    eo_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, astrom_out, eo_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apci13(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
-        assert len(eo_out.shape) > 0 and eo_out.shape[0] == 1
-        eo_out = eo_out[0]
 
-    return astrom_out, eo_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def apco(date1, date2, ebpv, ehp, x, y, s, theta, elong, phi, hm, xp, yp, sp, refa, refb):
@@ -1661,121 +1394,19 @@ def apco(date1, date2, ebpv, ehp, x, y, s, theta, elong, phi, hm, xp, yp, sp, re
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    ebpv_in = numpy.array(ebpv, dtype=numpy.double, order="C", copy=False, subok=True)
-    ehp_in = numpy.array(ehp, dtype=numpy.double, order="C", copy=False, subok=True)
-    x_in = numpy.array(x, dtype=numpy.double, order="C", copy=False, subok=True)
-    y_in = numpy.array(y, dtype=numpy.double, order="C", copy=False, subok=True)
-    s_in = numpy.array(s, dtype=numpy.double, order="C", copy=False, subok=True)
-    theta_in = numpy.array(theta, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    hm_in = numpy.array(hm, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    sp_in = numpy.array(sp, dtype=numpy.double, order="C", copy=False, subok=True)
-    refa_in = numpy.array(refa, dtype=numpy.double, order="C", copy=False, subok=True)
-    refb_in = numpy.array(refb, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(ebpv_in, (2, 3), "ebpv")
-    check_trailing_shape(ehp_in, (3,), "ehp")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ebpv_in[...,0,0].shape == tuple():
-            ebpv_in = ebpv_in.reshape((1,) + ebpv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ehp_in[...,0].shape == tuple():
-            ehp_in = ehp_in.reshape((1,) + ehp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if x_in.shape == tuple():
-            x_in = x_in.reshape((1,) + x_in.shape)
-        else:
-            make_outputs_scalar = False
-        if y_in.shape == tuple():
-            y_in = y_in.reshape((1,) + y_in.shape)
-        else:
-            make_outputs_scalar = False
-        if s_in.shape == tuple():
-            s_in = s_in.reshape((1,) + s_in.shape)
-        else:
-            make_outputs_scalar = False
-        if theta_in.shape == tuple():
-            theta_in = theta_in.reshape((1,) + theta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if hm_in.shape == tuple():
-            hm_in = hm_in.reshape((1,) + hm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if sp_in.shape == tuple():
-            sp_in = sp_in.reshape((1,) + sp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if refa_in.shape == tuple():
-            refa_in = refa_in.reshape((1,) + refa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if refb_in.shape == tuple():
-            refb_in = refb_in.reshape((1,) + refb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apco"
+    args = [date1, date2, ebpv, ehp, x, y, s, theta, elong, phi, hm, xp, yp, sp, refa, refb]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, dt_eraASTROM]
+    args_shape = [(), (), (2, 3), (3,), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["date1", "date2", "ebpv", "ehp", "x", "y", "s", "theta", "elong", "phi", "hm", "xp", "yp", "sp", "refa", "refb", "astrom"]
+    nin = 14
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, ebpv_in[...,0,0], ehp_in[...,0], x_in, y_in, s_in, theta_in, elong_in, phi_in, hm_in, xp_in, yp_in, sp_in, refa_in, refb_in)
-    refa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    refb_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-    numpy.copyto(refa_out, refa_in)
-    numpy.copyto(refb_out, refb_in)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, ebpv_in[...,0,0], ehp_in[...,0], x_in, y_in, s_in, theta_in, elong_in, phi_in, hm_in, xp_in, yp_in, sp_in, refa_out, refb_out, astrom_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*14 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apco(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(refa_out.shape) > 0 and refa_out.shape[0] == 1
-        refa_out = refa_out[0]
-        assert len(refb_out.shape) > 0 and refb_out.shape[0] == 1
-        refb_out = refb_out[0]
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
 
-    return refa_out, refb_out, astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def apco13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
@@ -1958,98 +1589,19 @@ def apco13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
 
     """
 
-    #Turn all inputs into arrays
-    utc1_in = numpy.array(utc1, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc2_in = numpy.array(utc2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dut1_in = numpy.array(dut1, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    hm_in = numpy.array(hm, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    phpa_in = numpy.array(phpa, dtype=numpy.double, order="C", copy=False, subok=True)
-    tc_in = numpy.array(tc, dtype=numpy.double, order="C", copy=False, subok=True)
-    rh_in = numpy.array(rh, dtype=numpy.double, order="C", copy=False, subok=True)
-    wl_in = numpy.array(wl, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if utc1_in.shape == tuple():
-            utc1_in = utc1_in.reshape((1,) + utc1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc2_in.shape == tuple():
-            utc2_in = utc2_in.reshape((1,) + utc2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dut1_in.shape == tuple():
-            dut1_in = dut1_in.reshape((1,) + dut1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if hm_in.shape == tuple():
-            hm_in = hm_in.reshape((1,) + hm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phpa_in.shape == tuple():
-            phpa_in = phpa_in.reshape((1,) + phpa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tc_in.shape == tuple():
-            tc_in = tc_in.reshape((1,) + tc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rh_in.shape == tuple():
-            rh_in = rh_in.reshape((1,) + rh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if wl_in.shape == tuple():
-            wl_in = wl_in.reshape((1,) + wl_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apco13"
+    args = [utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, dt_eraASTROM, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["utc1", "utc2", "dut1", "elong", "phi", "hm", "xp", "yp", "phpa", "tc", "rh", "wl", "astrom", "eo", "c_statval"]
+    nin = 12
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in)
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-    eo_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in, astrom_out, eo_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*12 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apco13(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'apco13')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
-        assert len(eo_out.shape) > 0 and eo_out.shape[0] == 1
-        eo_out = eo_out[0]
-
-    return astrom_out, eo_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['apco13'] = {0: 'OK', 1: 'dubious year (Note 2)', -1: 'unacceptable date'}
 
 
@@ -2184,59 +1736,19 @@ def apcs(date1, date2, pv, ebpv, ehp):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    pv_in = numpy.array(pv, dtype=numpy.double, order="C", copy=False, subok=True)
-    ebpv_in = numpy.array(ebpv, dtype=numpy.double, order="C", copy=False, subok=True)
-    ehp_in = numpy.array(ehp, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(pv_in, (2, 3), "pv")
-    check_trailing_shape(ebpv_in, (2, 3), "ebpv")
-    check_trailing_shape(ehp_in, (3,), "ehp")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pv_in[...,0,0].shape == tuple():
-            pv_in = pv_in.reshape((1,) + pv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ebpv_in[...,0,0].shape == tuple():
-            ebpv_in = ebpv_in.reshape((1,) + ebpv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ehp_in[...,0].shape == tuple():
-            ehp_in = ehp_in.reshape((1,) + ehp_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apcs"
+    args = [date1, date2, pv, ebpv, ehp]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, dt_eraASTROM]
+    args_shape = [(), (), (2, 3), (2, 3), (3,), ()]
+    args_name = ["date1", "date2", "pv", "ebpv", "ehp", "astrom"]
+    nin = 5
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, pv_in[...,0,0], ebpv_in[...,0,0], ehp_in[...,0])
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, pv_in[...,0,0], ebpv_in[...,0,0], ehp_in[...,0], astrom_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*5 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apcs(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
 
-    return astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def apcs13(date1, date2, pv):
@@ -2359,47 +1871,19 @@ def apcs13(date1, date2, pv):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    pv_in = numpy.array(pv, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(pv_in, (2, 3), "pv")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pv_in[...,0,0].shape == tuple():
-            pv_in = pv_in.reshape((1,) + pv_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apcs13"
+    args = [date1, date2, pv]
+    args_dtype = [numpy.double, numpy.double, numpy.double, dt_eraASTROM]
+    args_shape = [(), (), (2, 3), ()]
+    args_name = ["date1", "date2", "pv", "astrom"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, pv_in[...,0,0])
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, pv_in[...,0,0], astrom_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apcs13(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
 
-    return astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def aper(theta, astrom):
@@ -2501,42 +1985,19 @@ def aper(theta, astrom):
 
     """
 
-    #Turn all inputs into arrays
-    theta_in = numpy.array(theta, dtype=numpy.double, order="C", copy=False, subok=True)
-    astrom_in = numpy.array(astrom, dtype=dt_eraASTROM, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if theta_in.shape == tuple():
-            theta_in = theta_in.reshape((1,) + theta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if astrom_in.shape == tuple():
-            astrom_in = astrom_in.reshape((1,) + astrom_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "aper"
+    args = [theta, astrom]
+    args_dtype = [numpy.double, dt_eraASTROM]
+    args_shape = [(), ()]
+    args_name = ["theta", "astrom"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), theta_in, astrom_in)
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-    numpy.copyto(astrom_out, astrom_in)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [theta_in, astrom_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._aper(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
 
-    return astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def aper13(ut11, ut12, astrom):
@@ -2657,47 +2118,19 @@ def aper13(ut11, ut12, astrom):
 
     """
 
-    #Turn all inputs into arrays
-    ut11_in = numpy.array(ut11, dtype=numpy.double, order="C", copy=False, subok=True)
-    ut12_in = numpy.array(ut12, dtype=numpy.double, order="C", copy=False, subok=True)
-    astrom_in = numpy.array(astrom, dtype=dt_eraASTROM, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ut11_in.shape == tuple():
-            ut11_in = ut11_in.reshape((1,) + ut11_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ut12_in.shape == tuple():
-            ut12_in = ut12_in.reshape((1,) + ut12_in.shape)
-        else:
-            make_outputs_scalar = False
-        if astrom_in.shape == tuple():
-            astrom_in = astrom_in.reshape((1,) + astrom_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "aper13"
+    args = [ut11, ut12, astrom]
+    args_dtype = [numpy.double, numpy.double, dt_eraASTROM]
+    args_shape = [(), (), ()]
+    args_name = ["ut11", "ut12", "astrom"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ut11_in, ut12_in, astrom_in)
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-    numpy.copyto(astrom_out, astrom_in)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ut11_in, ut12_in, astrom_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._aper13(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
 
-    return astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def apio(sp, theta, elong, phi, hm, xp, yp, refa, refb):
@@ -2820,84 +2253,19 @@ def apio(sp, theta, elong, phi, hm, xp, yp, refa, refb):
 
     """
 
-    #Turn all inputs into arrays
-    sp_in = numpy.array(sp, dtype=numpy.double, order="C", copy=False, subok=True)
-    theta_in = numpy.array(theta, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    hm_in = numpy.array(hm, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    refa_in = numpy.array(refa, dtype=numpy.double, order="C", copy=False, subok=True)
-    refb_in = numpy.array(refb, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if sp_in.shape == tuple():
-            sp_in = sp_in.reshape((1,) + sp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if theta_in.shape == tuple():
-            theta_in = theta_in.reshape((1,) + theta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if hm_in.shape == tuple():
-            hm_in = hm_in.reshape((1,) + hm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if refa_in.shape == tuple():
-            refa_in = refa_in.reshape((1,) + refa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if refb_in.shape == tuple():
-            refb_in = refb_in.reshape((1,) + refb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apio"
+    args = [sp, theta, elong, phi, hm, xp, yp, refa, refb]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, dt_eraASTROM]
+    args_shape = [(), (), (), (), (), (), (), (), (), ()]
+    args_name = ["sp", "theta", "elong", "phi", "hm", "xp", "yp", "refa", "refb", "astrom"]
+    nin = 7
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), sp_in, theta_in, elong_in, phi_in, hm_in, xp_in, yp_in, refa_in, refb_in)
-    refa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    refb_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-    numpy.copyto(refa_out, refa_in)
-    numpy.copyto(refb_out, refb_in)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [sp_in, theta_in, elong_in, phi_in, hm_in, xp_in, yp_in, refa_out, refb_out, astrom_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*7 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apio(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(refa_out.shape) > 0 and refa_out.shape[0] == 1
-        refa_out = refa_out[0]
-        assert len(refb_out.shape) > 0 and refb_out.shape[0] == 1
-        refb_out = refb_out[0]
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
 
-    return refa_out, refb_out, astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def apio13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
@@ -3069,95 +2437,19 @@ def apio13(utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
 
     """
 
-    #Turn all inputs into arrays
-    utc1_in = numpy.array(utc1, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc2_in = numpy.array(utc2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dut1_in = numpy.array(dut1, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    hm_in = numpy.array(hm, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    phpa_in = numpy.array(phpa, dtype=numpy.double, order="C", copy=False, subok=True)
-    tc_in = numpy.array(tc, dtype=numpy.double, order="C", copy=False, subok=True)
-    rh_in = numpy.array(rh, dtype=numpy.double, order="C", copy=False, subok=True)
-    wl_in = numpy.array(wl, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if utc1_in.shape == tuple():
-            utc1_in = utc1_in.reshape((1,) + utc1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc2_in.shape == tuple():
-            utc2_in = utc2_in.reshape((1,) + utc2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dut1_in.shape == tuple():
-            dut1_in = dut1_in.reshape((1,) + dut1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if hm_in.shape == tuple():
-            hm_in = hm_in.reshape((1,) + hm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phpa_in.shape == tuple():
-            phpa_in = phpa_in.reshape((1,) + phpa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tc_in.shape == tuple():
-            tc_in = tc_in.reshape((1,) + tc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rh_in.shape == tuple():
-            rh_in = rh_in.reshape((1,) + rh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if wl_in.shape == tuple():
-            wl_in = wl_in.reshape((1,) + wl_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "apio13"
+    args = [utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, dt_eraASTROM, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["utc1", "utc2", "dut1", "elong", "phi", "hm", "xp", "yp", "phpa", "tc", "rh", "wl", "astrom", "c_statval"]
+    nin = 12
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in)
-    astrom_out = numpy.empty(broadcast.shape + (), dtype=dt_eraASTROM)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in, astrom_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*12 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._apio13(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'apio13')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(astrom_out.shape) > 0 and astrom_out.shape[0] == 1
-        astrom_out = astrom_out[0]
-
-    return astrom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['apio13'] = {0: 'OK', 1: 'dubious year (Note 2)', -1: 'unacceptable date'}
 
 
@@ -3247,77 +2539,19 @@ def atci13(rc, dc, pr, pd, px, rv, date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    rc_in = numpy.array(rc, dtype=numpy.double, order="C", copy=False, subok=True)
-    dc_in = numpy.array(dc, dtype=numpy.double, order="C", copy=False, subok=True)
-    pr_in = numpy.array(pr, dtype=numpy.double, order="C", copy=False, subok=True)
-    pd_in = numpy.array(pd, dtype=numpy.double, order="C", copy=False, subok=True)
-    px_in = numpy.array(px, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv_in = numpy.array(rv, dtype=numpy.double, order="C", copy=False, subok=True)
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rc_in.shape == tuple():
-            rc_in = rc_in.reshape((1,) + rc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dc_in.shape == tuple():
-            dc_in = dc_in.reshape((1,) + dc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pr_in.shape == tuple():
-            pr_in = pr_in.reshape((1,) + pr_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pd_in.shape == tuple():
-            pd_in = pd_in.reshape((1,) + pd_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px_in.shape == tuple():
-            px_in = px_in.reshape((1,) + px_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv_in.shape == tuple():
-            rv_in = rv_in.reshape((1,) + rv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atci13"
+    args = [rc, dc, pr, pd, px, rv, date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["rc", "dc", "pr", "pd", "px", "rv", "date1", "date2", "ri", "di", "eo"]
+    nin = 8
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rc_in, dc_in, pr_in, pd_in, px_in, rv_in, date1_in, date2_in)
-    ri_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    di_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    eo_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rc_in, dc_in, pr_in, pd_in, px_in, rv_in, date1_in, date2_in, ri_out, di_out, eo_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*8 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atci13(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
-        ri_out = ri_out[0]
-        assert len(di_out.shape) > 0 and di_out.shape[0] == 1
-        di_out = di_out[0]
-        assert len(eo_out.shape) > 0 and eo_out.shape[0] == 1
-        eo_out = eo_out[0]
 
-    return ri_out, di_out, eo_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def atciq(rc, dc, pr, pd, px, rv, astrom):
@@ -3392,69 +2626,19 @@ def atciq(rc, dc, pr, pd, px, rv, astrom):
 
     """
 
-    #Turn all inputs into arrays
-    rc_in = numpy.array(rc, dtype=numpy.double, order="C", copy=False, subok=True)
-    dc_in = numpy.array(dc, dtype=numpy.double, order="C", copy=False, subok=True)
-    pr_in = numpy.array(pr, dtype=numpy.double, order="C", copy=False, subok=True)
-    pd_in = numpy.array(pd, dtype=numpy.double, order="C", copy=False, subok=True)
-    px_in = numpy.array(px, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv_in = numpy.array(rv, dtype=numpy.double, order="C", copy=False, subok=True)
-    astrom_in = numpy.array(astrom, dtype=dt_eraASTROM, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rc_in.shape == tuple():
-            rc_in = rc_in.reshape((1,) + rc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dc_in.shape == tuple():
-            dc_in = dc_in.reshape((1,) + dc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pr_in.shape == tuple():
-            pr_in = pr_in.reshape((1,) + pr_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pd_in.shape == tuple():
-            pd_in = pd_in.reshape((1,) + pd_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px_in.shape == tuple():
-            px_in = px_in.reshape((1,) + px_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv_in.shape == tuple():
-            rv_in = rv_in.reshape((1,) + rv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if astrom_in.shape == tuple():
-            astrom_in = astrom_in.reshape((1,) + astrom_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atciq"
+    args = [rc, dc, pr, pd, px, rv, astrom]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, dt_eraASTROM, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (), ()]
+    args_name = ["rc", "dc", "pr", "pd", "px", "rv", "astrom", "ri", "di"]
+    nin = 7
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rc_in, dc_in, pr_in, pd_in, px_in, rv_in, astrom_in)
-    ri_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    di_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rc_in, dc_in, pr_in, pd_in, px_in, rv_in, astrom_in, ri_out, di_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*7 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atciq(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
-        ri_out = ri_out[0]
-        assert len(di_out.shape) > 0 and di_out.shape[0] == 1
-        di_out = di_out[0]
 
-    return ri_out, di_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def atciqn(rc, dc, pr, pd, px, rv, astrom, n, b):
@@ -3566,79 +2750,19 @@ def atciqn(rc, dc, pr, pd, px, rv, astrom, n, b):
 
     """
 
-    #Turn all inputs into arrays
-    rc_in = numpy.array(rc, dtype=numpy.double, order="C", copy=False, subok=True)
-    dc_in = numpy.array(dc, dtype=numpy.double, order="C", copy=False, subok=True)
-    pr_in = numpy.array(pr, dtype=numpy.double, order="C", copy=False, subok=True)
-    pd_in = numpy.array(pd, dtype=numpy.double, order="C", copy=False, subok=True)
-    px_in = numpy.array(px, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv_in = numpy.array(rv, dtype=numpy.double, order="C", copy=False, subok=True)
-    astrom_in = numpy.array(astrom, dtype=dt_eraASTROM, order="C", copy=False, subok=True)
-    n_in = numpy.array(n, dtype=numpy.intc, order="C", copy=False, subok=True)
-    b_in = numpy.array(b, dtype=dt_eraLDBODY, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rc_in.shape == tuple():
-            rc_in = rc_in.reshape((1,) + rc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dc_in.shape == tuple():
-            dc_in = dc_in.reshape((1,) + dc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pr_in.shape == tuple():
-            pr_in = pr_in.reshape((1,) + pr_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pd_in.shape == tuple():
-            pd_in = pd_in.reshape((1,) + pd_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px_in.shape == tuple():
-            px_in = px_in.reshape((1,) + px_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv_in.shape == tuple():
-            rv_in = rv_in.reshape((1,) + rv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if astrom_in.shape == tuple():
-            astrom_in = astrom_in.reshape((1,) + astrom_in.shape)
-        else:
-            make_outputs_scalar = False
-        if n_in.shape == tuple():
-            n_in = n_in.reshape((1,) + n_in.shape)
-        else:
-            make_outputs_scalar = False
-        if b_in.shape == tuple():
-            b_in = b_in.reshape((1,) + b_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atciqn"
+    args = [rc, dc, pr, pd, px, rv, astrom, n, b]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, dt_eraASTROM, numpy.intc, dt_eraLDBODY, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["rc", "dc", "pr", "pd", "px", "rv", "astrom", "n", "b", "ri", "di"]
+    nin = 9
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rc_in, dc_in, pr_in, pd_in, px_in, rv_in, astrom_in, n_in, b_in)
-    ri_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    di_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rc_in, dc_in, pr_in, pd_in, px_in, rv_in, astrom_in, n_in, b_in, ri_out, di_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*9 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atciqn(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
-        ri_out = ri_out[0]
-        assert len(di_out.shape) > 0 and di_out.shape[0] == 1
-        di_out = di_out[0]
 
-    return ri_out, di_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def atciqz(rc, dc, astrom):
@@ -3713,49 +2837,19 @@ def atciqz(rc, dc, astrom):
 
     """
 
-    #Turn all inputs into arrays
-    rc_in = numpy.array(rc, dtype=numpy.double, order="C", copy=False, subok=True)
-    dc_in = numpy.array(dc, dtype=numpy.double, order="C", copy=False, subok=True)
-    astrom_in = numpy.array(astrom, dtype=dt_eraASTROM, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rc_in.shape == tuple():
-            rc_in = rc_in.reshape((1,) + rc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dc_in.shape == tuple():
-            dc_in = dc_in.reshape((1,) + dc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if astrom_in.shape == tuple():
-            astrom_in = astrom_in.reshape((1,) + astrom_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atciqz"
+    args = [rc, dc, astrom]
+    args_dtype = [numpy.double, numpy.double, dt_eraASTROM, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["rc", "dc", "astrom", "ri", "di"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rc_in, dc_in, astrom_in)
-    ri_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    di_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rc_in, dc_in, astrom_in, ri_out, di_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atciqz(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
-        ri_out = ri_out[0]
-        assert len(di_out.shape) > 0 and di_out.shape[0] == 1
-        di_out = di_out[0]
 
-    return ri_out, di_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
@@ -3913,140 +3007,19 @@ def atco13(rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, php
 
     """
 
-    #Turn all inputs into arrays
-    rc_in = numpy.array(rc, dtype=numpy.double, order="C", copy=False, subok=True)
-    dc_in = numpy.array(dc, dtype=numpy.double, order="C", copy=False, subok=True)
-    pr_in = numpy.array(pr, dtype=numpy.double, order="C", copy=False, subok=True)
-    pd_in = numpy.array(pd, dtype=numpy.double, order="C", copy=False, subok=True)
-    px_in = numpy.array(px, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv_in = numpy.array(rv, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc1_in = numpy.array(utc1, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc2_in = numpy.array(utc2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dut1_in = numpy.array(dut1, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    hm_in = numpy.array(hm, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    phpa_in = numpy.array(phpa, dtype=numpy.double, order="C", copy=False, subok=True)
-    tc_in = numpy.array(tc, dtype=numpy.double, order="C", copy=False, subok=True)
-    rh_in = numpy.array(rh, dtype=numpy.double, order="C", copy=False, subok=True)
-    wl_in = numpy.array(wl, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rc_in.shape == tuple():
-            rc_in = rc_in.reshape((1,) + rc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dc_in.shape == tuple():
-            dc_in = dc_in.reshape((1,) + dc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pr_in.shape == tuple():
-            pr_in = pr_in.reshape((1,) + pr_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pd_in.shape == tuple():
-            pd_in = pd_in.reshape((1,) + pd_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px_in.shape == tuple():
-            px_in = px_in.reshape((1,) + px_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv_in.shape == tuple():
-            rv_in = rv_in.reshape((1,) + rv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc1_in.shape == tuple():
-            utc1_in = utc1_in.reshape((1,) + utc1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc2_in.shape == tuple():
-            utc2_in = utc2_in.reshape((1,) + utc2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dut1_in.shape == tuple():
-            dut1_in = dut1_in.reshape((1,) + dut1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if hm_in.shape == tuple():
-            hm_in = hm_in.reshape((1,) + hm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phpa_in.shape == tuple():
-            phpa_in = phpa_in.reshape((1,) + phpa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tc_in.shape == tuple():
-            tc_in = tc_in.reshape((1,) + tc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rh_in.shape == tuple():
-            rh_in = rh_in.reshape((1,) + rh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if wl_in.shape == tuple():
-            wl_in = wl_in.reshape((1,) + wl_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atco13"
+    args = [rc, dc, pr, pd, px, rv, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["rc", "dc", "pr", "pd", "px", "rv", "utc1", "utc2", "dut1", "elong", "phi", "hm", "xp", "yp", "phpa", "tc", "rh", "wl", "aob", "zob", "hob", "dob", "rob", "eo", "c_statval"]
+    nin = 18
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rc_in, dc_in, pr_in, pd_in, px_in, rv_in, utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in)
-    aob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    zob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    hob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    eo_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rc_in, dc_in, pr_in, pd_in, px_in, rv_in, utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in, aob_out, zob_out, hob_out, dob_out, rob_out, eo_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*18 + [['readwrite']]*7
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atco13(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'atco13')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(aob_out.shape) > 0 and aob_out.shape[0] == 1
-        aob_out = aob_out[0]
-        assert len(zob_out.shape) > 0 and zob_out.shape[0] == 1
-        zob_out = zob_out[0]
-        assert len(hob_out.shape) > 0 and hob_out.shape[0] == 1
-        hob_out = hob_out[0]
-        assert len(dob_out.shape) > 0 and dob_out.shape[0] == 1
-        dob_out = dob_out[0]
-        assert len(rob_out.shape) > 0 and rob_out.shape[0] == 1
-        rob_out = rob_out[0]
-        assert len(eo_out.shape) > 0 and eo_out.shape[0] == 1
-        eo_out = eo_out[0]
-
-    return aob_out, zob_out, hob_out, dob_out, rob_out, eo_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['atco13'] = {0: 'OK', 1: 'dubious year (Note 4)', -1: 'unacceptable date'}
 
 
@@ -4131,57 +3104,19 @@ def atic13(ri, di, date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    ri_in = numpy.array(ri, dtype=numpy.double, order="C", copy=False, subok=True)
-    di_in = numpy.array(di, dtype=numpy.double, order="C", copy=False, subok=True)
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ri_in.shape == tuple():
-            ri_in = ri_in.reshape((1,) + ri_in.shape)
-        else:
-            make_outputs_scalar = False
-        if di_in.shape == tuple():
-            di_in = di_in.reshape((1,) + di_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atic13"
+    args = [ri, di, date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), ()]
+    args_name = ["ri", "di", "date1", "date2", "rc", "dc", "eo"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ri_in, di_in, date1_in, date2_in)
-    rc_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dc_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    eo_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ri_in, di_in, date1_in, date2_in, rc_out, dc_out, eo_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atic13(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc_out.shape) > 0 and rc_out.shape[0] == 1
-        rc_out = rc_out[0]
-        assert len(dc_out.shape) > 0 and dc_out.shape[0] == 1
-        dc_out = dc_out[0]
-        assert len(eo_out.shape) > 0 and eo_out.shape[0] == 1
-        eo_out = eo_out[0]
 
-    return rc_out, dc_out, eo_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def aticq(ri, di, astrom):
@@ -4252,49 +3187,19 @@ def aticq(ri, di, astrom):
 
     """
 
-    #Turn all inputs into arrays
-    ri_in = numpy.array(ri, dtype=numpy.double, order="C", copy=False, subok=True)
-    di_in = numpy.array(di, dtype=numpy.double, order="C", copy=False, subok=True)
-    astrom_in = numpy.array(astrom, dtype=dt_eraASTROM, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ri_in.shape == tuple():
-            ri_in = ri_in.reshape((1,) + ri_in.shape)
-        else:
-            make_outputs_scalar = False
-        if di_in.shape == tuple():
-            di_in = di_in.reshape((1,) + di_in.shape)
-        else:
-            make_outputs_scalar = False
-        if astrom_in.shape == tuple():
-            astrom_in = astrom_in.reshape((1,) + astrom_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "aticq"
+    args = [ri, di, astrom]
+    args_dtype = [numpy.double, numpy.double, dt_eraASTROM, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["ri", "di", "astrom", "rc", "dc"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ri_in, di_in, astrom_in)
-    rc_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dc_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ri_in, di_in, astrom_in, rc_out, dc_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._aticq(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc_out.shape) > 0 and rc_out.shape[0] == 1
-        rc_out = rc_out[0]
-        assert len(dc_out.shape) > 0 and dc_out.shape[0] == 1
-        dc_out = dc_out[0]
 
-    return rc_out, dc_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def aticqn(ri, di, astrom, n, b):
@@ -4403,59 +3308,19 @@ def aticqn(ri, di, astrom, n, b):
 
     """
 
-    #Turn all inputs into arrays
-    ri_in = numpy.array(ri, dtype=numpy.double, order="C", copy=False, subok=True)
-    di_in = numpy.array(di, dtype=numpy.double, order="C", copy=False, subok=True)
-    astrom_in = numpy.array(astrom, dtype=dt_eraASTROM, order="C", copy=False, subok=True)
-    n_in = numpy.array(n, dtype=numpy.intc, order="C", copy=False, subok=True)
-    b_in = numpy.array(b, dtype=dt_eraLDBODY, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ri_in.shape == tuple():
-            ri_in = ri_in.reshape((1,) + ri_in.shape)
-        else:
-            make_outputs_scalar = False
-        if di_in.shape == tuple():
-            di_in = di_in.reshape((1,) + di_in.shape)
-        else:
-            make_outputs_scalar = False
-        if astrom_in.shape == tuple():
-            astrom_in = astrom_in.reshape((1,) + astrom_in.shape)
-        else:
-            make_outputs_scalar = False
-        if n_in.shape == tuple():
-            n_in = n_in.reshape((1,) + n_in.shape)
-        else:
-            make_outputs_scalar = False
-        if b_in.shape == tuple():
-            b_in = b_in.reshape((1,) + b_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "aticqn"
+    args = [ri, di, astrom, n, b]
+    args_dtype = [numpy.double, numpy.double, dt_eraASTROM, numpy.intc, dt_eraLDBODY, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), ()]
+    args_name = ["ri", "di", "astrom", "n", "b", "rc", "dc"]
+    nin = 5
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ri_in, di_in, astrom_in, n_in, b_in)
-    rc_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dc_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ri_in, di_in, astrom_in, n_in, b_in, rc_out, dc_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*5 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._aticqn(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc_out.shape) > 0 and rc_out.shape[0] == 1
-        rc_out = rc_out[0]
-        assert len(dc_out.shape) > 0 and dc_out.shape[0] == 1
-        dc_out = dc_out[0]
 
-    return rc_out, dc_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def atio13(ri, di, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
@@ -4597,117 +3462,19 @@ def atio13(ri, di, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
 
     """
 
-    #Turn all inputs into arrays
-    ri_in = numpy.array(ri, dtype=numpy.double, order="C", copy=False, subok=True)
-    di_in = numpy.array(di, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc1_in = numpy.array(utc1, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc2_in = numpy.array(utc2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dut1_in = numpy.array(dut1, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    hm_in = numpy.array(hm, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    phpa_in = numpy.array(phpa, dtype=numpy.double, order="C", copy=False, subok=True)
-    tc_in = numpy.array(tc, dtype=numpy.double, order="C", copy=False, subok=True)
-    rh_in = numpy.array(rh, dtype=numpy.double, order="C", copy=False, subok=True)
-    wl_in = numpy.array(wl, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ri_in.shape == tuple():
-            ri_in = ri_in.reshape((1,) + ri_in.shape)
-        else:
-            make_outputs_scalar = False
-        if di_in.shape == tuple():
-            di_in = di_in.reshape((1,) + di_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc1_in.shape == tuple():
-            utc1_in = utc1_in.reshape((1,) + utc1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc2_in.shape == tuple():
-            utc2_in = utc2_in.reshape((1,) + utc2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dut1_in.shape == tuple():
-            dut1_in = dut1_in.reshape((1,) + dut1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if hm_in.shape == tuple():
-            hm_in = hm_in.reshape((1,) + hm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phpa_in.shape == tuple():
-            phpa_in = phpa_in.reshape((1,) + phpa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tc_in.shape == tuple():
-            tc_in = tc_in.reshape((1,) + tc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rh_in.shape == tuple():
-            rh_in = rh_in.reshape((1,) + rh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if wl_in.shape == tuple():
-            wl_in = wl_in.reshape((1,) + wl_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atio13"
+    args = [ri, di, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["ri", "di", "utc1", "utc2", "dut1", "elong", "phi", "hm", "xp", "yp", "phpa", "tc", "rh", "wl", "aob", "zob", "hob", "dob", "rob", "c_statval"]
+    nin = 14
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ri_in, di_in, utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in)
-    aob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    zob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    hob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ri_in, di_in, utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in, aob_out, zob_out, hob_out, dob_out, rob_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*14 + [['readwrite']]*6
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atio13(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'atio13')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(aob_out.shape) > 0 and aob_out.shape[0] == 1
-        aob_out = aob_out[0]
-        assert len(zob_out.shape) > 0 and zob_out.shape[0] == 1
-        zob_out = zob_out[0]
-        assert len(hob_out.shape) > 0 and hob_out.shape[0] == 1
-        hob_out = hob_out[0]
-        assert len(dob_out.shape) > 0 and dob_out.shape[0] == 1
-        dob_out = dob_out[0]
-        assert len(rob_out.shape) > 0 and rob_out.shape[0] == 1
-        rob_out = rob_out[0]
-
-    return aob_out, zob_out, hob_out, dob_out, rob_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['atio13'] = {0: 'OK', 1: 'dubious year (Note 2)', -1: 'unacceptable date'}
 
 
@@ -4815,58 +3582,19 @@ def atioq(ri, di, astrom):
 
     """
 
-    #Turn all inputs into arrays
-    ri_in = numpy.array(ri, dtype=numpy.double, order="C", copy=False, subok=True)
-    di_in = numpy.array(di, dtype=numpy.double, order="C", copy=False, subok=True)
-    astrom_in = numpy.array(astrom, dtype=dt_eraASTROM, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ri_in.shape == tuple():
-            ri_in = ri_in.reshape((1,) + ri_in.shape)
-        else:
-            make_outputs_scalar = False
-        if di_in.shape == tuple():
-            di_in = di_in.reshape((1,) + di_in.shape)
-        else:
-            make_outputs_scalar = False
-        if astrom_in.shape == tuple():
-            astrom_in = astrom_in.reshape((1,) + astrom_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atioq"
+    args = [ri, di, astrom]
+    args_dtype = [numpy.double, numpy.double, dt_eraASTROM, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), ()]
+    args_name = ["ri", "di", "astrom", "aob", "zob", "hob", "dob", "rob"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ri_in, di_in, astrom_in)
-    aob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    zob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    hob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rob_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ri_in, di_in, astrom_in, aob_out, zob_out, hob_out, dob_out, rob_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*5
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atioq(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(aob_out.shape) > 0 and aob_out.shape[0] == 1
-        aob_out = aob_out[0]
-        assert len(zob_out.shape) > 0 and zob_out.shape[0] == 1
-        zob_out = zob_out[0]
-        assert len(hob_out.shape) > 0 and hob_out.shape[0] == 1
-        hob_out = hob_out[0]
-        assert len(dob_out.shape) > 0 and dob_out.shape[0] == 1
-        dob_out = dob_out[0]
-        assert len(rob_out.shape) > 0 and rob_out.shape[0] == 1
-        rob_out = rob_out[0]
 
-    return aob_out, zob_out, hob_out, dob_out, rob_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def atoc13(type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl):
@@ -5016,113 +3744,19 @@ def atoc13(type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, r
 
     """
 
-    #Turn all inputs into arrays
-    type_in = numpy.array(type, dtype=numpy.dtype('S16'), order="C", copy=False, subok=True)
-    ob1_in = numpy.array(ob1, dtype=numpy.double, order="C", copy=False, subok=True)
-    ob2_in = numpy.array(ob2, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc1_in = numpy.array(utc1, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc2_in = numpy.array(utc2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dut1_in = numpy.array(dut1, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    hm_in = numpy.array(hm, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    phpa_in = numpy.array(phpa, dtype=numpy.double, order="C", copy=False, subok=True)
-    tc_in = numpy.array(tc, dtype=numpy.double, order="C", copy=False, subok=True)
-    rh_in = numpy.array(rh, dtype=numpy.double, order="C", copy=False, subok=True)
-    wl_in = numpy.array(wl, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if type_in.shape == tuple():
-            type_in = type_in.reshape((1,) + type_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ob1_in.shape == tuple():
-            ob1_in = ob1_in.reshape((1,) + ob1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ob2_in.shape == tuple():
-            ob2_in = ob2_in.reshape((1,) + ob2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc1_in.shape == tuple():
-            utc1_in = utc1_in.reshape((1,) + utc1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc2_in.shape == tuple():
-            utc2_in = utc2_in.reshape((1,) + utc2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dut1_in.shape == tuple():
-            dut1_in = dut1_in.reshape((1,) + dut1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if hm_in.shape == tuple():
-            hm_in = hm_in.reshape((1,) + hm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phpa_in.shape == tuple():
-            phpa_in = phpa_in.reshape((1,) + phpa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tc_in.shape == tuple():
-            tc_in = tc_in.reshape((1,) + tc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rh_in.shape == tuple():
-            rh_in = rh_in.reshape((1,) + rh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if wl_in.shape == tuple():
-            wl_in = wl_in.reshape((1,) + wl_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atoc13"
+    args = [type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl]
+    args_dtype = [numpy.dtype('S16'), numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["type", "ob1", "ob2", "utc1", "utc2", "dut1", "elong", "phi", "hm", "xp", "yp", "phpa", "tc", "rh", "wl", "rc", "dc", "c_statval"]
+    nin = 15
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), type_in, ob1_in, ob2_in, utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in)
-    rc_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dc_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [type_in, ob1_in, ob2_in, utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in, rc_out, dc_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*15 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atoc13(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'atoc13')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc_out.shape) > 0 and rc_out.shape[0] == 1
-        rc_out = rc_out[0]
-        assert len(dc_out.shape) > 0 and dc_out.shape[0] == 1
-        dc_out = dc_out[0]
-
-    return rc_out, dc_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['atoc13'] = {0: 'OK', 1: 'dubious year (Note 4)', -1: 'unacceptable date'}
 
 
@@ -5273,113 +3907,19 @@ def atoi13(type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, r
 
     """
 
-    #Turn all inputs into arrays
-    type_in = numpy.array(type, dtype=numpy.dtype('S16'), order="C", copy=False, subok=True)
-    ob1_in = numpy.array(ob1, dtype=numpy.double, order="C", copy=False, subok=True)
-    ob2_in = numpy.array(ob2, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc1_in = numpy.array(utc1, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc2_in = numpy.array(utc2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dut1_in = numpy.array(dut1, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    hm_in = numpy.array(hm, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    phpa_in = numpy.array(phpa, dtype=numpy.double, order="C", copy=False, subok=True)
-    tc_in = numpy.array(tc, dtype=numpy.double, order="C", copy=False, subok=True)
-    rh_in = numpy.array(rh, dtype=numpy.double, order="C", copy=False, subok=True)
-    wl_in = numpy.array(wl, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if type_in.shape == tuple():
-            type_in = type_in.reshape((1,) + type_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ob1_in.shape == tuple():
-            ob1_in = ob1_in.reshape((1,) + ob1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ob2_in.shape == tuple():
-            ob2_in = ob2_in.reshape((1,) + ob2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc1_in.shape == tuple():
-            utc1_in = utc1_in.reshape((1,) + utc1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc2_in.shape == tuple():
-            utc2_in = utc2_in.reshape((1,) + utc2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dut1_in.shape == tuple():
-            dut1_in = dut1_in.reshape((1,) + dut1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if hm_in.shape == tuple():
-            hm_in = hm_in.reshape((1,) + hm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phpa_in.shape == tuple():
-            phpa_in = phpa_in.reshape((1,) + phpa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tc_in.shape == tuple():
-            tc_in = tc_in.reshape((1,) + tc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rh_in.shape == tuple():
-            rh_in = rh_in.reshape((1,) + rh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if wl_in.shape == tuple():
-            wl_in = wl_in.reshape((1,) + wl_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atoi13"
+    args = [type, ob1, ob2, utc1, utc2, dut1, elong, phi, hm, xp, yp, phpa, tc, rh, wl]
+    args_dtype = [numpy.dtype('S16'), numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["type", "ob1", "ob2", "utc1", "utc2", "dut1", "elong", "phi", "hm", "xp", "yp", "phpa", "tc", "rh", "wl", "ri", "di", "c_statval"]
+    nin = 15
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), type_in, ob1_in, ob2_in, utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in)
-    ri_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    di_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [type_in, ob1_in, ob2_in, utc1_in, utc2_in, dut1_in, elong_in, phi_in, hm_in, xp_in, yp_in, phpa_in, tc_in, rh_in, wl_in, ri_out, di_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*15 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atoi13(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'atoi13')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
-        ri_out = ri_out[0]
-        assert len(di_out.shape) > 0 and di_out.shape[0] == 1
-        di_out = di_out[0]
-
-    return ri_out, di_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['atoi13'] = {0: 'OK', 1: 'dubious year (Note 2)', -1: 'unacceptable date'}
 
 
@@ -5480,54 +4020,19 @@ def atoiq(type, ob1, ob2, astrom):
 
     """
 
-    #Turn all inputs into arrays
-    type_in = numpy.array(type, dtype=numpy.dtype('S16'), order="C", copy=False, subok=True)
-    ob1_in = numpy.array(ob1, dtype=numpy.double, order="C", copy=False, subok=True)
-    ob2_in = numpy.array(ob2, dtype=numpy.double, order="C", copy=False, subok=True)
-    astrom_in = numpy.array(astrom, dtype=dt_eraASTROM, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if type_in.shape == tuple():
-            type_in = type_in.reshape((1,) + type_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ob1_in.shape == tuple():
-            ob1_in = ob1_in.reshape((1,) + ob1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ob2_in.shape == tuple():
-            ob2_in = ob2_in.reshape((1,) + ob2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if astrom_in.shape == tuple():
-            astrom_in = astrom_in.reshape((1,) + astrom_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "atoiq"
+    args = [type, ob1, ob2, astrom]
+    args_dtype = [numpy.dtype('S16'), numpy.double, numpy.double, dt_eraASTROM, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["type", "ob1", "ob2", "astrom", "ri", "di"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), type_in, ob1_in, ob2_in, astrom_in)
-    ri_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    di_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [type_in, ob1_in, ob2_in, astrom_in, ri_out, di_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._atoiq(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ri_out.shape) > 0 and ri_out.shape[0] == 1
-        ri_out = ri_out[0]
-        assert len(di_out.shape) > 0 and di_out.shape[0] == 1
-        di_out = di_out[0]
 
-    return ri_out, di_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def ld(bm, p, q, e, em, dlim):
@@ -5607,64 +4112,19 @@ def ld(bm, p, q, e, em, dlim):
 
     """
 
-    #Turn all inputs into arrays
-    bm_in = numpy.array(bm, dtype=numpy.double, order="C", copy=False, subok=True)
-    p_in = numpy.array(p, dtype=numpy.double, order="C", copy=False, subok=True)
-    q_in = numpy.array(q, dtype=numpy.double, order="C", copy=False, subok=True)
-    e_in = numpy.array(e, dtype=numpy.double, order="C", copy=False, subok=True)
-    em_in = numpy.array(em, dtype=numpy.double, order="C", copy=False, subok=True)
-    dlim_in = numpy.array(dlim, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(p_in, (3,), "p")
-    check_trailing_shape(q_in, (3,), "q")
-    check_trailing_shape(e_in, (3,), "e")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if bm_in.shape == tuple():
-            bm_in = bm_in.reshape((1,) + bm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if p_in[...,0].shape == tuple():
-            p_in = p_in.reshape((1,) + p_in.shape)
-        else:
-            make_outputs_scalar = False
-        if q_in[...,0].shape == tuple():
-            q_in = q_in.reshape((1,) + q_in.shape)
-        else:
-            make_outputs_scalar = False
-        if e_in[...,0].shape == tuple():
-            e_in = e_in.reshape((1,) + e_in.shape)
-        else:
-            make_outputs_scalar = False
-        if em_in.shape == tuple():
-            em_in = em_in.reshape((1,) + em_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dlim_in.shape == tuple():
-            dlim_in = dlim_in.reshape((1,) + dlim_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ld"
+    args = [bm, p, q, e, em, dlim]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (3,), (3,), (3,), (), (), (3,)]
+    args_name = ["bm", "p", "q", "e", "em", "dlim", "p1"]
+    nin = 6
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), bm_in, p_in[...,0], q_in[...,0], e_in[...,0], em_in, dlim_in)
-    p1_out = numpy.empty(broadcast.shape + (3,), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [bm_in, p_in[...,0], q_in[...,0], e_in[...,0], em_in, dlim_in, p1_out[...,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*6 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ld(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(p1_out.shape) > 0 and p1_out.shape[0] == 1
-        p1_out = p1_out[0]
 
-    return p1_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def ldn(n, b, ob, sc):
@@ -5755,53 +4215,19 @@ def ldn(n, b, ob, sc):
 
     """
 
-    #Turn all inputs into arrays
-    n_in = numpy.array(n, dtype=numpy.intc, order="C", copy=False, subok=True)
-    b_in = numpy.array(b, dtype=dt_eraLDBODY, order="C", copy=False, subok=True)
-    ob_in = numpy.array(ob, dtype=numpy.double, order="C", copy=False, subok=True)
-    sc_in = numpy.array(sc, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(ob_in, (3,), "ob")
-    check_trailing_shape(sc_in, (3,), "sc")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if n_in.shape == tuple():
-            n_in = n_in.reshape((1,) + n_in.shape)
-        else:
-            make_outputs_scalar = False
-        if b_in.shape == tuple():
-            b_in = b_in.reshape((1,) + b_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ob_in[...,0].shape == tuple():
-            ob_in = ob_in.reshape((1,) + ob_in.shape)
-        else:
-            make_outputs_scalar = False
-        if sc_in[...,0].shape == tuple():
-            sc_in = sc_in.reshape((1,) + sc_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ldn"
+    args = [n, b, ob, sc]
+    args_dtype = [numpy.intc, dt_eraLDBODY, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3,), (3,), (3,)]
+    args_name = ["n", "b", "ob", "sc", "sn"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), n_in, b_in, ob_in[...,0], sc_in[...,0])
-    sn_out = numpy.empty(broadcast.shape + (3,), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [n_in, b_in, ob_in[...,0], sc_in[...,0], sn_out[...,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ldn(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(sn_out.shape) > 0 and sn_out.shape[0] == 1
-        sn_out = sn_out[0]
 
-    return sn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def ldsun(p, e, em):
@@ -5846,48 +4272,19 @@ def ldsun(p, e, em):
 
     """
 
-    #Turn all inputs into arrays
-    p_in = numpy.array(p, dtype=numpy.double, order="C", copy=False, subok=True)
-    e_in = numpy.array(e, dtype=numpy.double, order="C", copy=False, subok=True)
-    em_in = numpy.array(em, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(p_in, (3,), "p")
-    check_trailing_shape(e_in, (3,), "e")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if p_in[...,0].shape == tuple():
-            p_in = p_in.reshape((1,) + p_in.shape)
-        else:
-            make_outputs_scalar = False
-        if e_in[...,0].shape == tuple():
-            e_in = e_in.reshape((1,) + e_in.shape)
-        else:
-            make_outputs_scalar = False
-        if em_in.shape == tuple():
-            em_in = em_in.reshape((1,) + em_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ldsun"
+    args = [p, e, em]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(3,), (3,), (), (3,)]
+    args_name = ["p", "e", "em", "p1"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), p_in[...,0], e_in[...,0], em_in)
-    p1_out = numpy.empty(broadcast.shape + (3,), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [p_in[...,0], e_in[...,0], em_in, p1_out[...,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ldsun(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(p1_out.shape) > 0 and p1_out.shape[0] == 1
-        p1_out = p1_out[0]
 
-    return p1_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pmpx(rc, dc, pr, pd, px, rv, pmt, pob):
@@ -5944,72 +4341,19 @@ def pmpx(rc, dc, pr, pd, px, rv, pmt, pob):
 
     """
 
-    #Turn all inputs into arrays
-    rc_in = numpy.array(rc, dtype=numpy.double, order="C", copy=False, subok=True)
-    dc_in = numpy.array(dc, dtype=numpy.double, order="C", copy=False, subok=True)
-    pr_in = numpy.array(pr, dtype=numpy.double, order="C", copy=False, subok=True)
-    pd_in = numpy.array(pd, dtype=numpy.double, order="C", copy=False, subok=True)
-    px_in = numpy.array(px, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv_in = numpy.array(rv, dtype=numpy.double, order="C", copy=False, subok=True)
-    pmt_in = numpy.array(pmt, dtype=numpy.double, order="C", copy=False, subok=True)
-    pob_in = numpy.array(pob, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(pob_in, (3,), "pob")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rc_in.shape == tuple():
-            rc_in = rc_in.reshape((1,) + rc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dc_in.shape == tuple():
-            dc_in = dc_in.reshape((1,) + dc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pr_in.shape == tuple():
-            pr_in = pr_in.reshape((1,) + pr_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pd_in.shape == tuple():
-            pd_in = pd_in.reshape((1,) + pd_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px_in.shape == tuple():
-            px_in = px_in.reshape((1,) + px_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv_in.shape == tuple():
-            rv_in = rv_in.reshape((1,) + rv_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pmt_in.shape == tuple():
-            pmt_in = pmt_in.reshape((1,) + pmt_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pob_in[...,0].shape == tuple():
-            pob_in = pob_in.reshape((1,) + pob_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pmpx"
+    args = [rc, dc, pr, pd, px, rv, pmt, pob]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (3,), (3,)]
+    args_name = ["rc", "dc", "pr", "pd", "px", "rv", "pmt", "pob", "pco"]
+    nin = 8
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rc_in, dc_in, pr_in, pd_in, px_in, rv_in, pmt_in, pob_in[...,0])
-    pco_out = numpy.empty(broadcast.shape + (3,), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rc_in, dc_in, pr_in, pd_in, px_in, rv_in, pmt_in, pob_in[...,0], pco_out[...,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*8 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pmpx(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(pco_out.shape) > 0 and pco_out.shape[0] == 1
-        pco_out = pco_out[0]
 
-    return pco_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
@@ -6123,100 +4467,19 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
 
     """
 
-    #Turn all inputs into arrays
-    ra1_in = numpy.array(ra1, dtype=numpy.double, order="C", copy=False, subok=True)
-    dec1_in = numpy.array(dec1, dtype=numpy.double, order="C", copy=False, subok=True)
-    pmr1_in = numpy.array(pmr1, dtype=numpy.double, order="C", copy=False, subok=True)
-    pmd1_in = numpy.array(pmd1, dtype=numpy.double, order="C", copy=False, subok=True)
-    px1_in = numpy.array(px1, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv1_in = numpy.array(rv1, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep1a_in = numpy.array(ep1a, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep1b_in = numpy.array(ep1b, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep2a_in = numpy.array(ep2a, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep2b_in = numpy.array(ep2b, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ra1_in.shape == tuple():
-            ra1_in = ra1_in.reshape((1,) + ra1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dec1_in.shape == tuple():
-            dec1_in = dec1_in.reshape((1,) + dec1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pmr1_in.shape == tuple():
-            pmr1_in = pmr1_in.reshape((1,) + pmr1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pmd1_in.shape == tuple():
-            pmd1_in = pmd1_in.reshape((1,) + pmd1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px1_in.shape == tuple():
-            px1_in = px1_in.reshape((1,) + px1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv1_in.shape == tuple():
-            rv1_in = rv1_in.reshape((1,) + rv1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep1a_in.shape == tuple():
-            ep1a_in = ep1a_in.reshape((1,) + ep1a_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep1b_in.shape == tuple():
-            ep1b_in = ep1b_in.reshape((1,) + ep1b_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep2a_in.shape == tuple():
-            ep2a_in = ep2a_in.reshape((1,) + ep2a_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep2b_in.shape == tuple():
-            ep2b_in = ep2b_in.reshape((1,) + ep2b_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pmsafe"
+    args = [ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["ra1", "dec1", "pmr1", "pmd1", "px1", "rv1", "ep1a", "ep1b", "ep2a", "ep2b", "ra2", "dec2", "pmr2", "pmd2", "px2", "rv2", "c_statval"]
+    nin = 10
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ra1_in, dec1_in, pmr1_in, pmd1_in, px1_in, rv1_in, ep1a_in, ep1b_in, ep2a_in, ep2b_in)
-    ra2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dec2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pmr2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pmd2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    px2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rv2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ra1_in, dec1_in, pmr1_in, pmd1_in, px1_in, rv1_in, ep1a_in, ep1b_in, ep2a_in, ep2b_in, ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*10 + [['readwrite']]*7
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pmsafe(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'pmsafe')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ra2_out.shape) > 0 and ra2_out.shape[0] == 1
-        ra2_out = ra2_out[0]
-        assert len(dec2_out.shape) > 0 and dec2_out.shape[0] == 1
-        dec2_out = dec2_out[0]
-        assert len(pmr2_out.shape) > 0 and pmr2_out.shape[0] == 1
-        pmr2_out = pmr2_out[0]
-        assert len(pmd2_out.shape) > 0 and pmd2_out.shape[0] == 1
-        pmd2_out = pmd2_out[0]
-        assert len(px2_out.shape) > 0 and px2_out.shape[0] == 1
-        px2_out = px2_out[0]
-        assert len(rv2_out.shape) > 0 and rv2_out.shape[0] == 1
-        rv2_out = rv2_out[0]
-
-    return ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above warnings', -1: 'system error (should not occur)'}
 
 
@@ -6375,54 +4638,19 @@ def refco(phpa, tc, rh, wl):
 
     """
 
-    #Turn all inputs into arrays
-    phpa_in = numpy.array(phpa, dtype=numpy.double, order="C", copy=False, subok=True)
-    tc_in = numpy.array(tc, dtype=numpy.double, order="C", copy=False, subok=True)
-    rh_in = numpy.array(rh, dtype=numpy.double, order="C", copy=False, subok=True)
-    wl_in = numpy.array(wl, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if phpa_in.shape == tuple():
-            phpa_in = phpa_in.reshape((1,) + phpa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tc_in.shape == tuple():
-            tc_in = tc_in.reshape((1,) + tc_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rh_in.shape == tuple():
-            rh_in = rh_in.reshape((1,) + rh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if wl_in.shape == tuple():
-            wl_in = wl_in.reshape((1,) + wl_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "refco"
+    args = [phpa, tc, rh, wl]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["phpa", "tc", "rh", "wl", "refa", "refb"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), phpa_in, tc_in, rh_in, wl_in)
-    refa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    refb_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [phpa_in, tc_in, rh_in, wl_in, refa_out, refb_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._refco(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(refa_out.shape) > 0 and refa_out.shape[0] == 1
-        refa_out = refa_out[0]
-        assert len(refb_out.shape) > 0 and refb_out.shape[0] == 1
-        refb_out = refb_out[0]
 
-    return refa_out, refb_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def epv00(date1, date2):
@@ -6528,48 +4756,19 @@ def epv00(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "epv00"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (2, 3), (2, 3), ()]
+    args_name = ["date1", "date2", "pvh", "pvb", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    pvh_out = numpy.empty(broadcast.shape + (2, 3), dtype=numpy.double)
-    pvb_out = numpy.empty(broadcast.shape + (2, 3), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, pvh_out[...,0,0], pvb_out[...,0,0], c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._epv00(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'epv00')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(pvh_out.shape) > 0 and pvh_out.shape[0] == 1
-        pvh_out = pvh_out[0]
-        assert len(pvb_out.shape) > 0 and pvb_out.shape[0] == 1
-        pvb_out = pvb_out[0]
-
-    return pvh_out, pvb_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['epv00'] = {0: 'OK', 1: 'warning: date outsidethe range 1900-2100 AD'}
 
 
@@ -6741,50 +4940,19 @@ def plan94(date1, date2, np):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    np_in = numpy.array(np, dtype=numpy.intc, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if np_in.shape == tuple():
-            np_in = np_in.reshape((1,) + np_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "plan94"
+    args = [date1, date2, np]
+    args_dtype = [numpy.double, numpy.double, numpy.intc, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (2, 3), ()]
+    args_name = ["date1", "date2", "np", "pv", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, np_in)
-    pv_out = numpy.empty(broadcast.shape + (2, 3), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, np_in, pv_out[...,0,0], c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._plan94(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'plan94')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(pv_out.shape) > 0 and pv_out.shape[0] == 1
-        pv_out = pv_out[0]
-
-    return pv_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['plan94'] = {0: 'OK', 1: 'warning: year outside 1000-3000', 2: 'warning: failed to converge', -1: 'illegal NP (outside 1-8)'}
 
 
@@ -6830,36 +4998,19 @@ def fad03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fad03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fad03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fae03(t):
@@ -6906,36 +5057,19 @@ def fae03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fae03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fae03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def faf03(t):
@@ -6980,36 +5114,19 @@ def faf03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "faf03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._faf03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def faju03(t):
@@ -7056,36 +5173,19 @@ def faju03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "faju03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._faju03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fal03(t):
@@ -7129,36 +5229,19 @@ def fal03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fal03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fal03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def falp03(t):
@@ -7202,36 +5285,19 @@ def falp03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "falp03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._falp03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fama03(t):
@@ -7278,36 +5344,19 @@ def fama03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fama03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fama03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fame03(t):
@@ -7354,36 +5403,19 @@ def fame03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fame03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fame03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fane03(t):
@@ -7427,36 +5459,19 @@ def fane03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fane03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fane03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def faom03(t):
@@ -7500,36 +5515,19 @@ def faom03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "faom03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._faom03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fapa03(t):
@@ -7577,36 +5575,19 @@ def fapa03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fapa03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fapa03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fasa03(t):
@@ -7653,36 +5634,19 @@ def fasa03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fasa03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fasa03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def faur03(t):
@@ -7726,36 +5690,19 @@ def faur03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "faur03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._faur03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fave03(t):
@@ -7802,36 +5749,19 @@ def fave03(t):
 
     """
 
-    #Turn all inputs into arrays
-    t_in = numpy.array(t, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if t_in.shape == tuple():
-            t_in = t_in.reshape((1,) + t_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fave03"
+    args = [t]
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(), ()]
+    args_name = ["t", "c_retval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), t_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [t_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fave03(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def bi00():
@@ -7885,24 +5815,19 @@ def bi00():
 
     """
 
-    #Turn all inputs into arrays
+    func_name = "bi00"
+    args = []
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["dpsibi", "depsbi", "dra"]
+    nin = 0
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), )
-    dpsibi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    depsbi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dra_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [dpsibi_out, depsbi_out, dra_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*0 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._bi00(it)
 
-    return dpsibi_out, depsbi_out, dra_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def bp00(date1, date2):
@@ -7984,47 +5909,19 @@ def bp00(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "bp00"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3), (3, 3), (3, 3)]
+    args_name = ["date1", "date2", "rb", "rp", "rbp"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rb_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rb_out[...,0,0], rp_out[...,0,0], rbp_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._bp00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rb_out.shape) > 0 and rb_out.shape[0] == 1
-        rb_out = rb_out[0]
-        assert len(rp_out.shape) > 0 and rp_out.shape[0] == 1
-        rp_out = rp_out[0]
-        assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
-        rbp_out = rbp_out[0]
 
-    return rb_out, rp_out, rbp_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def bp06(date1, date2):
@@ -8100,47 +5997,19 @@ def bp06(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "bp06"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3), (3, 3), (3, 3)]
+    args_name = ["date1", "date2", "rb", "rp", "rbp"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rb_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rb_out[...,0,0], rp_out[...,0,0], rbp_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._bp06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rb_out.shape) > 0 and rb_out.shape[0] == 1
-        rb_out = rb_out[0]
-        assert len(rp_out.shape) > 0 and rp_out.shape[0] == 1
-        rp_out = rp_out[0]
-        assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
-        rbp_out = rbp_out[0]
 
-    return rb_out, rp_out, rbp_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def bpn2xy(rbpn):
@@ -8187,40 +6056,19 @@ def bpn2xy(rbpn):
 
     """
 
-    #Turn all inputs into arrays
-    rbpn_in = numpy.array(rbpn, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(rbpn_in, (3, 3), "rbpn")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rbpn_in[...,0,0].shape == tuple():
-            rbpn_in = rbpn_in.reshape((1,) + rbpn_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "bpn2xy"
+    args = [rbpn]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(3, 3), (), ()]
+    args_name = ["rbpn", "x", "y"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rbpn_in[...,0,0])
-    x_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    y_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rbpn_in[...,0,0], x_out, y_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._bpn2xy(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(x_out.shape) > 0 and x_out.shape[0] == 1
-        x_out = x_out[0]
-        assert len(y_out.shape) > 0 and y_out.shape[0] == 1
-        y_out = y_out[0]
 
-    return x_out, y_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2i00a(date1, date2):
@@ -8301,41 +6149,19 @@ def c2i00a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2i00a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rc2i"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rc2i_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rc2i_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2i00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
-        rc2i_out = rc2i_out[0]
 
-    return rc2i_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2i00b(date1, date2):
@@ -8416,41 +6242,19 @@ def c2i00b(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2i00b"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rc2i"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rc2i_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rc2i_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2i00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
-        rc2i_out = rc2i_out[0]
 
-    return rc2i_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2i06a(date1, date2):
@@ -8522,41 +6326,19 @@ def c2i06a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2i06a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rc2i"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rc2i_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rc2i_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2i06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
-        rc2i_out = rc2i_out[0]
 
-    return rc2i_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2ibpn(date1, date2, rbpn):
@@ -8639,47 +6421,19 @@ def c2ibpn(date1, date2, rbpn):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    rbpn_in = numpy.array(rbpn, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(rbpn_in, (3, 3), "rbpn")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rbpn_in[...,0,0].shape == tuple():
-            rbpn_in = rbpn_in.reshape((1,) + rbpn_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2ibpn"
+    args = [date1, date2, rbpn]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3), (3, 3)]
+    args_name = ["date1", "date2", "rbpn", "rc2i"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, rbpn_in[...,0,0])
-    rc2i_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rbpn_in[...,0,0], rc2i_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2ibpn(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
-        rc2i_out = rc2i_out[0]
 
-    return rc2i_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2ixy(date1, date2, x, y):
@@ -8756,51 +6510,19 @@ def c2ixy(date1, date2, x, y):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    x_in = numpy.array(x, dtype=numpy.double, order="C", copy=False, subok=True)
-    y_in = numpy.array(y, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if x_in.shape == tuple():
-            x_in = x_in.reshape((1,) + x_in.shape)
-        else:
-            make_outputs_scalar = False
-        if y_in.shape == tuple():
-            y_in = y_in.reshape((1,) + y_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2ixy"
+    args = [date1, date2, x, y]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (3, 3)]
+    args_name = ["date1", "date2", "x", "y", "rc2i"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, x_in, y_in)
-    rc2i_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, x_in, y_in, rc2i_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2ixy(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
-        rc2i_out = rc2i_out[0]
 
-    return rc2i_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2ixys(x, y, s):
@@ -8860,46 +6582,19 @@ def c2ixys(x, y, s):
 
     """
 
-    #Turn all inputs into arrays
-    x_in = numpy.array(x, dtype=numpy.double, order="C", copy=False, subok=True)
-    y_in = numpy.array(y, dtype=numpy.double, order="C", copy=False, subok=True)
-    s_in = numpy.array(s, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if x_in.shape == tuple():
-            x_in = x_in.reshape((1,) + x_in.shape)
-        else:
-            make_outputs_scalar = False
-        if y_in.shape == tuple():
-            y_in = y_in.reshape((1,) + y_in.shape)
-        else:
-            make_outputs_scalar = False
-        if s_in.shape == tuple():
-            s_in = s_in.reshape((1,) + s_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2ixys"
+    args = [x, y, s]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (3, 3)]
+    args_name = ["x", "y", "s", "rc2i"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), x_in, y_in, s_in)
-    rc2i_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [x_in, y_in, s_in, rc2i_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2ixys(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2i_out.shape) > 0 and rc2i_out.shape[0] == 1
-        rc2i_out = rc2i_out[0]
 
-    return rc2i_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2t00a(tta, ttb, uta, utb, xp, yp):
@@ -8985,61 +6680,19 @@ def c2t00a(tta, ttb, uta, utb, xp, yp):
 
     """
 
-    #Turn all inputs into arrays
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2t00a"
+    args = [tta, ttb, uta, utb, xp, yp]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (3, 3)]
+    args_name = ["tta", "ttb", "uta", "utb", "xp", "yp", "rc2t"]
+    nin = 6
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tta_in, ttb_in, uta_in, utb_in, xp_in, yp_in)
-    rc2t_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tta_in, ttb_in, uta_in, utb_in, xp_in, yp_in, rc2t_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*6 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2t00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
-        rc2t_out = rc2t_out[0]
 
-    return rc2t_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2t00b(tta, ttb, uta, utb, xp, yp):
@@ -9124,61 +6777,19 @@ def c2t00b(tta, ttb, uta, utb, xp, yp):
 
     """
 
-    #Turn all inputs into arrays
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2t00b"
+    args = [tta, ttb, uta, utb, xp, yp]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (3, 3)]
+    args_name = ["tta", "ttb", "uta", "utb", "xp", "yp", "rc2t"]
+    nin = 6
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tta_in, ttb_in, uta_in, utb_in, xp_in, yp_in)
-    rc2t_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tta_in, ttb_in, uta_in, utb_in, xp_in, yp_in, rc2t_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*6 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2t00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
-        rc2t_out = rc2t_out[0]
 
-    return rc2t_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2t06a(tta, ttb, uta, utb, xp, yp):
@@ -9262,61 +6873,19 @@ def c2t06a(tta, ttb, uta, utb, xp, yp):
 
     """
 
-    #Turn all inputs into arrays
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2t06a"
+    args = [tta, ttb, uta, utb, xp, yp]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (3, 3)]
+    args_name = ["tta", "ttb", "uta", "utb", "xp", "yp", "rc2t"]
+    nin = 6
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tta_in, ttb_in, uta_in, utb_in, xp_in, yp_in)
-    rc2t_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tta_in, ttb_in, uta_in, utb_in, xp_in, yp_in, rc2t_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*6 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2t06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
-        rc2t_out = rc2t_out[0]
 
-    return rc2t_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2tcio(rc2i, era, rpom):
@@ -9380,48 +6949,19 @@ def c2tcio(rc2i, era, rpom):
 
     """
 
-    #Turn all inputs into arrays
-    rc2i_in = numpy.array(rc2i, dtype=numpy.double, order="C", copy=False, subok=True)
-    era_in = numpy.array(era, dtype=numpy.double, order="C", copy=False, subok=True)
-    rpom_in = numpy.array(rpom, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(rc2i_in, (3, 3), "rc2i")
-    check_trailing_shape(rpom_in, (3, 3), "rpom")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rc2i_in[...,0,0].shape == tuple():
-            rc2i_in = rc2i_in.reshape((1,) + rc2i_in.shape)
-        else:
-            make_outputs_scalar = False
-        if era_in.shape == tuple():
-            era_in = era_in.reshape((1,) + era_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rpom_in[...,0,0].shape == tuple():
-            rpom_in = rpom_in.reshape((1,) + rpom_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2tcio"
+    args = [rc2i, era, rpom]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(3, 3), (), (3, 3), (3, 3)]
+    args_name = ["rc2i", "era", "rpom", "rc2t"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rc2i_in[...,0,0], era_in, rpom_in[...,0,0])
-    rc2t_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rc2i_in[...,0,0], era_in, rpom_in[...,0,0], rc2t_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2tcio(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
-        rc2t_out = rc2t_out[0]
 
-    return rc2t_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2teqx(rbpn, gst, rpom):
@@ -9485,48 +7025,19 @@ def c2teqx(rbpn, gst, rpom):
 
     """
 
-    #Turn all inputs into arrays
-    rbpn_in = numpy.array(rbpn, dtype=numpy.double, order="C", copy=False, subok=True)
-    gst_in = numpy.array(gst, dtype=numpy.double, order="C", copy=False, subok=True)
-    rpom_in = numpy.array(rpom, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(rbpn_in, (3, 3), "rbpn")
-    check_trailing_shape(rpom_in, (3, 3), "rpom")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rbpn_in[...,0,0].shape == tuple():
-            rbpn_in = rbpn_in.reshape((1,) + rbpn_in.shape)
-        else:
-            make_outputs_scalar = False
-        if gst_in.shape == tuple():
-            gst_in = gst_in.reshape((1,) + gst_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rpom_in[...,0,0].shape == tuple():
-            rpom_in = rpom_in.reshape((1,) + rpom_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2teqx"
+    args = [rbpn, gst, rpom]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(3, 3), (), (3, 3), (3, 3)]
+    args_name = ["rbpn", "gst", "rpom", "rc2t"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rbpn_in[...,0,0], gst_in, rpom_in[...,0,0])
-    rc2t_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rbpn_in[...,0,0], gst_in, rpom_in[...,0,0], rc2t_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2teqx(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
-        rc2t_out = rc2t_out[0]
 
-    return rc2t_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2tpe(tta, ttb, uta, utb, dpsi, deps, xp, yp):
@@ -9620,71 +7131,19 @@ def c2tpe(tta, ttb, uta, utb, dpsi, deps, xp, yp):
 
     """
 
-    #Turn all inputs into arrays
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    dpsi_in = numpy.array(dpsi, dtype=numpy.double, order="C", copy=False, subok=True)
-    deps_in = numpy.array(deps, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dpsi_in.shape == tuple():
-            dpsi_in = dpsi_in.reshape((1,) + dpsi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if deps_in.shape == tuple():
-            deps_in = deps_in.reshape((1,) + deps_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2tpe"
+    args = [tta, ttb, uta, utb, dpsi, deps, xp, yp]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (), (3, 3)]
+    args_name = ["tta", "ttb", "uta", "utb", "dpsi", "deps", "xp", "yp", "rc2t"]
+    nin = 8
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tta_in, ttb_in, uta_in, utb_in, dpsi_in, deps_in, xp_in, yp_in)
-    rc2t_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tta_in, ttb_in, uta_in, utb_in, dpsi_in, deps_in, xp_in, yp_in, rc2t_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*8 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2tpe(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
-        rc2t_out = rc2t_out[0]
 
-    return rc2t_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def c2txy(tta, ttb, uta, utb, x, y, xp, yp):
@@ -9774,71 +7233,19 @@ def c2txy(tta, ttb, uta, utb, x, y, xp, yp):
 
     """
 
-    #Turn all inputs into arrays
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    x_in = numpy.array(x, dtype=numpy.double, order="C", copy=False, subok=True)
-    y_in = numpy.array(y, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if x_in.shape == tuple():
-            x_in = x_in.reshape((1,) + x_in.shape)
-        else:
-            make_outputs_scalar = False
-        if y_in.shape == tuple():
-            y_in = y_in.reshape((1,) + y_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "c2txy"
+    args = [tta, ttb, uta, utb, x, y, xp, yp]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (), (3, 3)]
+    args_name = ["tta", "ttb", "uta", "utb", "x", "y", "xp", "yp", "rc2t"]
+    nin = 8
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tta_in, ttb_in, uta_in, utb_in, x_in, y_in, xp_in, yp_in)
-    rc2t_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tta_in, ttb_in, uta_in, utb_in, x_in, y_in, xp_in, yp_in, rc2t_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*8 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._c2txy(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rc2t_out.shape) > 0 and rc2t_out.shape[0] == 1
-        rc2t_out = rc2t_out[0]
 
-    return rc2t_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def eo06a(date1, date2):
@@ -9905,41 +7312,19 @@ def eo06a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "eo06a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._eo06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def eors(rnpb, s):
@@ -9985,42 +7370,19 @@ def eors(rnpb, s):
 
     """
 
-    #Turn all inputs into arrays
-    rnpb_in = numpy.array(rnpb, dtype=numpy.double, order="C", copy=False, subok=True)
-    s_in = numpy.array(s, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(rnpb_in, (3, 3), "rnpb")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rnpb_in[...,0,0].shape == tuple():
-            rnpb_in = rnpb_in.reshape((1,) + rnpb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if s_in.shape == tuple():
-            s_in = s_in.reshape((1,) + s_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "eors"
+    args = [rnpb, s]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(3, 3), (), ()]
+    args_name = ["rnpb", "s", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rnpb_in[...,0,0], s_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rnpb_in[...,0,0], s_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._eors(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fw2m(gamb, phib, psi, eps):
@@ -10097,51 +7459,19 @@ def fw2m(gamb, phib, psi, eps):
 
     """
 
-    #Turn all inputs into arrays
-    gamb_in = numpy.array(gamb, dtype=numpy.double, order="C", copy=False, subok=True)
-    phib_in = numpy.array(phib, dtype=numpy.double, order="C", copy=False, subok=True)
-    psi_in = numpy.array(psi, dtype=numpy.double, order="C", copy=False, subok=True)
-    eps_in = numpy.array(eps, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if gamb_in.shape == tuple():
-            gamb_in = gamb_in.reshape((1,) + gamb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phib_in.shape == tuple():
-            phib_in = phib_in.reshape((1,) + phib_in.shape)
-        else:
-            make_outputs_scalar = False
-        if psi_in.shape == tuple():
-            psi_in = psi_in.reshape((1,) + psi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if eps_in.shape == tuple():
-            eps_in = eps_in.reshape((1,) + eps_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fw2m"
+    args = [gamb, phib, psi, eps]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (3, 3)]
+    args_name = ["gamb", "phib", "psi", "eps", "r"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), gamb_in, phib_in, psi_in, eps_in)
-    r_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [gamb_in, phib_in, psi_in, eps_in, r_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fw2m(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(r_out.shape) > 0 and r_out.shape[0] == 1
-        r_out = r_out[0]
 
-    return r_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fw2xy(gamb, phib, psi, eps):
@@ -10203,54 +7533,19 @@ def fw2xy(gamb, phib, psi, eps):
 
     """
 
-    #Turn all inputs into arrays
-    gamb_in = numpy.array(gamb, dtype=numpy.double, order="C", copy=False, subok=True)
-    phib_in = numpy.array(phib, dtype=numpy.double, order="C", copy=False, subok=True)
-    psi_in = numpy.array(psi, dtype=numpy.double, order="C", copy=False, subok=True)
-    eps_in = numpy.array(eps, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if gamb_in.shape == tuple():
-            gamb_in = gamb_in.reshape((1,) + gamb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phib_in.shape == tuple():
-            phib_in = phib_in.reshape((1,) + phib_in.shape)
-        else:
-            make_outputs_scalar = False
-        if psi_in.shape == tuple():
-            psi_in = psi_in.reshape((1,) + psi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if eps_in.shape == tuple():
-            eps_in = eps_in.reshape((1,) + eps_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fw2xy"
+    args = [gamb, phib, psi, eps]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["gamb", "phib", "psi", "eps", "x", "y"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), gamb_in, phib_in, psi_in, eps_in)
-    x_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    y_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [gamb_in, phib_in, psi_in, eps_in, x_out, y_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fw2xy(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(x_out.shape) > 0 and x_out.shape[0] == 1
-        x_out = x_out[0]
-        assert len(y_out.shape) > 0 and y_out.shape[0] == 1
-        y_out = y_out[0]
 
-    return x_out, y_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def num00a(date1, date2):
@@ -10315,41 +7610,19 @@ def num00a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "num00a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rmatn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rmatn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rmatn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._num00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
-        rmatn_out = rmatn_out[0]
 
-    return rmatn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def num00b(date1, date2):
@@ -10414,41 +7687,19 @@ def num00b(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "num00b"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rmatn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rmatn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rmatn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._num00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
-        rmatn_out = rmatn_out[0]
 
-    return rmatn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def num06a(date1, date2):
@@ -10512,41 +7763,19 @@ def num06a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "num06a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rmatn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rmatn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rmatn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._num06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
-        rmatn_out = rmatn_out[0]
 
-    return rmatn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def numat(epsa, dpsi, deps):
@@ -10600,46 +7829,19 @@ def numat(epsa, dpsi, deps):
 
     """
 
-    #Turn all inputs into arrays
-    epsa_in = numpy.array(epsa, dtype=numpy.double, order="C", copy=False, subok=True)
-    dpsi_in = numpy.array(dpsi, dtype=numpy.double, order="C", copy=False, subok=True)
-    deps_in = numpy.array(deps, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if epsa_in.shape == tuple():
-            epsa_in = epsa_in.reshape((1,) + epsa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dpsi_in.shape == tuple():
-            dpsi_in = dpsi_in.reshape((1,) + dpsi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if deps_in.shape == tuple():
-            deps_in = deps_in.reshape((1,) + deps_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "numat"
+    args = [epsa, dpsi, deps]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (3, 3)]
+    args_name = ["epsa", "dpsi", "deps", "rmatn"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), epsa_in, dpsi_in, deps_in)
-    rmatn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [epsa_in, dpsi_in, deps_in, rmatn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._numat(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
-        rmatn_out = rmatn_out[0]
 
-    return rmatn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def nut00a(date1, date2):
@@ -10800,44 +8002,19 @@ def nut00a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "nut00a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), ()]
+    args_name = ["date1", "date2", "dpsi", "deps"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    dpsi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    deps_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsi_out, deps_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._nut00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
-        dpsi_out = dpsi_out[0]
-        assert len(deps_out.shape) > 0 and deps_out.shape[0] == 1
-        deps_out = deps_out[0]
 
-    return dpsi_out, deps_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def nut00b(date1, date2):
@@ -10966,44 +8143,19 @@ def nut00b(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "nut00b"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), ()]
+    args_name = ["date1", "date2", "dpsi", "deps"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    dpsi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    deps_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsi_out, deps_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._nut00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
-        dpsi_out = dpsi_out[0]
-        assert len(deps_out.shape) > 0 and deps_out.shape[0] == 1
-        deps_out = deps_out[0]
 
-    return dpsi_out, deps_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def nut06a(date1, date2):
@@ -11091,44 +8243,19 @@ def nut06a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "nut06a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), ()]
+    args_name = ["date1", "date2", "dpsi", "deps"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    dpsi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    deps_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsi_out, deps_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._nut06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
-        dpsi_out = dpsi_out[0]
-        assert len(deps_out.shape) > 0 and deps_out.shape[0] == 1
-        deps_out = deps_out[0]
 
-    return dpsi_out, deps_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def nut80(date1, date2):
@@ -11189,44 +8316,19 @@ def nut80(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "nut80"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), ()]
+    args_name = ["date1", "date2", "dpsi", "deps"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    dpsi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    deps_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsi_out, deps_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._nut80(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
-        dpsi_out = dpsi_out[0]
-        assert len(deps_out.shape) > 0 and deps_out.shape[0] == 1
-        deps_out = deps_out[0]
 
-    return dpsi_out, deps_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def nutm80(date1, date2):
@@ -11284,41 +8386,19 @@ def nutm80(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "nutm80"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rmatn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rmatn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rmatn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._nutm80(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rmatn_out.shape) > 0 and rmatn_out.shape[0] == 1
-        rmatn_out = rmatn_out[0]
 
-    return rmatn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def obl06(date1, date2):
@@ -11373,41 +8453,19 @@ def obl06(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "obl06"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._obl06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def obl80(date1, date2):
@@ -11464,41 +8522,19 @@ def obl80(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "obl80"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._obl80(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def p06e(date1, date2):
@@ -11626,86 +8662,19 @@ def p06e(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "p06e"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["date1", "date2", "eps0", "psia", "oma", "bpa", "bqa", "pia", "bpia", "epsa", "chia", "za", "zetaa", "thetaa", "pa", "gam", "phi", "psi"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    eps0_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    psia_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    oma_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    bpa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    bqa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pia_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    bpia_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    epsa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    chia_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    za_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    zetaa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    thetaa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    gam_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    phi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    psi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, eps0_out, psia_out, oma_out, bpa_out, bqa_out, pia_out, bpia_out, epsa_out, chia_out, za_out, zetaa_out, thetaa_out, pa_out, gam_out, phi_out, psi_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*16
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._p06e(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(eps0_out.shape) > 0 and eps0_out.shape[0] == 1
-        eps0_out = eps0_out[0]
-        assert len(psia_out.shape) > 0 and psia_out.shape[0] == 1
-        psia_out = psia_out[0]
-        assert len(oma_out.shape) > 0 and oma_out.shape[0] == 1
-        oma_out = oma_out[0]
-        assert len(bpa_out.shape) > 0 and bpa_out.shape[0] == 1
-        bpa_out = bpa_out[0]
-        assert len(bqa_out.shape) > 0 and bqa_out.shape[0] == 1
-        bqa_out = bqa_out[0]
-        assert len(pia_out.shape) > 0 and pia_out.shape[0] == 1
-        pia_out = pia_out[0]
-        assert len(bpia_out.shape) > 0 and bpia_out.shape[0] == 1
-        bpia_out = bpia_out[0]
-        assert len(epsa_out.shape) > 0 and epsa_out.shape[0] == 1
-        epsa_out = epsa_out[0]
-        assert len(chia_out.shape) > 0 and chia_out.shape[0] == 1
-        chia_out = chia_out[0]
-        assert len(za_out.shape) > 0 and za_out.shape[0] == 1
-        za_out = za_out[0]
-        assert len(zetaa_out.shape) > 0 and zetaa_out.shape[0] == 1
-        zetaa_out = zetaa_out[0]
-        assert len(thetaa_out.shape) > 0 and thetaa_out.shape[0] == 1
-        thetaa_out = thetaa_out[0]
-        assert len(pa_out.shape) > 0 and pa_out.shape[0] == 1
-        pa_out = pa_out[0]
-        assert len(gam_out.shape) > 0 and gam_out.shape[0] == 1
-        gam_out = gam_out[0]
-        assert len(phi_out.shape) > 0 and phi_out.shape[0] == 1
-        phi_out = phi_out[0]
-        assert len(psi_out.shape) > 0 and psi_out.shape[0] == 1
-        psi_out = psi_out[0]
 
-    return eps0_out, psia_out, oma_out, bpa_out, bqa_out, pia_out, bpia_out, epsa_out, chia_out, za_out, zetaa_out, thetaa_out, pa_out, gam_out, phi_out, psi_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pb06(date1, date2):
@@ -11780,47 +8749,19 @@ def pb06(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pb06"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["date1", "date2", "bzeta", "bz", "btheta"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    bzeta_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    bz_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    btheta_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, bzeta_out, bz_out, btheta_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pb06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(bzeta_out.shape) > 0 and bzeta_out.shape[0] == 1
-        bzeta_out = bzeta_out[0]
-        assert len(bz_out.shape) > 0 and bz_out.shape[0] == 1
-        bz_out = bz_out[0]
-        assert len(btheta_out.shape) > 0 and btheta_out.shape[0] == 1
-        btheta_out = btheta_out[0]
 
-    return bzeta_out, bz_out, btheta_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pfw06(date1, date2):
@@ -11905,50 +8846,19 @@ def pfw06(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pfw06"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["date1", "date2", "gamb", "phib", "psib", "epsa"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    gamb_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    phib_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    psib_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    epsa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, gamb_out, phib_out, psib_out, epsa_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*4
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pfw06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(gamb_out.shape) > 0 and gamb_out.shape[0] == 1
-        gamb_out = gamb_out[0]
-        assert len(phib_out.shape) > 0 and phib_out.shape[0] == 1
-        phib_out = phib_out[0]
-        assert len(psib_out.shape) > 0 and psib_out.shape[0] == 1
-        psib_out = psib_out[0]
-        assert len(epsa_out.shape) > 0 and epsa_out.shape[0] == 1
-        epsa_out = epsa_out[0]
 
-    return gamb_out, phib_out, psib_out, epsa_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pmat00(date1, date2):
@@ -12011,41 +8921,19 @@ def pmat00(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pmat00"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rbp"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rbp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rbp_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pmat00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
-        rbp_out = rbp_out[0]
 
-    return rbp_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pmat06(date1, date2):
@@ -12109,41 +8997,19 @@ def pmat06(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pmat06"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rbp"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rbp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rbp_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pmat06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
-        rbp_out = rbp_out[0]
 
-    return rbp_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pmat76(date1, date2):
@@ -12222,41 +9088,19 @@ def pmat76(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pmat76"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rmatp"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rmatp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rmatp_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pmat76(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rmatp_out.shape) > 0 and rmatp_out.shape[0] == 1
-        rmatp_out = rmatp_out[0]
 
-    return rmatp_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pn00(date1, date2, dpsi, deps):
@@ -12361,66 +9205,19 @@ def pn00(date1, date2, dpsi, deps):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dpsi_in = numpy.array(dpsi, dtype=numpy.double, order="C", copy=False, subok=True)
-    deps_in = numpy.array(deps, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dpsi_in.shape == tuple():
-            dpsi_in = dpsi_in.reshape((1,) + dpsi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if deps_in.shape == tuple():
-            deps_in = deps_in.reshape((1,) + deps_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pn00"
+    args = [date1, date2, dpsi, deps]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (3, 3), (3, 3), (3, 3), (3, 3), (3, 3)]
+    args_name = ["date1", "date2", "dpsi", "deps", "epsa", "rb", "rp", "rbp", "rn", "rbpn"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, dpsi_in, deps_in)
-    epsa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rb_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbpn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsi_in, deps_in, epsa_out, rb_out[...,0,0], rp_out[...,0,0], rbp_out[...,0,0], rn_out[...,0,0], rbpn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*6
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pn00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(epsa_out.shape) > 0 and epsa_out.shape[0] == 1
-        epsa_out = epsa_out[0]
-        assert len(rb_out.shape) > 0 and rb_out.shape[0] == 1
-        rb_out = rb_out[0]
-        assert len(rp_out.shape) > 0 and rp_out.shape[0] == 1
-        rp_out = rp_out[0]
-        assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
-        rbp_out = rbp_out[0]
-        assert len(rn_out.shape) > 0 and rn_out.shape[0] == 1
-        rn_out = rn_out[0]
-        assert len(rbpn_out.shape) > 0 and rbpn_out.shape[0] == 1
-        rbpn_out = rbpn_out[0]
 
-    return epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pn00a(date1, date2):
@@ -12525,62 +9322,19 @@ def pn00a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pn00a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (3, 3), (3, 3), (3, 3), (3, 3), (3, 3)]
+    args_name = ["date1", "date2", "dpsi", "deps", "epsa", "rb", "rp", "rbp", "rn", "rbpn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    dpsi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    deps_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    epsa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rb_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbpn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsi_out, deps_out, epsa_out, rb_out[...,0,0], rp_out[...,0,0], rbp_out[...,0,0], rn_out[...,0,0], rbpn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*8
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pn00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
-        dpsi_out = dpsi_out[0]
-        assert len(deps_out.shape) > 0 and deps_out.shape[0] == 1
-        deps_out = deps_out[0]
-        assert len(epsa_out.shape) > 0 and epsa_out.shape[0] == 1
-        epsa_out = epsa_out[0]
-        assert len(rb_out.shape) > 0 and rb_out.shape[0] == 1
-        rb_out = rb_out[0]
-        assert len(rp_out.shape) > 0 and rp_out.shape[0] == 1
-        rp_out = rp_out[0]
-        assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
-        rbp_out = rbp_out[0]
-        assert len(rn_out.shape) > 0 and rn_out.shape[0] == 1
-        rn_out = rn_out[0]
-        assert len(rbpn_out.shape) > 0 and rbpn_out.shape[0] == 1
-        rbpn_out = rbpn_out[0]
 
-    return dpsi_out, deps_out, epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pn00b(date1, date2):
@@ -12685,62 +9439,19 @@ def pn00b(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pn00b"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (3, 3), (3, 3), (3, 3), (3, 3), (3, 3)]
+    args_name = ["date1", "date2", "dpsi", "deps", "epsa", "rb", "rp", "rbp", "rn", "rbpn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    dpsi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    deps_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    epsa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rb_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbpn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsi_out, deps_out, epsa_out, rb_out[...,0,0], rp_out[...,0,0], rbp_out[...,0,0], rn_out[...,0,0], rbpn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*8
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pn00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
-        dpsi_out = dpsi_out[0]
-        assert len(deps_out.shape) > 0 and deps_out.shape[0] == 1
-        deps_out = deps_out[0]
-        assert len(epsa_out.shape) > 0 and epsa_out.shape[0] == 1
-        epsa_out = epsa_out[0]
-        assert len(rb_out.shape) > 0 and rb_out.shape[0] == 1
-        rb_out = rb_out[0]
-        assert len(rp_out.shape) > 0 and rp_out.shape[0] == 1
-        rp_out = rp_out[0]
-        assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
-        rbp_out = rbp_out[0]
-        assert len(rn_out.shape) > 0 and rn_out.shape[0] == 1
-        rn_out = rn_out[0]
-        assert len(rbpn_out.shape) > 0 and rbpn_out.shape[0] == 1
-        rbpn_out = rbpn_out[0]
 
-    return dpsi_out, deps_out, epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pn06(date1, date2, dpsi, deps):
@@ -12843,66 +9554,19 @@ def pn06(date1, date2, dpsi, deps):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dpsi_in = numpy.array(dpsi, dtype=numpy.double, order="C", copy=False, subok=True)
-    deps_in = numpy.array(deps, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dpsi_in.shape == tuple():
-            dpsi_in = dpsi_in.reshape((1,) + dpsi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if deps_in.shape == tuple():
-            deps_in = deps_in.reshape((1,) + deps_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pn06"
+    args = [date1, date2, dpsi, deps]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (3, 3), (3, 3), (3, 3), (3, 3), (3, 3)]
+    args_name = ["date1", "date2", "dpsi", "deps", "epsa", "rb", "rp", "rbp", "rn", "rbpn"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, dpsi_in, deps_in)
-    epsa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rb_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbpn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsi_in, deps_in, epsa_out, rb_out[...,0,0], rp_out[...,0,0], rbp_out[...,0,0], rn_out[...,0,0], rbpn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*6
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pn06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(epsa_out.shape) > 0 and epsa_out.shape[0] == 1
-        epsa_out = epsa_out[0]
-        assert len(rb_out.shape) > 0 and rb_out.shape[0] == 1
-        rb_out = rb_out[0]
-        assert len(rp_out.shape) > 0 and rp_out.shape[0] == 1
-        rp_out = rp_out[0]
-        assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
-        rbp_out = rbp_out[0]
-        assert len(rn_out.shape) > 0 and rn_out.shape[0] == 1
-        rn_out = rn_out[0]
-        assert len(rbpn_out.shape) > 0 and rbpn_out.shape[0] == 1
-        rbpn_out = rbpn_out[0]
 
-    return epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pn06a(date1, date2):
@@ -12997,62 +9661,19 @@ def pn06a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pn06a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (3, 3), (3, 3), (3, 3), (3, 3), (3, 3)]
+    args_name = ["date1", "date2", "dpsi", "deps", "epsa", "rb", "rp", "rbp", "rn", "rbpn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    dpsi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    deps_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    epsa_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rb_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbp_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    rbpn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsi_out, deps_out, epsa_out, rb_out[...,0,0], rp_out[...,0,0], rbp_out[...,0,0], rn_out[...,0,0], rbpn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*8
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pn06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(dpsi_out.shape) > 0 and dpsi_out.shape[0] == 1
-        dpsi_out = dpsi_out[0]
-        assert len(deps_out.shape) > 0 and deps_out.shape[0] == 1
-        deps_out = deps_out[0]
-        assert len(epsa_out.shape) > 0 and epsa_out.shape[0] == 1
-        epsa_out = epsa_out[0]
-        assert len(rb_out.shape) > 0 and rb_out.shape[0] == 1
-        rb_out = rb_out[0]
-        assert len(rp_out.shape) > 0 and rp_out.shape[0] == 1
-        rp_out = rp_out[0]
-        assert len(rbp_out.shape) > 0 and rbp_out.shape[0] == 1
-        rbp_out = rbp_out[0]
-        assert len(rn_out.shape) > 0 and rn_out.shape[0] == 1
-        rn_out = rn_out[0]
-        assert len(rbpn_out.shape) > 0 and rbpn_out.shape[0] == 1
-        rbpn_out = rbpn_out[0]
 
-    return dpsi_out, deps_out, epsa_out, rb_out, rp_out, rbp_out, rn_out, rbpn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pnm00a(date1, date2):
@@ -13118,41 +9739,19 @@ def pnm00a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pnm00a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rbpn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rbpn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rbpn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pnm00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rbpn_out.shape) > 0 and rbpn_out.shape[0] == 1
-        rbpn_out = rbpn_out[0]
 
-    return rbpn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pnm00b(date1, date2):
@@ -13218,41 +9817,19 @@ def pnm00b(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pnm00b"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rbpn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rbpn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rbpn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pnm00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rbpn_out.shape) > 0 and rbpn_out.shape[0] == 1
-        rbpn_out = rbpn_out[0]
 
-    return rbpn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pnm06a(date1, date2):
@@ -13315,41 +9892,19 @@ def pnm06a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pnm06a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rnpb"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rnpb_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rnpb_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pnm06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rnpb_out.shape) > 0 and rnpb_out.shape[0] == 1
-        rnpb_out = rnpb_out[0]
 
-    return rnpb_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pnm80(date1, date2):
@@ -13414,41 +9969,19 @@ def pnm80(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pnm80"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (3, 3)]
+    args_name = ["date1", "date2", "rmatpn"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    rmatpn_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, rmatpn_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pnm80(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rmatpn_out.shape) > 0 and rmatpn_out.shape[0] == 1
-        rmatpn_out = rmatpn_out[0]
 
-    return rmatpn_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pom00(xp, yp, sp):
@@ -13507,46 +10040,19 @@ def pom00(xp, yp, sp):
 
     """
 
-    #Turn all inputs into arrays
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    sp_in = numpy.array(sp, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if sp_in.shape == tuple():
-            sp_in = sp_in.reshape((1,) + sp_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pom00"
+    args = [xp, yp, sp]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (3, 3)]
+    args_name = ["xp", "yp", "sp", "rpom"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), xp_in, yp_in, sp_in)
-    rpom_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [xp_in, yp_in, sp_in, rpom_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pom00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rpom_out.shape) > 0 and rpom_out.shape[0] == 1
-        rpom_out = rpom_out[0]
 
-    return rpom_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pr00(date1, date2):
@@ -13625,44 +10131,19 @@ def pr00(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pr00"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), ()]
+    args_name = ["date1", "date2", "dpsipr", "depspr"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    dpsipr_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    depspr_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, dpsipr_out, depspr_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pr00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(dpsipr_out.shape) > 0 and dpsipr_out.shape[0] == 1
-        dpsipr_out = dpsipr_out[0]
-        assert len(depspr_out.shape) > 0 and depspr_out.shape[0] == 1
-        depspr_out = depspr_out[0]
 
-    return dpsipr_out, depspr_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def prec76(date01, date02, date11, date12):
@@ -13740,57 +10221,19 @@ def prec76(date01, date02, date11, date12):
 
     """
 
-    #Turn all inputs into arrays
-    date01_in = numpy.array(date01, dtype=numpy.double, order="C", copy=False, subok=True)
-    date02_in = numpy.array(date02, dtype=numpy.double, order="C", copy=False, subok=True)
-    date11_in = numpy.array(date11, dtype=numpy.double, order="C", copy=False, subok=True)
-    date12_in = numpy.array(date12, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date01_in.shape == tuple():
-            date01_in = date01_in.reshape((1,) + date01_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date02_in.shape == tuple():
-            date02_in = date02_in.reshape((1,) + date02_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date11_in.shape == tuple():
-            date11_in = date11_in.reshape((1,) + date11_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date12_in.shape == tuple():
-            date12_in = date12_in.reshape((1,) + date12_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "prec76"
+    args = [date01, date02, date11, date12]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), ()]
+    args_name = ["date01", "date02", "date11", "date12", "zeta", "z", "theta"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date01_in, date02_in, date11_in, date12_in)
-    zeta_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    z_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    theta_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date01_in, date02_in, date11_in, date12_in, zeta_out, z_out, theta_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._prec76(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(zeta_out.shape) > 0 and zeta_out.shape[0] == 1
-        zeta_out = zeta_out[0]
-        assert len(z_out.shape) > 0 and z_out.shape[0] == 1
-        z_out = z_out[0]
-        assert len(theta_out.shape) > 0 and theta_out.shape[0] == 1
-        theta_out = theta_out[0]
 
-    return zeta_out, z_out, theta_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def s00(date1, date2, x, y):
@@ -13879,51 +10322,19 @@ def s00(date1, date2, x, y):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    x_in = numpy.array(x, dtype=numpy.double, order="C", copy=False, subok=True)
-    y_in = numpy.array(y, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if x_in.shape == tuple():
-            x_in = x_in.reshape((1,) + x_in.shape)
-        else:
-            make_outputs_scalar = False
-        if y_in.shape == tuple():
-            y_in = y_in.reshape((1,) + y_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "s00"
+    args = [date1, date2, x, y]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["date1", "date2", "x", "y", "c_retval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, x_in, y_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, x_in, y_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._s00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def s00a(date1, date2):
@@ -14005,41 +10416,19 @@ def s00a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "s00a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._s00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def s00b(date1, date2):
@@ -14121,41 +10510,19 @@ def s00b(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "s00b"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._s00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def s06(date1, date2, x, y):
@@ -14241,51 +10608,19 @@ def s06(date1, date2, x, y):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    x_in = numpy.array(x, dtype=numpy.double, order="C", copy=False, subok=True)
-    y_in = numpy.array(y, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if x_in.shape == tuple():
-            x_in = x_in.reshape((1,) + x_in.shape)
-        else:
-            make_outputs_scalar = False
-        if y_in.shape == tuple():
-            y_in = y_in.reshape((1,) + y_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "s06"
+    args = [date1, date2, x, y]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["date1", "date2", "x", "y", "c_retval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, x_in, y_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, x_in, y_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._s06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def s06a(date1, date2):
@@ -14369,41 +10704,19 @@ def s06a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "s06a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._s06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def sp00(date1, date2):
@@ -14463,41 +10776,19 @@ def sp00(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "sp00"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._sp00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def xy06(date1, date2):
@@ -14595,44 +10886,19 @@ def xy06(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "xy06"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), ()]
+    args_name = ["date1", "date2", "x", "y"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    x_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    y_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, x_out, y_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._xy06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(x_out.shape) > 0 and x_out.shape[0] == 1
-        x_out = x_out[0]
-        assert len(y_out.shape) > 0 and y_out.shape[0] == 1
-        y_out = y_out[0]
 
-    return x_out, y_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def xys00a(date1, date2):
@@ -14703,47 +10969,19 @@ def xys00a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "xys00a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["date1", "date2", "x", "y", "s"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    x_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    y_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    s_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, x_out, y_out, s_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._xys00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(x_out.shape) > 0 and x_out.shape[0] == 1
-        x_out = x_out[0]
-        assert len(y_out.shape) > 0 and y_out.shape[0] == 1
-        y_out = y_out[0]
-        assert len(s_out.shape) > 0 and s_out.shape[0] == 1
-        s_out = s_out[0]
 
-    return x_out, y_out, s_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def xys00b(date1, date2):
@@ -14814,47 +11052,19 @@ def xys00b(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "xys00b"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["date1", "date2", "x", "y", "s"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    x_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    y_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    s_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, x_out, y_out, s_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._xys00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(x_out.shape) > 0 and x_out.shape[0] == 1
-        x_out = x_out[0]
-        assert len(y_out.shape) > 0 and y_out.shape[0] == 1
-        y_out = y_out[0]
-        assert len(s_out.shape) > 0 and s_out.shape[0] == 1
-        s_out = s_out[0]
 
-    return x_out, y_out, s_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def xys06a(date1, date2):
@@ -14925,47 +11135,19 @@ def xys06a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "xys06a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["date1", "date2", "x", "y", "s"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    x_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    y_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    s_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, x_out, y_out, s_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._xys06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(x_out.shape) > 0 and x_out.shape[0] == 1
-        x_out = x_out[0]
-        assert len(y_out.shape) > 0 and y_out.shape[0] == 1
-        y_out = y_out[0]
-        assert len(s_out.shape) > 0 and s_out.shape[0] == 1
-        s_out = s_out[0]
 
-    return x_out, y_out, s_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def ee00(date1, date2, epsa, dpsi):
@@ -15038,51 +11220,19 @@ def ee00(date1, date2, epsa, dpsi):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    epsa_in = numpy.array(epsa, dtype=numpy.double, order="C", copy=False, subok=True)
-    dpsi_in = numpy.array(dpsi, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if epsa_in.shape == tuple():
-            epsa_in = epsa_in.reshape((1,) + epsa_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dpsi_in.shape == tuple():
-            dpsi_in = dpsi_in.reshape((1,) + dpsi_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ee00"
+    args = [date1, date2, epsa, dpsi]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["date1", "date2", "epsa", "dpsi", "c_retval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, epsa_in, dpsi_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, epsa_in, dpsi_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ee00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def ee00a(date1, date2):
@@ -15153,41 +11303,19 @@ def ee00a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ee00a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ee00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def ee00b(date1, date2):
@@ -15264,41 +11392,19 @@ def ee00b(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ee00b"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ee00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def ee06a(date1, date2):
@@ -15361,41 +11467,19 @@ def ee06a(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ee06a"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ee06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def eect00(date1, date2):
@@ -15499,41 +11583,19 @@ def eect00(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "eect00"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._eect00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def eqeq94(date1, date2):
@@ -15597,41 +11659,19 @@ def eqeq94(date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "eqeq94"
+    args = [date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["date1", "date2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._eqeq94(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def era00(dj1, dj2):
@@ -15698,41 +11738,19 @@ def era00(dj1, dj2):
 
     """
 
-    #Turn all inputs into arrays
-    dj1_in = numpy.array(dj1, dtype=numpy.double, order="C", copy=False, subok=True)
-    dj2_in = numpy.array(dj2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if dj1_in.shape == tuple():
-            dj1_in = dj1_in.reshape((1,) + dj1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dj2_in.shape == tuple():
-            dj2_in = dj2_in.reshape((1,) + dj2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "era00"
+    args = [dj1, dj2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["dj1", "dj2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), dj1_in, dj2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [dj1_in, dj2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._era00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def gmst00(uta, utb, tta, ttb):
@@ -15813,51 +11831,19 @@ def gmst00(uta, utb, tta, ttb):
 
     """
 
-    #Turn all inputs into arrays
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gmst00"
+    args = [uta, utb, tta, ttb]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["uta", "utb", "tta", "ttb", "c_retval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), uta_in, utb_in, tta_in, ttb_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [uta_in, utb_in, tta_in, ttb_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gmst00(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def gmst06(uta, utb, tta, ttb):
@@ -15928,51 +11914,19 @@ def gmst06(uta, utb, tta, ttb):
 
     """
 
-    #Turn all inputs into arrays
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gmst06"
+    args = [uta, utb, tta, ttb]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["uta", "utb", "tta", "ttb", "c_retval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), uta_in, utb_in, tta_in, ttb_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [uta_in, utb_in, tta_in, ttb_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gmst06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def gmst82(dj1, dj2):
@@ -16045,41 +11999,19 @@ def gmst82(dj1, dj2):
 
     """
 
-    #Turn all inputs into arrays
-    dj1_in = numpy.array(dj1, dtype=numpy.double, order="C", copy=False, subok=True)
-    dj2_in = numpy.array(dj2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if dj1_in.shape == tuple():
-            dj1_in = dj1_in.reshape((1,) + dj1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dj2_in.shape == tuple():
-            dj2_in = dj2_in.reshape((1,) + dj2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gmst82"
+    args = [dj1, dj2]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["dj1", "dj2", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), dj1_in, dj2_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [dj1_in, dj2_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gmst82(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def gst00a(uta, utb, tta, ttb):
@@ -16161,51 +12093,19 @@ def gst00a(uta, utb, tta, ttb):
 
     """
 
-    #Turn all inputs into arrays
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gst00a"
+    args = [uta, utb, tta, ttb]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["uta", "utb", "tta", "ttb", "c_retval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), uta_in, utb_in, tta_in, ttb_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [uta_in, utb_in, tta_in, ttb_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gst00a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def gst00b(uta, utb):
@@ -16295,41 +12195,19 @@ def gst00b(uta, utb):
 
     """
 
-    #Turn all inputs into arrays
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gst00b"
+    args = [uta, utb]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["uta", "utb", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), uta_in, utb_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [uta_in, utb_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gst00b(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def gst06(uta, utb, tta, ttb, rnpb):
@@ -16405,57 +12283,19 @@ def gst06(uta, utb, tta, ttb, rnpb):
 
     """
 
-    #Turn all inputs into arrays
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    rnpb_in = numpy.array(rnpb, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(rnpb_in, (3, 3), "rnpb")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rnpb_in[...,0,0].shape == tuple():
-            rnpb_in = rnpb_in.reshape((1,) + rnpb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gst06"
+    args = [uta, utb, tta, ttb, rnpb]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (3, 3), ()]
+    args_name = ["uta", "utb", "tta", "ttb", "rnpb", "c_retval"]
+    nin = 5
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), uta_in, utb_in, tta_in, ttb_in, rnpb_in[...,0,0])
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [uta_in, utb_in, tta_in, ttb_in, rnpb_in[...,0,0], c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*5 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gst06(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def gst06a(uta, utb, tta, ttb):
@@ -16528,51 +12368,19 @@ def gst06a(uta, utb, tta, ttb):
 
     """
 
-    #Turn all inputs into arrays
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    tta_in = numpy.array(tta, dtype=numpy.double, order="C", copy=False, subok=True)
-    ttb_in = numpy.array(ttb, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tta_in.shape == tuple():
-            tta_in = tta_in.reshape((1,) + tta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ttb_in.shape == tuple():
-            ttb_in = ttb_in.reshape((1,) + ttb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gst06a"
+    args = [uta, utb, tta, ttb]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["uta", "utb", "tta", "ttb", "c_retval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), uta_in, utb_in, tta_in, ttb_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [uta_in, utb_in, tta_in, ttb_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gst06a(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def gst94(uta, utb):
@@ -16647,41 +12455,19 @@ def gst94(uta, utb):
 
     """
 
-    #Turn all inputs into arrays
-    uta_in = numpy.array(uta, dtype=numpy.double, order="C", copy=False, subok=True)
-    utb_in = numpy.array(utb, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if uta_in.shape == tuple():
-            uta_in = uta_in.reshape((1,) + uta_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utb_in.shape == tuple():
-            utb_in = utb_in.reshape((1,) + utb_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gst94"
+    args = [uta, utb]
+    args_dtype = [numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), ()]
+    args_name = ["uta", "utb", "c_retval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), uta_in, utb_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [uta_in, utb_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gst94(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
@@ -16795,100 +12581,19 @@ def pmsafe(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
 
     """
 
-    #Turn all inputs into arrays
-    ra1_in = numpy.array(ra1, dtype=numpy.double, order="C", copy=False, subok=True)
-    dec1_in = numpy.array(dec1, dtype=numpy.double, order="C", copy=False, subok=True)
-    pmr1_in = numpy.array(pmr1, dtype=numpy.double, order="C", copy=False, subok=True)
-    pmd1_in = numpy.array(pmd1, dtype=numpy.double, order="C", copy=False, subok=True)
-    px1_in = numpy.array(px1, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv1_in = numpy.array(rv1, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep1a_in = numpy.array(ep1a, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep1b_in = numpy.array(ep1b, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep2a_in = numpy.array(ep2a, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep2b_in = numpy.array(ep2b, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ra1_in.shape == tuple():
-            ra1_in = ra1_in.reshape((1,) + ra1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dec1_in.shape == tuple():
-            dec1_in = dec1_in.reshape((1,) + dec1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pmr1_in.shape == tuple():
-            pmr1_in = pmr1_in.reshape((1,) + pmr1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pmd1_in.shape == tuple():
-            pmd1_in = pmd1_in.reshape((1,) + pmd1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px1_in.shape == tuple():
-            px1_in = px1_in.reshape((1,) + px1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv1_in.shape == tuple():
-            rv1_in = rv1_in.reshape((1,) + rv1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep1a_in.shape == tuple():
-            ep1a_in = ep1a_in.reshape((1,) + ep1a_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep1b_in.shape == tuple():
-            ep1b_in = ep1b_in.reshape((1,) + ep1b_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep2a_in.shape == tuple():
-            ep2a_in = ep2a_in.reshape((1,) + ep2a_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep2b_in.shape == tuple():
-            ep2b_in = ep2b_in.reshape((1,) + ep2b_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pmsafe"
+    args = [ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["ra1", "dec1", "pmr1", "pmd1", "px1", "rv1", "ep1a", "ep1b", "ep2a", "ep2b", "ra2", "dec2", "pmr2", "pmd2", "px2", "rv2", "c_statval"]
+    nin = 10
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ra1_in, dec1_in, pmr1_in, pmd1_in, px1_in, rv1_in, ep1a_in, ep1b_in, ep2a_in, ep2b_in)
-    ra2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dec2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pmr2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pmd2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    px2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rv2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ra1_in, dec1_in, pmr1_in, pmd1_in, px1_in, rv1_in, ep1a_in, ep1b_in, ep2a_in, ep2b_in, ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*10 + [['readwrite']]*7
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pmsafe(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'pmsafe')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ra2_out.shape) > 0 and ra2_out.shape[0] == 1
-        ra2_out = ra2_out[0]
-        assert len(dec2_out.shape) > 0 and dec2_out.shape[0] == 1
-        dec2_out = dec2_out[0]
-        assert len(pmr2_out.shape) > 0 and pmr2_out.shape[0] == 1
-        pmr2_out = pmr2_out[0]
-        assert len(pmd2_out.shape) > 0 and pmd2_out.shape[0] == 1
-        pmd2_out = pmd2_out[0]
-        assert len(px2_out.shape) > 0 and px2_out.shape[0] == 1
-        px2_out = px2_out[0]
-        assert len(rv2_out.shape) > 0 and rv2_out.shape[0] == 1
-        rv2_out = rv2_out[0]
-
-    return ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['pmsafe'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above warnings', -1: 'system error (should not occur)'}
 
 
@@ -16995,56 +12700,19 @@ def pvstar(pv):
 
     """
 
-    #Turn all inputs into arrays
-    pv_in = numpy.array(pv, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(pv_in, (2, 3), "pv")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if pv_in[...,0,0].shape == tuple():
-            pv_in = pv_in.reshape((1,) + pv_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pvstar"
+    args = [pv]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(2, 3), (), (), (), (), (), (), ()]
+    args_name = ["pv", "ra", "dec", "pmr", "pmd", "px", "rv", "c_statval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), pv_in[...,0,0])
-    ra_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dec_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pmr_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pmd_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    px_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rv_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [pv_in[...,0,0], ra_out, dec_out, pmr_out, pmd_out, px_out, rv_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*7
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pvstar(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'pvstar')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ra_out.shape) > 0 and ra_out.shape[0] == 1
-        ra_out = ra_out[0]
-        assert len(dec_out.shape) > 0 and dec_out.shape[0] == 1
-        dec_out = dec_out[0]
-        assert len(pmr_out.shape) > 0 and pmr_out.shape[0] == 1
-        pmr_out = pmr_out[0]
-        assert len(pmd_out.shape) > 0 and pmd_out.shape[0] == 1
-        pmd_out = pmd_out[0]
-        assert len(px_out.shape) > 0 and px_out.shape[0] == 1
-        px_out = px_out[0]
-        assert len(rv_out.shape) > 0 and rv_out.shape[0] == 1
-        rv_out = rv_out[0]
-
-    return ra_out, dec_out, pmr_out, pmd_out, px_out, rv_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['pvstar'] = {0: 'OK', -2: 'null position vector', -1: 'superluminal speed (Note 5)'}
 
 
@@ -17170,65 +12838,19 @@ def starpv(ra, dec, pmr, pmd, px, rv):
 
     """
 
-    #Turn all inputs into arrays
-    ra_in = numpy.array(ra, dtype=numpy.double, order="C", copy=False, subok=True)
-    dec_in = numpy.array(dec, dtype=numpy.double, order="C", copy=False, subok=True)
-    pmr_in = numpy.array(pmr, dtype=numpy.double, order="C", copy=False, subok=True)
-    pmd_in = numpy.array(pmd, dtype=numpy.double, order="C", copy=False, subok=True)
-    px_in = numpy.array(px, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv_in = numpy.array(rv, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ra_in.shape == tuple():
-            ra_in = ra_in.reshape((1,) + ra_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dec_in.shape == tuple():
-            dec_in = dec_in.reshape((1,) + dec_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pmr_in.shape == tuple():
-            pmr_in = pmr_in.reshape((1,) + pmr_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pmd_in.shape == tuple():
-            pmd_in = pmd_in.reshape((1,) + pmd_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px_in.shape == tuple():
-            px_in = px_in.reshape((1,) + px_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv_in.shape == tuple():
-            rv_in = rv_in.reshape((1,) + rv_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "starpv"
+    args = [ra, dec, pmr, pmd, px, rv]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (2, 3), ()]
+    args_name = ["ra", "dec", "pmr", "pmd", "px", "rv", "pv", "c_statval"]
+    nin = 6
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ra_in, dec_in, pmr_in, pmd_in, px_in, rv_in)
-    pv_out = numpy.empty(broadcast.shape + (2, 3), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ra_in, dec_in, pmr_in, pmd_in, px_in, rv_in, pv_out[...,0,0], c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*6 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._starpv(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'starpv')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(pv_out.shape) > 0 and pv_out.shape[0] == 1
-        pv_out = pv_out[0]
-
-    return pv_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['starpv'] = {0: 'no warnings', 1: 'distance overridden (Note 6)', 2: 'excessive speed (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above'}
 
 
@@ -17293,76 +12915,19 @@ def fk52h(r5, d5, dr5, dd5, px5, rv5):
 
     """
 
-    #Turn all inputs into arrays
-    r5_in = numpy.array(r5, dtype=numpy.double, order="C", copy=False, subok=True)
-    d5_in = numpy.array(d5, dtype=numpy.double, order="C", copy=False, subok=True)
-    dr5_in = numpy.array(dr5, dtype=numpy.double, order="C", copy=False, subok=True)
-    dd5_in = numpy.array(dd5, dtype=numpy.double, order="C", copy=False, subok=True)
-    px5_in = numpy.array(px5, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv5_in = numpy.array(rv5, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if r5_in.shape == tuple():
-            r5_in = r5_in.reshape((1,) + r5_in.shape)
-        else:
-            make_outputs_scalar = False
-        if d5_in.shape == tuple():
-            d5_in = d5_in.reshape((1,) + d5_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dr5_in.shape == tuple():
-            dr5_in = dr5_in.reshape((1,) + dr5_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dd5_in.shape == tuple():
-            dd5_in = dd5_in.reshape((1,) + dd5_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px5_in.shape == tuple():
-            px5_in = px5_in.reshape((1,) + px5_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv5_in.shape == tuple():
-            rv5_in = rv5_in.reshape((1,) + rv5_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fk52h"
+    args = [r5, d5, dr5, dd5, px5, rv5]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["r5", "d5", "dr5", "dd5", "px5", "rv5", "rh", "dh", "drh", "ddh", "pxh", "rvh"]
+    nin = 6
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), r5_in, d5_in, dr5_in, dd5_in, px5_in, rv5_in)
-    rh_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dh_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    drh_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    ddh_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pxh_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rvh_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [r5_in, d5_in, dr5_in, dd5_in, px5_in, rv5_in, rh_out, dh_out, drh_out, ddh_out, pxh_out, rvh_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*6 + [['readwrite']]*6
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fk52h(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rh_out.shape) > 0 and rh_out.shape[0] == 1
-        rh_out = rh_out[0]
-        assert len(dh_out.shape) > 0 and dh_out.shape[0] == 1
-        dh_out = dh_out[0]
-        assert len(drh_out.shape) > 0 and drh_out.shape[0] == 1
-        drh_out = drh_out[0]
-        assert len(ddh_out.shape) > 0 and ddh_out.shape[0] == 1
-        ddh_out = ddh_out[0]
-        assert len(pxh_out.shape) > 0 and pxh_out.shape[0] == 1
-        pxh_out = pxh_out[0]
-        assert len(rvh_out.shape) > 0 and rvh_out.shape[0] == 1
-        rvh_out = rvh_out[0]
 
-    return rh_out, dh_out, drh_out, ddh_out, pxh_out, rvh_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fk5hip():
@@ -17411,23 +12976,19 @@ def fk5hip():
 
     """
 
-    #Turn all inputs into arrays
+    func_name = "fk5hip"
+    args = []
+    args_dtype = [numpy.double, numpy.double]
+    args_shape = [(3, 3), (3,)]
+    args_name = ["r5h", "s5h"]
+    nin = 0
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), )
-    r5h_out = numpy.empty(broadcast.shape + (3, 3), dtype=numpy.double)
-    s5h_out = numpy.empty(broadcast.shape + (3,), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [r5h_out[...,0,0], s5h_out[...,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*0 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fk5hip(it)
 
-    return r5h_out, s5h_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def fk5hz(r5, d5, date1, date2):
@@ -17508,54 +13069,19 @@ def fk5hz(r5, d5, date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    r5_in = numpy.array(r5, dtype=numpy.double, order="C", copy=False, subok=True)
-    d5_in = numpy.array(d5, dtype=numpy.double, order="C", copy=False, subok=True)
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if r5_in.shape == tuple():
-            r5_in = r5_in.reshape((1,) + r5_in.shape)
-        else:
-            make_outputs_scalar = False
-        if d5_in.shape == tuple():
-            d5_in = d5_in.reshape((1,) + d5_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "fk5hz"
+    args = [r5, d5, date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["r5", "d5", "date1", "date2", "rh", "dh"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), r5_in, d5_in, date1_in, date2_in)
-    rh_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dh_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [r5_in, d5_in, date1_in, date2_in, rh_out, dh_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._fk5hz(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(rh_out.shape) > 0 and rh_out.shape[0] == 1
-        rh_out = rh_out[0]
-        assert len(dh_out.shape) > 0 and dh_out.shape[0] == 1
-        dh_out = dh_out[0]
 
-    return rh_out, dh_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def h2fk5(rh, dh, drh, ddh, pxh, rvh):
@@ -17620,76 +13146,19 @@ def h2fk5(rh, dh, drh, ddh, pxh, rvh):
 
     """
 
-    #Turn all inputs into arrays
-    rh_in = numpy.array(rh, dtype=numpy.double, order="C", copy=False, subok=True)
-    dh_in = numpy.array(dh, dtype=numpy.double, order="C", copy=False, subok=True)
-    drh_in = numpy.array(drh, dtype=numpy.double, order="C", copy=False, subok=True)
-    ddh_in = numpy.array(ddh, dtype=numpy.double, order="C", copy=False, subok=True)
-    pxh_in = numpy.array(pxh, dtype=numpy.double, order="C", copy=False, subok=True)
-    rvh_in = numpy.array(rvh, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rh_in.shape == tuple():
-            rh_in = rh_in.reshape((1,) + rh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dh_in.shape == tuple():
-            dh_in = dh_in.reshape((1,) + dh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if drh_in.shape == tuple():
-            drh_in = drh_in.reshape((1,) + drh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ddh_in.shape == tuple():
-            ddh_in = ddh_in.reshape((1,) + ddh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pxh_in.shape == tuple():
-            pxh_in = pxh_in.reshape((1,) + pxh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rvh_in.shape == tuple():
-            rvh_in = rvh_in.reshape((1,) + rvh_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "h2fk5"
+    args = [rh, dh, drh, ddh, pxh, rvh]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["rh", "dh", "drh", "ddh", "pxh", "rvh", "r5", "d5", "dr5", "dd5", "px5", "rv5"]
+    nin = 6
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rh_in, dh_in, drh_in, ddh_in, pxh_in, rvh_in)
-    r5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    d5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dr5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dd5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    px5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rv5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rh_in, dh_in, drh_in, ddh_in, pxh_in, rvh_in, r5_out, d5_out, dr5_out, dd5_out, px5_out, rv5_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*6 + [['readwrite']]*6
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._h2fk5(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(r5_out.shape) > 0 and r5_out.shape[0] == 1
-        r5_out = r5_out[0]
-        assert len(d5_out.shape) > 0 and d5_out.shape[0] == 1
-        d5_out = d5_out[0]
-        assert len(dr5_out.shape) > 0 and dr5_out.shape[0] == 1
-        dr5_out = dr5_out[0]
-        assert len(dd5_out.shape) > 0 and dd5_out.shape[0] == 1
-        dd5_out = dd5_out[0]
-        assert len(px5_out.shape) > 0 and px5_out.shape[0] == 1
-        px5_out = px5_out[0]
-        assert len(rv5_out.shape) > 0 and rv5_out.shape[0] == 1
-        rv5_out = rv5_out[0]
 
-    return r5_out, d5_out, dr5_out, dd5_out, px5_out, rv5_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def hfk5z(rh, dh, date1, date2):
@@ -17775,60 +13244,19 @@ def hfk5z(rh, dh, date1, date2):
 
     """
 
-    #Turn all inputs into arrays
-    rh_in = numpy.array(rh, dtype=numpy.double, order="C", copy=False, subok=True)
-    dh_in = numpy.array(dh, dtype=numpy.double, order="C", copy=False, subok=True)
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if rh_in.shape == tuple():
-            rh_in = rh_in.reshape((1,) + rh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dh_in.shape == tuple():
-            dh_in = dh_in.reshape((1,) + dh_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "hfk5z"
+    args = [rh, dh, date1, date2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), ()]
+    args_name = ["rh", "dh", "date1", "date2", "r5", "d5", "dr5", "dd5"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), rh_in, dh_in, date1_in, date2_in)
-    r5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    d5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dr5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dd5_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [rh_in, dh_in, date1_in, date2_in, r5_out, d5_out, dr5_out, dd5_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*4
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._hfk5z(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(r5_out.shape) > 0 and r5_out.shape[0] == 1
-        r5_out = r5_out[0]
-        assert len(d5_out.shape) > 0 and d5_out.shape[0] == 1
-        d5_out = d5_out[0]
-        assert len(dr5_out.shape) > 0 and dr5_out.shape[0] == 1
-        dr5_out = dr5_out[0]
-        assert len(dd5_out.shape) > 0 and dd5_out.shape[0] == 1
-        dd5_out = dd5_out[0]
 
-    return r5_out, d5_out, dr5_out, dd5_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def starpm(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
@@ -17943,100 +13371,19 @@ def starpm(ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b):
 
     """
 
-    #Turn all inputs into arrays
-    ra1_in = numpy.array(ra1, dtype=numpy.double, order="C", copy=False, subok=True)
-    dec1_in = numpy.array(dec1, dtype=numpy.double, order="C", copy=False, subok=True)
-    pmr1_in = numpy.array(pmr1, dtype=numpy.double, order="C", copy=False, subok=True)
-    pmd1_in = numpy.array(pmd1, dtype=numpy.double, order="C", copy=False, subok=True)
-    px1_in = numpy.array(px1, dtype=numpy.double, order="C", copy=False, subok=True)
-    rv1_in = numpy.array(rv1, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep1a_in = numpy.array(ep1a, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep1b_in = numpy.array(ep1b, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep2a_in = numpy.array(ep2a, dtype=numpy.double, order="C", copy=False, subok=True)
-    ep2b_in = numpy.array(ep2b, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ra1_in.shape == tuple():
-            ra1_in = ra1_in.reshape((1,) + ra1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dec1_in.shape == tuple():
-            dec1_in = dec1_in.reshape((1,) + dec1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pmr1_in.shape == tuple():
-            pmr1_in = pmr1_in.reshape((1,) + pmr1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if pmd1_in.shape == tuple():
-            pmd1_in = pmd1_in.reshape((1,) + pmd1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if px1_in.shape == tuple():
-            px1_in = px1_in.reshape((1,) + px1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if rv1_in.shape == tuple():
-            rv1_in = rv1_in.reshape((1,) + rv1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep1a_in.shape == tuple():
-            ep1a_in = ep1a_in.reshape((1,) + ep1a_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep1b_in.shape == tuple():
-            ep1b_in = ep1b_in.reshape((1,) + ep1b_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep2a_in.shape == tuple():
-            ep2a_in = ep2a_in.reshape((1,) + ep2a_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ep2b_in.shape == tuple():
-            ep2b_in = ep2b_in.reshape((1,) + ep2b_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "starpm"
+    args = [ra1, dec1, pmr1, pmd1, px1, rv1, ep1a, ep1b, ep2a, ep2b]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), (), (), (), (), (), (), (), ()]
+    args_name = ["ra1", "dec1", "pmr1", "pmd1", "px1", "rv1", "ep1a", "ep1b", "ep2a", "ep2b", "ra2", "dec2", "pmr2", "pmd2", "px2", "rv2", "c_statval"]
+    nin = 10
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ra1_in, dec1_in, pmr1_in, pmd1_in, px1_in, rv1_in, ep1a_in, ep1b_in, ep2a_in, ep2b_in)
-    ra2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    dec2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pmr2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    pmd2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    px2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    rv2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ra1_in, dec1_in, pmr1_in, pmd1_in, px1_in, rv1_in, ep1a_in, ep1b_in, ep2a_in, ep2b_in, ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*10 + [['readwrite']]*7
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._starpm(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'starpm')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ra2_out.shape) > 0 and ra2_out.shape[0] == 1
-        ra2_out = ra2_out[0]
-        assert len(dec2_out.shape) > 0 and dec2_out.shape[0] == 1
-        dec2_out = dec2_out[0]
-        assert len(pmr2_out.shape) > 0 and pmr2_out.shape[0] == 1
-        pmr2_out = pmr2_out[0]
-        assert len(pmd2_out.shape) > 0 and pmd2_out.shape[0] == 1
-        pmd2_out = pmd2_out[0]
-        assert len(px2_out.shape) > 0 and px2_out.shape[0] == 1
-        px2_out = px2_out[0]
-        assert len(rv2_out.shape) > 0 and rv2_out.shape[0] == 1
-        rv2_out = rv2_out[0]
-
-    return ra2_out, dec2_out, pmr2_out, pmd2_out, px2_out, rv2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['starpm'] = {0: 'no warnings or errors', 1: 'distance overridden (Note 6)', 2: 'excessive velocity (Note 7)', 4: "solution didn't converge (Note 8)", 'else': 'binary logical OR of the above warnings', -1: 'system error (should not occur)'}
 
 
@@ -18106,43 +13453,19 @@ def eform(n):
 
     """
 
-    #Turn all inputs into arrays
-    n_in = numpy.array(n, dtype=numpy.intc, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if n_in.shape == tuple():
-            n_in = n_in.reshape((1,) + n_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "eform"
+    args = [n]
+    args_dtype = [numpy.intc, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), ()]
+    args_name = ["n", "a", "f", "c_statval"]
+    nin = 1
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), n_in)
-    a_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    f_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [n_in, a_out, f_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*1 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._eform(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'eform')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(a_out.shape) > 0 and a_out.shape[0] == 1
-        a_out = a_out[0]
-        assert len(f_out.shape) > 0 and f_out.shape[0] == 1
-        f_out = f_out[0]
-
-    return a_out, f_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['eform'] = {0: 'OK', -1: 'illegal identifier (Note 3)'}
 
 
@@ -18207,52 +13530,19 @@ def gc2gd(n, xyz):
 
     """
 
-    #Turn all inputs into arrays
-    n_in = numpy.array(n, dtype=numpy.intc, order="C", copy=False, subok=True)
-    xyz_in = numpy.array(xyz, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(xyz_in, (3,), "xyz")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if n_in.shape == tuple():
-            n_in = n_in.reshape((1,) + n_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xyz_in[...,0].shape == tuple():
-            xyz_in = xyz_in.reshape((1,) + xyz_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gc2gd"
+    args = [n, xyz]
+    args_dtype = [numpy.intc, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (3,), (), (), (), ()]
+    args_name = ["n", "xyz", "elong", "phi", "height", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), n_in, xyz_in[...,0])
-    elong_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    phi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    height_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [n_in, xyz_in[...,0], elong_out, phi_out, height_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*4
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gc2gd(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'gc2gd')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(elong_out.shape) > 0 and elong_out.shape[0] == 1
-        elong_out = elong_out[0]
-        assert len(phi_out.shape) > 0 and phi_out.shape[0] == 1
-        phi_out = phi_out[0]
-        assert len(height_out.shape) > 0 and height_out.shape[0] == 1
-        height_out = height_out[0]
-
-    return elong_out, phi_out, height_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['gc2gd'] = {0: 'OK', -2: 'internal error (Note 3)', -1: 'illegal identifier (Note 3)'}
 
 
@@ -18322,57 +13612,19 @@ def gc2gde(a, f, xyz):
 
     """
 
-    #Turn all inputs into arrays
-    a_in = numpy.array(a, dtype=numpy.double, order="C", copy=False, subok=True)
-    f_in = numpy.array(f, dtype=numpy.double, order="C", copy=False, subok=True)
-    xyz_in = numpy.array(xyz, dtype=numpy.double, order="C", copy=False, subok=True)
-    check_trailing_shape(xyz_in, (3,), "xyz")
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if a_in.shape == tuple():
-            a_in = a_in.reshape((1,) + a_in.shape)
-        else:
-            make_outputs_scalar = False
-        if f_in.shape == tuple():
-            f_in = f_in.reshape((1,) + f_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xyz_in[...,0].shape == tuple():
-            xyz_in = xyz_in.reshape((1,) + xyz_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gc2gde"
+    args = [a, f, xyz]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (3,), (), (), (), ()]
+    args_name = ["a", "f", "xyz", "elong", "phi", "height", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), a_in, f_in, xyz_in[...,0])
-    elong_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    phi_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    height_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [a_in, f_in, xyz_in[...,0], elong_out, phi_out, height_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*4
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gc2gde(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'gc2gde')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(elong_out.shape) > 0 and elong_out.shape[0] == 1
-        elong_out = elong_out[0]
-        assert len(phi_out.shape) > 0 and phi_out.shape[0] == 1
-        phi_out = phi_out[0]
-        assert len(height_out.shape) > 0 and height_out.shape[0] == 1
-        height_out = height_out[0]
-
-    return elong_out, phi_out, height_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['gc2gde'] = {0: 'OK', -2: 'illegal a', -1: 'illegal f'}
 
 
@@ -18440,55 +13692,19 @@ def gd2gc(n, elong, phi, height):
 
     """
 
-    #Turn all inputs into arrays
-    n_in = numpy.array(n, dtype=numpy.intc, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    height_in = numpy.array(height, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if n_in.shape == tuple():
-            n_in = n_in.reshape((1,) + n_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if height_in.shape == tuple():
-            height_in = height_in.reshape((1,) + height_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gd2gc"
+    args = [n, elong, phi, height]
+    args_dtype = [numpy.intc, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (3,), ()]
+    args_name = ["n", "elong", "phi", "height", "xyz", "c_statval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), n_in, elong_in, phi_in, height_in)
-    xyz_out = numpy.empty(broadcast.shape + (3,), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [n_in, elong_in, phi_in, height_in, xyz_out[...,0], c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gd2gc(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'gd2gc')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(xyz_out.shape) > 0 and xyz_out.shape[0] == 1
-        xyz_out = xyz_out[0]
-
-    return xyz_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['gd2gc'] = {0: 'OK', -2: 'illegal case (Note 3)', -1: 'illegal identifier (Note 3)'}
 
 
@@ -18557,60 +13773,19 @@ def gd2gce(a, f, elong, phi, height):
 
     """
 
-    #Turn all inputs into arrays
-    a_in = numpy.array(a, dtype=numpy.double, order="C", copy=False, subok=True)
-    f_in = numpy.array(f, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    height_in = numpy.array(height, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if a_in.shape == tuple():
-            a_in = a_in.reshape((1,) + a_in.shape)
-        else:
-            make_outputs_scalar = False
-        if f_in.shape == tuple():
-            f_in = f_in.reshape((1,) + f_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if height_in.shape == tuple():
-            height_in = height_in.reshape((1,) + height_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "gd2gce"
+    args = [a, f, elong, phi, height]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (3,), ()]
+    args_name = ["a", "f", "elong", "phi", "height", "xyz", "c_statval"]
+    nin = 5
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), a_in, f_in, elong_in, phi_in, height_in)
-    xyz_out = numpy.empty(broadcast.shape + (3,), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [a_in, f_in, elong_in, phi_in, height_in, xyz_out[...,0], c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*5 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._gd2gce(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'gd2gce')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(xyz_out.shape) > 0 and xyz_out.shape[0] == 1
-        xyz_out = xyz_out[0]
-
-    return xyz_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['gd2gce'] = {0: 'OK', -1: 'illegal case (Note 4)Notes:'}
 
 
@@ -18684,66 +13859,19 @@ def pvtob(elong, phi, hm, xp, yp, sp, theta):
 
     """
 
-    #Turn all inputs into arrays
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    phi_in = numpy.array(phi, dtype=numpy.double, order="C", copy=False, subok=True)
-    hm_in = numpy.array(hm, dtype=numpy.double, order="C", copy=False, subok=True)
-    xp_in = numpy.array(xp, dtype=numpy.double, order="C", copy=False, subok=True)
-    yp_in = numpy.array(yp, dtype=numpy.double, order="C", copy=False, subok=True)
-    sp_in = numpy.array(sp, dtype=numpy.double, order="C", copy=False, subok=True)
-    theta_in = numpy.array(theta, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if phi_in.shape == tuple():
-            phi_in = phi_in.reshape((1,) + phi_in.shape)
-        else:
-            make_outputs_scalar = False
-        if hm_in.shape == tuple():
-            hm_in = hm_in.reshape((1,) + hm_in.shape)
-        else:
-            make_outputs_scalar = False
-        if xp_in.shape == tuple():
-            xp_in = xp_in.reshape((1,) + xp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if yp_in.shape == tuple():
-            yp_in = yp_in.reshape((1,) + yp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if sp_in.shape == tuple():
-            sp_in = sp_in.reshape((1,) + sp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if theta_in.shape == tuple():
-            theta_in = theta_in.reshape((1,) + theta_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "pvtob"
+    args = [elong, phi, hm, xp, yp, sp, theta]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), (), (2, 3)]
+    args_name = ["elong", "phi", "hm", "xp", "yp", "sp", "theta", "pv"]
+    nin = 7
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), elong_in, phi_in, hm_in, xp_in, yp_in, sp_in, theta_in)
-    pv_out = numpy.empty(broadcast.shape + (2, 3), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [elong_in, phi_in, hm_in, xp_in, yp_in, sp_in, theta_in, pv_out[...,0,0]]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*7 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._pvtob(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(pv_out.shape) > 0 and pv_out.shape[0] == 1
-        pv_out = pv_out[0]
 
-    return pv_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def d2dtf(scale, ndp, d1, d2):
@@ -18825,64 +13953,19 @@ def d2dtf(scale, ndp, d1, d2):
 
     """
 
-    #Turn all inputs into arrays
-    scale_in = numpy.array(scale, dtype=numpy.dtype('S16'), order="C", copy=False, subok=True)
-    ndp_in = numpy.array(ndp, dtype=numpy.intc, order="C", copy=False, subok=True)
-    d1_in = numpy.array(d1, dtype=numpy.double, order="C", copy=False, subok=True)
-    d2_in = numpy.array(d2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if scale_in.shape == tuple():
-            scale_in = scale_in.reshape((1,) + scale_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ndp_in.shape == tuple():
-            ndp_in = ndp_in.reshape((1,) + ndp_in.shape)
-        else:
-            make_outputs_scalar = False
-        if d1_in.shape == tuple():
-            d1_in = d1_in.reshape((1,) + d1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if d2_in.shape == tuple():
-            d2_in = d2_in.reshape((1,) + d2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "d2dtf"
+    args = [scale, ndp, d1, d2]
+    args_dtype = [numpy.dtype('S16'), numpy.intc, numpy.double, numpy.double, numpy.intc, numpy.intc, numpy.intc, numpy.intc, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (4,), ()]
+    args_name = ["scale", "ndp", "d1", "d2", "iy", "im", "id", "ihmsf", "c_statval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), scale_in, ndp_in, d1_in, d2_in)
-    iy_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-    im_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-    id_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-    ihmsf_out = numpy.empty(broadcast.shape + (4,), dtype=numpy.intc)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [scale_in, ndp_in, d1_in, d2_in, iy_out, im_out, id_out, ihmsf_out[...,0], c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*5
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._d2dtf(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'd2dtf')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(iy_out.shape) > 0 and iy_out.shape[0] == 1
-        iy_out = iy_out[0]
-        assert len(im_out.shape) > 0 and im_out.shape[0] == 1
-        im_out = im_out[0]
-        assert len(id_out.shape) > 0 and id_out.shape[0] == 1
-        id_out = id_out[0]
-        assert len(ihmsf_out.shape) > 0 and ihmsf_out.shape[0] == 1
-        ihmsf_out = ihmsf_out[0]
-
-    return iy_out, im_out, id_out, ihmsf_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['d2dtf'] = {0: 'OK', 1: 'dubious year (Note 5)', -1: 'unacceptable date (Note 6)'}
 
 
@@ -19012,55 +14095,19 @@ def dat(iy, im, id, fd):
 
     """
 
-    #Turn all inputs into arrays
-    iy_in = numpy.array(iy, dtype=numpy.intc, order="C", copy=False, subok=True)
-    im_in = numpy.array(im, dtype=numpy.intc, order="C", copy=False, subok=True)
-    id_in = numpy.array(id, dtype=numpy.intc, order="C", copy=False, subok=True)
-    fd_in = numpy.array(fd, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if iy_in.shape == tuple():
-            iy_in = iy_in.reshape((1,) + iy_in.shape)
-        else:
-            make_outputs_scalar = False
-        if im_in.shape == tuple():
-            im_in = im_in.reshape((1,) + im_in.shape)
-        else:
-            make_outputs_scalar = False
-        if id_in.shape == tuple():
-            id_in = id_in.reshape((1,) + id_in.shape)
-        else:
-            make_outputs_scalar = False
-        if fd_in.shape == tuple():
-            fd_in = fd_in.reshape((1,) + fd_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "dat"
+    args = [iy, im, id, fd]
+    args_dtype = [numpy.intc, numpy.intc, numpy.intc, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["iy", "im", "id", "fd", "deltat", "c_statval"]
+    nin = 4
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), iy_in, im_in, id_in, fd_in)
-    deltat_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [iy_in, im_in, id_in, fd_in, deltat_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*4 + [['readwrite']]*2
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._dat(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'dat')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(deltat_out.shape) > 0 and deltat_out.shape[0] == 1
-        deltat_out = deltat_out[0]
-
-    return deltat_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['dat'] = {0: 'OK', 1: 'dubious year (Note 1)', -1: 'bad year', -5: 'internal error', -4: 'bad fraction (Note 4)', -3: 'bad day (Note 3)', -2: 'bad month'}
 
 
@@ -19231,61 +14278,19 @@ def dtdb(date1, date2, ut, elong, u, v):
 
     """
 
-    #Turn all inputs into arrays
-    date1_in = numpy.array(date1, dtype=numpy.double, order="C", copy=False, subok=True)
-    date2_in = numpy.array(date2, dtype=numpy.double, order="C", copy=False, subok=True)
-    ut_in = numpy.array(ut, dtype=numpy.double, order="C", copy=False, subok=True)
-    elong_in = numpy.array(elong, dtype=numpy.double, order="C", copy=False, subok=True)
-    u_in = numpy.array(u, dtype=numpy.double, order="C", copy=False, subok=True)
-    v_in = numpy.array(v, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if date1_in.shape == tuple():
-            date1_in = date1_in.reshape((1,) + date1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if date2_in.shape == tuple():
-            date2_in = date2_in.reshape((1,) + date2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ut_in.shape == tuple():
-            ut_in = ut_in.reshape((1,) + ut_in.shape)
-        else:
-            make_outputs_scalar = False
-        if elong_in.shape == tuple():
-            elong_in = elong_in.reshape((1,) + elong_in.shape)
-        else:
-            make_outputs_scalar = False
-        if u_in.shape == tuple():
-            u_in = u_in.reshape((1,) + u_in.shape)
-        else:
-            make_outputs_scalar = False
-        if v_in.shape == tuple():
-            v_in = v_in.reshape((1,) + v_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "dtdb"
+    args = [date1, date2, ut, elong, u, v]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.double]
+    args_shape = [(), (), (), (), (), (), ()]
+    args_name = ["date1", "date2", "ut", "elong", "u", "v", "c_retval"]
+    nin = 6
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), date1_in, date2_in, ut_in, elong_in, u_in, v_in)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [date1_in, date2_in, ut_in, elong_in, u_in, v_in, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*6 + [['readwrite']]*1
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._dtdb(it)
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(c_retval_out.shape) > 0 and c_retval_out.shape[0] == 1
-        c_retval_out = c_retval_out[0]
 
-    return c_retval_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 
 
 def dtf2d(scale, iy, im, id, ihr, imn, sec):
@@ -19371,73 +14376,19 @@ def dtf2d(scale, iy, im, id, ihr, imn, sec):
 
     """
 
-    #Turn all inputs into arrays
-    scale_in = numpy.array(scale, dtype=numpy.dtype('S16'), order="C", copy=False, subok=True)
-    iy_in = numpy.array(iy, dtype=numpy.intc, order="C", copy=False, subok=True)
-    im_in = numpy.array(im, dtype=numpy.intc, order="C", copy=False, subok=True)
-    id_in = numpy.array(id, dtype=numpy.intc, order="C", copy=False, subok=True)
-    ihr_in = numpy.array(ihr, dtype=numpy.intc, order="C", copy=False, subok=True)
-    imn_in = numpy.array(imn, dtype=numpy.intc, order="C", copy=False, subok=True)
-    sec_in = numpy.array(sec, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if scale_in.shape == tuple():
-            scale_in = scale_in.reshape((1,) + scale_in.shape)
-        else:
-            make_outputs_scalar = False
-        if iy_in.shape == tuple():
-            iy_in = iy_in.reshape((1,) + iy_in.shape)
-        else:
-            make_outputs_scalar = False
-        if im_in.shape == tuple():
-            im_in = im_in.reshape((1,) + im_in.shape)
-        else:
-            make_outputs_scalar = False
-        if id_in.shape == tuple():
-            id_in = id_in.reshape((1,) + id_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ihr_in.shape == tuple():
-            ihr_in = ihr_in.reshape((1,) + ihr_in.shape)
-        else:
-            make_outputs_scalar = False
-        if imn_in.shape == tuple():
-            imn_in = imn_in.reshape((1,) + imn_in.shape)
-        else:
-            make_outputs_scalar = False
-        if sec_in.shape == tuple():
-            sec_in = sec_in.reshape((1,) + sec_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "dtf2d"
+    args = [scale, iy, im, id, ihr, imn, sec]
+    args_dtype = [numpy.dtype('S16'), numpy.intc, numpy.intc, numpy.intc, numpy.intc, numpy.intc, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), (), (), (), (), ()]
+    args_name = ["scale", "iy", "im", "id", "ihr", "imn", "sec", "d1", "d2", "c_statval"]
+    nin = 7
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), scale_in, iy_in, im_in, id_in, ihr_in, imn_in, sec_in)
-    d1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    d2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [scale_in, iy_in, im_in, id_in, ihr_in, imn_in, sec_in, d1_out, d2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*7 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._dtf2d(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'dtf2d')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(d1_out.shape) > 0 and d1_out.shape[0] == 1
-        d1_out = d1_out[0]
-        assert len(d2_out.shape) > 0 and d2_out.shape[0] == 1
-        d2_out = d2_out[0]
-
-    return d1_out, d2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['dtf2d'] = {0: 'OK', 1: 'dubious year (Note 6)', 2: 'time is after end of day (Note 5)', 3: 'both of next two', -2: 'bad month', -6: 'bad second (<0)', -5: 'bad minute', -4: 'bad hour', -3: 'bad day', -1: 'bad year'}
 
 
@@ -19485,48 +14436,19 @@ def taitt(tai1, tai2):
 
     """
 
-    #Turn all inputs into arrays
-    tai1_in = numpy.array(tai1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tai2_in = numpy.array(tai2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tai1_in.shape == tuple():
-            tai1_in = tai1_in.reshape((1,) + tai1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tai2_in.shape == tuple():
-            tai2_in = tai2_in.reshape((1,) + tai2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "taitt"
+    args = [tai1, tai2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["tai1", "tai2", "tt1", "tt2", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tai1_in, tai2_in)
-    tt1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tt2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tai1_in, tai2_in, tt1_out, tt2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._taitt(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'taitt')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tt1_out.shape) > 0 and tt1_out.shape[0] == 1
-        tt1_out = tt1_out[0]
-        assert len(tt2_out.shape) > 0 and tt2_out.shape[0] == 1
-        tt2_out = tt2_out[0]
-
-    return tt1_out, tt2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['taitt'] = {0: 'OK'}
 
 
@@ -19575,53 +14497,19 @@ def taiut1(tai1, tai2, dta):
 
     """
 
-    #Turn all inputs into arrays
-    tai1_in = numpy.array(tai1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tai2_in = numpy.array(tai2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dta_in = numpy.array(dta, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tai1_in.shape == tuple():
-            tai1_in = tai1_in.reshape((1,) + tai1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tai2_in.shape == tuple():
-            tai2_in = tai2_in.reshape((1,) + tai2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dta_in.shape == tuple():
-            dta_in = dta_in.reshape((1,) + dta_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "taiut1"
+    args = [tai1, tai2, dta]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["tai1", "tai2", "dta", "ut11", "ut12", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tai1_in, tai2_in, dta_in)
-    ut11_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    ut12_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tai1_in, tai2_in, dta_in, ut11_out, ut12_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._taiut1(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'taiut1')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ut11_out.shape) > 0 and ut11_out.shape[0] == 1
-        ut11_out = ut11_out[0]
-        assert len(ut12_out.shape) > 0 and ut12_out.shape[0] == 1
-        ut12_out = ut12_out[0]
-
-    return ut11_out, ut12_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['taiut1'] = {0: 'OK'}
 
 
@@ -19692,48 +14580,19 @@ def taiutc(tai1, tai2):
 
     """
 
-    #Turn all inputs into arrays
-    tai1_in = numpy.array(tai1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tai2_in = numpy.array(tai2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tai1_in.shape == tuple():
-            tai1_in = tai1_in.reshape((1,) + tai1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tai2_in.shape == tuple():
-            tai2_in = tai2_in.reshape((1,) + tai2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "taiutc"
+    args = [tai1, tai2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["tai1", "tai2", "utc1", "utc2", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tai1_in, tai2_in)
-    utc1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    utc2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tai1_in, tai2_in, utc1_out, utc2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._taiutc(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'taiutc')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(utc1_out.shape) > 0 and utc1_out.shape[0] == 1
-        utc1_out = utc1_out[0]
-        assert len(utc2_out.shape) > 0 and utc2_out.shape[0] == 1
-        utc2_out = utc2_out[0]
-
-    return utc1_out, utc2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['taiutc'] = {0: 'OK', 1: 'dubious year (Note 4)', -1: 'unacceptable date'}
 
 
@@ -19795,48 +14654,19 @@ def tcbtdb(tcb1, tcb2):
 
     """
 
-    #Turn all inputs into arrays
-    tcb1_in = numpy.array(tcb1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tcb2_in = numpy.array(tcb2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tcb1_in.shape == tuple():
-            tcb1_in = tcb1_in.reshape((1,) + tcb1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tcb2_in.shape == tuple():
-            tcb2_in = tcb2_in.reshape((1,) + tcb2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "tcbtdb"
+    args = [tcb1, tcb2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["tcb1", "tcb2", "tdb1", "tdb2", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tcb1_in, tcb2_in)
-    tdb1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tdb2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tcb1_in, tcb2_in, tdb1_out, tdb2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._tcbtdb(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'tcbtdb')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tdb1_out.shape) > 0 and tdb1_out.shape[0] == 1
-        tdb1_out = tdb1_out[0]
-        assert len(tdb2_out.shape) > 0 and tdb2_out.shape[0] == 1
-        tdb2_out = tdb2_out[0]
-
-    return tdb1_out, tdb2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['tcbtdb'] = {0: 'OK'}
 
 
@@ -19883,48 +14713,19 @@ def tcgtt(tcg1, tcg2):
 
     """
 
-    #Turn all inputs into arrays
-    tcg1_in = numpy.array(tcg1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tcg2_in = numpy.array(tcg2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tcg1_in.shape == tuple():
-            tcg1_in = tcg1_in.reshape((1,) + tcg1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tcg2_in.shape == tuple():
-            tcg2_in = tcg2_in.reshape((1,) + tcg2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "tcgtt"
+    args = [tcg1, tcg2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["tcg1", "tcg2", "tt1", "tt2", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tcg1_in, tcg2_in)
-    tt1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tt2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tcg1_in, tcg2_in, tt1_out, tt2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._tcgtt(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'tcgtt')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tt1_out.shape) > 0 and tt1_out.shape[0] == 1
-        tt1_out = tt1_out[0]
-        assert len(tt2_out.shape) > 0 and tt2_out.shape[0] == 1
-        tt2_out = tt2_out[0]
-
-    return tt1_out, tt2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['tcgtt'] = {0: 'OK'}
 
 
@@ -19986,48 +14787,19 @@ def tdbtcb(tdb1, tdb2):
 
     """
 
-    #Turn all inputs into arrays
-    tdb1_in = numpy.array(tdb1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tdb2_in = numpy.array(tdb2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tdb1_in.shape == tuple():
-            tdb1_in = tdb1_in.reshape((1,) + tdb1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tdb2_in.shape == tuple():
-            tdb2_in = tdb2_in.reshape((1,) + tdb2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "tdbtcb"
+    args = [tdb1, tdb2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["tdb1", "tdb2", "tcb1", "tcb2", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tdb1_in, tdb2_in)
-    tcb1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tcb2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tdb1_in, tdb2_in, tcb1_out, tcb2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._tdbtcb(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'tdbtcb')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tcb1_out.shape) > 0 and tcb1_out.shape[0] == 1
-        tcb1_out = tcb1_out[0]
-        assert len(tcb2_out.shape) > 0 and tcb2_out.shape[0] == 1
-        tcb2_out = tcb2_out[0]
-
-    return tcb1_out, tcb2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['tdbtcb'] = {0: 'OK'}
 
 
@@ -20086,53 +14858,19 @@ def tdbtt(tdb1, tdb2, dtr):
 
     """
 
-    #Turn all inputs into arrays
-    tdb1_in = numpy.array(tdb1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tdb2_in = numpy.array(tdb2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dtr_in = numpy.array(dtr, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tdb1_in.shape == tuple():
-            tdb1_in = tdb1_in.reshape((1,) + tdb1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tdb2_in.shape == tuple():
-            tdb2_in = tdb2_in.reshape((1,) + tdb2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dtr_in.shape == tuple():
-            dtr_in = dtr_in.reshape((1,) + dtr_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "tdbtt"
+    args = [tdb1, tdb2, dtr]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["tdb1", "tdb2", "dtr", "tt1", "tt2", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tdb1_in, tdb2_in, dtr_in)
-    tt1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tt2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tdb1_in, tdb2_in, dtr_in, tt1_out, tt2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._tdbtt(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'tdbtt')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tt1_out.shape) > 0 and tt1_out.shape[0] == 1
-        tt1_out = tt1_out[0]
-        assert len(tt2_out.shape) > 0 and tt2_out.shape[0] == 1
-        tt2_out = tt2_out[0]
-
-    return tt1_out, tt2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['tdbtt'] = {0: 'OK'}
 
 
@@ -20180,48 +14918,19 @@ def tttai(tt1, tt2):
 
     """
 
-    #Turn all inputs into arrays
-    tt1_in = numpy.array(tt1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tt2_in = numpy.array(tt2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tt1_in.shape == tuple():
-            tt1_in = tt1_in.reshape((1,) + tt1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tt2_in.shape == tuple():
-            tt2_in = tt2_in.reshape((1,) + tt2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "tttai"
+    args = [tt1, tt2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["tt1", "tt2", "tai1", "tai2", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tt1_in, tt2_in)
-    tai1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tai2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tt1_in, tt2_in, tai1_out, tai2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._tttai(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'tttai')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tai1_out.shape) > 0 and tai1_out.shape[0] == 1
-        tai1_out = tai1_out[0]
-        assert len(tai2_out.shape) > 0 and tai2_out.shape[0] == 1
-        tai2_out = tai2_out[0]
-
-    return tai1_out, tai2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['tttai'] = {0: 'OK'}
 
 
@@ -20268,48 +14977,19 @@ def tttcg(tt1, tt2):
 
     """
 
-    #Turn all inputs into arrays
-    tt1_in = numpy.array(tt1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tt2_in = numpy.array(tt2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tt1_in.shape == tuple():
-            tt1_in = tt1_in.reshape((1,) + tt1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tt2_in.shape == tuple():
-            tt2_in = tt2_in.reshape((1,) + tt2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "tttcg"
+    args = [tt1, tt2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["tt1", "tt2", "tcg1", "tcg2", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tt1_in, tt2_in)
-    tcg1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tcg2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tt1_in, tt2_in, tcg1_out, tcg2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._tttcg(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'tttcg')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tcg1_out.shape) > 0 and tcg1_out.shape[0] == 1
-        tcg1_out = tcg1_out[0]
-        assert len(tcg2_out.shape) > 0 and tcg2_out.shape[0] == 1
-        tcg2_out = tcg2_out[0]
-
-    return tcg1_out, tcg2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['tttcg'] = {0: 'OK'}
 
 
@@ -20368,53 +15048,19 @@ def tttdb(tt1, tt2, dtr):
 
     """
 
-    #Turn all inputs into arrays
-    tt1_in = numpy.array(tt1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tt2_in = numpy.array(tt2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dtr_in = numpy.array(dtr, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tt1_in.shape == tuple():
-            tt1_in = tt1_in.reshape((1,) + tt1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tt2_in.shape == tuple():
-            tt2_in = tt2_in.reshape((1,) + tt2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dtr_in.shape == tuple():
-            dtr_in = dtr_in.reshape((1,) + dtr_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "tttdb"
+    args = [tt1, tt2, dtr]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["tt1", "tt2", "dtr", "tdb1", "tdb2", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tt1_in, tt2_in, dtr_in)
-    tdb1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tdb2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tt1_in, tt2_in, dtr_in, tdb1_out, tdb2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._tttdb(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'tttdb')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tdb1_out.shape) > 0 and tdb1_out.shape[0] == 1
-        tdb1_out = tdb1_out[0]
-        assert len(tdb2_out.shape) > 0 and tdb2_out.shape[0] == 1
-        tdb2_out = tdb2_out[0]
-
-    return tdb1_out, tdb2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['tttdb'] = {0: 'OK'}
 
 
@@ -20462,53 +15108,19 @@ def ttut1(tt1, tt2, dt):
 
     """
 
-    #Turn all inputs into arrays
-    tt1_in = numpy.array(tt1, dtype=numpy.double, order="C", copy=False, subok=True)
-    tt2_in = numpy.array(tt2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dt_in = numpy.array(dt, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if tt1_in.shape == tuple():
-            tt1_in = tt1_in.reshape((1,) + tt1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if tt2_in.shape == tuple():
-            tt2_in = tt2_in.reshape((1,) + tt2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dt_in.shape == tuple():
-            dt_in = dt_in.reshape((1,) + dt_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ttut1"
+    args = [tt1, tt2, dt]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["tt1", "tt2", "dt", "ut11", "ut12", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), tt1_in, tt2_in, dt_in)
-    ut11_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    ut12_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [tt1_in, tt2_in, dt_in, ut11_out, ut12_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ttut1(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'ttut1')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ut11_out.shape) > 0 and ut11_out.shape[0] == 1
-        ut11_out = ut11_out[0]
-        assert len(ut12_out.shape) > 0 and ut12_out.shape[0] == 1
-        ut12_out = ut12_out[0]
-
-    return ut11_out, ut12_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['ttut1'] = {0: 'OK'}
 
 
@@ -20557,53 +15169,19 @@ def ut1tai(ut11, ut12, dta):
 
     """
 
-    #Turn all inputs into arrays
-    ut11_in = numpy.array(ut11, dtype=numpy.double, order="C", copy=False, subok=True)
-    ut12_in = numpy.array(ut12, dtype=numpy.double, order="C", copy=False, subok=True)
-    dta_in = numpy.array(dta, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ut11_in.shape == tuple():
-            ut11_in = ut11_in.reshape((1,) + ut11_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ut12_in.shape == tuple():
-            ut12_in = ut12_in.reshape((1,) + ut12_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dta_in.shape == tuple():
-            dta_in = dta_in.reshape((1,) + dta_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ut1tai"
+    args = [ut11, ut12, dta]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["ut11", "ut12", "dta", "tai1", "tai2", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ut11_in, ut12_in, dta_in)
-    tai1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tai2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ut11_in, ut12_in, dta_in, tai1_out, tai2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ut1tai(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'ut1tai')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tai1_out.shape) > 0 and tai1_out.shape[0] == 1
-        tai1_out = tai1_out[0]
-        assert len(tai2_out.shape) > 0 and tai2_out.shape[0] == 1
-        tai2_out = tai2_out[0]
-
-    return tai1_out, tai2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['ut1tai'] = {0: 'OK'}
 
 
@@ -20651,53 +15229,19 @@ def ut1tt(ut11, ut12, dt):
 
     """
 
-    #Turn all inputs into arrays
-    ut11_in = numpy.array(ut11, dtype=numpy.double, order="C", copy=False, subok=True)
-    ut12_in = numpy.array(ut12, dtype=numpy.double, order="C", copy=False, subok=True)
-    dt_in = numpy.array(dt, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ut11_in.shape == tuple():
-            ut11_in = ut11_in.reshape((1,) + ut11_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ut12_in.shape == tuple():
-            ut12_in = ut12_in.reshape((1,) + ut12_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dt_in.shape == tuple():
-            dt_in = dt_in.reshape((1,) + dt_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ut1tt"
+    args = [ut11, ut12, dt]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["ut11", "ut12", "dt", "tt1", "tt2", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ut11_in, ut12_in, dt_in)
-    tt1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tt2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ut11_in, ut12_in, dt_in, tt1_out, tt2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ut1tt(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'ut1tt')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tt1_out.shape) > 0 and tt1_out.shape[0] == 1
-        tt1_out = tt1_out[0]
-        assert len(tt2_out.shape) > 0 and tt2_out.shape[0] == 1
-        tt2_out = tt2_out[0]
-
-    return tt1_out, tt2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['ut1tt'] = {0: 'OK'}
 
 
@@ -20773,53 +15317,19 @@ def ut1utc(ut11, ut12, dut1):
 
     """
 
-    #Turn all inputs into arrays
-    ut11_in = numpy.array(ut11, dtype=numpy.double, order="C", copy=False, subok=True)
-    ut12_in = numpy.array(ut12, dtype=numpy.double, order="C", copy=False, subok=True)
-    dut1_in = numpy.array(dut1, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if ut11_in.shape == tuple():
-            ut11_in = ut11_in.reshape((1,) + ut11_in.shape)
-        else:
-            make_outputs_scalar = False
-        if ut12_in.shape == tuple():
-            ut12_in = ut12_in.reshape((1,) + ut12_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dut1_in.shape == tuple():
-            dut1_in = dut1_in.reshape((1,) + dut1_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "ut1utc"
+    args = [ut11, ut12, dut1]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["ut11", "ut12", "dut1", "utc1", "utc2", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), ut11_in, ut12_in, dut1_in)
-    utc1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    utc2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [ut11_in, ut12_in, dut1_in, utc1_out, utc2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._ut1utc(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'ut1utc')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(utc1_out.shape) > 0 and utc1_out.shape[0] == 1
-        utc1_out = utc1_out[0]
-        assert len(utc2_out.shape) > 0 and utc2_out.shape[0] == 1
-        utc2_out = utc2_out[0]
-
-    return utc1_out, utc2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['ut1utc'] = {0: 'OK', 1: 'dubious year (Note 5)', -1: 'unacceptable date'}
 
 
@@ -20892,48 +15402,19 @@ def utctai(utc1, utc2):
 
     """
 
-    #Turn all inputs into arrays
-    utc1_in = numpy.array(utc1, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc2_in = numpy.array(utc2, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if utc1_in.shape == tuple():
-            utc1_in = utc1_in.reshape((1,) + utc1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc2_in.shape == tuple():
-            utc2_in = utc2_in.reshape((1,) + utc2_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "utctai"
+    args = [utc1, utc2]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), ()]
+    args_name = ["utc1", "utc2", "tai1", "tai2", "c_statval"]
+    nin = 2
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), utc1_in, utc2_in)
-    tai1_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    tai2_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [utc1_in, utc2_in, tai1_out, tai2_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*2 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._utctai(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'utctai')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(tai1_out.shape) > 0 and tai1_out.shape[0] == 1
-        tai1_out = tai1_out[0]
-        assert len(tai2_out.shape) > 0 and tai2_out.shape[0] == 1
-        tai2_out = tai2_out[0]
-
-    return tai1_out, tai2_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['utctai'] = {0: 'OK', 1: 'dubious year (Note 3)', -1: 'unacceptable date'}
 
 
@@ -21010,53 +15491,19 @@ def utcut1(utc1, utc2, dut1):
 
     """
 
-    #Turn all inputs into arrays
-    utc1_in = numpy.array(utc1, dtype=numpy.double, order="C", copy=False, subok=True)
-    utc2_in = numpy.array(utc2, dtype=numpy.double, order="C", copy=False, subok=True)
-    dut1_in = numpy.array(dut1, dtype=numpy.double, order="C", copy=False, subok=True)
-    make_outputs_scalar = False
-    if NPYLT18:
-        # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
-        # so we replace all scalars with 1d arrays
-        make_outputs_scalar = True
-        if utc1_in.shape == tuple():
-            utc1_in = utc1_in.reshape((1,) + utc1_in.shape)
-        else:
-            make_outputs_scalar = False
-        if utc2_in.shape == tuple():
-            utc2_in = utc2_in.reshape((1,) + utc2_in.shape)
-        else:
-            make_outputs_scalar = False
-        if dut1_in.shape == tuple():
-            dut1_in = dut1_in.reshape((1,) + dut1_in.shape)
-        else:
-            make_outputs_scalar = False
+    func_name = "utcut1"
+    args = [utc1, utc2, dut1]
+    args_dtype = [numpy.double, numpy.double, numpy.double, numpy.double, numpy.double, numpy.intc]
+    args_shape = [(), (), (), (), (), ()]
+    args_name = ["utc1", "utc2", "dut1", "ut11", "ut12", "c_statval"]
+    nin = 3
 
-    #Create the output array, based on the broadcasted shape, adding the generated dimensions if needed
-    broadcast = numpy.broadcast(numpy.int32(0.0), numpy.int32(0.0), utc1_in, utc2_in, dut1_in)
-    ut11_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    ut12_out = numpy.empty(broadcast.shape + (), dtype=numpy.double)
-    c_retval_out = numpy.empty(broadcast.shape + (), dtype=numpy.intc)
-
-    #Create the iterator, broadcasting on all but the consumed dimensions
-    arrs = [utc1_in, utc2_in, dut1_in, ut11_out, ut12_out, c_retval_out]
-    op_axes = [[-1]*(broadcast.nd-arr.ndim) + list(range(arr.ndim)) for arr in arrs]
-    op_flags = [['readonly']]*3 + [['readwrite']]*3
-    it = numpy.nditer(arrs, op_axes=op_axes, op_flags=op_flags)
+    it, make_outputs_scalar = setup_iter(args, args_dtype, args_shape, args_name, nin)
 
     #Iterate
     stat_ok = _erfa._utcut1(it)
 
-    if not stat_ok:
-        check_errwarn(c_retval_out, 'utcut1')
-    #need to convert the outputs back to scalars if all the inputs were scalars but we made them 1d
-    if make_outputs_scalar:
-        assert len(ut11_out.shape) > 0 and ut11_out.shape[0] == 1
-        ut11_out = ut11_out[0]
-        assert len(ut12_out.shape) > 0 and ut12_out.shape[0] == 1
-        ut12_out = ut12_out[0]
-
-    return ut11_out, ut12_out
+    return make_results(args, args_name, nin, func_name, stat_ok, make_outputs_scalar)
 STATUS_CODES['utcut1'] = {0: 'OK', 1: 'dubious year (Note 3)', -1: 'unacceptable date'}
 
 
