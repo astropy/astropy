@@ -396,6 +396,9 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Updated ``astropy.extern.configobj`` to Version 5. Version 5 uses ``six``
+  and the same code covers both Python 2 and Python 3. [#3149]
+
 - ``astropy.coordinates``
 
   - The ``repr`` of ``SkyCoord`` and coordinate frame classes now separate
