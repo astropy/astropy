@@ -146,7 +146,7 @@ def setup_iter(args, args_dtype, args_shape, args_name, nin):
     if NPYLT18:
         make_outputs_scalar = True
         for i in range(len(args)):
-            if args[i].shape == tuple():
+            if args[i].shape == args_shape[i]:
                 args[i] = args[i].reshape((1,)+args_shape[i])
             else:
                 make_outputs_scalar = False
