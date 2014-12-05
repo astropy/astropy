@@ -192,6 +192,10 @@ API Changes
 
 - ``astropy.io.fits``
 
+  - A new optional argument ``cached`` has been added to  ``astropy.io.fits.fits_open()``.
+    ``cached`` is a boolean field which by default is ``True`` and is used
+    to cache the downloaded fits file on local machine. [#3041]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
@@ -310,6 +314,9 @@ Bug Fixes
     ``0``, which is the first uncommented line. Discussed in #2692. [#3054]
 
 - ``astropy.io.fits``
+
+  - Fixes the problem in ``fits.open`` of some filenames with colon (:) in the name
+    being taken as URL instead of file. [#3122]
 
   - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
 
