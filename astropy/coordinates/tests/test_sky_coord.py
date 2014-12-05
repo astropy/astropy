@@ -841,11 +841,14 @@ def test_search_around():
 def test_init_with_frame_instance_keyword():
 
     # Frame instance
-    c1 = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'))
+    c1 = SkyCoord(3 * u.deg, 4 * u.deg,
+                  frame=FK5(equinox='J2010'))
     assert c1.equinox == Time('J2010')
 
     # Frame instance with data (data gets ignored)
-    c2 = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(1. * u.deg, 2 * u.deg, equinox='J2010'))
+    c2 = SkyCoord(3 * u.deg, 4 * u.deg,
+                 frame=FK5(1. * u.deg, 2 * u.deg,
+                 equinox='J2010'))
     assert c2.equinox == Time('J2010')
     assert allclose(c2.ra.degree, 3)
     assert allclose(c2.dec.degree, 4)
@@ -857,7 +860,9 @@ def test_init_with_frame_instance_keyword():
     # Check duplicate arguments
     with pytest.raises(ValueError) as exc:
         c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'), equinox='J2001')
-    assert exc.value.args[0] == "cannot specify frame attribute 'equinox' directly in SkyCoord since a frame instance was passed in"
+    assert exc.value.args[0] == ("cannot specify frame attribute "
+                                 "'equinox' directly in SkyCoord "
+                                 "since a frame instance was passed in")
 
 
 def test_init_with_frame_instance_positional():
@@ -865,17 +870,26 @@ def test_init_with_frame_instance_positional():
     # Frame instance
     with pytest.raises(ValueError) as exc:
         c1 = SkyCoord(3 * u.deg, 4 * u.deg, FK5(equinox='J2010'))
-    assert exc.value.args[0] == "frame instance cannot be passed as positional argument, pass it using the frame= keyword instead."
+    assert exc.value.args[0] == ("FK5 instance cannot be passed as a "
+                                 "positional argument for the frame, "
+                                 "pass it using the frame= keyword "
+                                 "instead.")
 
     # Positional frame instance with data raises exception
     with pytest.raises(ValueError) as exc:
         SkyCoord(3 * u.deg, 4 * u.deg, FK5(1. * u.deg, 2 * u.deg, equinox='J2010'))
-    assert exc.value.args[0] == "frame instance cannot be passed as positional argument, pass it using the frame= keyword instead."
+    assert exc.value.args[0] == ("FK5 instance cannot be passed as a "
+                                 "positional argument for the frame, "
+                                 "pass it using the frame= keyword "
+                                 "instead.")
 
     # Positional SkyCoord instance (for frame) raises exception
     with pytest.raises(ValueError) as exc:
         SkyCoord(3 * u.deg, 4 * u.deg, SkyCoord(1. * u.deg, 2 * u.deg, equinox='J2010'))
-    assert exc.value.args[0] == "SkyCoord cannot be used as frame as a positional argument, pass it using the frame= keyword instead."
+    assert exc.value.args[0] == ("SkyCoord instance cannot be passed as a "
+                                 "positional argument for the frame, "
+                                 "pass it using the frame= keyword "
+                                 "instead.")
 
 
 def test_guess_from_table():

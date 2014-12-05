@@ -1046,11 +1046,10 @@ def _get_frame(args, kwargs):
 
         for arg in args:
 
-            if isinstance(arg, SkyCoord):
-                raise ValueError("SkyCoord cannot be used as frame as a positional argument, pass it using the frame= keyword instead.")
-
-            if isinstance(arg, BaseCoordinateFrame):
-                raise ValueError("frame instance cannot be passed as positional argument, pass it using the frame= keyword instead.")
+            if isinstance(arg, (SkyCoord, BaseCoordinateFrame)):
+                raise ValueError("{0} instance cannot be passed as a positional "
+                                 "argument for the frame, pass it using the "
+                                 "frame= keyword instead.".format(arg.__class__.__name__))
 
     # If the frame is an instance or SkyCoord, we split up the attributes and
     # make it into a class.
