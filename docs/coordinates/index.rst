@@ -33,11 +33,11 @@ equivalent::
     >>> from astropy.coordinates import SkyCoord
 
     >>> c = SkyCoord(ra=10.625*u.degree, dec=41.2*u.degree, frame='icrs')
-    >>> c = SkyCoord(10.625, 41.2, 'icrs', unit='deg')
-    >>> c = SkyCoord('00h42m30s', '+41d12m00s', 'icrs')
-    >>> c = SkyCoord('00h42.5m', '+41d12m', 'icrs')
-    >>> c = SkyCoord('00 42 30 +41 12 00', 'icrs', unit=(u.hourangle, u.deg))
-    >>> c = SkyCoord('00:42.5 +41:12', 'icrs', unit=(u.hourangle, u.deg))
+    >>> c = SkyCoord(10.625, 41.2, frame='icrs', unit='deg')
+    >>> c = SkyCoord('00h42m30s', '+41d12m00s', frame='icrs')
+    >>> c = SkyCoord('00h42.5m', '+41d12m', frame='icrs')
+    >>> c = SkyCoord('00 42 30 +41 12 00', frame='icrs', unit=(u.hourangle, u.deg))
+    >>> c = SkyCoord('00:42.5 +41:12', frame='icrs', unit=(u.hourangle, u.deg))
     >>> c
     <SkyCoord (ICRS): ra=10.625 deg, dec=41.2 deg>
 

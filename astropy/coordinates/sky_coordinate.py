@@ -2,6 +2,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 
 import re
 import collections
+import warnings
 
 import numpy as np
 
@@ -11,6 +12,7 @@ from ..extern.six.moves import zip
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
+from ..utils.exceptions import AstropyDeprecationWarning
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -1039,29 +1041,15 @@ def _get_frame(args, kwargs):
 
     if frame is None and len(args) > 1:
 
-        # Here we check only if a frame instance is present in the positional
-        # arguments, we check later whether it could be specificed as a string
-        # or class in the positional arguments. We only allow a frame instance
-        # without data to be used in this case, and we don't allow SkyCoord to
-        # be used just to specify the frame, unless passed as keyword argument.
+        # We do not allow frames to be passed as positional arguments if data
+        # is passed separately from frame.
 
         for arg in args:
 
-            if isinstance(arg, SkyCoord):
-                raise ValueError("SkyCoord cannot be used as frame as a positional argument, pass it using the frame= keyword instead.")
-
-            if isinstance(arg, BaseCoordinateFrame):
-
-                try:  # Check if frame has data
-                    arg.data
-                except ValueError:
-                    pass
-                else:
-                    raise ValueError("frame instance with data cannot be passed as positional argument, pass it using the frame= keyword instead.")
-
-                frame = arg
-                args.remove(frame)
-                break
+            if isinstance(arg, (SkyCoord, BaseCoordinateFrame)):
+                raise ValueError("{0} instance cannot be passed as a positional "
+                                 "argument for the frame, pass it using the "
+                                 "frame= keyword instead.".format(arg.__class__.__name__))
 
     # If the frame is an instance or SkyCoord, we split up the attributes and
     # make it into a class.
@@ -1093,6 +1081,9 @@ def _get_frame(args, kwargs):
                 pass
             else:
                 args.remove(arg)
+                warnings.warn("Passing a frame as a positional argument is now "
+                              "deprecated, use the frame= keyword argument "
+                              "instead.", AstropyDeprecationWarning)
                 break
         else:
             # Not in args nor kwargs - default to icrs
