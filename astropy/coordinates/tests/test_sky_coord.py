@@ -16,12 +16,13 @@ import numpy as np
 from numpy import testing as npt
 
 from ... import units as u
-from ...tests.helper import pytest
+from ...tests.helper import pytest, catch_warnings
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation)
 from ...coordinates import Latitude, Longitude
 from ...time import Time
+from ...utils.exceptions import AstropyDeprecationWarning
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -247,27 +248,44 @@ def test_coord_init_representation():
     assert allclose(sc_cart.z, 3.0)
 
 
+FRAME_DEPRECATION_WARNING = ("Passing a frame as a positional argument is now "
+                             "deprecated, use the frame= keyword argument "
+                             "instead.")
+
 def test_frame_init():
     """
     Different ways of providing the frame.
     """
+
     sc = SkyCoord(RA, DEC, frame='icrs')
     assert sc.frame.name == 'icrs'
 
     sc = SkyCoord(RA, DEC, frame=ICRS)
     assert sc.frame.name == 'icrs'
 
-    sc = SkyCoord(RA, DEC, 'icrs')
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sc = SkyCoord(RA, DEC, 'icrs')
     assert sc.frame.name == 'icrs'
+    assert len(w) == 1
+    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
 
-    sc = SkyCoord(RA, DEC, ICRS)
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sc = SkyCoord(RA, DEC, ICRS)
     assert sc.frame.name == 'icrs'
+    assert len(w) == 1
+    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
 
-    sc = SkyCoord('icrs', RA, DEC)
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sc = SkyCoord('icrs', RA, DEC)
     assert sc.frame.name == 'icrs'
+    assert len(w) == 1
+    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
 
-    sc = SkyCoord(ICRS, RA, DEC)
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sc = SkyCoord(ICRS, RA, DEC)
     assert sc.frame.name == 'icrs'
+    assert len(w) == 1
+    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
 
     sc = SkyCoord(sc)
     assert sc.frame.name == 'icrs'
@@ -289,7 +307,7 @@ def test_attr_inheritance():
     equinox should be inherited to the SkyCoord.  If there is a conflict
     then raise an exception.
     """
-    sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='icrs', unit='deg', equinox='J1999', obstime='J2001')
     sc2 = SkyCoord(sc)
     assert sc2.equinox == sc.equinox
     assert sc2.obstime == sc.obstime
@@ -304,7 +322,7 @@ def test_attr_inheritance():
     assert allclose(sc2.dec, sc.dec)
     assert allclose(sc2.distance, sc.distance)
 
-    sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='fk4', unit='deg', equinox='J1999', obstime='J2001')
     sc2 = SkyCoord(sc)
     assert sc2.equinox == sc.equinox
     assert sc2.obstime == sc.obstime
@@ -324,7 +342,7 @@ def test_attr_conflicts():
     """
     Check conflicts resolution between coordinate attributes and init kwargs.
     """
-    sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='icrs', unit='deg', equinox='J1999', obstime='J2001')
 
     # OK if attrs both specified but with identical values
     SkyCoord(sc, equinox='J1999', obstime='J2001')
@@ -338,7 +356,7 @@ def test_attr_conflicts():
     assert "Coordinate attribute 'obstime'=" in str(err)
 
     # Same game but with fk4 which has equinox and obstime frame attrs
-    sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='fk4', unit='deg', equinox='J1999', obstime='J2001')
 
     # OK if attrs both specified but with identical values
     SkyCoord(sc, equinox='J1999', obstime='J2001')
@@ -360,15 +378,15 @@ def test_frame_attr_getattr():
     from self.frame when that object has the relevant attribute, otherwise
     from self.
     """
-    sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='icrs', unit='deg', equinox='J1999', obstime='J2001')
     assert sc.equinox == 'J1999'  # Just the raw value (not validated)
     assert sc.obstime == 'J2001'
 
-    sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='fk4', unit='deg', equinox='J1999', obstime='J2001')
     assert sc.equinox == Time('J1999')  # Coming from the self.frame object
     assert sc.obstime == Time('J2001')
 
-    sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999')
+    sc = SkyCoord(1, 2, frame='fk4', unit='deg', equinox='J1999')
     assert sc.equinox == Time('J1999')
     assert sc.obstime == Time('J1999')
 
@@ -390,8 +408,8 @@ def test_to_string():
 
 
 def test_seps():
-    sc1 = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
-    sc2 = SkyCoord('icrs', 0 * u.deg, 2 * u.deg)
+    sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
+    sc2 = SkyCoord(0 * u.deg, 2 * u.deg, frame='icrs')
 
     sep = sc1.separation(sc2)
 
@@ -400,8 +418,8 @@ def test_seps():
     with pytest.raises(ValueError):
         sc1.separation_3d(sc2)
 
-    sc3 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
-    sc4 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=2 * u.kpc)
+    sc3 = SkyCoord(1 * u.deg, 1 * u.deg, distance=1 * u.kpc, frame='icrs')
+    sc4 = SkyCoord(1 * u.deg, 1 * u.deg, distance=2 * u.kpc, frame='icrs')
     sep3d = sc3.separation_3d(sc4)
 
     assert sep3d == 1 * u.kpc
@@ -410,13 +428,13 @@ def test_seps():
 def test_repr():
     # Repr tests must use exact floating point vals because Python 2.6
     # outputs values like 0.1 as 0.1000000000001.  No workaround found.
-    sc1 = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
-    sc2 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
+    sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
+    sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
 
     assert repr(sc1) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
     assert repr(sc2) == '<SkyCoord (ICRS): ra=1.0 deg, dec=1.0 deg, distance=1.0 kpc>'
 
-    sc3 = SkyCoord('icrs', 0.25 * u.deg, [1, 2.5] * u.deg)
+    sc3 = SkyCoord(0.25 * u.deg, [1, 2.5] * u.deg, frame='icrs')
     assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                          '    [(0.25, 1.0), (0.25, 2.5)]>')
 
@@ -428,9 +446,9 @@ def test_ops():
     """
     Tests miscellaneous operations like `len`
     """
-    sc = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
-    sc_arr = SkyCoord('icrs', 0 * u.deg, [1, 2] * u.deg)
-    sc_empty = SkyCoord('icrs', [] * u.deg, [] * u.deg)
+    sc = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
+    sc_arr = SkyCoord(0 * u.deg, [1, 2] * u.deg, frame='icrs')
+    sc_empty = SkyCoord([] * u.deg, [] * u.deg, frame='icrs')
 
     assert sc.isscalar
     assert not sc_arr.isscalar
