@@ -152,10 +152,8 @@ def join(left, right, keys=None, join_type='inner',
         right = Table(right)
 
     col_name_map = OrderedDict()
-    out_data = _join(left.as_array(), right.as_array(), keys, join_type,
-                             uniq_col_name, table_names, col_name_map)
-    # Create the output (Table or subclass of Table)
-    out = Table(out_data)
+    out = _join(left, right, keys, join_type,
+                uniq_col_name, table_names, col_name_map)
 
     # Merge the column and table meta data. Table subclasses might override
     # these methods for custom merge behavior.
@@ -360,7 +358,7 @@ def _counter(iterable):
 def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name}',
                      table_names=None):
     """
-    Find the column names mapping when merging the list of structured ndarrays
+    Find the column names mapping when merging the list of tables
     ``arrays``.  It is assumed that col names in ``common_names`` are to be
     merged into a single column while the rest will be uniquely represented
     in the output.  The args ``uniq_col_name`` and ``table_names`` specify
@@ -380,7 +378,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
 
     for idx, array in enumerate(arrays):
         table_name = table_names[idx]
-        for name in array.dtype.names:
+        for name in array.colnames:
             out_name = name
 
             if name in common_names:
@@ -393,7 +391,7 @@ def get_col_name_map(arrays, common_names, uniq_col_name='{col_name}_{table_name
                 # with the names in one of the other arrays, then rename
                 others = list(arrays)
                 others.pop(idx)
-                if any(name in other.dtype.names for other in others):
+                if any(name in other.colnames for other in others):
                     out_name = uniq_col_name.format(table_name=table_name, col_name=name)
                 col_name_list.append(out_name)
 
@@ -452,7 +450,7 @@ def get_descrs(arrays, col_name_map):
 
 def common_dtype(cols):
     """
-    Use numpy to find the common dtype for a list of structured ndarray columns.
+    Use numpy to find the common dtype for a list of columns.
 
     Only allow columns within the following fundamental numpy data types:
     np.bool_, np.object_, np.number, np.character, np.void
@@ -485,13 +483,13 @@ def _join(left, right, keys=None, join_type='inner',
          table_names=['1', '2'],
          col_name_map=None):
     """
-    Perform a join of the left and right numpy structured array on specified keys.
+    Perform a join of the left and right Tables on specified keys.
 
     Parameters
     ----------
-    left : structured array
+    left : Table
         Left side table in the join
-    right : structured array
+    right : Table
         Right side table in the join
     keys : str or list of str
         Name(s) of column(s) used to match rows of left and right tables.
@@ -508,6 +506,8 @@ def _join(left, right, keys=None, join_type='inner',
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
     """
+    from .table import Table
+
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
 
@@ -518,7 +518,7 @@ def _join(left, right, keys=None, join_type='inner',
 
     # If we have a single key, put it in a tuple
     if keys is None:
-        keys = tuple(name for name in left.dtype.names if name in right.dtype.names)
+        keys = tuple(name for name in left.colnames if name in right.colnames)
         if len(keys) == 0:
             raise TableMergeError('No keys in common between left and right tables')
     elif isinstance(keys, six.string_types):
@@ -527,23 +527,25 @@ def _join(left, right, keys=None, join_type='inner',
     # Check the key columns
     for arr, arr_label in ((left, 'Left'), (right, 'Right')):
         for name in keys:
-            if name not in arr.dtype.names:
+            if name not in arr.colnames:
                 raise TableMergeError('{0} table does not have key column {1!r}'
                                       .format(arr_label, name))
             if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
                 raise TableMergeError('{0} key column {1!r} has missing values'
                                       .format(arr_label, name))
 
-    # Make sure we work with ravelled arrays
-    left = left.ravel()
-    right = right.ravel()
     len_left, len_right = len(left), len(right)
+
+    if len_left == 0 or len_right == 0:
+        raise ValueError('input tables for join must both have at least one row')
+
 
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
     col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
     out_descrs = get_descrs([left, right], col_name_map)
 
-    # Make an array with just the key columns
+    # Make an array with just the key columns.  This uses a temporary
+    # structured array for efficiency.
     out_keys_dtype = [descr for descr in out_descrs if descr[0] in keys]
     out_keys = np.empty(len_left + len_right, dtype=out_keys_dtype)
     for key in keys:
@@ -563,26 +565,16 @@ def _join(left, right, keys=None, join_type='inner',
         _np_utils.join_inner(idxs, idx_sort, len_left, int_join_type)
 
     # If either of the inputs are masked then the output is masked
-    if any(isinstance(array, ma.MaskedArray) for array in (left, right)):
+    if left.masked or right.masked:
         masked = True
+    masked = bool(masked)
 
-    if masked:
-        out = ma.empty(n_out, dtype=out_descrs)
-    else:
-        out = np.empty(n_out, dtype=out_descrs)
+    out = Table(masked=masked)
 
-    # If either input array was zero length then stub a new version
-    # with one row.  In this case the corresponding left_out or right_out
-    # will contain all zeros with mask set to true.  This allows the
-    # take(*_out) method calls to work as expected.
-    if len(left) == 0:
-        left = left.__class__(1, dtype=left.dtype)
-    if len(right) == 0:
-        right = right.__class__(1, dtype=right.dtype)
+    for out_name, dtype, shape in out_descrs:
+        out[out_name] = out.ColumnClass(length=n_out, name=out_name, dtype=dtype, shape=shape)
 
-    for out_name, left_right_names in six.iteritems(col_name_map):
-        left_name, right_name = left_right_names
-
+        left_name, right_name = col_name_map[out_name]
         if left_name and right_name:  # this is a key which comes from left and right
             out[out_name] = np.where(right_mask,
                                      left[left_name].take(left_out),
@@ -594,9 +586,10 @@ def _join(left, right, keys=None, join_type='inner',
             name, array, array_out, array_mask = right_name, right, right_out, right_mask
         else:
             raise TableMergeError('Unexpected column names (maybe one is ""?)')
+
         out[out_name] = array[name].take(array_out, axis=0)
         if masked:
-            if isinstance(array, ma.MaskedArray):
+            if array.masked:
                 array_mask = array_mask | array[name].mask.take(array_out)
             out[out_name].mask = array_mask
 
@@ -609,7 +602,7 @@ def _join(left, right, keys=None, join_type='inner',
 
 def _vstack(arrays, join_type='inner', col_name_map=None):
     """
-    Stack structured arrays vertically (by rows)
+    Stack Tables vertically (by rows)
 
     A ``join_type`` of 'exact' (default) means that the arrays must all
     have exactly the same column names (though the order can vary).  If
@@ -643,7 +636,7 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
         return arrays[0]
 
     # Start by assuming an outer match where all names go to output
-    names = set(itertools.chain(*[arr.dtype.names for arr in arrays]))
+    names = set(itertools.chain(*[arr.colnames for arr in arrays]))
     col_name_map = get_col_name_map(arrays, names)
 
     # If require_match is True then the output must have exactly the same
@@ -689,7 +682,7 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
         idx0 = 0
         for name, array in zip(in_names, arrays):
             idx1 = idx0 + len(array)
-            if name in array.dtype.names:
+            if name in array.colnames:
                 out[out_name][idx0:idx1] = array[name]
             idx0 = idx1
 
