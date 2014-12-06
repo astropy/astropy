@@ -11,7 +11,7 @@ __all__ = ['fetch_msx_hdu',
            'fetch_bolocam_hdu',
            ]
 
-URL = 'http://astrofrog.github.io/wcsaxes-datasets/'
+URL = 'http://data.astropy.org/'
 
 
 def fetch_hdu(filename, cache=True):
@@ -29,20 +29,20 @@ def fetch_msx_hdu(cache=True):
     hdu : `~astropy.io.fits.ImageHDU`
         Image HDU
     """
-    return fetch_hdu('msx.fits', cache=cache)
+    return fetch_hdu('galactic_center/gc_msx_e.fits', cache=cache)
 
 
 def fetch_rosat_hdu(cache=True):
-    return fetch_hdu('rosat.fits', cache=cache)
+    return fetch_hdu('allsky/allsky_rosat.fits', cache=cache)
 
 
 def fetch_twoMASS_k_hdu(cache=True):
-    return fetch_hdu('2MASS_k.fits', cache=cache)
+    return fetch_hdu('galactic_center/gc_2mass_k.fits', cache=cache)
 
 
 def fetch_l1448_co_hdu(cache=True):
-    return fetch_hdu('L1448_13CO_subset.fits', cache=cache)
+    return fetch_hdu('l1448/l1448_13co.fits', cache=cache)
 
 
 def fetch_bolocam_hdu(cache=True):
-    return fetch_hdu('bolocam_v2.0.fits', cache=cache)
+    return fetch_hdu('galactic_center/gc_bolocam_gps.fits', cache=cache)
