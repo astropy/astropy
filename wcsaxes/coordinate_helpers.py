@@ -380,7 +380,7 @@ class CoordinateHelper(object):
                     p.set_clip_path(frame_patch)
                     p.draw(renderer)
 
-            else:
+            elif self._grid is not None:
 
                 for line in self._grid.collections:
                     line.set(**self.grid_lines_kwargs)
@@ -663,7 +663,8 @@ class CoordinateHelper(object):
         tick_world_coordinates_values = tick_world_coordinates.value
 
         if self.coord_type == 'longitude':
-            # Find biggest gap in tick_world_coordinates and wrap in  middle
+
+            # Find biggest gap in tick_world_coordinates and wrap in middle
             # For now just assume spacing is equal, so any mid-point will do
             mid = 0.5 * (tick_world_coordinates_values[0] + tick_world_coordinates_values[1])
             field = wrap_angle_at(field, mid)
@@ -676,4 +677,7 @@ class CoordinateHelper(object):
             field[:-1, 1:][reset] = np.nan
             field[1:, 1:][reset] = np.nan
 
-        self._grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)
+        if len(tick_world_coordinates_values) > 0:
+            self._grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)
+        else:
+            self._grid = None
