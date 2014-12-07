@@ -2790,7 +2790,9 @@ naxis kwarg.
             from wcsaxes import WCSAxes
         except ImportError:
             raise ImportError("Using WCS instances as Matplotlib projections "
-                              "requires the WCSAxes package to be installed")
+                              "requires the WCSAxes package to be installed. "
+                              "See http://wcsaxes.readthedocs.org for more "
+                              "details.")
         else:
             return WCSAxes, {'wcs': self}
 
