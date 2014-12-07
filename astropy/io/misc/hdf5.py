@@ -37,10 +37,10 @@ def _find_all_structured_arrays(handle):
 
 
 class HDF5TableIO(BaseIO):
-    
+
     _format_name = 'hdf5'
     _supported_class = Table
-    
+
     @staticmethod
     def identify(origin, filepath, fileobj, *args, **kwargs):
 
