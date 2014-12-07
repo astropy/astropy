@@ -1,7 +1,7 @@
 {
   "astropy.table.table.Table": {
     "ascii": {
-      "identify": true,
+      "identify": false,
       "io_class": "ASCIITableIO",
       "module": "astropy.io.ascii.connect",
       "read": true,
@@ -36,7 +36,7 @@
       "write": true
     },
     "ascii.csv": {
-      "identify": false,
+      "identify": true,
       "io_class": "AsciiCsvTableIO",
       "module": "astropy.io.ascii.connect",
       "read": true,
@@ -113,7 +113,7 @@
       "write": true
     },
     "ascii.html": {
-      "identify": false,
+      "identify": true,
       "io_class": "AsciiHtmlTableIO",
       "module": "astropy.io.ascii.connect",
       "read": true,
@@ -127,7 +127,7 @@
       "write": true
     },
     "ascii.latex": {
-      "identify": false,
+      "identify": true,
       "io_class": "AsciiLatexTableIO",
       "module": "astropy.io.ascii.connect",
       "read": true,
@@ -141,7 +141,7 @@
       "write": true
     },
     "ascii.rdb": {
-      "identify": false,
+      "identify": true,
       "io_class": "AsciiRdbTableIO",
       "module": "astropy.io.ascii.connect",
       "read": true,

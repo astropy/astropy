@@ -144,7 +144,7 @@ class FITSTableIO(BaseIO):
             hdulist = fits_open(input)
 
             try:
-                return read_table_fits(hdulist, hdu=hdu)
+                return FITSTableIO.read(hdulist, hdu=hdu)
             finally:
                 hdulist.close()
 

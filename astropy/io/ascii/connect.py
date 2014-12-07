@@ -42,11 +42,6 @@ class ASCIITableIO(BaseIO):
         from .ui import write
         return write(table, filename, **kwargs)
 
-    @staticmethod
-    def identify(origin, filepath, fileobj, *args, **kwargs):
-        # TODO - this is currently incorrect
-        return filepath is not None and filepath.endswith("TODO")
-
 # Format-specific classes
 
 BUILTIN_ASCII_FORMATS = ['ascii.aastex',
@@ -73,10 +68,10 @@ BUILTIN_ASCII_FORMATS = ['ascii.aastex',
                          'ascii.tab']
 
 EXTENSIONS = {
-    'ascii.csv': ['csv'],
-    'ascii.rdb': ['rdb'],
-    'ascii.html': ['html'],
-    'ascii.tex': ['tex']
+    'ascii.csv': ('csv'),
+    'ascii.rdb': ('rdb'),
+    'ascii.html': ('html'),
+    'ascii.latex': ('tex')
 }
 
 ASCII_CLASSES = {}
@@ -109,8 +104,11 @@ for ascii_format in BUILTIN_ASCII_FORMATS:
     }
 
     if ascii_format in EXTENSIONS:
-        attributes["_extensions"] = EXTENSIONS[ascii_format]
+        attributes["_extensions"] = EXTENSIONS[ascii_format],
+        attributes["identify"] = identify
 
     globals()[name] = type(name, (BaseIO,), attributes)
 
 del read, write, identify, name
+
+# TODO: add back deprecated formats?

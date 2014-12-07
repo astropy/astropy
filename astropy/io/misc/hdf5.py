@@ -115,7 +115,7 @@ class HDF5TableIO(BaseIO):
                                   " are present, reading in first available"
                                   " table (path={0})".format(path),
                                   AstropyUserWarning)
-                    return read_table_hdf5(input, path=path)
+                    return HDF5TableIO.read(input, path=path)
 
         elif not isinstance(input, h5py.highlevel.Dataset):
 
@@ -134,7 +134,7 @@ class HDF5TableIO(BaseIO):
             f = h5py.File(input, 'r')
 
             try:
-                return read_table_hdf5(f, path=path)
+                return HDF5TableIO.read(f, path=path)
             finally:
                 f.close()
 
@@ -220,9 +220,9 @@ class HDF5TableIO(BaseIO):
 
             # Recursively call the write function
             try:
-                return write_table_hdf5(table, f, path=path,
-                                        compression=compression, append=append,
-                                        overwrite=overwrite)
+                return HDF5TableIO.write(table, f, path=path,
+                                         compression=compression, append=append,
+                                         overwrite=overwrite)
             finally:
                 f.close()
 

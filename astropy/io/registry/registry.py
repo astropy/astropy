@@ -295,7 +295,7 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
         if fmt["io_class"] is None:
             identifier = fmt["identifier"]
         else:
-            identifier = fmt["io_class"].identify
+            identifier = fmt["io_class"]().identify
         if identifier(origin, path, fileobj, *args, **kwargs):
             valid_formats.append(fmt_name)
 
@@ -334,7 +334,7 @@ def get_reader(data_format, data_class):
         if fmt['io_class'] is None:  # backward compatibility
             return fmt['reader']
         else:
-            return fmt['io_class'].read
+            return fmt['io_class']().read
 
 
 def get_writer(data_format, data_class):
@@ -359,7 +359,7 @@ def get_writer(data_format, data_class):
         if fmt['io_class'] is None:  # backward compatibility
             return fmt['writer']
         else:
-            return fmt['io_class'].write
+            return fmt['io_class']().write
 
 
 def read(cls, *args, **kwargs):
@@ -515,6 +515,7 @@ class BaseIO(object):
 
 
 # Backward-compatibility functions
+# TODO: add deprecation warnings
 
 
 def _get_flexible_io_dict(data_class, data_format):
