@@ -421,7 +421,7 @@ class Table(object):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype,
                                        copy=copy)
-            elif self._is_table_compatible(col):
+            elif self._is_mixin_column(col):
                 name = getattr(col, 'name', name)
                 if copy:
                     if hasattr(col, 'copy'):
@@ -594,15 +594,32 @@ class Table(object):
     if six.PY2:
         __str__ = __bytes__
 
-    def _is_table_compatible(self, obj):
+    @property
+    def _has_mixin_columns(self):
         """
-        Determine if `obj` meets the protocol for a Table column.
+        Determine if table has any columns that are mixins (are not
+        Column subclasses)
         """
-        if isinstance(obj, Quantity):
-            ok = isinstance(self, QTable)
+        return any(not isinstance(col, BaseColumn) for col in self.columns.values())
+
+    def _is_mixin_column(self, col):
+        """
+        Determine if ``col`` meets the protocol for a mixin Table column for
+        this table.  By definition a BaseColumn instance is not a mixin.
+
+        If ``col`` is a string then it refers to a column name in this table.
+        """
+        if isinstance(col, six.string_types):
+            col = self[col]
+
+        if isinstance(col, BaseColumn):
+            is_mixin = False
+        elif isinstance(col, Quantity):
+            is_mixin = isinstance(self, QTable)
         else:
-            ok = getattr(obj, '_astropy_table_compatible', False)
-        return ok
+            is_mixin = getattr(col, '_astropy_mixin_column', False)
+
+        return is_mixin
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
                show_unit=None, show_dtype=False):
@@ -854,7 +871,7 @@ class Table(object):
             if isinstance(value, BaseColumn):
                 new_column = value.copy(copy_data=False)
                 new_column.name = name
-            elif self._is_table_compatible(value):
+            elif self._is_mixin_column(value):
                 new_column = value
                 new_column.name = name
             elif len(self) == 0:

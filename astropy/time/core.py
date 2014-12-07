@@ -154,7 +154,7 @@ class Time(object):
     __array_priority__ = 20000
 
     # Declare that SkyCoord can be used as a Table columm
-    _astropy_table_compatible = True
+    _astropy_mixin_column = True
     _table_format = None
 
     def __new__(cls, val, val2=None, format=None, scale=None,
