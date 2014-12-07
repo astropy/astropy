@@ -2766,6 +2766,17 @@ naxis kwarg.
 
         return pccd
 
+    def _as_mpl_axes(self):
+
+        # This functionality relies on the WCSAxes functionality for now
+
+        try:
+            from wcsaxes import WCSAxes
+        except ImportError:
+            raise ImportError("Using WCS instances as Matplotlib projections requires the WCSAxes package to be installed")
+        else:
+            return WCSAxes, {'wcs': self}
+
 
 def __WCS_unpickle__(cls, dct, fits_data):
     """
