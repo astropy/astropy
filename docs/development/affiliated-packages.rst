@@ -29,13 +29,22 @@ done properly this can be easier to update in future since it simply involves
 pulling from the latest version of the `package-template`_ repository and then
 merging in the changes (and resolving conflicts).
 
-.. note:: Everywhere below that the text ``<packagename>`` is shown, replace it
-          with the name of your particular package.
-
 .. note:: The instructions below assume you are using git for version control,
           as is used by the Astropy repository. If this is not the case,
           hopefully it will be clear from context what to do with your
           particular VCS.
+
+Everywhere below that the text ``<packagename>`` is shown, replace it with the
+name of your particular package. In fact, you can do this automatically by
+entering your package name in the box below:
+
+.. raw:: html
+
+    <form id="myform">
+      Package name: <input type="text" name="packagename">
+      <button>Update package name</button>
+    </form>
+    <br>
 
 Managing the template files manually
 ====================================
@@ -465,3 +474,21 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 .. _package-template: https://github.com/astropy/package-template
 .. _astropy-helpers: https://github.com/astropy/astropy-helpers
 .. _TEMPLATE_CHANGES.md: https://github.com/astropy/package-template/blob/master/TEMPLATE_CHANGES.md
+
+.. raw:: html
+
+    <script>
+
+    function get_url_vars() {
+        var vars = {};
+        var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+            vars[key] = value;
+        });
+        return vars;
+    }
+
+    packagename = get_url_vars()["packagename"]
+    if(packagename) {
+      document.body.innerHTML = document.body.innerHTML.replace(/&lt;packagename&gt;/g, packagename);
+    }
+    </script>
