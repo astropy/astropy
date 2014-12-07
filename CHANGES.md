@@ -1,4 +1,4 @@
-0.3 (unreleased)
+0.3 (2014-12-07)
 ----------------
 
 - Fixed a bug that caused axis labels to be incorrectly placed when hiding tick 
