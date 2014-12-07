@@ -380,7 +380,7 @@ class CoordinateHelper(object):
                     p.set_clip_path(frame_patch)
                     p.draw(renderer)
 
-            else:
+            elif self._grid is not None:
 
                 for line in self._grid.collections:
                     line.set(**self.grid_lines_kwargs)
@@ -411,7 +411,7 @@ class CoordinateHelper(object):
         coord_range = self.parent_map.get_coord_range()
 
         # First find the ticks we want to show
-        tick_world_coordinates, self._fl_spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        tick_world_coordinates, self._fl_spacing = self.locator(*coord_range[self.coord_index])
         if self.ticks.get_display_minor_ticks():
             minor_ticks_w_coordinates = self._formatter_locator.minor_locator(self._fl_spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
 
@@ -493,7 +493,7 @@ class CoordinateHelper(object):
                                     w2, tick_angle, ticks='minor')
 
         # format tick labels, add to scene
-        text = self._formatter_locator.formatter(self.lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing)
+        text = self.formatter(self.lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing)
         for kwargs, txt in zip(self.lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 
@@ -604,7 +604,7 @@ class CoordinateHelper(object):
 
         coord_range = self.parent_map.get_coord_range()
 
-        tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
         tick_world_coordinates_values = tick_world_coordinates.value
 
         n_coord = len(tick_world_coordinates_values)
@@ -655,7 +655,7 @@ class CoordinateHelper(object):
 
         coord_range = self.parent_map.get_coord_range()
 
-        tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
 
         field = field[self.coord_index]
 
@@ -663,7 +663,8 @@ class CoordinateHelper(object):
         tick_world_coordinates_values = tick_world_coordinates.value
 
         if self.coord_type == 'longitude':
-            # Find biggest gap in tick_world_coordinates and wrap in  middle
+
+            # Find biggest gap in tick_world_coordinates and wrap in middle
             # For now just assume spacing is equal, so any mid-point will do
             mid = 0.5 * (tick_world_coordinates_values[0] + tick_world_coordinates_values[1])
             field = wrap_angle_at(field, mid)
@@ -676,4 +677,7 @@ class CoordinateHelper(object):
             field[:-1, 1:][reset] = np.nan
             field[1:, 1:][reset] = np.nan
 
-        self._grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)
+        if len(tick_world_coordinates_values) > 0:
+            self._grid = self.parent_axes.contour(X, Y, field.transpose(), levels=tick_world_coordinates_values)
+        else:
+            self._grid = None
