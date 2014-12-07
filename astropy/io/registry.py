@@ -21,7 +21,7 @@ __all__ = ['identify_format', 'get_reader', 'get_writer', 'read', 'write',
 __doctest_skip__ = ['register_identifier']
 
 # Read in registry of built-in formats
-with open(os.path.join(os.path.relpath(os.path.dirname(__file__)), "registry.json")) as f_reg:
+with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "registry.json")) as f_reg:
     _registry = json.load(f_reg)
 
 
