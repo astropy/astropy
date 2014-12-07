@@ -487,18 +487,21 @@ def common_dtype(cols):
     Only allow columns within the following fundamental numpy data types:
     np.bool_, np.object_, np.number, np.character, np.void
     """
+    def dtype(col):
+        return getattr(col, 'dtype', np.dtype('O'))
+
     np_types = (np.bool_, np.object_, np.number, np.character, np.void)
-    uniq_types = set(tuple(issubclass(col.dtype.type, np_type) for np_type in np_types)
+    uniq_types = set(tuple(issubclass(dtype(col).type, np_type) for np_type in np_types)
                      for col in cols)
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
-        incompat_types = [col.dtype.name for col in cols]
+        incompat_types = [col.name for col in cols]
         tme = TableMergeError('Columns have incompatible types {0}'
                               .format(incompat_types))
         tme._incompat_types = incompat_types
         raise tme
 
-    arrs = [np.empty(1, dtype=col.dtype) for col in cols]
+    arrs = [np.empty(1, dtype=dtype(col)) for col in cols]
 
     # For string-type arrays need to explicitly fill in non-zero
     # values or the final arr_common = .. step is unpredictable.
@@ -625,25 +628,19 @@ def _join(left, right, keys=None, join_type='inner',
             raise TableMergeError('Unexpected column names (maybe one is ""?)')
 
         # Finally add the joined column to the output table.
-        out[out_name] = array[name].take(array_out, axis=0)
+        out[out_name] = array[name][array_out]
 
         # If the output table is masked then set the output column masking
         # accordingly.  Check for columns that don't support a mask attribute.
         if masked:
-            # If input column has mask then OR that mask with the mask from
-            # join process.
-            if hasattr(array[name], 'mask'):
+            if array.masked:
                 array_mask = array_mask | array[name].mask.take(array_out)
-
-            # If the output column has a mask attribute then set to array_mask.
-            # If no mask then check if any elements are actually masked, and if
-            # so raise an error.  This is probably a mixin column.
-            if hasattr(out[out_name], 'mask'):
-                out[out_name].mask = array_mask
-            elif np.any(array_mask):
-                raise ValueError("cannot mask elements of '{0}' column since "
-                                 "{1} type does not support masking"
-                                 .format(name, array[name].__class__.__name__))
+            try:
+                out[out_name].mask[:] = array_mask
+            except ValueError:
+                raise ValueError("join requires masking column '{0}' but column"
+                                 " type {1} does not support masking"
+                                 .format(out_name, out[out_name].__class__.__name__))
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, collections.Mapping):

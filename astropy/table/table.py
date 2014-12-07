@@ -22,7 +22,7 @@ from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from . import groups
 from .pprint import TableFormatter
-from .column import BaseColumn, Column, MaskedColumn, _auto_names
+from .column import BaseColumn, Column, MaskedColumn, _auto_names, FalseArray
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 
@@ -499,7 +499,7 @@ class Table(object):
         # Make sure that all Column-based objects have class self.ColumnClass
         newcols = []
         for col in cols:
-            if (not self.masked and isinstance(self, QTable)
+            if (isinstance(self, QTable)
                     and isinstance(col, Column) and hasattr(col, 'unit')
                     and col.unit is not None):
                 try:
@@ -552,6 +552,8 @@ class Table(object):
 
         for col in cols:
             col.parent_table = table
+            if table.masked and not hasattr(col, 'mask'):
+                col.mask = FalseArray(col.shape)
 
         table.columns = columns
 
@@ -857,7 +859,7 @@ class Table(object):
             NewColumn = self.MaskedColumn if self.masked else self.Column
 
             # Make sure value has a dtype.  If not make it into a numpy array
-            if not hasattr(value, 'dtype'):
+            if not hasattr(value, 'dtype') and not self._is_mixin_column(value):
                 value = np.asarray(value)
 
             # Make new column and assign the value.  If the table currently

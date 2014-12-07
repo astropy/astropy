@@ -867,6 +867,10 @@ class Time(object):
     def __len__(self):
         return len(self.jd1)
 
+    @property
+    def shape(self):
+        return self.jd1.shape
+
     def __sub__(self, other):
         if not isinstance(other, Time):
             try:

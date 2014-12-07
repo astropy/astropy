@@ -45,6 +45,24 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
+class FalseArray(np.ndarray):
+    def __new__(cls, shape):
+        obj = np.zeros(shape, dtype=np.bool).view(cls)
+        return obj
+
+    def __setitem__(self, item, val):
+        val = np.asarray(val)
+        if np.any(val):
+            raise ValueError('Cannot set any element of {0} class to True'
+                             .format(self.__class__.__name__))
+
+    def __setslice__(self, start, stop, val):
+        val = np.asarray(val)
+        if np.any(val):
+            raise ValueError('Cannot set any element of {0} class to True'
+                             .format(self.__class__.__name__))
+
+
 class BaseColumn(np.ndarray):
 
     meta = MetaData()
