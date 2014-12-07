@@ -444,8 +444,8 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
         git commit -m "Back to development: <next_version>"
 
-#. Check out the release commit with ``git checkout v<version>``. Run ``git
-    clean -fxd`` to remove any non-committed files, then either release with::
+#. Check out the release commit with ``git checkout v<version>``. Run
+   ``git clean -fxd`` to remove any non-committed files, then either release with::
 
         python setup.py register sdist --format=gztar upload
 
