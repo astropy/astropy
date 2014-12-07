@@ -16,11 +16,12 @@ import collections
 
 import numpy as np
 
+from ..utils.exceptions import AstropyUserWarning
 from ..utils import OrderedDict, metadata
 
 from . import np_utils
 
-__all__ = ['join', 'hstack', 'vstack']
+__all__ = ['join', 'hstack', 'vstack', 'unique']
 
 
 def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
@@ -29,7 +30,7 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
     Merge column meta data for the ``out`` table.
 
     This merges column meta, which includes attributes unit, format,
-    and description, as well as the actual `meta` atttribute.  It is
+    and description, as well as the actual `meta` attribute.  It is
     assumed that the ``out`` table was created by merging ``tables``.
     The ``col_name_map`` provides the mapping from col name in ``out``
     back to the original name (which may be different).
@@ -296,3 +297,45 @@ def hstack(tables, join_type='outer',
     _merge_table_meta(out, tables, metadata_conflicts=metadata_conflicts)
 
     return out
+
+
+def unique(input_table, keys=None, mask_warning=True):
+    """
+    Returns the unique rows of a table.
+
+    Parameters
+    ----------
+
+    input_table : `~astropy.table.Table` object or a value that
+    will initialize a `~astropy.table.Table` object
+        Input table.
+    keys : str or list of str
+        Name(s) of column(s) used to unique rows.
+        Default is to use all columns.
+    mask_warning : boolean
+        If `True` emits warning when ``keys`` contain masked value column(s).
+        Default is `True`.
+
+    Returns
+    -------
+    unique_table : `~astropy.table.Table` object
+        Table containing only the unique rays of ``input_table``.
+
+    """
+
+    if keys is None:
+        keys = input_table.colnames
+
+    if input_table.masked is True:
+        for i, key in enumerate(keys):
+            if np.sum(input_table[key].mask) > 0:
+                if mask_warning is True:
+                    warnings.warn("Cannot unique a masked key column, "
+                                  "removing column '{0}' from keys".format(key),
+                                  AstropyUserWarning)
+                del keys[i]
+
+    grouped_table = input_table.group_by(keys)
+    unique_table = grouped_table[grouped_table.groups.indices[:-1]]
+
+    return unique_table
