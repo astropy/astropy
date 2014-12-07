@@ -14,18 +14,22 @@ as well as how to update your package to the latest version of the package
 template.
 
 There are two main ways you can use this template layout to create a new
-package: the first is to simply copy over the files you need manually, and
-the other is to start from a fork of the package-template repository. There
-are advantages and disadvantages to both methods. In the first case your
-repository history will be clean and you will only include the files you
-really need. However, when updating you will need to make sure you update all
-the files manually. In the second case, the history of your package will be
-cluttered with all the commits from the `package-template`_ repository, but
-if done properly this can be easier to update in future since it simply
-involves pulling from the latest version of the `package-template`_
-repository and then merging in the changes (and resolving conflicts).
+package:
 
-.. note:: Everywhere below that the text ``packagename`` is shown, replace it
+#. simply copy over the files you need manually
+
+#. start from a fork of the package-template repository
+
+There are advantages and disadvantages to both methods. In the first case your
+repository history will be clean and you will only include the files you really
+need. However, when updating you will need to make sure you update all the
+files manually. In the second case, the history of your package will be
+cluttered with all the commits from the `package-template`_ repository, but if
+done properly this can be easier to update in future since it simply involves
+pulling from the latest version of the `package-template`_ repository and then
+merging in the changes (and resolving conflicts).
+
+.. note:: Everywhere below that the text ``<packagename>`` is shown, replace it
           with the name of your particular package.
 
 .. note:: The instructions below assume you are using git for version control,
@@ -39,10 +43,13 @@ Managing the template files manually
 Starting a new package
 ----------------------
 
-#. Create an empty repository::
+#. Clone the `package-template`_ package so that we can have access to the
+   files, but do not go inside it - instead, create another empty repository
+   into which we will copy the required files::
 
-    mkdir packagename
-    cd packagename
+    git clone http://github.com/astropy/package-template.git template
+    mkdir <packagename>
+    cd <packagename>
     git init
 
 #. The `package-template`_ infrastructure relies on the `astropy-helpers`_
@@ -52,37 +59,61 @@ Starting a new package
     git submodule add http://github.com/astropy/astropy-helpers.git astropy_helpers
 
 #. Copy over the following files from the package template (these define the
-   bare minimum of what is needed) and add these to the repository::
+   bare minimum of what is needed) and add them to the repository::
 
-    MANIFEST.in  # specifies which files to include in a tar file release
-    ah_bootstrap.py  # this is used by ``setup.py`` to use the astropy-helpers
-    ez_setup.py`  # used for ``setup.py`` to be able to get setuptools on-the-fly
-    setup.cfg  # contains details about your package - edit this!
-    setup.py  # edit the VERSION variable, the rest can be kept as-is
+    # MANIFEST.in specifies which files to include in a tar file release
+    cp ../template/MANIFEST.in .
+
+    # ah_bootstrap.py is used by setup.py to use the astropy-helpers
+    cp ../template/ah_bootstrap.py .
+
+    # ez_setup.py is used by setup.py to be able to get setuptools on-the-fly
+    cp ../template/ez_setup.py .
+
+    # setup.cfg contains details about your package - edit it after copying!
+    # Note: it is important that the packagename variable matches the name you
+    #       are using for your package.
+    cp ../template/setup.cfg .
+
+    # edit the VERSION variable, the rest can be kept as-is
+    cp ../template/setup.py .
+
+    git add MANIFEST.in ah_bootstrap.py ez_setup.py setup.cfg setup.py
 
 #. Next, you can create a directory for your package's source code, which will
    usually also be called the same name as your package. In this directory
    you can copy over the following files::
 
-    packagename/__init__.py
-    packagename/_astropy_init.py
+    mkdir <packagename>
+
+    cp ../template/packagename/__init__.py <packagename>/
+    cp ../template/packagename/_astropy_init.py <packagename>/
+
+    # edit <packagename>/__init__.py to add a docstring and license line
+
+    git add <packagename>/__init__.py
+    git add <pacakgename>/_astropy_init.py
 
    The main purpose of the ``_astropy_init.py`` file is to set up the
    ``test()`` command at the root of your package so that you can do
    ``packagename.test()``. This file is imported into ``__init__``.
 
 #. In order to benefit from the pytest plugins in Astropy, you should also
-   copy over::
+   copy over the ``conftest.py`` file to your repository::
 
-    packagename/conftest.py
+    cp ../template/packagename/conftest.py <packagename>/
 
-   to your repository. You can also
-   uncomment the line ``enable_deprecations_as_exceptions()`` if you want
-   deprecation warnings to make tests fail.
+    git add <packagename>/conftest.py
 
-#. If you are interested in accurate coverage test results, copy over::
+   You can also uncomment the line ``enable_deprecations_as_exceptions()`` if
+   you want deprecation warnings to make tests fail.
 
-    packagename/tests/coveragerc
+#. If you are interested in accurate coverage test results, copy over the
+   ``coveragerc`` file to your repository::
+
+    mkdir <packagename>/tests/
+    cp ../template/packagename/tests/coveragerc <packagename>/tests
+    git add <packagename>/tests/coveragerc
 
    to your repository. When you run tests with::
 
@@ -94,19 +125,26 @@ Starting a new package
    package name defined in ``setup.cfg``.
 
 #. To set up the infrastructure to build the documentation, copy over the
-   following files::
+   following files into a new directory called ``docs``::
 
-    docs/Makefile
-    docs/conf.py
-    docs/make.bat
+    mkdir docs
+    cp ../template/docs/Makefile docs/
+    cp ../template/docs/conf.py docs/
+    cp ../template/docs/make.bat docs/
+    git add docs/Makefile docs/conf.py docs/make.bat
 
    you can then create the first page of the docs as ``index.rst``.
 
-#. Finally, if you plan on using Travis for continuous integration, copy over::
+#. Finally, if you plan on using Travis for continuous integration, copy over
+   the ``.travis.yml`` file and edit it::
 
-    .travis.yml
+    cp ../template/.travis.yml .
+    # edit .travis.yml
+    git add .travis.yml
 
-   to your repository and read through it to check if anything needs changing.
+#. Now you are ready to make your first commit::
+
+    git commit -m "Initial layout for package"
 
 Updating to the latest template files
 -------------------------------------
