@@ -279,6 +279,8 @@ class HTML(core.BaseReader):
         * cssfiles : list of css files to include when writing table.
 
         * js : js script to include in the body when writing table.
+
+        * table_class : css class for the table
     """
 
     _format_name = 'html'
@@ -348,7 +350,12 @@ class HTML(core.BaseReader):
                     html_table_id = self.html['table_id']
                 else:
                     html_table_id = None
-                with w.tag('table', id=html_table_id):
+                if 'table_class' in self.html:
+                    html_table_class = self.html['table_class']
+                    attrib={"class":html_table_class}
+                else:
+                    attrib={}
+                with w.tag('table', id=html_table_id, attrib=attrib):
                     with w.tag('thead'):
                         with w.tag('tr'):
                             for col in cols:
