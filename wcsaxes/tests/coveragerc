@@ -11,6 +11,7 @@ omit =
    {packagename}/*/tests/*
    {packagename}/*/*/tests/*
    {packagename}/version*
+   {packagename}/wcs_utils.py
 
 [report]
 exclude_lines =
