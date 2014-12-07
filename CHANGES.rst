@@ -49,6 +49,10 @@ New Features
   - Increase default numerical precision of ``z_at_value`` following
     the accurate by default, fast by explicit request model [#3074].
 
+  - Distance functions that take a single (redshift) input now 
+    broadcast like numpy ufuncs.  So, passing an arbitrarily shaped
+    array of inputs will produce an output of the same shape. [#3178]
+
 - ``astropy.erfa``
 
   - ``astropy.erfa`` was added as a new subpackage wrapping the functionality
