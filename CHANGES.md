@@ -21,6 +21,14 @@
 - When converting celestial coordinates, don't compute a new representation if
   the old one was already spherical or unit spherical. [#125]
 
+- WCS instances from ``wcsaxes.wcs_wrapper`` can now be used to instantiate
+  Matplotlib plots with the ``projection=`` keyword. [#136]
+
+- Example datasets are now downloaded from http://data.astropy.org. [#144]
+
+- Registering new frame identifiers is now done with the same API as in
+  astropy.wcs.utils, and is handled in wcsaxes.wcs_utils. [#145]
+
 0.2 (2014-08-11)
 ----------------
 
