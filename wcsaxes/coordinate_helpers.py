@@ -411,7 +411,7 @@ class CoordinateHelper(object):
         coord_range = self.parent_map.get_coord_range()
 
         # First find the ticks we want to show
-        tick_world_coordinates, self._fl_spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        tick_world_coordinates, self._fl_spacing = self.locator(*coord_range[self.coord_index])
         if self.ticks.get_display_minor_ticks():
             minor_ticks_w_coordinates = self._formatter_locator.minor_locator(self._fl_spacing, self.get_minor_frequency(), *coord_range[self.coord_index])
 
@@ -493,7 +493,7 @@ class CoordinateHelper(object):
                                     w2, tick_angle, ticks='minor')
 
         # format tick labels, add to scene
-        text = self._formatter_locator.formatter(self.lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing)
+        text = self.formatter(self.lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing)
         for kwargs, txt in zip(self.lblinfo, text):
             self.ticklabels.add(text=txt, **kwargs)
 
@@ -604,7 +604,7 @@ class CoordinateHelper(object):
 
         coord_range = self.parent_map.get_coord_range()
 
-        tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
         tick_world_coordinates_values = tick_world_coordinates.value
 
         n_coord = len(tick_world_coordinates_values)
@@ -655,7 +655,7 @@ class CoordinateHelper(object):
 
         coord_range = self.parent_map.get_coord_range()
 
-        tick_world_coordinates, spacing = self._formatter_locator.locator(*coord_range[self.coord_index])
+        tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
 
         field = field[self.coord_index]
 
