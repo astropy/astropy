@@ -8,7 +8,8 @@ from astropy.wcs import WCS
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
-from .utils import get_coordinate_frame, get_coord_meta
+from .utils import get_coord_meta
+from .wcs_utils import wcs_to_celestial_frame
 from .frame import RectangularFrame
 import numpy as np
 
@@ -242,8 +243,8 @@ class WCSAxes(Axes):
 
         if isinstance(frame, WCS):
 
-            coord_in = get_coordinate_frame(self.wcs)
-            coord_out = get_coordinate_frame(frame)
+            coord_in = wcs_to_celestial_frame(self.wcs)
+            coord_out = wcs_to_celestial_frame(frame)
 
             if coord_in == coord_out:
 
