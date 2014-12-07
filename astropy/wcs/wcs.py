@@ -2767,24 +2767,27 @@ naxis kwarg.
         return pccd
 
     def _as_mpl_axes(self):
+        """
+        Compatibility hook for Matplotlib and WCSAxes.
 
-        # This functionality requires the WCSAxes package to work. The reason
-        # we include this here is that it allows users to use WCSAxes without
-        # having to explicitly import WCSAxes, which means that if in future we
-        # merge WCSAxes into the Astropy core package, the API will remain the
-        # same. With this method, one can do:
-        #
-        #     from astropy.wcs import WCS
-        #     import matplotlib.pyplot as plt
-        #
-        #     wcs = WCS('filename.fits')
-        #
-        #     fig = plt.figure()
-        #     ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
-        #     ...
-        #
-        # and this will generate a plot with the correct WCS coordinates on the
-        # axes. See http://wcsaxes.readthedocs.org for more information.
+        This functionality requires the WCSAxes package to work. The reason
+        we include this here is that it allows users to use WCSAxes without
+        having to explicitly import WCSAxes, which means that if in future we
+        merge WCSAxes into the Astropy core package, the API will remain the
+        same. With this method, one can do:
+
+            from astropy.wcs import WCS
+            import matplotlib.pyplot as plt
+
+            wcs = WCS('filename.fits')
+
+            fig = plt.figure()
+            ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
+            ...
+
+        and this will generate a plot with the correct WCS coordinates on the
+        axes. See http://wcsaxes.readthedocs.org for more information.
+        """
 
         try:
             from wcsaxes import WCSAxes
