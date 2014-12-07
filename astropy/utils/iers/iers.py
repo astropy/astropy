@@ -285,7 +285,7 @@ class IERS_A(IERS):
         """
         if readme is None:
             readme = IERS_A_README
-        iers_a = Table.read(file, format='cds', readme=readme)
+        iers_a = Table.read(file, format='ascii.cds', readme=readme)
         # IERS A has some rows at the end that hold nothing but dates & MJD
         # presumably to be filled later.  Exclude those a priori -- there
         # should at least be a predicted UT1-UTC!
@@ -340,7 +340,7 @@ class IERS_B(IERS):
 
         # can this be done more elegantly, initialising directly, without
         # passing a Table to the Table initialiser?
-        iers_b = Table.read(file, format='cds', readme=readme,
+        iers_b = Table.read(file, format='ascii.cds', readme=readme,
                             data_start=data_start)
         return cls(iers_b)
 
