@@ -2,9 +2,6 @@
 
 # TEST_UNICODE_LITERALS
 
-from distutils import version
-import warnings
-
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
@@ -13,7 +10,7 @@ from ...utils import OrderedDict, metadata
 from ...utils.metadata import MergeConflictError
 from .. import np_utils
 from ... import table
-from ... import log
+
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)

@@ -4,12 +4,9 @@
 
 import operator
 
-from distutils import version
-
 import numpy as np
 
-from ...tests.helper import pytest, catch_warnings, assert_follows_unicode_guidelines
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...tests.helper import pytest, assert_follows_unicode_guidelines
 from ... import table
 from ... import units as u
 from ...extern import six
@@ -18,9 +15,6 @@ NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
 
 
 class TestColumn():
-
-    def test_1(self, Column):
-        Column(name='a')
 
     def test_subclass(self, Column):
         c = Column(name='a')
