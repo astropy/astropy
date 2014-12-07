@@ -177,4 +177,4 @@ class JSViewerTableIO(BaseIO):
         htmldict['jsfiles'] = jsv.jquery_urls
         htmldict['js'] =  jsv.html_js(table_id=table_id)
 
-        table.write(filename, format='html', htmldict=htmldict)
+        table.write(filename, format='ascii.html', htmldict=htmldict)
