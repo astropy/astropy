@@ -111,6 +111,6 @@ for ascii_format in BUILTIN_ASCII_FORMATS:
     if ascii_format in EXTENSIONS:
         attributes["_extensions"] = EXTENSIONS[ascii_format]
 
-    ASCII_CLASSES[ascii_format] = type(name, (BaseIO,), attributes)
+    globals()[name] = type(name, (BaseIO,), attributes)
 
 del read, write, identify, name

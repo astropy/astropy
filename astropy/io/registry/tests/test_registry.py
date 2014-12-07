@@ -11,12 +11,13 @@ from copy import copy
 
 import numpy as np
 
-from ...tests.helper import pytest
-from ..registry import _readers, _writers, _identifiers
+from ....tests.helper import pytest
+from ....table import Table
+from ....extern.six.moves import zip
+from ....extern.six import StringIO
+
+from ..registry import _registry
 from .. import registry as io_registry
-from ...table import Table
-from ...extern.six.moves import zip
-from ...extern.six import StringIO
 
 
 class TestData(object):
@@ -25,24 +26,15 @@ class TestData(object):
 
 
 def setup_function(function):
-    # By setting _builtin_registered to True here and clearing the
-    # dictionaries, we ensure that only the readers/writers registered in the
-    # tests here are ever in the list of readers/writers.
-    io_registry._readers.clear()
-    io_registry._writers.clear()
-    io_registry._identifiers.clear()
-    io_registry._builtin_registered = True
+    # Reset the registry to a clean state
+    io_registry._registry.clear()
+    io_registry._load_builtins()
 
 
 def teardown_function(function):
-    # We can reset the registry to a pristine state by emptying all the
-    # dictionaries and setting the _builtin_registered flag to False which
-    # will force reloading of built-in readers/writers next time they are
-    # needed.
-    io_registry._readers.clear()
-    io_registry._writers.clear()
-    io_registry._identifiers.clear()
-    io_registry._builtin_registered = False
+    # Reset the registry to a clean state
+    io_registry._registry.clear()
+    io_registry._load_builtins()
 
 
 def empty_reader(*args, **kwargs):
@@ -148,7 +140,7 @@ def test_read_noformat_arbitrary():
 
 def test_read_noformat_arbitrary_file(tmpdir):
     """Tests that all built-in reader functions can accept arbitrary files"""
-    io_registry._builtin_registered = False
+
     testfile = str(tmpdir.join('foo.example'))
     with open(testfile, 'w') as f:
         f.write("Hello world")
@@ -160,7 +152,6 @@ def test_read_noformat_arbitrary_file(tmpdir):
 
 def test_write_noformat_arbitrary():
     """Test that all built-in writer functions can accept arbitary input"""
-    io_registry._builtin_registered = False
     with pytest.raises(Exception) as exc:
         TestData().write(object())
     assert exc.value.args[0].startswith("Format could not be identified.")
@@ -168,7 +159,6 @@ def test_write_noformat_arbitrary():
 
 def test_write_noformat_arbitrary_file(tmpdir):
     """Tests that all built-in writer functions can accept arbitrary files"""
-    io_registry._builtin_registered = False
     testfile = str(tmpdir.join('foo.example'))
 
     with pytest.raises(Exception) as exc:

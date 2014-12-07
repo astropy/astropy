@@ -7,22 +7,29 @@ import os
 import re
 import sys
 import json
-from functools import partial
 
 import numpy as np
 
-from ..utils import OrderedDict
-from ..extern import six
-from ..extern.six.moves import zip
+from ...utils import OrderedDict
+from ...extern import six
+from ...extern.six.moves import zip
 
 __all__ = ['identify_format', 'get_reader', 'get_writer', 'read', 'write',
            'get_formats', 'BaseIO']
 
 __doctest_skip__ = ['register_identifier']
 
+
+_registry = OrderedDict()
+
+def _load_builtins():
+    global _registry
+    with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "registry.json")) as f_reg:
+        _registry.update(json.load(f_reg))
+
 # Read in registry of built-in formats
-with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "registry.json")) as f_reg:
-    _registry = json.load(f_reg)
+_load_builtins()
+
 
 
 def _get_object_by_string(path_to_function):
@@ -50,7 +57,8 @@ def _get_object_name(object_class):
         return object_class.__name__
 
 
-def get_registry_subset(data_class, identify=None, read=None, write=None, data_format=None, resolve=False):
+def get_registry_subset(data_class, identify=None, read=None, write=None,
+                        data_format=None, resolve=False):
     """
     Return a subset of the registry.
 
@@ -90,7 +98,7 @@ def get_registry_subset(data_class, identify=None, read=None, write=None, data_f
 
     for dc in _registry:
 
-        if data_class is data_class:
+        if dc is data_class:
             continue  # we already did this
 
         if not issubclass(data_class, dc):
@@ -182,7 +190,7 @@ def get_formats(data_class=None):
         Table of available I/O formats
     """
 
-    from ..table import Table
+    from ...table import Table
 
     rows = []
 
@@ -272,9 +280,6 @@ def _update__doc__(data_class, readwrite):
         class_readwrite_func.__func__.__doc__ = '\n'.join(lines)
 
 
-# TODO: add backward-compatibility with register_reader/writer_identifier
-
-
 def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
 
     # Initialize list of valid formats
@@ -286,7 +291,11 @@ def identify_format(origin, data_class_required, path, fileobj, args, kwargs):
 
     # We now loop over the supported formats and try all matching identifiers
     for fmt_name in registry_subset:
-        identifier = registry_subset[fmt_name]["io_class"].identify
+        fmt = registry_subset[fmt_name]
+        if fmt["io_class"] is None:
+            identifier = fmt["identifier"]
+        else:
+            identifier = fmt["io_class"].identify
         if identifier(origin, path, fileobj, *args, **kwargs):
             valid_formats.append(fmt_name)
 
@@ -320,7 +329,12 @@ def get_reader(data_format, data_class):
 
     else:
 
-        return registry_subset[data_format]['io_class'].read
+        fmt = registry_subset[data_format]
+
+        if fmt['io_class'] is None:  # backward compatibility
+            return fmt['reader']
+        else:
+            return fmt['io_class'].read
 
 
 def get_writer(data_format, data_class):
@@ -340,7 +354,12 @@ def get_writer(data_format, data_class):
 
     else:
 
-        return registry_subset[data_format]['io_class'].read
+        fmt = registry_subset[data_format]
+
+        if fmt['io_class'] is None:  # backward compatibility
+            return fmt['writer']
+        else:
+            return fmt['io_class'].write
 
 
 def read(cls, *args, **kwargs):
@@ -363,7 +382,7 @@ def read(cls, *args, **kwargs):
 
             if len(args):
                 if isinstance(args[0], six.string_types):
-                    from ..utils.data import get_readable_fileobj
+                    from ...utils.data import get_readable_fileobj
                     path = args[0]
                     try:
                         ctx = get_readable_fileobj(args[0], encoding='binary')
@@ -447,7 +466,7 @@ def _get_valid_format(mode, cls, path, fileobj, args, kwargs):
     elif len(valid_formats) > 1:
         raise Exception(
             "Format is ambiguous - options are: {0}".format(
-                ', '.join(sorted(valid_formats, key=lambda tup: tup[0]))))
+                ', '.join(sorted(valid_formats))))
 
     return valid_formats[0]
 
@@ -492,3 +511,78 @@ class BaseIO(object):
 
     _format_name = None
     _supported_class = None
+    _flexible = False
+
+
+# Backward-compatibility functions
+
+
+def _get_flexible_io_dict(data_class, data_format):
+
+    resolve_data_classes()
+
+    if data_class not in _registry:
+        _registry[data_class] = {}
+
+    if data_format in _registry[data_class]:
+        if _registry[data_class][data_format]["io_class"] is not None:
+            raise Exception("I/O class already defined for format "
+                            "'{0}' and class '{1}'".format(data_format, data_class.__name__))
+        io_dict = _registry[data_class][data_format]
+    else:
+        io_dict = {}
+        io_dict['module'] = None
+        io_dict['io_class'] = None
+        io_dict['read'] = False
+        io_dict['reader'] = None
+        io_dict['write'] = False
+        io_dict['writer'] = None
+        io_dict['identify'] = False
+        io_dict['identifier'] = None
+        _registry[data_class][data_format] = io_dict
+
+    return io_dict
+
+
+def register_reader(data_format, data_class, function, force=False):
+    """
+    Register a reader function (deprecated).
+    """
+
+    io_dict = _get_flexible_io_dict(data_class, data_format)
+
+    if io_dict['reader'] is None or force:
+        io_dict['read'] = True
+        io_dict['reader'] = function
+    else:
+        raise Exception("Reader for format '{0}' and class '{1}' is "
+                        "already defined".format(data_format, data_class.__name__))
+
+
+def register_writer(data_format, data_class, function, force=False):
+    """
+    Register a writer function (deprecated).
+    """
+
+    io_dict = _get_flexible_io_dict(data_class, data_format)
+
+    if io_dict['writer'] is None or force:
+        io_dict['write'] = True
+        io_dict['writer'] = function
+    else:
+        raise Exception("Writer for format '{0}' and class '{1}' is "
+                        "already defined".format(data_format, data_class.__name__))
+
+def register_identifier(data_format, data_class, function, force=False):
+    """
+    Register an identifier function (deprecated).
+    """
+
+    io_dict = _get_flexible_io_dict(data_class, data_format)
+
+    if io_dict['identifier'] is None or force:
+        io_dict['identify'] = True
+        io_dict['identifier'] = function
+    else:
+        raise Exception("Identifier for format '{0}' and class '{1}' is "
+                        "already defined".format(data_format, data_class.__name__))
