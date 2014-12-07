@@ -173,26 +173,37 @@ class TestBasic(BaseImageTests):
                           projection=WCS(self.cube_header),
                           slices=(50, 'y', 'x'), aspect='equal')
 
-        ax.coords[1].grid(grid_type='contours')
-        ax.coords[2].grid(grid_type='contours')
-
         ax.set_xlim(-0.5, 52.5)
         ax.set_ylim(-0.5, 106.5)
 
         ax.coords[2].set_axislabel('Velocity m/s')
-
-        ax.coords[1].grid(grid_type='contours', color='red')
-        ax.coords[2].grid(grid_type='contours', color='red')
 
         ax.coords[1].set_ticks(spacing=0.2 * u.deg, width=1,
                                exclude_overlapping=True)
         ax.coords[2].set_ticks(spacing=400 * u.m / u.s, width=1,
                                exclude_overlapping=True)
 
-        ax.coords[1].grid(grid_type='contours', linestyle='solid')
-        ax.coords[2].grid(grid_type='contours', linestyle='solid')
+        ax.coords[1].grid(grid_type='contours', color='red', linestyle='solid')
+        ax.coords[2].grid(grid_type='contours', color='red', linestyle='solid')
 
         self.generate_or_test(generate, fig, 'cube_slice_image.png')
+
+    # Test for cube slicing. Here we test with longitude and latitude since
+    # there is some longitude-specific code in _update_grid_contour.
+    def test_cube_slice_image_lonlat(self, generate):
+
+        fig = plt.figure()
+        ax = fig.add_axes([0.1, 0.1, 0.8, 0.8],
+                          projection=WCS(self.cube_header),
+                          slices=('x', 'y', 50), aspect='equal')
+
+        ax.set_xlim(-0.5, 106.5)
+        ax.set_ylim(-0.5, 106.5)
+
+        ax.coords[0].grid(grid_type='contours', color='blue', linestyle='solid')
+        ax.coords[1].grid(grid_type='contours', color='red', linestyle='solid')
+
+        self.generate_or_test(generate, fig, 'cube_slice_image_lonlat.png')
 
     # Test to see if changing the units of axis works
     def test_changed_axis_units(self, generate):
