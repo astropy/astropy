@@ -34,7 +34,7 @@ New Features
     argument. [#3063]
 
   - ``SkyCoord`` now has a ``guess_from_table`` method that can be used to
-    quickly create ``SkyCoord`` objects from an ``astropy.table.Table`` 
+    quickly create ``SkyCoord`` objects from an ``astropy.table.Table``
     object. [#2951]
 
 - ``astropy.cosmology``
@@ -99,7 +99,7 @@ New Features
     useful for building UIs for models and fitting). [#2725]
 
   - A dict-like ``meta`` member was added to ``Model``. it is to be used to
-    store any optional information which is relevant to a project and is not 
+    store any optional information which is relevant to a project and is not
     in the standard ``Model`` class. [#2189]
 
 - ``astropy.nddata``
@@ -121,6 +121,8 @@ New Features
   - A ``quantity`` property and ``to`` method were added to ``Table``
     columns that allow the column values to be easily converted to
     ``astropy.units.Quantity`` objects. [#2950]
+
+  - Add ``unique`` convenience method to table. [#3185]
 
 - ``astropy.time``
 
@@ -425,7 +427,7 @@ Other Changes and Additions
 - The code base is now fully Python 2 and 3 compatible and no longer requires
   2to3. [#2033]
 
-- `funcsigs <https://pypi.python.org/pypi/funcsigs>`_ is included in 
+- `funcsigs <https://pypi.python.org/pypi/funcsigs>`_ is included in
   utils.compat, but defaults to the inspect module components where available
   (3.3+) [#3151].
 
