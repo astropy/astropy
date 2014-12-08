@@ -465,13 +465,17 @@ class ProgressBar(six.Iterator):
         for item in ProgressBar(items):
             item.process()
     """
-    def __init__(self, total_or_items, interactive=False, file=None):
+    def __init__(self, total_or_items, ipython_widget=False, file=None):
         """
         Parameters
         ----------
         total_or_items : int or sequence
             If an int, the number of increments in the process being
             tracked.  If a sequence, the items to iterate over.
+
+        ipython_widget : bool, optional
+            If `True`, the progress bar will display as an IPython
+            notebook widget.
 
         file : writable file-like object, optional
             The file to write the progress bar to.  Defaults to
@@ -481,8 +485,8 @@ class ProgressBar(six.Iterator):
             completely silent.
         """
 
-        if interactive:
-            # Import only if interactive, i.e., widget in IPython
+        if ipython_widget:
+            # Import only if ipython_widget, i.e., widget in IPython
             # notebook
             from IPython.html import widgets
             from IPython.display import display
@@ -490,7 +494,7 @@ class ProgressBar(six.Iterator):
         if file is None:
             file = _get_stdout()
 
-        if not isatty(file) and not interactive:
+        if not isatty(file) and not ipython_widget:
             self.update = self._silent_update
             self._silent = True
         else:
@@ -510,18 +514,17 @@ class ProgressBar(six.Iterator):
         self._file = file
         self._start_time = time.time()
         self._human_total = human_file_size(self._total)
-        self._interactive = interactive
+        self._ipython_widget = ipython_widget
 
 
-        if not interactive:
+        self._signal_set = False
+        if not ipython_widget:
             self._should_handle_resize = (
                 _CAN_RESIZE_TERMINAL and self._file.isatty())
             self._handle_resize()
             if self._should_handle_resize:
                 signal.signal(signal.SIGWINCH, self._handle_resize)
                 self._signal_set = True
-            else:
-                self._signal_set = False
 
         self.update(0)
 
@@ -566,7 +569,7 @@ class ProgressBar(six.Iterator):
         self._current_value = value
 
         # Choose the appropriate environment
-        if self._interactive:
+        if self._ipython_widget:
             self._update_ipython_widget(value)
         else:
             self._update_console(value)
@@ -625,7 +628,7 @@ class ProgressBar(six.Iterator):
         # Create and display an empty progress bar widget,
         # if none exists.
         if not hasattr(self, '_widget'):
-            # Import only if interactive, i.e., widget in iPython NB
+            # Import only if an IPython widget, i.e., widget in iPython NB
             from IPython.html import widgets
             from IPython.display import display
 
