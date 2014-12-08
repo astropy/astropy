@@ -1033,8 +1033,8 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return self._hubble_distance * quad(self.inv_efunc, 0, z)[0]
 
-        out = [quad(self.inv_efunc, 0, redshift)[0] for redshift in z]
-        return self._hubble_distance * np.array(out)
+        f = np.vectorize(lambda red: quad(self.inv_efunc, 0, red)[0])
+        return self._hubble_distance * f(z)
 
     def comoving_transverse_distance(self, z):
         """ Comoving transverse distance in Mpc at a given redshift.
@@ -1220,8 +1220,8 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return quad(self._xfunc, 0, z)[0]
 
-        out = np.array([quad(self._xfunc, 0, redshift)[0] for redshift in z])
-        return out
+        f = np.vectorize(lambda red: quad(self._xfunc, 0, red)[0])
+        return f(z)
 
     def distmod(self, z):
         """ Distance modulus at redshift ``z``.
