@@ -394,7 +394,7 @@ def test_validate_with_2_wcses():
 
 def test_all_world2pix(fname=None, ext=0,
                        tolerance=1.0e-4, origin=0,
-                       random_npts=250000, mag=2,
+                       random_npts=25000,
                        adaptive=False, maxiter=20,
                        detect_divergence=True):
     """Test all_world2pix, iterative inverse of all_pix2world"""
@@ -414,24 +414,22 @@ def test_all_world2pix(fname=None, ext=0,
     crpix = w.wcs.crpix
     ncoord = crpix.shape[0]
 
-    # Assume that CRPIX is at the center of the image and that the image
-    # has an even number of pixels along each axis:
-    naxesi = list(2*crpix.astype(np.int) - origin)
+    # Assume that CRPIX is at the center of the image and that the image has
+    # a power-of-2 number of pixels along each axis. Only use the central
+    # 1/64 for this testing purpose:
+    naxesi_l = list((7./16*crpix).astype(np.int))
+    naxesi_u = list((9./16*crpix).astype(np.int))
 
     # Generate integer indices of pixels (image grid):
     img_pix = np.dstack([i.flatten() for i in
-                         np.meshgrid(*map(range, naxesi))])[0]
+                         np.meshgrid(*map(range, naxesi_l, naxesi_u))])[0]
 
     # Generage random data (in image coordinates):
-    startstate = np.random.get_state()
-    np.random.seed(123456789)
-    rnd_pix = np.random.rand(random_npts, ncoord)
-    np.random.set_state(startstate)
+    with NumpyRNGContext(123456789):
+        rnd_pix = np.random.rand(random_npts, ncoord)
 
-    # Scale random data to cover the entire image (or more, if 'mag' > 1).
-    # Assume that CRPIX is at the center of the image and that the image
-    # has an even number of pixels along each axis:
-    mwidth = 2 * mag * (crpix-origin)
+    # Scale random data to cover the central part of the image
+    mwidth = 2 * (crpix * 1./8)
     rnd_pix = crpix - 0.5*mwidth + (mwidth-1) * rnd_pix
 
     # Reference pixel coordinates in image coordinate system (CS):
