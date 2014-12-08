@@ -34,7 +34,7 @@ New Features
     argument. [#3063]
 
   - ``SkyCoord`` now has a ``guess_from_table`` method that can be used to
-    quickly create ``SkyCoord`` objects from an ``astropy.table.Table`` 
+    quickly create ``SkyCoord`` objects from an ``astropy.table.Table``
     object. [#2951]
 
 - ``astropy.cosmology``
@@ -49,7 +49,7 @@ New Features
   - Increase default numerical precision of ``z_at_value`` following
     the accurate by default, fast by explicit request model [#3074].
 
-  - Distance functions that take a single (redshift) input now 
+  - Distance functions that take a single (redshift) input now
     broadcast like numpy ufuncs.  So, passing an arbitrarily shaped
     array of inputs will produce an output of the same shape. [#3178]
 
@@ -103,7 +103,7 @@ New Features
     useful for building UIs for models and fitting). [#2725]
 
   - A dict-like ``meta`` member was added to ``Model``. it is to be used to
-    store any optional information which is relevant to a project and is not 
+    store any optional information which is relevant to a project and is not
     in the standard ``Model`` class. [#2189]
 
 - ``astropy.nddata``
@@ -315,8 +315,12 @@ API Changes
     which should be preferred over referencing individual submodules of
     ``astropy.utils``.  [#2857]
 
-    - The ProgressBar.iterate class method (deprecated in v0.3) has now been
-      removed. [#2990]
+  - The ProgressBar.iterate class method (deprecated in v0.3) has now been
+    removed. [#2990]
+
+  - Updated ``astropy/utils/console.py`` ProgressBar() module to
+    display output to IPython notebook with the addition of an
+    ``interactive`` kwarg. [#2658] [#2789]
 
 - ``astropy.vo``
 
@@ -429,7 +433,7 @@ Other Changes and Additions
 - The code base is now fully Python 2 and 3 compatible and no longer requires
   2to3. [#2033]
 
-- `funcsigs <https://pypi.python.org/pypi/funcsigs>`_ is included in 
+- `funcsigs <https://pypi.python.org/pypi/funcsigs>`_ is included in
   utils.compat, but defaults to the inspect module components where available
   (3.3+) [#3151].
 
