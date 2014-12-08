@@ -12,6 +12,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip as izip
+from ..utils.decorators import deprecated
 
 from itertools import chain
 import collections
@@ -163,6 +164,7 @@ def common_dtype(cols):
     return arr_common.dtype.str
 
 
+@deprecated('1.0')
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'],
@@ -303,6 +305,7 @@ def _check_for_sequence_of_structured_arrays(arrays):
         raise ValueError('`arrays` arg must include at least one array')
 
 
+@deprecated('1.0')
 def vstack(arrays, join_type='inner', col_name_map=None):
     """
     Stack structured arrays vertically (by rows)
@@ -412,6 +415,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     return out
 
 
+@deprecated('1.0')
 def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
            table_names=None, col_name_map=None):
     """
@@ -515,6 +519,7 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     return out
 
 
+@deprecated('1.0')
 def get_groups(table, keys):
     """
     Get groups for numpy structured array on specified keys.
