@@ -16,7 +16,6 @@ import collections
 
 import numpy as np
 
-from ..utils.exceptions import AstropyUserWarning
 from ..utils import OrderedDict, metadata
 
 from . import np_utils
@@ -299,7 +298,7 @@ def hstack(tables, join_type='outer',
     return out
 
 
-def unique(input_table, keys=None, mask_warning=True):
+def unique(input_table, keys=None, silent=False):
     """
     Returns the unique rows of a table.
 
@@ -312,9 +311,11 @@ def unique(input_table, keys=None, mask_warning=True):
     keys : str or list of str
         Name(s) of column(s) used to unique rows.
         Default is to use all columns.
-    mask_warning : boolean
-        If `True` emits warning when ``keys`` contain masked value column(s).
-        Default is `True`.
+    silent : boolean
+        If `True` masked value column(s) are silently removed from
+        ``keys``. If `False` an exception is raised when ``keys`` contains
+        masked value column(s).
+        Default is `False`.
 
     Returns
     -------
@@ -326,14 +327,19 @@ def unique(input_table, keys=None, mask_warning=True):
     if keys is None:
         keys = input_table.colnames
 
-    if input_table.masked is True:
+    if input_table.masked:
+        if isinstance(keys, six.string_types):
+            keys = [keys, ]
         for i, key in enumerate(keys):
-            if np.sum(input_table[key].mask) > 0:
-                if mask_warning is True:
-                    warnings.warn("Cannot unique a masked key column, "
-                                  "removing column '{0}' from keys".format(key),
-                                  AstropyUserWarning)
+            if np.any(input_table[key].mask):
+                if not silent:
+                    raise ValueError("Cannot unique masked value key columns, "
+                                     "remove column '{0}' from keys and rerun "
+                                     "unique.".format(key))
                 del keys[i]
+        if len(keys) == 0:
+            raise ValueError("No column remained in ``keys``, unique cannot "
+                             "work with masked value key columns.")
 
     grouped_table = input_table.group_by(keys)
     unique_table = grouped_table[grouped_table.groups.indices[:-1]]

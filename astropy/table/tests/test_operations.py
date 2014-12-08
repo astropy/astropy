@@ -791,12 +791,17 @@ def test_unique():
     t1_m = table.Table(t1, masked=True)
     t1_m['a'].mask[1] = True
 
-    from ...utils.exceptions import AstropyUserWarning
-    with catch_warnings(Warning) as warning_lines:
+    with pytest.raises(ValueError) as e:
         t1_mu = table.unique(t1_m)
-        assert warning_lines[0].category == AstropyUserWarning
-        assert t1_mu.pformat() == [' a   b   c   d ',
-                                   '--- --- --- ---',
-                                   '  0   a 0.0   4',
-                                   '  2   b 7.0   0',
-                                   ' --   c 3.0   5']
+    assert e.value.args[0] == ("Cannot unique masked value key columns, remove "
+                               "column 'a' from keys and rerun unique.")
+
+    t1_mu = table.unique(t1_m, silent=True)
+    assert t1_mu.pformat() == [' a   b   c   d ',
+                               '--- --- --- ---',
+                               '  0   a 0.0   4',
+                               '  2   b 7.0   0',
+                               ' --   c 3.0   5']
+
+    with pytest.raises(ValueError) as e:
+        t1_mu = table.unique(t1_m, silent=True, keys='a')
