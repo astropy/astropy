@@ -193,6 +193,11 @@ def test_pix2world():
     assert  np.all(np.abs(result-answer) < close_enough)
 
 
+def test_load_fits_path():
+    fits_name = get_pkg_data_filename('data/sip.fits')
+    w = wcs.WCS(fits_name)
+
+
 def test_dict_init():
     """
     Test that WCS can be initialized with a dict-like object
