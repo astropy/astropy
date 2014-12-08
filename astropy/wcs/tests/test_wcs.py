@@ -9,6 +9,7 @@ from ...extern import six
 import io
 import os
 import warnings
+from datetime import datetime
 
 import numpy as np
 from numpy.testing import (
@@ -21,12 +22,6 @@ from ...utils.data import (
 from ...utils.misc import NumpyRNGContext
 from ...io import fits
 
-try:
-    import scipy  # pylint: disable=W0611
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
 
 # test_maps() is a generator
 def test_maps():
@@ -90,10 +85,8 @@ def test_spectra():
         header = get_pkg_data_contents(
             os.path.join("spectra", filename), encoding='binary')
 
-        wcsobj = wcs.WCS(header)
-
-        all = wcs.find_all_wcs(header)
-        assert len(all) == 9
+        all_wcs = wcs.find_all_wcs(header)
+        assert len(all_wcs) == 9
 
     # get the list of the hdr files that we want to test
     hdr_file_list = list(get_pkg_data_filenames("spectra", "*.hdr"))
@@ -198,11 +191,6 @@ def test_pix2world():
                        [ 202.39406436,   47.1775272 ]])
 
     assert  np.all(np.abs(result-answer) < close_enough)
-
-
-def test_load_fits_path():
-    fits = get_pkg_data_filename('data/sip.fits')
-    w = wcs.WCS(fits)
 
 
 def test_dict_init():
@@ -324,10 +312,12 @@ def test_invalid_shape():
     xy = np.random.random((2, 3))
     with pytest.raises(ValueError) as exc:
         xy2 = w.wcs_pix2world(xy, 1)
+    assert exc.value.args[0] == 'When providing two arguments, the array must be of shape (N, 2)'
 
     xy = np.random.random((2, 1))
     with pytest.raises(ValueError) as exc:
         xy2 = w.wcs_pix2world(xy, 1)
+    assert exc.value.args[0] == 'When providing two arguments, the array must be of shape (N, 2)'
 
 
 def test_warning_about_defunct_keywords():
@@ -366,7 +356,11 @@ def test_to_header_string():
 
 def test_to_fits():
     w = wcs.WCS()
-    w.to_fits()
+    header_string = w.to_header()
+    wfits = w.to_fits()
+    assert isinstance(wfits, fits.HDUList)
+    assert isinstance(wfits[0], fits.PrimaryHDU)
+    assert header_string == wfits[0].header[-8:]
 
 
 @raises(wcs.InvalidTransformError)
@@ -404,16 +398,12 @@ def test_all_world2pix(fname=None, ext=0,
                        adaptive=False, maxiter=20,
                        detect_divergence=True):
     """Test all_world2pix, iterative inverse of all_pix2world"""
-    from numpy import random
-    from datetime import datetime
-    from astropy.io import fits
-    from os import path
 
     # Open test FITS file:
     if fname is None:
         fname = get_pkg_data_filename('data/j94f05bgq_flt.fits')
         ext = ('SCI',1)
-    if not path.isfile(fname):
+    if not os.path.isfile(fname):
         raise IOError("Input file '{:s}' to 'test_all_world2pix' not found."
                       .format(fname))
     h = fits.open(fname)
@@ -433,10 +423,10 @@ def test_all_world2pix(fname=None, ext=0,
                          np.meshgrid(*map(range, naxesi))])[0]
 
     # Generage random data (in image coordinates):
-    startstate = random.get_state()
-    random.seed(123456789)
+    startstate = np.random.get_state()
+    np.random.seed(123456789)
     rnd_pix = np.random.rand(random_npts, ncoord)
-    random.set_state(startstate)
+    np.random.set_state(startstate)
 
     # Scale random data to cover the entire image (or more, if 'mag' > 1).
     # Assume that CRPIX is at the center of the image and that the image
@@ -561,7 +551,6 @@ def test_validate_faulty_wcs():
     """
     From github issue #2053
     """
-    from ...io import fits
     h = fits.Header()
     # Illegal WCS:
     h['RADESYSA'] = 'ICRS'
