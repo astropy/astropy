@@ -2325,9 +2325,9 @@ class QuantityInput(object):
             @u.quantity_input
             def myfunction(myangle: u.arcsec):
                 return myangle**2
-        
+
         Using equivalencies:
-        
+
             import astropy.units as u
             @u.quantity_input(myenergy=u.eV, equivalencies=u.spectral())
             def myfunction(myenergy):
@@ -2354,14 +2354,16 @@ class QuantityInput(object):
         def wrapper(*func_args, **func_kwargs):
             # Iterate through the parameters of the function and extract the
             # decorator kwarg or the annotation.
-            for var, parameter in wrapped_signature.parameters.items():
+#            for var, parameter in wrapped_signature.parameters.items():
+            parameters = wrapped_signature.parameters  # Added this for brevity's sake
+            for loc, (var, parameter) in enumerate(parameters.items()):
                 if var in self.f_kwargs:
                     target_unit = self.f_kwargs[var]
                 else:
                     target_unit = parameter.annotation
 
                 # Find the location of the var in the arguments to the function.
-                loc = tuple(wrapped_signature.parameters.values()).index(parameter)
+#                loc = tuple(wrapped_signature.parameters.values()).index(parameter)
 
                 # loc is an integer which includes the kwargs, so we check if
                 # we are talking about an arg or a kwarg.
@@ -2389,18 +2391,21 @@ class QuantityInput(object):
                         if not equivalent:
                             raise UnitsError("Argument '{0}' to function '{1}'"
                                              " must be in units convertable to"
-                                             " '{2}'.".format(var, 
+                                             " '{2}'.".format(var,
                                                      wrapped_function.__name__,
                                                      target_unit.to_string()))
 
-                    # AttributeError is raised if there is no `to` method.
-                    # i.e. not something that quacks like a Quantity.
                     except AttributeError:
-                        raise TypeError("Argument '{0}' to function '{1}' must"
-                                        " be an astropy Quantity object".format(
-                                         var, wrapped_function.__name__))
+                        if hasattr(arg, "unit"):
+                            error_msg = "a 'unit' attribute without an 'is_equivalent' method"
+                        else:
+                            error_msg = "no 'unit' attribute"
+                        raise TypeError("Argument '{0}' to function has '{1}' {2}. "
+                              "You may want to pass in an astropy Quantity instead."
+                                 .format(var, wrapped_function.__name__, error_msg))
 
-            return wrapped_function(*func_args, **func_kwargs)
+            with add_enabled_equivalencies(self.equivalencies):
+                return wrapped_function(*func_args, **func_kwargs)
 
         return wrapper
 

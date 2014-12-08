@@ -113,7 +113,7 @@ def test_not_quantity3():
 
     with pytest.raises(TypeError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, 100)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be an astropy Quantity object"
+    assert str(e.value) == "Argument 'solary' to function has 'myfunc_args' no 'unit' attribute. You may want to pass in an astropy Quantity instead."
     """
 
 
@@ -209,7 +209,7 @@ def test_kwarg_not_quantity3():
 
     with pytest.raises(TypeError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100)
-    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be an astropy Quantity object"
+    assert str(e.value) == "Argument 'solary' to function has 'myfunc_args' no 'unit' attribute. You may want to pass in an astropy Quantity instead."
     """
 
 
