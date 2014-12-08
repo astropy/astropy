@@ -482,7 +482,8 @@ class ProgressBar(six.Iterator):
         """
 
         if interactive:
-            # Import only if interactive, i.e., widget in iPython NB
+            # Import only if interactive, i.e., widget in IPython
+            # notebook
             from IPython.html import widgets
             from IPython.display import display
 
@@ -566,7 +567,7 @@ class ProgressBar(six.Iterator):
 
         # Choose the appropriate environment
         if self._interactive:
-            self._update_interactive(value)
+            self._update_ipython_widget(value)
         else:
             self._update_console(value)
 
@@ -613,12 +614,12 @@ class ProgressBar(six.Iterator):
             write(human_time(t))
         self._file.flush()
 
-    def _update_interactive(self, value=None):
+    def _update_ipython_widget(self, value=None):
         """
         Update the progress bar to the given value (out of a total
         given to the contructor).
 
-        This method is for use in the iPython notebook 2+.
+        This method is for use in the IPython notebook 2+.
         """
 
         # Create and display an empty progress bar widget,
