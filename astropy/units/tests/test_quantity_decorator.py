@@ -146,3 +146,24 @@ def test_kwarg_default():
         return solarx, solary
 
     solarx, solary = myfunc_args(1*u.arcsec)
+
+    assert isinstance(solarx, u.Quantity)
+    assert isinstance(solary, u.Quantity)
+
+    assert solarx.unit == u.arcsec
+    assert solary.unit == u.deg
+
+def test_no_equivalent():
+    class test_unit(object):
+        pass
+    class test_quantity(object):
+        unit = test_unit()
+
+    @u.quantity_input(solarx=u.arcsec)
+    def myfunc_args(solarx):
+        return solarx
+
+    with pytest.raises(TypeError) as e:
+        solarx, solary = myfunc_args(test_quantity())
+
+        assert str(e.value) == "Argument 'solarx' to function has 'myfunc_args' a 'unit' attribute without an 'is_equivalent' method. You may want to pass in an astropy Quantity instead."

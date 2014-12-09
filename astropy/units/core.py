@@ -2309,6 +2309,9 @@ class QuantityInput(object):
         If the argument has no unit attribute, i.e. it is not a Quantity object, a
         `~exceptions.ValueError` will be raised.
 
+        Where an equivalency is specified in the decorator, the function will be
+        executed with that equivalency in force.
+
         Examples
         --------
 
@@ -2329,7 +2332,7 @@ class QuantityInput(object):
         Using equivalencies::
 
             import astropy.units as u
-            @u.quantity_input(myenergy=u.eV, equivalencies=u.spectral())
+            @u.quantity_input(myenergy=u.eV, equivalencies=u.mass_energy())
             def myfunction(myenergy):
                 return myenergy**2
 
@@ -2342,28 +2345,31 @@ class QuantityInput(object):
 
     def __init__(self, func=None, **kwargs):
         self.equivalencies = kwargs.pop('equivalencies', [])
-        self.f_kwargs = kwargs
+        self.decorator_kwargs = kwargs
 
     def __call__(self, wrapped_function):
 
-        # Update the annotations to include any kwargs passed to the decorator
+        # Extract the function signature for the function we are wrapping.
         wrapped_signature = funcsigs.signature(wrapped_function)
 
         # Define a new function to return in place of the wrapped one
         @wraps(wrapped_function)
         def wrapper(*func_args, **func_kwargs):
-            # Iterate through the parameters of the function and extract the
-            # decorator kwarg or the annotation.
+            # Bind the arguments to our new function to the signature of the original.
             bound_args = wrapped_signature.bind(*func_args, **func_kwargs)
 
+            # Iterate through the parameters of the original signature
             for param in wrapped_signature.parameters.values():
-                if (param.name not in bound_args.arguments and param.default is not param.empty):
+                # Catch the (never triggered) case where bind relied on a default value.
+                if param.name not in bound_args.arguments and param.default is not param.empty:
                     bound_args.arguments[param.name] = param.default
 
+                # Get the value of this parameter (argument to new function)
                 arg = bound_args.arguments[param.name]
 
-                if param.name in self.f_kwargs:
-                    target_unit = self.f_kwargs[param.name]
+                # Get target unit, either from decotrator kwargs or annotations
+                if param.name in self.decorator_kwargs:
+                    target_unit = self.decorator_kwargs[param.name]
                 else:
                     target_unit = param.annotation
 
@@ -2381,6 +2387,7 @@ class QuantityInput(object):
                                                      wrapped_function.__name__,
                                                      target_unit.to_string()))
 
+                    # Either there is no .unit or no .is_equivalent
                     except AttributeError:
                         if hasattr(arg, "unit"):
                             error_msg = "a 'unit' attribute without an 'is_equivalent' method"
@@ -2390,6 +2397,7 @@ class QuantityInput(object):
                               "You may want to pass in an astropy Quantity instead."
                                  .format(param.name, wrapped_function.__name__, error_msg))
 
+            # Call the original function with any equivalencies in force.
             with add_enabled_equivalencies(self.equivalencies):
                 return wrapped_function(*func_args, **func_kwargs)
 
