@@ -118,7 +118,7 @@ New Features
 
   - Changed the internal implementation of the ``Table`` class changed so that
     it no longer uses numpy structured arrays as the core table data container.
-    [#2790]
+    [#2790, #3179]
 
   - Tables can now be written to an html file that includes interactive
     browsing capabilities. To write out to this format, use
