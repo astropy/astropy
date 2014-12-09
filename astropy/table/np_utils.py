@@ -25,6 +25,10 @@ from ..utils import OrderedDict
 
 __all__ = ['join', 'hstack', 'vstack', 'TableMergeError']
 
+DEPRECATION_MESSAGE = ('The %(func)s %(obj_type)s is deprecated and may '
+                       'be removed in a future version. '
+                       'Contact the Astropy developers if you need '
+                       'continued support for this function.')
 
 class TableMergeError(ValueError):
     pass
@@ -164,7 +168,7 @@ def common_dtype(cols):
     return arr_common.dtype.str
 
 
-@deprecated('1.0')
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'],
@@ -305,7 +309,7 @@ def _check_for_sequence_of_structured_arrays(arrays):
         raise ValueError('`arrays` arg must include at least one array')
 
 
-@deprecated('1.0')
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def vstack(arrays, join_type='inner', col_name_map=None):
     """
     Stack structured arrays vertically (by rows)
@@ -415,7 +419,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     return out
 
 
-@deprecated('1.0')
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
            table_names=None, col_name_map=None):
     """
@@ -519,7 +523,7 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     return out
 
 
-@deprecated('1.0')
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def get_groups(table, keys):
     """
     Get groups for numpy structured array on specified keys.
