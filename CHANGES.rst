@@ -106,6 +106,8 @@ New Features
     store any optional information which is relevant to a project and is not
     in the standard ``Model`` class. [#2189]
 
+  - Added ``Ellipse2D`` model. [#3124]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
