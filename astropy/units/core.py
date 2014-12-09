@@ -2326,7 +2326,7 @@ class QuantityInput(object):
             def myfunction(myangle: u.arcsec):
                 return myangle**2
 
-        Using equivalencies:
+        Using equivalencies::
 
             import astropy.units as u
             @u.quantity_input(myenergy=u.eV, equivalencies=u.spectral())
@@ -2354,32 +2354,18 @@ class QuantityInput(object):
         def wrapper(*func_args, **func_kwargs):
             # Iterate through the parameters of the function and extract the
             # decorator kwarg or the annotation.
-#            for var, parameter in wrapped_signature.parameters.items():
-            parameters = wrapped_signature.parameters  # Added this for brevity's sake
-            for loc, (var, parameter) in enumerate(parameters.items()):
-                if var in self.f_kwargs:
-                    target_unit = self.f_kwargs[var]
+            bound_args = wrapped_signature.bind(*func_args, **func_kwargs)
+
+            for param in wrapped_signature.parameters.values():
+                if (param.name not in bound_args.arguments and param.default is not param.empty):
+                    bound_args.arguments[param.name] = param.default
+
+                arg = bound_args.arguments[param.name]
+
+                if param.name in self.f_kwargs:
+                    target_unit = self.f_kwargs[param.name]
                 else:
-                    target_unit = parameter.annotation
-
-                # Find the location of the var in the arguments to the function.
-#                loc = tuple(wrapped_signature.parameters.values()).index(parameter)
-
-                # loc is an integer which includes the kwargs, so we check if
-                # we are talking about an arg or a kwarg.
-                if loc < len(func_args):
-                    arg = func_args[loc]
-
-                # If kwarg then we get it by name.
-                elif var in func_kwargs:
-                    arg = func_kwargs[var]
-
-                # If we are a kwarg without the default being overriden
-                elif parameter.default is not funcsigs.Parameter.empty:
-                    arg = parameter.default
-
-                else:
-                    raise ValueError("Inconsistent function specification!")  # pragma: no cover
+                    target_unit = param.annotation
 
                 # If the target unit is empty, then no unit was specified so we
                 # move past it
@@ -2391,7 +2377,7 @@ class QuantityInput(object):
                         if not equivalent:
                             raise UnitsError("Argument '{0}' to function '{1}'"
                                              " must be in units convertable to"
-                                             " '{2}'.".format(var,
+                                             " '{2}'.".format(param.name,
                                                      wrapped_function.__name__,
                                                      target_unit.to_string()))
 
@@ -2402,7 +2388,7 @@ class QuantityInput(object):
                             error_msg = "no 'unit' attribute"
                         raise TypeError("Argument '{0}' to function has '{1}' {2}. "
                               "You may want to pass in an astropy Quantity instead."
-                                 .format(var, wrapped_function.__name__, error_msg))
+                                 .format(param.name, wrapped_function.__name__, error_msg))
 
             with add_enabled_equivalencies(self.equivalencies):
                 return wrapped_function(*func_args, **func_kwargs)
