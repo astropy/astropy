@@ -79,7 +79,7 @@ def test_arg_equivalencies3():
     """
     @u.quantity_input(equivalencies=u.mass_energy())
     def myfunc_args(solarx: u.arcsec, solary: u.eV):
-        return solarx, solary
+        return solarx, solary+(10*u.J)  # Add an energy to check equiv is working
 
     solarx, solary = myfunc_args(1*u.arcsec, 100*u.gram)
 
@@ -175,7 +175,7 @@ def test_kwarg_equivalencies3():
     """
     @u.quantity_input(equivalencies=u.mass_energy())
     def myfunc_args(solarx: u.arcsec, energy: u.eV=10*u.eV):
-        return solarx, energy
+        return solarx, energy+(10*u.J)  # Add an energy to check equiv is working
 
     solarx, energy = myfunc_args(1*u.arcsec, 100*u.gram)
 

@@ -53,7 +53,7 @@ def test_args_nonquantity():
 def test_arg_equivalencies():
     @u.quantity_input(solarx=u.arcsec, solary=u.eV, equivalencies=u.mass_energy())
     def myfunc_args(solarx, solary):
-        return solarx, solary
+        return solarx, solary+(10*u.J)  # Add an energy to check equiv is working
 
     solarx, solary = myfunc_args(1*u.arcsec, 100*u.gram)
 
@@ -112,7 +112,7 @@ def test_unused_kwargs():
 def test_kwarg_equivalencies():
     @u.quantity_input(solarx=u.arcsec, energy=u.eV, equivalencies=u.mass_energy())
     def myfunc_args(solarx, energy=10*u.eV):
-        return solarx, energy
+        return solarx, energy+(10*u.J)  # Add an energy to check equiv is working
 
     solarx, energy = myfunc_args(1*u.arcsec, 100*u.gram)
 
