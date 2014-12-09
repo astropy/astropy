@@ -126,6 +126,8 @@ New Features
     columns that allow the column values to be easily converted to
     ``astropy.units.Quantity`` objects. [#2950]
 
+  - Add ``unique`` convenience method to table. [#3185]
+
 - ``astropy.time``
 
 - ``astropy.units``

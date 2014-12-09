@@ -5,10 +5,6 @@
 
 import copy
 import gc
-import platform
-import sys
-
-from distutils import version
 
 import numpy as np
 

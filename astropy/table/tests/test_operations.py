@@ -2,9 +2,6 @@
 
 # TEST_UNICODE_LITERALS
 
-from distutils import version
-import warnings
-
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
@@ -13,7 +10,7 @@ from ...utils import OrderedDict, metadata
 from ...utils.metadata import MergeConflictError
 from .. import np_utils
 from ... import table
-from ... import log
+
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
@@ -753,3 +750,58 @@ class TestHStack():
             # Make sure we got a copy of meta, not ref
             t1['b'].meta['b'] = None
             assert out['b'].meta['b'] == [1, 2]
+
+
+def test_unique():
+    t = table.Table.read([' a b  c  d',
+                          ' 2 b 7.0 0',
+                          ' 1 c 3.0 5',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 1 a 1.0 7',
+                          ' 2 b 5.0 1',
+                          ' 0 a 0.0 4',
+                          ' 1 a 2.0 6',
+                          ' 1 c 3.0 5',
+                          ], format='ascii')
+
+    tu = table.Table(np.sort(t[:-1]))
+
+    t_all = table.unique(t)
+    assert sort_eq(t_all.pformat(), tu.pformat())
+
+    key1 = 'a'
+    t1 = table.unique(t, key1)
+    assert sort_eq(t1.pformat(), [' a   b   c   d ',
+                                  '--- --- --- ---',
+                                  '  0   a 0.0   4',
+                                  '  1   c 3.0   5',
+                                  '  2   b 7.0   0'])
+
+    key2 = ['a', 'b']
+    t2 = table.unique(t, key2)
+    assert sort_eq(t2.pformat(), [' a   b   c   d ',
+                                  '--- --- --- ---',
+                                  '  0   a 0.0   4',
+                                  '  1   a 1.0   7',
+                                  '  1   c 3.0   5',
+                                  '  2   a 4.0   3',
+                                  '  2   b 7.0   0'])
+
+    t1_m = table.Table(t1, masked=True)
+    t1_m['a'].mask[1] = True
+
+    with pytest.raises(ValueError) as e:
+        t1_mu = table.unique(t1_m)
+    assert e.value.args[0] == ("Cannot unique masked value key columns, remove "
+                               "column 'a' from keys and rerun unique.")
+
+    t1_mu = table.unique(t1_m, silent=True)
+    assert t1_mu.pformat() == [' a   b   c   d ',
+                               '--- --- --- ---',
+                               '  0   a 0.0   4',
+                               '  2   b 7.0   0',
+                               ' --   c 3.0   5']
+
+    with pytest.raises(ValueError) as e:
+        t1_mu = table.unique(t1_m, silent=True, keys='a')
