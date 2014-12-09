@@ -85,6 +85,7 @@ install:
     # this matplotlib will *not* work with py 3.x, but our sphinx build is
     # currently 2.7, so that's fine
     - if [[ $SETUP_CMD == build_sphinx* ]]; then conda install --yes numpy=$NUMPY_VERSION Sphinx=1.2.2 Pygments matplotlib; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then pip install linkchecker; fi
 
     # COVERAGE DEPENDENCIES
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then pip install coverage coveralls; fi
@@ -94,6 +95,7 @@ install:
 
 script:
     - $MAIN_CMD $SETUP_CMD
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then linkchecker docs/_build/html --ignore-url astropy/wcs/_wcs.html; fi
 
 after_success:
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='astropy/tests/coveragerc'; fi
