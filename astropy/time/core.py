@@ -20,6 +20,7 @@ import numpy as np
 from .. import units as u
 from ..utils.compat.misc import override__dir__
 from ..extern import six
+from ..extern.six.moves import xrange
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS',
@@ -1398,7 +1399,6 @@ class TimeFormat(object):
         """
         raise NotImplementedError
 
-
 class TimeJD(TimeFormat):
     """
     Julian Date time format.
@@ -1644,7 +1644,7 @@ class TimeDatetime(TimeUnique):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
         try:
-            assert all(isinstance(val, datetime) for val in val1)
+            assert(all(type(val) == datetime for val in val1))
         except:
             raise TypeError('Input values for {0} class must be '
                             'datetime objects'.format(self.name))
@@ -1689,6 +1689,98 @@ class TimeDatetime(TimeUnique):
 
         return out
 
+
+class TimeDecimalYear(TimeFormat):
+    """Decimal year time format
+
+    This is a copy of the TimeDatetime implementation that instead calculates 
+    the decimal year of the datetime object.  
+
+    """
+    
+    name = 'decimalyear'
+
+    def _check_val_type(self, val1, val2):
+        # Note: don't care about val2 for this class
+        try:
+            assert all(isinstance(val, (np.float64, np.float32)) for val in val1)
+        except:
+            raise TypeError('Input values for {0} class must be '
+                            'datetime objects'.format(self.name))
+        return val1, None
+
+    def set_jds(self, val1, val2):
+        """Convert datetime object contained in val1 to jd1, jd2"""
+        n_times = len(val1)
+        iy = np.empty(n_times, dtype=np.intc)
+        im = np.empty(n_times, dtype=np.intc)
+        id = np.empty(n_times, dtype=np.intc)
+        ihr = np.empty(n_times, dtype=np.intc)
+        imin = np.empty(n_times, dtype=np.intc)
+        dsec = np.empty(n_times, dtype=np.double)
+
+        # Iterate through the fractional year objects
+        for i, val in enumerate(val1):
+            iy[i] = int(val)
+            year_begin = datetime(iy[i], 1, 1)
+            year_end = datetime(iy[i] + 1, 1, 1)
+
+            try:
+                ndays_per_year = (year_end - year_begin).total_seconds() / (60.0*60.0*24.0)
+            except AttributeError:
+                ndays_per_year = total_seconds((year_end - year_begin)) / (60.0*60.0*24.0)
+
+            idoy = (val - iy[i])* ndays_per_year
+            tot_days = 0.0
+            for month in xrange(1, 12, 1):
+
+                try:
+                    new_tot_days = tot_days + (datetime(iy[i], month+1, 1) - datetime(iy[i], month, 1)).total_seconds() / (60.0*60.0*24.0)
+                except AttributeError:
+                    new_tot_days = tot_days + total_seconds(datetime(iy[i], month+1, 1) - datetime(iy[i], month, 1)) / (60.0*60.0*24.0)
+
+                if new_tot_days > idoy:
+                    im[i] = month
+                    id[i] = int(idoy - tot_days)+1
+                    time_remainder = idoy - tot_days - (id[i]-1)
+                    break
+                tot_days = new_tot_days
+            if idoy > new_tot_days:  #For dates in December
+                im[i] = 12
+                id[i] = int(idoy - tot_days)+1
+                time_remainder = idoy - tot_days - (id[i]-1)
+            time_remainder_hrs = time_remainder * 24.0
+            ihr[i] = int(time_remainder_hrs)
+            time_remainder_min= (time_remainder_hrs - ihr[i]) * 60.0
+            imin[i] = int(time_remainder_min)
+            dsec[i] = (time_remainder_min - imin[i]) * 60.0
+
+        self.jd1, self.jd2 = erfa_time.dtf_jd(self.scale.upper().encode('utf8'),
+                                              iy, im, id, ihr, imin, dsec)
+
+    @property
+    def value(self):
+        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
+                                                 .encode('utf8'),
+                                                 6,  # precision = 6 for microseconds
+                                                 self.jd1, self.jd2)
+
+        out = np.empty(len(self), dtype=np.object)
+        idxs = itertools.count()
+        for idx, iy, im, id, ihmsf in six.moves.zip(idxs, iys, ims, ids, ihmsfs):
+            ihr, imin, isec, ifracsec = ihmsf
+            current = datetime(int(iy), int(im), int(id),
+                               int(ihr), int(imin), int(isec), int(ifracsec))
+            year_begin = datetime(int(iy), 1, 1)
+            year_end = datetime(int(iy) + 1, 1, 1)
+            try:
+                decyear = (current - year_begin).total_seconds() / (year_end - year_begin).total_seconds()
+            except AttributeError:
+                decyear = total_seconds(current - year_begin) / total_seconds(year_end - year_begin)
+
+            out[idx] = int(iy) + float(decyear)
+
+        return out
 
 class TimeString(TimeUnique):
     """
@@ -2098,6 +2190,13 @@ def day_frac(val1, val2, factor=1., divisor=1.):
     frac += extra + err12
     return day, frac
 
+def total_seconds(td):
+    """
+    Replacement for time_delta.total_seconds() available in 2.7+
+    
+    """
+
+    return (td.microseconds + (td.seconds + td.days * 24. * 3600.) * 10**6) / 10**6
 
 def two_sum(a, b):
     """
