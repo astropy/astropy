@@ -109,6 +109,9 @@ Bug Fixes
   - Units with fractional powers are now correctly multiplied together
     by using rational arithmetic.  [#3121]
 
+  - Removed a few entries from spectral density equivalencies which did not
+    make sense. [#3153]
+
 - ``astropy.utils``
 
   - Fixed an issue with the ``deprecated`` decorator on classes that invoke
