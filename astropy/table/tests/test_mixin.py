@@ -31,15 +31,24 @@ def test_attributes(mixin_cols):
     assert m.meta == {'a': 1}
 
 
+def check_mixin_type(table, table_col, in_col):
+    if isinstance(in_col, u.Quantity) and type(table) is not QTable:
+        assert type(table_col) is table.Column
+    else:
+        assert type(table_col) is type(in_col)
+
+
 def test_make_table(table_types, mixin_cols):
     """
     Make a table with the columns in mixin_cols, which is an ordered dict of
     three cols: 'a' and 'b' are table_types.Column type, and 'm' is a mixin.
     """
     t = table_types.Table(mixin_cols)
-    m = mixin_cols['m']
-    tm = t['m']
-    if isinstance(m, u.Quantity) and type(t) is not QTable:
-        assert type(tm) is table_types.Column
-    else:
-        assert type(tm) is type(m)
+    check_mixin_type(t, t['m'], mixin_cols['m'])
+
+    cols = list(mixin_cols.values())
+    t = table_types.Table(cols, names=('a', 'b', 'c', 'm'))
+    check_mixin_type(t, t['m'], mixin_cols['m'])
+
+    t = table_types.Table(cols)
+    check_mixin_type(t, t['col3'], mixin_cols['m'])
