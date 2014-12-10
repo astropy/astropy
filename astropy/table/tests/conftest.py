@@ -17,7 +17,11 @@ between modules.
 
 from ...tests.helper import pytest
 from ... import table
+from ... import time
+from ... import units as u
+from ... import coordinates
 from .. import pprint
+from ...utils import OrderedDict
 
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])
@@ -124,3 +128,24 @@ def table_type(request):
         return MaskedTable
     except AttributeError:
         return table.Table
+
+
+@pytest.fixture(params=['quantity', 'time', 'skycoord'])
+def mixin_cols(request):
+    """
+    Fixture to return a set of columns for mixin testing which includes
+    an index column 'i', two string cols 'a', 'b' (for joins etc), and
+    one of the available mixin column types.
+    """
+    mixins = {'quantity': [0, 1, 2, 3] * u.m,
+              'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
+              'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
+                                               dec=[0, 1, 2, 3] * u.deg)
+              }
+    cols = OrderedDict()
+    cols['i'] = table.Column([0, 1, 2, 3])
+    cols['a'] = table.Column(['a', 'b', 'b', 'c'])
+    cols['b'] = table.Column(['b', 'c', 'a', 'd'])
+    cols['m'] = mixins[request.param]
+
+    return cols

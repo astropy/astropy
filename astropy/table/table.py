@@ -422,13 +422,12 @@ class Table(object):
                 col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype,
                                        copy=copy)
             elif self._is_mixin_column(col):
-                name = getattr(col, 'name', name)
                 if copy:
                     if hasattr(col, 'copy'):
                         col = col.copy()
                     else:
                         col = copy_stdlib(col)
-                col.name = name
+                col.name = getattr(col, 'name', name or def_name)
                 # TODO: What about dtype?
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
