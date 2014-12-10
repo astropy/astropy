@@ -37,6 +37,9 @@ __all__ = ["Quantity"]
 __doctest_skip__ = ['Quantity.*']
 
 
+_UNIT_NOT_INITIALISED = "(Unit not initialised)"
+
+
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for Quantity
@@ -920,7 +923,11 @@ class Quantity(np.ndarray):
 
     @property
     def _unitstr(self):
-        unitstr = self.unit.to_string()
+        if self.unit is None:
+            unitstr = _UNIT_NOT_INITIALISED
+        else:
+            unitstr = self.unit.to_string()
+
         if unitstr:
             unitstr = ' ' + unitstr
 
@@ -981,7 +988,9 @@ class Quantity(np.ndarray):
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
-        latex_unit = self.unit._repr_latex_()[1:-1]  # note this is unicode
+        latex_unit = (self.unit._repr_latex_()[1:-1]  # note this is unicode
+                      if self.unit is not None
+                      else _UNIT_NOT_INITIALISED)
 
         return '${0} \; {1}$'.format(latex_value, latex_unit)
 
