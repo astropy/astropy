@@ -174,7 +174,7 @@ def main(args=None):
             if i > 0 and not args.key:
                 print()  # newline between different headers
             print(HeaderFormatter(filename, args.compressed)
-                  .parse(args.ext, args.key), end='')
+                  .parse(args.ext, args.keyword), end='')
     except FormattingException as e:
         log.error(e)
     except IOError as e:
