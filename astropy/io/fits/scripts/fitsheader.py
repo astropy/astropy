@@ -21,7 +21,7 @@ Example uses of fitsheader:
 
 4. Print the value of specific header keyword(s) only::
 
-    $ fitsheader --key BITPIX --key NAXIS filename.fits
+    $ fitsheader --keyword BITPIX --keyword NAXIS filename.fits
 
 5. Print the headers of all fits files in a directory::
 
@@ -159,7 +159,7 @@ def main(args=None):
                      'the decompressed header is shown.'))
     parser.add_argument('-e', '--ext', metavar='HDU',
                         help='specify the HDU extension by name or number')
-    parser.add_argument('-k', '--key', action='append',
+    parser.add_argument('-k', '--keyword', action='append',
                         help='show only the specified keyword(s)')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
