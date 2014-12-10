@@ -215,6 +215,16 @@ class TestQuantityCreation(object):
         with pytest.raises(TypeError):
             u.Quantity(mylookalike)
 
+        # check the same happens with views.
+        mylookalike = a.copy().view(MyQuantityLookalike)
+        mylookalike.unit = 'm'
+        q5 = mylookalike.view(u.Quantity)
+        assert q5.unit is u.m
+
+        mylookalike.unit = 'nonsense'
+        with pytest.raises(ValueError):
+            mylookalike.view(u.Quantity)
+
 
 class TestQuantityOperations(object):
     q1 = u.Quantity(11.42, u.meter)
