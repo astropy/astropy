@@ -37,9 +37,6 @@ __all__ = ["Quantity"]
 __doctest_skip__ = ['Quantity.*']
 
 
-_UNIT_NOT_INITIALISED = "(Unit not initialised)"
-
-
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for Quantity
@@ -260,7 +257,12 @@ class Quantity(np.ndarray):
             return value.to(unit)
 
     def __array_finalize__(self, obj):
-        self._unit = getattr(obj, '_unit', None)
+        if isinstance(obj, Quantity):
+            self._unit = obj._unit
+        elif hasattr(obj, 'unit'):
+            self._unit = Unit(obj.unit)
+        else:
+            self._unit = dimensionless_unscaled
 
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the
@@ -918,11 +920,7 @@ class Quantity(np.ndarray):
 
     @property
     def _unitstr(self):
-        if self.unit is None:
-            unitstr = _UNIT_NOT_INITIALISED
-        else:
-            unitstr = self.unit.to_string()
-
+        unitstr = self.unit.to_string()
         if unitstr:
             unitstr = ' ' + unitstr
 
@@ -983,9 +981,7 @@ class Quantity(np.ndarray):
 
         # Format unit
         # [1:-1] strips the '$' on either side needed for math mode
-        latex_unit = (self.unit._repr_latex_()[1:-1]  # note this is unicode
-                      if self.unit is not None
-                      else _UNIT_NOT_INITIALISED)
+        latex_unit = self.unit._repr_latex_()[1:-1]  # note this is unicode
 
         return '${0} \; {1}$'.format(latex_value, latex_unit)
 

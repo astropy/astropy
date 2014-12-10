@@ -304,6 +304,9 @@ API Changes
       - Custom units can be defined "inline" by placing them between single
         quotes.
 
+  - When taking a ``Quantity`` view of an ``ndarray``, the unit is now set to
+    dimensionless rather than left unitialised. [#3192]
+
 - ``astropy.utils``
 
   - Some members of ``astropy.utils.misc`` were moved into new submodules.

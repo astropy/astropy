@@ -19,7 +19,6 @@ NUMPY_VERSION = version.LooseVersion(np.__version__)
 from ...tests.helper import raises, pytest
 from ...utils import isiterable
 from ... import units as u
-from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import xrange
 from ...extern.six.moves import cPickle as pickle
 from ...extern import six
@@ -694,11 +693,6 @@ class TestQuantityDisplay(object):
         assert format(self.scalarintq, '02d') == "01 m"
         assert format(self.scalarfloatq, '.1f') == "1.3 m"
         assert format(self.scalarfloatq, '.0f') == "1 m"
-
-    def test_uninitialized_unit_format(self):
-        bad_quantity = np.arange(10.).view(u.Quantity)
-        assert str(bad_quantity).endswith(_UNIT_NOT_INITIALISED)
-        assert repr(bad_quantity).endswith(_UNIT_NOT_INITIALISED + '>')
 
     def test_repr_latex(self):
         from ...units.quantity import conf
