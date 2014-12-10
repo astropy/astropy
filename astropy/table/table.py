@@ -405,7 +405,7 @@ class Table(object):
 
     def _init_from_list(self, data, names, dtype, n_cols, copy):
         """Initialize table from a list of columns.  A column can be a
-        Column object, np.ndarray, or any other iterable object.
+        Column object, np.ndarray, mixin, or any other iterable object.
         """
         if data and all(isinstance(row, dict) for row in data):
             self._init_from_list_of_dicts(data, names, dtype, n_cols, copy)
@@ -419,7 +419,7 @@ class Table(object):
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass(name=(name or col.name), data=col, dtype=dtype,
+                col = self.ColumnClass(name=(name or col.name or def_name), data=col, dtype=dtype,
                                        copy=copy)
             elif self._is_mixin_column(col):
                 if copy:
