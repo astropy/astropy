@@ -51,7 +51,7 @@ New Features
 
   - Cosmology functions that take a single (redshift) input now
     broadcast like numpy ufuncs.  So, passing an arbitrarily shaped
-    array of inputs will produce an output of the same shape. [#3178, #3193]
+    array of inputs will produce an output of the same shape. [#3178, #3194]
 
 - ``astropy.erfa``
 
