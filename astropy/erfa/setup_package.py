@@ -18,6 +18,14 @@ SRC_FILES += [os.path.join(ERFAPKGDIR, filename)
 GEN_FILES = [os.path.join(ERFAPKGDIR, 'erfa.py'), os.path.join(ERFAPKGDIR, 'erfa.pyx')]
 
 
+def pre_build_py_hook(cmd_obj):
+    preprocess_source()
+
+
+def pre_build_ext_hook(cmd_obj):
+    preprocess_source()
+
+
 def preprocess_source():
 
     # Generating the ERFA wrappers should only be done if needed. This also
