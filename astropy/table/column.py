@@ -45,6 +45,47 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
+COLUMN_ATTRS = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
+
+def col_setattr(col, attr, value):
+    """
+    Set one of the column attributes
+
+    TODO: full docstring
+    """
+    if attr not in COLUMN_ATTRS:
+        raise AttributeError("attribute must be one of {}".format(COLUMN_ATTRS))
+
+    # The unit and dtype attributes are considered univeral and do NOT get
+    # stored in _column_attrs.  For BaseColumn instances use the usual setattr.
+    if isinstance(col, BaseColumn) or attr in ('unit', 'dtype'):
+        setattr(col, attr, value)
+    else:
+        if not hasattr(col, '_column_attrs'):
+            col._column_attrs = {}
+        col._column_attrs[attr] = value
+
+def col_getattr(col, attr, default=None):
+    """
+    Get one of the column attributes
+
+    TODO: full docstring
+    """
+    if attr not in COLUMN_ATTRS:
+        raise AttributeError("attribute must be one of {}".format(COLUMN_ATTRS))
+
+    # The unit and dtype attributes are considered univeral and do NOT get
+    # stored in _column_attrs.  For BaseColumn instances use the usual setattr.
+    if isinstance(col, BaseColumn) or attr in ('unit', 'dtype'):
+        value = getattr(col, attr, default)
+    else:
+        if hasattr(col, '_column_attrs'):
+            value = col._column_attrs.get(attr, default)
+        else:
+            value = default
+
+    return value
+
 class FalseArray(np.ndarray):
     def __new__(cls, shape):
         obj = np.zeros(shape, dtype=np.bool).view(cls)

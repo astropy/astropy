@@ -33,7 +33,7 @@ def test_attributes(mixin_cols):
 
 def check_mixin_type(table, table_col, in_col):
     if isinstance(in_col, u.Quantity) and type(table) is not QTable:
-        assert type(table_col) is table.Column
+        assert type(table_col) is table.ColumnClass
     else:
         assert type(table_col) is type(in_col)
 

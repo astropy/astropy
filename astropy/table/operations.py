@@ -20,6 +20,7 @@ import numpy as np
 from numpy import ma
 
 from ..utils import OrderedDict, metadata
+from .column import col_getattr, col_setattr
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -43,13 +44,14 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
     for out_col in six.itervalues(out.columns):
         for idx_table, table in enumerate(tables):
             left_col = out_col
-            right_name = col_name_map[out_col.name][idx_table]
+            right_name = col_name_map[col_getattr(out_col, 'name')][idx_table]
 
             if right_name:
                 right_col = table[right_name]
-                out_col.meta = metadata.merge(getattr(left_col, 'meta', {}),
-                                              getattr(right_col, 'meta', {}),
-                                              metadata_conflicts=metadata_conflicts)
+                col_setattr(out_col, 'meta',
+                            metadata.merge(getattr(left_col, 'meta', {}),
+                                           getattr(right_col, 'meta', {}),
+                                           metadata_conflicts=metadata_conflicts))
                 for attr in attrs:
 
                     # Pick the metadata item that is not None, or they are both
@@ -71,12 +73,14 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                         if metadata_conflicts == 'warn':
                             warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
                                           "({2} != {3}).  Using {3} for merged output"
-                                          .format(out_col.name, attr, left_attr, right_attr),
+                                          .format(col_getattr(out_col, 'name'), attr,
+                                                  left_attr, right_attr),
                                           metadata.MergeConflictWarning)
                         elif metadata_conflicts == 'error':
                             raise metadata.MergeConflictError(
                                 'In merged column {0!r} the {1!r} attribute does not match '
-                                '({2} != {3})'.format(out_col.name, attr, left_attr, right_attr))
+                                '({2} != {3})'.format(col_getattr(out_col, 'name'), attr,
+                                                      left_attr, right_attr))
                         elif metadata_conflicts != 'silent':
                             raise ValueError('metadata_conflicts argument must be one of "silent",'
                                              ' "warn", or "error"')
@@ -495,7 +499,7 @@ def common_dtype(cols):
                      for col in cols)
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
-        incompat_types = [col.name for col in cols]
+        incompat_types = [col_getattr(col, 'name') for col in cols]
         tme = TableMergeError('Columns have incompatible types {0}'
                               .format(incompat_types))
         tme._incompat_types = incompat_types

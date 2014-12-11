@@ -22,7 +22,8 @@ from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from . import groups
 from .pprint import TableFormatter
-from .column import BaseColumn, Column, MaskedColumn, _auto_names, FalseArray
+from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
+                     col_getattr, col_setattr)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 
@@ -48,7 +49,7 @@ def descr(col):
     """
     col_dtype_str = col.dtype.str if isinstance(col, BaseColumn) else 'O'
     col_shape = col.shape[1:] if hasattr(col, 'shape') else ()
-    return (col.name, col_dtype_str, col_shape)
+    return (col_getattr(col, 'name'), col_dtype_str, col_shape)
 
 
 class TableColumns(OrderedDict):
@@ -70,9 +71,15 @@ class TableColumns(OrderedDict):
 
     def __init__(self, cols={}):
         if isinstance(cols, (list, tuple)):
-            # check for Columns in the list
-            cols = [((col.name, col) if hasattr(col, 'name') else col)
-                    for col in cols]
+            # `cols` should be a list of two-tuples, but it is allowed to have
+            # columns (BaseColumn or mixins) in the list.
+            newcols = []
+            for col in cols:
+                if isinstance(col, BaseColumn) or hasattr(col, '_column_attrs'):
+                    newcols.append((col_getattr(col, 'name'), col))
+                else:
+                    newcols.append(col)
+            cols = newcols
         super(TableColumns, self).__init__(cols)
 
     def __getitem__(self, item):
@@ -191,7 +198,7 @@ class Table(object):
         empty_init = ma.empty if self.masked else np.empty
         data = empty_init(len(self), dtype=dtype)
         for col in cols:
-            data[col.name] = col
+            data[col_getattr(col, 'name')] = col
 
         return data
 
@@ -419,15 +426,22 @@ class Table(object):
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass(name=(name or col.name or def_name), data=col, dtype=dtype,
+                col = self.ColumnClass(name=(name or col_getattr(col, 'name')),
+                                       data=col, dtype=dtype,
                                        copy=copy)
             elif self._is_mixin_column(col):
+                # Copy the mixin column attributes if they exist since the copy below
+                # may not get this attribute.
                 if copy:
                     if hasattr(col, 'copy'):
-                        col = col.copy()
+                        newcol = col.copy()
                     else:
-                        col = copy_stdlib(col)
-                col.name = getattr(col, 'name', name or def_name)
+                        newcol = copy_stdlib(col)
+                    if not hasattr(newcol, '_column_attrs'):
+                        _column_attrs = deepcopy(getattr(col, '_column_attrs', {}))
+                        newcol._column_attrs = _column_attrs
+                    col = newcol
+                col_setattr(col, 'name', name or col_getattr(col, 'name') or def_name)
                 # TODO: What about dtype?
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
@@ -506,10 +520,10 @@ class Table(object):
                 except:
                     pass
                 else:
-                    qcol.name = col.name
-                    qcol.description = col.description
-                    qcol.format = col.format
-                    qcol.meta = deepcopy(col.meta)
+                    col_setattr(qcol, 'name', col_getattr(col, 'name'))
+                    col_setattr(qcol, 'description', col.description)
+                    col_setattr(qcol, 'format', col.format)
+                    col_setattr(qcol, 'meta', deepcopy(col.meta))
                     newcols.append(qcol)
                     continue
 
@@ -526,11 +540,11 @@ class Table(object):
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
-        names = [col.name for col in cols]
+        names = [col_getattr(col, 'name') for col in cols]
         newcols = [col[slice_] for col in cols]
         for name, newcol in zip(names, newcols):
-            if not hasattr(newcol, 'name'):
-                newcol.name = name
+            if col_getattr(newcol, 'name') is None:
+                col_setattr(newcol, 'name', name)
 
         self._update_table_from_cols(table, newcols)
 
@@ -541,13 +555,13 @@ class Table(object):
         """Update the existing ``table`` so that it represents the given
         ``data`` (a structured ndarray) with ``cols`` and ``names``."""
 
-        colnames = set(col.name for col in cols)
+        colnames = set(col_getattr(col, 'name') for col in cols)
         if None in colnames:
             raise TypeError('Cannot have None for column name')
         if len(colnames) != len(cols):
             raise ValueError('Duplicate column names')
 
-        columns = table.TableColumns((col.name, col) for col in cols)
+        columns = table.TableColumns((col_getattr(col, 'name'), col) for col in cols)
 
         for col in cols:
             col.parent_table = table
@@ -871,10 +885,10 @@ class Table(object):
             name = item
             if isinstance(value, BaseColumn):
                 new_column = value.copy(copy_data=False)
-                new_column.name = name
+                col_setattr(new_column, 'name', name)
             elif self._is_mixin_column(value):
                 new_column = value
-                new_column.name = name
+                col_setattr(new_column, 'name', name)
             elif len(self) == 0:
                 new_column = NewColumn(value, name=name)
             else:
@@ -1027,7 +1041,7 @@ class Table(object):
 
         lengths = set(len(col) for col in self.columns.values())
         if len(lengths) != 1:
-            len_strs = [' {0} : {1}'.format(col.name, len(col)) for col in self.columns.values()]
+            len_strs = [' {0} : {1}'.format(name, len(col)) for name, col in self.columns.items()]
             raise ValueError('Column length mismatch:\n{0}'.format('\n'.join(len_strs)))
 
         return lengths.pop()
@@ -1186,10 +1200,10 @@ class Table(object):
         if copy:
             # Copy new columns, being aware that copy() method might not copy
             # the name.
-            names = [col.name for col in cols]
+            names = [col_getattr(col, 'name') for col in cols]
             cols = [(col.copy() if hasattr(col, 'copy') else copy_stdlib(col)) for col in cols]
             for name, col in zip(names, cols):
-                col.name = name
+                col_setattr(col, 'name', name)
 
         if len(self.columns) == 0:
             # No existing table data, init from cols
@@ -1542,6 +1556,8 @@ class Table(object):
 
           table[name].name = new_name
 
+        TODO: this won't work for mixins
+
         Parameters
         ----------
         name : str
@@ -1573,7 +1589,7 @@ class Table(object):
         if name not in self.keys():
             raise KeyError("Column {0} does not exist".format(name))
 
-        self.columns[name].name = new_name
+        col_setattr(self.columns[name], 'name', new_name)
 
     def add_row(self, vals=None, mask=None):
         """Add a new row to the end of the table.

@@ -295,6 +295,7 @@ class TableFormatter(object):
             Must be a dict which is used to pass back additional values
             defined within the iterator.
         """
+        from .column import col_getattr
         max_lines, _ = self._get_pprint_size(max_lines, -1)
 
         multidims = getattr(col, 'shape', [0])[1:]
@@ -309,7 +310,7 @@ class TableFormatter(object):
         if show_name:
             i_centers.append(n_header)
             # Get column name (or 'None' if not set)
-            col_name = six.text_type(col.name)
+            col_name = six.text_type(col_getattr(col, 'name'))
             if multidims:
                 col_name += ' [{0}]'.format(
                     ','.join(six.text_type(n) for n in multidims))

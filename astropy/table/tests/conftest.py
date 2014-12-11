@@ -143,9 +143,9 @@ def mixin_cols(request):
                                                dec=[0, 1, 2, 3] * u.deg)
               }
     cols = OrderedDict()
-    cols['i'] = table.Column([0, 1, 2, 3])
-    cols['a'] = table.Column(['a', 'b', 'b', 'c'])
-    cols['b'] = table.Column(['b', 'c', 'a', 'd'])
+    cols['i'] = table.Column([0, 1, 2, 3], name='i')
+    cols['a'] = table.Column(['a', 'b', 'b', 'c'], name='a')
+    cols['b'] = table.Column(['b', 'c', 'a', 'd'], name='b')
     cols['m'] = mixins[request.param]
 
     return cols
