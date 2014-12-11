@@ -651,7 +651,7 @@ class TestAddRow(SetupData):
         """
         self._setup(table_types)
         row = (10, 40.0, 'x', [10, 20])
-        for index in xrange(-3, 4):
+        for index in range(-3, 4):
             indices = np.insert(np.arange(3), index, 3)
             t = table_types.Table([self.a, self.b, self.c, self.d])
             t2 = t.copy()
