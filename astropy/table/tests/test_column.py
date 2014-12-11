@@ -265,6 +265,8 @@ class TestColumn():
         assert np.all(c1 == [0, 100, 1, 2])
         assert c1.attrs_equal(c)
         assert type(c) is type(c1)
+        if hasattr(c1, 'mask'):
+            assert c1.data.shape == c1.mask.shape
 
         c1 = c.insert(-1, 100)
         assert np.all(c1 == [0, 1, 100, 2])
@@ -275,10 +277,14 @@ class TestColumn():
         c1 = c.insert(-3, 100)
         assert np.all(c1 == [100, 0, 1, 2])
 
+        c1 = c.insert(1, [100, 200, 300])
+        if hasattr(c1, 'mask'):
+            assert c1.data.shape == c1.mask.shape
+
         # Out of bounds index
-        with pytest.raises(IndexError):
+        with pytest.raises((ValueError, IndexError)):
             c1 = c.insert(-4, 100)
-        with pytest.raises(IndexError):
+        with pytest.raises((ValueError,IndexError)):
             c1 = c.insert(4, 100)
 
     def test_insert_multidim(self, Column):

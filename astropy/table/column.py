@@ -788,6 +788,9 @@ class Column(BaseColumn):
             data = np.insert(self, obj, None, axis=0)
             data[obj] = values
         else:
+            # Explicitly convert to dtype of this column.  Needed because numpy 1.7
+            # enforces safe casting by default, so .  This isn't the case for 1.6 or 1.8+.
+            values = np.asarray(values, dtype=self.dtype)
             data = np.insert(self, obj, values, axis=0)
         out = data.view(self.__class__)
         out.__array_finalize__(self)
@@ -1018,8 +1021,16 @@ class MaskedColumn(Column, ma.MaskedArray):
             new_data = np.insert(self_ma.data, obj, None, axis=0)
             new_data[obj] = values
         else:
+            # Explicitly convert to dtype of this column.  Needed because numpy 1.7
+            # enforces safe casting by default, so .  This isn't the case for 1.6 or 1.8+.
+            values = np.asarray(values, dtype=self.dtype)
             new_data = np.insert(self_ma.data, obj, values, axis=0)
 
+        if mask is None:
+            if self.dtype.kind == 'O':
+                mask = False
+            else:
+                mask = np.zeros(values.shape, dtype=np.bool)
         new_mask = np.insert(self_ma.mask, obj, mask, axis=0)
         new_ma = np.ma.array(new_data, mask=new_mask, copy=False)
 
