@@ -11,6 +11,10 @@
 #include <float.h>
 #include <ctype.h>
 
+#ifdef _MSC_VER
+#define inline __inline
+#endif
+
 typedef enum
 {
     START_LINE = 0,
