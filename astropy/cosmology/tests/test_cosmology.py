@@ -124,16 +124,18 @@ def test_units():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_distance_broadcast():
-    """ Test array shape broadcasting for distances/volumes"""
+    """ Test array shape broadcasting for functions with single
+    redshift inputs"""
 
-    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0)
+    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27,
+                               m_nu=u.Quantity([0.0, 0.1, 0.011], u.eV))
     z = np.linspace(0.1, 1, 6)
     z_reshape2d = z.reshape(2, 3)
     z_reshape3d = z.reshape(3, 2, 1)
     # Things with units
     methods = ['comoving_distance', 'luminosity_distance',
                'comoving_transverse_distance', 'angular_diameter_distance',
-               'distmod', 'comoving_volume',
+               'distmod', 'lookback_time', 'age', 'comoving_volume',
                'differential_comoving_volume', 'kpc_comoving_per_arcmin']
     for method in methods:
         g = getattr(cosmo, method)
@@ -143,11 +145,15 @@ def test_distance_broadcast():
         assert value_2d.shape == z_reshape2d.shape
         value_3d = g(z_reshape3d)
         assert value_3d.shape == z_reshape3d.shape
+        assert value_flat.unit == value_2d.unit
+        assert value_flat.unit == value_3d.unit
         assert np.allclose(value_flat.value, value_2d.flatten().value)
         assert np.allclose(value_flat.value, value_3d.flatten().value)
 
     # Also test unitless ones
-    methods = ['absorption_distance', 'Om', 'Ode', 'Ok', 'H', 'w']
+    methods = ['absorption_distance', 'Om', 'Ode', 'Ok', 'H',
+               'w', 'de_density_scale', 'Onu', 'Ogamma',
+               'nu_relative_density']
     for method in methods:
         g = getattr(cosmo, method)
         value_flat = g(z)
@@ -158,6 +164,25 @@ def test_distance_broadcast():
         assert value_3d.shape == z_reshape3d.shape
         assert np.allclose(value_flat, value_2d.flatten())
         assert np.allclose(value_flat, value_3d.flatten())
+
+    # Test some dark energy models
+    methods = ['Om', 'Ode', 'w', 'de_density_scale']
+    for tcosmo in [core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.5),
+                   core.wCDM(H0=70, Om0=0.27, Ode0=0.5, w0=-1.2),
+                   core.w0waCDM(H0=70, Om0=0.27, Ode0=0.5, w0=-1.2, wa=-0.2),
+                   core.wpwaCDM(H0=70, Om0=0.27, Ode0=0.5,
+                                wp=-1.2, wa=-0.2, zp=0.9),
+                   core.w0wzCDM(H0=70, Om0=0.27, Ode0=0.5, w0=-1.2, wz=0.1)]:
+        for method in methods:
+            g = getattr(cosmo, method)
+            value_flat = g(z)
+            assert value_flat.shape == z.shape
+            value_2d = g(z_reshape2d)
+            assert value_2d.shape == z_reshape2d.shape
+            value_3d = g(z_reshape3d)
+            assert value_3d.shape == z_reshape3d.shape
+            assert np.allclose(value_flat, value_2d.flatten())
+            assert np.allclose(value_flat, value_3d.flatten())
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

@@ -966,8 +966,8 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return self._hubble_time * quad(self._tfunc, 0, z)[0]
 
-        out = np.array([quad(self._tfunc, 0, redshift)[0] for redshift in z])
-        return self._hubble_time * np.array(out)
+        f = np.vectorize(lambda red: quad(self._tfunc, 0, red)[0])
+        return self._hubble_time * f(z)
 
     def age(self, z):
         """ Age of the universe in Gyr at redshift ``z``.
@@ -991,8 +991,8 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return self._hubble_time * quad(self._tfunc, z, np.inf)[0]
 
-        out = [quad(self._tfunc, redshift, np.inf)[0] for redshift in z]
-        return self._hubble_time * np.array(out)
+        f = np.vectorize(lambda red: quad(self._tfunc, red, np.inf)[0])
+        return self._hubble_time * f(z)
 
     def critical_density(self, z):
         """ Critical density in grams per cubic cm at redshift ``z``.
