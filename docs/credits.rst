@@ -28,6 +28,7 @@ Core Package Contributors
 * Gustavo Bragança
 * Erik M. Bray
 * Eli Bressert
+* Mihai Cara
 * Mabry Cervin
 * Pritish Chakraborty
 * Alex Conley
