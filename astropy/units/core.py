@@ -640,9 +640,16 @@ class UnitBase(object):
         if isinstance(m, (bytes, six.text_type)):
             return Unit(m) / self
 
-        # Cannot handle this as Unit, re-try as Quantity
+        # Cannot handle this as Unit.  Here, m cannot be a Quantity,
+        # so we make it into one, fasttracking when it does not have a unit,
+        # for the common case of <array> / <unit>.
         from .quantity import Quantity
-        return m / Quantity(1, self)
+        if hasattr(m, 'unit'):
+            result = Quantity(m)
+            result /= self
+            return result
+        else:
+            return Quantity(m, self**(-1))
 
     __truediv__ = __div__
 
@@ -659,7 +666,7 @@ class UnitBase(object):
                 return m
             return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
 
-        # Cannot handle this as Unit, re-try as Quantity
+        # Cannot handle this as Unit, re-try as Quantity.
         from .quantity import Quantity
         return Quantity(1, self) * m
 
@@ -667,9 +674,16 @@ class UnitBase(object):
         if isinstance(m, (bytes, six.text_type)):
             return Unit(m) * self
 
-        # Cannot handle this as Unit, re-try as Quantity
+        # Cannot handle this as Unit.  Here, m cannot be a Quantity,
+        # so we make it into one, fasttracking when it does not have a unit
+        # for the common case of <array> * <unit>.
         from .quantity import Quantity
-        return m * Quantity(1, self)
+        if hasattr(m, 'unit'):
+            result = Quantity(m)
+            result *= self
+            return result
+        else:
+            return Quantity(m, self)
 
     def __hash__(self):
         # This must match the hash used in CompositeUnit for a unit
