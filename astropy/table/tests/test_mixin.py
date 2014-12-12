@@ -1,4 +1,5 @@
-from ..table import QTable
+from ...tests.helper import pytest
+from ..table import QTable, col_setattr, col_getattr
 from ... import units as u
 
 # ISSUES
@@ -10,25 +11,27 @@ def test_attributes(mixin_cols):
     Required attributes for a column can be set.
     """
     m = mixin_cols['m']
-    m.name = 'a'
-    assert m.name == 'a'
+    col_setattr(m, 'name', 'a')
+    assert col_getattr(m, 'name') == 'a'
 
-    m.description = 'a'
-    assert m.description == 'a'
+    col_setattr(m, 'description', 'a')
+    assert col_getattr(m, 'description') == 'a'
 
     if not isinstance(m, u.Quantity):
-        m.unit = u.m
-    assert m.unit is u.m
+        col_setattr(m, 'unit', u.m)
+    assert col_getattr(m, 'unit') is u.m
 
-    if hasattr(m, '_table_format'):
-        m._table_format = 'a'
-        assert m._table_format == 'a'
-    else:
-        m.format = 'a'
-        assert m.format == 'a'
+    col_setattr(m, 'format', 'a')
+    assert col_getattr(m, 'format') == 'a'
 
-    m.meta = {'a': 1}
-    assert m.meta == {'a': 1}
+    col_setattr(m, 'meta', {'a': 1})
+    assert col_getattr(m, 'meta') == {'a': 1}
+
+    with pytest.raises(AttributeError):
+        col_setattr(m, 'bad_attr', 1)
+
+    with pytest.raises(AttributeError):
+        col_getattr(m, 'bad_attr')
 
 
 def check_mixin_type(table, table_col, in_col):

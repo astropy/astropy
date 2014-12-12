@@ -57,13 +57,14 @@ def col_setattr(col, attr, value):
         raise AttributeError("attribute must be one of {}".format(COLUMN_ATTRS))
 
     # The unit and dtype attributes are considered univeral and do NOT get
-    # stored in _column_attrs.  For BaseColumn instances use the usual setattr.
+    # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
     if isinstance(col, BaseColumn) or attr in ('unit', 'dtype'):
         setattr(col, attr, value)
     else:
-        if not hasattr(col, '_column_attrs'):
-            col._column_attrs = {}
-        col._column_attrs[attr] = value
+        # If no _astropy_column_attrs or it is None then convert to dict
+        if getattr(col, '_astropy_column_attrs', None) is None:
+            col._astropy_column_attrs = {}
+        col._astropy_column_attrs[attr] = value
 
 def col_getattr(col, attr, default=None):
     """
@@ -75,14 +76,17 @@ def col_getattr(col, attr, default=None):
         raise AttributeError("attribute must be one of {}".format(COLUMN_ATTRS))
 
     # The unit and dtype attributes are considered univeral and do NOT get
-    # stored in _column_attrs.  For BaseColumn instances use the usual setattr.
+    # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
     if isinstance(col, BaseColumn) or attr in ('unit', 'dtype'):
         value = getattr(col, attr, default)
     else:
-        if hasattr(col, '_column_attrs'):
-            value = col._column_attrs.get(attr, default)
-        else:
+        # If col does not have _astropy_column_attrs or it is None (meaning
+        # nothing has been set yet) then return default, otherwise look for
+        # the attribute in the astropy_column_attrs dict.
+        if getattr(col, '_astropy_column_attrs', None) is None:
             value = default
+        else:
+            value = col._astropy_column_attrs.get(attr, default)
 
     return value
 

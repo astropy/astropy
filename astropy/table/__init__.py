@@ -18,7 +18,7 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-from .column import Column, MaskedColumn
+from .column import Column, MaskedColumn, col_getattr, col_setattr
 from .groups import TableGroups, ColumnGroups
 from .table import Table, QTable, TableColumns, Row, TableFormatter
 from .operations import join, hstack, vstack, unique, TableMergeError

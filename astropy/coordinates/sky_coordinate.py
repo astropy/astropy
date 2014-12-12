@@ -130,8 +130,9 @@ class SkyCoord(object):
     """
 
 
-    # Declare that SkyCoord can be used as a Table mixin columm
-    _astropy_mixin_column = True
+    # Declare that SkyCoord can be used as a Table column by defining the
+    # attribute where column attributes will be stored.
+    _astropy_column_attrs = None
 
     def __init__(self, *args, **kwargs):
 

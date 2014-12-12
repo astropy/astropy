@@ -632,7 +632,7 @@ class Table(object):
         elif isinstance(col, Quantity):
             is_mixin = isinstance(self, QTable)
         else:
-            is_mixin = getattr(col, '_astropy_mixin_column', False)
+            is_mixin = hasattr(col, '_astropy_column_attrs')
 
         return is_mixin
 
