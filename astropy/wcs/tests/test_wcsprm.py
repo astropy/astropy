@@ -10,7 +10,7 @@ import re
 from numpy.testing import assert_array_equal
 import numpy as np
 
-from ...tests.helper import pytest, raises
+from ...tests.helper import pytest, raises, catch_warnings
 from ...io import fits
 from .. import wcs
 from .. import _wcs
@@ -245,16 +245,21 @@ def test_cunit():
     assert w.cunit[1] == u.km
 
 
-@raises(ValueError)
 def test_cunit_invalid():
     w = _wcs.Wcsprm()
-    w.cunit[0] = 'foo'
+    with catch_warnings() as warns:
+        w.cunit[0] = 'foo'
+    assert len(warns) == 1
+    assert 'foo' in str(warns[0].message)
 
 
-@raises(ValueError)
 def test_cunit_invalid2():
     w = _wcs.Wcsprm()
-    w.cunit = ['foo', 'bar']
+    with catch_warnings() as warns:
+        w.cunit = ['foo', 'bar']
+    assert len(warns) == 2
+    assert 'foo' in str(warns[0].message)
+    assert 'bar' in str(warns[1].message)
 
 
 def test_unit():
