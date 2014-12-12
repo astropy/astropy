@@ -13,7 +13,7 @@ from ...extern import six
 from ...extern.six.moves import zip as izip
 
 from . import core
-from ...table import Column
+from ...table import Column, col_iter_str_vals
 from ...utils.xml import writer
 
 from copy import deepcopy
@@ -366,9 +366,9 @@ class HTML(core.BaseReader):
                                 for i in range(span):
                                     # Split up multicolumns into separate columns
                                     new_col = Column([el[i] for el in col])
-                                    col_str_iters.append(new_col.iter_str_vals())
+                                    col_str_iters.append(col_iter_str_vals(new_col))
                             else:
-                                col_str_iters.append(col.iter_str_vals())
+                                col_str_iters.append(col_iter_str_vals(col))
 
                     for row in izip(*col_str_iters):
                         with w.tag('tr'):

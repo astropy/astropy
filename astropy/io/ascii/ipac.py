@@ -24,6 +24,7 @@ from . import basic
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from ...table.pprint import _format_funcs, _auto_format_func
+from ...table import col_iter_str_vals
 
 
 class IpacFormatErrorDBMS(Exception):

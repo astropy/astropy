@@ -96,6 +96,17 @@ def col_getattr(col, attr, default=None):
 
     return value
 
+def col_iter_str_vals(col):
+    """
+    TODO: docstring
+    This is a mixin-safe version of Column.iter_str_vals.
+    """
+    parent_table = col_getattr(col, 'parent_table')
+    formatter = FORMATTER if parent_table is None else parent_table.formatter
+    _pformat_col_iter = formatter._pformat_col_iter
+    for str_val in _pformat_col_iter(col, -1, False, False, {}):
+        yield str_val
+
 class FalseArray(np.ndarray):
     def __new__(cls, shape):
         obj = np.zeros(shape, dtype=np.bool).view(cls)
