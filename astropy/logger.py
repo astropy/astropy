@@ -105,7 +105,7 @@ def _init_log():
         logging.setLoggerClass(orig_logger_cls)
 
     log.propagate = False
-    
+
     return log
 
 
