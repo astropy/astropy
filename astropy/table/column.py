@@ -45,7 +45,7 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
-COLUMN_ATTRS = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
+COLUMN_ATTRS = ('name', 'unit', 'dtype', 'format', 'description', 'meta', 'parent_table')
 
 def col_setattr(col, attr, value):
     """
@@ -58,12 +58,15 @@ def col_setattr(col, attr, value):
 
     # The unit and dtype attributes are considered univeral and do NOT get
     # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
-    if isinstance(col, BaseColumn) or attr in ('unit', 'dtype'):
+    if (isinstance(col, BaseColumn) or
+            (isinstance(col, Quantity) and attr in ('dtype', 'unit'))):
         setattr(col, attr, value)
     else:
         # If no _astropy_column_attrs or it is None then convert to dict
         if getattr(col, '_astropy_column_attrs', None) is None:
             col._astropy_column_attrs = {}
+        if attr == 'parent_table':
+            value = weakref.ref(value)
         col._astropy_column_attrs[attr] = value
 
 def col_getattr(col, attr, default=None):
@@ -77,7 +80,8 @@ def col_getattr(col, attr, default=None):
 
     # The unit and dtype attributes are considered univeral and do NOT get
     # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
-    if isinstance(col, BaseColumn) or attr in ('unit', 'dtype'):
+    if (isinstance(col, BaseColumn) or
+            (isinstance(col, Quantity) and attr in ('dtype', 'unit'))):
         value = getattr(col, attr, default)
     else:
         # If col does not have _astropy_column_attrs or it is None (meaning
@@ -87,6 +91,8 @@ def col_getattr(col, attr, default=None):
             value = default
         else:
             value = col._astropy_column_attrs.get(attr, default)
+            if attr == 'parent_table' and callable(value):
+                value = value()
 
     return value
 

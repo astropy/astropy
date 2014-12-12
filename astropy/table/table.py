@@ -75,7 +75,8 @@ class TableColumns(OrderedDict):
             # columns (BaseColumn or mixins) in the list.
             newcols = []
             for col in cols:
-                if isinstance(col, BaseColumn) or hasattr(col, '_column_attrs'):
+                if (isinstance(col, (BaseColumn, Quantity))
+                        or hasattr(col, '_astropy_column_attrs')):
                     newcols.append((col_getattr(col, 'name'), col))
                 else:
                     newcols.append(col)
@@ -437,9 +438,9 @@ class Table(object):
                         newcol = col.copy()
                     else:
                         newcol = copy_stdlib(col)
-                    if not hasattr(newcol, '_column_attrs'):
-                        _column_attrs = deepcopy(getattr(col, '_column_attrs', {}))
-                        newcol._column_attrs = _column_attrs
+                    if not hasattr(newcol, '_astropy_column_attrs'):
+                        _column_attrs = deepcopy(getattr(col, '_astropy_column_attrs', {}))
+                        newcol._astropy_column_attrs = _column_attrs
                     col = newcol
                 col_setattr(col, 'name', name or col_getattr(col, 'name') or def_name)
                 # TODO: What about dtype?
@@ -476,7 +477,7 @@ class Table(object):
 
             for name in names:
                 columns[name] = self.ColumnClass(name=name, data=newdata[name])
-                columns[name].parent_table = self
+                col_setattr(columns[name], 'parent_table', self)
             self.columns = columns
 
     def _init_from_dict(self, data, names, dtype, n_cols, copy):
@@ -564,7 +565,7 @@ class Table(object):
         columns = table.TableColumns((col_getattr(col, 'name'), col) for col in cols)
 
         for col in cols:
-            col.parent_table = table
+            col_setattr(col, 'parent_table', table)
             if table.masked and not hasattr(col, 'mask'):
                 col.mask = FalseArray(col.shape)
 
@@ -1306,7 +1307,7 @@ class Table(object):
         columns = self.TableColumns()
         for name, col in self.columns.items():
             newcol = col[keep_mask]
-            newcol.parent_table = self
+            col_setattr(newcol, 'parent_table', self)
             columns[name] = newcol
 
         self.columns = columns
@@ -1758,7 +1759,7 @@ class Table(object):
                     raise ValueError('Incorrect length for column {0} after inserting {1}'
                                      ' (expected {2}, got {3})'
                                      .format(name, val, len(newcol), N + 1))
-                newcol.parent_table = self
+                col_setattr(newcol, 'parent_table', self)
 
                 # Inserting always defaults to mask=False, so only actually set for True.
                 # This allows for mixin columns that don't have a mask attribute.
