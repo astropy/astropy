@@ -13,7 +13,7 @@ from ...extern import six
 from ...extern.six.moves import zip as izip
 
 from . import core
-from ...table import Column, col_iter_str_vals
+from ...table import Column, col_iter_str_vals, col_getattr
 from ...utils.xml import writer
 
 from copy import deepcopy
@@ -357,7 +357,7 @@ class HTML(core.BaseReader):
                                     w.start('th', colspan=col.shape[1])
                                 else:
                                     w.start('th')
-                                w.data(col.name.strip())
+                                w.data(col_getattr(col, 'name').strip())
                                 w.end(indent=False)
                         col_str_iters = []
                         for col in cols:

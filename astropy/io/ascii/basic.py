@@ -16,6 +16,7 @@ import re
 import numpy as np
 
 from . import core
+from ...table import col_getattr
 
 class BasicHeader(core.BaseHeader):
     '''Basic table Header Reader
@@ -297,7 +298,7 @@ class RdbHeader(TabHeader):
         rdb_types = []
         for col in self.cols:
             # Check if dtype.kind is string or unicode.  See help(np.core.numerictypes)
-            rdb_type = 'S' if col.dtype.kind in ('S', 'U') else 'N'
+            rdb_type = 'S' if col_getattr(col, 'dtype').kind in ('S', 'U') else 'N'
             rdb_types.append(rdb_type)
 
         lines.append(self.splitter.join(rdb_types))
