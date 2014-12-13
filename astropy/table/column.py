@@ -91,8 +91,14 @@ def col_getattr(col, attr, default=None):
             value = default
         else:
             value = col._astropy_column_attrs.get(attr, default)
-            if attr == 'parent_table' and callable(value):
-                value = value()
+
+        # Weak ref for parent table
+        if attr == 'parent_table' and callable(value):
+            value = value()
+
+        # Mixins have a default dtype of Object if nothing else was set
+        if attr == 'dtype' and value is None:
+            value = np.dtype('O')
 
     return value
 
