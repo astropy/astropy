@@ -611,10 +611,10 @@ class Table(object):
         __str__ = __bytes__
 
     @property
-    def _has_mixin_columns(self):
+    def has_mixin_columns(self):
         """
-        Determine if table has any columns that are mixins (are not
-        Column subclasses)
+        True if table has any mixin columns (defined as columns that are not Column
+        subclasses)
         """
         return any(not isinstance(col, BaseColumn) for col in self.columns.values())
 
