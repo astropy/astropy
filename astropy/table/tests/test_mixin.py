@@ -1,5 +1,10 @@
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 from ...tests.helper import pytest
-from ..table import QTable, col_setattr, col_getattr
+from ...table import QTable, col_setattr, col_getattr
 from ... import units as u
 
 # ISSUES
@@ -55,3 +60,17 @@ def test_make_table(table_types, mixin_cols):
 
     t = table_types.Table(cols)
     check_mixin_type(t, t['col3'], mixin_cols['m'])
+
+
+def test_io_ascii_write(mixin_cols):
+    """
+    Test that table with mixin column can be written by io.ascii for
+    every pure Python writer.  No validation of the output is done,
+    this just confirms no exceptions.
+    """
+    from ...io.ascii.connect import _get_connectors_table
+    t = QTable(mixin_cols)
+    for fmt in _get_connectors_table():
+        if fmt['Write'] and '.fast_' not in fmt['Format']:
+            out = StringIO()
+            t.write(out, format=fmt['Format'])
