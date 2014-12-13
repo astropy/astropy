@@ -54,7 +54,7 @@ def col_setattr(col, attr, value):
     TODO: full docstring
     """
     if attr not in COLUMN_ATTRS:
-        raise AttributeError("attribute must be one of {}".format(COLUMN_ATTRS))
+        raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
 
     # The unit and dtype attributes are considered univeral and do NOT get
     # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
@@ -76,7 +76,7 @@ def col_getattr(col, attr, default=None):
     TODO: full docstring
     """
     if attr not in COLUMN_ATTRS:
-        raise AttributeError("attribute must be one of {}".format(COLUMN_ATTRS))
+        raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
 
     # The unit and dtype attributes are considered univeral and do NOT get
     # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
