@@ -336,7 +336,7 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
 
     table = Table(table, names=kwargs.get('names'))
 
-    if table._has_mixin_columns:
+    if table.has_mixin_columns:
         fast_writer = False
 
     Writer = _get_format_class(format, Writer, 'Writer')

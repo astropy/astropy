@@ -74,3 +74,18 @@ def test_io_ascii_write(mixin_cols):
         if fmt['Write'] and '.fast_' not in fmt['Format']:
             out = StringIO()
             t.write(out, format=fmt['Format'])
+
+
+def test_io_write_fail(mixin_cols):
+    """
+    Test that table with mixin column cannot be written by io.votable,
+    io.fits, and io.misc.hdf5
+    every pure Python writer.  No validation of the output is done,
+    this just confirms no exceptions.
+    """
+    t = QTable(mixin_cols)
+    for fmt in ('fits', 'votable', 'hdf5'):
+        out = StringIO()
+        with pytest.raises(ValueError) as err:
+            t.write(out, format=fmt)
+        assert 'cannot write table with mixin column(s)' in str(err.value)
