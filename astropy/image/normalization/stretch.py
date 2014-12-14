@@ -170,7 +170,7 @@ class PowerDistStretch(BaseStretch):
 
 class InvertedPowerDistStretch(BaseStretch):
     """
-    Inverse transformation for `~imageutils.scaling.PowerDistStretch`.
+    Inverse transformation for `~astropy.image.scaling.PowerDistStretch`.
     """
 
     def __init__(self, a=1000.0):
@@ -241,7 +241,7 @@ class LogStretch(BaseStretch):
 
 class InvertedLogStretch(BaseStretch):
     """
-    Inverse transformation for `~imageutils.scaling.LogStretch`.
+    Inverse transformation for `~astropy.image.scaling.LogStretch`.
     """
 
     def __init__(self, a):
@@ -357,7 +357,7 @@ class HistEqStretch(BaseStretch):
 
 class InvertedHistEqStretch(BaseStretch):
     """
-    Inverse transformation for `~imageutils.scaling.HistEqStretch`.
+    Inverse transformation for `~astropy.image.scaling.HistEqStretch`.
     """
 
     def __init__(self, data, values=None):

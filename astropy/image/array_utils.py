@@ -80,7 +80,7 @@ def extract_array_2d(array_large, shape, position):
     a small array of shape 3x5:
 
     >>> import numpy as np
-    >>> from imageutils.array_utils import extract_array_2d
+    >>> from astropy.image.array_utils import extract_array_2d
     >>> large_array = np.arange(110).reshape((11, 10))
     >>> large_array[4:9, 4:9] = np.ones((5, 5))
     >>> extract_array_2d(large_array, (3, 5), (7, 7))
@@ -116,7 +116,7 @@ def add_array_2d(array_large, array_small, position):
     array of ones with a shape of 3x3:
 
     >>> import numpy as np
-    >>> from imageutils.array_utils import add_array_2d
+    >>> from astropy.image.array_utils import add_array_2d
     >>> large_array = np.zeros((5, 5))
     >>> small_array = np.ones((3, 3))
     >>> add_array_2d(large_array, small_array, (2, 1))
@@ -190,7 +190,7 @@ def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from imageutils import mask_to_mirrored_num
+    >>> from astropy.image import mask_to_mirrored_num
     >>> image = np.arange(16).reshape(4, 4)
     >>> mask = np.zeros_like(image, dtype=bool)
     >>> mask[0, 0] = True

@@ -84,6 +84,7 @@ User Documentation
    :maxdepth: 1
 
    convolution/index
+   image/index
    cosmology/index
    stats/index
    vo/index

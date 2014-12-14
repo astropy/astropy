@@ -3,17 +3,9 @@
 Image processing utilities for Astropy.
 """
 
-# Affiliated packages may add whatever they like to this file, but
-# should keep this content at the top.
-# ----------------------------------------------------------------------------
-from ._astropy_init import *
-# ----------------------------------------------------------------------------
-
-# For egg_info test builds to pass, put package imports here.
-if not _ASTROPY_SETUP_:
-    from .stats import *
-    from .array_utils import *
-    from .sampling import *
+from .stats import *
+from .array_utils import *
+from .sampling import *
 
 __all__ = ['sigmaclip_stats', 'downsample', 'upsample',
            'extract_array_2d', 'add_array_2d', 'subpixel_indices',
