@@ -7,40 +7,54 @@ to adopt an astropy plotting style.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import matplotlib as mpl
 
 def set_astropy_plot_style(version=1):
     """
-    matplotlib configuration parameters for astropy plotting style.
-    """
+    Set matplotlib parameters for astropy plotting style.
 
+    This methods sets some :mod:`matplotlib` defaults. It is mostly here to
+    allow a consistent plotting style in tutorials, but can be used to
+    prepare any :mod:`matplotlib` figure.
+
+    This method is only useful, if the module :mod:`matplotlib` can be imported.
+
+    Parameters
+    ----------
+    version : integer
+        Different default plotting styles for astropy are labeled with 
+        version numbers. Currently, only one style (``version=1``) is
+        implemented.
+    """
+    import matplotlib as mpl
     if version == 1:
 
         params = {
 
             # Lines
-            'lines.linewidth': 1.0,
+            'lines.linewidth': 1.7,
             'lines.antialiased': True,
 
             # Patches
-            'patch.linewidth': 0.5,
+            'patch.linewidth': 1.0,
             'patch.facecolor': '#348ABD',
-            'patch.edgecolor': '#EEEEEE',
+            'patch.edgecolor': '#CCCCCC',
             'patch.antialiased': True,
 
+            # images
+            'image.cmap': 'gist_heat',
+            'image.origin': 'upper',
+
             # Font
-            'font.family': 'monospace',
             'font.size': 12.0,
-            'font.monospace': ['Andale Mono', 'Nimbus Mono L', 'Courier New', 'Courier', 'Fixed', 'Terminal', 'monospace'],
 
             # Axes
-            'axes.facecolor': '#EEEEEE',
-            'axes.edgecolor': '#BCBCBC',
-            'axes.linewidth': 1,
+            'axes.facecolor': '#FFFFFF',
+            'axes.edgecolor': '#AAAAAA',
+            'axes.linewidth': 1.0,
             'axes.grid': True,
             'axes.titlesize': 'x-large',
             'axes.labelsize': 'large',
-            'axes.labelcolor': '#555555',
+            'axes.labelcolor': '#FFFFFF',
             'axes.axisbelow': True,
             'axes.color_cycle': ['#348ABD', '#7A68A6', '#A60628', '#467821', '#CF4457', '#188487', '#E24A33'],
                 # 348ABD : blue
@@ -56,36 +70,24 @@ def set_astropy_plot_style(version=1):
             'xtick.minor.size': 0,
             'xtick.major.pad': 6,
             'xtick.minor.pad': 6,
-            'xtick.color': '#555555',
+            'xtick.color': '#565656',
             'xtick.direction': 'in',
             'ytick.major.size': 0,
             'ytick.minor.size': 0,
             'ytick.major.pad': 6,
             'ytick.minor.pad': 6,
-            'ytick.color': '#555555',
+            'ytick.color': '#565656',
             'ytick.direction': 'in',
 
             # Legend
             'legend.fancybox': True,
+            'legend.loc': 'best',
 
             # Figure
             'figure.figsize': [8, 6],
-            'figure.facecolor': '0.85',
+            'figure.facecolor': '1.0',
             'figure.edgecolor': '0.50',
             'figure.subplot.hspace': 0.5,
-
-            # Keymap
-            'keymap.fullscreen': 'f',
-            'keymap.home': ['h', 'r', 'home'],
-            'keymap.back': ['left', 'c', 'backspace'],
-            'keymap.forward': ['right', 'v'],
-            'keymap.pan': 'p',
-            'keymap.zoom': 'o',
-            'keymap.save': 's',
-            'keymap.grid': 'g',
-            'keymap.yscale': 'l',
-            'keymap.xscale': ['L', 'k'],
-            'keymap.all_axes': 'a',
 
             # Other
             'savefig.dpi': 72,
@@ -95,6 +97,7 @@ def set_astropy_plot_style(version=1):
         }
 
     else:
-        raise ValueError('Unrecognized astropy_plot_style verion')
+        raise ValueError('Unrecognized astropy_plot_style version.')
 
+    mpl.rcdefaults()
     mpl.rcParams.update(params)

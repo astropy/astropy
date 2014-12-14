@@ -193,6 +193,9 @@ New Features
     to image normalization (i.e. stretching and scaling) as well as a new
     script ``fits2bitmap`` that can produce a bitmap image from a FITS file.
     [#3201]
+  - Added a new method ``astropy.utils.plotting.set_astropy_plot_style``
+    which can be used to set a uniform plotstyle specifically for tutorials
+    that is improved compared to matplotlib defaults. [#2719, #2787, #3200]
 
 - ``astropy.vo``
 
