@@ -165,6 +165,17 @@ The current planned and existing sub-packages are:
         </tr>
         <tr>
             <td>
+                astropy.image
+            </td>
+            <td align='center'>
+                <img alt="dev" src="_images/dev.png">
+            </td>
+            <td>
+                New in v1.0, and in development.
+            </td>
+        </tr>
+        <tr>
+            <td>
                 astropy.modeling
             </td>
             <td align='center'>
