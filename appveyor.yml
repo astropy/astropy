@@ -2,7 +2,7 @@
 # Windows
 
 environment:
-  
+
   global:
       PYTHON: "C:\\conda"
       MINICONDA_VERSION: "3.5.5"
@@ -10,16 +10,16 @@ environment:
   matrix:
       - PYTHON_VERSION: "2.6"
         NUMPY_VERSION: "1.8.1"
-        
+
       - PYTHON_VERSION: "2.6"
         NUMPY_VERSION: "1.7.1"
-      
+
       - PYTHON_VERSION: "2.7"
         NUMPY_VERSION: "1.8.1"
-        
+
       - PYTHON_VERSION: "2.7"
         NUMPY_VERSION: "1.7.1"
-      
+
 #      - PYTHON_VERSION: "3.4"
 #        NUMPY_VERSION: "1.8.1"
 #
@@ -34,13 +34,13 @@ install:
     # Install miniconda using a powershell script.
     - "powershell ./.install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  
+
     # Install the build and runtime dependencies of the project.
     - "conda update --yes conda"
     # Create a conda environment using the astropy bonus packages
     - "conda create -q --yes -n test -c astropy-ci-extras python=%PYTHON_VERSION%"
     - "activate test"
-    
+
     # Check that we have the expected version of Python
     - "python --version"
 
