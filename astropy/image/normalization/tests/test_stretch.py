@@ -1,6 +1,6 @@
 import numpy as np
 
-from astropy.tests.helper import pytest
+from ....tests.helper import pytest
 
 from ..stretch import *
 

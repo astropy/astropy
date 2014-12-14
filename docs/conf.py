@@ -61,6 +61,10 @@ check_sphinx_version("1.2.1")
 # own build so we remove it here.
 del intersphinx_mapping['astropy']
 
+# Added intersphinx for optional dependencies
+intersphinx_mapping['skimage'] = ('http://scikit-image.org/docs/stable/', None)
+intersphinx_mapping['reproject'] = ('http://reproject.readthedocs.org/en/latest/', None)
+
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns.append('_templates')

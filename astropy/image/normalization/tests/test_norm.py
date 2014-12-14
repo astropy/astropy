@@ -3,10 +3,18 @@ from numpy import ma
 
 from numpy.testing import assert_allclose
 
-from ..normalize import ImageNormalize
+try:
+    import matplotlib
+    HAS_MATPLOTLIB = True
+    from ..normalize import ImageNormalize
+except:
+    HAS_MATPLOTLIB = False
+
+from ....tests.helper import pytest
 from ..stretch import SqrtStretch
 
 
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
 def test_normalize_scalar():
 
     n = ImageNormalize(vmin=2., vmax=10., stretch=SqrtStretch(), clip=True)
@@ -14,6 +22,7 @@ def test_normalize_scalar():
     assert_allclose(n(6), 0.70710678)
 
 
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
 def test_normalize_clip():
 
     data = np.linspace(0., 15., 6)
@@ -26,6 +35,7 @@ def test_normalize_clip():
     assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
 
 
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
 def test_normalize_noclip():
 
     data = np.linspace(0., 15., 6)
@@ -40,6 +50,7 @@ def test_normalize_noclip():
     assert_allclose(n.inverse(n(data))[1:], data[1:])
 
 
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
 def test_masked_normalize_clip():
 
     data = np.linspace(0., 15., 6)
@@ -53,6 +64,7 @@ def test_masked_normalize_clip():
     assert_allclose(output.mask, [0, 0, 0, 0, 0, 0])
 
 
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
 def test_masked_normalize_noclip():
 
     data = np.linspace(0., 15., 6)

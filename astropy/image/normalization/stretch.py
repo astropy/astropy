@@ -7,14 +7,14 @@ from __future__ import division, print_function
 
 import numpy as np
 
-from astropy.extern import six
-from astropy.utils.misc import InheritDocstrings
+from ...extern import six
+from ...utils.misc import InheritDocstrings
 
 from .transform import BaseTransform
 
-__all__ = ["LinearStretch", "SqrtStretch", "PowerStretch", "PowerDistStretch",
-           "SquaredStretch", "LogStretch", "AsinhStretch", "SinhStretch",
-           "HistEqStretch", "ContrastBiasStretch"]
+__all__ = ["BaseStretch", "LinearStretch", "SqrtStretch", "PowerStretch",
+           "PowerDistStretch", "SquaredStretch", "LogStretch", "AsinhStretch",
+           "SinhStretch", "HistEqStretch", "ContrastBiasStretch"]
 
 
 def logn(n, x, out=None):

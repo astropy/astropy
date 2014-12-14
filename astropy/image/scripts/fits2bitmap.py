@@ -3,8 +3,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import argparse
-from astropy import log
-import astropy.io.fits as fits
+from ... import log
+from ...io import fits
 
 import matplotlib.cm as cm
 import matplotlib.image as mimg

@@ -7,11 +7,12 @@ from __future__ import division, print_function
 
 import numpy as np
 
-from astropy.extern import six
+from ...extern import six
 
 from .transform import BaseTransform
 
-__all__ = ['ManualInterval', 'MinMaxInterval', 'PercentileInterval', 'AsymmetricPercentileInterval']
+__all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
+           'PercentileInterval', 'AsymmetricPercentileInterval']
 
 
 class BaseInterval(BaseTransform):

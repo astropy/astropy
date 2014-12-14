@@ -3,7 +3,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
 from numpy.testing import assert_allclose
-from astropy.tests.helper import pytest
+
+from ...tests.helper import pytest
 from ..array_utils import (extract_array_2d, add_array_2d, subpixel_indices,
                            mask_to_mirrored_num)
 
