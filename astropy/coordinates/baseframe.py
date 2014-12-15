@@ -153,11 +153,6 @@ class FrameAttribute(object):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
-
-    Returns
-    -------
-    frame_attr : descriptor
-        A new data descriptor to hold a frame attribute
     """
 
     _nextid = 1
@@ -261,11 +256,6 @@ class TimeFrameAttribute(FrameAttribute):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
-
-    Returns
-    -------
-    frame_attr : descriptor
-        A new data descriptor to hold a frame attribute
     """
 
     def convert_input(self, value):
