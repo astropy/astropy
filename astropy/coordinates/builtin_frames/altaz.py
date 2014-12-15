@@ -55,9 +55,6 @@ class AltAz(BaseCoordinateFrame):
     obswl = QuantityFrameAttribute(default=1*u.micron, unit=u.micron)
 
     def __init__(self, *args, **kwargs):
-
-        warn(AstropyWarning('The AltAz class currently does not support any '
-                            'transformations.  In a future version, it will '
-                            'support the standard IAU2000 AltAz<->ICRS '
-                            'transformations.'))
         super(AltAz, self).__init__(*args, **kwargs)
+
+#self-transform defined in cirs_observed_transforms.py
