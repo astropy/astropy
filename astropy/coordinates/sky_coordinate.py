@@ -18,7 +18,7 @@ from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
 from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
-                             UnitSphericalRepresentation)
+                             UnitSphericalRepresentation, CartesianRepresentation)
 
 __all__ = ['SkyCoord']
 
@@ -889,6 +889,37 @@ class SkyCoord(object):
         astropy.wcs.utils.pixel_to_skycoord : the implementation of this method
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
+
+    @classmethod
+    def get_sun(cls, time):
+        """
+        Determines the location of the sun at a given time, in
+        geocentric coordinates.
+
+        Parameters
+        ----------
+        table : `~astropy.time.Time`
+            The time at which to compute the location of the sun.
+
+        Returns
+        -------
+        newsc : same as this class
+            The new `SkyCoord` (or subclass) object.
+
+
+        Notes
+        -----
+        The algorithm for determining the sun/earth relative position
+        """
+        from .. import erfa
+        from .builtin_frames import GCRS
+
+        earth_pv_helio, earth_pv_bary = erfa.epv00(time.jd1, time.jd2)
+        x = -earth_pv_helio[..., 0, 0] * u.AU
+        y = -earth_pv_helio[..., 0, 1] * u.AU
+        z = -earth_pv_helio[..., 0, 2] * u.AU
+        cartrep = CartesianRepresentation(x=x, y=y, z=z)
+        return cls(cartrep, frame=GCRS)
 
     # Table interactions
     @classmethod
