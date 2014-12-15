@@ -93,7 +93,7 @@ def extract_array_2d(array_large, shape, position):
         s_y, s_x, _, _ = overlap_slices(array_large.shape, shape, position)
         return array_large[s_y, s_x]
     else:
-        raise Exception("Can't extract array. Shape too large.")
+        raise ValueError("Can't extract array. Shape too large.")
 
 
 def add_array_2d(array_large, array_small, position):
@@ -133,7 +133,7 @@ def add_array_2d(array_large, array_small, position):
         array_large[s_y, s_x] += array_small[b_y, b_x]
         return array_large
     else:
-        raise Exception("Can't add array. Small array too large.")
+        raise ValueError("Can't add array. Small array too large.")
 
 
 def subpixel_indices(position, subsampling):
