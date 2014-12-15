@@ -18,8 +18,8 @@ from ..extern.six.moves import xrange
 
 __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
            'median_absolute_deviation', 'biweight_location',
-           'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap']
-
+           'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap',
+           'mad_std']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
@@ -871,3 +871,43 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
             boot[i] = bootfunc(data[bootarr])
 
     return boot
+
+
+def mad_std(data):
+    """
+    Calculate a robust standard deviation using the `median absolute
+    deviation (MAD)
+    <http://en.wikipedia.org/wiki/Median_absolute_deviation>`_.
+
+    The standard deviation estimator is given by:
+
+    .. math::
+
+        \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)} \\approx 1.4826 \ \\textrm{MAD}
+
+    where :math:`\Phi^{-1}(P)` is the normal inverse cumulative
+    distribution function evaulated at probability :math:`P = 3/4`.
+
+    Parameters
+    ----------
+    data : array-like
+        2D data array
+
+    Returns
+    -------
+    result : float
+        The robust standard deviation of the data.
+
+    Examples
+    --------
+    >>> from astropy.utils import NumpyRNGContext
+    >>> with NumpyRNGContext(12345):
+    ...     from astropy.stats import median_absolute_deviation
+    ...     from numpy.random import normal
+    ...     data = normal(5, 2, size=(100, 100))
+    ...     print(mad_std(data))    # doctest: +FLOAT_CMP
+    2.02327646594
+    """
+
+    from scipy.stats import norm
+    return median_absolute_deviation(data) / norm.ppf(0.75)

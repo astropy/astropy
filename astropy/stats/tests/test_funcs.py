@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from numpy.random import randn
+from numpy.random import randn, normal
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
 
@@ -13,6 +13,7 @@ from ...tests.helper import pytest
 
 from .. import funcs
 from ...utils.misc import NumpyRNGContext
+
 
 try:
     from scipy import stats  # used in testing
@@ -295,3 +296,9 @@ def test_bootstrap():
     with NumpyRNGContext(42):
         bootresult = np.mean(funcs.bootstrap(bootarr, 10000, bootfunc=np.mean))
         assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
+
+
+def test_mad_std():
+    with NumpyRNGContext(12345):
+        data = normal(5, 2, size=(100, 100))
+        assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
