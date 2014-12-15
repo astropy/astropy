@@ -139,6 +139,10 @@ Starting a new package
    string in ``coveragerc`` - this gets changed automatically using the
    package name defined in ``setup.cfg``.
 
+   .. note:: the ``python setup.py`` commands will not work until you
+             have made your first commit, as shown in the last step of these
+             instructions.
+
 #. To set up the infrastructure to build the documentation, copy over the
    following files into a new directory called ``docs``::
 
