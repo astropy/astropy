@@ -39,6 +39,7 @@ from . import icrs_fk5_transforms
 from . import fk4_fk5_transforms
 from . import galactic_transforms
 from . import icrs_cirs_transforms
+from . import cirs_observed_transforms
 
 # we define an __all__ because otherwise the transformation modules get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
