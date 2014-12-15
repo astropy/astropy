@@ -4,8 +4,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from math import fabs
-
 import numpy as np
 from numpy import testing as npt
 
@@ -472,4 +470,3 @@ def test_cirs_to_altaz():
     #just check round-tripping
     npt.assert_allclose(cirs.ra.deg, cirs2.ra.deg)
     npt.assert_allclose(cirs.dec.deg, cirs2.dec.deg)
-
