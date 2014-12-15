@@ -50,7 +50,7 @@ class AltAz(BaseCoordinateFrame):
     obstime = TimeFrameAttribute(default=None)
     location = FrameAttribute(default=None)
     pressure = QuantityFrameAttribute(default=0, unit=u.hPa)
-    temperature = QuantityFrameAttribute(default=0, unit=u.C)
+    temperature = QuantityFrameAttribute(default=0, unit=u.deg_C)
     relative_humidity = FrameAttribute(default=0)
     obswl = QuantityFrameAttribute(default=1*u.micron, unit=u.micron)
 
