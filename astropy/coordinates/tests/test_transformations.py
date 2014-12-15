@@ -12,7 +12,7 @@ from numpy import testing as npt
 from ... import units as u
 from ..distances import Distance
 from .. import transformations as t
-from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, Galactocentric, CIRS
+from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, Galactocentric, CIRS, GCRS
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import pytest
@@ -369,13 +369,13 @@ def test_icrs_cirs():
     #now check that a different time yields different answers
     cframe2 = CIRS(obstime=Time('J2005', scale='utc'))
     cirsnod2 = inod.transform_to(cframe2)
-    assert not np.any(np.allclose(cirsnod.ra, cirsnod2.ra))
-    assert not np.any(np.allclose(cirsnod.dec, cirsnod2.dec))
+    assert not np.allclose(cirsnod.ra, cirsnod2.ra, rtol=1e-8)
+    assert not np.allclose(cirsnod.dec, cirsnod2.dec, rtol=1e-8)
 
     # parallax effects should be included, so with and w/o distance should be different
     cirswd = iwd.transform_to(cframe1)
-    assert not np.any(np.allclose(cirswd.ra, cirsnod.ra))
-    assert not np.any(np.allclose(cirswd.dec, cirsnod.dec))
+    assert not np.allclose(cirswd.ra, cirsnod.ra, rtol=1e-8)
+    assert not np.allclose(cirswd.dec, cirsnod.dec, rtol=1e-8)
     # but we *lose* the distance, meaning dimensionless unit vectors
     assert np.all(cirswd.distance.value == 1)
 
@@ -385,10 +385,65 @@ def test_icrs_cirs():
     npt.assert_allclose(cirsnod.dec, cirsnod3.dec)
 
     cirsnod4 = cirsnod.transform_to(cframe2)  # should be different
-    assert not np.any(np.allclose(cirsnod4.ra, cirsnod.ra))
-    assert not np.any(np.allclose(cirsnod4.dec, cirsnod.dec))
+    assert not np.allclose(cirsnod4.ra, cirsnod.ra, rtol=1e-8)
+    assert not np.allclose(cirsnod4.dec, cirsnod.dec, rtol=1e-8)
 
     cirsnod5 = cirsnod4.transform_to(cframe1)  # should be back to the same
     npt.assert_allclose(cirsnod.ra, cirsnod5.ra)
     npt.assert_allclose(cirsnod.dec, cirsnod5.dec)
->>>>>>> ICRS<->CIRS transforms and CIRS self-transform
+
+
+def test_icrs_gcrs():
+    """
+    Check ICRS<->GCRS for consistency
+    """
+    from ...time import Time
+    from ...utils import NumpyRNGContext
+
+    with NumpyRNGContext(12345):
+        inod = ICRS(ra=np.random.rand(100)*360*u.deg,
+                     dec=(np.random.rand(100)*180-90)*u.deg)
+        iwd = ICRS(ra=inod.ra, dec=inod.dec, distance=np.random.rand(100)*u.pc)
+
+    gframe1 = GCRS()
+    gcrsnod = inod.transform_to(gframe1)  #uses the default time
+    #first do a round-tripping test
+    inod2 = gcrsnod.transform_to(ICRS)
+    npt.assert_allclose(inod.ra, inod2.ra)
+    npt.assert_allclose(inod.dec, inod2.dec)
+
+    #now check that a different time yields different answers
+    gframe2 = GCRS(obstime=Time('J2005', scale='utc'))
+    gcrsnod2 = inod.transform_to(gframe2)
+    assert not np.allclose(gcrsnod.ra, gcrsnod2.ra, rtol=1e-8)
+    assert not np.allclose(gcrsnod.dec, gcrsnod2.dec, rtol=1e-8)
+
+    # parallax effects should be included, so with and w/o distance should be different
+    gcrswd = iwd.transform_to(gframe1)
+    assert not np.allclose(gcrswd.ra, gcrsnod.ra, rtol=1e-8)
+    assert not np.allclose(gcrswd.dec, gcrsnod.dec, rtol=1e-8)
+    # but we *lose* the distance, meaning dimensionless unit vectors
+    assert np.all(gcrswd.distance.value == 1)
+
+    #now check that the cirs self-transform works as expected
+    gcrsnod3 = gcrsnod.transform_to(gframe1)  # should be a no-op
+    npt.assert_allclose(gcrsnod.ra, gcrsnod3.ra)
+    npt.assert_allclose(gcrsnod.dec, gcrsnod3.dec)
+
+    gcrsnod4 = gcrsnod.transform_to(gframe2)  # should be different
+    assert not np.allclose(gcrsnod4.ra, gcrsnod.ra, rtol=1e-8)
+    assert not np.allclose(gcrsnod4.dec, gcrsnod.dec, rtol=1e-8)
+
+    gcrsnod5 = gcrsnod4.transform_to(gframe1)  # should be back to the same
+    npt.assert_allclose(gcrsnod.ra, gcrsnod5.ra)
+    npt.assert_allclose(gcrsnod.dec, gcrsnod5.dec)
+
+    #also make sure that a GCRS with a different geoloc/geovel gets a different answer
+    # roughly a moon-like frame
+    gframe3 = GCRS(obsgeoloc=[385000., 0, 0]*u.km, obsgeovel=[1, 0, 0 ]*u.km/u.s)
+    gcrsnod6 = inod.transform_to(gframe3)  # should be different
+    assert not np.allclose(gcrsnod.ra, gcrsnod6.ra, rtol=1e-8)
+    assert not np.allclose(gcrsnod.dec, gcrsnod6.dec, rtol=1e-8)
+    inodviag3 = gcrsnod6.transform_to(ICRS)  #and now back to the original
+    npt.assert_allclose(inod.ra, inodviag3.ra)
+    npt.assert_allclose(inod.dec, inodviag3.dec)

@@ -495,3 +495,18 @@ def test_len0_data():
     i = ICRS([]*u.deg, []*u.deg)
     assert i.has_data
     repr(i)
+
+def test_posvel_attributes():
+    from ..builtin_frames import GCRS
+
+    #make sure we can create a GCRS frame with valid inputs
+    GCRS(obstime='J2002', obsgeoloc=[1, 2, 3]*u.km, obsgeovel=[4, 5, 6]*u.km/u.s)
+
+    #make sure it fails for invalid lovs or vels
+    with pytest.raises(TypeError):
+        GCRS(obsgeoloc=[1, 2, 3])  #no unit
+    with pytest.raises(u.UnitsError):
+        GCRS(obsgeoloc=[1, 2, 3]*u.km/u.s)  #incorrect unit
+    with pytest.raises(ValueError):
+        GCRS(obsgeoloc=[1, 3]*u.km)  #incorrect shape
+

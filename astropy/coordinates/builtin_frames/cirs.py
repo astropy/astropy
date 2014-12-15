@@ -11,6 +11,12 @@ class CIRS(BaseCoordinateFrame):
     """
     A coordinate or frame in the Celestial Intermediate Reference System (CIRS).
 
+    This frame has one frame attribute:
+
+    * ``obstime``
+        The time at which the observation is taken.  Used for determining the
+        position of the Earth and its precession.
+
     Parameters
     ----------
     representation : `BaseRepresentation` or None
@@ -38,4 +44,4 @@ class CIRS(BaseCoordinateFrame):
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
 
 #The "self-transform" is defined in icrs_cirs_transformations.py, because in
-#the current implementation it goes through ICRS
+#the current implementation it goes through ICRS (like GCRS)

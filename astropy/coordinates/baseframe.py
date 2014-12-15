@@ -15,6 +15,7 @@ from copy import deepcopy
 from collections import namedtuple
 
 # Dependencies
+import numpy as np
 
 # Project
 from ..utils.compat.misc import override__dir__
@@ -30,7 +31,8 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
 
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
-           'FrameAttribute', 'TimeFrameAttribute', 'RepresentationMapping']
+           'FrameAttribute', 'TimeFrameAttribute', 'PositionFrameAttribute',
+           'VelocityFrameAttribute', 'RepresentationMapping']
 
 
 # the graph used for all transformations between frames
@@ -304,6 +306,106 @@ class TimeFrameAttribute(FrameAttribute):
 
         return out, converted
 
+
+class PositionFrameAttribute(FrameAttribute):
+    """
+    A frame attribute that is a 3-vector position (i.e., has length units)
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    """
+    def convert_input(self, value):
+        """
+        Checks that the input is a Quantity with length units (or the special
+        value ``0``).
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        if np.all(value == 0):
+            return u.Quantity((0, 0, 0), u.m), True
+        else:
+            if not (hasattr(value, 'unit') and
+                    hasattr(value, 'value') and
+                    hasattr(value, 'shape')):
+                raise TypeError('Tried to set a position frame attribute with '
+                                 'something that does not look like a Quantity.')
+            elif not u.m.is_equivalent(value.unit):
+                raise u.UnitsError('The provided value has units "{0}" which '
+                                   'are not length units'.format(value.unit))
+            elif not value.shape == (3,):
+                raise ValueError('The provided value has shape "{0}", but '
+                                 'should be a 3-vector'.format(value.shape))
+            return value, False
+
+
+class VelocityFrameAttribute(FrameAttribute):
+    """
+    A frame attribute that is a 3-vector velocity (i.e., has length/time units)
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    """
+    _KMS_UNIT = u.km / u.s  # Used in covert_input
+    def convert_input(self, value):
+        """
+        Checks that the input is a Quantity with velocity units (or the special
+        value ``0``).
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        if np.all(value == 0):
+            return u.Quantity((0, 0, 0), self._KMS_UNIT), True
+        else:
+            if not (hasattr(value, 'unit') and
+                    hasattr(value, 'value') and
+                    hasattr(value, 'shape')):
+                raise TypeError('Tried to set a position frame attribute with '
+                                'something that does not look like a Quantity.')
+            elif not self._KMS_UNIT.is_equivalent(value.unit):
+                raise u.UnitsError('The provided value has units "{0}" which '
+                                   'are not length units'.format(value.unit))
+            elif not value.shape == (3,):
+                raise ValueError('The provided value has shape "{0}", but '
+                                 'should be a 3-vector'.format(value.shape))
+            return value, False
 
 _RepresentationMappingBase = \
     namedtuple('RepresentationMapping',

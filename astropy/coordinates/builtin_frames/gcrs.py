@@ -4,16 +4,36 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ..representation import SphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
+                         TimeFrameAttribute, PositionFrameAttribute,
+                         VelocityFrameAttribute)
+from .consts import DEFAULT_OBSTIME
 
 
 class GCRS(BaseCoordinateFrame):
     """
     A coordinate or frame in the GCRS system.
 
-    It is distinct form ICRS mainly in that it is centered on the Earth's
+    It is distinct form ICRS mainly in that it is relative to the Earth's
     center-of-mass rather than the solar system Barycenter.  That means this
     frame includes the effects of abberation (unlike ICRS).
+
+    Note that this frame also includes frames that are defined *relative* to the
+    Earth, but are offset (in both position and velocity) from the Earth.
+
+    This frame has three frame attributes:
+
+    * ``obstime``
+        The time at which the observation is taken.  Used for determining the
+        position of the Earth.
+    * ``obsgeoloc``
+        3-vector giving the position of the observer relative to the
+        center-of-mass of the Earth, oriented the same as BCRS/ICRS.
+        Defaults to 0,  meaning "true" GCRS.
+    * ``obsgeovel``
+        3-vector giving the celocity of the observer relative to the
+        center-of-mass of the Earth, oriented the same as BCRS/ICRS.
+        Defaults to 0, meaning "true" GCRS.
 
     Parameters
     ----------
@@ -38,3 +58,10 @@ class GCRS(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
+
+    obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
+    obsgeoloc = PositionFrameAttribute(default=0)
+    obsgeovel = VelocityFrameAttribute(default=0)
+
+#The "self-transform" is defined in icrs_cirs_transformations.py, because in
+#the current implementation it goes through ICRS (like CIRS)
