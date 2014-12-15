@@ -89,6 +89,9 @@ Starting a new package
 
     git add MANIFEST.in ah_bootstrap.py ez_setup.py setup.cfg setup.py
 
+   .. important:: Before proceeding, make sure you have edited ``setup.cfg`` and
+                 ``setup.py`` as indicated above!
+
 #. Next, you can create a directory for your package's source code, which will
    usually also be called the same name as your package. In this directory
    you can copy over the following files::
@@ -106,6 +109,9 @@ Starting a new package
    The main purpose of the ``_astropy_init.py`` file is to set up the
    ``test()`` command at the root of your package so that you can do
    ``packagename.test()``. This file is imported into ``__init__``.
+
+   .. important:: Before proceeding, make sure you have edited ``__init__.py`` as
+                  indicated above!
 
 #. In order to benefit from the pytest plugins in Astropy, you should also
    copy over the ``conftest.py`` file to your repository::
@@ -150,6 +156,9 @@ Starting a new package
     cp ../template/.travis.yml .
     # edit .travis.yml
     git add .travis.yml
+
+   .. important:: Before proceeding, make sure you have edited ``.travis.yml`` as
+                  indicated above!
 
 #. Now you are ready to make your first commit::
 
