@@ -10083,7 +10083,7 @@ char *fitshdrtext;
 #line 1 "fitshdr.l"
 /*============================================================================
 
-  WCSLIB 4.24 - an implementation of the FITS WCS standard.
+  WCSLIB 4.25 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -10105,7 +10105,7 @@ char *fitshdrtext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.c,v 4.24 2014/09/18 15:25:01 mcalabre Exp $
+  $Id: fitshdr.c,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
 *=============================================================================
 *
 * fitshdr.l is a Flex description file containing a lexical scanner

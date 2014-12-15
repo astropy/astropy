@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------
-WCSLIB 4.24 and PGSBOX 4.24 INSTALLATION
+WCSLIB 4.25 and PGSBOX 4.25 INSTALLATION
 --------------------------------------
 
 WCSLIB requires an ANSI C compiler with standard ANSI C environment, that is,
@@ -10,8 +10,8 @@ Installation of WCSLIB is handled by GNU autoconf; GNU make (referred to here
 as 'gmake') must be used.  The WCSLIB distribution also includes PGSBOX (refer
 to the README file), to unpack it type
 
-  zcat wcslib-4.24.tar.gz | tar pvxf -
-  cd wcslib-4.24
+  zcat wcslib-4.25.tar.gz | tar pvxf -
+  cd wcslib-4.25
 
 then if you do not need to specify any configuration options, simply run
 
@@ -93,7 +93,7 @@ The INSTALL file provided with GNU autoconf 2.53 is appended without change.
 
 Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 http://www.atnf.csiro.au/people/Mark.Calabretta
-$Id: INSTALL,v 4.24 2014/09/18 15:25:02 mcalabre Exp $
+$Id: INSTALL,v 4.25 2014/12/14 14:29:38 mcalabre Exp $
 
 ==============================================================================
 
