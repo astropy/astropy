@@ -188,6 +188,9 @@ New Features
   - ``all_world2pix`` now uses a much more sophisticated and complete
     algorithm to iteratively compute the inverse WCS transform. [#2816]
 
+  - Add ability to use ``WCS`` object to define projections in Matplotlib,
+    using the ``WCSAxes`` package. [#3183]
+
 API Changes
 ^^^^^^^^^^^
 

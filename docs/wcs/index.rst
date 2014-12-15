@@ -182,6 +182,14 @@ image can be extracted with the utility functions
 `~astropy.wcs.utils.celestial_pixel_scale` and
 `~astropy.wcs.utils.non_celestial_pixel_scales`.
 
+Matplotlib plots with correct WCS projection
+============================================
+
+The `WCSAxes <http://wcsaxes.readthedocs.org>`_ affiliated package adds the
+ability to use the :class:`~astropy.wcs.WCS` to define projections in
+Matplotlib. More information on installing and using WCSAxes can be found `here
+<http://wcsaxes.readthedocs.org>`__.
+
 Other information
 =================
 
