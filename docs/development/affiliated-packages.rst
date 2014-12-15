@@ -101,7 +101,7 @@ Starting a new package
     # edit <packagename>/__init__.py to add a docstring and license line
 
     git add <packagename>/__init__.py
-    git add <pacakgename>/_astropy_init.py
+    git add <packagename>/_astropy_init.py
 
    The main purpose of the ``_astropy_init.py`` file is to set up the
    ``test()`` command at the root of your package so that you can do
