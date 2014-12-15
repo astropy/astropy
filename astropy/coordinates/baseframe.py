@@ -359,7 +359,7 @@ class QuantityFrameAttribute(FrameAttribute):
                                 'something that does not have a unit.')
             oldvalue = value
             value = u.Quantity(oldvalue, copy=False).to(self.unit)
-            if self.unit is not None and value.shape != self.shape:
+            if self.shape is not None and value.shape != self.shape:
                 raise ValueError('The provided value has shape "{0}", but '
                                  'should have shape "{1}"'.format(value.shape,
                                                                   self.shape))
