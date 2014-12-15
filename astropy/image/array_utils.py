@@ -8,10 +8,10 @@ import numpy as np
 import copy
 
 __all__ = ['extract_array_2d', 'add_array_2d', 'subpixel_indices',
-           'mask_to_mirrored_num', 'get_slices']
+           'mask_to_mirrored_num', 'overlap_slices']
 
 
-def get_slices(large_array_shape, small_array_shape, position):
+def overlap_slices(large_array_shape, small_array_shape, position):
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -90,7 +90,7 @@ def extract_array_2d(array_large, shape, position):
     """
     # Check if larger array is really larger
     if array_large.shape >= shape:
-        s_y, s_x, _, _ = get_slices(array_large.shape, shape, position)
+        s_y, s_x, _, _ = overlap_slices(array_large.shape, shape, position)
         return array_large[s_y, s_x]
     else:
         raise Exception("Can't extract array. Shape too large.")
@@ -128,7 +128,7 @@ def add_array_2d(array_large, array_small, position):
     """
     # Check if larger array is really larger
     if array_large.shape >= array_small.shape:
-        s_y, s_x, b_y, b_x = get_slices(array_large.shape,
+        s_y, s_x, b_y, b_x = overlap_slices(array_large.shape,
                                          array_small.shape, position)
         array_large[s_y, s_x] += array_small[b_y, b_x]
         return array_large
