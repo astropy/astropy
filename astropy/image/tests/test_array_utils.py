@@ -90,7 +90,23 @@ def test_mask_to_mirrored_num():
     data_ref[1, 1] = data[2, 2]
     mirror_data = mask_to_mirrored_num(data, mask, center)
     assert_allclose(mirror_data, data_ref, rtol=0, atol=1.e-6)
-
+    assert mirror_data is not data
+    
+def test_mask_to_mirrored_num_inplace():
+    """
+    Test mask_to_mirrored_num (no copy).
+    """
+    center = (1.5, 1.5)
+    data = np.arange(16).reshape(4, 4)
+    mask = np.zeros_like(data, dtype=bool)
+    mask[0, 0] = True
+    mask[1, 1] = True
+    data_ref = data.copy()
+    data_ref[0, 0] = data[3, 3]
+    data_ref[1, 1] = data[2, 2]
+    mirror_data = mask_to_mirrored_num(data, mask, center, copy=False)
+    assert_allclose(mirror_data, data_ref, rtol=0, atol=1.e-6)
+    assert mirror_data is data
 
 def test_mask_to_mirrored_num_range():
     """

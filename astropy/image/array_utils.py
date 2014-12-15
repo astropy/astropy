@@ -4,8 +4,9 @@ This module includes helper functions for array operations.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+
 import numpy as np
-import copy
+from numpy.lib.index_tricks import index_exp
 
 __all__ = ['extract_array_2d', 'add_array_2d', 'subpixel_indices',
            'mask_to_mirrored_num', 'overlap_slices']
@@ -157,7 +158,8 @@ def subpixel_indices(position, subsampling):
     return x_sub, y_sub
 
 
-def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
+def mask_to_mirrored_num(image, mask_image, center_position, bbox=None,
+                         copy=True):
     """
     Replace masked pixels with the value of the pixel mirrored across a
     given ``center_position``.  If the mirror pixel is unavailable (i.e.
@@ -182,6 +184,10 @@ def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
         The bounding box (x_min, x_max, y_min, y_max) over which to
         replace masked pixels.
 
+    copy : bool, optional
+        Whether to return a new copy of the array, fixed (default), or whether
+        to fix the original array in-place.
+
     Returns
     -------
     result : `numpy.ndarray`, 2D
@@ -205,8 +211,15 @@ def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
     if bbox is None:
         ny, nx = image.shape
         bbox = [0, nx, 0, ny]
-    subdata = copy.deepcopy(image[bbox[2]:bbox[3]+1, bbox[0]:bbox[1]+1])
-    submask = mask_image[bbox[2]:bbox[3]+1, bbox[0]:bbox[1]+1]
+
+    region = index_exp[bbox[2]:bbox[3]+1, bbox[0]:bbox[1]+1]
+
+    if copy:
+        subdata = image[region].copy()
+    else:
+        subdata = image[region]
+
+    submask = mask_image[region]
     y_masked, x_masked = np.nonzero(submask)
     x_mirror = (2 * (center_position[0] - bbox[0])
                 - x_masked + 0.5).astype('int32')
@@ -231,6 +244,10 @@ def mask_to_mirrored_num(image, mask_image, center_position, bbox=None):
     y_bad = y_masked[mirror_is_masked]
     subdata[y_bad, x_bad] = 0.0
 
-    outimage = copy.deepcopy(image)
-    outimage[bbox[2]:bbox[3]+1, bbox[0]:bbox[1]+1] = subdata
+    if copy:
+        outimage = image.copy()
+    else:
+        outimage = image
+
+    outimage[region] = subdata
     return outimage
