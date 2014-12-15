@@ -21,7 +21,7 @@ def set_astropy_plot_style(version=1):
     Parameters
     ----------
     version : integer
-        Different default plotting styles for astropy are labeled with 
+        Different default plotting styles for astropy are labeled with
         version numbers. Currently, only one style (``version=1``) is
         implemented.
     """
