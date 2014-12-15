@@ -19,7 +19,6 @@ from collections import namedtuple
 # Project
 from ..utils.compat.misc import override__dir__
 from ..extern import six
-from ..utils.compat.odict import OrderedDict
 from ..utils.exceptions import AstropyDeprecationWarning
 from .. import units as u
 from ..utils import OrderedDict
