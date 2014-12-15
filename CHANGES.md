@@ -7,6 +7,8 @@
 
 - Fix compatibility with different versions of Matplotlib. [#153]
 
+- Fix bug when plotting overlays on images with 3+ WCS dimensions.
+
 0.3 (2014-12-07)
 ----------------
 
