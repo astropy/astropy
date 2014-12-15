@@ -357,7 +357,7 @@ class QuantityFrameAttribute(FrameAttribute):
         else:
             converted = True
             if not (hasattr(value, 'unit') ):
-                raise TypeError('Tried to set a position frame attribute with '
+                raise TypeError('Tried to set a QuantityFrameAttribute with '
                                 'something that does not have a unit.')
             oldvalue = value
             value = u.Quantity(oldvalue, copy=False).to(self.unit)
