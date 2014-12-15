@@ -33,3 +33,4 @@ Build and coverage status
 
 [![Documentation Status](https://readthedocs.org/projects/wcsaxes/badge/?version=latest)](https://readthedocs.org/projects/wcsaxes/?badge=latest)
 
+[![asv](http://img.shields.io/badge/benchmarked%20by-asv-green.svg?style=flat)](http://astrofrog.github.io/wcsaxes-benchmarks/)
