@@ -5,12 +5,12 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from warnings import warn
 
+from ... import units as u
 from ...utils.exceptions import AstropyWarning
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
-                         TimeFrameAttribute, RepresentationMapping)
-
-from .consts import EQUINOX_B1950
+                         TimeFrameAttribute, QuantityFrameAttribute,
+                         RepresentationMapping)
 
 
 class AltAz(BaseCoordinateFrame):
@@ -46,9 +46,13 @@ class AltAz(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
-    equinox = TimeFrameAttribute(default=EQUINOX_B1950)
-    location = FrameAttribute(default=None)
+
     obstime = TimeFrameAttribute(default=None)
+    location = FrameAttribute(default=None)
+    pressure = QuantityFrameAttribute(default=0, unit=u.hPa)
+    temperature = QuantityFrameAttribute(default=0, unit=u.C)
+    relative_humidity = FrameAttribute(default=0)
+    obswl = QuantityFrameAttribute(default=1*u.micron, unit=u.micron)
 
     def __init__(self, *args, **kwargs):
 
