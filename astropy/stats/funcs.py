@@ -19,7 +19,7 @@ from ..extern.six.moves import xrange
 __all__ = ['sigma_clip', 'binom_conf_interval', 'binned_binom_proportion',
            'median_absolute_deviation', 'biweight_location',
            'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap',
-           'mad_std']
+           'mad_std', 'fwhm_to_sigma', 'sigma_to_fwhm']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
@@ -911,3 +911,53 @@ def mad_std(data):
 
     from scipy.stats import norm
     return median_absolute_deviation(data) / norm.ppf(0.75)
+
+
+def fwhm_to_sigma(fwhm):
+    """
+    Convert Gaussian full-width at half-maximum(s) (FWHM) to the 1-sigma
+    standard deviation(s).
+
+    Parameters
+    ----------
+    fwhm : float, array-like
+        The Gaussian FWHM(s).
+
+    Returns
+    -------
+    sigma : float, array-like
+        The Gaussian 1-sigma standard deviation(s).
+
+    Examples
+    --------
+    >>> from astropy.stats import fwhm_to_sigma
+    >>> print(fwhm_to_sigma(3.0))    # doctest: +FLOAT_CMP
+    1.27398270043
+    """
+
+    return np.array(fwhm) / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+
+
+def sigma_to_fwhm(sigma):
+    """
+    Convert Gaussian 1-sigma standard deviation(s) to full-width at
+    half-maximum(s) (FWHM).
+
+    Parameters
+    ----------
+    sigma : float, array-like
+        The Gaussian 1-sigma standard deviation(s).
+
+    Returns
+    -------
+    fwhm : float, array-like
+        The Gaussian FWHM(s).
+
+    Examples
+    --------
+    >>> from astropy.stats import sigma_to_fwhm
+    >>> print(sigma_to_fwhm(3.0))    # doctest: +FLOAT_CMP
+    7.06446013509
+    """
+
+    return np.array(sigma) * (2.0 * np.sqrt(2.0 * np.log(2.0)))

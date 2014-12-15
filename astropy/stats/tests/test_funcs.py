@@ -302,3 +302,18 @@ def test_mad_std():
     with NumpyRNGContext(12345):
         data = normal(5, 2, size=(100, 100))
         assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
+
+
+def test_fwhm_to_sigma():
+    fwhm = (2.0 * np.sqrt(2.0 * np.log(2.0)))
+    assert_allclose(funcs.fwhm_to_sigma(fwhm), 1.0, rtol=1.0e-6)
+
+
+def test_sigma_to_fwhm():
+    sigma = 1.0 / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+    assert_allclose(funcs.sigma_to_fwhm(sigma), 1.0, rtol=1.0e-6)
+
+
+def test_sigma_to_fwhm_to_sigma():
+    sigma = 5.
+    assert_allclose(funcs.fwhm_to_sigma(funcs.sigma_to_fwhm(sigma)), sigma)
