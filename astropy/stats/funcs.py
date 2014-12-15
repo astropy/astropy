@@ -900,12 +900,12 @@ def mad_std(data):
 
     Examples
     --------
+    >>> from astropy.stats import mad_std
     >>> from astropy.utils import NumpyRNGContext
+    >>> from numpy.random import normal
     >>> with NumpyRNGContext(12345):
-    ...     from astropy.stats import median_absolute_deviation
-    ...     from numpy.random import normal
     ...     data = normal(5, 2, size=(100, 100))
-    ...     print(mad_std(data))    # doctest: +FLOAT_CMP
+    ...     mad_std(data)    # doctest: +FLOAT_CMP
     2.02327646594
     """
 
@@ -931,7 +931,7 @@ def fwhm_to_sigma(fwhm):
     Examples
     --------
     >>> from astropy.stats import fwhm_to_sigma
-    >>> print(fwhm_to_sigma(3.0))    # doctest: +FLOAT_CMP
+    >>> fwhm_to_sigma(3.0)    # doctest: +FLOAT_CMP
     1.27398270043
     """
 
@@ -956,7 +956,7 @@ def sigma_to_fwhm(sigma):
     Examples
     --------
     >>> from astropy.stats import sigma_to_fwhm
-    >>> print(sigma_to_fwhm(3.0))    # doctest: +FLOAT_CMP
+    >>> sigma_to_fwhm(3.0)    # doctest: +FLOAT_CMP
     7.06446013509
     """
 
