@@ -177,7 +177,7 @@ class WCSAxes(Axes):
     def get_ylabel(self):
         return self.coords[self._y_index].get_axislabel()
 
-    def get_coords_overlay(self, frame, equinox=None, obstime=None, coord_meta=None):
+    def get_coords_overlay(self, frame, coord_meta=None):
 
         # Here we can't use get_transform because that deals with
         # pixel-to-pixel transformations when passing a WCS object.
@@ -186,7 +186,7 @@ class WCSAxes(Axes):
         else:
             if coord_meta is None:
                 coord_meta = get_coord_meta(frame)
-            transform = self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime)
+            transform = self._get_transform_no_transdata(frame)
             coords = CoordinatesMap(self, transform=transform, coord_meta=coord_meta, frame_class=self.frame_class)
 
         self._all_coords.append(coords)
@@ -201,7 +201,7 @@ class WCSAxes(Axes):
 
         return coords
 
-    def get_transform(self, frame, equinox=None, obstime=None):
+    def get_transform(self, frame):
         """
         Return a transform from the specified frame to display coordinates.
 
@@ -230,10 +230,11 @@ class WCSAxes(Axes):
                   ``WCSAxes`` instance).
                 * ``'fk5'`` or ``'galactic'``: return a transformation from
                   the specified frame to the pixel/data coordinates.
+                * :class:`~astropy.coordinates.BaseCoordinateFrame` instance.
         """
-        return self._get_transform_no_transdata(frame, equinox=equinox, obstime=obstime).inverted() + self.transData
+        return self._get_transform_no_transdata(frame).inverted() + self.transData
 
-    def _get_transform_no_transdata(self, frame, equinox=None, obstime=None):
+    def _get_transform_no_transdata(self, frame):
         """
         Return a transform from data to the specified frame
         """
