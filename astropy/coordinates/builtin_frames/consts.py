@@ -15,3 +15,7 @@ from ...time import Time
 # which is equivalent, but does not emit a warning.
 EQUINOX_J2000 = Time('J2000', scale='utc')
 EQUINOX_B1950 = Time('B1950', scale='tai')
+
+# This is a time object that is the default "obstime" when such an attribute is
+# necessary.  Currently, we use J2000.
+DEFAULT_OBSTIME = Time('J2000', scale='utc')

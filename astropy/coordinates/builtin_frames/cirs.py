@@ -4,8 +4,8 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ..representation import SphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
-
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, TimeFrameAttribute
+from .consts import DEFAULT_OBSTIME
 
 class CIRS(BaseCoordinateFrame):
     """
@@ -34,3 +34,8 @@ class CIRS(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
+
+    obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
+
+#The "self-transform" is defined in icrs_cirs_transformations.py, because in
+#the current implementation it goes through ICRS
