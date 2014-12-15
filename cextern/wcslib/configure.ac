@@ -1,19 +1,14 @@
 #-----------------------------------------------------------------------------
 # Process this file with autoconf-2.53 or later to produce a configure script.
 #-----------------------------------------------------------------------------
-# N.B. it is necessary to run autoconf on a Mac in order for configure to
-# locate the X11 dylibs for PGPLOT.  Use autoconf-2.61 in MacOSX 10.6.2 or
-# later to avoid spurious messages about deleting conftest.dSYM when
-# configuring in MacOSX 10.6.
-#
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 4.24 2014/09/18 15:25:02 mcalabre Exp $
+# $Id: configure.ac,v 4.25 2014/12/14 14:29:38 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [4.24], [mark@calabretta.id.au], [wcslib-4.24])
+AC_INIT([WCSLIB], [4.25], [mark@calabretta.id.au], [wcslib-4.25])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 4.24 $])
+AC_REVISION([$Revision: 4.25 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 

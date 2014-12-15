@@ -160,6 +160,13 @@ New Features
 
 - ``astropy.wcs``
 
+  - ``wcslib`` has been upgraded to version 4.25.  This brings a
+    single new feature:
+
+    - ``equinox`` and ``radesys`` will now be given default values
+      conforming with the WCS specification if ``EQUINOXa`` and
+      ``RADESYSa``, respectively, are not present in the header.
+
   - The minimum required version of ``wcslib`` is now 4.24. [#2503]
 
   - Added a new function ``wcs_to_celestial_frame`` that can be used to find

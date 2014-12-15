@@ -768,3 +768,8 @@ def test_compare():
 
     assert not w.compare(w2)
     assert w.compare(w2, tolerance=1e-6)
+
+
+def test_radesys_defaults():
+    w = _wcs.Wcsprm()
+    w.radesys == 'ICRS'
