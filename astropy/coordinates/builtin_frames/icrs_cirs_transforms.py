@@ -61,7 +61,7 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, CIRS)
 def cirs_to_cirs(from_coo, to_frame):
-    if from_coo.obstime == to_frame.obstime:
+    if np.all(from_coo.obstime == to_frame.obstime):
         return to_frame.realize_frame(from_coo.data)
     else:
         # the CIRS<-> CIRS transform actually goes through ICRS.  This has a
@@ -120,7 +120,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, GCRS)
 def gcrs_to_gcrs(from_coo, to_frame):
-    if from_coo.obstime == to_frame.obstime:
+    if np.all(from_coo.obstime == to_frame.obstime):
         return to_frame.realize_frame(from_coo.data)
     else:
         # like CIRS, we do this self-transform via ICRS

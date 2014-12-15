@@ -20,7 +20,7 @@ import numpy as np
 # Project
 from ..utils.compat.misc import override__dir__
 from ..extern import six
-from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from .. import units as u
 from ..utils import OrderedDict
 from .transformations import TransformGraph
@@ -300,9 +300,11 @@ class TimeFrameAttribute(FrameAttribute):
             converted = True
 
         if not out.isscalar:
-            raise ValueError(
-                'Time input {0}={1!r} must be a single (scalar) '
-                'value'.format(self.name, value))
+            msg0 = ('Time input {0}={1!r} is not a single (scalar) value. Some '
+                    'transformations do not yet support vector frame '
+                    'attributes, so some transformations may not work.')
+            msg = msg0.format(self.name, value)
+            warnings.warn(msg, AstropyDeprecationWarning)
 
         return out, converted
 
