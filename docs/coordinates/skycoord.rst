@@ -684,11 +684,8 @@ First we need to import the required packages. We use
 plotting and `numpy <http://www.numpy.org/>`_  to get the value of pi and to 
 generate our random data.
 
-.. doctest-requires:: matplotlib
-
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
-    >>> import matplotlib.pyplot as plt
     >>> import numpy as np
 
 We now generate random data for visualisation. For RA this is done in the range
@@ -696,7 +693,6 @@ of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
 (``dec_random``). Finally, we multiply these values by degrees to get an 
 `~astropy.units.Quantity` with units of degrees.
 
-.. doctest-requires:: matplotlib
 
     >>> ra_random = np.random.rand(100)*360.0 * u.degree
     >>> dec_random = (np.random.rand(100)*180.0-90.0) * u.degree
@@ -704,7 +700,6 @@ of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
 As next step, those coordinates are transformed into an astropy.coordinates
 |SkyCoord| object.
 
-.. doctest-requires:: matplotlib
 
     >>> c = SkyCoord(ra=ra_random, dec=dec_random, frame='icrs')
 
@@ -713,7 +708,6 @@ and :math:`\pi`, not 0 and :math:`2\pi`, we have to convert them.
 For this purpose the `astropy.coordinates.Angle` object provides a special method,
 which we use here to wrap at 180:
 
-.. doctest-requires:: matplotlib
 
     >>> ra_rad = c.ra.wrap_at(180 * u.deg).radian
     >>> dec_rad = c.dec.radian
@@ -724,8 +718,9 @@ a markersize of 2 and an alpha value of 0.3. We use a figure with an x-y ratio
 that is well suited for such a projection and we move the title upwards from 
 its usual position to avoid overlap with the axis labels.
 
-.. doctest-requires:: matplotlib
+.. doctest-skip::
 
+    >>> import matplotlib.pyplot as plt
     >>> plt.figure(figsize=(8,4.2))
     >>> plt.subplot(111, projection="aitoff")
     >>> plt.title("Aitoff projection of our random data")
@@ -792,17 +787,12 @@ will be used. Both types will be plotted with different number counts.
 
 As in the last example, we first import the required packages.
 
-.. doctest-requires:: matplotlib
-
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
-    >>> import matplotlib.pyplot as plt
     >>> import numpy as np
 
 We now generate random data for visualisation using
 `numpy.random.multivariate_normal`.
-
-.. doctest-requires:: matplotlib
 
     >>> disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
     >>> bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
@@ -811,23 +801,20 @@ We now generate random data for visualisation using
 As next step, those coordinates are transformed into an astropy.coordinates
 |SkyCoord| object.
 
-.. doctest-requires:: matplotlib
-
     >>> c_gal = SkyCoord(galaxy, representation='cartesian', frame='galactic')
     >>> c_gal_icrs = c_gal.icrs
 
 Again, as in the last example, we need to convert the coordinates in radians 
 and make sure they are between :math:`-\pi` and :math:`\pi`:
 
-.. doctest-requires:: matplotlib
-
     >>> ra_rad = c_gal_icrs.ra.wrap_at(180 * u.deg).radian
     >>> dec_rad = c_gal_icrs.dec.radian
 
 We use the same plotting setup as in the last example:
 
-.. doctest-requires:: matplotlib
+.. doctest-skip::
 
+    >>> import matplotlib.pyplot as plt
     >>> plt.figure(figsize=(8,4.2))
     >>> plt.subplot(111, projection="aitoff")
     >>> plt.title("Aitoff projection of our random data")
