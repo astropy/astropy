@@ -68,7 +68,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     az = altaz_coo.az.to(u.radian).value
     zen = _PIOVER2 - altaz_coo.alt.to(u.radian).value
 
-    lon, lat, height = altaz_frame.location.geodetic  # assume EarthLocation
+    lon, lat, height = altaz_coo.location.geodetic  # assume EarthLocation
     xp, yp = _get_polar_motion(altaz_coo.obstime)
 
     #first set up the astrometry context for ICRS<->CIRS at the altaz_coo time
@@ -87,7 +87,8 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)
 
     #the final transform may be a no-op if the obstimes are the same
-    return CIRS(ra=cirs_ra, dec=cirs_dec, obstime=altaz_coo.obstime).transform_to(cirs_frame)
+    return CIRS(ra=cirs_ra*u.radian, dec=cirs_dec*u.radian,
+                obstime=altaz_coo.obstime).transform_to(cirs_frame)
 
 
 @frame_transform_graph.transform(FunctionTransform, AltAz, AltAz)

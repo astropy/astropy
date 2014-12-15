@@ -12,7 +12,8 @@ from numpy import testing as npt
 from ... import units as u
 from ..distances import Distance
 from .. import transformations as t
-from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, Galactocentric, CIRS, GCRS
+from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, \
+                             Galactocentric, CIRS, GCRS, AltAz
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import pytest
@@ -440,10 +441,35 @@ def test_icrs_gcrs():
 
     #also make sure that a GCRS with a different geoloc/geovel gets a different answer
     # roughly a moon-like frame
-    gframe3 = GCRS(obsgeoloc=[385000., 0, 0]*u.km, obsgeovel=[1, 0, 0 ]*u.km/u.s)
+    gframe3 = GCRS(obsgeoloc=[385000., 0, 0]*u.km, obsgeovel=[1, 0, 0]*u.km/u.s)
     gcrsnod6 = inod.transform_to(gframe3)  # should be different
     assert not np.allclose(gcrsnod.ra, gcrsnod6.ra, rtol=1e-8)
     assert not np.allclose(gcrsnod.dec, gcrsnod6.dec, rtol=1e-8)
-    inodviag3 = gcrsnod6.transform_to(ICRS)  #and now back to the original
+    inodviag3 = gcrsnod6.transform_to(ICRS)  # and now back to the original
     npt.assert_allclose(inod.ra, inodviag3.ra)
     npt.assert_allclose(inod.dec, inodviag3.dec)
+
+
+def test_cirs_to_altaz():
+    """
+    Check the basic CIRS<->AltAz transforms.  More thorough checks implicitly
+    happen in `test_iau_fullstack`
+    """
+    from ...time import Time
+    from ...utils import NumpyRNGContext
+    from .. import EarthLocation
+
+    with NumpyRNGContext(12345):
+        cirs = CIRS(ra=np.random.rand(100)*360*u.deg,
+                    dec=(np.random.rand(100)*180-90)*u.deg,
+                    obstime='J2000')
+    altazframe = AltAz(location=EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m),
+                       obstime=Time('J2005'))
+
+    aa = cirs.transform_to(altazframe)
+    cirs2 = aa.transform_to(cirs)
+
+    #just check round-tripping
+    npt.assert_allclose(cirs.ra.deg, cirs2.ra.deg)
+    npt.assert_allclose(cirs.dec.deg, cirs2.dec.deg)
+
