@@ -3,10 +3,10 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+from ... import units as u
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
-                         TimeFrameAttribute, PositionFrameAttribute,
-                         VelocityFrameAttribute)
+                         TimeFrameAttribute, QuantityFrameAttribute)
 from .consts import DEFAULT_OBSTIME
 
 
@@ -60,8 +60,8 @@ class GCRS(BaseCoordinateFrame):
     default_representation = SphericalRepresentation
 
     obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
-    obsgeoloc = PositionFrameAttribute(default=0)
-    obsgeovel = VelocityFrameAttribute(default=0)
+    obsgeoloc = QuantityFrameAttribute(default=0, unit=u.m, shape=(3,))
+    obsgeovel = QuantityFrameAttribute(default=0, unit=u.m/u.s, shape=(3,))
 
 #The "self-transform" is defined in icrs_cirs_transformations.py, because in
 #the current implementation it goes through ICRS (like CIRS)

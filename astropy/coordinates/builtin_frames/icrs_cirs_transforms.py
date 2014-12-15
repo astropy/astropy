@@ -86,8 +86,8 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     i_dec = icrs_coo.dec.to(u.radian).value
 
     #first set up the astrometry context for ICRS<->GCRS
-    pv = np.array([gcrs_frame.obsgeoloc.to(u.m).value,
-                   gcrs_frame.obsgeovel.to(u.m/u.s).value])
+    pv = np.array([gcrs_frame.obsgeoloc.value,
+                   gcrs_frame.obsgeovel.value])
     astrom = erfa.apcs13(gcrs_frame.obstime.jd1, gcrs_frame.obstime.jd2, pv)
 
     # TODO: possibly switch to something that is like atciq, but skips the first
@@ -106,8 +106,8 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
     cirs_dec = gcrs_coo.dec.to(u.radian).value
 
     #first set up the astrometry context for ICRS<->GCRS
-    pv = np.array([gcrs_coo.obsgeoloc.to(u.m).value,
-                   gcrs_coo.obsgeovel.to(u.m/u.s).value])
+    pv = np.array([gcrs_coo.obsgeoloc.value,
+                   gcrs_coo.obsgeovel.value])
     astrom = erfa.apcs13(gcrs_coo.obstime.jd1, gcrs_coo.obstime.jd2, pv)
 
     icrs_ra, icrs_dec = erfa.aticq(cirs_ra, cirs_dec, astrom)
