@@ -3,6 +3,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.extern import six
+from astropy.coordinates import BaseCoordinateFrame
 
 # Modified from axis_artist, supports astropy.units
 
@@ -107,7 +108,10 @@ def get_coord_meta(frame):
         if isinstance(frame, six.string_types):
             frame = frame_transform_graph.lookup_name(frame)
 
-        names = list(frame().representation_component_names.keys())
+        if not isinstance(frame, BaseCoordinateFrame):
+            frame = frame()
+
+        names = list(frame.representation_component_names.keys())
         coord_meta['name'] = names[:2]
 
     except ImportError:

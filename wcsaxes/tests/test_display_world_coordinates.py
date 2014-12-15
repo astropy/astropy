@@ -6,6 +6,8 @@ from matplotlib.backend_bases import KeyEvent
 from astropy.wcs import WCS
 from astropy.extern import six
 from astropy.tests.helper import pytest
+from astropy.coordinates import FK5
+from astropy.time import Time
 
 from .test_images import BaseImageTests
 
@@ -57,6 +59,40 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         string_world3 = ax._display_world_coords(0.523412, 0.518311)
 
         assert string_world3 == six.u('267.176 -28\xb045\'56" (world, overlay 1)')
+
+        overlay = ax.get_coords_overlay(FK5())
+
+        # Regression test for bug that caused format to always be taken from
+        # main world coordinates.
+        overlay[0].set_major_formatter('d.ddd')
+
+        # On some systems, fig.canvas.draw is not enough to force a draw, so we
+        # save to a temporary file.
+        fig.savefig(tmpdir.join('test3.png').strpath)
+
+        event5 = KeyEvent('test_pixel_coords', canvas, 'w')
+        fig.canvas.key_press_event(event4.key, guiEvent=event4)
+        # Test that it displays the overlay world coordinates
+        string_world4 = ax._display_world_coords(0.523412, 0.518311)
+
+        assert string_world4 == six.u('267.176 -28\xb045\'56" (world, overlay 2)')
+
+        overlay = ax.get_coords_overlay(FK5(equinox=Time("J2030")))
+
+        # Regression test for bug that caused format to always be taken from
+        # main world coordinates.
+        overlay[0].set_major_formatter('d.ddd')
+
+        # On some systems, fig.canvas.draw is not enough to force a draw, so we
+        # save to a temporary file.
+        fig.savefig(tmpdir.join('test4.png').strpath)
+
+        event6 = KeyEvent('test_pixel_coords', canvas, 'w')
+        fig.canvas.key_press_event(event5.key, guiEvent=event4)
+        # Test that it displays the overlay world coordinates
+        string_world5 = ax._display_world_coords(0.523412, 0.518311)
+
+        assert string_world5 == six.u('267.652 -28\xb046\'23" (world, overlay 3)')
 
     def test_cube_coords(self, tmpdir):
         wcs = WCS(self.cube_header)
