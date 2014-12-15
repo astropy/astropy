@@ -5,6 +5,7 @@ various criteria.
 
 from __future__ import division, print_function
 
+import abc
 import numpy as np
 
 from ...extern import six
@@ -16,6 +17,10 @@ __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
 
 
 class BaseInterval(BaseTransform):
+
+    @abc.abstractmethod
+    def get_limits(values):
+        raise NotImplementedError("")
 
     def __call__(self, values, clip=True, out=None):
 

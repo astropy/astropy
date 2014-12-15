@@ -14,7 +14,7 @@ class BaseTransform(object):
 
 class CompositeTransform(BaseTransform):
     """
-    A combination of two transformes.
+    A combination of two transforms.
 
     Parameters
     ----------
