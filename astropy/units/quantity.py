@@ -260,7 +260,12 @@ class Quantity(np.ndarray):
             return value.to(unit)
 
     def __array_finalize__(self, obj):
-        self._unit = getattr(obj, '_unit', None)
+        if isinstance(obj, Quantity):
+            self._unit = obj._unit
+        elif hasattr(obj, 'unit'):
+            self._unit = Unit(obj.unit)
+        else:
+            self._unit = dimensionless_unscaled
 
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the

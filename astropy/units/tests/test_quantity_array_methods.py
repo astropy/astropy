@@ -492,12 +492,14 @@ class TestArrayConversion(object):
         q2 = q1.view(np.ndarray)
         assert not hasattr(q2, 'unit')
         q3 = q2.view(u.Quantity)
-        assert q3._unit is None
-        # MaskedArray copies and properties assigned in __dict__
+        assert q3._unit is u.dimensionless_unscaled
+        # MaskedArray copies and properties assigned in __dict__.
         q4 = np.ma.MaskedArray(q1)
         assert q4._unit is q1._unit
+        # In principle, one could get the unit back, but this seems hacky
+        # as long as it doesn't properly behave like a MaskedQuantity.
         q5 = q4.view(u.Quantity)
-        assert q5.unit is q1.unit
+        assert q5.unit is u.dimensionless_unscaled
 
     def test_slice_to_quantity(self):
         """
