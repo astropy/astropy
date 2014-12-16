@@ -19,7 +19,7 @@ from astropy_helpers import setup_helpers
 from astropy.extern import six
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "4.20"
+WCSVERSION = "4.25"
 
 
 def b(s):
