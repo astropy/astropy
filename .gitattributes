@@ -1,2 +1,3 @@
 *.fits    -text
 astropy.0.3.windows.cfg eol=crlf
+CHANGES.rst merge=union
