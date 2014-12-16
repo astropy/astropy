@@ -16,13 +16,32 @@ from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
 class AltAz(BaseCoordinateFrame):
     """
     A coordinate or frame in the Altitude-Azimuth system (i.e., Horizontal
-    coordinates).
+    coordinates).  This frame is assumed to *include* refraction effects if
+    the ``pressure`` frame attribute is non-zero.
 
-    .. warning::
-        The AltAz class currently does not support any transformations. In a
-        future version, it will support the standard IAU2000 AltAz<->ICRS
-        transformations.  It is provided right now as a placeholder for storing
-        as-observed horizontal coordinates.
+    This frame has the following frame attributes, which are necessary for
+    transforming from AltAz to some other system:
+
+    * ``obstime``
+        The time at which the observation is taken.  Used for determining the
+        position and orientation of the Earth.
+    * ``location``
+        The location on the earth as an `~astropy.coordinates.EarthLocation`
+        object.
+    * ``pressure``
+        The atmospheric pressure as an `~astropy.units.Quantity` with pressure
+        units.  This is necessary for performing refraction corrections.
+        Setting this to 0 (the default) will disable refraction calculations
+        when transforming to/from this frame.
+    * ``temperature``
+        The ground-level temperature as an `~astropy.units.Quantity` in
+        deg C.  This is necessary for performing refraction corrections.
+    * ``relative_humidity``
+        The relative humidity as a number from 0 to 1.  This is necessary for
+        performing refraction corrections.
+    * ``obswl``
+        The ground-level temperature as an `~astropy.units.Quantity` with length
+        units.  This is necessary for performing refraction corrections.
 
     Parameters
     ----------
@@ -36,6 +55,17 @@ class AltAz(BaseCoordinateFrame):
         ``representation`` must be None).
     distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The Distance for this object along the line-of-sight.
+
+    Notes
+    -----
+    The refraction model is based on that implemented in ERFA, which is fast
+    but becomes inaccurate for altitudes below about 5 degrees.  Near and below
+    altitudes of 0, it can even give meaningless answers, and in this case
+    transforming to AltAz and back to another frame can give highly discrepent
+    results.  For much better numerical stability, leaving the ``pressure`` at
+    ``0`` (the default), disabling the refraction correction (yielding
+    "topocentric" horizontal coordinates).
+
     """
 
     frame_specific_representation_info = {
