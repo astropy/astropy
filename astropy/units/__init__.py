@@ -27,7 +27,7 @@ from .physical import *
 from .equivalencies import *
 
 from .functional import (MagUnit, DecibelUnit, DexUnit,
-                         Magnitude, Decibel, Dex)
+                         Magnitude, Decibel, Dex, STmag, ABmag)
 
 del bases
 

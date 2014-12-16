@@ -5,7 +5,7 @@ import numpy as np
 
 from .. import (CompositeUnit, Unit, UnitsError, dimensionless_unscaled,
                 si, astrophys as ap)
-from .core import FunctionalUnitBase, FunctionalQuantityBase
+from .core import FunctionUnitBase, FunctionQuantityBase
 
 
 __all__ = ['LogUnit', 'MagUnit', 'DexUnit', 'DecibelUnit',
@@ -13,7 +13,7 @@ __all__ = ['LogUnit', 'MagUnit', 'DexUnit', 'DecibelUnit',
            'STmag', 'ABmag', 'mag']
 
 
-class LogUnit(FunctionalUnitBase):
+class LogUnit(FunctionUnitBase):
     """Logarithmic unit containing a physical one
 
     Usually, logarithmic units are instantiated via specific subclasses
@@ -22,29 +22,32 @@ class LogUnit(FunctionalUnitBase):
     Parameters
     ----------
     physical_unit : `~astropy.units.Unit` or `string`
-        Unit that is encapsulated within the logarithmic functional unit.
+        Unit that is encapsulated within the logarithmic function unit.
         If not given, dimensionless.
 
-    functional_unit :  `~astropy.units.Unit` or `string`
+    function_unit :  `~astropy.units.Unit` or `string`
         By default, the same as the logarithmic unit set by the subclass.
 
     """
-    # vvvv the four essential overrides of FunctionalUnitBase
-    _functional_unit = ap.dex
+    # vvvv the four essential overrides of FunctionUnitBase
+    @property
+    def _default_function_unit(self):
+        return ap.dex
+
+    @property
+    def _quantity_class(self):
+        return LogQuantity
 
     def from_physical(self, x):
         """Transformation from value in physical to value in logarithmic units.
-        Used in equivalency"""
-        return ap.dex.to(self._functional_unit, np.log10(x))
+        Used in equivalency."""
+        return ap.dex.to(self._function_unit, np.log10(x))
 
     def to_physical(self, x):
         """Transformation from value in logarithmic to value in physical units.
-        Used in equivalency"""
-        return 10 ** self._functional_unit.to(ap.dex, x)
-
-    def functional_quantity(self, quantity):
-        return LogQuantity(quantity, self)
-    # ^^^^ the four essential overrides of FunctionalUnitBase
+        Used in equivalency."""
+        return 10 ** self._function_unit.to(ap.dex, x)
+    # ^^^^ the four essential overrides of FunctionUnitBase
 
     # add addition and subtraction, which imply multiplication/division of
     # the underlying physical units
@@ -56,13 +59,13 @@ class LogUnit(FunctionalUnitBase):
         We wish to do:   ±lu_1 + ±lu_2  -> lu_f          (lu=logarithmic unit)
                   and     pu_1^(±1) * pu_2^(±1) -> pu_f  (pu=physical unit)
 
-        Raises UnitsError if functional units are not equivalent
+        Raises UnitsError if function units are not equivalent
         """
         # first, insist on compatible logarithmic type; note that
         # plain u.mag,u.dex,u.dB is OK, other does not have to be LogUnit
         # (this will indirectly test whether other is a unit at all)
         try:
-            self._functional_unit._to(getattr(other, 'functional_unit', other))
+            self._function_unit._to(getattr(other, 'function_unit', other))
         except AttributeError:  # if other is not a unit (_to cannot decompose)
             return NotImplemented
         except UnitsError:
@@ -78,7 +81,7 @@ class LogUnit(FunctionalUnitBase):
         return self._copy(physical_unit)
 
     def __neg__(self):
-        return self._copy(self.physical_unit**(-1), -self._functional_unit)
+        return self._copy(self.physical_unit**(-1))
 
     def __add__(self, other):
         # Only know how to add to a logarithmic unit with compatible type,
@@ -86,7 +89,7 @@ class LogUnit(FunctionalUnitBase):
         return self._add_and_adjust_physical_unit(other, +1, +1)
 
     def __radd__(self, other):
-        return self.__add__(other)
+        return self._add_and_adjust_physical_unit(other, +1, +1)
 
     def __sub__(self, other):
         return self._add_and_adjust_physical_unit(other, +1, -1)
@@ -94,7 +97,7 @@ class LogUnit(FunctionalUnitBase):
     def __rsub__(self, other):
         # here, in normal usage other cannot be LogUnit; only equivalent one
         # would be u.mag,u.dB,u.dex.  But might as well use common routine.
-        return self._add_and_adjust_physical_unit(other, -1, 1)
+        return self._add_and_adjust_physical_unit(other, -1, +1)
 
 
 class MagUnit(LogUnit):
@@ -103,17 +106,20 @@ class MagUnit(LogUnit):
     Parameters
     ----------
     physical_unit : `~astropy.units.Unit` or `string`
-        Unit that is encapsulated within the magnitude functional unit.
+        Unit that is encapsulated within the magnitude function unit.
         If not given, dimensionless.
 
-    functional_unit :  `~astropy.units.Unit` or `string`
+    function_unit :  `~astropy.units.Unit` or `string`
         By default, this is `~astrophys.units.mag`, but this allows one to
         use an equivalent unit such as `2 mag`.
     """
-    _functional_unit = ap.mag
+    @property
+    def _default_function_unit(self):
+        return ap.mag
 
-    def functional_quantity(self, quantity):
-        return Magnitude(quantity, self)
+    @property
+    def _quantity_class(self):
+        return Magnitude
 
 
 class DexUnit(LogUnit):
@@ -122,18 +128,21 @@ class DexUnit(LogUnit):
     Parameters
     ----------
     physical_unit : `~astropy.units.Unit` or `string`
-        Unit that is encapsulated within the magnitude functional unit.
+        Unit that is encapsulated within the magnitude function unit.
         If not given, dimensionless.
 
-    functional_unit :  `~astropy.units.Unit` or `string`
-        By default, this is `~astrophys.units.mag`, but this allows one to
+    function_unit :  `~astropy.units.Unit` or `string`
+        By default, this is `~astrophys.units.dex`, but this allows one to
         use an equivalent unit such as `0.5 dex`.
     """
 
-    _functional_unit = ap.dex
+    @property
+    def _default_function_unit(self):
+        return ap.dex
 
-    def functional_quantity(self, quantity):
-        return Dex(quantity, self)
+    @property
+    def _quantity_class(self):
+        return Dex
 
 
 class DecibelUnit(LogUnit):
@@ -142,21 +151,24 @@ class DecibelUnit(LogUnit):
     Parameters
     ----------
     physical_unit : `~astropy.units.Unit` or `string`
-        Unit that is encapsulated within the decibel functional unit.
+        Unit that is encapsulated within the decibel function unit.
         If not given, dimensionless.
 
-    functional_unit :  `~astropy.units.Unit` or `string`
-        By default, this is `~astrophys.units.mag`, but this allows one to
+    function_unit :  `~astropy.units.Unit` or `string`
+        By default, this is `~astrophys.units.dB`, but this allows one to
         use an equivalent unit such as `2 dB`.
     """
 
-    _functional_unit = ap.dB
+    @property
+    def _default_function_unit(self):
+        return ap.dB
 
-    def functional_quantity(self, quantity):
-        return Decibel(quantity, self)
+    @property
+    def _quantity_class(self):
+        return Decibel
 
 
-class LogQuantity(FunctionalQuantityBase):
+class LogQuantity(FunctionQuantityBase):
     """A representation of a (scaled) logarithm of a number with a unit
 
     Parameters
@@ -171,12 +183,12 @@ class LogQuantity(FunctionalQuantityBase):
         the logarithmic unit, after, if necessary, converting it to the
         physical unit inferred from `unit`.
 
-    unit : functional unit, or `~astropy.units.functional.FunctionalUnit`,
+    unit : function unit, or `~astropy.units.function.FunctionUnit`,
             optional
-        E.g., `~astropy.units.functional.mag`, `astropy.units.functional.dB`,
-        `~astropy.units.functional.MagUnit`, etc.
-        For a `FunctionalUnit` instance, the physical unit will be taken from
-        it; for non-`FunctionalUnit` input, it will be inferred from `value`.
+        E.g., `~astropy.units.function.mag`, `astropy.units.function.dB`,
+        `~astropy.units.function.MagUnit`, etc.
+        For a `FunctionUnit` instance, the physical unit will be taken from
+        it; for non-`FunctionUnit` input, it will be inferred from `value`.
         By default, `unit` is set by the subclass.
 
     dtype : `~numpy.dtype`, optional
@@ -194,7 +206,7 @@ class LogQuantity(FunctionalQuantityBase):
 
     Examples
     --------
-    Typically, use is made of a `FunctionalQuantity` subclasses, as in
+    Typically, use is made of a `FunctionQuantity` subclasses, as in
         >>> import astropy.units as u
         >>> u.Magnitude(15.)
         <Magnitude 15.0 mag>
@@ -203,8 +215,8 @@ class LogQuantity(FunctionalQuantityBase):
         >>> u.Decibel(1.*u.W, u.DecibelUnit(u.mW))
         <Decibel 30.0 dB(mW)>
     """
-    # vvvv only override of FunctionalQuantity
-    _FunctionalUnit = LogUnit
+    # vvvv only override of FunctionQuantity
+    _FunctionUnit = LogUnit
 
     # vvvv additions that work just for logarithmic units
     def __add__(self, other):
@@ -212,8 +224,7 @@ class LogQuantity(FunctionalQuantityBase):
         # -> dimensionless_unscaled -> appropriate exception in LogUnit.__add__
         new_unit = self.unit + getattr(other, 'unit', dimensionless_unscaled)
         # add actual logarithmic values, rescaling, e.g., dB -> dex
-        result = self.functional_value + getattr(other, 'functional_value',
-                                                 other)
+        result = self.function_value + getattr(other, 'function_value', other)
         result = result.view(self.__class__)
         result._full_unit = new_unit
         return result
@@ -225,9 +236,9 @@ class LogQuantity(FunctionalQuantityBase):
         # add units, thus multiplying physical ones; do this before overwriting
         # data (if this works, next step will succeed)
         new_unit = self.unit + getattr(other, 'unit', dimensionless_unscaled)
-        # add logarithmic quantities; note: functional_value is view on array
-        functional_value = self.functional_value
-        functional_value += getattr(other, 'functional_value', other)
+        # add logarithmic quantities; note: function_value is view on array
+        function_value = self.function_value
+        function_value += getattr(other, 'function_value', other)
         self._full_unit = new_unit
         return self
 
@@ -235,7 +246,7 @@ class LogQuantity(FunctionalQuantityBase):
         # subtract units, thus dividing physical ones
         new_unit = self.unit - getattr(other, 'unit', dimensionless_unscaled)
         # subtract actual logarithmic values, rescaling, e.g., dB -> dex
-        result = self.functional_value - getattr(other, 'functional_value',
+        result = self.function_value - getattr(other, 'function_value',
                                                  other)
         result = result.view(self.__class__)
         result._full_unit = new_unit
@@ -246,11 +257,11 @@ class LogQuantity(FunctionalQuantityBase):
         new_unit = self.unit.__rsub__(
             getattr(other, 'unit', dimensionless_unscaled))
         # subtract logarithmic quantities; rescaling, e.g., dB -> dex
-        result = self.functional_value.__rsub__(
-            getattr(other, 'functional_value', other))
-        # ensure result is in right functional unit scale
-        # (with rsub, this does not have to be one's one
-        result = result.to(new_unit.functional_unit).view(self.__class__)
+        result = self.function_value.__rsub__(
+            getattr(other, 'function_value', other))
+        # ensure result is in right function unit scale
+        # (with rsub, this does not have to be one's own).
+        result = result.to(new_unit.function_unit).view(self.__class__)
         result._full_unit = new_unit
         return result
 
@@ -258,9 +269,9 @@ class LogQuantity(FunctionalQuantityBase):
         # subtract units, this dividing physical ones; do this before
         # overwriting data (if this works, next step will succeed)
         new_unit = self.unit - getattr(other, 'unit', dimensionless_unscaled)
-        # subtract logarithmic quantities; note: functional_value is view
-        functional_value = self.functional_value
-        functional_value -= getattr(other, 'functional_value', other)
+        # subtract logarithmic quantities; note: function_value is view
+        function_value = self.function_value
+        function_value -= getattr(other, 'function_value', other)
         self._full_unit = new_unit
         return self
 
@@ -269,15 +280,15 @@ class LogQuantity(FunctionalQuantityBase):
 
 
 class Dex(LogQuantity):
-    _FunctionalUnit = DexUnit
+    _FunctionUnit = DexUnit
 
 
 class Decibel(LogQuantity):
-    _FunctionalUnit = DecibelUnit
+    _FunctionUnit = DecibelUnit
 
 
 class Magnitude(LogQuantity):
-    _FunctionalUnit = MagUnit
+    _FunctionUnit = MagUnit
 
 
 mag = MagUnit()

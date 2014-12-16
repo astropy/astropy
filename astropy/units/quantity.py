@@ -187,7 +187,8 @@ class Quantity(np.ndarray):
                 # the above already makes a copy (with float dtype)
                 copy = False
 
-            if not subok and type(value) is not cls:
+            if type(value) is not cls and not (subok and
+                                               isinstance(value, cls)):
                 value = value.view(cls)
 
             if dtype is None:
