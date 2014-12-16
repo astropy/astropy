@@ -14,6 +14,9 @@ from __future__ import (absolute_import, division, print_function,
 
 import re
 import os.path
+import sys
+
+PY3 = (sys.version_info[0] == 3)
 
 
 ctype_to_dtype = {'double'     : "numpy.double",
@@ -25,16 +28,46 @@ ctype_to_dtype = {'double'     : "numpy.double",
                   }
 
 
+ctype_to_cdtype = {'double': 'dt_double',
+                   'int': 'dt_int',
+                   'eraASTROM': 'dt_eraASTROM',
+                   'eraLDBODY': 'dt_eraLDBODY',
+                   'char': 'dt_string',
+                   'const char': 'dt_string'}
+
+
 NDIMS_REX = re.compile(re.escape("numpy.dtype([('fi0', '.*', <(.*)>)])").replace(r'\.\*','.*').replace(r'\<', '(').replace(r'\>',')'))
 
 
 class FunctionDoc(object):
 
-    def __init__(self, doc):
+    def __init__(self, doc, func):
         self.doc = doc.replace("**", "  ").replace("/*\n", "").replace("*/", "")
+        self.func = func
         self.__input = None
         self.__output = None
         self.__ret_info = None
+
+    @property
+    def c_docstring(self):
+        signature = "{0}({1})".format(
+            self.func.pyname,
+            ', '.join(x.name for x in self.func.args_by_inout('in|inout')))
+
+        returns = ", ".join(
+            x.name for x in self.func.args_by_inout('inout|out|ret'))
+
+        doc = "{0}\n\nReturns: {1}\n\nERFA documentation:\n{2}\n".format(
+            signature, returns, self.doc)
+
+        doc = doc.encode('utf-8')
+        parts = []
+        for i in range(0, len(doc), 12):
+            section = doc[i:i+12]
+            if not PY3:
+                section = [ord(x) for x in section]
+            parts.append(''.join('0x{0:02x}, '.format(x) for x in section))
+        return '\n'.join(parts)
 
     @property
     def input(self):
@@ -159,22 +192,12 @@ class Argument(object):
             return self.ctype
 
     @property
-    def name_in_broadcast(self):
-        if len(self.shape)>0:
-            return "{0}_in[...{1}]".format(self.name, ",0"*len(self.shape))
-        else:
-            return "{0}_in".format(self.name)
-
-    @property
-    def name_out_broadcast(self):
-        if len(self.shape)>0:
-            return "{0}_out[...{1}]".format(self.name, ",0"*len(self.shape))
-        else:
-            return "{0}_out".format(self.name)
-
-    @property
     def dtype(self):
         return ctype_to_dtype[self.ctype]
+
+    @property
+    def cdtype(self):
+        return ctype_to_cdtype[self.ctype]
 
     @property
     def ndim(self):
@@ -187,6 +210,22 @@ class Argument(object):
 class ReturnDoc(object):
 
     def __init__(self, doc):
+        def dict_to_list(d, elsemsg):
+            l = []
+            if not len(d):
+                return l
+            for i in range(max(d.keys()) + 1):
+                if i in d:
+                    l.append(d[i])
+                else:
+                    if i == 0:
+                        l.append("Ok")
+                    elif elsemsg:
+                        l.append(elsemsg)
+                    else:
+                        l.append("Return code {0}".format(i))
+            return l
+
         self.doc = doc
 
         self.infoline = doc.split('\n')[0].strip()
@@ -194,7 +233,9 @@ class ReturnDoc(object):
         self.descr = self.infoline.split()[1]
 
         if self.descr.startswith('status'):
-            self.statuscodes = statuscodes = {}
+            self.errorcodes = {}
+            self.warningcodes = {}
+            elsemsg = ""
 
             code = None
             for line in doc[doc.index(':')+1:].split('\n'):
@@ -202,13 +243,24 @@ class ReturnDoc(object):
                 if ls != '':
                     if ' = ' in ls:
                         code, msg = ls.split(' = ')
-                        if code != 'else':
-                            code = int(code)
-                        statuscodes[code] = msg
                     elif code is not None:
-                        statuscodes[code] += ls
+                        msg = ls
+                    if code == 'else':
+                        elsemsg += msg
+                    else:
+                        code = int(code)
+                        if code < 0:
+                            code = -code
+                            self.errorcodes.setdefault(code, '')
+                            self.errorcodes[code] += msg
+                        elif code > 0:
+                            self.warningcodes.setdefault(code, '')
+                            self.warningcodes[code] += msg
+            self.errorcodes = dict_to_list(self.errorcodes, elsemsg)
+            self.warningcodes = dict_to_list(self.warningcodes, elsemsg)
         else:
-            self.statuscodes = None
+            self.errorcodes = []
+            self.warningcodes = []
 
     def __repr__(self):
         return "Return value, type={0:15}, {1}, {2}".format(self.type, self.descr, self.doc)
@@ -231,6 +283,14 @@ class Return(object):
     @property
     def dtype(self):
         return ctype_to_dtype[self.ctype]
+
+    @property
+    def cdtype(self):
+        return ctype_to_cdtype[self.ctype]
+
+    @property
+    def ndim(self):
+        return 0
 
     @property
     def nd_dtype(self):
@@ -292,7 +352,7 @@ class Function(object):
 
         search = p.search(filecontents)
         self.cfunc = " ".join(search.group(1).split())
-        self.doc = FunctionDoc(search.group(2))
+        self.doc = FunctionDoc(search.group(2), self)
 
         self.args = []
         for arg in re.search("\(([^)]+)\)", self.cfunc).group(1).split(', '):
@@ -351,8 +411,7 @@ def main(srcdir, outfn, templateloc):
     env.filters['postfix'] = postfix
     env.filters['surround'] = surround
 
-    erfa_pyx_in = env.get_template('erfa.pyx.templ')
-    erfa_py_in  = env.get_template('erfa.py.templ')
+    erfa_c_in = env.get_template('erfa.c.templ')
 
     #Extract all the ERFA function names from erfa.h
     if os.path.isdir(srcdir):
@@ -365,7 +424,7 @@ def main(srcdir, outfn, templateloc):
     with open(erfahfn, "r") as f:
         erfa_h = f.read()
 
-    funcs = []
+    funcs = {}
     section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
                                               erfa_h, flags=re.DOTALL|re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
@@ -376,7 +435,7 @@ def main(srcdir, outfn, templateloc):
                 print("{0}.{1}.{2}...".format(section, subsection, name))
                 if multifilserc:
                     # easy because it just looks in the file itself
-                    funcs.append(Function(name, srcdir))
+                    funcs[name] = Function(name, srcdir)
                 else:
                     # Have to tell it to look for a declaration matching
                     # the start of the header declaration, otherwise it
@@ -390,7 +449,7 @@ def main(srcdir, outfn, templateloc):
                             # argument names and line-breaking or
                             # whitespace
                             match_line = line[:-1].split('(')[0]
-                            funcs.append(Function(name, srcdir, match_line))
+                            funcs[name] = Function(name, srcdir, match_line)
                             break
                     else:
                         raise ValueError("A name for a C file wasn't "
@@ -398,20 +457,19 @@ def main(srcdir, outfn, templateloc):
                                          "spawned it.  This should be "
                                          "impossible!")
 
+    funcs = list(funcs.values())
+
     print("Rendering template")
-    erfa_pyx = erfa_pyx_in.render(funcs=funcs)
-    erfa_py  = erfa_py_in.render(funcs=funcs)
+    erfa_c = erfa_c_in.render(funcs=funcs)
 
     if outfn is not None:
         print("Saving to", outfn)
         with open(outfn, "w") as f:
-            f.write(erfa_py)
-        with open(outfn+"x", "w") as f:
-            f.write(erfa_pyx)
+            f.write(erfa_c)
 
     print("Done!")
 
-    return erfa_pyx, funcs
+    return erfa_c, funcs
 
 DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
                                 '../../cextern/erfa')
@@ -427,11 +485,11 @@ if __name__ == '__main__':
                          '(which must be in the same directory as '
                          'erfa.h). Defaults to the builtin astropy '
                          'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
-    ap.add_argument('-o', '--output', default='erfa.py',
+    ap.add_argument('-o', '--output', default='erfa.c',
                     help='the output filename')
     ap.add_argument('-t', '--template-loc',
                     default=DEFAULT_TEMPLATE_LOC,
-                    help='the location where the "erfa.pyx.templ" '
+                    help='the location where the "erfa.c.templ" '
                          'template can be found.')
 
     args = ap.parse_args()

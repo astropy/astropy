@@ -9,7 +9,7 @@ ERFAPKGDIR = os.path.relpath(os.path.dirname(__file__))
 
 
 def get_extensions():
-    sources = [os.path.join(ERFAPKGDIR, "erfa.pyx")]
+    sources = [os.path.join(ERFAPKGDIR, "erfa.c")]
     include_dirs = ['numpy']
     libraries = []
 
