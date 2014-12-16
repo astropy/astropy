@@ -5,7 +5,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from ...tests.helper import pytest
-from ..array_utils import (extract_array_2d, add_array_2d, subpixel_indices,
+from ..array_utils import (extract_array, add_array, subpixel_indices,
                            mask_to_mirrored_num)
 
 test_positions = [(10.52, 3.12), (5.62, 12.97), (31.33, 31.77),
@@ -21,7 +21,7 @@ test_slices = [slice(10.52, 3.12), slice(5.62, 12.97),
 subsampling = 5
 
 
-def test_extract_array_2d():
+def test_extract_array():
     """
     Test extract_array utility function.
 
@@ -30,13 +30,13 @@ def test_extract_array_2d():
     large_test_array = np.zeros((11, 11))
     small_test_array = np.ones((5, 5))
     large_test_array[3:8, 3:8] = small_test_array
-    extracted_array = extract_array_2d(large_test_array, (5, 5), (5, 5))
+    extracted_array = extract_array(large_test_array, (5, 5), (5, 5))
     assert np.all(extracted_array == small_test_array)
 
 
-def test_add_array_2d_odd_shape():
+def test_add_array_odd_shape():
     """
-    Test add_array_2D utility function.
+    Test add_array utility function.
 
     Test by adding an array of ones out of an array of zeros.
     """
@@ -45,11 +45,11 @@ def test_add_array_2d_odd_shape():
     large_test_array_ref = large_test_array.copy()
     large_test_array_ref[3:8, 3:8] += small_test_array
 
-    added_array = add_array_2d(large_test_array, small_test_array, (5, 5))
+    added_array = add_array(large_test_array, small_test_array, (5, 5))
     assert np.all(added_array == large_test_array_ref)
 
 
-def test_add_array_2d_even_shape():
+def test_add_array_even_shape():
     """
     Test add_array_2D utility function.
 
@@ -60,7 +60,7 @@ def test_add_array_2d_even_shape():
     large_test_array_ref = large_test_array.copy()
     large_test_array_ref[0:2, 0:2] += small_test_array[2:4, 2:4]
 
-    added_array = add_array_2d(large_test_array, small_test_array, (0, 0))
+    added_array = add_array(large_test_array, small_test_array, (0, 0))
     assert np.all(added_array == large_test_array_ref)
 
 
@@ -73,7 +73,7 @@ def test_subpixel_indices(position, subpixel_index):
     Test by asserting that the function returns correct results for
     given test values.
     """
-    assert subpixel_indices(position, subsampling) == subpixel_index
+    assert np.all(subpixel_indices(position, subsampling) == subpixel_index)
 
 
 def test_mask_to_mirrored_num():

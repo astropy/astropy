@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from numpy.lib.index_tricks import index_exp
 
-__all__ = ['extract_array_2d', 'add_array_2d', 'subpixel_indices',
+__all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'mask_to_mirrored_num', 'overlap_slices']
 
 
@@ -17,7 +17,7 @@ def overlap_slices(large_array_shape, small_array_shape, position):
     Get slices for the overlapping part of a small and a large array.
 
     Given a certain position of the center of the small array, with
-    respect to the large array, four slices are computed, which can be
+    respect to the large array, tuples of slices are returned which can be
     used to extract, add or subtract the small array at the given
     position. This function takes care of the correct behavior at the
     boundaries, where the small array is cut of appropriately.
@@ -28,40 +28,40 @@ def overlap_slices(large_array_shape, small_array_shape, position):
         Shape of the large array.
     small_array_shape : tuple
         Shape of the small array.
-    position : tuple, (x, y)
-        Position of the small array's center, with respect
-        to the large array.
+    position : tuple
+        Position of the small array's center, with respect to the large array.
+        Coordinates should be in the same order as the array shape.
 
     Returns
     -------
-    s_y : slice
-        Slice in y direction for the large array.
-    s_x : slice
-        Slice in x direction for the large array.
-    b_y : slice
-        Slice in y direction for the small array.
-    b_x : slice
-        Slice in x direction for the small array.
+    slices_large : tuple of slices
+        Slices in all directions for the large array, such that
+        ``large_array[slices_large]`` extracts the region of the large array
+        that overlaps with the small array.
+    slices_small : slice
+        Slices in all directions for the small array, such that
+        ``small_array[slices_small]`` extracts the region that is inside the
+        large array.
     """
     # Get edge coordinates
-    y_min = int(position[1] + 0.5 - small_array_shape[0] / 2.)
-    x_min = int(position[0] + 0.5 - small_array_shape[1] / 2.)
-    y_max = int(position[1] + 0.5 + small_array_shape[0] / 2.)
-    x_max = int(position[0] + 0.5 + small_array_shape[1] / 2.)
+    edges_min = [int(pos + 0.5 - small_shape / 2.) for (pos, small_shape) in
+                 zip(position, small_array_shape)]
+    edges_max = [int(pos + 0.5 + small_shape / 2.) for (pos, small_shape) in
+                 zip(position, small_array_shape)]
 
-    # Set up slices in x direction
-    s_x = slice(max(0, x_min), min(large_array_shape[1], x_max))
-    b_x = slice(max(0, -x_min), min(large_array_shape[1] - x_min,
-                                    x_max - x_min))
+    # Set up slices
+    slices_large = tuple(slice(max(0, edge_min), min(large_shape, edge_max))
+                         for (edge_min, edge_max, large_shape) in
+                         zip(edges_min, edges_max, large_array_shape))
+    slices_small = tuple(slice(max(0, -edge_min),
+                               min(large_shape - edge_min, edge_max - edge_min))
+                         for (edge_min, edge_max, large_shape) in
+                         zip(edges_min, edges_max, large_array_shape))
 
-    # Set up slices in y direction
-    s_y = slice(max(0, y_min), min(large_array_shape[0], y_max))
-    b_y = slice(max(0, -y_min), min(large_array_shape[0] - y_min,
-                                    y_max - y_min))
-    return s_y, s_x, b_y, b_x
+    return slices_large, slices_small
 
 
-def extract_array_2d(array_large, shape, position):
+def extract_array(array_large, shape, position):
     """
     Extract smaller array of given shape and position out of a larger array.
 
@@ -71,9 +71,9 @@ def extract_array_2d(array_large, shape, position):
         Array to extract another array from.
     shape : tuple
         Shape of the extracted array.
-    position : tuple, (x, y)
-        Position of the small array's center, with respect
-        to the large array.
+    position : tuple
+        Position of the small array's center, with respect to the large array.
+        Coordinates should be in the same order as the array shape.
 
     Examples
     --------
@@ -81,25 +81,26 @@ def extract_array_2d(array_large, shape, position):
     a small array of shape 3x5:
 
     >>> import numpy as np
-    >>> from astropy.image.array_utils import extract_array_2d
+    >>> from astropy.image.array_utils import extract_array
     >>> large_array = np.arange(110).reshape((11, 10))
     >>> large_array[4:9, 4:9] = np.ones((5, 5))
-    >>> extract_array_2d(large_array, (3, 5), (7, 7))
+    >>> extract_array(large_array, (3, 5), (7, 7))
     array([[ 1,  1,  1,  1, 69],
            [ 1,  1,  1,  1, 79],
            [ 1,  1,  1,  1, 89]])
     """
     # Check if larger array is really larger
-    if array_large.shape >= shape:
-        s_y, s_x, _, _ = overlap_slices(array_large.shape, shape, position)
-        return array_large[s_y, s_x]
+    if all(large_shape > small_shape for (large_shape, small_shape)
+           in zip(array_large.shape, shape)):
+        large_slices, _ = overlap_slices(array_large.shape, shape, position)
+        return array_large[large_slices]
     else:
         raise ValueError("Can't extract array. Shape too large.")
 
 
-def add_array_2d(array_large, array_small, position):
+def add_array(array_large, array_small, position):
     """
-    Add a smaller 2D array at a given position in a larger 2D array.
+    Add a smaller array at a given position in a larger array.
 
     Parameters
     ----------
@@ -107,9 +108,13 @@ def add_array_2d(array_large, array_small, position):
         Large array.
     array_small : ndarray
         Small array to add.
-    position : tuple, (x, y)
-        Position of the small array's center, with respect
-        to the large array.
+    position : tuple
+        Position of the small array's center, with respect to the large array.
+        Coordinates should be in the same order as the array shape.
+
+    Notes
+    -----
+    The addition is done in-place.
 
     Examples
     --------
@@ -117,21 +122,22 @@ def add_array_2d(array_large, array_small, position):
     array of ones with a shape of 3x3:
 
     >>> import numpy as np
-    >>> from astropy.image.array_utils import add_array_2d
+    >>> from astropy.image.array_utils import add_array
     >>> large_array = np.zeros((5, 5))
     >>> small_array = np.ones((3, 3))
-    >>> add_array_2d(large_array, small_array, (2, 1))
+    >>> add_array(large_array, small_array, (1, 2))
     array([[ 0.,  1.,  1.,  1.,  0.],
            [ 0.,  1.,  1.,  1.,  0.],
            [ 0.,  1.,  1.,  1.,  0.],
            [ 0.,  0.,  0.,  0.,  0.],
            [ 0.,  0.,  0.,  0.,  0.]])
     """
-    # Check if larger array is really larger
-    if array_large.shape >= array_small.shape:
-        s_y, s_x, b_y, b_x = overlap_slices(array_large.shape,
-                                         array_small.shape, position)
-        array_large[s_y, s_x] += array_small[b_y, b_x]
+    # Check if large array is really larger
+    if all(large_shape > small_shape for (large_shape, small_shape)
+           in zip(array_large.shape, array_small.shape)):
+        large_slices, small_slices = overlap_slices(array_large.shape,
+                                                    array_small.shape, position)
+        array_large[large_slices] += array_small[small_slices]
         return array_large
     else:
         raise ValueError("Can't add array. Small array too large.")
@@ -143,19 +149,14 @@ def subpixel_indices(position, subsampling):
 
     Parameters
     ----------
-    position : ndarray [x, y]
+    position : ndarray or array-like
         Positions in pixels.
     subsampling : int
         Subsampling factor per pixel.
     """
     # Get decimal points
-    x_frac, y_frac = np.modf((position[0] + 0.5,
-                             position[1] + 0.5))[0]
-
-    # Convert to int
-    x_sub = np.int(x_frac * subsampling)
-    y_sub = np.int(y_frac * subsampling)
-    return x_sub, y_sub
+    fractions = np.modf(np.asanyarray(position) + 0.5)[0]
+    return np.floor(fractions * subsampling)
 
 
 def mask_to_mirrored_num(image, mask_image, center_position, bbox=None,

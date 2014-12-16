@@ -8,5 +8,5 @@ from .array_utils import *
 from .sampling import *
 
 __all__ = ['sigmaclip_stats', 'downsample', 'upsample',
-           'extract_array_2d', 'add_array_2d', 'subpixel_indices',
+           'extract_array', 'add_array', 'subpixel_indices',
            'mask_to_mirrored_num']
