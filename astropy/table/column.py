@@ -113,6 +113,25 @@ def col_iter_str_vals(col):
     for str_val in _pformat_col_iter(col, -1, False, False, {}):
         yield str_val
 
+def col_copy(col):
+    """
+    TODO: docstring
+    This is a mixin-safe version of Column.copy() (with copy_data=True).
+    """
+    if isinstance(col, BaseColumn):
+        return col.copy()
+
+    newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
+
+    # Copy old attributes.  Even deepcopy above may not get this (e.g. pandas).
+    if (not hasattr(newcol, '_astropy_column_attrs') or
+            newcol._astropy_column_attrs is None):
+        _column_attrs = deepcopy(getattr(col, '_astropy_column_attrs', {}))
+        newcol._astropy_column_attrs = _column_attrs
+
+    return newcol
+
+
 class FalseArray(np.ndarray):
     def __new__(cls, shape):
         obj = np.zeros(shape, dtype=np.bool).view(cls)

@@ -22,7 +22,7 @@ from ..utils.metadata import MetaData
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
-                     col_getattr, col_setattr)
+                     col_getattr, col_setattr, col_copy)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 
@@ -433,14 +433,10 @@ class Table(object):
                 # Copy the mixin column attributes if they exist since the copy below
                 # may not get this attribute.
                 if copy:
-                    if hasattr(col, 'copy'):
-                        newcol = col.copy()
-                        _column_attrs = deepcopy(getattr(col, '_astropy_column_attrs', {}))
-                        newcol._astropy_column_attrs = _column_attrs
-                    else:
-                        newcol = deepcopy(col)
-                    col = newcol
+                    col = col_copy(col)
+
                 col_setattr(col, 'name', name or col_getattr(col, 'name') or def_name)
+
                 # TODO: What about dtype?
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
@@ -1203,13 +1199,7 @@ class Table(object):
 
         for i, col in enumerate(cols):
             if copy:
-                if hasattr(col, 'copy'):
-                    newcol = col.copy()
-                    if hasattr(col, '_astropy_column_attrs'):
-                        newcol._astropy_column_attrs = deepcopy(col._astropy_column_attrs)
-                else:
-                    newcol = deepcopy(col)
-                cols[i] = newcol
+                cols[i] = col_copy(col)
 
         if len(self.columns) == 0:
             # No existing table data, init from cols
