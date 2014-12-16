@@ -9,7 +9,7 @@ from ..transformations import DynamicMatrixTransform
 
 from .fk5 import FK5
 from .icrs import ICRS
-from .consts import EQUINOX_J2000
+from .utils import EQUINOX_J2000
 
 
 def _icrs_to_fk5_matrix():

@@ -13,7 +13,7 @@ from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
 from ..transformations import FunctionTransform, DynamicMatrixTransform
 from .. import earth_orientation as earth
 
-from .consts import EQUINOX_B1950
+from .utils import EQUINOX_B1950
 
 
 class FK4(BaseCoordinateFrame):

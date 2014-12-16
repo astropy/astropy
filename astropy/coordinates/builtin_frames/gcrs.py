@@ -7,7 +7,7 @@ from ... import units as u
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, RepresentationMapping,
                          TimeFrameAttribute, QuantityFrameAttribute)
-from .consts import DEFAULT_OBSTIME
+from .utils import DEFAULT_OBSTIME
 
 
 class GCRS(BaseCoordinateFrame):

@@ -5,7 +5,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from ..representation import CartesianRepresentation
 from ..baseframe import BaseCoordinateFrame, TimeFrameAttribute
-from .consts import DEFAULT_OBSTIME
+from .utils import DEFAULT_OBSTIME
 
 
 class ITRS(BaseCoordinateFrame):

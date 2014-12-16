@@ -12,7 +12,7 @@ from ..transformations import DynamicMatrixTransform
 
 from .fk4 import FK4NoETerms
 from .fk5 import FK5
-from .consts import EQUINOX_B1950, EQUINOX_J2000
+from .utils import EQUINOX_B1950, EQUINOX_J2000
 
 
 

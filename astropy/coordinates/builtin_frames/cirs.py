@@ -5,7 +5,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 from ..representation import SphericalRepresentation
 from ..baseframe import BaseCoordinateFrame, RepresentationMapping, TimeFrameAttribute
-from .consts import DEFAULT_OBSTIME
+from .utils import DEFAULT_OBSTIME
 
 class CIRS(BaseCoordinateFrame):
     """
