@@ -21,6 +21,12 @@ from .conftest import MIXIN_COLS
 
 # ISSUES / TODO
 # - Test hstack, vstack, groups
+# - Test adding a row
+# - Test convert QTable <=> Table
+# - Conversion to numpy array and dtype
+# - Assignment
+# - Copy
+# - Array subsetting
 
 def test_attributes(mixin_cols):
     """
