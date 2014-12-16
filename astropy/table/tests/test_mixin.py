@@ -13,14 +13,15 @@ else:
 import numpy as np
 
 from ...tests.helper import pytest
-from ...table import QTable, col_setattr, col_getattr, join, hstack
+from ...table import QTable, col_setattr, col_getattr, join, hstack, vstack
 from ... import units as u
 from ... import coordinates
 from .. import table_helpers
 from .conftest import MIXIN_COLS
 
 # ISSUES / TODO
-# - Test hstack, vstack, groups
+# - Test vstack, groups
+# - Check attributes in join outputs
 # - Test adding a row
 # - Test convert QTable <=> Table
 # - Conversion to numpy array and dtype
@@ -237,3 +238,12 @@ def test_add_column(mixin_cols):
         for attr in attrs:
             if attr != 'name':
                 assert col_getattr(t['m'], attr) == col_getattr(t[name], attr)
+
+def test_vstack():
+    """
+    Vstack tables with mixin cols.
+    """
+    t1 = QTable(MIXIN_COLS)
+    t2 = QTable(MIXIN_COLS)
+    with pytest.raises(NotImplementedError):
+        vstack([t1, t2])
