@@ -10,9 +10,12 @@ except ImportError:
 else:
     HAS_H5PY = True
 
+import numpy as np
+
 from ...tests.helper import pytest
-from ...table import QTable, col_setattr, col_getattr
+from ...table import QTable, col_setattr, col_getattr, join
 from ... import units as u
+from .conftest import MIXIN_COLS
 
 # ISSUES
 # - Overlap with SkyCoord.name => SkyCoord.frame.name => 'icrs' by default.
@@ -69,14 +72,14 @@ def test_make_table(table_types, mixin_cols):
     check_mixin_type(t, t['col3'], mixin_cols['m'])
 
 
-def test_io_ascii_write(mixin_cols):
+def test_io_ascii_write():
     """
     Test that table with mixin column can be written by io.ascii for
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
     from ...io.ascii.connect import _get_connectors_table
-    t = QTable(mixin_cols)
+    t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
         if fmt['Write'] and '.fast_' not in fmt['Format']:
             out = StringIO()
@@ -98,3 +101,47 @@ def test_io_write_fail(mixin_cols):
         with pytest.raises(ValueError) as err:
             t.write(out, format=fmt)
         assert 'cannot write table with mixin column(s)' in str(err.value)
+
+
+def test_join(table_types):
+    """
+    Join tables with mixin cols.  Use column "i" as proxy for what the
+    result should be for each mixin.
+    """
+    t1 = table_types.Table()
+    t1['a'] = table_types.Column(['a', 'b', 'b', 'c'])
+    t1['i'] = table_types.Column([0, 1, 2, 3])
+    for name, col in MIXIN_COLS.items():
+        t1[name] = col
+
+    t2 = table_types.Table(t1)
+    t2['a'] = ['b', 'c', 'a', 'd']
+
+    for join_type in ('inner', 'left'):
+        t12 = join(t1, t2, keys='a', join_type=join_type)
+        idx1 = t12['i_1']
+        idx2 = t12['i_2']
+        for name, col in MIXIN_COLS.items():
+            name1 = name + '_1'
+            name2 = name + '_2'
+            if name == 'skycoord':
+                assert np.all(t12[name1].ra == col[idx1].ra)
+                assert np.all(t12[name1].dec == col[idx1].dec)
+                assert np.all(t12[name2].ra == col[idx2].ra)
+                assert np.all(t12[name2].dec == col[idx2].dec)
+            elif name == 'quantity':
+                if table_types.Table is QTable:
+                    assert np.all(t12[name1].value == col[idx1].value)
+                    assert np.all(t12[name2].value == col[idx2].value)
+            else:
+                assert np.all(t12[name1] == col[idx1])
+                assert np.all(t12[name2] == col[idx2])
+
+    for join_type in ('outer', 'right'):
+        with pytest.raises(ValueError) as exc:
+            t12 = join(t1, t2, keys='a', join_type=join_type)
+        assert 'join requires masking column' in str(exc.value)
+
+    with pytest.raises(ValueError) as exc:
+        t12 = join(t1, t2, keys=['a', 'skycoord'])
+    assert 'not allowed as a key column' in str(exc.value)

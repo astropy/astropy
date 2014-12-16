@@ -14,6 +14,7 @@ place to put fixtures that are shared between modules.  These fixtures
 can not be defined in a module by a different name and still be shared
 between modules.
 """
+from copy import deepcopy
 
 from ...tests.helper import pytest
 from ... import table
@@ -23,6 +24,12 @@ from ... import coordinates
 from .. import pprint
 from ...utils import OrderedDict
 
+
+MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
+              'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
+              'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
+                                               dec=[0, 1, 2, 3] * u.deg)
+              }
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])
 def Column(request):
@@ -130,22 +137,18 @@ def table_type(request):
         return table.Table
 
 
-@pytest.fixture(params=['quantity', 'time', 'skycoord'])
+@pytest.fixture(params=sorted(MIXIN_COLS))
 def mixin_cols(request):
     """
     Fixture to return a set of columns for mixin testing which includes
     an index column 'i', two string cols 'a', 'b' (for joins etc), and
     one of the available mixin column types.
     """
-    mixins = {'quantity': [0, 1, 2, 3] * u.m,
-              'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
-              'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
-                                               dec=[0, 1, 2, 3] * u.deg)
-              }
     cols = OrderedDict()
+    mixin_cols = deepcopy(MIXIN_COLS)
     cols['i'] = table.Column([0, 1, 2, 3], name='i')
     cols['a'] = table.Column(['a', 'b', 'b', 'c'], name='a')
     cols['b'] = table.Column(['b', 'c', 'a', 'd'], name='b')
-    cols['m'] = mixins[request.param]
+    cols['m'] = mixin_cols[request.param]
 
     return cols
