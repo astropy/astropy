@@ -16,7 +16,9 @@ from astropy import units as u
 from astropy.wcs import WCS
 from astropy.extern import six
 from astropy.coordinates import (SkyCoord, frame_transform_graph,
-                                 SphericalRepresentation, UnitSphericalRepresentation)
+                                 SphericalRepresentation,
+                                 UnitSphericalRepresentation,
+                                 BaseCoordinateFrame)
 
 from .wcs_utils import wcs_to_celestial_frame
 
@@ -173,6 +175,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
 
 class CoordinateTransform(CurvedTransform):
+
     def __init__(self, input_system, output_system):
         super(CoordinateTransform, self).__init__()
         self._input_system_name = input_system
@@ -184,6 +187,10 @@ class CoordinateTransform(CurvedTransform):
             self.input_system = frame_transform_graph.lookup_name(self._input_system_name)
             if self.input_system is None:
                 raise ValueError("Frame {0} not found".format(self._input_system_name))
+        elif isinstance(self._input_system_name, BaseCoordinateFrame):
+            self.input_system = self._input_system_name
+        else:
+            raise TypeError("input_system should be a WCS instance, string, or a coordinate frame instance")
 
         if isinstance(self._output_system_name, WCS):
             self.output_system = wcs_to_celestial_frame(self._output_system_name)
@@ -191,6 +198,10 @@ class CoordinateTransform(CurvedTransform):
             self.output_system = frame_transform_graph.lookup_name(self._output_system_name)
             if self.output_system is None:
                 raise ValueError("Frame {0} not found".format(self._output_system_name))
+        elif isinstance(self._output_system_name, BaseCoordinateFrame):
+            self.output_system = self._output_system_name
+        else:
+            raise TypeError("output_system should be a WCS instance, string, or a coordinate frame instance")
 
         if self.output_system == self.input_system:
             self.same_frames = True
