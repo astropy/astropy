@@ -2573,3 +2573,25 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         hf = fitsheader.HeaderFormatter(self.data('comp.fits'),
                                         compressed=True)
         assert "XTENSION= 'BINTABLE" in hf.parse(1)  # compressed
+
+    def test_fitsheader_table_feature(self):
+        """
+        Tests the `--table` feature of the fitsheader script.
+        """
+        from ....io import fits
+        from ....io.fits.scripts import fitsheader
+        test_filename = self.data('zerowidth.fits')
+        hf = fitsheader.TableHeaderFormatter(test_filename)
+        # Does the table contain the expected number of rows?
+        mytable = hf.parse(0)
+        assert len(mytable) == len(fits.open(test_filename)[0].header)
+        # Specify an HDU by its EXTNAME, then test if we can recover the name
+        mytable = hf.parse('AIPS FQ')
+        assert np.all(mytable['filename'] == test_filename)
+        assert np.all(mytable['hdu'] == 'AIPS FQ')
+        assert mytable['value'][mytable['keyword'] == "EXTNAME"] == "AIPS FQ"
+        # Specify both the HDU and keyword, then test if we can recover
+        mytable = hf.parse('AIPS FQ', ['EXTNAME'])
+        assert len(mytable) == 1  # We requested just one row this time
+        assert mytable['keyword'][0] == "EXTNAME"
+        assert mytable['value'][0] == "AIPS FQ"
