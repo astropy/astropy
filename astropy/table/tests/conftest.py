@@ -18,18 +18,13 @@ from copy import deepcopy
 
 from ...tests.helper import pytest
 from ... import table
+from ...table import table_helpers
 from ... import time
 from ... import units as u
 from ... import coordinates
 from .. import pprint
 from ...utils import OrderedDict
 
-
-MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
-              'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
-              'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
-                                               dec=[0, 1, 2, 3] * u.deg)
-              }
 
 @pytest.fixture(params=[table.Column, table.MaskedColumn])
 def Column(request):
@@ -136,6 +131,15 @@ def table_type(request):
     except AttributeError:
         return table.Table
 
+
+# Stuff for testing mixin columns
+
+MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
+              'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
+              'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
+                                               dec=[0, 1, 2, 3] * u.deg),
+              'ndwrap': table_helpers.ArrayWrapper([0, 1, 2, 3])
+              }
 
 @pytest.fixture(params=sorted(MIXIN_COLS))
 def mixin_cols(request):

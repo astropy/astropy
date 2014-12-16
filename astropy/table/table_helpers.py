@@ -12,7 +12,7 @@ from itertools import cycle
 import string
 import numpy as np
 
-from .table import Table, Column
+from .table import Table, Column, col_setattr, col_getattr
 from ..extern.six.moves import zip, range
 
 class TimingTables(object):
@@ -136,3 +136,30 @@ def complex_table():
     table = first_table.to_table()
 
     return table
+
+class ArrayWrapper(object):
+    """
+    Minimal mixin using a simple wrapper around a numpy array
+    """
+    _astropy_column_attrs = None
+
+    def __init__(self, data):
+        self.data = np.array(data)
+        col_setattr(self, 'dtype', self.data.dtype)
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, item, value):
+        self.data[item] = value
+
+    def __len__(self):
+        return len(self.data)
+
+    @property
+    def shape(self):
+        return self.data.shape
+
+    def __repr__(self):
+        return ("<{0} name='{1}' data={2}>"
+                .format(self.__class__.__name__, col_getattr(self, 'name'), self.data))

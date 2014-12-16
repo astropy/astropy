@@ -17,9 +17,10 @@ from ...table import QTable, col_setattr, col_getattr, join
 from ... import units as u
 from .conftest import MIXIN_COLS
 
-# ISSUES
-# - Overlap with SkyCoord.name => SkyCoord.frame.name => 'icrs' by default.
-#   This gets clobbered by directly setting `frame` attribute.
+# ISSUES / TODO
+# - Test that slicing / indexing table gives right values and col attrs inherit
+# - Test hstack, vstack, groups
+# - Add column to table => makes copy and copies col attrs if existent
 
 def test_attributes(mixin_cols):
     """
@@ -54,6 +55,9 @@ def check_mixin_type(table, table_col, in_col):
         assert type(table_col) is table.ColumnClass
     else:
         assert type(table_col) is type(in_col)
+
+    # Make sure in_col got copied and creating table did not touch it
+    assert col_getattr(in_col, 'name') is None
 
 
 def test_make_table(table_types, mixin_cols):
