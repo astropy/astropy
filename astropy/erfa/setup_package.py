@@ -2,6 +2,7 @@
 
 import os
 import glob
+import warnings
 
 from distutils.extension import Extension
 
@@ -26,6 +27,10 @@ def pre_build_ext_hook(cmd_obj):
     preprocess_source()
 
 
+def pre_sdist_hook(cmd_obj):
+    preprocess_source()
+
+
 def preprocess_source():
 
     # Generating the ERFA wrappers should only be done if needed. This also
@@ -41,9 +46,23 @@ def preprocess_source():
         if gen_mtime > erfa_mtime:
             return
 
-    import imp
-    gen = imp.load_source('cython_generator',
-                          os.path.join(ERFAPKGDIR, 'cython_generator.py'))
+        # If jinja2 isn't present, then print a warning and use existing files
+        try:
+            import jinja2
+        except:
+            warnings.warn("jinja2 could not be imported, so the existing erfa.py and erfa.pyx files will be used")
+            return
+
+    name = 'cython_generator'
+    filename = os.path.join(ERFAPKGDIR, 'cython_generator.py')
+
+    try:
+        from importlib import machinery as import_machinery
+        loader = import_machinery.SourceFileLoader(name, filename)
+        gen = loader.load_module()
+    except ImportError:
+        import imp
+        gen = imp.load_source(name, filename)
 
     gen.main(gen.DEFAULT_ERFA_LOC,
              os.path.join(ERFAPKGDIR, 'erfa.py'),
@@ -84,4 +103,4 @@ def requires_2to3():
 
 
 def get_package_data():
-    return {'astropy.erfa': ['erfa.pyx.templ', 'erfa.pyx.templ']}
+    return {'astropy.erfa': ['erfa.py.templ', 'erfa.pyx.templ']}
