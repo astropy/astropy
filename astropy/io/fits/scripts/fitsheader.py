@@ -10,22 +10,26 @@ Example uses of fitsheader:
 
     $ fitsheader filename.fits
 
-2. Print the header of the third HDU extension::
+2. Print the header of the third and fifth HDU extension::
 
-    $ fitsheader --ext 3 filename.fits
+    $ fitsheader --ext 3 --ext 5 filename.fits
 
 3. Print the header of a named extension, e.g. to select the HDU with header
    keywords EXTNAME='SCI' and EXTVER='2'::
 
     $ fitsheader --ext "SCI,2" filename.fits
 
-4. Print the value of specific header keyword(s) only::
+4. Print only specific keywords::
 
     $ fitsheader --keyword BITPIX --keyword NAXIS filename.fits
 
-5. Print the headers of all fits files in a directory as a csv table::
+5. Print the headers of all fits files in a directory::
 
-    $ fitsheader --table ascii.csv *.fits
+    $ fitsheader *.fits
+
+6. Dump header keywords into a machine-readable csv file::
+
+    $ fitsheader --table ascii.csv *.fits > keywords.csv
 
 Note that compressed images (HDUs of type
 :class:`~astropy.io.fits.CompImageHDU`) really have two headers: a real
@@ -264,11 +268,12 @@ def main(args=None):
                              'wildcards are supported')
     args = parser.parse_args(args)
 
-    if args.table is None:  # Default table format
+    # If `--table` was used but no format specified, then use ascii.fixed_width
+    if args.table is None:
         args.table = 'ascii.fixed_width'
 
     try:
-        # Display a machine-readable table
+        # Machine-readable table mode
         if args.table:
             tables = []
             for i, filename in enumerate(args.filename):  # Support wildcards
@@ -280,9 +285,8 @@ def main(args=None):
                 mytable = table.vstack(tables)
             else:
                 mytable = tables[0]
-            mytable.write(sys.stdout,
-                          format=args.table)
-        # Display the header in traditional formatting
+            mytable.write(sys.stdout, format=args.table)
+        # Traditional FITS-like formatting mode
         else:
             for i, filename in enumerate(args.filename):  # Support wildcards
                 if i > 0 and not args.keyword:
