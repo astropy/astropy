@@ -243,7 +243,7 @@ class TestPprint():
     def test_clip4(self, table_type):
         """Test a range of max_lines"""
         self._setup(table_type)
-        for max_lines in range(130):
+        for max_lines in (0, 1, 4, 5, 6, 7, 8, 100, 101, 102, 103, 104, 130):
             lines = self.tb.pformat(max_lines=max_lines, show_unit=False)
             assert len(lines) == max(8, min(102, max_lines))
 
