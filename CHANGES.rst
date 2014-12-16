@@ -343,6 +343,10 @@ API Changes
   - The ``WCS.calcFootprint`` method (deprecated in v0.4) has now been removed.
     [#2990]
 
+  - An invalid unit in a ``CUNITn`` keyword now displays a warning and
+    returns a ``UnrecognizedUnit`` instance rather than raising an
+    exception [#3190]
+
 Bug Fixes
 ^^^^^^^^^
 
