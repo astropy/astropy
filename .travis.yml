@@ -72,9 +72,6 @@ before_install:
 
 install:
 
-    # Certificate checking is not working with Python 2.7.9 (due to PEP 476)
-    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then export TRAVIS_PYTHON_VERSION=2.7.8; fi
-
     # CONDA
     - conda create --yes -n test -c astropy-ci-extras python=$TRAVIS_PYTHON_VERSION
     - source activate test
