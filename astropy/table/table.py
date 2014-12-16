@@ -8,7 +8,6 @@ from ..extern.six.moves import range as xrange
 import re
 
 from copy import deepcopy
-from copy import copy as copy_stdlib
 from distutils import version
 
 import numpy as np
@@ -437,7 +436,7 @@ class Table(object):
                     if hasattr(col, 'copy'):
                         newcol = col.copy()
                     else:
-                        newcol = copy_stdlib(col)
+                        newcol = deepcopy(col)
                     if not hasattr(newcol, '_astropy_column_attrs'):
                         _column_attrs = deepcopy(getattr(col, '_astropy_column_attrs', {}))
                         newcol._astropy_column_attrs = _column_attrs
@@ -483,6 +482,7 @@ class Table(object):
     def _init_from_dict(self, data, names, dtype, n_cols, copy):
         """Initialize table from a dictionary of columns"""
 
+        # TODO: is this restriction still needed with no ndarray?
         if not copy:
             raise ValueError('Cannot use copy=False with a dict data input')
 
@@ -1202,7 +1202,7 @@ class Table(object):
             # Copy new columns, being aware that copy() method might not copy
             # the name.
             names = [col_getattr(col, 'name') for col in cols]
-            cols = [(col.copy() if hasattr(col, 'copy') else copy_stdlib(col)) for col in cols]
+            cols = [(col.copy() if hasattr(col, 'copy') else deepcopy(col)) for col in cols]
             for name, col in zip(names, cols):
                 col_setattr(col, 'name', name)
 
