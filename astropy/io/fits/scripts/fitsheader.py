@@ -48,6 +48,10 @@ from .... import log
 
 
 class FormattingException(Exception):
+    """
+    Exception raised if the header cannot be formatted for printing,
+    e.g. because the user specified a non-existent HDU or keyword.
+    """
     pass
 
 
@@ -72,7 +76,8 @@ class HeaderFormatter(object):
         self.compressed = compressed
 
     def parse(self, extension=None, keywords=None):
-        """Returns the FITS file header(s) in a readable format.
+        """
+        Returns the FITS file header(s) in a readable format.
 
         Parameters
         ----------
@@ -106,9 +111,12 @@ class HeaderFormatter(object):
                     hdukeys = [extension]
 
         # Having established which HDUs the user wants, we now format these:
-        return self._parse_hdus(hdukeys, keywords=keywords)
+        return self._parse_internal(hdukeys, keywords=keywords)
 
-    def _parse_hdus(self, hdukeys, keywords=None):
+    def _parse_internal(self, hdukeys, keywords=None):
+        """
+        The meat of the parse method; in a separate method to allow overriding.
+        """
         result = []
         for i, hdukey in enumerate(hdukeys):
             if i > 0:  # Separate different HDUs by a blank line
@@ -140,10 +148,12 @@ class HeaderFormatter(object):
         return ''.join(result)
 
     def _get_header(self, hdukey):
-        """Returns the `astropy.io.fits.header.Header` object for an HDU.
+        """
+        Returns the `astropy.io.fits.header.Header` object for an HDU.
 
-        This function will return the desired header object, or raise
-        a FormattingException if the HDU is unknown.
+        This function will return the desired header object, taking into
+        account the user's preference to see the compressed or uncompressed
+        version. A `FormattingException` is raised if `hdukey` is invalid.
 
         Parameters
         ----------
@@ -178,29 +188,34 @@ class TableHeaderFormatter(HeaderFormatter):
     compressed : boolean, optional
         show the header describing the compression (for CompImageHDU's only)
     """
-    def __init__(self, filename, compressed=False):
-        super(TableHeaderFormatter, self).__init__(filename, compressed)
-        self.table = table.Table(names=('filename', 'hdu', 'keyword', 'value'),
-                                 dtype=('O', 'O', 'O', 'O'))
+    def _create_row(self, hdu, keyword, value):
+        """
+        Creates a row in the dictionary format understood by an astropy Table.
+        """
+        return {'filename': self.hdulist.filename(),
+                'hdu': hdu,
+                'keyword': keyword,
+                'value': value}
 
-    def _add_row(self, hdu, keyword, value):
-        """Adds a hdu/keyword/value triple to the output table."""
-        self.table.add_row((self.hdulist.filename(), hdu, keyword, value))
-
-    def _parse_hdus(self, hdukeys, keywords=None):
-        """This method will be called by parse() in the parent class."""
+    def _parse_internal(self, hdukeys, keywords=None):
+        """
+        Called by the parse method in the parent class.
+        """
+        rows = []
         for i, hdukey in enumerate(hdukeys):
             if keywords:  # Are specific keywords requested?
                 for kw in keywords:
                     try:
                         card = self._get_header(hdukey).cards[kw]
                         if isinstance(card, fits.card.Card):  # Single card
-                            self._add_row(hdukey, card.keyword, card.value)
+                            rows.append(self._create_row(hdukey,
+                                                         card.keyword,
+                                                         card.value))
                         else:  # Allow for wildcard access
                             for mycard in card:
-                                self._add_row(hdukey,
-                                              mycard.keyword,
-                                              mycard.value)
+                                rows.append(self._create_row(hdukey,
+                                                             mycard.keyword,
+                                                             mycard.value))
                     except KeyError as e:  # Keyword does not exist
                         log.warning('{filename} (HDU {hdukey}): '
                                     'Keyword {kw} not found.'.format(
@@ -209,8 +224,8 @@ class TableHeaderFormatter(HeaderFormatter):
                                         kw=kw))
             else:  # Print the entire header instead of specific keywords
                 for kw, value in self._get_header(hdukey).iteritems():
-                    self._add_row(hdukey, kw, value)
-        return self.table
+                    rows.append(self._create_row(hdukey, kw, value))
+        return table.Table(rows)
 
 
 def main(args=None):
@@ -255,7 +270,7 @@ def main(args=None):
                 mytable = tables[0]
             mytable.write(sys.stdout,
                           format=args.table)
-        # Display a "traditionally" formatted header
+        # Display the header in traditional formatting
         else:
             for i, filename in enumerate(args.filename):  # Support wildcards
                 if i > 0 and not args.keyword:
