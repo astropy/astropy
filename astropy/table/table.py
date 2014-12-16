@@ -1201,13 +1201,15 @@ class Table(object):
         elif len(indexes) != len(cols):
             raise ValueError('Number of indexes must match number of cols')
 
-        if copy:
-            # Copy new columns, being aware that copy() method might not copy
-            # the name.
-            names = [col_getattr(col, 'name') for col in cols]
-            cols = [(col.copy() if hasattr(col, 'copy') else deepcopy(col)) for col in cols]
-            for name, col in zip(names, cols):
-                col_setattr(col, 'name', name)
+        for i, col in enumerate(cols):
+            if copy:
+                if hasattr(col, 'copy'):
+                    newcol = col.copy()
+                    if hasattr(col, '_astropy_column_attrs'):
+                        newcol._astropy_column_attrs = deepcopy(col._astropy_column_attrs)
+                else:
+                    newcol = deepcopy(col)
+                cols[i] = newcol
 
         if len(self.columns) == 0:
             # No existing table data, init from cols

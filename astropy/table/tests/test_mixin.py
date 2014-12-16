@@ -21,7 +21,6 @@ from .conftest import MIXIN_COLS
 
 # ISSUES / TODO
 # - Test hstack, vstack, groups
-# - Add column to table => makes copy and copies col attrs if existent
 
 def test_attributes(mixin_cols):
     """
@@ -129,8 +128,8 @@ def test_join(table_types):
         for name, col in MIXIN_COLS.items():
             name1 = name + '_1'
             name2 = name + '_2'
-            assert_table_name_col_idx_equal(t12, name1, col[idx1])
-            assert_table_name_col_idx_equal(t12, name2, col[idx2])
+            assert_table_name_col_equal(t12, name1, col[idx1])
+            assert_table_name_col_equal(t12, name2, col[idx2])
 
     for join_type in ('outer', 'right'):
         with pytest.raises(ValueError) as exc:
@@ -141,7 +140,7 @@ def test_join(table_types):
         t12 = join(t1, t2, keys=['a', 'skycoord'])
     assert 'not allowed as a key column' in str(exc.value)
 
-def assert_table_name_col_idx_equal(t, name, col):
+def assert_table_name_col_equal(t, name, col):
     """
     Assert all(t[name] == col), with special handling for known mixin cols.
     """
@@ -169,8 +168,30 @@ def test_get_items(mixin_cols):
     t = QTable([m])
     for item in ([1, 3], np.array([0, 2]), slice(1, 3)):
         t2 = t[item]
-        assert_table_name_col_idx_equal(t2, 'm', m[item])
+        assert_table_name_col_equal(t2, 'm', m[item])
         for attr in attrs:
             assert col_getattr(t2['m'], attr) == col_getattr(m, attr)
 
+def test_add_column(mixin_cols):
+    """
+    Test that adding a column preserves values and attributes
+    """
+    attrs = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
+    m = mixin_cols['m']
+    col_setattr(m, 'name', 'm')
+    col_setattr(m, 'format', '{0}')
+    col_setattr(m, 'description', 'd')
+    col_setattr(m, 'meta', {'a': 1})
+    t = QTable([m])
 
+    # Add columns m2 and m3 by two different methods and test expected equality
+    t['m2'] = m
+    col_setattr(m, 'name', 'm3')
+    t.add_columns([m], copy=True)
+    col_setattr(m, 'name', 'm4')
+    t.add_columns([m], copy=False)
+    for name in ('m2', 'm3', 'm4'):
+        assert_table_name_col_equal(t, 'm', t[name])
+        for attr in attrs:
+            if attr != 'name':
+                assert col_getattr(t['m'], attr) == col_getattr(t[name], attr)
