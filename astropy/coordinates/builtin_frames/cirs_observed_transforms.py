@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Contains the transformation functions for getting to any system "lower" than
-CIRS (various forms of earth-centric or observer-oriented systems).
+Contains the transformation functions for getting to "observed" systems from CIRS.
+Currently that just means AltAz.
 """
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
