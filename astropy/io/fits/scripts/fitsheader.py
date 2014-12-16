@@ -81,9 +81,10 @@ class HeaderFormatter(object):
 
         Parameters
         ----------
-        extension : int or str, optional
-            Format only a specific HDU, identified by its number or its name.
-            The name is the "EXTNAME" or "EXTNAME,EXTVER" string.
+        extension : list of int or str, optional
+            Format only specific HDU(s), identified by number or name.
+            In the case of a name, it should be specified using a string
+            composed of the "EXTNAME" or "EXTNAME,EXTVER" keywords.
 
         keywords : list of str, optional
             Keywords for which the value(s) should be returned.
@@ -98,17 +99,20 @@ class HeaderFormatter(object):
         if extension is None:
             hdukeys = range(len(self.hdulist))  # Display all by default
         else:
-            try:
-                hdukeys = [int(extension)]  # HDU may be specified by number
-            except ValueError:
-                # The user can specify "EXTNAME" or "EXTNAME,EXTVER" as well
-                parts = extension.split(',')
-                if len(parts) > 1:
-                    extname = ','.join(parts[0:-1])
-                    extver = int(parts[-1])
-                    hdukeys = [(extname, extver)]
-                else:
-                    hdukeys = [extension]
+            hdukeys = []
+            for myextension in extension:
+                try:
+                    # HDU may be specified by number
+                    hdukeys.append(int(myextension))
+                except ValueError:
+                    # The user can specify "EXTNAME" or "EXTNAME,EXTVER"
+                    parts = myextension.split(',')
+                    if len(parts) > 1:
+                        extname = ','.join(parts[0:-1])
+                        extver = int(parts[-1])
+                        hdukeys.append((extname, extver))
+                    else:
+                        hdukeys.append(myextension)
 
         # Having established which HDUs the user wants, we now format these:
         return self._parse_internal(hdukeys, keywords=keywords)
@@ -233,23 +237,31 @@ def main(args=None):
 
     parser = argparse.ArgumentParser(
         description=('Print the header(s) of a FITS file. '
-                     'All HDU extensions are shown by default. '
-                     'In the case of a compressed image, '
-                     'the decompressed header is shown.'))
-    parser.add_argument('-e', '--ext', metavar='HDU',
-                        help='specify the HDU extension by name or number')
+                     'Optional arguments allow the desired extension(s), '
+                     'keyword(s), and output format to be specified. '
+                     'Note that in the case of a compressed image, '
+                     'the decompressed header is shown by default.'))
+    parser.add_argument('-e', '--ext', metavar='HDU', action='append',
+                        help='specify the extension by name or number; '
+                             'this argument can be repeated '
+                             'to select multiple extensions')
     parser.add_argument('-k', '--keyword', action='append',
-                        help='show only the specified keyword(s)')
+                        help='specify a keyword; this argument can be '
+                             'repeated to select multiple keywords; '
+                             'also supports wildcards')
+    parser.add_argument('-t', '--table',
+                        nargs='?', default=False, metavar='FORMAT',
+                        help='format the header as a machine-readable '
+                             'astropy table; the default format is '
+                             '"ascii.fixed_width" (can be "ascii.csv", '
+                             '"ascii.html", "ascii.latex", "fits", etc)')
     parser.add_argument('-c', '--compressed', action='store_true',
                         help='for compressed image data, '
                              'show the true header which describes '
                              'the compression rather than the data')
-    parser.add_argument('-t', '--table',
-                        nargs='?', default=False, metavar='FORMAT',
-                        help='return the output as a table '
-                             '(default format: ascii.fixed_width)')
     parser.add_argument('filename', nargs='+',
-                        help='path to one or more FITS files')
+                        help='path to one or more files; '
+                             'wildcards are supported')
     args = parser.parse_args(args)
 
     if args.table is None:  # Default table format

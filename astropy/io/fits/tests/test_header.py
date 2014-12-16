@@ -2556,42 +2556,49 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
     def test_fitsheader_script(self):
         """
-        Checks the basic functionality of the fitsheader script
+        Tests the basic functionality of the `fitsheader` script
         """
         from ....io.fits.scripts import fitsheader
         # Can an extension by specified by the EXTNAME keyword?
         hf = fitsheader.HeaderFormatter(self.data('zerowidth.fits'))
-        assert "EXTNAME = 'AIPS FQ" in hf.parse('AIPS FQ')
+        assert "EXTNAME = 'AIPS FQ" in hf.parse(['AIPS FQ'])
         # Alternative keyword access:
-        assert 'AIPS FQ' in hf.parse('AIPS FQ', ['EXTNAME'])
+        assert 'AIPS FQ' in hf.parse(['AIPS FQ'], ['EXTNAME'])
         # Can an extension by specified by the EXTNAME+EXTVER keywords?
         hf = fitsheader.HeaderFormatter(self.data('test0.fits'))
-        assert "EXTNAME = 'SCI" in hf.parse('SCI,2')
+        assert "EXTNAME = 'SCI" in hf.parse(['SCI,2'])
         # fitsheader should only print the compressed header when asked
         hf = fitsheader.HeaderFormatter(self.data('comp.fits'))
-        assert "XTENSION= 'IMAGE" in hf.parse(1)  # decompressed
+        assert "XTENSION= 'IMAGE" in hf.parse([1])  # decompressed
         hf = fitsheader.HeaderFormatter(self.data('comp.fits'),
                                         compressed=True)
-        assert "XTENSION= 'BINTABLE" in hf.parse(1)  # compressed
+        assert "XTENSION= 'BINTABLE" in hf.parse([1])  # compressed
 
-    def test_fitsheader_table_feature(self):
+    def test_fitsheader_table_formatter(self):
         """
-        Tests the `--table` feature of the fitsheader script.
+        Tests the `--table` feature of the `fitsheader` script.
         """
         from ....io import fits
         from ....io.fits.scripts import fitsheader
         test_filename = self.data('zerowidth.fits')
-        hf = fitsheader.TableHeaderFormatter(test_filename)
+        fitsobj = fits.open(test_filename)
+        formatter = fitsheader.TableHeaderFormatter(test_filename)
         # Does the table contain the expected number of rows?
-        mytable = hf.parse(0)
-        assert len(mytable) == len(fits.open(test_filename)[0].header)
-        # Specify an HDU by its EXTNAME, then test if we can recover the name
-        mytable = hf.parse('AIPS FQ')
+        mytable = formatter.parse([0])
+        assert len(mytable) == len(fitsobj[0].header)
+        # Repeat the above test in case multiple HDUs are requested
+        mytable = formatter.parse(['AIPS FQ', 2, "4"])
+        assert (len(mytable) == len(fitsobj['AIPS FQ'].header)
+                                + len(fitsobj[2].header)
+                                + len(fitsobj[4].header))
+        # Can we recover the filename and extension name?
+        mytable = formatter.parse(['AIPS FQ'])
         assert np.all(mytable['filename'] == test_filename)
         assert np.all(mytable['hdu'] == 'AIPS FQ')
         assert mytable['value'][mytable['keyword'] == "EXTNAME"] == "AIPS FQ"
-        # Specify both the HDU and keyword, then test if we can recover
-        mytable = hf.parse('AIPS FQ', ['EXTNAME'])
-        assert len(mytable) == 1  # We requested just one row this time
+        # Can we specify a single extension and keyword?
+        mytable = formatter.parse(['AIPS FQ'], ['EXTNAME'])
+        assert len(mytable) == 1  # There should be only one keyword now
+        assert mytable['hdu'][0] == "AIPS FQ"
         assert mytable['keyword'][0] == "EXTNAME"
         assert mytable['value'][0] == "AIPS FQ"
