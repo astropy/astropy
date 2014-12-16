@@ -102,6 +102,20 @@ def col_getattr(col, attr, default=None):
 
     return value
 
+def _col_update_attrs_from(newcol, col):
+    """
+    Update _astropy_column_attrs from mixin `col` to `newcol`.  Does nothing
+    for BaseColumn cols
+    """
+    if isinstance(col, BaseColumn):
+        return
+
+    attrs = set(COLUMN_ATTRS) - set(['name', 'parent_table'])
+    for attr in attrs:
+        val = col_getattr(col, attr)
+        if val is not None:
+            col_setattr(newcol, attr, deepcopy(val))
+
 def col_iter_str_vals(col):
     """
     TODO: docstring

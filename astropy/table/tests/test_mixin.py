@@ -13,7 +13,7 @@ else:
 import numpy as np
 
 from ...tests.helper import pytest
-from ...table import QTable, col_setattr, col_getattr, join
+from ...table import QTable, col_setattr, col_getattr, join, hstack
 from ... import units as u
 from ... import coordinates
 from .. import table_helpers
@@ -145,6 +145,42 @@ def test_join(table_types):
     with pytest.raises(ValueError) as exc:
         t12 = join(t1, t2, keys=['a', 'skycoord'])
     assert 'not allowed as a key column' in str(exc.value)
+
+def test_hstack(table_types):
+    """
+    Hstack tables with mixin cols.  Use column "i" as proxy for what the
+    result should be for each mixin.
+    """
+    t1 = table_types.Table()
+    t1['i'] = table_types.Column([0, 1, 2, 3])
+    for name, col in MIXIN_COLS.items():
+        t1[name] = col
+        col_setattr(t1[name], 'description', name)
+        col_setattr(t1[name], 'meta', {'a': 1})
+
+    for join_type in ('inner', 'outer'):
+        for chop in (True, False):
+            t2 = table_types.Table(t1)
+            if chop:
+                t2 = t2[:-1]
+                if join_type == 'outer':
+                    with pytest.raises(ValueError) as exc:
+                        t12 = hstack([t1, t2], join_type=join_type)
+                    assert 'hstack requires masking column' in str(exc.value)
+                    continue
+
+            t12 = hstack([t1, t2], join_type=join_type)
+            idx1 = t12['i_1']
+            idx2 = t12['i_2']
+            for name, col in MIXIN_COLS.items():
+                name1 = name + '_1'
+                name2 = name + '_2'
+                assert_table_name_col_equal(t12, name1, col[idx1])
+                assert_table_name_col_equal(t12, name2, col[idx2])
+                for attr in ('description', 'meta'):
+                    assert col_getattr(t1[name], attr) == col_getattr(t12[name1], attr)
+                    assert col_getattr(t2[name], attr) == col_getattr(t12[name2], attr)
+
 
 def assert_table_name_col_equal(t, name, col):
     """

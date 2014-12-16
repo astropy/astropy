@@ -20,7 +20,7 @@ import numpy as np
 from numpy import ma
 
 from ..utils import OrderedDict, metadata
-from .column import col_getattr, col_setattr
+from .column import col_getattr, col_setattr, _col_update_attrs_from
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -49,8 +49,8 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
             if right_name:
                 right_col = table[right_name]
                 col_setattr(out_col, 'meta',
-                            metadata.merge(getattr(left_col, 'meta', {}),
-                                           getattr(right_col, 'meta', {}),
+                            metadata.merge(col_getattr(left_col, 'meta', {}),
+                                           col_getattr(right_col, 'meta', {}),
                                            metadata_conflicts=metadata_conflicts))
                 for attr in attrs:
 
@@ -777,7 +777,6 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     stacked_table : `~astropy.table.Table` object
         New table containing the stacked data from the input tables.
     """
-    from .table import Table
 
     # Store user-provided col_name_map until the end
     _col_name_map = col_name_map
@@ -820,24 +819,26 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
 
     n_rows = max(arr_lens)
     out = _get_out_class(arrays)(masked=masked)
-    out_descrs = get_descrs(arrays, col_name_map)
-
-    for out_descr in out_descrs:
-        name = out_descr[0]
-        dtype = out_descr[1:]
-        if masked:
-            # Adapted from ma.all_masked() code.  Here the array is filled with
-            # zeros instead of empty.  This avoids the bug reported here:
-            # https://github.com/numpy/numpy/issues/3276
-            out[name] = ma.array(data=np.zeros(n_rows, dtype),
-                                 mask=np.ones(n_rows, ma.make_mask_descr(dtype)))
-        else:
-            out[name] = np.empty(n_rows, dtype=dtype)
 
     for out_name, in_names in six.iteritems(col_name_map):
         for name, array, arr_len in zip(in_names, arrays, arr_lens):
-            if name is not None:
-                out[out_name][:arr_len] = array[name]
+            if name is None:
+                continue
+
+            if n_rows > arr_len:
+                indices = np.arange(n_rows)
+                indices[arr_len:] = 0
+                out[out_name] = array[name][indices]
+                try:
+                    out[out_name].mask[arr_len:] = True
+                except ValueError:
+                    raise ValueError("hstack requires masking column '{0}' but column"
+                                     " type {1} does not support masking"
+                                     .format(out_name, out[out_name].__class__.__name__))
+            else:
+                out[out_name] = array[name][:n_rows]
+
+            _col_update_attrs_from(out[out_name], array[name])
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, collections.Mapping):
