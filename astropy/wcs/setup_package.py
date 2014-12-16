@@ -199,8 +199,7 @@ def get_extensions():
         ('ECHO', None),
         ('WCSTRIG_MACRO', None),
         ('ASTROPY_WCS_BUILD', None),
-        ('_GNU_SOURCE', None),
-        ('WCSVERSION', WCSVERSION)])
+        ('_GNU_SOURCE', None)])
 
     if (not setup_helpers.use_system_library('wcslib') or
         sys.platform == 'win32'):
