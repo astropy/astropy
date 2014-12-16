@@ -121,7 +121,7 @@ class HeaderFormatter(object):
                 for kw in keywords:
                     try:
                         card = self._get_header(hdukey).cards[kw]
-                        if type(card) is fits.card.Card:
+                        if isinstance(card, fits.card.Card):  # Single card
                             prettycard = str(card)
                         else:  # Allow for wildcard access
                             prettycard = '\n'.join([str(c) for c in card])
