@@ -3,6 +3,13 @@ try:
 except ImportError:
     from io import StringIO
 
+try:
+    import h5py
+except ImportError:
+    HAS_H5PY = False
+else:
+    HAS_H5PY = True
+
 from ...tests.helper import pytest
 from ...table import QTable, col_setattr, col_getattr
 from ... import units as u
@@ -85,6 +92,8 @@ def test_io_write_fail(mixin_cols):
     """
     t = QTable(mixin_cols)
     for fmt in ('fits', 'votable', 'hdf5'):
+        if fmt == 'hdf5' and not HAS_H5PY:
+            continue
         out = StringIO()
         with pytest.raises(ValueError) as err:
             t.write(out, format=fmt)
