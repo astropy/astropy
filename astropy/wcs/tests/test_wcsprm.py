@@ -772,7 +772,8 @@ def test_compare():
 
 
 @pytest.mark.xfail(
-    _wcs.__version__ < LooseVersion("4.25"), reason="wcslib < 4.25")
+    LooseVersion(_wcs.__version__) < LooseVersion("4.25"),
+    reason="wcslib < 4.25")
 def test_radesys_defaults():
     w = _wcs.Wcsprm()
     w.radesys == 'ICRS'
