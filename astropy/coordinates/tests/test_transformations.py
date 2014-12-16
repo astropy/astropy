@@ -11,7 +11,7 @@ from ... import units as u
 from ..distances import Distance
 from .. import transformations as t
 from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, \
-                             Galactocentric, CIRS, GCRS, AltAz
+                             Galactocentric, CIRS, GCRS, AltAz, ITRS
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import pytest
@@ -470,3 +470,90 @@ def test_cirs_to_altaz():
     #just check round-tripping
     npt.assert_allclose(cirs.ra.deg, cirs2.ra.deg)
     npt.assert_allclose(cirs.dec.deg, cirs2.dec.deg)
+
+
+def test_gcrs_itrs():
+    """
+    Check basic GCRS<->ITRS transforms for round-tripping.
+    """
+    from ...time import Time
+    from ...utils import NumpyRNGContext
+    from .. import EarthLocation
+
+    with NumpyRNGContext(12345):
+        gcrs = GCRS(ra=np.random.rand(100)*360*u.deg,
+                    dec=(np.random.rand(100)*180-90)*u.deg,
+                    obstime='J2000')
+        gcrs6 = GCRS(ra=np.random.rand(100)*360*u.deg,
+                     dec=(np.random.rand(100)*180-90)*u.deg,
+                     obstime='J2006')
+
+    gcrs2 = gcrs.transform_to(ITRS).transform_to(gcrs)
+    gcrs6_2 = gcrs6.transform_to(ITRS).transform_to(gcrs)
+
+    npt.assert_allclose(gcrs.ra.deg, gcrs2.ra.deg)
+    npt.assert_allclose(gcrs.dec.deg, gcrs2.dec.deg)
+    assert not np.allclose(gcrs.ra.deg, gcrs6_2.ra.deg)
+    assert not np.allclose(gcrs.dec.deg, gcrs6_2.dec.deg)
+
+
+def test_cirs_itrs():
+    """
+    Check basic CIRS<->ITRS transforms for round-tripping.
+    """
+    from ...time import Time
+    from ...utils import NumpyRNGContext
+    from .. import EarthLocation
+
+    with NumpyRNGContext(12345):
+        cirs = CIRS(ra=np.random.rand(100)*360*u.deg,
+                    dec=(np.random.rand(100)*180-90)*u.deg,
+                    obstime='J2000')
+        cirs6 = CIRS(ra=np.random.rand(100)*360*u.deg,
+                     dec=(np.random.rand(100)*180-90)*u.deg,
+                     obstime='J2006')
+
+    cirs2 = cirs.transform_to(ITRS).transform_to(cirs)
+    cirs6_2 = cirs6.transform_to(ITRS).transform_to(cirs) # different obstime
+
+    #just check round-tripping
+    npt.assert_allclose(cirs.ra.deg, cirs2.ra.deg)
+    npt.assert_allclose(cirs.dec.deg, cirs2.dec.deg)
+    assert not np.allclose(cirs.ra.deg, cirs6_2.ra.deg)
+    assert not np.allclose(cirs.dec.deg, cirs6_2.dec.deg)
+
+
+
+def test_gcrs_cirs():
+    """
+    Check GCRS<->CIRS transforms for round-tripping.  More complicated than the
+    above two because it's multi-hop
+    """
+    from ...time import Time
+    from ...utils import NumpyRNGContext
+    from .. import EarthLocation
+
+    with NumpyRNGContext(12345):
+        gcrs = GCRS(ra=np.random.rand(100)*360*u.deg,
+                    dec=(np.random.rand(100)*180-90)*u.deg,
+                    obstime='J2000')
+        gcrs6 = GCRS(ra=np.random.rand(100)*360*u.deg,
+                     dec=(np.random.rand(100)*180-90)*u.deg,
+                     obstime='J2006')
+
+    gcrs2 = gcrs.transform_to(CIRS).transform_to(gcrs)
+    gcrs6_2 = gcrs6.transform_to(CIRS).transform_to(gcrs)
+
+    npt.assert_allclose(gcrs.ra.deg, gcrs2.ra.deg)
+    npt.assert_allclose(gcrs.dec.deg, gcrs2.dec.deg)
+    assert not np.allclose(gcrs.ra.deg, gcrs6_2.ra.deg)
+    assert not np.allclose(gcrs.dec.deg, gcrs6_2.dec.deg)
+
+    #now try explicit intermediate pathways and ensure they're all consistent
+    gcrs3 = gcrs.transform_to(ITRS).transform_to(CIRS).transform_to(ITRS).transform_to(gcrs)
+    npt.assert_allclose(gcrs.ra.deg, gcrs3.ra.deg)
+    npt.assert_allclose(gcrs.dec.deg, gcrs3.dec.deg)
+
+    gcrs4 = gcrs.transform_to(ICRS).transform_to(CIRS).transform_to(ICRS).transform_to(gcrs)
+    npt.assert_allclose(gcrs.ra.deg, gcrs4.ra.deg)
+    npt.assert_allclose(gcrs.dec.deg, gcrs4.dec.deg)
