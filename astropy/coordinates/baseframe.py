@@ -32,7 +32,7 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
            'FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
-           'RepresentationMapping']
+           'EarthLocationAttribute', 'RepresentationMapping']
 
 
 # the graph used for all transformations between frames
@@ -308,6 +308,7 @@ class TimeFrameAttribute(FrameAttribute):
 
         return out, converted
 
+
 class QuantityFrameAttribute(FrameAttribute):
     """
     A frame attribute that is a quantity with specified units and shape
@@ -369,6 +370,56 @@ class QuantityFrameAttribute(FrameAttribute):
                 np.all(oldvalue.value == value.value)):
                 converted = False
             return value, converted
+
+
+class EarthLocationAttribute(FrameAttribute):
+    """
+    A frame attribute that can act as a `~astropy.coordinates.EarthLocation`.
+    It can be created as anything that can be transformed to the
+    `~astropy.coordinates.ITRS` frame, but always presents as an `EarthLocation`
+    when accessed after creation.
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    """
+
+    def convert_input(self, value):
+        """
+        Checks that the input is a Quantity with the necessary units (or the
+        special value ``0``).
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        from . import EarthLocation, ITRS
+
+        if isinstance(value, EarthLocation):
+           return value, False
+        else:
+            if not hasattr(value, 'transform_to'):
+                raise ValueError('"{0" was passed into an '
+                                 'EarthLocationAttribute, but it does not have '
+                                 '"transform_to" method'.format(value))
+            itrsobj = value.transform_to(ITRS)
+            return itrsobj.earth_location, True
 
 _RepresentationMappingBase = \
     namedtuple('RepresentationMapping',

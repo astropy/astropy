@@ -10,7 +10,7 @@ from ...utils.exceptions import AstropyWarning
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
                          TimeFrameAttribute, QuantityFrameAttribute,
-                         RepresentationMapping)
+                         RepresentationMapping, EarthLocationAttribute)
 
 
 class AltAz(BaseCoordinateFrame):
@@ -26,8 +26,9 @@ class AltAz(BaseCoordinateFrame):
         The time at which the observation is taken.  Used for determining the
         position and orientation of the Earth.
     * ``location``
-        The location on the earth as an `~astropy.coordinates.EarthLocation`
-        object.
+        The location on the Earth.  This can be specified either as an
+        `~astropy.coordinates.EarthLocation` object or as anything that can be
+        transformed to an `~astropy.coordinates.ITRS` frame.
     * ``pressure``
         The atmospheric pressure as an `~astropy.units.Quantity` with pressure
         units.  This is necessary for performing refraction corrections.
@@ -78,7 +79,7 @@ class AltAz(BaseCoordinateFrame):
     default_representation = SphericalRepresentation
 
     obstime = TimeFrameAttribute(default=None)
-    location = FrameAttribute(default=None)
+    location = EarthLocationAttribute(default=None)
     pressure = QuantityFrameAttribute(default=0, unit=u.hPa)
     temperature = QuantityFrameAttribute(default=0, unit=u.deg_C)
     relative_humidity = FrameAttribute(default=0)

@@ -10,7 +10,7 @@ from . import Longitude, Latitude
 
 try:
     # Not guaranteed available at setup time.
-    from ..time import erfa_time
+    from .. import erfa
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
@@ -46,8 +46,10 @@ class EarthLocation(u.Quantity):
 
     Notes
     -----
-    For conversion to and from geodetic coordinates, the ERFA routines
-    ``gc2gd`` and ``gd2gc`` are used.  See https://github.com/liberfa/erfa
+    This class fits into the coordinates transformation framework in that it
+    encodes a position on the `~astropy.coordinates.ITRS` frame.  To get a
+    proper `~astropy.coordinates.ITRS` object from this object, use the ``itrs``
+    property.
     """
 
     _ellipsoid = 'WGS84'
@@ -162,7 +164,7 @@ class EarthLocation(u.Quantity):
                                                   lat.to(u.radian).value,
                                                   height.to(u.m).value)
         # get geocentric coordinates. Have to give one-dimensional array.
-        xyz = erfa_time.era_gd2gc(getattr(erfa, ellipsoid), _lon.ravel(),
+        xyz = erfa.gd2gc(getattr(erfa, ellipsoid), _lon.ravel(),
                                   _lat.ravel(), _height.ravel())
         self = xyz.view(cls._location_dtype, cls).reshape(lon.shape)
         self._unit = u.meter
@@ -210,8 +212,7 @@ class EarthLocation(u.Quantity):
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         self_array = self.to(u.meter).view(self._array_dtype, np.ndarray)
-        lon, lat, height = erfa_time.era_gc2gd(getattr(erfa, ellipsoid),
-                                               self_array)
+        lon, lat, height = erfa.gc2gd(getattr(erfa, ellipsoid), self_array)
         return (Longitude(lon * u.radian, u.degree,
                           wrap_angle=180.*u.degree),
                 Latitude(lat * u.radian, u.degree),
@@ -241,6 +242,17 @@ class EarthLocation(u.Quantity):
     def to_geocentric(self):
         """Convert to a tuple with X, Y, and Z as quantities"""
         return (self.x, self.y, self.z)
+
+    @property
+    def itrs(self):
+        """
+        Generates an `~astropy.coordinates.ITRS` object with the coordinates of
+        this object.
+        """
+        #potential circular imports prevent this from being up top
+        from .builtin_frames import ITRS
+
+        return ITRS(x=self.x, y=self.y, z=self.z)
 
     @property
     def x(self):
