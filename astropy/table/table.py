@@ -435,11 +435,10 @@ class Table(object):
                 if copy:
                     if hasattr(col, 'copy'):
                         newcol = col.copy()
-                    else:
-                        newcol = deepcopy(col)
-                    if not hasattr(newcol, '_astropy_column_attrs'):
                         _column_attrs = deepcopy(getattr(col, '_astropy_column_attrs', {}))
                         newcol._astropy_column_attrs = _column_attrs
+                    else:
+                        newcol = deepcopy(col)
                     col = newcol
                 col_setattr(col, 'name', name or col_getattr(col, 'name') or def_name)
                 # TODO: What about dtype?
@@ -513,6 +512,7 @@ class Table(object):
         # Make sure that all Column-based objects have class self.ColumnClass
         newcols = []
         for col in cols:
+            # Convert any Columns with units to Quantity for a QTable
             if (isinstance(self, QTable)
                     and isinstance(col, Column) and hasattr(col, 'unit')
                     and col.unit is not None):
@@ -543,9 +543,12 @@ class Table(object):
         cols = self.columns.values()
         names = [col_getattr(col, 'name') for col in cols]
         newcols = [col[slice_] for col in cols]
-        for name, newcol in zip(names, newcols):
-            if col_getattr(newcol, 'name') is None:
-                col_setattr(newcol, 'name', name)
+
+        # Mixin column classes are not responsible for copying column attributes
+        # for item/slicing operations.  Do this here in table.
+        for name, col, newcol in zip(names, cols, newcols):
+            if hasattr(col, '_astropy_column_attrs'):
+                newcol._astropy_column_attrs = deepcopy(col._astropy_column_attrs)
 
         self._update_table_from_cols(table, newcols)
 

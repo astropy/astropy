@@ -138,7 +138,7 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
               'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
               'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
                                                dec=[0, 1, 2, 3] * u.deg),
-              'ndwrap': table_helpers.ArrayWrapper([0, 1, 2, 3])
+              'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3])
               }
 
 @pytest.fixture(params=sorted(MIXIN_COLS))

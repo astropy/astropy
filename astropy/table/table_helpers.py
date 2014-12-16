@@ -148,7 +148,11 @@ class ArrayWrapper(object):
         col_setattr(self, 'dtype', self.data.dtype)
 
     def __getitem__(self, item):
-        return self.data[item]
+        if isinstance(item, (int, np.integer)):
+            out = self.data[item]
+        else:
+            out = self.__class__(self.data[item])
+        return out
 
     def __setitem__(self, item, value):
         self.data[item] = value

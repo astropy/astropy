@@ -15,10 +15,11 @@ import numpy as np
 from ...tests.helper import pytest
 from ...table import QTable, col_setattr, col_getattr, join
 from ... import units as u
+from ... import coordinates
+from .. import table_helpers
 from .conftest import MIXIN_COLS
 
 # ISSUES / TODO
-# - Test that slicing / indexing table gives right values and col attrs inherit
 # - Test hstack, vstack, groups
 # - Add column to table => makes copy and copies col attrs if existent
 
@@ -128,18 +129,8 @@ def test_join(table_types):
         for name, col in MIXIN_COLS.items():
             name1 = name + '_1'
             name2 = name + '_2'
-            if name == 'skycoord':
-                assert np.all(t12[name1].ra == col[idx1].ra)
-                assert np.all(t12[name1].dec == col[idx1].dec)
-                assert np.all(t12[name2].ra == col[idx2].ra)
-                assert np.all(t12[name2].dec == col[idx2].dec)
-            elif name == 'quantity':
-                if table_types.Table is QTable:
-                    assert np.all(t12[name1].value == col[idx1].value)
-                    assert np.all(t12[name2].value == col[idx2].value)
-            else:
-                assert np.all(t12[name1] == col[idx1])
-                assert np.all(t12[name2] == col[idx2])
+            assert_table_name_col_idx_equal(t12, name1, col[idx1])
+            assert_table_name_col_idx_equal(t12, name2, col[idx2])
 
     for join_type in ('outer', 'right'):
         with pytest.raises(ValueError) as exc:
@@ -149,3 +140,37 @@ def test_join(table_types):
     with pytest.raises(ValueError) as exc:
         t12 = join(t1, t2, keys=['a', 'skycoord'])
     assert 'not allowed as a key column' in str(exc.value)
+
+def assert_table_name_col_idx_equal(t, name, col):
+    """
+    Assert all(t[name] == col), with special handling for known mixin cols.
+    """
+    if isinstance(col, coordinates.SkyCoord):
+        assert np.all(t[name].ra == col.ra)
+        assert np.all(t[name].dec == col.dec)
+    elif isinstance(col, u.Quantity):
+        if type(t) is QTable:
+            assert np.all(t[name].value == col.value)
+    elif isinstance(col, table_helpers.ArrayWrapper):
+        assert np.all(t[name].data == col.data)
+    else:
+        assert np.all(t[name] == col)
+
+def test_get_items(mixin_cols):
+    """
+    Test that slicing / indexing table gives right values and col attrs inherit
+    """
+    attrs = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
+    m = mixin_cols['m']
+    col_setattr(m, 'name', 'm')
+    col_setattr(m, 'format', '{0}')
+    col_setattr(m, 'description', 'd')
+    col_setattr(m, 'meta', {'a': 1})
+    t = QTable([m])
+    for item in ([1, 3], np.array([0, 2]), slice(1, 3)):
+        t2 = t[item]
+        assert_table_name_col_idx_equal(t2, 'm', m[item])
+        for attr in attrs:
+            assert col_getattr(t2['m'], attr) == col_getattr(m, attr)
+
+
