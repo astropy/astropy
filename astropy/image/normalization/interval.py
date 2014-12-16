@@ -20,7 +20,9 @@ class BaseInterval(BaseTransform):
 
     @abc.abstractmethod
     def get_limits(values):
-        raise NotImplementedError("")
+        """
+        Return the minimum and maximum value in the interval based on the values provided.
+        """
 
     def __call__(self, values, clip=True, out=None):
 

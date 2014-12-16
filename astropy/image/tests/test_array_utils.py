@@ -91,7 +91,7 @@ def test_mask_to_mirrored_num():
     mirror_data = mask_to_mirrored_num(data, mask, center)
     assert_allclose(mirror_data, data_ref, rtol=0, atol=1.e-6)
     assert mirror_data is not data
-    
+
 def test_mask_to_mirrored_num_inplace():
     """
     Test mask_to_mirrored_num (no copy).
