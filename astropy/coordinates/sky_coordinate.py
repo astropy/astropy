@@ -909,7 +909,12 @@ class SkyCoord(object):
 
         Notes
         -----
-        The algorithm for determining the sun/earth relative position
+        The algorithm for determining the sun/earth relative position is based
+        on the simplifed version of VSOP2000 that is part of ERFA. Compared to
+        JPL's ephemeris, it should be good to about 4 km (in the Sun-Earth
+        vector) from 1900-2100 C.E., 8 km for the 1800-2200 span, and perhaps
+        250 km over the 1000-3000.
+
         """
         from .. import erfa
         from .builtin_frames import GCRS
