@@ -70,6 +70,9 @@ Starting a new package
 #. Copy over the following files from the package template (these define the
    bare minimum of what is needed) and add them to the repository::
 
+    # .gitignore specifies which types of files to ignore in the repository
+    cp ../template/.gitignore .
+
     # MANIFEST.in specifies which files to include in a tar file release
     cp ../template/MANIFEST.in .
 
@@ -80,17 +83,20 @@ Starting a new package
     cp ../template/ez_setup.py .
 
     # setup.cfg contains details about your package - edit it after copying!
-    # Note: it is important that the packagename variable matches the name you
+    # Note: it is important that the package_name variable matches the name you
     #       are using for your package.
     cp ../template/setup.cfg .
 
     # edit the VERSION variable, the rest can be kept as-is
     cp ../template/setup.py .
 
-    git add MANIFEST.in ah_bootstrap.py ez_setup.py setup.cfg setup.py
-
    .. important:: Before proceeding, make sure you have edited ``setup.cfg`` and
                  ``setup.py`` as indicated above!
+
+   Once you have edited ``setup.cfg`` and ``setup.py``, you can commit the
+   changes::
+
+    git add .gitignore MANIFEST.in ah_bootstrap.py ez_setup.py setup.cfg setup.py
 
 #. Next, you can create a directory for your package's source code, which will
    usually also be called the same name as your package. In this directory
@@ -101,10 +107,10 @@ Starting a new package
     cp ../template/packagename/__init__.py <packagename>/
     cp ../template/packagename/_astropy_init.py <packagename>/
 
-    # edit <packagename>/__init__.py to add a docstring and license line
-
-    git add <packagename>/__init__.py
-    git add <packagename>/_astropy_init.py
+    # edit <packagename>/__init__.py to change the docstring and change the
+    # example import ``from example_mod import *`` to whatever is needed for
+    # your package. If you don't want to try out any specific code yet, just
+    # replace the import by ``pass``.
 
    The main purpose of the ``_astropy_init.py`` file is to set up the
    ``test()`` command at the root of your package so that you can do
@@ -112,6 +118,11 @@ Starting a new package
 
    .. important:: Before proceeding, make sure you have edited ``__init__.py`` as
                   indicated above!
+
+   Once you have made the above changes, you can commit the files::
+
+    git add <packagename>/__init__.py
+    git add <packagename>/_astropy_init.py
 
 #. In order to benefit from the pytest plugins in Astropy, you should also
    copy over the ``conftest.py`` file to your repository::
@@ -124,20 +135,23 @@ Starting a new package
    you want deprecation warnings to make tests fail.
 
 #. If you are interested in accurate coverage test results, copy over the
-   ``coveragerc`` file to your repository::
+   ``coveragerc`` and the ``setup_package.py`` files to your repository (the
+   latter ensures that ``coveragerc`` gets installed with the package::
 
     mkdir <packagename>/tests/
+    cp ../template/packagename/tests/__init__.py <packagename>/tests
+    cp ../template/packagename/tests/setup_package.py <packagename>/tests
     cp ../template/packagename/tests/coveragerc <packagename>/tests
+
+    git add <packagename>/tests/__init__.py
+    git add <packagename>/tests/setup_package.py
     git add <packagename>/tests/coveragerc
 
-   to your repository. When you run tests with::
-
-    python setup.py test --coverage
-
-   this file will be used to exclude certain files that should not typically
-   be included. Note that you don't need to change the ``{packagename}``
-   string in ``coveragerc`` - this gets changed automatically using the
-   package name defined in ``setup.cfg``.
+   to your repository. When you run tests with with ``--coverage`` option this
+   file will be used to exclude certain files that should not typically be
+   included. Note that you don't need to change the ``{packagename}`` string in
+   ``coveragerc`` - this gets changed automatically using the package name
+   defined in ``setup.cfg``.
 
    .. note:: the ``python setup.py`` commands will not work until you
              have made your first commit, as shown in the last step of these
@@ -168,6 +182,14 @@ Starting a new package
 
     git commit -m "Initial layout for package"
 
+#. You can test that your package works correctly by doing e.g.::
+
+    python setup.py build
+    python setup.py test --coverage
+
+   If you have any issues that you cannot fix, feel free to ask us on the
+   `astropy-dev mailing list`_!
+
 Updating to the latest template files
 -------------------------------------
 
@@ -188,6 +210,9 @@ update the corresponding ``ah_bootstrap.py`` file, for example::
     git add astropy_helpers ah_bootstrap.py
     git commit -m "Updated astropy-helpers to v0.4.3"
 
+You can find out what the latest version of astropy-helpers is by checking the
+`astropy-helpers <https://pypi.python.org/pypi/astropy-helpers/>`__ entry on
+PyPI.
 
 Managing the template files via git
 ===================================
