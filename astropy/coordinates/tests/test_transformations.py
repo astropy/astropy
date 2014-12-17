@@ -461,16 +461,22 @@ def test_cirs_to_altaz():
         cirs = CIRS(ra=np.random.rand(100)*360*u.deg,
                     dec=(np.random.rand(100)*180-90)*u.deg,
                     obstime='J2000')
-    altazframe = AltAz(location=EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m),
-                       obstime=Time('J2005'))
+        cartrepr = r.SphericalRepresentation(lon=cirs.ra, lat=cirs.dec,
+                                             distance=np.random.rand(len(cirs))
+                                            ).to_cartesian()
+        cirscart = CIRS(cartrepr, obstime=cirs.obstime,
+                                  representation=r.CartesianRepresentation)
+    loc = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)
+    altazframe = AltAz(location=loc, obstime=Time('J2005'))
 
-    aa = cirs.transform_to(altazframe)
-    cirs2 = aa.transform_to(cirs)
+    cirs2 = cirs.transform_to(altazframe).transform_to(cirs)
+    cirs3 = cirscart.transform_to(altazframe).transform_to(cirs)
 
-    #just check round-tripping
+    #check round-tripping
     npt.assert_allclose(cirs.ra.deg, cirs2.ra.deg)
     npt.assert_allclose(cirs.dec.deg, cirs2.dec.deg)
-
+    npt.assert_allclose(cirs.ra.deg, cirs3.ra.deg)
+    npt.assert_allclose(cirs.dec.deg, cirs3.dec.deg)
 
 def test_gcrs_itrs():
     """
@@ -493,6 +499,15 @@ def test_gcrs_itrs():
     npt.assert_allclose(gcrs.dec.deg, gcrs2.dec.deg)
     assert not np.allclose(gcrs.ra.deg, gcrs6_2.ra.deg)
     assert not np.allclose(gcrs.dec.deg, gcrs6_2.dec.deg)
+
+    #also try with the cartesian representation
+    gcrsc = gcrs.realize_frame(gcrs.data)
+    gcrsc.representation = r.CartesianRepresentation
+    gcrsc2 = gcrsc.transform_to(ITRS).transform_to(gcrsc)
+    npt.assert_allclose(gcrsc.spherical.lon.deg, gcrsc2.ra.deg)
+    npt.assert_allclose(gcrsc.spherical.lat.deg, gcrsc2.dec.deg)
+
+
 
 
 def test_cirs_itrs():

@@ -29,8 +29,9 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
         px = 0
     else:
         px = 1 / icrs_coo.distance.to(u.parsec).value
-    i_ra = icrs_coo.ra.to(u.radian).value
-    i_dec = icrs_coo.dec.to(u.radian).value
+    srepr = icrs_coo.represent_as(UnitSphericalRepresentation)
+    i_ra = srepr.lon.to(u.radian).value
+    i_dec = srepr.lat.to(u.radian).value
 
     #first set up the astrometry context for ICRS<->CIRS
     astrom, eo = erfa.apci13(cirs_frame.obstime.jd1, cirs_frame.obstime.jd2)
@@ -46,8 +47,9 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, ICRS)
 def cirs_to_icrs(cirs_coo, icrs_frame):
-    cirs_ra = cirs_coo.ra.to(u.radian).value
-    cirs_dec = cirs_coo.dec.to(u.radian).value
+    srepr = cirs_coo.represent_as(UnitSphericalRepresentation)
+    cirs_ra = srepr.lon.to(u.radian).value
+    cirs_dec = srepr.lat.to(u.radian).value
 
     #first set up the astrometry context for ICRS<->CIRS
     astrom, eo = erfa.apci13(cirs_coo.obstime.jd1, cirs_coo.obstime.jd2)
@@ -82,8 +84,9 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
         px = 0
     else:
         px = 1 / icrs_coo.distance.to(u.parsec).value
-    i_ra = icrs_coo.ra.to(u.radian).value
-    i_dec = icrs_coo.dec.to(u.radian).value
+    srepr = icrs_coo.represent_as(UnitSphericalRepresentation)
+    i_ra = srepr.lon.to(u.radian).value
+    i_dec = srepr.lat.to(u.radian).value
 
     #first set up the astrometry context for ICRS<->GCRS
     pv = np.array([gcrs_frame.obsgeoloc.value,
@@ -102,8 +105,9 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
 
 @frame_transform_graph.transform(FunctionTransform, GCRS, ICRS)
 def gcrs_to_icrs(gcrs_coo, icrs_frame):
-    cirs_ra = gcrs_coo.ra.to(u.radian).value
-    cirs_dec = gcrs_coo.dec.to(u.radian).value
+    srepr = gcrs_coo.represent_as(UnitSphericalRepresentation)
+    cirs_ra = srepr.lon.to(u.radian).value
+    cirs_dec = srepr.lat.to(u.radian).value
 
     #first set up the astrometry context for ICRS<->GCRS
     pv = np.array([gcrs_coo.obsgeoloc.value,

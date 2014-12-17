@@ -27,8 +27,9 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
         # would need to be updated if a future change allowed specifying an
         # Earth location algorithm or something
         cirs_coo = cirs_coo.transform_to(CIRS(obstime=altaz_frame.obstime))
-    cirs_ra = cirs_coo.ra.to(u.radian).value
-    cirs_dec = cirs_coo.dec.to(u.radian).value
+    srepr = cirs_coo.represent_as(UnitSphericalRepresentation)
+    cirs_ra = srepr.lon.to(u.radian).value
+    cirs_dec = srepr.lat.to(u.radian).value
 
     lon, lat, height = altaz_frame.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(cirs_coo.obstime)
@@ -55,8 +56,9 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
 
 @frame_transform_graph.transform(FunctionTransform, AltAz, CIRS)
 def altaz_to_cirs(altaz_coo, cirs_frame):
-    az = altaz_coo.az.to(u.radian).value
-    zen = PIOVER2 - altaz_coo.alt.to(u.radian).value
+    srepr = altaz_coo.represent_as(UnitSphericalRepresentation)
+    az = srepr.lon.to(u.radian).value
+    zen = PIOVER2 - srepr.lat.to(u.radian).value
 
     lon, lat, height = altaz_coo.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(altaz_coo.obstime)

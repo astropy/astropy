@@ -10,10 +10,8 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import numpy as np
 
-from ... import units as u
 from ..baseframe import frame_transform_graph
-from ..transformations import FunctionTransform, DynamicMatrixTransform
-from ..representation import UnitSphericalRepresentation, CartesianRepresentation
+from ..transformations import DynamicMatrixTransform
 from ... import erfa
 
 from .gcrs import GCRS
