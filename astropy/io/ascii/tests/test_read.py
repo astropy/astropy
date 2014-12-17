@@ -3,6 +3,7 @@
 # TEST_UNICODE_LITERALS
 
 import re
+import platform
 
 import numpy as np
 
