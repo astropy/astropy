@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the base NDData class.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 
@@ -120,7 +121,8 @@ class NDData(object):
 
             if mask is not None:
                 self._mask = mask
-                log.info("Overwriting NDData's current mask with specified mask")
+                log.info("Overwriting NDData's current "
+                         "mask with specified mask")
 
             if wcs is not None:
                 self._wcs = wcs
@@ -128,7 +130,8 @@ class NDData(object):
 
             if meta is not None:
                 self.meta = meta
-                log.info("Overwriting NDData's current meta with specified meta")
+                log.info("Overwriting NDData's current meta "
+                         "with specified meta")
 
             if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
@@ -142,16 +145,16 @@ class NDData(object):
                 if mask is not None:
                     self._mask = mask
                     log.info("NDData was created with a masked array, and a "
-                             "mask was explictly provided to NDData. The explicitly "
-                             "passed-in mask will be used and the masked array's "
-                             "mask will be ignored.")
+                             "mask was explictly provided to NDData. The  "
+                             "explicitly passed-in mask will be used and the "
+                             "masked array's mask will be ignored.")
                 else:
                     self._mask = data.mask
             elif isinstance(data, Quantity):
                 self._data = np.array(data.value, subok=True, copy=False)
                 self._mask = mask
             else:
-                self._data = data #np.array(data, subok=True, copy=False)
+                self._data = data  # np.array(data, subok=True, copy=False)
                 self._mask = mask
 
             self._wcs = wcs
