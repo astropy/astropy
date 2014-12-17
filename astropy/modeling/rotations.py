@@ -173,9 +173,6 @@ class Rotation2D(Model):
 
     angle = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
-    def __init__(self, angle=angle.default):
-        super(Rotation2D, self).__init__(angle)
-
     @property
     def inverse(self):
         """Inverse rotation."""
