@@ -860,6 +860,15 @@ def test_commented_csv():
     assert len(t) == 2
     assert t['#a'][1] == '#3'
 
+def test_meta_comments():
+    """
+    Make sure that line comments are included in the ``meta`` attribute
+    of the output Table.
+    """
+    t = ascii.read(['#comment1', '#comment2', 'a,b,c', '1,2,3'])
+    assert t.colnames == ['a', 'b', 'c']
+    assert t.meta['comment_lines'] == ['#comment1', '#comment2']
+
 def test_guess_fail():
     """
     Check the error message when guess fails

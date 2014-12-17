@@ -392,8 +392,17 @@ class BaseHeader(object):
         """
         Extract any table-level metadata, e.g. keywords, comments, column metadata, from
         the table ``lines`` and update the OrderedDict ``meta`` in place.  This base
-        method does nothing.
+        method extracts comment lines and stores them in ``meta`` for output.
         """
+        if self.comment:
+            re_comment = re.compile(self.comment)
+            comment_lines = [x for x in lines if re_comment.match(x)]
+        else:
+            comment_lines = []
+        if 'table' in meta:
+            meta['table']['comment_lines'] = comment_lines
+        else:
+            meta['table'] = {'comment_lines': comment_lines}
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.

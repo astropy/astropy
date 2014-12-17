@@ -29,6 +29,7 @@ pytestmark = pytest.mark.skipif(os.environ.get('APPVEYOR'),  reason="fails on Ap
 def assert_table_equal(t1, t2):
     assert_equal(len(t1), len(t2))
     assert_equal(t1.colnames, t2.colnames)
+    assert_equal(t1.meta, t2.meta)
     for name in t1.colnames:
         if len(t1) != 0:
             assert_equal(t1[name].dtype.kind, t2[name].dtype.kind)
@@ -48,10 +49,15 @@ def _read(table, Reader, format, parallel=False, **kwargs):
     # make sure we have a newline so table can't be misinterpreted as a filename
     table += '\n'
     reader = Reader(**kwargs)
+    print('reading t1')
     t1 = reader.read(table)
+    print('reading t2')
     t2 = reader.read(StringIO(table))
+    print('reading t3')
     t3 = reader.read(table.splitlines())
+    print('reading t4')
     t4 = ascii.read(table, format=format, guess=False, **kwargs)
+    print('reading t5')
     t5 = ascii.read(table, format=format, guess=False, fast_reader=False, **kwargs)
     assert_table_equal(t1, t2)
     assert_table_equal(t2, t3)
@@ -744,3 +750,22 @@ def test_line_endings(parallel):
     for newline in ('\r\n', '\r'):
         table = read_rdb(text.replace('\n', newline), parallel=parallel)
         assert_table_equal(table, expected)
+
+@pytest.mark.parametrize("parallel", [True, False])
+def test_store_comments(parallel):
+    """
+    Make sure that the output Table produced by the fast
+    reader stores any comment lines in its meta attribute.
+    """
+    text = """
+# header comment
+a b c
+# comment 2
+# comment 3
+1 2 3
+4 5 6
+"""
+    table = read_basic(text, parallel=parallel)
+    assert_equal(table.meta['comment_lines'],
+                 ['# header comment', '# comment 2', '# comment 3'])
+    

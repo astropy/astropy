@@ -29,6 +29,9 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
     tokenizer->strip_whitespace_lines = strip_whitespace_lines;
     tokenizer->strip_whitespace_fields = strip_whitespace_fields;
     tokenizer->use_fast_converter = use_fast_converter;
+    tokenizer->comment_lines = (char *) malloc(INITIAL_COMMENT_LEN);
+    tokenizer->comment_pos = 0;
+    tokenizer->comment_lines_len = 0;
 
     // This is a bit of a hack -- buf holds an empty string to represent
     // empty field values
@@ -60,6 +63,7 @@ void delete_data(tokenizer_t *tokenizer)
 void delete_tokenizer(tokenizer_t *tokenizer)
 {
     delete_data(tokenizer);
+    free(tokenizer->comment_lines);
     free(tokenizer->buf);
     free(tokenizer);
 }
@@ -84,6 +88,18 @@ void resize_col(tokenizer_t *self, int index)
     self->col_ptrs[index] = self->output_cols[index] + diff;
 }
 
+void resize_comments(tokenizer_t *self)
+{
+    // Double the size of the comments string
+    self->comment_lines = (char *) realloc(self->comment_lines,
+                                           2 * self->comment_lines_len);
+    // Set the second (newly allocated) half of the column string to all zeros
+    memset(self->comment_lines + self->comment_lines_len * sizeof(char), 0,
+           self->comment_lines_len * sizeof(char));
+
+    self->comment_lines_len *= 2;
+}
+
 /*
   Resize the column string if necessary and then append c to the
   end of the column string, incrementing the column position pointer.
@@ -99,12 +115,32 @@ static inline void push(tokenizer_t *self, char c, int col)
     *self->col_ptrs[col]++ = c;
 }
 
+/*
+  Resize the comment string if necessary and then append c to the
+  end of the comment string.
+*/
+
+static inline void push_comment(tokenizer_t *self, char c)
+{
+    if (self->comment_pos == self->comment_lines_len)
+        resize_comments(self);
+    self->comment_lines[self->comment_pos++] = c;
+}
+
+static inline void end_comment(tokenizer_t *self)
+{
+    // Signal empty comment by inserting \x01
+    if (self->comment_pos == 0 || self->comment_lines[self->comment_pos - 1] == '\x00')
+        push_comment(self, '\x01');
+    push_comment(self, '\x00');
+}
+
 #define PUSH(c) push(self, c, col)
 
 /* Set the state to START_FIELD and begin with the assumption that
    the field is entirely whitespace in order to handle the possibility
    that the comment character is found before any non-whitespace even
-   if whitespace stripping is disable.
+   if whitespace stripping is disabled.
 */
 
 #define BEGIN_FIELD()                           \
@@ -144,10 +180,10 @@ static inline void end_field(tokenizer_t *self, int *col, int header)
 
 // Set the error code to c for later retrieval and return c
 
-#define RETURN(c)                               \
-    do {                                        \
-        self->code = c;                         \
-        return c;                               \
+#define RETURN(c)                                               \
+    do {                                                        \
+        self->code = c;                                         \
+        return c;                                               \
     } while (0)
 
 /*
@@ -216,6 +252,8 @@ int skip_lines(tokenizer_t *self, int offset, int header)
             }
             if (!comment && signif_chars > 0)
                 ++i;
+            else if (comment && !header)
+                end_comment(self);
             // Start by assuming a line is empty and non-commented
             signif_chars = 0;
             comment = 0;
@@ -226,12 +264,17 @@ int skip_lines(tokenizer_t *self, int offset, int header)
             // comment line
             if (!signif_chars && self->comment != 0 && c == self->comment)
                 comment = 1;
+            else if (comment && !header)
+                push_comment(self, c);
 
             // significant character encountered; during header
             // tokenization, we count whitespace unlike data tokenization
             // (see #2654)
             ++signif_chars;
 	}
+
+        else if (comment && !header)
+            push_comment(self, c);
 
         ++self->source_pos;
     }
@@ -249,6 +292,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
     int whitespace = 1;
     delete_data(self); // clear old reading data
     self->num_rows = 0;
+    self->comment_lines_len = INITIAL_COMMENT_LEN;
 
     if (header)
         self->num_cols = 1; // store header output in one column
@@ -494,11 +538,17 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
 
         case COMMENT:
             if (c == '\n')
+            {
                 self->state = START_LINE;
+                if (!header)
+                    end_comment(self);
+            }
             else if (c == '\r')
             {
                 HANDLE_CR();
             }
+            else if (!header)
+                push_comment(self, c);
             break; // keep looping until we find a newline
 
         case CARRIAGE_RETURN:
@@ -827,4 +877,12 @@ char *get_line(char *ptr, int *len, int map_len)
 
     // done with input
     return 0;
+}
+
+void reset_comments(tokenizer_t *self)
+{
+    free(self->comment_lines);
+    self->comment_pos = 0;
+    self->comment_lines_len = INITIAL_COMMENT_LEN;
+    self->comment_lines = (char *) malloc(INITIAL_COMMENT_LEN);
 }
