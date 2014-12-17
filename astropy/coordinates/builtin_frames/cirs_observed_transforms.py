@@ -12,7 +12,7 @@ import numpy as np
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform
-from ..representation import UnitSphericalRepresentation
+from ..representation import SphericalRepresentation, UnitSphericalRepresentation
 from ... import erfa
 
 from .cirs import CIRS
@@ -48,8 +48,18 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
 
     az, zen, ha, obs_dec, obs_ra = erfa.atioq(cirs_ra, cirs_dec, astrom)
 
-    rep = UnitSphericalRepresentation(lat=u.Quantity(PIOVER2 - zen, u.radian, copy=False),
+    dat = cirs_coo.data
+    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
+        rep = UnitSphericalRepresentation(lat=u.Quantity(PIOVER2 - zen, u.radian, copy=False),
+                                          lon=u.Quantity(az, u.radian, copy=False),
+                                          copy=False)
+    else:
+        #now we get the distance as just the cartesian
+        #distance from the earth location to the coordinate location
+        distance = altaz_frame.location.itrs.separation_3d(cirs_coo)
+        rep = SphericalRepresentation(lat=u.Quantity(PIOVER2 - zen, u.radian, copy=False),
                                       lon=u.Quantity(az, u.radian, copy=False),
+                                      distance=distance,
                                       copy=False)
     return altaz_frame.realize_frame(rep)
 
@@ -78,8 +88,16 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     # the 'A' indicates zen/az inputs
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)
 
+    dat = altaz_coo.data
+    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
+        distance = None
+    else:
+        #now we get the distance as just the cartesian
+        #distance from the earth location to the coordinate location
+        distance = altaz_coo.location.itrs.separation_3d(altaz_coo)
+
     #the final transform may be a no-op if the obstimes are the same
-    return CIRS(ra=cirs_ra*u.radian, dec=cirs_dec*u.radian,
+    return CIRS(ra=cirs_ra*u.radian, dec=cirs_dec*u.radian, distance=distance,
                 obstime=altaz_coo.obstime).transform_to(cirs_frame)
 
 

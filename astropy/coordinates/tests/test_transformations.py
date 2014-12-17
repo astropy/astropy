@@ -375,8 +375,8 @@ def test_icrs_cirs():
     cirswd = iwd.transform_to(cframe1)
     assert not np.allclose(cirswd.ra, cirsnod.ra, rtol=1e-8)
     assert not np.allclose(cirswd.dec, cirsnod.dec, rtol=1e-8)
-    # but we *lose* the distance, meaning dimensionless unit vectors
-    assert np.all(cirswd.distance.value == 1)
+    # and the distance should transform at least somehow
+    assert not np.allclose(cirswd.distance, iwd.distance, rtol=1e-8)
 
     #now check that the cirs self-transform works as expected
     cirsnod3 = cirsnod.transform_to(cframe1)  # should be a no-op
@@ -421,8 +421,8 @@ def test_icrs_gcrs():
     gcrswd = iwd.transform_to(gframe1)
     assert not np.allclose(gcrswd.ra, gcrsnod.ra, rtol=1e-8)
     assert not np.allclose(gcrswd.dec, gcrsnod.dec, rtol=1e-8)
-    # but we *lose* the distance, meaning dimensionless unit vectors
-    assert np.all(gcrswd.distance.value == 1)
+    # and the distance should transform at least somehow
+    assert not np.allclose(gcrswd.distance, iwd.distance, rtol=1e-8)
 
     #now check that the cirs self-transform works as expected
     gcrsnod3 = gcrsnod.transform_to(gframe1)  # should be a no-op

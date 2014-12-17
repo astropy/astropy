@@ -12,7 +12,7 @@ import numpy as np
 from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform
-from ..representation import UnitSphericalRepresentation
+from ..representation import UnitSphericalRepresentation, SphericalRepresentation
 from ... import erfa
 
 from .icrs import ICRS
@@ -40,9 +40,19 @@ def icrs_to_cirs(icrs_coo, cirs_frame):
     # step, b/c that involves some  wasteful computations b/c pm=0  here
     cirs_ra, cirs_dec = erfa.atciq(i_ra, i_dec, 0, 0, px, 0, astrom)
 
-    rep = UnitSphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
+    dat = icrs_coo.data
+    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
+        rep = UnitSphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
+                                          lon=u.Quantity(cirs_ra, u.radian, copy=False),
+                                          copy=False)
+    else:
+        #compute the distance as just the cartesian sum from moving to the Earth
+        #we have to do this because the ERFA functions throw away distance info
+        distance = np.sum((astrom['eb']*u.au + icrs_coo.cartesian.xyz.T)**2, -1)**0.5
+        rep = SphericalRepresentation(lat=u.Quantity(cirs_dec, u.radian, copy=False),
                                       lon=u.Quantity(cirs_ra, u.radian, copy=False),
-                                      copy=False)
+                                      distance=distance, copy=False)
+
     return cirs_frame.realize_frame(rep)
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, ICRS)
@@ -56,9 +66,18 @@ def cirs_to_icrs(cirs_coo, icrs_frame):
 
     icrs_ra, icrs_dec = erfa.aticq(cirs_ra, cirs_dec, astrom)
 
-    rep = UnitSphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
+    dat = cirs_coo.data
+    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
+        rep = UnitSphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
+                                          lon=u.Quantity(icrs_ra, u.radian, copy=False),
+                                          copy=False)
+    else:
+        #compute the distance as just the cartesian sum from moving to the SSB
+        #we have to do this because the ERFA functions throw away distance info
+        distance = np.sum((-astrom['eb']*u.au + cirs_coo.cartesian.xyz.T)**2, -1)**0.5
+        rep = SphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
                                       lon=u.Quantity(icrs_ra, u.radian, copy=False),
-                                      copy=False)
+                                      distance=distance, copy=False)
     return icrs_frame.realize_frame(rep)
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, CIRS)
@@ -97,9 +116,18 @@ def icrs_to_gcrs(icrs_coo, gcrs_frame):
     # step, b/c that involves some  wasteful computations b/c pm=0  here
     gcrs_ra, gcrs_dec = erfa.atciq(i_ra, i_dec, 0, 0, px, 0, astrom)
 
-    rep = UnitSphericalRepresentation(lat=u.Quantity(gcrs_dec, u.radian, copy=False),
+    dat = icrs_coo.data
+    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
+        rep = UnitSphericalRepresentation(lat=u.Quantity(gcrs_dec, u.radian, copy=False),
+                                          lon=u.Quantity(gcrs_ra, u.radian, copy=False),
+                                          copy=False)
+    else:
+        #compute the distance as just the cartesian sum from moving to the Earth
+        #we have to do this because the ERFA functions throw away distance info
+        distance = np.sum((astrom['eb']*u.au + icrs_coo.cartesian.xyz.T)**2, -1)**0.5
+        rep = SphericalRepresentation(lat=u.Quantity(gcrs_dec, u.radian, copy=False),
                                       lon=u.Quantity(gcrs_ra, u.radian, copy=False),
-                                      copy=False)
+                                      distance=distance, copy=False)
     return gcrs_frame.realize_frame(rep)
 
 
@@ -116,9 +144,18 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
 
     icrs_ra, icrs_dec = erfa.aticq(cirs_ra, cirs_dec, astrom)
 
-    rep = UnitSphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
+    dat = gcrs_coo.data
+    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
+        rep = UnitSphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
+                                          lon=u.Quantity(icrs_ra, u.radian, copy=False),
+                                          copy=False)
+    else:
+        #compute the distance as just the cartesian sum from moving to the SSB
+        #we have to do this because the ERFA functions throw away distance info
+        distance = np.sum((-astrom['eb']*u.au + gcrs_coo.cartesian.xyz.T)**2, -1)**0.5
+        rep = SphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
                                       lon=u.Quantity(icrs_ra, u.radian, copy=False),
-                                      copy=False)
+                                      distance=distance, copy=False)
     return icrs_frame.realize_frame(rep)
 
 
