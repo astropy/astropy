@@ -118,7 +118,7 @@ class QuantityIterator(object):
 
 @six.add_metaclass(InheritDocstrings)
 class Quantity(np.ndarray):
-    """ A `Quantity` represents a number with some associated unit.
+    """ A `~astropy.units.Quantity` represents a number with some associated unit.
 
     Parameters
     ----------
