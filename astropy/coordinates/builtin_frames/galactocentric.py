@@ -55,7 +55,7 @@ class Galactocentric(BaseCoordinateFrame):
     galcen_ra = FrameAttribute(default=Angle(266.4051*u.degree))
     galcen_dec = FrameAttribute(default=Angle(-28.936175*u.degree))
     z_sun = FrameAttribute(default=27.*u.pc) # TODO: reference?
-    roll = FrameAttribute(default=Angle(180-31.4013679693*u.degree))
+    roll = FrameAttribute(default=Angle(148.5986320*u.degree))
 
 # Galactic to/from Galactocentric ----------------------->
 @frame_transform_graph.transform(FunctionTransform, ICRS, Galactocentric)
