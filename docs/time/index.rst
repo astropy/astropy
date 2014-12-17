@@ -253,6 +253,14 @@ appropriate::
   <Time object: scale='utc' format='mjd' value=[ 100.  200.]>
   >>> t[2]
   <Time object: scale='utc' format='mjd' value=300.0>
+  >>> t = Time(np.arange(50000., 50003.)[:, np.newaxis],
+  ...          np.arange(0., 1., 0.5), format='mjd') 
+  >>> t
+  <Time object: scale='utc' format='mjd' value=[[ 50000.   50000.5]
+   [ 50001.   50001.5]
+   [ 50002.   50002.5]]>
+  >>> t[0]
+  <Time object: scale='utc' format='mjd' value=[ 50000.   50000.5]>
 
 .. _astropy-time-inferring-input:
 
