@@ -66,7 +66,6 @@ def check_mixin_type(table, table_col, in_col):
     # Make sure in_col got copied and creating table did not touch it
     assert col_getattr(in_col, 'name') is None
 
-
 def test_make_table(table_types, mixin_cols):
     """
     Make a table with the columns in mixin_cols, which is an ordered dict of
@@ -221,6 +220,15 @@ def test_add_column(mixin_cols):
     """
     attrs = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
     m = mixin_cols['m']
+    assert col_getattr(m, 'name') is None
+
+    # Make sure adding column in various ways doesn't touch
+    t = QTable([m], names=['a'])
+    assert col_getattr(m, 'name') is None
+
+    t['new'] = m
+    assert col_getattr(m, 'name') is None
+
     col_setattr(m, 'name', 'm')
     col_setattr(m, 'format', '{0}')
     col_setattr(m, 'description', 'd')

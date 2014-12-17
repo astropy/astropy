@@ -884,11 +884,8 @@ class Table(object):
             # set it from value.  This allows for broadcasting, e.g. t['a']
             # = 1.
             name = item
-            if isinstance(value, BaseColumn):
-                new_column = value.copy(copy_data=False)
-                col_setattr(new_column, 'name', name)
-            elif self._is_mixin_column(value):
-                new_column = value
+            if isinstance(value, BaseColumn) or self._is_mixin_column(value):
+                new_column = col_copy(value)
                 col_setattr(new_column, 'name', name)
             elif len(self) == 0:
                 new_column = NewColumn(value, name=name)
@@ -901,7 +898,7 @@ class Table(object):
                     new_column.unit = value.unit
 
             # Now add new column to the table
-            self.add_column(new_column)
+            self.add_columns([new_column], copy=False)
 
         else:
             n_cols = len(self.columns)
@@ -1198,9 +1195,8 @@ class Table(object):
         elif len(indexes) != len(cols):
             raise ValueError('Number of indexes must match number of cols')
 
-        for i, col in enumerate(cols):
-            if copy:
-                cols[i] = col_copy(col)
+        if copy:
+            cols = [col_copy(col) for col in cols]
 
         if len(self.columns) == 0:
             # No existing table data, init from cols

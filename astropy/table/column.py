@@ -135,7 +135,8 @@ def col_copy(col):
     if isinstance(col, BaseColumn):
         return col.copy()
 
-    col_setattr(col, 'parent_table', None)  # Don't copy weakref to parent table
+    if hasattr(col, '_astropy_column_attrs'):
+        col_setattr(col, 'parent_table', None)  # Don't copy weakref to parent table
     newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
 
     # Copy old attributes.  Even deepcopy above may not get this (e.g. pandas).
