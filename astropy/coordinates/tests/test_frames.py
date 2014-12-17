@@ -498,7 +498,7 @@ def test_len0_data():
     assert i.has_data
     repr(i)
 
-def test_posvel_attributes():
+def test_quantity_attributes():
     from ..builtin_frames import GCRS
 
     #make sure we can create a GCRS frame with valid inputs
@@ -512,3 +512,27 @@ def test_posvel_attributes():
     with pytest.raises(ValueError):
         GCRS(obsgeoloc=[1, 3]*u.km)  #incorrect shape
 
+def test_eloc_attributes():
+    from .. import AltAz, ITRS, GCRS, EarthLocation
+
+    el = EarthLocation(lon=12.3*u.deg, lat=45.6*u.deg, height=1*u.km)
+    it = ITRS(representation.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
+    gc = GCRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=6375*u.km)
+
+    el1 = AltAz(location=el).location
+    assert isinstance(el1, EarthLocation)
+    assert el1.latitude == el.latitude
+    assert el1.longitude == el.longitude
+    assert el1.height == el.height
+
+    el2 = AltAz(location=it).location
+    assert isinstance(el2, EarthLocation)
+    assert el2.latitude != it.spherical.lat
+    assert el2.longitude != it.spherical.lon
+    assert el2.height < -6000*u.km
+
+    el3 = AltAz(location=gc).location  #this one implicitly does transform_to
+    assert isinstance(el3, EarthLocation)
+    assert el3.latitude != gc.dec
+    assert el3.longitude != gc.ra
+    assert np.abs(el3.height) < 500*u.km
