@@ -7,10 +7,11 @@ of erfa.pyx when ERFA is updated (or this generator is enhanced).
 module/script to function.
 
 Note that this does *not* currently automate the process of creating structs
-or dtypes for those structs.  The should be added manually in the template file.
+or dtypes for those structs.  They should be added manually in the template file.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
+# note that we do *not* use unicode_literals here, because that makes the
+# generated code's strings have u'' in them on py 2.x
 
 import re
 import os.path
@@ -356,8 +357,8 @@ def main(srcdir, outfn, templateloc, verbose=True):
     env.filters['postfix'] = postfix
     env.filters['surround'] = surround
 
-    erfa_pyx_in = env.get_template('erfa.pyx.templ')
-    erfa_py_in  = env.get_template('erfa.py.templ')
+    erfa_pyx_in = env.get_template('core.pyx.templ')
+    erfa_py_in = env.get_template('core.py.templ')
 
     #Extract all the ERFA function names from erfa.h
     if os.path.isdir(srcdir):
@@ -405,18 +406,19 @@ def main(srcdir, outfn, templateloc, verbose=True):
 
     print_("Rendering template")
     erfa_pyx = erfa_pyx_in.render(funcs=funcs)
-    erfa_py  = erfa_py_in.render(funcs=funcs)
+    erfa_py = erfa_py_in.render(funcs=funcs)
 
     if outfn is not None:
-        print_("Saving to", outfn)
+        outfnx = outfn + "x"
+        print_("Saving to", outfn, 'and', outfnx)
         with open(outfn, "w") as f:
             f.write(erfa_py)
-        with open(outfn+"x", "w") as f:
+        with open(outfnx, "w") as f:
             f.write(erfa_pyx)
 
     print_("Done!")
 
-    return erfa_pyx, funcs
+    return erfa_pyx, erfa_py, funcs
 
 DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
                                 '../../cextern/erfa')
@@ -432,8 +434,10 @@ if __name__ == '__main__':
                          '(which must be in the same directory as '
                          'erfa.h). Defaults to the builtin astropy '
                          'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
-    ap.add_argument('-o', '--output', default='erfa.py',
-                    help='the output filename')
+    ap.add_argument('-o', '--output', default='core.py',
+                    help='The output filename.  This is the name for only the '
+                         'pure-python output, the Cython part will have the '
+                         'same name but with an "x" appended.')
     ap.add_argument('-t', '--template-loc',
                     default=DEFAULT_TEMPLATE_LOC,
                     help='the location where the "erfa.pyx.templ" '
