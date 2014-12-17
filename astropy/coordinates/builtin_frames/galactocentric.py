@@ -60,8 +60,8 @@ class Galactocentric(BaseCoordinateFrame):
 # Galactic to/from Galactocentric ----------------------->
 @frame_transform_graph.transform(FunctionTransform, ICRS, Galactocentric)
 def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
-    from .representation import CartesianRepresentation
-    from .angles import rotation_matrix
+    from ..representation import CartesianRepresentation
+    from ..angles import rotation_matrix
 
     if isinstance(icrs_coord.data, UnitSphericalRepresentation):
         raise ConvertError("Transforming to a Galactocentric frame requires "
@@ -101,8 +101,8 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
 
 @frame_transform_graph.transform(FunctionTransform, Galactocentric, ICRS)
 def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
-    from .representation import CartesianRepresentation
-    from .angles import rotation_matrix
+    from ..representation import CartesianRepresentation
+    from ..angles import rotation_matrix
 
     if isinstance(galactocentric_coord.data, UnitSphericalRepresentation):
         raise ConvertError("Transforming from a Galactocentric frame requires "
