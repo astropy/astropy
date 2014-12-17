@@ -43,10 +43,12 @@ class Galactocentric(BaseCoordinateFrame):
         The Right Ascension (RA) of the Galactic center.
     galcen_dec : `Angle`, optional, must be keyword
         The Declination (Dec) of the Galactic center.
-    galcen_distance : :class:`~astropy.units.Quantity`, optional, must be keyword
+    z_sun : :class:`~astropy.units.Quantity`, optional, must be keyword
         The distance from the Sun to the Galactic midplane.
     roll : `Angle`, optional, must be keyword
-        TODO
+        An extra roll angle to align the final coordinate system with the Galactic
+        x-z plane. Unless you really know what you are doing, you should not
+        change this!
 
     """
     default_representation = CartesianRepresentation
