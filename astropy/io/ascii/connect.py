@@ -4,6 +4,7 @@
 from __future__ import absolute_import, division, print_function
 
 import re
+import functools
 
 from .. import registry as io_registry
 from ...table import Table
@@ -68,3 +69,25 @@ def _get_connectors_table():
         out[colname].format = '%-{}s'.format(width)
 
     return out
+
+
+# Specific
+# ========
+
+def read_csv(filename, **kwargs):
+    from .ui import read
+    kwargs['format'] = 'csv'
+    return read(filename, **kwargs)
+
+
+def write_csv(table, filename, **kwargs):
+    from .ui import write
+    kwargs['format'] = 'csv'
+    return write(table, filename, **kwargs)
+
+
+csv_identify = functools.partial(io_identify, '.csv')
+
+io_registry.register_reader('csv', Table, read_csv)
+io_registry.register_writer('csv', Table, write_csv)
+io_registry.register_identifier('csv', Table, csv_identify)

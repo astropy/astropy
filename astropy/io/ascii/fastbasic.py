@@ -142,7 +142,6 @@ class FastCsv(FastBasic):
     :class:`FastBasic` simply raises an error.
     """
     _format_name = 'fast_csv'
-    _io_registry_suffix = '.csv'
     _description = 'Comma-separated values table using the fast C engine'
     _fast = True
     fill_extra_cols = True
