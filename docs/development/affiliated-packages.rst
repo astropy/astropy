@@ -164,8 +164,8 @@ Starting a new package
     cp ../template/docs/Makefile docs/
     cp ../template/docs/conf.py docs/
     cp ../template/docs/make.bat docs/
-    touch index.rst  # creates empty page
-    git add docs/Makefile docs/conf.py docs/make.bat
+    touch docs/index.rst  # creates empty page
+    git add docs/Makefile docs/conf.py docs/make.bat docs/index.rst
 
    you can later start adding content to ``index.rst`` and other documentation
    files.
@@ -188,6 +188,7 @@ Starting a new package
 
     python setup.py build
     python setup.py test --coverage
+    python setup.py build_sphinx
 
    If you have any issues that you cannot fix, feel free to ask us on the
    `astropy-dev mailing list`_!
