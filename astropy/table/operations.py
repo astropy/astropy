@@ -633,6 +633,7 @@ def _join(left, right, keys=None, join_type='inner',
 
         # Finally add the joined column to the output table.
         out[out_name] = array[name][array_out]
+        _col_update_attrs_from(out[out_name], array[name])
 
         # If the output table is masked then set the output column masking
         # accordingly.  Check for columns that don't support a mask attribute.

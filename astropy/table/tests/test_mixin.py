@@ -20,10 +20,7 @@ from .. import table_helpers
 from .conftest import MIXIN_COLS
 
 # ISSUES / TODO
-# - Test groups
 # - Check attributes in join outputs
-# - Copy
-# - Array subsetting
 
 def test_attributes(mixin_cols):
     """
@@ -123,6 +120,10 @@ def test_join(table_types):
     t2 = table_types.Table(t1)
     t2['a'] = ['b', 'c', 'a', 'd']
 
+    for name, col in MIXIN_COLS.items():
+        col_setattr(t1[name], 'description', name)
+        col_setattr(t2[name], 'description', name + '2')
+
     for join_type in ('inner', 'left'):
         t12 = join(t1, t2, keys='a', join_type=join_type)
         idx1 = t12['i_1']
@@ -132,6 +133,8 @@ def test_join(table_types):
             name2 = name + '_2'
             assert_table_name_col_equal(t12, name1, col[idx1])
             assert_table_name_col_equal(t12, name2, col[idx2])
+            assert col_getattr(t12[name1], 'description') == name
+            assert col_getattr(t12[name2], 'description') == name + '2'
 
     for join_type in ('outer', 'right'):
         with pytest.raises(ValueError) as exc:
@@ -278,31 +281,36 @@ def test_convert_np_array(mixin_cols):
     dtype_kind = m.dtype.kind if hasattr(m, 'dtype') else 'O'
     assert ta['m'].dtype.kind == dtype_kind
 
-def test_assignment():
+def test_assignment_and_copy():
     """
     Test that assignment of an int, slice, and fancy index works.
+    Along the way test that copying table works.
     """
     for name in ('quantity', 'arraywrap'):
         m = MIXIN_COLS[name]
+        t0 = QTable([m], names=['m'])
         for i0, i1 in ((1, 2),
                        (slice(0, 2), slice(1, 3)),
                        (np.array([1, 2]), np.array([2, 3]))):
-            t = QTable([m], names=['m'])
+            t = t0.copy()
             t['m'][i0] = m[i1]
             if name == 'arraywrap':
                 assert np.all(t['m'].data[i0] == m.data[i1])
+                assert np.all(t0['m'].data[i0] == m.data[i0])
+                assert np.all(t0['m'].data[i0] != t['m'].data[i0])
             else:
                 assert np.all(t['m'][i0] == m[i1])
+                assert np.all(t0['m'][i0] == m[i0])
+                assert np.all(t0['m'][i0] != t['m'][i0])
 
-@pytest.mark.xfail
 def test_grouping():
     """
-    Test grouping with mixin columns.  Not yet implemented.
+    Test grouping with mixin columns.  Raises not yet implemented error.
     """
     t = QTable(MIXIN_COLS)
     t['index'] = ['a', 'b', 'b', 'c']
-    tg = t.group_by('index')
-    tg.groups.aggregate(np.sum)
+    with pytest.raises(NotImplementedError):
+        t.group_by('index')
 
 def test_conversion_qtable_table():
     """

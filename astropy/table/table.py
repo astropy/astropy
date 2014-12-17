@@ -2028,6 +2028,9 @@ class Table(object):
         out : `Table`
             New table with groups set
         """
+        if self.has_mixin_columns:
+            raise NotImplementedError('group_by not available for tables with mixin columns')
+
         return groups.table_group_by(self, keys)
 
 
