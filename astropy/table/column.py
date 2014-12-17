@@ -66,7 +66,7 @@ def col_setattr(col, attr, value):
         if getattr(col, '_astropy_column_attrs', None) is None:
             col._astropy_column_attrs = {}
         if attr == 'parent_table':
-            value = weakref.ref(value)
+            value = None if value is None else weakref.ref(value)
         col._astropy_column_attrs[attr] = value
 
 def col_getattr(col, attr, default=None):
@@ -135,6 +135,7 @@ def col_copy(col):
     if isinstance(col, BaseColumn):
         return col.copy()
 
+    col_setattr(col, 'parent_table', None)  # Don't copy weakref to parent table
     newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
 
     # Copy old attributes.  Even deepcopy above may not get this (e.g. pandas).

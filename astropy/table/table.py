@@ -544,6 +544,7 @@ class Table(object):
         # for item/slicing operations.  Do this here in table.
         for name, col, newcol in zip(names, cols, newcols):
             if hasattr(col, '_astropy_column_attrs'):
+                col_setattr(col, 'parent_table', None)  # Don't copy weakref
                 newcol._astropy_column_attrs = deepcopy(col._astropy_column_attrs)
 
         self._update_table_from_cols(table, newcols)

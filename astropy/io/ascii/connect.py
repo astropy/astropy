@@ -66,7 +66,7 @@ def _get_connectors_table():
     out = Table(list(zip(*rows)), names=('Format', 'Suffix', 'Write', 'Description'))
     for colname in ('Format', 'Description'):
         width = max(len(x) for x in out[colname])
-        out[colname].format = '%-{}s'.format(width)
+        out[colname].format = '%-{0}s'.format(width)
 
     return out
 
