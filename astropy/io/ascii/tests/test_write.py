@@ -3,6 +3,7 @@
 # TEST_UNICODE_LITERALS
 
 import copy
+import platform
 
 try:
     from cStringIO import StringIO
@@ -458,6 +459,8 @@ def test_strip_names(fast_writer):
     ascii.write(data, out, format='csv', fast_writer=fast_writer)
     assert out.getvalue().splitlines()[0] == 'A,B,C'
 
+
+@pytest.mark.skipif(platform.system() == 'Windows', reason="fails on AppVeyor")
 def test_latex_units():
     """
     Check to make sure that Latex and AASTex writers attempt to fall

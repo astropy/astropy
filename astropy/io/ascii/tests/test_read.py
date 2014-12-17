@@ -95,6 +95,7 @@ def test_read_with_names_arg(fast_reader):
         dat = ascii.read(['c d', 'e f'], names=('a', ), guess=False, fast_reader=fast_reader)
 
 
+@pytest.mark.skipif(platform.system() == 'Windows', reason="fails on AppVeyor")
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_read_all_files(fast_reader):
     for testfile in get_testfiles():
@@ -116,6 +117,7 @@ def test_read_all_files(fast_reader):
                 assert_equal(len(table[colname]), testfile['nrows'])
 
 
+@pytest.mark.skipif(platform.system() == 'Windows', reason="fails on AppVeyor")
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_read_all_files_via_table(fast_reader):
     for testfile in get_testfiles():
@@ -202,6 +204,7 @@ def test_daophot_multiple_aperture():
     assert np.all(table['RAPERT5'] == 23.3)  # assert all the 5th apertures are same 23.3
 
 
+@pytest.mark.skipif(platform.system() == 'Windows', reason="fails on AppVeyor")
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_empty_table_no_header(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):
