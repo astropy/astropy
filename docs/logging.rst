@@ -142,6 +142,9 @@ of the Astropy configuration file::
     # Format for log file entries
     log_file_format = '%(asctime)s, %(origin)s, %(levelname)s, %(message)s'
 
+    # Whether messages logged to the Astropy logger 
+    # should be propagated to the root logger handler.
+    propagate_log = False
 
 Reference/API
 =============
