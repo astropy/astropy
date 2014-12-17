@@ -164,9 +164,11 @@ Starting a new package
     cp ../template/docs/Makefile docs/
     cp ../template/docs/conf.py docs/
     cp ../template/docs/make.bat docs/
+    touch index.rst  # creates empty page
     git add docs/Makefile docs/conf.py docs/make.bat
 
-   you can then create the first page of the docs as ``index.rst``.
+   you can later start adding content to ``index.rst`` and other documentation
+   files.
 
 #. Finally, if you plan on using Travis for continuous integration, copy over
    the ``.travis.yml`` file and edit it::
