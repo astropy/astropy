@@ -21,6 +21,8 @@ class ITRS(BaseCoordinateFrame):
 
     default_representation = CartesianRepresentation
 
+    obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
+
     @property
     def earth_location(self):
         """
@@ -30,3 +32,10 @@ class ITRS(BaseCoordinateFrame):
 
         cart = self.represent_as(CartesianRepresentation)
         return EarthLocation(x=cart.x, y=cart.y, z=cart.z)
+
+
+@frame_transform_graph.transform(FunctionTransform, ITRS, ITRS)
+def itrs_to_itrs(from_coo, to_frame):
+    # this is a trivial self-transform because the frame rotates with the earth,
+    # so obstime is only necessary for transforms
+    return to_frame.realize_frame(from_coo.data)
