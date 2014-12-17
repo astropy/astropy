@@ -34,6 +34,7 @@ import io
 import os
 import textwrap
 import warnings
+import platform
 
 # THIRD-PARTY
 import numpy as np
@@ -70,7 +71,7 @@ __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'NoWcsKeywordsFoundError', 'InvalidTabularParametersError']
 
 
-if six.PY3:
+if six.PY3 or platform.system() == 'Windows':
     __doctest_skip__ = ['WCS.all_world2pix']
 
 
