@@ -279,3 +279,13 @@ def test_convert_np_array(mixin_cols):
     m = mixin_cols['m']
     dtype_kind = m.dtype.kind if hasattr(m, 'dtype') else 'O'
     assert ta['m'].dtype.kind == dtype_kind
+
+def test_assignment():
+    for name in ('quantity', 'arraywrap'):
+        m = MIXIN_COLS[name]
+        t = QTable([m], names=['m'])
+        t['m'][0:2] = m[1:3]
+        if name == 'arraywrap':
+            assert np.all(t['m'].data[0:2] == m.data[1:3])
+        else:
+            assert np.all(t['m'][0:2] == m[1:3])
