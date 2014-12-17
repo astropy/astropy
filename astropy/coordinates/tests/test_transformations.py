@@ -12,7 +12,7 @@ from numpy import testing as npt
 from ... import units as u
 from ..distances import Distance
 from .. import transformations as t
-from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic
+from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, Galactocentric
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import pytest
@@ -294,3 +294,23 @@ def test_fk5_galactic():
     indirect = fk5.transform_to(FK4NoETerms).transform_to(Galactic)
 
     assert direct.separation(indirect).degree < 1.e-10
+
+def test_galactocentric():
+    # when z_sun=0, transformation should be very similar to Galactic
+    icrs_coord = ICRS(ra=np.random.uniform(0,360,10)*u.deg,
+                      dec=np.random.uniform(-90,90,10)*u.deg,
+                      distance=1.*u.kpc)
+
+    g_xyz = icrs_coord.transform_to(Galactic).cartesian.xyz
+    gc_xyz = icrs_coord.transform_to(Galactocentric(z_sun=0*u.kpc)).cartesian.xyz
+    diff = np.abs(g_xyz - gc_xyz)
+
+    assert np.allclose(diff[0], 8.3, atol=1E-5)
+    assert np.allclose(diff[1:], 0, atol=1E-5)
+
+    # generate some test coordinates
+    g = Galactic(l=[0,0,45,315]*u.deg, b=[-45,45,0,0]*u.deg,
+                 distance=[np.sqrt(2)]*4*u.kpc)
+    xyz = g.transform_to(Galactocentric(galcen_distance=1.*u.kpc, z_sun=0.*u.pc)).cartesian.xyz
+    true_xyz = np.array([[0,0,-1.],[0,0,1],[0,1,0],[0,-1,0]]).T*u.kpc
+    assert np.allclose(xyz.to(u.kpc).value, true_xyz.to(u.kpc).value, atol=1E-5)
