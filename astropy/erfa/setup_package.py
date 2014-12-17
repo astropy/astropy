@@ -15,9 +15,9 @@ ERFA_SRC = os.path.abspath(os.path.join(ERFAPKGDIR, '..','..','cextern','erfa'))
 
 SRC_FILES = glob.glob(os.path.join(ERFA_SRC, '*'))
 SRC_FILES += [os.path.join(ERFAPKGDIR, filename)
-              for filename in ['erfa.py.templ', 'erfa.pyx.templ', 'cython_generator.py']]
+              for filename in ['core.py.templ', 'core.pyx.templ', 'erfa_generator.py']]
 
-GEN_FILES = [os.path.join(ERFAPKGDIR, 'erfa.py'), os.path.join(ERFAPKGDIR, 'erfa.pyx')]
+GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.py'), os.path.join(ERFAPKGDIR, 'core.pyx')]
 
 
 def pre_build_py_hook(cmd_obj):
@@ -36,7 +36,7 @@ def preprocess_source():
 
     # Generating the ERFA wrappers should only be done if needed. This also
     # ensures that it is not done for any release tarball since those will
-    # include erfa.py and erfa.pyx.
+    # include core.py and core.pyx.
     if all(os.path.exists(filename) for filename in GEN_FILES):
 
         # Determine modification times
@@ -51,11 +51,12 @@ def preprocess_source():
         try:
             import jinja2
         except:
-            warnings.warn("jinja2 could not be imported, so the existing erfa.py and erfa.pyx files will be used")
+            warnings.warn("jinja2 could not be imported, so the existing ERFA "
+                          "core.py and core.pyx files will be used")
             return
 
-    name = 'cython_generator'
-    filename = os.path.join(ERFAPKGDIR, 'cython_generator.py')
+    name = 'erfa_generator'
+    filename = os.path.join(ERFAPKGDIR, 'erfa_generator.py')
 
     try:
         from importlib import machinery as import_machinery
@@ -66,7 +67,7 @@ def preprocess_source():
         gen = imp.load_source(name, filename)
 
     gen.main(gen.DEFAULT_ERFA_LOC,
-             os.path.join(ERFAPKGDIR, 'erfa.py'),
+             os.path.join(ERFAPKGDIR, 'core.py'),
              gen.DEFAULT_TEMPLATE_LOC,
              verbose=False)
 
