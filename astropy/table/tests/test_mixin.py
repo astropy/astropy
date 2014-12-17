@@ -13,7 +13,7 @@ else:
 import numpy as np
 
 from ...tests.helper import pytest
-from ...table import QTable, col_setattr, col_getattr, join, hstack, vstack
+from ...table import Table, QTable, col_setattr, col_getattr, join, hstack, vstack
 from ... import units as u
 from ... import coordinates
 from .. import table_helpers
@@ -22,8 +22,6 @@ from .conftest import MIXIN_COLS
 # ISSUES / TODO
 # - Test groups
 # - Check attributes in join outputs
-# - Test convert QTable <=> Table
-# - Assignment
 # - Copy
 # - Array subsetting
 
@@ -281,11 +279,51 @@ def test_convert_np_array(mixin_cols):
     assert ta['m'].dtype.kind == dtype_kind
 
 def test_assignment():
+    """
+    Test that assignment of an int, slice, and fancy index works.
+    """
     for name in ('quantity', 'arraywrap'):
         m = MIXIN_COLS[name]
-        t = QTable([m], names=['m'])
-        t['m'][0:2] = m[1:3]
-        if name == 'arraywrap':
-            assert np.all(t['m'].data[0:2] == m.data[1:3])
+        for i0, i1 in ((1, 2),
+                       (slice(0, 2), slice(1, 3)),
+                       (np.array([1, 2]), np.array([2, 3]))):
+            t = QTable([m], names=['m'])
+            t['m'][i0] = m[i1]
+            if name == 'arraywrap':
+                assert np.all(t['m'].data[i0] == m.data[i1])
+            else:
+                assert np.all(t['m'][i0] == m[i1])
+
+@pytest.mark.xfail
+def test_grouping():
+    """
+    Test grouping with mixin columns.  Not yet implemented.
+    """
+    t = QTable(MIXIN_COLS)
+    t['index'] = ['a', 'b', 'b', 'c']
+    tg = t.group_by('index')
+    tg.groups.aggregate(np.sum)
+
+def test_conversion_qtable_table():
+    """
+    Test that a table round trips from QTable => Table => QTable
+    """
+    qt = QTable(MIXIN_COLS)
+    names = qt.colnames
+    for name in names:
+        col_setattr(qt[name], 'description', name)
+
+    t = Table(qt)
+    for name in names:
+        assert col_getattr(t[name], 'description') == name
+        if name == 'quantity':
+            assert np.all(t['quantity'] == qt['quantity'].value)
+            assert np.all(t['quantity'].unit is qt['quantity'].unit)
+            assert isinstance(t['quantity'], t.ColumnClass)
         else:
-            assert np.all(t['m'][0:2] == m[1:3])
+            assert_table_name_col_equal(t, name, qt[name])
+
+    qt2 = QTable(qt)
+    for name in names:
+        assert col_getattr(qt2[name], 'description') == name
+        assert_table_name_col_equal(qt2, name, qt[name])
