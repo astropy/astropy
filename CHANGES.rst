@@ -366,6 +366,8 @@ Bug Fixes
 - ``astropy.constants``
 
 - ``astropy.convolution``
+	
+  - ``astropy.convolution.discretize_model`` now handles arbitrary callables correctly [#2274].
 
 - ``astropy.coordinates``
 
