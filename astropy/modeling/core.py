@@ -61,13 +61,13 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     """
 
     def __new__(mcls, name, bases, members):
-        mcls._handle_parameters(name, members)
+        parameters = mcls._handle_parameters(name, members)
         mcls._create_inverse_property(members)
         mcls._handle_backwards_compat(name, members)
 
         cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
-        mcls._handle_special_methods(members, cls)
+        mcls._handle_special_methods(members, cls, parameters)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
             mcls.registry.add(cls)
@@ -180,7 +180,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             members['eval'] = deprecate(members['evaluate'])
 
     @classmethod
-    def _handle_special_methods(mcls, members, cls):
+    def _handle_special_methods(mcls, members, cls, parameters):
         # Handle init creation from inputs
         def update_wrapper(wrapper, cls):
             # Set up the new __call__'s metadata attributes as though it were
@@ -207,15 +207,16 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             update_wrapper(new_call, cls)
             cls.__call__ = new_call
 
-        if '__init__' not in members and not inspect.isabstract(cls):
+        if ('__init__' not in members and not inspect.isabstract(cls) and
+                parameters):
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional
             # arguments
-            parameters = [getattr(cls, param_name)
-                          for param_name in cls.param_names]
-            if all(p.default is not None for p in parameters):
+            if all(p.default is not None
+                   for p in six.itervalues(parameters)):
                 args = ('self',)
-                kwargs = [(p.name, p.default) for p in parameters]
+                kwargs = [(name, parameters[name].default)
+                          for name in cls.param_names]
             else:
                 args = ('self',) + cls.param_names
                 kwargs = {}
