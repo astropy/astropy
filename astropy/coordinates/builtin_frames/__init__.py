@@ -29,6 +29,7 @@ from .fk5 import FK5
 from .fk4 import FK4, FK4NoETerms
 from .galactic import Galactic
 from .altaz import AltAz
+from .galactocentric import Galactocentric
 
 #need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
