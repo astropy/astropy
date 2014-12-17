@@ -27,14 +27,14 @@ __doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
 
 gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
 """
-Convert Gaussian 1-sigma standard deviation(s) to full-width at
-half-maximum(s) (FWHM).
+Factor with which to multiply Gaussian 1-sigma standard deviation(s) to
+convert them to full width at half maximum(s).
 """
 
 gaussian_fwhm_to_sigma = 1. / gaussian_sigma_to_fwhm
 """
-Convert Gaussian full-width at half-maximum(s) (FWHM) to the 1-sigma
-standard deviation(s).
+Factor with which to multiply Gaussian full width at half maximum(s) to
+convert them to 1-sigma standard deviation(s).
 """
 
 
@@ -904,7 +904,7 @@ def mad_std(data):
     Parameters
     ----------
     data : array-like
-        2D data array
+        Data array or object that can be converted to an array.
 
     Returns
     -------
