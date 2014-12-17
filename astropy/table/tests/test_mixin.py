@@ -20,11 +20,9 @@ from .. import table_helpers
 from .conftest import MIXIN_COLS
 
 # ISSUES / TODO
-# - Test vstack, groups
+# - Test groups
 # - Check attributes in join outputs
-# - Test adding a row
 # - Test convert QTable <=> Table
-# - Conversion to numpy array and dtype
 # - Assignment
 # - Copy
 # - Array subsetting
@@ -270,3 +268,14 @@ def test_insert_row(mixin_cols):
         with pytest.raises(ValueError) as exc:
             t.insert_row(1, t[-1])
         assert "Unable to insert row" in str(exc.value)
+
+def test_convert_np_array(mixin_cols):
+    """
+    Test that converting to numpy array creates an object dtype and that
+    each instance in the array has the expected type.
+    """
+    t = QTable(mixin_cols)
+    ta = t.as_array()
+    m = mixin_cols['m']
+    dtype_kind = m.dtype.kind if hasattr(m, 'dtype') else 'O'
+    assert ta['m'].dtype.kind == dtype_kind
