@@ -399,9 +399,9 @@ class BaseHeader(object):
             comment_lines = [x for x in lines if re_comment.match(x)]
         else:
             comment_lines = []
-        if 'table' in meta:
+        if 'table' in meta and comment_lines:
             meta['table']['comment_lines'] = comment_lines
-        else:
+        elif comment_lines:
             meta['table'] = {'comment_lines': comment_lines}
 
     def get_cols(self, lines):

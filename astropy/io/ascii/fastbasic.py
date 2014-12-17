@@ -96,8 +96,10 @@ class FastBasic(object):
             try_string = {}
 
         data, comments = self.engine.read(try_int, try_float, try_string)
-        return Table(data, names=list(self.engine.get_names()),
-                     meta={'comment_lines': comments})
+        meta = {}
+        if comments:
+            meta['comment_lines'] = comments
+        return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def check_header(self):
         if self.strict_names:
