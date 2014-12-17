@@ -3,10 +3,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from warnings import warn
-
 from ... import units as u
-from ...utils.exceptions import AstropyWarning
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
                          TimeFrameAttribute, QuantityFrameAttribute,
