@@ -109,7 +109,7 @@ def _init_log():
         logging.setLoggerClass(orig_logger_cls)
 
     log.propagate = conf.propagate_log
-    
+
     return log
 
 
