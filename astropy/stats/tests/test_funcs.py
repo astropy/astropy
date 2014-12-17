@@ -306,15 +306,14 @@ def test_mad_std():
 
 def test_gaussian_fwhm_to_sigma():
     fwhm = (2.0 * np.sqrt(2.0 * np.log(2.0)))
-    assert_allclose(funcs.gaussian_fwhm_to_sigma(fwhm), 1.0, rtol=1.0e-6)
+    assert_allclose(funcs.gaussian_fwhm_to_sigma * fwhm, 1.0, rtol=1.0e-6)
 
 
 def test_gaussian_sigma_to_fwhm():
     sigma = 1.0 / (2.0 * np.sqrt(2.0 * np.log(2.0)))
-    assert_allclose(funcs.gaussian_sigma_to_fwhm(sigma), 1.0, rtol=1.0e-6)
+    assert_allclose(funcs.gaussian_sigma_to_fwhm * sigma, 1.0, rtol=1.0e-6)
 
 
 def test_gaussian_sigma_to_fwhm_to_sigma():
-    sigma = 5.
-    assert_allclose(funcs.gaussian_fwhm_to_sigma(
-        funcs.gaussian_sigma_to_fwhm(sigma)), sigma)
+    assert_allclose(funcs.gaussian_fwhm_to_sigma *
+                    funcs.gaussian_sigma_to_fwhm, 1.0)

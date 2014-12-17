@@ -25,6 +25,19 @@ __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
 
 
+gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
+"""
+Convert Gaussian 1-sigma standard deviation(s) to full-width at
+half-maximum(s) (FWHM).
+"""
+
+gaussian_fwhm_to_sigma = 1. / gaussian_sigma_to_fwhm
+"""
+Convert Gaussian full-width at half-maximum(s) (FWHM) to the 1-sigma
+standard deviation(s).
+"""
+
+
 def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
                axis=None, copy=True):
     """Perform sigma-clipping on the provided data.
@@ -911,53 +924,3 @@ def mad_std(data):
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
     return median_absolute_deviation(data) * 1.482602218505602
-
-
-def gaussian_fwhm_to_sigma(fwhm):
-    """
-    Convert Gaussian full-width at half-maximum(s) (FWHM) to the 1-sigma
-    standard deviation(s).
-
-    Parameters
-    ----------
-    fwhm : float, array-like
-        The Gaussian FWHM(s).
-
-    Returns
-    -------
-    sigma : float, array-like
-        The Gaussian 1-sigma standard deviation(s).
-
-    Examples
-    --------
-    >>> from astropy.stats import gaussian_fwhm_to_sigma
-    >>> gaussian_fwhm_to_sigma(3.0)    # doctest: +FLOAT_CMP
-    1.27398270043
-    """
-
-    return np.asanyarray(fwhm) / (2.0 * np.sqrt(2.0 * np.log(2.0)))
-
-
-def gaussian_sigma_to_fwhm(sigma):
-    """
-    Convert Gaussian 1-sigma standard deviation(s) to full-width at
-    half-maximum(s) (FWHM).
-
-    Parameters
-    ----------
-    sigma : float, array-like
-        The Gaussian 1-sigma standard deviation(s).
-
-    Returns
-    -------
-    fwhm : float, array-like
-        The Gaussian FWHM(s).
-
-    Examples
-    --------
-    >>> from astropy.stats import gaussian_sigma_to_fwhm
-    >>> gaussian_sigma_to_fwhm(3.0)    # doctest: +FLOAT_CMP
-    7.06446013509
-    """
-
-    return np.asanyarray(sigma) * (2.0 * np.sqrt(2.0 * np.log(2.0)))
