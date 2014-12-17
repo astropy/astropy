@@ -255,3 +255,18 @@ def test_vstack():
     t2 = QTable(MIXIN_COLS)
     with pytest.raises(NotImplementedError):
         vstack([t1, t2])
+
+def test_insert_row(mixin_cols):
+    """
+    Test inserting a row, which only works for BaseColumn and Quantity
+    """
+    t = QTable(mixin_cols)
+    col_setattr(t['m'], 'description', 'd')
+    if isinstance(t['m'], u.Quantity):
+        t.insert_row(1, t[-1])
+        assert t[1] == t[-1]
+        assert col_getattr(t['m'], 'description') == 'd'
+    else:
+        with pytest.raises(ValueError) as exc:
+            t.insert_row(1, t[-1])
+        assert "Unable to insert row" in str(exc.value)

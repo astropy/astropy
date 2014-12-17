@@ -22,7 +22,7 @@ from ..utils.metadata import MetaData
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
-                     col_getattr, col_setattr, col_copy)
+                     col_getattr, col_setattr, col_copy, _col_update_attrs_from)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 
@@ -1745,8 +1745,11 @@ class Table(object):
                 if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
                     col = self.ColumnClass(col, copy=False)
 
-
                 newcol = col.insert(index, val)
+                if not isinstance(newcol, BaseColumn):
+                    _col_update_attrs_from(newcol, col)
+                    col_setattr(newcol, 'name', name)
+
                 if len(newcol) != N + 1:
                     raise ValueError('Incorrect length for column {0} after inserting {1}'
                                      ' (expected {2}, got {3})'
