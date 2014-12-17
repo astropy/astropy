@@ -30,7 +30,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     cirs_ra = cirs_coo.ra.to(u.radian).value
     cirs_dec = cirs_coo.dec.to(u.radian).value
 
-    lon, lat, height = altaz_frame._elocation.to_geodetic('WGS84')
+    lon, lat, height = altaz_frame.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(cirs_coo.obstime)
 
     #first set up the astrometry context for ICRS<->CIRS
@@ -58,7 +58,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     az = altaz_coo.az.to(u.radian).value
     zen = PIOVER2 - altaz_coo.alt.to(u.radian).value
 
-    lon, lat, height = altaz_coo._elocation.to_geodetic('WGS84')
+    lon, lat, height = altaz_coo.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(altaz_coo.obstime)
 
     #first set up the astrometry context for ICRS<->CIRS at the altaz_coo time

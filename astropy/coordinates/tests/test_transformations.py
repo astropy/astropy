@@ -476,9 +476,7 @@ def test_gcrs_itrs():
     """
     Check basic GCRS<->ITRS transforms for round-tripping.
     """
-    from ...time import Time
     from ...utils import NumpyRNGContext
-    from .. import EarthLocation
 
     with NumpyRNGContext(12345):
         gcrs = GCRS(ra=np.random.rand(100)*360*u.deg,
@@ -501,9 +499,7 @@ def test_cirs_itrs():
     """
     Check basic CIRS<->ITRS transforms for round-tripping.
     """
-    from ...time import Time
     from ...utils import NumpyRNGContext
-    from .. import EarthLocation
 
     with NumpyRNGContext(12345):
         cirs = CIRS(ra=np.random.rand(100)*360*u.deg,
@@ -529,9 +525,7 @@ def test_gcrs_cirs():
     Check GCRS<->CIRS transforms for round-tripping.  More complicated than the
     above two because it's multi-hop
     """
-    from ...time import Time
     from ...utils import NumpyRNGContext
-    from .. import EarthLocation
 
     with NumpyRNGContext(12345):
         gcrs = GCRS(ra=np.random.rand(100)*360*u.deg,

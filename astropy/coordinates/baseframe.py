@@ -28,6 +28,7 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
                              UnitSphericalRepresentation,
                              REPRESENTATION_CLASSES)
+from .earth import EarthLocation
 
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
@@ -409,13 +410,16 @@ class EarthLocationAttribute(FrameAttribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        from . import EarthLocation, ITRS
-
-        if isinstance(value, EarthLocation):
-           return value, False
+        if value is None:
+            return None, False
+        elif isinstance(value, EarthLocation):
+            return value, False
         else:
+            #we have to do the import here because of some tricky circular deps
+            from .builtin_frames import ITRS
+
             if not hasattr(value, 'transform_to'):
-                raise ValueError('"{0" was passed into an '
+                raise ValueError('"{0}" was passed into an '
                                  'EarthLocationAttribute, but it does not have '
                                  '"transform_to" method'.format(value))
             itrsobj = value.transform_to(ITRS)
