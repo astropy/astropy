@@ -909,8 +909,8 @@ def mad_std(data):
     2.02327646594
     """
 
-    from scipy.stats import norm
-    return median_absolute_deviation(data) / norm.ppf(0.75)
+    # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
+    return median_absolute_deviation(data) * 1.482602218505602
 
 
 def gaussian_fwhm_to_sigma(fwhm):
@@ -935,7 +935,7 @@ def gaussian_fwhm_to_sigma(fwhm):
     1.27398270043
     """
 
-    return np.array(fwhm) / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+    return np.asanyarray(fwhm) / (2.0 * np.sqrt(2.0 * np.log(2.0)))
 
 
 def gaussian_sigma_to_fwhm(sigma):
@@ -960,4 +960,4 @@ def gaussian_sigma_to_fwhm(sigma):
     7.06446013509
     """
 
-    return np.array(sigma) * (2.0 * np.sqrt(2.0 * np.log(2.0)))
+    return np.asanyarray(sigma) * (2.0 * np.sqrt(2.0 * np.log(2.0)))
