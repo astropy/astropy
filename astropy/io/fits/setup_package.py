@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
+from __future__ import absolute_import
 
 import os
 
