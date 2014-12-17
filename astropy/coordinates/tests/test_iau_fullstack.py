@@ -11,6 +11,7 @@ from ... import units as u
 from ...time import Time
 from ..builtin_frames import ICRS, AltAz, CIRS
 from .. import EarthLocation
+from .. import Angle, SkyCoord
 from ...tests.helper import pytest
 from ... import erfa
 from ...utils import iers, NumpyRNGContext
@@ -133,3 +134,82 @@ def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     icrs2 = aacoo.transform_to(ICRS)
     npt.assert_allclose(fullstack_icrs.ra.deg, icrs2.ra.deg)
     npt.assert_allclose(fullstack_icrs.dec.deg, icrs2.dec.deg)
+
+
+def test_against_hor2eq():
+    """Check that Astropy gives consistent results with the IDL hor2eq example.
+
+    See example input and output here:
+    http://idlastro.gsfc.nasa.gov/ftp/pro/astro/hor2eq.pro
+
+    Observatory position for `kpno` from here:
+    http://idlastro.gsfc.nasa.gov/ftp/pro/astro/observatory.pro
+    """
+    obstime = Time(2466879.7083333, format='jd')
+    location = EarthLocation(lon=Angle('111d36.0m'), lat=Angle('31d57.8m'),height=2120.*u.m)
+    temperature = 0 * u.deg_C
+    pressure = 0.781 * u.bar
+    # relative_humidity = ?
+    # obswl = ?
+    aaframe = AltAz(obstime=obstime,location=location,
+                    temperature=temperature, pressure=pressure)
+
+    # TODO: check if this is correct ... should we use FK5 here?
+    eq = SkyCoord('00d13m14.1s +15d11m0.3s', frame='icrs')
+    hor_actual = eq.transform_to(aaframe)
+    hor_expected = SkyCoord('264d55m06s 37d54m41s', frame='altaz')
+    distance = hor_actual.separation(hor_expected)
+
+    # TODO: what assertion precision makes sense here?
+    assert distance < 1 * u.arcsec
+
+
+def test_against_pyephem():
+    """Check that Astropy gives consistent results with one PyEphem example.
+
+    PyEphem: http://rhodesmill.org/pyephem/
+
+    See example input and output here:
+    https://gist.github.com/zonca/1672906
+    https://github.com/phn/pytpm/issues/2#issuecomment-3698679
+    """
+    obstime = Time('2011-09-18 08:50:00')
+    location = EarthLocation(lon=Angle('-109d24m53.1s'), lat=Angle('33d41m46.0s'),height=30000.*u.m)
+    temperature = 15 * u.deg_C
+    pressure = 1.010 * u.bar
+    # relative_humidity = ?
+    # obswl = ?
+    aaframe = AltAz(obstime=obstime,location=location,
+                    temperature=temperature, pressure=pressure)
+
+    altaz = SkyCoord('-60.7665d 6.8927d', frame=aaframe)
+    radec_actual = altaz.transform_to('icrs')
+    radec_expected = SkyCoord('196.497518d -4.569323d', frame='icrs')
+    distance = radec_actual.separation(radec_expected)
+
+    # TODO: what assertion precision makes sense here?
+    assert distance < 1 * u.arcsec
+
+
+def test_against_jpl_horizons():
+    """Check that Astropy gives consistent results with the JPL Horizons example.
+
+    See example input and output here:
+    http://ssd.jpl.nasa.gov/?horizons_tutorial
+    """
+    obstime = Time('1998-07-28 03:00')
+    location = EarthLocation(lon=Angle('248.405300d'), lat=Angle('31.9585d'),height=2.06*u.km)
+    temperature = 15 * u.deg_C # TODO: correct???
+    pressure = 1.010 * u.bar # TODO: correct???
+    # relative_humidity = ?
+    # obswl = ?
+    aaframe = AltAz(obstime=obstime,location=location,
+                    temperature=temperature, pressure=pressure)
+
+    altaz = SkyCoord('143.2970d 2.6223d', frame=aaframe)
+    radec_actual = altaz.transform_to('icrs')
+    radec_expected = SkyCoord('19h24m55.01s -40d56m28.9s', frame='icrs')
+    distance = radec_actual.separation(radec_expected)
+
+    # TODO: what assertion precision makes sense here?
+    assert distance < 1 * u.arcsec
