@@ -198,6 +198,13 @@ class BaseColumn(np.ndarray):
                 unit = data.unit
             else:
                 self_data = np.array(data.to(unit), dtype=dtype, copy=copy)
+            if description is None:
+                description = col_getattr(data, 'description')
+            if format is None:
+                format = col_getattr(data, 'format')
+            if meta is None:
+                meta = deepcopy(col_getattr(data, 'meta'))
+
         else:
             self_data = np.array(data, dtype=dtype, copy=copy)
 
