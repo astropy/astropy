@@ -53,6 +53,7 @@ class Galactocentric(BaseCoordinateFrame):
     """
     default_representation = CartesianRepresentation
 
+    # TODO: these can all become QuantityFrameAttribute's once #3217 is merged
     galcen_distance = FrameAttribute(default=8.3*u.kpc)
     galcen_ra = FrameAttribute(default=Angle(266.4051*u.degree))
     galcen_dec = FrameAttribute(default=Angle(-28.936175*u.degree))
