@@ -112,6 +112,11 @@ New Features
 
 - ``astropy.stats``
 
+  - Added ``mad_std()`` function. [#3208]
+
+  - Added ``gaussian_fwhm_to_sigma`` and ``gaussian_sigma_to_fwhm``
+    constants. [#3208]
+
 - ``astropy.sphinx``
 
 - ``astropy.table``
