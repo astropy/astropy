@@ -24,10 +24,10 @@ New Features
 
   - ``astropy.coordinates`` now has a full stack of frames allowing 
     transformations from ICRS or other celestial systems down to Alt/Az
-    coordinates.
+    coordinates. [#3217]
 
   - ``SkyCoord`` now has a ``get_sun`` method that gives the coordinates 
-    of the Sun at a specified time.
+    of the Sun at a specified time. [#3217]
 
   - ``SkyCoord`` now has ``to_pixel`` and ``from_pixel`` methods that convert
     between celestial coordinates as ``SkyCoord`` objects and pixel coordinates
