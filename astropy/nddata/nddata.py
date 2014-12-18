@@ -14,7 +14,6 @@ from .. import log
 
 from ..io import registry as io_registry
 from ..config import ConfigAlias
-from ..extern import six
 
 __all__ = ['NDData']
 
