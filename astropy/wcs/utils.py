@@ -149,26 +149,30 @@ def wcs_to_celestial_frame(wcs):
                      "the specified WCS object")
 
 
-def celestial_pixel_scale(inwcs, allow_nonsquare=False):
+def celestial_pixel_scale(inwcs, which='combine', allow_nonsquare=False):
     """
-    For a WCS, if the pixels are square, return the pixel scale in the spatial
-    dimensions
+    For a WCS, return the pixel scale in the spatial dimensions
 
     Parameters
     ----------
     inwcs: `astropy.wcs.WCS`
         The world coordinate system object
+    which: one of 'combine', 'lon', 'lat', or 'both'
+        The dimension to calculate the pixel scale along. If 'both', a tuple
+        will be returned. If 'combine' with nonsquare pixels, a geometric mean
+        is taken unless `allow_nonsquare=False`
     allow_nonsquare : bool
-        Return the average of the X and Y scales if True
+        Return the geometric average of the X and Y scales if True
 
     Returns
     -------
-    scale : float
-        The square pixel scale
+    scale : `Quantity` or tuple of `Quantity`
+        The pixel scale
 
     Raises
     ------
-    ValueError if the pixels are nonsquare and ``allow_nonsquare==False``
+    ValueError if the pixels are nonsquare, which='combine', and
+    ``allow_nonsquare==False``
     """
     cwcs = inwcs.celestial
     if cwcs.wcs.ctype[0][-3:] != 'CAR':
@@ -176,14 +180,21 @@ def celestial_pixel_scale(inwcs, allow_nonsquare=False):
                       "projection class {0}".format(cwcs.wcs.ctype[0][-3:]),
                       AstropyUserWarning)
     scale = (cwcs.pixel_scale_matrix**2).sum(axis=0)**0.5
-    if not np.allclose(scale[0],scale[1]):
-        if allow_nonsquare:
-            warnings.warn("Pixels are not square, using an average pixel scale")
-            return np.mean(scale)*u.deg
+    if which == 'combine':
+        if np.allclose(scale[0], scale[1]) or allow_nonsquare:
+            warnings.warn("Pixels are not square, "
+                          "using an average pixel scale")
+            return np.sqrt(scale[0]*scale[1])*u.deg
         else:
-            raise ValueError("Pixels are not square: 'pixel scale' is ambiguous")
+            raise ValueError("Pixels are not square: "
+                             "'pixel scale' is ambiguous")
+
     # Return a quantity: WCS always stores in degrees
-    return scale[0]*u.deg
+    if which == 'lon':
+        return scale[0]*u.deg
+    if which == 'lat':
+        return scale[1]*u.deg
+    return scale[0]*u.deg, scale[1]*u.deg
 
 
 def non_celestial_pixel_scales(inwcs):

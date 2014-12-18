@@ -261,6 +261,14 @@ def test_pixscale_cd():
     mywcs.wcs.cd = [[-0.1,0],[0,0.1]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
     assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='lon').to(u.deg)
+                        .value, 0.1)
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='lat').to(u.deg)
+                        .value, 0.1)
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='both')[0].to(u.deg)
+                        .value, 0.1)
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='both')[1].to(u.deg)
+                        .value, 0.1)
 
 def test_pixscale_warning(recwarn):
     mywcs = WCS(naxis=2)
@@ -283,6 +291,13 @@ def test_pixscale_asymmetric():
         celestial_pixel_scale(mywcs)
     assert exc.value.args[0] == "Pixels are not square: 'pixel scale' is ambiguous"
 
+    assert_almost_equal(celestial_pixel_scale(mywcs, allow_nonsquare=True)
+                        .to(u.deg).value, np.sqrt(0.2*0.1))
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='lon')
+                        .to(u.deg).value, 0.2)
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='lat')
+                        .to(u.deg).value, 0.1)
+
 @pytest.mark.parametrize('angle',
                          (30,45,60,75))
 def test_pixscale_cd_rotated(angle):
@@ -293,6 +308,10 @@ def test_pixscale_cd_rotated(angle):
                     [scale*np.sin(rho), scale*np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
     assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='lon')
+                        .to(u.deg).value, 0.1)
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='lat')
+                        .to(u.deg).value, 0.1)
 
 @pytest.mark.parametrize('angle',
                          (30,45,60,75))
@@ -305,6 +324,10 @@ def test_pixscale_pc_rotated(angle):
                     [np.sin(rho), np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
     assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='lon')
+                        .to(u.deg).value, 0.1)
+    assert_almost_equal(celestial_pixel_scale(mywcs, which='lat')
+                        .to(u.deg).value, 0.1)
 
 @pytest.mark.parametrize(('cdelt','pc','pccd'),
                          (([0.1,0.2], np.eye(2), np.diag([0.1,0.2])),
