@@ -119,6 +119,7 @@ New Features
 
   - Added ``gaussian_fwhm_to_sigma`` and ``gaussian_sigma_to_fwhm``
     constants. [#3208]
+
   - New function ``sigma_clipped_stats`` which can be used to quickly get
     common statistics for an array, using sigma clipping at the same time.
     [#3201]
