@@ -705,16 +705,6 @@ class Header(object):
         self.tofile(fileobj, sep='\n', endcard=endcard, padding=False,
                     clobber=clobber)
 
-    def totable(self):
-        """
-        Returns a `astropy.table.Table` object with 2 columns (keyword, value).
-        """
-        from ... import table
-        rows = []
-        for mycard in self.cards:
-            rows.append({'keyword': mycard.keyword, 'value': mycard.value})
-        return table.Table(rows)
-
     def clear(self):
         """
         Remove all cards from the header.
