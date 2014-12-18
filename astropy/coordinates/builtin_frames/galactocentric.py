@@ -15,6 +15,10 @@ from ..errors import ConvertError
 
 from .icrs import ICRS
 
+# Measured by minimizing the difference between a plane of coordinates along
+#   l=0, b=[-90,90] and the Galactocentric x-z plane
+ROLL0 = Angle(148.5986320*u.degree)
+
 class Galactocentric(BaseCoordinateFrame):
     """
     A coordinate or frame in the Galactocentric system. This frame requires specifying
@@ -59,7 +63,7 @@ class Galactocentric(BaseCoordinateFrame):
     galcen_ra = FrameAttribute(default=Angle(266.4051*u.degree))
     galcen_dec = FrameAttribute(default=Angle(-28.936175*u.degree))
     z_sun = FrameAttribute(default=27.*u.pc) # TODO: reference?
-    roll = FrameAttribute(default=Angle(148.5986320*u.degree))
+    roll = FrameAttribute(default=0.*u.deg)
 
 # Galactic to/from Galactocentric ----------------------->
 @frame_transform_graph.transform(FunctionTransform, ICRS, Galactocentric)
@@ -85,8 +89,8 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
     mat2 = rotation_matrix(-90.*u.degree, 'z')
     R2 = mat1 * mat2
 
-    # extra roll to align x-z plane with Galactic
-    R3 = rotation_matrix(galactocentric_frame.roll, 'x')
+    # extra roll away from the Galactic x-z plane
+    R3 = rotation_matrix(galactocentric_frame.roll - ROLL0, 'x')
 
     # construct transformation matrix
     R = R3*R2*R1
@@ -133,8 +137,8 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     mat2 = rotation_matrix(-90.*u.degree, 'z')
     R2 = mat1 * mat2
 
-    # extra roll to align x-z plane with Galactic
-    R3 = rotation_matrix(galactocentric_coord.roll, 'x')
+    # extra roll away from the Galactic x-z plane
+    R3 = rotation_matrix(galactocentric_coord.roll-ROLL0, 'x')
 
     # construct transformation matrix
     R = R3*R2*R1
