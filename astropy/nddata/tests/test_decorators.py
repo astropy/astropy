@@ -11,10 +11,10 @@ from ...tests.helper import catch_warnings, pytest
 from ... import units as u
 
 from ..nddata import NDData
-from ..decorators import expand_nddata_args
+from ..decorators import support_nddata
 
 
-@expand_nddata_args
+@support_nddata
 def wrapped_function_1(data, wcs=None, unit=None):
     return data, wcs, unit
 
@@ -101,19 +101,19 @@ def test_pass_nddata_ignored():
 def test_incorrect_first_argument():
 
     with pytest.raises(ValueError) as exc:
-        @expand_nddata_args
+        @support_nddata
         def wrapped_function_2(something, wcs=None, unit=None):
             pass
     assert exc.value.args[0] == "Can only wrap functions whose first positional argument is `data`"
 
     with pytest.raises(ValueError) as exc:
-        @expand_nddata_args
+        @support_nddata
         def wrapped_function_3(something, data, wcs=None, unit=None):
             pass
     assert exc.value.args[0] == "Can only wrap functions whose first positional argument is `data`"
 
     with pytest.raises(ValueError) as exc:
-        @expand_nddata_args
+        @support_nddata
         def wrapped_function_4(wcs=None, unit=None):
             pass
     assert exc.value.args[0] == "Can only wrap functions whose first positional argument is `data`"
@@ -121,7 +121,7 @@ def test_incorrect_first_argument():
 
 def test_wrap_function_no_kwargs():
 
-    @expand_nddata_args
+    @support_nddata
     def wrapped_function_5(data, other_data):
         return data
 
@@ -131,9 +131,24 @@ def test_wrap_function_no_kwargs():
     assert wrapped_function_5(nddata_in, [1, 2, 3]) is data_in
 
 
+def test_wrap_function_repack_valid():
+
+    @support_nddata(repack=True, returns=['data'])
+    def wrapped_function_5(data, other_data):
+        return data
+
+    data_in = np.array([1, 2, 3])
+    nddata_in = NDData(data_in)
+
+    nddata_out = wrapped_function_5(nddata_in, [1, 2, 3])
+
+    assert isinstance(nddata_out, NDData)
+    assert nddata_out.data is data_in
+
+
 def test_wrap_preserve_signature_docstring():
 
-    @expand_nddata_args
+    @support_nddata
     def wrapped_function_6(data, wcs=None, unit=None):
         """
         An awesome function
