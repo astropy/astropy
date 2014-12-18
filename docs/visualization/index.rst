@@ -19,6 +19,15 @@ Using `astropy.visualization`
 
    normalization.rst
 
+Scripts
+=======
+
+This module includes a command-line script, ``fits2bitmap`` to convert FITS
+images to bitmaps, including scaling and stretching of the image. To find out
+more about the available options and how to use it, tyoe::
+
+    $ fits2bitmap --help
+
 Reference/API
 =============
 
