@@ -175,9 +175,6 @@ class Quantity(np.ndarray):
 
     __array_priority__ = 10000
 
-    # Declare that SkyCoord can be used as a Table columm
-    _astropy_table_compatible = True
-
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0):
 
