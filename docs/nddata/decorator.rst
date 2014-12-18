@@ -2,6 +2,9 @@
 Decorating functions to accept NDData objects
 *********************************************
 
+.. important:: The functionality described here is still experimental and will
+               likely evolve over time as more packages make use of it.
+
 Introduction
 ============
 
