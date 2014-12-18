@@ -48,12 +48,8 @@ install:
     # Check that we have the expected version of Python
     - "python --version"
 
-    # Install specified version of numpy
-    - "conda install -q --yes numpy=%NUMPY_VERSION%"
-    # Install non-optional deps
-    - "conda install -q --yes pytest Cython"
-    # Install optional deps
-    - "conda install -q --yes scipy h5py beautiful-soup"
+    # Install specified version of numpy and dependencies
+    - "conda install -q --yes numpy=%NUMPY_VERSION% pytest Cython scipy h5py beautiful-soup"
 
 # Not a .NET project, we build SunPy in the install step instead
 build: false
