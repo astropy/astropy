@@ -42,6 +42,10 @@ def test_nddata_empty():
     with pytest.raises(TypeError):
         NDData()  # empty initializer should fail
 
+def test_nddata_init_with_nonarray():
+    inp = [1, 2, 3]
+    nd = NDData(inp)
+    assert (np.array(inp) == nd.data).all()
 
 def test_nddata_simple():
     with NumpyRNGContext(123):

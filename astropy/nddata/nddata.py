@@ -135,9 +135,6 @@ class NDData(NDDataBase):
             if unit is not None:
                 raise ValueError('To convert to different unit please use .to')
         else:
-            if not hasattr(data, 'shape') or not hasattr(data, '__getitem__'):
-                raise TypeError('Data must have shape attribute '
-                                'and be slicable.')
             if hasattr(data, 'mask'):
                 self._data = np.array(data.data, subok=True, copy=False)
 
@@ -151,6 +148,18 @@ class NDData(NDDataBase):
                     self._mask = data.mask
             elif isinstance(data, Quantity):
                 self._data = np.array(data.value, subok=True, copy=False)
+                self._mask = mask
+            elif (not hasattr(data, 'shape') or
+                  not hasattr(data, '__getitem__') or
+                  not hasattr(data, '__array__')):
+                # Data doesn't look like a numpy array, try converting it to
+                # one.
+                self._data = np.array(data, subok=True, copy=False)
+                # Quick check to see if what we got out looks like an array
+                # rather than an object (since numpy will convert a
+                # non-numerical input to an array of objects).
+                if self._data.dtype == 'O':
+                    raise TypeError("Could not convert data to numpy array.")
                 self._mask = mask
             else:
                 self._data = data  # np.array(data, subok=True, copy=False)
