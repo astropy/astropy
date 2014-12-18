@@ -146,6 +146,26 @@ def test_wrap_function_repack_valid():
     assert nddata_out.data is data_in
 
 
+def test_wrap_function_accepts():
+
+    class MyData(NDData):
+        pass
+
+    @support_nddata(accepts=MyData)
+    def wrapped_function_5(data, other_data):
+        return data
+
+    data_in = np.array([1, 2, 3])
+    nddata_in = NDData(data_in)
+    mydata_in = MyData(data_in)
+
+    assert wrapped_function_5(mydata_in, [1, 2, 3]) is data_in
+
+    with pytest.raises(TypeError) as exc:
+        wrapped_function_5(nddata_in, [1, 2, 3])
+    assert exc.value.args[0] == "Only NDData sub-classes that inherit from MyData can be used by this function"
+
+
 def test_wrap_preserve_signature_docstring():
 
     @support_nddata

@@ -98,6 +98,10 @@ def support_nddata(_func=None, accepts=NDData, repack=False, returns=None):
             unpack = isinstance(data, accepts)
             input_data = data
 
+            if not unpack and isinstance(data, NDData):
+                raise TypeError("Only NDData sub-classes that inherit from {0}"
+                                " can be used by this function".format(accepts.__name__))
+
             # If data is an NDData instance, we can try and find properties that
             # can be passed as kwargs.
             if unpack:
