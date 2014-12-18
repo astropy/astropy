@@ -26,6 +26,7 @@ def expand_nddata_args(func):
 
         def downsample(data, wcs=None):
             # downsample data and optionally WCS here
+            pass
 
     This function takes a Numpy array for the data, and some WCS information
     with the ``data`` keyword argument. However, you might have an NDData
@@ -39,6 +40,7 @@ def expand_nddata_args(func):
         @expand_nddata_args
         def downsample(data, wcs=None):
             # downsample data and optionally WCS here
+            pass
 
     This function can now either be called as before, specifying the data and
     WCS separately, or an NDData instance can be passed to the ``data``

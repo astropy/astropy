@@ -98,7 +98,7 @@ def test_pass_nddata_ignored():
                                  "object, but will be ignored by the function: mask")
 
 
-def test_incorrect_first_arguemnt():
+def test_incorrect_first_argument():
 
     with pytest.raises(ValueError) as exc:
         @expand_nddata_args
