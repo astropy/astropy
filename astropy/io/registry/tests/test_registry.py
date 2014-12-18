@@ -11,16 +11,13 @@ from copy import copy
 
 import numpy as np
 
-from ...tests.helper import pytest
-from ..registry import _readers, _writers, _identifiers
-from .. import registry as io_registry
-from ...table import Table
-from ...extern.six.moves import zip
-from ...extern.six import StringIO
+from ....tests.helper import pytest
+from ....table import Table
+from ....extern.six.moves import zip
+from ....extern.six import StringIO
 
-_READERS_ORIGINAL = copy(_readers)
-_WRITERS_ORIGINAL = copy(_writers)
-_IDENTIFIERS_ORIGINAL = copy(_identifiers)
+from ..registry import _registry
+from .. import registry as io_registry
 
 
 class TestData(object):
@@ -29,9 +26,15 @@ class TestData(object):
 
 
 def setup_function(function):
-    _readers.clear()
-    _writers.clear()
-    _identifiers.clear()
+    # Reset the registry to a clean state
+    io_registry._registry.clear()
+    io_registry._load_builtins()
+
+
+def teardown_function(function):
+    # Reset the registry to a clean state
+    io_registry._registry.clear()
+    io_registry._load_builtins()
 
 
 def empty_reader(*args, **kwargs):
@@ -128,16 +131,16 @@ def test_write_noformat():
 
 
 def test_read_noformat_arbitrary():
-    """Test that all identifier functions can accept arbitary input"""
-    _identifiers.update(_IDENTIFIERS_ORIGINAL)
+    """Test that all built-in identifier functions can accept arbitary input"""
+    io_registry._builtin_registered = False
     with pytest.raises(Exception) as exc:
         TestData.read(object())
     assert exc.value.args[0].startswith("Format could not be identified.")
 
 
 def test_read_noformat_arbitrary_file(tmpdir):
-    """Tests that all identifier functions can accept arbitrary files"""
-    _readers.update(_READERS_ORIGINAL)
+    """Tests that all built-in reader functions can accept arbitrary files"""
+
     testfile = str(tmpdir.join('foo.example'))
     with open(testfile, 'w') as f:
         f.write("Hello world")
@@ -148,16 +151,14 @@ def test_read_noformat_arbitrary_file(tmpdir):
 
 
 def test_write_noformat_arbitrary():
-    """Test that all identifier functions can accept arbitary input"""
-    _identifiers.update(_IDENTIFIERS_ORIGINAL)
+    """Test that all built-in writer functions can accept arbitary input"""
     with pytest.raises(Exception) as exc:
         TestData().write(object())
     assert exc.value.args[0].startswith("Format could not be identified.")
 
 
 def test_write_noformat_arbitrary_file(tmpdir):
-    """Tests that all identifier functions can accept arbitrary files"""
-    _writers.update(_WRITERS_ORIGINAL)
+    """Tests that all built-in writer functions can accept arbitrary files"""
     testfile = str(tmpdir.join('foo.example'))
 
     with pytest.raises(Exception) as exc:
@@ -294,12 +295,6 @@ def test_register_readers_with_same_name_on_different_classes():
     assert isinstance(t, TestData)
     tbl = Table.read(format='test')
     assert isinstance(tbl, Table)
-
-
-def teardown_function(function):
-    _readers.update(_READERS_ORIGINAL)
-    _writers.update(_WRITERS_ORIGINAL)
-    _identifiers.update(_IDENTIFIERS_ORIGINAL)
 
 
 class TestSubclass:

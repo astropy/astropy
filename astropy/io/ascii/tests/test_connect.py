@@ -34,19 +34,19 @@ def test_write_generic(tmpdir):
 
 
 def test_read_ipac():
-    Table.read(os.path.join(ROOT, 't/ipac.dat'), format='ipac')
+    Table.read(os.path.join(ROOT, 't/ipac.dat'), format='ascii.ipac')
 
 
 def test_read_cds():
-    Table.read(os.path.join(ROOT, 't/cds.dat'), format='cds')
+    Table.read(os.path.join(ROOT, 't/cds.dat'), format='ascii.cds')
 
 
 def test_read_dapphot():
-    Table.read(os.path.join(ROOT, 't/daophot.dat'), format='daophot')
+    Table.read(os.path.join(ROOT, 't/daophot.dat'), format='ascii.daophot')
 
 
 def test_read_latex():
-    Table.read(os.path.join(ROOT, 't/latex1.tex'), format='latex')
+    Table.read(os.path.join(ROOT, 't/latex1.tex'), format='ascii.latex')
 
 
 def test_read_latex_noformat():
@@ -58,7 +58,7 @@ def test_write_latex(tmpdir):
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.tex"))
-    t.write(path, format='latex')
+    t.write(path, format='ascii.latex')
 
 
 def test_write_latex_noformat(tmpdir):
@@ -71,7 +71,7 @@ def test_write_latex_noformat(tmpdir):
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_read_html():
-    Table.read(os.path.join(ROOT, 't/html.html'), format='html')
+    Table.read(os.path.join(ROOT, 't/html.html'), format='ascii.html')
 
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
@@ -84,7 +84,7 @@ def test_write_html(tmpdir):
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.html"))
-    t.write(path, format='html')
+    t.write(path, format='ascii.html')
 
 
 def test_write_html_noformat(tmpdir):
@@ -96,7 +96,7 @@ def test_write_html_noformat(tmpdir):
 
 
 def test_read_rdb():
-    Table.read(os.path.join(ROOT, 't/short.rdb'), format='rdb')
+    Table.read(os.path.join(ROOT, 't/short.rdb'), format='ascii.rdb')
 
 
 def test_read_rdb_noformat():
@@ -108,7 +108,7 @@ def test_write_rdb(tmpdir):
     t.add_column(Column(name='a', data=[1, 2, 3]))
     t.add_column(Column(name='b', data=['a', 'b', 'c']))
     path = str(tmpdir.join("data.rdb"))
-    t.write(path, format='rdb')
+    t.write(path, format='ascii.rdb')
 
 
 def test_write_rdb_noformat(tmpdir):

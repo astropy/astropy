@@ -14,10 +14,12 @@ import warnings
 import numpy as np
 from ...utils.exceptions import AstropyUserWarning
 from ...extern import six
+from ..registry import BaseIO
+from ...table import Table
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
 
-__all__ = ['read_table_hdf5', 'write_table_hdf5']
+__all__ = ['HDF5TableIO']
 
 
 def _find_all_structured_arrays(handle):
@@ -34,218 +36,224 @@ def _find_all_structured_arrays(handle):
     return structured_arrays
 
 
-def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
+class HDF5TableIO(BaseIO):
 
-    if fileobj is not None:
-        loc = fileobj.tell()
-        try:
-            signature = fileobj.read(8)
-        finally:
-            fileobj.seek(loc)
-        return signature == HDF5_SIGNATURE
-    elif filepath is not None:
-        return filepath.endswith('.hdf5') or filepath.endswith('.h5')
+    _format_name = 'hdf5'
+    _supported_class = Table
 
-    try:
-        import h5py
-    except ImportError:
-        return False
-    else:
-        return isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group, h5py.highlevel.Dataset))
+    @staticmethod
+    def identify(origin, filepath, fileobj, *args, **kwargs):
 
-
-def read_table_hdf5(input, path=None):
-    """
-    Read a Table object from an HDF5 file
-
-    This requires `h5py <http://h5py.org/>`_ to be installed. If more than one
-    table is present in the HDF5 file or group, the first table is read in and
-    a warning is displayed.
-
-    Parameters
-    ----------
-    input : str or :class:`h5py:File` or :class:`h5py:Group` or
-        :class:`h5py:Dataset` If a string, the filename to read the table from.
-        If an h5py object, either the file or the group object to read the
-        table from.
-    path : str
-        The path from which to read the table inside the HDF5 file.
-        This should be relative to the input file or group.
-    """
-
-    try:
-        import h5py
-    except ImportError:
-        raise Exception("h5py is required to read and write HDF5 files")
-
-    if isinstance(input, (h5py.highlevel.File, h5py.highlevel.Group)):
-
-        # If a path was specified, follow the path
-
-        if path:
+        if fileobj is not None:
+            loc = fileobj.tell()
             try:
-                input = input[path]
-            except (KeyError, ValueError):
-                raise IOError("Path {0} does not exist".format(path))
-
-        # `input` is now either a group or a dataset. If it is a group, we
-        # will search for all structured arrays inside the group, and if there
-        # is one we can proceed otherwise an error is raised. If it is a
-        # dataset, we just proceed with the reading.
-
-        if isinstance(input, h5py.highlevel.Group):
-
-            # Find all structured arrays in group
-            arrays = _find_all_structured_arrays(input)
-
-            if len(arrays) == 0:
-                raise ValueError("no table found in HDF5 group {0}".
-                                 format(path))
-            elif len(arrays) > 0:
-                path = arrays[0] if path is None else path + '/' + arrays[0]
-                warnings.warn("path= was not specified but multiple tables"
-                              " are present, reading in first available"
-                              " table (path={0})".format(path),
-                              AstropyUserWarning)
-                return read_table_hdf5(input, path=path)
-
-    elif not isinstance(input, h5py.highlevel.Dataset):
-
-        # If a file object was passed, then we need to extract the filename
-        # because h5py cannot properly read in file objects.
-
-        if hasattr(input, 'read'):
-            try:
-                input = input.name
-            except AttributeError:
-                raise TypeError("h5py can only open regular files")
-
-        # Open the file for reading, and recursively call read_table_hdf5 with
-        # the file object and the path.
-
-        f = h5py.File(input, 'r')
+                signature = fileobj.read(8)
+            finally:
+                fileobj.seek(loc)
+            return signature == HDF5_SIGNATURE
+        elif filepath is not None:
+            return filepath.endswith('.hdf5') or filepath.endswith('.h5')
 
         try:
-            return read_table_hdf5(f, path=path)
-        finally:
-            f.close()
-
-    # If we are here, `input` should be a Dataset object, which we can now
-    # convert to a Table.
-
-    # Create a Table object
-    from ...table import Table
-    table = Table(np.array(input))
-
-    # Read the meta-data from the file
-    table.meta.update(input.attrs)
-
-    return table
-
-
-def write_table_hdf5(table, output, path=None, compression=False,
-                     append=False, overwrite=False):
-    """
-    Write a Table object to an HDF5 file
-
-    This requires `h5py <http://h5py.org/>`_ to be installed.
-
-    Parameters
-    ----------
-    table : `~astropy.table.Table`
-        Data table that is to be written to file.
-    output : str or :class:`h5py:File` or :class:`h5py:Group`
-        If a string, the filename to write the table to. If an h5py object,
-        either the file or the group object to write the table to.
-    path : str
-        The path to which to write the table inside the HDF5 file.
-        This should be relative to the input file or group.
-    compression : bool or str or int
-        Whether to compress the table inside the HDF5 file. If set to `True`,
-        ``'gzip'`` compression is used. If a string is specified, it should be
-        one of ``'gzip'``, ``'szip'``, or ``'lzf'``. If an integer is
-        specified (in the range 0-9), ``'gzip'`` compression is used, and the
-        integer denotes the compression level.
-    append : bool
-        Whether to append the table to an existing HDF5 file.
-    overwrite : bool
-        Whether to overwrite any existing file without warning.
-        If ``append=True`` and ``overwrite=True`` then only the dataset will be
-        replaced; the file/group will not be overwritten.
-    """
-
-    try:
-        import h5py
-    except ImportError:
-        raise Exception("h5py is required to read and write HDF5 files")
-
-    if path is None:
-        raise ValueError("table path should be set via the path= argument")
-    elif path.endswith('/'):
-        raise ValueError("table path should end with table name, not /")
-
-    if '/' in path:
-        group, name = path.rsplit('/', 1)
-    else:
-        group, name = None, path
-
-    if isinstance(output, (h5py.highlevel.File, h5py.highlevel.Group)):
-
-        if group:
-            try:
-                output_group = output[group]
-            except (KeyError, ValueError):
-                output_group = output.create_group(group)
+            import h5py
+        except ImportError:
+            return False
         else:
-            output_group = output
+            return isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group, h5py.highlevel.Dataset))
 
-    elif isinstance(output, six.string_types):
+    @staticmethod
+    def read(input, path=None):
+        """
+        Read a Table object from an HDF5 file
 
-        if os.path.exists(output) and not append:
-            if overwrite and not append:
-                os.remove(output)
+        This requires `h5py <http://h5py.org/>`_ to be installed. If more than one
+        table is present in the HDF5 file or group, the first table is read in and
+        a warning is displayed.
+
+        Parameters
+        ----------
+        input : str or :class:`h5py:File` or :class:`h5py:Group` or
+            :class:`h5py:Dataset` If a string, the filename to read the table from.
+            If an h5py object, either the file or the group object to read the
+            table from.
+        path : str
+            The path from which to read the table inside the HDF5 file.
+            This should be relative to the input file or group.
+        """
+
+        try:
+            import h5py
+        except ImportError:
+            raise Exception("h5py is required to read and write HDF5 files")
+
+        if isinstance(input, (h5py.highlevel.File, h5py.highlevel.Group)):
+
+            # If a path was specified, follow the path
+
+            if path:
+                try:
+                    input = input[path]
+                except (KeyError, ValueError):
+                    raise IOError("Path {0} does not exist".format(path))
+
+            # `input` is now either a group or a dataset. If it is a group, we
+            # will search for all structured arrays inside the group, and if there
+            # is one we can proceed otherwise an error is raised. If it is a
+            # dataset, we just proceed with the reading.
+
+            if isinstance(input, h5py.highlevel.Group):
+
+                # Find all structured arrays in group
+                arrays = _find_all_structured_arrays(input)
+
+                if len(arrays) == 0:
+                    raise ValueError("no table found in HDF5 group {0}".
+                                     format(path))
+                elif len(arrays) > 0:
+                    path = arrays[0] if path is None else path + '/' + arrays[0]
+                    warnings.warn("path= was not specified but multiple tables"
+                                  " are present, reading in first available"
+                                  " table (path={0})".format(path),
+                                  AstropyUserWarning)
+                    return HDF5TableIO.read(input, path=path)
+
+        elif not isinstance(input, h5py.highlevel.Dataset):
+
+            # If a file object was passed, then we need to extract the filename
+            # because h5py cannot properly read in file objects.
+
+            if hasattr(input, 'read'):
+                try:
+                    input = input.name
+                except AttributeError:
+                    raise TypeError("h5py can only open regular files")
+
+            # Open the file for reading, and recursively call read_table_hdf5 with
+            # the file object and the path.
+
+            f = h5py.File(input, 'r')
+
+            try:
+                return HDF5TableIO.read(f, path=path)
+            finally:
+                f.close()
+
+        # If we are here, `input` should be a Dataset object, which we can now
+        # convert to a Table.
+
+        # Create a Table object
+        from ...table import Table
+        table = Table(np.array(input))
+
+        # Read the meta-data from the file
+        table.meta.update(input.attrs)
+
+        return table
+
+    @staticmethod
+    def write(table, output, path=None, compression=False,
+                         append=False, overwrite=False):
+        """
+        Write a Table object to an HDF5 file
+
+        This requires `h5py <http://h5py.org/>`_ to be installed.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+            Data table that is to be written to file.
+        output : str or :class:`h5py:File` or :class:`h5py:Group`
+            If a string, the filename to write the table to. If an h5py object,
+            either the file or the group object to write the table to.
+        path : str
+            The path to which to write the table inside the HDF5 file.
+            This should be relative to the input file or group.
+        compression : bool or str or int
+            Whether to compress the table inside the HDF5 file. If set to `True`,
+            ``'gzip'`` compression is used. If a string is specified, it should be
+            one of ``'gzip'``, ``'szip'``, or ``'lzf'``. If an integer is
+            specified (in the range 0-9), ``'gzip'`` compression is used, and the
+            integer denotes the compression level.
+        append : bool
+            Whether to append the table to an existing HDF5 file.
+        overwrite : bool
+            Whether to overwrite any existing file without warning.
+            If ``append=True`` and ``overwrite=True`` then only the dataset will be
+            replaced; the file/group will not be overwritten.
+        """
+
+        try:
+            import h5py
+        except ImportError:
+            raise Exception("h5py is required to read and write HDF5 files")
+
+        if path is None:
+            raise ValueError("table path should be set via the path= argument")
+        elif path.endswith('/'):
+            raise ValueError("table path should end with table name, not /")
+
+        if '/' in path:
+            group, name = path.rsplit('/', 1)
+        else:
+            group, name = None, path
+
+        if isinstance(output, (h5py.highlevel.File, h5py.highlevel.Group)):
+
+            if group:
+                try:
+                    output_group = output[group]
+                except (KeyError, ValueError):
+                    output_group = output.create_group(group)
             else:
-                raise IOError("File exists: {0}".format(output))
+                output_group = output
 
-        # Open the file for appending or writing
-        f = h5py.File(output, 'a' if append else 'w')
+        elif isinstance(output, six.string_types):
 
-        # Recursively call the write function
-        try:
-            return write_table_hdf5(table, f, path=path,
-                                    compression=compression, append=append,
-                                    overwrite=overwrite)
-        finally:
-            f.close()
+            if os.path.exists(output) and not append:
+                if overwrite and not append:
+                    os.remove(output)
+                else:
+                    raise IOError("File exists: {0}".format(output))
 
-    else:
+            # Open the file for appending or writing
+            f = h5py.File(output, 'a' if append else 'w')
 
-        raise TypeError('output should be a string or an h5py File or '
-                        'Group object')
+            # Recursively call the write function
+            try:
+                return HDF5TableIO.write(table, f, path=path,
+                                         compression=compression, append=append,
+                                         overwrite=overwrite)
+            finally:
+                f.close()
 
-    # Check whether table already exists
-    if name in output_group:
-        if append and overwrite:
-            # Delete only the dataset itself
-            del output_group[name]
         else:
-            raise IOError("Table {0} already exists".format(path))
 
-    # Write the table to the file
-    if compression:
-        if compression is True:
-            compression = 'gzip'
-        dset = output_group.create_dataset(name, data=table.as_array(),
-                                           compression=compression)
-    else:
-        dset = output_group.create_dataset(name, data=table.as_array())
+            raise TypeError('output should be a string or an h5py File or '
+                            'Group object')
 
-    # Write the meta-data to the file
-    for key in table.meta:
-        val = table.meta[key]
-        try:
-            dset.attrs[key] = val
-        except TypeError:
-            warnings.warn("Attribute `{0}` of type {1} cannot be written to "
-                          "HDF5 files - skipping".format(key, type(val)),
-                          AstropyUserWarning)
+        # Check whether table already exists
+        if name in output_group:
+            if append and overwrite:
+                # Delete only the dataset itself
+                del output_group[name]
+            else:
+                raise IOError("Table {0} already exists".format(path))
+
+        # Write the table to the file
+        if compression:
+            if compression is True:
+                compression = 'gzip'
+            dset = output_group.create_dataset(name, data=table._data,
+                                               compression=compression)
+        else:
+            dset = output_group.create_dataset(name, data=table.as_array())
+
+        # Write the meta-data to the file
+        for key in table.meta:
+            val = table.meta[key]
+            try:
+                dset.attrs[key] = val
+            except TypeError:
+                warnings.warn("Attribute `{0}` of type {1} cannot be written to "
+                              "HDF5 files - skipping".format(key, type(val)),
+                              AstropyUserWarning)

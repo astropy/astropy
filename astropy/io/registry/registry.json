@@ -1,0 +1,193 @@
+{
+  "astropy.table.table.Table": {
+    "ascii": {
+      "identify": false,
+      "io_class": "ASCIITableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.aastex": {
+      "identify": false,
+      "io_class": "AsciiAastexTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.basic": {
+      "identify": false,
+      "io_class": "AsciiBasicTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.cds": {
+      "identify": false,
+      "io_class": "AsciiCdsTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.commented_header": {
+      "identify": false,
+      "io_class": "AsciiCommented_headerTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.csv": {
+      "identify": true,
+      "io_class": "AsciiCsvTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.daophot": {
+      "identify": false,
+      "io_class": "AsciiDaophotTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.fast_basic": {
+      "identify": false,
+      "io_class": "AsciiFast_basicTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.fast_commented_header": {
+      "identify": false,
+      "io_class": "AsciiFast_commented_headerTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.fast_csv": {
+      "identify": false,
+      "io_class": "AsciiFast_csvTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.fast_no_header": {
+      "identify": false,
+      "io_class": "AsciiFast_no_headerTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.fast_rdb": {
+      "identify": false,
+      "io_class": "AsciiFast_rdbTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.fast_tab": {
+      "identify": false,
+      "io_class": "AsciiFast_tabTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.fixed_width": {
+      "identify": false,
+      "io_class": "AsciiFixed_widthTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.fixed_width_no_header": {
+      "identify": false,
+      "io_class": "AsciiFixed_width_no_headerTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.fixed_width_two_line": {
+      "identify": false,
+      "io_class": "AsciiFixed_width_two_lineTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.html": {
+      "identify": true,
+      "io_class": "AsciiHtmlTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.ipac": {
+      "identify": false,
+      "io_class": "AsciiIpacTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.latex": {
+      "identify": true,
+      "io_class": "AsciiLatexTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.no_header": {
+      "identify": false,
+      "io_class": "AsciiNo_headerTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.rdb": {
+      "identify": true,
+      "io_class": "AsciiRdbTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.sextractor": {
+      "identify": false,
+      "io_class": "AsciiSextractorTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "ascii.tab": {
+      "identify": false,
+      "io_class": "AsciiTabTableIO",
+      "module": "astropy.io.ascii.connect",
+      "read": true,
+      "write": true
+    },
+    "fits": {
+      "identify": true,
+      "io_class": "FITSTableIO",
+      "module": "astropy.io.fits.connect",
+      "read": true,
+      "write": true
+    },
+    "hdf5": {
+      "identify": true,
+      "io_class": "HDF5TableIO",
+      "module": "astropy.io.misc.hdf5",
+      "read": true,
+      "write": true
+    },
+    "jsviewer": {
+      "identify": false,
+      "io_class": "JSViewerTableIO",
+      "module": "astropy.table.jsviewer",
+      "read": false,
+      "write": true
+    },
+    "votable": {
+      "identify": true,
+      "io_class": "VOTableIO",
+      "module": "astropy.io.votable.connect",
+      "read": true,
+      "write": true
+    }
+  }
+}

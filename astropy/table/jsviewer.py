@@ -7,7 +7,7 @@ import glob
 
 from .table import Table
 
-from ..io import registry as io_registry
+from ..io.registry import BaseIO
 from .. import config as _config
 from .. import extern
 
@@ -154,23 +154,27 @@ class JSViewer(object):
                                      tid=table_id).strip()
 
 
-def write_table_jsviewer(table, filename, table_id=None,
-                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
-                         max_lines=5000,
-                         jskwargs={}):
+class JSViewerTableIO(BaseIO):
 
-    if table_id is None:
-        table_id = 'table{id}'.format(id=id(table))
+    _format_name = 'jsviewer'
+    _supported_class = Table
 
-    jsv = JSViewer(**jskwargs)
+    @staticmethod
+    def write(table, filename, table_id=None,
+              css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
+              max_lines=5000,
+              jskwargs={}):
 
-    htmldict = {}
-    htmldict['table_id'] = table_id
-    htmldict['css'] = css
-    htmldict['cssfiles'] = jsv.css_urls
-    htmldict['jsfiles'] = jsv.jquery_urls
-    htmldict['js'] =  jsv.html_js(table_id=table_id)
+        if table_id is None:
+            table_id = 'table{id}'.format(id=id(table))
 
-    table.write(filename, format='html', htmldict=htmldict)
+        jsv = JSViewer(**jskwargs)
 
-io_registry.register_writer('jsviewer', Table, write_table_jsviewer)
+        htmldict = {}
+        htmldict['table_id'] = table_id
+        htmldict['css'] = css
+        htmldict['cssfiles'] = jsv.css_urls
+        htmldict['jsfiles'] = jsv.jquery_urls
+        htmldict['js'] =  jsv.html_js(table_id=table_id)
+
+        table.write(filename, format='ascii.html', htmldict=htmldict)

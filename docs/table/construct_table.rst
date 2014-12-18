@@ -660,7 +660,7 @@ following example this is used to make a LaTeX ready output::
     >>> t['b'].format = latex_exp
     >>> t['a'].format = '.4f'
     >>> import sys
-    >>> t.write(sys.stdout, format='latex')
+    >>> t.write(sys.stdout, format='ascii.latex')
     \begin{table}
     \begin{tabular}{cc}
     a & b \\

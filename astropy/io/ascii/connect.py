@@ -5,9 +5,8 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-from .. import registry as io_registry
+from ..registry import BaseIO
 from ...table import Table
-from ...extern.six.moves import zip
 
 __all__ = []
 
@@ -20,51 +19,96 @@ def read_asciitable(filename, **kwargs):
     from .ui import read
     return read(filename, **kwargs)
 
-io_registry.register_reader('ascii', Table, read_asciitable)
-
 
 def write_asciitable(table, filename, **kwargs):
     from .ui import write
     return write(table, filename, **kwargs)
 
-io_registry.register_writer('ascii', Table, write_asciitable)
 
+# Generic ASCII I/O class
 
-def io_read(format, filename, **kwargs):
-    from .ui import read
-    format = re.sub(r'^ascii\.', '', format)
-    return read(filename, format=format, **kwargs)
+class ASCIITableIO(BaseIO):
 
+    _format_name = 'ascii'
+    _supported_class = Table
 
-def io_write(format, table, filename, **kwargs):
-    from .ui import write
-    format = re.sub(r'^ascii\.', '', format)
-    return write(table, filename, format=format, **kwargs)
+    @staticmethod
+    def read(filename, **kwargs):
+        from .ui import read
+        return read(filename, **kwargs)
 
+    @staticmethod
+    def write(table, filename, **kwargs):
+        from .ui import write
+        return write(table, filename, **kwargs)
 
-def io_identify(suffix, origin, filepath, fileobj, *args, **kwargs):
-    return filepath is not None and filepath.endswith(suffix)
+# Format-specific classes
 
+BUILTIN_ASCII_FORMATS = ['ascii.aastex',
+                         'ascii.basic',
+                         'ascii.cds',
+                         'ascii.commented_header',
+                         'ascii.csv',
+                         'ascii.daophot',
+                         'ascii.fast_basic',
+                         'ascii.fast_commented_header',
+                         'ascii.fast_csv',
+                         'ascii.fast_no_header',
+                         'ascii.fast_rdb',
+                         'ascii.fast_tab',
+                         'ascii.fixed_width',
+                         'ascii.fixed_width_no_header',
+                         'ascii.fixed_width_two_line',
+                         'ascii.html',
+                         'ascii.ipac',
+                         'ascii.latex',
+                         'ascii.no_header',
+                         'ascii.rdb',
+                         'ascii.sextractor',
+                         'ascii.tab']
 
-def _get_connectors_table():
-    from .core import FORMAT_CLASSES
+EXTENSIONS = {
+    'ascii.csv': ('csv'),
+    'ascii.rdb': ('rdb'),
+    'ascii.html': ('html'),
+    'ascii.latex': ('tex')
+}
 
-    rows = []
-    rows.append(('ascii', '', 'Yes', 'ASCII table in any supported format (uses guessing)'))
-    for format in sorted(FORMAT_CLASSES):
-        cls = FORMAT_CLASSES[format]
+ASCII_CLASSES = {}
 
-        io_format = 'ascii.' + cls._format_name
-        description = getattr(cls, '_description', '')
-        class_link = ':class:`~{}.{}`'.format(cls.__module__, cls.__name__)
-        suffix = getattr(cls, '_io_registry_suffix', '')
-        can_write = 'Yes' if getattr(cls, '_io_registry_can_write', True) else ''
+for ascii_format in BUILTIN_ASCII_FORMATS:
 
-        rows.append((io_format, suffix, can_write,
-                     '{}: {}'.format(class_link, description)))
-    out = Table(list(zip(*rows)), names=('Format', 'Suffix', 'Write', 'Description'))
-    for colname in ('Format', 'Description'):
-        width = max(len(x) for x in out[colname])
-        out[colname].format = '%-{}s'.format(width)
+    _format_name = 'ascii'
+    _supported_class = Table
 
-    return out
+    def read(self, filename, **kwargs):
+        from .ui import read
+        fmt = re.sub(r'^ascii\.', '', self._format_name)
+        return read(filename, format=fmt, **kwargs)
+
+    def write(self, table, filename, **kwargs):
+        from .ui import write
+        fmt = re.sub(r'^ascii\.', '', self._format_name)
+        return write(table, filename, format=fmt, **kwargs)
+
+    def identify(self, origin, filepath, fileobj, *args, **kwargs):
+        return filepath is not None and filepath.endswith(self._extensions)
+
+    name = "".join([x.capitalize() for x in ascii_format.split(".")]) + "TableIO"
+
+    attributes = {
+        "_format_name": ascii_format,
+        "_supported_class": Table,
+        "read": read,
+        "write": write
+    }
+
+    if ascii_format in EXTENSIONS:
+        attributes["_extensions"] = EXTENSIONS[ascii_format],
+        attributes["identify"] = identify
+
+    globals()[name] = type(name, (BaseIO,), attributes)
+
+del read, write, identify, name
+
+# TODO: add back deprecated formats?
