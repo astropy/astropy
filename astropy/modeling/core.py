@@ -1752,7 +1752,17 @@ class _CompoundModelMeta(_ModelMeta):
             except ValueError:
                 raise IndexError(
                     'Compound model {0} does not have a component named '
-                    '{1}'.format(cls.name, index))
+                    '{1}'.format(cls.name, name))
+
+        def check_for_negative_index(index):
+            if index < 0:
+                ind = len(cls.submodel_names) + index
+                if ind < 0:
+                # If still < 0 then this is an invalid index
+                    raise IndexError("Model index {0} out of range.".format(index))
+                else:
+                    return ind
+            return index
 
         if isinstance(index, six.string_types):
             return get_index_from_name(index)
@@ -1766,11 +1776,14 @@ class _CompoundModelMeta(_ModelMeta):
             start = index.start if index.start is not None else 0
             stop = (index.stop
                     if index.stop is not None else len(cls.submodel_names))
+            if isinstance(start, int):
+                start = check_for_negative_index(start)
+            if isinstance(stop, int):
+                stop = check_for_negative_index(stop)
             if isinstance(start, six.string_types):
-                start = cls.submodel_names.index(start)
+                start = get_index_from_name(start)
             if isinstance(stop, six.string_types):
-                stop = cls.submodel_names.index(stop) + 1
-
+                stop = get_index_from_name(stop) + 1
             length = stop - start
 
             if length == 1:
@@ -1782,7 +1795,6 @@ class _CompoundModelMeta(_ModelMeta):
         elif isinstance(index, int):
             if index < 0:
                 index = len(cls.submodel_names) + index
-
             if index < 0 or index >= len(cls.submodel_names):
                 # If still < 0 then this is an invalid index
                 raise IndexError("Model index out of range.")

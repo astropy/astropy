@@ -495,3 +495,29 @@ def test_mapping_inverse():
     m = M(12.1, 13.2, 14.3, 15.4)
 
     assert_allclose((0, 1, 2), m.inverse(*m(0, 1, 2)), atol=1e-08)
+
+
+def test_slicing_on_instances_2():
+    """More slicing tests."""
+
+    model_a = Shift(1, name='a')
+    model_b = Shift(2, name='b')
+    model_c = Rotation2D(3, name='c')
+    model_d = Scale(2, name='d')
+    model_e = Scale(3, name='e')
+
+    m = (model_a & model_b) | model_c | (model_d & model_e)
+
+    assert m[1:].submodel_names == ('b', 'c', 'd', 'e')
+    assert m[:].submodel_names == ('a', 'b', 'c', 'd', 'e')
+    assert m['a':].submodel_names == ('a', 'b', 'c', 'd', 'e')
+    assert m['c':'d'].submodel_names == ('c', 'd')
+    assert m[1:2].name == 'b'
+    assert m[2:7].submodel_names == ('c', 'd', 'e')
+    with pytest.raises(IndexError):
+        m['x']
+    with pytest.raises(IndexError):
+        m['a' : 'r']
+    assert m[-4:4].submodel_names == ('b', 'c', 'd')
+    assert m[-4:-2].submodel_names == ('b', 'c')
+
