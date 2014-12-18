@@ -202,60 +202,6 @@ class ExpressionTree(object):
 
         return ''.join(operands)
 
-    # TODO: This could still use a lot of improvement; in particular the trees
-    # it outputs are often too wide, and could be made more compactly.  More
-    # formatting control would be useful too.
-    def format_tree_ascii(self, format_leaf=lambda i, l: str(l)):
-        """
-        Format the tree using an ASCII character representation.
-
-        Parameters
-        ----------
-        format_leaf : callable
-            A function of a single argument which, given a node value,
-            returns a string representing that node in the tree display.
-        """
-
-        stack = deque()
-        leaf_idx = 0
-
-        for node in self.traverse_postorder():
-            if node.isleaf:
-                text = format_leaf(leaf_idx, node.value)
-                stack.append((len(text), [text]))
-                leaf_idx += 1
-                continue
-
-            right_width, right = stack.pop()
-            left_width, left = stack.pop()
-
-            if left_width > right_width:
-                right = [r.center(left_width) for r in right]
-                child_width = left_width
-            elif right_width > left_width:
-                left = [l.center(right_width) for l in left]
-                child_width = right_width
-            else:
-                child_width = left_width  # without loss of generality
-
-            root = '[{0}]'.format(node.value)
-            spine = '/   \\'
-            fill = ' ' * len(spine)
-            width = 2 * child_width + len(fill)
-
-            offset = child_width - (child_width % 2)
-            spine = spine.center(width - 2 - offset, '_').center(width)
-            root = root.center(width)
-
-            lines = [root, spine]
-            for l, r in zip_longest(left, right,
-                                    fillvalue=' ' * child_width):
-                lines.append(l + fill + r)
-
-            stack.append((width, lines))
-
-        return textwrap.dedent('\n'.join(stack[0][1]))
-
 
 def make_binary_operator_eval(oper, f, g):
     """
