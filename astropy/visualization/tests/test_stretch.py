@@ -56,7 +56,7 @@ class TestStretch(object):
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_round_trip(self, stretch):
 
-        np.testing.assert_allclose(stretch.inverted()(stretch(DATA, clip=False), clip=False),
+        np.testing.assert_allclose(stretch.inverse(stretch(DATA, clip=False), clip=False),
                                    DATA)
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
@@ -64,15 +64,15 @@ class TestStretch(object):
 
         result = np.zeros(DATA.shape)
         stretch(DATA, out=result, clip=False)
-        stretch.inverted()(result, out=result, clip=False)
+        stretch.inverse(result, out=result, clip=False)
         np.testing.assert_allclose(result, DATA)
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_double_inverse(self, stretch):
-        np.testing.assert_allclose(stretch.inverted().inverted()(DATA), stretch(DATA), atol=1.e-6)
+        np.testing.assert_allclose(stretch.inverse.inverse(DATA), stretch(DATA), atol=1.e-6)
 
     def test_inverted(self):
-        stretch_1 = SqrtStretch().inverted()
+        stretch_1 = SqrtStretch().inverse
         stretch_2 = PowerStretch(2)
         np.testing.assert_allclose(stretch_1(DATA),
                                    stretch_2(DATA))
@@ -86,7 +86,7 @@ class TestStretch(object):
         np.testing.assert_allclose(stretch_1(DATA),
                                    stretch_2(DATA))
 
-        np.testing.assert_allclose(stretch_1.inverted()(DATA),
+        np.testing.assert_allclose(stretch_1.inverse(DATA),
                                    stretch_3(DATA))
 
 

@@ -69,7 +69,8 @@ class BaseStretch(BaseTransform):
             The transformed values.
         """
 
-    def inverted(self):
+    @property
+    def inverse(self):
         """
         Return a stretch that performs the inverse operation.
         """
@@ -89,7 +90,8 @@ class LinearStretch(BaseStretch):
 
         return _prepare(values, out=out, clip=clip)
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return LinearStretch()
 
 
@@ -111,7 +113,8 @@ class SqrtStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return PowerStretch(2)
 
 
@@ -137,7 +140,8 @@ class PowerStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return PowerStretch(1. / self.power)
 
 
@@ -167,7 +171,8 @@ class PowerDistStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return InvertedPowerDistStretch(a=self.exp)
 
 
@@ -192,7 +197,8 @@ class InvertedPowerDistStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return PowerDistStretch(a=self.exp)
 
 
@@ -209,7 +215,8 @@ class SquaredStretch(PowerStretch):
     def __init__(self):
         super(SquaredStretch, self).__init__(2)
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return SqrtStretch()
 
 
@@ -238,7 +245,8 @@ class LogStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return InvertedLogStretch(self.exp)
 
 
@@ -262,7 +270,8 @@ class InvertedLogStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return LogStretch(self.exp)
 
 
@@ -290,7 +299,8 @@ class AsinhStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return SinhStretch(a=1. / np.arcsinh(1. / self.a))
 
 
@@ -318,7 +328,8 @@ class SinhStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return AsinhStretch(a=1. / np.sinh(1. / self.a))
 
 
@@ -354,7 +365,8 @@ class HistEqStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return InvertedHistEqStretch(self.data, values=self.values)
 
 
@@ -378,7 +390,8 @@ class InvertedHistEqStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return HistEqStretch(self.data, values=self.values)
 
 
@@ -414,7 +427,8 @@ class ContrastBiasStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return InvertedContrastBiasStretch(self.contrast, self.bias)
 
 
@@ -444,5 +458,6 @@ class InvertedContrastBiasStretch(BaseStretch):
 
         return values
 
-    def inverted(self):
+    @property
+    def inverse(self):
         return ContrastBiasStretch(self.contrast, self.bias)

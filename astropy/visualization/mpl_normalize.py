@@ -34,7 +34,7 @@ class ImageNormalize(Normalize):
         self.vmin = vmin
         self.vmax = vmax
         self.stretch = stretch
-        self.inverse_stretch = stretch.inverted()
+        self.inverse_stretch = stretch.inverse
 
     def __call__(self, values, clip=None):
 

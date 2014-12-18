@@ -2,13 +2,16 @@
 
 from __future__ import division, print_function
 
-from ..extern import six
-from ..utils.misc import InheritDocstrings
-
 __all__ = ['BaseTransform', 'CompositeTransform']
 
 
 class BaseTransform(object):
+    """
+    A transformation object.
+
+    This is used to construct transformations such as scaling, stretching, and
+    so on.
+    """
     def __add__(self, other):
         return CompositeTransform(other, self)
 
@@ -33,6 +36,7 @@ class CompositeTransform(BaseTransform):
     def __call__(self, values, clip=True):
         return self.transform_2(self.transform_1(values, clip=clip), clip=clip)
 
-    def inverted(self):
-        return CompositeTransform(self.transform_2.inverted(),
-                                  self.transform_1.inverted())
+    @property
+    def inverse(self):
+        return CompositeTransform(self.transform_2.inverse,
+                                  self.transform_1.inverse)
