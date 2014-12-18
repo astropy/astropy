@@ -137,6 +137,9 @@ New Features
 
 - ``astropy.time``
 
+  - ``Time`` can now handle arbitrary array dimensions, with operations
+    following standard numpy broadcasting rules. [#3138]
+  
 - ``astropy.units``
 
   - Support for VOUnit has been updated to be compliant with version

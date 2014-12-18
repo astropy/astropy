@@ -211,11 +211,11 @@ class EarthLocation(u.Quantity):
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         self_array = self.to(u.meter).view(self._array_dtype, np.ndarray)
         lon, lat, height = erfa_time.era_gc2gd(getattr(erfa, ellipsoid),
-                                               np.atleast_2d(self_array))
-        return (Longitude(lon.squeeze() * u.radian, u.degree,
+                                               self_array)
+        return (Longitude(lon * u.radian, u.degree,
                           wrap_angle=180.*u.degree),
-                Latitude(lat.squeeze() * u.radian, u.degree),
-                u.Quantity(height.squeeze() * u.meter, self.unit))
+                Latitude(lat * u.radian, u.degree),
+                u.Quantity(height * u.meter, self.unit))
 
     @property
     def longitude(self):
