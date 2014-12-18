@@ -13,7 +13,6 @@ from .nddata import NDData
 
 __all__ = ['support_nddata']
 
-# TODO: write documentation
 
 def support_nddata(_func=None, accepts=NDData, repack=False, returns=None):
 

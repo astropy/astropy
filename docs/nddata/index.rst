@@ -63,6 +63,7 @@ Using ``nddata``
 
    nddata.rst
    subclassing.rst
+   decorator.rst
 
 Reference/API
 =============
