@@ -9,6 +9,7 @@ be easily provided by a single array.
 """
 
 from .nddata import *
+from .nddatabase import *
 from .nduncertainty import *
 from .flag_collection import *
 from .decorators import *
