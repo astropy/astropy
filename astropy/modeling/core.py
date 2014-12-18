@@ -1756,12 +1756,14 @@ class _CompoundModelMeta(_ModelMeta):
 
         def check_for_negative_index(index):
             if index < 0:
-                ind = len(cls.submodel_names) + index
-                if ind < 0:
-                # If still < 0 then this is an invalid index
-                    raise IndexError("Model index {0} out of range.".format(index))
+                new_index = len(cls.submodel_names) + index
+                if new_index < 0:
+                    # If still < 0 then this is an invalid index
+                    raise IndexError(
+                            "Model index {0} out of range.".format(index))
                 else:
-                    return ind
+                    index = new_index
+
             return index
 
         if isinstance(index, six.string_types):
@@ -1793,12 +1795,11 @@ class _CompoundModelMeta(_ModelMeta):
 
             return slice(start, stop)
         elif isinstance(index, int):
-            if index < 0:
-                index = len(cls.submodel_names) + index
-            if index < 0 or index >= len(cls.submodel_names):
-                # If still < 0 then this is an invalid index
-                raise IndexError("Model index out of range.")
-            return index
+            if index >= len(cls.submodel_names):
+                raise IndexError(
+                        "Model index {0} out of range.".format(index))
+
+            return check_for_negative_index(index)
 
         raise TypeError(
             'Submodels can be indexed either by their integer order or '
