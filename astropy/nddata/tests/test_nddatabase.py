@@ -9,6 +9,9 @@ from ...tests.helper import pytest
 
 
 class MinimalSubclass(NDDataBase):
+    def __init__(self):
+        super(MinimalSubclass, self).__init__()
+
     @property
     def data(self):
         return None

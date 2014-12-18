@@ -4,13 +4,16 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from abc import ABCMeta, abstractproperty
+from abc import ABCMeta, abstractproperty, abstractmethod
 
 from ..extern import six
 
 
 @six.add_metaclass(ABCMeta)
 class NDDataBase(object):
+    @abstractmethod
+    def __init__(self):
+        self._uncertainty = None
 
     @abstractproperty
     def data(self):
@@ -34,8 +37,8 @@ class NDDataBase(object):
 
     # uncertainty and its setter are implemented as concrete to enforce the
     # logic in the uncertainty setter. For a long discussion of the problems
-    # with trying to implement them as abstract (particularly the setter), see
-    # http://bugs.python.org/issue11610
+    # with trying to implement them as abstract (particularly the setter but
+    # not the getter), see http://bugs.python.org/issue11610
     #
     # In python >= 3.3 it would be easy to decorate one of these (setter or
     # getter) as abstract but not the other.
