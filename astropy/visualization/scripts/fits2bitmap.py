@@ -99,7 +99,6 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
 
     mimg.imsave(out_fn, image_scaled, cmap=cmap)
     log.info('Saved file to {0}'.format(out_fn))
-    return
 
 
 def main(args=None):
