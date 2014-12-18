@@ -17,7 +17,7 @@ def scale_image(image, scale='linear', power=1.0, asinh_a=0.1, min_cut=None,
     Parameters
     ----------
     image : array_like
-        The 2D array of the image.
+        The array of values
 
     scale : {{'linear', 'sqrt', 'power', log', 'asinh'}}
         The scaling/stretch function to apply to the image.  The default
@@ -69,7 +69,7 @@ def scale_image(image, scale='linear', power=1.0, asinh_a=0.1, min_cut=None,
     Returns
     -------
     image : ndarray
-        The 2D array of the scaled/stretched image with a minimum of 0.0
+        The array of the scaled/stretched image with a minimum of 0.0
         and a maximum of 1.0.
     """
 

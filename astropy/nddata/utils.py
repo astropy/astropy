@@ -67,13 +67,18 @@ def extract_array(array_large, shape, position):
 
     Parameters
     ----------
-    array_large : ndarray
+    array_large : `~numpy.ndarray`
         Array to extract another array from.
     shape : tuple
         Shape of the extracted array.
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
+
+    Returns
+    -------
+    array_small : `~numpy.ndarray`
+        The extracted array
 
     Examples
     --------
@@ -104,13 +109,19 @@ def add_array(array_large, array_small, position):
 
     Parameters
     ----------
-    array_large : ndarray
+    array_large : `~numpy.ndarray`
         Large array.
-    array_small : ndarray
+    array_small : `~numpy.ndarray`
         Small array to add.
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
+
+    Returns
+    -------
+    new_array : `~numpy.ndarray`
+        The new array formed from the sum of ``array_large`` and
+        ``array_small``.
 
     Notes
     -----
@@ -147,12 +158,39 @@ def subpixel_indices(position, subsampling):
     """
     Convert decimal points to indices, given a subsampling factor.
 
+    This discards the integer part of the position and uses only the decimal
+    place, and converts this to a subpixel position depending on the
+    subsampling specified. The center of a pixel corresponds to an integer
+    position.
+
     Parameters
     ----------
-    position : ndarray or array-like
+    position : `~numpy.ndarray` or array-like
         Positions in pixels.
     subsampling : int
         Subsampling factor per pixel.
+
+    Return
+    ------
+    indices : `~numpy.ndarray`
+        The integer subpixel indices corresponding to the input positions.
+
+    Examples
+    --------
+
+    If no subsampling is used, then the subpixel indices returned are always 0:
+
+    >>> from astropy.nddata.utils import subpixel_indices
+    >>> subpixel_indices([1.2, 3.4, 5.6],1)
+    array([ 0.,  0.,  0.])
+
+    If instead we use a subsampling of 2, we see that for the two first values
+    (1.1 and 3.4) the subpixel position is 1, while for 5.6 it is 0. This is
+    because the values of 1, 3, and 6 lie in the center of pixels, and 1.1 and
+    3.4 lie in the left part of the pixels and 5.6 lies in the right part.
+
+    >>> subpixel_indices([1.2, 3.4, 5.5],2)
+    array([ 1.,  1.,  0.])
     """
     # Get decimal points
     fractions = np.modf(np.asanyarray(position) + 0.5)[0]

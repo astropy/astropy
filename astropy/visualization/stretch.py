@@ -46,6 +46,11 @@ def _prepare(values, out=None, clip=True):
 
 @six.add_metaclass(InheritDocstrings)
 class BaseStretch(BaseTransform):
+    """
+    Base class for the stretch classes, which, when called with an array of
+    values in the range [0:1], return an transformed array of values, also in
+    the range [0:1].
+    """
 
     def __call__(self, values, out=None, clip=True):
         """
@@ -120,7 +125,7 @@ class SqrtStretch(BaseStretch):
 
 class PowerStretch(BaseStretch):
     r"""
-    A power-law stretch.
+    A power stretch.
 
     The stretch is given by:
 

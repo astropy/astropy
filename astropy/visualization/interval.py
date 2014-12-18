@@ -19,6 +19,10 @@ __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
 
 
 class BaseInterval(BaseTransform):
+    """
+    Base class for the interval classes, which, when called with an array of
+    values, return an interval computed following different algorithms.
+    """
 
     @abc.abstractmethod
     def get_limits(values):

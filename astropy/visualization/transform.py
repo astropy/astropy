@@ -22,9 +22,9 @@ class CompositeTransform(BaseTransform):
 
     Parameters
     ----------
-    transform_1:
+    transform_1: :class:`astropy.visualization.BaseTransform`
         The first transform to apply.
-    transform_2:
+    transform_2: :class:`astropy.visualization.BaseTransform`
         The second transform to apply.
     """
 
