@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 import numpy as np
 from numpy import ma
 
@@ -6,11 +8,12 @@ from numpy.testing import assert_allclose
 try:
     import matplotlib
     HAS_MATPLOTLIB = True
-    from ..normalize import ImageNormalize
 except:
     HAS_MATPLOTLIB = False
+else:
+    from ..mpl_normalize import ImageNormalize
 
-from ....tests.helper import pytest
+from ...tests.helper import pytest
 from ..stretch import SqrtStretch
 
 

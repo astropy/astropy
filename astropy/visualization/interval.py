@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Classes that deal with computing intervals from arrays of values based on
 various criteria.
@@ -8,7 +10,7 @@ from __future__ import division, print_function
 import abc
 import numpy as np
 
-from ...extern import six
+from ..extern import six
 
 from .transform import BaseTransform
 

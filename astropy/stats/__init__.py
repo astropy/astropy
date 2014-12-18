@@ -12,3 +12,4 @@ astronomers' needs.
 """
 
 from .funcs import *
+from .sigma_clipping import *

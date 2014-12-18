@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Classes that deal with stretching, i.e. mapping a range of [0:1] values onto
 another set of [0:1] values with a transformation
@@ -7,8 +9,8 @@ from __future__ import division, print_function
 
 import numpy as np
 
-from ...extern import six
-from ...utils.misc import InheritDocstrings
+from ..extern import six
+from ..utils.misc import InheritDocstrings
 
 from .transform import BaseTransform
 

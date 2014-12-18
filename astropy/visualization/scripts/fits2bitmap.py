@@ -1,15 +1,15 @@
-"""command-line script"""
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import argparse
-from ... import log
-from ...io import fits
 
 import matplotlib.cm as cm
 import matplotlib.image as mimg
 
-from ..normalization.ui import scale_image
+from ... import log
+from ...io import fits
+
+from ..ui import scale_image
 
 
 def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
@@ -103,6 +103,9 @@ def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
 
 
 def main(args=None):
+
+    from ...utils.compat import argparse
+
     parser = argparse.ArgumentParser(
         description='Create a bitmap file from a FITS image.')
     parser.add_argument('-e', '--exten', type=int, default=0,
