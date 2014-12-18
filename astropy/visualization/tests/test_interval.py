@@ -4,7 +4,8 @@ import numpy as np
 
 from ...tests.helper import pytest
 
-from ..interval import *
+from ..interval import (ManualInterval, MinMaxInterval, PercentileInterval,
+                        AsymmetricPercentileInterval)
 
 
 class TestInterval(object):
