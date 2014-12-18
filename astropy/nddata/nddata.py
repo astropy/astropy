@@ -4,14 +4,16 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import collections
+
 import numpy as np
 
+from .nddatabase import NDDataBase
 from ..units import Unit, Quantity
 from .. import log
 
 from ..io import registry as io_registry
 from ..config import ConfigAlias
-from ..utils.metadata import MetaData
 from ..extern import six
 
 __all__ = ['NDData']
@@ -25,7 +27,7 @@ WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
     'astropy.nddata.nddata', 'astropy.nddata')
 
 
-class NDData(object):
+class NDData(NDDataBase):
     """A Superclass for array-based data in Astropy.
 
     The key distinction from raw numpy arrays is the presence of
@@ -101,8 +103,6 @@ class NDData(object):
 
     """
 
-    meta = MetaData()
-
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
                  meta=None, unit=None):
 
@@ -111,7 +111,7 @@ class NDData(object):
             self.uncertainty = data.uncertainty
             self._mask = data.mask
             self._wcs = data.wcs
-            self.meta = data.meta
+            self._meta = data.meta
             self._unit = data.unit
 
             if uncertainty is not None:
@@ -129,7 +129,7 @@ class NDData(object):
                 log.info("Overwriting NDData's current wcs with specified wcs")
 
             if meta is not None:
-                self.meta = meta
+                self._meta = meta
                 log.info("Overwriting NDData's current meta "
                          "with specified meta")
 
@@ -158,7 +158,14 @@ class NDData(object):
                 self._mask = mask
 
             self._wcs = wcs
-            self.meta = meta
+
+            if meta is None:
+                self._meta = collections.OrderedDict()
+            elif not isinstance(meta, collections.Mapping):
+                raise TypeError("meta attribute must be dict-like")
+            else:
+                self._meta = meta
+
             if isinstance(data, Quantity):
                 if unit is not None:
                     raise ValueError("Cannot use the unit argument when data "
@@ -196,30 +203,16 @@ class NDData(object):
         self._mask = value
 
     @property
-    def uncertainty(self):
-        return self._uncertainty
-
-    @uncertainty.setter
-    def uncertainty(self, value):
-        if value is not None:
-            try:
-                not_good_uncertainty = not isinstance(value.uncertainty_type,
-                                                      six.string_types)
-            except AttributeError:
-                not_good_uncertainty = True
-            finally:
-                if not_good_uncertainty:
-                    raise TypeError('Uncertainty must have attribute '
-                                    'uncertainty_type whose type is string.')
-        self._uncertainty = value
-
-    @property
     def unit(self):
         return self._unit
 
     @property
     def wcs(self):
         return self._wcs
+
+    @property
+    def meta(self):
+        return self._meta
 
     @property
     def shape(self):
