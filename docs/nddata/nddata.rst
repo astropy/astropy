@@ -37,20 +37,6 @@ An `~astropy.nddata.NDData` object can also be instantiated by passing it an
 As above, the data in``ndd2`` is a reference to the data in ``ndd1``, so
 changes to one will affect the other.
 
-This object has a few attributes in common with Numpy:
-
-    >>> ndd.ndim
-    3
-    >>> ndd.shape
-    (12, 12, 12)
-    >>> ndd.dtype
-    dtype('float64')
-
-The underlying Numpy array can be accessed via the ``data`` attribute::
-
-    >>> ndd.data
-    array([[[ 0.,  0.,  0., ...
-
 If an `~astropy.nddata.NDData` object is initialized with a masked numpy array
 then the mask attribute, described in the next section, is automatically set
 to the mask of the numpy array.

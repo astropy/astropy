@@ -65,11 +65,11 @@ def test_nddata_uncertainty_invalid_type(uncertainty):
 def test_simple_slicing():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
-    assert d1.shape == (5, 5)
+    assert d1.data.shape == (5, 5)
     d2 = d1[2:3, 2:3]
-    assert d2.shape == (1, 1)
+    assert d2.data.shape == (1, 1)
     d3 = d1[2, 2]
-    assert d3.shape == ()
+    assert d3.data.shape == ()
 
 
 def test_slicing_reference():
@@ -85,7 +85,7 @@ def test_slicing_with_mask_or_flag():
     # Regression test for #2170
     ndd = NDDataArithmetic(np.array([1, 2, 3]),
                            mask=np.array([False, False, False]))
-    assert ndd[0].shape == ()
+    assert ndd[0].data.shape == ()
     assert not ndd[0].mask
 
 

@@ -50,9 +50,9 @@ def test_nddata_init_with_nonarray():
 def test_nddata_simple():
     with NumpyRNGContext(123):
         nd = NDData(np.random.random((10, 10)))
-    assert nd.shape == (10, 10)
-    assert nd.size == 100
-    assert nd.dtype == np.dtype(float)
+    assert nd.data.shape == (10, 10)
+    assert nd.data.size == 100
+    assert nd.data.dtype == np.dtype(float)
 
 
 def test_nddata_data_properties():
@@ -155,8 +155,8 @@ def test_nddata_copy_ref():
 
 def test_nddata_conversion():
     nd = NDData(np.array([[1, 2, 3], [4, 5, 6]]))
-    assert nd.size == 6
-    assert nd.dtype == np.dtype(int)
+    assert nd.data.size == 6
+    assert nd.data.dtype == np.dtype(int)
 
 
 @raises(ValueError)

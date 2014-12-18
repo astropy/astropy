@@ -222,33 +222,5 @@ class NDData(NDDataBase):
     def meta(self):
         return self._meta
 
-    @property
-    def shape(self):
-        """
-        shape tuple of this object's data.
-        """
-        return self.data.shape
-
-    @property
-    def size(self):
-        """
-        integer size of this object's data.
-        """
-        return self.data.size
-
-    @property
-    def dtype(self):
-        """
-        `numpy.dtype` of this object's data.
-        """
-        return self.data.dtype
-
-    @property
-    def ndim(self):
-        """
-        integer dimensions of this object's data
-        """
-        return self.data.ndim
-
     read = classmethod(io_registry.read)
     write = io_registry.write

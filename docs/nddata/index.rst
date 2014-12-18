@@ -28,25 +28,9 @@ n-dimensional Numpy array::
     >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
     >>> ndd = NDData(array)
 
-This object has a few attributes in common with Numpy:
-
-    >>> ndd.ndim
-    3
-    >>> ndd.shape
-    (12, 12, 12)
-    >>> ndd.dtype
-    dtype('float64')
-
-Although the underlying Numpy array can be accessed via the ``data`` attribute::
+The underlying Numpy array can be accessed via the ``data`` attribute::
 
     >>> ndd.data
-    array([[[ 0., 0., 0., ...
-    ...
-
-the preferred way to access that data (because it will incorporate mask
-information) is either by using ``numpy.asarray`` or using the ``NDData`` object as if it were a numpy array::
-
-    >>> np.asarray(ndd)  # doctest: +SKIP
     array([[[ 0., 0., 0., ...
     ...
 

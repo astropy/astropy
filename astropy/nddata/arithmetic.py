@@ -75,7 +75,7 @@ class NDArithmetic(object):
             # current API raises ValueError in this case, not UnitError
             raise ValueError("operand units do not match")
 
-        if self.shape != operand.shape:
+        if self.data.shape != operand.data.shape:
             raise ValueError("operand shapes do not match")
 
         # Instead of manually scaling the operand data just let Quantity
@@ -308,7 +308,7 @@ class NDDataArithmetic(NDArithmetic, NDSlicing, NDData):
         # Check that value is not either type of null mask.
         if (value is not None) and (value is not np.ma.nomask):
             mask = np.array(value, dtype=np.bool_, copy=False)
-            if mask.shape != self.shape:
+            if mask.shape != self.data.shape:
                 raise ValueError("dimensions of mask do not match data")
             else:
                 self._mask = mask

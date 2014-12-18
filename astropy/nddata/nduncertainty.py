@@ -189,7 +189,7 @@ class StdDevUncertainty(NDUncertainty):
         if self.array is None or value is None:
             self._parent_nddata = value
         else:
-            if value.shape != self.array.shape:
+            if value.data.shape != self.array.shape:
                 raise ValueError("parent shape does not match array data shape")
         self._parent_nddata = value
 
@@ -201,7 +201,7 @@ class StdDevUncertainty(NDUncertainty):
     def array(self, value):
         if value is not None:
             with ignored(MissingDataAssociationException):
-                if value.shape != self.parent_nddata.shape:
+                if value.shape != self.parent_nddata.data.shape:
                     raise ValueError(
                             "array shape does not match parent data shape")
         self._array = value
