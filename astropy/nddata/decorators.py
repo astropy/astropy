@@ -16,7 +16,7 @@ __all__ = ['support_nddata']
 
 def support_nddata(_func=None, accepts=NDData, repack=False, returns=None):
     """
-    Decorator to split NDData properties into function arguments
+    Decorator to split NDData properties into function arguments.
 
     This is a decorator to allow functions to take NDData objects as their
     first arguments and split up the properties into kwargs as required by the
