@@ -12,7 +12,7 @@ from ...io import fits
 from ..ui import scale_image
 
 
-def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
+def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
                 power=1.0, asinh_a=0.1, min_cut=None, max_cut=None,
                 min_percent=None, max_percent=None, percent=None,
                 cmap='Greys_r'):
@@ -26,7 +26,7 @@ def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
     filename : str
         The filename of the FITS file.
 
-    exten : int
+    ext : int
         FITS extension number of the image to convert.  The default is 0.
 
     out_fn : str
@@ -83,7 +83,7 @@ def fits2bitmap(filename, exten=0, out_fn=None, scale='linear',
     """
 
     hdulist = fits.open(filename)
-    image = hdulist[exten].data
+    image = hdulist[ext].data
     hdulist.close()
     if out_fn is None:
         out_fn = filename.replace('.fits', '.png')
@@ -108,8 +108,8 @@ def main(args=None):
 
     parser = argparse.ArgumentParser(
         description='Create a bitmap file from a FITS image.')
-    parser.add_argument('-e', '--exten', type=int, default=0,
-                        help='FITS extension number of the image to convert')
+    parser.add_argument('-e', '--ext', metavar='hdu', type=int, default=0,
+                        help='specify the HDU extension number or name')
     parser.add_argument('-o', metavar='filename', type=str, default=None,
                         help='Filename for the output image (Default is a '
                         'PNG file with the same name as the FITS file)')
@@ -143,7 +143,7 @@ def main(args=None):
     args = parser.parse_args(args)
 
     for filename in args.filename:
-        fits2bitmap(filename, exten=args.exten, out_fn=args.o,
+        fits2bitmap(filename, ext=args.ext, out_fn=args.o,
                     scale=args.scale, min_cut=args.min_cut,
                     max_cut=args.max_cut, min_percent=args.min_percent,
                     max_percent=args.max_percent, percent=args.percent,
