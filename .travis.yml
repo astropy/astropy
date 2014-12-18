@@ -82,7 +82,7 @@ install:
     - if [[ $SETUP_CMD == test* || $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL pytest pip Cython jinja2 psutil; fi
 
     # OPTIONAL DEPENDENCIES
-    - if $OPTIONAL_DEPS; then $CONDA_INSTALL scipy h5py; fi
+    - if $OPTIONAL_DEPS; then $CONDA_INSTALL scipy h5py matplotlib; fi
     - if $OPTIONAL_DEPS; then pip install beautifulsoup4; fi
 
     # DOCUMENTATION DEPENDENCIES
