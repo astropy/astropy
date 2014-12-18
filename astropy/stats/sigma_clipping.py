@@ -129,12 +129,11 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
     if iters is None:
         i = -1
         lastrej = filtered_data.count() + 1
-        while(filtered_data.count() != lastrej):
+        while filtered_data.count() != lastrej:
             i += 1
             lastrej = filtered_data.count()
             do = filtered_data - cenfunc(filtered_data)
             filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
-        iters = i + 1
     else:
         for i in range(iters):
             do = filtered_data - cenfunc(filtered_data)

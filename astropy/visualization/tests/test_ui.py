@@ -39,3 +39,8 @@ class TestImageScaling(object):
         img = scale_image(DATA, scale='asinh', asinh_a=a)
         ref = np.arcsinh(DATASCL / a) / np.arcsinh(1. / a)
         assert_allclose(img, ref, atol=0, rtol=1.e-5)
+
+    def test_min(self):
+        """Test linear scaling."""
+        img = scale_image(DATA, scale='linear', min_cut=1.)
+        assert_allclose(img, [0., 0., 1.], atol=0, rtol=1.e-5)

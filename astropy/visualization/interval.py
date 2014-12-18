@@ -10,8 +10,6 @@ from __future__ import division, print_function
 import abc
 import numpy as np
 
-from ..extern import six
-
 from .transform import BaseTransform
 
 __all__ = ['BaseInterval', 'ManualInterval', 'MinMaxInterval',
@@ -25,7 +23,7 @@ class BaseInterval(BaseTransform):
     """
 
     @abc.abstractmethod
-    def get_limits(values):
+    def get_limits(self, values):
         """
         Return the minimum and maximum value in the interval based on the values provided.
         """

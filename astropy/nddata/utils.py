@@ -6,7 +6,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from numpy.lib.index_tricks import index_exp
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'overlap_slices']
