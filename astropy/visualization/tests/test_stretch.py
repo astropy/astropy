@@ -4,7 +4,11 @@ import numpy as np
 
 from ...tests.helper import pytest
 
-from ..stretch import *
+from ..stretch import (LinearStretch, SqrtStretch, PowerStretch,
+                       PowerDistStretch, SquaredStretch, LogStretch,
+                       AsinhStretch, SinhStretch, HistEqStretch,
+                       ContrastBiasStretch)
+
 
 DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
 

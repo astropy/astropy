@@ -1,7 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from .interval import *
-from .stretch import *
+from .interval import (PercentileInterval, AsymmetricPercentileInterval,
+                       ManualInterval, MinMaxInterval)
+
+from .stretch import (LinearStretch, SqrtStretch, PowerStretch, LogStretch,
+                      AsinhStretch)
 
 
 def scale_image(image, scale='linear', power=1.0, asinh_a=0.1, min_cut=None,
