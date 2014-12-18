@@ -25,7 +25,7 @@ class TestImageScaling(object):
         """Test power scaling."""
         power = 3.0
         img = scale_image(DATA, scale='power', power=power)
-        assert_allclose(img, DATASCL**power, atol=0, rtol=1.e-5)
+        assert_allclose(img, DATASCL ** power, atol=0, rtol=1.e-5)
 
     def test_log(self):
         """Test log10 scaling."""

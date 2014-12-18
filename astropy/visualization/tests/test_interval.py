@@ -47,18 +47,18 @@ def test_integers():
 
     # Need to make sure integers get cast to float
     interval = MinMaxInterval()
-    values = interval([1,3,4,5,6])
+    values = interval([1, 3, 4, 5, 6])
     np.testing.assert_allclose(values, [0., 0.4, 0.6, 0.8, 1.0])
 
     # Don't accept integer array in output
     out = np.zeros(5, dtype=int)
     with pytest.raises(TypeError) as exc:
-        values = interval([1,3,4,5,6], out=out)
+        values = interval([1, 3, 4, 5, 6], out=out)
     assert exc.value.args[0] == "Can only do in-place scaling for floating-point arrays"
 
     # But integer input and floating point output is fine
     out = np.zeros(5, dtype=float)
-    interval([1,3,4,5,6], out=out)
+    interval([1, 3, 4, 5, 6], out=out)
     np.testing.assert_allclose(out, [0., 0.4, 0.6, 0.8, 1.0])
 
 

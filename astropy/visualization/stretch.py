@@ -74,6 +74,7 @@ class BaseStretch(BaseTransform):
         Return a stretch that performs the inverse operation.
         """
 
+
 class LinearStretch(BaseStretch):
     """
     A linear stretch.
@@ -290,7 +291,7 @@ class AsinhStretch(BaseStretch):
         return values
 
     def inverted(self):
-        return SinhStretch(a=1./np.arcsinh(1. / self.a))
+        return SinhStretch(a=1. / np.arcsinh(1. / self.a))
 
 
 class SinhStretch(BaseStretch):
@@ -303,7 +304,7 @@ class SinhStretch(BaseStretch):
         y = \frac{{\rm sinh}(x / a)}{{\rm sinh}(1 / a)}
     """
 
-    def __init__(self, a=1./3.):
+    def __init__(self, a=1. / 3.):
         super(SinhStretch, self).__init__()
         self.a = a
 
@@ -318,7 +319,7 @@ class SinhStretch(BaseStretch):
         return values
 
     def inverted(self):
-        return AsinhStretch(a=1./np.sinh(1. / self.a))
+        return AsinhStretch(a=1. / np.sinh(1. / self.a))
 
 
 class HistEqStretch(BaseStretch):

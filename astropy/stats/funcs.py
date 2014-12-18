@@ -564,8 +564,8 @@ def biweight_location(a, c=6.0, M=None):
     # now remove the outlier points
     mask = np.abs(u) < 1
 
-    u = (1 - u**2)**2
-    return M+(d[mask]*u[mask]).sum()/u[mask].sum()
+    u = (1 - u ** 2) ** 2
+    return M + (d[mask] * u[mask]).sum() / u[mask].sum()
 
 
 def biweight_midvariance(a, c=9.0, M=None):
@@ -648,9 +648,9 @@ def biweight_midvariance(a, c=9.0, M=None):
     # now remove the outlier points
     mask = np.abs(u) < 1
 
-    u = u**2
+    u = u ** 2
     n = mask.sum()
-    return n**0.5 * (d[mask] * d[mask] * (1 - u[mask])**4).sum()**0.5\
+    return n ** 0.5 * (d[mask] * d[mask] * (1 - u[mask]) ** 4).sum() ** 0.5\
         / np.abs(((1 - u[mask]) * (1 - 5 * u[mask])).sum())
 
 
@@ -691,9 +691,9 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
     SNR : float or numpy.ndarray
         Signal to noise ratio calculated from the inputs
     """
-    signal = t*source_eps*gain
+    signal = t * source_eps * gain
     noise = np.sqrt(t * (source_eps * gain + npix *
-                         (sky_eps * gain + dark_eps)) + npix * rd**2)
+                         (sky_eps * gain + dark_eps)) + npix * rd ** 2)
     return signal / noise
 
 
