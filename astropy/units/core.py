@@ -574,7 +574,7 @@ class UnitBase(object):
         """
         return [1]
 
-    def to_string(self, format='generic'):
+    def to_string(self, format=unit_format.Generic):
         """
         Output the unit in the given format as a string.
 
@@ -1667,7 +1667,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     if six.PY3:
         __str__ = __unicode__
 
-    def to_string(self, format='generic'):
+    def to_string(self, format=unit_format.Generic):
         return self.name
 
     def _unrecognized_operator(self, *args, **kwargs):
@@ -1756,7 +1756,7 @@ class _UnitMetaClass(InheritDocstrings):
                 return dimensionless_unscaled
 
             if format is None:
-                format = 'generic'
+                format = unit_format.Generic
 
             f = unit_format.get_format(format)
             if six.PY3 and isinstance(s, bytes):
@@ -1768,8 +1768,10 @@ class _UnitMetaClass(InheritDocstrings):
                 if parse_strict == 'silent':
                     pass
                 else:
-                    if format != 'generic':
-                        format_clause = format + ' '
+                    # Deliberately not isinstance here. Subclasses
+                    # should use their name.
+                    if type(f) is not unit_format.Generic:
+                        format_clause = f.name + ' '
                     else:
                         format_clause = ''
                     msg = ("'{0}' did not parse as {1}unit: {2}"
