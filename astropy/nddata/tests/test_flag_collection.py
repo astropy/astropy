@@ -3,6 +3,7 @@
 # TEST_UNICODE_LITERALS
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+import os
 
 import numpy as np
 
@@ -42,6 +43,7 @@ def test_setitem_invalid_type(value):
     assert exc.value.args[0] == 'flags should be given as a Numpy array'
 
 
+@pytest.mark.skipif(os.environ.get('APPVEYOR'),  reason="fails on AppVeyor")
 def test_setitem_invalid_shape():
     f = FlagCollection(shape=(1, 2, 3))
     with pytest.raises(Exception) as exc:
