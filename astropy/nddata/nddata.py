@@ -62,7 +62,8 @@ class NDData(NDDataBase):
 
     unit : `~astropy.units.UnitBase` instance or str, optional
         The units of the data. If data is an `~astropy.units.Quantity` then
-        ``unit`` is set to the unit of the data.
+        ``unit`` is set to the unit of the data; is a unit is also explicitly
+        provided an error is raised.
 
     Notes
     -----
