@@ -1,8 +1,25 @@
-Subclassing `~astropy.nddata.NDData` and `~astropy.nddata.NDUncertainty`
-=======================================================================================
+Subclassing
+===========
+
+TODO: flesh out content.
+
+`~astropy.nddata.NDDataBase`
+----------------------------
+
+`~astropy.nddata.NDData`
+------------------------
 
 Subclassing `~astropy.nddata.NDUncertainty`
----------------------------------------------------
+-------------------------------------------
+
+This is done by using classes
+to represent the uncertainties of a given type. For example, to set standard
+deviation uncertainties on the pixel values, you can do::
+
+    >>> from astropy.nddata import StdDevUncertainty
+    >>> ndd_uncertainty = NDData(ndd,
+    ...                          uncertainty=StdDevUncertainty(np.ones((12, 12, 12)) * 0.1))
+    INFO: Overwriting NDData's current uncertainty being overwritten with specified uncertainty [astropy.nddata.nddata]
 
 New error classes should sub-class from `~astropy.nddata.NDUncertainty`, and
 should provide methods with the following API::
@@ -51,7 +68,7 @@ variables with more explicit names, e.g::
            right_uncertainty = other_nddata.uncertainty.array
 
            ...
-           
+
 Note that the above example assumes that the errors are stored in an ``array``
 attribute, but this does not have to be the case.
 

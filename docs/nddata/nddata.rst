@@ -58,46 +58,23 @@ Uncertainties
 -------------
 
 `~astropy.nddata.NDData` objects have an ``uncertainty`` attribute that can be
-used to set the uncertainty on the data values. This is done by using classes
-to represent the uncertainties of a given type. For example, to set standard
-deviation uncertainties on the pixel values, you can do::
+used to set the uncertainty on the data values. The ``uncertainty`` must have
+an attribute ``uncertainty_type`` which is a string.
 
-    >>> from astropy.nddata import StdDevUncertainty
-    >>> ndd_uncertainty = NDData(ndd,
-    ...                          uncertainty=StdDevUncertainty(np.ones((12, 12, 12)) * 0.1))
-    INFO: Overwriting NDData's current uncertainty being overwritten with specified uncertainty [astropy.nddata.nddata]
+While not a requirement, the following ``uncertainty_type`` strings
+are strongly recommended for common ways of specifying normal
+distributions:
+
++ ``"std"``: if ``uncertainty`` stores the standard deviation/sigma
+  (either a single value or on a per-pixel basis).
++ ``"var"``: if ``uncertainty`` stores the variance (either a single
+  value or on a per-pixel basis).
++ ``"ivar"``: if ``uncertainty`` stores the inverse variance (either a
+  single value or on a per-pixel basis).
+
 
 .. note:: For information on creating your own uncertainty classes,
           see :doc:`subclassing`.
-
-Arithmetic
-----------
-
-Provided that the world coordinate system (WCS) and shape match, and that the
-units are consistent, two :class:`~astropy.nddata.NDDataArithmetic` instances can be
-added, subtracted, multiplied or divided from each other, with uncertainty
-propagation, creating a new :class:`~astropy.nddata.NDData` object::
-
-    ndd3 = ndd1.add(ndd2)
-    ndd4 = ndd1.subtract(ndd2)
-    ndd5 = ndd1.multiply(ndd2)
-    ndd6 = ndd1.divide(ndd2)
-
-The purpose of the :meth:`~astropy.nddata.NDArithmetic.add`,
-:meth:`~astropy.nddata.NDArithmetic.subtract`,
-:meth:`~astropy.nddata.NDArithmetic.multiply` and
-:meth:`~astropy.nddata.NDArithmetic.divide` methods is to allow the
-combination of two data objects that have common WCS and shape and units
-consistent with the operation performed, with consistent behavior for masks,
-and with a framework to propagate uncertainties.
-These methods are intended for use by sub-classes and functions that deal with
-more complex combinations.
-
-Entries that are masked in either of the operands are also masked in the
-result.
-
-.. warning:: Uncertainty propagation is still experimental, and does not take
-             into account correlated uncertainties.
 
 Meta-data
 ---------
@@ -121,8 +98,10 @@ numpy arrays::
 
     >>> import numpy as np
     >>> arr = np.array(ndd)
-    >>> np.all(arr == mydataarray)  # doctest: +SKIP
+    >>> np.all(arr.data == mydataarray)  # doctest: +SKIP
     True
+
+TODO: IS BELOW REALLY TRUE?
 
 If a ``mask`` is defined, this will result in a `~numpy.ma.MaskedArray`, so
 in all cases a useable `numpy.ndarray` or subclass will result. This allows
