@@ -28,7 +28,8 @@ WARN_UNSUPPORTED_CORRELATED = ConfigAlias(
 
 
 class NDData(NDDataBase):
-    """A Superclass for array-based data in Astropy.
+    """
+    A basic class for array-based data.
 
     The key distinction from raw numpy arrays is the presence of
     additional metadata such as uncertainties, a mask, units,
@@ -36,18 +37,18 @@ class NDData(NDDataBase):
 
     Parameters
     -----------
-    data : `~numpy.ndarray` or `NDData`
-        The actual data contained in this `NDData` object. Not that this
-        will always be copies by *reference* , so you should make copy
-        the ``data`` before passing it in if that's the  desired behavior.
+    data : `~numpy.ndarray`, `~numpy.ndarray`-like, or `NDData`
+        The actual data contained in this `NDData` object. Note that this
+        will always be copies by *reference* if `data` is a numpy array or
+        `NDData`, so you should make copy the ``data`` before passing it in
+        if that's the  desired behavior.
 
-    uncertainty : `~astropy.nddata.NDUncertainty`, optional
-        Uncertainties on the data.
+    uncertainty : any type, optional
+        Uncertainty on the data. The uncertainty *must* have a string attribute
+        named ``uncertainty_type``, but there is otherwise no restriction.
 
     mask : `~numpy.ndarray`-like, optional
-        Mask for the data, given as a boolean Numpy array or any object that
-        can be converted to a boolean Numpy array with a shape
-        matching that of the data. The values must be ``False`` where
+        Mask for the data. The values must be ``False`` where
         the data is *valid* and ``True`` when it is not (like Numpy
         masked arrays). If ``data`` is a numpy masked array, providing
         ``mask`` here will causes the mask from the masked array to be
@@ -56,20 +57,12 @@ class NDData(NDDataBase):
     wcs : undefined, optional
         WCS-object containing the world coordinate system for the data.
 
-        .. warning::
-            This is not yet defind because the discussion of how best to
-            represent this class's WCS system generically is still under
-            consideration. For now just leave it as None
-
     meta : `dict`-like object, optional
-        Metadata for this object.  "Metadata" here means all information that
-        is included with this object but not part of any other attribute
-        of this particular object.  e.g., creation date, unique identifier,
-        simulation parameters, exposure time, telescope name, etc.
+        Metadata for this object. Must be dict-like but no further restriction
+        is placed on meta.
 
     unit : `~astropy.units.UnitBase` instance or str, optional
         The units of the data.
-
 
     Raises
     ------
@@ -79,28 +72,16 @@ class NDData(NDDataBase):
 
     Notes
     -----
-    `NDData` objects can be easily converted to a regular Numpy array
-    using `numpy.asarray`
+    The data in a `NDData` object can should be accessed through the data
+    attribute.
 
     For example::
 
         >>> from astropy.nddata import NDData
         >>> import numpy as np
         >>> x = NDData([1,2,3])
-        >>> np.asarray(x)
+        >>> np.asarray(x.data)
         array([1, 2, 3])
-
-    If the `NDData` object has a `mask`, `numpy.asarray` will return a
-    Numpy masked array.
-
-    This is useful, for example, when plotting a 2D image using
-    matplotlib::
-
-        >>> from astropy.nddata import NDData
-        >>> from matplotlib import pyplot as plt
-        >>> x = NDData([[1,2,3], [4,5,6]])
-        >>> plt.imshow(x)
-
     """
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
