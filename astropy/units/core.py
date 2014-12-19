@@ -1770,7 +1770,7 @@ class _UnitMetaClass(InheritDocstrings):
                 else:
                     # Deliberately not isinstance here. Subclasses
                     # should use their name.
-                    if type(f) != unit_format.Generic:
+                    if type(f) is not unit_format.Generic:
                         format_clause = f.name + ' '
                     else:
                         format_clause = ''
