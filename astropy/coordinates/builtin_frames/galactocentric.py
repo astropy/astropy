@@ -65,7 +65,7 @@ class Galactocentric(BaseCoordinateFrame):
     z_sun = FrameAttribute(default=27.*u.pc) # TODO: reference?
     roll = FrameAttribute(default=0.*u.deg)
 
-# Galactic to/from Galactocentric ----------------------->
+# ICRS to/from Galactocentric ----------------------->
 @frame_transform_graph.transform(FunctionTransform, ICRS, Galactocentric)
 def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
     from ..representation import CartesianRepresentation
