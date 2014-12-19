@@ -37,7 +37,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ... import fits
-from .... import log
+from .... import log, __version__
 
 
 class FormattingException(Exception):
@@ -137,7 +137,10 @@ def main(args=None):
         description=('Print the header(s) of a FITS file. '
                      'All HDU extensions are shown by default. '
                      'In the case of a compressed image, '
-                     'the decompressed header is shown.'))
+                     'the decompressed header is shown. '
+                     'This script is part of the Astropy package' + __version__ + '. '
+                     'More documentation can be found here:'
+         'http://astropy.readthedocs.org/en/latest/io/fits/usage/scripts.html'))
     parser.add_argument('-e', '--ext', metavar='hdu',
                         help='specify the HDU extension number or name')
     parser.add_argument('-c', '--compressed', action='store_true',

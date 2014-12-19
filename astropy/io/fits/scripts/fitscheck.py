@@ -73,6 +73,10 @@ def handle_options(args):
         Verifies and optionally re-writes the CHECKSUM and DATASUM keywords
         for a .fits file.
         Optionally detects and fixes FITS standard compliance problems.
+
+        This script is part of the Astropy package. 
+        More documentation can be found here:
+        http://astropy.readthedocs.org/en/latest/io/fits/usage/scripts.html
         """.strip()))
 
     parser.add_option(

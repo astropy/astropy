@@ -26,7 +26,9 @@ def hub_script(timeout=0):
     This main function is executed by the ``samp_hub`` command line tool.
     """
 
-    parser = argparse.ArgumentParser(prog="samp_hub " + __version__)
+    parser = argparse.ArgumentParser(prog="samp_hub " + __version__,
+                                     description="This script is part of the Astropy package " + __version__ + ". "
+    "More documentation can be found here: http://astropy.readthedocs.org/en/latest/vo/index.html")
 
     parser.add_argument("-k", "--secret", dest="secret", metavar="CODE",
                         help="custom secret code.")

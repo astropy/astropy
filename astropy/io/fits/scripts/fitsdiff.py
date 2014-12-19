@@ -30,6 +30,10 @@ argument.  for example::
 
 will compare all FITS files in the current directory to the corresponding files
 in the directory /machine/data1.
+
+This script is part of the Astropy package. 
+More documentation can be found here:
+http://astropy.readthedocs.org/en/latest/io/fits/usage/scripts.html
 """.strip()
 
 
