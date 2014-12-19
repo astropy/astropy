@@ -4,8 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from ..modeling.core import Fittable1DModel, Fittable2DModel
-
+from ..modeling.core import FittableModel, custom_model
 
 __all__ = ['discretize_model']
 
@@ -74,12 +73,16 @@ def add_kernel_arrays_2D(array_1, array_2):
 
 def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
     """
-    Function to evaluate analytical models on a grid.
+    Function to evaluate analytical model functions on a grid.
+
+    So far the function can only deal with pixel coordinates.
 
     Parameters
     ----------
-    model : `~astropy.modeling.FittableModel`
-        Model to be evaluated.
+    model : `~astropy.modeling.FittableModel` or callable.
+        Analytic model function to be discretized. Callables, which are not an
+        instances of `~astropy.modeling.FittableModel` are passed to
+        `~astropy.modeling.custom_model` and then evaluated.
     x_range : tuple
         x range in which the model is evaluated.
     y_range : tuple, optional
@@ -135,27 +138,37 @@ def discretize_model(model, x_range, y_range=None, mode='center', factor=10):
 
 
     """
-    if isinstance(model, Fittable2DModel) and y_range is None:
-        raise Exception("Please specify y range.")
+    if not callable(model):
+        raise TypeError('Model must be callable.')
+    if not isinstance(model, FittableModel):
+        model = custom_model(model)()
+    ndim = model.n_inputs
+    if ndim > 2:
+        raise ValueError('discretize_model only supports 1-d and 2-d models.')
+
+    if ndim == 2 and y_range is None:
+        raise ValueError("y range not specified, but model is 2-d")
+    if ndim == 1 and y_range is not None:
+        raise ValueError("y range specified, but model is only 1-d.")
     if mode == "center":
-        if isinstance(model, Fittable1DModel):
+        if ndim == 1:
             return discretize_center_1D(model, x_range)
-        if isinstance(model, Fittable2DModel):
+        elif ndim == 2:
             return discretize_center_2D(model, x_range, y_range)
     elif mode == "linear_interp":
-        if isinstance(model, Fittable1DModel):
+        if ndim == 1:
             return discretize_linear_1D(model, x_range)
-        if isinstance(model, Fittable2DModel):
+        if ndim == 2:
             return discretize_bilinear_2D(model, x_range, y_range)
     elif mode == "oversample":
-        if isinstance(model, Fittable1DModel):
+        if ndim == 1:
             return discretize_oversample_1D(model, x_range, factor)
-        if isinstance(model, Fittable2DModel):
+        if ndim == 2:
             return discretize_oversample_2D(model, x_range, y_range, factor)
     elif mode == "integrate":
-        if isinstance(model, Fittable1DModel):
+        if ndim == 1:
             return discretize_integrate_1D(model, x_range)
-        if isinstance(model, Fittable2DModel):
+        if ndim == 2:
             return discretize_integrate_2D(model, x_range, y_range)
     else:
         raise DiscretizationError('Invalid mode.')
