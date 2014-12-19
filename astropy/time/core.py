@@ -10,7 +10,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import fnmatch
-import itertools
 import time
 
 from datetime import datetime

@@ -13,7 +13,6 @@ if six.PY2:
     import cmath
 
 import inspect
-import collections
 import textwrap
 import warnings
 import numpy as np
