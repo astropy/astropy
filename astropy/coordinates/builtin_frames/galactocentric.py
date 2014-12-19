@@ -34,7 +34,9 @@ class Galactocentric(BaseCoordinateFrame):
 
     The default distance to the Galactic Center is 8.3 kpc, e.g.,
     Gillessen et al. 2009,
-    http://adsabs.harvard.edu/abs/2009ApJ...692.1075G.
+    http://adsabs.harvard.edu/abs/2009ApJ...692.1075G. The position of
+    the Sun is assumed to be on the x axis of the final, right-handed
+    system.
 
     The default height of the Sun above the Galactic midplane is taken to
     be 27 pc, as measured by
@@ -45,13 +47,13 @@ class Galactocentric(BaseCoordinateFrame):
     representation : `BaseRepresentation` or None
         A representation object or None to have no data (or use the other
         keywords)
-    galcen_distance : :class:`~astropy.units.Quantity`, optional, must be keyword
+    galcen_distance : `~astropy.units.Quantity`, optional, must be keyword
         The distance from the Sun to the Galactic center.
     galcen_ra : `Angle`, optional, must be keyword
         The Right Ascension (RA) of the Galactic center in the ICRS frame.
     galcen_dec : `Angle`, optional, must be keyword
         The Declination (Dec) of the Galactic center in the ICRS frame.
-    z_sun : :class:`~astropy.units.Quantity`, optional, must be keyword
+    z_sun : `~astropy.units.Quantity`, optional, must be keyword
         The distance from the Sun to the Galactic midplane.
     roll : `Angle`, optional, must be keyword
         The angle to rotate about the final x-axis, relative to the
