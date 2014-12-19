@@ -382,7 +382,7 @@ class lazyproperty(object):
         return cls_ns[property_name]
 
 
-class sharedmethod(object):
+class sharedmethod(classmethod):
     """
     This is a method decorator that allows both an instancemethod and a
     classmethod to share the same name.
@@ -432,9 +432,6 @@ class sharedmethod(object):
         >>> Example.identify()
         this implements the Example.identify classmethod
     """
-
-    def __init__(self, func):
-        self.__func__ = func
 
     def __get__(self, obj, objtype=None):
         if obj is None:
