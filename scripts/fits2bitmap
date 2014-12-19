@@ -1,5 +1,5 @@
 #!/usr/bin/env python
 
-import imageutils.scripts.fits2bitmap
+from astropy.visualization.scripts import fits2bitmap
 
-imageutils.scripts.fits2bitmap.main()
+fits2bitmap.main()
