@@ -13,28 +13,55 @@ __all__ = ['NDDataBase']
 
 @six.add_metaclass(ABCMeta)
 class NDDataBase(object):
+    """
+    Base metaclass that defines the interface for NDData
+
+    Classes that wish to use this interface without inheriting from
+    `~astropy.nddata.NDData` should subclass ``NDDataBase`` instead.
+
+    All properties and methods except uncertainty must be override by derived
+    classes.
+    """
+
     @abstractmethod
     def __init__(self):
         self._uncertainty = None
 
     @abstractproperty
     def data(self):
-        raise NotImplementedError("Concrete classes must implement data")
+        """
+        The data; should be capable of behaving like a numpy array, though it
+        need not actually be a numpy array.
+        """
+        pass
 
     @abstractproperty
     def mask(self):
+        """
+        Mask for the data, following the numpy convention that ``True`` means
+        the data should not be used.
+        """
         return None
 
     @abstractproperty
     def unit(self):
+        """
+        Unit for the data, if any.
+        """
         return None
 
     @abstractproperty
     def wcs(self):
+        """
+        WCS for the data, if any.
+        """
         return None
 
     @abstractproperty
     def meta(self):
+        """
+        Metadata, if any, must be dict-like.
+        """
         return None
 
     # uncertainty and its setter are implemented as concrete to enforce the
@@ -46,7 +73,12 @@ class NDDataBase(object):
     # getter) as abstract but not the other.
     @property
     def uncertainty(self):
+        """
+        Uncertainty in the data.
 
+        Uncertainty must have an attribute ``uncertainty_type`` that is
+        a string.
+        """
         return self._uncertainty
 
     @uncertainty.setter
