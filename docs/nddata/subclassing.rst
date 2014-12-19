@@ -16,7 +16,10 @@ This is done by using classes
 to represent the uncertainties of a given type. For example, to set standard
 deviation uncertainties on the pixel values, you can do::
 
-    >>> from astropy.nddata import StdDevUncertainty
+    >>> import numpy as np
+    >>> from astropy.nddata import NDData, StdDevUncertainty
+    >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
+    >>> ndd = NDData(array)
     >>> ndd_uncertainty = NDData(ndd,
     ...                          uncertainty=StdDevUncertainty(np.ones((12, 12, 12)) * 0.1))
     INFO: Overwriting NDData's current uncertainty being overwritten with specified uncertainty [astropy.nddata.nddata]
