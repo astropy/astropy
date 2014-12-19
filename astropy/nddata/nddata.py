@@ -203,6 +203,3 @@ class NDData(NDDataBase):
     @property
     def meta(self):
         return self._meta
-
-    read = classmethod(io_registry.read)
-    write = io_registry.write
