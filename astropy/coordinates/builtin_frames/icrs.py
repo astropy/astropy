@@ -16,6 +16,10 @@ class ICRS(BaseCoordinateFrame):
     a catalog coordinate and is an inertial system, and is very close (within
     tens of milliarcseconds) to J2000 equatorial.
 
+For more background on the ICRS and related coordinate transformations, see the
+references provided in the  :ref:`my-reference-label` section of the
+documentation.
+
     Parameters
     ----------
     representation : `BaseRepresentation` or None

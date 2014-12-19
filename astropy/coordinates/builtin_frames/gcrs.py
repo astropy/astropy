@@ -12,14 +12,19 @@ from .utils import DEFAULT_OBSTIME
 
 class GCRS(BaseCoordinateFrame):
     """
-    A coordinate or frame in the GCRS system.
+    A coordinate or frame in the Geocentric Celestial Reference System (GCRS).
 
-    It is distinct form ICRS mainly in that it is relative to the Earth's
+    GCRS is distinct form ICRS mainly in that it is relative to the Earth's
     center-of-mass rather than the solar system Barycenter.  That means this
-    frame includes the effects of abberation (unlike ICRS).
+    frame includes the effects of abberation (unlike ICRS). For more background
+    on the GCRS, see the references provided in the :ref:`my-reference-label`
+    section of the documentation. (Of particular note is Section 1.2 of
+    `USNO Circular 179 <http://aa.usno.navy.mil/publications/docs/Circular_179.php>`_)
 
-    Note that this frame also includes frames that are defined *relative* to the
-    Earth, but are offset (in both position and velocity) from the Earth.
+    This frame also includes frames that are defined *relative* to the Earth,
+    but that are offset (in both position and velocity) from the Earth.
+
+
 
     This frame has three frame attributes:
 
