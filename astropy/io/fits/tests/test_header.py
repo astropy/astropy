@@ -2583,20 +2583,80 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         pytest.raises(KeyError, lambda: h['FOO.'])
 
     def test_fitsheader_script(self):
-        """
-        Checks the basic functionality of the fitsheader script
-        """
+        """Tests the basic functionality of the `fitsheader` script."""
         from ....io.fits.scripts import fitsheader
+
         # Can an extension by specified by the EXTNAME keyword?
         hf = fitsheader.HeaderFormatter(self.data('zerowidth.fits'))
-        assert "EXTNAME = 'AIPS FQ" in hf.parse('AIPS FQ')
+        output = hf.parse(extensions=['AIPS FQ'])
+        assert "EXTNAME = 'AIPS FQ" in output
+        assert "BITPIX" in output
+
+        # Can we limit the display to one specific keyword?
+        output = hf.parse(extensions=['AIPS FQ'], keywords=['EXTNAME'])
+        assert "EXTNAME = 'AIPS FQ" in output
+        assert "BITPIX  =" not in output
+        assert len(output.split('\n')) == 3
+
+        # Can we limit the display to two specific keywords?
+        output = hf.parse(extensions=[1],
+                          keywords=['EXTNAME', 'BITPIX'])
+        assert "EXTNAME =" in output
+        assert "BITPIX  =" in output
+        assert len(output.split('\n')) == 4
+
+        # Can we use wildcards for keywords?
+        output = hf.parse(extensions=[1], keywords=['NAXIS*'])
+        assert "NAXIS   =" in output
+        assert "NAXIS1  =" in output
+        assert "NAXIS2  =" in output
 
         # Can an extension by specified by the EXTNAME+EXTVER keywords?
         hf = fitsheader.HeaderFormatter(self.data('test0.fits'))
-        assert "EXTNAME = 'SCI" in hf.parse('SCI,2')
-        # fitsheader should only print the compressed header when asked
+        assert "EXTNAME = 'SCI" in hf.parse(extensions=['SCI,2'])
+
+        # Can we print the original header before decompression?
         hf = fitsheader.HeaderFormatter(self.data('comp.fits'))
-        assert "XTENSION= 'IMAGE" in hf.parse(1)  # decompressed
-        hf = fitsheader.HeaderFormatter(self.data('comp.fits'),
-                                        compressed=True)
-        assert "XTENSION= 'BINTABLE" in hf.parse(1)  # compressed
+        assert "XTENSION= 'IMAGE" in hf.parse(extensions=[1],
+                                              compressed=False)
+        assert "XTENSION= 'BINTABLE" in hf.parse(extensions=[1],
+                                                 compressed=True)
+
+    def test_fitsheader_table_feature(self):
+        """Tests the `--table` feature of the `fitsheader` script."""
+        from ....io import fits
+        from ....io.fits.scripts import fitsheader
+        test_filename = self.data('zerowidth.fits')
+        fitsobj = fits.open(test_filename)
+        formatter = fitsheader.TableHeaderFormatter(test_filename)
+
+        # Does the table contain the expected number of rows?
+        mytable = formatter.parse([0])
+        assert len(mytable) == len(fitsobj[0].header)
+        # Repeat the above test when multiple HDUs are requested
+        mytable = formatter.parse(extensions=['AIPS FQ', 2, "4"])
+        assert len(mytable) == (len(fitsobj['AIPS FQ'].header)
+                                + len(fitsobj[2].header)
+                                + len(fitsobj[4].header))
+
+        # Can we recover the filename and extension name from the table?
+        mytable = formatter.parse(extensions=['AIPS FQ'])
+        assert np.all(mytable['filename'] == test_filename)
+        assert np.all(mytable['hdu'] == 'AIPS FQ')
+        assert mytable['value'][mytable['keyword'] == "EXTNAME"] == "AIPS FQ"
+
+        # Can we specify a single extension/keyword?
+        mytable = formatter.parse(extensions=['AIPS FQ'],
+                                  keywords=['EXTNAME'])
+        assert len(mytable) == 1
+        assert mytable['hdu'][0] == "AIPS FQ"
+        assert mytable['keyword'][0] == "EXTNAME"
+        assert mytable['value'][0] == "AIPS FQ"
+
+        # Is an incorrect extension dealt with gracefully?
+        mytable = formatter.parse(extensions=['DOES_NOT_EXIST'])
+        assert mytable is None
+        # Is an incorrect keyword dealt with gracefully?
+        mytable = formatter.parse(extensions=['AIPS FQ'],
+                                  keywords=['DOES_NOT_EXIST'])
+        assert mytable is None
