@@ -553,3 +553,29 @@ def test_slicing_on_instances_2():
     assert m[-4:4].submodel_names == ('b', 'c', 'd')
     assert m[-4:-2].submodel_names == ('b', 'c')
 
+
+def test_compound_model_with_nonstandard_broadcasting():
+    """
+    Ensure that the ``standard_broadcasting`` flag is properly propgataed when
+    creating compound models.
+
+    See the commit message for the commit in which this was added for more
+    details.
+    """
+
+    offx = Shift(1)
+    offy = Shift(2)
+    rot = AffineTransformation2D([[0, -1], [1, 0]])
+    m = (offx & offy) | rot
+
+    x, y = m(0, 0)
+    assert x == -2
+    assert y == 1
+
+    # make sure conversion back to scalars is working properly
+    assert isinstance(x, float)
+    assert isinstance(y, float)
+
+    x, y = m([0, 1, 2], [0, 1, 2])
+    assert np.all(x == [-2, -3, -4])
+    assert np.all(y == [1, 2, 3])
