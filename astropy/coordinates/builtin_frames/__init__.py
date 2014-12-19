@@ -37,7 +37,7 @@ from . import fk4_fk5_transforms
 from . import galactic_transforms
 
 # we define an __all__ because otherwise the transformation modules get included
-__all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'AltAz']
+__all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'AltAz', 'Galactocentric']
 
 
 def _make_transform_graph_docs():
