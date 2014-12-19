@@ -76,9 +76,6 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
                            "a 3D coordinates, e.g. (angle, angle, distance) or"
                            " (x, y, z).")
 
-    # extract cartesian vector from input coordinates
-    xyz = icrs_coord.cartesian.xyz
-
     # define rotation matrix to align x(ICRS) with the vector to the Galactic center
     mat1 = rotation_matrix(90 - galactocentric_frame.galcen_dec.degree, 'y')
     mat2 = rotation_matrix(galactocentric_frame.galcen_ra.degree, 'z')
