@@ -11,6 +11,7 @@ import numpy as np
 from .nddatabase import NDDataBase
 from ..units import Unit, Quantity
 from .. import log
+from ..utils.compat.odict import OrderedDict
 
 from ..io import registry as io_registry
 from ..config import ConfigAlias
@@ -168,7 +169,7 @@ class NDData(NDDataBase):
             self._wcs = wcs
 
             if meta is None:
-                self._meta = collections.OrderedDict()
+                self._meta = OrderedDict()
             elif not isinstance(meta, collections.Mapping):
                 raise TypeError("meta attribute must be dict-like")
             else:
