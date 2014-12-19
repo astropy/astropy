@@ -15,7 +15,7 @@ from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, \
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import pytest
-
+from .utils import randomly_sample_sphere
 
 
 #Coordinates just for these tests.
@@ -351,12 +351,10 @@ def test_icrs_cirs():
     through ICRS
     """
     from ...time import Time
-    from ...utils import NumpyRNGContext
 
-    with NumpyRNGContext(12345):
-        inod = ICRS(ra=np.random.rand(100)*360*u.deg,
-                     dec=(np.random.rand(100)*180-90)*u.deg)
-        iwd = ICRS(ra=inod.ra, dec=inod.dec, distance=np.random.rand(100)*u.pc)
+    ra, dec, dist = randomly_sample_sphere(200)
+    inod = ICRS(ra=ra, dec=dec)
+    iwd = ICRS(ra=ra, dec=dec, distance=dist*u.pc)
 
     cframe1 = CIRS()
     cirsnod = inod.transform_to(cframe1)  #uses the default time
@@ -397,12 +395,10 @@ def test_icrs_gcrs():
     Check ICRS<->GCRS for consistency
     """
     from ...time import Time
-    from ...utils import NumpyRNGContext
 
-    with NumpyRNGContext(12345):
-        inod = ICRS(ra=np.random.rand(100)*360*u.deg,
-                     dec=(np.random.rand(100)*180-90)*u.deg)
-        iwd = ICRS(ra=inod.ra, dec=inod.dec, distance=np.random.rand(100)*u.pc)
+    ra, dec, dist = randomly_sample_sphere(200)
+    inod = ICRS(ra=ra, dec=dec)
+    iwd = ICRS(ra=ra, dec=dec, distance=dist*u.pc)
 
     gframe1 = GCRS()
     gcrsnod = inod.transform_to(gframe1)  #uses the default time
@@ -414,15 +410,15 @@ def test_icrs_gcrs():
     #now check that a different time yields different answers
     gframe2 = GCRS(obstime=Time('J2005', scale='utc'))
     gcrsnod2 = inod.transform_to(gframe2)
-    assert not np.allclose(gcrsnod.ra, gcrsnod2.ra, rtol=1e-8)
-    assert not np.allclose(gcrsnod.dec, gcrsnod2.dec, rtol=1e-8)
+    assert not np.allclose(gcrsnod.ra, gcrsnod2.ra, rtol=1e-8, atol=1e-10)
+    assert not np.allclose(gcrsnod.dec, gcrsnod2.dec, rtol=1e-8, atol=1e-10)
 
     # parallax effects should be included, so with and w/o distance should be different
     gcrswd = iwd.transform_to(gframe1)
-    assert not np.allclose(gcrswd.ra, gcrsnod.ra, rtol=1e-8)
-    assert not np.allclose(gcrswd.dec, gcrsnod.dec, rtol=1e-8)
+    assert not np.allclose(gcrswd.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10)
+    assert not np.allclose(gcrswd.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10)
     # and the distance should transform at least somehow
-    assert not np.allclose(gcrswd.distance, iwd.distance, rtol=1e-8)
+    assert not np.allclose(gcrswd.distance, iwd.distance, rtol=1e-8, atol=1e-10)
 
     #now check that the cirs self-transform works as expected
     gcrsnod3 = gcrsnod.transform_to(gframe1)  # should be a no-op
@@ -430,19 +426,19 @@ def test_icrs_gcrs():
     npt.assert_allclose(gcrsnod.dec, gcrsnod3.dec)
 
     gcrsnod4 = gcrsnod.transform_to(gframe2)  # should be different
-    assert not np.allclose(gcrsnod4.ra, gcrsnod.ra, rtol=1e-8)
-    assert not np.allclose(gcrsnod4.dec, gcrsnod.dec, rtol=1e-8)
+    assert not np.allclose(gcrsnod4.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10)
+    assert not np.allclose(gcrsnod4.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10)
 
     gcrsnod5 = gcrsnod4.transform_to(gframe1)  # should be back to the same
-    npt.assert_allclose(gcrsnod.ra, gcrsnod5.ra)
-    npt.assert_allclose(gcrsnod.dec, gcrsnod5.dec)
+    npt.assert_allclose(gcrsnod.ra, gcrsnod5.ra, rtol=1e-8, atol=1e-10)
+    npt.assert_allclose(gcrsnod.dec, gcrsnod5.dec, rtol=1e-8, atol=1e-10)
 
     #also make sure that a GCRS with a different geoloc/geovel gets a different answer
     # roughly a moon-like frame
     gframe3 = GCRS(obsgeoloc=[385000., 0, 0]*u.km, obsgeovel=[1, 0, 0]*u.km/u.s)
     gcrsnod6 = inod.transform_to(gframe3)  # should be different
-    assert not np.allclose(gcrsnod.ra, gcrsnod6.ra, rtol=1e-8)
-    assert not np.allclose(gcrsnod.dec, gcrsnod6.dec, rtol=1e-8)
+    assert not np.allclose(gcrsnod.ra, gcrsnod6.ra, rtol=1e-8, atol=1e-10)
+    assert not np.allclose(gcrsnod.dec, gcrsnod6.dec, rtol=1e-8, atol=1e-10)
     inodviag3 = gcrsnod6.transform_to(ICRS)  # and now back to the original
     npt.assert_allclose(inod.ra, inodviag3.ra)
     npt.assert_allclose(inod.dec, inodviag3.dec)
@@ -454,18 +450,13 @@ def test_cirs_to_altaz():
     happen in `test_iau_fullstack`
     """
     from ...time import Time
-    from ...utils import NumpyRNGContext
     from .. import EarthLocation
 
-    with NumpyRNGContext(12345):
-        cirs = CIRS(ra=np.random.rand(100)*360*u.deg,
-                    dec=(np.random.rand(100)*180-90)*u.deg,
-                    obstime='J2000')
-        cartrepr = r.SphericalRepresentation(lon=cirs.ra, lat=cirs.dec,
-                                             distance=np.random.rand(len(cirs))
-                                            ).to_cartesian()
-        cirscart = CIRS(cartrepr, obstime=cirs.obstime,
-                                  representation=r.CartesianRepresentation)
+    ra, dec, dist = randomly_sample_sphere(200)
+    cirs = CIRS(ra=ra, dec=dec, obstime='J2000')
+    crepr = r.SphericalRepresentation(lon=ra, lat=dec, distance=dist)
+    cirscart = CIRS(crepr, obstime=cirs.obstime, representation=r.CartesianRepresentation)
+
     loc = EarthLocation(lat=0*u.deg, lon=0*u.deg, height=0*u.m)
     altazframe = AltAz(location=loc, obstime=Time('J2005'))
 
@@ -478,19 +469,14 @@ def test_cirs_to_altaz():
     npt.assert_allclose(cirs.ra.deg, cirs3.ra.deg)
     npt.assert_allclose(cirs.dec.deg, cirs3.dec.deg)
 
+
 def test_gcrs_itrs():
     """
     Check basic GCRS<->ITRS transforms for round-tripping.
     """
-    from ...utils import NumpyRNGContext
-
-    with NumpyRNGContext(12345):
-        gcrs = GCRS(ra=np.random.rand(100)*360*u.deg,
-                    dec=(np.random.rand(100)*180-90)*u.deg,
-                    obstime='J2000')
-        gcrs6 = GCRS(ra=np.random.rand(100)*360*u.deg,
-                     dec=(np.random.rand(100)*180-90)*u.deg,
-                     obstime='J2006')
+    ra, dec, _ = randomly_sample_sphere(200)
+    gcrs = GCRS(ra=ra, dec=dec, obstime='J2000')
+    gcrs6 = GCRS(ra=ra, dec=dec, obstime='J2006')
 
     gcrs2 = gcrs.transform_to(ITRS).transform_to(gcrs)
     gcrs6_2 = gcrs6.transform_to(ITRS).transform_to(gcrs)
@@ -508,21 +494,13 @@ def test_gcrs_itrs():
     npt.assert_allclose(gcrsc.spherical.lat.deg, gcrsc2.dec.deg)
 
 
-
-
 def test_cirs_itrs():
     """
     Check basic CIRS<->ITRS transforms for round-tripping.
     """
-    from ...utils import NumpyRNGContext
-
-    with NumpyRNGContext(12345):
-        cirs = CIRS(ra=np.random.rand(100)*360*u.deg,
-                    dec=(np.random.rand(100)*180-90)*u.deg,
-                    obstime='J2000')
-        cirs6 = CIRS(ra=np.random.rand(100)*360*u.deg,
-                     dec=(np.random.rand(100)*180-90)*u.deg,
-                     obstime='J2006')
+    ra, dec, _ = randomly_sample_sphere(200)
+    cirs = CIRS(ra=ra, dec=dec, obstime='J2000')
+    cirs6 = CIRS(ra=ra, dec=dec, obstime='J2006')
 
     cirs2 = cirs.transform_to(ITRS).transform_to(cirs)
     cirs6_2 = cirs6.transform_to(ITRS).transform_to(cirs) # different obstime
@@ -534,21 +512,14 @@ def test_cirs_itrs():
     assert not np.allclose(cirs.dec.deg, cirs6_2.dec.deg)
 
 
-
 def test_gcrs_cirs():
     """
     Check GCRS<->CIRS transforms for round-tripping.  More complicated than the
     above two because it's multi-hop
     """
-    from ...utils import NumpyRNGContext
-
-    with NumpyRNGContext(12345):
-        gcrs = GCRS(ra=np.random.rand(100)*360*u.deg,
-                    dec=(np.random.rand(100)*180-90)*u.deg,
-                    obstime='J2000')
-        gcrs6 = GCRS(ra=np.random.rand(100)*360*u.deg,
-                     dec=(np.random.rand(100)*180-90)*u.deg,
-                     obstime='J2006')
+    ra, dec, _ = randomly_sample_sphere(200)
+    gcrs = GCRS(ra=ra, dec=dec, obstime='J2000')
+    gcrs6 = GCRS(ra=ra, dec=dec, obstime='J2006')
 
     gcrs2 = gcrs.transform_to(CIRS).transform_to(gcrs)
     gcrs6_2 = gcrs6.transform_to(CIRS).transform_to(gcrs)

@@ -14,17 +14,15 @@ from .. import EarthLocation
 from .. import Angle, SkyCoord
 from ...tests.helper import pytest
 from ... import erfa
-from ...utils import iers, NumpyRNGContext
+from ...utils import iers
+from .utils import randomly_sample_sphere
 
 
 #  These fixtures are used in test_iau_fullstack
 @pytest.fixture(scope="module")
 def fullstack_icrs():
-    N_TO_TEST = 500
-    with NumpyRNGContext(12345):
-        icrs = ICRS(ra=np.random.rand(N_TO_TEST)*360*u.deg,
-                    dec=(np.random.rand(N_TO_TEST)*180-90)*u.deg)
-    return icrs
+    ra, dec, _ = randomly_sample_sphere(1000)
+    return ICRS(ra=ra, dec=dec)
 
 @pytest.fixture(scope="module")
 def fullstack_fiducial_altaz(fullstack_icrs):
@@ -135,6 +133,8 @@ def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     npt.assert_allclose(fullstack_icrs.ra.deg, icrs2.ra.deg)
     npt.assert_allclose(fullstack_icrs.dec.deg, icrs2.dec.deg)
 
+
+#<--------------- Below here are tests against "known good" examples ---------->
 
 def test_against_hor2eq():
     """Check that Astropy gives consistent results with the IDL hor2eq example.
