@@ -69,7 +69,7 @@ class Galactocentric(BaseCoordinateFrame):
     galcen_distance = FrameAttribute(default=8.3*u.kpc)
     galcen_ra = FrameAttribute(default=Angle(266.4051*u.degree))
     galcen_dec = FrameAttribute(default=Angle(-28.936175*u.degree))
-    z_sun = FrameAttribute(default=27.*u.pc) # TODO: reference?
+    z_sun = FrameAttribute(default=27.*u.pc)
     roll = FrameAttribute(default=0.*u.deg)
 
 # ICRS to/from Galactocentric ----------------------->
