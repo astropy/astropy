@@ -254,7 +254,7 @@ if six.PY3:
         name = obj.__name__
         for basecls in cls.mro():  # This includes cls
             if name in basecls.__dict__:
-                return isinstance(basecls.__dict__[name], staticmethod)
+                return not isinstance(basecls.__dict__[name], staticmethod)
 
         # This shouldn't happen, though this is the most sensible response if
         # it does.
