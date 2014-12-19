@@ -3,9 +3,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import matplotlib.cm as cm
-import matplotlib.image as mimg
-
 from ... import log
 from ...io import fits
 
@@ -70,6 +67,9 @@ def fits2bitmap(filename, ext=0, out_fn=None, scale='linear',
     cmap : str
         The matplotlib color map name.  The default is 'Greys_r'.
     """
+
+    import matplotlib.cm as cm
+    import matplotlib.image as mimg
 
     hdulist = fits.open(filename)
     image = hdulist[ext].data
