@@ -7,7 +7,6 @@ except ImportError: # cStringIO doesn't exist in Python 3
     StringIO = lambda x: BytesIO(x.encode('ascii'))
 from tempfile import NamedTemporaryFile
 import os
-import platform
 
 import numpy as np
 from numpy import ma
@@ -24,7 +23,7 @@ from ....extern import six
 
 TRAVIS = os.environ.get('TRAVIS', False)
 
-pytestmark = pytest.mark.skipif(platform.system() == 'Windows',  reason="fails on AppVeyor")
+pytestmark = pytest.mark.skipif(os.environ.get('APPVEYOR'),  reason="fails on AppVeyor")
 
 
 def assert_table_equal(t1, t2):
