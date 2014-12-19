@@ -38,10 +38,9 @@ class NDData(NDDataBase):
     Parameters
     -----------
     data : `~numpy.ndarray`, `~numpy.ndarray`-like, or `NDData`
-        The actual data contained in this `NDData` object. Note that this
-        will always be copies by *reference* if `data` is a numpy array or
-        `NDData`, so you should make copy the ``data`` before passing it in
-        if that's the  desired behavior.
+        The actual data contained in this `NDData` object. If possible, data
+        will not be copied`data`, so you should make copy the ``data`` before
+        passing it in if that's the desired behavior.
 
     uncertainty : any type, optional
         Uncertainty on the data. The uncertainty *must* have a string attribute
@@ -62,25 +61,19 @@ class NDData(NDDataBase):
         is placed on meta.
 
     unit : `~astropy.units.UnitBase` instance or str, optional
-        The units of the data.
-
-    Raises
-    ------
-    ValueError :
-        If the `uncertainty` or `mask` inputs cannot be broadcast (e.g., match
-        shape) onto ``data``.
+        The units of the data. If data is an `~astropy.units.Quantity` then
+        ``unit`` is set to the unit of the data.
 
     Notes
     -----
-    The data in a `NDData` object can should be accessed through the data
+    The data in a `NDData` object should be accessed through the data
     attribute.
 
     For example::
 
         >>> from astropy.nddata import NDData
-        >>> import numpy as np
         >>> x = NDData([1,2,3])
-        >>> np.asarray(x.data)
+        >>> x.data
         array([1, 2, 3])
     """
 
@@ -114,8 +107,9 @@ class NDData(NDDataBase):
                 log.info("Overwriting NDData's current meta "
                          "with specified meta")
 
-            if unit is not None:
-                raise ValueError('To convert to different unit please use .to')
+            if unit is not None and unit is not data.unit:
+                raise ValueError('Unit provided in initializer does not '
+                                 'match data unit.')
         else:
             if hasattr(data, 'mask'):
                 self._data = np.array(data.data, subok=True, copy=False)
@@ -123,7 +117,7 @@ class NDData(NDDataBase):
                 if mask is not None:
                     self._mask = mask
                     log.info("NDData was created with a masked array, and a "
-                             "mask was explictly provided to NDData. The  "
+                             "mask was explicitly provided to NDData. The  "
                              "explicitly passed-in mask will be used and the "
                              "masked array's mask will be ignored.")
                 else:
