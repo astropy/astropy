@@ -415,9 +415,9 @@ class Parameter(object):
         Make a copy of this `Parameter`, overriding any of its core attributes
         in the process (or an exact copy).
 
-        The arguments to this method are described in `Parameter.__init__`.
-        This simply returns a new `Parameter` instance with any or all of the
-        attributes overridden, and so returns the equivalent of:
+        The arguments to this method are the same as those for the `Parameter`
+        initializer.  This simply returns a new `Parameter` instance with any
+        or all of the attributes overridden, and so returns the equivalent of:
 
         .. code:: python
 
