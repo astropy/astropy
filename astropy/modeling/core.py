@@ -635,7 +635,18 @@ class Model(object):
         Fittable parameters maintain this list and fitters modify it.
         """
 
-        return self._parameters
+        # Currently the sequence of a model's parameters must be contiguous
+        # within the _parameters array (which may be a view of a larger array,
+        # for example when taking a sub-expression of a compound model), so
+        # the assumption here is reliable:
+        if not self.param_names:
+            # Trivial, but not unheard of
+            return self._parameters
+
+        start = self._param_metrics[self.param_names[0]]['slice'].start
+        stop = self._param_metrics[self.param_names[-1]]['slice'].stop
+
+        return self._parameters[start:stop]
 
     @parameters.setter
     def parameters(self, value):
@@ -644,14 +655,19 @@ class Model(object):
         replacing it.
         """
 
+        if not self.param_names:
+            return
+
+        start = self._param_metrics[self.param_names[0]]['slice'].start
+        stop = self._param_metrics[self.param_names[-1]]['slice'].stop
+
         try:
-            value = np.array(value).reshape(self._parameters.shape)
+            value = np.array(value).flatten()
+            self._parameters[start:stop] = value
         except ValueError as e:
             raise InputParameterError(
                 "Input parameter values not compatible with the model "
                 "parameters array: {0}".format(e))
-
-        self._parameters[:] = value
 
     @property
     def fixed(self):

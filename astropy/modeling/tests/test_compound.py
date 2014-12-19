@@ -386,18 +386,23 @@ def test_slicing_on_instance():
     # 1 + 2
     assert m[:'B'](0) == 3
     assert m[:'B'].param_names == ('amplitude_0', 'amplitude_1')
+    assert np.all(m[:'B'].parameters == [1, 2])
     # 2 - 3
     assert m['B':'C'](0) == -1
     assert m['B':'C'].param_names == ('amplitude_1', 'amplitude_2')
+    assert np.all(m['B':'C'].parameters == [2, 3])
     # 3 * 4
     assert m['C':'D'](0) == 12
     assert m['C':'D'].param_names == ('amplitude_2', 'amplitude_3')
+    assert np.all(m['C':'D'].parameters == [3, 4])
     # 4 / 5
     assert m['D':'E'](0) == 0.8
     assert m['D':'E'].param_names == ('amplitude_3', 'amplitude_4')
+    assert np.all(m['D':'E'].parameters == [4, 5])
     # 5 ** 6
     assert m['E':'F'](0) == 15625
     assert m['E':'F'].param_names == ('amplitude_4', 'amplitude_5')
+    assert np.all(m['E':'F'].parameters == [5, 6])
 
 
 def test_indexing_on_instance():
