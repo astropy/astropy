@@ -23,7 +23,7 @@ Example uses of fitsheader:
 
     $ fitsheader --keyword BITPIX --keyword NAXIS filename.fits
 
-5. Print keywords NAXIS, NAXIS1, NAXIS2, etc. using a wildcard::
+5. Print keywords NAXIS, NAXIS1, NAXIS2, etc using a wildcard::
 
     $ fitsheader --keyword NAXIS* filename.fits
 
@@ -109,19 +109,19 @@ class HeaderFormatter(object):
             hdukeys = range(len(self._hdulist))  # Display all by default
         else:
             hdukeys = []
-            for myextension in extensions:
+            for ext in extensions:
                 try:
                     # HDU may be specified by number
-                    hdukeys.append(int(myextension))
+                    hdukeys.append(int(ext))
                 except ValueError:
                     # The user can specify "EXTNAME" or "EXTNAME,EXTVER"
-                    parts = myextension.split(',')
+                    parts = ext.split(',')
                     if len(parts) > 1:
                         extname = ','.join(parts[0:-1])
                         extver = int(parts[-1])
                         hdukeys.append((extname, extver))
                     else:
-                        hdukeys.append(myextension)
+                        hdukeys.append(ext)
 
         # Having established which HDUs the user wants, we now format these:
         return self._parse_internal(hdukeys, keywords, compressed)
@@ -130,15 +130,15 @@ class HeaderFormatter(object):
         """The meat of the formatting; in a separate method to allow overriding.
         """
         result = []
-        for i, hdukey in enumerate(hdukeys):
+        for idx, hdu in enumerate(hdukeys):
             try:
-                cards = self._get_cards(hdukey, keywords, compressed)
+                cards = self._get_cards(hdu, keywords, compressed)
 
-                if i > 0:  # Separate HDUs by a blank line
+                if idx > 0:  # Separate HDUs by a blank line
                     result.append('\n')
-                result.append('# HDU {hdukey} in {filename}:\n'.format(
+                result.append('# HDU {hdu} in {filename}:\n'.format(
                               filename=self.filename,
-                              hdukey=hdukey
+                              hdu=hdu
                               ))
                 result.append('{0}\n'.format('\n'.join([str(c)
                                                         for c in cards])))
@@ -169,14 +169,14 @@ class HeaderFormatter(object):
         ExtensionNotFoundException
             If the hdukey does not correspond to an extension.
         """
-        # First we obtain the desired header, `myheader`
+        # First we obtain the desired header
         try:
             if compressed:
                 # In the case of a compressed image, return the header before
                 # decompression (not the default behavior)
-                myheader = self._hdulist[hdukey]._header
+                header = self._hdulist[hdukey]._header
             else:
-                myheader = self._hdulist[hdukey].header
+                header = self._hdulist[hdukey].header
         except (IndexError, KeyError):
             message = '{0}: Extension {1} not found.'.format(self.filename,
                                                              hdukey)
@@ -184,16 +184,16 @@ class HeaderFormatter(object):
             raise ExtensionNotFoundException(message)
 
         if not keywords:  # return all cards
-            cards = myheader.cards
+            cards = header.cards
         else:  # specific keywords are requested
             cards = []
             for kw in keywords:
                 try:
-                    mycard = myheader.cards[kw]
-                    if isinstance(mycard, fits.card.Card):  # Single card
-                        cards.append(mycard)
+                    crd = header.cards[kw]
+                    if isinstance(crd, fits.card.Card):  # Single card
+                        cards.append(crd)
                     else:  # Allow for wildcard access
-                        cards.extend(mycard)
+                        cards.extend(crd)
                 except KeyError as e:  # Keyword does not exist
                     log.warning('{filename} (HDU {hdukey}): '
                                 'Keyword {kw} not found.'.format(
@@ -213,17 +213,17 @@ class TableHeaderFormatter(HeaderFormatter):
     def _parse_internal(self, hdukeys, keywords, compressed):
         """Method called by the parse method in the parent class."""
         tablerows = []
-        for myhdukey in hdukeys:
+        for hdu in hdukeys:
             try:
-                for mycard in self._get_cards(myhdukey, keywords, compressed):
+                for card in self._get_cards(hdu, keywords, compressed):
                     tablerows.append({'filename': self.filename,
-                                      'hdu': myhdukey,
-                                      'keyword': mycard.keyword,
-                                      'value': mycard.value})
+                                      'hdu': hdu,
+                                      'keyword': card.keyword,
+                                      'value': str(card.value)})
             except ExtensionNotFoundException:
                 pass
 
-        if len(tablerows) > 0:
+        if tablerows:
             return table.Table(tablerows)
         return None
 
@@ -236,8 +236,8 @@ def print_headers_traditional(args):
     args : argparse.Namespace
         Arguments passed from the command-line as defined below.
     """
-    for i, filename in enumerate(args.filename):  # support wildcards
-        if i > 0 and not args.keywords:
+    for idx, filename in enumerate(args.filename):  # support wildcards
+        if idx > 0 and not args.keywords:
             print()  # print a newline between different files
         try:
             formatter = HeaderFormatter(filename)
@@ -258,25 +258,25 @@ def print_headers_as_table(args):
     """
     tables = []
     # Create a Table object for each file
-    for i, filename in enumerate(args.filename):  # Support wildcards
+    for filename in args.filename:  # Support wildcards
         try:
             formatter = TableHeaderFormatter(filename)
-            mytable = formatter.parse(args.extensions,
-                                      args.keywords,
-                                      args.compressed)
-            if mytable:
-                tables.append(mytable)
+            tbl = formatter.parse(args.extensions,
+                                  args.keywords,
+                                  args.compressed)
+            if tbl:
+                tables.append(tbl)
         except IOError as e:
             log.error(str(e))  # file not found or unreadable
     # Concatenate the tables
-    if len(tables) > 1:
-        mytable = table.vstack(tables)
-    elif len(tables) == 0:
+    if len(tables) == 0:
         return False
+    elif len(tables) == 1:
+        resulting_table = tables[0]
     else:
-        mytable = tables[0]
+        resulting_table = table.vstack(tables)
     # Print the string representation of the concatenated table
-    mytable.write(sys.stdout, format=args.table)
+    resulting_table.write(sys.stdout, format=args.table)
 
 
 def main(args=None):
