@@ -327,7 +327,7 @@ class BaseColumn(np.ndarray):
     def _formatter(self):
         return FORMATTER if (self.parent_table is None) else self.parent_table.formatter
 
-    def pformat(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False):
+    def pformat(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False, html=False):
         """Return a list of formatted string representation of column values.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -351,6 +351,9 @@ class BaseColumn(np.ndarray):
         show_dtype : bool
             Include column dtype (default=False)
 
+        html : bool
+            Format the output as an HTML table (default=False)
+
         Returns
         -------
         lines : list
@@ -359,7 +362,8 @@ class BaseColumn(np.ndarray):
         """
         _pformat_col = self._formatter._pformat_col
         lines, outs = _pformat_col(self, max_lines, show_name=show_name,
-                                   show_unit=show_unit, show_dtype=show_dtype)
+                                   show_unit=show_unit, show_dtype=show_dtype,
+                                   html=html)
         return lines
 
     def pprint(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False):
@@ -634,6 +638,10 @@ class Column(BaseColumn):
                                           shape=shape, length=length, description=description,
                                           unit=unit, format=format, meta=meta, copy=copy)
         return self
+
+    def _repr_html_(self):
+        lines, outs = self._formatter._pformat_col(self, show_dtype=True, html=True)
+        return '\n'.join(lines)
 
     def __repr__(self):
         lines, outs = self._formatter._pformat_col(self, show_dtype=True)

@@ -184,7 +184,7 @@ class TableFormatter(object):
 
 
     def _pformat_col(self, col, max_lines=None, show_name=True, show_unit=None,
-                     show_dtype=False, show_length=None):
+                     show_dtype=False, show_length=None, html=False):
         """Return a list of formatted string representation of column values.
 
         Parameters
@@ -207,6 +207,9 @@ class TableFormatter(object):
             Include column length at end.  Default is to show this only
             if the column is not shown completely.
 
+        html : bool
+            Output column as HTML
+
         Returns
         -------
         lines : list
@@ -216,21 +219,47 @@ class TableFormatter(object):
             Number of lines in the header
 
         """
+        if show_unit is None:
+            show_unit = getattr(col, 'unit', None) is not None
+
         outs = {}  # Some values from _pformat_col_iter iterator that are needed here
-        col_strs = list(self._pformat_col_iter(col, max_lines, show_name=show_name, show_unit=show_unit,
+        col_strs_iter = self._pformat_col_iter(col, max_lines, show_name=show_name, show_unit=show_unit,
                                                show_dtype=show_dtype, show_length=show_length,
-                                               outs=outs))
-        col_width = max(len(x) for x in col_strs)
+                                               outs=outs)
+        col_strs = list(col_strs_iter)
 
-        # Center line content and generate dashed headerline
-        for i in outs['i_centers']:
-            col_strs[i] = col_strs[i].center(col_width)
-        if outs['i_dashes'] is not None:
-            col_strs[outs['i_dashes']] = '-' * col_width
+        if html:
+            from ..utils.xml.writer import xml_escape
+            n_header = outs['n_header']
+            for i, col_str in enumerate(col_strs):
+                # _pformat_col output has a header line '----' which is not needed here
+                if i == n_header - 1:
+                    continue
+                td = 'th' if i < n_header else 'td'
+                val = '<{0}>{1}</{2}>'.format(td, xml_escape(col_str.strip()), td)
+                row = ('<tr>' + val + '</tr>')
+                if i < n_header:
+                    row = ('<thead>' + row + '</thead>')
+                col_strs[i] = row
 
-        # Now bring all the column string values to the same fixed width
-        for i, col_str in enumerate(col_strs):
-            col_strs[i] = col_str.rjust(col_width)
+            if n_header > 0:
+                # Get rid of '---' header line
+                col_strs.pop(n_header - 1)
+            col_strs.insert(0, '<table>')
+            col_strs.append('</table>')
+
+        else:
+            col_width = max(len(x) for x in col_strs)
+
+            # Center line content and generate dashed headerline
+            for i in outs['i_centers']:
+                col_strs[i] = col_strs[i].center(col_width)
+            if outs['i_dashes'] is not None:
+                col_strs[outs['i_dashes']] = '-' * col_width
+
+            # Now bring all the column string values to the same fixed width
+            for i, col_str in enumerate(col_strs):
+                col_strs[i] = col_str.rjust(col_width)
 
         if outs['show_length']:
             col_strs.append('Length = {0} rows'.format(len(col)))
