@@ -322,27 +322,45 @@ def test_slicing_on_class():
     M = A + B - C * D / E ** F
 
     assert M[0:1] is A
+    # This test will also check that the correct parameter names are generated
+    # for each slice (fairly trivial in this case since all the submodels have
+    # the same parameter, but if any corner cases are found that aren't covered
+    # by this test we can do something different...)
+    assert M[0:1].param_names == ('amplitude',)
     # This looks goofy but if you slice by name to the sub-model of the same
     # name it should just return that model, logically.
     assert M['A':'A'] is A
+    assert M['A':'A'].param_names == ('amplitude',)
     assert M[5:6] is F
+    assert M[5:6].param_names == ('amplitude',)
     assert M['F':'F'] is F
+    assert M['F':'F'].param_names == ('amplitude',)
 
     # 1 + 2
     assert M[:2](1, 2)(0) == 3
+    assert M[:2].param_names == ('amplitude_0', 'amplitude_1')
     assert M[:'B'](1, 2)(0) == 3
+    assert M[:'B'].param_names == ('amplitude_0', 'amplitude_1')
     # 2 - 3
     assert M[1:3](2, 3)(0) == -1
+    assert M[1:3].param_names == ('amplitude_1', 'amplitude_2')
     assert M['B':'C'](2, 3)(0) == -1
+    assert M['B':'C'].param_names == ('amplitude_1', 'amplitude_2')
     # 3 * 4
     assert M[2:4](3, 4)(0) == 12
+    assert M[2:4].param_names == ('amplitude_2', 'amplitude_3')
     assert M['C':'D'](3, 4)(0) == 12
+    assert M['C':'D'].param_names == ('amplitude_2', 'amplitude_3')
     # 4 / 5
     assert M[3:5](4, 5)(0) == 0.8
+    assert M[3:5].param_names == ('amplitude_3', 'amplitude_4')
     assert M['D':'E'](4, 5)(0) == 0.8
+    assert M['D':'E'].param_names == ('amplitude_3', 'amplitude_4')
     # 5 ** 6
     assert M[4:6](5, 6)(0) == 15625
+    assert M[4:6].param_names == ('amplitude_4', 'amplitude_5')
     assert M['E':'F'](5, 6)(0) == 15625
+    assert M['E':'F'].param_names == ('amplitude_4', 'amplitude_5')
 
 
 def test_slicing_on_instance():
@@ -367,14 +385,19 @@ def test_slicing_on_instance():
 
     # 1 + 2
     assert m[:'B'](0) == 3
+    assert m[:'B'].param_names == ('amplitude_0', 'amplitude_1')
     # 2 - 3
     assert m['B':'C'](0) == -1
+    assert m['B':'C'].param_names == ('amplitude_1', 'amplitude_2')
     # 3 * 4
     assert m['C':'D'](0) == 12
+    assert m['C':'D'].param_names == ('amplitude_2', 'amplitude_3')
     # 4 / 5
     assert m['D':'E'](0) == 0.8
+    assert m['D':'E'].param_names == ('amplitude_3', 'amplitude_4')
     # 5 ** 6
     assert m['E':'F'](0) == 15625
+    assert m['E':'F'].param_names == ('amplitude_4', 'amplitude_5')
 
 
 def test_indexing_on_instance():

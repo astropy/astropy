@@ -52,6 +52,23 @@ class ModelDefinitionError(Exception):
     """Used for incorrect models definitions"""
 
 
+def _model_oper(oper, **kwargs):
+    """
+    Returns a function that evaluates a given Python arithmetic operator
+    between two models.  The operator should be given as a string, like ``'+'``
+    or ``'**'``.
+
+    Any additional keyword arguments passed in are passed to
+    `_CompoundModelMeta._from_operator`.
+    """
+
+    # Note: Originally this used functools.partial, but that won't work when
+    # used in the class definition of _CompoundModelMeta since
+    # _CompoundModelMeta has not been defined yet.
+    return lambda left, right: _CompoundModelMeta._from_operator(oper,
+            left, right, **kwargs)
+
+
 class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     """
     Metaclass for Model.
@@ -312,26 +329,13 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             cls.__init__ = new_init
 
     # *** Arithmetic operators for creating compound models ***
-    def __add__(cls, other):
-        return _CompoundModelMeta._from_operator('+', cls, other)
-
-    def __sub__(cls, other):
-        return _CompoundModelMeta._from_operator('-', cls, other)
-
-    def __mul__(cls, other):
-        return _CompoundModelMeta._from_operator('*', cls, other)
-
-    def __truediv__(cls, other):
-        return _CompoundModelMeta._from_operator('/', cls, other)
-
-    def __pow__(cls, other):
-        return _CompoundModelMeta._from_operator('**', cls, other)
-
-    def __or__(cls, other):
-        return _CompoundModelMeta._from_operator('|', cls, other)
-
-    def __and__(cls, other):
-        return _CompoundModelMeta._from_operator('&', cls, other)
+    __add__ =     _model_oper('+')
+    __sub__ =     _model_oper('-')
+    __mul__ =     _model_oper('*')
+    __truediv__ = _model_oper('/')
+    __pow__ =     _model_oper('**')
+    __or__ =      _model_oper('|')
+    __and__ =     _model_oper('&')
 
     # *** Other utilities ***
 
@@ -558,26 +562,13 @@ class Model(object):
         return self.prepare_outputs(format_info, *outputs, **kwargs)
 
     # *** Arithmetic operators for creating compound models ***
-    def __add__(self, other):
-        return _CompoundModelMeta._from_operator('+', self, other)
-
-    def __sub__(self, other):
-        return _CompoundModelMeta._from_operator('-', self, other)
-
-    def __mul__(self, other):
-        return _CompoundModelMeta._from_operator('*', self, other)
-
-    def __truediv__(self, other):
-        return _CompoundModelMeta._from_operator('/', self, other)
-
-    def __pow__(self, other):
-        return _CompoundModelMeta._from_operator('**', self, other)
-
-    def __or__(self, other):
-        return _CompoundModelMeta._from_operator('|', self, other)
-
-    def __and__(self, other):
-        return _CompoundModelMeta._from_operator('&', self, other)
+    __add__ =     _model_oper('+')
+    __sub__ =     _model_oper('-')
+    __mul__ =     _model_oper('*')
+    __truediv__ = _model_oper('/')
+    __pow__ =     _model_oper('**')
+    __or__ =      _model_oper('|')
+    __and__ =     _model_oper('&')
 
     # *** Properties ***
     @property
@@ -1457,14 +1448,7 @@ class _CompoundModelMeta(_ModelMeta):
             return cls._get_slice(index.start, index.stop)
 
     def __getattr__(cls, attr):
-        # Ensuring the param_names has actually be initialized is important,
-        # otherwise this can cause premature setup of param_names before class
-        # construction is complete.  Specifically, on Python 2, if the
-        # hasattr() check for __qualname__ fails we'll end up in this
-        # __getattr__, but since the cls._slice_offset attribute may not have
-        # been properly set yet, the generated param_names will be incorrect.
-        # This is admittedly brittle and indicates an area for restructuring
-        if cls._param_names is not None and attr in cls.param_names:
+        if attr in cls.param_names:
             cls._init_param_descriptors()
             return getattr(cls, attr)
 
@@ -1552,7 +1536,29 @@ class _CompoundModelMeta(_ModelMeta):
     # in the expression.  This will prove to be a useful optimization in many
     # cases
     @classmethod
-    def _from_operator(mcls, operator, left, right):
+    def _from_operator(mcls, operator, left, right, additional_members={}):
+        """
+        Given a Python operator (represented by a string, such as ``'+'``
+        or ``'*'``, and two model classes or instances, return a new compound
+        model that evaluates the given operator on the outputs of the left and
+        right input models.
+
+        If either of the input models are a model *class* (i.e. a subclass of
+        `~astropy.modeling.Model`) then the returned model is a new subclass of
+        `~astropy.modeling.Model` that may be instantiated with any parameter
+        values.  If both input models are *instances* of a model, a new class
+        is still created, but this method returns an *instance* of that class,
+        taking the parameter values from the parameters of the input model
+        instances.
+
+        If given, the ``additional_members`` `dict` may provide additional
+        class members that should be added to the generated
+        `~astropy.modeling.Model` subclass.  Some members that are generated by
+        this method should not be provided by ``additional_members``.  These
+        include ``_tree``, ``inputs``, ``outputs``, ``linear``, and
+        ``__module__`.  This is currently for internal use only.
+        """
+
         # Note, currently this only supports binary operators, but could be
         # easily extended to support unary operators (namely '-') if/when
         # needed
@@ -1595,13 +1601,17 @@ class _CompoundModelMeta(_ModelMeta):
             linear = False
 
 
-        members = {'_tree': tree,
-                   # TODO: These are temporary until we implement the full rules
-                   # for handling inputs/outputs
-                   'inputs': inputs,
-                   'outputs': outputs,
-                   'linear': linear,
-                   '__module__': str(modname)}
+        # Note: If any other members are added here, make sure to mention them
+        # in the docstring of this method.
+        members = additional_members
+        members.update({
+            '_tree': tree,
+            # TODO: These are temporary until we implement the full rules
+            # for handling inputs/outputs
+            'inputs': inputs,
+            'outputs': outputs,
+            'linear': linear,
+            '__module__': str(modname)})
 
         new_cls = mcls(name, (_CompoundModel,), members)
 
@@ -1826,14 +1836,11 @@ class _CompoundModelMeta(_ModelMeta):
         use that instead.
         """
 
-        operators = {'+': operator.add, '-': operator.sub, '*': operator.mul,
-                     '/': operator.truediv, '**': operator.pow,
-                     '|': operator.or_, '&': operator.and_}
+        members = {'_slice_offset': cls._slice_offset + start}
+        operators = dict((oper, _model_oper(oper, additional_members=members))
+                         for oper in BINARY_OPERATORS)
 
-        new_cls = cls._tree.evaluate(operators, start=start, stop=stop)
-        if isinstance(new_cls, _CompoundModelMeta):
-            new_cls._slice_offset += start
-        return new_cls
+        return cls._tree.evaluate(operators, start=start, stop=stop)
 
 
 @six.add_metaclass(_CompoundModelMeta)
