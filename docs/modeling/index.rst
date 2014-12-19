@@ -26,9 +26,11 @@ fitting routines (while making it reasonably easy to do when necessary).
 .. warning::
 
     `astropy.modeling` is currently a work-in-progress, and thus it is likely
-    there will be significant API changes in later versions of Astropy. If you
-    have specific ideas for how it might be improved, feel free to let us know
-    on the `astropy-dev mailing list`_ or at http://feedback.astropy.org
+    there will still be API changes in later versions of Astropy, though
+    backwards compatibility support between versions will still be maintained
+    as much as possible. If you have specific ideas for how it might be
+    improved, feel free to let us know on the `astropy-dev mailing list`_ or at
+    http://feedback.astropy.org
 
 
 Getting started
