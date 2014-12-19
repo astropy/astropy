@@ -50,7 +50,7 @@ def support_nddata(_func=None, accepts=NDData, repack=False, returns=None):
 
     * The following arguments can optionally be specified in the function
       signature, but if they are specified they should be keyword arguments:
-      ``uncertainty``, ``mask``, ``flags``, ``meta``, ``unit``, and ``wcs``. If
+      ``uncertainty``, ``mask``, ``meta``, ``unit``, and ``wcs``. If
       you are making use of this decorator, you should be prepared for these
       keyword arguments to be set to the properties of the NDData object (if
       present).
@@ -90,7 +90,7 @@ def support_nddata(_func=None, accepts=NDData, repack=False, returns=None):
         if len(func_args) == 0 or func_args[0] != 'data':
             raise ValueError("Can only wrap functions whose first positional argument is `data`")
 
-        supported_properties = ['uncertainty', 'mask', 'flags', 'meta', 'unit', 'wcs']
+        supported_properties = ['uncertainty', 'mask', 'meta', 'unit', 'wcs']
 
         @wraps(func)
         def wrapper(data, *args, **kwargs):
