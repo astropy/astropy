@@ -546,18 +546,8 @@ class Table(object):
         table.columns = columns
 
     def __repr__(self):
-        names = ("'{0}'".format(x) for x in self.colnames)
-        units = [getattr(col, 'unit', None) for col in self.columns.values()]
-        if any(units):
-            units = ("{0}".format(None if unit is None else '\''+str(unit)+'\'')
-                     for unit in units)
-            s = "<{3} rows={0} names=({1}) units=({4})>\n{2}".format(
-                self.__len__(), ','.join(names), repr(self.as_array()), self.__class__.__name__
-                ,','.join(units))
-        else:
-            s = "<{3} rows={0} names=({1})>\n{2}".format(
-                self.__len__(), ','.join(names), repr(self.as_array()), self.__class__.__name__)
-        return s
+        lines, n_header = self.formatter._pformat_table(self, show_dtype=True)
+        return '\n'.join(lines)
 
     def __unicode__(self):
         lines, n_header = self.formatter._pformat_table(self)
@@ -571,7 +561,7 @@ class Table(object):
         __str__ = __bytes__
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_unit=None):
+               show_unit=None, show_dtype=False):
         """Print a formatted string representation of the table.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -600,10 +590,14 @@ class Table(object):
             for units only if one or more columns has a defined value
             for the unit.
 
+        show_dtype : bool
+            Include a header row for column dtypes (default=True)
         """
 
-        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width, show_name,
-                                                        show_unit)
+
+        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
+                                                        show_name=show_name, show_unit=show_unit,
+                                                        show_dtype=show_dtype)
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -670,7 +664,7 @@ class Table(object):
                 webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=None, html=False, tableid=None):
+                show_unit=None, show_dtype=False, html=False, tableid=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -700,6 +694,9 @@ class Table(object):
             for units only if one or more columns has a defined value
             for the unit.
 
+        show_dtype : bool
+            Include a header row for column dtypes (default=True)
+
         html : bool
             Format the output as an HTML table (default=False)
 
@@ -715,12 +712,13 @@ class Table(object):
 
         """
         lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
-                                                        show_name, show_unit, html,
+                                                        show_name=show_name, show_unit=show_unit,
+                                                        show_dtype=show_dtype, html=html,
                                                         tableid=tableid)
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
-             show_unit=None):
+             show_unit=None, show_dtype=False):
         """Interactively browse table with a paging interface.
 
         Supported keys::
@@ -750,14 +748,17 @@ class Table(object):
             Include a header row for unit.  Default is to show a row
             for units only if one or more columns has a defined value
             for the unit.
+
+        show_dtype : bool
+            Include a header row for column dtypes (default=True)
         """
-        self.formatter._more_tabcol(self, max_lines, max_width, show_name,
-                                    show_unit)
+        self.formatter._more_tabcol(self, max_lines, max_width, show_name=show_name,
+                                    show_unit=show_unit, show_dtype=show_dtype)
 
     def _repr_html_(self):
         # Since the user cannot provide input, need a sensible default
         tableid = 'table{id}'.format(id=id(self))
-        lines = self.pformat(html=True, tableid=tableid, max_width=-1)
+        lines = self.pformat(html=True, tableid=tableid, max_width=-1, show_dtype=True)
         return ''.join(lines)
 
     def __getitem__(self, item):
