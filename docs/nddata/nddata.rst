@@ -83,10 +83,10 @@ propagation, creating a new :class:`~astropy.nddata.NDData` object::
     ndd5 = ndd1.multiply(ndd2)
     ndd6 = ndd1.divide(ndd2)
 
-The purpose of the :meth:`~astropy.nddata.nddata.NDArithmetic.add`,
-:meth:`~astropy.nddata.nddata.NDArithmetic.subtract`,
-:meth:`~astropy.nddata.nddata.NDArithmetic.multiply` and
-:meth:`~astropy.nddata.nddata.NDArithmetic.divide` methods is to allow the
+The purpose of the :meth:`~astropy.nddata.NDArithmetic.add`,
+:meth:`~astropy.nddata.NDArithmetic.subtract`,
+:meth:`~astropy.nddata.NDArithmetic.multiply` and
+:meth:`~astropy.nddata.NDArithmetic.divide` methods is to allow the
 combination of two data objects that have common WCS and shape and units
 consistent with the operation performed, with consistent behavior for masks,
 and with a framework to propagate uncertainties.
