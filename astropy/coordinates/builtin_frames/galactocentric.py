@@ -87,7 +87,7 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
     R2 = mat1 * mat2
 
     # extra roll away from the Galactic x-z plane
-    R3 = rotation_matrix(galactocentric_frame.roll - ROLL0, 'x')
+    R3 = rotation_matrix(ROLL0 - galactocentric_frame.roll, 'x')
 
     # construct transformation matrix
     R = R3*R2*R1
@@ -135,7 +135,7 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     R2 = mat1 * mat2
 
     # extra roll away from the Galactic x-z plane
-    R3 = rotation_matrix(galactocentric_coord.roll-ROLL0, 'x')
+    R3 = rotation_matrix(ROLL0 - galactocentric_coord.roll, 'x')
 
     # construct transformation matrix
     R = R3*R2*R1

@@ -297,13 +297,13 @@ def test_fk5_galactic():
 
 def test_galactocentric():
     # when z_sun=0, transformation should be very similar to Galactic
-    icrs_coord = ICRS(ra=np.random.uniform(0,360,10)*u.deg,
-                      dec=np.random.uniform(-90,90,10)*u.deg,
+    icrs_coord = ICRS(ra=np.linspace(0,360,10)*u.deg,
+                      dec=np.linspace(-90,90,10)*u.deg,
                       distance=1.*u.kpc)
 
     g_xyz = icrs_coord.transform_to(Galactic).cartesian.xyz
     gc_xyz = icrs_coord.transform_to(Galactocentric(z_sun=0*u.kpc)).cartesian.xyz
-    diff = np.abs(g_xyz - gc_xyz)
+    diff = np.array(np.abs(g_xyz - gc_xyz))
 
     assert np.allclose(diff[0], 8.3, atol=1E-5)
     assert np.allclose(diff[1:], 0, atol=1E-5)
