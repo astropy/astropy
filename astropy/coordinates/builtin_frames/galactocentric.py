@@ -25,6 +25,14 @@ class Galactocentric(BaseCoordinateFrame):
     requires specifying the Sun-Galactic center distance, and optionally
     the height of the Sun above the Galactic midplane.
 
+    The position of the Sun is assumed to be on the x axis of the final,
+    right-handed system. That is, the x axis points from the position of
+    the Sun projected to the Galactic midplane to the Galactic center --
+    roughly towards `l,b = (0º,0º)`. For the default transformation
+    (`roll=0º`), the y axis points roughly towards Galactic longitude
+    `l=90º`, and the z axis points roughly towards the North Galactic
+    Pole (`b=90º`).
+
     The default position of the Galactic Center in ICRS coordinates is
     taken from Reid et al. 2004,
     http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
@@ -34,9 +42,7 @@ class Galactocentric(BaseCoordinateFrame):
 
     The default distance to the Galactic Center is 8.3 kpc, e.g.,
     Gillessen et al. 2009,
-    http://adsabs.harvard.edu/abs/2009ApJ...692.1075G. The position of
-    the Sun is assumed to be on the x axis of the final, right-handed
-    system.
+    http://adsabs.harvard.edu/abs/2009ApJ...692.1075G.
 
     The default height of the Sun above the Galactic midplane is taken to
     be 27 pc, as measured by
