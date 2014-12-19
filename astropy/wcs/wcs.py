@@ -2610,10 +2610,10 @@ naxis kwarg.
 
         Parameters
         ----------
-        wcs: `~astropy.wcs.WCS`
+        wcs : `~astropy.wcs.WCS`
             The WCS to have its axes swapped
-        ax0: int
-        ax1: int
+        ax0 : int
+        ax1 : int
             The indices of the WCS to be swapped, counting from 0 (i.e., python
             convention, not FITS convention)
 

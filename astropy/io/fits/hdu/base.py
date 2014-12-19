@@ -1383,7 +1383,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         Verify that the value in the ``DATASUM`` keyword matches the value
         calculated for the ``DATASUM`` of the current HDU data.
 
-        blocking: str, optional
+        blocking : str, optional
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 
@@ -1413,7 +1413,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         Verify that the value in the ``CHECKSUM`` keyword matches the
         value calculated for the current HDU CHECKSUM.
 
-        blocking: str, optional
+        blocking : str, optional
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 

@@ -138,7 +138,7 @@ class BaseColumn(np.ndarray):
 
         Returns
         -------
-        col: Column or MaskedColumn
+        col : Column or MaskedColumn
             Copy of the current column (same type as original)
         """
         if data is None:
@@ -310,7 +310,7 @@ class BaseColumn(np.ndarray):
 
         Returns
         -------
-        equal: boolean
+        equal : boolean
             True if all attributes are equal
         """
         if not isinstance(col, BaseColumn):

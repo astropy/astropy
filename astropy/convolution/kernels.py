@@ -363,7 +363,7 @@ class Ring2DKernel(Kernel2D):
         Inner radius of the ring kernel.
     width : number
         Width of the ring kernel.
-    mode: str, optional
+    mode : str, optional
         One of the following discretization modes:
             * 'center' (default)
                 Discretize model by taking the value
