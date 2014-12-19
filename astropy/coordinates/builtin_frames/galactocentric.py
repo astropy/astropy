@@ -83,6 +83,8 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
                            "a 3D coordinates, e.g. (angle, angle, distance) or"
                            " (x, y, z).")
 
+    xyz = icrs_coord.cartesian.xyz
+
     # define rotation matrix to align x(ICRS) with the vector to the Galactic center
     mat1 = rotation_matrix(90 - galactocentric_frame.galcen_dec.degree, 'y')
     mat2 = rotation_matrix(galactocentric_frame.galcen_ra.degree, 'z')
@@ -98,15 +100,18 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
 
     # construct transformation matrix
     R = R3*R2*R1
-    xyz = R.dot(icrs_coord.cartesian.xyz)
+
+    # some reshape hacks to handle ND arrays
+    orig_shape = xyz.shape
+    xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
 
     # translate by Sun-Galactic center distance along new x axis
     xyz[0] = xyz[0] - galactocentric_frame.galcen_distance
 
     # rotate about y' to account for tilt due to Sun's height above the plane
     z_d = (galactocentric_frame.z_sun / galactocentric_frame.galcen_distance).decompose()
-    R = rotation_matrix(np.arcsin(z_d), 'y')
-    xyz = R.T.dot(xyz) # inverse transform to the below
+    R = rotation_matrix(-np.arcsin(z_d), 'y')
+    xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
 
     representation = CartesianRepresentation(xyz)
     return galactocentric_frame.realize_frame(representation)
@@ -126,7 +131,10 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     # rotate about y' to account for tilt due to Sun's height above the plane
     z_d = (galactocentric_coord.z_sun / galactocentric_coord.galcen_distance).decompose()
     R = rotation_matrix(np.arcsin(z_d), 'y')
-    xyz = R.dot(xyz)
+
+    # some reshape hacks to handle ND arrays
+    orig_shape = xyz.shape
+    xyz = R.dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
 
     # translate by Sun-Galactic center distance along x axis
     xyz[0] = xyz[0] + galactocentric_coord.galcen_distance
@@ -148,7 +156,7 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     R = R3*R2*R1
 
     # rotate into ICRS frame
-    xyz = np.linalg.inv(R).dot(xyz)
+    xyz = np.linalg.inv(R).dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
 
     representation = CartesianRepresentation(xyz)
     return icrs_frame.realize_frame(representation)

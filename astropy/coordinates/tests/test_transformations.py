@@ -314,3 +314,31 @@ def test_galactocentric():
     xyz = g.transform_to(Galactocentric(galcen_distance=1.*u.kpc, z_sun=0.*u.pc)).cartesian.xyz
     true_xyz = np.array([[0,0,-1.],[0,0,1],[0,1,0],[0,-1,0]]).T*u.kpc
     assert np.allclose(xyz.to(u.kpc).value, true_xyz.to(u.kpc).value, atol=1E-5)
+
+    # check that ND arrays work
+
+    # from Galactocentric to Galactic
+    x = np.linspace(-10., 10., 100) * u.kpc
+    y = np.linspace(-10., 10., 100) * u.kpc
+    z = np.zeros_like(x)
+
+    g1 = Galactocentric(x=x, y=y, z=z)
+    g2 = Galactocentric(x=x.reshape(100,1,1), y=y.reshape(100,1,1), z=z.reshape(100,1,1))
+
+    g1t = g1.transform_to(Galactic)
+    g2t = g2.transform_to(Galactic)
+
+    np.testing.assert_almost_equal(g1t.cartesian.xyz.value, g2t.cartesian.xyz.value[:,:,0,0])
+
+    # from Galactic to Galactocentric
+    l = np.linspace(15, 30., 100) * u.deg
+    b = np.linspace(-10., 10., 100) * u.deg
+    d = np.ones_like(l.value) * u.kpc
+
+    g1 = Galactic(l=l, b=b, distance=d)
+    g2 = Galactic(l=l.reshape(100,1,1), b=b.reshape(100,1,1), distance=d.reshape(100,1,1))
+
+    g1t = g1.transform_to(Galactocentric)
+    g2t = g2.transform_to(Galactocentric)
+
+    np.testing.assert_almost_equal(g1t.cartesian.xyz.value, g2t.cartesian.xyz.value[:,:,0,0])
