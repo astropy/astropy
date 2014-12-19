@@ -7,8 +7,12 @@ from __future__ import division, print_function
 import numpy as np
 from numpy import ma
 
-from matplotlib.colors import Normalize
-
+try:
+    from matplotlib.colors import Normalize
+except ImportError:
+    class Normalize(object):
+        def __init__(self, *args, **kwargs):
+            raise ImportError("matplotlib is required in order to use this class")
 
 __all__ = ['ImageNormalize']
 

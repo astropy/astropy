@@ -10,11 +10,18 @@ try:
     HAS_MATPLOTLIB = True
 except:
     HAS_MATPLOTLIB = False
-else:
-    from ..mpl_normalize import ImageNormalize
+
+from ..mpl_normalize import ImageNormalize
 
 from ...tests.helper import pytest
 from ..stretch import SqrtStretch
+
+
+@pytest.mark.skipif('HAS_MATPLOTLIB')
+def test_error_message():
+    with pytest.raises(ImportError) as exc:
+        ImageNormalize()
+    assert exc.value.args[0] == "matplotlib is required in order to use this class"
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
