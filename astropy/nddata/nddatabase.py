@@ -46,18 +46,15 @@ class NDDataBase(object):
     # getter) as abstract but not the other.
     @property
     def uncertainty(self):
+
         return self._uncertainty
 
     @uncertainty.setter
     def uncertainty(self, value):
         if value is not None:
-            try:
-                not_good_uncertainty = not isinstance(value.uncertainty_type,
-                                                      six.string_types)
-            except AttributeError:
-                not_good_uncertainty = True
-            finally:
-                if not_good_uncertainty:
-                    raise TypeError('Uncertainty must have attribute '
-                                    'uncertainty_type whose type is string.')
+            if (not hasattr(value, 'uncertainty_type') or
+                    not isinstance(value.uncertainty_type, six.string_types)):
+
+                raise TypeError('Uncertainty must have attribute '
+                                'uncertainty_type whose type is string.')
         self._uncertainty = value
