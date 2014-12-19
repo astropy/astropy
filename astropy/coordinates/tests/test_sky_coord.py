@@ -978,19 +978,3 @@ def test_guess_from_table():
     tabgal['gal_l'].name = 'central'
     with pytest.raises(ValueError):
         SkyCoord.guess_from_table(tabgal, frame='galactic')
-
-
-def test_sun():
-    """
-    Test that `get_sun` works and it behaves roughly as it should (in GCRS)
-    """
-    northern_summer_solstice = Time('2010-6-21')
-    northern_winter_solstice = Time('2010-12-21')
-    equinox_1 = Time('2010-3-21')
-    equinox_2 = Time('2010-9-21')
-
-    gcrs1 = SkyCoord.get_sun(equinox_1)
-    assert np.abs(gcrs1.dec.deg) < 1
-
-    gcrs2 = SkyCoord.get_sun(Time([northern_summer_solstice, equinox_2, northern_winter_solstice]))
-    assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)

@@ -15,7 +15,7 @@ import numpy as np
 
 from .. import units as u
 
-__all__ = ['cartesian_to_spherical', 'spherical_to_cartesian']
+__all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun']
 
 
 def cartesian_to_spherical(x, y, z):
@@ -116,3 +116,41 @@ def spherical_to_cartesian(r, lat, lon):
     cart = sph.represent_as(CartesianRepresentation)
 
     return cart.x, cart.y, cart.z
+
+
+def get_sun(time):
+    """
+    Determines the location of the sun at a given time, in
+    geocentric coordinates.
+
+    Parameters
+    ----------
+    table : `~astropy.time.Time`
+        The time at which to compute the location of the sun.
+
+    Returns
+    -------
+    newsc : `~astropy.coordinates.SkyCoord`
+        The location of the sun as a `SkyCoord` in the GCRS frame.
+
+
+    Notes
+    -----
+    The algorithm for determining the sun/earth relative position is based
+    on the simplifed version of VSOP2000 that is part of ERFA. Compared to
+    JPL's ephemeris, it should be good to about 4 km (in the Sun-Earth
+    vector) from 1900-2100 C.E., 8 km for the 1800-2200 span, and perhaps
+    250 km over the 1000-3000.
+
+    """
+    from .. import erfa
+    from .representation import CartesianRepresentation
+    from .sky_coordinate import SkyCoord
+    from .builtin_frames import GCRS
+
+    earth_pv_helio, earth_pv_bary = erfa.epv00(time.jd1, time.jd2)
+    x = -earth_pv_helio[..., 0, 0] * u.AU
+    y = -earth_pv_helio[..., 0, 1] * u.AU
+    z = -earth_pv_helio[..., 0, 2] * u.AU
+    cartrep = CartesianRepresentation(x=x, y=y, z=z)
+    return SkyCoord(cartrep, frame=GCRS)
