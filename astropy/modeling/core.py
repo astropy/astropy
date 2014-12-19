@@ -1457,7 +1457,14 @@ class _CompoundModelMeta(_ModelMeta):
             return cls._get_slice(index.start, index.stop)
 
     def __getattr__(cls, attr):
-        if attr in cls.param_names:
+        # Ensuring the param_names has actually be initialized is important,
+        # otherwise this can cause premature setup of param_names before class
+        # construction is complete.  Specifically, on Python 2, if the
+        # hasattr() check for __qualname__ fails we'll end up in this
+        # __getattr__, but since the cls._slice_offset attribute may not have
+        # been properly set yet, the generated param_names will be incorrect.
+        # This is admittedly brittle and indicates an area for restructuring
+        if cls._param_names is not None and attr in cls.param_names:
             cls._init_param_descriptors()
             return getattr(cls, attr)
 
