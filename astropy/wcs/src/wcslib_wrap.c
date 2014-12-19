@@ -3436,6 +3436,7 @@ PyTypeObject PyWcsprmType = {
 
 #define CONSTANT(a) PyModule_AddIntConstant(m, #a, a)
 
+#define XSTRINGIFY(s) STRINGIFY(s)
 #define STRINGIFY(s) #s
 
 int
@@ -3451,7 +3452,7 @@ _setup_wcsprm_type(
   wcsprintf_set(NULL);
   wcserr_enable(1);
 
-  if (PyModule_AddStringConstant(m, "__version__", STRINGIFY(WCSLIB_VERSION))) {
+  if (PyModule_AddStringConstant(m, "__version__", XSTRINGIFY(WCSLIB_VERSION))) {
       return -1;
   }
 
