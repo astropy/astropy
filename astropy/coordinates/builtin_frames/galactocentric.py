@@ -21,26 +21,30 @@ ROLL0 = Angle(148.5986320*u.degree)
 
 class Galactocentric(BaseCoordinateFrame):
     """
-    A coordinate or frame in the Galactocentric system. This frame requires specifying
-    the Sun-Galactic center distance, and optionally the height of the Sun above the
-    Galactic midplane.
+    A coordinate or frame in the Galactocentric system. This frame
+    requires specifying the Sun-Galactic center distance, and optionally
+    the height of the Sun above the Galactic midplane.
 
-    The default position of the Galactic Center in ICRS coordinates is taken from
-    Reid et al. 2004, http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
+    The default position of the Galactic Center in ICRS coordinates is
+    taken from Reid et al. 2004,
+    http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
 
         RA = 17:45:37.224 (hours)
         Dec = -28:56:10.23 (degrees)
 
     The default distance to the Galactic Center is 8.3 kpc, e.g.,
-    Gillessen et al. 2009, http://adsabs.harvard.edu/abs/2009ApJ...692.1075G.
+    Gillessen et al. 2009,
+    http://adsabs.harvard.edu/abs/2009ApJ...692.1075G.
 
-    The default height of the Sun above the Galactic midplane is taken to be
-    27 pc, as measured by http://adsabs.harvard.edu/abs/2001ApJ...553..184C.
+    The default height of the Sun above the Galactic midplane is taken to
+    be 27 pc, as measured by
+    http://adsabs.harvard.edu/abs/2001ApJ...553..184C.
 
     Parameters
     ----------
     representation : `BaseRepresentation` or None
-        A representation object or None to have no data (or use the other keywords)
+        A representation object or None to have no data (or use the other
+        keywords)
     galcen_distance : :class:`~astropy.units.Quantity`, optional, must be keyword
         The distance from the Sun to the Galactic center.
     galcen_ra : `Angle`, optional, must be keyword
@@ -50,10 +54,11 @@ class Galactocentric(BaseCoordinateFrame):
     z_sun : :class:`~astropy.units.Quantity`, optional, must be keyword
         The distance from the Sun to the Galactic midplane.
     roll : `Angle`, optional, must be keyword
-        The angle to rotate about the final x-axis, relative to the orientation for
-        Galactic. For example, if this roll angle is 0, the final x-z plane will align
-        with the Galactic coordinates x-z plane. Unless you really know what this means,
-        you probably should not change this!
+        The angle to rotate about the final x-axis, relative to the
+        orientation for Galactic. For example, if this roll angle is 0,
+        the final x-z plane will align with the Galactic coordinates x-z
+        plane. Unless you really know what this means, you probably should
+        not change this!
 
     """
     default_representation = CartesianRepresentation
