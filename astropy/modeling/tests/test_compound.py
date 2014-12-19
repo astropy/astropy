@@ -526,7 +526,11 @@ def test_mapping_inverse():
 
 
 def test_slicing_on_instances_2():
-    """More slicing tests."""
+    """
+    More slicing tests.
+
+    Regression test for https://github.com/embray/astropy/pull/10
+    """
 
     model_a = Shift(1, name='a')
     model_b = Shift(2, name='b')
