@@ -218,10 +218,12 @@ def isinstancemethod(cls, obj):
 
     Examples
     --------
+    >>> from astropy.extern import six
     >>> class MetaClass(type):
     ...     def a_classmethod(cls): pass
     ...
-    >>> class MyClass(object):
+    >>> @six.add_metaclass(MetaClass)
+    ... class MyClass(object):
     ...     __metaclass__ = MetaClass
     ...     def an_instancemethod(self): pass
     ...     @classmethod
