@@ -37,11 +37,11 @@ You'd better make a plot to see what the night is going to look like.
     >>> m33altazs = m33.transform_to(AltAz(obstime=midnight+delta_midnight, location=bear_mountain))
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.plot(delta_midnight, m33altazs.alt)
+    >>> plt.plot(delta_midnight, m33altazs.secz)
     >>> plt.xlim(-2, 7)
-    >>> plt.ylim(0, 90)
+    plt.ylim(1, 4)
     >>> plt.xlabel('Hours from EDT Midnight')
-    >>> plt.ylabel('Alt [deg]')
+    >>> plt.ylabel('Airmass [Sec(z)]')
 
 
 .. plot::
@@ -63,11 +63,11 @@ You'd better make a plot to see what the night is going to look like.
     delta_midnight = np.linspace(-2, 7, 100)*u.hour
     m33altazs = m33.transform_to(AltAz(obstime=midnight+delta_midnight, location=bear_mountain))
 
-    plt.plot(delta_midnight, m33altazs.alt)
+    plt.plot(delta_midnight, m33altazs.secz)
     plt.xlim(-2, 7)
-    plt.ylim(0, 90)
+    plt.ylim(1, 4)
     plt.xlabel('Hours from EDT Midnight')
-    plt.ylabel('Alt [deg]')
+    plt.ylabel('Airmass [Sec(z)]')
 
 
 
@@ -88,13 +88,13 @@ when it will be twilight::
     >>> plt.scatter(delta_midnight, m33altazs.alt, c=m33altazs.az, label='M33', lw=0, s=8)
     >>> plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)
     >>> plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)
-    >>> plt.colorbar().set_label('Az [deg]')
+    >>> plt.colorbar().set_label('Azimuth [deg]')
     >>> plt.legend(loc='upper left')
     >>> plt.xlim(-12, 12)
     >>> plt.xticks(np.arange(13)*2 -12)
     >>> plt.ylim(0, 90)
     >>> plt.xlabel('Hours from EDT Midnight')
-    >>> plt.ylabel('Alt [deg]')
+    >>> plt.ylabel('Altitude [deg]')
 
 
 .. plot::
@@ -124,13 +124,13 @@ when it will be twilight::
     plt.scatter(delta_midnight, m33altazs.alt, c=m33altazs.az, label='M33', lw=0, s=8)
     plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)
     plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)
-    plt.colorbar().set_label('Az [deg]')
+    plt.colorbar().set_label('Azimuth [deg]')
     plt.legend(loc='upper left')
     plt.xlim(-12, 12)
     plt.xticks(np.arange(13)*2 -12)
     plt.ylim(0, 90)
     plt.xlabel('Hours from EDT Midnight')
-    plt.ylabel('Alt [deg]')
+    plt.ylabel('Altitude [deg]')
 
 Now you're fully-equipped with the tools you need to plan your next
 observing run... Or have have a proper vacation.  You decide!
