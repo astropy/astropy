@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the Arithmetic mixin to the NDData class.
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from copy import deepcopy
 
@@ -200,7 +201,8 @@ class NDArithmetic(object):
             propagate_uncertainties = None
         return self._arithmetic(
             operand, propagate_uncertainties, "subtraction", np.subtract)
-    subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract", operator="-")
+    subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract",
+                                                  operator="-")
 
     def multiply(self, operand, propagate_uncertainties=True):
         if propagate_uncertainties:
@@ -209,7 +211,8 @@ class NDArithmetic(object):
             propagate_uncertainties = None
         return self._arithmetic(
             operand, propagate_uncertainties, "multiplication", np.multiply)
-    multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply", operator="*")
+    multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply",
+                                                  operator="*")
 
     def divide(self, operand, propagate_uncertainties=True):
         if propagate_uncertainties:
@@ -291,7 +294,8 @@ class NDDataArithmetic(NDArithmetic, NDSlicing, NDData):
                 self._uncertainty = value
                 self._uncertainty.parent_nddata = self
             else:
-                raise TypeError("Uncertainty must be an instance of a NDUncertainty object")
+                raise TypeError("Uncertainty must be an instance of "
+                                "a NDUncertainty object")
         else:
             self._uncertainty = value
 

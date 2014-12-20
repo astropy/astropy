@@ -2,7 +2,8 @@
 
 # TEST_UNICODE_LITERALS
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import textwrap
 
@@ -42,10 +43,12 @@ def test_nddata_empty():
     with pytest.raises(TypeError):
         NDData()  # empty initializer should fail
 
+
 def test_nddata_init_with_nonarray():
     inp = [1, 2, 3]
     nd = NDData(inp)
     assert (np.array(inp) == nd.data).all()
+
 
 def test_nddata_simple():
     with NumpyRNGContext(123):
@@ -110,7 +113,8 @@ def test_nddata_repr():
 
 def test_nddata_mask_valid():
     with NumpyRNGContext(456):
-        NDData(np.random.random((10, 10)), mask=np.random.random((10, 10)) > 0.5)
+        NDData(np.random.random((10, 10)),
+               mask=np.random.random((10, 10)) > 0.5)
 
 
 def test_nddata_uncertainty_init():
@@ -164,9 +168,8 @@ def test_invalid_unit():
     d = NDData(np.ones((5, 5)), unit="NotAValidUnit")
 
 
-
 def test_slicing_not_supported():
-    ndd =  NDData(np.ones((5, 5)))
+    ndd = NDData(np.ones((5, 5)))
     with pytest.raises(TypeError):
         ndd[0]
 

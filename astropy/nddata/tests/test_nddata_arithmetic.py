@@ -2,7 +2,8 @@
 
 # TEST_UNICODE_LITERALS
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -58,7 +59,8 @@ def test_nddata_uncertainty_init_invalid_shape_2():
 def test_nddata_uncertainty_invalid_type(uncertainty):
     with pytest.raises(TypeError) as exc:
         NDDataArithmetic(np.ones((5, 5)), uncertainty=uncertainty)
-    assert exc.value.args[0] == 'Uncertainty must be an instance of a NDUncertainty object'
+    assert exc.value.args[0] == ('Uncertainty must be an instance of '
+                                 'a NDUncertainty object')
 
 
 # slicing tests
@@ -149,7 +151,9 @@ def test_nddata_add_uncertainties_mismatch():
     d2 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u2)
     with pytest.raises(IncompatibleUncertaintiesException) as exc:
         d3 = d1.add(d2)
-    assert exc.value.args[0] == 'Cannot propagate uncertainties of type StdDevUncertainty with uncertainties of type FakeUncertainty for addition'
+    assert exc.value.args[0] == ('Cannot propagate uncertainties of type '
+                                 'StdDevUncertainty with uncertainties of '
+                                 'type FakeUncertainty for addition')
 
 
 def test_initializing_nduncertainty_from_quantity():
@@ -192,7 +196,8 @@ def test_unmasked_masked_array_input():
 
     # Check that masks are correct
     assert marr.mask is np.ma.nomask
-    assert nd.mask is None  # Internal representation is np.ma.nomask but getter returns None
+    # Internal representation is np.ma.nomask but getter returns None.
+    assert nd.mask is None
 
 
 def test_nddata_unmasked_in_operation_with_masked_numpy_array():
@@ -215,7 +220,8 @@ def test_nddata_unmasked_in_operation_with_masked_numpy_array():
 def test_nddata_mask_invalid_shape(shape):
     with pytest.raises(ValueError) as exc:
         with NumpyRNGContext(789):
-            NDDataArithmetic(np.random.random((10, 10)), mask=np.random.random(shape) > 0.5)
+            NDDataArithmetic(np.random.random((10, 10)),
+                             mask=np.random.random(shape) > 0.5)
     assert exc.value.args[0] == 'dimensions of mask do not match data'
 
 
@@ -317,7 +323,9 @@ def test_nddata_subtract_uncertainties_mismatch():
     d2 = NDDataArithmetic(np.ones((5, 5)) * 2., uncertainty=u2)
     with pytest.raises(IncompatibleUncertaintiesException) as exc:
         d3 = d1.subtract(d2)
-    assert exc.value.args[0] == 'Cannot propagate uncertainties of type StdDevUncertainty with uncertainties of type FakeUncertainty for subtraction'
+    assert exc.value.args[0] == ('Cannot propagate uncertainties of type '
+                                 'StdDevUncertainty with uncertainties of '
+                                 'type FakeUncertainty for subtraction')
 
 
 @pytest.mark.parametrize('op1_unc,op2_unc', [
@@ -397,7 +405,8 @@ def test_arithmetic_result_not_tied_to_operands_wcs():
                          ('multiply', u.km * u.m),
                          ('divide', u.km / u.m)])
 def test_uncertainty_unit_conversion_add_subtract(operation, result_unit):
-    in_km = NDDataArithmetic(np.array([1, 1]), unit=u.km, uncertainty=StdDevUncertainty([.1, .1]))
+    in_km = NDDataArithmetic(np.array([1, 1]), unit=u.km,
+                             uncertainty=StdDevUncertainty([.1, .1]))
     in_m = NDDataArithmetic(in_km.data * 1000, unit=u.m)
     in_m.uncertainty = StdDevUncertainty(in_km.uncertainty.array * 1000)
     operator_km = in_km.__getattribute__(operation)
