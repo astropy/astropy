@@ -16,9 +16,11 @@ _90DEG = 90*u.deg
 
 class AltAz(BaseCoordinateFrame):
     """
-    A coordinate or frame in the Altitude-Azimuth system (i.e., Horizontal
-    coordinates).  This frame is assumed to *include* refraction effects if
-    the ``pressure`` frame attribute is non-zero.
+    A coordinate or frame in the Altitude-Azimuth system (Horizontal
+    coordinates).  Azimuth is oriented East of North (i.e., N=0, E=90 degrees).
+
+    This frame is assumed to *include* refraction effects if the ``pressure``
+    frame attribute is non-zero.
 
     This frame has the following frame attributes, which are necessary for
     transforming from AltAz to some other system:

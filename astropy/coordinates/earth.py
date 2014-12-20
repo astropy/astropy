@@ -32,17 +32,20 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
 
 class EarthLocation(u.Quantity):
     """
-    Location on Earth.
+    Location on the Earth.
 
     Initialization is first attempted assuming geocentric (x, y, z) coordinates
     are given; if that fails, another attempt is made assuming geodetic
     coordinates (longitude, latitude, height above a reference ellipsoid).
-    Internally, the coordinates are stored as geocentric.
+    When using the geodetic forms, Longitudes are measured increasing to the
+    east, so west longitudes are negative. Internally, the coordinates are
+    stored as geocentric.
 
     To ensure a specific type of coordinates is used, use the corresponding
     class methods (`from_geocentric` and `from_geodetic`) or initialize the
     arguments with names (``x``, ``y``, ``z`` for geocentric; ``lon``, ``lat``,
     ``height`` for geodetic).  See the class methods for details.
+
 
     Notes
     -----
