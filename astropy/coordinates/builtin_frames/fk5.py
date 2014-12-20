@@ -9,7 +9,7 @@ from ..baseframe import (BaseCoordinateFrame, frame_transform_graph,
 from ..transformations import DynamicMatrixTransform
 from .. import earth_orientation as earth
 
-from .consts import EQUINOX_J2000
+from .utils import EQUINOX_J2000
 
 
 class FK5(BaseCoordinateFrame):

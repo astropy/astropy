@@ -15,12 +15,12 @@ from copy import deepcopy
 from collections import namedtuple
 
 # Dependencies
+import numpy as np
 
 # Project
 from ..utils.compat.misc import override__dir__
 from ..extern import six
-from ..utils.compat.odict import OrderedDict
-from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from .. import units as u
 from ..utils import OrderedDict
 from .transformations import TransformGraph
@@ -28,10 +28,12 @@ from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
                              UnitSphericalRepresentation,
                              REPRESENTATION_CLASSES)
+from .earth import EarthLocation
 
 
 __all__ = ['BaseCoordinateFrame', 'frame_transform_graph', 'GenericFrame',
-           'FrameAttribute', 'TimeFrameAttribute', 'RepresentationMapping']
+           'FrameAttribute', 'TimeFrameAttribute', 'QuantityFrameAttribute',
+           'EarthLocationAttribute', 'RepresentationMapping']
 
 
 # the graph used for all transformations between frames
@@ -154,11 +156,6 @@ class FrameAttribute(object):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
-
-    Returns
-    -------
-    frame_attr : descriptor
-        A new data descriptor to hold a frame attribute
     """
 
     _nextid = 1
@@ -262,11 +259,6 @@ class TimeFrameAttribute(FrameAttribute):
     secondary_attribute : str
         Name of a secondary instance attribute which supplies the value if
         ``default is None`` and no value was supplied during initialization.
-
-    Returns
-    -------
-    frame_attr : descriptor
-        A new data descriptor to hold a frame attribute
     """
 
     def convert_input(self, value):
@@ -309,12 +301,129 @@ class TimeFrameAttribute(FrameAttribute):
             converted = True
 
         if not out.isscalar:
-            raise ValueError(
-                'Time input {0}={1!r} must be a single (scalar) '
-                'value'.format(self.name, value))
+            msg0 = ('Time input {0}={1!r} is not a single (scalar) value. Some '
+                    'transformations do not yet support vector frame '
+                    'attributes, so some transformations may not work.')
+            msg = msg0.format(self.name, value)
+            warnings.warn(msg, AstropyWarning)
 
         return out, converted
 
+
+class QuantityFrameAttribute(FrameAttribute):
+    """
+    A frame attribute that is a quantity with specified units and shape
+    (optionally).
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    unit : unit object or None
+        Name of a unit that the input will be converted into. If None, no
+        unit-checking or conversion is performed
+    shape : tuple or None
+        If given, specifies the shape the attribute must be
+    """
+    def __init__(self, default=None, secondary_attribute='', unit=None, shape=None):
+        super(QuantityFrameAttribute, self).__init__(default, secondary_attribute)
+        self.unit = unit
+        self.shape = shape
+
+    def convert_input(self, value):
+        """
+        Checks that the input is a Quantity with the necessary units (or the
+        special value ``0``).
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        if np.all(value == 0) and self.unit is not None and self.unit is not None:
+            return u.Quantity(np.zeros(self.shape), self.unit), True
+        else:
+            converted = True
+            if not (hasattr(value, 'unit') ):
+                raise TypeError('Tried to set a QuantityFrameAttribute with '
+                                'something that does not have a unit.')
+            oldvalue = value
+            value = u.Quantity(oldvalue, copy=False).to(self.unit)
+            if self.shape is not None and value.shape != self.shape:
+                raise ValueError('The provided value has shape "{0}", but '
+                                 'should have shape "{1}"'.format(value.shape,
+                                                                  self.shape))
+            if (oldvalue.unit == value.unit and hasattr(oldvalue, 'value') and
+                np.all(oldvalue.value == value.value)):
+                converted = False
+            return value, converted
+
+
+class EarthLocationAttribute(FrameAttribute):
+    """
+    A frame attribute that can act as a `~astropy.coordinates.EarthLocation`.
+    It can be created as anything that can be transformed to the
+    `~astropy.coordinates.ITRS` frame, but always presents as an `EarthLocation`
+    when accessed after creation.
+
+    Parameters
+    ----------
+    default : object
+        Default value for the attribute if not provided
+    secondary_attribute : str
+        Name of a secondary instance attribute which supplies the value if
+        ``default is None`` and no value was supplied during initialization.
+    """
+
+    def convert_input(self, value):
+        """
+        Checks that the input is a Quantity with the necessary units (or the
+        special value ``0``).
+
+        Parameters
+        ----------
+        value : object
+            Input value to be converted.
+
+        Returns
+        -------
+        out, converted : correctly-typed object, boolean
+            Tuple consisting of the correctly-typed object and a boolean which
+            indicates if conversion was actually performed.
+
+        Raises
+        ------
+        ValueError
+            If the input is not valid for this attribute.
+        """
+        if value is None:
+            return None, False
+        elif isinstance(value, EarthLocation):
+            return value, False
+        else:
+            #we have to do the import here because of some tricky circular deps
+            from .builtin_frames import ITRS
+
+            if not hasattr(value, 'transform_to'):
+                raise ValueError('"{0}" was passed into an '
+                                 'EarthLocationAttribute, but it does not have '
+                                 '"transform_to" method'.format(value))
+            itrsobj = value.transform_to(ITRS)
+            return itrsobj.earth_location, True
 
 _RepresentationMappingBase = \
     namedtuple('RepresentationMapping',

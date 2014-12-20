@@ -3,8 +3,12 @@
 The astropy.utils.iers package provides access to the tables provided by
 the International Earth Rotation and Reference Systems Service, in
 particular allowing interpolation of published UT1-UTC values for given
-times.  These are used in astropy.time to provide UT1 values.  By
-default, IERS B values provided as part of astropy are used, but
+times.  These are used in `astropy.time` to provide UT1 values.  The polar
+motions are also used for determining earth orientation for
+celestional-to-terrestrial coordinate transformations
+(in `astropy.coordinates`).
+
+By default, IERS B values provided as part of astropy are used, but
 user-downloaded files can be substituted.
 
 Generally, there is no need to invoke the iers classes oneself.  E.g.,
@@ -54,6 +58,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
+from ... import units as u
 from ...table import Table
 from ...utils.data import get_pkg_data_filename
 
@@ -86,7 +91,7 @@ class IERS(Table):
     """Generic IERS table class, defining interpolation functions.
 
     Sub-classed from `astropy.table.Table`.  The table should hold columns
-    'MJD' and 'UT1_UTC'.
+    'MJD', 'UT1_UTC', and 'PM_x'/'PM_y'.
     """
 
     iers_table = None
@@ -230,8 +235,83 @@ class IERS(Table):
                                  'by IERS table.')
             return ut1_utc
 
+    def pm_xy(self, jd1, jd2=0., return_status=False):
+        """Interpolate polar motions from IERS Table for given dates.
+
+        Parameters
+        ----------
+        jd1 : float, float array, or Time object
+            first part of two-part JD, or Time object
+        jd2 : float or float array, optional
+            second part of two-part JD (default 0., ignored if jd1 is Time)
+        return_status : bool
+            Whether to return status values.  If False (default),
+            raise `IndexError` if any time is out of the range covered
+            by the IERS table.
+
+        Returns
+        -------
+        PM_x : Quantity with angle units
+            x component of polar motion for the requested times
+        PM_y : Quantity with angle units
+            y component of polar motion for the requested times
+        status : int or int array
+            Status values (if `return_status`=`True`)::
+            `iers.FROM_IERS_B`
+            `iers.FROM_IERS_A`
+            `iers.FROM_IERS_A_PREDICTION`
+            `iers.TIME_BEFORE_IERS_RANGE`
+            `iers.TIME_BEYOND_IERS_RANGE`
+        """
+
+        mjd, utc = self.mjd_utc(jd1, jd2)
+        # enforce array
+        is_scalar = not hasattr(mjd, '__array__') or mjd.ndim == 0
+        if is_scalar:
+            mjd = np.array([mjd])
+            utc = np.array([utc])
+        # For typical format, will always find a match (since MJD are integer)
+        # hence, important to define which side we will be; this ensures
+        # self['MJD'][i-1]<=mjd<self['MJD'][i]
+        i = np.searchsorted(self['MJD'], mjd, side='right')
+        # Get index to MJD at or just below given mjd, clipping to ensure we
+        # stay in range of table (status will be set below for those outside)
+        i1 = np.clip(i, 1, len(self)-1)
+        i0 = i1-1
+        mjd_0, mjd_1 = self['MJD'][i0], self['MJD'][i1]
+        pm_x_0, pm_x_1 = self['PM_x'][i0], self['PM_x'][i1]
+        pm_y_0, pm_y_1 = self['PM_y'][i0], self['PM_y'][i1]
+
+        # Linearly interpolate both components
+        pm_x = u.Quantity(pm_x_0 + (mjd - mjd_0)*(pm_x_1 - pm_x_0)/(mjd_1 - mjd_0), copy=False)
+        pm_y = u.Quantity(pm_y_0 + (mjd - mjd_0)*(pm_y_1 - pm_y_0)/(mjd_1 - mjd_0), copy=False)
+
+        if is_scalar:
+            pm_x = pm_x[0]
+            pm_y = pm_y[0]
+
+        if return_status:
+            # Set status to source, possibly using routine provided by subclass
+            status = self.pm_source(i1)
+            # Check for out of range
+            status[i == 0] = TIME_BEFORE_IERS_RANGE
+            status[i == len(self)] = TIME_BEYOND_IERS_RANGE
+            if is_scalar:
+                status = status[0]
+            return pm_x, pm_y, status
+        else:
+            # Not returning status, so raise an exception for out-of-range
+            if np.any(i1 != i):
+                raise IndexError('(some) times are outside of range covered '
+                                 'by IERS table.')
+            return pm_x, pm_y
+
     def ut1_utc_source(self, i):
         """Source for UT1-UTC.  To be overridden by subclass."""
+        return np.zeros_like(i)
+
+    def pm_source(self, i):
+        """Source for polar motion.  To be overridden by subclass."""
         return np.zeros_like(i)
 
 
@@ -264,6 +344,18 @@ class IERS_A(IERS):
         table['UT1Flag'] = np.where(table['UT1_UTC_B'].mask,
                                     table['UT1Flag_A'].data,
                                     'B')
+        #repeat for polar motions
+        table['PM_x'] = np.where(table['PM_X_B'].mask,
+                                 table['PM_x_A'].data,
+                                 table['PM_X_B'].data)
+        table['PM_x'].unit = table['PM_x_A'].unit  # needed for Quantity-ing
+        table['PM_y'] = np.where(table['PM_Y_B'].mask,
+                                 table['PM_y_A'].data,
+                                 table['PM_Y_B'].data)
+        table['PM_y'].unit = table['PM_y_A'].unit  # needed for Quantity-ing
+        table['PolPMFlag'] = np.where(table['PM_X_B'].mask,
+                                      table['PolPMFlag_A'].data,
+                                      'B')
         super(IERS_A, self).__init__(table.filled())
 
     @classmethod
@@ -297,6 +389,14 @@ class IERS_A(IERS):
         source = np.ones_like(i) * FROM_IERS_B
         source[ut1flag == 'I'] = FROM_IERS_A
         source[ut1flag == 'P'] = FROM_IERS_A_PREDICTION
+        return source
+
+    def pm_source(self, i):
+        """Set polar motion source flag for entries in IERS table"""
+        pmflag = self['PolPMFlag'][i]
+        source = np.ones_like(i) * FROM_IERS_B
+        source[pmflag == 'I'] = FROM_IERS_A
+        source[pmflag == 'P'] = FROM_IERS_A_PREDICTION
         return source
 
 
@@ -346,6 +446,10 @@ class IERS_B(IERS):
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
+        return np.ones_like(i) * FROM_IERS_B
+
+    def pm_source(self, i):
+        """Set PM source flag for entries in IERS table"""
         return np.ones_like(i) * FROM_IERS_B
 
 # by default for IERS class, read IERS-B table

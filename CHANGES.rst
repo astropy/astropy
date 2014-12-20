@@ -22,6 +22,13 @@ New Features
 
 - ``astropy.coordinates``
 
+  - ``astropy.coordinates`` now has a full stack of frames allowing
+    transformations from ICRS or other celestial systems down to Alt/Az
+    coordinates. [#3217]
+
+  - ``astropy.coordinates`` now has a ``get_sun`` function that gives
+    the coordinates  of the Sun at a specified time. [#3217]
+
   - ``SkyCoord`` now has ``to_pixel`` and ``from_pixel`` methods that convert
     between celestial coordinates as ``SkyCoord`` objects and pixel coordinates
     given an ``astropy.wcs.WCS`` object. [#3002]
@@ -36,6 +43,7 @@ New Features
   - ``SkyCoord`` now has a ``guess_from_table`` method that can be used to
     quickly create ``SkyCoord`` objects from an ``astropy.table.Table``
     object. [#2951]
+
 
 - ``astropy.cosmology``
 

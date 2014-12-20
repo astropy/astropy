@@ -18,7 +18,7 @@ from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
 from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
-                             UnitSphericalRepresentation)
+                             UnitSphericalRepresentation, CartesianRepresentation)
 
 __all__ = ['SkyCoord']
 
@@ -248,7 +248,7 @@ class SkyCoord(object):
             for attr, coord_value in coord_kwargs.items():
                 if (attr in valid_kwargs
                         and valid_kwargs[attr] is not None
-                        and valid_kwargs[attr] != coord_value):
+                        and np.any(valid_kwargs[attr] != coord_value)):
                     raise ValueError("Coordinate attribute '{0}'={1!r} conflicts with "
                                      "keyword argument '{0}'={2!r}"
                                      .format(attr, coord_value, valid_kwargs[attr]))

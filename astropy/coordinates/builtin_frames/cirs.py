@@ -4,21 +4,18 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from ..representation import SphericalRepresentation
-from ..baseframe import BaseCoordinateFrame, RepresentationMapping
+from ..baseframe import BaseCoordinateFrame, RepresentationMapping, TimeFrameAttribute
+from .utils import DEFAULT_OBSTIME
 
-
-class ICRS(BaseCoordinateFrame):
+class CIRS(BaseCoordinateFrame):
     """
-    A coordinate or frame in the ICRS system.
+    A coordinate or frame in the Celestial Intermediate Reference System (CIRS).
 
-    If you're looking for "J2000" coordinates, and aren't sure if you want to
-    use this or `~astropy.coordinates.FK5`, you probably want to use ICRS. It's
-    more well-defined as a catalog coordinate and is an inertial system, and is
-    very close (within tens of milliarcseconds) to J2000 equatorial.
+    This frame has one frame attribute:
 
-    For more background on the ICRS and related coordinate transformations, see the
-    references provided in the  :ref:`astropy-coordinates-seealso` section of the
-    documentation.
+    * ``obstime``
+        The time at which the observation is taken.  Used for determining the
+        position of the Earth and its precession.
 
     Parameters
     ----------
@@ -43,3 +40,8 @@ class ICRS(BaseCoordinateFrame):
         frame_specific_representation_info['spherical']
 
     default_representation = SphericalRepresentation
+
+    obstime = TimeFrameAttribute(default=DEFAULT_OBSTIME)
+
+#The "self-transform" is defined in icrs_cirs_transformations.py, because in
+#the current implementation it goes through ICRS (like GCRS)

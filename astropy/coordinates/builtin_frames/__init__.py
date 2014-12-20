@@ -28,17 +28,23 @@ from .icrs import ICRS
 from .fk5 import FK5
 from .fk4 import FK4, FK4NoETerms
 from .galactic import Galactic
-from .altaz import AltAz
 from .galactocentric import Galactocentric
+from .altaz import AltAz
+from .gcrs import GCRS
+from .cirs import CIRS
+from .itrs import ITRS
 
 #need to import transformations so that they get registered in the graph
 from . import icrs_fk5_transforms
 from . import fk4_fk5_transforms
 from . import galactic_transforms
+from . import icrs_cirs_transforms
+from . import cirs_observed_transforms
+from . import intermediate_rotation_transforms
 
 # we define an __all__ because otherwise the transformation modules get included
-__all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'AltAz', 'Galactocentric']
-
+__all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
+           'AltAz', 'GCRS', 'CIRS', 'ITRS']
 
 def _make_transform_graph_docs():
     """

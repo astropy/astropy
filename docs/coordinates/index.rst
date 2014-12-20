@@ -262,6 +262,7 @@ listed below.
    angles
    skycoord
    transforming
+   observing-example
    formatting
    matchsep
    representations
@@ -332,19 +333,24 @@ custom coordinates is available at :ref:`astropy-coordinates-overview`,
 and :ref:`astropy-coordinates-create-repr`.
 
 
+.. _astropy-coordinates-seealso:
+
 See Also
 ========
 
 Some references particularly useful in understanding subtleties of the
 coordinate systems implemented here include:
 
+* `USNO Circular 179 <http://aa.usno.navy.mil/publications/docs/Circular_179.php>`_
+    A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
+    related problems in precision coordinate system work.
 * `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_
     The definitive implementation of IAU-defined algorithms.  The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.
-* `USNO Circular 179 <http://aa.usno.navy.mil/publications/docs/Circular_179.php>`_
-    A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
-    related problems in precision coordinate system work.
+* `IERS Conventions (2010) <http://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html>`_
+    An exhaustive reference covering the ITRS, the IAU2000 celestial coordinates
+    framework, and other related details of modern coordinate conventions.
 * Meeus, J. "Astronomical Algorithms"
     A valuable text describing details of a wide range of coordinate-related
     problems and concepts.
