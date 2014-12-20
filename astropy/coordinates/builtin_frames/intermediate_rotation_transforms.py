@@ -54,7 +54,7 @@ def cartrepr_from_matmul(pmat, coo, transpose=False):
     if pmat.shape[-2:] != (3, 3):
         raise ValueError("tried to do matrix multiplication with an array that "
                          "doesn't end in 3x3")
-    xyz = coo.cartesian.xyz
+    xyz = coo.cartesian.xyz.T
     # these expression are the same as iterating over the first dimension of
     # pmat and xyz and doing matrix multiplication on each in turn.  resulting
     # dimension is <coo shape> x 3
