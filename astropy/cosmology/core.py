@@ -988,6 +988,25 @@ class FLRW(Cosmology):
         """
         return (self.lookback_time(z) * const.c).to(u.Mpc)
 
+    def lookback_distance(self, z):
+        """ 
+        The lookback distance is the light travel time distance to a given redshift.
+        It is simply c * lookback_time.  It may be used to calculate the proper distance 
+        between two redshifts, e.g. for the mean free path to ionizing radiation.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.  Must be 1D or scalar
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Lookback distance in Mpc
+        """
+
+        return (self.lookback_time(z) * const.c).to(u.Mpc)
+
     def age(self, z):
         """ Age of the universe in Gyr at redshift ``z``.
 
