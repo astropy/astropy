@@ -18,19 +18,19 @@ class MinimalSubclass(NDDataBase):
 
     @property
     def mask(self):
-        super(MinimalSubclass, self).mask
+        return super(MinimalSubclass, self).mask
 
     @property
     def unit(self):
-        super(MinimalSubclass, self).unit
+        return super(MinimalSubclass, self).unit
 
     @property
     def wcs(self):
-        super(MinimalSubclass, self).wcs
+        return super(MinimalSubclass, self).wcs
 
     @property
     def meta(self):
-        super(MinimalSubclass, self).meta
+        return super(MinimalSubclass, self).meta
 
 
 class MinimalUncertainty(object):
