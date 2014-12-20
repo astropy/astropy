@@ -131,7 +131,8 @@ def get_sun(time):
     Returns
     -------
     newsc : `~astropy.coordinates.SkyCoord`
-        The location of the sun as a `SkyCoord` in the GCRS frame.
+        The location of the sun as a `~astropy.coordinates.SkyCoord` in the
+        `~astropy.coordinates.GCRS` frame.
 
 
     Notes

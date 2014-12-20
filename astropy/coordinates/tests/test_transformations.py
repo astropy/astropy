@@ -341,7 +341,7 @@ def test_icrs_cirs():
     """
     Check a few cases of ICRS<->CIRS for consistency.
 
-    Also includes the CIRS<->CIRS transforms at differnt times, as those go
+    Also includes the CIRS<->CIRS transforms at different times, as those go
     through ICRS
     """
     ra, dec, dist = randomly_sample_sphere(200)

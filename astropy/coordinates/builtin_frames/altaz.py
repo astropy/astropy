@@ -42,8 +42,9 @@ class AltAz(BaseCoordinateFrame):
         The relative humidity as a number from 0 to 1.  This is necessary for
         performing refraction corrections.
     * ``obswl``
-        The ground-level temperature as an `~astropy.units.Quantity` with length
-        units.  This is necessary for performing refraction corrections.
+        The average wavelength of observations as an `~astropy.units.Quantity`
+         with length units.  This is necessary for performing refraction
+         corrections.
 
     Parameters
     ----------
