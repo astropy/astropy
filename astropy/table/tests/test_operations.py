@@ -2,18 +2,14 @@
 
 # TEST_UNICODE_LITERALS
 
-from distutils import version
-import warnings
-
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
-from ...table import Table
+from ...table import Table, TableMergeError
 from ...utils import OrderedDict, metadata
 from ...utils.metadata import MergeConflictError
-from .. import np_utils
 from ... import table
-from ... import log
+
 
 def sort_eq(list1, list2):
     return sorted(list1) == sorted(list2)
@@ -131,7 +127,7 @@ class TestJoin():
         # Check that the common keys are 'a', 'b'
         t12a = table.join(t1, t2, join_type='outer')
         t12b = table.join(t1, t2, join_type='outer', keys=['a', 'b'])
-        assert np.all(t12a._data == t12b._data)
+        assert np.all(t12a.as_array() == t12b.as_array())
 
     def test_both_unmasked_single_key_inner(self):
         t1 = self.t1
@@ -200,7 +196,7 @@ class TestJoin():
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
-        assert np.all(t12._data == np.array(t1m2._data))
+        assert np.all(t12.as_array() == np.array(t1m2))
 
         # Mask out some values in left table and make sure they propagate
         t1m['b'].mask[1] = True
@@ -236,7 +232,7 @@ class TestJoin():
 
         # Result should match non-masked result
         t12 = table.join(t1, t2)
-        assert np.all(t12._data == np.array(t1m2m._data))
+        assert np.all(t12.as_array() == np.array(t1m2m))
 
         # Mask out some values in both tables and make sure they propagate
         t1m['b'].mask[1] = True
@@ -270,14 +266,14 @@ class TestJoin():
         t1 = self.t1
         t2 = self.t2
         t1['b_1'] = 1  # Add a new column b_1 that will conflict with auto-rename
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.join(t1, t2, keys='a')
 
     def test_missing_keys(self):
         """Merge on a key column that doesn't exist"""
         t1 = self.t1
         t2 = self.t2
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.join(t1, t2, keys=['a', 'not there'])
 
     def test_bad_join_type(self):
@@ -295,7 +291,7 @@ class TestJoin():
         del t1['b']
         del t2['a']
         del t2['b']
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.join(t1, t2)
 
     def test_masked_key_column(self):
@@ -304,7 +300,7 @@ class TestJoin():
         t2 = Table(self.t2, masked=True)
         table.join(t1, t2)  # OK
         t2['a'].mask[0] = True
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.join(t1, t2)
 
     def test_col_meta_merge(self):
@@ -499,15 +495,15 @@ class TestVStack():
                                   '  1 bar']
 
     def test_stack_incompatible(self):
-        with pytest.raises(np_utils.TableMergeError) as excinfo:
+        with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type='inner')
         assert "The 'b' columns have incompatible types:" in str(excinfo)
 
-        with pytest.raises(np_utils.TableMergeError) as excinfo:
+        with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type='outer')
         assert "The 'b' columns have incompatible types:" in str(excinfo)
 
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.vstack([self.t1, self.t2], join_type='exact')
 
     def test_vstack_one_masked(self):
@@ -699,7 +695,7 @@ class TestHStack():
     def test_stack_incompatible(self):
         # For join_type exact, which will fail here because n_rows
         # does not match
-        with pytest.raises(np_utils.TableMergeError):
+        with pytest.raises(TableMergeError):
             table.hstack([self.t1, self.t3], join_type='exact')
 
     def test_hstack_one_masked(self):
@@ -753,3 +749,58 @@ class TestHStack():
             # Make sure we got a copy of meta, not ref
             t1['b'].meta['b'] = None
             assert out['b'].meta['b'] == [1, 2]
+
+
+def test_unique():
+    t = table.Table.read([' a b  c  d',
+                          ' 2 b 7.0 0',
+                          ' 1 c 3.0 5',
+                          ' 2 b 6.0 2',
+                          ' 2 a 4.0 3',
+                          ' 1 a 1.0 7',
+                          ' 2 b 5.0 1',
+                          ' 0 a 0.0 4',
+                          ' 1 a 2.0 6',
+                          ' 1 c 3.0 5',
+                          ], format='ascii')
+
+    tu = table.Table(np.sort(t[:-1]))
+
+    t_all = table.unique(t)
+    assert sort_eq(t_all.pformat(), tu.pformat())
+
+    key1 = 'a'
+    t1 = table.unique(t, key1)
+    assert sort_eq(t1.pformat(), [' a   b   c   d ',
+                                  '--- --- --- ---',
+                                  '  0   a 0.0   4',
+                                  '  1   c 3.0   5',
+                                  '  2   b 7.0   0'])
+
+    key2 = ['a', 'b']
+    t2 = table.unique(t, key2)
+    assert sort_eq(t2.pformat(), [' a   b   c   d ',
+                                  '--- --- --- ---',
+                                  '  0   a 0.0   4',
+                                  '  1   a 1.0   7',
+                                  '  1   c 3.0   5',
+                                  '  2   a 4.0   3',
+                                  '  2   b 7.0   0'])
+
+    t1_m = table.Table(t1, masked=True)
+    t1_m['a'].mask[1] = True
+
+    with pytest.raises(ValueError) as e:
+        t1_mu = table.unique(t1_m)
+    assert e.value.args[0] == ("Cannot unique masked value key columns, remove "
+                               "column 'a' from keys and rerun unique.")
+
+    t1_mu = table.unique(t1_m, silent=True)
+    assert t1_mu.pformat() == [' a   b   c   d ',
+                               '--- --- --- ---',
+                               '  0   a 0.0   4',
+                               '  2   b 7.0   0',
+                               ' --   c 3.0   5']
+
+    with pytest.raises(ValueError) as e:
+        t1_mu = table.unique(t1_m, silent=True, keys='a')

@@ -1,0 +1,21 @@
+SIMPLE  =                    T / conforms to FITS standard
+BITPIX  =                    8 / array data type
+NAXIS   =                    2
+NAXIS1  =                 4256
+NAXIS2  =                 2832
+CRPIX1  =                 2129 / X reference pixel
+CRPIX2  =                 1417 / Y reference pixel
+CD1_1   =    -0.00912247310646 / Transformation matrix
+CD1_2   =    -0.00250608809647 / no comment
+CD2_1   =     0.00250608809647 / no comment
+CD2_2   =    -0.00912247310646 / no comment
+CTYPE1  = 'RA---TAN'           / TAN (gnomic) projection
+CTYPE2  = 'DEC--TAN'           / TAN (gnomic) projection
+CRVAL1  =        16.0531567459 / RA  of reference point
+CRVAL2  =        23.1148929108 / DEC of reference point
+CUNIT1  = 'deg     ' / X pixel scale units
+CUNIT2  = 'deg     ' / Y pixel scale units
+EQUINOX =               2000.0 / Equatorial coordinates definition (yr)
+LONPOLE =                180.0 / no comment
+LATPOLE =                  0.0 / no comment
+END

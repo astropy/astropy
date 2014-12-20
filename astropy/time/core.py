@@ -10,19 +10,17 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import fnmatch
-import itertools
 import time
 
 from datetime import datetime
 
 import numpy as np
-import functools
 
 from .. import units as u
-from ..utils import deprecated, deprecated_attribute
-from ..utils.exceptions import AstropyBackwardsIncompatibleChangeWarning
+from .. import erfa
 from ..utils.compat.misc import override__dir__
 from ..extern import six
+
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS',
@@ -43,9 +41,6 @@ try:
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
-
-MJD_ZERO = 2400000.5
-SECS_PER_DAY = 86400
 
 # These both get filled in at end after TimeFormat subclasses defined
 TIME_FORMATS = {}
@@ -75,21 +70,23 @@ TIME_DELTA_TYPES = dict((scale, scales)
                         for scales in (GEOCENTRIC_SCALES, BARYCENTRIC_SCALES,
                                        ROTATIONAL_SCALES) for scale in scales)
 TIME_DELTA_SCALES = TIME_DELTA_TYPES.keys()
-# TODO: access these from erfa.h??
-# L_G = 1 - d(TT)/d(TCG) -> d(TT)/d(TCG) = 1-L_G
-# d(TCG)/d(TT) = 1/(1-L_G) = 1 + (1-(1-L_G))/(1-L_G) = 1 + L_G/(1-L_G)
-ERFA_ELG = 6.969290134e-10
-# L_B = 1 - d(TDB)/d(TCB)
-ERFA_ELB = 1.550519768e-8
+# For time scale changes, we need L_G and L_B, which are stored in erfam.h as
+#   /* L_G = 1 - d(TT)/d(TCG) */
+#   define ERFA_ELG (6.969290134e-10)
+#   /* L_B = 1 - d(TDB)/d(TCB), and TDB (s) at TAI 1977/1/1.0 */
+#   define ERFA_ELB (1.550519768e-8)
+# These are exposed in erfa as erfa.ELG and erfa.ELB.
+# Implied: d(TT)/d(TCG) = 1-L_G
+# and      d(TCG)/d(TT) = 1/(1-L_G) = 1 + (1-(1-L_G))/(1-L_G) = 1 + L_G/(1-L_G)
 # scale offsets as second = first + first * scale_offset[(first,second)]
 SCALE_OFFSETS = {('tt', 'tai'): None,
                  ('tai', 'tt'): None,
-                 ('tcg', 'tt'): -ERFA_ELG,
-                 ('tt', 'tcg'): ERFA_ELG / (1. - ERFA_ELG),
-                 ('tcg', 'tai'): -ERFA_ELG,
-                 ('tai', 'tcg'): ERFA_ELG / (1. - ERFA_ELG),
-                 ('tcb', 'tdb'): -ERFA_ELB,
-                 ('tdb', 'tcb'): ERFA_ELB / (1. - ERFA_ELB)}
+                 ('tcg', 'tt'): -erfa.ELG,
+                 ('tt', 'tcg'): erfa.ELG / (1. - erfa.ELG),
+                 ('tcg', 'tai'): -erfa.ELG,
+                 ('tai', 'tcg'): erfa.ELG / (1. - erfa.ELG),
+                 ('tcb', 'tdb'): -erfa.ELB,
+                 ('tdb', 'tcb'): erfa.ELB / (1. - erfa.ELB)}
 
 # triple-level dictionary, yay!
 SIDEREAL_TIME_MODELS = {
@@ -102,23 +99,6 @@ SIDEREAL_TIME_MODELS = {
         'IAU2000A': {'function': erfa_time.gst00a, 'scales': ('ut1', 'tt')},
         'IAU2000B': {'function': erfa_time.gst00b, 'scales': ('ut1',)},
         'IAU1994': {'function': erfa_time.gst94, 'scales': ('ut1',)}}}
-
-
-# TODO: remove in version beyond 0.4
-# with longitude and latitude swapped to get them in the right order,
-# insist that these are given as keyword arguments
-def kwargs_after_scale(func):
-    @functools.wraps(func)
-    def new_func(*args, **kwargs):
-        if len(args) > 5:
-            AstropyBackwardsIncompatibleChangeWarning(
-                'lon and lat have been replaced with location in version 0.4. '
-                'Code should be changed to set the location explicitly using '
-                'a keyword argument: location=EarthLocation(...), or via a '
-                'shortcut with a tuple: location=(lon, lat, [height]) or '
-                'location=(x, y, z)')
-        return func(*args, **kwargs)
-    return new_func
 
 
 class Time(object):
@@ -158,9 +138,6 @@ class Time(object):
         Make a copy of the input values
     """
 
-    is_scalar = deprecated_attribute(name='is_scalar', since='0.3',
-                                     alternative='isscalar')
-
     _precision = 3  # Precision when for seconds as floating point
     _in_subfmt = '*'  # Select subformat for inputting string times
     _out_subfmt = '*'  # Select subformat for outputting string times
@@ -175,10 +152,9 @@ class Time(object):
     # gets called over the __mul__ of Numpy arrays.
     __array_priority__ = 20000
 
-    @kwargs_after_scale
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
-                location=None, copy=False, **kwargs):
+                location=None, copy=False):
 
         if isinstance(val, cls):
             self = val.replicate(format=format, copy=copy)
@@ -190,19 +166,9 @@ class Time(object):
     def __getnewargs__(self):
         return (self._time,)
 
-    @kwargs_after_scale
     def __init__(self, val, val2=None, format=None, scale=None,
                  precision=None, in_subfmt=None, out_subfmt=None,
-                 location=None, copy=False, **kwargs):
-
-        if 'lon' in kwargs or 'lat' in kwargs:
-            AstropyBackwardsIncompatibleChangeWarning(
-                'lon and lat have been replaced with location in version 0.4. '
-                'Code should be changed to set the location explicitly using '
-                'a keyword argument: location=(lon, lat, [height]) or '
-                'location=(x, y, z)')
-            if location is None:
-                location = (kwargs.pop('lon', None), kwargs.pop('lat', None))
+                 location=None, copy=False):
 
         if location is not None:
             from ..coordinates import EarthLocation
@@ -226,12 +192,18 @@ class Time(object):
         else:
             self._init_from_vals(val, val2, format, scale, copy)
 
-        if (self.location is not None and self.location.shape and
-                len(self.location) != (1 if self.isscalar else len(self))):
-            raise ValueError('Have {0} times but {1} locations.  Should '
-                             'either give a single location or one for each '
-                             'time'.format(1 if self.isscalar else len(self),
-                                           len(self.location)))
+        if self.location:
+            try:
+                # check the two can be broadcast together
+                b = np.broadcast(self.location, self._time.jd1)
+                # and insist there are not more locations than times
+                assert b.size == self.size
+            except:
+                raise ValueError('The location with shape {0} cannot be '
+                                 'broadcast against time with shape {1}. '
+                                 'Typically, either give a single location or '
+                                 'one for each time.'
+                                 .format(self.location.shape, self.shape))
 
     def _init_from_vals(self, val, val2, format, scale, copy):
         """
@@ -240,37 +212,17 @@ class Time(object):
         some basic input validation.
         """
 
-        # check whether input is some form of list of Time objects,
-        # since these should be treated separately
-        try:
-            val0 = val[0]
-        except:
-            isiterable_of_times = False
-        else:
-            isiterable_of_times = isinstance(val0, self.__class__)
+        # Coerce val into an array
+        val = _make_array(val, copy)
 
-        if isiterable_of_times:
-            if val2 is not None:
-                raise ValueError(
-                    'non-None second value for list of {0!r} objects'
-                    .format(self.__class__.__name__))
-            self.isscalar = False
-        else:
-            # Coerce val into a 1-d array
-            val, val_ndim = _make_1d_array(val, copy)
-
-            self.isscalar = (val_ndim == 0)
-
-            # If val2 is not None, ensure consistency
-            if val2 is not None:
-                val2, val2_ndim = _make_1d_array(val2, copy)
-
-                if val_ndim != val2_ndim:
-                    raise ValueError('Input val and val2 must have same '
-                                     'dimensions')
-
-                if len(val) != len(val2):
-                    raise ValueError('Input val and val2 must match in length')
+        # If val2 is not None, ensure consistency
+        if val2 is not None:
+            val2 = _make_array(val2, copy)
+            try:
+                np.broadcast(val, val2)
+            except ValueError:
+                raise ValueError('Input val and val2 have inconsistent shape; '
+                                 'they cannot be broadcast together.')
 
         if scale is not None:
             if not (isinstance(scale, six.string_types) and
@@ -293,8 +245,7 @@ class Time(object):
         guess available formats and stop when one matches.
         """
 
-        if format is None and (isinstance(val[0], self.__class__) or
-                               val.dtype.kind in ('S', 'U', 'O')):
+        if format is None and val.dtype.kind in ('S', 'U', 'O'):
             formats = [(name, cls) for name, cls in self.FORMATS.items()
                        if issubclass(cls, TimeUnique)]
             err_msg = ('any of the formats where the format keyword is '
@@ -452,15 +403,20 @@ class Time(object):
             raise ValueError('out_subfmt attribute must be a string')
         self._out_subfmt = val
 
-    def _shaped_like_input(self, values):
-        if self.isscalar:
-            value0 = values[0]
-            try:
-                return value0.tolist()
-            except AttributeError:
-                return value0
-        else:
-            return values
+    @property
+    def shape(self):
+        return self._time.jd1.shape
+
+    @property
+    def size(self):
+        return self._time.jd1.size
+
+    @property
+    def isscalar(self):
+        return self.shape == ()
+
+    def _shaped_like_input(self, value):
+        return value if self._time.jd1.shape else value.item()
 
     @property
     def jd1(self):
@@ -558,8 +514,7 @@ class Time(object):
 
         sidereal_time = erfa_function(*erfa_parameters)
 
-        return Longitude(self._shaped_like_input(sidereal_time),
-                         u.radian).to(u.hourangle)
+        return Longitude(sidereal_time, u.radian).to(u.hourangle)
 
     def copy(self, format=None):
         """
@@ -581,7 +536,7 @@ class Time(object):
 
         Returns
         -------
-        tm: Time object
+        tm : Time object
             Copy of this object
         """
         return self.replicate(format, copy=True)
@@ -612,7 +567,7 @@ class Time(object):
 
         Returns
         -------
-        tm: Time object
+        tm : Time object
             Replica of this object
         """
         # To avoid recalculating integer day + fraction, no longer just
@@ -626,7 +581,7 @@ class Time(object):
                           self.scale, self.precision,
                           self.in_subfmt, self.out_subfmt, from_jd=True)
         # Optional or non-arg attributes
-        attrs = ('isscalar', '_delta_ut1_utc', '_delta_tdb_tt',
+        attrs = ('_delta_ut1_utc', '_delta_tdb_tt',
                  'location', 'precision', 'in_subfmt', 'out_subfmt')
         for attr in attrs:
             try:
@@ -686,19 +641,14 @@ class Time(object):
             raise TypeError('scalar {0!r} object is not subscriptable.'.format(
                 self.__class__.__name__))
         tm = self.replicate()
-        jd1 = self._time.jd1[item]
-        tm.isscalar = jd1.ndim == 0
-
-        def keepasarray(x):
-            return np.atleast_1d(x) if isinstance(x, np.float) else x
-        tm._time.jd1 = keepasarray(jd1)
-        tm._time.jd2 = keepasarray(self._time.jd2[item])
+        tm._time.jd1 = self._time.jd1[item]
+        tm._time.jd2 = self._time.jd2[item]
         attrs = ('_delta_ut1_utc', '_delta_tdb_tt', 'location')
         for attr in attrs:
             val = getattr(self, attr, None)
             if val is not None:
                 try:
-                    setattr(tm, attr, keepasarray(val[item]))
+                    setattr(tm, attr, val[item])
                 except IndexError:  # location may be scalar (same for all)
                     continue
 
@@ -717,14 +667,7 @@ class Time(object):
             tm = self.replicate(format=attr)
             if hasattr(self.FORMATS[attr], 'epoch_scale'):
                 tm._set_scale(self.FORMATS[attr].epoch_scale)
-            if self.isscalar:
-                out = tm._time.value[0]
-                # convert to native python for non-object dtypes
-                if tm._time.value.dtype.kind != 'O':
-                    out = out.tolist()
-            else:
-                out = tm.value
-            return out
+            return tm.value
 
         elif attr in TIME_SCALES:  # allowed ones done above (self.SCALES)
             if self.scale is None:
@@ -746,18 +689,20 @@ class Time(object):
         result.update(self.FORMATS)
         return result
 
-    def _match_len(self, val):
+    def _match_shape(self, val):
         """
         Ensure that `val` is matched to length of self.  If val has length 1
-        then broadcast, otherwise cast to double and make sure length matches.
+        then broadcast, otherwise cast to double and make sure shape matches.
         """
-        val, ndim = _make_1d_array(val, copy=True)  # be conservative and copy
-        if len(val) == 1:
-            oval = val
-            val = np.empty(len(self._time), dtype=np.double)
-            val[:] = oval
-        elif len(val) != len(self._time):
-            raise ValueError('Attribute length must match Time object length')
+        val = _make_array(val, copy=True)  # be conservative and copy
+        try:
+            # check the two can be broadcast together
+            b = np.broadcast(val, self._time.jd1)
+            # and insist there are not more attributes than times
+            assert b.size == self.size
+        except:
+            raise ValueError('Attribute shape must match that of Time object')
+
         return val
 
     def get_delta_ut1_utc(self, iers_table=None, return_status=False):
@@ -776,9 +721,9 @@ class Time(object):
 
         Returns
         -------
-        ut1_utc: float or float array
+        ut1_utc : float or float array
             UT1-UTC, interpolated in IERS Table
-        status: int or int array
+        status : int or int array
             Status values (if ``return_status=`True```)::
             ``astropy.utils.iers.FROM_IERS_B``
             ``astropy.utils.iers.FROM_IERS_A``
@@ -860,7 +805,7 @@ class Time(object):
         return self._delta_ut1_utc
 
     def _set_delta_ut1_utc(self, val):
-        self._delta_ut1_utc = self._match_len(val)
+        self._delta_ut1_utc = self._match_shape(val)
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -901,14 +846,13 @@ class Time(object):
             rxy = np.hypot(location.x, location.y)
             z = location.z
             self._delta_tdb_tt = erfa_time.d_tdb_tt(
-                jd1, jd2, ut, np.atleast_1d(lon.to(u.radian).value),
-                np.atleast_1d(rxy.to(u.km).value),
-                np.atleast_1d(z.to(u.km).value))
+                jd1, jd2, ut, lon.to(u.radian).value,
+                rxy.to(u.km).value, z.to(u.km).value)
 
         return self._delta_tdb_tt
 
     def _set_delta_tdb_tt(self, val):
-        self._delta_tdb_tt = self._match_len(val)
+        self._delta_tdb_tt = self._match_shape(val)
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -959,7 +903,6 @@ class Time(object):
         jd2 = out._time.jd2 - other._time.jd2
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
-        out.isscalar = self.isscalar and other.isscalar
 
         if other_is_delta and out.scale != self.scale:
             return getattr(out, self.scale)
@@ -1000,7 +943,6 @@ class Time(object):
         jd2 = out._time.jd2 + other._time.jd2
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
-        out.isscalar = self.isscalar and other.isscalar
 
         if out.scale != self.scale:
             return getattr(out, self.scale)
@@ -1180,7 +1122,6 @@ class TimeDelta(Time):
         jd2 = self._time.jd2 + other._time.jd2
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
-        out.isscalar = self.isscalar and other.isscalar
 
         return out
 
@@ -1213,7 +1154,6 @@ class TimeDelta(Time):
         jd2 = self._time.jd2 - other._time.jd2
 
         out._time.jd1, out._time.jd2 = day_frac(jd1, jd2)
-        out.isscalar = self.isscalar and other.isscalar
 
         return out
 
@@ -1247,13 +1187,13 @@ class TimeDelta(Time):
 
         try:
             jd1, jd2 = day_frac(self.jd1, self.jd2, factor=other)
+            out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
         except Exception as err:  # try downgrading self to a quantity
             try:
                 return self.to(u.day) * other
             except:
                 raise err
 
-        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
         if self.format != 'jd':
             out = out.replicate(format=self.format)
         return out
@@ -1280,13 +1220,12 @@ class TimeDelta(Time):
 
         try:   # convert to straight float if dimensionless quantity
             jd1, jd2 = day_frac(self.jd1, self.jd2, divisor=other)
+            out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
         except Exception as err:  # try downgrading self to a quantity
             try:
                 return self.to(u.day) / other
             except:
                 raise err
-
-        out = TimeDelta(jd1, jd2, format='jd', scale=self.scale)
 
         if self.format != 'jd':
             out = out.replicate(format=self.format)
@@ -1297,11 +1236,28 @@ class TimeDelta(Time):
         return other / self.to(u.day)
 
     def to(self, *args, **kwargs):
-        return u.Quantity(self._shaped_like_input(self._time.jd1 +
-                                                  self._time.jd2),
+        return u.Quantity(self._time.jd1 + self._time.jd2,
                           u.day).to(*args, **kwargs)
 
 
+class TimeFormatMeta(type):
+    """
+    Metaclass that adds `TimeFormat` and `TimeDeltaFormat` to the
+    `TIME_FORMATS` and `TIME_DELTA_FORMATS` registries, respectively.
+    """
+
+    _registry = TIME_FORMATS
+
+    def __new__(mcls, name, bases, members):
+        cls = super(TimeFormatMeta, mcls).__new__(mcls, name, bases, members)
+
+        if 'name' in members:
+            mcls._registry[cls.name] = cls
+
+        return cls
+
+
+@six.add_metaclass(TimeFormatMeta)
 class TimeFormat(object):
     """
     Base class for time representations.
@@ -1449,11 +1405,11 @@ class TimeMJD(TimeFormat):
         # first one is probably biggest.
         self._check_scale(self._scale)  # Validate scale.
         self.jd1, self.jd2 = day_frac(val1, val2)
-        self.jd1 += MJD_ZERO
+        self.jd1 += erfa.DJM0  # erfa.DJM0=2400000.5 (from erfam.h)
 
     @property
     def value(self):
-        return (self.jd1 - MJD_ZERO) + self.jd2
+        return (self.jd1 - erfa.DJM0) + self.jd2
 
 
 class TimeFromEpoch(TimeFormat):
@@ -1511,8 +1467,8 @@ class TimeFromEpoch(TimeFormat):
                                   .format(self.name, self.epoch_scale,
                                           self.scale, err))
 
-        self.jd1 = tm.jd1
-        self.jd2 = tm.jd2
+        self.jd1 = tm._time.jd1
+        self.jd2 = tm._time.jd2
 
     @property
     def value(self):
@@ -1535,7 +1491,7 @@ class TimeUnix(TimeFromEpoch):
     per UTC day.
     """
     name = 'unix'
-    unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
+    unit = 1.0 / erfa.DAYSEC  # in days (1 day == 86400 seconds)
     epoch_val = '1970-01-01 00:00:00'
     epoch_val2 = None
     epoch_scale = 'utc'
@@ -1548,7 +1504,7 @@ class TimeCxcSec(TimeFromEpoch):
     For example, 63072064.184 is midnight on January 1, 2000.
     """
     name = 'cxcsec'
-    unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
+    unit = 1.0 / erfa.DAYSEC  # in days (1 day == 86400 seconds)
     epoch_val = '1998-01-01 00:00:00'
     epoch_val2 = None
     epoch_scale = 'tt'
@@ -1569,7 +1525,7 @@ class TimeGPS(TimeFromEpoch):
     For details, see http://tycho.usno.navy.mil/gpstt.html
     """
     name = 'gps'
-    unit = 1.0 / SECS_PER_DAY  # in days (1 day == 86400 seconds)
+    unit = 1.0 / erfa.DAYSEC  # in days (1 day == 86400 seconds)
     epoch_val = '1980-01-06 00:00:19'
     # above epoch is the same as Time('1980-01-06 00:00:00', scale='utc').tai
     epoch_val2 = None
@@ -1627,16 +1583,23 @@ class TimeAstropyTime(TimeUnique):
         Use __new__ instead of __init__ to output a class instance that
         is the same as the class of the first Time object in the list.
         """
-
-        if not all(isinstance(val, Time) for val in val1):
-            raise TypeError('Input values for {0} class must be datetime '
-                            'objects'.format(cls.name))
+        val1_0 = val1.flat[0]
+        if not (isinstance(val1_0, Time) and all(type(val) is type(val1_0)
+                                                 for val in val1.flat)):
+            raise TypeError('Input values for {0} class must all be same '
+                            'astropy Time type.'.format(cls.name))
 
         if scale is None:
-            scale = val1[0].scale
-        jd1 = np.concatenate([getattr(val, scale)._time.jd1 for val in val1])
-        jd2 = np.concatenate([getattr(val, scale)._time.jd2 for val in val1])
-        OutTimeFormat = val1[0]._time.__class__
+            scale = val1_0.scale
+        if val1.shape:
+            vals = [getattr(val, scale)._time for val in val1]
+            jd1 = np.concatenate([np.atleast_1d(val.jd1) for val in vals])
+            jd2 = np.concatenate([np.atleast_1d(val.jd2) for val in vals])
+        else:
+            val = getattr(val1_0, scale)._time
+            jd1, jd2 = val.jd1, val.jd2
+
+        OutTimeFormat = val1_0._time.__class__
         self = OutTimeFormat(jd1, jd2, scale, precision, in_subfmt, out_subfmt,
                              from_jd=True)
 
@@ -1661,7 +1624,7 @@ class TimeDatetime(TimeUnique):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
         try:
-            assert all(isinstance(val, datetime) for val in val1)
+            assert all(isinstance(val, datetime) for val in val1.flat)
         except:
             raise TypeError('Input values for {0} class must be '
                             'datetime objects'.format(self.name))
@@ -1669,25 +1632,21 @@ class TimeDatetime(TimeUnique):
 
     def set_jds(self, val1, val2):
         """Convert datetime object contained in val1 to jd1, jd2"""
-        n_times = len(val1)
-        iy = np.empty(n_times, dtype=np.intc)
-        im = np.empty(n_times, dtype=np.intc)
-        id = np.empty(n_times, dtype=np.intc)
-        ihr = np.empty(n_times, dtype=np.intc)
-        imin = np.empty(n_times, dtype=np.intc)
-        dsec = np.empty(n_times, dtype=np.double)
-
-        # Iterate through the datetime objects
-        for i, val in enumerate(val1):
-            iy[i] = val.year
-            im[i] = val.month
-            id[i] = val.day
-            ihr[i] = val.hour
-            imin[i] = val.minute
-            dsec[i] = val.second + val.microsecond / 1e6
+        # Iterate through the datetime objects, getting year, month, etc.
+        iterator = np.nditer([val1, None, None, None, None, None, None],
+                             flags=['refs_ok'],
+                             op_dtypes=[np.object] + 5*[np.intc] + [np.double])
+        for val, iy, im, id, ihr, imin, dsec in iterator:
+            dt = val.item()
+            iy[...] = dt.year
+            im[...] = dt.month
+            id[...] = dt.day
+            ihr[...] = dt.hour
+            imin[...] = dt.minute
+            dsec[...] = dt.second + dt.microsecond / 1e6
 
         self.jd1, self.jd2 = erfa_time.dtf_jd(
-            self.scale.upper().encode('utf8'), iy, im, id, ihr, imin, dsec)
+            self.scale.upper().encode('utf8'), *iterator.operands[1:])
 
     @property
     def value(self):
@@ -1695,16 +1654,17 @@ class TimeDatetime(TimeUnique):
                                                  .encode('utf8'),
                                                  6,  # precision=6 for microsec
                                                  self.jd1, self.jd2)
+        ihrs = ihmsfs[..., 0]
+        imins = ihmsfs[..., 1]
+        isecs = ihmsfs[..., 2]
+        ifracs = ihmsfs[..., 3]
+        iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
+                             flags=['refs_ok'],
+                             op_dtypes=7*[iys.dtype] + [np.object])
+        for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
+            out[...] = datetime(iy, im, id, ihr, imin, isec, ifracsec)
 
-        out = np.empty(len(self), dtype=np.object)
-        idxs = itertools.count()
-        for idx, iy, im, id, ihmsf in six.moves.zip(idxs, iys, ims, ids,
-                                                    ihmsfs):
-            ihr, imin, isec, ifracsec = ihmsf
-            out[idx] = datetime(int(iy), int(im), int(id),
-                                int(ihr), int(imin), int(isec), int(ifracsec))
-
-        return out
+        return iterator.operands[-1]
 
 
 class TimeString(TimeUnique):
@@ -1727,27 +1687,21 @@ class TimeString(TimeUnique):
 
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
-        n_times = len(val1)  # val1,2 already checked to have same len
-        iy = np.empty(n_times, dtype=np.intc)
-        im = np.empty(n_times, dtype=np.intc)
-        id = np.empty(n_times, dtype=np.intc)
-        ihr = np.empty(n_times, dtype=np.intc)
-        imin = np.empty(n_times, dtype=np.intc)
-        dsec = np.empty(n_times, dtype=np.double)
-
         # Select subformats based on current self.in_subfmt
         subfmts = self._select_subfmts(self.in_subfmt)
 
-        for i, timestr in enumerate(val1):
-            # Assume that anything following "." on the right side is a
-            # floating fraction of a second.
-
+        iterator = np.nditer([val1, None, None, None, None, None, None],
+                             op_dtypes=[val1.dtype] + 5*[np.intc] + [np.double])
+        for val, iy, im, id, ihr, imin, dsec in iterator:
+            timestr = val.item()
             # Handle trailing 'Z' for UTC time
             if timestr.endswith('Z'):
                 if self.scale != 'utc':
                     raise ValueError("Time input terminating in 'Z' must have scale='UTC'")
                 timestr = timestr[:-1]
 
+            # Assume that anything following "." on the right side is a
+            # floating fraction of a second.
             try:
                 idot = timestr.rindex('.')
             except:
@@ -1762,19 +1716,19 @@ class TimeString(TimeUnique):
                 except ValueError:
                     pass
                 else:
-                    iy[i] = tm.tm_year
-                    im[i] = tm.tm_mon
-                    id[i] = tm.tm_mday
-                    ihr[i] = tm.tm_hour
-                    imin[i] = tm.tm_min
-                    dsec[i] = tm.tm_sec + fracsec
+                    iy[...] = tm.tm_year
+                    im[...] = tm.tm_mon
+                    id[...] = tm.tm_mday
+                    ihr[...] = tm.tm_hour
+                    imin[...] = tm.tm_min
+                    dsec[...] = tm.tm_sec + fracsec
                     break
             else:
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(timestr, self.name))
 
         self.jd1, self.jd2 = erfa_time.dtf_jd(
-            self.scale.upper().encode('utf8'), iy, im, id, ihr, imin, dsec)
+            self.scale.upper().encode('utf8'), *iterator.operands[1:])
 
     def str_kwargs(self):
         """
@@ -1795,8 +1749,12 @@ class TimeString(TimeUnique):
             has_yday = False
             yday = None
 
-        for iy, im, id, ihmsf in six.moves.zip(iys, ims, ids, ihmsfs):
-            ihr, imin, isec, ifracsec = ihmsf
+        ihrs = ihmsfs[..., 0]
+        imins = ihmsfs[..., 1]
+        isecs = ihmsfs[..., 2]
+        ifracs = ihmsfs[..., 3]
+        for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
+                [iys, ims, ids, ihrs, imins, isecs, ifracs]):
             if has_yday:
                 yday = datetime(iy, im, id).timetuple().tm_yday
 
@@ -1821,7 +1779,7 @@ class TimeString(TimeUnique):
         for kwargs in self.str_kwargs():
             outs.append(str(str_fmt.format(**kwargs)))
 
-        return np.array(outs)
+        return np.array(outs).reshape(self.jd1.shape)
 
     def _select_subfmts(self, pattern):
         """
@@ -1947,7 +1905,7 @@ class TimeBesselianEpoch(TimeEpochDate):
 class TimeJulianEpoch(TimeEpochDate):
     """Julian Epoch year as floating point value(s) like 2000.0"""
     name = 'jyear'
-    unit = 365.25  # Length of the Julian year, for conversion to quantities
+    unit = erfa.DJY  # 365.25, the Julian year, for conversion to quantities
     epoch_to_jd = 'julian_epoch_jd'
     jd_to_epoch = 'jd_julian_epoch'
 
@@ -1958,10 +1916,10 @@ class TimeEpochDateString(TimeString):
     such as 'B1950.0' or 'J2000.0' respectively.
     """
     def set_jds(self, val1, val2):
-        years = np.empty(len(val1), dtype=np.double)
         epoch_prefix = self.epoch_prefix
-
-        for i, time_str in enumerate(val1):
+        iterator = np.nditer([val1, None], op_dtypes=[val1.dtype, np.double])
+        for val, years in iterator:
+            time_str = val.item()
             try:
                 epoch_type, year_str = time_str[0], time_str[1:]
                 year = float(year_str)
@@ -1971,11 +1929,11 @@ class TimeEpochDateString(TimeString):
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(time_str, self.name))
             else:
-                years[i] = year
+                years[...] = year
 
         self._check_scale(self._scale)  # validate scale.
         epoch_to_jd = getattr(erfa_time, self.epoch_to_jd)
-        self.jd1, self.jd2 = epoch_to_jd(years)
+        self.jd1, self.jd2 = epoch_to_jd(iterator.operands[-1])
 
     @property
     def value(self):
@@ -1983,8 +1941,8 @@ class TimeEpochDateString(TimeString):
         years = jd_to_epoch(self.jd1, self.jd2)
         # Use old-style format since it is a factor of 2 faster
         str_fmt = self.epoch_prefix + '%.' + str(self.precision) + 'f'
-        outs = [str_fmt % year for year in years]
-        return np.array(outs)
+        outs = [str_fmt % year for year in years.flat]
+        return np.array(outs).reshape(self.jd1.shape)
 
 
 class TimeBesselianEpochString(TimeEpochDateString):
@@ -2003,6 +1961,11 @@ class TimeJulianEpochString(TimeEpochDateString):
     epoch_prefix = 'J'
 
 
+class TimeDeltaFormatMeta(TimeFormatMeta):
+    _registry = TIME_DELTA_FORMATS
+
+
+@six.add_metaclass(TimeDeltaFormatMeta)
 class TimeDeltaFormat(TimeFormat):
     """Base class for time delta representations"""
 
@@ -2029,7 +1992,7 @@ class TimeDeltaFormat(TimeFormat):
 class TimeDeltaSec(TimeDeltaFormat):
     """Time delta in SI seconds"""
     name = 'sec'
-    unit = 1. / SECS_PER_DAY  # for quantity input
+    unit = 1. / erfa.DAYSEC  # for quantity input
 
 
 class TimeDeltaJD(TimeDeltaFormat):
@@ -2042,46 +2005,24 @@ class ScaleValueError(Exception):
     pass
 
 
-# Set module constant with names of all available time formats
-for name, val in list(six.iteritems(locals())):
-    try:
-        is_timeformat = issubclass(val, TimeFormat)
-        is_timedeltaformat = issubclass(val, TimeDeltaFormat)
-    except:
-        pass
-    else:
-        if hasattr(val, 'name'):
-            if is_timedeltaformat:
-                TIME_DELTA_FORMATS[val.name] = val
-            elif is_timeformat:
-                TIME_FORMATS[val.name] = val
-
-
-def _make_1d_array(val, copy=False):
+def _make_array(val, copy=False):
     """
-    Take ``val`` and convert/reshape to a 1-d array.  If ``copy`` is `True`
+    Take ``val`` and convert/reshape to an array.  If ``copy`` is `True`
     then copy input values.
 
     Returns
     -------
-    val, val_ndim: ndarray, int
-        Array version of ``val`` and the number of dims in original.
+    val : ndarray
+        Array version of ``val``.
     """
     val = np.array(val, copy=copy, subok=True)
-    val_ndim = val.ndim  # remember original ndim
-    if val.ndim == 0:
-        val = np.atleast_1d(val)
-    elif val_ndim > 1:
-        # Maybe lift this restriction later to allow multi-dim in/out?
-        raise TypeError('Input val must be zero or one dimensional')
-
     # Allow only float64, string or object arrays as input
     # (object is for datetime, maybe add more specific test later?)
     # This also ensures the right byteorder for float64 (closes #2942).
     if not (val.dtype == np.float64 or val.dtype.kind in 'OSUa'):
         val = np.asanyarray(val, dtype=np.float64)
 
-    return val, val_ndim
+    return val
 
 
 def day_frac(val1, val2, factor=1., divisor=1.):
@@ -2097,7 +2038,7 @@ def day_frac(val1, val2, factor=1., divisor=1.):
 
     Returns
     -------
-    day, frac: float64
+    day, frac : float64
         Integer and fractional part of val1 + val2.
     """
     # Add val1 and val2 exactly, returning the result as two float64s.
@@ -2138,7 +2079,7 @@ def two_sum(a, b):
 
     Returns
     -------
-    sum, err: float64
+    sum, err : float64
         Approximate sum of a + b and the exact floating point error
     """
     x = a + b
@@ -2161,7 +2102,7 @@ def two_product(a, b):
 
     Returns
     -------
-    prod, err: float64
+    prod, err : float64
         Approximate product a * b and the exact floating point error
     """
     x = a * b

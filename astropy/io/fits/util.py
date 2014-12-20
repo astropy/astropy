@@ -14,6 +14,8 @@ import tempfile
 import textwrap
 import threading
 import warnings
+import platform
+from distutils.version import LooseVersion
 
 import numpy as np
 
@@ -585,11 +587,37 @@ def fill(text, width, *args, **kwargs):
     return '\n\n'.join(maybe_fill(p) for p in paragraphs)
 
 
+# On MacOS X 10.8 and earlier, there is a bug that causes numpy.fromfile to
+# fail when reading over 2Gb of data. If we detect these versions of MacOS X,
+# we can instead read the data in chunks. To avoid performance penalties at
+# import time, we defer the setting of this global variable until the first
+# time it is needed.
+CHUNKED_FROMFILE = None
+
 def _array_from_file(infile, dtype, count, sep):
     """Create a numpy array from a file or a file-like object."""
 
     if isfile(infile):
-        return np.fromfile(infile, dtype=dtype, count=count, sep=sep)
+
+        global CHUNKED_FROMFILE
+        if CHUNKED_FROMFILE is None:
+            if sys.platform == 'darwin' and LooseVersion(platform.mac_ver()[0]) < LooseVersion('10.9'):
+                CHUNKED_FROMFILE = True
+            else:
+                CHUNKED_FROMFILE = False
+
+        if CHUNKED_FROMFILE:
+            chunk_size = int(1024 ** 3 / dtype.itemsize)  # 1Gb to be safe
+            if count < chunk_size:
+                return np.fromfile(infile, dtype=dtype, count=count, sep=sep)
+            else:
+                array = np.empty(count, dtype=dtype)
+                for beg in range(0, count, chunk_size):
+                    end = min(count, beg + chunk_size)
+                    array[beg:end] = np.fromfile(infile, dtype=dtype, count=end - beg, sep=sep)
+                return array
+        else:
+            return np.fromfile(infile, dtype=dtype, count=count, sep=sep)
     else:
         # treat as file-like object with "read" method; this includes gzip file
         # objects, because numpy.fromfile just reads the compressed bytes from

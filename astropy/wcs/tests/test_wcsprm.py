@@ -3,6 +3,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from distutils.version import LooseVersion
 import gc
 import locale
 import re
@@ -10,7 +11,7 @@ import re
 from numpy.testing import assert_array_equal
 import numpy as np
 
-from ...tests.helper import pytest, raises
+from ...tests.helper import pytest, raises, catch_warnings
 from ...io import fits
 from .. import wcs
 from .. import _wcs
@@ -245,16 +246,21 @@ def test_cunit():
     assert w.cunit[1] == u.km
 
 
-@raises(ValueError)
 def test_cunit_invalid():
     w = _wcs.Wcsprm()
-    w.cunit[0] = 'foo'
+    with catch_warnings() as warns:
+        w.cunit[0] = 'foo'
+    assert len(warns) == 1
+    assert 'foo' in str(warns[0].message)
 
 
-@raises(ValueError)
 def test_cunit_invalid2():
     w = _wcs.Wcsprm()
-    w.cunit = ['foo', 'bar']
+    with catch_warnings() as warns:
+        w.cunit = ['foo', 'bar']
+    assert len(warns) == 2
+    assert 'foo' in str(warns[0].message)
+    assert 'bar' in str(warns[1].message)
 
 
 def test_unit():
@@ -768,3 +774,11 @@ def test_compare():
 
     assert not w.compare(w2)
     assert w.compare(w2, tolerance=1e-6)
+
+
+@pytest.mark.xfail(
+    LooseVersion(_wcs.__version__) < LooseVersion("4.25"),
+    reason="wcslib < 4.25")
+def test_radesys_defaults():
+    w = _wcs.Wcsprm()
+    w.radesys == 'ICRS'

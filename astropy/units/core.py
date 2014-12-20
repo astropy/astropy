@@ -20,7 +20,8 @@ import numpy as np
 from ..utils.decorators import lazyproperty
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings
-from .utils import is_effectively_unity, sanitize_scale, validate_power
+from .utils import (is_effectively_unity, sanitize_scale, validate_power,
+                    add_powers)
 from . import format as unit_format
 
 # TODO: Support functional units, e.g. log(x), ln(x)
@@ -572,7 +573,7 @@ class UnitBase(object):
         """
         return [1]
 
-    def to_string(self, format='generic'):
+    def to_string(self, format=unit_format.Generic):
         """
         Output the unit in the given format as a string.
 
@@ -639,9 +640,16 @@ class UnitBase(object):
         if isinstance(m, (bytes, six.text_type)):
             return Unit(m) / self
 
-        # Cannot handle this as Unit, re-try as Quantity
+        # Cannot handle this as Unit.  Here, m cannot be a Quantity,
+        # so we make it into one, fasttracking when it does not have a unit,
+        # for the common case of <array> / <unit>.
         from .quantity import Quantity
-        return m / Quantity(1, self)
+        if hasattr(m, 'unit'):
+            result = Quantity(m)
+            result /= self
+            return result
+        else:
+            return Quantity(m, self**(-1))
 
     __truediv__ = __div__
 
@@ -658,7 +666,7 @@ class UnitBase(object):
                 return m
             return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
 
-        # Cannot handle this as Unit, re-try as Quantity
+        # Cannot handle this as Unit, re-try as Quantity.
         from .quantity import Quantity
         return Quantity(1, self) * m
 
@@ -666,9 +674,16 @@ class UnitBase(object):
         if isinstance(m, (bytes, six.text_type)):
             return Unit(m) * self
 
-        # Cannot handle this as Unit, re-try as Quantity
+        # Cannot handle this as Unit.  Here, m cannot be a Quantity,
+        # so we make it into one, fasttracking when it does not have a unit
+        # for the common case of <array> * <unit>.
         from .quantity import Quantity
-        return m * Quantity(1, self)
+        if hasattr(m, 'unit'):
+            result = Quantity(m)
+            result *= self
+            return result
+        else:
+            return Quantity(m, self)
 
     def __hash__(self):
         # This must match the hash used in CompositeUnit for a unit
@@ -681,7 +696,7 @@ class UnitBase(object):
 
         try:
             other = Unit(other, parse_strict='silent')
-        except (ValueError, UnitsError):
+        except (ValueError, UnitsError, TypeError):
             return False
         try:
             return is_effectively_unity(self._to(other))
@@ -982,9 +997,14 @@ class UnitBase(object):
         for funit, tunit, a, b in equivalencies:
             if tunit is not None:
                 if self._is_equivalent(funit):
-                    units.append(tunit.decompose())
+                    scale = funit.decompose().scale / unit.scale
+                    units.append(Unit(a(1.0 / scale) * tunit).decompose())
                 elif self._is_equivalent(tunit):
-                    units.append(funit.decompose())
+                    scale = tunit.decompose().scale / unit.scale
+                    units.append(Unit(b(1.0 / scale) * funit).decompose())
+            else:
+                if self._is_equivalent(funit):
+                    units.append(Unit(unit.scale))
 
         # Store partial results
         partial_results = []
@@ -1022,8 +1042,9 @@ class UnitBase(object):
         # Do we have any minimal results?
         for final_result in final_results:
             if len(final_result):
-                cached_results[key] = final_result
-                return final_result
+                results = final_results[0].union(final_results[1])
+                cached_results[key] = results
+                return results
 
         partial_results.sort(key=lambda x: x[0])
 
@@ -1133,6 +1154,10 @@ class UnitBase(object):
                             return True
                     elif unit._is_equivalent(tunit):
                         if has_bases_in_common(funit.decompose(), other):
+                            return True
+                else:
+                    if unit._is_equivalent(funit):
+                        if has_bases_in_common(dimensionless_unscaled, other):
                             return True
             return False
 
@@ -1289,12 +1314,15 @@ class UnitBase(object):
         units = set(unit_registry.get_units_with_physical_type(self))
         for funit, tunit, a, b in equivalencies:
             if tunit is not None:
-                if funit not in units:
-                    units.update(
-                        unit_registry.get_units_with_physical_type(funit))
-                if tunit not in units:
+                if self.is_equivalent(funit) and tunit not in units:
                     units.update(
                         unit_registry.get_units_with_physical_type(tunit))
+                if self._is_equivalent(tunit) and funit not in units:
+                    units.update(
+                        unit_registry.get_units_with_physical_type(funit))
+            else:
+                if self.is_equivalent(funit):
+                    units.add(dimensionless_unscaled)
         return units
 
     class EquivalentUnitsList(list):
@@ -1360,8 +1388,8 @@ class UnitBase(object):
         results = self.compose(
             equivalencies=equivalencies, units=units, max_depth=1,
             include_prefix_units=include_prefix_units)
-        results = [
-            x.bases[0] for x in results if len(x.bases) == 1]
+        results = set(
+            x.bases[0] for x in results if len(x.bases) == 1)
         return self.EquivalentUnitsList(results)
 
     def is_unity(self):
@@ -1638,7 +1666,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     if six.PY3:
         __str__ = __unicode__
 
-    def to_string(self, format='generic'):
+    def to_string(self, format=unit_format.Generic):
         return self.name
 
     def _unrecognized_operator(self, *args, **kwargs):
@@ -1727,7 +1755,7 @@ class _UnitMetaClass(InheritDocstrings):
                 return dimensionless_unscaled
 
             if format is None:
-                format = 'generic'
+                format = unit_format.Generic
 
             f = unit_format.get_format(format)
             if six.PY3 and isinstance(s, bytes):
@@ -1739,8 +1767,10 @@ class _UnitMetaClass(InheritDocstrings):
                 if parse_strict == 'silent':
                     pass
                 else:
-                    if format != 'generic':
-                        format_clause = format + ' '
+                    # Deliberately not isinstance here. Subclasses
+                    # should use their name.
+                    if type(f) is not unit_format.Generic:
+                        format_clause = f.name + ' '
                     else:
                         format_clause = ''
                     msg = ("'{0}' did not parse as {1}unit: {2}"
@@ -1989,7 +2019,7 @@ class CompositeUnit(UnitBase):
                         break
 
             if unit in new_parts:
-                new_parts[unit] += power
+                new_parts[unit] = add_powers(new_parts[unit], power)
             else:
                 new_parts[unit] = power
             return scale

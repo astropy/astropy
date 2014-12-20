@@ -5,65 +5,21 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from numpy.random import randn
+from numpy.random import randn, normal
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
 
-from ...tests.helper import pytest
-
-from .. import funcs
-from ...utils.misc import NumpyRNGContext
-
 try:
-    from scipy import stats  # used in testing
+    import scipy
 except ImportError:
     HAS_SCIPY = False
 else:
     HAS_SCIPY = True
 
+from ...tests.helper import pytest
 
-def test_sigma_clip():
-    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
-    #random number that breaks one of the tests
-
-    with NumpyRNGContext(12345):
-        # Amazing, I've got the same combination on my luggage!
-        randvar = randn(10000)
-
-        filtered_data = funcs.sigma_clip(randvar, 1, 2)
-
-        assert sum(filtered_data.mask) > 0
-        assert sum(~filtered_data.mask) < randvar.size
-
-        #this is actually a silly thing to do, because it uses the standard
-        #deviation as the variance, but it tests to make sure these arguments
-        #are actually doing something
-        filtered_data2 = funcs.sigma_clip(randvar, 1, 2, varfunc=np.std)
-        assert not np.all(filtered_data.mask == filtered_data2.mask)
-
-        filtered_data3 = funcs.sigma_clip(randvar, 1, 2, cenfunc=np.mean)
-        assert not np.all(filtered_data.mask == filtered_data3.mask)
-
-        # make sure the iters=None method works at all.
-        filtered_data = funcs.sigma_clip(randvar, 3, None)
-
-        # test copying
-        assert filtered_data.data[0] == randvar[0]
-        filtered_data.data[0] += 1.
-        assert filtered_data.data[0] != randvar[0]
-
-        filtered_data = funcs.sigma_clip(randvar, 3, None, copy=False)
-        assert filtered_data.data[0] == randvar[0]
-        filtered_data.data[0] += 1.
-        assert filtered_data.data[0] == randvar[0]
-
-        # test axis
-        data = np.arange(5) + np.random.normal(0., 0.05, (5, 5)) + \
-            np.diag(np.ones(5))
-        filtered_data = funcs.sigma_clip(data, axis=0, sig=2.3)
-        assert filtered_data.count() == 20
-        filtered_data = funcs.sigma_clip(data, axis=1, sig=2.3)
-        assert filtered_data.count() == 25
+from .. import funcs
+from ...utils.misc import NumpyRNGContext
 
 
 def test_median_absolute_deviation():
@@ -139,22 +95,6 @@ def test_biweight_midvariance():
 def test_biweight_midvariance_small():
     scl = funcs.biweight_midvariance([1, 3, 5, 500, 2])
     assert abs(scl-1.529) < 1e-3
-
-
-@pytest.mark.skipif('not HAS_SCIPY')
-def test_compare_to_scipy_sigmaclip():
-    #need to seed the numpy RNG to make sure we don't get some amazingly flukey
-    #random number that breaks one of the tests
-
-    with NumpyRNGContext(12345):
-
-        randvar = randn(10000)
-
-        astropyres = funcs.sigma_clip(randvar, 3, None, np.mean)
-        scipyres = stats.sigmaclip(randvar, 3, 3)[0]
-
-        assert astropyres.count() == len(scipyres)
-        assert_equal(astropyres[~astropyres.mask].data, scipyres)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -295,3 +235,24 @@ def test_bootstrap():
     with NumpyRNGContext(42):
         bootresult = np.mean(funcs.bootstrap(bootarr, 10000, bootfunc=np.mean))
         assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
+
+
+def test_mad_std():
+    with NumpyRNGContext(12345):
+        data = normal(5, 2, size=(100, 100))
+        assert_allclose(funcs.mad_std(data), 2.0, rtol=0.05)
+
+
+def test_gaussian_fwhm_to_sigma():
+    fwhm = (2.0 * np.sqrt(2.0 * np.log(2.0)))
+    assert_allclose(funcs.gaussian_fwhm_to_sigma * fwhm, 1.0, rtol=1.0e-6)
+
+
+def test_gaussian_sigma_to_fwhm():
+    sigma = 1.0 / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+    assert_allclose(funcs.gaussian_sigma_to_fwhm * sigma, 1.0, rtol=1.0e-6)
+
+
+def test_gaussian_sigma_to_fwhm_to_sigma():
+    assert_allclose(funcs.gaussian_fwhm_to_sigma *
+                    funcs.gaussian_sigma_to_fwhm, 1.0)

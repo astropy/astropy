@@ -25,7 +25,7 @@ def test_paths():
 
 
 def test_config_file():
-    from ..configuration import get_config, reload_config, save_config
+    from ..configuration import get_config, reload_config
 
     apycfg = get_config('astropy')
     assert apycfg.filename.endswith('astropy.cfg')
@@ -107,7 +107,7 @@ def test_configitem_options(tmpdir):
     while apycfg.parent is not apycfg:
         apycfg = apycfg.parent
     f = tmpdir.join('astropy.cfg')
-    with io.open(f.strpath, 'w', encoding='utf-8') as fd:
+    with io.open(f.strpath, 'wb') as fd:
         apycfg.write(fd)
     with io.open(f.strpath, 'rU', encoding='utf-8') as fd:
         lns = [x.strip() for x in f.readlines()]
@@ -121,7 +121,7 @@ def test_config_noastropy_fallback(monkeypatch):
     there's a problem accessing the astropy directory
     """
     from ...tests.helper import pytest
-    from .. import paths, configuration
+    from .. import paths
 
     # make sure the config directory is not searched
     monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')

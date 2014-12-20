@@ -4,20 +4,21 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from .. import units as u
+from .. import erfa
 from ..utils import OrderedDict
 from . import Longitude, Latitude
 
 try:
     # Not guaranteed available at setup time.
-    from ..time import erfa_time
+    from .. import erfa
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
 
 __all__ = ['EarthLocation']
 
-# translation between ellipsoid names and corresponding number used in ERFA
-ELLIPSOIDS = OrderedDict([('WGS84', 1), ('GRS80', 2), ('WGS72', 3)])
+# Available ellipsoids (defined in erfam.h, with numbers exposed in erfa).
+ELLIPSOIDS = ('WGS84', 'GRS80', 'WGS72')
 
 
 def _check_ellipsoid(ellipsoid=None, default='WGS84'):
@@ -25,28 +26,33 @@ def _check_ellipsoid(ellipsoid=None, default='WGS84'):
         ellipsoid = default
     if ellipsoid not in ELLIPSOIDS:
         raise ValueError('Ellipsoid {0} not among known ones ({1})'
-                         .format(ellipsoid, ELLIPSOIDS.keys()))
+                         .format(ellipsoid, ELLIPSOIDS))
     return ellipsoid
 
 
 class EarthLocation(u.Quantity):
     """
-    Location on Earth.
+    Location on the Earth.
 
     Initialization is first attempted assuming geocentric (x, y, z) coordinates
     are given; if that fails, another attempt is made assuming geodetic
     coordinates (longitude, latitude, height above a reference ellipsoid).
-    Internally, the coordinates are stored as geocentric.
+    When using the geodetic forms, Longitudes are measured increasing to the
+    east, so west longitudes are negative. Internally, the coordinates are
+    stored as geocentric.
 
     To ensure a specific type of coordinates is used, use the corresponding
     class methods (`from_geocentric` and `from_geodetic`) or initialize the
     arguments with names (``x``, ``y``, ``z`` for geocentric; ``lon``, ``lat``,
     ``height`` for geodetic).  See the class methods for details.
 
+
     Notes
     -----
-    For conversion to and from geodetic coordinates, the ERFA routines
-    ``gc2gd`` and ``gd2gc`` are used.  See https://github.com/liberfa/erfa
+    This class fits into the coordinates transformation framework in that it
+    encodes a position on the `~astropy.coordinates.ITRS` frame.  To get a
+    proper `~astropy.coordinates.ITRS` object from this object, use the ``itrs``
+    property.
     """
 
     _ellipsoid = 'WGS84'
@@ -161,7 +167,7 @@ class EarthLocation(u.Quantity):
                                                   lat.to(u.radian).value,
                                                   height.to(u.m).value)
         # get geocentric coordinates. Have to give one-dimensional array.
-        xyz = erfa_time.era_gd2gc(ELLIPSOIDS[ellipsoid], _lon.ravel(),
+        xyz = erfa.gd2gc(getattr(erfa, ellipsoid), _lon.ravel(),
                                   _lat.ravel(), _height.ravel())
         self = xyz.view(cls._location_dtype, cls).reshape(lon.shape)
         self._unit = u.meter
@@ -209,12 +215,11 @@ class EarthLocation(u.Quantity):
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=self.ellipsoid)
         self_array = self.to(u.meter).view(self._array_dtype, np.ndarray)
-        lon, lat, height = erfa_time.era_gc2gd(ELLIPSOIDS[ellipsoid],
-                                               np.atleast_2d(self_array))
-        return (Longitude(lon.squeeze() * u.radian, u.degree,
+        lon, lat, height = erfa.gc2gd(getattr(erfa, ellipsoid), self_array)
+        return (Longitude(lon * u.radian, u.degree,
                           wrap_angle=180.*u.degree),
-                Latitude(lat.squeeze() * u.radian, u.degree),
-                u.Quantity(height.squeeze() * u.meter, self.unit))
+                Latitude(lat * u.radian, u.degree),
+                u.Quantity(height * u.meter, self.unit))
 
     @property
     def longitude(self):
@@ -240,6 +245,17 @@ class EarthLocation(u.Quantity):
     def to_geocentric(self):
         """Convert to a tuple with X, Y, and Z as quantities"""
         return (self.x, self.y, self.z)
+
+    @property
+    def itrs(self):
+        """
+        Generates an `~astropy.coordinates.ITRS` object with the coordinates of
+        this object.
+        """
+        #potential circular imports prevent this from being up top
+        from .builtin_frames import ITRS
+
+        return ITRS(x=self.x, y=self.y, z=self.z)
 
     @property
     def x(self):

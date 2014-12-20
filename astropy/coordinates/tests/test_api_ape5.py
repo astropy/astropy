@@ -413,7 +413,7 @@ def test_highlevel_api():
     # v0.2/0.3 coordinate objects.  This will *not* be in the low-level classes
     sc = coords.SkyCoord(ra=8 * u.hour, dec=5 * u.deg, frame='icrs')
     scgal = sc.galactic
-    assert str(scgal).startswith('<SkyCoord (Galactic): l=216.317')
+    assert str(scgal).startswith('<SkyCoord (Galactic): l=216.316')
 
     # the existing `from_name` and `match_to_catalog_*` methods will be moved to the
     # high-level class as convenience functionality.

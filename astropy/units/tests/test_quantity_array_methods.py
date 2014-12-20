@@ -2,12 +2,13 @@
 # array methods returns quantities with the right units, or raises exceptions.
 
 import numpy as np
-from numpy.testing.utils import assert_allclose
 
 from ... import units as u
 from ...tests.helper import pytest
 
 NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
+NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
+NUMPY_LT_1P9P1 = [int(x) for x in np.__version__.split('.')[:3]] < [1, 9, 1]
 
 
 class TestQuantityArrayCopy(object):
@@ -76,6 +77,54 @@ class TestQuantityArrayCopy(object):
         assert q[2,2] == -1. * u.km / u.s
 
 
+class TestQuantityReshapeFuncs(object):
+    """Test different ndarray methods that alter the array shape
+
+    tests: reshape, squeeze, ravel, flatten, transpose, swapaxes
+    """
+    def test_reshape(self):
+        q = np.arange(6.) * u.m
+        q_reshape = q.reshape(3, 2)
+        assert isinstance(q_reshape, u.Quantity)
+        assert q_reshape.unit == q.unit
+        assert np.all(q_reshape.value == q.value.reshape(3, 2))
+
+    def test_squeeze(self):
+        q = np.arange(6.).reshape(6, 1) * u.m
+        q_squeeze = q.squeeze()
+        assert isinstance(q_squeeze, u.Quantity)
+        assert q_squeeze.unit == q.unit
+        assert np.all(q_squeeze.value == q.value.squeeze())
+
+    def test_ravel(self):
+        q = np.arange(6.).reshape(3, 2) * u.m
+        q_ravel = q.ravel()
+        assert isinstance(q_ravel, u.Quantity)
+        assert q_ravel.unit == q.unit
+        assert np.all(q_ravel.value == q.value.ravel())
+
+    def test_flatten(self):
+        q = np.arange(6.).reshape(3, 2) * u.m
+        q_flatten = q.flatten()
+        assert isinstance(q_flatten, u.Quantity)
+        assert q_flatten.unit == q.unit
+        assert np.all(q_flatten.value == q.value.flatten())
+
+    def test_transpose(self):
+        q = np.arange(6.).reshape(3, 2) * u.m
+        q_transpose = q.transpose()
+        assert isinstance(q_transpose, u.Quantity)
+        assert q_transpose.unit == q.unit
+        assert np.all(q_transpose.value == q.value.transpose())
+
+    def test_swapaxes(self):
+        q = np.arange(6.).reshape(3, 1, 2) * u.m
+        q_swapaxes = q.swapaxes(0, 2)
+        assert isinstance(q_swapaxes, u.Quantity)
+        assert q_swapaxes.unit == q.unit
+        assert np.all(q_swapaxes.value == q.value.swapaxes(0, 2))
+
+
 class TestQuantityStatsFuncs(object):
     """
     Test statistical functions
@@ -88,18 +137,23 @@ class TestQuantityStatsFuncs(object):
     def test_mean_inplace(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         qi = 1.5 * u.s
-        np.mean(q1, out=qi)
+        qi2 = np.mean(q1, out=qi)
+        assert qi2 is qi
         assert qi == 3.6 * u.m
 
     def test_std(self):
         q1 = np.array([1., 2.]) * u.m
         assert np.std(q1) == 0.5 * u.m
 
+    # For 1.7 <= Numpy < 1.9.1, inplace causes the variance to be stored instead
+    # of the standard deviation; https://github.com/numpy/numpy/issues/5240
+    @pytest.mark.xfail("NUMPY_LT_1P9P1")
     def test_std_inplace(self):
 
-        # can't use decorator since test causes a segfault in Numpy < 1.7, and
-        # py.test will run the test anyway to see if it works
-        pytest.xfail()
+        # For Numpy < 1.7, the test segfaults.  Hence, the xfail decorator does
+        # not suffice: py.test will run the test anyway to see if it works.
+        if NUMPY_LT_1P7:
+            pytest.xfail()
 
         q1 = np.array([1., 2.]) * u.m
         qi = 1.5 * u.s
@@ -112,8 +166,8 @@ class TestQuantityStatsFuncs(object):
 
     def test_var_inplace(self):
 
-        # can't use decorator since test causes a segfault in Numpy < 1.7, and
-        # py.test will run the test anyway to see if it works
+        # For Numpy < 1.7, the test segfaults.  Hence, we cannot use the xfail
+        # decorator since py.test will run the test anyway to see if it works.
         if NUMPY_LT_1P7:
             pytest.xfail()
 
@@ -188,8 +242,19 @@ class TestQuantityStatsFuncs(object):
         assert qi == 5. * u.m
 
     def test_round(self):
-        q1 = np.array([1.2, 2.2, 3.2]) * u.kg
+        q1 = np.array([1.253, 2.253, 3.253]) * u.kg
         assert np.all(np.round(q1) == np.array([1, 2, 3]) * u.kg)
+        assert np.all(np.round(q1, decimals=2) ==
+                      np.round(q1.value, decimals=2) * u.kg)
+        assert np.all(q1.round(decimals=2) ==
+                      q1.value.round(decimals=2) * u.kg)
+
+    def test_round_inplace(self):
+        q1 = np.array([1.253, 2.253, 3.253]) * u.kg
+        qi = np.zeros(3) * u.s
+        a = q1.round(decimals=2, out=qi)
+        assert a is qi
+        assert np.all(q1.round(decimals=2) == qi)
 
     def test_sum(self):
 
@@ -235,6 +300,20 @@ class TestQuantityStatsFuncs(object):
         q2 = np.array([[np.nan, 5., 9.], [1., np.nan, 1.]]) * u.s
         assert np.all(q2.nansum(0) == np.array([1., 5., 10.]) * u.s)
         assert np.all(np.nansum(q2, 0) == np.array([1., 5., 10.]) * u.s)
+
+    @pytest.mark.xfail("NUMPY_LT_1P8")
+    def test_nansum_inplace(self):
+
+        q1 = np.array([1., 2., np.nan]) * u.m
+        qi = 1.5 * u.s
+        qout = q1.nansum(out=qi)
+        assert qout is qi
+        assert qi == np.nansum(q1.value) * q1.unit
+
+        qi2 = 1.5 * u.s
+        qout2 = np.nansum(q1, out=qi2)
+        assert qout2 is qi2
+        assert qi2 == np.nansum(q1.value) * q1.unit
 
     def test_prod(self):
 
@@ -464,7 +543,7 @@ class TestArrayConversion(object):
             q1.choose([0, 0, 1])
 
         with pytest.raises(NotImplementedError):
-            q1.list()
+            q1.tolist()
         with pytest.raises(NotImplementedError):
             q1.tostring()
         with pytest.raises(NotImplementedError):

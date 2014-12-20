@@ -30,6 +30,9 @@ table from one or more input tables.  This includes:
    * - `Join`_
      - Database-style join of two tables
      - `~astropy.table.join`
+   * - `Unique rows`_
+     - Unique table rows by keys
+     - `~astropy.table.unique`
 
 
 .. _grouped-operations:
@@ -769,3 +772,59 @@ order and taking the first value which is defined (i.e. is not None).  For examp
 
 The rules for merging are as for `Merging metadata`_, and the
 ``metadata_conflicts`` option also controls the merging of column attributes.
+
+
+.. _unique-rows:
+
+Unique rows
+^^^^^^^^^^^
+
+Sometimes it makes sense to use only rows with unique key columns or even
+fully unique rows from a table. This can be done using the above described
+:func:`~astropy.table.Table.group_by` method and ``groups`` attribute, or
+with the `~astropy.table.unique` convenience method. The
+`~astropy.table.unique` method returns with a sorted table containing the
+first row for each unique ``keys`` column value. If no ``keys`` is provided
+it returns with a sorted table containing all the fully unique rows.
+
+A simple example is a list of objects with photometry from various observing
+runs. Using ``'name'`` as the only ``keys``, it returns with the first
+occurrence of each of the three targets::
+
+  >>> from astropy import table
+  >>> obs = table.Table.read("""name    obs_date    mag_b  mag_v
+  ...                           M31     2012-01-02  17.0   17.5
+  ...                           M82     2012-02-14  16.2   14.5
+  ...                           M101    2012-01-02  15.1   13.5
+  ...                           M31     2012-01-02  17.1   17.4
+  ...                           M101    2012-01-02  15.1   13.5
+  ...                           M82     2012-02-14  16.2   14.5
+  ...                           M31     2012-02-14  16.9   17.3
+  ...                           M82     2012-02-14  15.2   15.5
+  ...                           M101    2012-02-14  15.0   13.6
+  ...                           M82     2012-03-26  15.7   16.5
+  ...                           M101    2012-03-26  15.1   13.5
+  ...                           M101    2012-03-26  14.8   14.3
+  ...                           """, format='ascii')
+  >>> unique_by_name = table.unique(obs, keys='name')
+  >>> print unique_by_name
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-01-02  15.1  13.5
+   M31 2012-01-02  17.0  17.5
+   M82 2012-02-14  16.2  14.5
+
+Using multiple columns as ``keys``::
+
+  >>> unique_by_name_date = table.unique(obs, keys=['name', 'obs_date'])
+  >>> print unique_by_name_date
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+  M101 2012-01-02  15.1  13.5
+  M101 2012-02-14  15.0  13.6
+  M101 2012-03-26  15.1  13.5
+   M31 2012-01-02  17.0  17.5
+   M31 2012-02-14  16.9  17.3
+   M82 2012-02-14  16.2  14.5
+   M82 2012-03-26  15.7  16.5
+

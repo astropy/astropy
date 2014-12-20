@@ -241,26 +241,26 @@ def test_pixscale_nodrop():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cdelt = [0.1,0.1]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(celestial_pixel_scale(mywcs), 0.1*u.deg)
+    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
 
     mywcs.wcs.cdelt = [-0.1,0.1]
-    assert_almost_equal(celestial_pixel_scale(mywcs), 0.1*u.deg)
+    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
 
 def test_pixscale_withdrop():
     mywcs = WCS(naxis=3)
     mywcs.wcs.cdelt = [0.1,0.1,1]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT']
-    assert_almost_equal(celestial_pixel_scale(mywcs), 0.1*u.deg)
+    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
 
     mywcs.wcs.cdelt = [-0.1,0.1,1]
-    assert_almost_equal(celestial_pixel_scale(mywcs), 0.1*u.deg)
+    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
 
 
 def test_pixscale_cd():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cd = [[-0.1,0],[0,0.1]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(celestial_pixel_scale(mywcs), 0.1*u.deg)
+    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
 
 def test_pixscale_warning(recwarn):
     mywcs = WCS(naxis=2)
@@ -292,7 +292,7 @@ def test_pixscale_cd_rotated(angle):
     mywcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
                     [scale*np.sin(rho), scale*np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(celestial_pixel_scale(mywcs), 0.1*u.deg)
+    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
 
 @pytest.mark.parametrize('angle',
                          (30,45,60,75))
@@ -304,7 +304,7 @@ def test_pixscale_pc_rotated(angle):
     mywcs.wcs.pc = [[np.cos(rho), -np.sin(rho)],
                     [np.sin(rho), np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(celestial_pixel_scale(mywcs), 0.1*u.deg)
+    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
 
 @pytest.mark.parametrize(('cdelt','pc','pccd'),
                          (([0.1,0.2], np.eye(2), np.diag([0.1,0.2])),
@@ -358,7 +358,7 @@ def test_noncelestial_scale(cdelt, pc, cd):
 
     ps = non_celestial_pixel_scales(mywcs)
 
-    assert_almost_equal(ps, [0.1,0.2]*u.deg)
+    assert_almost_equal(ps.to(u.deg).value, np.array([0.1,0.2]))
 
 @pytest.mark.parametrize('mode', ['all', 'wcs'])
 def test_skycoord_to_pixel(mode):

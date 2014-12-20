@@ -65,6 +65,7 @@ User Documentation
    coordinates/index
    wcs/index
    modeling/index
+   analytic_functions/index
 
 **Connecting up: Files and I/O**
 
@@ -83,6 +84,7 @@ User Documentation
    :maxdepth: 1
 
    convolution/index
+   visualization/index
    cosmology/index
    stats/index
    vo/index

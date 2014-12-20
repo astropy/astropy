@@ -21,6 +21,7 @@ from ...utils.compat.fractions import Fraction
 
 from ... import units as u
 from ... import constants as c
+from .. import utils
 
 
 def test_getting_started():
@@ -283,7 +284,7 @@ def test_complex_compose():
 
 def test_equiv_compose():
     composed = u.m.compose(equivalencies=u.spectral())
-    assert u.Hz in composed
+    assert any([u.Hz] == x.bases for x in composed)
 
 
 def test_empty_compose():
@@ -350,8 +351,8 @@ def test_compose_si_to_cgs():
 
 
 def test_to_cgs():
-    assert u.Pa.to_system(u.cgs)[0]._bases[0] is u.Ba
-    assert u.Pa.to_system(u.cgs)[0]._scale == 10.0
+    assert u.Pa.to_system(u.cgs)[1]._bases[0] is u.Ba
+    assert u.Pa.to_system(u.cgs)[1]._scale == 10.0
 
 
 def test_decompose_to_cgs():
@@ -614,6 +615,10 @@ def test_fractional_powers():
     assert x.powers[0].numerator == 3
     assert x.powers[0].denominator == 7
 
+    x = u.cm ** Fraction(1, 2) * u.cm ** Fraction(2, 3)
+    assert type(x.powers[0]) == Fraction
+    assert x.powers[0] == Fraction(7, 6)
+
 
 def test_inherit_docstrings():
     assert u.UnrecognizedUnit.is_unity.__doc__ == u.UnitBase.is_unity.__doc__
@@ -633,3 +638,18 @@ def test_composite_compose():
 
 def test_data_quantities():
     assert u.byte.is_equivalent(u.bit)
+
+
+def test_compare_with_none():
+    # Ensure that equality comparisons with `None` work, and don't
+    # raise exceptions.  We are deliberately not using `is None` here
+    # because that doesn't trigger the bug.  See #3108.
+    assert not (u.m == None)
+    assert u.m != None
+
+
+def test_validate_power_detect_fraction():
+    frac = utils.validate_power(1.1666666666666665)
+    assert type(frac) == Fraction
+    assert frac.numerator == 7
+    assert frac.denominator == 6

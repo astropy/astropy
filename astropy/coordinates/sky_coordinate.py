@@ -1,6 +1,8 @@
 from __future__ import (absolute_import, division, print_function, unicode_literals)
 
+import re
 import collections
+import warnings
 
 import numpy as np
 
@@ -10,12 +12,13 @@ from ..extern.six.moves import zip
 from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
+from ..utils.exceptions import AstropyDeprecationWarning
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
 from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
-                             UnitSphericalRepresentation)
+                             UnitSphericalRepresentation, CartesianRepresentation)
 
 __all__ = ['SkyCoord']
 
@@ -245,7 +248,7 @@ class SkyCoord(object):
             for attr, coord_value in coord_kwargs.items():
                 if (attr in valid_kwargs
                         and valid_kwargs[attr] is not None
-                        and valid_kwargs[attr] != coord_value):
+                        and np.any(valid_kwargs[attr] != coord_value)):
                     raise ValueError("Coordinate attribute '{0}'={1!r} conflicts with "
                                      "keyword argument '{0}'={2!r}"
                                      .format(attr, coord_value, valid_kwargs[attr]))
@@ -256,6 +259,14 @@ class SkyCoord(object):
     def transform_to(self, frame):
         """
         Transform this coordinate to a new frame.
+
+        The frame attributes (e.g. equinox or obstime) for the returned object
+        depend on the corresponding attributes of SkyCoord object and the
+        supplied ``frame``, with the following precedence:
+
+        1. Non-default value in the supplied frame
+        2. Non-default value in the SkyCoord instance
+        3. Default value in the supplied frame
 
         Parameters
         ----------
@@ -289,17 +300,20 @@ class SkyCoord(object):
             new_frame_cls = frame.__class__
 
             # Set the keyword args for making a new frame instance for the
-            # transform.  If the supplied frame instance has a non-default
-            # value set then use that, otherwise use the self attribute value
-            # if it is not None.
+            # transform.  Frame attributes track whether they were explicitly
+            # set by user or are just reflecting default values.  Precedence:
+            # 1. Non-default value in the supplied frame instance
+            # 2. Non-default value in the self instance
+            # 3. Default value in the supplied frame instance
             for attr in FRAME_ATTR_NAMES_SET():
                 self_val = getattr(self, attr, None)
                 frame_val = getattr(frame, attr, None)
-                if (frame_val is not None and
-                        attr not in frame._attr_names_with_defaults):
+                if frame_val is not None and not frame.is_frame_attr_default(attr):
                     frame_kwargs[attr] = frame_val
-                elif self_val is not None:
+                elif self_val is not None and not self.is_frame_attr_default(attr):
                     frame_kwargs[attr] = self_val
+                elif frame_val is not None:
+                    frame_kwargs[attr] = frame_val
         else:
             raise ValueError('Transform `frame` must be a frame name, class, or instance')
 
@@ -329,32 +343,50 @@ class SkyCoord(object):
         Overrides getattr to return coordinates that this can be transformed
         to, based on the alias attr in the master transform graph.
         """
+        if '_sky_coord_frame' in self.__dict__:
+            if self.frame.name == attr:
+                return self  # Should this be a deepcopy of self?
 
-        if self.frame.name == attr:
-            return self  # Should this be a deepcopy of self?
+            # Anything in the set of all possible frame_attr_names is handled
+            # here. If the attr is relevant for the current frame then delegate
+            # to self.frame otherwise get it from self._<attr>.
+            if attr in FRAME_ATTR_NAMES_SET():
+                if attr in self.frame.get_frame_attr_names():
+                    return getattr(self.frame, attr)
+                else:
+                    return getattr(self, '_' + attr)
 
-        # Anything in the set of all possible frame_attr_names is handled
-        # here. If the attr is relevant for the current frame then delegate
-        # to self.frame otherwise get it from self._<attr>.
-        if attr in FRAME_ATTR_NAMES_SET():
-            if attr in self.frame.get_frame_attr_names():
-                return getattr(self.frame, attr)
-            else:
-                return getattr(self, '_' + attr)
+            # Some attributes might not fall in the above category but still
+            # are available through self._sky_coord_frame.
+            if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
+                return getattr(self._sky_coord_frame, attr)
 
-        # Some attributes might not fall in the above category but still
-        # are available through self._sky_coord_frame.
-        if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
-            return getattr(self._sky_coord_frame, attr)
-
-        # Try to interpret as a new frame for transforming.
-        frame_cls = frame_transform_graph.lookup_name(attr)
-        if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
-            return self.transform_to(attr)
+            # Try to interpret as a new frame for transforming.
+            frame_cls = frame_transform_graph.lookup_name(attr)
+            if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
+                return self.transform_to(attr)
 
         # Fail
         raise AttributeError("'{0}' object has no attribute '{1}'"
                              .format(self.__class__.__name__, attr))
+
+    def __setattr__(self, attr, val):
+        # This is to make anything available through __getattr__ immutable
+        if '_sky_coord_frame' in self.__dict__:
+            if self.frame.name == attr:
+                raise AttributeError("'{0}' is immutable".format(attr))
+
+            if (attr in FRAME_ATTR_NAMES_SET() or
+                (not attr.startswith('_') and
+                 hasattr(self._sky_coord_frame, attr))):
+                setattr(self._sky_coord_frame, attr, val)
+
+            frame_cls = frame_transform_graph.lookup_name(attr)
+            if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
+                raise AttributeError("'{0}' is immutable".format(attr))
+
+        # Otherwise, do the standard Python attribute setting
+        super(SkyCoord, self).__setattr__(attr, val)
 
     @override__dir__
     def __dir__(self):
@@ -661,6 +693,100 @@ class SkyCoord(object):
 
         return res
 
+    def search_around_sky(self, searcharoundcoords, seplimit):
+        """
+        Searches for all coordinates in this object around a supplied set of
+        points within a given on-sky separation.
+
+        Parameters
+        ----------
+        searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate(s) to search around to try to find matching points in
+            this `SkyCoord`.
+        seplimit : `~astropy.units.Quantity` with angle units
+            The on-sky separation to search within.
+
+        Returns
+        -------
+        idxsearcharound : integer array
+            Indices into ``coords1`` that matches to the corresponding element of
+            ``idxself``. Shape matches ``idxself``.
+        idxself : integer array
+            Indices into ``coords2`` that matches to the corresponding element of
+            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+        sep2d : `~astropy.coordinates.Angle`
+            The on-sky separation between the coordinates. Shape matches
+            ``idxsearcharound`` and ``idxself``.
+        dist3d : `~astropy.units.Quantity`
+            The 3D distance between the coordinates. Shape matches
+            ``idxsearcharound`` and ``idxself``.
+
+        Notes
+        -----
+        This method requires `SciPy <http://www.scipy.org>`_ to be
+        installed or it will fail.
+
+        In the current implementation, the return values are always sorted in
+        the same order as the ``searcharoundcoords`` (so ``idxsearcharound`` is
+        in ascending order).  This is considered an implementation detail,
+        though, so it could change in a future release.
+
+        See Also
+        --------
+        astropy.coordinates.search_around_sky
+        """
+        from .matching import search_around_sky
+
+        return search_around_sky(searcharoundcoords, self, seplimit,
+                                 storekdtree='_kdtree_sky')
+
+    def search_around_3d(self, searcharoundcoords, distlimit):
+        """
+        Searches for all coordinates in this object around a supplied set of
+        points within a given 3D radius.
+
+        Parameters
+        ----------
+        searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
+            The coordinate(s) to search around to try to find matching points in
+            this `SkyCoord`.
+        distlimit : `~astropy.units.Quantity` with distance units
+            The physical radius to search within.
+
+        Returns
+        -------
+        idxsearcharound : integer array
+            Indices into ``coords1`` that matches to the corresponding element of
+            ``idxself``. Shape matches ``idxself``.
+        idxself : integer array
+            Indices into ``coords2`` that matches to the corresponding element of
+            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+        sep2d : `~astropy.coordinates.Angle`
+            The on-sky separation between the coordinates. Shape matches
+            ``idxsearcharound`` and ``idxself``.
+        dist3d : `~astropy.units.Quantity`
+            The 3D distance between the coordinates. Shape matches
+            ``idxsearcharound`` and ``idxself``.
+
+        Notes
+        -----
+        This method requires `SciPy <http://www.scipy.org>`_ to be
+        installed or it will fail.
+
+        In the current implementation, the return values are always sorted in
+        the same order as the ``searcharoundcoords`` (so ``idxsearcharound`` is
+        in ascending order).  This is considered an implementation detail,
+        though, so it could change in a future release.
+
+        See Also
+        --------
+        astropy.coordinates.search_around_3d
+        """
+        from .matching import search_around_3d
+
+        return search_around_3d(searcharoundcoords, self, distlimit,
+                                storekdtree='_kdtree_3d')
+
     def position_angle(self, other):
         """
         Computes the on-sky position angle (East of North) between this
@@ -705,6 +831,7 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
+    # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
         """
         Convert this coordinate to pixel coordinates using a `~astropy.wcs.WCS`
@@ -763,7 +890,81 @@ class SkyCoord(object):
         """
         return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
 
+    # Table interactions
+    @classmethod
+    def guess_from_table(cls, table, **coord_kwargs):
+        """
+        A convenience method to create and return a new `SkyCoord` from the data
+        in an astropy Table.
 
+        This method matches table columns that start with the case-insensitive
+        names of the the components of the requested frames, if they are also
+        followed by a non-alphanumeric character. It will also match columns
+        that *end* with the component name if a non-alphanumeric character is
+        *before* it.
+
+        For example, the first rule means columns with names like
+        ``'RA[J2000]'`` or ``'ra'`` will be interpreted as ``ra`` attributes for
+        `~astropy.coordinates.ICRS` frames, but ``'RAJ2000'`` or ``'radius'``
+        are *not*. Similarly, the second rule applied to the
+        `~astropy.coordinates.Galactic` frame means that a column named
+        ``'gal_l'`` will be used as the the ``l`` component, but ``gall`` or
+        ``'fill'`` will not.
+
+        The definition of alphanumeric here is based on Unicode's definition
+        of alphanumeric, except without ``_`` (which is normally considered
+        alphanumeric).  So for ASCII, this means the non-alphanumeric characters
+        are ``<space>_!"#$%&'()*+,-./:;<=>?@[\]^`{|}~``).
+
+        Parameters
+        ----------
+        table : astropy.Table
+            The table to load data from.
+        coord_kwargs
+            Any additional keyword arguments are passed directly to this class's
+            constructor.
+
+        Returns
+        -------
+        newsc : same as this class
+            The new `SkyCoord` (or subclass) object.
+        """
+        inital_frame = coord_kwargs.get('frame')
+        frame = _get_frame([], coord_kwargs)
+        coord_kwargs['frame'] = inital_frame
+
+        comp_kwargs = {}
+        for comp_name in frame.representation_component_names:
+            # this matches things like 'ra[...]'' but *not* 'rad'.
+            # note that the "_" must be in there explicitly, because
+            # "alphanumeric" usually includes underscores.
+            starts_with_comp = comp_name + r'(\W|\b|_)'
+            # this part matches stuff like 'center_ra', but *not*
+            # 'aura'
+            ends_with_comp = r'.*(\W|\b|_)' + comp_name + r'\b'
+            #the final regex ORs together the two patterns
+            rex = re.compile('(' +starts_with_comp + ')|(' + ends_with_comp + ')',
+                             re.IGNORECASE | re.UNICODE)
+
+            for col_name in table.colnames:
+                if rex.match(col_name):
+                    if comp_name in comp_kwargs:
+                        oldname = comp_kwargs[comp_name].name
+                        msg = ('Found at least two matches for  component "{0}"'
+                               ': "{1}" and "{2}". Cannot continue with this '
+                               'ambiguity.')
+                        raise ValueError(msg.format(comp_name, oldname, col_name))
+                    comp_kwargs[comp_name] = table[col_name]
+
+        for k, v in comp_kwargs.items():
+            if k in coord_kwargs:
+                raise ValueError('Found column "{0}" in table, but it was '
+                                 'already provided as "{1}" keyword to '
+                                 'guess_from_table function.'.format(v.name, k))
+            else:
+                coord_kwargs[k] = v
+
+        return cls(**coord_kwargs)
 
     # Name resolve
     @classmethod
@@ -797,6 +998,7 @@ class SkyCoord(object):
             return icrs_sky_coord
         else:
             return icrs_sky_coord.transform_to(frame)
+
 
 # <----------------Private utility functions below here------------------------->
 
@@ -837,6 +1039,34 @@ def _get_frame(args, kwargs):
     """
     frame = kwargs.pop('frame', None)
 
+    if frame is None and len(args) > 1:
+
+        # We do not allow frames to be passed as positional arguments if data
+        # is passed separately from frame.
+
+        for arg in args:
+
+            if isinstance(arg, (SkyCoord, BaseCoordinateFrame)):
+                raise ValueError("{0} instance cannot be passed as a positional "
+                                 "argument for the frame, pass it using the "
+                                 "frame= keyword instead.".format(arg.__class__.__name__))
+
+    # If the frame is an instance or SkyCoord, we split up the attributes and
+    # make it into a class.
+
+    if isinstance(frame, SkyCoord):
+        frame = frame.frame
+
+    if isinstance(frame, BaseCoordinateFrame):
+
+        for attr in frame.get_frame_attr_names():
+            if attr in kwargs:
+                raise ValueError("cannot specify frame attribute '{0}' directly in SkyCoord since a frame instance was passed in".format(attr))
+            else:
+                kwargs[attr] = getattr(frame, attr)
+
+        frame = frame.__class__
+
     if frame is not None:
         # Frame was provided as kwarg so validate and coerce into corresponding frame.
         frame_cls = _get_frame_class(frame)
@@ -851,6 +1081,9 @@ def _get_frame(args, kwargs):
                 pass
             else:
                 args.remove(arg)
+                warnings.warn("Passing a frame as a positional argument is now "
+                              "deprecated, use the frame= keyword argument "
+                              "instead.", AstropyDeprecationWarning)
                 break
         else:
             # Not in args nor kwargs - default to icrs

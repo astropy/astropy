@@ -9,18 +9,20 @@ test_api_ape5.py
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import copy
 import functools
 
 import numpy as np
 from numpy import testing as npt
 
 from ... import units as u
-from ...tests.helper import pytest
+from ...tests.helper import pytest, catch_warnings
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation)
 from ...coordinates import Latitude, Longitude
 from ...time import Time
+from ...utils.exceptions import AstropyDeprecationWarning
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -29,6 +31,12 @@ C_FK5 = C_ICRS.transform_to(FK5)
 J2001 = Time('J2001', scale='utc')
 
 allclose = functools.partial(np.allclose, rtol=0.0, atol=1e-8)
+
+try:
+    import scipy
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 
 def test_transform_to():
@@ -240,27 +248,44 @@ def test_coord_init_representation():
     assert allclose(sc_cart.z, 3.0)
 
 
+FRAME_DEPRECATION_WARNING = ("Passing a frame as a positional argument is now "
+                             "deprecated, use the frame= keyword argument "
+                             "instead.")
+
 def test_frame_init():
     """
     Different ways of providing the frame.
     """
+
     sc = SkyCoord(RA, DEC, frame='icrs')
     assert sc.frame.name == 'icrs'
 
     sc = SkyCoord(RA, DEC, frame=ICRS)
     assert sc.frame.name == 'icrs'
 
-    sc = SkyCoord(RA, DEC, 'icrs')
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sc = SkyCoord(RA, DEC, 'icrs')
     assert sc.frame.name == 'icrs'
+    assert len(w) == 1
+    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
 
-    sc = SkyCoord(RA, DEC, ICRS)
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sc = SkyCoord(RA, DEC, ICRS)
     assert sc.frame.name == 'icrs'
+    assert len(w) == 1
+    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
 
-    sc = SkyCoord('icrs', RA, DEC)
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sc = SkyCoord('icrs', RA, DEC)
     assert sc.frame.name == 'icrs'
+    assert len(w) == 1
+    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
 
-    sc = SkyCoord(ICRS, RA, DEC)
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        sc = SkyCoord(ICRS, RA, DEC)
     assert sc.frame.name == 'icrs'
+    assert len(w) == 1
+    assert str(w[0].message) == FRAME_DEPRECATION_WARNING
 
     sc = SkyCoord(sc)
     assert sc.frame.name == 'icrs'
@@ -282,7 +307,7 @@ def test_attr_inheritance():
     equinox should be inherited to the SkyCoord.  If there is a conflict
     then raise an exception.
     """
-    sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='icrs', unit='deg', equinox='J1999', obstime='J2001')
     sc2 = SkyCoord(sc)
     assert sc2.equinox == sc.equinox
     assert sc2.obstime == sc.obstime
@@ -297,7 +322,7 @@ def test_attr_inheritance():
     assert allclose(sc2.dec, sc.dec)
     assert allclose(sc2.distance, sc.distance)
 
-    sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='fk4', unit='deg', equinox='J1999', obstime='J2001')
     sc2 = SkyCoord(sc)
     assert sc2.equinox == sc.equinox
     assert sc2.obstime == sc.obstime
@@ -317,7 +342,7 @@ def test_attr_conflicts():
     """
     Check conflicts resolution between coordinate attributes and init kwargs.
     """
-    sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='icrs', unit='deg', equinox='J1999', obstime='J2001')
 
     # OK if attrs both specified but with identical values
     SkyCoord(sc, equinox='J1999', obstime='J2001')
@@ -331,7 +356,7 @@ def test_attr_conflicts():
     assert "Coordinate attribute 'obstime'=" in str(err)
 
     # Same game but with fk4 which has equinox and obstime frame attrs
-    sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='fk4', unit='deg', equinox='J1999', obstime='J2001')
 
     # OK if attrs both specified but with identical values
     SkyCoord(sc, equinox='J1999', obstime='J2001')
@@ -353,15 +378,15 @@ def test_frame_attr_getattr():
     from self.frame when that object has the relevant attribute, otherwise
     from self.
     """
-    sc = SkyCoord('icrs', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='icrs', unit='deg', equinox='J1999', obstime='J2001')
     assert sc.equinox == 'J1999'  # Just the raw value (not validated)
     assert sc.obstime == 'J2001'
 
-    sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999', obstime='J2001')
+    sc = SkyCoord(1, 2, frame='fk4', unit='deg', equinox='J1999', obstime='J2001')
     assert sc.equinox == Time('J1999')  # Coming from the self.frame object
     assert sc.obstime == Time('J2001')
 
-    sc = SkyCoord('fk4', 1, 2, unit='deg', equinox='J1999')
+    sc = SkyCoord(1, 2, frame='fk4', unit='deg', equinox='J1999')
     assert sc.equinox == Time('J1999')
     assert sc.obstime == Time('J1999')
 
@@ -383,8 +408,8 @@ def test_to_string():
 
 
 def test_seps():
-    sc1 = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
-    sc2 = SkyCoord('icrs', 0 * u.deg, 2 * u.deg)
+    sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
+    sc2 = SkyCoord(0 * u.deg, 2 * u.deg, frame='icrs')
 
     sep = sc1.separation(sc2)
 
@@ -393,8 +418,8 @@ def test_seps():
     with pytest.raises(ValueError):
         sc1.separation_3d(sc2)
 
-    sc3 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
-    sc4 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=2 * u.kpc)
+    sc3 = SkyCoord(1 * u.deg, 1 * u.deg, distance=1 * u.kpc, frame='icrs')
+    sc4 = SkyCoord(1 * u.deg, 1 * u.deg, distance=2 * u.kpc, frame='icrs')
     sep3d = sc3.separation_3d(sc4)
 
     assert sep3d == 1 * u.kpc
@@ -403,13 +428,13 @@ def test_seps():
 def test_repr():
     # Repr tests must use exact floating point vals because Python 2.6
     # outputs values like 0.1 as 0.1000000000001.  No workaround found.
-    sc1 = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
-    sc2 = SkyCoord('icrs', 1 * u.deg, 1 * u.deg, distance=1 * u.kpc)
+    sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
+    sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
 
     assert repr(sc1) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
     assert repr(sc2) == '<SkyCoord (ICRS): ra=1.0 deg, dec=1.0 deg, distance=1.0 kpc>'
 
-    sc3 = SkyCoord('icrs', 0.25 * u.deg, [1, 2.5] * u.deg)
+    sc3 = SkyCoord(0.25 * u.deg, [1, 2.5] * u.deg, frame='icrs')
     assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                          '    [(0.25, 1.0), (0.25, 2.5)]>')
 
@@ -421,9 +446,9 @@ def test_ops():
     """
     Tests miscellaneous operations like `len`
     """
-    sc = SkyCoord('icrs', 0 * u.deg, 1 * u.deg)
-    sc_arr = SkyCoord('icrs', 0 * u.deg, [1, 2] * u.deg)
-    sc_empty = SkyCoord('icrs', [] * u.deg, [] * u.deg)
+    sc = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
+    sc_arr = SkyCoord(0 * u.deg, [1, 2] * u.deg, frame='icrs')
+    sc_empty = SkyCoord([] * u.deg, [] * u.deg, frame='icrs')
 
     assert sc.isscalar
     assert not sc_arr.isscalar
@@ -748,3 +773,208 @@ def test_wcs_methods(mode, origin):
     scnew2 = SkyCoord2.from_pixel(xp, yp, wcs, mode=mode, origin=origin)
     assert scnew.__class__ is SkyCoord
     assert scnew2.__class__ is SkyCoord2
+
+
+def test_frame_attr_transform_inherit():
+    """
+    Test that frame attributes get inherited as expected during transform.
+    Driven by #3106.
+    """
+    c = SkyCoord(1 * u.deg, 2 * u.deg, frame=FK5)
+    c2 = c.transform_to(FK4)
+    assert c2.equinox.value == 'B1950.000'
+    assert c2.obstime.value == 'B1950.000'
+
+    c2 = c.transform_to(FK4(equinox='J1975', obstime='J1980'))
+    assert c2.equinox.value == 'J1975.000'
+    assert c2.obstime.value == 'J1980.000'
+
+    c = SkyCoord(1 * u.deg, 2 * u.deg, frame=FK4)
+    c2 = c.transform_to(FK5)
+    assert c2.equinox.value == 'J2000.000'
+    assert c2.obstime is None
+
+    c = SkyCoord(1 * u.deg, 2 * u.deg, frame=FK4, obstime='J1980')
+    c2 = c.transform_to(FK5)
+    assert c2.equinox.value == 'J2000.000'
+    assert c2.obstime.value == 'J1980.000'
+
+    c = SkyCoord(1 * u.deg, 2 * u.deg, frame=FK4, equinox='J1975', obstime='J1980')
+    c2 = c.transform_to(FK5)
+    assert c2.equinox.value == 'J1975.000'
+    assert c2.obstime.value == 'J1980.000'
+
+    c2 = c.transform_to(FK5(equinox='J1990'))
+    assert c2.equinox.value == 'J1990.000'
+    assert c2.obstime.value == 'J1980.000'
+
+
+def test_deepcopy():
+    c1 = SkyCoord(1 * u.deg, 2 * u.deg)
+    c2 = copy.copy(c1)
+    c3 = copy.deepcopy(c1)
+
+    c4 = SkyCoord([1, 2] * u.m, [2, 3] *u.m, [3, 4] * u.m, representation='cartesian', frame='fk5',
+                  obstime='J1999.9', equinox='J1988.8')
+    c5 = copy.deepcopy(c4)
+    assert np.all(c5.x == c4.x)  # and y and z
+    assert c5.frame.name == c4.frame.name
+    assert c5.obstime == c4.obstime
+    assert c5.equinox == c4.equinox
+    assert c5.representation == c4.representation
+
+
+def test_immutable():
+    c1 = SkyCoord(1 * u.deg, 2 * u.deg)
+    with pytest.raises(AttributeError):
+        c1.ra = 3.0
+
+    c1.foo = 42
+    assert c1.foo == 42
+
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
+def test_search_around():
+    """
+    Test the search_around_* methods
+
+    Here we don't actually test the values are right, just that the methods of
+    SkyCoord work.  The accuracy tests are in ``test_matching.py``
+    """
+    from ...utils import NumpyRNGContext
+
+    with NumpyRNGContext(987654321):
+        sc1 = SkyCoord(np.random.rand(20) * 360.*u.degree,
+                      (np.random.rand(20) * 180. - 90.)*u.degree)
+        sc2 = SkyCoord(np.random.rand(100) * 360. * u.degree,
+                      (np.random.rand(100) * 180. - 90.)*u.degree)
+
+        sc1ds = SkyCoord(ra=sc1.ra, dec=sc1.dec, distance=np.random.rand(20)*u.kpc)
+        sc2ds = SkyCoord(ra=sc2.ra, dec=sc2.dec, distance=np.random.rand(100)*u.kpc)
+
+    idx1_sky, idx2_sky, d2d_sky, d3d_sky = sc1.search_around_sky(sc2, 10*u.deg)
+    idx1_3d, idx2_3d, d2d_3d, d3d_3d = sc1ds.search_around_3d(sc2ds, 250*u.pc)
+
+
+def test_init_with_frame_instance_keyword():
+
+    # Frame instance
+    c1 = SkyCoord(3 * u.deg, 4 * u.deg,
+                  frame=FK5(equinox='J2010'))
+    assert c1.equinox == Time('J2010')
+
+    # Frame instance with data (data gets ignored)
+    c2 = SkyCoord(3 * u.deg, 4 * u.deg,
+                 frame=FK5(1. * u.deg, 2 * u.deg,
+                 equinox='J2010'))
+    assert c2.equinox == Time('J2010')
+    assert allclose(c2.ra.degree, 3)
+    assert allclose(c2.dec.degree, 4)
+
+    # SkyCoord instance
+    c3 = SkyCoord(3 * u.deg, 4 * u.deg, frame=c1)
+    assert c3.equinox == Time('J2010')
+
+    # Check duplicate arguments
+    with pytest.raises(ValueError) as exc:
+        c = SkyCoord(3 * u.deg, 4 * u.deg, frame=FK5(equinox='J2010'), equinox='J2001')
+    assert exc.value.args[0] == ("cannot specify frame attribute "
+                                 "'equinox' directly in SkyCoord "
+                                 "since a frame instance was passed in")
+
+
+def test_init_with_frame_instance_positional():
+
+    # Frame instance
+    with pytest.raises(ValueError) as exc:
+        c1 = SkyCoord(3 * u.deg, 4 * u.deg, FK5(equinox='J2010'))
+    assert exc.value.args[0] == ("FK5 instance cannot be passed as a "
+                                 "positional argument for the frame, "
+                                 "pass it using the frame= keyword "
+                                 "instead.")
+
+    # Positional frame instance with data raises exception
+    with pytest.raises(ValueError) as exc:
+        SkyCoord(3 * u.deg, 4 * u.deg, FK5(1. * u.deg, 2 * u.deg, equinox='J2010'))
+    assert exc.value.args[0] == ("FK5 instance cannot be passed as a "
+                                 "positional argument for the frame, "
+                                 "pass it using the frame= keyword "
+                                 "instead.")
+
+    # Positional SkyCoord instance (for frame) raises exception
+    with pytest.raises(ValueError) as exc:
+        SkyCoord(3 * u.deg, 4 * u.deg, SkyCoord(1. * u.deg, 2 * u.deg, equinox='J2010'))
+    assert exc.value.args[0] == ("SkyCoord instance cannot be passed as a "
+                                 "positional argument for the frame, "
+                                 "pass it using the frame= keyword "
+                                 "instead.")
+
+
+def test_guess_from_table():
+    from ...table import Table, Column
+    from ...utils import NumpyRNGContext
+
+    tab = Table()
+    with NumpyRNGContext(987654321):
+        tab.add_column(Column(data=np.random.rand(1000),unit='deg',name='RA[J2000]'))
+        tab.add_column(Column(data=np.random.rand(1000),unit='deg',name='DEC[J2000]'))
+
+    sc = SkyCoord.guess_from_table(tab)
+    npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
+    npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
+
+    # try without units in the table
+    tab['RA[J2000]'].unit = None
+    tab['DEC[J2000]'].unit = None
+    # should fail if not given explicitly
+    with pytest.raises(u.UnitsError):
+        sc2 = SkyCoord.guess_from_table(tab)
+
+    # but should work if provided
+    sc2 = SkyCoord.guess_from_table(tab, unit=u.deg)
+    npt.assert_array_equal(sc.ra.deg, tab['RA[J2000]'])
+    npt.assert_array_equal(sc.dec.deg, tab['DEC[J2000]'])
+
+    # should fail if two options are available - ambiguity bad!
+    tab.add_column(Column(data=np.random.rand(1000), name='RA_J1900'))
+    with pytest.raises(ValueError) as excinfo:
+        sc3 = SkyCoord.guess_from_table(tab, unit=u.deg)
+    assert 'J1900' in excinfo.value.args[0] and 'J2000' in excinfo.value.args[0]
+
+    # should also fail if user specifies something already in the table, but
+    # should succeed even if the user has to give one of the components
+    tab.remove_column('RA_J1900')
+    with pytest.raises(ValueError):
+        sc3 = SkyCoord.guess_from_table(tab, ra=tab['RA[J2000]'], unit=u.deg)
+
+    oldra = tab['RA[J2000]']
+    tab.remove_column('RA[J2000]')
+    sc3 = SkyCoord.guess_from_table(tab, ra=oldra, unit=u.deg)
+    npt.assert_array_equal(sc3.ra.deg, oldra)
+    npt.assert_array_equal(sc3.dec.deg, tab['DEC[J2000]'])
+
+    # check a few non-ICRS/spherical systems
+    x, y, z = np.arange(3).reshape(3, 1) * u.pc
+    l, b = np.arange(2).reshape(2, 1) * u.deg
+
+    tabcart = Table([x, y, z], names=('x', 'y', 'z'))
+    tabgal = Table([b, l], names=('b', 'l'))
+
+    sc_cart = SkyCoord.guess_from_table(tabcart, representation='cartesian')
+    npt.assert_array_equal(sc_cart.x, x)
+    npt.assert_array_equal(sc_cart.y, y)
+    npt.assert_array_equal(sc_cart.z, z)
+
+    sc_gal = SkyCoord.guess_from_table(tabgal, frame='galactic')
+    npt.assert_array_equal(sc_gal.l, l)
+    npt.assert_array_equal(sc_gal.b, b)
+
+    #also try some column names that *end* with the attribute name
+    tabgal['b'].name = 'gal_b'
+    tabgal['l'].name = 'gal_l'
+    SkyCoord.guess_from_table(tabgal, frame='galactic')
+
+    tabgal['gal_b'].name = 'blob'
+    tabgal['gal_l'].name = 'central'
+    with pytest.raises(ValueError):
+        SkyCoord.guess_from_table(tabgal, frame='galactic')

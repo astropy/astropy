@@ -2,6 +2,7 @@
 
 # TEST_UNICODE_LITERALS
 
+import os
 import copy
 
 try:
@@ -12,6 +13,7 @@ except ImportError:
 from ... import ascii
 from .... import table
 from ....tests.helper import pytest
+from .... import units
 
 from .common import setup_function, teardown_function
 
@@ -87,6 +89,7 @@ ID,XCENTER,YCENTER,MAG,MERR,MSKY,NITER,SHARPNESS,CHI,PIER,PERROR
 \\begin{table}
 \\begin{tabular}{ccccccccccc}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
+ & pixels & pixels & magnitudes & magnitudes & counts &  &  &  &  & perrors \\\\
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\end{tabular}
@@ -96,7 +99,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
     dict(kwargs=dict(Writer=ascii.AASTex),
          out="""\
 \\begin{deluxetable}{ccccccccccc}
-\\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}}
+\\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{pixels} & \\colhead{pixels} & \\colhead{magnitudes} & \\colhead{magnitudes} & \\colhead{counts} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{perrors}}
 \\startdata
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
@@ -111,7 +114,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
         out="""\
 \\begin{deluxetable*}{ccccccccccc}[htpb]
 \\tablecaption{Mag values \\label{tab1}}
-\\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{[pixel]} & \\colhead{ } & \\colhead{[mag]} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ }}
+\\tablehead{\\colhead{ID} & \\colhead{XCENTER} & \\colhead{YCENTER} & \\colhead{MAG} & \\colhead{MERR} & \\colhead{MSKY} & \\colhead{NITER} & \\colhead{SHARPNESS} & \\colhead{CHI} & \\colhead{PIER} & \\colhead{PERROR}\\\\ \\colhead{ } & \\colhead{[pixel]} & \\colhead{pixels} & \\colhead{[mag]} & \\colhead{magnitudes} & \\colhead{counts} & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{ } & \\colhead{perrors}}
 \\startdata
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
@@ -133,7 +136,7 @@ ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PE
 \\caption{Mag values \\label{tab1}}
 \\begin{tabular}{|lcccccccccc|}
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
- & [pixel] &  & [mag] &  &  &  &  &  &  &  \\\\
+ & [pixel] & pixels & [mag] & magnitudes & counts &  &  &  &  & perrors \\\\
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
 18 & 18.114 & 280.170 & 22.329 & 0.206 & 30.12784 & 4 & -2.544 & 1.104 & 0 & No_error \\\\
 \\hline
@@ -151,7 +154,7 @@ preamble
 \\begin{tabular}{col_align}
 header_start
 ID & XCENTER & YCENTER & MAG & MERR & MSKY & NITER & SHARPNESS & CHI & PIER & PERROR \\\\
- &  &  &  &  &  &  &  &  &  &  \\\\
+ & pixels & pixels & magnitudes & magnitudes & counts &  &  &  &  & perrors \\\\
 header_end
 data_start
 14 & 138.538 & 256.405 & 15.461 & 0.003 & 34.85955 & 4 & -0.032 & 0.802 & 0 & No_error \\\\
@@ -453,5 +456,38 @@ def test_strip_names(fast_writer):
     """Names should be stripped of whitespace by default."""
     data = table.Table([[1], [2], [3]], names=(' A', 'B ', ' C '))
     out = StringIO()
-    ascii.write(data, out, format='csv', fast_writer=True)
+    ascii.write(data, out, format='csv', fast_writer=fast_writer)
     assert out.getvalue().splitlines()[0] == 'A,B,C'
+
+
+@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
+def test_latex_units():
+    """
+    Check to make sure that Latex and AASTex writers attempt to fall
+    back on the **unit** attribute of **Column** if the supplied
+    **latexdict** does not specify units.
+    """
+    t = table.Table([table.Column(name='date', data=['a','b']),
+               table.Column(name='NUV exp.time', data=[1,2])])
+    latexdict = copy.deepcopy(ascii.latexdicts['AA'])
+    latexdict['units'] = {'NUV exp.time':'s'}
+    out = StringIO()
+    expected = '''\
+\\begin{table}{cc}
+\\tablehead{\\colhead{date} & \\colhead{NUV exp.time}\\\\ \\colhead{ } & \\colhead{s}}
+\\startdata
+a & 1 \\\\
+b & 2 \\\\
+\\enddata
+\\end{table}
+'''
+    ascii.write(t, out, format='aastex', latexdict=latexdict)
+    assert out.getvalue() == expected
+    # use unit attribute instead
+    t['NUV exp.time'].unit = units.s
+    t['date'].unit = units.yr
+    out = StringIO()
+    ascii.write(t, out, format='aastex', latexdict=ascii.latexdicts['AA'])
+    assert out.getvalue() == expected.replace(
+        'colhead{s}', 'colhead{$\mathrm{s}$}').replace(
+        'colhead{ }', 'colhead{$\mathrm{yr}$}')

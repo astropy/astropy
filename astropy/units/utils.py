@@ -22,7 +22,6 @@ from ..extern import six
 from ..utils.compat.fractions import Fraction
 from ..utils.exceptions import AstropyDeprecationWarning
 
-
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast
 # give a little margin since often multiple calculations happened
@@ -210,7 +209,23 @@ def validate_power(p, support_tuples=False):
                 scaled = p * float(i)
                 if((scaled + 4. * _float_finfo.eps) % 1.0 <
                    8. * _float_finfo.eps):
-                    p = Fraction(int(scaled), i)
+                    p = Fraction(int(round(scaled)), i)
                     break
 
     return p
+
+
+def add_powers(a, b):
+    """
+    Add two powers together, where either may be a floating point
+    number or a Fraction.  If either is Fraction, they are both
+    converted to Fractions so that rational, rather than
+    floating-point, arithmetic is used.
+    """
+    a_is_fraction = isinstance(a, Fraction)
+    b_is_fraction = isinstance(b, Fraction)
+    if a_is_fraction and not b_is_fraction:
+        b = Fraction(b)
+    elif not a_is_fraction and b_is_fraction:
+        a = Fraction(a)
+    return a + b

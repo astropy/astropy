@@ -30,6 +30,18 @@ Currently `astropy.table` is used when reading an ASCII table using
 `astropy.io.ascii`.  Future releases of AstroPy are expected to use
 the |Table| class for other subpackages such as `astropy.io.votable` and `astropy.io.fits` .
 
+.. Note::
+
+   Starting with version 1.0 of astropy the internal implementation of the
+   |Table| class changed so that it no longer uses numpy structured arrays as
+   the core table data container.  Instead the table is stored as a collection
+   of individual column objects.  *For most users there is NO CHANGE to the
+   interface and behavior of |Table| objects.*
+
+   The page on :ref:`table_implementation_change` provides details about the
+   change.  This includes discussion of the table architecture, key differences,
+   and benefits of the change.
+
 Getting Started
 ===============
 
@@ -63,14 +75,22 @@ about the table values and column definitions as follows::
   array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
 
-One can also assign an unit to the columns. If any column has an unit 
+You can also assign a unit to the columns. If any column has a unit
 assigned, all units would be shown as follows::
 
   >>> t['b'].unit = 's'
   >>> t
   <Table rows=3 names=('a','b','c') units=(None,'s',None)>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')], 
+  array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
         dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
+
+A column with a unit works with and can be easily converted to an
+`~astropy.units.Quantity` object::
+
+  >>> t['b'].quantity
+  <Quantity [ 2. , 5. , 8.2] s>
+  >>> t['b'].to('min')  # doctest: +FLOAT_CMP
+  <Quantity [ 0.03333333, 0.08333333, 0.13666667] min>
 
 From within the IPython notebook, the table is displayed as a formatted HTML table:
 
@@ -91,8 +111,8 @@ If you do not like the format of a particular column, you can change it::
 
   >>> t['b'].format = '7.3f'
   >>> print(t)
-   a     b     c 
-         s       
+   a     b     c
+         s
   --- ------- ---
     1   2.000   x
     4   5.000   y
@@ -137,12 +157,12 @@ Access the data by column or row using familiar `numpy` structured array syntax:
   >>> t[1]['a']    # Column 'a' of row 1
   4
 
-One can retrieve a subset of a table by rows (using a slice) or
+You can retrieve a subset of a table by rows (using a slice) or
 columns (using column names), where the subset is returned as a new table::
 
   >>> print(t[0:2])      # Table object with rows 0 and 1
-   a     b     c 
-         s       
+   a     b     c
+         s
   --- ------- ---
     1   2.000   x
     4   5.000   y
@@ -162,8 +182,8 @@ Modifying table values in place is flexible and works as one would expect::
   >>> t[1]['b'] = -9              # Set column 'b' of row 1
   >>> t[0:2]['b'] = 100.0         # Set column 'b' of rows 0 and 1
   >>> print(t)
-   a     b     c 
-         s       
+   a     b     c
+         s
   --- ------- ---
    -1 100.000   x
     8 100.000   W
@@ -183,7 +203,7 @@ Adding a new row of data to the table is as follows::
   >>> len(t)
   4
 
-Lastly, one can create a table with support for missing values, for example by setting
+Lastly, you can create a table with support for missing values, for example by setting
 ``masked=True``::
 
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True)
@@ -256,6 +276,15 @@ I/O with tables
    :maxdepth: 2
 
    io.rst
+
+Implementation
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   implementation_details.rst
+   implementation_change_1.0.rst
 
 Reference/API
 =============

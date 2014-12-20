@@ -352,7 +352,7 @@ attribute::
     >>> cols = hdulist[1].columns
 
 This attribute is a :class:`ColDefs` (column definitions) object. If we use the
-:meth:`ColDefs.info` method::
+:meth:`ColDefs.info` method from the interactive prompt::
 
     >>> cols.info()
      name:
@@ -375,7 +375,12 @@ This attribute is a :class:`ColDefs` (column definitions) object. If we use the
           ['', '', '', '']
 
 it will show the attributes of all columns in the table, such as their names,
-formats, bscales, bzeros, etc.  We can also get these properties individually;
+formats, bscales, bzeros, etc. A similar output that will display the column
+names and their formats can be printed from within a script with::
+
+    print hdulist[1].columns
+
+We can also get these properties individually;
 e.g.
 
 ::
@@ -503,7 +508,7 @@ variables for the individual columns and without manually creating a
 
 Now you may write this new table HDU directly to a FITS file like so::
 
-    >>> hdu = fits.PrimaryHDU(n)
+    >>> tbhdu.writeto('table.fits')
 
 This shortcut will automatically create a minimal primary HDU with no data and
 prepend it to the table HDU to create a valid FITS file.  If you require

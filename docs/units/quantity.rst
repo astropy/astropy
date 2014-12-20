@@ -249,6 +249,38 @@ Instead, only dimensionless values can be converted to plain Python scalars:
     >>> int(6. * u.km / (2. * u.m))
     3000
 
+Functions Accepting Quantities
+------------------------------
+
+Validation of quantity arguments to functions can lead to many repetitons 
+of the same checking code. A decorator is provided which verifies that certain
+arguments to a function are `~astropy.units.Quantity` objects and that the units
+are compatible with a desired unit.
+
+The decorator does not convert the unit to the desired unit, say arcseconds
+to degrees, it merely checks that such a conversion is possible, thus verifying 
+that the `~astropy.units.Quantity` argument can be used in calculations.
+
+The decorator `~astropy.units.quantity_input` accepts keyword arguments to 
+spcifiy which arguments should be validated and what unit they are expected to 
+be compatible with:
+
+    >>> @u.quantity_input(myarg=u.deg)
+    ... def myfunction(myarg):
+    ...     return myarg.unit
+
+    >>> myfunction(100*u.arcsec)
+    Unit("arcsec")
+
+Under Python 3 you can use the annotations syntax to provide the units:
+
+    >>> @u.quantity_input  # doctest: +SKIP
+    ... def myfunction(myarg: u.arcsec):
+    ...     return myarg.unit
+
+    >>> myfunction(100*u.arcsec)  # doctest: +SKIP
+    Unit("arcsec")
+
 Known issues with conversion to numpy arrays
 --------------------------------------------
 

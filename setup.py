@@ -17,8 +17,8 @@ builtins._ASTROPY_SETUP_ = True
 
 import astropy
 from astropy_helpers.setup_helpers import (
-    register_commands, adjust_compiler, get_package_info, get_debug_option,
-    is_distutils_display_option)
+    register_commands, adjust_compiler, get_package_info, get_debug_option)
+from astropy_helpers.distutils_helpers import is_distutils_display_option
 from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
 
@@ -107,7 +107,7 @@ setup(name=NAME,
       ],
       cmdclass=cmdclassd,
       zip_safe=False,
-      use_2to3=True,
+      use_2to3=False,
       entry_points=entry_points,
       **package_info
 )

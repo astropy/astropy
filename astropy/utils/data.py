@@ -230,13 +230,18 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             fileobj = fileobj_new
     elif signature[:3] == b'BZh':  # bzip2
         try:
+            import bz2
+        except ImportError:
+            raise ValueError(
+                ".bz2 format files are not supported since the Python "
+                "interpreter does not include the bz2 module")
+        try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
             tmp = NamedTemporaryFile("wb", delete=False)
             tmp.write(fileobj.read())
             tmp.close()
             delete_fds.append(tmp)
-            import bz2
             fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really bzip2
         except IOError:  # invalid bzip2 file
@@ -262,18 +267,22 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
         # so we decompress it to a temporary file and then
         # return a handle to that.
-        import bz2
-        if isinstance(fileobj, bz2.BZ2File):
-            tmp = NamedTemporaryFile("wb", delete=False)
-            data = fileobj.read()
-            tmp.write(data)
-            tmp.close()
-            delete_fds.append(tmp)
-            if six.PY3:
-                fileobj = io.FileIO(tmp.name, 'r')
-            elif six.PY2:
-                fileobj = open(tmp.name, 'rb')
-            close_fds.append(fileobj)
+        try:
+            import bz2
+        except ImportError:
+            pass
+        else:
+            if isinstance(fileobj, bz2.BZ2File):
+                tmp = NamedTemporaryFile("wb", delete=False)
+                data = fileobj.read()
+                tmp.write(data)
+                tmp.close()
+                delete_fds.append(tmp)
+                if six.PY3:
+                    fileobj = io.FileIO(tmp.name, 'r')
+                elif six.PY2:
+                    fileobj = open(tmp.name, 'rb')
+                close_fds.append(fileobj)
 
         # On Python 2.x, we need to first wrap the regular `file`
         # instance in a `io.FileIO` object before it can be

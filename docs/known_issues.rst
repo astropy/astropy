@@ -42,6 +42,16 @@ Work-arounds are available for some cases.  For the above::
     <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
                 5., 6., 7., 8., 9.] m>
 
+An incomplete list of specific functions which are known to exhibit this behavior follows.
+
+* `numpy.dot`
+* `numpy.hstack`, `numpy.vstack`, ``numpy.c_``, ``numpy.r_``, `numpy.append`
+* `numpy.where`
+* `numpy.choose`
+* `numpy.vectorize`
+* pandas DataFrame(s)
+
+
 See: https://github.com/astropy/astropy/issues/1274
 
 Quantities float comparison with np.isclose fails
@@ -251,15 +261,3 @@ One workaround is to install the ``bsddb3`` module.
 .. [#] Continuum `says
        <https://groups.google.com/a/continuum.io/forum/#!topic/anaconda/mCQL6fVx55A>`_
        this will be fixed in their next Python build.
-
-
-Very long integers in ASCII tables silently converted to float for Numpy 1.5
-----------------------------------------------------------------------------
-
-For Numpy 1.5, when reading an ASCII table that has integers which are too
-large to fit into the native C long int type for the machine, then the
-values get converted to float type with no warning.  This is due to the
-behavior of `numpy.array` and cannot easily be worked around.  We recommend
-that users upgrade to a newer version of Numpy.  For Numpy >= 1.6 a warning
-is printed and the values are treated as strings to preserve all information.
-

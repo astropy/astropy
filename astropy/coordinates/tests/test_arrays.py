@@ -6,7 +6,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...extern import six
 from ...tests.helper import pytest
 
 import numpy as np
@@ -43,7 +42,7 @@ def test_angle_arrays():
     npt.assert_almost_equal(a6.value, 945.0)
     assert a6.unit is u.degree
 
-    with pytest.raises((TypeError, ValueError)):  # ValueError for numpy 1.5.x
+    with pytest.raises(TypeError):
         # Arrays where the elements are Angle objects are not supported -- it's
         # really tricky to do correctly, if at all, due to the possibility of
         # nesting.
@@ -162,8 +161,8 @@ def test_array_coordinates_transformations(arrshape, distance):
 
     assert g.l.shape == arrshape
 
-    npt.assert_array_almost_equal(g.l.degree, 121.17447049007306)
-    npt.assert_array_almost_equal(g.b.degree, -21.57291080408368)
+    npt.assert_array_almost_equal(g.l.degree, 121.17440967)
+    npt.assert_array_almost_equal(g.b.degree, -21.57299631)
 
     if distance is not None:
         assert g.distance.unit == c.distance.unit

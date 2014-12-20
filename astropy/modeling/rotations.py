@@ -40,14 +40,9 @@ class EulerAngleRotation(Model):
         Euler angles in deg
     """
 
-    n_inputs = 2
-    n_outputs = 2
     phi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
     theta = Parameter(getter=np.rad2deg, setter=np.deg2rad)
     psi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
-
-    def __init__(self, phi, theta, psi):
-        super(EulerAngleRotation, self).__init__(phi, theta, psi)
 
     @staticmethod
     def _rotate_zxz(phi_i, theta_i, phi, theta, psi):
@@ -86,6 +81,9 @@ class RotateNative2Celestial(EulerAngleRotation):
         Euler angles in deg
     """
 
+    inputs = ('phi_N', 'theta_N')
+    outputs = ('alpha_C', 'delta_C')
+
     @property
     def inverse(self):
         return RotateCelestial2Native(self.phi, self.theta, self.psi)
@@ -121,9 +119,6 @@ class RotateNative2Celestial(EulerAngleRotation):
 
         return alpha_C, delta_C
 
-    def __call__(self, phi_N, theta_N):
-        return super(RotateNative2Celestial, self).__call__(phi_N, theta_N)
-
 
 class RotateCelestial2Native(EulerAngleRotation):
     """
@@ -136,6 +131,9 @@ class RotateCelestial2Native(EulerAngleRotation):
     phi, theta, psi : float
         Euler angles in deg
     """
+
+    inputs = ('alpha_C', 'delta_C')
+    outputs = ('phi_N', 'theta_N')
 
     @property
     def inverse(self):
@@ -172,9 +170,6 @@ class RotateCelestial2Native(EulerAngleRotation):
 
         return phi_N, theta_N
 
-    def __call__(self, alpha_C, delta_C):
-        return super(RotateCelestial2Native, self).__call__(alpha_C, delta_C)
-
 
 class Rotation2D(Model):
     """
@@ -188,8 +183,8 @@ class Rotation2D(Model):
         angle of rotation in deg
     """
 
-    n_inputs = 2
-    n_outputs = 2
+    inputs = ('x', 'y')
+    outputs = ('x', 'y')
 
     angle = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 

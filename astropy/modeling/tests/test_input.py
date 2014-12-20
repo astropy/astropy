@@ -650,8 +650,8 @@ class TestInputFormatter(Model):
     A toy model to test input/output formatting.
     """
 
-    n_inputs = 2
-    n_outputs = 2
+    inputs = ('x', 'y')
+    outputs = ('x', 'y')
 
     @staticmethod
     def evaluate(x, y):

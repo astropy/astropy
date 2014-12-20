@@ -103,3 +103,24 @@ def test_Redshift():
 
     assert_allclose(m.inverse(m([1, 2], model_set_axis=False)),
                     [[1, 2], [1, 2], [1, 2]])
+
+
+def test_Ellipse2D():
+    """Test Ellipse2D model."""
+    amplitude = 7.5
+    x0, y0 = 15, 15
+    theta = Angle(45, 'deg')
+    em = models.Ellipse2D(amplitude, x0, y0, 7, 3, theta.radian)
+    y, x = np.mgrid[0:30, 0:30]
+    e = em(x, y)
+    assert np.all(e[e > 0] == amplitude)
+    assert e[y0, x0] == amplitude
+
+    rotation = models.Rotation2D(angle=theta.degree)
+    point1 = [2, 0]      # Rotation2D center is (0, 0)
+    point2 = rotation(*point1)
+    point1 = np.array(point1) + [x0, y0]
+    point2 = np.array(point2) + [x0, y0]
+    e1 = models.Ellipse2D(amplitude, x0, y0, 7, 3, theta=0.)
+    e2 = models.Ellipse2D(amplitude, x0, y0, 7, 3, theta=theta.radian)
+    assert e1(*point1) == e2(*point2)

@@ -235,10 +235,10 @@ def write_table_hdf5(table, output, path=None, compression=False,
     if compression:
         if compression is True:
             compression = 'gzip'
-        dset = output_group.create_dataset(name, data=table._data,
+        dset = output_group.create_dataset(name, data=table.as_array(),
                                            compression=compression)
     else:
-        dset = output_group.create_dataset(name, data=table._data)
+        dset = output_group.create_dataset(name, data=table.as_array())
 
     # Write the meta-data to the file
     for key in table.meta:

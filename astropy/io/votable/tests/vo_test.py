@@ -13,7 +13,6 @@ from ....extern.six.moves import xrange
 
 # STDLIB
 import difflib
-from distutils import version
 import io
 import os
 import shutil

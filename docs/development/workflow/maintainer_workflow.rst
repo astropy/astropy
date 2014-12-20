@@ -226,7 +226,7 @@ Changelog format
 
 The exact formatting of the changelog content is a bit loose for now (though
 it might become stricter if we want to develop more tools around the
-changelog).  The format can be mostly inferred by looking at previous verisons.
+changelog).  The format can be mostly inferred by looking at previous versions.
 Each release gets its own heading (using the ``-`` heading marker) with the
 version and release date.  Releases still under development have
 ``(unreleased)`` as there is no release date yet.
@@ -242,7 +242,7 @@ or that only apply to support modules like ``logging`` or ``utils`` may go
 under a "Misc" group.
 
 The actual texts of the changelog entries are typically just one to three
-sentences--they should be easy to glance over.  Most entires end with a
+sentences--they should be easy to glance over.  Most entries end with a
 reference to an issue/pull request number in square brackets.
 
 A single changelog entry may also reference multiple small changes.  For

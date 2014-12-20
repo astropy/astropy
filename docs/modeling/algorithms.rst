@@ -37,7 +37,7 @@ Multivariate polynomial evaluation
     1. Set *di* to the max number of variables (2 for a 2-D polynomials).
 
     2. Set :math:`r_0` to :math:`c_{\alpha(0)}`, where c is a list of
-       coeeficients for each multiindex in inverse lexical order.
+       coefficients for each multiindex in inverse lexical order.
 
     3. For each monomial, n, in the polynomial:
 
@@ -58,4 +58,4 @@ Multivariate polynomial evaluation
 
 
 
-.. [1] J. M. Pena, Thomas Sauer, "On the Multivariate Horner Scheme", SIAM Journal on Numerical Analysis, Vol 37, No. 4 
+.. [1] J. M. Pena, Thomas Sauer, "On the Multivariate Horner Scheme", SIAM Journal on Numerical Analysis, Vol 37, No. 4

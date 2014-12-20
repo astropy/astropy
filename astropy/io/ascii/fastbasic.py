@@ -206,7 +206,7 @@ class FastCommentedHeader(FastBasic):
         # Mimic CommentedHeader's behavior in which data_start
         # is relative to header_start if unspecified; see #2692
         if 'data_start' not in kwargs:
-            self.data_start = self.header_start
+            self.data_start = 0
 
     def _read_header(self):
         tmp = self.engine.source

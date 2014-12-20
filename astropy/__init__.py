@@ -6,6 +6,8 @@ Python. It also provides an index for other astronomy packages and tools for
 managing them.
 """
 
+from __future__ import absolute_import
+
 # this indicates whether or not we are in astropy's setup.py
 try:
     _ASTROPY_SETUP_
@@ -31,7 +33,7 @@ except ImportError:
     __githash__ = ''
 
 
-__minimum_numpy_version__ = '1.5.1'
+__minimum_numpy_version__ = '1.6.0'
 
 
 # The location of the online documentation for astropy
@@ -126,7 +128,7 @@ def _get_test_runner():
 def test(package=None, test_path=None, args=None, plugins=None,
          verbose=False, pastebin=None, remote_data=False, pep8=False,
          pdb=False, open_files=False, parallel=0, docs_path=None,
-         skip_docs=False):
+         skip_docs=False, repeat=None):
     """
     Run Astropy tests using py.test. A proper set of arguments is
     constructed and passed to `pytest.main`.
@@ -174,20 +176,23 @@ def test(package=None, test_path=None, args=None, plugins=None,
 
     open_files : bool, optional
         Fail when any tests leave files open.  Off by default, because
-        this adds extra run time to the test suite.  Works only on
-        platforms with a working `lsof` command.
+        this adds extra run time to the test suite.  Requires the
+        ``psutil`` package.
 
     parallel : int, optional
         When provided, run the tests in parallel on the specified
         number of CPUs.  If parallel is negative, it will use the all
-        the cores on the machine.  Requires the `pytest-xdist` plugin
-        is installed.
+        the cores on the machine.  Requires the `pytest-xdist` plugin.
 
     docs_path : str, optional
         The path to the documentation .rst files.
 
     skip_docs : bool, optional
         When `True`, skips running the doctests in the .rst files.
+
+    repeat : int, optional
+        If set, specifies how many times each test should be run. This is
+        useful for diagnosing sporadic failures.
 
     See Also
     --------
@@ -200,7 +205,7 @@ def test(package=None, test_path=None, args=None, plugins=None,
         plugins=plugins, verbose=verbose, pastebin=pastebin,
         remote_data=remote_data, pep8=pep8, pdb=pdb,
         open_files=open_files, parallel=parallel, docs_path=docs_path,
-        skip_docs=skip_docs)
+        skip_docs=skip_docs, repeat=repeat)
 
 
 # if we are *not* in setup mode, import the logger and possibly populate the
@@ -213,8 +218,10 @@ def _initialize_astropy():
     from warnings import warn
 
     # If this __init__.py file is in ./astropy/ then import is within a source dir
-    is_astropy_source_dir = (os.path.abspath(os.path.dirname(__file__)) ==
-                             os.path.abspath('astropy') and os.path.exists('setup.py'))
+    source_dir = os.path.abspath(os.path.dirname(__file__))
+    is_astropy_source_dir = (
+            os.path.exists(os.path.join(source_dir, os.pardir, '.git')) and
+            os.path.isfile(os.path.join(source_dir, os.pardir, 'setup.py')))
 
     def _rollback_import(message):
         log.error(message)
@@ -234,11 +241,21 @@ def _initialize_astropy():
         from .utils import _compiler
     except ImportError:
         if is_astropy_source_dir:
-            _rollback_import(
-                'You appear to be trying to import astropy from within a '
-                'source checkout; please run `./setup.py develop` or '
-                '`./setup.py build_ext --inplace` first so that extension '
-                'modules can be compiled and made importable.')
+            log.warn('You appear to be trying to import astropy from '
+                     'within a source checkout without building the '
+                     'extension modules first.  Attempting to (re)build '
+                     'extension modules:')
+
+            try:
+                _rebuild_extensions()
+            except:
+                _rollback_import(
+                    'An error occurred while attempting to rebuild the '
+                    'extension modules.  Please try manually running '
+                    '`./setup.py develop` or `./setup.py build_ext '
+                    '--inplace` to see what the issue was.  Extension '
+                    'modules must be successfully compiled and importable '
+                    'in order to import astropy.')
         else:
             # Outright broken installation; don't be nice.
             raise
@@ -252,6 +269,36 @@ def _initialize_astropy():
         wmsg = (e.args[0] + " Cannot install default profile. If you are "
                 "importing from source, this is expected.")
         warn(config.configuration.ConfigurationDefaultMissingWarning(wmsg))
+
+
+def _rebuild_extensions():
+    import os
+    import subprocess
+    import sys
+    import time
+
+    from .utils.console import Spinner
+    from .extern.six import next
+
+    devnull = open(os.devnull, 'w')
+    old_cwd = os.getcwd()
+    os.chdir(os.path.join(os.path.dirname(__file__), os.pardir))
+    try:
+        sp = subprocess.Popen([sys.executable, 'setup.py', 'build_ext',
+                               '--inplace'], stdout=devnull,
+                               stderr=devnull)
+        with Spinner('Rebuilding extension modules') as spinner:
+            while sp.poll() is None:
+                next(spinner)
+                time.sleep(0.05)
+    finally:
+        os.chdir(old_cwd)
+
+    if sp.returncode != 0:
+        raise OSError('Running setup.py build_ext --inplace failed '
+                      'with error code {0}: try rerunning this command '
+                      'manually to check what the error was.'.format(
+                          sp.returncode))
 
 
 import logging

@@ -20,7 +20,7 @@ from ..extern import six
 
 __all__ = sorted([
     'AiryDisk2D', 'Beta1D', 'Beta2D', 'Box1D',
-    'Box2D', 'Const1D', 'Const2D', 'Disk2D',
+    'Box2D', 'Const1D', 'Const2D', 'Ellipse2D', 'Disk2D',
     'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D',
     'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Redshift', 'Shift',
     'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D',
@@ -95,10 +95,6 @@ class Gaussian1D(Fittable1DModel):
     mean = Parameter()
     stddev = Parameter()
 
-    def __init__(self, amplitude, mean, stddev, **kwargs):
-        super(Gaussian1D, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
         """
@@ -146,10 +142,6 @@ class GaussianAbsorption1D(Fittable1DModel):
     amplitude = Parameter()
     mean = Parameter()
     stddev = Parameter()
-
-    def __init__(self, amplitude, mean, stddev, **kwargs):
-        super(GaussianAbsorption1D, self).__init__(
-            amplitude=amplitude, mean=mean, stddev=stddev, **kwargs)
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
@@ -250,10 +242,10 @@ class Gaussian2D(Fittable2DModel):
     y_mean = Parameter()
     x_stddev = Parameter()
     y_stddev = Parameter()
-    theta = Parameter()
+    theta = Parameter(default=0.0)
 
     def __init__(self, amplitude, x_mean, y_mean, x_stddev=None, y_stddev=None,
-                 theta=0.0, cov_matrix=None, **kwargs):
+                 theta=theta.default, cov_matrix=None, **kwargs):
         if y_stddev is None and cov_matrix is None:
             raise InputParameterError(
                 "Either x/y_stddev must be specified, or a "
@@ -358,10 +350,10 @@ class Shift(Model):
         column in the input coordinate array
     """
 
-    offsets = Parameter()
+    inputs = ('x',)
+    outputs = ('x',)
 
-    def __init__(self, offsets, **kwargs):
-        super(Shift, self).__init__(offsets, **kwargs)
+    offsets = Parameter()
 
     @property
     def inverse(self):
@@ -384,11 +376,11 @@ class Scale(Model):
         scale for a coordinate
     """
 
+    inputs = ('x',)
+    outputs = ('x',)
+
     factors = Parameter()
     linear = True
-
-    def __init__(self, factors, **kwargs):
-        super(Scale, self).__init__(factors, **kwargs)
 
     @property
     def inverse(self):
@@ -417,10 +409,8 @@ class Redshift(Fittable1DModel):
         .. math:: \\lambda_{obs} = (1 + z) \\lambda_{rest}
 
     """
-    z = Parameter(description='redshift')
 
-    def __init__(self, z, **kwargs):
-        super(Redshift, self).__init__(z=z, **kwargs)
+    z = Parameter(description='redshift')
 
     @staticmethod
     def evaluate(x, z):
@@ -469,10 +459,6 @@ class Sine1D(Fittable1DModel):
     amplitude = Parameter()
     frequency = Parameter()
 
-    def __init__(self, amplitude, frequency, **kwargs):
-        super(Sine1D, self).__init__(
-            amplitude=amplitude, frequency=frequency, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, frequency):
         """One dimensional Sine model function"""
@@ -515,10 +501,6 @@ class Linear1D(Fittable1DModel):
     slope = Parameter()
     intercept = Parameter()
     linear = True
-
-    def __init__(self, slope, intercept, **kwargs):
-        super(Linear1D, self).__init__(
-            slope=slope, intercept=intercept, **kwargs)
 
     @staticmethod
     def evaluate(x, slope, intercept):
@@ -565,10 +547,6 @@ class Lorentz1D(Fittable1DModel):
     x_0 = Parameter()
     fwhm = Parameter()
 
-    def __init__(self, amplitude, x_0, fwhm, **kwargs):
-        super(Lorentz1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, fwhm=fwhm, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, fwhm):
         """One dimensional Lorentzian model function"""
@@ -609,9 +587,6 @@ class Const1D(Fittable1DModel):
 
     amplitude = Parameter()
     linear = True
-
-    def __init__(self, amplitude, **kwargs):
-        super(Const1D, self).__init__(amplitude=amplitude, **kwargs)
 
     @staticmethod
     def evaluate(x, amplitude):
@@ -659,9 +634,6 @@ class Const2D(Fittable2DModel):
     amplitude = Parameter()
     linear = True
 
-    def __init__(self, amplitude, **kwargs):
-        super(Const2D, self).__init__(amplitude=amplitude, **kwargs)
-
     @staticmethod
     def evaluate(x, y, amplitude):
         """Two dimensional Constant model function"""
@@ -676,6 +648,97 @@ class Const2D(Fittable2DModel):
             x = amplitude * np.ones_like(x)
 
         return x
+
+
+class Ellipse2D(Fittable2DModel):
+    """
+    A 2D Ellipse model.
+
+    Parameters
+    ----------
+    amplitude : float
+        Value of the ellipse.
+
+    x_0 : float
+        x position of the center of the disk.
+
+    y_0 : float
+        y position of the center of the disk.
+
+    a : float
+        The length of the semimajor axis.
+
+    b : float
+        The length of the semiminor axis.
+
+    theta : float, optional
+        The rotation angle in radians of the semimajor axis.  The
+        rotation angle increases counterclockwise from the positive x
+        axis.
+
+    See Also
+    --------
+    Disk2D, Box2D
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        f(x, y) = \\left \\{
+                    \\begin{array}{ll}
+                      \\mathrm{amplitude} & : \\left[\\frac{(x - x_0) \\cos
+                        \\theta + (y - y_0) \\sin \\theta}{a}\\right]^2 +
+                        \\left[\\frac{-(x - x_0) \\sin \\theta + (y - y_0)
+                        \\cos \\theta}{b}\\right]^2  \\leq 1 \\\\
+                      0 & : \\mathrm{otherwise}
+                    \\end{array}
+                  \\right.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy.modeling.models import Ellipse2D
+        from astropy.coordinates import Angle
+        import matplotlib.pyplot as plt
+        import matplotlib.patches as mpatches
+        x0, y0 = 25, 25
+        a, b = 20, 10
+        theta = Angle(30, 'deg')
+        e = Ellipse2D(amplitude=100., x_0=x0, y_0=y0, a=a, b=b,
+                      theta=theta.radian)
+        y, x = np.mgrid[0:50, 0:50]
+        fig, ax = plt.subplots(1, 1)
+        ax.imshow(e(x, y), origin='lower', cmap='Greys_r')
+        e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, theta.degree,
+                              edgecolor='red', facecolor='none')
+        ax.add_patch(e2)
+        plt.show()
+    """
+
+    amplitude = Parameter()
+    x_0 = Parameter()
+    y_0 = Parameter()
+    a = Parameter()
+    b = Parameter()
+    theta = Parameter()
+
+    @staticmethod
+    def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
+        """Two dimensional Ellipse model function."""
+
+        xx = x - x_0
+        yy = y - y_0
+        cost = np.cos(theta)
+        sint = np.sin(theta)
+        numerator1 = (xx * cost) + (yy * sint)
+        numerator2 = -(xx * sint) + (yy * cost)
+        in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) < 1.)
+        return np.select([in_ellipse], [amplitude])
 
 
 class Disk2D(Fittable2DModel):
@@ -715,10 +778,6 @@ class Disk2D(Fittable2DModel):
     x_0 = Parameter()
     y_0 = Parameter()
     R_0 = Parameter()
-
-    def __init__(self, amplitude, x_0, y_0, R_0, **kwargs):
-        super(Disk2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, R_0=R_0, **kwargs)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0):
@@ -843,10 +902,6 @@ class Box1D(Fittable1DModel):
     x_0 = Parameter()
     width = Parameter()
 
-    def __init__(self, amplitude, x_0, width, **kwargs):
-        super(Box1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, width=width, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, width):
         """One dimensional Box model function"""
@@ -908,11 +963,6 @@ class Box2D(Fittable2DModel):
     x_width = Parameter()
     y_width = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, x_width, y_width, **kwargs):
-        super(Box2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, x_width=x_width,
-            y_width=y_width, **kwargs)
-
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):
         """Two dimensional Box model function"""
@@ -948,10 +998,6 @@ class Trapezoid1D(Fittable1DModel):
     x_0 = Parameter()
     width = Parameter()
     slope = Parameter()
-
-    def __init__(self, amplitude, x_0, width, slope, **kwargs):
-        super(Trapezoid1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, width=width, slope=slope, **kwargs)
 
     @staticmethod
     def evaluate(x, amplitude, x_0, width, slope):
@@ -1002,11 +1048,6 @@ class TrapezoidDisk2D(Fittable2DModel):
     R_0 = Parameter()
     slope = Parameter()
 
-    def __init__(self, amplitude, x_0, y_0, R_0, slope, **kwargs):
-        super(TrapezoidDisk2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, R_0=R_0, slope=slope,
-            **kwargs)
-
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
         """Two dimensional Trapezoid Disk model function"""
@@ -1051,10 +1092,6 @@ class MexicanHat1D(Fittable1DModel):
     x_0 = Parameter()
     sigma = Parameter()
 
-    def __init__(self, amplitude, x_0, sigma, **kwargs):
-        super(MexicanHat1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, sigma=sigma, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, sigma):
         """One dimensional Mexican Hat model function"""
@@ -1098,10 +1135,6 @@ class MexicanHat2D(Fittable2DModel):
     x_0 = Parameter()
     y_0 = Parameter()
     sigma = Parameter()
-
-    def __init__(self, amplitude, x_0, y_0, sigma, **kwargs):
-        super(MexicanHat2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, sigma=sigma, **kwargs)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, sigma):
@@ -1233,10 +1266,6 @@ class Beta1D(Fittable1DModel):
     gamma = Parameter()
     alpha = Parameter()
 
-    def __init__(self, amplitude, x_0, gamma, alpha, **kwargs):
-        super(Beta1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, gamma=gamma, alpha=alpha, **kwargs)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, gamma, alpha):
         """One dimensional Beta model function"""
@@ -1292,11 +1321,6 @@ class Beta2D(Fittable2DModel):
     y_0 = Parameter()
     gamma = Parameter()
     alpha = Parameter()
-
-    def __init__(self, amplitude, x_0, y_0, gamma, alpha, **kwargs):
-        super(Beta2D, self).__init__(
-            amplitude=amplitude, x_0=x_0, y_0=y_0, gamma=gamma, alpha=alpha,
-            **kwargs)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):

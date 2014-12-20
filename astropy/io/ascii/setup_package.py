@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license
+from __future__ import absolute_import
 
 import os
 from distutils.extension import Extension
@@ -75,6 +76,7 @@ def get_package_data():
                                    't/whitespace.dat',
                                    't/simple_csv.csv',
                                    't/simple_csv_missing.csv',
+                                   't/fixed_width_2_line.txt',
                                    ]
     }
 

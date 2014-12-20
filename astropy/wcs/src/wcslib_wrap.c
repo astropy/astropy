@@ -1457,7 +1457,7 @@ PyWcsprm_s2p(
   /* unoffset_array(world, origin); */
   unoffset_array(pixcrd, origin);
   unoffset_array(imgcrd, origin);
-  if (status == 8) {
+  if (status == 9) {
     set_invalid_to_nan(
         ncoord, 1, (double*)PyArray_DATA(phi), (int*)PyArray_DATA(stat));
     set_invalid_to_nan(
@@ -3436,6 +3436,9 @@ PyTypeObject PyWcsprmType = {
 
 #define CONSTANT(a) PyModule_AddIntConstant(m, #a, a)
 
+#define XSTRINGIFY(s) STRINGIFY(s)
+#define STRINGIFY(s) #s
+
 int
 _setup_wcsprm_type(
     PyObject* m) {
@@ -3448,6 +3451,10 @@ _setup_wcsprm_type(
 
   wcsprintf_set(NULL);
   wcserr_enable(1);
+
+  if (PyModule_AddStringConstant(m, "__version__", XSTRINGIFY(WCSLIB_VERSION))) {
+      return -1;
+  }
 
   return (
     PyModule_AddObject(m, "Wcsprm", (PyObject *)&PyWcsprmType) ||

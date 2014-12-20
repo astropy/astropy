@@ -34,8 +34,8 @@ def test_Model():
     assert repr(m) == "<NonFittableModel(a=42.0)>"
     assert (str(m) ==
         "Model: NonFittableModel\n"
-        "Inputs: 1\n"
-        "Outputs: 1\n"
+        "Inputs: 0\n"
+        "Outputs: 0\n"
         "Model set size: 1\n"
         "Parameters:\n"
         "     a  \n"
@@ -78,36 +78,36 @@ def test_custom_model_signature():
     def model_a(x):
         return x
 
-    assert model_a.param_names == []
+    assert model_a.param_names == ()
     assert model_a.n_inputs == 1
     argspec = inspect.getargspec(model_a.__init__)
     assert argspec.args == ['self']
     argspec = inspect.getargspec(model_a.__call__)
-    assert argspec.args == ['self', 'x']
+    assert argspec.args == ['self', 'x', 'model_set_axis']
 
     @custom_model
     def model_b(x, a=1, b=2):
         return x + a + b
 
-    assert model_b.param_names == ['a', 'b']
+    assert model_b.param_names == ('a', 'b')
     assert model_b.n_inputs == 1
     argspec = inspect.getargspec(model_b.__init__)
     assert argspec.args == ['self', 'a', 'b']
     assert argspec.defaults == (1, 2)
     argspec = inspect.getargspec(model_b.__call__)
-    assert argspec.args == ['self', 'x']
+    assert argspec.args == ['self', 'x', 'model_set_axis']
 
     @custom_model
     def model_c(x, y, a=1, b=2):
         return x + y + a + b
 
-    assert model_c.param_names == ['a', 'b']
+    assert model_c.param_names == ('a', 'b')
     assert model_c.n_inputs == 2
     argspec = inspect.getargspec(model_c.__init__)
     assert argspec.args == ['self', 'a', 'b']
     assert argspec.defaults == (1, 2)
     argspec = inspect.getargspec(model_c.__call__)
-    assert argspec.args == ['self', 'x', 'y']
+    assert argspec.args == ['self', 'x', 'y', 'model_set_axis']
 
 
 def test_custom_model_subclass():
@@ -124,14 +124,14 @@ def test_custom_model_subclass():
             return -super(model_b, cls).evaluate(x, a)
 
     b = model_b()
-    assert b.param_names == ['a']
+    assert b.param_names == ('a',)
     assert b.a == 1
     assert b(1) == -1
 
     argspec = inspect.getargspec(model_b.__init__)
     assert argspec.args == ['self', 'a']
     argspec = inspect.getargspec(model_b.__call__)
-    assert argspec.args == ['self', 'x']
+    assert argspec.args == ['self', 'x', 'model_set_axis']
 
 
 def test_custom_model_parametrized_decorator():

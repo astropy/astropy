@@ -6,12 +6,16 @@ Transforming Between Systems
 ----------------------------
 
 `astropy.coordinates` supports a rich system for transforming
-coordinates from one system to another.  While common astronomy frames
+coordinates from one frame to another.  While common astronomy frames
 are  built into Astropy, the transformation infrastructure is dynamic.
 This means it allows users to define new coordinate frames and their
 transformations.  The topic of writing your own coordinate frame or
 transforms is detailed in :ref:`astropy-coordinates-design`, and this
 section is focused on how to *use* transformations.
+
+The full list of built-in coordinate frames, the included transformations,
+and the frame names are shown as a (clickable) graph in the `~astropy.coordinates` API
+documentation.
 
 The simplest method of transformation is shown below::
 
@@ -19,7 +23,7 @@ The simplest method of transformation is shown below::
     >>> from astropy.coordinates import SkyCoord
     >>> gc = SkyCoord(l=0*u.degree, b=45*u.degree, frame='galactic')
     >>> gc.fk5  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5: equinox=J2000.000): ra=229.27250215 deg, dec=-1.12841764184 deg>
+    <SkyCoord (FK5: equinox=J2000.000): ra=229.272514629 deg, dec=-1.12844288043 deg>
 
 While this appears to be simple attribute-style access, it is actually
 syntactic sugar for the more general
@@ -28,11 +32,11 @@ accept either a frame name, class or instance::
 
     >>> from astropy.coordinates import FK5
     >>> gc.transform_to('fk5')  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5: equinox=J2000.000): ra=229.27250215 deg, dec=-1.12841764184 deg>
+    <SkyCoord (FK5: equinox=J2000.000): ra=229.272514629 deg, dec=-1.12844288043 deg>
     >>> gc.transform_to(FK5)  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5: equinox=J2000.000): ra=229.27250215 deg, dec=-1.12841764184 deg>
+    <SkyCoord (FK5: equinox=J2000.000): ra=229.272514629 deg, dec=-1.12844288043 deg>
     >>> gc.transform_to(FK5(equinox='J1980.0'))  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5: equinox=J1980.000): ra=229.014681064 deg, dec=-1.05557823687 deg>
+    <SkyCoord (FK5: equinox=J1980.000): ra=229.014693505 deg, dec=-1.05560349378 deg>
 
 As a convenience it is also possible to use a |SkyCoord| object as the frame in
 :meth:`~astropy.coordinates.SkyCoord.transform_to`.  This allows easily putting one
@@ -40,30 +44,16 @@ coordinate object into the frame of another::
 
     >>> sc = SkyCoord(ra=1.0, dec=2.0, unit='deg', frame=FK5, equinox='J1980.0')
     >>> gc.transform_to(sc)  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5: equinox=J1980.000): ra=229.014681064 deg, dec=-1.05557823687 deg>
+    <SkyCoord (FK5: equinox=J1980.000): ra=229.014693505 deg, dec=-1.05560349378 deg>
 
-The table below summarizes the built-in coordinate frames.  For details of
-these frames and the transformations between them see the `astropy.coordinates`
-API documentation and the `~astropy.coordinates.BaseCoordinateFrame` class
-which forms the basis for all `astropy.coordinates` coordinate frames.
-
-================================== ================
- Frame class                        Frame name
-================================== ================
-`~astropy.coordinates.ICRS`         ``icrs``
-`~astropy.coordinates.FK5`          ``fk5``
-`~astropy.coordinates.FK4`          ``fk4``
-`~astropy.coordinates.FK4NoETerms`  ``fk4noeterms``
-`~astropy.coordinates.Galactic`     ``galactic``
-================================== ================
 
 Additionally, some coordinate frames (including `~astropy.coordinates.FK5`,
 `~astropy.coordinates.FK4`, and `~astropy.coordinates.FK4NoETerms`) support
 "self transformations", meaning the *type* of frame doesn't change, but the
 frame attributes do.  Any example is precessing a coordinate from one equinox
-to another in an equatorial system. This is done by passing ``transform_to`` a
+to another in an equatorial frame. This is done by passing ``transform_to`` a
 frame class with the relevant attributes, as shown below. Note that these
-systems use a default equinox if you don't specify one::
+frames use a default equinox if you don't specify one::
 
     >>> fk5c = FK5('02h31m49.09s', '+89d15m50.8s')
     >>> fk5c.equinox

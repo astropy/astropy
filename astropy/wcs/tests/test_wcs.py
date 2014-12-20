@@ -6,9 +6,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from ...extern import six
 
+import io
 import os
-import sys
 import warnings
+from datetime import datetime
 
 import numpy as np
 from numpy.testing import (
@@ -19,14 +20,8 @@ from ... import wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...io import fits
 
-try:
-    import scipy  # pylint: disable=W0611
-except ImportError:
-    HAS_SCIPY = False
-else:
-    HAS_SCIPY = True
 
 # test_maps() is a generator
 def test_maps():
@@ -90,10 +85,8 @@ def test_spectra():
         header = get_pkg_data_contents(
             os.path.join("spectra", filename), encoding='binary')
 
-        wcsobj = wcs.WCS(header)
-
-        all = wcs.find_all_wcs(header)
-        assert len(all) == 9
+        all_wcs = wcs.find_all_wcs(header)
+        assert len(all_wcs) == 9
 
     # get the list of the hdr files that we want to test
     hdr_file_list = list(get_pkg_data_filenames("spectra", "*.hdr"))
@@ -201,8 +194,8 @@ def test_pix2world():
 
 
 def test_load_fits_path():
-    fits = get_pkg_data_filename('data/sip.fits')
-    w = wcs.WCS(fits)
+    fits_name = get_pkg_data_filename('data/sip.fits')
+    w = wcs.WCS(fits_name)
 
 
 def test_dict_init():
@@ -324,10 +317,12 @@ def test_invalid_shape():
     xy = np.random.random((2, 3))
     with pytest.raises(ValueError) as exc:
         xy2 = w.wcs_pix2world(xy, 1)
+    assert exc.value.args[0] == 'When providing two arguments, the array must be of shape (N, 2)'
 
     xy = np.random.random((2, 1))
     with pytest.raises(ValueError) as exc:
         xy2 = w.wcs_pix2world(xy, 1)
+    assert exc.value.args[0] == 'When providing two arguments, the array must be of shape (N, 2)'
 
 
 def test_warning_about_defunct_keywords():
@@ -366,7 +361,11 @@ def test_to_header_string():
 
 def test_to_fits():
     w = wcs.WCS()
-    w.to_fits()
+    header_string = w.to_header()
+    wfits = w.to_fits()
+    assert isinstance(wfits, fits.HDUList)
+    assert isinstance(wfits[0], fits.PrimaryHDU)
+    assert header_string == wfits[0].header[-8:]
 
 
 @raises(wcs.InvalidTransformError)
@@ -400,20 +399,16 @@ def test_validate_with_2_wcses():
 
 def test_all_world2pix(fname=None, ext=0,
                        tolerance=1.0e-4, origin=0,
-                       random_npts=250000, mag=2,
+                       random_npts=25000,
                        adaptive=False, maxiter=20,
                        detect_divergence=True):
     """Test all_world2pix, iterative inverse of all_pix2world"""
-    from numpy import random
-    from datetime import datetime
-    from astropy.io import fits
-    from os import path
 
     # Open test FITS file:
     if fname is None:
         fname = get_pkg_data_filename('data/j94f05bgq_flt.fits')
         ext = ('SCI',1)
-    if not path.isfile(fname):
+    if not os.path.isfile(fname):
         raise IOError("Input file '{:s}' to 'test_all_world2pix' not found."
                       .format(fname))
     h = fits.open(fname)
@@ -424,24 +419,22 @@ def test_all_world2pix(fname=None, ext=0,
     crpix = w.wcs.crpix
     ncoord = crpix.shape[0]
 
-    # Assume that CRPIX is at the center of the image and that the image
-    # has an even number of pixels along each axis:
-    naxesi = list(2*crpix.astype(np.int) - origin)
+    # Assume that CRPIX is at the center of the image and that the image has
+    # a power-of-2 number of pixels along each axis. Only use the central
+    # 1/64 for this testing purpose:
+    naxesi_l = list((7./16*crpix).astype(np.int))
+    naxesi_u = list((9./16*crpix).astype(np.int))
 
     # Generate integer indices of pixels (image grid):
     img_pix = np.dstack([i.flatten() for i in
-                         np.meshgrid(*map(range, naxesi))])[0]
+                         np.meshgrid(*map(range, naxesi_l, naxesi_u))])[0]
 
     # Generage random data (in image coordinates):
-    startstate = random.get_state()
-    random.seed(123456789)
-    rnd_pix = np.random.rand(random_npts, ncoord)
-    random.set_state(startstate)
+    with NumpyRNGContext(123456789):
+        rnd_pix = np.random.rand(random_npts, ncoord)
 
-    # Scale random data to cover the entire image (or more, if 'mag' > 1).
-    # Assume that CRPIX is at the center of the image and that the image
-    # has an even number of pixels along each axis:
-    mwidth = 2 * mag * (crpix-origin)
+    # Scale random data to cover the central part of the image
+    mwidth = 2 * (crpix * 1./8)
     rnd_pix = crpix - 0.5*mwidth + (mwidth-1) * rnd_pix
 
     # Reference pixel coordinates in image coordinate system (CS):
@@ -561,7 +554,6 @@ def test_validate_faulty_wcs():
     """
     From github issue #2053
     """
-    from ...io import fits
     h = fits.Header()
     # Illegal WCS:
     h['RADESYSA'] = 'ICRS'
@@ -657,6 +649,7 @@ def test_sip():
     assert_allclose(200, x1, 1e-3)
     assert_allclose(200, y1, 1e-3)
 
+
 def test_printwcs():
     """
     Just make sure that it runs
@@ -669,12 +662,53 @@ def test_printwcs():
     w.printwcs()
 
 
-def test_has_distorion():
+def test_invalid_spherical():
+    header = six.text_type("""
+SIMPLE  =                    T / conforms to FITS standard
+BITPIX  =                    8 / array data type
+WCSAXES =                    2 / no comment
+CTYPE1  = 'RA---TAN' / TAN (gnomic) projection
+CTYPE2  = 'DEC--TAN' / TAN (gnomic) projection
+EQUINOX =               2000.0 / Equatorial coordinates definition (yr)
+LONPOLE =                180.0 / no comment
+LATPOLE =                  0.0 / no comment
+CRVAL1  =        16.0531567459 / RA  of reference point
+CRVAL2  =        23.1148929108 / DEC of reference point
+CRPIX1  =                 2129 / X reference pixel
+CRPIX2  =                 1417 / Y reference pixel
+CUNIT1  = 'deg     ' / X pixel scale units
+CUNIT2  = 'deg     ' / Y pixel scale units
+CD1_1   =    -0.00912247310646 / Transformation matrix
+CD1_2   =    -0.00250608809647 / no comment
+CD2_1   =     0.00250608809647 / no comment
+CD2_2   =    -0.00912247310646 / no comment
+IMAGEW  =                 4256 / Image width,  in pixels.
+IMAGEH  =                 2832 / Image height, in pixels.
+""")
 
-    header = get_pkg_data_contents('maps/1904-66_TAN.hdr', encoding='binary')
-    w = wcs.WCS(header)
-    assert not w.has_distortion
+    f = io.StringIO(header)
+    header = fits.Header.fromtextfile(f)
 
-    header = get_pkg_data_filename('data/sip.fits')
     w = wcs.WCS(header)
-    assert w.has_distortion
+    x, y = w.wcs_world2pix(211, -26, 0)
+    assert np.isnan(x) and np.isnan(y)
+
+
+def test_no_iteration():
+
+    # Regression test for #3066
+
+    w = wcs.WCS(naxis=2)
+
+    with pytest.raises(TypeError) as exc:
+        iter(w)
+    assert exc.value.args[0] == "'WCS' object is not iterable"
+
+    class NewWCS(wcs.WCS):
+        pass
+
+    w = NewWCS(naxis=2)
+
+    with pytest.raises(TypeError) as exc:
+        iter(w)
+    assert exc.value.args[0] == "'NewWCS' object is not iterable"

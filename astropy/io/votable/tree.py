@@ -2894,7 +2894,8 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         if table.mask is None:
             new_table.array = ma.array(np.asarray(table))
         else:
-            new_table.array = ma.array(np.asarray(table), mask=table.mask)
+            new_table.array = ma.array(np.asarray(table),
+                                       mask=np.asarray(table.mask))
 
         return new_table
 

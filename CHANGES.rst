@@ -1,8 +1,18 @@
 1.0 (unreleased)
 ----------------
 
+General
+^^^^^^^
+
+astropy now requires a Numpy 1.6.0 or later.
+
 New Features
 ^^^^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+  - The ``astropy.analytic_functions`` was added to contain analytic functions
+    useful for astronomy [#3077].
 
 - ``astropy.config``
 
@@ -12,11 +22,32 @@ New Features
 
 - ``astropy.coordinates``
 
+  - ``astropy.coordinates`` now has a full stack of frames allowing
+    transformations from ICRS or other celestial systems down to Alt/Az
+    coordinates. [#3217]
+
+  - ``astropy.coordinates`` now has a ``get_sun`` function that gives
+    the coordinates  of the Sun at a specified time. [#3217]
+
   - ``SkyCoord`` now has ``to_pixel`` and ``from_pixel`` methods that convert
     between celestial coordinates as ``SkyCoord`` objects and pixel coordinates
     given an ``astropy.wcs.WCS`` object. [#3002]
 
+  - ``SkyCoord`` now has ``search_around_sky`` and ``search_around_3d``
+    convenience methods that allow searching for all coordinates within
+    a certain distance of another ``SkyCoord``. [#2953]
+
+  - ``SkyCoord`` can now accept a frame instance for the ``frame=`` keyword
+    argument. [#3063]
+
+  - ``SkyCoord`` now has a ``guess_from_table`` method that can be used to
+    quickly create ``SkyCoord`` objects from an ``astropy.table.Table``
+    object. [#2951]
+
+
 - ``astropy.cosmology``
+
+  - Add lookback_distance, which is c * lookback_time. [#3145]
 
   - Add baryonic matter density and dark matter only density parameters
     to cosmology objects [#2757].
@@ -24,6 +55,19 @@ New Features
   - Add a ``clone`` method to cosmology objects to allow copies
     of cosmological objects to be created with the specified variables
     modified [#2592].
+
+  - Increase default numerical precision of ``z_at_value`` following
+    the accurate by default, fast by explicit request model [#3074].
+
+  - Cosmology functions that take a single (redshift) input now
+    broadcast like numpy ufuncs.  So, passing an arbitrarily shaped
+    array of inputs will produce an output of the same shape. [#3178, #3194]
+
+- ``astropy.erfa``
+
+  - ``astropy.erfa`` was added as a new subpackage wrapping the functionality
+    of the ERFA library in python.  This is primarily of use for other astropy
+    subpackages, but the API may be made more public in the future. [#2992]
 
 - ``astropy.io.ascii``
 
@@ -37,7 +81,13 @@ New Features
     failure. Their behavior can be altered with the parameter ``fast_reader``
     in ``read`` and ``fast_writer`` in ``write``. [#2716]
 
+  - Make Latex/AASTex tables use unit attribute of Column for output. [#3064]
+
 - ``astropy.io.fits``
+
+  - The ``fitsdiff`` script ignore some things be default when comparing fits
+    files (e.g. empty header lines). This add as ``--exact`` option where
+    nothing is ignored. [#2782], finished in [#3110]
 
 - ``astropy.io.misc``
 
@@ -62,20 +112,54 @@ New Features
     provide sets of all loaded ``Model`` and ``Fitter`` classes (this is
     useful for building UIs for models and fitting). [#2725]
 
+  - A dict-like ``meta`` member was added to ``Model``. it is to be used to
+    store any optional information which is relevant to a project and is not
+    in the standard ``Model`` class. [#2189]
+
+  - Added ``Ellipse2D`` model. [#3124]
+
 - ``astropy.nddata``
 
+  - New array-related utility functions in ``astropy.nddata.utils`` for adding
+    and removing arrays from other arrays with different sizes/shapes. [#3201]
+
+  - Added a decorator ``support_nddata`` that can be used to write functions
+    that can either take separate arguments or NDData objects. [#2855]
+
 - ``astropy.stats``
+
+  - Added ``mad_std()`` function. [#3208]
+
+  - Added ``gaussian_fwhm_to_sigma`` and ``gaussian_sigma_to_fwhm``
+    constants. [#3208]
+
+  - New function ``sigma_clipped_stats`` which can be used to quickly get
+    common statistics for an array, using sigma clipping at the same time.
+    [#3201]
 
 - ``astropy.sphinx``
 
 - ``astropy.table``
 
+  - Changed the internal implementation of the ``Table`` class changed so that
+    it no longer uses numpy structured arrays as the core table data container.
+    [#2790, #3179]
+
   - Tables can now be written to an html file that includes interactive
     browsing capabilities. To write out to this format, use
     ``Table.write('filename.html', format='jsviewer')``. [#2875]
 
+  - A ``quantity`` property and ``to`` method were added to ``Table``
+    columns that allow the column values to be easily converted to
+    ``astropy.units.Quantity`` objects. [#2950]
+
+  - Add ``unique`` convenience method to table. [#3185]
+
 - ``astropy.time``
 
+  - ``Time`` can now handle arbitrary array dimensions, with operations
+    following standard numpy broadcasting rules. [#3138]
+  
 - ``astropy.units``
 
   - Support for VOUnit has been updated to be compliant with version
@@ -84,6 +168,12 @@ New Features
   - Added an ``insert`` method to insert values into a ``Quantity`` object.
     This is similar to the ``numpy.insert`` function. [#3049]
 
+  - When viewed in IPython, ``Quantity`` objects with array values now render
+    using LaTeX and scientific notation. [#2271]
+
+  - Added units.quantity_input decorator to validate quantity inputs to a 
+    function for unit compatibility. [#3072]
+
 - ``astropy.utils``
 
   - Added a new decorator ``astropy.utils.wraps`` which acts as a replacement
@@ -91,9 +181,29 @@ New Features
     that the decorated function also preserves the wrapped function's call
     signature. [#2849]
 
+  - ``astropy.utils.compat.numpy`` has been revised such that it can include
+    patched versions of routines from newer ``numpy`` versions.  The first
+    addition is a version of ``broadcast_arrays`` that can be used with
+    ``Quantity`` and other ``ndarray`` subclasses (using the ``subok=True``
+    flag). [#2327]
+
+- ``astropy.visualization``
+
+  - Created ``astropy.visualization`` module and added functionality relating
+    to image normalization (i.e. stretching and scaling) as well as a new
+    script ``fits2bitmap`` that can produce a bitmap image from a FITS file.
+    [#3201]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - ``wcslib`` has been upgraded to version 4.25.  This brings a
+    single new feature:
+
+    - ``equinox`` and ``radesys`` will now be given default values
+      conforming with the WCS specification if ``EQUINOXa`` and
+      ``RADESYSa``, respectively, are not present in the header.
 
   - The minimum required version of ``wcslib`` is now 4.24. [#2503]
 
@@ -109,10 +219,15 @@ New Features
     and ``non_celestial_pixel_scales`` utility functions for retrieving WCS
     pixel scale information [#2832]
 
-  - Added two functions ``pixel_to_skycoord`` and ``skycoord_to_pixel`` that
-    make it easy to convert between SkyCoord objects and pixel coordinates, as
-    well as a ``has_distortion`` property on the ``WCS`` class that indicates
-    whether any distortions are present. [#2885]
+  - Added two functions ``pixel_to_skycoord`` and
+    ``skycoord_to_pixel`` that make it easy to convert between
+    SkyCoord objects and pixel coordinates. [#2885]
+
+  - ``all_world2pix`` now uses a much more sophisticated and complete
+    algorithm to iteratively compute the inverse WCS transform. [#2816]
+
+  - Add ability to use ``WCS`` object to define projections in Matplotlib,
+    using the ``WCSAxes`` package. [#3183]
 
 API Changes
 ^^^^^^^^^^^
@@ -132,6 +247,16 @@ API Changes
   - The ``CartesianPoints`` class (deprecated in v0.4) has now been removed.
     [#2990]
 
+  - The previous ``astropy.coordinates.builtin_frames`` module is now a
+    subpackage.  Everything that was in the
+    ``astropy.coordinates.builtin_frames`` module is still accessible from the
+    new package, but the classes are now in separate modules.  This should have
+    no direct impact at the user level. [#3120]
+
+  - Support for passing a frame as a positional argument in the ``SkyCoord``
+    class has now been deprecated, except in the case where a frame with data
+    is passed as the sole positional argument. [#3152]
+
 - ``astropy.cosmology``
 
   - The functional interface to the cosmological routines as well as
@@ -144,6 +269,10 @@ API Changes
     ``parser``, which allows the user to specify which parser
     BeautifulSoup should use as a backend. [#2815]
 
+  - Add ``FixedWidthTwoLine`` reader to guessing. This will allows to read tables
+    that a copied from screen output like ``print my_table`` to be read
+    automatically. Discussed in #3025 and #3099 [#3109]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
@@ -154,10 +283,24 @@ API Changes
 
 - ``astropy.modeling``
 
+  - Model classes should now specify ``inputs`` and ``outputs`` class
+    attributes instead of the old ``n_inputs`` and ``n_outputs``.  These
+    should be tuples providing human-readable *labels* for all inputs and
+    outputs of the model.  The length of the tuple indicates the numbers
+    of inputs and outputs.  See "What's New in Astropy 1.0" for more
+    details. [#2835]
+
+  - It is no longer necessary to include ``__init__`` or ``__call__``
+    definitions in ``Model`` subclasses if all they do is wrap the
+    super-method in order to provide a nice call signature to the docs.
+    The ``inputs`` class attribute is now used to generate a nice call
+    signature, so these methods should only be overridden by ``Model``
+    subclasses in order to provide new functionality. [#2835]
+
   - The ``Model.inverse`` method has been changed to a *property*, so that
     now accessing ``model.inverse`` on a model returns a new model that
     implements that model's inverse, and *calling* ``model.inverse(...)``` on
-    some idependent variable computes the value of the inverse (similar to what
+    some independent variable computes the value of the inverse (similar to what
     the old ``Model.invert()`` method was meant to do).  [#3024]
 
   - The ``Model.invert()`` method has been removed entirely (it was never
@@ -178,6 +321,19 @@ API Changes
 
   - The ``Column.units`` property (deprecated in v0.3) has now been removed.
     [#2990]
+
+  - The ``Row.data`` and ``Table._data`` attributes have been deprecated
+    related to the change in Table implementation.  They are replaced by
+    ``Row.as_void()`` and ``Table.as_array()`` methods, respectively. [#2790]
+
+  - The ``Table.create_mask`` method has been removed.  This undocumented
+    method was a development orphan and would cause corruption of the
+    table if called. [#2790]
+
+  - The return type for integer item access to a Column (e.g. col[12] or
+    t['a'][12]) is now always a numpy scalar, numpy ``ndarray``, or numpy
+    ``MaskedArray``.  Previously if the column was multidimensional then a
+    Column object would be returned. [#3095]
 
 - ``astropy.time``
 
@@ -211,8 +367,12 @@ API Changes
     which should be preferred over referencing individual submodules of
     ``astropy.utils``.  [#2857]
 
-    - The ProgressBar.iterate class method (deprecated in v0.3) has now been
-      removed. [#2990]
+  - The ProgressBar.iterate class method (deprecated in v0.3) has now been
+    removed. [#2990]
+
+  - Updated ``astropy/utils/console.py`` ProgressBar() module to
+    display output to IPython notebook with the addition of an
+    ``interactive`` kwarg. [#2658] [#2789]
 
 - ``astropy.vo``
 
@@ -220,6 +380,10 @@ API Changes
 
   - The ``WCS.calcFootprint`` method (deprecated in v0.4) has now been removed.
     [#2990]
+
+  - An invalid unit in a ``CUNITn`` keyword now displays a warning and
+    returns a ``UnrecognizedUnit`` instance rather than raising an
+    exception [#3190]
 
 Bug Fixes
 ^^^^^^^^^
@@ -229,6 +393,8 @@ Bug Fixes
 - ``astropy.constants``
 
 - ``astropy.convolution``
+	
+  - ``astropy.convolution.discretize_model`` now handles arbitrary callables correctly [#2274].
 
 - ``astropy.coordinates``
 
@@ -238,7 +404,16 @@ Bug Fixes
 
 - ``astropy.io.ascii``
 
+  - In the ``CommentedHeader`` the ``data_start`` parameter now defaults to
+    ``0``, which is the first uncommented line. Discussed in #2692. [#3054]
+
+  - Position lines in ``FixedWidthTwoLine`` reader could consist of many characters.
+    Now, only one character in addition to the delimiter is allowed. This bug was
+    discovered as part of [#3109]
+
 - ``astropy.io.fits``
+
+  - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
 
 - ``astropy.io.misc``
 
@@ -287,9 +462,12 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Updated ``astropy.extern.configobj`` to Version 5. Version 5 uses ``six``
+  and the same code covers both Python 2 and Python 3. [#3149]
+
 - ``astropy.coordinates``
 
-  - The ``repr`` of ``SkyCoord`` and coordinate frame classes now seperate
+  - The ``repr`` of ``SkyCoord`` and coordinate frame classes now separate
     frame attributes and coordinate information.  [#2704, #2882]
 
 - ``astropy.io.fits``
@@ -310,6 +488,19 @@ Other Changes and Additions
 
 - The version of ERFA included with Astropy is now v1.1.1 [#2971]
 
+- The code base is now fully Python 2 and 3 compatible and no longer requires
+  2to3. [#2033]
+
+- `funcsigs <https://pypi.python.org/pypi/funcsigs>`_ is included in
+  utils.compat, but defaults to the inspect module components where available
+  (3.3+) [#3151].
+
+- The list of modules displayed in the pytest header can now be customized.
+  [#3157]
+
+- `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ is now required to build the
+  source code from the git repository, in order to allow the ERFA wrappers to
+  be generated. [#3166]
 
 0.4.3 (unreleased)
 ------------------
@@ -330,13 +521,39 @@ Bug Fixes
 
   - Ensure ``float32`` values can be used in coordinate representations. [#2983]
 
+  - Fix frame attribute inheritance in ``SkyCoord.transform_to()`` method so
+    that the default attribute value (e.g. equinox) for the destination frame
+    gets used if no corresponding value was explicitly specified. [#3106]
+
+  - ``Angle`` accepts hours:mins or deg:mins initializers (without
+     seconds). In these cases float minutes are also accepted.
+
+  - ``astropy.coordinates.SkyCoord`` objects are now copyable. [#2888]
+
+  - ``astropy.coordinates.SkyCoord`` object attributes are now
+    immutable.  It is still technically possible to change the
+    internal data for an array-valued coordinate object but this leads
+    to inconsistencies [#2889] and should not be done. [#2888]
+
 - ``astropy.cosmology``
 
   - The ``ztol`` keyword argument to z_at_value now works correctly [#2993].
 
 - ``astropy.io.ascii``
 
+  - Fix a bug in Python 3 when guessing file format using a file object as
+    input.  Also improve performance in same situation for Python 2. [#3132]
+
+  - Fix a problem where URL was being downloaded for each guess. [#2001]
+
 - ``astropy.io.fits``
+
+  - The ``in`` operator now works correctly for checking if an extension
+    is in an ``HDUList`` (as given via EXTNAME, (EXTNAME, EXTVER) tuples,
+    etc.) [#3060]
+
+  - Added workaround for bug in MacOS X <= 10.8 that caused np.fromfile to
+    fail. [#3078]
 
 - ``astropy.io.misc``
 
@@ -345,6 +562,8 @@ Bug Fixes
 - ``astropy.io.votable``
 
 - ``astropy.modeling``
+
+  - Fixed a test failure on Debian/PowerPC and Debian/s390x. [#2708]
 
 - ``astropy.nddata``
 
@@ -360,12 +579,42 @@ Bug Fixes
   - Fix a bug that prevented initializing a table from a structured array
     with multi-dimensional columns with copy=True. [#3034]
 
+  - Fixed unnecessarily large unicode columns when instantiating a table from
+    row data on Python 3. [#3052]
+
+  - Improved the warning message when unable to aggregate non-numeric
+    columns. [#2700]
+
 - ``astropy.time``
 
 - ``astropy.units``
 
   - Operations on quantities with incompatible types now raises a much
     more informative ``TypeError``. [#2934]
+
+  - ``Quantity.tolist`` now overrides the ``ndarray`` method to give a
+    ``NotImplementedError`` (by renaming the previous ``list`` method). [#3050]
+
+  - ``Quantity.round`` now always returns a ``Quantity`` (previously it
+    returned an ``ndarray`` for ``decimals>0``). [#3062]
+
+  - Ensured ``np.squeeze`` always returns a ``Quantity`` (it only worked if
+    no dimensions were removed). [#3045]
+
+  - Input to ``Quantity`` with a ``unit`` attribute no longer can get mangled
+    with ``copy=False``. [#3051]
+
+  - Remove trailing space in ``__format__`` calls for dimensionless quantities.
+    [#3097]
+
+  - Comparisons between units and non-unit-like objects now works
+    correctly. [#3108]
+
+  - Units with fractional powers are now correctly multiplied together
+    by using rational arithmetic.  [#3121]
+
+  - Removed a few entries from spectral density equivalencies which did not
+    make sense. [#3153]
 
 - ``astropy.utils``
 
@@ -374,15 +623,35 @@ Bug Fixes
 
 - ``astropy.vo``
 
+  - Fixed an issue with reconnecting to a SAMP Hub. [#2674]
+
 - ``astropy.wcs``
 
   - WCS allows slices of the form slice(None, x, y), which previously resulted
     in an unsliced copy being returned [#2909]
 
+  - Invalid or out of range values passed to ``wcs_world2pix`` will
+    now be correctly identified and returned as ``nan``
+    values. [#2965]
+
+  - Fixed an issue which meant that Python thought ``WCS`` objects were
+    iterable. [#3066]
+
+- Misc
+
+  - Astropy will now work if your Python interpreter does not have the
+    ``bz2`` module installed. [#3104]
+
+  - Fixed ``ResourceWarning`` for ``astropy/extern/bundled/six.py`` that could
+    occur sometimes after using Astropy in Python 3.4. [#3156]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- ``astropy.coordinates``
+
+  - Improved the agreement of the FK5 <-> Galactic conversion with other
+    codes, and with the FK5 <-> FK4 <-> Galactic route. [#3107]
 
 
 0.4.2 (2014-09-23)
@@ -396,7 +665,7 @@ Bug Fixes
   - ``Angle`` accepts hours:mins or deg:mins initializers (without
      seconds). In these cases float minutes are also accepted.
 
-  - The ``repr`` for coordinate frames now displayes the frame attributes
+  - The ``repr`` for coordinate frames now displays the frame attributes
     (ex: ra, dec) in a consistent order.  It should be noted that as part of
     this fix, the ``BaseCoordinateFrame.get_frame_attr_names()`` method now
     returns an ``OrderedDict`` instead of just a ``dict``. [#2845]
@@ -408,7 +677,7 @@ Bug Fixes
     [#2710]
 
   - Fixed a crash when reading data from an HDU whose header contained in
-    invalid value for the BLANK keyword (eg. a string value instead of an
+    invalid value for the BLANK keyword (e.g., a string value instead of an
     integer as required by the FITS Standard). Invalid BLANK keywords are now
     warned about, but are otherwise ignored. [#2711]
 
@@ -481,7 +750,6 @@ Other Changes and Additions
 
 - Ensure numpy master is supported, by making ``np.cbrt`` work with quantities.
   [#2937]
-
 
 0.4.1 (2014-08-08)
 ------------------
@@ -1354,7 +1622,7 @@ Bug Fixes
   - Allow pickling of ``FITS_rec`` objects. [#1597]
 
   - Improved behavior when writing large compressed images on OSX by removing
-    an unncessary check for platform architecture. [#2345]
+    an unnecessary check for platform architecture. [#2345]
 
   - Fixed an issue where Astropy ``Table`` objects containing boolean columns
     were not correctly written out to FITS files. [#1953]
@@ -2370,7 +2638,7 @@ Other Changes and Additions
 
 - ``astropy.coordinates``
 
-  - Angles containing out of bounds minutes or seconds (eg. 60) can be
+  - Angles containing out of bounds minutes or seconds (e.g. 60) can be
     parsed--the value modulo 60 is used with carry to the hours/minutes, and a
     warning is issued rather than raising an exception. [#990]
 
@@ -3104,7 +3372,7 @@ see the "What's New" section of the documentation for more details.
 
 - ``astropy.wcs``
 
-  - From updating the the underlying wcslib 4.16:
+  - From updating the underlying wcslib 4.16:
 
     - When ``astropy.wcs.WCS`` constructs a default coordinate representation
       it will give it the special name "DEFAULTS", and will not report "Found

@@ -193,7 +193,7 @@ A important point is that the cosmological parameters of each
 instance are immutable -- that is, if you want to change, say,
 ``Om``, you need to make a new instance of the class.  To make
 this more convenient, a ``clone`` operation is provided, which
-allows you to make a copy with specified values changed.  
+allows you to make a copy with specified values changed.
 Note that you can't change the type of cosmology with this operation
 (e.g., flat to non-flat). For example:
 
@@ -291,7 +291,7 @@ Photons and Neutrinos
 ---------------------
 The cosmology classes include the contribution to the energy density
 from both photons and neutrinos.  By default, the latter are assumed
-massless.  The three parameters controlling the proporties of these
+massless.  The three parameters controlling the properties of these
 species, which are arguments to the initializers of all the
 cosmological classes, are ``Tcmb0`` (the temperature of the CMB at z=0),
 ``Neff``, the effective number of neutrino species, and ``m_nu``, the rest

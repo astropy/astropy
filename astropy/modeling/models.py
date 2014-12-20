@@ -52,7 +52,8 @@ CONSTRAINTS_DOC = """
 
 MODELS_WITH_CONSTRAINTS = [
     AiryDisk2D, Beta1D, Beta2D, Box1D, Box2D,
-    Const1D, Const2D, Disk2D, Gaussian1D, GaussianAbsorption1D, Gaussian2D,
+    Const1D, Const2D, Ellipse2D, Disk2D,
+    Gaussian1D, GaussianAbsorption1D, Gaussian2D,
     Linear1D, Lorentz1D, MexicanHat1D, MexicanHat2D,
     PowerLaw1D, Sine1D, Trapezoid1D, TrapezoidDisk2D,
     Chebyshev1D, Chebyshev2D, Legendre2D, Legendre1D,

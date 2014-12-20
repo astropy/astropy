@@ -110,3 +110,18 @@ will work on either |skycoord| objects *or* the lower-level frame classes::
     >>> idx, d2d, d3d = match_coordinates_sky(c, catalog)  # doctest: +SKIP
     >>> idx, d2d, d3d = match_coordinates_sky(c.frame, catalog.frame)  # doctest: +SKIP
 
+Closely-related functionality can be used to search for *all* coordinates within
+a certain distance (either 3D distance or on-sky) of another set of coordinates.
+The ``search_around_*`` methods (and functions) provide this functionality,
+with an interface very similar to ``match_coordinates_*``::
+
+   >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_sky(c, 1*u.deg)  # doctest: +SKIP
+   >>> np.all(d2d < 1*u.deg)  # doctest: +SKIP
+   True
+   >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_3d(c, 1*u.kpc)  # doctest: +SKIP
+   >>> np.all(d2d < 1*u.kpc)  # doctest: +SKIP
+   True
+
+The key difference for these methods is that there can be multiple (or no)
+matches in ``catalog`` around any locations in ``c``.  Hence, indecies into both
+``c`` and ``catalog`` are returned instead of just indecies into ``catalog``.

@@ -33,11 +33,11 @@ equivalent::
     >>> from astropy.coordinates import SkyCoord
 
     >>> c = SkyCoord(ra=10.625*u.degree, dec=41.2*u.degree, frame='icrs')
-    >>> c = SkyCoord(10.625, 41.2, 'icrs', unit='deg')
-    >>> c = SkyCoord('00h42m30s', '+41d12m00s', 'icrs')
-    >>> c = SkyCoord('00h42.5m', '+41d12m', 'icrs')
-    >>> c = SkyCoord('00 42 30 +41 12 00', 'icrs', unit=(u.hourangle, u.deg))
-    >>> c = SkyCoord('00:42.5 +41:12', 'icrs', unit=(u.hourangle, u.deg))
+    >>> c = SkyCoord(10.625, 41.2, frame='icrs', unit='deg')
+    >>> c = SkyCoord('00h42m30s', '+41d12m00s', frame='icrs')
+    >>> c = SkyCoord('00h42.5m', '+41d12m', frame='icrs')
+    >>> c = SkyCoord('00 42 30 +41 12 00', frame='icrs', unit=(u.hourangle, u.deg))
+    >>> c = SkyCoord('00:42.5 +41:12', frame='icrs', unit=(u.hourangle, u.deg))
     >>> c
     <SkyCoord (ICRS): ra=10.625 deg, dec=41.2 deg>
 
@@ -111,7 +111,7 @@ which accepts a frame name, frame class, or frame instance::
 
     >>> from astropy.coordinates import FK5
     >>> c_icrs.galactic  # doctest: +FLOAT_CMP
-    <SkyCoord (Galactic): l=121.174302631 deg, b=-21.5728000618 deg>
+    <SkyCoord (Galactic): l=121.174241811 deg, b=-21.5728855724 deg>
     >>> c_fk5 = c_icrs.transform_to('fk5')  # c_icrs.fk5 does the same thing
     >>> c_fk5  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J2000.000): ra=10.6845915393 deg, dec=41.2691714591 deg>
@@ -226,7 +226,7 @@ This background information is not necessary for simply using
 `~astropy.coordinates`, particularly if you use the |skycoord| high-
 level class, but it is helpful for more advanced usage, particularly
 creating your own frame, transformations, or representations. Another
-useful piece of background infromation are some
+useful piece of background information are some
 :ref:`astropy-coordinates-definitions` as they are used in
 `~astropy.coordinates`.
 
@@ -262,6 +262,7 @@ listed below.
    angles
    skycoord
    transforming
+   observing-example
    formatting
    matchsep
    representations
@@ -332,19 +333,24 @@ custom coordinates is available at :ref:`astropy-coordinates-overview`,
 and :ref:`astropy-coordinates-create-repr`.
 
 
+.. _astropy-coordinates-seealso:
+
 See Also
 ========
 
 Some references particularly useful in understanding subtleties of the
 coordinate systems implemented here include:
 
+* `USNO Circular 179 <http://aa.usno.navy.mil/publications/docs/Circular_179.php>`_
+    A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
+    related problems in precision coordinate system work.
 * `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_
     The definitive implementation of IAU-defined algorithms.  The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.
-* `USNO Circular 179 <http://aa.usno.navy.mil/publications/docs/Circular_179.php>`_
-    A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
-    related problems in precision coordinate system work.
+* `IERS Conventions (2010) <http://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html>`_
+    An exhaustive reference covering the ITRS, the IAU2000 celestial coordinates
+    framework, and other related details of modern coordinate conventions.
 * Meeus, J. "Astronomical Algorithms"
     A valuable text describing details of a wide range of coordinate-related
     problems and concepts.

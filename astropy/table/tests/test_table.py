@@ -5,10 +5,6 @@
 
 import copy
 import gc
-import platform
-import sys
-
-from distutils import version
 
 import numpy as np
 
@@ -94,7 +90,7 @@ class TestSetTableColumn(SetupData):
         assert t[0][1] == 5
 
     def test_set_row_fail_1(self, table_types):
-        """Set a row from an incorrectly-sized set of values"""
+        """Set a row from an incorrectly-sized or typed set of values"""
         self._setup(table_types)
         t = table_types.Table([self.a, self.b])
         with pytest.raises(ValueError):
@@ -511,6 +507,13 @@ class TestAddRow(SetupData):
             return self._c
 
     @property
+    def d(self):
+        if self._column_type is not None:
+            if not hasattr(self, '_d'):
+                self._d = self._column_type(name='d', data=[[1, 2], [3, 4], [5, 6]])
+            return self._d
+
+    @property
     def t(self):
         if self._table_type is not None:
             if not hasattr(self, '_t'):
@@ -519,39 +522,41 @@ class TestAddRow(SetupData):
 
     def test_add_none_to_empty_table(self, table_types):
         self._setup(table_types)
-        t = table_types.Table(names=('a', 'b', 'c'), dtype=('i', 'S4', 'O'))
+        t = table_types.Table(names=('a', 'b', 'c'), dtype=('(2,)i', 'S4', 'O'))
         t.add_row()
-        assert t['a'][0] == 0
+        assert np.all(t['a'][0] == [0, 0])
         assert t['b'][0] == b''
         assert t['c'][0] == 0
         t.add_row()
-        assert t['a'][1] == 0
+        assert np.all(t['a'][1] == [0, 0])
         assert t['b'][1] == b''
         assert t['c'][1] == 0
 
     def test_add_stuff_to_empty_table(self, table_types):
         self._setup(table_types)
-        t = table_types.Table(names=('a', 'b', 'obj'), dtype=('i', 'S8', 'O'))
-        t.add_row([1, 'hello', 'world'])
-        assert t['a'][0] == 1
+        t = table_types.Table(names=('a', 'b', 'obj'), dtype=('(2,)i', 'S8', 'O'))
+        t.add_row([[1, 2], 'hello', 'world'])
+        assert np.all(t['a'][0] == [1, 2])
         assert t['b'][0] == b'hello'
         assert t['obj'][0] == 'world'
         # Make sure it is not repeating last row but instead
         # adding zeros (as documented)
         t.add_row()
-        assert t['a'][1] == 0
+        assert np.all(t['a'][1] == [0, 0])
         assert t['b'][1] == b''
         assert t['obj'][1] == 0
 
     def test_add_table_row(self, table_types):
         self._setup(table_types)
         t = self.t
-        t2 = table_types.Table([self.a, self.b, self.c])
+        t['d'] = self.d
+        t2 = table_types.Table([self.a, self.b, self.c, self.d])
         t.add_row(t2[0])
         assert len(t) == 4
         assert np.all(t['a'] == np.array([1, 2, 3, 1]))
         assert np.allclose(t['b'], np.array([4.0, 5.1, 6.2, 4.0]))
         assert np.all(t['c'] == np.array(['7', '8', '9', '7']))
+        assert np.all(t['d'] == np.array([[1, 2], [3, 4], [5, 6], [1, 2]]))
 
     def test_add_table_row_obj(self, table_types):
         self._setup(table_types)
@@ -619,17 +624,6 @@ class TestAddRow(SetupData):
         with pytest.raises(TypeError):
             t.add_row(1)
 
-    def test_add_without_own_fails(self, table_types):
-        """Add row to a table that doesn't own the data"""
-        self._setup(table_types)
-        data = np.array([(1, 2, 3),
-                         (3, 4, 5)],
-                        dtype='i4')
-        t = table_types.Table(data, copy=False)
-        if not t.masked:
-            with pytest.raises(ValueError):
-                t.add_row([6, 7, 8])
-
     def test_add_row_failures(self, table_types):
         self._setup(table_types)
         t = self.t
@@ -640,14 +634,14 @@ class TestAddRow(SetupData):
         except ValueError:
             pass
         assert len(t) == 3
-        assert np.all(t._data == t_copy._data)
+        assert np.all(t.as_array() == t_copy.as_array())
         # Wrong data type
         try:
             t.add_row(['one',2,3])
         except ValueError:
             pass
         assert len(t) == 3
-        assert np.all(t._data == t_copy._data)
+        assert np.all(t.as_array() == t_copy.as_array())
 
 @pytest.mark.usefixtures('table_types')
 class TestTableColumn(SetupData):
@@ -657,7 +651,7 @@ class TestTableColumn(SetupData):
         t = self.t
         a = t.columns['a']
         a[2] = 10
-        assert t._data['a'][2] == 10
+        assert t['a'][2] == 10
 
 
 @pytest.mark.usefixtures('table_types')
@@ -709,14 +703,14 @@ class TestRemove(SetupData):
         self._setup(table_types)
         self.t.remove_columns('a')
         assert self.t.columns.keys() == []
-        assert self.t._data is None
+        assert self.t.as_array() is None
 
     def test_2(self, table_types):
         self._setup(table_types)
         self.t.add_column(self.b)
         self.t.remove_columns('a')
         assert self.t.columns.keys() == ['b']
-        assert self.t._data.dtype.names == ('b',)
+        assert self.t.dtype.names == ('b',)
         assert np.all(self.t['b'] == np.array([4, 5, 6]))
 
     def test_3(self, table_types):
@@ -785,7 +779,7 @@ class TestRemove(SetupData):
         self._setup(table_types)
         del self.t['a']
         assert self.t.columns.keys() == []
-        assert self.t._data is None
+        assert self.t.as_array() is None
 
     def test_delitem2(self, table_types):
         self._setup(table_types)
@@ -811,14 +805,14 @@ class TestKeep(SetupData):
         t = table_types.Table([self.a, self.b])
         t.keep_columns([])
         assert t.columns.keys() == []
-        assert t._data is None
+        assert t.as_array() is None
 
     def test_2(self, table_types):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b])
         t.keep_columns('b')
         assert t.columns.keys() == ['b']
-        assert t._data.dtype.names == ('b',)
+        assert t.dtype.names == ('b',)
         assert np.all(t['b'] == np.array([4, 5, 6]))
 
 
@@ -830,7 +824,7 @@ class TestRename(SetupData):
         t = table_types.Table([self.a])
         t.rename_column('a', 'b')
         assert t.columns.keys() == ['b']
-        assert t._data.dtype.names == ('b',)
+        assert t.dtype.names == ('b',)
         assert np.all(t['b'] == np.array([1, 2, 3]))
 
     def test_2(self, table_types):
@@ -839,9 +833,9 @@ class TestRename(SetupData):
         t.rename_column('a', 'c')
         t.rename_column('b', 'a')
         assert t.columns.keys() == ['c', 'a']
-        assert t._data.dtype.names == ('c', 'a')
+        assert t.dtype.names == ('c', 'a')
         if t.masked:
-            assert t._data.mask.dtype.names == ('c', 'a')
+            assert t.mask.dtype.names == ('c', 'a')
         assert np.all(t['c'] == np.array([1, 2, 3]))
         assert np.all(t['a'] == np.array([4, 5, 6]))
 
@@ -851,7 +845,7 @@ class TestRename(SetupData):
         t['a'].name = 'c'
         t['b'].name = 'a'
         assert t.columns.keys() == ['c', 'a']
-        assert t._data.dtype.names == ('c', 'a')
+        assert t.dtype.names == ('c', 'a')
         assert np.all(t['c'] == np.array([1, 2, 3]))
         assert np.all(t['a'] == np.array([4, 5, 6]))
 
@@ -863,14 +857,21 @@ class TestSort():
         t = table_types.Table()
         t.add_column(table_types.Column(name='a', data=[2, 1, 3]))
         t.add_column(table_types.Column(name='b', data=[6, 5, 4]))
+        t.add_column(table_types.Column(name='c', data=[(1, 2), (3, 4), (4, 5)]))
         assert np.all(t['a'] == np.array([2, 1, 3]))
         assert np.all(t['b'] == np.array([6, 5, 4]))
         t.sort('a')
         assert np.all(t['a'] == np.array([1, 2, 3]))
         assert np.all(t['b'] == np.array([5, 6, 4]))
+        assert np.all(t['c'] == np.array([[3, 4],
+                                          [1, 2],
+                                          [4, 5]]))
         t.sort('b')
         assert np.all(t['a'] == np.array([3, 1, 2]))
         assert np.all(t['b'] == np.array([4, 5, 6]))
+        assert np.all(t['c'] == np.array([[4, 5],
+                                          [3, 4],
+                                          [1, 2]]))
 
     def test_single_big(self, table_types):
         """Sort a big-ish table with a non-trivial sort order"""
@@ -927,9 +928,14 @@ class TestSort():
         t = table_types.Table()
         t.add_column(table_types.Column(name='a', data=[2, 1, 3, 2, 3, 1]))
         t.add_column(table_types.Column(name='b', data=[6, 5, 4, 3, 5, 4]))
-        assert np.all(t.argsort() == t._data.argsort())
-        assert np.all(t.argsort('a') == t._data.argsort(order=['a']))
-        assert np.all(t.argsort(['a', 'b']) == t._data.argsort(order=['a', 'b']))
+        assert np.all(t.argsort() == t.as_array().argsort())
+        i0 = t.argsort('a')
+        i1 = t.as_array().argsort(order=['a'])
+        assert np.all(t['a'][i0] == t['a'][i1])
+        i0 = t.argsort(['a', 'b'])
+        i1 = t.as_array().argsort(order=['a', 'b'])
+        assert np.all(t['a'][i0] == t['a'][i1])
+        assert np.all(t['b'][i0] == t['b'][i1])
 
     def test_argsort_bytes(self, table_types):
         t = table_types.Table()
@@ -958,23 +964,23 @@ class TestSort():
         """
         t = table_types.Table([[1]], names=('a',))
         assert t.colnames == ['a']
-        assert t._data.dtype.names == ('a',)
+        assert t.dtype.names == ('a',)
 
         t.add_row((2,))
         assert t.colnames == ['a']
-        assert t._data.dtype.names == ('a',)
+        assert t.dtype.names == ('a',)
 
         t.rename_column('a', 'b')
         assert t.colnames == ['b']
-        assert t._data.dtype.names == ('b',)
+        assert t.dtype.names == ('b',)
 
         t.sort('b')
         assert t.colnames == ['b']
-        assert t._data.dtype.names == ('b',)
+        assert t.dtype.names == ('b',)
 
         t.rename_column('b', 'c')
         assert t.colnames == ['c']
-        assert t._data.dtype.names == ('c',)
+        assert t.dtype.names == ('c',)
 
 
 @pytest.mark.usefixtures('table_types')
@@ -1013,14 +1019,13 @@ class TestConvertNumpyArray():
 
         np_data = np.array(d)
         if table_types.Table is not MaskedTable:
-            assert np.all(np_data == d._data)
-        assert not np_data is d._data
+            assert np.all(np_data == d.as_array())
+        assert not np_data is d.as_array()
         assert d.colnames == list(np_data.dtype.names)
 
         np_data = np.array(d, copy=False)
         if table_types.Table is not MaskedTable:
-            assert np.all(np_data == d._data)
-            assert np_data is d._data
+            assert np.all(np_data == d.as_array())
         assert d.colnames == list(np_data.dtype.names)
 
         with pytest.raises(ValueError):
@@ -1029,13 +1034,14 @@ class TestConvertNumpyArray():
 
 def _assert_copies(t, t2, deep=True):
     assert t.colnames == t2.colnames
-    np.testing.assert_array_equal(t._data, t2._data)
+    np.testing.assert_array_equal(t.as_array(), t2.as_array())
     assert t.meta == t2.meta
 
-    if deep:
-        assert not np.may_share_memory(t._data, t2._data)
-    else:
-        assert np.may_share_memory(t._data, t2._data)
+    for col, col2 in zip(t.columns.values(), t2.columns.values()):
+        if deep:
+            assert not np.may_share_memory(col, col2)
+        else:
+            assert np.may_share_memory(col, col2)
 
 
 def test_copy():
@@ -1122,8 +1128,8 @@ def test_equality():
     assert np.all((t != t2) == np.array([0,0,1,0,1,0,1,0], dtype=bool))
 
     # Check that comparing to a structured array works
-    assert np.all((t == t2._data) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
-    assert np.all((t._data == t2) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t == t2.as_array()) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t.as_array() == t2) == np.array([1,1,0,1,0,1,0,1], dtype=bool))
 
 
 def test_equality_masked():
@@ -1176,7 +1182,7 @@ def test_equality_masked():
     assert np.all((t != t2) == np.array([1,0,1,0,1,0,1,0], dtype=bool))
 
     # Check that comparing to a structured array works
-    assert np.all((t == t2._data) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t == t2.as_array()) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
 
 
 @pytest.mark.xfail
@@ -1212,7 +1218,7 @@ def test_equality_masked_bug():
                            ' 1 a 1.0 7',
                           ], format='ascii')
 
-    assert np.all((t._data == t2) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
+    assert np.all((t.as_array() == t2) == np.array([0,1,0,1,0,1,0,1], dtype=bool))
 
 
 # Check that the meta descriptor is working as expected. The MetaBaseTest class

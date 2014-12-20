@@ -48,6 +48,14 @@ the data contained in that object relate to the original table data
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
   t['a', 'c']  # Table with cols 'a', 'c' (copy)
   dat = np.array(t)  # Copy table data to numpy structured array object
+  t['a'].quantity  # an astropy.units.Quantity for Column 'a'
+  t['a'].to('km')  # an astropy.units.Quantity for Column 'a' in units of kilometers
+
+.. Note::
+   Although they appear nearly equivalent, there is a factor of two performance
+   difference between ``t[1]['a']`` (slower, because an intermediate |Row|
+   object gets created) versus ``t['a'][1]`` (faster).  Always use the latter
+   when possible.
 
 **Print table or column**
 ::
@@ -115,7 +123,7 @@ meta-data is simply an ordered dictionary (OrderedDict_) by default.
 Accessing data
 """"""""""""""
 
-As expected one can access a table column by name and get an element from that
+As expected you can access a table column by name and get an element from that
 column with a numerical index::
 
   >>> t['a']  # Column 'a'
@@ -199,7 +207,7 @@ selected rows or columns.  ::
        9.000  11
       12.000  14
 
-Finally, one can access the underlying table data as a native `numpy`
+Finally, you can access the underlying table data as a native `numpy`
 structured array by creating a copy or reference with ``np.array``::
 
   >>> data = np.array(t)  # copy of data in t as a structured array
@@ -324,7 +332,7 @@ meaning as shown below::
 
 In order to force printing all values regardless of the output length or width
 set ``max_lines`` or ``max_width`` to ``-1``, respectively.  For the wide
-table in this example one sees 6 lines of wrapped output like the following::
+table in this example you see 6 lines of wrapped output like the following::
 
   >>> t.pprint(max_lines=6, max_width=-1)  # doctest: +SKIP
       col0         col1     col2   col3   col4   col5   col6   col7   col8   col
@@ -413,3 +421,72 @@ any array::
           [30, 40]],
          [[ 5,  6],
           [50, 60]]])
+
+
+Columns and Quantities
+''''''''''''''''''''''
+Columns with units that the `astropy.units` package understands can be
+converted explicitly to ``~astropy.units.Quantity`` objects via the
+:attr:`~astropy.table.Column.quantity` property and the
+:meth:`~astropy.table.Column.to` method::
+
+  >>> from astropy.table import Table
+  >>> from astropy import units as u
+  >>> data = [[1., 2., 3.],[40000., 50000., 60000.]]
+  >>> t = Table(data, names=('a', 'b'))
+  >>> t['a'].unit = u.m
+  >>> t['b'].unit = 'km/s'
+  >>> t['a'].quantity
+  <Quantity [ 1., 2., 3.] m>
+  >>> t['b'].to(u.kpc/u.Myr)  # doctest: +FLOAT_CMP
+  <Quantity [ 40.9084866 , 51.13560825, 61.3627299 ] kpc / Myr>
+
+Note that the :attr:`~astropy.table.Column.quantity` property is actually
+a *view* of the data in the column, not a copy.  Hence, you can set the
+values of a column in a way that respects units by making in-place
+changes to the :attr:`~astropy.table.Column.quantity` property::
+
+  >>> t['b']
+  <Column name='b' unit=u'km / s' format=None description=None>
+  array([ 40000.,  50000.,  60000.])
+  >>> t['b'].quantity[0] = 45000000*u.m/u.s
+  >>> t['b']
+  <Column name='b' unit=u'km / s' format=None description=None>
+  array([ 45000.,  50000.,  60000.])
+
+Even without explicit conversion, columns with units can be treated like
+like an Astropy `~astropy.units.Quantity` in *some* arithmetic
+expressions (see the warning below for caveats to this)::
+
+  >>> t['a'] + .005*u.km
+  <Quantity [ 6., 7., 8.] m>
+  >>> from astropy.constants import c
+  >>> (t['b'] / c).decompose()  # doctest: +FLOAT_CMP
+  <Quantity [ 0.15010384, 0.16678205, 0.20013846]>
+
+.. warning::
+
+  Table columns do *not* always behave the same as
+  `~astropy.units.Quantity`. Table columns act more like regular numpy
+  arrays unless either explicitly converted to a
+  `~astropy.units.Quantity` or combined with an
+  `~astropy.units.Quantity` using an arithmetic operator.For example,
+  the following does not work the way you would expect::
+
+    >>> import numpy as np
+    >>> from astropy.table import Table
+    >>> data = [[30, 90]]
+    >>> t = Table(data, names=('angle',))
+    >>> t['angle'].unit = 'deg'
+    >>> np.sin(t['angle'])  # doctest: +FLOAT_CMP
+    <Column name='angle' unit=u'deg' format=None description=None>
+    array([-0.98803162,  0.89399666])
+
+  This is wrong both in that it says the unit is degrees, *and* ``sin``
+  treated the values and radians rather than degrees.  If at all in
+  doubt that you'll get the right result, the safest choice is to
+  explicitly convert to `~astropy.units.Quantity`::
+
+    >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
+    <Quantity [ 0.5, 1. ]>
+

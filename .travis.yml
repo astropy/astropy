@@ -18,14 +18,6 @@ env:
 matrix:
     include:
 
-        # Do a PEP8 test
-        - python: 2.7
-          env: MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
-
-        # Do a coverage test in Python 2
-        - python: 2.7
-          env: SETUP_CMD='test --coverage' OPTIONAL_DEPS=true
-
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time
         - python: 2.7
@@ -34,17 +26,18 @@ matrix:
 
         # Try all python versions with the latest numpy
         - python: 2.6
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --open-files'
         - python: 2.7
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --open-files'
         - python: 3.3
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --open-files'
         - python: 3.4
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test --open-files'
 
         # Now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
+        # We also note the code coverage on Python 2.7.
         - python: 2.7
-          env: SETUP_CMD='test'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
+          env: SETUP_CMD='test --coverage'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
         - python: 3.3
           env: SETUP_CMD='test'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
@@ -55,8 +48,10 @@ matrix:
           env: NUMPY_VERSION=1.7 SETUP_CMD='test'
         - python: 2.7
           env: NUMPY_VERSION=1.6 SETUP_CMD='test'
+
+        # Do a PEP8 test
         - python: 2.7
-          env: NUMPY_VERSION=1.5 SETUP_CMD='test'
+          env: MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
 
 before_install:
 
@@ -69,6 +64,9 @@ before_install:
     - export PATH=/home/travis/miniconda/bin:$PATH
     - conda update --yes conda
 
+    # UPDATE APT-GET LISTINGS
+    - sudo apt-get update
+
     # DOCUMENTATION DEPENDENCIES
     - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install graphviz texlive-latex-extra dvipng; fi
 
@@ -78,18 +76,20 @@ install:
     - conda create --yes -n test -c astropy-ci-extras python=$TRAVIS_PYTHON_VERSION
     - source activate test
 
+    - export CONDA_INSTALL="conda install -c astropy-ci-extras --yes python=$TRAVIS_PYTHON_VERSION numpy=$NUMPY_VERSION"
+
     # CORE DEPENDENCIES
-    - if [[ $SETUP_CMD == test* || $SETUP_CMD == build_sphinx* ]]; then conda install -c astropy-ci-extras --yes numpy=$NUMPY_VERSION pytest pip Cython; fi
+    - if [[ $SETUP_CMD == test* || $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL pytest pip Cython jinja2 psutil; fi
 
     # OPTIONAL DEPENDENCIES
-    - if $OPTIONAL_DEPS; then conda install --yes numpy=$NUMPY_VERSION scipy h5py; fi
+    - if $OPTIONAL_DEPS; then $CONDA_INSTALL scipy h5py matplotlib; fi
     - if $OPTIONAL_DEPS; then pip install beautifulsoup4; fi
 
     # DOCUMENTATION DEPENDENCIES
     # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
     # this matplotlib will *not* work with py 3.x, but our sphinx build is
     # currently 2.7, so that's fine
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then conda install --yes numpy=$NUMPY_VERSION Sphinx=1.2.2 Pygments matplotlib; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL Sphinx=1.2.2 Pygments matplotlib; fi
 
     # COVERAGE DEPENDENCIES
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then pip install coverage coveralls; fi

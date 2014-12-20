@@ -231,7 +231,7 @@ class TestInput():
         with pytest.raises(ValueError):
             self.location.to_geodetic('foo')
 
-    @pytest.mark.parametrize('ellipsoid', ELLIPSOIDS.keys())
+    @pytest.mark.parametrize('ellipsoid', ELLIPSOIDS)
     def test_ellipsoid(self, ellipsoid):
         """Test that different ellipsoids are understood, and differ"""
         # check that heights differ for different ellipsoids

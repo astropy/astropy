@@ -32,10 +32,12 @@ class Unicode(console.Console):
     _times = "×"
     _line = "─"
 
-    def _get_unit_name(self, unit):
+    @classmethod
+    def _get_unit_name(cls, unit):
         return unit.get_format_name('unicode')
 
-    def _format_exponential_notation(self, val):
+    @classmethod
+    def format_exponential_notation(cls, val):
         m, ex = utils.split_mantissa_exponent(val)
 
         parts = []
@@ -44,12 +46,12 @@ class Unicode(console.Console):
 
         if ex:
             parts.append("10{0}".format(
-                self._format_superscript(ex)))
+                cls._format_superscript(ex)))
 
-        return self._times.join(parts)
+        return cls._times.join(parts)
 
-    @staticmethod
-    def _format_superscript(number):
+    @classmethod
+    def _format_superscript(cls, number):
         mapping = {
             '0': '⁰',
             '1': '¹',

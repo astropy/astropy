@@ -34,6 +34,7 @@ import io
 import os
 import textwrap
 import warnings
+import platform
 
 # THIRD-PARTY
 import numpy as np
@@ -70,7 +71,7 @@ __all__ = ['FITSFixedWarning', 'WCS', 'find_all_wcs',
            'NoWcsKeywordsFoundError', 'InvalidTabularParametersError']
 
 
-if six.PY3:
+if six.PY3 or platform.system() == 'Windows':
     __doctest_skip__ = ['WCS.all_world2pix']
 
 
@@ -2610,10 +2611,10 @@ naxis kwarg.
 
         Parameters
         ----------
-        wcs: `~astropy.wcs.WCS`
+        wcs : `~astropy.wcs.WCS`
             The WCS to have its axes swapped
-        ax0: int
-        ax1: int
+        ax0 : int
+        ax1 : int
             The indices of the WCS to be swapped, counting from 0 (i.e., python
             convention, not FITS convention)
 
@@ -2703,6 +2704,12 @@ naxis kwarg.
         # (wcs[i] -> wcs.sub([i+1])
         return self.slice(item)
 
+    def __iter__(self):
+        # Having __getitem__ makes Python think WCS is iterable. However,
+        # Python first checks whether __iter__ is present, so we can raise an
+        # exception here.
+        raise TypeError("'{0}' object is not iterable".format(self.__class__.__name__))
+
     @property
     def axis_type_names(self):
         """
@@ -2760,10 +2767,38 @@ naxis kwarg.
 
         return pccd
 
-    @property
-    def has_distortion(self):
-        return any(getattr(self, dist_attr) is not None
-                   for dist_attr in ['cpdis1', 'cpdis2', 'det2im1', 'det2im2', 'sip'])
+    def _as_mpl_axes(self):
+        """
+        Compatibility hook for Matplotlib and WCSAxes.
+
+        This functionality requires the WCSAxes package to work. The reason
+        we include this here is that it allows users to use WCSAxes without
+        having to explicitly import WCSAxes, which means that if in future we
+        merge WCSAxes into the Astropy core package, the API will remain the
+        same. With this method, one can do:
+
+            from astropy.wcs import WCS
+            import matplotlib.pyplot as plt
+
+            wcs = WCS('filename.fits')
+
+            fig = plt.figure()
+            ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
+            ...
+
+        and this will generate a plot with the correct WCS coordinates on the
+        axes. See http://wcsaxes.readthedocs.org for more information.
+        """
+
+        try:
+            from wcsaxes import WCSAxes
+        except ImportError:
+            raise ImportError("Using WCS instances as Matplotlib projections "
+                              "requires the WCSAxes package to be installed. "
+                              "See http://wcsaxes.readthedocs.org for more "
+                              "details.")
+        else:
+            return WCSAxes, {'wcs': self}
 
 
 def __WCS_unpickle__(cls, dct, fits_data):

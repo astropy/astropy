@@ -160,7 +160,7 @@ class TestTableItems(BaseTestItems):
         assert t2['c'].attrs_equal(table_data.COLS[2])
         t2['a'][0] = 0
 
-        assert np.all(self.t._data == table_data.DATA)
+        assert np.all(self.t.as_array() == table_data.DATA)
         assert np.any(t2['a'] != table_data.DATA['a'][slice])
         assert t2.masked == self.t.masked
         assert t2._column_class == self.t._column_class
@@ -179,7 +179,7 @@ class TestTableItems(BaseTestItems):
         assert t2['c'].attrs_equal(table_data.COLS[2])
         t2['a'][0] = 0
 
-        assert np.all(self.t._data == table_data.DATA)
+        assert np.all(self.t.as_array() == table_data.DATA)
         assert np.any(t2['a'] != table_data.DATA['a'][slice])
         assert t2.masked == self.t.masked
         assert t2._column_class == self.t._column_class
@@ -199,7 +199,7 @@ class TestTableItems(BaseTestItems):
             assert t2['a'].attrs_equal(table_data.COLS[0])
             assert t2['c'].attrs_equal(table_data.COLS[2])
             t2['a'][0] = 0
-            assert np.all(self.t._data == table_data.DATA)
+            assert np.all(self.t.as_array() == table_data.DATA)
             assert np.any(t2['a'] != table_data.DATA['a'])
             assert t2.masked == self.t.masked
             assert t2._column_class == self.t._column_class

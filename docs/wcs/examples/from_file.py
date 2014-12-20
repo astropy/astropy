@@ -10,7 +10,7 @@ import sys
 
 def load_wcs_from_file(filename):
     # Load the FITS hdulist using astropy.io.fits
-    hdulist = fits.open(sys.argv[-1])
+    hdulist = fits.open(filename)
 
     # Parse the WCS keywords in the primary HDU
     w = wcs.WCS(hdulist[0].header)

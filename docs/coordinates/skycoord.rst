@@ -26,7 +26,7 @@ The key distinctions between |SkyCoord| and the low-level classes
   all attributes, such a round-trip transformation will return to the same
   coordinate object.
 
-- The |SkyCoord| class is more flexible with inputs to accomodate a wide
+- The |SkyCoord| class is more flexible with inputs to accommodate a wide
   variety of user preferences and available data formats.
 
 - The |SkyCoord| class has a number of convenience methods that are useful
@@ -70,10 +70,10 @@ The coordinate values and frame specification can now be provided using
 positional and keyword arguments.  First we show positional arguments for
 RA and Dec::
 
-  >>> SkyCoord(10, 20, unit="deg")  # Defaults to ICRS
+  >>> SkyCoord(10, 20, unit='deg')  # Defaults to ICRS
   <SkyCoord (ICRS): ra=10.0 deg, dec=20.0 deg>
 
-  >>> SkyCoord([1, 2, 3], [-30, 45, 8], "icrs", unit="deg")
+  >>> SkyCoord([1, 2, 3], [-30, 45, 8], frame='icrs', unit='deg')
   <SkyCoord (ICRS): (ra, dec) in deg
       [(1.0, -30.0), (2.0, 45.0), (3.0, 8.0)]>
 
@@ -84,16 +84,23 @@ explicitly specify the frame when it is known to be ICRS, however, as
 anyone reading the code will be better able to understand the intent.
 
 String inputs in common formats are acceptable, and the frame can be supplied
-as either a class type like `~astropy.coordinates.FK4` or the lower-case
-version of the name as a string, e.g. ``"fk4"``::
+as either a class type like `~astropy.coordinates.FK4`, an instance of a
+frame class, a `~astropy.coordinates.SkyCoord` instance (from which the frame
+will be extracted), or the lower-case version of a frame name as a string,
+e.g. ``"fk4"``::
 
   >>> coords = ["1:12:43.2 +1:12:43", "1 12 43.2 +1 12 43"]
-  >>> sc = SkyCoord(coords, FK4, unit=(u.hourangle, u.deg), obstime="J1992.21")
-  >>> sc = SkyCoord(coords, 'fk4', unit='hourangle,deg', obstime="J1992.21")
+  >>> sc = SkyCoord(coords, frame=FK4, unit=(u.hourangle, u.deg), obstime="J1992.21")
+  >>> sc = SkyCoord(coords, frame=FK4(obstime="J1992.21"), unit=(u.hourangle, u.deg))
+  >>> sc = SkyCoord(coords, frame='fk4', unit='hourangle,deg', obstime="J1992.21")
 
-  >>> sc = SkyCoord("1h12m43.2s", "+1d12m43s", Galactic)  # Units from strings
-  >>> sc = SkyCoord("1h12m43.2s +1d12m43s", Galactic)  # Units from string
-  >>> sc = SkyCoord("galactic", l="1h12m43.2s", b="+1d12m43s")
+  >>> sc = SkyCoord("1h12m43.2s", "+1d12m43s", frame=Galactic)  # Units from strings
+  >>> sc = SkyCoord("1h12m43.2s +1d12m43s", frame=Galactic)  # Units from string
+  >>> sc = SkyCoord(l="1h12m43.2s", b="+1d12m43s", frame='galactic')
+
+Note that frame instances with data and `~astropy.coordinates.SkyCoord` instances
+can only be passed as frames using the ``frame=`` keyword argument and not as
+positional arguments.
 
 Astropy `~astropy.units.Quantity`-type objects are acceptable and encouraged
 as a form of input::
@@ -101,7 +108,7 @@ as a form of input::
   >>> ra = Longitude([1, 2, 3], unit=u.deg)  # Could also use Angle
   >>> dec = np.array([4.5, 5.2, 6.3]) * u.deg  # Astropy Quantity
   >>> sc = SkyCoord(ra, dec, frame='icrs')
-  >>> sc = SkyCoord(ICRS, ra=ra, dec=dec, obstime='2001-01-02T12:34:56')
+  >>> sc = SkyCoord(ra=ra, dec=dec, frame=ICRS, obstime='2001-01-02T12:34:56')
 
 Finally it is possible to initialize from a low-level coordinate frame object.
 
@@ -193,15 +200,16 @@ represented in the standard spherical coordinates:
 
 **FRAME**
 
-This can be a `~astropy.coordinates.BaseCoordinateFrame` frame
-class or the corresponding string alias.  The frame classes that are built in
-to astropy are `~astropy.coordinates.ICRS`, `~astropy.coordinates.FK5`,
-`~astropy.coordinates.FK4`, `~astropy.coordinates.FK4NoETerms`,
-`~astropy.coordinates.Galactic`, and `~astropy.coordinates.AltAz`.
-The string aliases are simply lower-case versions of the class name.
+This can be a `~astropy.coordinates.BaseCoordinateFrame` frame class, an
+instance of such a class, or the corresponding string alias. The frame
+classes that are built in to astropy are `~astropy.coordinates.ICRS`,
+`~astropy.coordinates.FK5`, `~astropy.coordinates.FK4`,
+`~astropy.coordinates.FK4NoETerms`, `~astropy.coordinates.Galactic`, and
+`~astropy.coordinates.AltAz`. The string aliases are simply lower-case
+versions of the class name.
 
 If the frame is not supplied then you will see a special ``ICRS``
-identifer.  This indicates that the frame is unspecified and operations
+identifier.  This indicates that the frame is unspecified and operations
 that require comparing coordinates (even within that object) are not allowed.
 
 **unit=UNIT**
@@ -255,11 +263,11 @@ looping over a list of individual |SkyCoord| objects::
   >>> ra = np.random.uniform(0, 360, size=1000) * u.deg
   >>> dec = np.random.uniform(-90, 90, size=1000) * u.deg
 
-  >>> sc_list = [SkyCoord(r, d, 'icrs') for r, d in zip(ra, dec)]
+  >>> sc_list = [SkyCoord(r, d, frame='icrs') for r, d in zip(ra, dec)]
   >>> timeit sc_gal_list = [c.galactic for c in sc_list]  # doctest: +SKIP
   1 loops, best of 3: 7.66 s per loop
 
-  >>> sc = SkyCoord(ra, dec, 'icrs')
+  >>> sc = SkyCoord(ra, dec, frame='icrs')
   >>> timeit sc_gal = sc.galactic  # doctest: +SKIP
   100 loops, best of 3: 8.92 ms per loop
 
@@ -291,7 +299,7 @@ within IPython you can type an object name, the period, and then the <TAB> key
 to see what's available.  This can often be faster than reading the
 documentation::
 
-  >>> sc = SkyCoord(1, 2, 'icrs', unit='deg', obstime='2013-01-02 14:25:36')
+  >>> sc = SkyCoord(1, 2, frame='icrs', unit='deg', obstime='2013-01-02 14:25:36')
   >>> sc.<TAB>  # doctest: +SKIP
   sc.cartesian                           sc.match_to_catalog_3d
   sc.data                                sc.match_to_catalog_sky
@@ -331,13 +339,13 @@ new |SkyCoord| object in the requested frame::
 
   >>> sc_gal = sc.galactic
   >>> sc_gal  # doctest: +FLOAT_CMP
-  <SkyCoord (Galactic): l=99.6379436471 deg, b=-58.7096055983 deg>
+  <SkyCoord (Galactic): l=99.6378552814 deg, b=-58.7096929334 deg>
 
 Other attributes you should recognize are ``distance``, ``equinox``,
 ``obstime``, ``shape``.
 
 Digger deeper
-"""""""""""""""
+"""""""""""""
 *[Casual users can skip this section]*
 
 After transforming to Galactic the longitude and latitude values are now
@@ -363,7 +371,7 @@ the coordinate keyword arguments that |SkyCoord| will accept.
 Another important attribute is ``frame_attr_names``, which defines the
 additional attributes that are required to fully define the frame::
 
-  >>> sc_fk4 = SkyCoord(1, 2, 'fk4', unit='deg')
+  >>> sc_fk4 = SkyCoord(1, 2, frame='fk4', unit='deg')
   >>> sc_fk4.get_frame_attr_names()  # doctest: +SKIP
   {u'equinox': <Time object: scale='tai' format='byear_str' value=B1950.000>,
    u'obstime': None}
@@ -411,8 +419,8 @@ much bother (duck typing!).
 The lowest layer in the stack is the abstract
 `~astropy.coordinates.UnitSphericalRepresentation` object:
 
-  >>> sc_gal.frame.data
-  <UnitSphericalRepresentation lon=1.739010... rad, lat=-1.024675... rad>
+  >>> sc_gal.frame.data  # doctest: +FLOAT_CMP
+  <UnitSphericalRepresentation lon=1.73900863429 rad, lat=-1.02467744452 rad>
 
 Transformations
 ^^^^^^^^^^^^^^^^^
@@ -429,9 +437,9 @@ previously).  For more control, you can use the
 name, frame class, frame instance, or |SkyCoord|::
 
   >>> from astropy.coordinates import FK5
-  >>> sc = SkyCoord(1, 2, 'icrs', unit='deg')
+  >>> sc = SkyCoord(1, 2, frame='icrs', unit='deg')
   >>> sc.galactic  # doctest: +FLOAT_CMP
-  <SkyCoord (Galactic): l=99.6379436471 deg, b=-58.7096055983 deg>
+  <SkyCoord (Galactic): l=99.6378552814 deg, b=-58.7096929334 deg>
 
   >>> sc.transform_to('fk5')  # Same as sc.fk5 and sc.transform_to(FK5)  # doctest: +FLOAT_CMP
   <SkyCoord (FK5: equinox=J2000.000): ra=1.00000655566 deg, dec=2.00000243092 deg>
@@ -442,7 +450,7 @@ name, frame class, frame instance, or |SkyCoord|::
 Transforming to a |SkyCoord| instance is an easy way of ensuring that two
 coordinates are in the exact same reference frame::
 
-  >>> sc2 = SkyCoord(3, 4, 'fk4', unit='deg', obstime='J1978.123', equinox='B1960.0')
+  >>> sc2 = SkyCoord(3, 4, frame='fk4', unit='deg', obstime='J1978.123', equinox='B1960.0')
   >>> sc.transform_to(sc2)
   <SkyCoord (FK4: equinox=B1960.000, obstime=J1978.123): ra=0.48726331438 deg, dec=1.77731617297 deg>
 
@@ -476,7 +484,7 @@ supplying the corresponding components for that representation::
 Other variations include::
 
     >>> SkyCoord(1, 2*u.deg, 3, representation='cylindrical')
-    <SkyCoord (ICRS): rho=1.0 , phi=2.0 deg, z=3.0 >
+    <SkyCoord (ICRS): rho=1.0, phi=2.0 deg, z=3.0>
 
     >>> SkyCoord(rho=1*u.km, phi=2*u.deg, z=3*u.m, representation='cylindrical')
     <SkyCoord (ICRS): rho=1.0 km, phi=2.0 deg, z=3.0 m>
@@ -485,7 +493,7 @@ Other variations include::
     <SkyCoord (ICRS): rho=1.0 km, phi=2.0 deg, z=3.0 m>
 
     >>> SkyCoord(1, 2, 3, unit=(None, u.deg, None), representation='cylindrical')
-    <SkyCoord (ICRS): rho=1.0 , phi=2.0 deg, z=3.0 >
+    <SkyCoord (ICRS): rho=1.0, phi=2.0 deg, z=3.0>
 
 In general terms, the allowed syntax is as follows::
 
@@ -663,6 +671,198 @@ state of the |SkyCoord| object, you should instead use the
     <CartesianRepresentation x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
     >>> c.representation
     <class 'astropy.coordinates.representation.SphericalRepresentation'>
+
+
+Example 1: Plotting random data in Aitoff projection
+====================================================
+
+This is an example how to make a plot in the Aitoff projection using data 
+in a |SkyCoord| object. Here a randomly generated data set will be used.
+
+First we need to import the required packages. We use 
+`matplotlib <http://www.matplotlib.org/>`_ here for
+plotting and `numpy <http://www.numpy.org/>`_  to get the value of pi and to 
+generate our random data.
+
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> import numpy as np
+
+We now generate random data for visualisation. For RA this is done in the range
+of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
+(``dec_random``). Finally, we multiply these values by degrees to get an 
+`~astropy.units.Quantity` with units of degrees.
+
+
+    >>> ra_random = np.random.rand(100)*360.0 * u.degree
+    >>> dec_random = (np.random.rand(100)*180.0-90.0) * u.degree
+
+As next step, those coordinates are transformed into an astropy.coordinates
+|SkyCoord| object.
+
+
+    >>> c = SkyCoord(ra=ra_random, dec=dec_random, frame='icrs')
+
+Because matplotlib needs the coordinates in radians and between :math:`-\pi`
+and :math:`\pi`, not 0 and :math:`2\pi`, we have to convert them. 
+For this purpose the `astropy.coordinates.Angle` object provides a special method,
+which we use here to wrap at 180:
+
+
+    >>> ra_rad = c.ra.wrap_at(180 * u.deg).radian
+    >>> dec_rad = c.dec.radian
+
+As last step we set up the plotting environment with matplotlib using the
+Aitoff projection with a specific title, a grid, filled circles as markers with
+a markersize of 2 and an alpha value of 0.3. We use a figure with an x-y ratio 
+that is well suited for such a projection and we move the title upwards from 
+its usual position to avoid overlap with the axis labels.
+
+.. doctest-skip::
+
+    >>> import matplotlib.pyplot as plt
+    >>> plt.figure(figsize=(8,4.2))
+    >>> plt.subplot(111, projection="aitoff")
+    >>> plt.title("Aitoff projection of our random data")
+    >>> plt.grid(True)
+    >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    >>> plt.subplots_adjust(top=0.95,bottom=0.0) 
+    >>> plt.show()
+
+
+.. plot::
+
+    # This is an example how to make a plot in the Aitoff projection using data 
+    # in a SkyCoord object. Here a randomly generated data set will be used. The
+    # final script can be found below.
+
+    # First we need to import the required packages. We use 
+    # `matplotlib <http://www.matplotlib.org/>`_ here for
+    # plotting and `numpy <http://www.numpy.org/>`_  to get the value of pi and to 
+    # generate our random data.
+    from astropy import units as u
+    from astropy.coordinates import SkyCoord
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # We now generate random data for visualisation. For RA this is done in the range
+    # of 0 and 360 degrees (``ra_random``), for DEC between -90 and +90 degrees
+    # (``dec_random``). Finally, we multiply these values by degrees to get an 
+    # `~astropy.units.Quantity` with units of degrees.
+    ra_random = np.random.rand(100)*360.0 * u.degree
+    dec_random = (np.random.rand(100)*180.0-90.0) * u.degree
+
+    # As next step, those coordinates are transformed into an astropy.coordinates
+    # astropy.coordinates.SkyCoord object.
+    c = SkyCoord(ra=ra_random, dec=dec_random, frame='icrs')
+
+    # Because matplotlib needs the coordinates in radians and between :math:`-\pi`
+    # and :math:`\pi`, not 0 and :math:`2\pi`, we have to convert them. 
+    # For this purpose the `astropy.coordinates.Angle` object provides a special method,
+    # which we use here to wrap at 180:
+    ra_rad = c.ra.wrap_at(180 * u.deg).radian
+    dec_rad = c.dec.radian
+
+    # As last step we set up the plotting environment with matplotlib using the
+    # Aitoff projection with a specific title, a grid, filled circles as markers with
+    # a markersize of 2 and an alpha value of 0.3.
+    plt.figure(figsize=(8,4.2))
+    plt.subplot(111, projection="aitoff")
+    plt.title("Aitoff projection of our random data", y=1.08)
+    plt.grid(True)
+    plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    plt.subplots_adjust(top=0.95,bottom=0.0) 
+    plt.show()
+
+
+
+Example 2: Plotting star positions in bulge and disk
+====================================================
+
+This is more realitic example how to make a plot in the Aitoff projection
+using data in a |SkyCoord| object.
+Here a randomly generated data set (multivariante
+normal distribution) for both stars in the bulge and in the disk of a galaxy
+will be used. Both types will be plotted with different number counts. 
+
+As in the last example, we first import the required packages.
+
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> import numpy as np
+
+We now generate random data for visualisation using
+`numpy.random.multivariate_normal`.
+
+    >>> disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
+    >>> bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
+    >>> galaxy = np.concatenate([disk, bulge])
+
+As next step, those coordinates are transformed into an astropy.coordinates
+|SkyCoord| object.
+
+    >>> c_gal = SkyCoord(galaxy, representation='cartesian', frame='galactic')
+    >>> c_gal_icrs = c_gal.icrs
+
+Again, as in the last example, we need to convert the coordinates in radians 
+and make sure they are between :math:`-\pi` and :math:`\pi`:
+
+    >>> ra_rad = c_gal_icrs.ra.wrap_at(180 * u.deg).radian
+    >>> dec_rad = c_gal_icrs.dec.radian
+
+We use the same plotting setup as in the last example:
+
+.. doctest-skip::
+
+    >>> import matplotlib.pyplot as plt
+    >>> plt.figure(figsize=(8,4.2))
+    >>> plt.subplot(111, projection="aitoff")
+    >>> plt.title("Aitoff projection of our random data")
+    >>> plt.grid(True)
+    >>> plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    >>> plt.subplots_adjust(top=0.95,bottom=0.0) 
+    >>> plt.show()
+
+
+.. plot::
+
+    # This is more realitic example how to make a plot in the Aitoff projection
+    # using data in a SkyCoord object.
+    # Here a randomly generated data set (multivariante normal distribution) 
+    # for both stars in the bulge and in the disk of a galaxy
+    # will be used. Both types will be plotted with different number counts. The
+    # final script can be found below.
+
+    # As in the last example, we first import the required packages.
+    from astropy import units as u
+    from astropy.coordinates import SkyCoord
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # We now generate random data for visualisation with 
+    # np.random.multivariate_normal.
+    disk = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,0.5]), size=5000)
+    bulge = np.random.multivariate_normal(mean=[0,0,0], cov=np.diag([1,1,1]), size=500)
+    galaxy = np.concatenate([disk, bulge])
+
+    # As next step, those coordinates are transformed into an astropy.coordinates
+    # astropy.coordinates.SkyCoord object.
+    c_gal = SkyCoord(galaxy, representation='cartesian', frame='galactic')
+    c_gal_icrs = c_gal.icrs
+
+    # Again, as in the last example, we need to convert the coordinates in radians 
+    # and make sure they are between :math:`-\pi` and :math:`\pi`:
+    ra_rad = c_gal_icrs.ra.wrap_at(180 * u.deg).radian
+    dec_rad = c_gal_icrs.dec.radian
+
+    # We use the same plotting setup as in the last example:
+    plt.figure(figsize=(8,4.2))
+    plt.subplot(111, projection="aitoff")
+    plt.title("Aitoff projection of our random data", y=1.08)
+    plt.grid(True)
+    plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
+    plt.subplots_adjust(top=0.95,bottom=0.0) 
+    plt.show()
 
 
 Convenience methods

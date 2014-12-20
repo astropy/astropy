@@ -1059,3 +1059,8 @@ class TestStreamingFunctions(FitsTestCase):
 
         with fits.open(self.data('blank.fits'), ignore_blank=True) as f:
             assert f[0].data.flat[0] == 2
+
+    def test_error_if_memmap_impossible(self):
+        pth = self.data('blank.fits')
+        with pytest.raises(ValueError):
+            fits.open(pth, memmap=True)[0].data

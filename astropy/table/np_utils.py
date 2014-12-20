@@ -12,6 +12,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ..extern import six
 from ..extern.six.moves import zip as izip
+from ..utils.decorators import deprecated
 
 from itertools import chain
 import collections
@@ -24,6 +25,10 @@ from ..utils import OrderedDict
 
 __all__ = ['join', 'hstack', 'vstack', 'TableMergeError']
 
+DEPRECATION_MESSAGE = ('The %(func)s %(obj_type)s is deprecated and may '
+                       'be removed in a future version. '
+                       'Contact the Astropy developers if you need '
+                       'continued support for this function.')
 
 class TableMergeError(ValueError):
     pass
@@ -163,6 +168,7 @@ def common_dtype(cols):
     return arr_common.dtype.str
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def join(left, right, keys=None, join_type='inner',
          uniq_col_name='{col_name}_{table_name}',
          table_names=['1', '2'],
@@ -303,6 +309,7 @@ def _check_for_sequence_of_structured_arrays(arrays):
         raise ValueError('`arrays` arg must include at least one array')
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def vstack(arrays, join_type='inner', col_name_map=None):
     """
     Stack structured arrays vertically (by rows)
@@ -412,6 +419,7 @@ def vstack(arrays, join_type='inner', col_name_map=None):
     return out
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
            table_names=None, col_name_map=None):
     """
@@ -515,6 +523,7 @@ def hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     return out
 
 
+@deprecated('1.0', message=DEPRECATION_MESSAGE)
 def get_groups(table, keys):
     """
     Get groups for numpy structured array on specified keys.
@@ -579,3 +588,26 @@ def fix_column_name(val):
             raise
 
     return val
+
+
+def recarray_fromrecords(rec_list):
+    """
+    Partial replacement for `~numpy.core.records.fromrecords` which includes
+    a workaround for the bug with unicode arrays described at:
+    https://github.com/astropy/astropy/issues/3052
+
+    This should not serve as a full replacement for the original function;
+    this only does enough to fulfill the needs of the table module.
+    """
+
+    # Note: This is just copying what Numpy does for converting arbitrary rows
+    # to column arrays in the recarray module; it could be there is a better
+    # way
+    nfields = len(rec_list[0])
+    obj = np.array(rec_list, dtype=object)
+    array_list = [np.array(obj[..., i].tolist()) for i in range(nfields)]
+    formats = []
+    for obj in array_list:
+        formats.append(obj.dtype.str)
+    formats = ','.join(formats)
+    return np.rec.fromarrays(array_list, formats=formats)

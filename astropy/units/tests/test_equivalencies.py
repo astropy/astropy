@@ -13,6 +13,7 @@ from numpy.testing.utils import assert_allclose
 
 # LOCAL
 from ... import units as u
+from ... import constants
 from ...tests.helper import pytest
 
 
@@ -282,20 +283,6 @@ def test_spectral4(in_val, in_unit):
         assert_allclose(b, in_val)
 
 
-def test_spectraldensity():
-    a = u.AA.to(u.Jy, 1, u.spectral_density(u.eV, 2.2))
-    assert_allclose(a, 1059416252057.8357, rtol=1e-4)
-
-    b = u.Jy.to(u.AA, a, u.spectral_density(u.eV, 2.2))
-    assert_allclose(b, 1)
-
-    c = u.AA.to(u.Jy, 1, u.spectral_density(2.2 * u.eV))
-    assert_allclose(c, 1059416252057.8357, rtol=1e-4)
-
-    d = u.Jy.to(u.AA, c, u.spectral_density(2.2 * u.eV))
-    assert_allclose(d, 1)
-
-
 def test_spectraldensity2():
     flambda = u.erg / u.angstrom / u.cm ** 2 / u.s
     fnu = u.erg / u.Hz / u.cm ** 2 / u.s
@@ -464,6 +451,20 @@ def test_equivalency_context():
         with pytest.raises(u.UnitsError):
             phase.to(1, equivalencies=None)
 
+        # test the manager also works in the Quantity constructor.
+        q1 = u.Quantity(phase, u.dimensionless_unscaled)
+        assert_allclose(q1.value, u.cycle.to(u.radian))
+
+        # and also if we use a class that happens to have a unit attribute.
+        class MyQuantityLookalike(np.ndarray):
+            pass
+
+        mylookalike = np.array(1.).view(MyQuantityLookalike)
+        mylookalike.unit = 'cycle'
+        # test the manager also works in the Quantity constructor.
+        q2 = u.Quantity(mylookalike, u.dimensionless_unscaled)
+        assert_allclose(q2.value, u.cycle.to(u.radian))
+
     with u.set_enabled_equivalencies(u.spectral()):
         u.GHz.to(u.cm)
         eq_on = u.GHz.find_equivalent_units()
@@ -516,9 +517,32 @@ def test_temperature():
     assert_allclose(t_k.to(u.deg_C, u.temperature()).value, -273.15)
     assert_allclose(t_k.to(deg_F, u.temperature()).value, -459.67)
 
+
 def test_temperature_energy():
     from ... import constants
     x = 1000 * u.K
     y = (x * constants.k_B).to(u.keV)
     assert_allclose(x.to(u.keV, u.temperature_energy()).value, y)
     assert_allclose(y.to(u.K, u.temperature_energy()).value, x)
+
+
+def test_compose_equivalencies():
+    x = u.Unit("arcsec").compose(units=(u.pc,), equivalencies=u.parallax())
+    assert x[0] == u.pc
+
+    x = u.Unit("2 arcsec").compose(units=(u.pc,), equivalencies=u.parallax())
+    assert x[0] == u.Unit(0.5 * u.pc)
+
+    x = u.degree.compose(equivalencies=u.dimensionless_angles())
+    assert u.Unit(u.degree.to(u.radian)) in x
+
+    x = (u.nm).compose(units=(u.m, u.s), equivalencies=u.doppler_optical(0.55*u.micron))
+    for y in x:
+        if y.bases == [u.m, u.s]:
+            assert y.powers == [1, -1]
+            assert_allclose(
+                y.scale,
+                u.nm.to(u.m / u.s, equivalencies=u.doppler_optical(0.55 * u.micron)))
+            break
+    else:
+        assert False, "Didn't find speed in compose results"

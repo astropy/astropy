@@ -468,7 +468,7 @@ Other Changes and Additions
   no dithering is used, but the ``SUBTRACTIVE_DITHER_1`` and
   ``SUBTRACTIVE_DITHER_2`` methods can be enabled by passing the correct
   constants to the ``quantize_method`` argument to the ``CompImageHDU``
-  constuctor.  A seed can be manually specified, or automatically generated
+  constructor.  A seed can be manually specified, or automatically generated
   using either the system clock or checksum-based methods via the
   ``dither_seed`` argument.  See the documentation for ``CompImageHDU`` for
   more details. (#198) (spacetelescope/PYFITS#32)
@@ -928,7 +928,7 @@ API Changes
 - A new global variable ``pyfits.EXTENSION_NAME_CASE_SENSITIVE`` was added.
   This serves as a replacement for ``pyfits.setExtensionNameCaseSensitive``
   which is not deprecated and may be removed in a future version.  To enable
-  case-sensitivity of extension names (i.e. treat 'sci' as distict from 'SCI')
+  case-sensitivity of extension names (i.e. treat 'sci' as distinct from 'SCI')
   set ``pyfits.EXTENSION_NAME_CASE_SENSITIVE = True``.  The default is
   ``False``. (r1139)
 
@@ -1070,7 +1070,7 @@ Bug Fixes
 
 - Fixed a bug where opening a file containing compressed image HDUs in
   'update' mode and then immediately closing it without making any changes
-  caused the file to be rewritten unncessarily. (#167)
+  caused the file to be rewritten unnecessarily. (#167)
 
 - Fixed two memory leaks that could occur when writing compressed image data,
   or in some cases when opening files containing compressed image HDUs in
@@ -1407,7 +1407,7 @@ Bug Fixes
 - Fixed a bug where writing a table with zero rows could fail in some cases
   (#72)
 
-- Miscellanous small bug fixes that were causing some tests to fail,
+- Miscellaneous small bug fixes that were causing some tests to fail,
   particularly on Python 3 (#74, #75)
 
 - Fixed a bug where creating a table column from an array in non-native byte
@@ -1950,7 +1950,7 @@ The following bugs were fixed:
   variable length format column from character data (PA format).
 
 - Modified installation code so that when installing on Windows, when a C++
-  compiler compatable with the Python binary is not found, the installation
+  compiler compatible with the Python binary is not found, the installation
   completes with a warning that all optional extension modules failed to
   build.  Previously, an Error was issued and the installation stopped.
 
@@ -2906,7 +2906,7 @@ Minor changes since v0.9.6:
 - Modify the the design of the open() function to remove the output_verify
   argument.
 
-- Remove the groups argument in GroupsHDU's contructor.
+- Remove the groups argument in GroupsHDU's constructor.
 
 - Redesign the column definition class to make its column components more
   accessible.  Also to make it conducive for higher level functionalities,

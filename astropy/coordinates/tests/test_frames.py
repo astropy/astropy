@@ -323,12 +323,13 @@ def test_sep():
     assert_allclose(sep3d.to(u.kpc).value, np.array([1, 1]))
 
 
-def test_time_inputs():
+def test_time_inputs(recwarn):
     """
     Test validation and conversion of inputs for equinox and obstime attributes.
     """
     from ...time import Time
     from ..builtin_frames import FK4
+    from ...utils.exceptions import AstropyWarning
 
     c = FK4(1 * u.deg, 2 * u.deg, equinox='J2001.5', obstime='2000-01-01 12:00:00')
     assert c.equinox == Time('J2001.5')
@@ -342,9 +343,10 @@ def test_time_inputs():
         c = FK4(1 * u.deg, 2 * u.deg, obstime='hello')
     assert 'Invalid time input' in str(err)
 
-    with pytest.raises(ValueError) as err:
-        c = FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
-    assert "must be a single (scalar) value" in str(err)
+    #should yield a warning about vector times not always working
+    c = FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
+    w = recwarn.pop(AstropyWarning)
+    assert "is not a single (scalar) value" in str(w.message)
 
 
 def test_is_frame_attr_default():
@@ -495,3 +497,42 @@ def test_len0_data():
     i = ICRS([]*u.deg, []*u.deg)
     assert i.has_data
     repr(i)
+
+def test_quantity_attributes():
+    from ..builtin_frames import GCRS
+
+    #make sure we can create a GCRS frame with valid inputs
+    GCRS(obstime='J2002', obsgeoloc=[1, 2, 3]*u.km, obsgeovel=[4, 5, 6]*u.km/u.s)
+
+    #make sure it fails for invalid lovs or vels
+    with pytest.raises(TypeError):
+        GCRS(obsgeoloc=[1, 2, 3])  #no unit
+    with pytest.raises(u.UnitsError):
+        GCRS(obsgeoloc=[1, 2, 3]*u.km/u.s)  #incorrect unit
+    with pytest.raises(ValueError):
+        GCRS(obsgeoloc=[1, 3]*u.km)  #incorrect shape
+
+def test_eloc_attributes():
+    from .. import AltAz, ITRS, GCRS, EarthLocation
+
+    el = EarthLocation(lon=12.3*u.deg, lat=45.6*u.deg, height=1*u.km)
+    it = ITRS(representation.SphericalRepresentation(lon=12.3*u.deg, lat=45.6*u.deg, distance=1*u.km))
+    gc = GCRS(ra=12.3*u.deg, dec=45.6*u.deg, distance=6375*u.km)
+
+    el1 = AltAz(location=el).location
+    assert isinstance(el1, EarthLocation)
+    assert el1.latitude == el.latitude
+    assert el1.longitude == el.longitude
+    assert el1.height == el.height
+
+    el2 = AltAz(location=it).location
+    assert isinstance(el2, EarthLocation)
+    assert el2.latitude != it.spherical.lat
+    assert el2.longitude != it.spherical.lon
+    assert el2.height < -6000*u.km
+
+    el3 = AltAz(location=gc).location  #this one implicitly does transform_to
+    assert isinstance(el3, EarthLocation)
+    assert el3.latitude != gc.dec
+    assert el3.longitude != gc.ra
+    assert np.abs(el3.height) < 500*u.km

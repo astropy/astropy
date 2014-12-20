@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from .core import *
 from .quantity import *
+from .decorators import *
 
 from . import si
 from . import cgs

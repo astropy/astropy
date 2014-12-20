@@ -86,7 +86,7 @@ run::
 
 .. note::
 
-    There may be a delay of a day or to between when a new version of Astropy
+    There may be a delay of a day or two between when a new version of Astropy
     is released and when a package is available for Anaconda. You can check
     for the list of available versions with ``conda search astropy``.
 
@@ -147,7 +147,8 @@ The `instructions for building Numpy from source
 <http://docs.scipy.org/doc/numpy/user/install.html>`_ are also a good
 resource for setting up your environment to build Python packages.
 
-You will also need `Cython <http://cython.org/>`_ (v0.15 or later) installed
+You will also need `Cython <http://cython.org/>`_ (v0.15 or later) and
+`jinja2 <http://jinja.pocoo.org/docs/dev/>`_ installed
 to build from source, unless you are installing a numbered release. (The
 releases packages have the necessary C files packaged with them, and hence do
 not require Cython.)

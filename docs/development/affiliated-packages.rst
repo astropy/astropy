@@ -5,22 +5,226 @@ How to create and maintain an Astropy affiliated package
 If you run into any problems, don't hesitate to ask for help on the
 astropy-dev mailing list!
 
+The `package-template`_ repository provides a template for packages that are
+affiliated with the `Astropy`_ project. This package design mirrors the
+layout of the main `Astropy`_ repository, as well as reusing much of the
+helper code used to organize `Astropy`_. The instructions below describe how
+to take this template and adjust it for your particular affiliated package,
+as well as how to update your package to the latest version of the package
+template.
+
+There are two main ways you can use this template layout to create a new
+package:
+
+#. simply copy over the files you need manually
+
+#. start from a fork of the package-template repository
+
+There are advantages and disadvantages to both methods. In the first case your
+repository history will be clean and you will only include the files you really
+need. However, when updating you will need to make sure you update all the
+files manually. In the second case, the history of your package will be
+cluttered with all the commits from the `package-template`_ repository, but if
+done properly this can be easier to update in future since it simply involves
+pulling from the latest version of the `package-template`_ repository and then
+merging in the changes (and resolving conflicts).
+
+.. note:: The instructions below assume you are using git for version control,
+          as is used by the Astropy repository. If this is not the case,
+          hopefully it will be clear from context what to do with your
+          particular VCS.
+
+Everywhere below that the text ``<packagename>`` is shown, replace it with the
+name of your particular package. In fact, you can do this automatically by
+entering your package name in the box below:
+
+.. raw:: html
+
+    <form id="myform">
+      Package name: <input type="text" name="packagename">
+      <button>Update package name</button>
+    </form>
+    <br>
+
+Managing the template files manually
+====================================
+
 Starting a new package
-======================
+----------------------
 
-The `package-template <https://github.com/astropy/package-template>`_
-repository provides a template for packages that are affiliated with the
-`Astropy`_ project. This package design mirrors the layout of the main
-`Astropy`_ repository, as well as reusing much of the helper code used to
-organize `Astropy`_.  The instructions below describe how to take this
-template and adjust it for your particular affiliated package.
+#. Clone the `package-template`_ package so that we can have access to the
+   files, but do not go inside it - instead, create another empty repository
+   into which we will copy the required files::
 
-Everywhere below that the text ``yourpkg`` is shown, replace it with the name
-of your particular package.
+    git clone http://github.com/astropy/package-template.git template
+    mkdir <packagename>
+    cd <packagename>
+    git init
 
-**Note**: The instructions below assume you are using git for version control,
-as is used by the Astropy repository. If this is not the case, hopefully it
-will be clear from context what to do with your particular VCS.
+#. The `package-template`_ infrastructure relies on the `astropy-helpers`_
+   package, and we recommend adding this as a sub-module so as to easily be
+   able to bundle it in releases of affiliated packages::
+
+    git submodule add http://github.com/astropy/astropy-helpers.git astropy_helpers
+
+#. Copy over the following files from the package template (these define the
+   bare minimum of what is needed) and add them to the repository::
+
+    # .gitignore specifies which types of files to ignore in the repository
+    cp ../template/.gitignore .
+
+    # MANIFEST.in specifies which files to include in a tar file release
+    cp ../template/MANIFEST.in .
+
+    # ah_bootstrap.py is used by setup.py to use the astropy-helpers
+    cp ../template/ah_bootstrap.py .
+
+    # ez_setup.py is used by setup.py to be able to get setuptools on-the-fly
+    cp ../template/ez_setup.py .
+
+    # setup.cfg contains details about your package - edit it after copying!
+    # Note: it is important that the package_name variable matches the name you
+    #       are using for your package.
+    cp ../template/setup.cfg .
+
+    # edit the VERSION variable, the rest can be kept as-is
+    cp ../template/setup.py .
+
+   .. important:: Before proceeding, make sure you have edited ``setup.cfg`` and
+                 ``setup.py`` as indicated above!
+
+   Once you have edited ``setup.cfg`` and ``setup.py``, you can commit the
+   changes::
+
+    git add .gitignore MANIFEST.in ah_bootstrap.py ez_setup.py setup.cfg setup.py
+
+#. Next, you can create a directory for your package's source code, which will
+   usually also be called the same name as your package. In this directory
+   you can copy over the following files::
+
+    mkdir <packagename>
+
+    cp ../template/packagename/__init__.py <packagename>/
+    cp ../template/packagename/_astropy_init.py <packagename>/
+
+    # edit <packagename>/__init__.py to change the docstring and change the
+    # example import ``from example_mod import *`` to whatever is needed for
+    # your package. If you don't want to try out any specific code yet, just
+    # replace the import by ``pass``.
+
+   The main purpose of the ``_astropy_init.py`` file is to set up the
+   ``test()`` command at the root of your package so that you can do
+   ``packagename.test()``. This file is imported into ``__init__``.
+
+   .. important:: Before proceeding, make sure you have edited ``__init__.py`` as
+                  indicated above!
+
+   Once you have made the above changes, you can commit the files::
+
+    git add <packagename>/__init__.py
+    git add <packagename>/_astropy_init.py
+
+#. In order to benefit from the pytest plugins in Astropy, you should also
+   copy over the ``conftest.py`` file to your repository::
+
+    cp ../template/packagename/conftest.py <packagename>/
+
+    git add <packagename>/conftest.py
+
+   You can also uncomment the line ``enable_deprecations_as_exceptions()`` if
+   you want deprecation warnings to make tests fail.
+
+#. If you are interested in accurate coverage test results, copy over the
+   ``coveragerc`` and the ``setup_package.py`` files to your repository (the
+   latter ensures that ``coveragerc`` gets installed with the package::
+
+    mkdir <packagename>/tests/
+    cp ../template/packagename/tests/__init__.py <packagename>/tests
+    cp ../template/packagename/tests/setup_package.py <packagename>/tests
+    cp ../template/packagename/tests/coveragerc <packagename>/tests
+
+    git add <packagename>/tests/__init__.py
+    git add <packagename>/tests/setup_package.py
+    git add <packagename>/tests/coveragerc
+
+   to your repository. When you run tests with with ``--coverage`` option this
+   file will be used to exclude certain files that should not typically be
+   included. Note that you don't need to change the ``{packagename}`` string in
+   ``coveragerc`` - this gets changed automatically using the package name
+   defined in ``setup.cfg``.
+
+   .. note:: the ``python setup.py`` commands will not work until you
+             have made your first commit, as shown in the last step of these
+             instructions.
+
+#. To set up the infrastructure to build the documentation, copy over the
+   following files into a new directory called ``docs``::
+
+    mkdir docs
+    cp ../template/docs/Makefile docs/
+    cp ../template/docs/conf.py docs/
+    cp ../template/docs/make.bat docs/
+    touch docs/index.rst  # creates empty page
+    git add docs/Makefile docs/conf.py docs/make.bat docs/index.rst
+
+   you can later start adding content to ``index.rst`` and other documentation
+   files.
+
+#. Finally, if you plan on using Travis for continuous integration, copy over
+   the ``.travis.yml`` file and edit it::
+
+    cp ../template/.travis.yml .
+    # edit .travis.yml
+    git add .travis.yml
+
+   .. important:: Before proceeding, make sure you have edited ``.travis.yml`` as
+                  indicated above!
+
+#. Now you are ready to make your first commit::
+
+    git commit -m "Initial layout for package"
+
+#. You can test that your package works correctly by doing e.g.::
+
+    python setup.py build
+    python setup.py test --coverage
+    python setup.py build_sphinx
+
+   If you have any issues that you cannot fix, feel free to ask us on the
+   `astropy-dev mailing list`_!
+
+Updating to the latest template files
+-------------------------------------
+
+From time to time we will make changes to the package-template to fix bugs or
+add functionality. Updating to the latest version is simple - simply check
+the `TEMPLATE_CHANGES.md`_ file, which provides a changelog of the package
+template. You can also re-copy over all the files listed in the above section
+and see if any of the changes should be committed (some of the changes will
+be reverting some of your edits, so do not include those!). Remember to
+update the astropy-helpers sub-module to the latest stable version, and
+update the corresponding ``ah_bootstrap.py`` file, for example::
+
+    cd astropy_helpers
+    git fetch origin
+    git checkout v0.4.3
+    cd ..
+    cp astropy_helpers/ah_bootstrap.py .
+    git add astropy_helpers ah_bootstrap.py
+    git commit -m "Updated astropy-helpers to v0.4.3"
+
+You can find out what the latest version of astropy-helpers is by checking the
+`astropy-helpers <https://pypi.python.org/pypi/astropy-helpers/>`__ entry on
+PyPI.
+
+Managing the template files via git
+===================================
+
+Starting a new package
+----------------------
+
+Before reading this we recommend reading over the `Managing the template
+files manually`_ section since this explains what many of the files do.
 
 #. Make sure `Astropy`_ is installed, as the template depends in part on
    Astropy to do its setup.
@@ -29,10 +233,10 @@ will be clear from context what to do with your particular VCS.
    if not, you will need to obtain a copy of the package template.  Assuming
    you have `git`_ installed, just do::
 
-      git clone git://github.com/astropy/package-template.git yourpkg
+      git clone git://github.com/astropy/package-template.git packagename
 
   This will download the latest version of the template from `github`_ and
-  place it in a directory named ``yourpkg``.
+  place it in a directory named ``packagename``.
 
 #. Go into the directory you just created, and open the ``setup.cfg``
    file with your favorite text editor.  Edit the settings in the
@@ -90,25 +294,25 @@ will be clear from context what to do with your particular VCS.
    To tell your DVCS about this move, you should use it, and not ``mv``
    directly, to make the move.  For example, with git::
 
-    git mv packagename yourpkg
+    git mv packagename packagename
 
 #. Update the names of the documentation files to match your package's name.
    First open ``docs/index.rst`` in a text editor and change the text
-   ``"packagename/index.rst"`` to e.g., ``"yourpkg/index.rst"``.  Then do::
+   ``"packagename/index.rst"`` to e.g., ``"packagename/index.rst"``.  Then do::
 
       git add docs/index.rst
-      git mv docs/packagename docs/yourpkg
+      git mv docs/packagename docs/packagename
 
 #. Edit this file (``README.rst``) and delete all of this content, and replace it
    with a short description of your affiliated package.
 
-#.  Open ``docs/yourpkg/index.rst`` and you can start writing the documentation
+#.  Open ``docs/packagename/index.rst`` and you can start writing the documentation
     for your package, but at least replace ``packagename`` in ``automodapi::``
     with your package name.
 
 #. Now tell git to remember the changes you just made::
 
-      git commit -a -m "Adjusted for new project yourpkg"
+      git commit -a -m "Adjusted for new project packagename"
 
 #. (This step assumes your affiliated package is hosted as part of the astropy
    organization on Github.  If it's instead hosted somewhere else, just adjust
@@ -117,7 +321,7 @@ will be clear from context what to do with your particular VCS.
    to the repository of *your* project, rather than the package template::
 
       git remote rename origin template
-      git remote add upstream git@github.com:astropy/yourpkg.git
+      git remote add upstream git@github.com:astropy/packagename.git
 
    Now that it is pointing to the correct master, you should push everything up
    to your project and make sure that your local master is tied to your project
@@ -130,10 +334,10 @@ will be clear from context what to do with your particular VCS.
 
 #. (optional) If you are adopting the standard workflow used by `Astropy`_ with
    github, you will also want to set up a fork of the repo on your own account,
-   by going to the Github page https://github.com/astropy/yourpkg and clicking
+   by going to the Github page https://github.com/astropy/packagename and clicking
    the "fork" button on the upper right.  Then run the following commands::
 
-      git remote add origin git@github.com:yourgithubusername/yourpkg.git
+      git remote add origin git@github.com:yourgithubusername/packagename.git
       git branch master --set-upstream origin/master
 
    Now you can push, pull, and branch whatever you want in your local fork
@@ -209,6 +413,11 @@ will be clear from context what to do with your particular VCS.
 
 #. Good luck with your code and your science!
 
+Updating to the latest template files
+-------------------------------------
+
+.. TODO
+
 Releasing an affiliated package
 ===============================
 
@@ -217,20 +426,20 @@ instructions, we assume that the changelog file is named ``CHANGES.rst``, like
 for the astropy core package. If instead you use Markdown, then you should
 replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
-1. Make sure that Travis and any other continuous integration is passing.
+#. Make sure that Travis and any other continuous integration is passing.
 
-2. Update the ``CHANGES.rst`` file to make sure that all the changes are listed,
+#. Update the ``CHANGES.rst`` file to make sure that all the changes are listed,
    and update the release date, which should currently be set to
    ``unreleased``, to the current date in ``yyyy-mm-dd`` format.
 
-3. Update the version number in ``setup.py`` to the version you're about to
+#. Update the version number in ``setup.py`` to the version you're about to
    release, without the ``.dev`` suffix (e.g. ``v0.1``).
 
-4. Run ``git clean -fxd`` to remove any untracked files (WARNING: this will
+#. Run ``git clean -fxd`` to remove any untracked files (WARNING: this will
    permanently remove any files that have not been previously committed, so
    make sure that you don't need to keep any of these files).
 
-5. Run::
+#. Run::
 
         python setup.py sdist --format=gztar
 
@@ -243,11 +452,11 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
    You may need to add the ``--remote-data`` flag or any other flags that you
    normally add when fully testing your affiliated package.
 
-6. Go back to the root of the directory and remove the generated files with::
+#. Go back to the root of the directory and remove the generated files with::
 
         git clean -fxd
 
-7. Add the changes to ``CHANGES.rst`` and ``setup.py``::
+#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
 
         git add CHANGES.rst setup.py
 
@@ -255,20 +464,20 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
         git commit -m "Preparing release <version>"
 
-8. Tag commit with ``v<version>``, optionally signing with the ``-s`` option::
+#. Tag commit with ``v<version>``, optionally signing with the ``-s`` option::
 
         git tag v<version>
 
-9. Change ``VERSION`` in ``setup.py`` to next version number, but with a
+#. Change ``VERSION`` in ``setup.py`` to next version number, but with a
    ``.dev`` suffix at the end (e.g. ``v0.2.dev``). Add a new section to
    ``CHANGES.rst`` for next version, with a single entry ``No changes yet``, e.g.::
-   
+
        0.2 (unreleased)
        ----------------
-   
+
        - No changes yet
 
-10. Add the changes to ``CHANGES.rst`` and ``setup.py``::
+#. Add the changes to ``CHANGES.rst`` and ``setup.py``::
 
         git add CHANGES.rst setup.py
 
@@ -276,8 +485,8 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
         git commit -m "Back to development: <next_version>"
 
-11. Check out the release commit with ``git checkout v<version>``. Run ``git
-    clean -fxd`` to remove any non-committed files, then either release with::
+#. Check out the release commit with ``git checkout v<version>``. Run
+   ``git clean -fxd`` to remove any non-committed files, then either release with::
 
         python setup.py register sdist --format=gztar upload
 
@@ -286,7 +495,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
     instructions. Either way, check that the entry on PyPI is correct, and that
     the tarfile is present.
 
-12. Go back to the master branch and push your changes to github::
+#. Go back to the master branch and push your changes to github::
 
         git checkout master
         git push --tags origin master
@@ -303,3 +512,24 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 .. _git: http://git-scm.com/
 .. _github: http://github.com
 .. _Cython: http://cython.org/
+.. _package-template: https://github.com/astropy/package-template
+.. _astropy-helpers: https://github.com/astropy/astropy-helpers
+.. _TEMPLATE_CHANGES.md: https://github.com/astropy/package-template/blob/master/TEMPLATE_CHANGES.md
+
+.. raw:: html
+
+    <script>
+
+    function get_url_vars() {
+        var vars = {};
+        var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+            vars[key] = value;
+        });
+        return vars;
+    }
+
+    packagename = get_url_vars()["packagename"]
+    if(packagename) {
+      document.body.innerHTML = document.body.innerHTML.replace(/&lt;packagename&gt;/g, packagename);
+    }
+    </script>

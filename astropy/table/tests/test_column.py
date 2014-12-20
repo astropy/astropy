@@ -4,22 +4,17 @@
 
 import operator
 
-from distutils import version
-
 import numpy as np
 
-from ...tests.helper import pytest, catch_warnings, assert_follows_unicode_guidelines
-from ...utils.exceptions import AstropyDeprecationWarning
+from ...tests.helper import pytest, assert_follows_unicode_guidelines
 from ... import table
 from ... import units as u
+from ...extern import six
 
 NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
 
 
 class TestColumn():
-
-    def test_1(self, Column):
-        Column(name='a')
 
     def test_subclass(self, Column):
         c = Column(name='a')
@@ -152,12 +147,12 @@ class TestColumn():
 
     def test_quantity_init(self, Column):
 
-        c = Column(data=np.array([1,2,3]) * u.m)
-        assert np.all(c.data == np.array([1,2,3]))
+        c = Column(data=np.array([1, 2, 3]) * u.m)
+        assert np.all(c.data == np.array([1, 2, 3]))
         assert np.all(c.unit == u.m)
 
-        c = Column(data=np.array([1,2,3]) * u.m, unit=u.cm)
-        assert np.all(c.data == np.array([100,200,300]))
+        c = Column(data=np.array([1, 2, 3]) * u.m, unit=u.cm)
+        assert np.all(c.data == np.array([100, 200, 300]))
         assert np.all(c.unit == u.cm)
 
     def test_attrs_survive_getitem_after_change(self, Column):
@@ -187,6 +182,80 @@ class TestColumn():
         val = c1[1]
         for attr in ('name', 'unit', 'format', 'description', 'meta'):
             assert not hasattr(val, attr)
+
+    def test_to_quantity(self, Column):
+        d = Column([1, 2, 3], name='a', dtype="f8", unit="m")
+
+        assert np.all(d.quantity == ([1, 2, 3.] * u.m))
+        assert np.all(d.quantity.value == ([1, 2, 3.] * u.m).value)
+        assert np.all(d.quantity == d.to('m'))
+        assert np.all(d.quantity.value == d.to('m').value)
+
+        np.testing.assert_allclose(d.to(u.km).value, ([.001, .002, .003] * u.km).value)
+        np.testing.assert_allclose(d.to('km').value, ([.001, .002, .003] * u.km).value)
+
+        np.testing.assert_allclose(d.to(u.MHz,u.equivalencies.spectral()).value,
+                                   [299.792458, 149.896229,  99.93081933])
+
+        d_nounit = Column([1, 2, 3], name='a', dtype="f8", unit=None)
+        with pytest.raises(u.UnitsError):
+            d_nounit.to(u.km)
+        assert np.all(d_nounit.to(u.dimensionless_unscaled) == np.array([1, 2, 3]))
+
+        #make sure the correct copy/no copy behavior is happening
+        q = [1, 3, 5]*u.km
+
+        # to should always make a copy
+        d.to(u.km)[:] = q
+        np.testing.assert_allclose(d, [1, 2, 3])
+
+        # explcit copying of the quantity should not change the column
+        d.quantity.copy()[:] = q
+        np.testing.assert_allclose(d, [1, 2, 3])
+
+        # but quantity directly is a "view", accessing the underlying column
+        d.quantity[:] = q
+        np.testing.assert_allclose(d, [1000, 3000, 5000])
+
+        #view should also work for integers
+        d2 = Column([1, 2, 3], name='a', dtype=int, unit="m")
+        d2.quantity[:] = q
+        np.testing.assert_allclose(d2, [1000, 3000, 5000])
+
+        #but it should fail for strings or other non-numeric tables
+        d3 = Column(['arg', 'name', 'stuff'], name='a', unit="m")
+        with pytest.raises(TypeError):
+            d3.quantity
+
+    def test_item_access_type(self, Column):
+        """
+        Tests for #3095, which forces integer item access to always return a plain
+        ndarray or MaskedArray, even in the case of a multi-dim column.
+        """
+        integer_types = (int, long, np.int) if six.PY2 else (int, np.int)
+
+        for int_type in integer_types:
+            c = Column([[1, 2], [3, 4]])
+            i0 = int_type(0)
+            i1 = int_type(1)
+            assert np.all(c[i0] == [1, 2])
+            assert type(c[i0]) == (np.ma.MaskedArray if hasattr(Column, 'mask') else np.ndarray)
+            assert c[i0].shape == (2,)
+
+            c01 = c[i0:i1]
+            assert np.all(c01 == [[1, 2]])
+            assert isinstance(c01, Column)
+            assert c01.shape == (1, 2)
+
+            c = Column([1, 2])
+            assert np.all(c[i0] == 1)
+            assert isinstance(c[i0], np.integer)
+            assert c[i0].shape == ()
+
+            c01 = c[i0:i1]
+            assert np.all(c01 == [1])
+            assert isinstance(c01, Column)
+            assert c01.shape == (1,)
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""

@@ -141,7 +141,7 @@ The input column data can be any data type that can initialize a |Column| object
   array([(1, [2, 3], 'x'), (4, [5, 6], 'y')],
         dtype=[('a', '<i8'), ('b', '<i8', (2,)), ('c', 'S1')])
 
-Notice that the key ``'c'`` takes precendence over the existing column name
+Notice that the key ``'c'`` takes precedence over the existing column name
 ``'axis'`` in the third column.  Also see that the ``'b'`` column is a vector
 column where each row element is itself a 2-element array.
 
@@ -169,7 +169,7 @@ need to use the ``rows`` keyword to create a table::
   ...              (5, 8.2, 'z')]
   >>> t = Table(rows=data_rows, names=('a', 'b', 'c'))
   >>> print(t)
-   a   b   c 
+   a   b   c
   --- --- ---
     1 2.0   x
     4 5.0   y
@@ -221,13 +221,14 @@ the difference between a scalar ``1`` (length 0) and an array like
 
 NumPy structured array
 """"""""""""""""""""""
-The structured array is the standard mechanism in `numpy` for storing heterogenous
-table data.  Most scientific I/O packages that read table files (e.g.
-`PyFITS <http://www.stsci.edu/resources/software_hardware/pyfits>`_,
-`vo.table <http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_,
-`asciitable <http://cxc.harvard.edu/contrib/asciitable/>`_)
-will return the table in an object that is based on the structured array.
-A structured array can be created using::
+The structured array is the standard mechanism in `numpy` for storing
+heterogeneous table data.  Most scientific I/O packages that read table
+files (e.g.  `PyFITS
+<http://www.stsci.edu/resources/software_hardware/pyfits>`_, `vo.table
+<http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_, `asciitable
+<http://cxc.harvard.edu/contrib/asciitable/>`_) will return the table in an
+object that is based on the structured array.  A structured array can be
+created using::
 
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
@@ -522,19 +523,9 @@ occurs::
     ...
   ValueError: Cannot specify dtype when copy=False
 
-Another caveat in using referenced data is that you cannot add new row to the
-table.  This generates an error because of conflict between the two references
-to the same underlying memory.  Internally, adding a row may involve moving
-the data to a new memory location which would corrupt the input data object.
-`numpy` does not allow this::
-
-  >>> t.add_row([1, 2, 3])
-  Traceback (most recent call last):
-    File "<stdin>", line 1, in <module>
-    File "astropy/table/table.py", line 760, in add_row
-      self._data.resize((newlen,), refcheck=False)
-  ValueError: cannot resize this array: it does not own its data
-
+Another caveat in using referenced data is that you if add a new row to the
+table then the reference to the original data array is lost and instead the
+table will now hold a copy of the original values (in addition to the new row).
 
 Column and TableColumns classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -761,7 +752,7 @@ subclasses, but in practice you would override only the necessary subcomponents:
 
 
 Example
-""""""""
+"""""""
 
 As a more practical example, suppose you have a table of data with a certain set of fixed
 columns, but you also want to carry an arbitrary dictionary of keyword=value
@@ -777,19 +768,19 @@ are contained in a numpy object-dtype column named ``params``::
   ...    """
   ...    def __getitem__(self, item):
   ...        if item not in self.colnames:
-  ...            return self.data['params'][item]
+  ...            return super(ParamsRow, self).__getitem__('params')[item]
   ...        else:
-  ...            return self.data[item]
+  ...            return super(ParamsRow, self).__getitem__(item)
   ...
   ...    def keys(self):
   ...        out = [name for name in self.colnames if name != 'params']
-  ...        params = [key.lower() for key in sorted(self.data['params'])]
+  ...        params = [key.lower() for key in sorted(self['params'])]
   ...        return out + params
   ...
   ...    def values(self):
   ...        return [self[key] for key in self.keys()]
 
-Now we put this into action with a trival |Table| subclass::
+Now we put this into action with a trivial |Table| subclass::
 
   >>> class ParamsTable(Table):
   ...     Row = ParamsRow

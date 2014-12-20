@@ -20,16 +20,20 @@ import locale
 import math
 import os
 import re
-import shutil
-import subprocess
 import sys
-import tempfile
 import types
 
 from .helper import (
     pytest, treat_deprecations_as_exceptions, enable_deprecations_as_exceptions)
 from .disable_internet import turn_off_internet, turn_on_internet
 from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
+from ..utils import OrderedDict
+
+# Needed for Python 2.6 compatibility
+try:
+    import importlib.machinery as importlib_machinery
+except ImportError:
+    importlib_machinery = None
 
 # these pytest hooks allow us to mark tests and run the marked tests with
 # specific command line options.
@@ -60,6 +64,20 @@ def pytest_addoption(parser):
                   "Run the doctests in the rst documentation",
                   default=False)
 
+    parser.addoption('--repeat', action='store',
+                     help='Number of times to repeat each test')
+
+
+def pytest_generate_tests(metafunc):
+
+    # If the repeat option is set, we add a fixture for the repeat count and
+    # parametrize the tests over the repeats. Solution adapted from:
+    # http://stackoverflow.com/q/21764473/180783
+
+    if metafunc.config.option.repeat is not None:
+        count = int(metafunc.config.option.repeat)
+        metafunc.fixturenames.append('tmp_ct')
+        metafunc.parametrize('tmp_ct', range(count))
 
 # We monkey-patch in our replacement doctest OutputChecker.  Not
 # great, but there isn't really an API to replace the checker when
@@ -368,44 +386,26 @@ class DocTestFinderPlus(doctest.DocTestFinder):
 
 # Open file detection.
 #
-# This works by calling out to lsof to get the list of open files held
-# by the process both before and after the test.  If something is
+# This works by calling out to psutil to get the list of open files
+# held by the process both before and after the test.  If something is
 # still open after the test that wasn't open before the test, an
 # AssertionError is raised.
 #
 # This is not thread-safe.  We're not currently running our tests
 # multi-threaded, but that is worth noting.
 
-SUPPORTS_OPEN_FILE_DETECTION = (
-    sys.platform in ('linux', 'linux2', 'darwin'))
-
 
 def _get_open_file_list():
-    fsencoding = sys.getfilesystemencoding()
-
-    sproc = subprocess.Popen(
-        ['lsof -F0 -n -p {0}'.format(os.getpid())],
-        shell=True, stdout=subprocess.PIPE)
-    output = sproc.communicate()[0].strip()
+    import psutil
     files = []
-    for line in output.split(b'\n'):
-        columns = line.split(b'\0')
-        mapping = {}
-        for column in columns:
-            if len(column) >= 2:
-                mapping[column[0:1]] = column[1:]
+    p = psutil.Process()
 
-        if (mapping.get(b'f') and
-            mapping.get(b'a', b' ') != b' ' and
-                mapping.get(b't') == b'REG'):
-            # Ignore extension modules -- they may be imported by a
-            # test but are never again closed by the runtime.  That's
-            # ok.
-            for suffix, mode, filetype in imp.get_suffixes():
-                if mapping[b'n'].decode(fsencoding).endswith(suffix):
-                    break
-            else:
-                files.append(mapping[b'n'])
+    if importlib_machinery is not None:
+        suffixes = tuple(importlib_machinery.all_suffixes())
+    else:
+        suffixes = tuple(info[0] for info in imp.get_suffixes())
+
+    files = [x.path for x in p.open_files() if not x.path.endswith(suffixes)]
 
     return set(files)
 
@@ -413,7 +413,7 @@ def _get_open_file_list():
 def pytest_runtest_setup(item):
     # Store a list of the currently opened files so we can compare
     # against them when the test is done.
-    if SUPPORTS_OPEN_FILE_DETECTION and item.config.getvalue('open_files'):
+    if item.config.getvalue('open_files'):
         item.open_files = _get_open_file_list()
 
     if ('remote_data' in item.keywords and
@@ -421,42 +421,46 @@ def pytest_runtest_setup(item):
         pytest.skip("need --remote-data option to run")
 
 
-if SUPPORTS_OPEN_FILE_DETECTION:
-    def pytest_runtest_teardown(item, nextitem):
-        # a "skipped" test will not have been called with
-        # pytest_runtest_setup, so therefore won't have an
-        # "open_files" member
-        if (not item.config.getvalue('open_files') or
-                not hasattr(item, 'open_files')):
-            return
+def pytest_runtest_teardown(item, nextitem):
+    # a "skipped" test will not have been called with
+    # pytest_runtest_setup, so therefore won't have an
+    # "open_files" member
+    if (not item.config.getvalue('open_files') or
+            not hasattr(item, 'open_files')):
+        return
 
-        start_open_files = item.open_files
-        del item.open_files
+    start_open_files = item.open_files
+    del item.open_files
 
-        open_files = _get_open_file_list()
+    open_files = _get_open_file_list()
 
-        # This works in tandem with the test_open_file_detection test to
-        # ensure that it creates one extra open file.
-        if item.name == 'test_open_file_detection':
-            assert len(start_open_files) + 1 == len(open_files)
-            return
+    # This works in tandem with the test_open_file_detection test to
+    # ensure that it creates one extra open file.
+    if item.name == 'test_open_file_detection':
+        assert len(start_open_files) + 1 == len(open_files)
+        return
 
-        not_closed = set()
-        for filename in open_files:
-            # astropy.log files are allowed to continue to exist
-            # between test runs
-            if os.path.basename(filename) == 'astropy.log':
-                continue
+    not_closed = set()
+    for filename in open_files:
+        # astropy.log files are allowed to continue to exist
+        # between test runs
+        if os.path.basename(filename) == 'astropy.log':
+            continue
 
-            if filename not in start_open_files:
-                not_closed.add(filename)
+        if filename not in start_open_files:
+            not_closed.add(filename)
 
-        if len(not_closed):
-            msg = ['File(s) not closed:']
-            for name in not_closed:
-                msg.append('  {0}'.format(
-                    name.decode(sys.getfilesystemencoding())))
-            raise AssertionError('\n'.join(msg))
+    if len(not_closed):
+        msg = ['File(s) not closed:']
+        for name in not_closed:
+            msg.append('  {0}'.format(name))
+        raise AssertionError('\n'.join(msg))
+
+
+PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
+                                     ('Scipy', 'scipy'),
+                                     ('Matplotlib', 'matplotlib'),
+                                     ('h5py', 'h5py')])
 
 
 def pytest_report_header(config):
@@ -492,26 +496,17 @@ def pytest_report_header(config):
     s += "float info: dig: {0.dig}, mant_dig: {0.dig}\n\n".format(
         sys.float_info)
 
-    import numpy
-    s += "Numpy: {0}\n".format(numpy.__version__)
-
-    try:
-        import scipy
-        s += "Scipy: {0}\n".format(scipy.__version__)
-    except:
-        s += "Scipy: not available\n"
-
-    try:
-        import matplotlib
-        s += "Matplotlib: {0}\n".format(matplotlib.__version__)
-    except:
-        s += "Matplotlib: not available\n"
-
-    try:
-        import h5py.version
-        s += "h5py: {0}\n".format(h5py.version.version)
-    except:
-        s += "h5py: not available\n"
+    for module_display, module_name in six.iteritems(PYTEST_HEADER_MODULES):
+        try:
+            module = __import__(module_name)
+        except ImportError:
+            s += "{0}: not available\n".format(module_display)
+        else:
+            try:
+                version = module.__version__
+            except AttributeError:
+                version = 'unknown (no __version__ attribute)'
+            s += "{0}: {1}\n".format(module_display, version)
 
     special_opts = ["remote_data", "pep8"]
     opts = []

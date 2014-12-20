@@ -12,7 +12,7 @@ import numpy as np
 
 from .. import constants as const
 from .. import units as u
-from ..utils import isiterable, deprecated
+from ..utils import isiterable
 from ..utils.state import ScienceState, ScienceStateAlias
 
 from . import parameters
@@ -165,8 +165,8 @@ class FLRW(Cosmology):
 
         # We are going to share Neff between the neutrinos equally.
         # In detail this is not correct, but it is a standard assumption
-        # because propertly calculating it is a) complicated b) depends
-        # on the details of the massive nuetrinos (e.g., their weak
+        # because properly calculating it is a) complicated b) depends
+        # on the details of the massive neutrinos (e.g., their weak
         # interactions, which could be unusual if one is considering sterile
         # neutrinos)
         self._massivenu = False
@@ -182,7 +182,7 @@ class FLRW(Cosmology):
 
             # Now, figure out if we have massive neutrinos to deal with,
             # and, if so, get the right number of masses
-            # It is worth the effort to keep track of massless ones seperately
+            # It is worth the effort to keep track of massless ones separately
             # (since they are quite easy to deal with, and a common use case
             # is to set only one neutrino to have mass)
             if m_nu.isscalar:
@@ -211,11 +211,7 @@ class FLRW(Cosmology):
                         errstr = "Unexpected number of neutrino masses"
                         raise ValueError(errstr)
                     # Segregate out the massless ones
-                    try:
-                        # Numpy < 1.6 doesn't have count_nonzero
-                        self._nmasslessnu = np.count_nonzero(m_nu.value == 0)
-                    except AttributeError:
-                        self._nmasslessnu = len(np.nonzero(m_nu.value == 0)[0])
+                    self._nmasslessnu = len(np.nonzero(m_nu.value == 0)[0])
                     self._nmassivenu = self._nneutrinos - self._nmasslessnu
                     w = np.nonzero(m_nu.value > 0)[0]
                     self._massivenu_mass = m_nu[w]
@@ -420,7 +416,7 @@ class FLRW(Cosmology):
             try:
                 val = getattr(self, arg)
                 argdict[arg] = val
-            except AttributeError as e:
+            except AttributeError:
                 # We didn't find a property -- complain usefully
                 errstr = "Object did not have property corresponding "\
                          "to constructor argument '%s'; perhaps it is a "\
@@ -617,7 +613,7 @@ class FLRW(Cosmology):
         Returns
         -------
         Onu : ndarray, or float if input scalar
-          The energy density of photons relative to the critical
+          The energy density of neutrinos relative to the critical
           density at each redshift.  Note that this includes their
           kinetic energy (if they have mass), so it is not equal to
           the commonly used :math:`\\sum \\frac{m_{\\nu}}{94 eV}`,
@@ -715,7 +711,7 @@ class FLRW(Cosmology):
         # by computing the above for each mass, then summing
         prefac = 0.22710731766  # 7/8 (4/11)^4/3 -- see any cosmo book
 
-        # The massive and massless contribution must be handled seperately
+        # The massive and massless contribution must be handled separately
         # But check for common cases first
         if not self._massivenu:
             if np.isscalar(z):
@@ -732,7 +728,6 @@ class FLRW(Cosmology):
             rel_mass = rel_mass_per.sum() + self._nmasslessnu
         else:
             z = np.asarray(z)
-            retarr = np.empty_like(z)
             curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
             rel_mass_per = (1. + (0.3173 * curr_nu_y) ** p) ** invp
             rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
@@ -971,8 +966,27 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return self._hubble_time * quad(self._tfunc, 0, z)[0]
 
-        out = np.array([quad(self._tfunc, 0, redshift)[0] for redshift in z])
-        return self._hubble_time * np.array(out)
+        f = np.vectorize(lambda red: quad(self._tfunc, 0, red)[0])
+        return self._hubble_time * f(z)
+
+    def lookback_distance(self, z):
+        """
+        The lookback distance is the light travel time distance to a given
+        redshift. It is simply c * lookback_time.  It may be used to calculate
+        the proper distance between two redshifts, e.g. for the mean free path
+        to ionizing radiation.
+
+        Parameters
+        ----------
+        z : array_like
+          Input redshifts.  Must be 1D or scalar
+
+        Returns
+        -------
+        d : `~astropy.units.Quantity`
+          Lookback distance in Mpc
+        """
+        return (self.lookback_time(z) * const.c).to(u.Mpc)
 
     def age(self, z):
         """ Age of the universe in Gyr at redshift ``z``.
@@ -996,8 +1010,8 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return self._hubble_time * quad(self._tfunc, z, np.inf)[0]
 
-        out = [quad(self._tfunc, redshift, np.inf)[0] for redshift in z]
-        return self._hubble_time * np.array(out)
+        f = np.vectorize(lambda red: quad(self._tfunc, red, np.inf)[0])
+        return self._hubble_time * f(z)
 
     def critical_density(self, z):
         """ Critical density in grams per cubic cm at redshift ``z``.
@@ -1038,8 +1052,8 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return self._hubble_distance * quad(self.inv_efunc, 0, z)[0]
 
-        out = [quad(self.inv_efunc, 0, redshift)[0] for redshift in z]
-        return self._hubble_distance * np.array(out)
+        f = np.vectorize(lambda red: quad(self.inv_efunc, 0, red)[0])
+        return self._hubble_distance * f(z)
 
     def comoving_transverse_distance(self, z):
         """ Comoving transverse distance in Mpc at a given redshift.
@@ -1225,8 +1239,8 @@ class FLRW(Cosmology):
         if not isiterable(z):
             return quad(self._xfunc, 0, z)[0]
 
-        out = np.array([quad(self._xfunc, 0, redshift)[0] for redshift in z])
-        return out
+        f = np.vectorize(lambda red: quad(self._xfunc, 0, red)[0])
+        return f(z)
 
     def distmod(self, z):
         """ Distance modulus at redshift ``z``.
@@ -1504,7 +1518,7 @@ class LambdaCDM(FLRW):
         Returns
         -------
         E : ndarray, or float if input scalar
-          The redshift scaling of the Hubble consant.
+          The redshift scaling of the Hubble constant.
 
         Notes
         -----
@@ -1618,7 +1632,7 @@ class FlatLambdaCDM(LambdaCDM):
         Returns
         -------
         E : ndarray, or float if input scalar
-          The redshift scaling of the Hubble consant.
+          The redshift scaling of the Hubble constant.
 
         Notes
         -----
@@ -1807,7 +1821,7 @@ class wCDM(FLRW):
         Returns
         -------
         E : ndarray, or float if input scalar
-          The redshift scaling of the Hubble consant.
+          The redshift scaling of the Hubble constant.
 
         Notes
         -----
@@ -1938,7 +1952,7 @@ class FlatwCDM(wCDM):
         Returns
         -------
         E : ndarray, or float if input scalar
-          The redshift scaling of the Hubble consant.
+          The redshift scaling of the Hubble constant.
 
         Notes
         -----

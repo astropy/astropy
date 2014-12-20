@@ -564,18 +564,9 @@ class FITS_rec(np.recarray):
         attributes (including ``._convert``!).  So we need to make a deep copy
         of all those attributes so that the two arrays truly do not share any
         data.
-
-        Note: The ``order`` argument is unsupported in Numpy 1.5 and will be
-        ignored when used with that version.
         """
 
-        try:
-            new = super(FITS_rec, self).copy(order=order)
-        except TypeError:
-            # This will probably occur if the order argument is not supported,
-            # such as on Numpy 1.5; in other words we're just going to ask
-            # forgiveness rather than check the Numpy version explicitly.
-            new = super(FITS_rec, self).copy()
+        new = super(FITS_rec, self).copy(order=order)
 
         new.__dict__ = copy.deepcopy(self.__dict__)
         return new

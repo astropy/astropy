@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 4.24 - an implementation of the FITS WCS standard.
+  WCSLIB 4.25 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2014, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 4.24 2014/09/18 15:25:00 mcalabre Exp $
+  $Id: wcs.c,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -1874,6 +1874,40 @@ int wcsset(struct wcsprm *wcs)
   }
 
 
+  /* Set defaults for radesys and equinox for equatorial or ecliptic. */
+  if (strcmp(wcs->lngtyp, "RA")   == 0 ||
+      strcmp(wcs->lngtyp, "ELON") == 0 ||
+      strcmp(wcs->lngtyp, "HLON") == 0) {
+    if (wcs->radesys[0] == '\0') {
+      if (undefined(wcs->equinox)) {
+        strcpy(wcs->radesys, "ICRS");
+      } else if (wcs->equinox < 1984.0) {
+        strcpy(wcs->radesys, "FK4");
+      } else {
+        strcpy(wcs->radesys, "FK5");
+      }
+
+    } else if (strcmp(wcs->radesys, "ICRS")  == 0 ||
+               strcmp(wcs->radesys, "GAPPT") == 0) {
+      /* Equinox is not applicable for these coordinate systems. */
+      wcs->equinox = UNDEFINED;
+
+    } else if (undefined(wcs->equinox)) {
+      if (strcmp(wcs->radesys, "FK5") == 0) {
+        wcs->equinox = 2000.0;
+      } else if (strcmp(wcs->radesys, "FK4") == 0 ||
+                 strcmp(wcs->radesys, "FK4-NO-E") == 0) {
+        wcs->equinox = 1950.0;
+      }
+    }
+
+  } else {
+    /* No celestial axes, ensure that radesys and equinox are unset. */
+    memset(wcs->radesys, 0, 72);
+    wcs->equinox = UNDEFINED;
+  }
+
+
   /* Strip off trailing blanks and null-fill auxiliary string members. */
   wcsutil_null_fill(4, wcs->alt);
   wcsutil_null_fill(72, wcs->wcsname);
@@ -1986,15 +2020,21 @@ int wcs_types(struct wcsprm *wcs)
         strcmp(ctypei+1, "LON") == 0 ||
         strcmp(ctypei+2, "LN")  == 0) {
         /* Longitude axis. */
-        if (wcs->lng < 0) wcs->lng = i;
         wcs->types[i] += 2000;
+        if (wcs->lng < 0) {
+          wcs->lng = i;
+          strcpy(wcs->lngtyp, ctypei);
+        }
 
       } else if (strcmp(ctypei,   "DEC") == 0 ||
                  strcmp(ctypei+1, "LAT") == 0 ||
                  strcmp(ctypei+2, "LT")  == 0) {
         /* Latitude axis. */
-        if (wcs->lat < 0) wcs->lat = i;
         wcs->types[i] += 2001;
+        if (wcs->lat < 0) {
+          wcs->lat = i;
+          strcpy(wcs->lattyp, ctypei);
+        }
 
       } else if (strcmp(ctypei, "CUBEFACE") == 0) {
         /* CUBEFACE axis. */

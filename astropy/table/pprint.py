@@ -257,7 +257,7 @@ class TableFormatter(object):
         """
         max_lines, _ = self._get_pprint_size(max_lines, -1)
 
-        multidims = col.shape[1:]
+        multidims = getattr(col, 'shape', [0])[1:]
         if multidims:
             multidim0 = tuple(0 for n in multidims)
             multidim1 = tuple(n - 1 for n in multidims)
@@ -278,7 +278,7 @@ class TableFormatter(object):
         if show_unit:
             i_centers.append(n_header)
             n_header += 1
-            yield six.text_type(col.unit or '')
+            yield six.text_type(getattr(col, 'unit', None) or '')
         if show_unit or show_name:
             i_dashes = n_header
             n_header += 1
@@ -288,7 +288,8 @@ class TableFormatter(object):
         n_print2 = max_lines // 2
         n_rows = len(col)
 
-        format_func = _format_funcs.get(col.format, _auto_format_func)
+        col_format = getattr(col, 'format', None)
+        format_func = _format_funcs.get(col_format, _auto_format_func)
         if len(col) > max_lines:
             i0 = n_print2
             i1 = n_rows - n_print2 - max_lines % 2
@@ -304,13 +305,13 @@ class TableFormatter(object):
                     # with shape (n,1,...,1) from being printed as if there was
                     # more than one element in a row
                     if trivial_multidims:
-                        col_str = format_func(col.format, col[(i,) + multidim0])
+                        col_str = format_func(col_format, col[(i,) + multidim0])
                     else:
-                        col_str = (format_func(col.format, col[(i,) + multidim0]) +
+                        col_str = (format_func(col_format, col[(i,) + multidim0]) +
                                   ' .. ' +
-                                  format_func(col.format, col[(i,) + multidim1]))
+                                  format_func(col_format, col[(i,) + multidim1]))
                 else:
-                    col_str = format_func(col.format, col[i])
+                    col_str = format_func(col_format, col[i])
                 yield col_str
             elif i == i0:
                 yield '...'
@@ -368,7 +369,7 @@ class TableFormatter(object):
         cols = []
 
         if show_unit is None:
-            show_unit = any([col.unit for col in six.itervalues(table.columns)])
+            show_unit = any([getattr(col, 'unit', None) for col in six.itervalues(table.columns)])
 
         if isinstance(align,str):
             align = align

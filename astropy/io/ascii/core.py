@@ -1104,7 +1104,7 @@ def _get_reader(Reader, Inputter=None, Outputter=None, **kwargs):
             # However, position_line is given as absolute number and not relative to header_start.
             # So, ignore this Reader here.
             if (('data_start' not in kwargs) and (default_header_length is not None)
-                    and reader._format_name != 'fixed_width_two_line'):
+                    and reader._format_name not in ['fixed_width_two_line', 'commented_header']):
                 reader.data.start_line = reader.header.start_line + default_header_length
         elif kwargs['header_start'] is not None:
             # User trying to set a None header start to some value other than None

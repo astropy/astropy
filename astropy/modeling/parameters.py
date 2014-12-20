@@ -154,7 +154,6 @@ class Parameter(object):
             # and ordering ID
             self._order = self._get_nextid()
 
-
     def __get__(self, obj, objtype):
         if obj is None:
             return self
@@ -513,6 +512,21 @@ class Parameter(object):
                                 "of either one or two arguments")
 
         return wrapper
+
+    def __array__(self, dtype=None):
+        # Make np.asarray(self) work a little more straightforwardly
+        if self._model is None:
+            return np.array([], dtype=np.float)
+        else:
+            return np.asarray(self.value, dtype=dtype)
+
+    def __nonzero__(self):
+        if self._model is None:
+            return True
+        else:
+            return bool(self.value)
+
+    __bool__ = __nonzero__
 
     def __add__(self, val):
         return self.value + val

@@ -46,10 +46,6 @@ class PowerLaw1D(Fittable1DModel):
     x_0 = Parameter()
     alpha = Parameter()
 
-    def __init__(self, amplitude, x_0, alpha, **constraints):
-        super(PowerLaw1D, self).__init__(amplitude=amplitude, x_0=x_0,
-                                         alpha=alpha, **constraints)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha):
         """One dimensional power law model function"""
@@ -109,11 +105,6 @@ class BrokenPowerLaw1D(Fittable1DModel):
     alpha_1 = Parameter()
     alpha_2 = Parameter()
 
-    def __init__(self, amplitude, x_break, alpha_1, alpha_2, **constraints):
-        super(BrokenPowerLaw1D, self).__init__(
-            amplitude=amplitude, x_break=x_break, alpha_1=alpha_1,
-            alpha_2=alpha_2, **constraints)
-
     @staticmethod
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2):
         """One dimensional broken power law model function"""
@@ -170,11 +161,6 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
     alpha = Parameter()
     x_cutoff = Parameter()
 
-    def __init__(self, amplitude, x_0, alpha, x_cutoff, **constraints):
-        super(ExponentialCutoffPowerLaw1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, alpha=alpha, x_cutoff=x_cutoff,
-            **constraints)
-
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, x_cutoff):
         """One dimensional exponential cutoff power law model function"""
@@ -228,11 +214,6 @@ class LogParabola1D(Fittable1DModel):
     x_0 = Parameter()
     alpha = Parameter()
     beta = Parameter()
-
-    def __init__(self, amplitude, x_0, alpha, beta, **constraints):
-        super(LogParabola1D, self).__init__(
-            amplitude=amplitude, x_0=x_0, alpha=alpha, beta=beta,
-            **constraints)
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, beta):

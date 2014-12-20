@@ -17,20 +17,20 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import abc
+import inspect
 import itertools
 import copy
 import functools
-import inspect
 import warnings
 
 import numpy as np
 
-from ..utils import indent, isiterable
+from ..utils import indent, isiterable, metadata
 from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range
 from ..table import Table
-from ..utils import deprecated, find_current_module
+from ..utils import deprecated, find_current_module, InheritDocstrings
 from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import array_repr_oneline, check_broadcast, IncompatibleShapeError
@@ -47,7 +47,7 @@ class ModelDefinitionError(Exception):
     """Used for incorrect models definitions"""
 
 
-class _ModelMeta(abc.ABCMeta):
+class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     """
     Metaclass for Model.
 
@@ -61,7 +61,31 @@ class _ModelMeta(abc.ABCMeta):
     """
 
     def __new__(mcls, name, bases, members):
-        param_names = members.get('param_names', [])
+        mcls._handle_parameters(name, members)
+        mcls._create_inverse_property(members)
+        mcls._handle_backwards_compat(name, members)
+
+        cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+
+        mcls._handle_special_methods(members, cls)
+
+        if not inspect.isabstract(cls) and not name.startswith('_'):
+            mcls.registry.add(cls)
+
+        return cls
+
+    @property
+    def n_inputs(cls):
+        return len(cls.inputs)
+
+    @property
+    def n_outputs(cls):
+        return len(cls.outputs)
+
+    @classmethod
+    def _handle_parameters(mcls, name, members):
+        # Handle parameters
+        param_names = members.get('param_names', ())
         parameters = {}
         for key, value in members.items():
             if not isinstance(value, Parameter):
@@ -80,46 +104,13 @@ class _ModelMeta(abc.ABCMeta):
                     "them.")
             parameters[value.name] = value
 
-        # Determine in the names of the inputs to the __call__ method; this
-        # is a temporary hack to retain some basic functionality while I
-        # merge different branches
-        # TODO: Remove me once input/output names are fully integrated
-        call_method = members.get('__call__') or bases[0].__call__
-        n_inputs = members.get('n_inputs') or bases[0].n_inputs
-        if isinstance(n_inputs, int):
-            argspec = inspect.getargspec(call_method)
-            members['input_names'] = argspec.args[1:1 + n_inputs]
-        else:
-            # Hack doesn't work in this case; no matter for temporary purposes
-            members['input_names'] = []
-
         # If no parameters were defined get out early--this is especially
         # important for PolynomialModels which take a different approach to
         # parameters, since they can have a variable number of them
         if parameters:
             mcls._check_parameters(name, members, param_names, parameters)
 
-        mcls._create_inverse_property(members)
-
-        # Backwards compatibility check for 'eval' -> 'evaluate'
-        # TODO: Remove sometime after Astropy 1.0 release.
-        if 'eval' in members and 'evaluate' not in members:
-            warnings.warn(
-                "Use of an 'eval' method when defining subclasses of "
-                "FittableModel is deprecated; please rename this method to "
-                "'evaluate'.  Otherwise its semantics remain the same.",
-                AstropyDeprecationWarning)
-            members['evaluate'] = members['eval']
-        elif 'evaluate' in members:
-            alt = '.'.join((name, 'evaluate'))
-            deprecate = deprecated('1.0', alternative=alt, name='eval')
-            members['eval'] = deprecate(members['evaluate'])
-
-        cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
-
-        if not inspect.isabstract(cls) and not name.startswith('_'):
-            mcls.registry.add(cls)
-        return cls
+        return parameters
 
     @staticmethod
     def _check_parameters(name, members, param_names, parameters):
@@ -133,9 +124,9 @@ class _ModelMeta(abc.ABCMeta):
                         "Parameter {0!r} listed in {1}.param_names was not "
                         "declared in the class body.".format(param_name, name))
         else:
-            param_names = [param.name for param in
-                           sorted(parameters.values(),
-                                  key=lambda p: p._order)]
+            param_names = tuple(param.name for param in
+                                sorted(parameters.values(),
+                                       key=lambda p: p._order))
             members['param_names'] = param_names
             members['_param_orders'] = \
                     dict((name, idx) for idx, name in enumerate(param_names))
@@ -171,6 +162,71 @@ class _ModelMeta(abc.ABCMeta):
 
         members['inverse'] = property(wrapped_fget, fset,
                                       doc=inverse.__doc__)
+
+    @classmethod
+    def _handle_backwards_compat(mcls, name, members):
+        # Backwards compatibility check for 'eval' -> 'evaluate'
+        # TODO: Remove sometime after Astropy 1.0 release.
+        if 'eval' in members and 'evaluate' not in members:
+            warnings.warn(
+                "Use of an 'eval' method when defining subclasses of "
+                "FittableModel is deprecated; please rename this method to "
+                "'evaluate'.  Otherwise its semantics remain the same.",
+                AstropyDeprecationWarning)
+            members['evaluate'] = members['eval']
+        elif 'evaluate' in members:
+            alt = '.'.join((name, 'evaluate'))
+            deprecate = deprecated('1.0', alternative=alt, name='eval')
+            members['eval'] = deprecate(members['evaluate'])
+
+    @classmethod
+    def _handle_special_methods(mcls, members, cls):
+        # Handle init creation from inputs
+        def update_wrapper(wrapper, cls):
+            # Set up the new __call__'s metadata attributes as though it were
+            # manually defined in the class definition
+            # A bit like functools.update_wrapper but uses the class instead of
+            # the wrapped function
+            wrapper.__module__ = cls.__module__
+            wrapper.__doc__ = getattr(cls, wrapper.__name__).__doc__
+            if hasattr(cls, '__qualname__'):
+                wrapper.__qualname__ = '{0}.{1}'.format(
+                        cls.__qualname__, wrapper.__name__)
+
+        if '__call__' not in members and 'inputs' in members:
+            inputs = members['inputs']
+            # Done create a custom __call__ for classes that already have one
+            # explicitly defined (this includes the Model base class, and any
+            # other classes that manually override __call__
+            def __call__(self, *inputs, **kwargs):
+                return super(cls, self).__call__(*inputs, **kwargs)
+
+            args = ('self',) + inputs
+            new_call = make_function_with_signature(
+                    __call__, args, [('model_set_axis', None)])
+            update_wrapper(new_call, cls)
+            cls.__call__ = new_call
+
+        if '__init__' not in members and not inspect.isabstract(cls):
+            # If *all* the parameters have default values we can make them
+            # keyword arguments; otherwise they must all be positional
+            # arguments
+            parameters = [getattr(cls, param_name)
+                          for param_name in cls.param_names]
+            if all(p.default is not None for p in parameters):
+                args = ('self',)
+                kwargs = [(p.name, p.default) for p in parameters]
+            else:
+                args = ('self',) + cls.param_names
+                kwargs = {}
+
+            def __init__(self, *params, **kwargs):
+                return super(cls, self).__init__(*params, **kwargs)
+
+            new_init = make_function_with_signature(
+                    __init__, args, kwargs, varkwargs='kwargs')
+            update_wrapper(new_init, cls)
+            cls.__init__ = new_init
 
 
 @six.add_metaclass(_ModelMeta)
@@ -258,29 +314,50 @@ class Model(object):
     True
     """
 
-    parameter_constraints = ['fixed', 'tied', 'bounds']
-    model_constraints = ['eqcons', 'ineqcons']
-
-    param_names = []
+    parameter_constraints = ('fixed', 'tied', 'bounds')
     """
-    List of names of the parameters that describe models of this type.
+    Primarily for informational purposes, these are the types of constraints
+    that can be set on a model's parameters.
+    """
+    model_constraints = ('eqcons', 'ineqcons')
+    """
+    Primarily for informational purposes, these are the types of constraints
+    that constrain model evaluation.
+    """
 
-    The parameters in this list are in the same order they should be passed in
+    param_names = ()
+    """
+    Names of the parameters that describe models of this type.
+
+    The parameters in this tuple are in the same order they should be passed in
     when initializing a model of a specific type.  Some types of models, such
     as polynomial models, have a different number of parameters depending on
     some other property of the model, such as the degree.
+
+    When defining a custom model class the value of this attribute is
+    automatically set by the `~astropy.modeling.Parameter` attributes defined
+    in the class body.
     """
 
-    n_inputs = 1
-    n_outputs = 1
+    inputs = ()
+    """The name(s) of the input variable(s) on which a model is evaluated."""
+    outputs = ()
+    """The name(s) of the output(s) of the model."""
+
     standard_broadcasting = True
     fittable = False
     linear = True
 
     _custom_inverse = None
 
+    meta = metadata.MetaData()
+    """A dict-like object to store optional information."""
+
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
+        meta = kwargs.pop('meta', None)
+        if meta is not None:
+            self.meta = meta
         self._initialize_constraints(kwargs)
         # Remaining keyword args are either parameter values or invalid
         # Parameter values must be passed in as keyword arguments in order to
@@ -297,6 +374,11 @@ class Model(object):
         return self._n_models
 
     def __call__(self, *inputs, **kwargs):
+        """
+        Evaluate this model using the given input(s) and the parameter values
+        that were specified when the model was instantiated.
+        """
+
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
 
         outputs = self.evaluate(*itertools.chain(inputs, self.param_sets))
@@ -307,7 +389,41 @@ class Model(object):
         return self.prepare_outputs(format_info, *outputs, **kwargs)
 
     @property
+    @deprecated('0.4', alternative='len(model)')
+    def param_dim(self):
+        return self._n_models
+
+    @property
+    def n_inputs(self):
+        """
+        The number of inputs to this model.
+
+        Equivalent to ``len(model.inputs)``.
+        """
+
+        return len(self.inputs)
+
+    @property
+    def n_outputs(self):
+        """
+        The number of outputs from this model.
+
+        Equivalent to ``len(model.outputs)``.
+        """
+        return len(self.outputs)
+
+    @property
     def model_set_axis(self):
+        """
+        The index of the model set axis--that is the axis of a parameter array
+        that pertains to which model a parameter value pertains to--as
+        specified when the model was initialized.
+
+        See the documentation on `Model Sets
+        <http://docs.astropy.org/en/stable/modeling/models.html#model-sets>`_
+        for more details.
+        """
+
         return self._model_set_axis
 
     @property
@@ -439,10 +555,10 @@ class Model(object):
 
     def prepare_inputs(self, *inputs, **kwargs):
         """
-        This method is used in `Model.__call__` to ensure that all the inputs
-        to the model can be broadcast into compatible shapes (if one or both of
-        them are input as arrays), particularly if there are more than one
-        parameter sets.
+        This method is used in `~astropy.modeling.Model.__call__` to ensure
+        that all the inputs to the model can be broadcast into compatible
+        shapes (if one or both of them are input as arrays), particularly if
+        there are more than one parameter sets.
         """
 
         model_set_axis = kwargs.pop('model_set_axis', None)
@@ -468,7 +584,7 @@ class Model(object):
             # inputs
             return inputs, ()
 
-        _validate_input_shapes(inputs, self.input_names, n_models,
+        _validate_input_shapes(inputs, self.inputs, n_models,
                                model_set_axis, self.standard_broadcasting)
 
         # The input formatting required for single models versus a multiple
@@ -1005,6 +1121,22 @@ class _CompositeModel(Model):
             parts.append(indent(str(tr), width=4))
         return '\n'.join(parts)
 
+    @property
+    def n_inputs(self):
+        return self._n_inputs
+
+    @n_inputs.setter
+    def n_inputs(self, val):
+        self._n_inputs = val
+
+    @property
+    def n_outputs(self):
+        return self._n_outputs
+
+    @n_outputs.setter
+    def n_outputs(self, val):
+        self._n_outputs = val
+
     def add_model(self, transf, inmap, outmap):
         self[transf] = [inmap, outmap]
 
@@ -1250,25 +1382,8 @@ class Fittable1DModel(FittableModel):
     Examples can be found in `astropy.modeling.functional_models`.
     """
 
-    def __call__(self, x, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        ----------
-        x : array-like or numeric value
-            Input coordinate values.
-
-        model_set_axis : `int` or `False`, optional
-            For `Model` instances representing a multiple-model set, this picks
-            out which axis of the input array is used to map inputs to specific
-            models in the set.  If `False`, this indicates that the input array
-            has no such axis, and instead the same input should be broadcast to
-            all models in the set.
-        """
-
-        return super(Fittable1DModel, self).__call__(
-            x, model_set_axis=model_set_axis)
+    inputs = ('x',)
+    outputs = ('y',)
 
 
 class Fittable2DModel(FittableModel):
@@ -1279,31 +1394,8 @@ class Fittable2DModel(FittableModel):
     Examples can be found in `astropy.modeling.functional_models`.
     """
 
-    n_inputs = 2
-    n_outputs = 1
-
-    def __call__(self, x, y, model_set_axis=None):
-        """
-        Transforms data using this model.
-
-        Parameters
-        ----------
-        x : array-like or numeric value
-            First input coordinate values.
-
-        y : array-like or numeric value
-            Second input coordinate values.
-
-        model_set_axis : `int` or `False`, optional
-            For `Model` instances representing a multiple-model set, this picks
-            out which axis of the input array is used to map inputs to specific
-            models in the set.  If `False`, this indicates that the input array
-            has no such axis, and instead the same input should be broadcast to
-            all models in the set.
-        """
-
-        return super(Fittable2DModel, self).__call__(
-            x, y, model_set_axis=model_set_axis)
+    inputs = ('x', 'y')
+    outputs = ('z',)
 
 
 def custom_model(*args, **kwargs):
@@ -1430,18 +1522,14 @@ def _custom_model_wrapper(func, fit_deriv=None):
     else:
         input_names = argspec.args
 
-    init_args = ['self']
-    init_kwargs = []
-    call_args = ['self'] + list(input_names)
-    params = {}
+    # TODO: Maybe have a clever scheme for default output name?
+    if input_names:
+        output_names = (input_names[0],)
+    else:
+        output_names = ('x',)
 
-    for name, default in zip(param_names, param_values):
-        params[name] = Parameter(name, default=default)
-
-        if default is None:
-            init_args.append(name)
-        else:
-            init_kwargs.append((name, default))
+    params = dict((name, Parameter(name, default=default))
+                  for name, default in zip(param_names, param_values))
 
     mod = find_current_module(2)
     if mod:
@@ -1452,7 +1540,8 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members = {
         '__module__': modname,
         '__doc__': func.__doc__,
-        'n_inputs': len(input_names),
+        'inputs': tuple(input_names),
+        'outputs': output_names,
         'evaluate': staticmethod(func),
     }
 
@@ -1461,19 +1550,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
 
     members.update(params)
 
-    cls = type(model_name, (FittableModel,), members)
-
-    def __init__(self, *args, **kwargs):
-        super(cls, self).__init__(*args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        return super(cls, self).__call__(*args, **kwargs)
-
-    cls.__init__ = make_function_with_signature(__init__,
-                                                (init_args + init_kwargs))
-    cls.__call__ = make_function_with_signature(__call__, call_args)
-
-    return cls
+    return type(model_name, (FittableModel,), members)
 
 
 def _prepare_inputs_single_model(model, params, inputs, **kwargs):
@@ -1494,7 +1571,7 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
                 raise ValueError(
                     "Model input argument {0!r} of shape {1!r} cannot be "
                     "broadcast with parameter {2!r} of shape "
-                    "{3!r}.".format(model.input_names[idx], input_shape,
+                    "{3!r}.".format(model.inputs[idx], input_shape,
                                     param.name, param.shape))
 
             if len(broadcast) > len(max_broadcast):
@@ -1553,7 +1630,7 @@ def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
                 raise ValueError(
                     "Model input argument {0!r} of shape {1!r} cannot be "
                     "broadcast with parameter {2!r} of shape "
-                    "{3!r}.".format(model.input_names[idx], input_shape,
+                    "{3!r}.".format(model.inputs[idx], input_shape,
                                     param.name, param.shape))
 
             if len(param.shape) > len(max_param_shape):

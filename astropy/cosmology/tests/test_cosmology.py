@@ -104,6 +104,7 @@ def test_units():
     assert cosmo.comoving_distance(1.0).unit == u.Mpc
     assert cosmo.luminosity_distance(1.0).unit == u.Mpc
     assert cosmo.lookback_time(1.0).unit == u.Gyr
+    assert cosmo.lookback_distance(1.0).unit == u.Mpc
     assert cosmo.H0.unit == u.km / u.Mpc / u.s
     assert cosmo.H(1.0).unit == u.km / u.Mpc / u.s
     assert cosmo.Tcmb0.unit == u.K
@@ -120,6 +121,70 @@ def test_units():
     assert cosmo.comoving_volume(1.0).unit == u.Mpc ** 3
     assert cosmo.age(1.0).unit == u.Gyr
     assert cosmo.distmod(1.0).unit == u.mag
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_distance_broadcast():
+    """ Test array shape broadcasting for functions with single
+    redshift inputs"""
+
+    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27,
+                               m_nu=u.Quantity([0.0, 0.1, 0.011], u.eV))
+    z = np.linspace(0.1, 1, 6)
+    z_reshape2d = z.reshape(2, 3)
+    z_reshape3d = z.reshape(3, 2, 1)
+    # Things with units
+    methods = ['comoving_distance', 'luminosity_distance',
+               'comoving_transverse_distance', 'angular_diameter_distance',
+               'distmod', 'lookback_time', 'age', 'comoving_volume',
+               'differential_comoving_volume', 'kpc_comoving_per_arcmin']
+    for method in methods:
+        g = getattr(cosmo, method)
+        value_flat = g(z)
+        assert value_flat.shape == z.shape
+        value_2d = g(z_reshape2d)
+        assert value_2d.shape == z_reshape2d.shape
+        value_3d = g(z_reshape3d)
+        assert value_3d.shape == z_reshape3d.shape
+        assert value_flat.unit == value_2d.unit
+        assert value_flat.unit == value_3d.unit
+        assert np.allclose(value_flat.value, value_2d.flatten().value)
+        assert np.allclose(value_flat.value, value_3d.flatten().value)
+
+    # Also test unitless ones
+    methods = ['absorption_distance', 'Om', 'Ode', 'Ok', 'H',
+               'w', 'de_density_scale', 'Onu', 'Ogamma',
+               'nu_relative_density']
+    for method in methods:
+        g = getattr(cosmo, method)
+        value_flat = g(z)
+        assert value_flat.shape == z.shape
+        value_2d = g(z_reshape2d)
+        assert value_2d.shape == z_reshape2d.shape
+        value_3d = g(z_reshape3d)
+        assert value_3d.shape == z_reshape3d.shape
+        assert np.allclose(value_flat, value_2d.flatten())
+        assert np.allclose(value_flat, value_3d.flatten())
+
+    # Test some dark energy models
+    methods = ['Om', 'Ode', 'w', 'de_density_scale']
+    for tcosmo in [core.LambdaCDM(H0=70, Om0=0.27, Ode0=0.5),
+                   core.wCDM(H0=70, Om0=0.27, Ode0=0.5, w0=-1.2),
+                   core.w0waCDM(H0=70, Om0=0.27, Ode0=0.5, w0=-1.2, wa=-0.2),
+                   core.wpwaCDM(H0=70, Om0=0.27, Ode0=0.5,
+                                wp=-1.2, wa=-0.2, zp=0.9),
+                   core.w0wzCDM(H0=70, Om0=0.27, Ode0=0.5, w0=-1.2, wz=0.1)]:
+        for method in methods:
+            g = getattr(cosmo, method)
+            value_flat = g(z)
+            assert value_flat.shape == z.shape
+            value_2d = g(z_reshape2d)
+            assert value_2d.shape == z_reshape2d.shape
+            value_3d = g(z_reshape3d)
+            assert value_3d.shape == z_reshape3d.shape
+            assert np.allclose(value_flat, value_2d.flatten())
+            assert np.allclose(value_flat, value_3d.flatten())
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_clone():
@@ -307,6 +372,8 @@ def test_flat_z1():
                        [6729.2, 6729.6, 6729.5976], rtol=1e-4)
     assert np.allclose(cosmo.lookback_time(z).value,
                        [7.841, 7.84178, 7.843], rtol=1e-3)
+    assert np.allclose(cosmo.lookback_distance(z).value,
+                       [2404.0, 2404.24, 2404.4], rtol=1e-3)
 
 
 def test_zeroing():
@@ -1088,22 +1155,29 @@ def test_massivenu_density():
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_z_at_value():
+    # These are tests of expected values, and hence have less precision
+    # than the roundtrip tests below (test_z_at_value_roundtrip);
+    # here we have to worry about the cosmological calculations
+    # giving slightly different values on different architectures,
+    # there we are checking internal consistency on the same architecture
+    # and so can be more demanding
     z_at_value = funcs.z_at_value
     cosmo = core.Planck13
     d = cosmo.luminosity_distance(3)
-    assert np.allclose(z_at_value(cosmo.luminosity_distance, d, ztol=1e-8), 3,
+    assert np.allclose(z_at_value(cosmo.luminosity_distance, d), 3,
                        rtol=1e-8)
-    assert np.allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.1981191749374)
+    assert np.allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.198122684356,
+                       rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.luminosity_distance, 1e4 * u.Mpc),
-                       1.3685792789133948)
+                       1.3685790653802761, rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.lookback_time, 7 * u.Gyr),
-                       0.7951983674601507)
+                       0.7951983674601507, rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
-                                  zmax=2), 0.681277696252886)
+                                  zmax=2), 0.68127769625288614, rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
-                                  zmin=2.5), 3.7914918534022011)
+                                  zmin=2.5), 3.7914908028272083, rtol=1e-6)
     assert np.allclose(z_at_value(cosmo.distmod, 46 * u.mag),
-                       1.9913870174451891)
+                       1.9913891680278133, rtol=1e-6)
 
     # test behaviour when the solution is outside z limits (should
     # raise a CosmologyError)
@@ -1121,7 +1195,13 @@ def test_z_at_value_roundtrip():
     """
     z = 0.5
 
-    skip = ('Ok', 'angular_diameter_distance_z1z2', 'clone', 'de_density_scale', 'w')
+    # Skip Ok, w, de_density_scale because in the Planck13 cosmolgy
+    # they are redshift independent and hence uninvertable,
+    # angular_diameter_distance_z1z2 takes multiple arguments, so requires
+    #  special handling
+    # clone isn't a redshift-dependent method
+    skip = ('Ok', 'angular_diameter_distance_z1z2', 'clone',
+            'de_density_scale', 'w')
 
     import inspect
     methods = inspect.getmembers(core.Planck13, predicate=inspect.ismethod)
@@ -1133,4 +1213,14 @@ def test_z_at_value_roundtrip():
         fval = func(z)
         # we need zmax here to pick the right solution for
         # angular_diameter_distance and related methods.
-        assert np.allclose(z, funcs.z_at_value(func, fval, zmax=1.5))
+        # Be slightly more generous with rtol than the default 1e-8
+        # used in z_at_value
+        assert np.allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
+                           rtol=2e-8)
+
+    # Test angular_diameter_distance_z1z2
+    z2 = 2.0
+    func = lambda z1: core.Planck13.angular_diameter_distance_z1z2(z1, z2)
+    fval = func(z)
+    assert np.allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
+                       rtol=2e-8)
