@@ -120,12 +120,19 @@ New Features
 
 - ``astropy.nddata``
 
+  - New array-related utility functions in ``astropy.nddata.utils`` for adding
+    and removing arrays from other arrays with different sizes/shapes. [#3201]
+
 - ``astropy.stats``
 
   - Added ``mad_std()`` function. [#3208]
 
   - Added ``gaussian_fwhm_to_sigma`` and ``gaussian_sigma_to_fwhm``
     constants. [#3208]
+
+  - New function ``sigma_clipped_stats`` which can be used to quickly get
+    common statistics for an array, using sigma clipping at the same time.
+    [#3201]
 
 - ``astropy.sphinx``
 
@@ -176,6 +183,13 @@ New Features
     addition is a version of ``broadcast_arrays`` that can be used with
     ``Quantity`` and other ``ndarray`` subclasses (using the ``subok=True``
     flag). [#2327]
+
+- ``astropy.visualization``
+
+  - Created ``astropy.visualization`` module and added functionality relating
+    to image normalization (i.e. stretching and scaling) as well as a new
+    script ``fits2bitmap`` that can produce a bitmap image from a FITS file.
+    [#3201]
 
 - ``astropy.vo``
 
