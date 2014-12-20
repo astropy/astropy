@@ -68,7 +68,9 @@ def cartrepr_from_matmul(pmat, coo, transpose=False):
 
 # now the actual transforms
 
-@frame_transform_graph.transform(FunctionTransform, GCRS, ITRS)
+# the priority for the GCRS<->ITRS trasnsforms are higher (=less traveled) to
+#make GCRS<->ICRS<->CIRS the preferred route over GCRS<->ITRS<->CIRS
+@frame_transform_graph.transform(FunctionTransform, GCRS, ITRS, priority=1.01)
 def gcrs_to_itrs(gcrs_coo, itrs_frame):
     # first get us to a 0 pos/vel GCRS at the target obstime
     gcrs_coo2 = gcrs_coo.transform_to(GCRS(obstime=itrs_frame.obstime))
@@ -78,7 +80,8 @@ def gcrs_to_itrs(gcrs_coo, itrs_frame):
     crepr = cartrepr_from_matmul(pmat, gcrs_coo2)
     return itrs_frame.realize_frame(crepr)
 
-@frame_transform_graph.transform(FunctionTransform, ITRS, GCRS)
+
+@frame_transform_graph.transform(FunctionTransform, ITRS, GCRS, priority=1.01)
 def itrs_to_gcrs(itrs_coo, gcrs_frame):
     #compute the pmatrix, and then multiply by its transpose
     pmat = gcrs_to_itrs_mat(itrs_coo.obstime)
@@ -87,7 +90,6 @@ def itrs_to_gcrs(itrs_coo, gcrs_frame):
 
     #now do any needed offsets (no-op if same obstime and 0 pos/vel)
     return gcrs.transform_to(gcrs_frame)
-
 
 
 @frame_transform_graph.transform(FunctionTransform, CIRS, ITRS)
