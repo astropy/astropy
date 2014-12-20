@@ -50,10 +50,20 @@ def cirs_to_itrs_mat(time):
     return erfa.c2tcio(np.eye(3), era, pmmat)
 
 
-def cartrepr_from_matmul(pmat, coo):
+def cartrepr_from_matmul(pmat, coo, transpose=False):
+    if pmat.shape[-2:] != (3, 3):
+        raise ValueError("tried to do matrix multiplication with an array that "
+                         "doesn't end in 3x3")
     xyz = coo.cartesian.xyz
-    newxyz = np.dot(pmat, xyz.reshape(3,-1)).reshape(xyz.shape)
-    return CartesianRepresentation(newxyz)
+    # these expression are the same as iterating over the first dimension of
+    # pmat and xyz and doing matrix multiplication on each in turn.  resulting
+    # dimension is <coo shape> x 3
+    pmat = pmat.reshape(pmat.size//9, 3, 3)
+    if transpose:
+        pmat = pmat.transpose(0, 2, 1)
+    newxyz = np.sum(pmat * xyz.reshape(xyz.size//3, 1, 3), axis=-1)
+
+    return CartesianRepresentation(newxyz.T)
 
 
 # now the actual transforms
@@ -72,7 +82,7 @@ def gcrs_to_itrs(gcrs_coo, itrs_frame):
 def itrs_to_gcrs(itrs_coo, gcrs_frame):
     #compute the pmatrix, and then multiply by its transpose
     pmat = gcrs_to_itrs_mat(itrs_coo.obstime)
-    newrepr = cartrepr_from_matmul(pmat.T, itrs_coo)
+    newrepr = cartrepr_from_matmul(pmat, itrs_coo, transpose=True)
     gcrs = GCRS(newrepr, obstime=itrs_coo.obstime)
 
     #now do any needed offsets (no-op if same obstime and 0 pos/vel)
@@ -95,7 +105,7 @@ def cirs_to_itrs(cirs_coo, itrs_frame):
 def itrs_to_cirs(itrs_coo, cirs_frame):
     #compute the pmatrix, and then multiply by its transpose
     pmat = cirs_to_itrs_mat(itrs_coo.obstime)
-    newrepr = cartrepr_from_matmul(pmat.T, itrs_coo)
+    newrepr = cartrepr_from_matmul(pmat, itrs_coo, transpose=True)
     cirs = CIRS(newrepr, obstime=itrs_coo.obstime)
 
     #now do any needed offsets (no-op if same obstime)
