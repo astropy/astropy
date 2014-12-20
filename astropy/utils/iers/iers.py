@@ -3,8 +3,12 @@
 The astropy.utils.iers package provides access to the tables provided by
 the International Earth Rotation and Reference Systems Service, in
 particular allowing interpolation of published UT1-UTC values for given
-times.  These are used in astropy.time to provide UT1 values.  By
-default, IERS B values provided as part of astropy are used, but
+times.  These are used in `astropy.time` to provide UT1 values.  The polar
+motions are also used for determining earth orientation for
+celestional-to-terrestrial coordinate transformations
+(in `astropy.coordinates`).
+
+By default, IERS B values provided as part of astropy are used, but
 user-downloaded files can be substituted.
 
 Generally, there is no need to invoke the iers classes oneself.  E.g.,
@@ -87,7 +91,7 @@ class IERS(Table):
     """Generic IERS table class, defining interpolation functions.
 
     Sub-classed from `astropy.table.Table`.  The table should hold columns
-    'MJD' and 'UT1_UTC'.
+    'MJD', 'UT1_UTC', and 'PM_X'/'PM_Y'.
     """
 
     iers_table = None
@@ -279,8 +283,8 @@ class IERS(Table):
         pm_y_0, pm_y_1 = self['PM_y'][i0], self['PM_y'][i1]
 
         # Linearly interpolate both components
-        pm_x = u.Quantity(pm_x_0 + (mjd - mjd_0)*(pm_x_1 - pm_x_0)/(mjd_1 - mjd_0))
-        pm_y = u.Quantity(pm_y_0 + (mjd - mjd_0)*(pm_y_1 - pm_y_0)/(mjd_1 - mjd_0))
+        pm_x = u.Quantity(pm_x_0 + (mjd - mjd_0)*(pm_x_1 - pm_x_0)/(mjd_1 - mjd_0), copy=False)
+        pm_y = u.Quantity(pm_y_0 + (mjd - mjd_0)*(pm_y_1 - pm_y_0)/(mjd_1 - mjd_0), copy=False)
 
         if is_scalar:
             pm_x = pm_x[0]
@@ -308,7 +312,7 @@ class IERS(Table):
 
     def pm_source(self, i):
         """Source for polar motion.  To be overridden by subclass."""
-        return np.pm_source(i)
+        return np.zeros_like(i)
 
 
 class IERS_A(IERS):
@@ -344,11 +348,11 @@ class IERS_A(IERS):
         table['PM_x'] = np.where(table['PM_X_B'].mask,
                                  table['PM_x_A'].data,
                                  table['PM_X_B'].data)
-        table['PM_x'].unit = table['PM_x_A'].unit  # needed for Quanity-ing
+        table['PM_x'].unit = table['PM_x_A'].unit  # needed for Quantity-ing
         table['PM_y'] = np.where(table['PM_Y_B'].mask,
                                  table['PM_y_A'].data,
                                  table['PM_Y_B'].data)
-        table['PM_y'].unit = table['PM_y_A'].unit  # needed for Quanity-ing
+        table['PM_y'].unit = table['PM_y_A'].unit  # needed for Quantity-ing
         table['PolPMFlag'] = np.where(table['PM_X_B'].mask,
                                       table['PolPMFlag_A'].data,
                                       'B')
