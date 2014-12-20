@@ -3,11 +3,15 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import numpy as np
+
 from ... import units as u
 from ..representation import SphericalRepresentation
 from ..baseframe import (BaseCoordinateFrame, FrameAttribute,
                          TimeFrameAttribute, QuantityFrameAttribute,
                          RepresentationMapping, EarthLocationAttribute)
+
+_90DEG = 90*u.deg
 
 
 class AltAz(BaseCoordinateFrame):
@@ -84,5 +88,21 @@ class AltAz(BaseCoordinateFrame):
 
     def __init__(self, *args, **kwargs):
         super(AltAz, self).__init__(*args, **kwargs)
+
+    @property
+    def secz(self):
+        """
+        Secant if the zenith angle for this coordinate, a common estimate of the
+        airmass.
+        """
+        return 1/np.sin(self.alt)
+
+    @property
+    def zen(self):
+        """
+        The zenith angle for this coordinate
+        """
+        return _90DEG.to(self.alt.unit) - self.alt
+
 
 #self-transform defined in cirs_observed_transforms.py

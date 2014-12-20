@@ -262,6 +262,7 @@ listed below.
    angles
    skycoord
    transforming
+   observing-example
    formatting
    matchsep
    representations
