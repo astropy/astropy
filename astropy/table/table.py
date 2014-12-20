@@ -1580,6 +1580,9 @@ class Table(object):
         if name not in self.keys():
             raise KeyError("Column {0} does not exist".format(name))
 
+        if not isinstance(self.columns[name], BaseColumn):
+            raise NotImplementedError('cannot rename a mixin column')
+
         col_setattr(self.columns[name], 'name', new_name)
 
     def add_row(self, vals=None, mask=None):

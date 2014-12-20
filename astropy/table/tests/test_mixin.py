@@ -334,3 +334,11 @@ def test_conversion_qtable_table():
     for name in names:
         assert col_getattr(qt2[name], 'description') == name
         assert_table_name_col_equal(qt2, name, qt[name])
+
+@pytest.mark.xfail
+def test_column_rename():
+    qt = QTable(MIXIN_COLS)
+    names = qt.colnames
+    for name in names:
+        qt.rename_column(name, name + '2')
+    assert qt.colnames == [name + '2' for name in names]
