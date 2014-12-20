@@ -16,16 +16,18 @@ up. Astropy can answer that:
 
 >>> import numpy as np
 >>> from astropy import units as u
+>>> from astropy.time import Time
 >>> from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 >>> m33 = SkyCoord.from_name('M33')
 >>> bear_mountain = EarthLocation(lat=41.3*u.deg, lon=-74*u.deg, height=390*u.m)
 >>> utcoffset = -4*u.hour  # Eastern Daylight Time
 >>> time = Time('2012-7-12 23:00:00') - utcoffset
->>> m33.transform_to(AltAz(obstime=time,location=bear_mountain)).alt  # doctest: +FLOAT_CMP
-<Latitude 0.12926319719869428 deg>
+>>> m33altaz = m33.transform_to(AltAz(obstime=time,location=bear_mountain))
+>>> "M33's Altitude = {0.alt}".format(m33altaz)  # doctest: +FLOAT_CMP
+'M33's Altitude = 0.129263197199 deg'
 
-Oops, it's only just rising, so the trees might be in the way.  You'd better
-make a plot to see what the night is going to look like.
+Oops, it's only just rising, so the trees and mountains will be in the way.
+You'd better make a plot to see what the night is going to look like.
 
 
 .. doctest-requires:: matplotlib
@@ -36,7 +38,6 @@ make a plot to see what the night is going to look like.
 
     >>> import matplotlib.pyplot as plt
     >>> plt.plot(delta_midnight, m33altazs.alt)
-    >>> plt.legend(loc=0)
     >>> plt.xlim(-2, 7)
     >>> plt.ylim(0, 90)
     >>> plt.xlabel('Hours from EDT Midnight')
@@ -48,7 +49,12 @@ make a plot to see what the night is going to look like.
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy import units as u
+    from astropy.time import Time
     from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+
+    #supress the warning about vector transforms so as not to clutter the doc build log
+    import warnings
+    warnings.filterwarnings('ignore',module='astropy.coordinates.baseframe')
 
     m33 = SkyCoord.from_name('M33')
     bear_mountain = EarthLocation(lat=41.3*u.deg, lon=-74*u.deg, height=390*u.m)
@@ -58,7 +64,6 @@ make a plot to see what the night is going to look like.
     m33altazs = m33.transform_to(AltAz(obstime=midnight+delta_midnight, location=bear_mountain))
 
     plt.plot(delta_midnight, m33altazs.alt)
-    plt.legend(loc=0)
     plt.xlim(-2, 7)
     plt.ylim(0, 90)
     plt.xlabel('Hours from EDT Midnight')
@@ -67,8 +72,8 @@ make a plot to see what the night is going to look like.
 
 
 Hmm, looks like you may need to stay up pretty late.  But maybe you're an
-early-riser?  In that case you need to know when the sun will be up, and
-when it will be twilight
+early-riser?  But then you need to know when the sun is rising, and
+when it will be twilight::
 
 .. doctest-requires:: matplotlib
 
@@ -97,7 +102,12 @@ when it will be twilight
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy import units as u
+    from astropy.time import Time
     from astropy.coordinates import SkyCoord, EarthLocation, AltAz, get_sun
+
+    #supress the warning about vector transforms so as not to clutter the doc build log
+    import warnings
+    warnings.filterwarnings('ignore',module='astropy.coordinates.baseframe')
 
     m33 = SkyCoord.from_name('M33')
     bear_mountain = EarthLocation(lat=41.3*u.deg, lon=-74*u.deg, height=390*u.m)
@@ -122,5 +132,5 @@ when it will be twilight
     plt.xlabel('Hours from EDT Midnight')
     plt.ylabel('Alt [deg]')
 
-Now you're fully-equipped with the tools you need to have a proper vacation...
-Or plan your next observing run.  Your call which it is!
+Now you're fully-equipped with the tools you need to plan your next
+observing run... Or have have a proper vacation.  You decide!
