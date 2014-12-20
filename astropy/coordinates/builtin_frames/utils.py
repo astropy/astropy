@@ -29,7 +29,7 @@ DEFAULT_OBSTIME = Time('J2000', scale='utc')
 PIOVER2 = np.pi / 2.
 
 #comes from the mean of the 1962-2014 IERS B data
-_DEFAULT_PM = ((0.035, 0.29)*u.arcsec).to(u.radian).value
+_DEFAULT_PM = (0.035, 0.29)*u.arcsec
 
 _IERS_HINT = """
 If you need enough precision such that this matters (~<10 arcsec), you can download the latest IERS predictions by doing:
@@ -46,18 +46,25 @@ def get_polar_motion(time):
     xp, yp, status = iers.IERS.open().pm_xy(time.jd1, time.jd2, return_status=True)
 
     wmsg = None
-    if status == iers.TIME_BEFORE_IERS_RANGE:
-        wmsg = ('Tried to get polar motions for a time before IERS data is '
-                'valid. Defaulting to polar motion from the 50-yr mean.')
-    elif status == iers.TIME_BEYOND_IERS_RANGE:
-        wmsg = ('Tried to get polar motions for a time after IERS data is '
-                'valid. Defaulting to polar motion from the 50-yr mean.' + _IERS_HINT)
-    if wmsg is not None:
+    if np.any(status == iers.TIME_BEFORE_IERS_RANGE):
+        wmsg = ('Tried to get polar motions for times before IERS data is '
+                'valid. Defaulting to polar motion from the 50-yr mean for those.')
+
+        xp[status==iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[0]
+        yp[status==iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[1]
+
         warnings.warn(wmsg, AstropyWarning)
-        pms = np.repeat(_DEFAULT_PM, np.prod(time.shape))
-        return pms.reshape([2] + list(time.shape))
-    else:
-        return xp.to(u.radian).value, yp.to(u.radian).value
+
+    if np.any(status == iers.TIME_BEYOND_IERS_RANGE):
+        wmsg = ('Tried to get polar motions for times after IERS data is '
+                'valid. Defaulting to polar motion from the 50-yr mean for those.' + _IERS_HINT)
+
+        xp[status==iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[0]
+        yp[status==iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[1]
+
+        warnings.warn(wmsg, AstropyWarning)
+
+    return xp.to(u.radian).value, yp.to(u.radian).value
 
 
 def get_dut1utc(time):

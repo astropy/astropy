@@ -147,8 +147,8 @@ def test_future_altaz(recwarn):
 
     SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
     w1 = recwarn.pop(AstropyWarning)
-    assert "Tried to get polar motions for a time after IERS data is valid." in str(w1.message)
     w2 = recwarn.pop(AstropyWarning)
+    assert "Tried to get polar motions for times after IERS data is valid." in str(w1.message)
     assert "(some) times are outside of range covered by IERS table." in str(w2.message)
 
 
