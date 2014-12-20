@@ -13,7 +13,8 @@ from ...extern import six
 from ...extern.six.moves import zip as izip
 
 from . import core
-from ...table import Column, col_iter_str_vals, col_getattr
+from ...table import Column
+from ...table.column import col_iter_str_vals, col_getattr
 from ...utils.xml import writer
 
 from copy import deepcopy

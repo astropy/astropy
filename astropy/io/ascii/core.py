@@ -24,7 +24,8 @@ from ...extern.six.moves import zip
 from ...extern.six.moves import cStringIO as StringIO
 from ...utils.exceptions import AstropyWarning
 
-from ...table import Table, col_getattr, col_setattr, col_iter_str_vals
+from ...table import Table
+from ...table.column import col_getattr, col_setattr, col_iter_str_vals
 from ...utils.compat import ignored
 from ...utils.data import get_readable_fileobj
 from ...utils import OrderedDict

@@ -14,7 +14,7 @@ import re
 
 from ...extern import six
 from . import core
-from ...table import col_getattr
+from ...table.column import col_getattr
 
 latexdicts = {'AA':  {'tabletype': 'table',
                       'header_start': r'\hline \hline', 'header_end': r'\hline',

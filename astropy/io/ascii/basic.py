@@ -16,7 +16,7 @@ import re
 import numpy as np
 
 from . import core
-from ...table import col_getattr
+from ...table.column import col_getattr
 
 class BasicHeader(core.BaseHeader):
     '''Basic table Header Reader

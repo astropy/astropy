@@ -11,7 +11,7 @@ fixedwidth.py:
 from __future__ import absolute_import, division, print_function
 
 from ...extern.six.moves import zip
-from ...table import col_iter_str_vals, col_getattr
+from ...table.column import col_iter_str_vals, col_getattr
 
 from . import core
 from .core import InconsistentTableError, DefaultSplitter

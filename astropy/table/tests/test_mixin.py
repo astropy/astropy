@@ -13,7 +13,8 @@ else:
 import numpy as np
 
 from ...tests.helper import pytest
-from ...table import Table, QTable, col_setattr, col_getattr, join, hstack, vstack
+from ...table import Table, QTable, join, hstack, vstack
+from ..column import col_setattr, col_getattr
 from ... import units as u
 from ... import coordinates
 from .. import table_helpers
