@@ -104,6 +104,7 @@ def test_units():
     assert cosmo.comoving_distance(1.0).unit == u.Mpc
     assert cosmo.luminosity_distance(1.0).unit == u.Mpc
     assert cosmo.lookback_time(1.0).unit == u.Gyr
+    assert cosmo.lookback_distance(1.0).unit == u.Mpc
     assert cosmo.H0.unit == u.km / u.Mpc / u.s
     assert cosmo.H(1.0).unit == u.km / u.Mpc / u.s
     assert cosmo.Tcmb0.unit == u.K
@@ -371,6 +372,8 @@ def test_flat_z1():
                        [6729.2, 6729.6, 6729.5976], rtol=1e-4)
     assert np.allclose(cosmo.lookback_time(z).value,
                        [7.841, 7.84178, 7.843], rtol=1e-3)
+    assert np.allclose(cosmo.lookback_distance(z).value,
+                       [2404.0, 2404.24, 2404.4], rtol=1e-3)
 
 
 def test_zeroing():

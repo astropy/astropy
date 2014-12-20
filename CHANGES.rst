@@ -39,6 +39,8 @@ New Features
 
 - ``astropy.cosmology``
 
+  - Add lookback_distance, which is c * lookback_time. [#3145]
+
   - Add baryonic matter density and dark matter only density parameters
     to cosmology objects [#2757].
 
