@@ -10,10 +10,10 @@ Introduction
 `astropy.nddata` provides:
 
 + The `~astropy.nddata.NDDataBase` metaclass to define an astropy-wide
-  interface to N-dimensional data sets while allowing flexibility in how those
-  datasets are represented internally.
+  interface to gridded N-dimensional data sets while allowing flexibility in
+  how those datasets are represented internally.
 + The `~astropy.nddata.NDData` class, which provides a basic container for
-  N-dimensional datasets.
+  gridded N-dimensional datasets.
 + Several mixin classes for adding functionality to `~astropy.nddata.NDData`
   containers.
 
@@ -96,6 +96,10 @@ any class for which the `~astropy.nddata.NDData` class is too restrictive.
 Transition to astropy 1.0
 =========================
 
+The nddata package underwent substantial revision as a result of `APE 7`_;
+please see that APE for an extensive discussion of the motivation and the
+changes.
+
 The most important changes are that:
 
 + ``NDData`` does not provide a numpy-like interface; to use its data use the
@@ -129,3 +133,5 @@ Reference/API
 
 .. automodapi:: astropy.nddata.utils
     :no-inheritance-diagram:
+
+.. _APE 7: https://github.com/astropy/astropy-APEs/blob/master/APE7.rst

@@ -97,7 +97,7 @@ Converting to Numpy arrays
 numpy arrays::
 
     >>> import numpy as np
-    >>> arr = np.array(ndd)
+    >>> arr = np.asarray(ndd.data)
     >>> np.all(arr.data == mydataarray)  # doctest: +SKIP
     True
 

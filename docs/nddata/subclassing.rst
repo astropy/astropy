@@ -20,8 +20,8 @@ deviation uncertainties on the pixel values, you can do::
     >>> from astropy.nddata import NDData, StdDevUncertainty
     >>> array = np.zeros((12, 12, 12))  # a 3-dimensional array with all zeros
     >>> ndd = NDData(array)
-    >>> ndd_uncertainty = NDData(ndd,
-    ...                          uncertainty=StdDevUncertainty(np.ones((12, 12, 12)) * 0.1))
+    >>> uncertainty = StdDevUncertainty(np.ones((12, 12, 12)) * 0.1)
+    >>> ndd_uncertainty = NDData(ndd, uncertainty=uncertainty)
     INFO: Overwriting NDData's current uncertainty being overwritten with specified uncertainty [astropy.nddata.nddata]
 
 New error classes should sub-class from `~astropy.nddata.NDUncertainty`, and
