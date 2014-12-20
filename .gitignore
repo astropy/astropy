@@ -30,6 +30,7 @@ docs/api
 dist
 build
 eggs
+.eggs
 parts
 bin
 var
