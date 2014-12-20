@@ -530,7 +530,7 @@ def biweight_location(a, c=6.0, M=None):
 
     Returns
     -------
-    biweight_location: float
+    biweight_location : float
         Returns the biweight location for the array elements.
 
     Examples

@@ -11,15 +11,14 @@ import warnings
 import numpy as np
 
 from .. import conf
-from ..card import Card
 from ..file import _File
-from ..header import Header, HEADER_END_RE, _pad_length
+from ..header import Header, _pad_length
 from ..util import (_is_int, _is_pseudo_unsigned, _unsigned_zero,
-                    itersubclasses, encode_ascii, decode_ascii,
+                    itersubclasses, decode_ascii,
                     _get_array_mmap, _array_to_file, first)
 from ..verify import _Verify, _ErrList
 
-from ....extern.six import string_types, next
+from ....extern.six import string_types
 from ....utils import lazyproperty, deprecated
 from ....utils.compat import ignored
 from ....utils.exceptions import AstropyUserWarning
@@ -1383,7 +1382,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         Verify that the value in the ``DATASUM`` keyword matches the value
         calculated for the ``DATASUM`` of the current HDU data.
 
-        blocking: str, optional
+        blocking : str, optional
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 
@@ -1413,7 +1412,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         Verify that the value in the ``CHECKSUM`` keyword matches the
         value calculated for the current HDU CHECKSUM.
 
-        blocking: str, optional
+        blocking : str, optional
             "standard" or "nonstandard", compute sum 2880 bytes at a time, or
             not
 

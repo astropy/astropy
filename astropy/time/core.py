@@ -10,7 +10,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import fnmatch
-import itertools
 import time
 
 from datetime import datetime
@@ -537,7 +536,7 @@ class Time(object):
 
         Returns
         -------
-        tm: Time object
+        tm : Time object
             Copy of this object
         """
         return self.replicate(format, copy=True)
@@ -568,7 +567,7 @@ class Time(object):
 
         Returns
         -------
-        tm: Time object
+        tm : Time object
             Replica of this object
         """
         # To avoid recalculating integer day + fraction, no longer just
@@ -722,9 +721,9 @@ class Time(object):
 
         Returns
         -------
-        ut1_utc: float or float array
+        ut1_utc : float or float array
             UT1-UTC, interpolated in IERS Table
-        status: int or int array
+        status : int or int array
             Status values (if ``return_status=`True```)::
             ``astropy.utils.iers.FROM_IERS_B``
             ``astropy.utils.iers.FROM_IERS_A``
@@ -2013,7 +2012,7 @@ def _make_array(val, copy=False):
 
     Returns
     -------
-    val: ndarray
+    val : ndarray
         Array version of ``val``.
     """
     val = np.array(val, copy=copy, subok=True)
@@ -2039,7 +2038,7 @@ def day_frac(val1, val2, factor=1., divisor=1.):
 
     Returns
     -------
-    day, frac: float64
+    day, frac : float64
         Integer and fractional part of val1 + val2.
     """
     # Add val1 and val2 exactly, returning the result as two float64s.
@@ -2080,7 +2079,7 @@ def two_sum(a, b):
 
     Returns
     -------
-    sum, err: float64
+    sum, err : float64
         Approximate sum of a + b and the exact floating point error
     """
     x = a + b
@@ -2103,7 +2102,7 @@ def two_product(a, b):
 
     Returns
     -------
-    prod, err: float64
+    prod, err : float64
         Approximate product a * b and the exact floating point error
     """
     x = a * b

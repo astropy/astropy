@@ -156,7 +156,7 @@ def celestial_pixel_scale(inwcs, allow_nonsquare=False):
 
     Parameters
     ----------
-    inwcs: `astropy.wcs.WCS`
+    inwcs : `~astropy.wcs.WCS`
         The world coordinate system object
     allow_nonsquare : bool
         Return the average of the X and Y scales if True
@@ -168,7 +168,7 @@ def celestial_pixel_scale(inwcs, allow_nonsquare=False):
 
     Raises
     ------
-    ValueError if the pixels are nonsquare and ``allow_nonsquare==False``
+    ValueError : if the pixels are nonsquare and ``allow_nonsquare==False``
     """
     cwcs = inwcs.celestial
     if cwcs.wcs.ctype[0][-3:] != 'CAR':
@@ -193,7 +193,7 @@ def non_celestial_pixel_scales(inwcs):
 
     Parameters
     ----------
-    inwcs: `astropy.wcs.WCS`
+    inwcs : `~astropy.wcs.WCS`
         The world coordinate system object
 
     Returns
