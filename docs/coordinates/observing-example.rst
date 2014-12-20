@@ -29,12 +29,11 @@ up. Astropy can answer that:
 Oops, it's only just rising, so the trees and mountains will be in the way.
 You'd better make a plot to see what the night is going to look like.
 
-
-.. doctest-requires:: matplotlib
-
     >>> midnight = Time('2012-7-13 00:00:00') - utcoffset
     >>> delta_midnight = np.linspace(-2, 7, 100)*u.hour
     >>> m33altazs = m33.transform_to(AltAz(obstime=midnight+delta_midnight, location=bear_mountain))  # doctest: +REMOTE_DATA
+
+.. doctest-requires:: matplotlib
 
     >>> import matplotlib.pyplot as plt
     >>> plt.plot(delta_midnight, m33altazs.secz)  # doctest: +REMOTE_DATA +SKIP
@@ -75,14 +74,14 @@ Hmm, looks like you may need to stay up pretty late.  But maybe you're an
 early-riser?  But then you need to know when the sun is rising, and
 when it will be twilight::
 
-.. doctest-requires:: matplotlib
-
     >>> from astropy.coordinates import get_sun
     >>> delta_midnight = np.linspace(-12, 12, 1000)*u.hour
     >>> times = midnight + delta_midnight
     >>> altazframe = AltAz(obstime=times, location=bear_mountain)
     >>> sunaltazs = get_sun(times).transform_to(altazframe)
     >>> m33altazs = m33.transform_to(altazframe)  # doctest: +REMOTE_DATA
+
+.. doctest-requires:: matplotlib
 
     >>> plt.plot(delta_midnight, sunaltazs.alt, color='y', label='Sun')  # doctest: +SKIP
     >>> plt.scatter(delta_midnight, m33altazs.alt, c=m33altazs.az, label='M33', lw=0, s=8)  # doctest: +REMOTE_DATA +SKIP
