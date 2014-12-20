@@ -36,7 +36,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
 
     #first set up the astrometry context for ICRS<->CIRS
     astrom = erfa.apio13(cirs_coo.obstime.jd1, cirs_coo.obstime.jd2,
-                         cirs_coo.obstime.delta_ut1_utc[0],
+                         cirs_coo.obstime.delta_ut1_utc,
                          lon.to(u.radian).value, lat.to(u.radian).value,
                          height.to(u.m).value,
                          xp, yp,  # polar motion
@@ -75,7 +75,7 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
 
     #first set up the astrometry context for ICRS<->CIRS at the altaz_coo time
     astrom = erfa.apio13(altaz_coo.obstime.jd1, altaz_coo.obstime.jd2,
-                         altaz_coo.obstime.delta_ut1_utc[0],
+                         altaz_coo.obstime.delta_ut1_utc,
                          lon.to(u.radian).value, lat.to(u.radian).value,
                          height.to(u.m).value,
                          xp, yp,  # polar motion
