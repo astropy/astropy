@@ -22,9 +22,9 @@ up. Astropy can answer that:
 >>> bear_mountain = EarthLocation(lat=41.3*u.deg, lon=-74*u.deg, height=390*u.m)
 >>> utcoffset = -4*u.hour  # Eastern Daylight Time
 >>> time = Time('2012-7-12 23:00:00') - utcoffset
->>> m33altaz = m33.transform_to(AltAz(obstime=time,location=bear_mountain))
->>> "M33's Altitude = {0.alt}".format(m33altaz)  # doctest: +FLOAT_CMP
-'M33's Altitude = 0.129263197199 deg'
+>>> m33altaz = m33.transform_to(AltAz(obstime=time,location=bear_mountain))  # doctest: +REMOTE_DATA
+>>> "M33's Altitude = {0.alt:.2}".format(m33altaz)  # doctest: +FLOAT_CMP +REMOTE_DATA
+"M33's Altitude = 0.13 deg"
 
 Oops, it's only just rising, so the trees and mountains will be in the way.
 You'd better make a plot to see what the night is going to look like.
@@ -34,14 +34,14 @@ You'd better make a plot to see what the night is going to look like.
 
     >>> midnight = Time('2012-7-13 00:00:00') - utcoffset
     >>> delta_midnight = np.linspace(-2, 7, 100)*u.hour
-    >>> m33altazs = m33.transform_to(AltAz(obstime=midnight+delta_midnight, location=bear_mountain))
+    >>> m33altazs = m33.transform_to(AltAz(obstime=midnight+delta_midnight, location=bear_mountain))  # doctest: +REMOTE_DATA
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.plot(delta_midnight, m33altazs.secz)
-    >>> plt.xlim(-2, 7)
-    plt.ylim(1, 4)
-    >>> plt.xlabel('Hours from EDT Midnight')
-    >>> plt.ylabel('Airmass [Sec(z)]')
+    >>> plt.plot(delta_midnight, m33altazs.secz)  # doctest: +REMOTE_DATA +SKIP
+    >>> plt.xlim(-2, 7)  # doctest: +SKIP
+    >>> plt.ylim(1, 4)  # doctest: +SKIP
+    >>> plt.xlabel('Hours from EDT Midnight')  # doctest: +SKIP
+    >>> plt.ylabel('Airmass [Sec(z)]')  # doctest: +SKIP
 
 
 .. plot::
@@ -82,19 +82,19 @@ when it will be twilight::
     >>> times = midnight + delta_midnight
     >>> altazframe = AltAz(obstime=times, location=bear_mountain)
     >>> sunaltazs = get_sun(times).transform_to(altazframe)
-    >>> m33altazs = m33.transform_to(altazframe)
+    >>> m33altazs = m33.transform_to(altazframe)  # doctest: +REMOTE_DATA
 
-    >>> plt.plot(delta_midnight, sunaltazs.alt, color='y', label='Sun')
-    >>> plt.scatter(delta_midnight, m33altazs.alt, c=m33altazs.az, label='M33', lw=0, s=8)
-    >>> plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)
-    >>> plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)
-    >>> plt.colorbar().set_label('Azimuth [deg]')
+    >>> plt.plot(delta_midnight, sunaltazs.alt, color='y', label='Sun')  # doctest: +SKIP
+    >>> plt.scatter(delta_midnight, m33altazs.alt, c=m33altazs.az, label='M33', lw=0, s=8)  # doctest: +REMOTE_DATA +SKIP
+    >>> plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -0*u.deg, color='0.5', zorder=0)  # doctest: +SKIP
+    >>> plt.fill_between(delta_midnight, 0, 90, sunaltazs.alt < -18*u.deg, color='k', zorder=0)  # doctest: +SKIP
+    >>> plt.colorbar().set_label('Azimuth [deg]')  # doctest: +SKIP
     >>> plt.legend(loc='upper left')
-    >>> plt.xlim(-12, 12)
-    >>> plt.xticks(np.arange(13)*2 -12)
-    >>> plt.ylim(0, 90)
-    >>> plt.xlabel('Hours from EDT Midnight')
-    >>> plt.ylabel('Altitude [deg]')
+    >>> plt.xlim(-12, 12)  # doctest: +SKIP
+    >>> plt.xticks(np.arange(13)*2 -12)  # doctest: +SKIP
+    >>> plt.ylim(0, 90)  # doctest: +SKIP
+    >>> plt.xlabel('Hours from EDT Midnight')  # doctest: +SKIP
+    >>> plt.ylabel('Altitude [deg]')  # doctest: +SKIP
 
 
 .. plot::
