@@ -374,6 +374,28 @@ For columns the syntax and behavior of
   2973.0
   Length = 100 rows
 
+  Column alignment
+''''''''''''''''
+
+Individual columns have the ability to be aligned in a number of different
+ways, for an enhanced viewing experience.
+
+ >>> t = Table()
+ >>> t['long column name 1'] = [1,2,3]
+ >>> t['long column name 2'] = [4,5,6]
+ >>> t['long column name 3'] = [7,8,9]
+ >>> t['long column name 4'] = [700000,800000,900000]
+ >>> t['long column name 2'].format = '<'
+ >>> t['long column name 3'].format = '0='
+ >>> t['long column name 4'].format = '^'
+ >>> t.pprint()
+   long column name 1 long column name 2 long column name 3 long column name 4
+  ------------------ ------------------ ------------------ ------------------
+                   1 4                  000000000000000007       700000      
+                   2 5                  000000000000000008       800000      
+                   3 6                  000000000000000009       900000      
+
+
 pformat() method
 ''''''''''''''''
 
