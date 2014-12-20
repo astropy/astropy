@@ -305,7 +305,7 @@ class TimeFrameAttribute(FrameAttribute):
                     'transformations do not yet support vector frame '
                     'attributes, so some transformations may not work.')
             msg = msg0.format(self.name, value)
-            warnings.warn(msg, AstropyDeprecationWarning)
+            warnings.warn(msg, AstropyWarning)
 
         return out, converted
 
