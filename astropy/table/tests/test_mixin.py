@@ -20,8 +20,6 @@ from ... import coordinates
 from .. import table_helpers
 from .conftest import MIXIN_COLS
 
-# ISSUES / TODO
-# - Check attributes in join outputs
 
 def test_attributes(mixin_cols):
     """

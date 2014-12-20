@@ -436,8 +436,6 @@ class Table(object):
                     col = col_copy(col)
 
                 col_setattr(col, 'name', name or col_getattr(col, 'name') or def_name)
-
-                # TODO: What about dtype?
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
                                        copy=copy)

@@ -49,9 +49,9 @@ COLUMN_ATTRS = ('name', 'unit', 'dtype', 'format', 'description', 'meta', 'paren
 
 def col_setattr(col, attr, value):
     """
-    Set one of the column attributes
+    Set one of the column attributes.
 
-    TODO: full docstring
+    Warning: this function is subject to change or removal.
     """
     if attr not in COLUMN_ATTRS:
         raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
@@ -72,7 +72,7 @@ def col_getattr(col, attr, default=None):
     """
     Get one of the column attributes
 
-    TODO: full docstring
+    Warning: this function is subject to change or removal.
     """
     if attr not in COLUMN_ATTRS:
         raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
@@ -105,6 +105,8 @@ def _col_update_attrs_from(newcol, col):
     """
     Update _astropy_column_attrs from mixin `col` to `newcol`.  Does nothing
     for BaseColumn cols
+
+    Warning: this function is subject to change or removal.
     """
     if isinstance(col, BaseColumn):
         return
@@ -117,8 +119,9 @@ def _col_update_attrs_from(newcol, col):
 
 def col_iter_str_vals(col):
     """
-    TODO: docstring
     This is a mixin-safe version of Column.iter_str_vals.
+
+    Warning: this function is subject to change or removal.
     """
     parent_table = col_getattr(col, 'parent_table')
     formatter = FORMATTER if parent_table is None else parent_table.formatter
@@ -128,8 +131,9 @@ def col_iter_str_vals(col):
 
 def col_copy(col):
     """
-    TODO: docstring
     This is a mixin-safe version of Column.copy() (with copy_data=True).
+
+    Warning: this function is subject to change or removal.
     """
     if isinstance(col, BaseColumn):
         return col.copy()
