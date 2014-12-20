@@ -24,4 +24,4 @@ def randomly_sample_sphere(ntosample, randomseed=12345):
         lon = np.random.rand(ntosample)*np.pi*2
         r = np.random.rand(ntosample)
 
-    return lon*u.deg, lat*u.deg, r
+    return lon*u.rad, lat*u.rad, r
