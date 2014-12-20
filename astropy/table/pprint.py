@@ -255,13 +255,31 @@ class TableFormatter(object):
             col_strs.append('</table>')
 
         # Now bring all the column string values to the same fixed width
-        for i, col_str in enumerate(col_strs):
-            if align.upper() in ['RIGHT','R']:
-                col_strs[i] = col_str.rjust(col_width)
-            elif align.upper() in ['LEFT','L']:
-                col_strs[i] = col_str.ljust(col_width)
+        justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust'}
+        try:
+            # if col.format is not a string, this raises an exception, causing a default to 'rjust'.
+            if col.format[:2] == '0=':
+                justify = (lambda col_str, col_width:
+                           getattr(col_str, 'zfill')(col_width))
             else:
-                log.error('Argument `align` must take either `left` or `right`.')
+                justify_method = justify_methods.get(col.format[0], None)
+                if justify_method is None:
+                    # try whether a fill character precedes the justification
+                    # character (if not, this will raise an exception,
+                    # causing a default to rjust below)
+                    justify_method = justify_methods[col.format[1]]
+                    justify = (lambda col_str, col_width: \
+                               getattr(col_str, justify_method)(col_width,
+                                                                col.format[0]))
+                else:
+                    justify = (lambda col_str, col_width:
+                               getattr(col_str, justify_method)(col_width))
+        except:
+            justify = (lambda col_str, col_width:
+                       getattr(col_str, 'rjust')(col_width))
+
+        for i, col_str in enumerate(col_strs):
+            col_strs[i] = justify(col_str, col_width)
 
         else:
             col_width = max(len(x) for x in col_strs) if col_strs else 1
