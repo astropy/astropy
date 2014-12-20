@@ -13,7 +13,6 @@ from ..units import Unit, Quantity
 from .. import log
 from ..utils.compat.odict import OrderedDict
 
-from ..io import registry as io_registry
 from ..config import ConfigAlias
 
 __all__ = ['NDData']
@@ -80,6 +79,8 @@ class NDData(NDDataBase):
 
     def __init__(self, data, uncertainty=None, mask=None, wcs=None,
                  meta=None, unit=None):
+
+        super(NDData, self).__init__()
 
         if isinstance(data, self.__class__):
             self._data = np.array(data.data, subok=True, copy=False)
