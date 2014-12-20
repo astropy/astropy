@@ -122,6 +122,7 @@ New Features
 
   - New array-related utility functions in ``astropy.nddata.utils`` for adding
     and removing arrays from other arrays with different sizes/shapes. [#3201]
+
   - Added a decorator ``support_nddata`` that can be used to write functions
     that can either take separate arguments or NDData objects. [#2855]
 
