@@ -91,7 +91,7 @@ class IERS(Table):
     """Generic IERS table class, defining interpolation functions.
 
     Sub-classed from `astropy.table.Table`.  The table should hold columns
-    'MJD', 'UT1_UTC', and 'PM_X'/'PM_Y'.
+    'MJD', 'UT1_UTC', and 'PM_x'/'PM_y'.
     """
 
     iers_table = None
