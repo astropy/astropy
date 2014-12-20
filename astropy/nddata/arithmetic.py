@@ -12,8 +12,9 @@ from .. units import dimensionless_unscaled, UnitsError
 from .. import log
 from .nddata import NDData
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
+from .slicing import NDSlicing
 
-__all__ = ['NDArithmetic', 'NDDataArithmetic', 'NDSlicing']
+__all__ = ['NDArithmetic', 'NDDataArithmetic']
 
 
 class NDArithmetic(object):
@@ -222,31 +223,6 @@ class NDArithmetic(object):
         return self._arithmetic(
             operand, propagate_uncertainties, "division", np.divide)
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
-
-
-class NDSlicing(object):
-    def __getitem__(self, item):
-
-        new_data = self.data[item]
-
-        if self.uncertainty is not None:
-            new_uncertainty = self.uncertainty[item]
-        else:
-            new_uncertainty = None
-
-        if self.mask is not None:
-            new_mask = self.mask[item]
-        else:
-            new_mask = None
-
-        if self.wcs is not None:
-            new_wcs = self.wcs[item]
-        else:
-            new_wcs = None
-
-        return self.__class__(new_data, uncertainty=new_uncertainty,
-                              mask=new_mask, wcs=new_wcs,
-                              meta=self.meta, unit=self.unit)
 
 
 class NDDataArithmetic(NDArithmetic, NDSlicing, NDData):

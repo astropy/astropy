@@ -14,6 +14,7 @@ from .nduncertainty import *
 from .flag_collection import *
 from .decorators import *
 from .arithmetic import *
+from .slicing import *
 
 from .. import config as _config
 
