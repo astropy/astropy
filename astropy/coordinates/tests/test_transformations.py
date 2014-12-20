@@ -16,6 +16,7 @@ from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import pytest
 from .utils import randomly_sample_sphere
+from ...time import Time
 
 
 #Coordinates just for these tests.
@@ -192,9 +193,6 @@ def test_m31_coord_transforms(fromsys, tosys, fromcoo, tocoo):
     This tests a variety of coordinate conversions for the Chandra point-source
     catalog location of M31 from NED.
     """
-
-    from ...time import Time
-
     coo1 = fromsys(ra=fromcoo[0]*u.deg, dec=fromcoo[1]*u.deg, distance=m31_dist)
     coo2 = coo1.transform_to(tosys)
     if tosys is FK4:
@@ -220,8 +218,6 @@ def test_precession():
     """
     Ensures that FK4 and FK5 coordinates precess their equinoxes
     """
-    from ...time import Time
-
     j2000 = Time('J2000', scale='utc')
     b1950 = Time('B1950', scale='utc')
     j1975 = Time('J1975', scale='utc')
@@ -260,8 +256,6 @@ def test_obstime():
     Checks to make sure observation time is
     accounted for at least in FK4 <-> ICRS transformations
     """
-    from ...time import Time
-
     b1950 = Time('B1950', scale='utc')
     j1975 = Time('J1975', scale='utc')
 
@@ -350,8 +344,6 @@ def test_icrs_cirs():
     Also includes the CIRS<->CIRS transforms at differnt times, as those go
     through ICRS
     """
-    from ...time import Time
-
     ra, dec, dist = randomly_sample_sphere(200)
     inod = ICRS(ra=ra, dec=dec)
     iwd = ICRS(ra=ra, dec=dec, distance=dist*u.pc)
@@ -394,8 +386,6 @@ def test_icrs_gcrs():
     """
     Check ICRS<->GCRS for consistency
     """
-    from ...time import Time
-
     ra, dec, dist = randomly_sample_sphere(200)
     inod = ICRS(ra=ra, dec=dec)
     iwd = ICRS(ra=ra, dec=dec, distance=dist*u.pc)
@@ -449,7 +439,6 @@ def test_cirs_to_altaz():
     Check the basic CIRS<->AltAz transforms.  More thorough checks implicitly
     happen in `test_iau_fullstack`
     """
-    from ...time import Time
     from .. import EarthLocation
 
     ra, dec, dist = randomly_sample_sphere(200)
@@ -537,3 +526,30 @@ def test_gcrs_cirs():
     gcrs4 = gcrs.transform_to(ICRS).transform_to(CIRS).transform_to(ICRS).transform_to(gcrs)
     npt.assert_allclose(gcrs.ra.deg, gcrs4.ra.deg)
     npt.assert_allclose(gcrs.dec.deg, gcrs4.dec.deg)
+
+
+def test_gcrs_altaz():
+    """
+    Check GCRS<->AltAz transforms for round-tripping.  Has multiple paths
+    """
+    from .. import EarthLocation
+
+    ra, dec, _ = randomly_sample_sphere(1)
+    gcrs = GCRS(ra=ra[0], dec=dec[0], obstime='J2000')
+
+    # check array times sure N-d arrays work
+    times = Time(np.linspace(2456293.25, 2456657.25, 51) * u.day,
+                 format='jd', scale='utc')
+
+    loc = EarthLocation(lon=10 * u.deg, lat=80. * u.deg)
+    aaframe = AltAz(obstime=times, location=loc)
+
+    aa1 = gcrs.transform_to(aaframe)
+    aa2 = gcrs.transform_to(ICRS).transform_to(CIRS).transform_to(aaframe)
+    aa3 = gcrs.transform_to(ITRS).transform_to(CIRS).transform_to(aaframe)
+
+    # make sure they're all consistent
+    npt.assert_allclose(aa1.alt.deg, aa2.alt.deg)
+    npt.assert_allclose(aa1.az.deg, aa2.az.deg)
+    npt.assert_allclose(aa1.alt.deg, aa3.alt.deg)
+    npt.assert_allclose(aa1.az.deg, aa3.az.deg)
