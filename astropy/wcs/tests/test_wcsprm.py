@@ -3,6 +3,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from distutils.version import LooseVersion
 import gc
 import locale
 import re
@@ -775,6 +776,9 @@ def test_compare():
     assert w.compare(w2, tolerance=1e-6)
 
 
+@pytest.mark.xfail(
+    LooseVersion(_wcs.__version__) < LooseVersion("4.25"),
+    reason="wcslib < 4.25")
 def test_radesys_defaults():
     w = _wcs.Wcsprm()
     w.radesys == 'ICRS'
