@@ -134,6 +134,24 @@ def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
     npt.assert_allclose(fullstack_icrs.dec.deg, icrs2.dec.deg)
 
 
+def test_future_altaz(recwarn):
+    """
+    While this does test the full stack, it is mostly meant to check that a
+    warning is raised when attempting to get to AltAz in the future (beyond
+    IERS tables)
+    """
+    from ...utils.exceptions import AstropyWarning
+
+    location = EarthLocation(lat=0*u.deg, lon=0*u.deg)
+    t = Time('J2030')
+
+    SkyCoord(1*u.deg, 2*u.deg).transform_to(AltAz(location=location, obstime=t))
+    w1 = recwarn.pop(AstropyWarning)
+    assert "Tried to get polar motions for a time after IERS data is valid." in str(w1.message)
+    w2 = recwarn.pop(AstropyWarning)
+    assert "(some) times are outside of range covered by IERS table." in str(w2.message)
+
+
 #<--------------- Below here are tests against "known good" examples ---------->
 @pytest.mark.xfail
 def test_against_hor2eq():
