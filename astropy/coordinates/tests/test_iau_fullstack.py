@@ -135,9 +135,9 @@ def test_fiducial_roudtrip(fullstack_icrs, fullstack_fiducial_altaz):
 
 
 #<--------------- Below here are tests against "known good" examples ---------->
-
+@pytest.mark.xfail
 def test_against_hor2eq():
-    """Check that Astropy gives consistent results with the IDL hor2eq example.
+    """Check that Astropy gives consistent results with an IDL hor2eq example.
 
     See example input and output here:
     http://idlastro.gsfc.nasa.gov/ftp/pro/astro/hor2eq.pro
@@ -145,25 +145,20 @@ def test_against_hor2eq():
     Observatory position for `kpno` from here:
     http://idlastro.gsfc.nasa.gov/ftp/pro/astro/observatory.pro
     """
-    obstime = Time(2466879.7083333, format='jd')
-    location = EarthLocation(lon=Angle('111d36.0m'), lat=Angle('31d57.8m'),height=2120.*u.m)
-    temperature = 0 * u.deg_C
-    pressure = 0.781 * u.bar
-    # relative_humidity = ?
-    # obswl = ?
-    aaframe = AltAz(obstime=obstime,location=location,
-                    temperature=temperature, pressure=pressure)
+    obstime = Time('J2014.12')
+    kpno = EarthLocation(lon=Angle('111d36.0m'), lat=Angle('31d57.8m'), height=2120.*u.m)
 
-    # TODO: check if this is correct ... should we use FK5 here?
-    eq = SkyCoord('00d13m14.1s +15d11m0.3s', frame='icrs')
-    hor_actual = eq.transform_to(aaframe)
-    hor_expected = SkyCoord('264d55m06s 37d54m41s', frame='altaz')
-    distance = hor_actual.separation(hor_expected)
+    #pressure=0 means no refraction correction, so need to use hor2eq with refract_=0
+    aaframe = AltAz(obstime=obstime, location=kpno, pressure=0)
+    aacoo = SkyCoord(alt=12.34*u.deg, az=56.78*u.deg, frame=aaframe)
+    astropy_fk5 = aacoo.transform_to('fk5')
+    hor2eq_fk5 = SkyCoord(39.208254*u.deg, 34.554463*u.deg, frame='fk5')
 
-    # TODO: what assertion precision makes sense here?
+    distance = astropy_fk5.separation(hor2eq_fk5)
     assert distance < 1 * u.arcsec
 
 
+@pytest.mark.xfail
 def test_against_pyephem():
     """Check that Astropy gives consistent results with one PyEphem example.
 
@@ -191,6 +186,7 @@ def test_against_pyephem():
     assert distance < 1 * u.arcsec
 
 
+@pytest.mark.xfail
 def test_against_jpl_horizons():
     """Check that Astropy gives consistent results with the JPL Horizons example.
 
