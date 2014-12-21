@@ -222,7 +222,6 @@ class Csv(Basic):
       2,38.12321,-88.1321,2.2,17.0
     """
     _format_name = 'csv'
-    _io_registry_suffix = '.csv'
     _io_registry_can_write = True
     _description = 'Comma-separated-values'
 
