@@ -1,0 +1,109 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+""" This module contains dictionaries that can be used to set a
+:mod:`matplotlib` plotting style.
+It is mostly here to allow a consistent plotting style in tutorials,
+but can be used to prepare any :mod:`matplotlib` figure.
+
+Using a :mod:`matplotlib` version > 1.4 you can do::
+
+    >>> import matplotlib.pyplot as plt
+    >>> plt.style.use(astropy.visualization.astropy_mpl_style)
+
+for older versions of :mod:`matplotlib` the following works::
+
+    >>> import matplotlib as mpl
+    >>> mpl.rcParams.update(astropy.visualization.astropy_mpl_style)
+
+This applies the astropy style on top of your existing :mod:`matplotlib`
+default parameters. If you want an exactly reproducible plot (again this
+could be useful if you are writing teaching material and you want the plot
+to come out exactly the same, independent of the users configuration), you
+should reset the matplotlib settings to the library defaults *before*
+applying the astropy style, e.g.::
+
+    >>> import matplotlib as mpl
+    >>> mpl.rcParams.update(astropy.visualization.astropy_mpl_style)
+    >>> mpl.rcdefaults()
+
+"""
+
+
+astropy_mpl_style_1 = {
+
+    # Lines
+    'lines.linewidth': 1.7,
+    'lines.antialiased': True,
+
+    # Patches
+    'patch.linewidth': 1.0,
+    'patch.facecolor': '#348ABD',
+    'patch.edgecolor': '#CCCCCC',
+    'patch.antialiased': True,
+
+    # images
+    'image.cmap': 'gist_heat',
+    'image.origin': 'upper',
+
+    # Font
+    'font.size': 12.0,
+
+    # Axes
+    'axes.facecolor': '#FFFFFF',
+    'axes.edgecolor': '#AAAAAA',
+    'axes.linewidth': 1.0,
+    'axes.grid': True,
+    'axes.titlesize': 'x-large',
+    'axes.labelsize': 'large',
+    'axes.labelcolor': '#FFFFFF',
+    'axes.axisbelow': True,
+    'axes.color_cycle': ['#348ABD',   # blue
+                         '#7A68A6',   # purple
+                         '#A60628',   # red
+                         '#467821',   # green
+                         '#CF4457',   # pink
+                         '#188487',   # turquoise
+                         '#E24A33'],  # orange
+
+    # Ticks
+    'xtick.major.size': 0,
+    'xtick.minor.size': 0,
+    'xtick.major.pad': 6,
+    'xtick.minor.pad': 6,
+    'xtick.color': '#565656',
+    'xtick.direction': 'in',
+    'ytick.major.size': 0,
+    'ytick.minor.size': 0,
+    'ytick.major.pad': 6,
+    'ytick.minor.pad': 6,
+    'ytick.color': '#565656',
+    'ytick.direction': 'in',
+
+    # Legend
+    'legend.fancybox': True,
+    'legend.loc': 'best',
+
+    # Figure
+    'figure.figsize': [8, 6],
+    'figure.facecolor': '1.0',
+    'figure.edgecolor': '0.50',
+    'figure.subplot.hspace': 0.5,
+
+    # Other
+    'savefig.dpi': 72,
+    'interactive': True,
+    'toolbar': 'toolbar2',
+    'timezone': 'UTC'
+}
+'''
+Version 1 astropy plotting style for :mod:`matplotlib`.
+
+This style improves some settings over the matpotlib default.
+'''
+
+astropy_mpl_style = astropy_mpl_style_1
+'''
+Astropy plotting style for :mod:`matplotlib`.
+
+This style improves some settings over the matpotlib default.
+'''
