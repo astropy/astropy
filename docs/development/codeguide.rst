@@ -165,6 +165,11 @@ Coding Style/Conventions
   <http://www.python.org/dev/peps/pep-0008/>`_. In particular, this includes
   using only 4 spaces for indentation, and never tabs.
 
+* *Follow the existing coding style* within a subpackage and avoid making
+  changes that are purely stylistic.  In particular, there is variation in the
+  maximum line length for different subpackages (typically either 80 or 100
+  characters).  Please try to maintain the style when adding or modifying code.
+
 * One exception is to be made from the PEP8 style: new style relative imports
   of the form ``from . import modname`` are allowed and required for Astropy,
   as opposed to absolute (as PEP8 suggests) or the simpler ``import modname``
