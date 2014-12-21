@@ -371,9 +371,6 @@ Bug Fixes
     Now, only one character in addition to the delimiter is allowed. This bug was
     discovered as part of [#3109]
 
-  - There is now only one reader/writer for csv tables.
-    Because it is unique, ``Table.write('name.csv')`` works again. [#3189]
-
 - ``astropy.io.fits``
 
   - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
