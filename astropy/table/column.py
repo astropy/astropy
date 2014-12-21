@@ -639,13 +639,37 @@ class Column(BaseColumn):
                                           unit=unit, format=format, meta=meta, copy=copy)
         return self
 
+    def _base_repr_(self, html=False):
+        descr_vals = [self.__class__.__name__]
+        unit = None if self.unit is None else str(self.unit)
+        shape = None if self.ndim <= 1 else self.shape[1:]
+        for attr, val in (('name', self.name),
+                          ('dtype', self.dtype.name),
+                          ('shape', shape),
+                          ('unit', unit),
+                          ('format', self.format),
+                          ('description', self.description),
+                          ('length', len(self))):
+
+            if val is not None:
+                descr_vals.append('{0}={1}'.format(attr, repr(val)))
+
+        descr = '<' + ' '.join(descr_vals) + '>\n'
+
+        if html:
+            from ..utils.xml.writer import xml_escape
+            descr = xml_escape(descr)  #  + '</strong><br />\n'
+
+        data_lines, outs = self._formatter._pformat_col(
+            self, show_name=False, show_unit=False, show_length=False, html=html)
+
+        return descr + '\n'.join(data_lines)
+
     def _repr_html_(self):
-        lines, outs = self._formatter._pformat_col(self, show_dtype=True, html=True)
-        return '\n'.join(lines)
+        return self._base_repr_(html=True)
 
     def __repr__(self):
-        lines, outs = self._formatter._pformat_col(self, show_dtype=True)
-        return '\n'.join(lines)
+        return self._base_repr_(html=False)
 
     def __unicode__(self):
         lines, outs = self._formatter._pformat_col(self)
