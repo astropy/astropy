@@ -284,6 +284,14 @@ I/O with tables
 
    io.rst
 
+Mixin columns
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   mixin_columns.rst
+
 Implementation
 ----------------
 
