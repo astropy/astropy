@@ -188,9 +188,9 @@ Model sets
 ----------
 
 In some cases it is necessary to describe many models of the same type but with
-different parameter values.  This could be done simply by instantiating as many
-instances of a `~astropy.modeling.Model` as are needed.  But that can be
-inefficient for a large number of models.  To that end, all model classes in
+different sets of parameter values.  This could be done simply by instantiating
+as many instances of a `~astropy.modeling.Model` as are needed.  But that can
+be inefficient for a large number of models.  To that end, all model classes in
 `astropy.modeling` can also be used to represent a model *set* which is a
 collection of models of the same type, but with different values for their
 parameters.
@@ -244,6 +244,107 @@ response of each pixel in a data cube.  This can greatly speed up the fitting
 process, especially for linear models.
 
 
+Compound models
+---------------
+.. versionadded:: 1.0
+
+    This feature is experimental and expected to see significant further
+    development, but the basic usage is stable and expected to see wide use.
+
+While the Astropy modeling package makes it very easy to define :doc:`new
+models <new>` either from existing functions, or by writing a
+`~astropy.modeling.Model` subclass, an additional way to create new models is
+by combining them using arithmetic expressions.  This works with models built
+into Astropy, and most user-defined models as well.  For example, it is
+possible to create a superposition of two Gaussians like so::
+
+    >>> from astropy.modeling import models
+    >>> g1 = models.Gaussian1D(1, 0, 0.2)
+    >>> g2 = models.Gaussian1D(2.5, 0.5, 0.1)
+    >>> g1_plus_2 = g1 + g2
+
+The resulting object ``g1_plus_2`` is itself a new model.  Evaluating, say,
+``g1_plus_2(0.25)`` is the same as evaluating ``g1(0.25) + g2(0.25)``::
+
+    >>> g1_plus_2(0.25)  # doctest: +FLOAT_CMP
+    0.5676756958301329
+    >>> g1_plus_2(0.25) == g1(0.25) + g2(0.25)
+    True
+
+This model can be further combined with other models in new expressions.  It
+is also possible to define entire new model *classes* using arithmetic
+expressions of other model classes.  This allows general compound models to be
+created without specifying any parameter values up front.  For example::
+
+    >>> from astropy.modeling.models import Gaussian1D
+    >>> TwoGaussians = Gaussian1D + Gaussian1D
+    >>> TwoGaussians
+    <class '__main__.CompoundModel...'>
+    Name: CompoundModel...
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
+    Expression: [0] + [1]
+    Components: 
+        [0]: <class 'astropy.modeling.functional_models.Gaussian1D'>
+        Name: Gaussian1D
+        Inputs: ('x',)
+        Outputs: ('y',)
+        Fittable parameters: ('amplitude', 'mean', 'stddev')
+
+        [1]: <class 'astropy.modeling.functional_models.Gaussian1D'>
+        Name: Gaussian1D
+        Inputs: ('x',)
+        Outputs: ('y',)
+        Fittable parameters: ('amplitude', 'mean', 'stddev')
+
+This is a new model type that accepts six parameters corresponding to the
+amplitude, mean, and standard deviations of the two Gaussians that comprise
+this superposition.  It can be instantiated with parameter values and then
+evaluated like other models::
+
+    >>> gg = TwoGaussians(1, 0, 0.2, 2.5, 0.5, 0.1)
+    >>> gg(0.25)  # doctest: +FLOAT_CMP
+    0.5676756958301329
+
+It is also possible to mix model classes and model instances in a single
+expression.  The result in this case is still a class--this case is discussed
+in more detail in the :doc:`compound-models` documentation.  These new compound
+models can also be fitted to data, like most other models:
+
+.. plot::
+    :include-source:
+
+    import numpy as np
+    from astropy.modeling import models, fitting
+
+    # Generate fake data
+    np.random.seed(0)
+    g1 = models.Gaussian1D(1, 0, 0.2)
+    g2 = models.Gaussian1D(2.5, 0.5, 0.1)
+    x = np.linspace(-1, 1, 200)
+    y = g1(x) + g2(x) + np.random.normal(0., 0.2, x.shape)
+
+    # Create a new model class representing a superposition and initialize it
+    # with some initial guesses, then use it to fit the data
+    TwoGaussians = models.Gaussian1D + models.Gaussian1D
+    gg_init = TwoGaussians(1, 0, 0.1, 1, 0, 0.1)
+    fitter = fitting.SLSQPLSQFitter()
+    gg_fit = fitter(gg_init, x, y)
+
+    # Plot the data with the best-fit model
+    plt.figure(figsize=(8,5))
+    plt.plot(x, y, 'ko')
+    plt.plot(x, gg_fit(x), 'r-', lw=2)
+    plt.xlabel('Position')
+    plt.ylabel('Flux')
+
+This works for 1-D models, 2-D models, and combinations thereof, though there
+are some complexities involved in correctly matching up the inputs and outputs
+of all models used to build a compound model.  You can learn more details in
+the :doc:`compound-models` documentation.
+
+
 Using `astropy.modeling`
 ========================
 
@@ -253,6 +354,7 @@ Using `astropy.modeling`
    parameters
    models
    fitting
+   compound-models
    new
    algorithms
    design
