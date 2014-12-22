@@ -327,7 +327,8 @@ class BaseColumn(np.ndarray):
     def _formatter(self):
         return FORMATTER if (self.parent_table is None) else self.parent_table.formatter
 
-    def pformat(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False, html=False):
+    def pformat(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False,
+                html=False):
         """Return a list of formatted string representation of column values.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -391,8 +392,9 @@ class BaseColumn(np.ndarray):
             Include column dtype (default=True)
         """
         _pformat_col = self._formatter._pformat_col
-        lines, outs = _pformat_col(self, max_lines, show_name, show_unit=show_unit,
+        lines, outs = _pformat_col(self, max_lines, show_name=show_name, show_unit=show_unit,
                                    show_dtype=show_dtype)
+
         n_header = outs['n_header']
         for i, line in enumerate(lines):
             if i < n_header:
@@ -658,7 +660,7 @@ class Column(BaseColumn):
 
         if html:
             from ..utils.xml.writer import xml_escape
-            descr = xml_escape(descr)  #  + '</strong><br />\n'
+            descr = xml_escape(descr)
 
         data_lines, outs = self._formatter._pformat_col(
             self, show_name=False, show_unit=False, show_length=False, html=html)

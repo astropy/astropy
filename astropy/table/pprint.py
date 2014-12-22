@@ -375,7 +375,8 @@ class TableFormatter(object):
 
 
     def _pformat_table(self, table, max_lines=None, max_width=None, show_name=True,
-                       show_unit=None, show_dtype=False, html=False, tableid=None):
+                       show_unit=None, show_dtype=False,
+                       html=False, tableid=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -429,7 +430,6 @@ class TableFormatter(object):
             cols.append(lines)
 
         # Use the values for the last column since they are all the same
-        show_length = outs['rows_clipped']
         n_header = outs['n_header']
 
         if not cols:
@@ -476,10 +476,7 @@ class TableFormatter(object):
                 row = ' '.join(col[i] for col in cols)
                 rows.append(row)
 
-        if show_length:
-            rows.append('Length = {0} rows'.format(len(table)))
-
-        return rows, n_header
+        return rows, outs
 
 
     def _more_tabcol(self, tabcol, max_lines=None, max_width=None, show_name=True,

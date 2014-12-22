@@ -545,13 +545,33 @@ class Table(object):
 
         table.columns = columns
 
+    def _base_repr_(self, html=False):
+        descr_vals = [self.__class__.__name__]
+        for attr, val in (('masked', self.masked),
+                          ('length', len(self))):
+            descr_vals.append('{0}={1}'.format(attr, repr(val)))
+
+        descr = '<' + ' '.join(descr_vals) + '>\n'
+
+        if html:
+            from ..utils.xml.writer import xml_escape
+            descr = xml_escape(descr)
+
+        tableid = 'table{id}'.format(id=id(self))
+        data_lines, outs = self.formatter._pformat_table(self,
+            tableid=tableid, html=html, max_width=(-1 if html else None),
+            show_name=True, show_unit=None, show_dtype=True)
+
+        return descr + '\n'.join(data_lines)
+
+    def _repr_html_(self):
+        return self._base_repr_(html=True)
+
     def __repr__(self):
-        lines, n_header = self.formatter._pformat_table(self, show_dtype=True)
-        return '\n'.join(lines)
+        return self._base_repr_(html=False)
 
     def __unicode__(self):
-        lines, n_header = self.formatter._pformat_table(self)
-        return '\n'.join(lines)
+        return '\n'.join(self.pformat())
     if six.PY3:
         __str__ = __unicode__
 
@@ -593,11 +613,13 @@ class Table(object):
         show_dtype : bool
             Include a header row for column dtypes (default=True)
         """
+        lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
+                                                    show_name=show_name, show_unit=show_unit,
+                                                    show_dtype=show_dtype)
+        if outs['rows_clipped']:
+            lines.append('Length = {0} rows'.format(len(self)))
 
-
-        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
-                                                        show_name=show_name, show_unit=show_unit,
-                                                        show_dtype=show_dtype)
+        n_header = outs['n_header']
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -711,10 +733,14 @@ class Table(object):
             Formatted table as a list of strings
 
         """
-        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
-                                                        show_name=show_name, show_unit=show_unit,
-                                                        show_dtype=show_dtype, html=html,
-                                                        tableid=tableid)
+        lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
+                                                    show_name=show_name, show_unit=show_unit,
+                                                    show_dtype=show_dtype, html=html,
+                                                    tableid=tableid)
+
+        if outs['rows_clipped']:
+            lines.append('Length = {0} rows'.format(len(self)))
+
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
@@ -754,12 +780,6 @@ class Table(object):
         """
         self.formatter._more_tabcol(self, max_lines, max_width, show_name=show_name,
                                     show_unit=show_unit, show_dtype=show_dtype)
-
-    def _repr_html_(self):
-        # Since the user cannot provide input, need a sensible default
-        tableid = 'table{id}'.format(id=id(self))
-        lines = self.pformat(html=True, tableid=tableid, max_width=-1, show_dtype=True)
-        return ''.join(lines)
 
     def __getitem__(self, item):
         if isinstance(item, six.string_types):
