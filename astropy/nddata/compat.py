@@ -13,10 +13,10 @@ from .slicing import NDSlicingMixin
 from .arithmetic import NDArithmeticMixin
 from .nduncertainty import NDUncertainty
 
-__all__ = ['NDDataArithmetic']
+__all__ = ['NDDataArray']
 
 
-class NDDataArithmetic(NDArithmeticMixin, NDSlicingMixin, NDData):
+class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDData):
     """
     An ``NDData`` object with arithmetic. This class is functionally equivalent
     to ``NDData`` in astropy  versions prior to 1.0.
@@ -24,7 +24,7 @@ class NDDataArithmetic(NDArithmeticMixin, NDSlicingMixin, NDData):
 
     def __init__(self, *arg, **kwd):
         # Initialize with the parent...
-        super(NDDataArithmetic, self).__init__(*arg, **kwd)
+        super(NDDataArray, self).__init__(*arg, **kwd)
 
         # ...then reset uncertainty to force it to go through the
         # setter logic below. In base NDData all that is done is to

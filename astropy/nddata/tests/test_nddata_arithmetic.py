@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ..compat import NDDataArithmetic
+from ..compat import NDDataArray
 from ..nduncertainty import (StdDevUncertainty,
                              IncompatibleUncertaintiesException,
                              NDUncertainty)
@@ -43,13 +43,13 @@ class FakeUncertainty(NDUncertainty):
 def test_nddata_uncertainty_init_invalid_shape_1():
     u = StdDevUncertainty(array=np.ones((6, 6)))
     with pytest.raises(ValueError) as exc:
-        NDDataArithmetic(np.ones((5, 5)), uncertainty=u)
+        NDDataArray(np.ones((5, 5)), uncertainty=u)
     assert exc.value.args[0] == 'parent shape does not match array data shape'
 
 
 def test_nddata_uncertainty_init_invalid_shape_2():
     u = StdDevUncertainty()
-    NDDataArithmetic(np.ones((5, 5)), uncertainty=u)
+    NDDataArray(np.ones((5, 5)), uncertainty=u)
     with pytest.raises(ValueError) as exc:
         u.array = np.ones((6, 6))
     assert exc.value.args[0] == 'array shape does not match parent data shape'
@@ -58,7 +58,7 @@ def test_nddata_uncertainty_init_invalid_shape_2():
 @pytest.mark.parametrize(('uncertainty'), [1., 'spam', np.ones((5, 5))])
 def test_nddata_uncertainty_invalid_type(uncertainty):
     with pytest.raises(TypeError) as exc:
-        NDDataArithmetic(np.ones((5, 5)), uncertainty=uncertainty)
+        NDDataArray(np.ones((5, 5)), uncertainty=uncertainty)
     assert exc.value.args[0] == ('Uncertainty must be an instance of '
                                  'a NDUncertainty object')
 
@@ -66,7 +66,7 @@ def test_nddata_uncertainty_invalid_type(uncertainty):
 # slicing tests
 def test_simple_slicing():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
-    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
+    d1 = NDDataArray(np.ones((5, 5)), uncertainty=u1)
     assert d1.data.shape == (5, 5)
     d2 = d1[2:3, 2:3]
     assert d2.data.shape == (1, 1)
@@ -76,7 +76,7 @@ def test_simple_slicing():
 
 def test_slicing_reference():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
-    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
+    d1 = NDDataArray(np.ones((5, 5)), uncertainty=u1)
     d2 = d1[2:3, 2:3]
     # asserting that the new nddata contains references to the original nddata
     assert d2.data.base is d1.data
@@ -85,38 +85,38 @@ def test_slicing_reference():
 
 def test_slicing_with_mask_or_flag():
     # Regression test for #2170
-    ndd = NDDataArithmetic(np.array([1, 2, 3]),
+    ndd = NDDataArray(np.array([1, 2, 3]),
                            mask=np.array([False, False, False]))
     assert ndd[0].data.shape == ()
     assert not ndd[0].mask
 
 
 def test_nddata_add():
-    d1 = NDDataArithmetic(np.ones((5, 5)))
-    d2 = NDDataArithmetic(np.ones((5, 5)))
+    d1 = NDDataArray(np.ones((5, 5)))
+    d2 = NDDataArray(np.ones((5, 5)))
     d3 = d1.add(d2)
     assert np.all(d3.data == 2.)
 
 
 def test_nddata_add_mismatch_wcs():
-    d1 = NDDataArithmetic(np.ones((5, 5)), wcs=1.)
-    d2 = NDDataArithmetic(np.ones((5, 5)), wcs=2.)
+    d1 = NDDataArray(np.ones((5, 5)), wcs=1.)
+    d2 = NDDataArray(np.ones((5, 5)), wcs=2.)
     with pytest.raises(ValueError) as exc:
         d1.add(d2)
     assert exc.value.args[0] == "WCS properties do not match"
 
 
 def test_nddata_add_mismatch_units():
-    d1 = NDDataArithmetic(np.ones((5, 5)), unit='Jy')
-    d2 = NDDataArithmetic(np.ones((5, 5)), unit='erg/s')
+    d1 = NDDataArray(np.ones((5, 5)), unit='Jy')
+    d2 = NDDataArray(np.ones((5, 5)), unit='erg/s')
     with pytest.raises(ValueError) as exc:
         d1.add(d2)
     assert exc.value.args[0] == "operand units do not match"
 
 
 def test_nddata_add_mismatch_shape():
-    d1 = NDDataArithmetic(np.ones((5, 5)))
-    d2 = NDDataArithmetic(np.ones((6, 6)))
+    d1 = NDDataArray(np.ones((5, 5)))
+    d2 = NDDataArray(np.ones((6, 6)))
     with pytest.raises(ValueError) as exc:
         d1.add(d2)
     assert exc.value.args[0] == "operand shapes do not match"
@@ -126,9 +126,9 @@ def test_nddata_add_with_masks():
     # numpy masked arrays mask the result of binary operations if the
     # mask of either operand is set.
     # Does NDData?
-    ndd1 = NDDataArithmetic(np.array([1, 2]), mask=np.array([True, False]))
+    ndd1 = NDDataArray(np.array([1, 2]), mask=np.array([True, False]))
     other_mask = ~ ndd1.mask
-    ndd2 = NDDataArithmetic(np.array([1, 2]), mask=other_mask)
+    ndd2 = NDDataArray(np.array([1, 2]), mask=other_mask)
     result = ndd1.add(ndd2)
     # The result should have all entries masked...
     assert result.mask.all()
@@ -137,8 +137,8 @@ def test_nddata_add_with_masks():
 def test_nddata_add_uncertainties():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = StdDevUncertainty(array=np.ones((5, 5)))
-    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
-    d2 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u2)
+    d1 = NDDataArray(np.ones((5, 5)), uncertainty=u1)
+    d2 = NDDataArray(np.ones((5, 5)), uncertainty=u2)
     d3 = d1.add(d2)
     assert np.all(d3.data == 2.)
     assert_array_equal(d3.uncertainty.array, np.sqrt(10.))
@@ -147,8 +147,8 @@ def test_nddata_add_uncertainties():
 def test_nddata_add_uncertainties_mismatch():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = FakeUncertainty()
-    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
-    d2 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u2)
+    d1 = NDDataArray(np.ones((5, 5)), uncertainty=u1)
+    d2 = NDDataArray(np.ones((5, 5)), uncertainty=u2)
     with pytest.raises(IncompatibleUncertaintiesException) as exc:
         d3 = d1.add(d2)
     assert exc.value.args[0] == ('Cannot propagate uncertainties of type '
@@ -160,7 +160,7 @@ def test_initializing_nduncertainty_from_quantity():
     # Until nddata and quantity are integrated initializing with a quantity
     # should raise an error.
     input_ndd_unit = u.kg
-    ndd = NDDataArithmetic(np.array([1, 2, 3]), unit=input_ndd_unit)
+    ndd = NDDataArray(np.array([1, 2, 3]), unit=input_ndd_unit)
     std_data = np.array([1, 2, 3])
 
     # Unit of the uncertainty not convertible to unit of ndd, should raise
@@ -183,7 +183,7 @@ def test_initializing_nduncertainty_from_quantity():
     assert_array_equal(std_data, 1000 * ndd.uncertainty.array)
 
     # If ndd has no unit but the uncertainty does an error should be raised.
-    ndd = NDDataArithmetic(np.array([1, 2, 3]), unit=None)
+    ndd = NDDataArray(np.array([1, 2, 3]), unit=None)
     with pytest.raises(ValueError):
         ndd.uncertainty = std_error
 
@@ -192,7 +192,7 @@ def test_initializing_nduncertainty_from_quantity():
 def test_unmasked_masked_array_input():
     # Test for #2784
     marr = np.ma.array([1, 2, 5])  # Masked array with no masked entries
-    nd = NDDataArithmetic(marr)  # Before fix this raised a ValueError
+    nd = NDDataArray(marr)  # Before fix this raised a ValueError
 
     # Check that masks are correct
     assert marr.mask is np.ma.nomask
@@ -202,7 +202,7 @@ def test_unmasked_masked_array_input():
 
 def test_nddata_unmasked_in_operation_with_masked_numpy_array():
     # test for #2417
-    ndd = NDDataArithmetic(np.array([1, 2, 3]))
+    ndd = NDDataArray(np.array([1, 2, 3]))
     np_data = -np.ones_like(ndd)
     np_mask = np.array([True, False, True])
     np_arr_masked = np.ma.masked_array(np_data, mask=np_mask, copy=True)
@@ -220,7 +220,7 @@ def test_nddata_unmasked_in_operation_with_masked_numpy_array():
 def test_nddata_mask_invalid_shape(shape):
     with pytest.raises(ValueError) as exc:
         with NumpyRNGContext(789):
-            NDDataArithmetic(np.random.random((10, 10)),
+            NDDataArray(np.random.random((10, 10)),
                              mask=np.random.random(shape) > 0.5)
     assert exc.value.args[0] == 'dimensions of mask do not match data'
 
@@ -231,7 +231,7 @@ def test_nddata_mask_invalid_shape(shape):
                          [True, False],
                          [1, 0]])
 def test_nddata_mask_init_without_np_array(mask_in):
-    ndd = NDDataArithmetic(np.array([1, 1]), mask=mask_in)
+    ndd = NDDataArray(np.array([1, 1]), mask=mask_in)
     assert (ndd.mask == mask_in).all()
 
 
@@ -239,7 +239,7 @@ def test_ndddata_with_mask_acts_like_masked_array():
     # test for #2414
     input_mask = np.array([True, False, False])
     input_data = np.array([1, 2, 3])
-    ndd_masked = NDDataArithmetic(input_data.copy(), mask=input_mask.copy())
+    ndd_masked = NDDataArray(input_data.copy(), mask=input_mask.copy())
     other = - np.ones_like(input_data)
     result1 = ndd_masked * other
     result2 = other * ndd_masked
@@ -256,31 +256,31 @@ def test_ndddata_with_mask_acts_like_masked_array():
 # Arithmetic tests
 
 def test_nddata_subtract():
-    d1 = NDDataArithmetic(np.ones((5, 5)))
-    d2 = NDDataArithmetic(np.ones((5, 5)) * 2.)
+    d1 = NDDataArray(np.ones((5, 5)))
+    d2 = NDDataArray(np.ones((5, 5)) * 2.)
     d3 = d1.subtract(d2)
     assert np.all(d3.data == -1.)
 
 
 def test_nddata_subtract_mismatch_wcs():
-    d1 = NDDataArithmetic(np.ones((5, 5)), wcs=1.)
-    d2 = NDDataArithmetic(np.ones((5, 5)) * 2., wcs=2.)
+    d1 = NDDataArray(np.ones((5, 5)), wcs=1.)
+    d2 = NDDataArray(np.ones((5, 5)) * 2., wcs=2.)
     with pytest.raises(ValueError) as exc:
         d1.subtract(d2)
     assert exc.value.args[0] == "WCS properties do not match"
 
 
 def test_nddata_subtract_mismatch_units():
-    d1 = NDDataArithmetic(np.ones((5, 5)), unit='Jy')
-    d2 = NDDataArithmetic(np.ones((5, 5)) * 2., unit='erg/s')
+    d1 = NDDataArray(np.ones((5, 5)), unit='Jy')
+    d2 = NDDataArray(np.ones((5, 5)) * 2., unit='erg/s')
     with pytest.raises(ValueError) as exc:
         d1.subtract(d2)
     assert exc.value.args[0] == "operand units do not match"
 
 
 def test_nddata_subtract_mismatch_shape():
-    d1 = NDDataArithmetic(np.ones((5, 5)))
-    d2 = NDDataArithmetic(np.ones((6, 6)) * 2.)
+    d1 = NDDataArray(np.ones((5, 5)))
+    d2 = NDDataArray(np.ones((6, 6)) * 2.)
     with pytest.raises(ValueError) as exc:
         d1.subtract(d2)
     assert exc.value.args[0] == "operand shapes do not match"
@@ -289,8 +289,8 @@ def test_nddata_subtract_mismatch_shape():
 def test_nddata_subtract_uncertainties():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = StdDevUncertainty(array=np.ones((5, 5)))
-    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
-    d2 = NDDataArithmetic(np.ones((5, 5)) * 2., uncertainty=u2)
+    d1 = NDDataArray(np.ones((5, 5)), uncertainty=u1)
+    d2 = NDDataArray(np.ones((5, 5)) * 2., uncertainty=u2)
     d3 = d1.subtract(d2)
     assert np.all(d3.data == -1.)
     assert_array_equal(d3.uncertainty.array, np.sqrt(10.))
@@ -299,8 +299,8 @@ def test_nddata_subtract_uncertainties():
 def test_nddata_multiply_uncertainties():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = StdDevUncertainty(array=np.ones((5, 5)))
-    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
-    d2 = NDDataArithmetic(np.ones((5, 5)) * 2., uncertainty=u2)
+    d1 = NDDataArray(np.ones((5, 5)), uncertainty=u1)
+    d2 = NDDataArray(np.ones((5, 5)) * 2., uncertainty=u2)
     d3 = d1.multiply(d2)
     assert np.all(d3.data == 2.)
     assert_array_equal(d3.uncertainty.array, 2 * np.sqrt(9.25))
@@ -309,8 +309,8 @@ def test_nddata_multiply_uncertainties():
 def test_nddata_divide_uncertainties():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = StdDevUncertainty(array=np.ones((5, 5)))
-    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
-    d2 = NDDataArithmetic(np.ones((5, 5)) * 2., uncertainty=u2)
+    d1 = NDDataArray(np.ones((5, 5)), uncertainty=u1)
+    d2 = NDDataArray(np.ones((5, 5)) * 2., uncertainty=u2)
     d3 = d1.divide(d2)
     assert np.all(d3.data == 0.5)
     assert_array_equal(d3.uncertainty.array, 0.5 * np.sqrt(9.25))
@@ -319,8 +319,8 @@ def test_nddata_divide_uncertainties():
 def test_nddata_subtract_uncertainties_mismatch():
     u1 = StdDevUncertainty(array=np.ones((5, 5)) * 3)
     u2 = FakeUncertainty()
-    d1 = NDDataArithmetic(np.ones((5, 5)), uncertainty=u1)
-    d2 = NDDataArithmetic(np.ones((5, 5)) * 2., uncertainty=u2)
+    d1 = NDDataArray(np.ones((5, 5)), uncertainty=u1)
+    d2 = NDDataArray(np.ones((5, 5)) * 2., uncertainty=u2)
     with pytest.raises(IncompatibleUncertaintiesException) as exc:
         d3 = d1.subtract(d2)
     assert exc.value.args[0] == ('Cannot propagate uncertainties of type '
@@ -345,8 +345,8 @@ def test_arithmetic_result_not_tied_to_operands_uncertainty(op1_unc, op2_unc):
     # Only one of the arithmetic operations need to be checked because the
     # logic for propagating the uncertainties is common to all of the
     # operations.
-    op1 = NDDataArithmetic(np.array([1]), uncertainty=op1_unc)
-    op2 = NDDataArithmetic(np.array([1]), uncertainty=op2_unc)
+    op1 = NDDataArray(np.array([1]), uncertainty=op1_unc)
+    op2 = NDDataArray(np.array([1]), uncertainty=op2_unc)
 
     result = op1.add(op2)
     if result.uncertainty:
@@ -369,8 +369,8 @@ def test_arithmetic_result_not_tied_to_operands_uncertainty(op1_unc, op2_unc):
                          (np.array([False]), np.array([False]))])
 def test_arithmetic_result_not_tied_to_operands_mask(op1_mask, op2_mask):
     # See test_arithmetic_result_not_tied_to_operands_uncertainty for comments
-    op1 = NDDataArithmetic(np.array([1]), mask=op1_mask)
-    op2 = NDDataArithmetic(np.array([1]), mask=op2_mask)
+    op1 = NDDataArray(np.array([1]), mask=op1_mask)
+    op2 = NDDataArray(np.array([1]), mask=op2_mask)
     result = op1.add(op2)
 
     if result.mask is not None:
@@ -390,8 +390,8 @@ def test_arithmetic_result_not_tied_to_operands_wcs():
     # Unlike the previous two tests, we only need to check a case where both
     # operands have the same wcs because operands with different wcs is not
     # supported
-    op1 = NDDataArithmetic(np.array([1]), wcs=np.array([1]), unit='m')
-    op2 = NDDataArithmetic(np.array([1]), wcs=np.array([1]), unit='m')
+    op1 = NDDataArray(np.array([1]), wcs=np.array([1]), unit='m')
+    op2 = NDDataArray(np.array([1]), wcs=np.array([1]), unit='m')
     result = op1.add(op2)
     result.wcs[0] = 12345
     assert op1.wcs[0] != result.wcs[0]
@@ -405,9 +405,9 @@ def test_arithmetic_result_not_tied_to_operands_wcs():
                          ('multiply', u.km * u.m),
                          ('divide', u.km / u.m)])
 def test_uncertainty_unit_conversion_add_subtract(operation, result_unit):
-    in_km = NDDataArithmetic(np.array([1, 1]), unit=u.km,
+    in_km = NDDataArray(np.array([1, 1]), unit=u.km,
                              uncertainty=StdDevUncertainty([.1, .1]))
-    in_m = NDDataArithmetic(in_km.data * 1000, unit=u.m)
+    in_m = NDDataArray(in_km.data * 1000, unit=u.m)
     in_m.uncertainty = StdDevUncertainty(in_km.uncertainty.array * 1000)
     operator_km = in_km.__getattribute__(operation)
     combined = operator_km(in_m)
@@ -435,8 +435,8 @@ def test_uncertainty_unit_conversion_add_subtract(operation, result_unit):
                          ])
 def test_arithmetic_unit_calculation(unit1, unit2, op, result_unit):
     # Test for #2413
-    ndd1 = NDDataArithmetic(np.array([1]), unit=unit1)
-    ndd2 = NDDataArithmetic(np.array([1]), unit=unit2)
+    ndd1 = NDDataArray(np.array([1]), unit=unit1)
+    ndd2 = NDDataArray(np.array([1]), unit=unit2)
     ndd1_method = ndd1.__getattribute__(op)
     result = ndd1_method(ndd2)
     assert result.unit == result_unit
@@ -444,7 +444,7 @@ def test_arithmetic_unit_calculation(unit1, unit2, op, result_unit):
 
 # check that subclasses can require wcs and/or unit to be present and use
 # _arithmetic and convert_unit_to
-class SubNDData(NDDataArithmetic):
+class SubNDData(NDDataArray):
     """
     Subclass for test initialization of subclasses in NDData._arithmetic and
     NDData.convert_unit_to

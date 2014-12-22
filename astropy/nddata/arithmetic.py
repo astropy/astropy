@@ -21,7 +21,7 @@ class NDArithmeticMixin(object):
 
     When subclassing, be sure to list the superclasses in the correct order
     so that the subclass sees NDData as the main superclass. See
-    `~astropy.nddata.NDDataArithmetic` for an example.
+    `~astropy.nddata.NDDataArray` for an example.
     """
     def _arithmetic(self, operand, propagate_uncertainties, name, operation):
         """

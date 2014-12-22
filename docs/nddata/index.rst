@@ -119,7 +119,7 @@ but can be sliced::
     >>> ndd_sliceable[1:3]
     NDDataSliceable([2, 3])
 
-The class `~astropy.nddata.NDDataArithmetic` is an example of a class which
+The class `~astropy.nddata.NDDataArray` is an example of a class which
 utilizes mixins *and* adds functionality.
 
 NDDataBase for making new subclasses
@@ -150,7 +150,7 @@ The most important changes are that:
 Code that only uses the metadata features of `~astropy.nddata.NDData` should
 not need to be modified. Code that uses the arithemtic methods that used to
 be included in `~astropy.nddata.NDData` should instead subclass
-`~astropy.nddata.NDDataArithmetic`; that class is equivalent to the original
+`~astropy.nddata.NDDataArray`; that class is equivalent to the original
 `~astropy.nddata.NDData` class.
 
 
