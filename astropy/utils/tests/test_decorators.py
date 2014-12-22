@@ -8,7 +8,7 @@ import pickle
 from ..decorators import deprecated_attribute, deprecated, wraps, sharedmethod
 from ..exceptions import AstropyDeprecationWarning
 from ...extern import six
-from ...tests.helper import catch_warnings
+from ...tests.helper import pytest, catch_warnings
 
 
 def test_wraps():
@@ -159,6 +159,56 @@ def test_deprecated_static_and_classmethod():
 
     assert len(w) == 1
     assert 'deprecated' in A.C.__doc__
+
+
+@pytest.mark.skipif('six.PY3')
+def test_sharedmethod_imfunc():
+    """
+    Test that the im_func of a sharedmethod always points to the correct
+    underlying function.
+
+    This only applies to Python 2 as Python 3 does not have an im_func
+    attribute on methods.
+    """
+
+    # The original function
+    def foo(self): pass
+    actual_foo = foo
+
+    class Bar(object):
+        foo = sharedmethod(actual_foo)
+
+    assert Bar.foo.im_func is actual_foo
+    assert Bar().foo.im_func is actual_foo
+
+    # Now test the case where there the metaclass has a separate
+    # implementation
+    def foo(cls): pass
+    actual_foo_2 = foo
+
+    class MetaBar(type):
+        foo = actual_foo_2
+
+    class Bar(object):
+        __metaclass__ = MetaBar
+
+        foo = sharedmethod(actual_foo)
+
+    assert Bar.foo.im_func is actual_foo_2
+    assert Bar().foo.im_func is actual_foo
+
+    # Finally, test case where the metaclass also has an attribute called
+    # 'foo', but it is not a method (hence sharedmethod should ignore it)
+    class MetaBar(type):
+        foo = None
+
+    class Bar(object):
+        __metaclass__ = MetaBar
+
+        foo = sharedmethod(actual_foo)
+
+    assert Bar.foo.im_func is actual_foo
+    assert Bar().foo.im_func is actual_foo
 
 
 def test_sharedmethod_reuse_on_subclasses():

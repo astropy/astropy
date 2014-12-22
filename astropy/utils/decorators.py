@@ -385,7 +385,7 @@ class lazyproperty(object):
 class sharedmethod(classmethod):
     """
     This is a method decorator that allows both an instancemethod and a
-    classmethod to share the same name.
+    `classmethod` to share the same name.
 
     When using `sharedmethod` on a method defined in a class's body, it
     may be called on an instance, or on a class.  In the former case it
@@ -472,7 +472,14 @@ class sharedmethod(classmethod):
             mcls = type(objtype)
             clsmeth = getattr(mcls, self.__func__.__name__, None)
             if callable(clsmeth):
-                func = clsmeth
+                if isinstance(clsmeth, types.MethodType):
+                    # This case will generally only apply on Python 2, which
+                    # uses MethodType for unbound methods; Python 3 has no
+                    # particular concept of unbound methods and will just
+                    # return a function
+                    func = clsmeth.__func__
+                else:
+                    func = clsmeth
             else:
                 func = self.__func__
 
