@@ -16,6 +16,7 @@ from .decorators import *
 from .arithmetic import *
 from .slicing import *
 from .io import *
+from .compat import *
 
 from .. import config as _config
 
