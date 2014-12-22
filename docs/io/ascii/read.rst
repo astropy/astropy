@@ -295,6 +295,39 @@ Guessing can be disabled in two ways::
   astropy.io.ascii.set_guess(False)                 # set default to False globally
   data = astropy.io.ascii.read(table)               # guessing disabled
 
+Comments and metadata
+^^^^^^^^^^^^^^^^^^^^^
+
+Any comment lines detected during reading are inserted into the output table
+via the ``comment_lines`` key in the table's ``.meta`` dictionary. For example::
+
+ >>> data = ascii.read(['# comment 1', '# comment 2', 'a b c', '# comment 3', '1 2 3'])
+ >>> print(data.meta['comment_lines'])  # doctest: +SKIP
+ ['comment 1', 'comment 2', 'comment 3']
+
+While :mod:`astropy.io.ascii` will not do any post-processing on comment lines,
+custom post-processing can be accomplished by re-reading with the metadata line
+comments. One example is given below, where comments are of the form "# KEY = VALUE"::
+
+ >>> table='''# TELESCOPE = 30 inch
+ ...          # TARGET = PV Ceph
+ ...          # OBSERVER = me
+ ...          # BAND = V
+ ...          MJD mag
+ ...          55555 12.3
+ ...          55556 12.4'''
+ >>> dat = ascii.read(table)
+ >>> header = ascii.read(dat.meta['comment_lines'], delimiter='=',
+ ...                     format='no_header', names=['key', 'val'])
+ >>> print(header)  # doctest: +SKIP
+    key      val  
+ --------- -------
+ TELESCOPE 30 inch
+    TARGET PV Ceph
+  OBSERVER      me
+      BAND       V
+
+
 Converters
 ^^^^^^^^^^
 
