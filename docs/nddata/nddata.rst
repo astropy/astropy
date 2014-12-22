@@ -1,17 +1,25 @@
-NDData overview
-===============
+.. _nddata_details:
 
-Classes
--------
+NDData
+======
 
-`~astropy.nddata` provides both data and uncertainty classes. The plain
-`~astropy.nddata.NDData` classes is a container for data in array form and its
-associated metadata. `~astropy.nddata.NDDataArithmetic` adds support for
-arithmetic operations on `~astropy.nddata.NDData` objects that supports
-propagation of uncertainties. Those uncertainties are represented by subclasses
-of `~astropy.nddata.NDUncertainty`; those classes are responsible for the
-actual propagation of uncertainties and will in most cases need to be defined
-by the user.
+Overview
+--------
+
+The `~astropy.nddata.NDData` class is a container for gridded N-dimensional
+data. It has a ``data`` attribute, which can be any object that presents an
+array-like interface, and optional attributes:
+
++  ``meta``, for metadata
++ ``unit`` for the ``data`` unit
++ ``uncertainty`` for the uncertainty of the data (which could be standard
+  deviation,variance, or something else),
++ ``mask`` for the ``data``
++ ``wcs``, representing the relationship  between ``data`` and world
+  coordinates.
+
+Of these, only ``mask`` and  ``uncertainty`` may be changed after the NDData
+object is created.
 
 Initializing
 ------------
@@ -37,22 +45,62 @@ An `~astropy.nddata.NDData` object can also be instantiated by passing it an
 As above, the data in``ndd2`` is a reference to the data in ``ndd1``, so
 changes to one will affect the other.
 
-If an `~astropy.nddata.NDData` object is initialized with a masked numpy array
-then the mask attribute, described in the next section, is automatically set
-to the mask of the numpy array.
+It can also be instantiated by passing in an object that can be converted to a
+numpy numerical array::
+
+    >>> ndd3 = NDData([1, 2, 3, 4])
+
+The final way to instantiate an `~astropy.nddata.NDData` object is with a data
+object that presents a numpy array-like interface. If the object passed to the
+intializer has all three of the attributes ``shape``, ``__getitem__`` (so it
+is indexable) and ``__array__`` (so that it can act like a numpy array in
+expression) then the ``data`` attribute will be set to that object.
+
+The purpose of this mechanism is to allow considerable flexibility in the
+objects used to store the data while providing a useful to default (numpy
+array).
 
 Mask
 ----
 
-Values can be masked using the ``mask`` attribute, which should be a boolean
-Numpy array with the same dimensions as the data, e.g.::
+Values can be masked using the ``mask`` attribute.  One straightforward way to
+provide a mask is to use a boolean numpy array::
 
      >>> ndd_masked = NDData(ndd, mask = ndd.data > 0.9)
      INFO: Overwriting NDData's current mask with specified mask [astropy.nddata.nddata]
 
-or by initializing with a masked array. A mask value of `True` indicates a
-value that should be ignored, while a mask value of `False` indicates a valid
-value.
+Another is to simply initialize an `~astropy.nddata.NDData` object  with a
+masked numpy array::
+
+    >>> masked_array = np.ma.array([1, 2, 3, 4], mask=[1, 0, 0, 1])
+    >>> ndd_masked = NDData(masked_array)
+    >>> ndd_masked.mask
+    array([ True, False, False,  True], dtype=bool)
+
+A mask value of `True` indicates a value that should be ignored, while a mask
+value of `False` indicates a valid value.
+
+There is no requirement that the mask actually be a numpy array; for example,
+a function which evaluates a mask value as needed is acceptable as long as it
+follows the convention that `True` indicates a value that should be ignored.
+
+Unit
+----
+
+The unit of the data can be set by either explicitly providing an astropy unit
+when creating the ``NDData`` object::
+
+    >>> import astropy.units as u
+    >>> ndd_unit = NDData([1, 2, 3, 4], unit="meter")
+    >>> ndd_unit.unit
+    Unit("m")
+
+or by initializing with data that is an astropy `~astropy.units.Quantity`::
+
+    >>> q = [1, 2, 3, 4] * u.meter
+    >>> ndd_unit2 = NDData(q)
+    >>> ndd_unit2.unit
+    Unit("m")
 
 Uncertainties
 -------------
@@ -79,9 +127,9 @@ distributions:
 Meta-data
 ---------
 
-The :class:`~astropy.nddata.NDData` class includes a ``meta`` attribute
-that defaults to an empty dictionary, and can be used to set overall meta-data
-for the dataset::
+The :class:`~astropy.nddata.NDData` class includes a ``meta`` attribute that
+defaults to an empty ordered dictionary, and can be used to set overall meta-
+data for the dataset::
 
     ndd.meta['exposure_time'] = 340.
     ndd.meta['filter'] = 'J'
@@ -90,26 +138,36 @@ Elements of the meta-data dictionary can be set to any valid Python object::
 
     ndd.meta['history'] = ['calibrated', 'aligned', 'flat-fielded']
 
+The metadata can be any python object that presents a dict-like interface. For
+example, a FITS header can be used as the metadata::
+
+    >>> from astropy.io import fits
+    >>> header = fits.Header()
+    >>> header['observer'] = 'Edwin Hubble'
+    >>> ndd = NDData(np.zeros([10, 10]), meta=header)
+    >>> ndd.meta['observer']
+    'Edwin Hubble'
+
+WCS
+---
+
+At the moment the ``wcs`` attribute can be set to any object, though in the
+future it may be restricted to an `~astropy.wcs.WCS` object once a generalized
+WCS object is developed.
+
 Converting to Numpy arrays
 --------------------------
 
-`~astropy.nddata.NDData` objects can also be easily converted to
-numpy arrays::
+Data should be accessed through the ``data`` attribute::
 
-    >>> import numpy as np
-    >>> arr = np.asarray(ndd.data)
-    >>> np.all(arr.data == mydataarray)  # doctest: +SKIP
-    True
+    >>> array = np.asarray(ndd.data)
 
-TODO: IS BELOW REALLY TRUE?
+Though using ``np.asarray`` is not required it will ensure that an additional
+copy of the data is not made if the data is a numpy array.
 
-If a ``mask`` is defined, this will result in a `~numpy.ma.MaskedArray`, so
-in all cases a useable `numpy.ndarray` or subclass will result. This allows
-straightforward plotting of `~astropy.nddata.NDData` objects with 1-
-and 2-dimensional datasets using Matplotlib::
+Note that if the data is masked you must explicitly construct a numpy masked
+array like this::
 
-    >>> from matplotlib import pyplot as plt  # doctest: +SKIP
-    >>> plt.plot(ndd)  # doctest: +SKIP
-
-This works because the Matplotlib plotting functions automatically convert
-their inputs using `numpy.array`.
+    >>> input_array = np.ma.array([1, 2, 3, 4], mask=[1, 0, 0, 1])
+    >>> ndd_masked = NDData(input_array)
+    >>> masked_array = np.ma.array(ndd_masked.data, mask=ndd_masked.mask)
