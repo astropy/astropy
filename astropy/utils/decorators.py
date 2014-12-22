@@ -433,6 +433,40 @@ class sharedmethod(classmethod):
         this implements the Example.identify classmethod
     """
 
+    if sys.version_info[:2] < (2, 7):
+        # Workaround for Python 2.6 which does not have classmethod.__func__
+        @property
+        def __func__(self):
+            try:
+                meth = classmethod.__get__(self, self.__obj__,
+                                           self.__objtype__)
+            except AttributeError:
+                # self.__obj__ not set when called from __get__, but then it
+                # doesn't matter anyways
+                meth = classmethod.__get__(self, None, object)
+            return meth.__func__
+
+        def __getobjwrapper(orig_get):
+            """
+            Used to temporarily set/unset self.__obj__ and self.__objtype__
+            for use by __func__.
+            """
+            def __get__(self, obj, objtype=None):
+                self.__obj__ = obj
+                self.__objtype__ = objtype
+
+                try:
+                    return orig_get(self, obj, objtype)
+                finally:
+                    del self.__obj__
+                    del self.__objtype__
+
+            return __get__
+    else:
+        def __getobjwrapper(func):
+            return func
+
+    @__getobjwrapper
     def __get__(self, obj, objtype=None):
         if obj is None:
             mcls = type(objtype)
@@ -445,6 +479,8 @@ class sharedmethod(classmethod):
             return self._make_method(func, objtype)
         else:
             return self._make_method(self.__func__, obj)
+
+    del __getobjwrapper
 
     if six.PY3:
         # The 'instancemethod' type of Python 2 and the method type of
