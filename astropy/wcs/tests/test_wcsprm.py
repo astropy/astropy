@@ -781,4 +781,6 @@ def test_compare():
     reason="wcslib < 4.25")
 def test_radesys_defaults():
     w = _wcs.Wcsprm()
-    w.radesys == 'ICRS'
+    w.ctype = ['RA---TAN', 'DEC--TAN']
+    w.set()
+    assert w.radesys == "ICRS"
