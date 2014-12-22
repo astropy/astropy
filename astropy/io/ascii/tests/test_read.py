@@ -867,7 +867,7 @@ def test_meta_comments():
     """
     t = ascii.read(['#comment1', '#comment2', 'a,b,c', '1,2,3'])
     assert t.colnames == ['a', 'b', 'c']
-    assert t.meta['comment_lines'] == ['#comment1', '#comment2']
+    assert t.meta['comment_lines'] == ['comment1', 'comment2']
 
 def test_guess_fail():
     """

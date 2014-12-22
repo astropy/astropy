@@ -535,8 +535,7 @@ cdef class CParser:
             c = t.comment_lines[i] # next char in comment string
             if not c: # zero byte -- line terminator
                 # replace empty placeholder with ''
-                line_comments.append(chr(self.tokenizer.comment) + \
-                                     comment.replace('\x01', ''))
+                line_comments.append(comment.replace('\x01', '').strip())
                 comment = ''
             else:
                 comment += chr(c)

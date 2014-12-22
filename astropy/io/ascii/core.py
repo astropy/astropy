@@ -399,10 +399,10 @@ class BaseHeader(object):
             comment_lines = [x for x in lines if re_comment.match(x)]
         else:
             comment_lines = []
-        if 'table' in meta and comment_lines:
-            meta['table']['comment_lines'] = comment_lines
-        elif comment_lines:
-            meta['table'] = {'comment_lines': comment_lines}
+        comment_lines = [re.sub('^' + self.comment, '', x).strip()
+                         for x in comment_lines]
+        if comment_lines:
+            meta.setdefault('table', {})['comment_lines'] = comment_lines
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.

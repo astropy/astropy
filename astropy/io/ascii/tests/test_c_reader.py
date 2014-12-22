@@ -761,4 +761,4 @@ a b c
 """
     table = read_basic(text, parallel=parallel, check_meta=True)
     assert_equal(table.meta['comment_lines'],
-                 ['# header comment', '# comment 2', '# comment 3'])
+                 ['header comment', 'comment 2', 'comment 3'])
