@@ -13,11 +13,10 @@ Introduction
 model evaluation and fitting. It currently supports 1-D and 2-D models and
 fitting with parameter constraints.
 
-It is :ref:`designed <modeling-design>` to be easily extensible and flexible.
-Models do not reference fitting algorithms explicitly and new fitting
-algorithms may be added without changing the existing models (though not all
-models can be used with all fitting algorithms due to constraints such as model
-linearity).
+It is designed to be easily extensible and flexible.  Models do not reference
+fitting algorithms explicitly and new fitting algorithms may be added without
+changing the existing models (though not all models can be used with all
+fitting algorithms due to constraints such as model linearity).
 
 The goal is to eventually provide a rich toolset of models and fitters such
 that most users will not need to define new model classes, nor special purpose
@@ -357,7 +356,6 @@ Using `astropy.modeling`
    compound-models
    new
    algorithms
-   design
 
 
 Reference/API
