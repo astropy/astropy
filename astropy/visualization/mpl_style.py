@@ -1,31 +1,39 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """ This module contains dictionaries that can be used to set a
-:mod:`matplotlib` plotting style.
+matplotlib plotting style.
 It is mostly here to allow a consistent plotting style in tutorials,
-but can be used to prepare any :mod:`matplotlib` figure.
+but can be used to prepare any matplotlib figure.
 
-Using a :mod:`matplotlib` version > 1.4 you can do::
+Using a matplotlib version > 1.4 you can do::
+
+.. doctest-requires:: matplotlib
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.style.use(astropy.visualization.astropy_mpl_style)
+    >>> from astropy.visualization import astropy_mpl_style
+    >>> plt.style.use(astropy_mpl_style)
 
-for older versions of :mod:`matplotlib` the following works::
+for older versions of matplotlib the following works::
 
-    >>> import matplotlib as mpl
-    >>> mpl.rcParams.update(astropy.visualization.astropy_mpl_style)
-
-This applies the astropy style on top of your existing :mod:`matplotlib`
-default parameters. If you want an exactly reproducible plot (again this
-could be useful if you are writing teaching material and you want the plot
-to come out exactly the same, independent of the users configuration), you
-should reset the matplotlib settings to the library defaults *before*
-applying the astropy style, e.g.::
+.. doctest-requires:: matplotlib
 
     >>> import matplotlib as mpl
-    >>> mpl.rcParams.update(astropy.visualization.astropy_mpl_style)
+    >>> from astropy.visualization import astropy_mpl_style
+    >>> mpl.rcParams.update(astropy_mpl_style)
+
+This applies the astropy style on top of your existing matplotlib
+default parameters. If you want an exactly reproducible plot (again, this
+is useful if you are writing teaching material and you want the plot
+to come out exactly the same, independent of the users configuration for
+example), you should reset the matplotlib settings to the library defaults
+*before* applying the astropy style, e.g.::
+
+.. doctest-requires:: matplotlib
+
+    >>> import matplotlib as mpl
+    >>> from astropy.visualization import astropy_mpl_style
     >>> mpl.rcdefaults()
-
+    >>> mpl.rcParams.update(astropy_mpl_style)
 """
 
 
@@ -96,14 +104,14 @@ astropy_mpl_style_1 = {
     'timezone': 'UTC'
 }
 '''
-Version 1 astropy plotting style for :mod:`matplotlib`.
+Version 1 astropy plotting style for matplotlib.
 
 This style improves some settings over the matpotlib default.
 '''
 
 astropy_mpl_style = astropy_mpl_style_1
 '''
-Astropy plotting style for :mod:`matplotlib`.
+Most recent version of the astropy plotting style for matplotlib.
 
 This style improves some settings over the matpotlib default.
 '''

@@ -8,8 +8,10 @@ Introduction
 ============
 
 `astropy.visualization` provides functionality that can be helpful when
-visualizing data. At the moment, the main functionality is image normalizing
+visualizing data.
+At the moment, the main functionality is image normalizing
 (including both scaling and stretching).
+Another feature included here is a plotting style for matplotlib.
 
 Using `astropy.visualization`
 =============================
@@ -24,12 +26,14 @@ Scripts
 
 This module includes a command-line script, ``fits2bitmap`` to convert FITS
 images to bitmaps, including scaling and stretching of the image. To find out
-more about the available options and how to use it, tyoe::
+more about the available options and how to use it, type::
 
     $ fits2bitmap --help
 
 Reference/API
 =============
+
+.. automodapi:: astropy.visualization.mpl_style
 
 .. automodapi:: astropy.visualization
 
