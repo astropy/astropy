@@ -70,13 +70,6 @@ before_install:
     # DOCUMENTATION DEPENDENCIES
     - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install graphviz texlive-latex-extra dvipng; fi
 
-    # Make sure that interactive matplotlib backends work
-    - export DISPLAY=:99.0
-    - sh -e /etc/init.d/xvfb start
-
-    # Make sure matplotlib uses PyQT not PySide
-    - export QT_API=pyqt
-
 install:
 
     # CONDA
