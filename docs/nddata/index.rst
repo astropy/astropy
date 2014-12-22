@@ -148,10 +148,12 @@ The most important changes are that:
 + Arithmetic is no longer included in the base `~astropy.nddata.NDData` class.
 
 Code that only uses the metadata features of `~astropy.nddata.NDData` should
-not need to be modified. Code that uses the arithemtic methods that used to
-be included in `~astropy.nddata.NDData` should instead subclass
-`~astropy.nddata.NDDataArray`; that class is equivalent to the original
-`~astropy.nddata.NDData` class.
+not need to be modified.
+
+Code that uses the arithemtic methods that used to be included in
+`~astropy.nddata.NDData` and relied on it to behave like a numpy array should
+instead subclass `~astropy.nddata.NDDataArray`; that class is equivalent to
+the original `~astropy.nddata.NDData` class.
 
 
 Using ``nddata``
