@@ -159,7 +159,7 @@ New Features
 
   - ``Time`` can now handle arbitrary array dimensions, with operations
     following standard numpy broadcasting rules. [#3138]
-  
+
 - ``astropy.units``
 
   - Support for VOUnit has been updated to be compliant with version
@@ -564,6 +564,13 @@ Bug Fixes
 - ``astropy.modeling``
 
   - Fixed a test failure on Debian/PowerPC and Debian/s390x. [#2708]
+
+  - Fixed crash in evaluating models that have more outputs than inputs--this
+    case may not be handled as desired for all conceivable models of this
+    format (some may have to implement custom ``prepare_inputs`` and
+    ``prepare_outputs`` methods).  But as long as all outputs can be assumed
+    to have a shape determined from the broadcast of all inputs with all
+    parameters then this can be used safely. [#3250]
 
 - ``astropy.nddata``
 
