@@ -12,12 +12,12 @@ from .. units import dimensionless_unscaled, UnitsError
 from .. import log
 from .nddata import NDData
 from .nduncertainty import IncompatibleUncertaintiesException, NDUncertainty
-from .slicing import NDSlicing
+from .slicing import NDSlicingMixin
 
-__all__ = ['NDArithmetic', 'NDDataArithmetic']
+__all__ = ['NDArithmeticMixin', 'NDDataArithmetic']
 
 
-class NDArithmetic(object):
+class NDArithmeticMixin(object):
     """
     Mixin class to add arithmetic to an NDData object.
 
@@ -225,7 +225,7 @@ class NDArithmetic(object):
     divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
 
 
-class NDDataArithmetic(NDArithmetic, NDSlicing, NDData):
+class NDDataArithmetic(NDArithmeticMixin, NDSlicingMixin, NDData):
     """
     An ``NDData`` object with arithmetic. This class is functionally equivalent
     to ``NDData`` in astropy  versions prior to 1.0.

@@ -1,10 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # This module implements the Slicing mixin to the NDData class.
 
-__all__ = ['NDSlicing']
+__all__ = ['NDSlicingMixin']
 
 
-class NDSlicing(object):
+class NDSlicingMixin(object):
     """
     Mixin to provide slicing on objects using the NDData interface.
 
