@@ -78,7 +78,7 @@ Similar attributes are available to store:
 
 Note that a `~astropy.nddata.NDData` object is not sliceable::
 
-    >>> ndd2[1:3]
+    >>> ndd2[1:3]        # doctest: +SKIP
     Traceback (most recent call last):
         ...
     TypeError: 'NDData' object has no attribute '__getitem__'
