@@ -101,17 +101,17 @@ def col_getattr(col, attr, default=None):
 
     return value
 
-def _col_update_attrs_from(newcol, col):
+def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
     """
     Update _astropy_column_attrs from mixin `col` to `newcol`.  Does nothing
     for BaseColumn cols
 
     Warning: this function is subject to change or removal.
     """
-    if isinstance(col, BaseColumn):
+    if isinstance(newcol, BaseColumn):
         return
 
-    attrs = COLUMN_ATTRS - set(['name', 'parent_table'])
+    attrs = COLUMN_ATTRS - set(exclude_attrs)
     for attr in attrs:
         val = col_getattr(col, attr)
         if val is not None:

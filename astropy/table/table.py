@@ -522,11 +522,10 @@ class Table(object):
             # Convert any Columns with units to Quantity for a QTable
             if (isinstance(self, QTable) and isinstance(col, Column)
                     and getattr(col, 'unit', None) is not None):
+
                 qcol = Quantity(col, unit=col.unit, copy=False)
-                col_setattr(qcol, 'name', col.name)
-                col_setattr(qcol, 'description', col.description)
-                col_setattr(qcol, 'format', col.format)
-                col_setattr(qcol, 'meta', deepcopy(col.meta))
+                _col_update_attrs_from(qcol, col, exclude_attrs=['unit', 'dtype', 'parent_table'])
+
                 newcols.append(qcol)
                 continue
 
@@ -550,8 +549,7 @@ class Table(object):
         # for item/slicing operations.  Do this here in table.
         for name, col, newcol in zip(names, cols, newcols):
             if is_mixin_class(col):
-                newcol._astropy_column_attrs = deepcopy(col._astropy_column_attrs)
-                col_setattr(newcol, 'parent_table', None)  # Clear ref to parent table
+                _col_update_attrs_from(newcol, col, exclude_attrs=['parent_table'])
 
         self._update_table_from_cols(table, newcols)
 
