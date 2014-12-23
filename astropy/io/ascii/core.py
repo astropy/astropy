@@ -446,6 +446,10 @@ class BaseHeader(object):
             if line and (not self.comment or not re_comment.match(line)):
                 yield line
 
+    def write_comments(self, lines, meta):
+        for comment in meta.get('comment_lines', []):
+            lines.append(self.write_comment + comment)
+
     def write(self, lines):
         if self.start_line is not None:
             for i, spacer_line in zip(range(self.start_line),
@@ -996,6 +1000,7 @@ class BaseReader(object):
 
         # Write header and data to lines list
         lines = []
+        self.header.write_comments(lines, table.meta)
         self.header.write(lines)
         self.data.write(lines)
 

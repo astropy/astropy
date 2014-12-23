@@ -865,7 +865,7 @@ def test_meta_comments():
     Make sure that line comments are included in the ``meta`` attribute
     of the output Table.
     """
-    t = ascii.read(['#comment1', '#comment2', 'a,b,c', '1,2,3'])
+    t = ascii.read(['#comment1', '#   comment2 \t', 'a,b,c', '1,2,3'])
     assert t.colnames == ['a', 'b', 'c']
     assert t.meta['comment_lines'] == ['comment1', 'comment2']
 
