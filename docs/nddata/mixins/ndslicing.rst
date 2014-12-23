@@ -19,5 +19,4 @@ Then, initialize the new object the same way you would initialize a plain
     MyNDDataWithSlicing([2, 3])
 
 One important note: the order you list the mixins and `~astropy.nddata.NDData`
-matters; the base   class, `~astropy.nddata.NDData` should be on the far
-right.
+matters; the base class, `~astropy.nddata.NDData` should be on the far right.

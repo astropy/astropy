@@ -11,7 +11,7 @@ The `~astropy.nddata` package provides a uniform interface to N-dimensional
 datasets in astropy through:
 
 + The `~astropy.nddata.NDDataBase` metaclass to define an astropy-wide
-  interface to gridded N-dimensional data sets while allowing flexibility in
+  interface to N-dimensional data sets while allowing flexibility in
   how those datasets are represented internally.
 + The `~astropy.nddata.NDData` class, which provides a basic container for
   gridded N-dimensional datasets.
@@ -72,9 +72,9 @@ value of `False` indicates a valid value.
 Similar attributes are available to store:
 
 + generic meta-data, in ``meta``,
-+ a unit, in ``unit`` and
-+ an uncertainty, in ``uncertainty``. Note that the ``uncertainty`` must have
-  a string attribute called ``uncertainty_type``.
++ a unit for the data values, in ``unit`` and
++ an uncertainty for the data values, in ``uncertainty``. Note that the
+  ``uncertainty`` must have a string attribute called ``uncertainty_type``.
 
 Note that a `~astropy.nddata.NDData` object is not sliceable::
 
