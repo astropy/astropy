@@ -290,7 +290,7 @@ created without specifying any parameter values up front.  For example::
         Inputs: ('x',)
         Outputs: ('y',)
         Fittable parameters: ('amplitude', 'mean', 'stddev')
-
+    <BLANKLINE>
         [1]: <class 'astropy.modeling.functional_models.Gaussian1D'>
         Name: Gaussian1D
         Inputs: ('x',)
