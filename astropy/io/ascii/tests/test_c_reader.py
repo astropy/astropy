@@ -22,13 +22,13 @@ from ....tests.helper import pytest
 from ....extern import six
 
 TRAVIS = os.environ.get('TRAVIS', False)
-
 pytestmark = pytest.mark.skipif(os.environ.get('APPVEYOR'),  reason="fails on AppVeyor")
 
-
-def assert_table_equal(t1, t2):
+def assert_table_equal(t1, t2, check_meta=False):
     assert_equal(len(t1), len(t2))
     assert_equal(t1.colnames, t2.colnames)
+    if check_meta:
+        assert_equal(t1.meta, t2.meta)
     for name in t1.colnames:
         if len(t1) != 0:
             assert_equal(t1[name].dtype.kind, t2[name].dtype.kind)
@@ -44,7 +44,7 @@ def assert_table_equal(t1, t2):
                 except (TypeError, NotImplementedError):
                     pass # ignore for now
 
-def _read(table, Reader, format, parallel=False, **kwargs):
+def _read(table, Reader, format, parallel=False, check_meta=False, **kwargs):
     # make sure we have a newline so table can't be misinterpreted as a filename
     table += '\n'
     reader = Reader(**kwargs)
@@ -53,10 +53,10 @@ def _read(table, Reader, format, parallel=False, **kwargs):
     t3 = reader.read(table.splitlines())
     t4 = ascii.read(table, format=format, guess=False, **kwargs)
     t5 = ascii.read(table, format=format, guess=False, fast_reader=False, **kwargs)
-    assert_table_equal(t1, t2)
-    assert_table_equal(t2, t3)
-    assert_table_equal(t3, t4)
-    assert_table_equal(t4, t5)
+    assert_table_equal(t1, t2, check_meta=check_meta)
+    assert_table_equal(t2, t3, check_meta=check_meta)
+    assert_table_equal(t3, t4, check_meta=check_meta)
+    assert_table_equal(t4, t5, check_meta=check_meta)
 
     if parallel:
         if TRAVIS:
@@ -65,7 +65,7 @@ def _read(table, Reader, format, parallel=False, **kwargs):
             pytest.xfail("Multiprocessing is currently unsupported on Windows")
         t6 = ascii.read(table, format=format, guess=False, fast_reader={
             'parallel': True}, **kwargs)
-        assert_table_equal(t1, t6)
+        assert_table_equal(t1, t6, check_meta=check_meta)
 
     with NamedTemporaryFile() as f:
         f.write(table.encode('ascii'))
@@ -75,9 +75,9 @@ def _read(table, Reader, format, parallel=False, **kwargs):
             t8 = ascii.read(f.name, format=format, guess=False, fast_reader={
                 'parallel': True}, **kwargs)
 
-    assert_table_equal(t1, t7)
+    assert_table_equal(t1, t7, check_meta=check_meta)
     if parallel:
-        assert_table_equal(t1, t8)
+        assert_table_equal(t1, t8, check_meta=check_meta)
     return t1
 
 def read_basic(table, **kwargs):
@@ -744,3 +744,21 @@ def test_line_endings(parallel):
     for newline in ('\r\n', '\r'):
         table = read_rdb(text.replace('\n', newline), parallel=parallel)
         assert_table_equal(table, expected)
+
+@pytest.mark.parametrize("parallel", [True, False])
+def test_store_comments(parallel):
+    """
+    Make sure that the output Table produced by the fast
+    reader stores any comment lines in its meta attribute.
+    """
+    text = """
+# header comment
+a b c
+# comment 2
+# comment 3
+1 2 3
+4 5 6
+"""
+    table = read_basic(text, parallel=parallel, check_meta=True)
+    assert_equal(table.meta['comment_lines'],
+                 ['header comment', 'comment 2', 'comment 3'])

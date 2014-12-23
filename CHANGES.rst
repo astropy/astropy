@@ -82,6 +82,9 @@ New Features
     in ``read`` and ``fast_writer`` in ``write``. [#2716]
 
   - Make Latex/AASTex tables use unit attribute of Column for output. [#3064]
+  
+  - Store comment lines encountered during reading in metadata of the
+    output table via ``meta['comment_lines']``. [#3222]
 
 - ``astropy.io.fits``
 

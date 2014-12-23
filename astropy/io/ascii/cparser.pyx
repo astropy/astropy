@@ -64,6 +64,9 @@ cdef extern from "src/tokenizer.h":
         int strip_whitespace_lines  # whether to strip whitespace at the beginning and end of lines
         int strip_whitespace_fields # whether to strip whitespace at the beginning and end of fields
         int use_fast_converter      # whether to use the fast converter for floats
+        char *comment_lines    # single null-delimited string containing comment lines
+        int comment_lines_len  # length of comment_lines in memory
+        int comment_pos        # current index in comment_lines
         # Example input/output
         # --------------------
         # source: "A,B,C\n10,5.,6\n1,2,3"
@@ -87,6 +90,7 @@ cdef extern from "src/tokenizer.h":
     void start_iteration(tokenizer_t *self, int col)
     char *next_field(tokenizer_t *self, int *size)
     char *get_line(char *ptr, int *len, int map_len)
+    void reset_comments(tokenizer_t *self)
 
 cdef extern from "Python.h":
     int PyObject_AsReadBuffer(object obj, const void **buffer, Py_ssize_t *buffer_len)
@@ -367,7 +371,7 @@ cdef class CParser:
         if tokenize(self.tokenizer, data_end, 0, len(self.names)) != 0:
             self.raise_error("an error occurred while parsing table data")
         elif self.tokenizer.num_rows == 0: # no data
-            return [np.array([], dtype=np.int_)] * self.width
+            return ([np.array([], dtype=np.int_)] * self.width, [])
         self._set_fill_values()
         cdef int num_rows = self.tokenizer.num_rows
         if self.data_end is not None and self.data_end < 0: # negative indexing
@@ -383,12 +387,14 @@ cdef class CParser:
             self.raise_error("an error occurred while advancing to the first "
                              "line of data")
 
+        cdef list line_comments = self._get_comments(self.tokenizer)
         cdef int N = self.parallel
         queue = multiprocessing.Queue()
         cdef int offset = self.tokenizer.source_pos
 
         if offset == source_len: # no data
-            return dict((name, np.array([], dtype=np.int_)) for name in self.names)
+            return (dict((name, np.array([], dtype=np.int_)) for name in
+                         self.names), [])
 
         cdef int chunksize = math.ceil((source_len - offset) / float(N))
         cdef list chunkindices = [offset]
@@ -421,13 +427,15 @@ cdef class CParser:
         cdef dict failed_procs = {}
 
         for i in range(N):
-            data, err, proc = queue.get()
+            queue_ret, err, proc = queue.get()
             if isinstance(err, Exception):
                 for process in processes:
                     process.terminate()
                 raise err
             elif err is not None: # err is (error code, error line)
                 failed_procs[proc] = err
+            comments, data = queue_ret
+            line_comments.extend(comments)
             chunks[proc] = data
 
         if failed_procs:
@@ -509,7 +517,7 @@ cdef class CParser:
         for process in processes:
             process.terminate()
 
-        return ret
+        return ret, line_comments
 
     cdef _set_fill_values(self):
         if self.fill_names is None:
@@ -519,6 +527,19 @@ cdef class CParser:
             if self.fill_exclude_names is not None:
                 self.fill_names.difference_update(self.fill_exclude_names)
         self.fill_values, self.fill_empty = get_fill_values(self.fill_values)
+
+    cdef _get_comments(self, tokenizer_t *t):
+        line_comments = []
+        comment = ''
+        for i in range(t.comment_pos):
+            c = t.comment_lines[i] # next char in comment string
+            if not c: # zero byte -- line terminator
+                # replace empty placeholder with ''
+                line_comments.append(comment.replace('\x01', '').strip())
+                comment = ''
+            else:
+                comment += chr(c)
+        return line_comments
 
     cdef _convert_data(self, tokenizer_t *t, try_int, try_float, try_string, num_rows):
         cols = {}
@@ -541,7 +562,7 @@ cdef class CParser:
                         raise ValueError('Column {0} failed to convert'.format(name))
                     cols[name] = self._convert_str(t, i, num_rows)
 
-        return cols
+        return cols, self._get_comments(t)
 
     cdef np.ndarray _convert_int(self, tokenizer_t *t, int i, int nrows):
         cdef int num_rows = t.num_rows
@@ -749,6 +770,7 @@ def _read_chunk(CParser self, start, end, try_int,
     cdef tokenizer_t *chunk_tokenizer = self.tokenizer
     chunk_tokenizer.source_len = end
     chunk_tokenizer.source_pos = start
+    reset_comments(chunk_tokenizer)
 
     data = None
     err = None
@@ -757,9 +779,10 @@ def _read_chunk(CParser self, start, end, try_int,
         err = (chunk_tokenizer.code, chunk_tokenizer.num_rows)
     if chunk_tokenizer.num_rows == 0: # no data
         data = dict((name, np.array([], np.int_)) for name in self.get_names())
+        line_comments = self._get_comments(chunk_tokenizer)
     else:
         try:
-            data = self._convert_data(chunk_tokenizer,
+            data, line_comments = self._convert_data(chunk_tokenizer,
                                       try_int, try_float, try_string, -1)
         except Exception as e:
             delete_tokenizer(chunk_tokenizer)
@@ -767,7 +790,7 @@ def _read_chunk(CParser self, start, end, try_int,
             return
 
     try:
-        queue.put((data, err, i))
+        queue.put(((line_comments, data), err, i))
     except Queue.Full as e:
         # hopefully this shouldn't happen
         delete_tokenizer(chunk_tokenizer)
