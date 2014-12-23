@@ -350,8 +350,8 @@ Using `astropy.modeling`
 .. toctree::
    :maxdepth: 1
 
-   parameters
    models
+   parameters
    fitting
    compound-models
    new
