@@ -169,8 +169,8 @@ def subpixel_indices(position, subsampling):
     subsampling : int
         Subsampling factor per pixel.
 
-    Return
-    ------
+    Returns
+    -------
     indices : `~numpy.ndarray`
         The integer subpixel indices corresponding to the input positions.
 
