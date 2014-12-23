@@ -143,8 +143,9 @@ mutable (data can changed internally) and that have an ``insert()`` method.
 |Quantity| supports ``insert()`` but |Time| and |SkyCoord| do not.  If we try to
 insert a row into the previously defined table an exception occurs::
 
-  >>> qt.add_row((1, '2001-02-03T00:01:02', 5 * u.m / u.s))  # doctest: +SKIP
-  ...
+  >>> qt.add_row((1, '2001-02-03T00:01:02', 5 * u.m / u.s))
+  Traceback (most recent call last):
+    ...
   ValueError: Unable to insert row because of exception in column 'time':
   'Time' object has no attribute 'insert'
 
@@ -187,8 +188,8 @@ For mixin columns the column attributes ``name``, ``unit``, ``dtype``,
 ``format``, ``description`` and ``meta`` are currently stored in a simple
 dictionary called `_astropy_column_attrs`.  These attributes can be manipulated
 with the functions ``col_getattr`` and ``col_setattr`` which are available in
-the ``astropy.table.column`` module.  These methods are not formally part of
-the astropy public API and may change in the future.
+the ``astropy.table.column`` module.  These methods are not part of
+the astropy public API and are likely to change in the future.
 
 
 Mixin protocol
