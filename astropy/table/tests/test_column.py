@@ -71,14 +71,7 @@ class TestColumn():
 
     def test_view(self, Column):
         c = np.array([1, 2, 3]).view(Column)
-        if Column == table.MaskedColumn:
-            assert repr(c) == ('<MaskedColumn name=None unit=None format=None description=None>\n'
-                               'masked_array(data = [1 2 3],\n'
-                               '             mask = False,\n'
-                               '       fill_value = 999999)\n')
-        else:
-            assert repr(c) == ('<Column name=None unit=None format=None description=None>\n'
-                               'array([1, 2, 3])')
+        assert repr(c) == "<{0} dtype='int64' length=3>\n1\n2\n3".format(Column.__name__)
 
     def test_format(self, Column):
         """Show that the formatted output from str() works"""
@@ -87,7 +80,7 @@ class TestColumn():
             c1 = Column(np.arange(2000), name='a', dtype=float,
                         format='%6.2f')
             assert str(c1) == ('   a   \n-------\n   0.00\n'
-                               '   1.00\n    ...\n1998.00\n1999.00')
+                               '   1.00\n    ...\n1999.00\nLength = 2000 rows')
 
     def test_convert_numpy_array(self, Column):
         d = Column([1, 2, 3], name='a', dtype='i8')
