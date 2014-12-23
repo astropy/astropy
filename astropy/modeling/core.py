@@ -1274,6 +1274,20 @@ def _format_single_model_input(func, model, params, inputs, input_names,
 
     outputs = func(model, *inputs, **kwargs)
 
+    if model.n_outputs > model.n_inputs:
+        if len(set(broadcasts)) > 1:
+            raise ValueError(
+                "For models with n_outputs > n_inputs, the combination of "
+                "all inputs and parameters must broadcast to the same shape, "
+                "which will be used as the shape of all outputs.  In this "
+                "case some of the inputs had different shapes, so it is "
+                "ambiguous how to format outputs for this model.  Try using "
+                "inputs that are all the same size and shape.")
+        else:
+            # Extend the broadcasts list to include shapes for all outputs
+            extra_outputs = model.n_outputs - model.n_inputs
+            broadcasts.extend([broadcasts[0]] * extra_outputs)
+
     if model.n_outputs == 1:
         outputs = [outputs]
     else:
