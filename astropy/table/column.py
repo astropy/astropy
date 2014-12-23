@@ -45,7 +45,7 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
-COLUMN_ATTRS = ('name', 'unit', 'dtype', 'format', 'description', 'meta', 'parent_table')
+COLUMN_ATTRS = set(['name', 'unit', 'dtype', 'format', 'description', 'meta', 'parent_table'])
 
 def col_setattr(col, attr, value):
     """
@@ -111,7 +111,7 @@ def _col_update_attrs_from(newcol, col):
     if isinstance(col, BaseColumn):
         return
 
-    attrs = set(COLUMN_ATTRS) - set(['name', 'parent_table'])
+    attrs = COLUMN_ATTRS - set(['name', 'parent_table'])
     for attr in attrs:
         val = col_getattr(col, attr)
         if val is not None:

@@ -51,6 +51,19 @@ def descr(col):
     return (col_getattr(col, 'name'), col_dtype_str, col_shape)
 
 
+def is_mixin_class(obj):
+    """
+    Abstaction to determine if ``obj`` should be used as a mixin column
+    when input to a table.  This function does not apply to ``Quantity``.
+
+    Parameters
+    ----------
+    obj : object
+        Object being queried for mixin compatibility
+    """
+    return hasattr(obj, '_astropy_column_attrs')
+
+
 class TableColumns(OrderedDict):
     """OrderedDict subclass for a set of columns.
 
@@ -75,7 +88,7 @@ class TableColumns(OrderedDict):
             newcols = []
             for col in cols:
                 if (isinstance(col, (BaseColumn, Quantity))
-                        or hasattr(col, '_astropy_column_attrs')):
+                        or is_mixin_class(col)):
                     newcols.append((col_getattr(col, 'name'), col))
                 else:
                     newcols.append(col)
@@ -507,20 +520,15 @@ class Table(object):
         newcols = []
         for col in cols:
             # Convert any Columns with units to Quantity for a QTable
-            if (isinstance(self, QTable)
-                    and isinstance(col, Column) and hasattr(col, 'unit')
-                    and col.unit is not None):
-                try:
-                    qcol = Quantity(col, unit=col.unit, copy=False)
-                except:
-                    pass
-                else:
-                    col_setattr(qcol, 'name', col_getattr(col, 'name'))
-                    col_setattr(qcol, 'description', col.description)
-                    col_setattr(qcol, 'format', col.format)
-                    col_setattr(qcol, 'meta', deepcopy(col.meta))
-                    newcols.append(qcol)
-                    continue
+            if (isinstance(self, QTable) and isinstance(col, Column)
+                    and getattr(col, 'unit', None) is not None):
+                qcol = Quantity(col, unit=col.unit, copy=False)
+                col_setattr(qcol, 'name', col.name)
+                col_setattr(qcol, 'description', col.description)
+                col_setattr(qcol, 'format', col.format)
+                col_setattr(qcol, 'meta', deepcopy(col.meta))
+                newcols.append(qcol)
+                continue
 
             if isinstance(col, Column) and not col.__class__ is self.ColumnClass:
                 col = self.ColumnClass(col)  # copy attributes and reference data
@@ -541,9 +549,9 @@ class Table(object):
         # Mixin column classes are not responsible for copying column attributes
         # for item/slicing operations.  Do this here in table.
         for name, col, newcol in zip(names, cols, newcols):
-            if hasattr(col, '_astropy_column_attrs'):
-                col_setattr(col, 'parent_table', None)  # Don't copy weakref
+            if is_mixin_class(col):
                 newcol._astropy_column_attrs = deepcopy(col._astropy_column_attrs)
+                col_setattr(newcol, 'parent_table', None)  # Clear ref to parent table
 
         self._update_table_from_cols(table, newcols)
 
@@ -616,7 +624,7 @@ class Table(object):
         """
         return any(not isinstance(col, BaseColumn) for col in self.columns.values())
 
-    def _is_mixin_column(self, col):
+    def _is_mixin_column(self, col, quantity_is_mixin=False):
         """
         Determine if ``col`` meets the protocol for a mixin Table column for
         this table.  By definition a BaseColumn instance is not a mixin.
@@ -629,9 +637,9 @@ class Table(object):
         if isinstance(col, BaseColumn):
             is_mixin = False
         elif isinstance(col, Quantity):
-            is_mixin = isinstance(self, QTable)
+            is_mixin = quantity_is_mixin
         else:
-            is_mixin = hasattr(col, '_astropy_column_attrs')
+            is_mixin = is_mixin_class(col)
 
         return is_mixin
 
@@ -2066,3 +2074,12 @@ class QTable(Table):
     def __init__(self, data=None, masked=None, names=None, dtype=None,
                  meta=None, copy=True, rows=None):
         super(QTable, self).__init__(data, masked, names, dtype, meta, copy, rows)
+
+    def _is_mixin_column(self, col):
+        """
+        Determine if ``col`` meets the protocol for a mixin Table column for
+        this table.  By definition a BaseColumn instance is not a mixin.
+
+        If ``col`` is a string then it refers to a column name in this table.
+        """
+        return super(QTable, self)._is_mixin_column(col, quantity_is_mixin=True)
