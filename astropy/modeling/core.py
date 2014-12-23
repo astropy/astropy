@@ -65,6 +65,8 @@ def _model_oper(oper, **kwargs):
     # Note: Originally this used functools.partial, but that won't work when
     # used in the class definition of _CompoundModelMeta since
     # _CompoundModelMeta has not been defined yet.
+
+    # Perform an arithmetic operation on two models.
     return lambda left, right: _CompoundModelMeta._from_operator(oper,
             left, right, **kwargs)
 
@@ -1464,7 +1466,10 @@ class _CompoundModelMeta(_ModelMeta):
             return cls._get_slice(index.start, index.stop)
 
     def __getattr__(cls, attr):
-        if attr in cls.param_names:
+        # Make sure the _tree attribute is set; otherwise we are not looking up
+        # an attribute on a concrete compound model class and should just raise
+        # the AttributeError
+        if cls._tree is not None and attr in cls.param_names:
             cls._init_param_descriptors()
             return getattr(cls, attr)
 

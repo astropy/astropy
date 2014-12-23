@@ -3,6 +3,8 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
+import inspect
+
 import numpy as np
 
 from numpy.testing.utils import (assert_allclose, assert_array_equal,
@@ -579,3 +581,24 @@ def test_compound_model_with_nonstandard_broadcasting():
     x, y = m([0, 1, 2], [0, 1, 2])
     assert np.all(x == [-2, -3, -4])
     assert np.all(y == [1, 2, 3])
+
+
+def test_compound_model_classify_attributes():
+    """
+    Regression test for an issue raised here:
+    https://github.com/astropy/astropy/pull/3231#discussion_r22221123
+
+    The issue is that part of the `help` implementation calls a utility
+    function called `inspect.classify_class_attrs`, which was leading to an
+    infinite recursion.
+
+    This is a useful test in its own right just in that it tests that compound
+    models can be introspected in some useful way without crashing--this works
+    as sort of a test of its somewhat complicated internal state management.
+
+    This test does not check any of the results of
+    `~inspect.classify_class_attrs`, though it might be useful to at some
+    point.
+    """
+
+    inspect.classify_class_attrs(Gaussian1D + Gaussian1D)
