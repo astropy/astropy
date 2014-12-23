@@ -1756,6 +1756,8 @@ class Table(object):
                 if not isinstance(newcol, BaseColumn):
                     _col_update_attrs_from(newcol, col)
                     col_setattr(newcol, 'name', name)
+                    if self.masked:
+                        newcol.mask = FalseArray(newcol.shape)
 
                 if len(newcol) != N + 1:
                     raise ValueError('Incorrect length for column {0} after inserting {1}'
@@ -1763,9 +1765,8 @@ class Table(object):
                                      .format(name, val, len(newcol), N + 1))
                 col_setattr(newcol, 'parent_table', self)
 
-                # Inserting always defaults to mask=False, so only actually set for True.
-                # This allows for mixin columns that don't have a mask attribute.
-                if self.masked and mask_:
+                # Set mask if needed
+                if self.masked:
                     newcol.mask[index] = mask_
 
                 columns[name] = newcol
