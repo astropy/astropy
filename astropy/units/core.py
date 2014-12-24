@@ -906,8 +906,8 @@ class UnitBase(object):
         if self is other:
             return 1.0
 
-        # don't presume decomposition is possible; e.g.,
-        # conversion to functional units is through equivalencies
+        # Don't presume decomposition is possible; e.g.,
+        # conversion to functional units is through equivalencies.
         if isinstance(other, UnitBase):
             self_decomposed = self.decompose()
             other_decomposed = other.decompose()

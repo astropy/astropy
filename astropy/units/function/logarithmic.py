@@ -59,18 +59,22 @@ class LogUnit(FunctionUnitBase):
         We wish to do:   ±lu_1 + ±lu_2  -> lu_f          (lu=logarithmic unit)
                   and     pu_1^(±1) * pu_2^(±1) -> pu_f  (pu=physical unit)
 
-        Raises UnitsError if function units are not equivalent
+        Raises
+        ------
+        UnitsError
+            If function units are not equivalent.
         """
-        # first, insist on compatible logarithmic type; note that
-        # plain u.mag,u.dex,u.dB is OK, other does not have to be LogUnit
-        # (this will indirectly test whether other is a unit at all)
+        # First, insist on compatible logarithmic type. Here, plain u.mag,
+        # u.dex, and u.dB are OK, i.e., other does not have to be LogUnit
+        # (this will indirectly test whether other is a unit at all).
         try:
             self._function_unit._to(getattr(other, 'function_unit', other))
-        except AttributeError:  # if other is not a unit (_to cannot decompose)
+        except AttributeError:
+            # if other is not a unit (_to cannot decompose).
             return NotImplemented
         except UnitsError:
             raise UnitsError("Can only add/subtract logarithmic units of"
-                             "of compatible type")
+                             "of compatible type.")
 
         other_physical_unit = getattr(other, 'physical_unit',
                                       dimensionless_unscaled)
@@ -216,91 +220,78 @@ class LogQuantity(FunctionQuantityBase):
         <Decibel 30.0 dB(mW)>
     """
     # vvvv only override of FunctionQuantity
-    _FunctionUnit = LogUnit
+    _unit_class = LogUnit
 
     # vvvv additions that work just for logarithmic units
     def __add__(self, other):
-        # add units, thus multiplying physical ones; if no unit given
-        # -> dimensionless_unscaled -> appropriate exception in LogUnit.__add__
+        # Add function units, thus multiplying physical units. If no unit is
+        # given, assume dimensionless_unscaled; this will give the appropriate
+        # exception in LogUnit.__add__.
         new_unit = self.unit + getattr(other, 'unit', dimensionless_unscaled)
-        # add actual logarithmic values, rescaling, e.g., dB -> dex
-        result = self.function_value + getattr(other, 'function_value', other)
-        result = result.view(self.__class__)
-        result._full_unit = new_unit
-        return result
+        # Add actual logarithmic values, rescaling, e.g., dB -> dex.
+        result = self._function_view + getattr(other, '_function_view', other)
+        return self._new_view(result, new_unit)
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __iadd__(self, other):
-        # add units, thus multiplying physical ones; do this before overwriting
-        # data (if this works, next step will succeed)
         new_unit = self.unit + getattr(other, 'unit', dimensionless_unscaled)
-        # add logarithmic quantities; note: function_value is view on array
-        function_value = self.function_value
-        function_value += getattr(other, 'function_value', other)
+        # Do calculation in-place using _function_view of array.
+        function_view = self._function_view
+        function_view += getattr(other, '_function_view', other)
         self._full_unit = new_unit
         return self
 
     def __sub__(self, other):
-        # subtract units, thus dividing physical ones
+        # Subtract function units, thus dividing physical units.
         new_unit = self.unit - getattr(other, 'unit', dimensionless_unscaled)
-        # subtract actual logarithmic values, rescaling, e.g., dB -> dex
-        result = self.function_value - getattr(other, 'function_value',
-                                                 other)
-        result = result.view(self.__class__)
-        result._full_unit = new_unit
-        return result
+        # Subtract actual logarithmic values, rescaling, e.g., dB -> dex.
+        result = self._function_view - getattr(other, '_function_view', other)
+        return self._new_view(result, new_unit)
 
     def __rsub__(self, other):
-        # subtract units, thus dividing physical ones
         new_unit = self.unit.__rsub__(
             getattr(other, 'unit', dimensionless_unscaled))
-        # subtract logarithmic quantities; rescaling, e.g., dB -> dex
-        result = self.function_value.__rsub__(
-            getattr(other, 'function_value', other))
-        # ensure result is in right function unit scale
+        result = self._function_view.__rsub__(
+            getattr(other, '_function_view', other))
+        # Ensure the result is in right function unit scale
         # (with rsub, this does not have to be one's own).
-        result = result.to(new_unit.function_unit).view(self.__class__)
-        result._full_unit = new_unit
-        return result
+        result = result.to(new_unit.function_unit)
+        return self._new_view(result, new_unit)
 
     def __isub__(self, other):
-        # subtract units, this dividing physical ones; do this before
-        # overwriting data (if this works, next step will succeed)
         new_unit = self.unit - getattr(other, 'unit', dimensionless_unscaled)
-        # subtract logarithmic quantities; note: function_value is view
-        function_value = self.function_value
-        function_value -= getattr(other, 'function_value', other)
+        # Do calculation in-place using _function_view of array.
+        function_view = self._function_view
+        function_view -= getattr(other, '_function_view', other)
         self._full_unit = new_unit
         return self
 
-    # could add __mul__ and __div__ and try interpreting other as a power,
-    # but this seems just too error-prone
+    # Could add __mul__ and __div__ and try interpreting other as a power,
+    # but this seems just too error-prone.
 
 
 class Dex(LogQuantity):
-    _FunctionUnit = DexUnit
+    _unit_class = DexUnit
 
 
 class Decibel(LogQuantity):
-    _FunctionUnit = DecibelUnit
+    _unit_class = DecibelUnit
 
 
 class Magnitude(LogQuantity):
-    _FunctionUnit = MagUnit
+    _unit_class = MagUnit
 
 
 mag = MagUnit()
 
 AB0 = Unit('AB', 10.**(-0.4*48.6) * 1.e-3 * si.W / si.m**2 / si.Hz,
-           doc="AB magnitude zero flux density")
+           doc="AB magnitude zero flux density.")
 
 ST0 = Unit('ST', 10.**(-0.4*21.1) * 1.e-3 * si.W / si.m**2 / si.AA,
-           doc="ST magnitude zero flux density")
+           doc="ST magnitude zero flux density.")
 
 STmag = MagUnit(ST0)
 
 ABmag = MagUnit(AB0)
-
-# inst = MagUnit(ap.count / si.second)
