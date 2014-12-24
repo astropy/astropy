@@ -4,7 +4,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..nddatabase import NDDataBase
+from ..nddata_base import NDDataBase
 from ...tests.helper import pytest
 
 
@@ -45,7 +45,7 @@ class MinimalUncertainty(object):
         return "totally and completely fake"
 
 
-def test_nddatabase_subclass():
+def test_nddata_base_subclass():
     a = MinimalSubclass()
     assert a.meta is None
     assert a.data is None

@@ -8,9 +8,9 @@ from copy import deepcopy
 
 import numpy as np
 
-from .. units import dimensionless_unscaled, UnitsError
-from .. import log
-from .nduncertainty import IncompatibleUncertaintiesException
+from ... units import dimensionless_unscaled, UnitsError
+from ... import log
+from ..nduncertainty import IncompatibleUncertaintiesException
 
 __all__ = ['NDArithmeticMixin']
 
@@ -55,7 +55,8 @@ class NDArithmeticMixin(object):
         configuration item). Values masked in either dataset before
         the operation are masked in the resulting dataset.
         """
-        from . import conf
+
+        from .. import conf
 
         if self.wcs != operand.wcs:
             raise ValueError("WCS properties do not match")
