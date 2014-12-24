@@ -125,14 +125,12 @@ class TestPprint():
         """Try getting screen size but fail to defaults because testing doesn't
         have access to screen (fcntl.ioctl fails).
         """
-        from ... import conf
-
         self._setup(table_type)
         arr = np.arange(4000, dtype=np.float).reshape(100, 40)
         lines = table_type(arr).pformat()
         nlines, width = console.terminal_size()
         assert len(lines) == nlines
-        for line in lines:
+        for line in lines[:-1]:  # skip last "Length = .. rows" line
             assert (len(line) > width - 10 and
                     len(line) <= width)
 

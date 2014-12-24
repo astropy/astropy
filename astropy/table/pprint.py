@@ -339,13 +339,11 @@ class TableFormatter(object):
         col_format = getattr(col, 'format', None)
         format_func = _format_funcs.get(col_format, _auto_format_func)
         if len(col) > max_lines:
-            outs['rows_clipped'] = True
             if show_length is None:
                 show_length = True
             i0 = n_print2
             i1 = n_rows - n_print2 - max_lines % 2 + (1 if show_length else 0)
         else:
-            outs['rows_clipped'] = False
             i0 = len(col)
             i1 = 0
 
@@ -425,8 +423,9 @@ class TableFormatter(object):
 
         for col in six.itervalues(table.columns):
             lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
-                                            show_unit=show_unit, show_dtype=show_dtype,
-                                            show_length=False)
+                                            show_unit=show_unit, show_dtype=show_dtype)
+            if outs['show_length']:
+                lines = lines[:-1]
             cols.append(lines)
 
         # Use the values for the last column since they are all the same

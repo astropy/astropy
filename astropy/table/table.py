@@ -616,7 +616,7 @@ class Table(object):
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
                                                     show_dtype=show_dtype)
-        if outs['rows_clipped']:
+        if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))
 
         n_header = outs['n_header']
@@ -738,7 +738,7 @@ class Table(object):
                                                     show_dtype=show_dtype, html=html,
                                                     tableid=tableid)
 
-        if outs['rows_clipped']:
+        if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))
 
         return lines
