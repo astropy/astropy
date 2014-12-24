@@ -12,9 +12,10 @@ from numpy.testing.utils import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import pytest
 
-from ..core import Model, Identity, Mapping
+from ..core import Model
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
-                      Polynomial1D, Polynomial2D, AffineTransformation2D)
+                      Polynomial1D, Polynomial2D, AffineTransformation2D,
+                      Identity, Mapping)
 
 
 @pytest.mark.parametrize(('expr', 'result'),

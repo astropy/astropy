@@ -364,6 +364,7 @@ Reference/API
 =============
 
 .. automodapi:: astropy.modeling
+.. automodapi:: astropy.modeling.mappings
 .. automodapi:: astropy.modeling.functional_models
 .. automodapi:: astropy.modeling.powerlaws
 .. automodapi:: astropy.modeling.polynomial

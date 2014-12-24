@@ -150,9 +150,6 @@ class _LabeledInputMapping(Model):
         else:
             return result
 
-    def __call__(self, *inputs):
-        return self.evaluate(*inputs)
-
 
 class _CompositeModel(Model):
     """Base class for all composite models."""
