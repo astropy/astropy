@@ -88,9 +88,14 @@ New Features
 
 - ``astropy.io.fits``
 
-  - The ``fitsdiff`` script ignore some things be default when comparing fits
-    files (e.g. empty header lines). This add as ``--exact`` option where
-    nothing is ignored. [#2782], finished in [#3110]
+  - The ``fitsdiff`` script ignores some things by default when comparing fits
+    files (e.g. empty header lines). This adds a ``--exact`` option where
+    nothing is ignored. [#2782, #3110]
+
+  - The ``fitsheader`` script now takes a ``--keyword`` option to extract a
+    specific keyword from the header of a FITS file, and a ``--table`` option
+    to export headers into any of the data formats supported by
+    ``astropy.table``. [#2555, #2588]
 
 - ``astropy.io.misc``
 
@@ -410,7 +415,7 @@ Bug Fixes
 - ``astropy.constants``
 
 - ``astropy.convolution``
-	
+
   - ``astropy.convolution.discretize_model`` now handles arbitrary callables correctly [#2274].
 
 - ``astropy.coordinates``
