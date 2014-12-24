@@ -9,14 +9,16 @@ import numpy as np
 from .. units import UnitsError
 
 from .nddata import NDData
-from .slicing import NDSlicingMixin
-from .arithmetic import NDArithmeticMixin
 from .nduncertainty import NDUncertainty
+
+from .mixins.ndslicing import NDSlicingMixin
+from .mixins.ndarithmetic import NDArithmeticMixin
+from .mixins.ndio import NDIOMixin
 
 __all__ = ['NDDataArray']
 
 
-class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDData):
+class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
     """
     An ``NDData`` object with arithmetic. This class is functionally equivalent
     to ``NDData`` in astropy  versions prior to 1.0.

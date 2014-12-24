@@ -8,7 +8,7 @@ import collections
 
 import numpy as np
 
-from .nddatabase import NDDataBase
+from .nddata_base import NDDataBase
 from ..units import Unit, Quantity
 from .. import log
 from ..utils.compat.odict import OrderedDict

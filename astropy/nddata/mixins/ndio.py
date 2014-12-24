@@ -4,7 +4,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..io import registry as io_registry
+from ...io import registry as io_registry
 
 __all__ = ['NDIOMixin']
 
