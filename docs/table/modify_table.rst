@@ -59,8 +59,9 @@ the conventions of `~astropy.units.Quantity` by using the
   >>> tu['a'].unit = u.m
   >>> tu['a'].quantity[:] = [1, 2] * u.km
   >>> tu['a']
-  <Column name='a' unit=u'm' format=None description=None>
-  array([ 1000.,  2000.])
+  <Column name='a' dtype='float64' unit='m' length=2>
+  1000.0
+  2000.0
 
 **Add a column or columns**
 
@@ -92,8 +93,12 @@ Finally, columns can also be added from
   >>> from astropy import units as u
   >>> t['d'] = np.arange(1., 6.) * u.m
   >>> t['d']
-  <Column name='d' unit='m' format=None description=None>
-  array([ 1., 2., 3., 4., 5.])
+  <Column name='d' dtype='float64' unit='m' length=5>
+  1.0
+  2.0
+  3.0
+  4.0
+  5.0
 
 **Remove columns**
 ::

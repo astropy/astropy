@@ -11,7 +11,7 @@ from ...extern.six import PY3
 from ...utils import console
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
-SMALL_ARR = np.arange(12, dtype=np.int).reshape(4, 3)
+SMALL_ARR = np.arange(18, dtype=np.int).reshape(6, 3)
 
 
 @pytest.mark.usefixtures('table_type')
@@ -27,7 +27,6 @@ class TestMultiD():
                          [50, 60]])]
         t = table_type(arr)
         lines = t.pformat()
-        print(lines)
         assert lines == ['col0 [2] col1 [2] col2 [2]',
                          '-------- -------- --------',
                          '  1 .. 2   3 .. 4   5 .. 6',
@@ -50,7 +49,6 @@ class TestMultiD():
 
         t = table_type([arr])
         lines = t.pformat()
-        print(lines)
         assert lines == ['col0 [2,2]',
                          '----------',
                          '   1 .. 20',
@@ -67,7 +65,6 @@ class TestMultiD():
                          [(50,)]])]
         t = table_type(arr)
         lines = t.pformat()
-        print(lines)
         assert lines == ['col0 [1,1] col1 [1,1] col2 [1,1]',
                          '---------- ---------- ----------',
                          '         1          3          5',
@@ -89,7 +86,6 @@ class TestMultiD():
 
         t = table_type([arr])
         lines = t.pformat()
-        print(lines)
         assert lines == ['col0 [2,1,1]',
                          '------------',
                          '     1 .. 10',
@@ -103,7 +99,7 @@ def test_html_escaping():
         '&lt;Table masked=False length=3&gt;',
         '<table id="table{id}">'.format(id=id(t)),
         '<thead><tr><th>col0</th></tr></thead>',
-        '<thead><tr><th>string264</th></tr></thead>',
+        '<thead><tr><th>{0}</th></tr></thead>'.format('str1056' if PY3 else 'string264'),
         '<tr><td>&lt;script&gt;alert(&quot;gotcha&quot;);&lt;/script&gt;</td></tr>',
         '<tr><td>2</td></tr>',
         '<tr><td>3</td></tr>',
@@ -142,10 +138,10 @@ class TestPprint():
                          '    km2                  ... kg s / m2',
                          '------------ ----------- ... ---------',
                          '0.000000e+00    1.000000 ...      19.0',
-                         '2.000000e+01   21.000000 ...      39.0',
                          '         ...         ... ...       ...',
                          '1.960000e+03 1961.000000 ...    1979.0',
-                         '1.980000e+03 1981.000000 ...    1999.0']
+                         '1.980000e+03 1981.000000 ...    1999.0',
+                         'Length = 100 rows']
 
     def test_format2(self, table_type):
         """Basic test of formatting, unit header row excluded"""
@@ -155,25 +151,24 @@ class TestPprint():
                          '------------ ----------- ... ------',
                          '0.000000e+00    1.000000 ...   19.0',
                          '2.000000e+01   21.000000 ...   39.0',
-                         '4.000000e+01   41.000000 ...   59.0',
                          '         ...         ... ...    ...',
                          '1.960000e+03 1961.000000 ... 1979.0',
-                         '1.980000e+03 1981.000000 ... 1999.0']
+                         '1.980000e+03 1981.000000 ... 1999.0',
+                         'Length = 100 rows']
 
     def test_format3(self, table_type):
         """Include the unit header row"""
         self._setup(table_type)
         lines = self.tb.pformat(max_lines=8, max_width=40, show_unit=True)
 
-        print(lines)
         assert lines == ['    col0         col1    ...   col19  ',
                          '    km2                  ... kg s / m2',
                          '------------ ----------- ... ---------',
                          '0.000000e+00    1.000000 ...      19.0',
-                         '2.000000e+01   21.000000 ...      39.0',
                          '         ...         ... ...       ...',
                          '1.960000e+03 1961.000000 ...    1979.0',
-                         '1.980000e+03 1981.000000 ...    1999.0']
+                         '1.980000e+03 1981.000000 ...    1999.0',
+                         'Length = 100 rows']
 
     def test_format4(self, table_type):
         """Do not include the name header row"""
@@ -183,10 +178,10 @@ class TestPprint():
                          '------------ ----------- ... ---------',
                          '0.000000e+00    1.000000 ...      19.0',
                          '2.000000e+01   21.000000 ...      39.0',
-                         '4.000000e+01   41.000000 ...      59.0',
                          '         ...         ... ...       ...',
                          '1.960000e+03 1961.000000 ...    1979.0',
-                         '1.980000e+03 1981.000000 ...    1999.0']
+                         '1.980000e+03 1981.000000 ...    1999.0',
+                         'Length = 100 rows']
 
     def test_noclip(self, table_type):
         """Basic table print"""
@@ -197,10 +192,12 @@ class TestPprint():
                          '   0    1    2',
                          '   3    4    5',
                          '   6    7    8',
-                         '   9   10   11']
+                         '   9   10   11',
+                         '  12   13   14',
+                         '  15   16   17']
 
     def test_clip1(self, table_type):
-        """max lines below hard limit of 6
+        """max lines below hard limit of 8
         """
         self._setup(table_type)
         lines = self.ts.pformat(max_lines=3, max_width=-1)
@@ -209,22 +206,27 @@ class TestPprint():
                          '   0    1    2',
                          '   3    4    5',
                          '   6    7    8',
-                         '   9   10   11']
+                         '   9   10   11',
+                         '  12   13   14',
+                         '  15   16   17']
 
     def test_clip2(self, table_type):
-        """max lines below hard limit of 6 and output longer than 6
+        """max lines below hard limit of 8 and output longer than 8
         """
         self._setup(table_type)
-        lines = self.ts.pformat(max_lines=3, max_width=-1, show_unit=True)
-        assert lines == ['col0 col1 col2',
-                         '              ',
-                         '---- ---- ----',
-                         '   0    1    2',
-                         ' ...  ...  ...',
-                         '   9   10   11']
+        lines = self.ts.pformat(max_lines=3, max_width=-1, show_unit=True, show_dtype=True)
+        assert lines == [' col0  col1  col2',
+                         '                 ',
+                         'int64 int64 int64',
+                         '----- ----- -----',
+                         '    0     1     2',
+                         '  ...   ...   ...',
+                         '   15    16    17',
+                         'Length = 6 rows']
+
 
     def test_clip3(self, table_type):
-        """Max lines below hard limit of 6 and max width below hard limit
+        """Max lines below hard limit of 8 and max width below hard limit
         of 10
         """
         self._setup(table_type)
@@ -234,14 +236,16 @@ class TestPprint():
                          '---- ...',
                          '   0 ...',
                          ' ... ...',
-                         '   9 ...']
+                         '  12 ...',
+                         '  15 ...',
+                         'Length = 6 rows']
 
     def test_clip4(self, table_type):
         """Test a range of max_lines"""
         self._setup(table_type)
         for max_lines in range(130):
             lines = self.tb.pformat(max_lines=max_lines, show_unit=False)
-            assert len(lines) == max(6, min(102, max_lines))
+            assert len(lines) == max(8, min(102, max_lines))
 
 
 
@@ -280,13 +284,26 @@ class TestFormat():
 
     def test_column_format_with_threshold(self, table_type):
         from ... import conf
-        with conf.set_temp('max_lines', 6):
+        with conf.set_temp('max_lines', 8):
             t = table_type([np.arange(20)], names=['a'])
             t['a'].format = '%{0:}'
-            assert str(t['a']) == ' a \n---\n %0\n %1\n...\n%19'
+            assert str(t['a']).splitlines() == [' a ',
+                                                '---',
+                                                ' %0',
+                                                ' %1',
+                                                '...',
+                                                '%18',
+                                                '%19',
+                                                'Length = 20 rows']
             t['a'].format = '{ %4.2f }'
-            assert str(t['a']) == '    a    \n---------\n { 0.00 }\n' \
-                                  ' { 1.00 }\n      ...\n{ 19.00 }'
+            assert str(t['a']).splitlines() == ['    a    ',
+                                                '---------',
+                                                ' { 0.00 }',
+                                                ' { 1.00 }',
+                                                '      ...',
+                                                '{ 18.00 }',
+                                                '{ 19.00 }',
+                                                'Length = 20 rows']
 
     def test_column_format_func(self, table_type):
         # run most of functions twice
@@ -374,18 +391,30 @@ class TestFormatWithMaskedElements():
         t['a'].format = '%4.2f {0:}'
         assert str(t['a']) == '   a   \n-------\n     --\n%4.2f 2\n     --'
 
-    def test_column_format_with_threshold(self):
+    def test_column_format_with_threshold(self, table_type):
         from ... import conf
-        with conf.set_temp('max_lines', 7):
-            t = Table([np.arange(20)], names=['a'], masked=True)
+        with conf.set_temp('max_lines', 8):
+            t = table_type([np.arange(20)], names=['a'])
+            t['a'].format = '%{0:}'
             t['a'].mask[0] = True
             t['a'].mask[-1] = True
-            t['a'].format = '%{0:}'
-            assert str(t['a']) == ' a \n---\n --\n %1\n...\n%18\n --'
+            assert str(t['a']).splitlines() == [' a ',
+                                                '---',
+                                                ' --',
+                                                ' %1',
+                                                '...',
+                                                '%18',
+                                                ' --',
+                                                'Length = 20 rows']
             t['a'].format = '{ %4.2f }'
-            assert str(t['a']) == '    a    \n---------\n       --\n' \
-                                  ' { 1.00 }\n      ...\n{ 18.00 }\n' \
-                                  '       --'
+            assert str(t['a']).splitlines() == ['    a    ',
+                                                '---------',
+                                                '       --',
+                                                ' { 1.00 }',
+                                                '      ...',
+                                                '{ 18.00 }',
+                                                '       --',
+                                                'Length = 20 rows']
 
     def test_column_format_func(self):
         # run most of functions twice

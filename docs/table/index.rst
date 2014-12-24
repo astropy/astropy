@@ -71,18 +71,27 @@ There are a few ways to examine the table.  You can get detailed information
 about the table values and column definitions as follows::
 
   >>> t
-  <Table rows=3 names=('a','b','c')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
+  <Table masked=False length=3>
+    a      b       c
+  int64 float64 string8
+  ----- ------- -------
+      1     2.0       x
+      4     5.0       y
+      5     8.2       z
 
 You can also assign a unit to the columns. If any column has a unit
 assigned, all units would be shown as follows::
 
   >>> t['b'].unit = 's'
   >>> t
-  <Table rows=3 names=('a','b','c') units=(None,'s',None)>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
+  <Table masked=False length=3>
+    a      b       c
+           s
+  int64 float64 string8
+  ----- ------- -------
+      1     2.0       x
+      4     5.0       y
+      5     8.2       z
 
 A column with a unit works with and can be easily converted to an
 `~astropy.units.Quantity` object::
@@ -143,8 +152,10 @@ Now examine some high-level information about the table::
 Access the data by column or row using familiar `numpy` structured array syntax::
 
   >>> t['a']       # Column 'a'
-  <Column name='a' unit=None format=None description=None>
-  array([1, 4, 5])
+  <Column name='a' dtype='int64' length=3>
+  1
+  4
+  5
 
   >>> t['a'][1]    # Row 1 of column 'a'
   4
@@ -209,18 +220,13 @@ Lastly, you can create a table with support for missing values, for example by s
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True)
   >>> t['a'].mask = [True, True, False]
   >>> t
-  <Table rows=3 names=('a','b','c')>
-  masked_array(data = [(--, 2.0, 'x') (--, 5.0, 'y') (5, 8..., 'z')],
-               mask = [(True, False, False) (True, False, False) (False, False, False)],
-         fill_value = (999999, 1e+20, 'N'),
-              dtype = [('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
-
-  >>> print(t)
-   a   b   c
-  --- --- ---
-   -- 2.0   x
-   -- 5.0   y
-    5 8.2   z
+  <Table masked=True length=3>
+    a      b       c
+  int64 float64 string8
+  ----- ------- -------
+     --     2.0       x
+     --     5.0       y
+      5     8.2       z
 
 .. _using_astropy_table:
 

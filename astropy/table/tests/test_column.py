@@ -76,11 +76,17 @@ class TestColumn():
     def test_format(self, Column):
         """Show that the formatted output from str() works"""
         from ... import conf
-        with conf.set_temp('max_lines', 7):
+        with conf.set_temp('max_lines', 8):
             c1 = Column(np.arange(2000), name='a', dtype=float,
                         format='%6.2f')
-            assert str(c1) == ('   a   \n-------\n   0.00\n'
-                               '   1.00\n    ...\n1999.00\nLength = 2000 rows')
+            assert str(c1).splitlines() == ['   a   ',
+                                            '-------',
+                                            '   0.00',
+                                            '   1.00',
+                                            '    ...',
+                                            '1998.00',
+                                            '1999.00',
+                                            'Length = 2000 rows']
 
     def test_convert_numpy_array(self, Column):
         d = Column([1, 2, 3], name='a', dtype='i8')
