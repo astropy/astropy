@@ -170,8 +170,8 @@ class TableFormatter(object):
             max_lines = lines
         elif max_lines < 0:
             max_lines = sys.maxsize
-        if max_lines < 6:
-            max_lines = 6
+        if max_lines < 8:
+            max_lines = 8
 
         if max_width is None:
             max_width = width
@@ -249,7 +249,7 @@ class TableFormatter(object):
             col_strs.append('</table>')
 
         else:
-            col_width = max(len(x) for x in col_strs)
+            col_width = max(len(x) for x in col_strs) if col_strs else 1
 
             # Center line content and generate dashed headerline
             for i in outs['i_centers']:
@@ -341,8 +341,8 @@ class TableFormatter(object):
         if len(col) > max_lines:
             if show_length is None:
                 show_length = True
-            i0 = n_print2
-            i1 = n_rows - n_print2 - max_lines % 2 + (1 if show_length else 0)
+            i0 = n_print2 - (1 if show_length else 0)
+            i1 = n_rows - n_print2 - max_lines % 2
         else:
             i0 = len(col)
             i1 = 0
