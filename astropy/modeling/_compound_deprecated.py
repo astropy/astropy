@@ -26,7 +26,8 @@ from .core import Model
 __all__ = ['LabeledInput', 'SerialCompositeModel', 'SummedCompositeModel']
 
 
-@deprecated('1.0', alternative='TODO: Point to docs on compound models')
+@deprecated('1.0', alternative=':ref:`compound-models` as described in the '
+                               'Astropy documentation')
 class LabeledInput(OrderedDict):
     """
     Used by `SerialCompositeModel` and `SummedCompositeModel` to choose input
@@ -154,13 +155,13 @@ class _LabeledInputMapping(Model):
 
 
 class _CompositeModel(Model):
+    """Base class for all composite models."""
+
     _operator = None
     fittable = False
 
     def __init__(self, transforms, n_inputs, n_outputs, inmap=None,
                  outmap=None):
-        """Base class for all composite models."""
-
         self._transforms = transforms
         param_names = []
         for tr in self._transforms:
@@ -302,7 +303,8 @@ class _CompositeModel(Model):
         return functools.reduce(self._operator, transforms)
 
 
-@deprecated('1.0', alternative='TODO: Point to docs on compound models')
+@deprecated('1.0', alternative=':ref:`compound-models` as described in the '
+                               'Astropy documentation')
 class SerialCompositeModel(_CompositeModel):
     """
     Composite model that evaluates models in series.
@@ -385,7 +387,8 @@ class SerialCompositeModel(_CompositeModel):
         return SerialCompositeModel(transforms, inmap, outmap)
 
 
-@deprecated('1.0', alternative='TODO: Point to docs on compound models')
+@deprecated('1.0', alternative=':ref:`compound-models` as described in the '
+                               'Astropy documentation')
 class SummedCompositeModel(_CompositeModel):
     """
     Composite model that evaluates models in parallel.
