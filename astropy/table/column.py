@@ -665,7 +665,11 @@ class Column(BaseColumn):
         data_lines, outs = self._formatter._pformat_col(
             self, show_name=False, show_unit=False, show_length=False, html=html)
 
-        return descr + '\n'.join(data_lines)
+        out = descr + '\n'.join(data_lines)
+        if six.PY2 and isinstance(out, six.text_type):
+            out = out.encode('utf-8')
+
+        return out
 
     def _repr_html_(self):
         return self._base_repr_(html=True)
