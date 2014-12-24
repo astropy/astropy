@@ -340,6 +340,11 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     __or__ =      _model_oper('|')
     __and__ =     _model_oper('&')
 
+    if not six.PY3:
+        # The classic __div__ operator need only be implemented for Python 2
+        # without from __future__ import division
+        __div__ = _model_oper('/')
+
     # *** Other utilities ***
 
     def _format_cls_repr(cls, keywords=[]):
@@ -572,6 +577,9 @@ class Model(object):
     __pow__ =     _model_oper('**')
     __or__ =      _model_oper('|')
     __and__ =     _model_oper('&')
+
+    if not six.PY3:
+        __div__ = _model_oper('/')
 
     # *** Properties ***
     @property
