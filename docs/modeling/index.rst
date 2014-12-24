@@ -243,6 +243,8 @@ response of each pixel in a data cube.  This can greatly speed up the fitting
 process, especially for linear models.
 
 
+.. _compound-models-intro:
+
 Compound models
 ---------------
 .. versionadded:: 1.0
