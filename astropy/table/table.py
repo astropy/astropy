@@ -562,7 +562,11 @@ class Table(object):
             tableid=tableid, html=html, max_width=(-1 if html else None),
             show_name=True, show_unit=None, show_dtype=True)
 
-        return descr + '\n'.join(data_lines)
+        out = descr + '\n'.join(data_lines)
+        if six.PY2 and isinstance(out, six.text_type):
+            out = out.encode('utf-8')
+
+        return out
 
     def _repr_html_(self):
         return self._base_repr_(html=True)
