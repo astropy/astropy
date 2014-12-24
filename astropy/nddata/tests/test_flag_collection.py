@@ -2,7 +2,9 @@
 
 # TEST_UNICODE_LITERALS
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 
 import numpy as np
@@ -18,13 +20,15 @@ def test_init():
 def test_init_noshape():
     with pytest.raises(Exception) as exc:
         FlagCollection()
-    assert exc.value.args[0] == 'FlagCollection should be initialized with the shape of the data'
+    assert exc.value.args[0] == ('FlagCollection should be initialized with '
+                                 'the shape of the data')
 
 
 def test_init_notiterable():
     with pytest.raises(Exception) as exc:
         FlagCollection(shape=1.)
-    assert exc.value.args[0] == 'FlagCollection shape should be an iterable object'
+    assert exc.value.args[0] == ('FlagCollection shape should be '
+                                 'an iterable object')
 
 
 def test_setitem():
@@ -48,4 +52,5 @@ def test_setitem_invalid_shape():
     f = FlagCollection(shape=(1, 2, 3))
     with pytest.raises(Exception) as exc:
         f['a'] = np.ones((3, 2, 1))
-    assert exc.value.args[0] == 'flags array shape (3, 2, 1) does not match data shape (1, 2, 3)'
+    assert exc.value.args[0] == ('flags array shape (3, 2, 1) does not match '
+                                 'data shape (1, 2, 3)')

@@ -126,6 +126,12 @@ New Features
   - New array-related utility functions in ``astropy.nddata.utils`` for adding
     and removing arrays from other arrays with different sizes/shapes. [#3201]
 
+  - New metaclass ``NDDataBase`` for enforcing the nddata interface in
+    subclasses without restricting implementation of the data storage. [#2905]
+
+  - New mixin classes ``NDSlicingMixin`` for slicing, ``NDArithmeticMixin``
+    for arithmetic operations, and ``NDIOMixin`` for input/ouput in NDData. [#2905]
+
   - Added a decorator ``support_nddata`` that can be used to write functions
     that can either take separate arguments or NDData objects. [#2855]
 
@@ -317,6 +323,14 @@ API Changes
     [#2990]
 
 - ``astropy.nddata``
+
+  - ``flags``, ``shape``, ``size``, ``dtype`` and ``ndim`` properties removed
+    from ``astropy.nddata.NDData``. [#2905]
+
+  - Arithmetic operations, uncertainty propagation, slicing and automatic
+    conversion to a numpy array removed from ``astropy.nddata.NDData``. The
+    class ``astropy.nddata.NDDataArray`` is functionally equivalent to the
+    old ``NDData``.  [#2905]
 
 - ``astropy.stats``
 
