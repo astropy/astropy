@@ -5,7 +5,7 @@ import numpy as np
 
 from .. import (CompositeUnit, Unit, UnitsError, dimensionless_unscaled,
                 si, astrophys as ap)
-from .core import FunctionUnitBase, FunctionQuantityBase
+from .core import FunctionUnitBase, FunctionQuantity
 
 
 __all__ = ['LogUnit', 'MagUnit', 'DexUnit', 'DecibelUnit',
@@ -17,7 +17,7 @@ class LogUnit(FunctionUnitBase):
     """Logarithmic unit containing a physical one
 
     Usually, logarithmic units are instantiated via specific subclasses
-    such `MagUnit`, `dBUnit`, and `DexUnit`.
+    such `MagUnit`, `DecibelUnit`, and `DexUnit`.
 
     Parameters
     ----------
@@ -114,8 +114,8 @@ class MagUnit(LogUnit):
         If not given, dimensionless.
 
     function_unit :  `~astropy.units.Unit` or `string`
-        By default, this is `~astrophys.units.mag`, but this allows one to
-        use an equivalent unit such as `2 mag`.
+        By default, this is ``mag``, but this allows one to use an equivalent
+        unit such as ``2 mag``.
     """
     @property
     def _default_function_unit(self):
@@ -136,8 +136,8 @@ class DexUnit(LogUnit):
         If not given, dimensionless.
 
     function_unit :  `~astropy.units.Unit` or `string`
-        By default, this is `~astrophys.units.dex`, but this allows one to
-        use an equivalent unit such as `0.5 dex`.
+        By default, this is ``dex`, but this allows one to use an equivalent
+        unit such as ``0.5 dex``.
     """
 
     @property
@@ -159,8 +159,8 @@ class DecibelUnit(LogUnit):
         If not given, dimensionless.
 
     function_unit :  `~astropy.units.Unit` or `string`
-        By default, this is `~astrophys.units.dB`, but this allows one to
-        use an equivalent unit such as `2 dB`.
+        By default, this is ``dB``, but this allows one to use an equivalent
+        unit such as ``2 dB``.
     """
 
     @property
@@ -172,28 +172,23 @@ class DecibelUnit(LogUnit):
         return Decibel
 
 
-class LogQuantity(FunctionQuantityBase):
+class LogQuantity(FunctionQuantity):
     """A representation of a (scaled) logarithm of a number with a unit
 
     Parameters
     ----------
-    value : number, `~astropy.units.Quantity`,
-            `~astropy.units.logarithmic.LogQuantity`,
-            or sequence of convertible items.
+    value : number, `~astropy.units.Quantity`, `~astropy.units.function.logarithmic.LogQuantity`, or sequence of convertible items.
         The numerical value of the logarithmic quantity. If a number or
-        a `Quantity` with a logarithmic unit, it will be converted to `unit`
-        and the physical unit will be inferred from `unit`.
-        If a `Quantity` with just a physical unit, it will converted to
-        the logarithmic unit, after, if necessary, converting it to the
-        physical unit inferred from `unit`.
+        a `~astropy.units.Quantity` with a logarithmic unit, it will be
+        converted to ``unit`` and the physical unit will be inferred from
+        ``unit``.  If a `~astropy.units.Quantity` with just a physical unit,
+        it will converted to the logarithmic unit, after, if necessary,
+        converting it to the physical unit inferred from ``unit``.
 
-    unit : function unit, or `~astropy.units.function.FunctionUnit`,
-            optional
-        E.g., `~astropy.units.function.mag`, `astropy.units.function.dB`,
-        `~astropy.units.function.MagUnit`, etc.
-        For a `FunctionUnit` instance, the physical unit will be taken from
-        it; for non-`FunctionUnit` input, it will be inferred from `value`.
-        By default, `unit` is set by the subclass.
+    unit : string, `~astropy.units.UnitBase` or `~astropy.units.function.FunctionUnitBase` instance, optional
+        For an `~astropy.units.function.FunctionUnitBase` instance, the
+        physical unit will be taken from it; for other input, it will be
+        inferred from ``value``. By default, ``unit`` is set by the subclass.
 
     dtype : `~numpy.dtype`, optional
         The ``dtype`` of the resulting Numpy array or scalar that will
@@ -201,16 +196,18 @@ class LogQuantity(FunctionQuantityBase):
         from the input value.
 
     copy : bool, optional
-        If `True` (default), then the value is copied.  Otherwise, a copy
-        will only be made if :func:`__array__` returns a copy, if obj is a
-        nested sequence, or if a copy is needed to satisfy ``dtype``.
-        (The `False` option is intended mostly for internal use, to speed
-        up initialization where it is known a copy has been made already.
+        If `True` (default), then the value is copied.  Otherwise, a copy will
+        only be made if ``__array__`` returns a copy, if value is a nested
+        sequence, or if a copy is needed to satisfy an explicitly given
+        ``dtype``.  (The `False` option is intended mostly for internal use,
+        to speed up initialization where a copy is known to have been made.
         Use with care.)
 
     Examples
     --------
-    Typically, use is made of a `FunctionQuantity` subclasses, as in
+    Typically, use is made of an `~astropy.units.function.FunctionQuantity`
+    subclasses, as in::
+
         >>> import astropy.units as u
         >>> u.Magnitude(15.)
         <Magnitude 15.0 mag>
@@ -218,6 +215,7 @@ class LogQuantity(FunctionQuantityBase):
         <Magnitude -2.5 mag(ct / s)>
         >>> u.Decibel(1.*u.W, u.DecibelUnit(u.mW))
         <Decibel 30.0 dB(mW)>
+
     """
     # vvvv only override of FunctionQuantity
     _unit_class = LogUnit

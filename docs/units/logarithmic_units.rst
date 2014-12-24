@@ -29,9 +29,9 @@ a logarithmic unit.  For instance::
   <Dex [ 2. , 2.5, 3. , 3.5, 4. , 4.5, 5. ] dex(cm / s2)>
 
 As for normal |quantity| objects, one can access the value with the
-`~astropy.units.LogQuantity.value` attribute.  In addition, one can convert
-easily to a normal |quantity| using the `~astropy.units.LogQuantity.physical`
-attribute::
+`~astropy.units.Quantity.value` attribute. In addition, one can convert easily
+to a normal |quantity| using the
+`~astropy.units.function.FunctionQuantity.physical` attribute::
 
     >>> logg = 5. * u.DexUnit(u.cm / u.s**2)
     >>> logg.value
@@ -43,9 +43,9 @@ Converting to different units
 -----------------------------
 
 Like |quantity| objects, logarithmic quantities can be converted to different
-units using the :meth:`~astropy.units.LogQuantity.to` method.  Here, if the
-requested unit is not a logarithmic unit, the object will be automatically
-converted to its physical unit::
+units using the :meth:`~astropy.units.function.FunctionQuantity.to` method.
+Here, if the requested unit is not a logarithmic unit, the object will be
+automatically converted to its physical unit::
 
     >>> logg = 5. * u.DexUnit(u.cm / u.s**2)
     >>> logg.to(u.m / u.s**2)
@@ -53,9 +53,9 @@ converted to its physical unit::
     >>> logg.to(u.DexUnit(u.m / u.s**2))
     <Dex 3.0 dex(m / s2)>
 
-For convenience, the `~astropy.units.LogQuantity.si` and
-`~astropy.units.LogQuantity.cgs` attributes can be used to convert the
-|quantity| to base S.I. or c.g.s units::
+For convenience, the `~astropy.units.function.FunctionQuantity.si` and
+`~astropy.units.function.FunctionQuantity.cgs` attributes can be used
+to convert the |quantity| to base S.I. or c.g.s units::
 
     >>> logg.si
     <Dex 3.0 dex(m / s2)>
@@ -96,7 +96,7 @@ Since the extinction is dimensionless, the units do not change.  Now suppose
 the first star has a known ST magnitude, so we can calculate zero points::
 
     >>> b_ref, v_ref = 17.2 * u.STmag, 17.0 * u.STmag
-    >>> b_ref, v_ref
+    >>> b_ref, v_ref  # doctest: +FLOAT_CMP
     (<Magnitude 17.2 mag(ST)>, <Magnitude 17.0 mag(ST)>)
     >>> zp_b, zp_v = b_ref - b_i0[0], v_ref - v_i0[0]
     >>> zp_b, zp_v  # doctest: +FLOAT_CMP

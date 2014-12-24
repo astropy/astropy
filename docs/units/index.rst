@@ -190,6 +190,7 @@ Reference/API
 
 .. automodapi:: astropy.units.equivalencies
 
+.. automodapi:: astropy.units.function
 
 Acknowledgments
 ===============

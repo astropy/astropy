@@ -12,7 +12,7 @@ from ...extern import six
 from .. import (Unit, UnitBase, UnitsError,
                 dimensionless_unscaled, Quantity, quantity_helper as qh)
 
-__all__ = ['FunctionUnitBase', 'FunctionQuantityBase']
+__all__ = ['FunctionUnitBase', 'FunctionQuantity']
 
 _supported_ufuncs = set([ufunc for ufunc, helper in qh.UFUNC_HELPERS.items()
                          if helper in (qh.helper_onearg_test,
@@ -181,6 +181,27 @@ class FunctionUnitBase(object):
         return self.function_unit._to(getattr(other, 'function_unit', other))
 
     def is_equivalent(self, other, equivalencies=[]):
+        """
+        Returns `True` if this unit is equivalent to ``other``.
+
+        Parameters
+        ----------
+        other : unit object or string or tuple
+            The unit to convert to. If a tuple of units is specified, this
+            method returns true if the unit matches any of those in the tuple.
+
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            This list is in addition to the built-in equivalencies between the
+            function unit and the physical one, as well as possible global
+            defaults set by, e.g., `~astropy.units.set_enabled_equivalencies`.
+            Use `None` to turn off any global equivalencies.
+
+        Returns
+        -------
+        bool
+        """
         if isinstance(other, tuple):
             return any(self.is_equivalent(u, equivalencies=equivalencies)
                        for u in other)
@@ -191,7 +212,6 @@ class FunctionUnitBase(object):
 
         return self.physical_unit.is_equivalent(other_physical_unit,
                                                 equivalencies)
-    is_equivalent.__doc__ = UnitBase.is_equivalent.__doc__
 
     def to(self, other, value=1., equivalencies=[]):
         """
@@ -199,8 +219,7 @@ class FunctionUnitBase(object):
 
         Parameters
         ----------
-        other : `~astropy.units.Unit` object, `~astropy.units.FunctionUnit`
-                object or string
+        other : `~astropy.units.Unit` object, `~astropy.units.function.FunctionUnitBase` object or string
             The unit to convert to.
 
         value : scalar int or float, or sequence convertible to array, optional
@@ -208,11 +227,11 @@ class FunctionUnitBase(object):
             If not provided, defaults to 1.0.
 
         equivalencies : list of equivalence pairs, optional
-           A list of equivalence pairs to try if the units are not
-           directly convertible.  See :ref:`unit_equivalencies`.
-           This list is in meant to treat only equivalencies between different
-           physical units; the build-in equivalency between the function
-           unit and the physical one is automatically taken into account.
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            This list is in meant to treat only equivalencies between different
+            physical units; the build-in equivalency between the function
+            unit and the physical one is automatically taken into account.
 
         Returns
         -------
@@ -333,7 +352,7 @@ class FunctionUnitBase(object):
 
         Parameters
         ----------
-        format : `astropy.format.Base` instance or str
+        format : `astropy.units.format.Base` instance or str
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
         """
@@ -360,7 +379,7 @@ class FunctionUnitBase(object):
         return hash((self.function_unit, self.physical_unit))
 
 
-class FunctionQuantityBase(Quantity):
+class FunctionQuantity(Quantity):
     """A representation of a (scaled) function of a number with a unit.
 
     Function quanties are quantities whose units are functions containing a
@@ -369,28 +388,24 @@ class FunctionQuantityBase(Quantity):
 
     While instantiation is also defined here, this class should not be
     instantiated directly.  Rather, subclasses should be made which have
-    `_FunctionUnit` pointing back to the corresponding function unit class.
+    ``_unit_class`` pointing back to the corresponding function unit class.
 
     Parameters
     ----------
-    value : number, sequence of convertible items,
-            `~astropy.units.Quantity`, or `~astropy.units.FunctionQuantity`
+    value : number, sequence of convertible items, `~astropy.units.Quantity`, or `~astropy.units.function.FunctionQuantity`
         The numerical value of the function quantity. If a number or
-        a `Quantity` with a function unit, it will be converted to `unit`
-        and the physical unit will be inferred from `unit`.
-        If a `Quantity` with just a physical unit, it will converted to
-        the function unit, after, if necessary, converting it to the
-        physical unit inferred from `unit`.
+        a `~astropy.units.Quantity` with a function unit, it will be converted
+        to ``unit`` and the physical unit will be inferred from ``unit``.
+        If a `~astropy.units.Quantity` with just a physical unit, it will
+        converted to the function unit, after, if necessary, converting it to
+        the physical unit inferred from ``unit``.
 
-    unit : function unit, or `~astropy.units.function.FunctionUnit`,
-            optional
-        E.g., `~astropy.units.mag`, `~astropy.units.dex`, or equivalent
-        function units `~astropy.units.MagUnit`, `astropy.units.DexUnit`, etc.
-        For a `FunctionUnit` instance, the physical unit will be taken from
-        it; for non-`FunctionUnit` input, it will be inferred from `value`.
-        By default, `unit` is that defined by the subclass.
+    unit : string, `~astropy.units.UnitBase` or `~astropy.units.function.FunctionUnitBase` instance, optional
+        For an `~astropy.units.function.FunctionUnitBase` instance, the
+        physical unit will be taken from it; for other input, it will be
+        inferred from ``value``. By default, ``unit`` is set by the subclass.
 
-    dtype : ~numpy.dtype, optional
+    dtype : `~numpy.dtype`, optional
         The dtype of the resulting Numpy array or scalar that will
         hold the value.  If not provided, it is determined from the input,
         except that any input that cannot represent float (integer and bool)
@@ -416,19 +431,22 @@ class FunctionQuantityBase(Quantity):
         Specifies the minimum number of dimensions that the resulting array
         should have.  Ones will be pre-pended to the shape as needed to meet
         this requirement.  This parameter is ignored if the input is a
-        `Quantity` and ``copy=False``.
+        `~astropy.units.Quantity` and ``copy=False``.
 
     Raises
     ------
     TypeError
         If the value provided is not a Python numeric type.
     TypeError
-        If the unit provided is not a :class:`~astropy.units.FunctionUnit`
-        or :class:`~astropy.units.Unit` object, or a parseable string unit.
+        If the unit provided is not a `~astropy.units.function.FunctionUnitBase`
+        or `~astropy.units.Unit` object, or a parseable string unit.
     """
 
     _unit_class = None
-    """Default FunctionUnit; to be overridden by subclasses."""
+    """Default `~astropy.units.function.FunctionUnitBase` subclass.
+
+    This should be overridden by subclasses.
+    """
 
     # Ensure priority over ndarray, regular Unit & Quantity, and FunctionUnit.
     __array_priority__ = 4000
@@ -465,7 +483,7 @@ class FunctionQuantityBase(Quantity):
             value = unit.from_physical(value.to(unit.physical_unit).value)
 
         # initialise Quantity
-        self = super(FunctionQuantityBase, cls).__new__(
+        self = super(FunctionQuantity, cls).__new__(
             cls, value, unit.function_unit, dtype=dtype, copy=copy,
             order=order, subok=subok, ndmin=ndmin)
         # set the full unit returned by self.unit
@@ -507,27 +525,49 @@ class FunctionQuantityBase(Quantity):
     # vvvv methods overridden to change the behaviour
     @property
     def si(self):
+        """Return a copy with the physical unit in SI units."""
         return self.__class__(self.physical.si)
 
     @property
     def cgs(self):
+        """Return a copy with the physical unit in CGS units."""
         return self.__class__(self.physical.cgs)
 
     def decompose(self, bases=[]):
+        """Generate a new `FunctionQuantity` with the physical unit decomposed.
+
+        For details, see `~astropy.units.Quantity.decompose`.
+        """
         return self.__class__(self.physical.decompose(bases))
 
     # vvvv methods overridden to add additional behaviour
     def to(self, unit, equivalencies=[]):
-        result = super(FunctionQuantityBase, self).to(unit, equivalencies)
+        """Returns a new quantity with the specified units.
+
+        Parameters
+        ----------
+        unit : `~astropy.units.UnitBase` instance, str
+            An object that represents the unit to convert to. Must be
+            an `~astropy.units.UnitBase` object or a string parseable
+            by the `~astropy.units` package.
+
+        equivalencies : list of equivalence pairs, optional
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`unit_equivalencies`.
+            This list is in meant to treat only equivalencies between different
+            physical units; the build-in equivalency between the function
+            unit and the physical one is automatically taken into account.
+        """
+        result = super(FunctionQuantity, self).to(unit, equivalencies)
         if isinstance(unit, FunctionUnitBase):
             result._full_unit = unit
         return result
 
     def __array_finalize__(self, obj):
-        if isinstance(obj, FunctionQuantityBase):
+        if isinstance(obj, FunctionQuantity):
             self._full_unit = obj._full_unit
 
-        super(FunctionQuantityBase, self).__array_finalize__(obj)
+        super(FunctionQuantity, self).__array_finalize__(obj)
 
     def __array_prepare__(self, obj, context=None):
         """Check that the ufunc can deal with a FunctionQuantity."""
@@ -547,15 +587,14 @@ class FunctionQuantityBase(Quantity):
                             "quantities that are not dimensionless."
                             .format(context[0].__name__))
 
-        return super(FunctionQuantityBase,
-                     self).__array_prepare__(obj, context)
+        return super(FunctionQuantity, self).__array_prepare__(obj, context)
 
     def __array_wrap__(self, obj, context=None):
         """Reorder units properly after ufunc calculation."""
 
-        obj = super(FunctionQuantityBase, self).__array_wrap__(obj, context)
+        obj = super(FunctionQuantity, self).__array_wrap__(obj, context)
 
-        if isinstance(obj, FunctionQuantityBase):
+        if isinstance(obj, FunctionQuantity):
             obj._full_unit = obj._unit
             obj._unit = obj._full_unit.function_unit
             # Check for changes in the function unit (e.g., "mag" -> "2 mag").
@@ -563,7 +602,7 @@ class FunctionQuantityBase(Quantity):
                 if obj._full_unit.physical_type != dimensionless_unscaled:
                     raise UnitsError(
                         "Unexpected production in "
-                        "FunctionQuantityBase.__array_wrap__ "
+                        "FunctionQuantity.__array_wrap__ "
                         "of a '{0}' instance with a physical dimension yet "
                         "function_unit '{1}' when '{2}' was expected. "
                         "Please alert the astropy developers."
@@ -581,12 +620,12 @@ class FunctionQuantityBase(Quantity):
         if isinstance(unit, FunctionUnitBase):
             return self.__class__, True
         else:
-            return super(FunctionQuantityBase,
+            return super(FunctionQuantity,
                          self).__quantity_subclass__(unit)[0], False
 
     def _new_view(self, obj, unit=None):
-        view = super(FunctionQuantityBase, self)._new_view(obj, unit)
-        if unit is not None and isinstance(view, FunctionQuantityBase):
+        view = super(FunctionQuantity, self)._new_view(obj, unit)
+        if unit is not None and isinstance(view, FunctionQuantity):
             view._full_unit = unit
             view._unit = unit.function_unit
         return view
