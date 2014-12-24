@@ -50,7 +50,7 @@ few terms where there have been points of confusion:
   parameters::
 
       >>> my_gaussian = Gaussian1D(amplitude=1.0, mean=0, stddev=0.2)
-      >>> my_gaussian
+      >>> my_gaussian  # doctest: +FLOAT_CMP
       <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.2)>
 
   We now have an *instance* of `~astropy.modeling.functional_models.Gaussian1D`

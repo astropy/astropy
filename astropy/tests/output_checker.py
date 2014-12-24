@@ -50,7 +50,7 @@ class AstropyOutputChecker(doctest.OutputChecker):
         # floats in the 'want' string may contain ellipses
         want_floats = got_floats + r'(\.{3})?'
 
-        front_sep = r'\s|[+*,(<-]'
+        front_sep = r'\s|[+*,(<=-]'
         back_sep = front_sep + r'|[)>j]'
 
         fbeg = r'^%s(?=%s|$)' % (got_floats, back_sep)
