@@ -1218,21 +1218,10 @@ def _parse_coordinate_arg(coords, frame, units):
                 coord1 = coord.split()
                 if len(coord1) == 6:
                     coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                elif len(coord1) > 2:
-                    coord = PMRE.split(coord)
-                    coord = (coord[0], ' '.join(coord[1:]))
-                elif len(coord1) == 1:
-                        try:
-                            coord = JPMRE.match(coord).groups()
-                            coord = ('{0} {1} {2}'.
-                                     format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
-                                     '{0} {1} {2}'.
-                                     format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
-                        except:
-                            coord = coord1
+                elif frame.name == 'icrs':  # radec
+                    coord = parse_ra_dec(coord)
                 else:
                     coord = coord1
-
             vals.append(coord)  # This assumes coord is a sequence at this point
 
         # Do some basic validation of the list elements: all have a length and all
@@ -1299,3 +1288,48 @@ def _get_representation_attrs(frame, units, kwargs):
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
 
     return valid_kwargs
+
+
+def parse_ra_dec(coord_str):
+    """
+    Parsing RA--Dec input pairs. Currently the following formats are supported:
+
+     * space separated <6 value format
+     * JHHMMSS.ss+DDMMSS.s format
+
+    Parameters
+    ----------
+
+    coord_str : str or list of str
+        Coordinate string to parse.
+
+    Returns
+    -------
+
+    coord : str
+        Parsed coordinate values.
+    """
+
+    if isinstance(coord_str, six.string_types):
+        coord1 = coord_str.split()
+    else:
+        coord1 = coord_str
+
+    if len(coord1) == 6:
+        coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+    elif len(coord1) > 2:
+        coord = PMRE.split(coord_str)
+        coord = (coord[0], ' '.join(coord[1:]))
+    elif len(coord1) == 1:
+        try:
+            coord = JPMRE.match(coord_str).groups()
+            coord = ('{0} {1} {2}'.
+                     format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
+                     '{0} {1} {2}'.
+                     format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
+        except:
+            coord = coord1
+    else:
+        coord = coord1
+
+    return coord
