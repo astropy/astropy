@@ -5,7 +5,6 @@ import collections
 import warnings
 
 import numpy as np
-import re
 
 from ..utils.compat.misc import override__dir__
 from ..extern import six
@@ -21,7 +20,7 @@ from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
-__all__ = ['SkyCoord']
+__all__ = ['SkyCoord', 'parse_ra_dec']
 
 PMRE = re.compile(r'(\+|\-)')
 JPMRE = re.compile(r'J([0-9]{6}\.?[0-9]{0,2})([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$')
