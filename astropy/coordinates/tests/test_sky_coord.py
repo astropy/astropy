@@ -160,6 +160,14 @@ def test_coord_init_string():
     assert allclose(sc5.ra, Angle(120.15 * u.deg))
     assert allclose(sc5.dec, Angle(-5.01 * u.deg))
 
+    sc6 = SkyCoord('8h00.6m -5d00.6m', unit=(u.hour, u.deg), frame='fk4')
+    assert isinstance(sc6, SkyCoord)
+    assert allclose(sc6.ra, Angle(120.15 * u.deg))
+    assert allclose(sc6.dec, Angle(-5.01 * u.deg))
+
+    with pytest.raises(ValueError):
+        SkyCoord('8 00 -5 00.6', unit=(u.deg, u.deg), frame='galactic')
+
 
 def test_coord_init_unit():
     """

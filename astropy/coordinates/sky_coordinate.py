@@ -1218,7 +1218,7 @@ def _parse_coordinate_arg(coords, frame, units):
                 coord1 = coord.split()
                 if len(coord1) == 6:
                     coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                elif frame.name == 'icrs':  # radec
+                elif 'ra' in frame.representation_component_names:
                     coord = parse_ra_dec(coord)
                 else:
                     coord = coord1
@@ -1262,8 +1262,8 @@ def _parse_coordinate_arg(coords, frame, units):
                 frame_attr_names, repr_attr_classes, values, units):
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
     except Exception as err:
-        raise ValueError('Cannot parse longitude and latitude from first argument: {0}'
-                         .format(err))
+        raise ValueError('Cannot parse longitude and latitude from first argument '
+                         'for the specified frame: {0}'.format(err))
 
     return valid_kwargs
 
@@ -1299,14 +1299,12 @@ def parse_ra_dec(coord_str):
 
     Parameters
     ----------
-
     coord_str : str or list of str
         Coordinate string to parse.
 
     Returns
     -------
-
-    coord : str
+    coord : str or list of str
         Parsed coordinate values.
     """
 
