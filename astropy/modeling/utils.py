@@ -225,8 +225,9 @@ def make_binary_operator_eval(oper, f, g):
     (30,)
     """
 
-    return lambda *args: tuple(oper(x, y)
-                               for x, y in zip(f(*args), g(*args)))
+    return lambda inputs, params: \
+            tuple(oper(x, y) for x, y in zip(f(inputs, params),
+                                             g(inputs, params)))
 
 
 class IncompatibleShapeError(ValueError):

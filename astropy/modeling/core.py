@@ -19,12 +19,13 @@ from __future__ import (absolute_import, unicode_literals, division,
 import abc
 import copy
 import inspect
-import itertools
 import functools
 import operator
+import types
 import warnings
 
 from collections import defaultdict
+from itertools import chain, islice
 
 import numpy as np
 
@@ -273,7 +274,12 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                 "'evaluate'.  Otherwise its semantics remain the same.",
                 AstropyDeprecationWarning)
             members['evaluate'] = members['eval']
-        elif 'evaluate' in members:
+        elif ('evaluate' in members and callable(members['evaluate']) and
+                not getattr(members['evaluate'], '__isabstractmethod__',
+                            False)):
+            # Don't bother making a deprecated eval() except for concrete
+            # implementations of evaluate, so that we don't end up with an eval
+            # abstractmethod as well
             alt = '.'.join((name, 'evaluate'))
             deprecate = deprecated('1.0', alternative=alt, name='eval')
             members['eval'] = deprecate(members['evaluate'])
@@ -562,7 +568,7 @@ class Model(object):
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
         parameters = self._param_sets(raw=True)
 
-        outputs = self.evaluate(*itertools.chain(inputs, parameters))
+        outputs = self.evaluate(*chain(inputs, parameters))
 
         if self.n_outputs == 1:
             outputs = (outputs,)
@@ -1329,28 +1335,39 @@ class Fittable2DModel(FittableModel):
 
 
 def _make_arithmetic_operator(oper):
+    # We don't bother with tuple unpacking here for efficiency's sake, but for
+    # documentation purposes:
+    #
+    #     f_eval, f_n_inputs, f_n_outputs = f
+    #
+    # and similarly for g
     def op(f, g):
-        f, f_in, f_out = f
-        g = g[0]
-
-        return (make_binary_operator_eval(oper, f, g), f_in, f_out)
+        return (make_binary_operator_eval(oper, f[0], g[0]), f[1], f[2])
 
     return op
 
 
 def _composition_operator(f, g):
-    f, f_in, _ = f
-    g, _, g_out = g
-    return (lambda *args: g(*f(*args)), f_in, g_out)
+    # We don't bother with tuple unpacking here for efficiency's sake, but for
+    # documentation purposes:
+    #
+    #     f_eval, f_n_inputs, f_n_outputs = f
+    #
+    # and similarly for g
+    return (lambda inputs, params: g[0](f[0](inputs, params), params),
+            f[1], g[2])
 
 
 def _join_operator(f, g):
-    f, f_in, f_out = f
-    g, g_in, g_out = g
-
-    h = lambda *args: f(*args[:f_in]) + g(*args[f_in:])
-
-    return (h, f_in + g_in, f_out + g_out)
+    # We don't bother with tuple unpacking here for efficiency's sake, but for
+    # documentation purposes:
+    #
+    #     f_eval, f_n_inputs, f_n_outputs = f
+    #
+    # and similarly for g
+    return (lambda inputs, params: (f[0](inputs[:f[1]], params) +
+                                    g[0](inputs[f[1]:], params)),
+            f[1] + g[1], f[2] + g[2])
 
 
 # TODO: Support a couple unary operators--at least negation?
@@ -1399,6 +1416,8 @@ class _CompoundModelMeta(_ModelMeta):
     # useful to have.
     _param_map_inverse = None
     _fittable = None
+
+    _evaluate = None
 
     def __getitem__(cls, index):
         index = cls._normalize_index(index)
@@ -1498,6 +1517,28 @@ class _CompoundModelMeta(_ModelMeta):
             cls._fittable = all(m.fittable for m in cls._get_submodels())
 
         return cls._fittable
+
+    # TODO: Maybe we could use make_function_with_signature for evaluate, but
+    # it's probably not worth it (and I'm not sure what the limit is on number
+    # of function arguments/local variables but we could break that limit for
+    # complicated compound models...
+    def evaluate(cls, *args):
+        if cls._evaluate is None:
+            func = cls._tree.evaluate(BINARY_OPERATORS,
+                                      getter=cls._model_evaluate_getter)[0]
+            # Making this a staticmethod isn's strictly necessary for Python 3,
+            # but it is necessary on Python 2 since looking up cls._evaluate
+            # will return an unbound method otherwise
+            cls._evaluate = staticmethod(func)
+
+        inputs = args[:cls.n_inputs]
+        params = iter(args[cls.n_inputs:])
+        result = cls._evaluate(inputs, params)
+
+        if cls.n_outputs == 1:
+            return result[0]
+        else:
+            return result
 
     # TODO: This supports creating a new compound model from two existing
     # compound models (or normal models) and a single operator.  However, it
@@ -1599,6 +1640,16 @@ class _CompoundModelMeta(_ModelMeta):
 
         # Otherwise return the new uninstantiated class itself
         return new_cls
+
+    @classmethod
+    def _handle_backwards_compat(mcls, name, members):
+        # Override _handle_backwards_compat from _ModelMeta to be a no-op; it
+        # is not needed since compound models did not exist before version 1.0
+        # anyways.
+
+        # TODO: Remove this at the same time as removing
+        # _ModelMeta._handle_backwards_compat
+        return
 
     # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
     # leaf nodes is something the ExpressionTree class itself could just know
@@ -1818,12 +1869,47 @@ class _CompoundModelMeta(_ModelMeta):
 
         return cls._tree.evaluate(operators, start=start, stop=stop)
 
+    @staticmethod
+    def _model_evaluate_getter(idx, model):
+        n_params = len(model.param_names)
+        n_inputs = model.n_inputs
+        n_outputs = model.n_outputs
+
+        # There is currently an unfortunate iconsistency in some models, which
+        # requires them to be instantiated for their evaluate to work.  I think
+        # that needs to be reconsidered and fixed somehow, but in the meantime
+        # we need to check for that case
+        if (not isinstance(model, Model) and
+                isinstancemethod(model, model.evaluate)):
+            if n_outputs == 1:
+                # Where previously model was a class, now make an instance
+                def f(inputs, params):
+                    param_values = tuple(islice(params, n_params))
+                    return (model(*param_values).evaluate(
+                        *chain(inputs, param_values)),)
+            else:
+                def f(inputs, params):
+                    param_values = tuple(islice(params, n_params))
+                    return model(*param_values).evaluate(
+                        *chain(inputs, param_values))
+        else:
+            evaluate = model.evaluate
+            if n_outputs == 1:
+                f = lambda inputs, params: \
+                    (evaluate(*chain(inputs, islice(params, n_params))),)
+            else:
+                f = lambda inputs, params: \
+                    evaluate(*chain(inputs, islice(params, n_params)))
+
+        return (f, n_inputs, n_outputs)
+
 
 @six.add_metaclass(_CompoundModelMeta)
 class _CompoundModel(Model):
-    _submodels = None
     fit_deriv = None
     col_fit_deriv = False
+
+    _submodels = None
 
     def __getattr__(self, attr):
         return getattr(self.__class__, attr)
@@ -1853,43 +1939,9 @@ class _CompoundModel(Model):
     def fittable(self):
         return self.__class__.fittable
 
+    @sharedmethod
     def evaluate(self, *args):
-        inputs = args[:self.n_inputs]
-        params = iter(args[self.n_inputs:])
-
-        def getter(idx, model, params=params):
-            # Returns partial evaluation of the model's evaluate() method with
-            # the parameter values already applied
-            nparams = len(model.param_names)
-
-            param_values = tuple(itertools.islice(params, nparams))
-
-            # There is currently an unfortunate iconsistency in some
-            # models, which requires them to be instantiated for their
-            # evaluate to work.  I think that needs to be reconsidered and
-            # fixed somehow, but in the meantime we need to check for that
-            # case
-            if (not isinstance(model, Model) and
-                    isinstancemethod(model, model.evaluate)):
-                # Where previously model was a class, now make an instance
-                model = model(*param_values)
-
-            if model.n_outputs == 1:
-                f = lambda *inputs: \
-                        (model.evaluate(*(inputs + param_values)),)
-            else:
-                f = lambda *inputs: \
-                        model.evaluate(*(inputs + param_values))
-
-            return (f, model.n_inputs, model.n_outputs)
-
-        func = self._tree.evaluate(BINARY_OPERATORS, getter=getter)[0]
-        result = func(*inputs)
-
-        if self.n_outputs == 1:
-            return result[0]
-        else:
-            return result
+        return self.__class__.evaluate(*args)
 
     # TODO: The way this works is highly inefficient--the inverse is created by
     # making a new model for each operator in the compound model, which could
