@@ -983,6 +983,10 @@ class BaseReader(object):
             comment_lines = []
         return comment_lines
 
+    def write_header(self, lines, meta):
+        self.header.write_comments(lines, meta)
+        self.header.write(lines)
+
     def write(self, table):
         """Write ``table`` as list of strings.
 
@@ -1004,8 +1008,7 @@ class BaseReader(object):
 
         # Write header and data to lines list
         lines = []
-        self.header.write_comments(lines, table.meta)
-        self.header.write(lines)
+        self.write_header(lines, table.meta)
         self.data.write(lines)
 
         return lines

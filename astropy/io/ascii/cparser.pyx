@@ -817,6 +817,7 @@ cdef class FastWriter:
         list formats
         list format_funcs
         list types
+        list line_comments
         str quotechar
         str delimiter
         int strip_whitespace
@@ -887,6 +888,7 @@ cdef class FastWriter:
         self.col_iters = []
         self.formats = []
         self.format_funcs = []
+        self.line_comments = table.meta.get('comment_lines', [])
 
         for col in six.itervalues(table.columns):
             if col.name in self.use_names: # iterate over included columns
@@ -908,13 +910,21 @@ cdef class FastWriter:
         self.types = ['S' if self.table[name].dtype.kind in ('S', 'U') else 'N'
                       for name in self.use_names]
 
+    cdef _write_comments(self, output):
+        for comment_line in self.line_comments:
+            output.write(self.comment + comment_line + '\n')
+
     def _write_header(self, output, writer, header_output, output_types):
-        if header_output is not None:
-            if header_output == 'comment':
-                output.write(self.comment)
+        if header_output is not None and header_output == 'comment':
+            output.write(self.comment)
             writer.writerow([x.strip() for x in self.use_names] if
                             self.strip_whitespace else self.use_names)
-
+            self._write_comments(output)
+        else:
+            self._write_comments(output)
+            if header_output is not None:
+                writer.writerow([x.strip() for x in self.use_names] if
+                            self.strip_whitespace else self.use_names)
         if output_types:
             writer.writerow(self.types)
 

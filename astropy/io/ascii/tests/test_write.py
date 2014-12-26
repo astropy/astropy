@@ -452,6 +452,18 @@ def test_write_no_data_ipac(fast_writer):
         check_write_table_via_table(test_def, data, fast_writer)
 
 @pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_comments(fast_writer):
+    """Write comments in output originally read by io.ascii."""
+    data = ascii.read('#c1\n  # c2\t\na,b,c\n#  c3\n1,2,3')
+    out = StringIO()
+    ascii.write(data, out, format='basic', fast_writer=fast_writer)
+    assert out.getvalue() == '# c1\n# c2\n# c3\na b c\n1 2 3\n'
+    # header comes before comments for commented-header
+    out = StringIO()
+    ascii.write(data, out, format='commented_header', fast_writer=fast_writer)
+    assert out.getvalue() == '# a b c\n# c1\n# c2\n# c3\n1 2 3\n'
+
+@pytest.mark.parametrize("fast_writer", [True, False])
 def test_strip_names(fast_writer):
     """Names should be stripped of whitespace by default."""
     data = table.Table([[1], [2], [3]], names=(' A', 'B ', ' C '))
@@ -491,3 +503,4 @@ b & 2 \\\\
     assert out.getvalue() == expected.replace(
         'colhead{s}', 'colhead{$\mathrm{s}$}').replace(
         'colhead{ }', 'colhead{$\mathrm{yr}$}')
+
