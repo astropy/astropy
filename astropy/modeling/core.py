@@ -1433,7 +1433,15 @@ class _CompoundModelMeta(_ModelMeta):
 
         return cls._format_cls_repr(keywords=keywords)
 
-    def __dir__(cls):
+    def __dir__(cls, *args):
+        """
+        Returns a list of attributes defined on a compound model, including
+        all of its parameters.
+        """
+
+        # The *args is to address a bug (?) on Python 2.6 where the dir()
+        # builtin calls __dir__ with an additional (unused) argument
+
         try:
             # Annoyingly, this will only work for Python 3.3+
             basedir = super(_CompoundModelMeta, cls).__dir__()
