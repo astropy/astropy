@@ -459,10 +459,17 @@ def test_write_comments(fast_writer):
     ascii.write(data, out, format='basic', fast_writer=fast_writer)
     expected = ['# c1', '# c2', '# c3', 'a b c', '1 2 3']
     assert out.getvalue().splitlines() == expected
+
     # header comes before comments for commented-header
     out = StringIO()
     ascii.write(data, out, format='commented_header', fast_writer=fast_writer)
     expected = ['# a b c', '# c1', '# c2', '# c3', '1 2 3']
+    assert out.getvalue().splitlines() == expected
+
+    # setting comment=False should disable comment writing
+    out = StringIO()
+    ascii.write(data, out, format='basic', comment=False, fast_writer=fast_writer)
+    expected = ['a b c', '1 2 3']
     assert out.getvalue().splitlines() == expected
 
 @pytest.mark.parametrize("fast_writer", [True, False])

@@ -911,8 +911,9 @@ cdef class FastWriter:
                       for name in self.use_names]
 
     cdef _write_comments(self, output):
-        for comment_line in self.line_comments:
-            output.write(self.comment + comment_line + '\n')
+        if self.comment is not False:
+            for comment_line in self.line_comments:
+                output.write(self.comment + comment_line + '\n')
 
     def _write_header(self, output, writer, header_output, output_types):
         if header_output is not None and header_output == 'comment':

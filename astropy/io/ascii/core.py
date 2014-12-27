@@ -447,8 +447,9 @@ class BaseHeader(object):
                 yield line
 
     def write_comments(self, lines, meta):
-        for comment in meta.get('comments', []):
-            lines.append(self.write_comment + comment)
+        if self.write_comment is not False:
+            for comment in meta.get('comments', []):
+                lines.append(self.write_comment + comment)
 
     def write(self, lines):
         if self.start_line is not None:
