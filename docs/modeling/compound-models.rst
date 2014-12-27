@@ -243,7 +243,7 @@ hood is to create the compound class, and then immediately instantiate it with
 the already known parameter values.  We can see this by checking the type of
 ``both_gaussians``::
 
-    >>> type(both_gaussians)
+    >>> type(both_gaussians)  # doctest: +FLOAT_CMP
     <class '__main__.CompoundModel...'>
     Name: CompoundModel...
     Inputs: ('x',)
@@ -382,6 +382,7 @@ example:
     x = np.linspace(0, 1.2, 100)
     g0 = RedshiftedGaussian(z_0=0)
 
+    plt.figure(figsize=(8, 3))
     plt.plot(x, g0(x), 'g--', lw=2, label='$z=0$')
 
     for z in (0.2, 0.4, 0.6):
@@ -393,8 +394,56 @@ example:
     plt.ylabel('Flux')
     plt.legend()
 
+When working with models with multiple inputs and outputs the same idea
+applies.  If each input is thought of as a coordinate axis, then this defines a
+pipeline of transformations for the coordinates on each axis (though it does
+not necessarily guarantee that these transformations are separable).  For
+example:
 
-TODO: Example of composite model with rotations.
+.. plot::
+    :include-source:
+
+    import numpy as np
+    from astropy.modeling.models import Rotation2D, Gaussian2D
+
+    class RotatedGaussian(Rotation2D | Gaussian2D(1, 0, 0, 0.1, 0.3)):
+        """A Gaussian2D composed with a coordinate rotation."""
+
+    x, y = np.mgrid[-1:1:0.01, -1:1:0.01]
+
+    plt.figure(figsize=(8, 2.5))
+
+    for idx, theta in enumerate((0, 45, 90)):
+        g = RotatedGaussian(theta)
+        plt.subplot(1, 3, idx + 1)
+        plt.imshow(g(x, y))
+        plt.xticks([])
+        plt.yticks([])
+        plt.title('Rotated $ {0}^\circ $'.format(theta))
+
+.. note::
+
+    The above example is a bit contrived in that
+    `~astropy.modeling.functional_models.Gaussian2D` already supports an
+    optional rotation parameter.  However, this demonstrates how coordinate
+    rotation could be added to arbitrary models.
+
+Normally it is not possible to compose, say, a model with two outputs and a
+function of only one input::
+
+    >>> from astropy.modeling.models import Rotation2D
+    >>> Rotation2D | Gaussian1D
+    Traceback (most recent call last):
+    ...
+    ModelDefinitionError: Unsupported operands for |: Rotation2D (n_inputs=2, n_outputs=2) and Gaussian1D (n_inputs=1, n_outputs=1); n_outputs for the left-hand model must match n_inputs for the right-hand model.
+
+However, as we will see in the next section,
+:ref:`compound-model-concatenation`, provides a means of creating models
+that apply transformations to only some of the outputs from a model,
+especially when used in concert with :ref:`mappings <compound-model-mappings>`.
+
+
+.. _compound-model-concatenation:
 
 Model concatenation
 ^^^^^^^^^^^^^^^^^^^
@@ -414,6 +463,8 @@ Indexing and slicing
 --------------------
 
 TODO
+
+.. _compound-model-mappings:
 
 Advanced mappings
 -----------------
