@@ -12,9 +12,10 @@ from numpy.testing.utils import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import pytest
 
-from ..core import Model
+from ..core import Model, ModelDefinitionError
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
-                      Polynomial1D, Polynomial2D, AffineTransformation2D,
+                      Gaussian2D, Polynomial1D, Polynomial2D,
+                      AffineTransformation2D,
                       Identity, Mapping)
 
 
@@ -220,6 +221,7 @@ def test_expression_formatting():
     # For the purposes of this test it doesn't matter a great deal what
     # model(s) are used in the expression, I don't think
     G = Gaussian1D
+    G2 = Gaussian2D
 
     M = G + G
     assert M._format_expression() == '[0] + [1]'
@@ -259,10 +261,10 @@ def test_expression_formatting():
     M = G + G | G
     assert M._format_expression() == '[0] + [1] | [2]'
 
-    M = G + (G | G )
+    M = G + (G | G)
     assert M._format_expression() == '[0] + ([1] | [2])'
 
-    M = G & G | G
+    M = G & G | G2
     assert M._format_expression() == '[0] & [1] | [2]'
 
     M = G & (G | G)
@@ -543,6 +545,48 @@ def test_slicing_on_instances_2():
 
     m = (model_a & model_b) | model_c | (model_d & model_e)
 
+    with pytest.raises(ModelDefinitionError):
+        # The slice can't actually be taken since the resulting model cannot be
+        # evaluated
+        assert m[1:].submodel_names == ('b', 'c', 'd', 'e')
+
+    assert m[:].submodel_names == ('a', 'b', 'c', 'd', 'e')
+    assert m['a':].submodel_names == ('a', 'b', 'c', 'd', 'e')
+
+    with pytest.raises(ModelDefinitionError):
+        assert m['c':'d'].submodel_names == ('c', 'd')
+
+    assert m[1:2].name == 'b'
+    assert m[2:7].submodel_names == ('c', 'd', 'e')
+    with pytest.raises(IndexError):
+        m['x']
+    with pytest.raises(IndexError):
+        m['a' : 'r']
+
+    with pytest.raises(ModelDefinitionError):
+        assert m[-4:4].submodel_names == ('b', 'c', 'd')
+
+    with pytest.raises(ModelDefinitionError):
+        assert m[-4:-2].submodel_names == ('b', 'c')
+
+
+def test_slicing_on_instances_3():
+    """
+    Like `test_slicing_on_instances_2` but uses a compound model that does not
+    have any invalid slices due to the resulting model being invalid
+    (originally test_slicing_on_instances_2 passed without any
+    ModelDefinitionErrors being raised, but that was before we prevented
+    invalid models from being created).
+    """
+
+    model_a = Shift(1, name='a')
+    model_b = Shift(2, name='b')
+    model_c = Gaussian1D(3, 0, 0.1, name='c')
+    model_d = Scale(2, name='d')
+    model_e = Scale(3, name='e')
+
+    m = (model_a + model_b) | model_c | (model_d + model_e)
+
     assert m[1:].submodel_names == ('b', 'c', 'd', 'e')
     assert m[:].submodel_names == ('a', 'b', 'c', 'd', 'e')
     assert m['a':].submodel_names == ('a', 'b', 'c', 'd', 'e')
@@ -603,3 +647,22 @@ def test_compound_model_classify_attributes():
     """
 
     inspect.classify_class_attrs(Gaussian1D + Gaussian1D)
+
+
+def test_invalid_operands():
+    """
+    Test that certain operators do not work with models whose inputs/outputs do
+    not match up correctly.
+    """
+
+    with pytest.raises(ModelDefinitionError):
+        Rotation2D | Gaussian1D
+
+    with pytest.raises(ModelDefinitionError):
+        Rotation2D(90) | Gaussian1D(1, 0, 0.1)
+
+    with pytest.raises(ModelDefinitionError):
+        Rotation2D + Gaussian1D
+
+    with pytest.raises(ModelDefinitionError):
+        Rotation2D(90) + Gaussian1D(1, 0, 0.1)

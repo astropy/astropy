@@ -49,7 +49,7 @@ __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
            'custom_model', 'ModelDefinitionError']
 
 
-class ModelDefinitionError(Exception):
+class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions"""
 
 
@@ -1599,6 +1599,15 @@ class _CompoundModelMeta(_ModelMeta):
         if operator == '|':
             inputs = left.inputs
             outputs = right.outputs
+
+            if left.n_outputs != right.n_inputs:
+                raise ModelDefinitionError(
+                    "Unsupported operands for |: {0} (n_inputs={1}, "
+                    "n_outputs={2}) and {3} (n_inputs={4}, n_outputs={5}); "
+                    "n_outputs for the left-hand model must match n_inputs "
+                    "for the right-hand model.".format(
+                        left.name, left.n_inputs, left.n_outputs, right.name,
+                        right.n_inputs, right.n_outputs))
         elif operator == '&':
             inputs = combine_labels(left.inputs, right.inputs)
             outputs = combine_labels(left.outputs, right.outputs)
@@ -1606,6 +1615,16 @@ class _CompoundModelMeta(_ModelMeta):
             # Without loss of generality
             inputs = left.inputs
             outputs = left.outputs
+
+            if (left.n_inputs != right.n_inputs or
+                    left.n_outputs != right.n_outputs):
+                raise ModelDefinitionError(
+                    "Unsupported operands for {0}: {1} (n_inputs={2}, "
+                    "n_outputs={3}) and {4} (n_inputs={5}, n_outputs={6}); "
+                    "models must have the same n_inputs and the same "
+                    "n_outputs for this operator".format(
+                        operator, left.name, left.n_inputs, left.n_outputs,
+                        right.name, right.n_inputs, right.n_outputs))
 
         if operator in ('|', '+', '-'):
             linear = left.linear and right.linear
