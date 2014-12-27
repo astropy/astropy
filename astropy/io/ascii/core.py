@@ -380,6 +380,7 @@ class BaseHeader(object):
     comment = None
     splitter_class = DefaultSplitter
     names = None
+    write_comment = False
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
     def __init__(self):
