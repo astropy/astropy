@@ -101,7 +101,7 @@ class AsymmetricPercentileInterval(BaseInterval):
     def get_limits(self, values):
 
         # Make sure values is a Numpy array
-        values = np.asarray(values)
+        values = np.asarray(values).ravel()
 
         # If needed, limit the number of samples. We sample with replacement
         # since this is much faster.
