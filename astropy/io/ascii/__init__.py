@@ -31,7 +31,7 @@ from .fastbasic import (FastBasic,
                         FastCommentedHeader,
                         FastRdb)
 from .cds import Cds
-from .dtif import Dtif
+from .ecsv import Ecsv
 from .latex import Latex, AASTex, latexdicts
 from .html import HTML
 from .ipac import Ipac

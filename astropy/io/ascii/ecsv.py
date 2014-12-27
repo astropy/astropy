@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Define the Data-table Text Interchange Format DTIF which allows for reading and
+Define the Data-table Text Interchange Format ECSV which allows for reading and
 writing all the meta data associated with an astropy Table object.
 """
 
@@ -66,7 +66,7 @@ def _construct_odict(load, node):
     --------
     ::
 
-      >>> yaml.load('''
+      >>> yaml.load('''  # doctest: +SKIP
       ... !!omap
       ... - foo: bar
       ... - mumble: quux
@@ -74,7 +74,7 @@ def _construct_odict(load, node):
       ... ''')
       OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
 
-      >>> yaml.load('''!!omap [ foo: bar, mumble: quux, baz : gorp ]''')
+      >>> yaml.load('''!!omap [ foo: bar, mumble: quux, baz : gorp ]''')  # doctest: +SKIP
       OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
     """
     import yaml
@@ -143,9 +143,9 @@ def _repr_odict(dumper, data):
     License: Unspecified
 
     >>> data = OrderedDict([('foo', 'bar'), ('mumble', 'quux'), ('baz', 'gorp')])
-    >>> yaml.dump(data, default_flow_style=False)
+    >>> yaml.dump(data, default_flow_style=False)  # doctest: +SKIP
     '!!omap\\n- foo: bar\\n- mumble: quux\\n- baz: gorp\\n'
-    >>> yaml.dump(data, default_flow_style=True)
+    >>> yaml.dump(data, default_flow_style=True)  # doctest: +SKIP
     '!!omap [foo: bar, mumble: quux, baz: gorp]\\n'
     """
     return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', data.iteritems())
@@ -182,7 +182,7 @@ def _get_col_attributes(col):
     return attrs
 
 
-class DtifHeader(core.BaseHeader):
+class EcsvHeader(core.BaseHeader):
     """Header class for which the column definition line starts with the
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
@@ -199,7 +199,7 @@ class DtifHeader(core.BaseHeader):
 
     def write(self, lines):
         """
-        Write header information in the DTIF ASCII format.  This format
+        Write header information in the ECSV ASCII format.  This format
         starts with a delimiter separated list of the column names in order
         to make this format readable by humans and simple csv-type readers.
         It then encodes the full table meta and column attributes and meta
@@ -210,7 +210,7 @@ class DtifHeader(core.BaseHeader):
         try:
             import yaml
         except ImportError:
-            raise ImportError('`import yaml` failed, PyYAML package is required for DTIF format')
+            raise ImportError('`import yaml` failed, PyYAML package is required for ECSV format')
 
         class TableDumper(yaml.Dumper):
             """
@@ -228,7 +228,7 @@ class DtifHeader(core.BaseHeader):
         meta['columns'] = [_get_col_attributes(col) for col in self.cols]
 
         meta_yaml = yaml.dump(meta, Dumper=TableDumper)
-        outs = ['%DTIF 1.0', '---']
+        outs = ['%ECSV 1.0', '---']
         outs.extend(meta_yaml.splitlines())
 
         lines.extend([self.write_comment + line for line in outs])
@@ -244,7 +244,7 @@ class DtifHeader(core.BaseHeader):
         try:
             import yaml
         except ImportError:
-            raise ImportError('`import yaml` failed, PyYAML package is required for DTIF format')
+            raise ImportError('`import yaml` failed, PyYAML package is required for ECSV format')
 
         class TableLoader(yaml.SafeLoader):
             """
@@ -260,17 +260,17 @@ class DtifHeader(core.BaseHeader):
         # Extract non-blank comment (header) lines with comment character striped
         lines = list(self.process_lines(lines))
 
-        # Validate that this is a DTIF file
-        dtif_header_re = r"""%DTIF [ ]
+        # Validate that this is a ECSV file
+        ecsv_header_re = r"""%ECSV [ ]
                              (?P<major> \d+)
                              \. (?P<minor> \d+)
                              \.? (?P<bugfix> \d+)? $"""
 
-        match = re.match(dtif_header_re, lines[0].strip(), re.VERBOSE)
+        match = re.match(ecsv_header_re, lines[0].strip(), re.VERBOSE)
         if not match:
-            raise ValueError('DTIF header line like "# %DTIF 1.0" not found as first line.'
-                             '  This is required for a DTIF file.')
-        # dtif_version could be constructed here, but it is not currently used.
+            raise ValueError('ECSV header line like "# %ECSV 1.0" not found as first line.'
+                             '  This is required for a ECSV file.')
+        # ecsv_version could be constructed here, but it is not currently used.
 
         # Now actually load the YAML data structure into `meta`
         meta_yaml = textwrap.dedent('\n'.join(lines))
@@ -292,7 +292,7 @@ class DtifHeader(core.BaseHeader):
             col.dtype = meta_cols[col.name]['type']
 
 
-class Dtif(core.BaseReader):
+class Ecsv(core.BaseReader):
     """Read a file where the column names are given in a line that begins with
     the header comment character. `header_start` can be used to specify the
     line index of column names, and it can be a negative index (for example -1
@@ -304,12 +304,12 @@ class Dtif(core.BaseReader):
       1 2 3
       4 5 6
     """
-    _format_name = 'dtif'
+    _format_name = 'ecsv'
     _description = 'Data-table Text Interchange Format'
 
     def __init__(self):
         core.BaseReader.__init__(self)
-        self.header = DtifHeader()
+        self.header = EcsvHeader()
         self.header.data = self.data
         self.data.header = self.header
         self.header.splitter.delimiter = ' '
