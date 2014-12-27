@@ -457,11 +457,13 @@ def test_write_comments(fast_writer):
     data = ascii.read('#c1\n  # c2\t\na,b,c\n#  c3\n1,2,3')
     out = StringIO()
     ascii.write(data, out, format='basic', fast_writer=fast_writer)
-    assert out.getvalue() == '# c1\n# c2\n# c3\na b c\n1 2 3\n'
+    expected = ['# c1', '# c2', '# c3', 'a b c', '1 2 3']
+    assert out.getvalue().splitlines() == expected
     # header comes before comments for commented-header
     out = StringIO()
     ascii.write(data, out, format='commented_header', fast_writer=fast_writer)
-    assert out.getvalue() == '# a b c\n# c1\n# c2\n# c3\n1 2 3\n'
+    expected = ['# a b c', '# c1', '# c2', '# c3', '1 2 3']
+    assert out.getvalue().splitlines() == expected
 
 @pytest.mark.parametrize("fast_writer", [True, False])
 def test_strip_names(fast_writer):
