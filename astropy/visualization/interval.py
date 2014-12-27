@@ -112,8 +112,8 @@ class AsymmetricPercentileInterval(BaseInterval):
         values = values[np.isfinite(values)]
 
         # Determine values at percentiles
-        vmin = np.percentile(values, self.lower_percentile)
-        vmax = np.percentile(values, self.upper_percentile)
+        vmin, vmax = np.percentile(values, (self.lower_percentile,
+                                            self.upper_percentile))
 
         return vmin, vmax
 
