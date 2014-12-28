@@ -120,7 +120,6 @@ def read(table, guess=None, **kwargs):
 
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
-    new_kwargs['Outputter'] = core.TableOutputter
     fast_reader_param = kwargs.get('fast_reader', True)
     if 'Outputter' in kwargs: # user specified Outputter, not supported for fast reading
         fast_reader_param = False
