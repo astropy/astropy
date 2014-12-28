@@ -6,6 +6,8 @@ reader/writer.
 
 Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 """
+import os
+
 import numpy as np
 
 from ....table import Table, Column
@@ -13,7 +15,6 @@ from ....table.table_helpers import simple_table
 
 from ....tests.helper import pytest
 from ....extern.six.moves import StringIO
-from ....extern.six import PY2
 
 try:
     import yaml
@@ -21,9 +22,12 @@ try:
 except ImportError:
     HAS_YAML = False
 
-DTYPES = ('bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',
+DTYPES = ['bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',
           'uint64', 'float16', 'float32', 'float64', 'float128',
-          'str')
+          'str']
+if os.name == 'nt':
+    DTYPES.remove('float128')
+
 T_DTYPES = Table()
 
 for dtype in DTYPES:
