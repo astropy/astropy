@@ -13,6 +13,7 @@ from ....table.table_helpers import simple_table
 
 from ....tests.helper import pytest
 from ....extern.six.moves import StringIO
+from ....extern.six import PY2
 
 try:
     import yaml
@@ -22,17 +23,18 @@ except ImportError:
 
 DTYPES = ('bool', 'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32',
           'uint64', 'float16', 'float32', 'float64', 'float128',
-          'string')
+          'str')
 T_DTYPES = Table()
+
 for dtype in DTYPES:
     if dtype == 'bool':
         data = np.array([False, True, False])
-    elif dtype == 'string':
+    elif dtype == 'str':
         data = np.array(['ab 0', 'ab, 1', 'ab2'])
     else:
         data = np.arange(3, dtype=dtype)
     c = Column(data, unit='m / s', description='descr_' + dtype,
-               format='{0}', meta={'meta ' + dtype: 1})
+               meta={'meta ' + dtype: 1})
     T_DTYPES[dtype] = c
 
 T_DTYPES.meta['comments'] = ['comment1', 'comment2']
@@ -64,37 +66,33 @@ def test_write_full():
     """
     Write a full-featured table with common types and explicitly checkout output
     """
-    t = T_DTYPES['bool', 'int64', 'float64', 'string']
+    t = T_DTYPES['bool', 'int64', 'float64', 'str']
     lines = ['# %ECSV 1.0',
              '# ---',
              '# columns:',
              '# - name: bool',
              '#   unit: m / s',
              '#   type: bool',
-             "#   format: '{0}'",
              '#   description: descr_bool',
              '#   meta: {meta bool: 1}',
              '# - name: int64',
              '#   unit: m / s',
              '#   type: int64',
-             "#   format: '{0}'",
              '#   description: descr_int64',
              '#   meta: {meta int64: 1}',
              '# - name: float64',
              '#   unit: m / s',
              '#   type: float64',
-             "#   format: '{0}'",
              '#   description: descr_float64',
              '#   meta: {meta float64: 1}',
-             '# - name: string',
+             '# - name: str',
              '#   unit: m / s',
              '#   type: string',
-             "#   format: '{0}'",
-             '#   description: descr_string',
-             '#   meta: {meta string: 1}',
+             '#   description: descr_str',
+             '#   meta: {meta str: 1}',
              '# table_meta: !!omap',
              '# - comments: [comment1, comment2]',
-             'bool int64 float64 string',
+             'bool int64 float64 str',
              'False 0 0.0 "ab 0"',
              'True 1 1.0 "ab, 1"',
              'False 2 2.0 ab2']

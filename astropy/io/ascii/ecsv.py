@@ -8,6 +8,7 @@ import re
 import numpy
 
 from ...utils import OrderedDict
+from ...extern import six
 
 from . import core
 
@@ -16,8 +17,9 @@ class ColumnOrderList(list):
     List of tuples that sorts in a specific order that makes sense for
     astropy table column attributes.
     """
-    def sort(self, cmp=None, key=None, reverse=False):
-        super(ColumnOrderList, self).sort(cmp, key, reverse)
+    def sort(self, *args, **kwargs):
+        super(ColumnOrderList, self).sort()
+
         column_keys = ['name', 'unit', 'type', 'format', 'description', 'meta']
         in_dict = dict(self)
         out_list = []
@@ -149,7 +151,7 @@ def _repr_odict(dumper, data):
     >>> yaml.dump(data, default_flow_style=True)  # doctest: +SKIP
     '!!omap [foo: bar, mumble: quux, baz: gorp]\\n'
     """
-    return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', data.iteritems())
+    return _repr_pairs(dumper, u'tag:yaml.org,2002:omap', six.iteritems(data))
 
 
 def _repr_column_dict(dumper, data):
@@ -171,9 +173,12 @@ def _get_col_attributes(col):
     attrs = ColumnDict()
     attrs['name'] = col.name
 
-    attrs['type'] = col.dtype.type.__name__
-    if attrs['type'].endswith('_'):
-        attrs['type'] = attrs['type'][:-1]  # string_ and bool_ lose the final _ for ECSV
+    type_name = col.dtype.type.__name__
+    if six.PY3 and (type_name.startswith('bytes') or type_name.startswith('str')):
+        type_name = 'string'
+    if type_name.endswith('_'):
+        type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
+    attrs['type'] = type_name
 
     if col.unit:
         attrs['unit'] = str(col.unit)
@@ -185,6 +190,7 @@ def _get_col_attributes(col):
         attrs['meta'] = col.meta
 
     return attrs
+
 
 
 class EcsvHeader(core.BaseHeader):
@@ -226,9 +232,38 @@ class EcsvHeader(core.BaseHeader):
         class TableDumper(yaml.Dumper):
             """
             Custom Dumper that represents OrderedDict as an !!omap object.
-            This does nothing but provide a namespace for a adding the
-            custom odict representer.
             """
+            def represent_mapping(self, tag, mapping, flow_style=None):
+                value = []
+                node = yaml.MappingNode(tag, value, flow_style=flow_style)
+                if self.alias_key is not None:
+                    self.represented_objects[self.alias_key] = node
+                best_style = True
+                if hasattr(mapping, 'items'):
+                    mapping = mapping.items()
+                    if hasattr(mapping, 'sort'):
+                        mapping.sort()
+                    else:
+                        mapping = list(mapping)
+                        try:
+                            mapping = sorted(mapping)
+                        except TypeError:
+                            pass
+
+                for item_key, item_value in mapping:
+                    node_key = self.represent_data(item_key)
+                    node_value = self.represent_data(item_value)
+                    if not (isinstance(node_key, yaml.ScalarNode) and not node_key.style):
+                        best_style = False
+                    if not (isinstance(node_value, yaml.ScalarNode) and not node_value.style):
+                        best_style = False
+                    value.append((node_key, node_value))
+                if flow_style is None:
+                    if self.default_flow_style is not None:
+                        node.flow_style = self.default_flow_style
+                    else:
+                        node.flow_style = best_style
+                return node
 
         TableDumper.add_representer(OrderedDict, _repr_odict)
         TableDumper.add_representer(ColumnDict, _repr_column_dict)
@@ -265,8 +300,6 @@ class EcsvHeader(core.BaseHeader):
             """
 
         TableLoader.add_constructor(u'tag:yaml.org,2002:omap', _construct_odict)
-
-
 
         # Extract non-blank comment (header) lines with comment character stripped
         lines = list(self.process_lines(lines))
@@ -310,6 +343,9 @@ class EcsvHeader(core.BaseHeader):
                 if attr in meta_cols[col.name]:
                     setattr(col, attr, meta_cols[col.name][attr])
             col.dtype = meta_cols[col.name]['type']
+            # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
+            if six.PY3 and col.dtype == 'string':
+                col.dtype = 'str'
             if col.dtype.startswith('complex'):
                 raise TypeError('ecsv reader does not support complex number types')
 
