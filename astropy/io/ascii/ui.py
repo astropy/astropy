@@ -30,6 +30,12 @@ from . import fixedwidth
 from ...table import Table
 from ...utils.data import get_readable_fileobj
 
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+
 # Default setting for guess parameter in read()
 _GUESS = True
 
@@ -278,8 +284,10 @@ def _get_guess_kwargs_list(read_kwargs):
                               dict(Reader=latex.AASTex),
                               dict(Reader=html.HTML)
                               ])
-    for delimiter in (",", " "):
-        guess_kwargs_list.append(dict(Reader=ecsv.Ecsv, delimiter=delimiter, quotechar='"'))
+
+    if HAS_YAML:
+        for delimiter in (",", " "):
+            guess_kwargs_list.append(dict(Reader=ecsv.Ecsv, delimiter=delimiter, quotechar='"'))
 
     for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastNoHeader, basic.NoHeader):
