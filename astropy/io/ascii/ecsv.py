@@ -10,7 +10,7 @@ import numpy
 from ...utils import OrderedDict
 from ...extern import six
 
-from . import core
+from . import core, basic
 
 class ColumnOrderList(list):
     """
@@ -193,7 +193,7 @@ def _get_col_attributes(col):
 
 
 
-class EcsvHeader(core.BaseHeader):
+class EcsvHeader(basic.BasicHeader):
     """Header class for which the column definition line starts with the
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
@@ -361,7 +361,7 @@ class EcsvOutputter(core.TableOutputter):
         return super(EcsvOutputter, self).__call__(cols, meta)
 
 
-class Ecsv(core.BaseReader):
+class Ecsv(basic.Basic):
     """
     Read a file which conforms to the ECSV (Enhanced Character Separated
     Values) format.  This format allows for specification of key table
@@ -381,17 +381,3 @@ class Ecsv(core.BaseReader):
 
     header_class = EcsvHeader
     outputter_class = EcsvOutputter
-
-    def __init__(self):
-        super(Ecsv, self).__init__()
-
-        self.header.data = self.data
-        self.data.header = self.header
-        self.header.splitter.delimiter = ' '
-        self.data.splitter.delimiter = ' '
-        self.header.start_line = 0
-        self.data.start_line = 1
-        self.header.comment = r'\s*#'
-        self.header.write_comment = '# '
-        self.data.comment = r'\s*#'
-        self.data.write_comment = '# '
