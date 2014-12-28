@@ -382,8 +382,8 @@ class Ipac(basic.Basic):
         |      double|      double|     long|      double|              char|
         |        unit|        unit|     unit|        unit|              ergs|
         |         N/A|        null|     null|        null|              -999|
-                  N/A     29.09056      null         2.06               -999 
-         2345678901.0 3456789012.0 456789012 4567890123.0 567890123456789012 
+                  N/A     29.09056      null         2.06               -999
+         2345678901.0 3456789012.0 456789012 4567890123.0 567890123456789012
 
 
     Parameters

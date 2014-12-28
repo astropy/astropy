@@ -433,6 +433,9 @@ Bug Fixes
     Now, only one character in addition to the delimiter is allowed. This bug was
     discovered as part of [#3109]
 
+  - The IPAC table writer now uses the null value specified in the header for
+    output (before, those were inconsistent for masked tables), see #2657 [#3259]
+
 - ``astropy.io.fits``
 
   - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
