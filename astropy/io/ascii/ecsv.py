@@ -12,6 +12,8 @@ from ...extern import six
 
 from . import core, basic
 
+DELIMITERS = (' ', ',')
+
 class ColumnOrderList(list):
     """
     List of tuples that sorts in a specific order that makes sense for
@@ -268,10 +270,17 @@ class EcsvHeader(basic.BasicHeader):
         TableDumper.add_representer(OrderedDict, _repr_odict)
         TableDumper.add_representer(ColumnDict, _repr_column_dict)
 
+        if self.splitter.delimiter not in DELIMITERS:
+            raise ValueError('only space and comma are allowed for delimiter in ECVS format')
+
         meta = {}
         if self.table_meta:
             meta['table_meta'] = self.table_meta
         meta['columns'] = [_get_col_attributes(col) for col in self.cols]
+
+        # Set the delimiter only for the non-default option(s)
+        if self.splitter.delimiter != ' ':
+            meta['delimiter'] = self.splitter.delimiter
 
         meta_yaml = yaml.dump(meta, Dumper=TableDumper)
         outs = ['%ECSV 1.0', '---']
@@ -330,6 +339,13 @@ class EcsvHeader(basic.BasicHeader):
 
         if 'table_meta' in meta:
             self.table_meta = meta['table_meta']
+
+        if 'delimiter' in meta:
+            delimiter = meta['delimiter']
+            if delimiter not in DELIMITERS:
+                raise ValueError('only space and comma are allowed for delimiter in ECVS format')
+            self.splitter.delimiter = delimiter
+            self.data.splitter.delimiter = delimiter
 
         # Create the list of io.ascii column objects from `meta`
         meta_cols = OrderedDict((x['name'], x) for x in meta['columns'])

@@ -7,6 +7,7 @@ reader/writer.
 Requires `pyyaml <http://pyyaml.org/>`_ to be installed.
 """
 import os
+import copy
 
 import numpy as np
 
@@ -15,6 +16,8 @@ from ....table.table_helpers import simple_table
 
 from ....tests.helper import pytest
 from ....extern.six.moves import StringIO
+from ..ecsv import DELIMITERS
+from ... import ascii
 
 try:
     import yaml
@@ -43,27 +46,30 @@ for dtype in DTYPES:
 
 T_DTYPES.meta['comments'] = ['comment1', 'comment2']
 
+# Corresponds to simple_table()
+SIMPLE_LINES = ['# %ECSV 1.0',
+                '# ---',
+                '# columns:',
+                '# - {name: a, type: int32}',
+                '# - {name: b, type: float32}',
+                '# - {name: c, type: string}',
+                'a b c',
+                '1 1.0 c',
+                '2 2.0 d',
+                '3 3.0 e']
+
+
 @pytest.mark.skipif('not HAS_YAML')
 def test_write_simple():
     """
-    Write a simple table with common types
+    Write a simple table with common types.  This shows the compact version
+    of serialization with one line per column.
     """
     t = simple_table()
 
-    lines = ['# %ECSV 1.0',
-             '# ---',
-             '# columns:',
-             '# - {name: a, type: int32}',
-             '# - {name: b, type: float32}',
-             '# - {name: c, type: string}',
-             'a b c',
-             '1 1.0 c',
-             '2 2.0 d',
-             '3 3.0 e']
-
     out = StringIO()
     t.write(out, format='ascii.ecsv')
-    assert out.getvalue().splitlines() == lines
+    assert out.getvalue().splitlines() == SIMPLE_LINES
 
 @pytest.mark.skipif('not HAS_YAML')
 def test_write_full():
@@ -105,34 +111,55 @@ def test_write_full():
     t.write(out, format='ascii.ecsv')
     assert out.getvalue().splitlines() == lines
 
-
 @pytest.mark.skipif('not HAS_YAML')
 def test_write_read_roundtrip():
     """
     Write a full-featured table with all types and see that it round-trips on
-    readback.
+    readback.  Use both space and comma delimiters.
     """
     t = T_DTYPES
-    out = StringIO()
-    t.write(out, format='ascii.ecsv')
+    for delimiter in DELIMITERS:
+        out = StringIO()
+        t.write(out, format='ascii.ecsv', delimiter=delimiter)
 
-    t2 = Table.read(out.getvalue(), format='ascii.ecsv')
-    assert t.meta == t2.meta
-    for name in t.colnames:
-        assert t[name].attrs_equal(t2[name])
-        assert np.all(t[name] == t2[name])
-
+        t2s  = [Table.read(out.getvalue(), format='ascii.ecsv'),
+                Table.read(out.getvalue(), format='ascii'),
+                ascii.read(out.getvalue()),
+                ascii.read(out.getvalue(), format='ecsv', guess=False),
+                ascii.read(out.getvalue(), format='ecsv')]
+        for t2 in t2s:
+            assert t.meta == t2.meta
+            for name in t.colnames:
+                assert t[name].attrs_equal(t2[name])
+                assert np.all(t[name] == t2[name])
 
 @pytest.mark.skipif('not HAS_YAML')
 def test_bad_delimiter():
     """
     Passing a delimiter other than space or comma gives an exception
     """
-    pass
+    out = StringIO()
+    with pytest.raises(ValueError) as err:
+        T_DTYPES.write(out, format='ascii.ecsv', delimiter='|')
+    assert 'only space and comma are allowed' in str(err.value)
 
 @pytest.mark.skipif('not HAS_YAML')
 def test_bad_header_start():
     """
     Bad header without initial # %ECSV 1.0
     """
-    pass
+    lines = copy.copy(SIMPLE_LINES)
+    lines[0]  = '# %ECV 1.0'
+    with pytest.raises(ascii.InconsistentTableError):
+        Table.read('\n'.join(lines), format='ascii.ecsv', guess=False)
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_bad_delimiter_input():
+    """
+    Illegal delimiter in input
+    """
+    lines = copy.copy(SIMPLE_LINES)
+    lines.insert(2, '# delimiter: |')
+    with pytest.raises(ValueError) as err:
+        Table.read('\n'.join(lines), format='ascii.ecsv', guess=False)
+    assert 'only space and comma are allowed' in str(err.value)
