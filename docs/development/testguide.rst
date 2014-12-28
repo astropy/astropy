@@ -839,7 +839,7 @@ The simplest way to generalize the example output is to use the ellipses
 
 This doctest expects an exception with a traceback, but the text of the
 traceback is skipped in the example output--only the first and last lines
-of the output are checked.  See the :mod:``doctest`` documentation for
+of the output are checked.  See the :mod:`doctest` documentation for
 more examples of skipping output.
 
 
@@ -863,7 +863,7 @@ To address this issue Astropy's test framework includes support for a
 
 When this flag is used, the expected and actual outputs are both parsed to find
 any floating point values in the strings.  Those are then converted to actual
-Python `float` objects and compared numerically.  This means that small
+Python ``float`` objects and compared numerically.  This means that small
 differences in representation of roundoff digits will be ignored by the
 doctest.  The values are otherwise compared exactly, so more significant
 (albeit possibly small) differences will still be caught by these tests.
