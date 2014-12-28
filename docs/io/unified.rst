@@ -70,6 +70,7 @@ The full list of built-in readers and writers is shown in the table below:
                   ascii.cds  Yes    No            No
      ascii.commented_header  Yes   Yes            No
               ascii.daophot  Yes    No            No
+              ascii.ecsv     Yes   Yes            No
           ascii.fixed_width  Yes   Yes            No
 ascii.fixed_width_no_header  Yes   Yes            No
  ascii.fixed_width_two_line  Yes   Yes            No

@@ -262,6 +262,8 @@ class which actually implements reading the different file formats::
 
   for Reader in (Rdb, FastTab, Tab, Cds, Daophot, SExtractor, Ipac, Latex, AASTex, HTML):
       read(Reader=Reader)
+  for delimiter in (",", " "):
+      read(Reader=Ecsv, delimiter=delimiter, quotechar='"')
   for Reader in (CommentedHeader, FastBasic, Basic, FastNoHeader, NoHeader):
       for delimiter in ("|", ",", " ", "\\s"):
           for quotechar in ('"', "'"):
