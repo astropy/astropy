@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-Define the Data-table Text Interchange Format ECSV which allows for reading and
+Define the Enhanced Character-Separated-Values (ECSV) which allows for reading and
 writing all the meta data associated with an astropy Table object.
 """
 
 import re
+import numpy
 
 from ...utils import OrderedDict
 
@@ -169,7 +170,11 @@ def _get_col_attributes(col):
     """
     attrs = ColumnDict()
     attrs['name'] = col.name
+
     attrs['type'] = col.dtype.type.__name__
+    if attrs['type'].endswith('_'):
+        attrs['type'] = attrs['type'][:-1]  # string_ and bool_ lose the final _ for ECSV
+
     if col.unit:
         attrs['unit'] = str(col.unit)
     if col.format:
@@ -191,11 +196,17 @@ class EcsvHeader(core.BaseHeader):
         lines strip out the matching characters and leading/trailing whitespace."""
         re_comment = re.compile(self.comment)
         for line in lines:
+            line = line.strip()
+            if not line:
+                continue
             match = re_comment.match(line)
             if match:
                 out = line[match.end():]
                 if out:
                     yield out
+            else:
+                # Stop iterating on first failed match for a non-blank line
+                return
 
     def write(self, lines):
         """
@@ -257,7 +268,7 @@ class EcsvHeader(core.BaseHeader):
 
 
 
-        # Extract non-blank comment (header) lines with comment character striped
+        # Extract non-blank comment (header) lines with comment character stripped
         lines = list(self.process_lines(lines))
 
         # Validate that this is a ECSV file
@@ -266,15 +277,24 @@ class EcsvHeader(core.BaseHeader):
                              \. (?P<minor> \d+)
                              \.? (?P<bugfix> \d+)? $"""
 
+        no_header_msg = ('ECSV header line like "# %ECSV 1.0" not found as first line.'
+                         '  This is required for a ECSV file.')
+
+        if not lines:
+            raise core.InconsistentTableError(no_header_msg)
+
         match = re.match(ecsv_header_re, lines[0].strip(), re.VERBOSE)
         if not match:
-            raise ValueError('ECSV header line like "# %ECSV 1.0" not found as first line.'
-                             '  This is required for a ECSV file.')
+            raise core.InconsistentTableError(no_header_msg)
         # ecsv_version could be constructed here, but it is not currently used.
 
         # Now actually load the YAML data structure into `meta`
         meta_yaml = textwrap.dedent('\n'.join(lines))
-        meta = yaml.load(meta_yaml, Loader=TableLoader)
+        try:
+            meta = yaml.load(meta_yaml, Loader=TableLoader)
+        except:
+            raise core.InconsistentTableError('unable to parse yaml in header')
+
         if 'table_meta' in meta:
             self.table_meta = meta['table_meta']
 
@@ -290,6 +310,19 @@ class EcsvHeader(core.BaseHeader):
                 if attr in meta_cols[col.name]:
                     setattr(col, attr, meta_cols[col.name][attr])
             col.dtype = meta_cols[col.name]['type']
+            if col.dtype.startswith('complex'):
+                raise TypeError('ecsv reader does not support complex number types')
+
+
+class EcsvOutputter(core.TableOutputter):
+    default_converters = [core.convert_numpy(numpy.int),
+                          core.convert_numpy(numpy.float),
+                          core.convert_numpy(numpy.bool),
+                          core.convert_numpy(numpy.str)]
+
+    def __call__(self, cols, meta):
+        del meta['table']['comment_lines']
+        return super(EcsvOutputter, self).__call__(cols, meta)
 
 
 class Ecsv(core.BaseReader):
@@ -305,11 +338,14 @@ class Ecsv(core.BaseReader):
       4 5 6
     """
     _format_name = 'ecsv'
-    _description = 'Data-table Text Interchange Format'
+    _description = 'Enhanced Character-Separated-Values'
+
+    header_class = EcsvHeader
+    outputter_class = EcsvOutputter
 
     def __init__(self):
-        core.BaseReader.__init__(self)
-        self.header = EcsvHeader()
+        super(Ecsv, self).__init__()
+
         self.header.data = self.data
         self.data.header = self.header
         self.header.splitter.delimiter = ' '

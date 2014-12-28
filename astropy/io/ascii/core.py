@@ -111,6 +111,12 @@ class FloatType(NumType):
     """
 
 
+class BoolType(NoType):
+    """
+    Describes floating-point data.
+    """
+
+
 class IntType(NumType):
     """
     Describes integer data.
@@ -690,13 +696,35 @@ def convert_numpy(numpy_type):
         converter_type = IntType
     elif 'float' in type_name:
         converter_type = FloatType
+    elif 'bool' in type_name:
+        converter_type = BoolType
     elif 'str' in type_name:
         converter_type = StrType
     else:
         converter_type = AllType
 
-    def converter(vals):
+    def bool_converter(vals):
+        """
+        Convert values "False" and "True" to bools.  Raise an exception
+        for any other string values.
+        """
+        # Try a smaller subset first for a long array
+        if len(vals) > 10000:
+            svals = numpy.asarray(vals[:1000])
+            if not numpy.all((svals == 'False') | (svals == 'True')):
+                raise ValueError('bool input strings must be only False or True')
+        vals = numpy.asarray(vals)
+        trues = vals == 'True'
+        falses = vals == 'False'
+        if not numpy.all(trues | falses):
+            raise ValueError('bool input strings must be only False or True')
+        return trues
+
+    def generic_converter(vals):
         return numpy.array(vals, numpy_type)
+
+    converter = bool_converter if converter_type is BoolType else generic_converter
+
     return converter, converter_type
 
 

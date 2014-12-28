@@ -18,6 +18,7 @@ from . import core
 from . import basic
 from . import cds
 from . import daophot
+from . import ecsv
 from . import sextractor
 from . import ipac
 from . import latex
@@ -277,6 +278,9 @@ def _get_guess_kwargs_list(read_kwargs):
                               dict(Reader=latex.AASTex),
                               dict(Reader=html.HTML)
                               ])
+    for delimiter in (",", " "):
+        guess_kwargs_list.append(dict(Reader=ecsv.Ecsv, delimiter=delimiter, quotechar='"'))
+
     for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastNoHeader, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
