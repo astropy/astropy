@@ -393,7 +393,7 @@ class Ecsv(basic.Basic):
       004 3
     """
     _format_name = 'ecsv'
-    _description = 'Enhanced Character-Separated-Values'
+    _description = 'Enhanced CSV'
 
     header_class = EcsvHeader
     outputter_class = EcsvOutputter
