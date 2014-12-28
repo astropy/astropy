@@ -326,16 +326,19 @@ class EcsvOutputter(core.TableOutputter):
 
 
 class Ecsv(core.BaseReader):
-    """Read a file where the column names are given in a line that begins with
-    the header comment character. `header_start` can be used to specify the
-    line index of column names, and it can be a negative index (for example -1
-    for the last commented line).  The default delimiter is the <space>
-    character.::
+    """
+    Read a file which conforms to the ECSV (Enhanced Character Separated
+    Values) format.  This format allows for specification of key table
+    and column meta-data, in particular the data type and unit.  For example::
 
-      # col1 col2 col3
-      # Comment line
-      1 2 3
-      4 5 6
+      # %ECSV 1.0
+      # ---
+      # columns:
+      # - {name: a, unit: m / s, type: int64, format: '%03d'}
+      # - {name: b, unit: km, type: int64, description: This is column b}
+      a b
+      001 2
+      004 3
     """
     _format_name = 'ecsv'
     _description = 'Enhanced Character-Separated-Values'
