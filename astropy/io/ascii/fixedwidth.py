@@ -216,17 +216,8 @@ class FixedWidthData(basic.BasicData):
     splitter_class = FixedWidthSplitter
 
     def write(self, lines):
-
-        self._set_fill_values(self.cols)
-        self._set_col_formats()
-        for col in self.cols:
-            col.str_vals = list(col.iter_str_vals())
-        self._replace_vals(self.cols)
-        col_str_iters = [col.str_vals for col in self.cols]
-
         vals_list = []
-        # Col iterator does the formatting defined above so each val is a string
-        # and vals is a tuple of strings for all columns of each row
+        col_str_iters = self.str_vals()
         for vals in zip(*col_str_iters):
             vals_list.append(vals)
 
