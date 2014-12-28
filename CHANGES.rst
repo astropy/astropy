@@ -97,6 +97,8 @@ New Features
   - Write comment lines in Table metadata during output for all basic formats,
     IPAC, and fast writers. This functionality can be disabled with
     ``comment=False``. [#3255]
+  - Add reader / writer for the Enhanced CSV format which stores table and
+    column meta data, in particular data type and unit. [#2319]
 
 - ``astropy.io.fits``
 
