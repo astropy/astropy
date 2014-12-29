@@ -168,6 +168,10 @@ def _get_col_attributes(col):
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
     """
+    if col.ndim > 1:
+        raise ValueError("ECSV format does not support multidimensional column '{0}'"
+                         .format(col.name))
+
     attrs = ColumnDict()
     attrs['name'] = col.name
 

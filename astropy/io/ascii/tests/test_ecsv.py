@@ -163,3 +163,14 @@ def test_bad_delimiter_input():
     with pytest.raises(ValueError) as err:
         Table.read('\n'.join(lines), format='ascii.ecsv', guess=False)
     assert 'only space and comma are allowed' in str(err.value)
+
+@pytest.mark.skipif('not HAS_YAML')
+def test_multidim_input():
+    """
+    Multi-dimensional column in input
+    """
+    t = Table([np.arange(4).reshape(2, 2)], names=['a'])
+    out = StringIO()
+    with pytest.raises(ValueError) as err:
+        t.write(out, format='ascii.ecsv')
+    assert 'ECSV format does not support multidimensional column' in str(err.value)
