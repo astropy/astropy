@@ -147,9 +147,9 @@ can be stored and read back as ASCII with no loss of information.
 
   >>> from StringIO import StringIO
   >>> fh = StringIO()
-  >>> t.write(fh, format='ascii.ecsv')
-  >>> table_string = fh.getvalue()
-  >>> print(table_string)
+  >>> t.write(fh, format='ascii.ecsv')  # doctest: +SKIP
+  >>> table_string = fh.getvalue()      # doctest: +SKIP
+  >>> print(table_string)               # doctest: +SKIP
   # %ECSV 1.0
   # ---
   # columns:
@@ -159,7 +159,7 @@ can be stored and read back as ASCII with no loss of information.
   1.0 False
   2.0 True
 
-  >>> Table.read(table_string, format='ascii')
+  >>> Table.read(table_string, format='ascii')  # doctest: +SKIP
   <Table rows=2 names=('x','y') units=('m',None)>
   array([(1.0, False), (2.0, True)],
         dtype=[('x', '<f4'), ('y', '?')])
