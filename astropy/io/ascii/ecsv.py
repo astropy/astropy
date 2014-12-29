@@ -33,12 +33,8 @@ class ColumnOrderList(list):
             if key not in column_keys:
                 out_list.append((key, val))
 
-        # Clear list (is there a better way?)
-        while True:
-            try:
-                self.pop()
-            except IndexError:
-                break
+        # Clear list in-place
+        del self[:]
 
         self.extend(out_list)
 
@@ -236,6 +232,13 @@ class EcsvHeader(basic.BasicHeader):
             Custom Dumper that represents OrderedDict as an !!omap object.
             """
             def represent_mapping(self, tag, mapping, flow_style=None):
+                """
+                This is a combination of the Python 2 and 3 versions of this method
+                in the PyYAML library to allow the required key ordering via the
+                ColumnOrderList object.  The Python 3 version insists on turning the
+                items() mapping into a list object and sorting, which results in
+                alphabetical order for the column keys.
+                """
                 value = []
                 node = yaml.MappingNode(tag, value, flow_style=flow_style)
                 if self.alias_key is not None:
@@ -304,7 +307,7 @@ class EcsvHeader(basic.BasicHeader):
         class TableLoader(yaml.SafeLoader):
             """
             Custom Loader that constructs OrderedDict from an !!omap object.
-            This does nothing but provide a namespace for a adding the
+            This does nothing but provide a namespace for adding the
             custom odict constructor.
             """
 
@@ -367,10 +370,14 @@ class EcsvHeader(basic.BasicHeader):
 
 
 class EcsvOutputter(core.TableOutputter):
-    default_converters = [core.convert_numpy(numpy.int),
-                          core.convert_numpy(numpy.float),
-                          core.convert_numpy(numpy.bool),
-                          core.convert_numpy(numpy.str)]
+    """
+    Output the table as an astropy.table.Table object.  This overrides the
+    default converters to be an empty list because there is no "guessing"
+    of the conversion function.  It also deletes the ``comment_lines``
+    element of ``meta`` prior to calling the base outputter method so
+    this doesn't show up in the final table.
+    """
+    default_converters = []
 
     def __call__(self, cols, meta):
         del meta['table']['comment_lines']

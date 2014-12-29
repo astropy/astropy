@@ -113,7 +113,7 @@ class FloatType(NumType):
 
 class BoolType(NoType):
     """
-    Describes floating-point data.
+    Describes boolean data.
     """
 
 
