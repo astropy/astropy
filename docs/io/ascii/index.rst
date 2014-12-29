@@ -145,7 +145,7 @@ can be stored and read back as ASCII with no loss of information.
   >>> t['x'] = Column([1.0, 2.0], unit='m', dtype='float32')
   >>> t['y'] = Column([False, True], dtype='bool')
 
-  >>> from StringIO import StringIO
+  >>> from astropy.extern.six.moves import StringIO
   >>> fh = StringIO()
   >>> t.write(fh, format='ascii.ecsv')  # doctest: +SKIP
   >>> table_string = fh.getvalue()      # doctest: +SKIP
