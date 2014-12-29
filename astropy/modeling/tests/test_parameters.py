@@ -279,20 +279,22 @@ class TestParameters(object):
         utils.assert_equal(p2.parameters, [2, 3, 1, 2, 4, 5,
                                            1, 1, 2, 2, 5, 5])
 
-    def test_non_fittable_model_parameters1d(self):
+    def test_shift_model_parameters1d(self):
         sh1 = models.Shift(2)
-        sh1.offsets = 3
-        assert(sh1.offsets == 3)
+        sh1.offset = 3
+        assert sh1.offset == 3
+        assert sh1.offset.value == 3
 
-    def test_non_fittable_model_parametersnd(self):
+    def test_scale_model_parametersnd(self):
         sc1 = models.Scale([2, 2])
-        sc1.factors = [3, 3]
-        assert(sc1.factors == [3, 3])
+        sc1.factor = [3, 3]
+        assert sc1.factor == [3, 3]
+        utils.assert_array_equal(sc1.factor.value, [3, 3])
 
-    def test_non_fittable_model_parameters_wrong_shape(self):
+    def test_parameters_wrong_shape(self):
         sh1 = models.Shift(2)
         with pytest.raises(InputParameterError):
-            sh1.offsets = [3, 3]
+            sh1.offset = [3, 3]
 
 
 class TestMultipleParameterSets(object):
