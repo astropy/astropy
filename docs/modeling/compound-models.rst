@@ -93,6 +93,17 @@ used in these expressions may be model *classes*, or model *instances*.  In
 other words, any object for which either ``isinstance(obj, Model)`` or
 ``issubclass(obj, Model)`` is `True`.
 
+
+.. _compound-model-classes:
+
+Compound model classes
+^^^^^^^^^^^^^^^^^^^^^^
+
+We start by demonstrating how new compound model *classes* can be created
+by combining other classes.  This is more advanced usage, but it's useful to
+understand that this is what's going on under the hood in the more basic usage
+of :ref:`compound model instances <compound-model-instances>`.
+
 When all models involved in the expression are classes, the result of the
 expression is, itself, a class (remember, classes in Python are themselves also
 objects just like strings and integers or model instances)::
@@ -215,6 +226,8 @@ way.  Single model classes can also be given custom names by using
 well.  This can be used to good effect, for example as shown in the section on
 :ref:`compound-model-indexing`.
 
+
+.. _compound-model-instances:
 
 Compound models with model instances
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

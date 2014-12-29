@@ -272,46 +272,14 @@ The resulting object ``g1_plus_2`` is itself a new model.  Evaluating, say,
     >>> g1_plus_2(0.25) == g1(0.25) + g2(0.25)
     True
 
-This model can be further combined with other models in new expressions.  It
-is also possible to define entire new model *classes* using arithmetic
-expressions of other model classes.  This allows general compound models to be
-created without specifying any parameter values up front.  For example::
+This model can be further combined with other models in new expressions.  It is
+also possible to define entire new model *classes* using arithmetic expressions
+of other model classes.  This allows general compound models to be created
+without specifying any parameter values up front.  This more advanced usage is
+explained in more detail in the :ref:`compound model documentation
+<compound-model-classes>`.
 
-    >>> from astropy.modeling.models import Gaussian1D
-    >>> TwoGaussians = Gaussian1D + Gaussian1D
-    >>> TwoGaussians
-    <class '__main__.CompoundModel...'>
-    Name: CompoundModel...
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
-    Expression: [0] + [1]
-    Components: 
-        [0]: <class 'astropy.modeling.functional_models.Gaussian1D'>
-        Name: Gaussian1D
-        Inputs: ('x',)
-        Outputs: ('y',)
-        Fittable parameters: ('amplitude', 'mean', 'stddev')
-    <BLANKLINE>
-        [1]: <class 'astropy.modeling.functional_models.Gaussian1D'>
-        Name: Gaussian1D
-        Inputs: ('x',)
-        Outputs: ('y',)
-        Fittable parameters: ('amplitude', 'mean', 'stddev')
-
-This is a new model type that accepts six parameters corresponding to the
-amplitude, mean, and standard deviations of the two Gaussians that comprise
-this superposition.  It can be instantiated with parameter values and then
-evaluated like other models::
-
-    >>> gg = TwoGaussians(1, 0, 0.2, 2.5, 0.5, 0.1)
-    >>> gg(0.25)  # doctest: +FLOAT_CMP
-    0.5676756958301329
-
-It is also possible to mix model classes and model instances in a single
-expression.  The result in this case is still a class--this case is discussed
-in more detail in the :doc:`compound-models` documentation.  These new compound
-models can also be fitted to data, like most other models:
+These new compound models can also be fitted to data, like most other models:
 
 .. plot::
     :include-source:
@@ -326,10 +294,9 @@ models can also be fitted to data, like most other models:
     x = np.linspace(-1, 1, 200)
     y = g1(x) + g2(x) + np.random.normal(0., 0.2, x.shape)
 
-    # Create a new model class representing a superposition and initialize it
-    # with some initial guesses, then use it to fit the data
-    TwoGaussians = models.Gaussian1D + models.Gaussian1D
-    gg_init = TwoGaussians(1, 0, 0.1, 1, 0, 0.1)
+    # Now to fit the data create a new superposition with initial
+    # guesses for the parameters:
+    gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(1, 0, 0.1)
     fitter = fitting.SLSQPLSQFitter()
     gg_fit = fitter(gg_init, x, y)
 
