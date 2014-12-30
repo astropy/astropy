@@ -433,8 +433,9 @@ Bug Fixes
     Now, only one character in addition to the delimiter is allowed. This bug was
     discovered as part of [#3109]
 
-  - The IPAC table writer now uses the null value specified in the header for
-    output (before, those were inconsistent for masked tables), see #2657 [#3259]
+  - The IPAC table writer now consistently uses the ``fill_values`` keyword to
+    specify the output null values.  Previously the behavior was inconsistent
+    or incorrect. [#3259]
 
 - ``astropy.io.fits``
 
