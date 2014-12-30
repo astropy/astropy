@@ -299,7 +299,7 @@ Comments and metadata
 ^^^^^^^^^^^^^^^^^^^^^
 
 Any comment lines detected during reading are inserted into the output table
-via the ``comment_lines`` key in the table's ``.meta`` dictionary. For example::
+via the ``comments`` key in the table's ``.meta`` dictionary. For example::
 
  >>> table='''# TELESCOPE = 30 inch
  ...          # TARGET = PV Ceph
@@ -308,14 +308,14 @@ via the ``comment_lines`` key in the table's ``.meta`` dictionary. For example::
  ...          55555 12.3
  ...          55556 12.4'''
  >>> dat = ascii.read(table)
- >>> print(dat.meta['comment_lines'])
+ >>> print(dat.meta['comments'])
  ['TELESCOPE = 30 inch', 'TARGET = PV Ceph', 'BAND = V']
 
 While :mod:`astropy.io.ascii` will not do any post-processing on comment lines,
 custom post-processing can be accomplished by re-reading with the metadata line
 comments. Here is one example, where comments are of the form "# KEY = VALUE"::
 
- >>> header = ascii.read(dat.meta['comment_lines'], delimiter='=',
+ >>> header = ascii.read(dat.meta['comments'], delimiter='=',
  ...                     format='no_header', names=['key', 'val'])
  >>> print(header)
     key      val  
