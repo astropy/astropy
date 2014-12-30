@@ -286,9 +286,8 @@ class TestFormat():
         assert str(t['a']) == '   a   \n-------\n%4.2f 1\n%4.2f 2'
 
         #  Invalid format spec
-        t['a'].format = 'fail'
         with pytest.raises(TypeError):
-            str(t['a'])
+            t['a'].format = 'fail'
 
     def test_column_format_with_threshold(self, table_type):
         from ... import conf
@@ -347,9 +346,8 @@ class TestFormat():
         def func(a, b):
             pass
 
-        t['a'].format = func
         with pytest.raises(ValueError):
-            str(t['a'])
+            t['a'].format = func
 
     def test_column_format_func_multiD(self, table_type):
         arr = [np.array([[1, 2],
@@ -366,9 +364,8 @@ class TestFormat():
         t = table_type([[1., 2.], [3, 4]], names=('a', 'b'))
 
         # mathematical function
-        t['a'].format = lambda x: x * 3
         with pytest.raises(ValueError):
-            str(t['a'])
+            t['a'].format = lambda x: x * 3
 
     def test_column_alignment(self, table_type):
         t = table_type([[1], [2], [3], [4]],
@@ -490,9 +487,8 @@ class TestFormatWithMaskedElements():
         def func(a, b):
             pass
 
-        t['a'].format = func
         with pytest.raises(ValueError):
-            str(t['a'])
+            t['a'].format = func
 
         # but if all are masked, it never gets called
         t['a'].mask = [True, True]
