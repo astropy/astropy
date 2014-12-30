@@ -5,6 +5,7 @@ from ..extern import six
 from ..extern.six import text_type
 from ..extern.six.moves import zip, range
 
+import itertools
 import os
 import sys
 import re
@@ -420,7 +421,8 @@ class TableFormatter(object):
         # - get_auto_format_func() returns a wrapped version of auto_format_func
         #    with the column id and possible_string_format_functions as
         #    enclosed variables.
-        col_format = col.info.format or getattr(col.info, 'default_format', None)
+        col_format = col.info.format or getattr(col.info, 'default_format',
+                                                None)
         pssf = (getattr(col.info, 'possible_string_format_functions', None) or
                 _possible_string_format_functions)
         auto_format_func = get_auto_format_func(id(col), pssf)
@@ -432,10 +434,11 @@ class TableFormatter(object):
                 show_length = True
             i0 = n_print2 - (1 if show_length else 0)
             i1 = n_rows - n_print2 - max_lines % 2
-            ii = np.concatenate([np.arange(0, i0 + 1), np.arange(i1 + 1, len(col))])
+            indices = np.concatenate([np.arange(0, i0 + 1),
+                                      np.arange(i1 + 1, len(col))])
         else:
             i0 = -1
-            ii = np.arange(len(col))
+            indices = np.arange(len(col))
 
         def format_col_str(idx):
             if multidims:
@@ -452,17 +455,17 @@ class TableFormatter(object):
                 return format_func(col_format, col[idx])
 
         # Add formatted values if within bounds allowed by max_lines
-        for idx in xrange(n_rows):
-            if idx < i0 or idx > i1:
+        for idx in indices:
+            if idx == i0:
+                yield '...'
+            else:
                 try:
                     yield format_col_str(idx)
                 except TypeError:
                     raise TypeError(
                         'Unable to parse format string "{0}" for entry "{1}" '
-                        'in column "{2}"'.format(col.format, col[idx],
+                        'in column "{2}"'.format(col_format, col[idx],
                                                  col.name))
-            elif idx == i0:
-                yield '...'
 
         outs['show_length'] = show_length
         outs['n_header'] = n_header
@@ -548,6 +551,7 @@ class TableFormatter(object):
             lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
                                             show_unit=show_unit, show_dtype=show_dtype,
                                             align=align_)
+
             if outs['show_length']:
                 lines = lines[:-1]
             cols.append(lines)

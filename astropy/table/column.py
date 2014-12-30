@@ -230,15 +230,15 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         self = self_data.view(cls)
         self._name = fix_column_name(name)
+        self._parent_table = None
         self.unit = unit
-        self.format = format
         self.description = description
         self.meta = meta
-        self._parent_table = None
         self.indices = deepcopy(getattr(data, 'indices', [])) if \
                        copy_indices else []
         for index in self.indices:
             index.replace_col(data, self)
+        self.format = format
 
         return self
 
@@ -248,7 +248,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     @property
     def parent_table(self):
-        if self._parent_table is None:
+        # Note: It seems there are some cases where _parent_table is not set,
+        # such after restoring from a pickled Column.  Perhaps that should be
+        # fixed, but this is also okay for now.
+        if getattr(self, '_parent_table', None) is None:
             return None
         else:
             return self._parent_table()
@@ -328,6 +331,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         for name, val in attrs.items():
             setattr(self, name, val)
         self._parent_table = None
+        self._format = format
 
     def __reduce__(self):
         """
@@ -412,6 +416,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     @format.setter
     def format(self, format_string):
+        if format_string is None:
+            self._format = None
+            return
+
         try:
             prev_format = self._format  # save current format string
         except AttributeError:  # nothing set at all yet
@@ -420,15 +428,17 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         self._format = format_string  # set new format string
 
         try:
-            if type(self[0]) in ['numpy.object', 'numpy.object0', 'numpy.object_']:
-                self.pformat(max_lines=-1)  # test whether it formats without error for all entries
+            if self.dtype.kind == 'O':
+                # test whether it formats without error for all entries
+                self.pformat(max_lines=-1)
             else:
-                self.pformat(max_lines=1)  # test whether it formats without error exemplarily
+                # test whether it formats without error exemplarily
+                self.pformat(max_lines=1)
 
         except TypeError as err:
-            self._format = prev_format  # revert to restore previous format if there was one
+            # revert to restore previous format if there was one
+            self._format = prev_format
             raise  # propagate the error upwards
-
 
     @property
     def descr(self):
@@ -725,7 +735,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         Copy key column attributes from ``obj`` to self
         """
-        for attr in ('name', 'unit', 'format', 'description'):
+        for attr in ('_name', '_unit', '_format', 'description'):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
