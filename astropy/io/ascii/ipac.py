@@ -260,12 +260,12 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 unitlist.append('')
             else:
                 unitlist.append(str(col.unit))
-            null = getattr(col, 'fill_value', 'null')
+            null = col.fill_values[core.masked]
             try:
                 format_func = _format_funcs.get(col.format, _auto_format_func)
                 nullist.append((format_func(col.format, null)).strip())
             except:
-                # It is pssible that null and the column values have different
+                # It is possible that null and the column values have different
                 # data types (e.g. number und null = 'null' (i.e. a string).
                 # This could cause all kinds of exceptions, so a catch all
                 # block is needed here
@@ -297,18 +297,7 @@ class IpacData(fixedwidth.FixedWidthData):
     comment = r'[|\\]'
     start_line = 0
     splitter_class = IpacDataSplitter
-
-
-    def str_vals(self):
-        '''return str vals for each in the table'''
-        vals_list = []
-        # just to make sure
-        self._set_col_formats()
-        col_str_iters = [col.iter_str_vals() for col in self.cols]
-        for vals in zip(*col_str_iters):
-            vals_list.append(vals)
-
-        return vals_list
+    fill_values = [(core.masked, 'null')]
 
     def write(self, lines, widths, vals_list):
         """ IPAC writer, modified from FixedWidth writer """
@@ -378,6 +367,25 @@ class Ipac(basic.Basic):
         | float | float |
         1.2345  6.7890
 
+    IPAC tables can specify a null value in the header that is shown in place
+    of missing or bad data. On writing, this value defaults to ``null``.
+    To specify a different null value, use the ``fill_values`` option to
+    replace masked values with a string or number of your choice as
+    described in :ref:`io_ascii_write_parameters`::
+
+        >>> from astropy.io.ascii import masked
+        >>> fill = [(masked, 'N/A', 'ra'), (masked, -999, 'sptype')]
+        >>> ascii.write(data, format='ipac', fill_values=fill)
+        \ This is an example of a valid comment
+        ...
+        |          ra|         dec|      sai|          v2|            sptype|
+        |      double|      double|     long|      double|              char|
+        |        unit|        unit|     unit|        unit|              ergs|
+        |         N/A|        null|     null|        null|              -999|
+                  N/A     29.09056      null         2.06               -999
+         2345678901.0 3456789012.0 456789012 4567890123.0 567890123456789012
+
+
     Parameters
     ----------
     definition : str, optional
@@ -412,13 +420,17 @@ class Ipac(basic.Basic):
             raise ValueError("definition should be one of ignore/left/right")
         self.header.DBMS = DBMS
 
-
     def write(self, table):
         """Write ``table`` as list of strings.
 
         :param table: input table data (astropy.table.Table object)
         :returns: list of strings corresponding to ASCII table
         """
+        # Set a default null value for all columns by adding at the end, which
+        # is the position with the lowest priority.
+        # We have to do it this late, because the fill_value
+        # defined in the class can be overwritten by ui.write
+        self.data.fill_values.append((core.masked, 'null'))
 
         # Check column names before altering
         self.header.cols = list(six.itervalues(table.columns))
@@ -452,11 +464,19 @@ class Ipac(basic.Basic):
                 except TypeError:
                     pass
 
+        # Usually, this is done in data.write, but since the header is written
+        # first, we need that here.
+        self.data._set_fill_values(self.data.cols)
+
         # get header and data as strings to find width of each column
         for i, col in enumerate(table.columns.values()):
             col.headwidth = max([len(vals[i]) for vals in self.header.str_vals()])
         # keep data_str_vals because they take some time to make
-        data_str_vals = self.data.str_vals()
+        data_str_vals = []
+        col_str_iters = self.data.str_vals()
+        for vals in zip(*col_str_iters):
+            data_str_vals.append(vals)
+
         for i, col in enumerate(table.columns.values()):
             # FIXME: In Python 3.4, use max([], default=0).
             # See: https://docs.python.org/3/library/functions.html#max

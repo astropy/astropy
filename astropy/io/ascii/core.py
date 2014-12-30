@@ -638,6 +638,15 @@ class BaseData(object):
                     for i in col.mask.nonzero()[0]:
                         col.str_vals[i] = mask_val
 
+    def str_vals(self):
+        '''convert all values in table to a list of lists of strings'''
+        self._set_fill_values(self.cols)
+        self._set_col_formats()
+        for col in self.cols:
+            col.str_vals = list(col.iter_str_vals())
+        self._replace_vals(self.cols)
+        return [col.str_vals for col in self.cols]
+
     def write(self, lines):
         if hasattr(self.start_line, '__call__'):
             raise TypeError('Start_line attribute cannot be callable for write()')
@@ -647,12 +656,7 @@ class BaseData(object):
         while len(lines) < data_start_line:
             lines.append(itertools.cycle(self.write_spacer_lines))
 
-        self._set_fill_values(self.cols)
-        self._set_col_formats()
-        for col in self.cols:
-            col.str_vals = list(col.iter_str_vals())
-        self._replace_vals(self.cols)
-        col_str_iters = [col.str_vals for col in self.cols]
+        col_str_iters = self.str_vals()
         for vals in zip(*col_str_iters):
             lines.append(self.splitter.join(vals))
 
