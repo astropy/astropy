@@ -506,7 +506,7 @@ Other points to keep in mind
 
 * Questions and Answers : For general questions on how to write docstrings
   that are not answered in this document, refer to
-  `<http://docs.scipy.org/numpy/Questions+Answers/>`_.
+  `<http://docs-old.scipy.org/numpy/Questions+Answers/>`_.
 
 * ``array_like`` : For functions that take arguments which can have not only
   a type ``ndarray``, but also types that can be converted to an ndarray
