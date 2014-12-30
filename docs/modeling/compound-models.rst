@@ -353,6 +353,8 @@ operators element-wise, similarly to how arithmetic operators work on two Numpy
 arrays.
 
 
+.. _compound-model-composition:
+
 Model composition
 ^^^^^^^^^^^^^^^^^
 
@@ -461,25 +463,400 @@ especially when used in concert with :ref:`mappings <compound-model-mappings>`.
 Model concatenation
 ^^^^^^^^^^^^^^^^^^^
 
-TODO
+The concatenation operator ``&``, sometimes also referred to as a "join",
+combines two models into a single, fully separable transformation.  That is, it
+makes a new model that takes the inputs to the left-hand model, concatenated
+with the inputs to the right-hand model, and returns a tuple consisting of the
+two models' outputs concatenated together, without mixing in any way.  In other
+words, it simply evaluates the two models in parallel--it can be thought of as
+something like a tuple of models.  For example, given two coordinate axes, we
+can scale each coordinate by a different factor by concatenating two
+`~astropy.modeling.functional_models.Scale` models::
 
-.. _compound-model-parameters:
+    >>> from astropy.modeling.models import Scale
+    >>> separate_scales = Scale(factor=1.2) & Scale(factor=3.4)
+    >>> separate_scales(1, 2)  # doctest: +FLOAT_CMP
+    (1.2, 6.8)
 
-Parameters
-----------
+We can also combine concatenation with composition to build chains of
+transformations that use both "1D" and "2D" models on two (or more) coordinate
+axes::
 
-TODO
+    >>> scale_and_rotate = ((Scale(factor=1.2) & Scale(factor=3.4)) |
+    ...                     Rotation2D(90))
+    >>> scale_and_rotate.n_inputs
+    2
+    >>> scale_and_rotate.n_outputs
+    2
+    >>> scale_and_rotate(1, 2)  # doctest: +FLOAT_CMP
+    (-6.8, 1.2)
+
+This is of course equivalent to an
+`~astropy.modeling.projections.AffineTransformation2D` with the appropriate
+transformation matrix::
+
+    >>> from numpy import allclose
+    >>> from astropy.modeling.models import AffineTransformation2D
+    >>> affine = AffineTransformation2D(matrix=[[0, -3.4], [1.2, 0]])
+    >>> # May be small numerical differences due to different implementations
+    >>> allclose(scale_and_rotate(1, 2), affine(1, 2))
+    True
+
 
 .. _compound-model-indexing:
 
 Indexing and slicing
 --------------------
 
-TODO
+As seen in some of the previous examples in this document, when creating a
+compound model each component of the model is assigned an integer index
+starting from zero.  These indices are assigned simply by reading the
+expression that defined the model, from left to right, regardless of the order
+of operations.  For example::
+
+    >>> from astropy.modeling.models import Const1D
+    >>> A = Const1D.rename('A')
+    >>> B = Const1D.rename('B')
+    >>> C = Const1D.rename('C')
+    >>> M = A + B * C
+    >>> M
+    <class '__main__.CompoundModel...'>
+    Name: CompoundModel...
+    ...
+    Expression: [0] + [1] * [2]
+    Components: 
+        [0]: <class '__main__.A'>
+        Name: A (Const1D)
+        ...
+    <BLANKLINE>
+        [1]: <class '__main__.B'>
+        Name: B (Const1D)
+        ...
+    <BLANKLINE>
+        [2]: <class '__main__.C'>
+        Name: C (Const1D)
+        ...
+
+In this example the expression is evaluated ``(B * C) + A``--that is, the
+multiplication is evaluated before the addition per usual arithmetic rules.
+However, the components of this model are simply read off left to right from
+the expression ``A + B * C``, with ``A -> 0``, ``B -> 1``, ``C -> 2``.  If we
+had instead defined ``M = C * B + A`` then the indices would be reversed
+(though the expression is mathetmatically equivalent).  This convention is
+chosen for simplicity--given the list of components it is not necessary to
+jump around when mentally mapping them to the expression.
+
+We can pull out each individual component of the compound model ``M`` by using
+indexing notation on it.  Following from the above example, ``M[1]`` should
+return the model ``B``::
+
+    >>> M[1]
+    <class '__main__.B'>
+    Name: B (Const1D)
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Fittable parameters: ('amplitude',)
+
+We can also take a *slice* of the compound model.  This returns a new compound
+model that evaluates the *subexpression* involving the models selected by the
+slice.  This follows the same semantics as slicing a `list` or array in Python.
+The start point is inclusive and the end point is exclusive.  So a slice like
+``M[1:3]`` (or just ``M[1:]``) selects models ``B`` and ``C`` (and all
+*operators* between them).  So the resulting model evaluates just the
+subexpression ``B * C``::
+
+    >>> M[1:]
+    <class 'astropy.modeling.utils.CompoundModel...'>
+    Name: CompoundModel...
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Fittable parameters: ('amplitude_1', 'amplitude_2')
+    Expression: [0] * [1]
+    Components: 
+        [0]: <class '__main__.B'>
+        Name: B (Const1D)
+        ...
+    <BLANKLINE>
+        [1]: <class '__main__.C'>
+        Name: C (Const1D)
+        ...
+
+The new compound model for the subexpression can be instantiated and evaluated
+like any other::
+
+    >>> m = M[1:](2, 3)
+    >>> m
+    <CompoundModel...(amplitude_1=2.0, amplitude_2=3.0)>
+    >>> m(0)
+    6.0
+
+Although the model ``M`` was composed entirely of ``Const1D`` models in this
+example, it was useful to give each component a unique name (``A``, ``B``,
+``C``) in order to differentiate between them.  This can also be used for
+indexing and slicing::
+
+    >>> M['B']
+    <class '__main__.B'>
+    Name: B (Const1D)
+    Inputs: ('x',)
+    Outputs: ('y',)
+    Fittable parameters: ('amplitude',)
+
+In this case ``M['B']`` is equivalent to ``M[1]``.  But by using the name we do
+not have to worry about what index that component is in (this becomes
+especially useful when combining multiple compound models).  A current
+limitation, however, is that each component of a compound model must have a
+unique name--if some components have duplicate names then they can only be
+accessed by their integer index.  This may improve in a future release.
+
+Slicing also works with names.  When using names the start and end points are
+*both inclusive*::
+
+    >>> M['B':'C']
+    <class 'astropy.modeling.utils.CompoundModel...'>
+    ...
+    Expression: [0] * [1]
+    Components: 
+        [0]: <class '__main__.B'>
+        Name: B (Const1D)
+        ...
+    <BLANKLINE>
+        [1]: <class '__main__.C'>
+        Name: C (Const1D)
+        ...
+
+So in this case ``M['B':'C']`` is equivalent to ``M[1:3]``.
+
+All of the above applies equally well to compound models composed of model
+instances.  Individual model instances can be given a name by passing in the
+``name=`` argument when instantiating them.  These names are used in the same was
+as class names were in the class-based examples::
+
+    >>> a = Const1D(amplitude=1, name='A')
+    >>> b = Const1D(amplitude=2, name='B')
+    >>> c = Const1D(amplitude=3, name='C')
+    >>> m = a + b * c
+
+Because this model is composed entirely of constants it doesn't matter what
+input we pass in, so 0 is used without loss of generality::
+
+    >>> m(0)
+    7.0
+    >>> m[1:](0)  # b * c
+    6.0
+    >>> m['A':'B'](0)  # a + b
+    3.0
+    >>> m['B':'C'](0)  # b * c, again
+    6.0
+
+
+.. _compound-model-parameters:
+
+Parameters
+----------
+
+A question that frequently comes up when first encountering compound models is
+how exactly all the parameters are dealt with.  By now we've seen a few
+examples that give some hints, but a more detailed explanation is in order.
+This is also one of the biggest areas for possible improvements--the current
+behavior is meant to be practical, but is not ideal.  (Some possible
+improvements include being able to rename parameters, and providing a means of
+narrowing down the number of parameters in a compound model.)
+
+As explained in the general documentation for model :ref:`parameters
+<modeling-parameters>`, every model has an attribute called
+`~astropy.modeling.Model.param_names` that contains a tuple of all the model's
+adjustable parameters.  These names are given in a canonical order that also
+corresponds to the order in which the parameters should be specified when
+instantiating the model.
+
+The simple scheme used currently for naming parameters in a compound model is
+this:  The ``param_names`` from each component model are concatenated with each
+other in order from left to right as explained in the section on
+:ref:`compound-model-indexing`.  However, each parameter name is appended with
+``_<#>``, where ``<#>`` is the index of the component model that parameter
+belongs to.  For example::
+
+    >>> Gaussian1D.param_names
+    ('amplitude', 'mean', 'stddev')
+    >>> (Gaussian1D + Gaussian1D).param_names
+    ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
+
+For consistency's sake, this scheme is followed even if not all of the
+components have overlapping parameter names::
+
+    >>> from astropy.modeling.models import Redshift
+    >>> (Redshift | (Gaussian1D + Gaussian1D)).param_names
+    ('z_0', 'amplitude_1', 'mean_1', 'stddev_1', 'amplitude_2', 'mean_2',
+    'stddev_2')
+
+On some level a scheme like this is necessary in order for the compound model
+to maintain some consistency with other models with respect to the interface to
+its parameters.  However, if one gets lost it is also possible to take
+advantage of :ref:`indexing <compound-model-indexing>` to make things easier.
+When returning a single component from a compound model the parameters
+associated with that component are accessible through their original names, but
+are still tied back to the compound model::
+
+    >>> a = Gaussian1D(1, 0, 0.2, name='A')
+    >>> b = Gaussian1D(2.5, 0.5, 0.1, name='B')
+    >>> m.amplitude_0
+    Parameter('amplitude_0', value=1.0)
+
+is equivalent to::
+
+    >>> m['A'].amplitude
+    Parameter('amplitude', value=1.0)
+
+You can think of these both as different "views" of the same parameter.
+Updating one updates the other::
+
+    >>> m.amplitude_0 = 42
+    >>> m['A'].amplitude
+    Parameter('amplitude', value=42.0)
+    >>> m['A'].amplitude = 99
+    >>> m.amplitude_0
+    Parameter('amplitude_0', value=99.0)
+
+Note, however, that the original
+`~astropy.modeling.functional_models.Gaussian1D` instance ``a`` has not been
+updated::
+
+    >>> a.amplitude
+    Parameter('amplitude', value=1.0)
+
+This is because currently, when a compound model is created, copies are made of
+the original models.
+
 
 .. _compound-model-mappings:
 
 Advanced mappings
 -----------------
 
-TODO
+We have seen in some previous examples how models can be chained together to
+form a "pipeline" of transformations by using model :ref:`composition
+<compound-model-composition>` and :ref:`concatenation
+<compound-model-concatenation>`.  To aid the creation of more complex chains of
+transformations (for example for a WCS transformation) a new class of
+"`mapping <astropy.modeling.mappings>`" models is provided.
+
+Mapping models do not (currently) take any parameters, nor do they perform any
+numeric operation.  They are for use solely with the :ref:`concatenation
+<compound-model-concatenation>` (``&``) and :ref:`composition
+<compound-model-composition>` (``|``) operators, and can be used to control how
+the inputs and outputs of models are ordered, and how outputs from one model
+are mapped to inputs of another model in a composition.
+
+Currently there are only two mapping models:
+`~astropy.modeling.mappings.Identity`, and (the somewhat generically named)
+`~astropy.modeling.mappings.Mapping`.
+
+The `~astropy.modeling.mappings.Identity` mapping simply passes one or more
+inputs through, unchanged.  It must be instantiated with an integer specifying
+the number of inputs/outputs it accepts.  This can be used to trivially expand
+the "dimensionality" of a model in terms of the number of inputs it accepts.
+In the section on :ref:`concatenation <compound-model-concatenation>` we saw
+an example like::
+
+    >>> m = (Scale(1.2) & Scale(3.4)) | Rotation2D(90)
+
+where two coordinate inputs are scaled individually and then rotated into each
+other.  However, say we wanted to scale only one of those coordinates.  It
+would be fine to simply use ``Scale(1)`` for one them, or any other model that
+is effectively a no-op.  But that also adds unnecessary computational overhead,
+so we might as well simply specify that that coordinate is not to be scaled or
+transformed in any way.  This is a good use case for
+`~astropy.modeling.mappings.Identity`::
+
+    >>> from astropy.modeling.models import Identity
+    >>> m = Scale(1.2) & Identity(1)
+    >>> m(1, 2)  # doctest: +FLOAT_CMP
+    (1.2, 2.0)
+
+This scales the first input, and passes the second one through unchanged.  We
+can use this to build up more complicated steps in a many-axis WCS
+transformation.  If for example we had 3 axes and only wanted to scale the
+first one::
+
+    >>> m = Scale(1.2) & Identity(2)
+    >>> m(1, 2, 3)  # doctest: +FLOAT_CMP
+    (1.2, 2.0, 3.0)
+
+(Naturally, the last example could also be written out ``Scale(1.2) &
+Identity(1) & Identity(1)``.)
+
+The `~astropy.modeling.mappings.Mapping` model is similar in that it does not
+modify any of its inputs.  However, it is more general in that it allows inputs
+to be duplicated, reordered, or even dropped outright.  It is instantiated with
+a single argument: a `tuple`, the number of items of which correspond to the
+number of outputs the `~astropy.modeling.mappings.Mapping` should produce.  A
+1-tuple means that whatever inputs come in to the
+`~astropy.modeling.mappings.Mapping`, only one will be output.  And so on for
+2-tuple or higher (though the length of the tuple cannot be greater than the
+number of inputs--it will not pull values out of thin air).  The elements of
+this mapping are integers corresponding to the indices of the inputs.  For
+example, a mapping of ``Mapping((0,))`` is equivalent to ``Identity(1)``--it
+simply takes the first (0-th) input and returns it::
+
+    >>> from astropy.modeling.models import Mapping
+    >>> m = Mapping((0,))
+    >>> m(1.0)
+    1.0
+
+Likewise ``Mapping((0, 1))`` is equivalent to ``Identity(2)``, and so on.
+However, `~astropy.modeling.mappings.Mapping` also allows outputs to be
+reordered arbitrarily::
+
+    >>> m = Mapping((1, 0))
+    >>> m(1.0, 2.0)
+    (2.0, 1.0)
+    >>> m = Mapping((1, 0, 2))
+    >>> m(1.0, 2.0, 3.0)
+    (2.0, 1.0, 3.0)
+
+Outputs may also be dropped::
+
+    >>> m = Mapping((1,))
+    >>> m(1.0, 2.0)
+    2.0
+    >>> m = Mapping((0, 2))
+    >>> m(1.0, 2.0, 3.0)
+    (1.0, 3.0)
+
+Or duplicated::
+
+    >>> m = Mapping((0, 0))
+    >>> m(1.0)
+    (1.0, 1.0)
+    >>> m = Mapping((0, 1, 1, 2))
+    >>> m(1.0, 2.0, 3.0)
+    (1.0, 2.0, 2.0, 3.0)
+
+
+A complicated example that performs multiple transformations, some separable,
+some not, on three coordinate axes might look something like::
+
+    >>> from astropy.modeling.models import Polynomial1D as Poly1D
+    >>> from astropy.modeling.models import Polynomial2D as Poly2D
+    >>> m = ((Poly1D(3, c0=1, c3=1) & Identity(1) & Poly1D(2, c2=1)) |
+    ...      Mapping((0, 2, 1)) |
+    ...      (Poly2D(4, c0_0=1, c1_1=1, c2_2=2) & Gaussian1D(1, 0, 4)))
+    ...
+    >>> m(2, 3, 4)  # doctest: +FLOAT_CMP
+    (41617.0, 0.7548396019890073)
+
+
+
+This expression takes three inputs: :math:`x`, :math:`y`, and :math:`z`.  It
+first takes :math:`x \rightarrow x^3 + 1` and :math:`z \rightarrow z^2`.
+Then it remaps the axes so that :math:`x` and :math:`z` are passed in to the
+`~astropy.modeling.polynomial.Polynomial2D` to evaluate
+:math:`2x^2z^2 + xz + 1`, while simultaneously evaluating a Gaussian on
+:math:`y`.  The end result is a reduction down to two coordinates.  You can
+confirm for yourself that the result is correct.
+
+This opens up the possibility of essentially arbitrarily complex transformation
+graphs.  Currently the tools do not exist to make it easy to navigate and
+reason about highly complex compound models that use these mappings, but that
+is a possible enhancement for future versions.
