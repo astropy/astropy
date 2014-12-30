@@ -176,11 +176,11 @@ details.
   A one-character string used to separate fields which typically defaults to the space character.
   Other common values might be "," or "|" or "\\t".
 
-**comment** : string defining a comment line in table
-  For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "#".
-  Which and how comments are written depends on the format chosen (e.g.
-  :class:`~astropy.io.ascii.CommentedHeader` puts the comment symbol in the line
-  with the column names). Comments in the metadata of the given
+**comment** : string defining start of a comment line in output table
+  For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "# ".
+  Which and how comments are written depends on the format chosen.
+  The comments are defined as a list of strings in the input table
+  `meta['comments']` element. Comments in the metadata of the given
   |Table| will normally be written before the header, although
   :class:`~astropy.io.ascii.CommentedHeader` writes table comments after the
   commented header. To disable writing comments, set ``comment=False``.

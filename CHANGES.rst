@@ -86,10 +86,9 @@ New Features
   - Store comment lines encountered during reading in metadata of the
     output table via ``meta['comment_lines']``. [#3222]
 
-  - Write comment lines in Table metadata during output (before the header
-    unless the format is commented header, in which case comments come after
-    the header). This functionality can be disabled with ``comment=False``.
-    [#3255]
+  - Write comment lines in Table metadata during output for all basic formats,
+    IPAC, and fast writers. This functionality can be disabled with
+    ``comment=False``. [#3255]
 
 - ``astropy.io.fits``
 

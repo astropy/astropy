@@ -888,7 +888,7 @@ cdef class FastWriter:
         self.col_iters = []
         self.formats = []
         self.format_funcs = []
-        self.line_comments = table.meta.get('comment_lines', [])
+        self.line_comments = table.meta.get('comments', [])
 
         for col in six.itervalues(table.columns):
             if col.name in self.use_names: # iterate over included columns
