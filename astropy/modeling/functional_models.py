@@ -19,7 +19,7 @@ from ..utils import deprecated
 from ..extern import six
 
 __all__ = sorted([
-    'AiryDisk2D', 'Beta1D', 'Beta2D', 'Box1D',
+    'AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D',
     'Box2D', 'Const1D', 'Const2D', 'Ellipse2D', 'Disk2D',
     'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D',
     'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Redshift', 'Shift',
@@ -88,7 +88,7 @@ class Gaussian1D(Fittable1DModel):
 
     See Also
     --------
-    Gaussian2D, Box1D, Beta1D, Lorentz1D
+    Gaussian2D, Box1D, Moffat1D, Lorentz1D
     """
 
     amplitude = Parameter()
@@ -230,7 +230,7 @@ class Gaussian2D(Fittable2DModel):
 
     See Also
     --------
-    Gaussian1D, Box2D, Beta2D
+    Gaussian1D, Box2D, Moffat2D
 
     References
     ----------
@@ -937,7 +937,7 @@ class Box2D(Fittable2DModel):
 
     See Also
     --------
-    Box1D, Gaussian2D, Beta2D
+    Box1D, Gaussian2D, Moffat2D
 
     Notes
     -----
@@ -989,7 +989,7 @@ class Trapezoid1D(Fittable1DModel):
 
     See Also
     --------
-    Box1D, Gaussian1D, Beta1D
+    Box1D, Gaussian1D, Moffat1D
     """
 
     amplitude = Parameter()
@@ -1231,20 +1231,20 @@ class AiryDisk2D(Fittable2DModel):
         return z
 
 
-class Beta1D(Fittable1DModel):
+class Moffat1D(Fittable1DModel):
     """
-    One dimensional Beta model.
+    One dimensional Moffat model.
 
     Parameters
     ----------
     amplitude : float
         Amplitude of the model.
     x_0 : float
-        x position of the maximum of the Beta model.
+        x position of the maximum of the Moffat model.
     gamma : float
-        Core width of the Beta model.
+        Core width of the Moffat model.
     alpha : float
-        Power index of the beta model.
+        Power index of the Moffat model.
 
     See Also
     --------
@@ -1266,13 +1266,13 @@ class Beta1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, gamma, alpha):
-        """One dimensional Beta model function"""
+        """One dimensional Moffat model function"""
 
         return amplitude * (1 + ((x - x_0) / gamma) ** 2) ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, gamma, alpha):
-        """One dimensional Beta model derivative with respect to parameters"""
+        """One dimensional Moffat model derivative with respect to parameters"""
 
         d_A = (1 + (x - x_0) ** 2 / gamma ** 2) ** (-alpha)
         d_x_0 = (-amplitude * alpha * d_A * (-2 * x + 2 * x_0) /
@@ -1283,22 +1283,22 @@ class Beta1D(Fittable1DModel):
         return [d_A, d_x_0, d_gamma, d_alpha]
 
 
-class Beta2D(Fittable2DModel):
+class Moffat2D(Fittable2DModel):
     """
-    Two dimensional Beta model.
+    Two dimensional Moffat model.
 
     Parameters
     ----------
     amplitude : float
         Amplitude of the model.
     x_0 : float
-        x position of the maximum of the Beta model.
+        x position of the maximum of the Moffat model.
     y_0 : float
-        y position of the maximum of the Beta model.
+        y position of the maximum of the Moffat model.
     gamma : float
-        Core width of the Beta model.
+        Core width of the Moffat model.
     alpha : float
-        Power index of the beta model.
+        Power index of the Moffat model.
 
     See Also
     --------
@@ -1322,14 +1322,14 @@ class Beta2D(Fittable2DModel):
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):
-        """Two dimensional Beta model function"""
+        """Two dimensional Moffat model function"""
 
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
         return amplitude * (1 + rr_gg) ** (-alpha)
 
     @staticmethod
     def fit_deriv(x, y, amplitude, x_0, y_0, gamma, alpha):
-        """Two dimensional Beta model derivative with respect to parameters"""
+        """Two dimensional Moffat model derivative with respect to parameters"""
 
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma ** 2
         d_A = (1 + rr_gg) ** (-alpha)
