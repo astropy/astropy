@@ -1783,11 +1783,9 @@ class _CompoundModelMeta(_ModelMeta):
                 #if not isinstance(getattr(model, param_name, None),
                 #                  Parameter):
                 #    break
-                name = '{0}_{1}'.format(param_name, param_suffix)
+                name = '{0}_{1}'.format(param_name, param_suffix + idx)
                 names.append(name)
                 param_map[name] = (idx, param_name)
-
-            param_suffix += 1
 
         cls._param_names = tuple(names)
         cls._param_map = param_map

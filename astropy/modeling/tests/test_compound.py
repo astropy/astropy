@@ -601,6 +601,33 @@ def test_slicing_on_instances_3():
     assert m[-4:-2].submodel_names == ('b', 'c')
 
 
+def test_slicing_on_instance_with_parameterless_model():
+    """
+    Regression test to fix an issue where the indices attached to parameter
+    names on a compound model were not handled properly when one or more
+    submodels have no parameters.  This was especially evident in slicing.
+    """
+
+    p2 = Polynomial2D(1, c0_0=1, c1_0=2, c0_1=3)
+    p1 = Polynomial2D(1, c0_0=1, c1_0=2, c0_1=3)
+    mapping = Mapping((0, 1, 0, 1))
+    offx = Shift(-2, name='x_translation')
+    offy = Shift(-1, name='y_translation')
+    aff = AffineTransformation2D(matrix=[[1, 2], [3, 4]], name='rotation')
+    model = mapping | (p1 & p2) | (offx & offy) | aff
+
+    assert model.param_names == ('c0_0_1', 'c1_0_1', 'c0_1_1',
+                                 'c0_0_2', 'c1_0_2', 'c0_1_2',
+                                 'offset_3', 'offset_4',
+                                 'matrix_5', 'translation_5')
+    assert model(1, 2) == (23.0, 53.0)
+
+    m = model[3:]
+    assert m.param_names == ('offset_3', 'offset_4', 'matrix_5',
+                             'translation_5')
+    assert m(1, 2) == (1.0, 1.0)
+
+
 def test_compound_model_with_nonstandard_broadcasting():
     """
     Ensure that the ``standard_broadcasting`` flag is properly propgataed when
