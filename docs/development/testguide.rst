@@ -863,7 +863,7 @@ To address this issue Astropy's test framework includes support for a
 
 When this flag is used, the expected and actual outputs are both parsed to find
 any floating point values in the strings.  Those are then converted to actual
-Python ``float`` objects and compared numerically.  This means that small
+Python `float` objects and compared numerically.  This means that small
 differences in representation of roundoff digits will be ignored by the
 doctest.  The values are otherwise compared exactly, so more significant
 (albeit possibly small) differences will still be caught by these tests.
