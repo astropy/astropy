@@ -68,3 +68,25 @@ particular a package or object, or access their documentation using the
 
 Will bring up the documentation for the `~astropy.units.Quantity` class
 in your browser.
+
+Command-line utilities
+======================
+
+For convenience, several of Astropy's subpackages install utility programs
+on your system which allow common tasks to be performed without having
+to open a Python interpreter. These utilities include:
+
+- `~astropy.io.fits.scripts.fitsheader`: prints the headers of a FITS file.
+
+- `~astropy.io.fits.scripts.fitscheck`: verifies and optionally re-writes
+  the CHECKSUM and DATASUM keywords of a FITS file.
+
+- :ref:`fitsdiff`: compares two FITS files and reports the differences.
+
+- :ref:`samp_hub <vo-samp-example_hub>`: starts a :ref:`SAMP <vo-samp>` hub.
+
+- ``volint``: checks a :ref:`VOTable <astropy-io-votable>`
+  file for compliance against the standards.
+
+- :ref:`wcslint <wcslint>`: checks the :ref:`WCS <astropy-wcs>` keywords in a
+  FITS file for compliance against the standards.

@@ -99,6 +99,8 @@ saves those settings to a new FITS header.
 .. literalinclude:: examples/programmatic.py
    :language: python
 
+.. _wcslint:
+
 Validating the WCS keywords in a FITS file
 ------------------------------------------
 
