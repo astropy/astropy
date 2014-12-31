@@ -366,6 +366,7 @@ def test_comment_lines():
     table = ascii.get_reader(Reader=ascii.Rdb)
     data = table.read('t/apostrophe.rdb')
     assert_equal(table.comment_lines, ['# first comment', '  # second comment'])
+    assert_equal(data.meta['comments'], ['first comment', 'second comment'])
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -867,7 +868,7 @@ def test_meta_comments():
     """
     t = ascii.read(['#comment1', '#   comment2 \t', 'a,b,c', '1,2,3'])
     assert t.colnames == ['a', 'b', 'c']
-    assert t.meta['comment_lines'] == ['comment1', 'comment2']
+    assert t.meta['comments'] == ['comment1', 'comment2']
 
 def test_guess_fail():
     """

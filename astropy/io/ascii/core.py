@@ -402,7 +402,7 @@ class BaseHeader(object):
         comment_lines = [re.sub('^' + self.comment, '', x).strip()
                          for x in comment_lines]
         if comment_lines:
-            meta.setdefault('table', {})['comment_lines'] = comment_lines
+            meta.setdefault('table', {})['comments'] = comment_lines
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
@@ -447,7 +447,7 @@ class BaseHeader(object):
                 yield line
 
     def write_comments(self, lines, meta):
-        for comment in meta.get('comment_lines', []):
+        for comment in meta.get('comments', []):
             lines.append(self.write_comment + comment)
 
     def write(self, lines):
@@ -975,7 +975,7 @@ class BaseReader(object):
     def comment_lines(self):
         """Return lines in the table that match header.comment regexp"""
         if not hasattr(self, 'lines'):
-            raise ValueError('Table must be read prior to accessing the header_comment_lines')
+            raise ValueError('Table must be read prior to accessing the header comment lines')
         if self.header.comment:
             re_comment = re.compile(self.header.comment)
             comment_lines = [x for x in self.lines if re_comment.match(x)]
