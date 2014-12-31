@@ -584,6 +584,8 @@ Bug Fixes
   - Added workaround for bug in MacOS X <= 10.8 that caused np.fromfile to
     fail. [#3078]
 
+  - Added support for the ``RICE_ONE`` compression type synonym. [#3115]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
