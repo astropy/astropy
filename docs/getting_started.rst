@@ -83,6 +83,9 @@ to open a Python interpreter. These utilities include:
 
 - :ref:`fitsdiff`: compares two FITS files and reports the differences.
 
+- :ref:`fits2bitmap`: converts FITS images to bitmaps, including scaling and
+  stretching.
+
 - :ref:`samp_hub <vo-samp-example_hub>`: starts a :ref:`SAMP <vo-samp>` hub.
 
 - ``volint``: checks a :ref:`VOTable <astropy-io-votable>`

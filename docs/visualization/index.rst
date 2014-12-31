@@ -19,6 +19,9 @@ Using `astropy.visualization`
 
    normalization.rst
 
+
+.. _fits2bitmap:
+
 Scripts
 =======
 
