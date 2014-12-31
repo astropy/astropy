@@ -55,12 +55,15 @@ DEFAULT_HCOMP_SMOOTH = 0
 DEFAULT_BLOCK_SIZE = 32
 DEFAULT_BYTE_PIX = 4
 
+CMTYPE_ALIASES = {}
 
 # CFITSIO version-specific features
 if COMPRESSION_SUPPORTED:
     try:
         CFITSIO_SUPPORTS_GZIPDATA = compression.CFITSIO_VERSION >= 3.28
         CFITSIO_SUPPORTS_Q_FORMAT = compression.CFITSIO_VERSION >= 3.35
+        if compression.CFITSIO_VERSION >= 3.35:
+            CMTYPE_ALIASES['RICE_ONE'] = 'RICE_1'
     except AttributeError:
         # This generally shouldn't happen unless running setup.py in an
         # environment where an old build of pyfits exists
@@ -599,6 +602,8 @@ class CompImageHDU(BinTableHDU):
                             'available.  Creation of compressed image HDUs is '
                             'disabled.')
 
+        compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
+
         # Handle deprecated keyword arguments
         compression_opts = {}
         for oldarg, newarg in self.DEPRECATED_KWARGS.items():
@@ -800,6 +805,8 @@ class CompImageHDU(BinTableHDU):
         else:
             compression_type = self._header.get('ZCMPTYPE',
                                                 DEFAULT_COMPRESSION_TYPE)
+            compression_type = CMTYPE_ALIASES.get(compression_type,
+                                                  compression_type)
 
         # If the input image header had BSCALE/BZERO cards, then insert
         # them in the table header.
