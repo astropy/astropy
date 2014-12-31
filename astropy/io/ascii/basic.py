@@ -137,6 +137,13 @@ class CommentedHeader(Basic):
     header_class = CommentedHeaderHeader
     data_class = NoHeaderData
 
+    def write_header(self, lines, meta):
+        """
+        Write comment lines after, rather than before, the header.
+        """
+        self.header.write(lines)
+        self.header.write_comments(lines, meta)
+
 
 class TabHeaderSplitter(core.DefaultSplitter):
     '''Split lines on tab and do not remove whitespace'''

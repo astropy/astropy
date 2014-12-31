@@ -380,6 +380,7 @@ class BaseHeader(object):
     comment = None
     splitter_class = DefaultSplitter
     names = None
+    write_comment = False
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
     def __init__(self):
@@ -447,8 +448,9 @@ class BaseHeader(object):
                 yield line
 
     def write_comments(self, lines, meta):
-        for comment in meta.get('comments', []):
-            lines.append(self.write_comment + comment)
+        if self.write_comment is not False:
+            for comment in meta.get('comments', []):
+                lines.append(self.write_comment + comment)
 
     def write(self, lines):
         if self.start_line is not None:
@@ -983,6 +985,10 @@ class BaseReader(object):
             comment_lines = []
         return comment_lines
 
+    def write_header(self, lines, meta):
+        self.header.write_comments(lines, meta)
+        self.header.write(lines)
+
     def write(self, table):
         """Write ``table`` as list of strings.
 
@@ -1004,8 +1010,7 @@ class BaseReader(object):
 
         # Write header and data to lines list
         lines = []
-        self.header.write_comments(lines, table.meta)
-        self.header.write(lines)
+        self.write_header(lines, table.meta)
         self.data.write(lines)
 
         return lines

@@ -86,6 +86,10 @@ New Features
   - Store comment lines encountered during reading in metadata of the
     output table via ``meta['comment_lines']``. [#3222]
 
+  - Write comment lines in Table metadata during output for all basic formats,
+    IPAC, and fast writers. This functionality can be disabled with
+    ``comment=False``. [#3255]
+
 - ``astropy.io.fits``
 
   - The ``fitsdiff`` script ignores some things by default when comparing fits
