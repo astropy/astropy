@@ -971,7 +971,7 @@ class BaseReader(object):
     def comment_lines(self):
         """Return lines in the table that match header.comment regexp"""
         if not hasattr(self, 'lines'):
-            raise ValueError('Table must be read prior to accessing the header comment_lines')
+            raise ValueError('Table must be read prior to accessing the header comment lines')
         if self.header.comment:
             re_comment = re.compile(self.header.comment)
             comment_lines = [x for x in self.lines if re_comment.match(x)]
