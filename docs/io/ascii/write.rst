@@ -180,7 +180,7 @@ details.
   For the :class:`~astropy.io.ascii.Basic` Writer this defaults to "# ".
   Which and how comments are written depends on the format chosen.
   The comments are defined as a list of strings in the input table
-  `meta['comments']` element. Comments in the metadata of the given
+  ``meta['comments']`` element. Comments in the metadata of the given
   |Table| will normally be written before the header, although
   :class:`~astropy.io.ascii.CommentedHeader` writes table comments after the
   commented header. To disable writing comments, set ``comment=False``.
