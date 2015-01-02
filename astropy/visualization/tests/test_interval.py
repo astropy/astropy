@@ -3,6 +3,7 @@
 import numpy as np
 
 from ...tests.helper import pytest
+from ...utils import NumpyRNGContext
 
 from ..interval import (ManualInterval, MinMaxInterval, PercentileInterval,
                         AsymmetricPercentileInterval)
@@ -36,12 +37,26 @@ class TestInterval(object):
         np.testing.assert_allclose(vmin, -11.6)
         np.testing.assert_allclose(vmax, 36.4)
 
+    def test_asymmetric_percentile_nsamples(self):
+        with NumpyRNGContext(12345):
+            interval = AsymmetricPercentileInterval(10.5, 70.5, n_samples=20)
+            vmin, vmax = interval.get_limits(self.data)
+        np.testing.assert_allclose(vmin, -14.367676767676768)
+        np.testing.assert_allclose(vmax, 40.266666666666666)
+
 
 class TestIntervalList(TestInterval):
 
     # Make sure intervals work with lists
 
     data = np.linspace(-20., 60., 100).tolist()
+
+
+class TestInterval2D(TestInterval):
+
+    # Make sure intervals work with 2d arrays
+
+    data = np.linspace(-20., 60., 100).reshape(100, 1)
 
 
 def test_integers():
