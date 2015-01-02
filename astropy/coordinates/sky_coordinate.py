@@ -23,9 +23,11 @@ from .representation import (BaseRepresentation, SphericalRepresentation,
 __all__ = ['SkyCoord']
 
 PLUS_MINUS_RE = re.compile(r'(\+|\-)')
-J_PREFIXED_RA_DEC_RE = re.compile(r"""J([0-9]{6})\.?[0-9]{0,2}    # RA with up to two optional decimal digits                                                                    
-                                  ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$    # DEC with up to two optional decimal digits                                                                
-                                  """, re.VERBOSE) 
+J_PREFIXED_RA_DEC_RE = re.compile(
+    r"""J                              # J prefix
+    ([0-9]{6})\.?[0-9]{0,2}            # RA as HHMMSS.ss, optional decimal digits
+    ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$  # Dec as DDMMSS.ss, optional decimal digits
+    """, re.VERBOSE)
 
 
 # Define a convenience mapping.  This is used like a module constants
@@ -1214,7 +1216,7 @@ def _parse_coordinate_arg(coords, frame, units):
 
         # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
         vals = []
-        
+
         is_ra_dec_representation = ('ra' in frame.representation_component_names and
                                     'dec' in frame.representation_component_names)
 
@@ -1297,10 +1299,12 @@ def _get_representation_attrs(frame, units, kwargs):
 
 def _parse_ra_dec(coord_str):
     """
-    Parse RA and Dec values from a coordinate string. Currently the following formats are supported:
+    Parse RA and Dec values from a coordinate string. Currently the
+    following formats are supported:
 
      * space separated 6-value format
-     * space separated <6-value format, this requires a plus or minus sign separation between RA and Dec
+     * space separated <6-value format, this requires a plus or minus sign
+       separation between RA and Dec
      * JHHMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
 
     Parameters
@@ -1317,7 +1321,7 @@ def _parse_ra_dec(coord_str):
     if isinstance(coord_str, six.string_types):
         coord1 = coord_str.split()
     else:
-        # This exception should never be raised from SkyCoord                                                  
+        # This exception should never be raised from SkyCoord
         raise TypeError('coord_str must be a single str')
 
     if len(coord1) == 6:
@@ -1328,7 +1332,7 @@ def _parse_ra_dec(coord_str):
     elif len(coord1) == 1:
         match = J_PREFIXED_RA_DEC_RE.match(coord_str)
         if match:
-            coord = match.groups()                 
+            coord = match.groups()
             coord = ('{0} {1} {2}'.
                      format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
                      '{0} {1} {2}'.
