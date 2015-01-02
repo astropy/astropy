@@ -20,10 +20,12 @@ from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
                              UnitSphericalRepresentation)
 
-__all__ = ['SkyCoord', 'parse_ra_dec']
+__all__ = ['SkyCoord']
 
-PMRE = re.compile(r'(\+|\-)')
-JPMRE = re.compile(r'J([0-9]{6}\.?[0-9]{0,2})([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$')
+PLUS_MINUS_RE = re.compile(r'(\+|\-)')
+J_PREFIXED_RA_DEC_RE = re.compile(r"""J([0-9]{6})\.?[0-9]{0,2}    # RA with up to two optional decimal digits                                                                    
+                                  ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$    # DEC with up to two optional decimal digits                                                                
+                                  """, re.VERBOSE) 
 
 
 # Define a convenience mapping.  This is used like a module constants
@@ -1212,13 +1214,17 @@ def _parse_coordinate_arg(coords, frame, units):
 
         # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
         vals = []
+        
+        is_ra_dec_representation = ('ra' in frame.representation_component_names and
+                                    'dec' in frame.representation_component_names)
+
         for ii, coord in enumerate(coords):
             if isinstance(coord, six.string_types):
                 coord1 = coord.split()
                 if len(coord1) == 6:
                     coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                elif 'ra' in frame.representation_component_names:
-                    coord = parse_ra_dec(coord)
+                elif is_ra_dec_representation:
+                    coord = _parse_ra_dec(coord)
                 else:
                     coord = coord1
             vals.append(coord)  # This assumes coord is a sequence at this point
@@ -1289,16 +1295,17 @@ def _get_representation_attrs(frame, units, kwargs):
     return valid_kwargs
 
 
-def parse_ra_dec(coord_str):
+def _parse_ra_dec(coord_str):
     """
-    Parsing RA--Dec input pairs. Currently the following formats are supported:
+    Parse RA and Dec values from a coordinate string. Currently the following formats are supported:
 
-     * space separated <6 value format
-     * JHHMMSS.ss+DDMMSS.s format
+     * space separated 6-value format
+     * space separated <6-value format, this requires a plus or minus sign separation between RA and Dec
+     * JHHMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
 
     Parameters
     ----------
-    coord_str : str or list of str
+    coord_str : str
         Coordinate string to parse.
 
     Returns
@@ -1310,21 +1317,23 @@ def parse_ra_dec(coord_str):
     if isinstance(coord_str, six.string_types):
         coord1 = coord_str.split()
     else:
-        coord1 = coord_str
+        # This exception should never be raised from SkyCoord                                                  
+        raise TypeError('coord_str must be a single str')
 
     if len(coord1) == 6:
         coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
     elif len(coord1) > 2:
-        coord = PMRE.split(coord_str)
+        coord = PLUS_MINUS_RE.split(coord_str)
         coord = (coord[0], ' '.join(coord[1:]))
     elif len(coord1) == 1:
-        try:
-            coord = JPMRE.match(coord_str).groups()
+        match = J_PREFIXED_RA_DEC_RE.match(coord_str)
+        if match:
+            coord = match.groups()                 
             coord = ('{0} {1} {2}'.
                      format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
                      '{0} {1} {2}'.
                      format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
-        except:
+        else:
             coord = coord1
     else:
         coord = coord1
