@@ -18,7 +18,7 @@ from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
 from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
-                             UnitSphericalRepresentation, CartesianRepresentation)
+                             UnitSphericalRepresentation)
 
 __all__ = ['SkyCoord']
 

@@ -16,7 +16,7 @@ import numpy as np
 from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
-from ..utils import deprecated, isiterable
+from ..utils import isiterable
 
 
 __all__ = ['Angle', 'Latitude', 'Longitude']

@@ -11,8 +11,6 @@ interfaces.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import numpy as np
-
 from .. import units as u
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun']
