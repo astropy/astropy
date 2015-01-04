@@ -6,8 +6,7 @@ import copy
 import functools
 import sys
 
-from datetime import datetime
-import dateutil.parser
+from datetime import datetime, tzinfo, timedelta
 
 import numpy as np
 
@@ -757,7 +756,10 @@ def test_datetime_tzinfo():
     """
     Test #3160 that time zone info in datetime objects is respected.
     """
-    datestr = '2002-01-01 01:00:00-06'  # GMT - 6
-    d = dateutil.parser.parse(datestr)
+    class TZm6(tzinfo):
+        def utcoffset(self, dt):
+            return timedelta(hours=-6)
+
+    d = datetime(2002, 1, 2, 10, 3, 4, tzinfo=TZm6())
     t = Time(d)
-    assert t.value == datetime(2002, 1, 1, 7, 0, 0)
+    assert t.value == datetime(2002, 1, 2, 16, 3, 4)
