@@ -142,6 +142,11 @@ def join(left, right, keys=None, join_type='inner',
             * ``'silent'``: silently pick the last conflicting meta-data value
             * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
             * ``'error'``: raise an exception.
+
+    Returns
+    -------
+    joined_table : `~astropy.table.Table` object
+        New table containing the result of the join operation.
     """
     from .table import Table
 
@@ -167,16 +172,15 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
     """
     Stack tables vertically (along rows)
 
-    A ``join_type`` of 'exact' means that the tables must all
-    have exactly the same column names (though the order can vary).  If
-    ``join_type`` is 'inner' then the intersection of common columns will
-    be output.  A value of 'outer' (default) means the output will have the union of
+    A ``join_type`` of 'exact' means that the tables must all have exactly
+    the same column names (though the order can vary).  If ``join_type``
+    is 'inner' then the intersection of common columns will be output.
+    A value of 'outer' (default) means the output will have the union of
     all columns, with table values being masked where no common values are
     available.
 
     Parameters
     ----------
-
     tables : Table or list of Table objects
         Table(s) to stack along rows (vertically) with the current table
     join_type : str
@@ -187,9 +191,13 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
             * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
             * ``'error'``: raise an exception.
 
+    Returns
+    -------
+    stacked_table : `~astropy.table.Table` object
+        New table containing the stacked data from the input tables.
+
     Examples
     --------
-
     To stack two tables along rows do::
 
       >>> from astropy.table import vstack, Table
@@ -239,7 +247,6 @@ def hstack(tables, join_type='outer',
 
     Parameters
     ----------
-
     tables : List of Table objects
         Tables to stack along columns (horizontally) with the current table
     join_type : str
@@ -259,9 +266,13 @@ def hstack(tables, join_type='outer',
             * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
             * ``'error'``: raise an exception.
 
+    Returns
+    -------
+    stacked_table : `~astropy.table.Table` object
+        New table containing the stacked data from the input tables.
+
     Examples
     --------
-
     To stack two tables horizontally (along columns) do::
 
       >>> from astropy.table import Table, hstack
@@ -505,6 +516,11 @@ def _join(left, right, keys=None, join_type='inner',
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
+
+    Returns
+    -------
+    joined_table : `~astropy.table.Table` object
+        New table containing the result of the join operation.
     """
     from .table import Table
 
@@ -613,7 +629,6 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
 
     Parameters
     ----------
-
     arrays : list of Tables
         Tables to stack by rows (vertically)
     join_type : str
@@ -621,6 +636,11 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
     col_name_map : empty dict or None
         If passed as a dict then it will be updated in-place with the
         mapping of output to input column names.
+
+    Returns
+    -------
+    stacked_table : `~astropy.table.Table` object
+        New table containing the stacked data from the input tables.
     """
     from .table import Table
 
@@ -706,7 +726,6 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
 
     Parameters
     ----------
-
     arrays : List of tables
         Tables to stack by columns (horizontally)
     join_type : str
@@ -717,6 +736,11 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     table_names : list of str or None
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2', ..].
+
+    Returns
+    -------
+    stacked_table : `~astropy.table.Table` object
+        New table containing the stacked data from the input tables.
     """
     from .table import Table
 
