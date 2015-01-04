@@ -200,7 +200,7 @@ class Angle(u.Quantity):
         members.  The ``d``, ``m``, ``s`` are thus always positive, and the sign of
         the angle is given by ``sign``. (This is a read-only property.)
 
-        This is primarily intented for use with `dms` to generate string
+        This is primarily intended for use with `dms` to generate string
         representations of coordinates that are correct for negative angles.
         """
         return signed_dms_tuple(np.sign(self.degree),
@@ -219,7 +219,7 @@ class Angle(u.Quantity):
             used.
 
         decimal : bool, optional
-            If `True`, a decimal respresentation will be used, otherwise
+            If `True`, a decimal representation will be used, otherwise
             the returned string will be in sexagesimal form.
 
         sep : str, optional
@@ -530,7 +530,7 @@ class Latitude(Angle):
 
     def _validate_angles(self, angles=None):
         """Check that angles are between -90 and 90 degrees.
-        If not given, the check is done on the object iself"""
+        If not given, the check is done on the object itself"""
         # Convert the lower and upper bounds to the "native" unit of
         # this angle.  This limits multiplication to two values,
         # rather than the N values in `self.value`.  Also, the

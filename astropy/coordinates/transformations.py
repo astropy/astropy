@@ -302,7 +302,7 @@ class TransformGraph(object):
         This function always returns a `CompositeTransform`, because
         `CompositeTransform` is slightly more adaptable in the way it can be
         called than other transform classes. Specifically, it takes care of
-        inetermediate steps of transformations in a way that is consistent with
+        intermediate steps of transformations in a way that is consistent with
         1-hop transformations.
 
         """
@@ -504,7 +504,7 @@ class TransformGraph(object):
             The coordinate frame class to transform into.
         priority : number
             The priority if this transform when finding the shortest
-            coordinate tranform path - large numbers are lower priorities.
+            coordinate transform path - large numbers are lower priorities.
 
         Returns
         -------
@@ -541,7 +541,7 @@ class TransformGraph(object):
 
         """
         def deco(func):
-            # this doesn't do anything directly with the trasnform because
+            # this doesn't do anything directly with the transform because
             # ``register_graph=self`` stores it in the transform graph
             # automatically
             transcls(func, fromsys, tosys, priority=priority,
@@ -568,7 +568,7 @@ class CoordinateTransform(object):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -671,7 +671,7 @@ class FunctionTransform(CoordinateTransform):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -733,7 +733,7 @@ class StaticMatrixTransform(CoordinateTransform):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -799,7 +799,7 @@ class DynamicMatrixTransform(CoordinateTransform):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -860,7 +860,7 @@ class CompositeTransform(CoordinateTransform):
         The coordinate frame class to transform into.
     priority : number
         The priority if this transform when finding the shortest
-        coordinate tranform path - large numbers are lower priorities.
+        coordinate transform path - large numbers are lower priorities.
     register_graph : `TransformGraph` or `None`
         A graph to register this transformation with on creation, or
         `None` to leave it unregistered.
@@ -919,6 +919,6 @@ class CompositeTransform(CoordinateTransform):
             curr_toframe = t.tosys(**frattrs)
             curr_coord = t(curr_coord, curr_toframe)
 
-        # this is safe even in the case enere self.transforms is empty, because
+        # this is safe even in the case where self.transforms is empty, because
         # coordinate objects are immutible, so copying is not needed
         return curr_coord

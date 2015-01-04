@@ -107,7 +107,7 @@ def match_coordinates_sky(matchcoord, catalogcoord, nthneighbor=1, storekdtree='
         itself as the closest match).
     storekdtree : bool or str, optional
         If a string, will store the KD-Tree used for the computation
-        in the ``catalogcoord`` as an attrbute in ``catalogcoord`` with the
+        in the ``catalogcoord`` as an attribute in ``catalogcoord`` with the
         provided name.  This dramatically speeds up subsequent calls with the
         same catalog. If False, the KD-Tree is discarded after use.
 
@@ -352,7 +352,7 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
 
 def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
     """
-    This is a utility function to retreive (and build/chache, if necessary)
+    This is a utility function to retrieve (and build/cache, if necessary)
     a 3D cartesian KD-Tree from various sorts of astropy coordinate objects.
 
     Parameters
@@ -361,7 +361,7 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt='_kdtree', forceunit=None):
         The coordinates to build the KD-Tree for.
     attrname_or_kdt : bool or str or KDTree
         If a string, will store the KD-Tree used for the computation
-        in the ``coord``, as an attrbute in ``coord`` with the
+        in the ``coord``, as an attribute in ``coord`` with the
         provided name. If given as a KD-Tree, it will just be used directly.
     forceunit: unit or None
         If a unit, the cartesian coordinates will convert to that unit before

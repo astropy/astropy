@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-This module contains convinience functions for coordinate-related functionality.
+This module contains convenience functions for coordinate-related functionality.
 
 This is generally just wrapping around the object-oriented coordinates
 framework, but it is useful for some users who are used to more functional
@@ -138,7 +138,7 @@ def get_sun(time):
     Notes
     -----
     The algorithm for determining the sun/earth relative position is based
-    on the simplifed version of VSOP2000 that is part of ERFA. Compared to
+    on the simplified version of VSOP2000 that is part of ERFA. Compared to
     JPL's ephemeris, it should be good to about 4 km (in the Sun-Earth
     vector) from 1900-2100 C.E., 8 km for the 1800-2200 span, and perhaps
     250 km over the 1000-3000.
