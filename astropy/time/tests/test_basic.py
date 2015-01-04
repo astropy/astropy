@@ -6,7 +6,7 @@ import copy
 import functools
 import sys
 
-from datetime import datetime
+from datetime import datetime, tzinfo, timedelta
 
 import numpy as np
 
@@ -750,3 +750,16 @@ def test_byteorder():
     time_little = Time(little_endian, format='mjd')
     assert np.all(time_big == time_mjd)
     assert np.all(time_little == time_mjd)
+
+
+def test_datetime_tzinfo():
+    """
+    Test #3160 that time zone info in datetime objects is respected.
+    """
+    class TZm6(tzinfo):
+        def utcoffset(self, dt):
+            return timedelta(hours=-6)
+
+    d = datetime(2002, 1, 2, 10, 3, 4, tzinfo=TZm6())
+    t = Time(d)
+    assert t.value == datetime(2002, 1, 2, 16, 3, 4)

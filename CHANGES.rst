@@ -467,6 +467,9 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - When creating a Time object from a datetime object the time zone
+    info is now correctly used. [#3160]
+
 - ``astropy.units``
 
   - Added a ``latex_inline`` unit format that returns the units in LaTeX math

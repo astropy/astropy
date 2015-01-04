@@ -1638,6 +1638,10 @@ class TimeDatetime(TimeUnique):
                              op_dtypes=[np.object] + 5*[np.intc] + [np.double])
         for val, iy, im, id, ihr, imin, dsec in iterator:
             dt = val.item()
+
+            if dt.tzinfo is not None:
+                dt = (dt - dt.utcoffset()).replace(tzinfo=None)
+
             iy[...] = dt.year
             im[...] = dt.month
             id[...] = dt.day
