@@ -7,6 +7,7 @@ import functools
 import sys
 
 from datetime import datetime
+import dateutil.parser
 
 import numpy as np
 
@@ -750,3 +751,13 @@ def test_byteorder():
     time_little = Time(little_endian, format='mjd')
     assert np.all(time_big == time_mjd)
     assert np.all(time_little == time_mjd)
+
+
+def test_datetime_tzinfo():
+    """
+    Test #3160 that time zone info in datetime objects is respected.
+    """
+    datestr = '2002-01-01 01:00:00-06'  # GMT - 6
+    d = dateutil.parser.parse(datestr)
+    t = Time(d)
+    assert t.value == datetime(2002, 1, 1, 7, 0, 0)
