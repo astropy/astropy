@@ -1416,7 +1416,7 @@ class TimeMJD(TimeFormat):
 class TimeDecimalYear(TimeFormat):
     """
     Time as a decimal year, with integer values corresponding to midnight
-    of the first day of each year.  For example 2005.5 is corresponds to the
+    of the first day of each year.  For example 2000.5 corresponds to the
     ISO time '2000-07-02 00:00:00'.
     """
     name = 'decimalyear'
@@ -1425,7 +1425,6 @@ class TimeDecimalYear(TimeFormat):
         self._check_scale(self._scale)  # Validate scale.
 
         val = (val1 + val2).astype(np.double)
-        print(val)
         iy_start = np.trunc(val).astype(np.int)
 
         imon = np.ones_like(iy_start)
@@ -1452,7 +1451,7 @@ class TimeDecimalYear(TimeFormat):
     @property
     def value(self):
         iy_start, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper().encode('utf8'),
-                                                 0,  # precision=0 for microsec
+                                                 0,  # precision=0
                                                  self.jd1, self.jd2)
         imon = np.ones_like(iy_start)
         iday = np.ones_like(iy_start)
