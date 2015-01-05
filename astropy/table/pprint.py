@@ -291,7 +291,7 @@ class TableFormatter(object):
         for i in xrange(n_rows):
             if i < i0 or i > i1:
                 if multidims:
-                    # Prevents colums like Column(data=[[(1,)],[(2,)]], name='a')
+                    # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
                     # with shape (n,1,...,1) from being printed as if there was
                     # more than one element in a row
                     if trivial_multidims:
