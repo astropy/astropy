@@ -736,10 +736,20 @@ class Section(object):
         if not isinstance(key, tuple):
             key = (key,)
         naxis = len(self.hdu.shape)
-        if naxis < len(key):
-            raise IndexError('too many indices')
-        elif naxis > len(key):
-            key = key + (slice(None),) * (naxis - len(key))
+        return_scalar = (all(isinstance(k, (int, np.integer)) for k in key)
+                         and len(key) == naxis)
+        if not any(k is Ellipsis for k in key):
+            # We can always add a ... at the end, after making note of whether
+            # to return a scalar.
+            key += Ellipsis,
+        ellipsis_count = len([k for k in key if k is Ellipsis])
+        if len(key) - ellipsis_count > naxis or ellipsis_count > 1:
+            raise IndexError('too many indices for array')
+        # Insert extra dimensions as needed.
+        idx = next(i for i, k in enumerate(key + (Ellipsis,)) if k is Ellipsis)
+        key = key[:idx] + (slice(None),) * (naxis - len(key) + 1) + key[idx+1:]
+        return_0dim = (all(isinstance(k, (int, np.integer)) for k in key)
+                       and len(key) == naxis)
 
         dims = []
         offset = 0
@@ -771,6 +781,10 @@ class Section(object):
         else:
             data = self._getdata(key)
 
+        if return_scalar:
+            data = data.item()
+        elif return_0dim:
+            data = data.squeeze()
         return data
 
     def _getdata(self, keys):
@@ -792,7 +806,7 @@ class Section(object):
             return np.array(data)
         else:
             # Only singleton dimensions remain; concatenate in a 1D array.
-            return np.concatenate(data)
+            return np.concatenate([np.atleast_1d(array) for array in data])
 
 
 class PrimaryHDU(_ImageBaseHDU):
