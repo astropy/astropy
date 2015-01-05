@@ -299,7 +299,7 @@ class StdDevUncertainty(NDUncertainty):
 
     def propagate_multiply(self, other_nddata, result_data):
         """
-        Propagate uncertainties for mutliplication.
+        Propagate uncertainties for multiplication.
 
         Parameters
         ----------
