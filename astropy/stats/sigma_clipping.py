@@ -180,6 +180,7 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
         image.
     """
 
+    data = np.asanyarray(data)
     if mask is not None:
         if mask.dtype != np.bool:
             raise TypeError('mask must be a boolean ndarray')
