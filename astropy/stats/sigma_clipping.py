@@ -144,7 +144,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
 
 def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
     """
-    Calculate sigma-clipped statistics of an image.
+    Calculate sigma-clipped statistics from data.
 
     For example, sigma-clipped statistics can be used to estimate the
     background and background noise in an image.
@@ -152,7 +152,7 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
     Parameters
     ----------
     data : array_like
-        The 2D array of the image.
+        Data array or object that can be converted to an array.
 
     mask : `numpy.ndarray` (bool), optional
         A boolean mask with the same shape as ``data``, where a `True`
