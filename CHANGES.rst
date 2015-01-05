@@ -370,6 +370,8 @@ API Changes
     ``Time.lon``, and ``Time.lat`` properties (deprecated in v0.4) have now
     been removed. [#2990]
 
+  - Add ``decimalyear`` format that represents time as a decimal year. [#3265]
+
 - ``astropy.units``
 
   - Support for VOUnit has been updated to be compliant with version
