@@ -5,7 +5,6 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
-import warnings
 import re
 
 from copy import deepcopy
@@ -19,7 +18,6 @@ from ..io import registry as io_registry
 from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated
 from ..utils.console import color_print
-from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData
 from . import groups
 from .pprint import TableFormatter
