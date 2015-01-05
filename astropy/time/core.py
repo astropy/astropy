@@ -1412,6 +1412,68 @@ class TimeMJD(TimeFormat):
         return (self.jd1 - erfa.DJM0) + self.jd2
 
 
+class TimeDecimalYear(TimeFormat):
+    """
+    Time as a decimal year, with integer values corresponding to midnight
+    of the first day of each year.  For example 2005.5 is corresponds to the
+    ISO time '2000-07-02 00:00:00'.
+    """
+    name = 'decimalyear'
+
+    def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # Validate scale.
+
+        val = (val1 + val2).astype(np.double)
+        print(val)
+        iy_start = np.trunc(val).astype(np.int)
+
+        imon = np.ones_like(iy_start)
+        iday = np.ones_like(iy_start)
+        ihr = np.zeros_like(iy_start)
+        imin = np.zeros_like(iy_start)
+        isec = np.zeros_like(val)
+
+        # Possible enhancement: use np.unique to only compute start, stop
+        # for unique values of iy_start.
+        jd1_start, jd2_start = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy_start, imon, iday, ihr, imin, isec)
+        jd1_end, jd2_end = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy_start + 1, imon, iday, ihr, imin, isec)
+
+        t_start = Time(jd1_start, jd2_start, scale=self.scale, format='jd')
+        t_end = Time(jd1_end, jd2_end, scale=self.scale, format='jd')
+
+        y_frac = val - iy_start
+        t_frac = t_start + (t_end - t_start) * y_frac
+
+        self.jd1, self.jd2 = day_frac(t_frac.jd1, t_frac.jd2)
+
+    @property
+    def value(self):
+        iy_start, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper().encode('utf8'),
+                                                 0,  # precision=0 for microsec
+                                                 self.jd1, self.jd2)
+        imon = np.ones_like(iy_start)
+        iday = np.ones_like(iy_start)
+        ihr = np.zeros_like(iy_start)
+        imin = np.zeros_like(iy_start)
+        isec = np.zeros_like(self.jd1)
+
+        # Possible enhancement: use np.unique to only compute start, stop
+        # for unique values of iy_start.
+        jd1_start, jd2_start = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy_start, imon, iday, ihr, imin, isec)
+        jd1_end, jd2_end = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy_start + 1, imon, iday, ihr, imin, isec)
+
+        jd_start = jd1_start + jd2_start
+        jd_end = jd1_end + jd2_end
+        jd = self.jd1 + self.jd2
+        decimalyear = iy_start + (jd - jd_start) / (jd_end - jd_start)
+
+        return decimalyear
+
+
 class TimeFromEpoch(TimeFormat):
     """
     Base class for times that represent the interval from a particular

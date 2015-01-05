@@ -133,24 +133,25 @@ that derives from the base :class:`~astropy.time.TimeFormat` class.
 This class structure can be easily adapted and extended by users for
 specialized time formats not supplied in `astropy.time`.
 
-=========  =================================================  ==============================
+==========  =================================================  ==============================
 Format            Class                                        Example argument
-=========  =================================================  ==============================
-byear      :class:`~astropy.time.TimeBesselianEpoch`          1950.0
-byear_str  :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
-cxcsec     :class:`~astropy.time.TimeCxcSec`                  63072064.184
-datetime   :class:`~astropy.time.TimeDatetime`                datetime(2000, 1, 2, 12, 0, 0)
-gps        :class:`~astropy.time.TimeGPS`                     630720013.0
-iso        :class:`~astropy.time.TimeISO`                     '2000-01-01 00:00:00.000'
-isot       :class:`~astropy.time.TimeISOT`                    '2000-01-01T00:00:00.000'
-jd         :class:`~astropy.time.TimeJD`                      2451544.5
-jyear      :class:`~astropy.time.TimeJulianEpoch`             2000.0
-jyear_str  :class:`~astropy.time.TimeJulianEpochString`       'J2000.0'
-mjd        :class:`~astropy.time.TimeMJD`                     51544.0
-plot_date  :class:`~astropy.time.TimePlotDate`                730120.0003703703
-unix       :class:`~astropy.time.TimeUnix`                    946684800.0
-yday       :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
-=========  =================================================  ==============================
+==========  =================================================  ==============================
+byear       :class:`~astropy.time.TimeBesselianEpoch`          1950.0
+byear_str   :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
+cxcsec      :class:`~astropy.time.TimeCxcSec`                  63072064.184
+datetime    :class:`~astropy.time.TimeDatetime`                datetime(2000, 1, 2, 12, 0, 0)
+decimalyear :class:`~astropy.time.TimeDecimalYear`             2000.45
+gps         :class:`~astropy.time.TimeGPS`                     630720013.0
+iso         :class:`~astropy.time.TimeISO`                     '2000-01-01 00:00:00.000'
+isot        :class:`~astropy.time.TimeISOT`                    '2000-01-01T00:00:00.000'
+jd          :class:`~astropy.time.TimeJD`                      2451544.5
+jyear       :class:`~astropy.time.TimeJulianEpoch`             2000.0
+jyear_str   :class:`~astropy.time.TimeJulianEpochString`       'J2000.0'
+mjd         :class:`~astropy.time.TimeMJD`                     51544.0
+plot_date   :class:`~astropy.time.TimePlotDate`                730120.0003703703
+unix        :class:`~astropy.time.TimeUnix`                    946684800.0
+yday        :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
+==========  =================================================  ==============================
 
 Subformat
 """""""""
