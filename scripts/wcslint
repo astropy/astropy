@@ -1,5 +1,0 @@
-#!/usr/bin/env python
-
-import astropy.wcs.wcslint
-
-astropy.wcs.wcslint.main()

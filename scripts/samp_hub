@@ -1,4 +1,0 @@
-#!/usr/bin/env python
-from astropy.vo.samp.hub_script import hub_script
-hub_script()
-
