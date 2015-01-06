@@ -79,3 +79,20 @@ def test_compare_to_scipy_sigmaclip():
 
         assert astropyres.count() == len(scipyres)
         assert_equal(astropyres[~astropyres.mask].data, scipyres)
+
+
+def test_sigma_clipped_stats():
+    """Test list data with input mask or mask_val (#3268)."""
+    # test list data with mask
+    data = [0, 1]
+    mask = np.array([True, False])
+    result = sigma_clipped_stats(data, mask=mask)
+    assert result[0] == 1.
+    assert result[1] == 1.
+    assert result[2] == 0.
+
+    # test list data with mask_val
+    result2 = sigma_clipped_stats(data, mask_val=0.)
+    assert result2[0] == 1.
+    assert result2[1] == 1.
+    assert result2[2] == 0.
