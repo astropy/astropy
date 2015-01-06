@@ -571,6 +571,16 @@ class TestImageFunctions(FitsTestCase):
         assert (d.section[0:2, 0:2] == dat[0:2, 0:2]).all()
         assert not d._data_loaded
 
+    def test_section_dtype(self):
+        a = np.array([1])
+        hdu = fits.PrimaryHDU(a)
+        hdu.writeto(self.temp('test_new.fits'))
+
+        hdul = fits.open(self.temp('test_new.fits'))
+        assert hdul[0].section[0].dtype == a.dtype
+        assert hdul[0].section.dtype == a.dtype
+        assert hdul[0].section.astype(float).dtype == a.astype(float).dtype
+
     def test_do_not_scale_image_data(self):
         hdul = fits.open(self.data('scale.fits'), do_not_scale_image_data=True)
         assert hdul[0].data.dtype == np.dtype('>i2')

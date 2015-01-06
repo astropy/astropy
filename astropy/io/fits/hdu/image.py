@@ -729,8 +729,13 @@ class Section(object):
     details.
     """
 
-    def __init__(self, hdu):
+    def __init__(self, hdu, dtype=None):
         self.hdu = hdu
+        if dtype is not None:
+            self.dtype = dtype
+        else:
+            self.dtype = None  # Needed for initialization.
+            self.dtype = self[0].dtype
 
     def __getitem__(self, key):
         if not isinstance(key, tuple):
@@ -782,7 +787,7 @@ class Section(object):
             data = self._getdata(key)
 
         if return_scalar:
-            data = data.item()
+            data = data[0]
         elif return_0dim:
             data = data.squeeze()
         return data
@@ -807,6 +812,9 @@ class Section(object):
         else:
             # Only singleton dimensions remain; concatenate in a 1D array.
             return np.concatenate([np.atleast_1d(array) for array in data])
+
+    def astype(self, dtype):
+        return type(self)(self.hdu, dtype)
 
 
 class PrimaryHDU(_ImageBaseHDU):
