@@ -300,6 +300,7 @@ class TestBasic():
 
     def test_creating_all_formats(self):
         """Create a time object using each defined format"""
+        Time(2000.5, format='decimalyear')
         Time(100.0, format='cxcsec')
         Time(100.0, format='unix')
         Time(100.0, format='gps')
@@ -720,6 +721,20 @@ def test_now():
     else:
         total_secs = lambda td: td.total_seconds()
     assert total_secs(dt) < 0.1
+
+
+def test_decimalyear():
+    t = Time('2001:001', format='yday')
+    assert t.decimalyear == 2001.0
+
+    t = Time(2000.0, [0.5, 0.75], format='decimalyear')
+    assert np.all(t.value == [2000.5, 2000.75])
+
+    jd0 = Time('2000:001').jd
+    jd1 = Time('2001:001').jd
+    d_jd = jd1 - jd0
+    assert np.all(t.jd == [jd0 + 0.5 * d_jd,
+                           jd0 + 0.75 * d_jd])
 
 
 def test_dir():

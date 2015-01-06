@@ -24,6 +24,7 @@ from ..extern import six
 
 __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS',
+           'TimeDecimalYear',
            'TimePlotDate', 'TimeDatetime', 'TimeString',
            'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
            'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
@@ -1410,6 +1411,69 @@ class TimeMJD(TimeFormat):
     @property
     def value(self):
         return (self.jd1 - erfa.DJM0) + self.jd2
+
+
+class TimeDecimalYear(TimeFormat):
+    """
+    Time as a decimal year, with integer values corresponding to midnight
+    of the first day of each year.  For example 2000.5 corresponds to the
+    ISO time '2000-07-02 00:00:00'.
+    """
+    name = 'decimalyear'
+
+    def set_jds(self, val1, val2):
+        self._check_scale(self._scale)  # Validate scale.
+
+        sum12, err12 = two_sum(val1, val2)
+        iy_start = np.trunc(sum12).astype(np.int)
+        extra, y_frac = two_sum(sum12, -iy_start)
+        y_frac += extra + err12
+
+        val = (val1 + val2).astype(np.double)
+        iy_start = np.trunc(val).astype(np.int)
+
+        imon = np.ones_like(iy_start)
+        iday = np.ones_like(iy_start)
+        ihr = np.zeros_like(iy_start)
+        imin = np.zeros_like(iy_start)
+        isec = np.zeros_like(y_frac)
+
+        # Possible enhancement: use np.unique to only compute start, stop
+        # for unique values of iy_start.
+        jd1_start, jd2_start = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy_start, imon, iday, ihr, imin, isec)
+        jd1_end, jd2_end = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy_start + 1, imon, iday, ihr, imin, isec)
+
+        t_start = Time(jd1_start, jd2_start, scale=self.scale, format='jd')
+        t_end = Time(jd1_end, jd2_end, scale=self.scale, format='jd')
+        t_frac = t_start + (t_end - t_start) * y_frac
+
+        self.jd1, self.jd2 = day_frac(t_frac.jd1, t_frac.jd2)
+
+    @property
+    def value(self):
+        iy_start, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper().encode('utf8'),
+                                                 0,  # precision=0
+                                                 self.jd1, self.jd2)
+        imon = np.ones_like(iy_start)
+        iday = np.ones_like(iy_start)
+        ihr = np.zeros_like(iy_start)
+        imin = np.zeros_like(iy_start)
+        isec = np.zeros_like(self.jd1)
+
+        # Possible enhancement: use np.unique to only compute start, stop
+        # for unique values of iy_start.
+        jd1_start, jd2_start = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy_start, imon, iday, ihr, imin, isec)
+        jd1_end, jd2_end = erfa_time.dtf_jd(
+            self.scale.upper().encode('utf8'), iy_start + 1, imon, iday, ihr, imin, isec)
+
+        dt = (self.jd1 - jd1_start) + (self.jd2 - jd2_start)
+        dt_end = (jd1_end - jd1_start) + (jd2_end - jd2_start)
+        decimalyear = iy_start + dt / dt_end
+
+        return decimalyear
 
 
 class TimeFromEpoch(TimeFormat):
