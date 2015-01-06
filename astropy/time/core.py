@@ -1424,6 +1424,11 @@ class TimeDecimalYear(TimeFormat):
     def set_jds(self, val1, val2):
         self._check_scale(self._scale)  # Validate scale.
 
+        sum12, err12 = two_sum(val1, val2)
+        iy_start = np.trunc(sum12).astype(np.int)
+        extra, y_frac = two_sum(sum12, -iy_start)
+        y_frac += extra + err12
+
         val = (val1 + val2).astype(np.double)
         iy_start = np.trunc(val).astype(np.int)
 
@@ -1431,7 +1436,7 @@ class TimeDecimalYear(TimeFormat):
         iday = np.ones_like(iy_start)
         ihr = np.zeros_like(iy_start)
         imin = np.zeros_like(iy_start)
-        isec = np.zeros_like(val)
+        isec = np.zeros_like(y_frac)
 
         # Possible enhancement: use np.unique to only compute start, stop
         # for unique values of iy_start.
@@ -1442,8 +1447,6 @@ class TimeDecimalYear(TimeFormat):
 
         t_start = Time(jd1_start, jd2_start, scale=self.scale, format='jd')
         t_end = Time(jd1_end, jd2_end, scale=self.scale, format='jd')
-
-        y_frac = val - iy_start
         t_frac = t_start + (t_end - t_start) * y_frac
 
         self.jd1, self.jd2 = day_frac(t_frac.jd1, t_frac.jd2)
@@ -1466,10 +1469,9 @@ class TimeDecimalYear(TimeFormat):
         jd1_end, jd2_end = erfa_time.dtf_jd(
             self.scale.upper().encode('utf8'), iy_start + 1, imon, iday, ihr, imin, isec)
 
-        jd_start = jd1_start + jd2_start
-        jd_end = jd1_end + jd2_end
-        jd = self.jd1 + self.jd2
-        decimalyear = iy_start + (jd - jd_start) / (jd_end - jd_start)
+        dt = (self.jd1 - jd1_start) + (self.jd2 - jd2_start)
+        dt_end = (jd1_end - jd1_start) + (jd2_end - jd2_start)
+        decimalyear = iy_start + dt / dt_end
 
         return decimalyear
 
