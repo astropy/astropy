@@ -901,3 +901,15 @@ def test_pformat_roundtrip():
     for c in dat.colnames:
         assert np.all(dat[c] == out[c])
 
+
+def test_ipac_abbrev():
+    lines = ['| c1 | c2 | c3   |   c4 | c5| c6 | c7  | c8 | c9|c10|c11|c12|',
+             '| r  | re | rea  | real | d | do | dou | f  | i | l | da| c |',
+             '  1    2    3       4     5   6    7     8    9   10  11  12 ']
+    dat = ascii.read(lines, format='ipac')
+    for name in dat.columns[0:8]:
+        assert dat[name].dtype.kind == 'f'
+    for name in dat.columns[8:10]:
+        assert dat[name].dtype.kind == 'i'
+    for name in dat.columns[10:12]:
+        assert dat[name].dtype.kind in ('U', 'S')
