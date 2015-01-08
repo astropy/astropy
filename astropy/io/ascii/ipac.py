@@ -70,6 +70,10 @@ class IpacHeaderSplitter(core.BaseSplitter):
 class IpacHeader(fixedwidth.FixedWidthHeader):
     """IPAC table header"""
     splitter_class = IpacHeaderSplitter
+
+    # Defined ordered list of possible types.  Ordering is needed to
+    # distinguish between "d" (double) and "da" (date) as defined by
+    # the IPAC standard for abbreviations.  This gets used in get_col_type().
     col_type_list = (('integer', core.IntType),
                      ('long', core.IntType),
                      ('double', core.FloatType),
@@ -151,7 +155,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
 
     def get_col_type(self, col):
         for (col_type_key, col_type) in self.col_type_list:
-            if col_type_key.startswith(col.raw_type):
+            if col_type_key.startswith(col.raw_type.lower()):
                 return col_type
         else:
             raise ValueError('Unknown data type ""%s"" for column "%s"' % (

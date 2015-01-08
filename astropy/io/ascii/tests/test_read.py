@@ -904,7 +904,7 @@ def test_pformat_roundtrip():
 
 def test_ipac_abbrev():
     lines = ['| c1 | c2 | c3   |   c4 | c5| c6 | c7  | c8 | c9|c10|c11|c12|',
-             '| r  | re | rea  | real | d | do | dou | f  | i | l | da| c |',
+             '| r  | rE | rea  | real | D | do | dou | f  | i | l | da| c |',
              '  1    2    3       4     5   6    7     8    9   10  11  12 ']
     dat = ascii.read(lines, format='ipac')
     for name in dat.columns[0:8]:
