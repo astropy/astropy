@@ -446,6 +446,8 @@ Bug Fixes
     specify the output null values.  Previously the behavior was inconsistent
     or incorrect. [#3259]
 
+  - The IPAC table reader now correctly interprets abbreviated column types. [#3279]
+
 - ``astropy.io.fits``
 
   - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]

@@ -70,20 +70,17 @@ class IpacHeaderSplitter(core.BaseSplitter):
 class IpacHeader(fixedwidth.FixedWidthHeader):
     """IPAC table header"""
     splitter_class = IpacHeaderSplitter
-    col_type_map = {'int': core.IntType,
-                    'integer': core.IntType,
-                    'long': core.IntType,
-                    'double': core.FloatType,
-                    'float': core.FloatType,
-                    'real': core.FloatType,
-                    'char': core.StrType,
-                    'date': core.StrType,
-                    'i': core.IntType,
-                    'l': core.IntType,
-                    'd': core.FloatType,
-                    'f': core.FloatType,
-                    'r': core.FloatType,
-                    'c': core.StrType}
+
+    # Defined ordered list of possible types.  Ordering is needed to
+    # distinguish between "d" (double) and "da" (date) as defined by
+    # the IPAC standard for abbreviations.  This gets used in get_col_type().
+    col_type_list = (('integer', core.IntType),
+                     ('long', core.IntType),
+                     ('double', core.FloatType),
+                     ('float', core.FloatType),
+                     ('real', core.FloatType),
+                     ('char', core.StrType),
+                     ('date', core.StrType))
     definition='ignore'
     start_line = None
 
@@ -155,6 +152,14 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                     val = line[2:].strip()
                     if val:
                         table_meta['comments'].append(val)
+
+    def get_col_type(self, col):
+        for (col_type_key, col_type) in self.col_type_list:
+            if col_type_key.startswith(col.raw_type.lower()):
+                return col_type
+        else:
+            raise ValueError('Unknown data type ""%s"" for column "%s"' % (
+                col.raw_type, col.name))
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
