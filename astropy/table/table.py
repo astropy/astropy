@@ -5,7 +5,6 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
-import warnings
 import re
 
 from copy import deepcopy
@@ -19,7 +18,6 @@ from ..io import registry as io_registry
 from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated
 from ..utils.console import color_print
-from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.metadata import MetaData
 from . import groups
 from .pprint import TableFormatter
@@ -362,7 +360,7 @@ class Table(object):
         return self.as_array().data if self.masked else self.as_array()
 
     def _check_names_dtype(self, names, dtype, n_cols):
-        """Make sure that names and dtype are boths iterable and have
+        """Make sure that names and dtype are both iterable and have
         the same length as data.
         """
         for inp_list, inp_str in ((dtype, 'dtype'), (names, 'names')):
@@ -830,7 +828,7 @@ class Table(object):
                 self.columns[item][:] = value
 
             elif isinstance(item, (int, np.integer)):
-                # Set the corresponding row assuming value is an interable.
+                # Set the corresponding row assuming value is an iterable.
                 if not hasattr(value, '__len__'):
                     raise TypeError('Right side value must be iterable')
 

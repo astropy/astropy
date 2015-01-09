@@ -5,7 +5,7 @@ join():  Perform a database join of two numpy ndarrays.
 hstack(): Horizontally stack a list of numpy ndarrays.
 vstack(): Vertically stack a list of numpy ndarrays.
 
-Some code and inspriration taken from numpy.lib.recfunctions.join_by().
+Some code and inspiration taken from numpy.lib.recfunctions.join_by().
 Redistribution license restrictions apply.
 """
 from __future__ import (absolute_import, division, print_function,
@@ -551,7 +551,7 @@ def get_groups(table, keys):
     table = table.ravel()
     len_table = len(table)
 
-    # oined array dtype as a list of descr (name, type_str, shape) tuples
+    # joined array dtype as a list of descr (name, type_str, shape) tuples
     col_name_map = get_col_name_map([table], keys)
     out_descrs = get_descrs([table], col_name_map)
 

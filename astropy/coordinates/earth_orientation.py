@@ -29,7 +29,7 @@ def eccentricity(jd):
     Parameters
     ----------
     jd : scalar or array-like
-        julian date at which to compute the eccentricity
+        Julian date at which to compute the eccentricity
 
     returns
     -------
@@ -56,7 +56,7 @@ def mean_lon_of_perigee(jd):
     Parameters
     ----------
     jd : scalar or array-like
-        julian date at which to compute the mean longitude of perigee
+        Julian date at which to compute the mean longitude of perigee
 
     returns
     -------
@@ -82,7 +82,7 @@ def obliquity(jd, algorithm=2006):
     Parameters
     ----------
     jd : scalar or array-like
-        julian date at which to compute the obliquity
+        Julian date at which to compute the obliquity
     algorithm : int
         Year of algorithm based on IAU adoption. Can be 2006, 2000 or 1980. The
         2006 algorithm is mentioned in Circular 179, but the canonical reference
@@ -123,7 +123,7 @@ def obliquity(jd, algorithm=2006):
 # TODO: replace this with SOFA equivalent
 def precession_matrix_Capitaine(fromepoch, toepoch):
     """
-    Computes the precession matrix from one julian epoch to another.
+    Computes the precession matrix from one Julian epoch to another.
     The exact method is based on Capitaine et al. 2003, which should
     match the IAU 2006 standard.
 
@@ -158,7 +158,7 @@ def _precess_from_J2000_Capitaine(epoch):
     Parameters
     ----------
     epoch : scalar
-        The epoch as a julian year number (e.g. J2000 is 2000.0)
+        The epoch as a Julian year number (e.g. J2000 is 2000.0)
 
     """
     from .angles import rotation_matrix
@@ -179,10 +179,10 @@ def _precess_from_J2000_Capitaine(epoch):
 
 def _precession_matrix_besselian(epoch1, epoch2):
     """
-    computes the precession matrix from one Besselian epoch to another using
+    Computes the precession matrix from one Besselian epoch to another using
     Newcomb's method.
 
-    ``epoch1`` and ``epoch2`` are in besselian year numbers
+    ``epoch1`` and ``epoch2`` are in Besselian year numbers.
     """
     from .angles import rotation_matrix
 
