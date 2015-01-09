@@ -8,8 +8,10 @@ Introduction
 ============
 
 `astropy.visualization` provides functionality that can be helpful when
-visualizing data. At the moment, the main functionality is image normalizing
+visualizing data.
+At the moment, the main functionality is image normalizing
 (including both scaling and stretching).
+Another feature included here is a plotting style for matplotlib.
 
 Using `astropy.visualization`
 =============================
@@ -33,6 +35,8 @@ more about the available options and how to use it, type::
 
 Reference/API
 =============
+
+.. automodapi:: astropy.visualization.mpl_style
 
 .. automodapi:: astropy.visualization
 

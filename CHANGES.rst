@@ -212,6 +212,10 @@ New Features
     script ``fits2bitmap`` that can produce a bitmap image from a FITS file.
     [#3201]
 
+  - Added dictionary ``astropy.visualization.mpl_style.astropy_mpl_style``
+    which can be used to set a uniform plotstyle specifically for tutorials
+    that is improved compared to matplotlib defaults. [#2719, #2787, #3200]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
