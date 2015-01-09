@@ -92,19 +92,10 @@ class RotateNative2Celestial(EulerAngleRotation):
     def evaluate(cls, phi_N, theta_N, phi, theta, psi):
         """
         Evaluate ZXZ rotation into celestial coordinates.
-
-        Note currently the parameter values are passed in as degrees so we need
-        to convert all inputs to radians and all outputs back to degrees.
         """
 
-        # TODO: Unfortunately right now this superfluously converts from
-        # radians to degrees back to radians again--this will be addressed in a
-        # future change
         phi_N = np.deg2rad(phi_N)
         theta_N = np.deg2rad(theta_N)
-        phi = np.deg2rad(phi)
-        theta = np.deg2rad(theta)
-        psi = np.deg2rad(psi)
 
         alpha_C, delta_C = cls._rotate_zxz(phi_N, theta_N, phi, theta, psi)
 
@@ -146,16 +137,10 @@ class RotateCelestial2Native(EulerAngleRotation):
 
         This is like RotateNative2Celestial.evaluate except phi and psi are
         swapped in ZXZ rotation.
-
-        Note currently the parameter values are passed in as degrees so we need
-        to convert all inputs to radians and all outputs back to degrees.
         """
 
         alpha_C = np.deg2rad(alpha_C)
         delta_C = np.deg2rad(delta_C)
-        phi = np.deg2rad(phi)
-        theta = np.deg2rad(theta)
-        psi = np.deg2rad(psi)
 
         phi_N, theta_N = cls._rotate_zxz(alpha_C, delta_C, psi, theta, phi)
 
@@ -188,42 +173,32 @@ class Rotation2D(Model):
 
     angle = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
-    def __init__(self, angle=angle.default):
-        super(Rotation2D, self).__init__(angle)
-        self._matrix = self._compute_matrix(np.deg2rad(angle))
-
     @property
     def inverse(self):
         """Inverse rotation."""
 
         return self.__class__(angle=-self.angle)
 
-    # TODO: This needs to be refactored so that it can work as a
-    # static/classmethod
-    def evaluate(self, x, y, angle):
+    @classmethod
+    def evaluate(cls, x, y, angle):
         """
         Apply the rotation to a set of 2D Cartesian coordinates given as two
         lists--one for the x coordinates and one for a y coordinates--or a
         single coordinate pair.
-
-        Parameters
-        ----------
-        x, y : array, float
-            x and y coordinates
         """
 
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 
-        shape = x.shape
-        inarr = np.array([x.flatten(), y.flatten()], dtype=np.float64)
-        if inarr.shape[0] != 2 or inarr.ndim != 2:
-            raise ValueError("Incompatible input shapes")
-        result = np.dot(self._matrix, inarr)
+        # Note: If the original shape was () (an array scalar) convert to a
+        # 1-element 1-D array on output for consistency with most other models
+        orig_shape = x.shape or (1,)
+
+        inarr = np.array([x.flatten(), y.flatten()])
+        result = np.dot(cls._compute_matrix(angle), inarr)
+
         x, y = result[0], result[1]
-        if x.shape != shape:
-            x.shape = shape
-            y.shape = shape
+        x.shape = y.shape = orig_shape
 
         return x, y
 

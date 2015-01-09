@@ -214,8 +214,8 @@ The examples here assume this import statement was executed::
       ...                 stddev=[0.15, .1], n_models=2)
       >>> print g1
       Model: Gaussian1D
-      Inputs: 1
-      Outputs: 1
+      Inputs: ('x',)
+      Outputs: ('y',)
       Model set size: 2
       Parameters:
           amplitude mean stddev
@@ -270,8 +270,8 @@ The examples here assume this import statement was executed::
       >>> p1.c1 = [0, 1, 2, 3, 4]
       >>> print p1
       Model: Polynomial1D
-      Inputs: 1
-      Outputs: 1
+      Inputs: ('x',)
+      Outputs: ('y',)
       Model set size: 5
       Degree: 1
       Parameters:

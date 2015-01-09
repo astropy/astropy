@@ -34,12 +34,12 @@ Fitting examples
       >>> p1.c1 = 2
       >>> print(p1)
       Model: Polynomial1D
-      Inputs: 1
-      Outputs: 1
+      Inputs: ('x',)
+      Outputs: ('y',)
       Model set size: 1
       Degree: 3
       Parameters:
-          c0  c1  c2  c3
+           c0  c1  c2  c3
           --- --- --- ---
           1.0 2.0 0.0 0.0
       >>> x = np.arange(10)

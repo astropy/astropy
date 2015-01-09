@@ -68,18 +68,14 @@ class TestInputType(object):
 
 
 class TestFitting(object):
-    """
-    Test various input options to fitting routines
-    """
+    """Test various input options to fitting routines."""
 
     def setup_class(self):
         self.x1 = np.arange(10)
         self.y, self.x = np.mgrid[:10, :10]
 
     def test_linear_fitter_1set(self):
-        """
-        1 set 1D x, 1pset
-        """
+        """1 set 1D x, 1pset"""
 
         expected = np.array([0, 1, 1, 1])
         p1 = models.Polynomial1D(3)
@@ -90,9 +86,7 @@ class TestFitting(object):
         assert_allclose(model.parameters, expected, atol=10 ** (-7))
 
     def test_linear_fitter_Nset(self):
-        """
-        1 set 1D x, 2 sets 1D y, 2 param_sets
-        """
+        """1 set 1D x, 2 sets 1D y, 2 param_sets"""
 
         expected = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
         p1 = models.Polynomial1D(3, n_models=2)
@@ -107,9 +101,7 @@ class TestFitting(object):
         assert_allclose(model.param_sets, expected, atol=10 ** (-7))
 
     def test_linear_fitter_1dcheb(self):
-        """
-        1 pset, 1 set 1D x, 1 set 1D y, Chebyshev 1D polynomial
-        """
+        """1 pset, 1 set 1D x, 1 set 1D y, Chebyshev 1D polynomial"""
 
         expected = np.array(
             [[2817.2499999999995,
@@ -164,9 +156,7 @@ class TestFitting(object):
             model = pfit(p1, self.x1, y1)
 
     def test_wrong_pset(self):
-        """
-        A case of 1 set of x and multiple sets of y and parameters
-        """
+        """A case of 1 set of x and multiple sets of y and parameters."""
 
         expected = np.array([[1., 0],
                              [1, 1],
@@ -186,9 +176,8 @@ class TestFitting(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_1set_1d(self):
-        """
-        1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter
-        """
+        """1 set 1D x, 1 set 1D y, 1 pset NonLinearFitter"""
+
         g1 = models.Gaussian1D(10, mean=3, stddev=.2)
         y1 = g1(self.x1)
         gfit = fitting.LevMarLSQFitter()
@@ -197,9 +186,8 @@ class TestFitting(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_1d(self):
-        """
-        1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter
-        """
+        """1 set 1D x, 1 set 1D y, 2 param_sets, NonLinearFitter"""
+
         with pytest.raises(ValueError):
             g1 = models.Gaussian1D([10.2, 10], mean=[3, 3.2], stddev=[.23, .2],
                                    n_models=2)
@@ -209,9 +197,8 @@ class TestFitting(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_1set_2d(self):
-        """
-        1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter
-        """
+        """1 set 2d x, 1set 2D y, 1 pset, NonLinearFitter"""
+
         g2 = models.Gaussian2D(10, x_mean=3, y_mean=4, x_stddev=.3,
                                y_stddev=.2, theta=0)
         z = g2(self.x, self.y)
@@ -221,9 +208,8 @@ class TestFitting(object):
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_nonlinear_lsqt_Nset_2d(self):
-        """
-         1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter
-        """
+        """1 set 2d x, 1set 2D y, 2 param_sets, NonLinearFitter"""
+
         with pytest.raises(ValueError):
             g2 = models.Gaussian2D([10, 10], [3, 3], [4, 4], x_stddev=[.3, .3],
                                    y_stddev=[.2, .2], theta=[0, 0], n_models=2)
@@ -264,18 +250,14 @@ class TestEvaluation(object):
         assert_allclose(y1[:, 0], y1[:, 1], atol=10 ** (-12))
 
     def test_p1_1set_1pset(self):
-        """
-        1 data set, 1 pset, Polynomial1D
-        """
+        """1 data set, 1 pset, Polynomial1D"""
 
         p1 = models.Polynomial1D(4)
         y1 = p1(self.x1)
         assert y1.shape == (20,)
 
     def test_p1_nset_npset(self):
-        """
-        N data sets, N param_sets, Polynomial1D
-        """
+        """N data sets, N param_sets, Polynomial1D"""
 
         p1 = models.Polynomial1D(4, n_models=2)
         y1 = p1(np.array([self.x1, self.x1]).T, model_set_axis=-1)
@@ -283,17 +265,14 @@ class TestEvaluation(object):
         assert_allclose(y1[0, :], y1[1, :], atol=10 ** (-12))
 
     def test_p2_1set_1pset(self):
-        """
-        1 pset, 1 2D data set, Polynomial2D
-        """
+        """1 pset, 1 2D data set, Polynomial2D"""
+
         p2 = models.Polynomial2D(5)
         z = p2(self.x, self.y)
         assert z.shape == (10, 10)
 
     def test_p2_nset_npset(self):
-        """
-        N param_sets, N 2D data sets, Poly2d
-        """
+        """N param_sets, N 2D data sets, Poly2d"""
 
         p2 = models.Polynomial2D(5, n_models=2)
         xx = np.array([self.x, self.x])
@@ -864,7 +843,6 @@ def test_format_input_arrays():
     model = TestInputFormatter()
     result = model([1, 1], [2, 2])
     assert_allclose(result, (np.array([1, 1]), np.array([2, 2])))
-
 
 
 def test_format_input_arrays_transposed():

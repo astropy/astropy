@@ -53,3 +53,4 @@ py:obj list.index
 py:obj list.insert
 py:meth list.pop
 py:obj list.remove
+py:class classmethod

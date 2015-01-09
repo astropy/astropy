@@ -5,10 +5,10 @@ from __future__ import (absolute_import, division, print_function,
 import inspect
 import pickle
 
-from ..decorators import deprecated_attribute, deprecated, wraps
+from ..decorators import deprecated_attribute, deprecated, wraps, sharedmethod
 from ..exceptions import AstropyDeprecationWarning
 from ...extern import six
-from ...tests.helper import catch_warnings
+from ...tests.helper import pytest, catch_warnings
 
 
 def test_wraps():
@@ -159,3 +159,94 @@ def test_deprecated_static_and_classmethod():
 
     assert len(w) == 1
     assert 'deprecated' in A.C.__doc__
+
+
+@pytest.mark.skipif('six.PY3')
+def test_sharedmethod_imfunc():
+    """
+    Test that the im_func of a sharedmethod always points to the correct
+    underlying function.
+
+    This only applies to Python 2 as Python 3 does not have an im_func
+    attribute on methods.
+    """
+
+    # The original function
+    def foo(self): pass
+    actual_foo = foo
+
+    class Bar(object):
+        foo = sharedmethod(actual_foo)
+
+    assert Bar.foo.im_func is actual_foo
+    assert Bar().foo.im_func is actual_foo
+
+    # Now test the case where there the metaclass has a separate
+    # implementation
+    def foo(cls): pass
+    actual_foo_2 = foo
+
+    class MetaBar(type):
+        foo = actual_foo_2
+
+    class Bar(object):
+        __metaclass__ = MetaBar
+
+        foo = sharedmethod(actual_foo)
+
+    assert Bar.foo.im_func is actual_foo_2
+    assert Bar().foo.im_func is actual_foo
+
+    # Finally, test case where the metaclass also has an attribute called
+    # 'foo', but it is not a method (hence sharedmethod should ignore it)
+    class MetaBar(type):
+        foo = None
+
+    class Bar(object):
+        __metaclass__ = MetaBar
+
+        foo = sharedmethod(actual_foo)
+
+    assert Bar.foo.im_func is actual_foo
+    assert Bar().foo.im_func is actual_foo
+
+
+def test_sharedmethod_reuse_on_subclasses():
+    """
+    Regression test for an issue where sharedmethod would bind to one class
+    for all time, causing the same method not to work properly on other
+    subclasses of that class.
+
+    It has the same problem when the same sharedmethod is called on different
+    instances of some class as well.
+    """
+
+    class AMeta(type):
+        def foo(cls):
+            return cls.x
+
+    six.add_metaclass(AMeta)
+    class A(object):
+        x = 3
+
+        def __init__(self, x):
+            self.x = x
+
+        @sharedmethod
+        def foo(self):
+            return self.x
+
+    a1 = A(1)
+    a2 = A(2)
+
+    assert a1.foo() == 1
+    assert a2.foo() == 2
+
+    # Similar test now, but for multiple subclasses using the same sharedmethod
+    # as a classmethod
+    assert A.foo() == 3
+
+    class B(A):
+        x = 5
+
+    assert B.foo() == 5

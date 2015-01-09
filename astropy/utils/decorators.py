@@ -2,6 +2,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Sundry function and class decorators."""
 
+from __future__ import print_function
+
 
 import functools
 import inspect
@@ -16,8 +18,8 @@ from .exceptions import (AstropyDeprecationWarning,
 from ..extern import six
 
 
-
-__all__ = ['deprecated', 'deprecated_attribute', 'lazyproperty', 'wraps']
+__all__ = ['deprecated', 'deprecated_attribute', 'lazyproperty',
+           'sharedmethod', 'wraps']
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -378,6 +380,125 @@ class lazyproperty(object):
         cls_ns[property_name] = lazyproperty(*args)
 
         return cls_ns[property_name]
+
+
+class sharedmethod(classmethod):
+    """
+    This is a method decorator that allows both an instancemethod and a
+    `classmethod` to share the same name.
+
+    When using `sharedmethod` on a method defined in a class's body, it
+    may be called on an instance, or on a class.  In the former case it
+    behaves like a normal instance method (a reference to the instance is
+    automatically passed as the first ``self`` argument of the method)::
+
+        >>> class Example(object):
+        ...     @sharedmethod
+        ...     def identify(self, *args):
+        ...         print('self was', self)
+        ...         print('additional args were', args)
+        ...
+        >>> ex = Example()
+        >>> ex.identify(1, 2)
+        self was <astropy.utils.decorators.Example object at 0x...>
+        additional args were (1, 2)
+
+    In the latter case, when the `sharedmethod` is called directly from a
+    class, it behaves like a `classmethod`::
+
+        >>> Example.identify(3, 4)
+        self was <class 'astropy.utils.decorators.Example'>
+        additional args were (3, 4)
+
+    This also supports a more advanced usage, where the `classmethod`
+    implementation can be written separately.  If the class's *metaclass*
+    has a method of the same name as the `sharedmethod`, the version on
+    the metaclass is delegated to::
+
+        >>> from astropy.extern.six import add_metaclass
+        >>> class ExampleMeta(type):
+        ...     def identify(self):
+        ...         print('this implements the {0}.identify '
+        ...               'classmethod'.format(self.__name__))
+        ...
+        >>> @add_metaclass(ExampleMeta)
+        ... class Example(object):
+        ...     @sharedmethod
+        ...     def identify(self):
+        ...         print('this implements the instancemethod')
+        ...
+        >>> Example().identify()
+        this implements the instancemethod
+        >>> Example.identify()
+        this implements the Example.identify classmethod
+    """
+
+    if sys.version_info[:2] < (2, 7):
+        # Workaround for Python 2.6 which does not have classmethod.__func__
+        @property
+        def __func__(self):
+            try:
+                meth = classmethod.__get__(self, self.__obj__,
+                                           self.__objtype__)
+            except AttributeError:
+                # self.__obj__ not set when called from __get__, but then it
+                # doesn't matter anyways
+                meth = classmethod.__get__(self, None, object)
+            return meth.__func__
+
+        def __getobjwrapper(orig_get):
+            """
+            Used to temporarily set/unset self.__obj__ and self.__objtype__
+            for use by __func__.
+            """
+            def __get__(self, obj, objtype=None):
+                self.__obj__ = obj
+                self.__objtype__ = objtype
+
+                try:
+                    return orig_get(self, obj, objtype)
+                finally:
+                    del self.__obj__
+                    del self.__objtype__
+
+            return __get__
+    else:
+        def __getobjwrapper(func):
+            return func
+
+    @__getobjwrapper
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            mcls = type(objtype)
+            clsmeth = getattr(mcls, self.__func__.__name__, None)
+            if callable(clsmeth):
+                if isinstance(clsmeth, types.MethodType):
+                    # This case will generally only apply on Python 2, which
+                    # uses MethodType for unbound methods; Python 3 has no
+                    # particular concept of unbound methods and will just
+                    # return a function
+                    func = clsmeth.__func__
+                else:
+                    func = clsmeth
+            else:
+                func = self.__func__
+
+            return self._make_method(func, objtype)
+        else:
+            return self._make_method(self.__func__, obj)
+
+    del __getobjwrapper
+
+    if six.PY3:
+        # The 'instancemethod' type of Python 2 and the method type of
+        # Python 3 have slightly different constructors
+        @staticmethod
+        def _make_method(func, instance):
+            return types.MethodType(func, instance)
+    else:
+        @staticmethod
+        def _make_method(func, instance):
+            return types.MethodType(func, instance, type(instance))
 
 
 def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,

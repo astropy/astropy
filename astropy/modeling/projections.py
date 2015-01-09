@@ -107,8 +107,6 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
 
     @classmethod
     def evaluate(cls, x, y, mu, gamma):
-        gamma = np.deg2rad(gamma)
-
         phi = np.arctan2(x / np.cos(gamma), -y)
         r = cls._compute_r_theta(x, y, gamma)
         pho = r / (cls.r0 * (mu + 1) + y * np.sin(gamma))
@@ -172,7 +170,6 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
     def evaluate(cls, phi, theta, mu, gamma):
         phi = np.deg2rad(phi)
         theta = np.deg2rad(theta)
-        gamma = np.deg2rad(gamma)
 
         r = cls._compute_r_theta(phi, theta, mu, gamma)
         x = r * np.sin(phi)
@@ -562,9 +559,8 @@ class AffineTransformation2D(Model):
 
         return self.__class__(matrix=matrix, translation=translation)
 
-    # TODO: This needs the be reworked somehow to support evaluate as a
-    # static/classmethod
-    def evaluate(self, x, y, matrix, translation):
+    @classmethod
+    def evaluate(cls, x, y, matrix, translation):
         """
         Apply the transformation to a set of 2D Cartesian coordinates given as
         two lists--one for the x coordinates and one for a y coordinates--or a
@@ -579,20 +575,17 @@ class AffineTransformation2D(Model):
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
 
-        shape = x.shape
+        shape = x.shape or (1,)
         inarr = np.vstack([x.flatten(), y.flatten(), np.ones(x.size)])
 
         if inarr.shape[0] != 3 or inarr.ndim != 2:
             raise ValueError("Incompatible input shapes")
 
-        augmented_matrix = self._create_augmented_matrix(matrix, translation)
+        augmented_matrix = cls._create_augmented_matrix(matrix, translation)
         result = np.dot(augmented_matrix, inarr)
 
         x, y = result[0], result[1]
-
-        if x.shape != shape:
-            x.shape = shape
-            y.shape = shape
+        x.shape = y.shape = shape
 
         return x, y
 

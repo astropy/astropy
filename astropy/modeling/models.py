@@ -8,6 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from .core import custom_model
+from .mappings import *
 from .projections import *
 from .rotations import *
 from .polynomial import *
