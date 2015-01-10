@@ -647,7 +647,7 @@ class BaseData(object):
         self._set_fill_values(self.cols)
         self._set_col_formats()
         for col in self.cols:
-            col.str_vals = list(col_iter_str_vals())
+            col.str_vals = list(col_iter_str_vals(col))
         self._replace_vals(self.cols)
         return [col.str_vals for col in self.cols]
 
