@@ -1220,7 +1220,7 @@ def _parse_coordinate_arg(coords, frame, units):
         is_ra_dec_representation = ('ra' in frame.representation_component_names and
                                     'dec' in frame.representation_component_names)
 
-        for ii, coord in enumerate(coords):
+        for coord in coords:
             if isinstance(coord, six.string_types):
                 coord1 = coord.split()
                 if len(coord1) == 6:
