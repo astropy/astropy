@@ -234,7 +234,7 @@ class SkyCoord(object):
                 # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
                 # along with any frame attributes like equinox or obstime which
                 # were explicitly specified in the coordinate object (i.e. non-default).
-                coord_kwargs = _parse_coordinate_arg(args[0], frame, units)
+                coord_kwargs = _parse_coordinate_arg(args[0], frame, units, kwargs)
 
             elif len(args) <= 3:
                 frame_attr_names = frame.representation_component_names.keys()
@@ -1154,14 +1154,19 @@ def _get_units(args, kwargs):
     return units
 
 
-def _parse_coordinate_arg(coords, frame, units):
+def _parse_coordinate_arg(coords, frame, units, scinit_kwargs):
     """
     Single unnamed arg supplied.  This must be:
     - Coordinate frame with data
     - Representation
+    - SkyCoord
     - List or tuple of:
       - String which splits into two values
       - Iterable with two values
+      - SkyCoord, frame, or representation objects.
+
+    Returns a dict mapping coordinate attribute names to values (or lists of
+    values)
     """
     is_scalar = False  # Differentiate between scalar and list input
     valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
@@ -1212,15 +1217,21 @@ def _parse_coordinate_arg(coords, frame, units):
         values = coords.transpose()  # Iterates over repr attrs
 
     elif isinstance(coords, (collections.Sequence, np.ndarray)):
-        # Handles generic list-like input.
+        # Handles list-like input.
 
-        # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
+        # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]],
+        # and check if there are any coordinate objects mixed in
         vals = []
 
         is_ra_dec_representation = ('ra' in frame.representation_component_names and
                                     'dec' in frame.representation_component_names)
 
+        hascoordobjs = False
         for coord in coords:
+            if isinstance(coord, (SkyCoord, BaseCoordinateFrame, BaseRepresentation)):
+                hascoordobjs = True
+                vals = []
+                break  # we break out here because the path in this case needs no vals
             if isinstance(coord, six.string_types):
                 coord1 = coord.split()
                 if len(coord1) == 6:
@@ -1231,35 +1242,64 @@ def _parse_coordinate_arg(coords, frame, units):
                     coord = coord1
             vals.append(coord)  # This assumes coord is a sequence at this point
 
-        # Do some basic validation of the list elements: all have a length and all
-        # lengths the same
-        try:
-            n_coords = sorted(set(len(x) for x in vals))
-        except:
-            raise ValueError('One or more elements of input sequence does not have a length')
+        if hascoordobjs:
+            # this parsing path is used when there are coordinate-like objects
+            # in the list - instead of creating lists of values, we create
+            # SkyCoords from the list elements and then combine them.
+            scs = [SkyCoord(coord, **scinit_kwargs) for coord in coords]
 
-        if len(n_coords) > 1:
-            raise ValueError('Input coordinate values must have same number of elements, found {0}'
-                             .format(n_coords))
-        n_coords = n_coords[0]
+            # now check that they're all self-consistent in their frame attributes
+            # and frame name
+            if len(set((sc.frame.name for sc in scs if hasattr(sc, 'frame')))) > 1:
+                frames = [sc.frame.name if hasattr(sc, 'frame') else None for sc in scs]
+                raise ValueError("List of inputs have different frames: {0}".format(frames))
+            for fattrnm in FRAME_ATTR_NAMES_SET():
+                vals = [getattr(sc, fattrnm) for sc in scs]
+                for val in vals[1:]:
+                    if val != vals[0]:
+                        raise ValueError("List of inputs don't give consistent "
+                                         "frame attribute {0}: {1}".format(fattrnm, vals))
 
-        # Must have no more coord inputs than representation attributes
-        if n_coords > n_attr_names:
-            raise ValueError('Input coordinates have {0} values but {1} representation '
-                             'only accepts {2}'
-                             .format(n_coords, frame.representation.get_name(), n_attr_names))
+                valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
 
-        # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
-        # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
-        # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
-        # while (a1, a2, ..) doesn't work.
-        values = [list(x) for x in zip(*vals)]
+            # Now combine the values, to be used below
+            values = []
+            for aname in frame_attr_names:
+                values.append([])
+                for sc in scs:
+                    if sc.isscalar:
+                        values[-1].append(getattr(sc, aname))
+                    else:
+                        values[-1].extend(getattr(sc, aname))
+        else:
+            # Do some basic validation of the list elements: all have a length and all
+            # lengths the same
+            try:
+                n_coords = sorted(set(len(x) for x in vals))
+            except:
+                raise ValueError('One or more elements of input sequence does not have a length')
 
-        if is_scalar:
-            values = [x[0] for x in values]
+            if len(n_coords) > 1:
+                raise ValueError('Input coordinate values must have same number of elements, found {0}'
+                                 .format(n_coords))
+            n_coords = n_coords[0]
 
-    else:
-        raise ValueError('Cannot parse coordinates from first argument')
+            # Must have no more coord inputs than representation attributes
+            if n_coords > n_attr_names:
+                raise ValueError('Input coordinates have {0} values but {1} representation '
+                                 'only accepts {2}'
+                                 .format(n_coords, frame.representation.get_name(), n_attr_names))
+
+            # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
+            # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
+            # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
+            # while (a1, a2, ..) doesn't work.
+            values = [list(x) for x in zip(*vals)]
+
+            if is_scalar:
+                values = [x[0] for x in values]
+            else:
+                raise ValueError('Cannot parse coordinates from first argument')
 
     # Finally we have a list of values from which to create the keyword args
     # for the frame initialization.  Validate by running through the appropriate
@@ -1269,9 +1309,8 @@ def _parse_coordinate_arg(coords, frame, units):
                 frame_attr_names, repr_attr_classes, values, units):
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
     except Exception as err:
-        raise ValueError('Cannot parse longitude and latitude from first argument '
-                         'for the specified frame: {0}'.format(err))
-
+        raise ValueError('Cannot parse coordinate data "{0}" from first argument: {1}'
+                         .format(value, err))
     return valid_kwargs
 
 
