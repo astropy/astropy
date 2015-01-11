@@ -45,11 +45,12 @@ class SkyCoord(object):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
 
-    The `SkyCoord` class accepts a wide variety of inputs for initialization.
-    At a minimum these must provide one or more celestial coordinate values
-    with unambiguous units.  Typically one also specifies the coordinate
-    frame, though this is not required.  The general pattern is for spherical
-    representations is::
+    The `SkyCoord` class accepts a wide variety of inputs for initialization. At
+    a minimum these must provide one or more celestial coordinate values with
+    unambiguous units.  Inputs may be scalars or lists/tuples/arrays, yielding
+    scalar or array coordinates (can be checked via ``SkyCoord.isscalar``).
+    Typically one also specifies the coordinate frame, though this is not
+    required. The general pattern for spherical representations is::
 
       SkyCoord(COORD, [FRAME], keyword_args ...)
       SkyCoord(LON, LAT, [FRAME], keyword_args ...)
@@ -93,6 +94,8 @@ class SkyCoord(object):
       >>> c = SkyCoord(c, obstime='J2010.11', equinox='B1965')  # Override defaults
 
       >>> c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic', representation='cartesian')
+
+      >>> c = SkyCoord([ICRS(ra=1*u.deg, dec=2*u.deg), ICRS(ra=3*u.deg, dec=4*u.deg)])
 
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
