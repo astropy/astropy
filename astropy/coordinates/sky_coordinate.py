@@ -1301,8 +1301,8 @@ def _parse_coordinate_arg(coords, frame, units, scinit_kwargs):
 
             if is_scalar:
                 values = [x[0] for x in values]
-            else:
-                raise ValueError('Cannot parse coordinates from first argument')
+    else:
+        raise ValueError('Cannot parse coordinates from first argument')
 
     # Finally we have a list of values from which to create the keyword args
     # for the frame initialization.  Validate by running through the appropriate
