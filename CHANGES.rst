@@ -50,7 +50,8 @@ New Features
   - ``SkyCoord`` now accepts more formats of the coordinate string when the
     representation has ``ra`` and ``dec`` attributes. [#2920]
   - ``SkyCoord`` can now accept lists of ``SkyCoord`` objects, frame objects,
-    or representation objects and will combine them into a single object. [#xxxx]
+    or representation objects and will combine them into a single object.
+    [#3285]
 
 - ``astropy.cosmology``
 
