@@ -47,10 +47,6 @@ adjust_compiler(NAME)
 # Freeze build information in version.py
 generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME))
 
-# Treat everything in scripts except README.rst as a script to be installed
-scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))
-           if os.path.basename(fname) != 'README.rst']
-
 # Get configuration information from all of the various subpackages.
 # See the docstring for setup_helpers.update_package_files for more
 # details.
@@ -69,6 +65,16 @@ for hook in [('prereleaser', 'middle'), ('releaser', 'middle'),
     hook_func = 'astropy.utils.release:' + '_'.join(hook)
     entry_points[hook_ep] = ['%s = %s' % (hook_name, hook_func)]
 
+# Command-line scripts
+entry_points['console_scripts'] = [
+    'fits2bitmap = astropy.visualization.scripts.fits2bitmap:main',
+    'fitscheck = astropy.io.fits.scripts.fitscheck:main',
+    'fitsdiff = astropy.io.fits.scripts.fitsdiff:main',
+    'fitsheader = astropy.io.fits.scripts.fitsheader:main',
+    'samp_hub = astropy.vo.samp.hub_script:hub_script',
+    'volint = astropy.io.votable.volint:main',
+    'wcslint = astropy.wcs.wcslint:main',
+]
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
 install_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
@@ -81,7 +87,6 @@ if is_distutils_display_option():
 setup(name=NAME,
       version=VERSION,
       description='Community-developed python astronomy tools',
-      scripts=scripts,
       requires=['numpy'],  # scipy not required, but strongly recommended
       setup_requires=setup_requires,
       install_requires=install_requires,

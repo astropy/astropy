@@ -1,8 +1,0 @@
-#! /usr/bin/env python
-
-import astropy.io.fits.scripts.fitsdiff
-import sys
-
-
-if __name__ == '__main__':
-    sys.exit(astropy.io.fits.scripts.fitsdiff.main())
