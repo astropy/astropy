@@ -1350,7 +1350,7 @@ class Quantity(np.ndarray):
         obj : int, slice or sequence of ints
             Object that defines the index or indices before which ``values`` is
             inserted.
-        values : array_like
+        values : array-like
             Values to insert.  If the type of ``values`` is different
             from that of quantity, ``values`` is converted to the matching type.
             ``values`` should be shaped so that it can be broadcast appropriately
