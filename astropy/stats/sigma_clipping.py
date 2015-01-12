@@ -151,7 +151,7 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
 
     Parameters
     ----------
-    data : array_like
+    data : array-like
         Data array or object that can be converted to an array.
 
     mask : `numpy.ndarray` (bool), optional

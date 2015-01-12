@@ -452,7 +452,7 @@ def median_absolute_deviation(a, axis=None):
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         Input array or object that can be converted to an array.
     axis : int, optional
         Axis along which the medians are computed. The default (axis=None)
@@ -521,7 +521,7 @@ def biweight_location(a, c=6.0, M=None):
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         Input array or object that can be converted to an array.
     c : float
         Tuning constant for the biweight estimator.  Default value is 6.0.
@@ -606,7 +606,7 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         Input array or object that can be converted to an array.
     c : float
         Tuning constant for the biweight estimator.  Default value is 9.0.
