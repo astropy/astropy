@@ -86,7 +86,7 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
 
     if isinstance(icrs_coord.data, UnitSphericalRepresentation):
         raise ConvertError("Transforming to a Galactocentric frame requires "
-                           "a 3D coordinates, e.g. (angle, angle, distance) or"
+                           "a 3D coordinate, e.g. (angle, angle, distance) or"
                            " (x, y, z).")
 
     xyz = icrs_coord.cartesian.xyz
