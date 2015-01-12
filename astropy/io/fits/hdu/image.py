@@ -737,6 +737,10 @@ class Section(object):
             self.dtype = None  # Needed for initialization.
             self.dtype = self[0].dtype
 
+    @property
+    def shape(self):
+        return self.hdu.shape
+
     def __getitem__(self, key):
         if not isinstance(key, tuple):
             key = (key,)
