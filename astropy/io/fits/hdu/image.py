@@ -734,7 +734,6 @@ class Section(object):
         if dtype is not None:
             self.dtype = dtype
         else:
-            self.dtype = None  # Needed for initialization.
             self.dtype = self[0].dtype
 
     @property
@@ -790,6 +789,8 @@ class Section(object):
         else:
             data = self._getdata(key)
 
+        if hasattr(self, "dtype"):  # Not during initialization.
+            data = data.astype(self.dtype, copy=False)
         if return_scalar:
             data = data[0]
         elif return_0dim:
@@ -818,7 +819,7 @@ class Section(object):
             return np.concatenate([np.atleast_1d(array) for array in data])
 
     def astype(self, dtype):
-        return type(self)(self.hdu, dtype)
+        return type(self)(self.hdu, np.dtype(dtype))
 
 
 class PrimaryHDU(_ImageBaseHDU):
