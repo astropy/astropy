@@ -68,6 +68,10 @@ New Features
     files (e.g. empty header lines). This add as ``--exact`` option where
     nothing is ignored. [#2782], finished in [#3110]
 
+  - ``Section`` now supports all advanced indexing features ``ndarray`` does
+    (slices with any steps, integer arrays, boolean arrays, None, Ellipsis).
+    It also properly returns scalars when this is appropriate.
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
