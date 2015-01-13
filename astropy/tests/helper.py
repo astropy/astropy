@@ -615,29 +615,31 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=0, err_msg='', ve
     """
 
     import numpy as np
-    from ..units import Quantity
+    from .. import units as u
 
-    if isinstance(actual, Quantity) and isinstance(desired, Quantity):
+    actual = u.Quantity(actual, subok=True, copy=False)
 
-        if atol != 0:
-            if not isinstance(atol, Quantity):
-                raise TypeError("If `actual` and `desired` are Quantities, `atol` parameter should also be a Quantity")
-            else:
-                atol = atol.to(actual.unit).value
+    desired = u.Quantity(desired, subok=True, copy=False)
+    try:
+        desired = desired.to(actual.unit)
+    except u.UnitsError:
+        raise u.UnitsError("Units for 'desired' ({0}) and 'actual' ({1}) are not convertible".format(desired.unit, actual.unit))
 
-        np.testing.assert_allclose(actual.value, desired.to(actual.unit).value,
-                                   rtol=rtol, atol=atol, err_msg=err_msg, verbose=verbose)
-
-    elif isinstance(actual, Quantity):
-        raise TypeError("If `actual` is a Quantity, `desired` should also be a Quantity")
-
-    elif isinstance(desired, Quantity):
-        raise TypeError("If `desired` is a Quantity, `actual` should also be a Quantity")
-
+    if atol == 0:
+        atol = u.Quantity(0)
     else:
+        atol = u.Quantity(atol, subok=True, copy=False)
+        try:
+            atol = atol.to(actual.unit)
+        except u.UnitsError:
+            raise u.UnitsError("Units for 'atol' ({0}) and 'actual' ({1}) are not convertible".format(atol.unit, actual.unit))
 
-        if isinstance(atol, Quantity):
-            raise TypeError("If `actual` and `desired` are not Quantities, `atol` parameter should also not be a Quantity")
+    rtol =  u.Quantity(rtol, subok=True, copy=False)
+    try:
+        rtol = rtol.to(u.dimensionless_unscaled)
+    except:
+        raise u.UnitsError("`rtol` should be dimensionless")
 
-        np.testing.assert_allclose(actual, desired,
-                                   rtol=rtol, atol=atol, err_msg=err_msg, verbose=verbose)
+    np.testing.assert_allclose(actual.value, desired.value,
+                               rtol=rtol.value, atol=atol.value,
+                               err_msg=err_msg, verbose=verbose)
