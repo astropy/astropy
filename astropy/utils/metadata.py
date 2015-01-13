@@ -76,7 +76,8 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
 
         # There is a conflict that must be resolved
         if _both_isinstance(left[key], right[key], dict):
-            out[key] = merge(left[key], right[key], merge_func)
+            out[key] = merge(left[key], right[key], merge_func,
+                             metadata_conflicts=metadata_conflicts)
 
         else:
             try:
