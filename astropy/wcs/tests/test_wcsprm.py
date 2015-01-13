@@ -826,19 +826,21 @@ def test_radesys_defaults_full():
 
         # Check defaults for RADESYS
         w = _wcs.Wcsprm(naxis=2)
-
         w.ctype = ctype
         w.set()
         assert w.radesys == 'ICRS'
 
+        w = _wcs.Wcsprm(naxis=2)
         w.equinox = 1980
         w.set()
         assert w.radesys == 'FK4'
 
+        w = _wcs.Wcsprm(naxis=2)
         w.equinox = 1984
         w.set()
         assert w.radesys == 'FK5'
 
+        w = _wcs.Wcsprm(naxis=2)
         w.radesys = 'foo'
         w.set()
         assert w.radesys == 'foo'
@@ -849,18 +851,22 @@ def test_radesys_defaults_full():
         w.set()
         assert np.isnan(w.equinox)  # frame is ICRS, no equinox
 
+        w = _wcs.Wcsprm(naxis=2)
         w.radesys = 'ICRS'
         w.set()
         assert np.isnan(w.equinox)
 
+        w = _wcs.Wcsprm(naxis=2)
         w.radesys = 'FK5'
         w.set()
         assert w.equinox == 2000.
 
+        w = _wcs.Wcsprm(naxis=2)
         w.radesys = 'FK4'
         w.set()
         assert w.equinox == 1950
 
+        w = _wcs.Wcsprm(naxis=2)
         w.radesys = 'FK4-NO-E'
         w.set()
         assert w.equinox == 1950
