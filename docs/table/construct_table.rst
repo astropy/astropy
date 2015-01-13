@@ -60,14 +60,14 @@ keyword or they will be auto-generated as ``col<N>``.
 
 ::
 
-  >>> a = [1, 4]
+  >>> a = np.array([1, 4], dtype=np.int32)
   >>> b = [2.0, 5.0]
   >>> c = ['x', 'y']
   >>> t = Table([a, b, c], names=('a', 'b', 'c'))
   >>> t
   <Table masked=False length=2>
     a      b       c
-  int64 float64 string8
+  int32 float64 string8
   ----- ------- -------
       1     2.0       x
       4     5.0       y
@@ -81,7 +81,7 @@ and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
   >>> Table([t['c'], t['a']])
   <Table masked=False length=2>
      c      a
-  string8 int64
+  string8 int32
   ------- -----
         x     1
         y     4
@@ -95,7 +95,7 @@ new table with modified column values::
   >>> Table([t['a']**2, t['b'] + 10])
   <Table masked=False length=2>
     a      b
-  int64 float64
+  int32 float64
   ----- -------
       1    12.0
      16    15.0
@@ -110,7 +110,7 @@ of different data types to initialize a table::
   >>> b = np.array([[2, 3], [5, 6]])  # vector column
   >>> c = Column(['x', 'y'], name='axis')
   >>> arr = (a, b, c)
-  >>> Table(arr)  # Data column named "c" has a name "axis" that table
+  >>> Table(arr)  # doctest: +SKIP
   <Table masked=False length=2>
    col0 col1 [2]   axis
   int64  int64   string8
@@ -125,14 +125,14 @@ Dict of columns
 """"""""""""""""
 A dictionary of column data can be used to initialize a |Table|.
 
-  >>> arr = {'a': [1, 4],
+  >>> arr = {'a': np.array([1, 4], dtype=np.int32),
   ...        'b': [2.0, 5.0],
   ...        'c': ['x', 'y']}
   >>>
   >>> Table(arr)  # doctest: +SKIP
   <Table masked=False length=2>
     a      c       b
-  int64 string8 float64
+  int32 string8 float64
   ----- ------- -------
       1       x     2.0
       4       y     5.0
@@ -140,10 +140,10 @@ A dictionary of column data can be used to initialize a |Table|.
 **Specify the column order and optionally the data types**
 ::
 
-  >>> Table(arr, names=('a', 'b', 'c'), dtype=('f4', 'i4', 'S2'))
+  >>> Table(arr, names=('a', 'b', 'c'), dtype=('f8', 'i4', 'S2'))
   <Table masked=False length=2>
      a      b      c
-  float32 int32 string16
+  float64 int32 string16
   ------- ----- --------
       1.0     2        x
       4.0     5        y
@@ -155,7 +155,7 @@ The input column data can be any data type that can initialize a |Column| object
   >>> arr = {'a': (1, 4),
   ...        'b': np.array([[2, 3], [5, 6]]),
   ...        'c': Column(['x', 'y'], name='axis')}
-  >>> Table(arr, names=('a', 'b', 'c'))
+  >>> Table(arr, names=('a', 'b', 'c'))  # doctest: +SKIP
   <Table masked=False length=2>
     a   b [2]     c
   int64 int64  string8
@@ -207,7 +207,7 @@ list of dict objects.  The keys determine the column names::
 
   >>> data = [{'a': 5, 'b': 10},
   ...         {'a': 15, 'b': 20}]
-  >>> Table(rows=data)
+  >>> Table(rows=data)  # doctest: +SKIP
   <Table masked=False length=2>
     a     b
   int64 int64
@@ -257,14 +257,14 @@ created using::
 
   >>> arr = np.array([(1, 2.0, 'x'),
   ...                 (4, 5.0, 'y')],
-  ...                dtype=[('a', 'i8'), ('b', 'f8'), ('c', 'S2')])
+  ...                dtype=[('a', 'i4'), ('b', 'f8'), ('c', 'S2')])
 
 From ``arr`` it is simple to create the corresponding |Table| object::
 
   >>> Table(arr)
   <Table masked=False length=2>
     a      b       c
-  int64 float64 string16
+  int32 float64 string16
   ----- ------- --------
       1     2.0        x
       4     5.0        y
@@ -288,7 +288,7 @@ The column names can be changed from the original values by providing the
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
   <Table masked=False length=2>
   a_new  b_new   c_new
-  int64 float64 string16
+  int32 float64 string16
   ----- ------- --------
       1     2.0        x
       4     5.0        y
@@ -325,11 +325,11 @@ generated as ``col<N>`` where ``<N>`` is the column number.
 ::
 
   >>> arr = np.array([[1, 2, 3],
-  ...                 [4, 5, 6]])
+  ...                 [4, 5, 6]], dtype=np.int32)
   >>> Table(arr)
   <Table masked=False length=2>
    col0  col1  col2
-  int64 int64 int64
+  int32 int32 int32
   ----- ----- -----
       1     2     3
       4     5     6

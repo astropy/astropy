@@ -38,11 +38,11 @@ A masked table can be created in several ways:
 **Create a new table object and specify masked=True** ::
 
   >>> from astropy.table import Table, Column, MaskedColumn
-  >>> t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True)
+  >>> t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True, dtype=('i4', 'i8'))
   >>> t
   <Table masked=True length=2>
     a     b
-  int64 int64
+  int32 int64
   ----- -----
       1     3
       2     4

@@ -10,8 +10,8 @@ from ...table import Table
 from ...extern.six import PY3
 from ...utils import console
 
-BIG_WIDE_ARR = np.arange(2000, dtype=np.float).reshape(100, 20)
-SMALL_ARR = np.arange(18, dtype=np.int).reshape(6, 3)
+BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
+SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
 
 
 @pytest.mark.usefixtures('table_type')
@@ -20,11 +20,11 @@ class TestMultiD():
     def test_multidim(self, table_type):
         """Test printing with multidimensional column"""
         arr = [np.array([[1, 2],
-                         [10, 20]]),
+                         [10, 20]], dtype=np.int64),
                np.array([[3, 4],
-                         [30, 40]]),
+                         [30, 40]], dtype=np.int64),
                np.array([[5, 6],
-                         [50, 60]])]
+                         [50, 60]], dtype=np.int64)]
         t = table_type(arr)
         lines = t.pformat()
         assert lines == ['col0 [2] col1 [2] col2 [2]',
@@ -58,11 +58,11 @@ class TestMultiD():
     def test_fake_multidim(self, table_type):
         """Test printing with 'fake' multidimensional column"""
         arr = [np.array([[(1,)],
-                         [(10,)]]),
+                         [(10,)]], dtype=np.int64),
                np.array([[(3,)],
-                         [(30,)]]),
+                         [(30,)]], dtype=np.int64),
                np.array([[(5,)],
-                         [(50,)]])]
+                         [(50,)]], dtype=np.int64)]
         t = table_type(arr)
         lines = t.pformat()
         assert lines == ['col0 [1,1] col1 [1,1] col2 [1,1]',
@@ -122,7 +122,7 @@ class TestPprint():
         have access to screen (fcntl.ioctl fails).
         """
         self._setup(table_type)
-        arr = np.arange(4000, dtype=np.float).reshape(100, 40)
+        arr = np.arange(4000, dtype=np.float64).reshape(100, 40)
         lines = table_type(arr).pformat()
         nlines, width = console.terminal_size()
         assert len(lines) == nlines

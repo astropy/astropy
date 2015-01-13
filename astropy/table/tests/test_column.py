@@ -70,7 +70,7 @@ class TestColumn():
                     assert result.dtype.str == '|b1'
 
     def test_view(self, Column):
-        c = np.array([1, 2, 3]).view(Column)
+        c = np.array([1, 2, 3], dtype=np.int64).view(Column)
         assert repr(c) == "<{0} dtype='int64' length=3>\n1\n2\n3".format(Column.__name__)
 
     def test_format(self, Column):

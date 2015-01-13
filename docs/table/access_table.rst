@@ -84,7 +84,7 @@ For all the following examples it is assumed that the table has been created as 
   >>> from astropy.table import Table, Column
   >>> import numpy as np
 
-  >>> arr = np.arange(15).reshape(5, 3)
+  >>> arr = np.arange(15, dtype=np.int32).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
   >>> t['a'].format = "%6.3f"  # print as a float with 3 digits after decimal point
   >>> t['a'].unit = 'm sec^-1'
@@ -127,7 +127,7 @@ As expected you can access a table column by name and get an element from that
 column with a numerical index::
 
   >>> t['a']  # Column 'a'
-  <Column name='a' dtype='int64' unit='m sec^-1' format='%6.3f' description='unladen swallow velocity' length=5>
+  <Column name='a' dtype='int32' unit='m sec^-1' format='%6.3f' description='unladen swallow velocity' length=5>
    0.000
    3.000
    6.000
@@ -179,7 +179,7 @@ meta-data and column definitions are copied.
   <Table masked=False length=3>
      a       b     c
   m sec^-1
-   int64   int64 int64
+   int32   int32 int32
   -------- ----- -----
      6.000     7     8
      9.000    10    11

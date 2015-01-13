@@ -60,12 +60,13 @@ and ``c``.  These columns have integer, float, and string values respectively::
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
 
 If you have row-oriented input data such as a list of records, use the ``rows``
-keyword::
+keyword.  In this example we also explicitly set the data types for each column::
 
   >>> data_rows = [(1, 2.0, 'x'),
   ...              (4, 5.0, 'y'),
   ...              (5, 8.2, 'z')]
-  >>> t = Table(rows=data_rows, names=('a', 'b', 'c'), meta={'name': 'first table'})
+  >>> t = Table(rows=data_rows, names=('a', 'b', 'c'), meta={'name': 'first table'},
+  ...           dtype=('i4', 'f8', 'S1'))
 
 There are a few ways to examine the table.  You can get detailed information
 about the table values and column definitions as follows::
@@ -73,7 +74,7 @@ about the table values and column definitions as follows::
   >>> t
   <Table masked=False length=3>
     a      b       c
-  int64 float64 string8
+  int32 float64 string8
   ----- ------- -------
       1     2.0       x
       4     5.0       y
@@ -87,7 +88,7 @@ assigned, all units would be shown as follows::
   <Table masked=False length=3>
     a      b       c
            s
-  int64 float64 string8
+  int32 float64 string8
   ----- ------- -------
       1     2.0       x
       4     5.0       y
@@ -152,7 +153,7 @@ Now examine some high-level information about the table::
 Access the data by column or row using familiar `numpy` structured array syntax::
 
   >>> t['a']       # Column 'a'
-  <Column name='a' dtype='int64' length=3>
+  <Column name='a' dtype='int32' length=3>
   1
   4
   5
@@ -163,7 +164,7 @@ Access the data by column or row using familiar `numpy` structured array syntax:
   >>> t[1]         # Row obj for with row 1 values
   <Row 1 of table
    values=(4, 5.0, 'y')
-   dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')]>
+   dtype=[('a', '<i4'), ('b', '<f8'), ('c', 'S1')]>
 
   >>> t[1]['a']    # Column 'a' of row 1
   4
@@ -217,12 +218,12 @@ Adding a new row of data to the table is as follows::
 Lastly, you can create a table with support for missing values, for example by setting
 ``masked=True``::
 
-  >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True)
+  >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True, dtype=('i4', 'f8', 'S1'))
   >>> t['a'].mask = [True, True, False]
   >>> t
   <Table masked=True length=3>
     a      b       c
-  int64 float64 string8
+  int32 float64 string8
   ----- ------- -------
      --     2.0       x
      --     5.0       y
