@@ -606,7 +606,7 @@ def check_pickling_recovery(original, protocol):
                                     class_history)
 
 
-def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=0, err_msg='', verbose=True):
+def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None, err_msg='', verbose=True):
     """
     Raise an assertion if two objects are not equal up to desired tolerance.
 
@@ -625,7 +625,8 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=0, err_msg='', ve
     except u.UnitsError:
         raise u.UnitsError("Units for 'desired' ({0}) and 'actual' ({1}) are not convertible".format(desired.unit, actual.unit))
 
-    if atol == 0:
+    if atol is None:
+        # by default, we assume an absolute tolerance of 0
         atol = u.Quantity(0)
     else:
         atol = u.Quantity(atol, subok=True, copy=False)
