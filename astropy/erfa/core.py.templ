@@ -77,7 +77,7 @@ def check_errwarn(statcodes, func_name):
     # Remap any errors into warnings in the STATUS_CODES_REMAP dict.
     if func_name in STATUS_CODES_REMAP:
         for before, after in STATUS_CODES_REMAP[func_name].items():
-            statcodes = numpy.where(statcodes == before, after, statcodes)
+            statcodes[statcodes == before] = after
             STATUS_CODES[func_name][after] = STATUS_CODES[func_name][before]
 
     if numpy.any(statcodes<0):
