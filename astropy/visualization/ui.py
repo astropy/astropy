@@ -18,8 +18,8 @@ def scale_image(image, scale='linear', power=1.0, asinh_a=0.1, min_cut=None,
 
     Parameters
     ----------
-    image : array_like
-        The array of values
+    image : array-like
+        The array of values.
 
     scale : {{'linear', 'sqrt', 'power', log', 'asinh'}}
         The scaling/stretch function to apply to the image.  The default
