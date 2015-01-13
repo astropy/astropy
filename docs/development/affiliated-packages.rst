@@ -441,7 +441,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
 #. Run::
 
-        python setup.py sdist --format=gztar
+        python setup.py build sdist --format=gztar
 
    and make sure that generated file is good to
    go by going inside ``dist``, expanding the tar file, going inside the
@@ -488,7 +488,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 #. Check out the release commit with ``git checkout v<version>``. Run
    ``git clean -fxd`` to remove any non-committed files, then either release with::
 
-        python setup.py register sdist --format=gztar upload
+        python setup.py register build sdist --format=gztar upload
 
     or, if you are concerned about security, you can also use ``twine`` as described
     in `these <https://packaging.python.org/en/latest/tutorial.html#uploading-your-project-to-pypi>`_
