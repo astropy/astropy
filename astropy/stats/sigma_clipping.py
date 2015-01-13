@@ -144,15 +144,15 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
 
 def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
     """
-    Calculate sigma-clipped statistics of an image.
+    Calculate sigma-clipped statistics from data.
 
     For example, sigma-clipped statistics can be used to estimate the
     background and background noise in an image.
 
     Parameters
     ----------
-    data : array_like
-        The 2D array of the image.
+    data : array-like
+        Data array or object that can be converted to an array.
 
     mask : `numpy.ndarray` (bool), optional
         A boolean mask with the same shape as ``data``, where a `True`
@@ -161,8 +161,8 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
 
     mask_val : float, optional
         An image data value (e.g., ``0.0``) that is ignored when
-        computing the image statistics.  ``mask_val`` will be ignored if
-        ``mask`` is input.
+        computing the image statistics.  ``mask_val`` will be masked in
+        addition to any input ``mask``.
 
     sigma : float, optional
         The number of standard deviations to use as the clipping limit.
@@ -181,12 +181,9 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
     """
 
     if mask is not None:
-        if mask.dtype != np.bool:
-            raise TypeError('mask must be a boolean ndarray')
-        data = data[~mask]
-    if mask_val is not None and mask is None:
-        idx = (data != mask_val).nonzero()
-        data = data[idx]
+        data = np.ma.MaskedArray(data, mask)
+    if mask_val is not None:
+        data = np.ma.masked_values(data, mask_val)
     data_clip = sigma_clip(data, sig=sigma, iters=iters)
     goodvals = data_clip.data[~data_clip.mask]
     return np.mean(goodvals), np.median(goodvals), np.std(goodvals)
