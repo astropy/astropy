@@ -83,7 +83,7 @@ class QuantityInput(object):
                 # Get the value of this parameter (argument to new function)
                 arg = bound_args.arguments[param.name]
 
-                # Get target unit, either from decotrator kwargs or annotations
+                # Get target unit, either from decorator kwargs or annotations
                 if param.name in self.decorator_kwargs:
                     target_unit = self.decorator_kwargs[param.name]
                 else:
