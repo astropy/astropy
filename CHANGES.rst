@@ -44,6 +44,8 @@ New Features
     quickly create ``SkyCoord`` objects from an ``astropy.table.Table``
     object. [#2951]
 
+  - ``astropy.coordinates`` now has a ``Galactocentric`` frame, a coordinate
+    frame centered on a (user specified) center of the Milky Way. [#2761, #3286]
 
 - ``astropy.cosmology``
 

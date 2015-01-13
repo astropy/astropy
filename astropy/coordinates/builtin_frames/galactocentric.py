@@ -17,7 +17,7 @@ from .icrs import ICRS
 
 # Measured by minimizing the difference between a plane of coordinates along
 #   l=0, b=[-90,90] and the Galactocentric x-z plane
-ROLL0 = Angle(148.5986320*u.degree)
+ROLL0 = Angle(58.5986320306*u.degree)
 
 class Galactocentric(BaseCoordinateFrame):
     """
@@ -86,26 +86,21 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
 
     if isinstance(icrs_coord.data, UnitSphericalRepresentation):
         raise ConvertError("Transforming to a Galactocentric frame requires "
-                           "a 3D coordinates, e.g. (angle, angle, distance) or"
+                           "a 3D coordinate, e.g. (angle, angle, distance) or"
                            " (x, y, z).")
 
     xyz = icrs_coord.cartesian.xyz
 
     # define rotation matrix to align x(ICRS) with the vector to the Galactic center
-    mat1 = rotation_matrix(90 - galactocentric_frame.galcen_dec.degree, 'y')
-    mat2 = rotation_matrix(galactocentric_frame.galcen_ra.degree, 'z')
+    mat1 = rotation_matrix(-galactocentric_frame.galcen_dec, 'y')
+    mat2 = rotation_matrix(galactocentric_frame.galcen_ra, 'z')
     R1 = mat1 * mat2
 
-    # flip coordinates because rotation above is valid for NGP
-    mat1 = rotation_matrix(-90.*u.degree, 'y')
-    mat2 = rotation_matrix(-90.*u.degree, 'z')
-    R2 = mat1 * mat2
-
     # extra roll away from the Galactic x-z plane
-    R3 = rotation_matrix(ROLL0 - galactocentric_frame.roll, 'x')
+    R2 = rotation_matrix(ROLL0 - galactocentric_frame.roll, 'x')
 
     # construct transformation matrix
-    R = R3*R2*R1
+    R = R2*R1
 
     # some reshape hacks to handle ND arrays
     orig_shape = xyz.shape
@@ -146,20 +141,15 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     xyz[0] = xyz[0] + galactocentric_coord.galcen_distance
 
     # define inverse rotation matrix that aligns x(ICRS) with the vector to the Galactic center
-    mat1 = rotation_matrix(90 - galactocentric_coord.galcen_dec.degree, 'y')
-    mat2 = rotation_matrix(galactocentric_coord.galcen_ra.degree, 'z')
+    mat1 = rotation_matrix(-galactocentric_coord.galcen_dec, 'y')
+    mat2 = rotation_matrix(galactocentric_coord.galcen_ra, 'z')
     R1 = mat1 * mat2
 
-    # flip coordinates because rotation above is valid for NGP
-    mat1 = rotation_matrix(-90.*u.degree, 'y')
-    mat2 = rotation_matrix(-90.*u.degree, 'z')
-    R2 = mat1 * mat2
-
     # extra roll away from the Galactic x-z plane
-    R3 = rotation_matrix(ROLL0 - galactocentric_coord.roll, 'x')
+    R2 = rotation_matrix(ROLL0 - galactocentric_coord.roll, 'x')
 
     # construct transformation matrix
-    R = R3*R2*R1
+    R = R2*R1
 
     # rotate into ICRS frame
     xyz = np.linalg.inv(R).dot(xyz.reshape(xyz.shape[0], np.prod(xyz.shape[1:]))).reshape(orig_shape)
