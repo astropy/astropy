@@ -43,8 +43,7 @@ ctype_to_dtype = {
 
 DEFAULT_ERFA_LOC = os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir, 'cextern', 'erfa')
-DEFAULT_TEMPLATE_PATH = os.path.join(os.path.dirname(__file__),
-                                     'core.pyx.templ')
+DEFAULT_TEMPLATE_LOC = os.path.join(os.path.dirname(__file__))
 
 
 class FunctionDoc(object):
@@ -484,15 +483,12 @@ def extract_erfa_constants(src):
     return constants
 
 
-def generate_erfa_pyx(template, funcs, stream=None):
+def generate_erfa_pyx(env, funcs, stream=None):
     """
     Generate the core.pyx file from the given template and list of functions.
     """
 
     log.debug("Rendering template")
-
-    #Prepare the jinja2 templating environment
-    env = Environment(loader=FileSystemLoader(os.path.dirname(template)))
 
     def prefix(items, pre):
         templ = '{0}{{0}}'.format(pre)
@@ -510,7 +506,7 @@ def generate_erfa_pyx(template, funcs, stream=None):
     env.filters['postfix'] = postfix
     env.filters['surround'] = surround
 
-    erfa_pyx_in = env.get_template(os.path.basename(template))
+    erfa_pyx_in = env.get_template('core.pyx.templ')
 
     if stream is None:
         return erfa_pyx_in.render(funcs=funcs)
@@ -527,8 +523,17 @@ def generate_erfa_json(funcs, stream=None):
         json.dump(erfa_json, stream, indent=2)
 
 
-def write_erfa_sources(src=DEFAULT_ERFA_LOC, out='.',
-                       template=DEFAULT_TEMPLATE_PATH, verbose=False):
+def generate_erfa_constants(env, constants, stream=None):
+    templ = env.get_template('constants.py.templ')
+
+    if stream is None:
+        return templ.render(constants=constants)
+    else:
+        templ.stream(constants=constants).dump(stream)
+
+
+def write_erfa_sources(src=DEFAULT_ERFA_LOC, templates=DEFAULT_TEMPLATE_LOC,
+                       out='.', verbose=False):
     """
     Generate and write the core.pyx and erfa.json sources.
     """
@@ -539,13 +544,19 @@ def write_erfa_sources(src=DEFAULT_ERFA_LOC, out='.',
         log.setLevel(logging.INFO)
 
     funcs = extract_erfa_functions(src)
+    constants = extract_erfa_constants(src)
 
-    erfa_pyx_filename = os.path.join(out,
-            os.path.basename(template).rsplit('.', 1)[0])
+    erfa_pyx_filename = os.path.join(out, 'core.pyx')
     erfa_json_filename = os.path.join(out, 'erfa.json')
+    constants_py_filename = os.path.join(out, 'constants.py')
 
-    generate_erfa_pyx(template, funcs, stream=open(erfa_pyx_filename, 'w'))
+    #Prepare the jinja2 templating environment
+    env = Environment(loader=FileSystemLoader(templates))
+
+    generate_erfa_pyx(env, funcs, stream=open(erfa_pyx_filename, 'w'))
     generate_erfa_json(funcs, stream=open(erfa_json_filename, 'w'))
+    generate_erfa_constants(env, constants,
+                            stream=open(constants_py_filename, 'w'))
 
 
 def main(argv):
@@ -556,18 +567,18 @@ def main(argv):
                          '(which must be in the same directory as '
                          'erfa.h). Defaults to the builtin astropy '
                          'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
+    ap.add_argument('-t', '--templates', default=DEFAULT_TEMPLATE_LOC,
+                    help='Path to look for Jinja2 templates for core.pyx '
+                         'and constants.py')
     ap.add_argument('-o', '--output', default='.',
                     help='Directory to which generated sources should be '
                          'output (default: .)')
-    ap.add_argument('-t', '--template',
-                    default=DEFAULT_TEMPLATE_PATH,
-                    help='the path to the core.pyx template')
     ap.add_argument('-q', '--quiet', action='store_false', dest='verbose',
                     help='Suppress output normally printed to stdout.')
 
     args = ap.parse_args(argv)
 
-    write_erfa_sources(args.src, args.output, args.template,
+    write_erfa_sources(args.src, args.templates, args.output,
                        verbose=args.verbose)
 
 

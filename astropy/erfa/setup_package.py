@@ -16,9 +16,11 @@ ERFA_SRC = os.path.abspath(os.path.join(ERFAPKGDIR, os.pardir, os.pardir,
 
 SRC_FILES = glob.glob(os.path.join(ERFA_SRC, '*'))
 SRC_FILES += [os.path.join(ERFAPKGDIR, filename)
-              for filename in ['core.pyx.templ', 'erfa_generator.py']]
+              for filename in ['core.pyx.templ', 'constants.py.templ',
+                               'erfa_generator.py']]
 
 GEN_FILES = [os.path.join(ERFAPKGDIR, 'core.pyx'),
+             os.path.join(ERFAPKGDIR, 'constants.py'),
              os.path.join(ERFAPKGDIR, 'erfa.json')]
 
 

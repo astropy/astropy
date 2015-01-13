@@ -15,6 +15,7 @@ MANIFEST
 astropy/version.py
 astropy/cython_version.py
 astropy/wcs/include/wcsconfig.h
+astropy/erfa/constants.py
 astropy/erfa/core.pyx
 astropy/erfa/erfa.json
 
