@@ -76,6 +76,10 @@ class QuantityInput(object):
 
             # Iterate through the parameters of the original signature
             for param in wrapped_signature.parameters.values():
+                # We do not support variable arguments (*args, **kwargs)
+                if param.kind in (funcsigs.Parameter.VAR_KEYWORD,
+                                  funcsigs.Parameter.VAR_POSITIONAL):
+                    continue
                 # Catch the (never triggered) case where bind relied on a default value.
                 if param.name not in bound_args.arguments and param.default is not param.empty:
                     bound_args.arguments[param.name] = param.default
