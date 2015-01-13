@@ -193,7 +193,7 @@ The sections of the docstring are:
    When two or more input parameters have exactly the same type, shape and
    description, they can be combined::
 
-     x1, x2 : array_like
+     x1, x2 : array-like
          Input arrays, description of `x1`, `x2`.
 
 5. **Returns**
@@ -508,10 +508,10 @@ Other points to keep in mind
   that are not answered in this document, refer to
   `<http://docs-old.scipy.org/numpy/Questions+Answers/>`_.
 
-* ``array_like`` : For functions that take arguments which can have not only
+* ``array-like`` : For functions that take arguments which can have not only
   a type ``ndarray``, but also types that can be converted to an ndarray
   (i.e. scalar types, sequence types), those arguments can be documented
-  with type ``array_like``.
+  with type ``array-like``.
 
 Common reST concepts
 --------------------
