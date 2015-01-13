@@ -225,8 +225,9 @@ def erfa_func_wrapper(func_name, func_meta, *args):
                            dtype=CTYPE_TO_DTYPE[meta['ctype']])
         if meta['direction'] == 'inout':
             np.copyto(out_arg, args[n_in + idx])
-
-        iter_args.append(out_arg)
+            iter_args[n_in + idx] = out_arg
+        else:
+            iter_args.append(out_arg)
 
     # Add an array for the return value if there is one
     ret_type = func_meta.get('return')
