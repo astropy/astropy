@@ -73,8 +73,12 @@ class TestMetaExampleData(MetaBaseTest):
     args = ()
 
 
-def test_metadata_conflicts_exception():
-    """Test the behaviour of merging metadata with metadata_conflicts='error'"""
+def test_metadata_merging_conflict_exception():
+    """Regression test for issue #3294.
+
+    Ensure that an exception is raised when a metadata conflict exists
+    and ``metadata_conflicts='error'`` has been set.
+    """
     from ..metadata import merge, MergeConflictError
     data1 = ExampleData()
     data2 = ExampleData()
