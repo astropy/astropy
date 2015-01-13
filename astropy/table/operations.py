@@ -687,8 +687,9 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
 
     lens = [len(arr) for arr in arrays]
     n_rows = sum(lens)
-    out = Table(masked=masked)
+    out = {}
     out_descrs = get_descrs(arrays, col_name_map)
+    names = list(col_name_map.keys())
     for out_descr in out_descrs:
         name = out_descr[0]
         dtype = out_descr[1:]
@@ -709,6 +710,8 @@ def _vstack(arrays, join_type='inner', col_name_map=None):
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, collections.Mapping):
         _col_name_map.update(col_name_map)
+
+    out = Table(out, names=names, masked=masked)
 
     return out
 
@@ -784,8 +787,9 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     masked = any(getattr(arr, 'masked', False) for arr in arrays) or len(set(arr_lens)) > 1
 
     n_rows = max(arr_lens)
-    out = Table(masked=masked)
+    out = {}
     out_descrs = get_descrs(arrays, col_name_map)
+    names = list(col_name_map.keys())
 
     for out_descr in out_descrs:
         name = out_descr[0]
@@ -807,5 +811,7 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, collections.Mapping):
         _col_name_map.update(col_name_map)
+
+    out = Table(out, names=names, masked=masked)
 
     return out
