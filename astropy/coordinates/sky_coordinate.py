@@ -1157,7 +1157,7 @@ def _get_units(args, kwargs):
     return units
 
 
-def _parse_coordinate_arg(coords, frame, units, scinit_kwargs):
+def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     """
     Single unnamed arg supplied.  This must be:
     - Coordinate frame with data
@@ -1249,7 +1249,7 @@ def _parse_coordinate_arg(coords, frame, units, scinit_kwargs):
             # this parsing path is used when there are coordinate-like objects
             # in the list - instead of creating lists of values, we create
             # SkyCoords from the list elements and then combine them.
-            scs = [SkyCoord(coord, **scinit_kwargs) for coord in coords]
+            scs = [SkyCoord(coord, **init_kwargs) for coord in coords]
 
             # now check that they're all self-consistent in their frame attributes
             # and frame name
