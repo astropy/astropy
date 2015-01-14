@@ -28,6 +28,12 @@ class QuantityInput(object):
         Where an equivalency is specified in the decorator, the function will be
         executed with that equivalency in force.
 
+        Notes
+        -----
+
+        The checking of arguments inside variable arguments to a function is not
+        supported (i.e. \*arg or \**kwargs).
+
         Examples
         --------
 
