@@ -633,6 +633,9 @@ Bug Fixes
   - Fixed an issue with the ``deprecated`` decorator on classes that invoke
     ``super()`` in their ``__init__`` method. [#3004]
 
+  - Fixed a bug which caused the ``metadata_conflicts`` parameter to be
+    ignored in the ``astropy.utils.metadata.merge`` function. [#3294]  
+
 - ``astropy.vo``
 
   - Fixed an issue with reconnecting to a SAMP Hub. [#2674]
