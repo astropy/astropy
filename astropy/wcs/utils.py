@@ -151,28 +151,28 @@ def wcs_to_celestial_frame(wcs):
 
 def celestial_pixel_scale(inwcs, which='combine', allow_nonsquare=False):
     """
-    For a WCS, return the pixel scale in the spatial dimensions
+    For a WCS, return the pixel scale in the spatial dimensions.
 
     Parameters
     ----------
-    inwcs: `astropy.wcs.WCS`
+    inwcs : `~astropy.wcs.WCS`
         The world coordinate system object
-    which: one of 'combine', 'lon', 'lat', or 'both'
+    which : one of 'combine', 'lon', 'lat', or 'both'
         The dimension to calculate the pixel scale along. If 'both', a tuple
         will be returned. If 'combine' with nonsquare pixels, a geometric mean
-        is taken unless `allow_nonsquare=False`
+        is taken unless ``allow_nonsquare=False``
     allow_nonsquare : bool
         Return the geometric average of the X and Y scales if True
 
     Returns
     -------
-    scale : `Quantity` or tuple of `Quantity`
+    scale : `~astropy.units.Quantity` or tuple of `~astropy.units.Quantity`
         The pixel scale
 
     Raises
     ------
     ValueError if the pixels are nonsquare, which='combine', and
-    ``allow_nonsquare==False``
+    allow_nonsquare is not set.
     """
     cwcs = inwcs.celestial
     if cwcs.wcs.ctype[0][-3:] != 'CAR':
@@ -199,8 +199,8 @@ def celestial_pixel_scale(inwcs, which='combine', allow_nonsquare=False):
 
 def non_celestial_pixel_scales(inwcs):
     """
-    For a non-celestial WCS, e.g. one with mixed spectral and spatial axes, it
-    is still sometimes possible to define a pixel scale.
+    For a non-celestial WCS, such as one with mixed spectral and spatial axes,
+    it is still sometimes possible to define a pixel scale.
 
     Parameters
     ----------
