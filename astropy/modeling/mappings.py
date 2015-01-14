@@ -10,9 +10,13 @@ __all__ = ['Mapping', 'Identity']
 
 
 class Mapping(Model):
-    def __init__(self, mapping):
-        self._inputs = tuple('x' + str(idx)
-                             for idx in range(max(mapping) + 1))
+    def __init__(self, mapping, n_inputs=None):
+        if n_inputs is None:
+            self._inputs = tuple('x' + str(idx)
+                                 for idx in range(max(mapping) + 1))
+        else:
+            self._inputs = tuple('x' + str(idx)
+                                 for idx in range(n_inputs))
         self._outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
         self._mapping = mapping
         super(Mapping, self).__init__()
@@ -34,8 +38,8 @@ class Mapping(Model):
         return self._mapping
 
     def evaluate(self, *args):
-        if len(args) < self.n_inputs:
-            raise TypeError('{0} expects at most {1} inputs; got {2}'.format(
+        if len(args) != self.n_inputs:
+            raise TypeError('{0} expects {1} inputs; got {2}'.format(
                 self.name, self.n_inputs, len(args)))
 
         result = tuple(args[idx] for idx in self._mapping)
@@ -55,13 +59,16 @@ class Mapping(Model):
                 "Mappings such as {0} that drop one or more of their inputs "
                 "are not invertible at this time.".format(self.mapping))
 
-        return self.__class__(mapping)
+        inv = self.__class__(mapping)
+        inv._inputs = self._outputs
+        inv._outputs = self._inputs
+        return inv
 
 
 class Identity(Mapping):
     def __init__(self, n_inputs):
         mapping = tuple(range(n_inputs))
-        super(Identity, self).__init__(mapping)
+        super(Identity, self).__init__(mapping, n_inputs=n_inputs)
 
     @property
     def name(self):
