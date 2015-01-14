@@ -21,17 +21,21 @@ means that either a plain array is returned, or a `~astropy.units.quantity.Quant
 E.g.::
 
     >>> import astropy.units as u
-
     >>> import numpy as np
-
     >>> q = u.Quantity(np.arange(10.), u.m)
-
     >>> np.dot(q,q)
     285.0
-
     >>> np.hstack((q,q))
     <Quantity [ 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 0., 1., 2., 3., 4.,
                 5., 6., 7., 8., 9.] (Unit not initialised)>
+
+Also in-place operations where the output is a normal `~numpy.ndarray`
+will drop the unit silently (at least in numpy <= 1.9)::
+
+    >>> a = np.arange(10.)
+    >>> a *= 1.*u.kg
+    >>> a
+    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.])
 
 Work-arounds are available for some cases.  For the above::
 
