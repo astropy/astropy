@@ -1,6 +1,6 @@
 import abc
 
-from ..metadata import MetaData
+from ..metadata import MetaData, MergeConflictError, merge
 from ..compat.odict import OrderedDict
 from ...tests.helper import pytest
 from ...io import fits
@@ -71,3 +71,18 @@ class ExampleData(object):
 class TestMetaExampleData(MetaBaseTest):
     test_class = ExampleData
     args = ()
+
+
+def test_metadata_merging_conflict_exception():
+    """Regression test for issue #3294.
+
+    Ensure that an exception is raised when a metadata conflict exists
+    and ``metadata_conflicts='error'`` has been set.
+    """
+    from ..metadata import merge, MergeConflictError
+    data1 = ExampleData()
+    data2 = ExampleData()
+    data1.meta['somekey'] = {'x': 1, 'y': 1}
+    data2.meta['somekey'] = {'x': 1, 'y': 999}
+    with pytest.raises(MergeConflictError):
+        merge(data1.meta, data2.meta, metadata_conflicts='error')
