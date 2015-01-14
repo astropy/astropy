@@ -25,7 +25,7 @@ __all__ = ['SkyCoord']
 PLUS_MINUS_RE = re.compile(r'(\+|\-)')
 J_PREFIXED_RA_DEC_RE = re.compile(
     r"""J                              # J prefix
-    ([0-9]{6})\.?[0-9]{0,2}            # RA as HHMMSS.ss, optional decimal digits
+    ([0-9]{6,7}\.?[0-9]{0,2})          # RA as HHMMSS.ss or DDDMMSS.ss, optional decimal digits
     ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$  # Dec as DDMMSS.ss, optional decimal digits
     """, re.VERBOSE)
 
@@ -1305,7 +1305,9 @@ def _parse_ra_dec(coord_str):
      * space separated 6-value format
      * space separated <6-value format, this requires a plus or minus sign
        separation between RA and Dec
+     * sign separated format
      * JHHMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
+     * JDDDMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
 
     Parameters
     ----------
@@ -1330,15 +1332,22 @@ def _parse_ra_dec(coord_str):
         coord = PLUS_MINUS_RE.split(coord_str)
         coord = (coord[0], ' '.join(coord[1:]))
     elif len(coord1) == 1:
-        match = J_PREFIXED_RA_DEC_RE.match(coord_str)
-        if match:
-            coord = match.groups()
-            coord = ('{0} {1} {2}'.
-                     format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
-                     '{0} {1} {2}'.
-                     format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
+        match_j = J_PREFIXED_RA_DEC_RE.match(coord_str)
+        if match_j:
+            coord = match_j.groups()
+            if len(coord[0].split('.')[0]) == 7:
+                coord = ('{0} {1} {2}'.
+                         format(coord[0][0:3], coord[0][3:5], coord[0][5:]),
+                         '{0} {1} {2}'.
+                         format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
+            else:
+                coord = ('{0} {1} {2}'.
+                         format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
+                         '{0} {1} {2}'.
+                         format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
         else:
-            coord = coord1
+            coord = PLUS_MINUS_RE.split(coord_str)
+            coord = (coord[0], ' '.join(coord[1:]))
     else:
         coord = coord1
 
