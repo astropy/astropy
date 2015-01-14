@@ -167,3 +167,20 @@ def test_structs():
     ri, di = erfa.atciqz(2.71, 0.174, am[0])
     np.testing.assert_allclose(ri, 2.709994899247599271)
     np.testing.assert_allclose(di, 0.1728740720983623469)
+
+
+def test_structs_2():
+    """
+    Regression test for this case:
+    https://github.com/astropy/astropy/pull/3181#issuecomment-66213070
+
+    This does not test the numerical results, just that the return value has
+    the correct type and shape.
+    """
+
+    jd = np.linspace(2456855.5, 2456855.5+1.0/24.0/60.0, 100)
+    x = np.zeros((1,), erfa.dt_eraASTROM)
+    out = erfa.aper(jd, x)
+
+    assert out.shape == (100,)
+    assert out.dtype == erfa.dt_eraASTROM

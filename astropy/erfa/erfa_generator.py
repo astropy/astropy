@@ -1,32 +1,49 @@
+#!/usr/bin/env python
+
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module's main purpose is to act as a script to create new versions
-of erfa.pyx when ERFA is updated (or this generator is enhanced).
+of core.pyx when ERFA is updated (or this generator is enhanced).
 
 `Jinja2 <http://jinja.pocoo.org/>`_ must be installed for this
 module/script to function.
 
-Note that this does *not* currently automate the process of creating structs
-or dtypes for those structs.  They should be added manually in the template file.
+Note that this does *not* currently automate the process of creating structs or
+dtypes for those structs.  They should be added manually in the template file.
 """
+
 from __future__ import absolute_import, division, print_function
 # note that we do *not* use unicode_literals here, because that makes the
 # generated code's strings have u'' in them on py 2.x
 
+import logging
+import json
 import re
 import os.path
+import sys
+
+from argparse import ArgumentParser
+
+from jinja2 import Environment, FileSystemLoader
 
 
-ctype_to_dtype = {'double'     : "numpy.double",
-                  'int'        : "numpy.intc",
-                  'eraASTROM'  : "dt_eraASTROM",
-                  'eraLDBODY'  : "dt_eraLDBODY",
-                  'char'       : "numpy.dtype('S16')",
-                  'const char' : "numpy.dtype('S16')",
-                  }
+log = logging.getLogger(__name__)
+log.addHandler(logging.StreamHandler(sys.stdout))
 
 
-NDIMS_REX = re.compile(re.escape("numpy.dtype([('fi0', '.*', <(.*)>)])").replace(r'\.\*','.*').replace(r'\<', '(').replace(r'\>',')'))
+ctype_to_dtype = {
+    'double'     : "numpy.double",
+    'int'        : "numpy.intc",
+    'eraASTROM'  : "dt_eraASTROM",
+    'eraLDBODY'  : "dt_eraLDBODY",
+    'char'       : "numpy.dtype('S16')",
+    'const char' : "numpy.dtype('S16')",
+}
+
+
+DEFAULT_ERFA_LOC = os.path.join(os.path.dirname(__file__), os.pardir,
+                                os.pardir, 'cextern', 'erfa')
+DEFAULT_TEMPLATE_LOC = os.path.join(os.path.dirname(__file__))
 
 
 class FunctionDoc(object):
@@ -118,6 +135,7 @@ class ArgumentDoc(object):
 class Argument(object):
 
     def __init__(self, definition, doc):
+        self.definition = definition
         self.doc = doc
         self.__inout_state = None
         self.ctype, ptr_name_arr = definition.strip().rsplit(" ", 1)
@@ -181,8 +199,22 @@ class Argument(object):
     def ndim(self):
         return len(self.shape)
 
+    def to_dict(self):
+        """
+        Represent this `Argument` as a `dict` for serialization purposes.
+        """
+
+        ret = {'name': self.name, 'ctype': self.ctype,
+               'direction': self.inout_state}
+        if self.shape:
+            ret['shape'] = self.shape
+
+        return ret
+
     def __repr__(self):
-        return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
+        return ("Argument('{0}', name='{1}', ctype='{2}', "
+                "inout_state='{3}')").format(self.definition, self.name,
+                                             self.ctype, self.inout_state)
 
 
 class ReturnDoc(object):
@@ -206,19 +238,21 @@ class ReturnDoc(object):
                         if code != 'else':
                             code = int(code)
                         statuscodes[code] = msg
-                    elif code is not None:
-                        statuscodes[code] += ls
+                elif code is not None:
+                    statuscodes[code] += ls
         else:
             self.statuscodes = None
 
     def __repr__(self):
-        return "Return value, type={0:15}, {1}, {2}".format(self.type, self.descr, self.doc)
+        return "Return value, type={0:15}, {1}, {2}".format(self.type,
+                                                            self.descr,
+                                                            self.doc)
 
 
 class Return(object):
 
     def __init__(self, ctype, doc):
-        self.name = 'c_retval'
+        self.name = 'c_statval' if ctype == 'int' else 'c_retval'
         self.name_out_broadcast = self.name+"_out"
         self.inout_state = 'stat' if ctype == 'int' else 'ret'
         self.ctype = ctype
@@ -227,7 +261,8 @@ class Return(object):
         self.doc = doc
 
     def __repr__(self):
-        return "Return(name='{0}', ctype='{1}', inout_state='{2}')".format(self.name, self.ctype, self.inout_state)
+        return "Return(name='{0}', ctype='{1}', inout_state='{2}')".format(
+                self.name, self.ctype, self.inout_state)
 
     @property
     def dtype(self):
@@ -269,7 +304,8 @@ class Function(object):
         self.pyname = name.split('era')[-1].lower()
         self.filename = self.pyname+".c"
         if os.path.isdir(source_path):
-            self.filepath = os.path.join(os.path.normpath(source_path), self.filename)
+            self.filepath = os.path.join(os.path.normpath(source_path),
+                                         self.filename)
         else:
             self.filepath = source_path
 
@@ -331,8 +367,33 @@ class Function(object):
         else:
             return result
 
+    def to_dict(self):
+        """
+        Convert this `Function` to a `dict` representation for serialization.
+
+        Does not dump the function's pyname, as this will be used as the key
+        to this function in the dictionary of all ERFA functions.
+        """
+
+        ret = {'name': self.name, 'doc': str(self.doc)}
+        args = []
+        for arg in self.args:
+            if isinstance(arg, Return):
+                ret['return'] = arg.ctype
+                if arg.doc_info and arg.doc_info.statuscodes:
+                    ret['statuscodes'] = arg.doc_info.statuscodes
+                continue
+            args.append(arg.to_dict())
+
+        if args:
+            ret['arguments'] = args
+
+        return ret
+
     def __repr__(self):
-        return "Function(name='{0}', pyname='{1}', filename='{2}', filepath='{3}')".format(self.name, self.pyname, self.filename, self.filepath)
+        return ("Function(name='{0}', pyname='{1}', filename='{2}', "
+                "filepath='{3}')").format(self.name, self.pyname,
+                                          self.filename, self.filepath)
 
 
 class Constant(object):
@@ -343,126 +404,183 @@ class Constant(object):
         self.doc = doc
 
 
-def main(srcdir, outfn, templateloc, verbose=True):
-    from jinja2 import Environment, FileSystemLoader
+def extract_erfa_functions(src):
+    """
+    Extract all ERFA function declarations from erfa.h and the associated
+    source file(s).
+    """
 
-    if verbose:
-        print_ = lambda *args, **kwargs: print(*args, **kwargs)
+    if os.path.isdir(src):
+        erfa_h_filename = os.path.join(src, 'erfa.h')
+        multi_file = True
     else:
-        print_ = lambda *args, **kwargs: None
+        erfa_h_filename = os.path.join(os.path.dirname(src), 'erfa.h')
+        multi_file = False
 
-    #Prepare the jinja2 templating environment
-    env = Environment(loader=FileSystemLoader(templateloc))
-
-    def prefix(a_list, pre):
-        return [pre+'{0}'.format(an_element) for an_element in a_list]
-    def postfix(a_list, post):
-        return ['{0}'.format(an_element)+post for an_element in a_list]
-    def surround(a_list, pre, post):
-        return [pre+'{0}'.format(an_element)+post for an_element in a_list]
-    env.filters['prefix'] = prefix
-    env.filters['postfix'] = postfix
-    env.filters['surround'] = surround
-
-    erfa_pyx_in = env.get_template('core.pyx.templ')
-    erfa_py_in = env.get_template('core.py.templ')
-
-    #Extract all the ERFA function names from erfa.h
-    if os.path.isdir(srcdir):
-        erfahfn = os.path.join(srcdir, 'erfa.h')
-        multifilserc = True
-    else:
-        erfahfn = os.path.join(os.path.split(srcdir)[0], 'erfa.h')
-        multifilserc = False
-
-    with open(erfahfn, "r") as f:
+    with open(erfa_h_filename) as f:
         erfa_h = f.read()
 
     funcs = []
     section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
                                               erfa_h, flags=re.DOTALL|re.MULTILINE)
-    for section, subsection, functions in section_subsection_functions:
-        print_("{0}.{1}".format(section, subsection))
-        if section == "Astronomy":
-            func_names = re.findall(' (\w+)\(.*?\);', functions, flags=re.DOTALL)
-            for name in func_names:
-                print_("{0}.{1}.{2}...".format(section, subsection, name))
-                if multifilserc:
-                    # easy because it just looks in the file itself
-                    funcs.append(Function(name, srcdir))
-                else:
-                    # Have to tell it to look for a declaration matching
-                    # the start of the header declaration, otherwise it
-                    # might find a *call* of the function instead of the
-                    # definition
-                    for line in functions.split('\n'):
-                        if name in line:
-                            # [:-1] is to remove trailing semicolon, and
-                            # splitting on '(' is because the header and
-                            # C files don't necessarily have to match
-                            # argument names and line-breaking or
-                            # whitespace
-                            match_line = line[:-1].split('(')[0]
-                            funcs.append(Function(name, srcdir, match_line))
-                            break
-                    else:
-                        raise ValueError("A name for a C file wasn't "
-                                         "found in the string that "
-                                         "spawned it.  This should be "
-                                         "impossible!")
 
-    #Extract all the ERFA constants from erfam.h
-    erfamhfn = os.path.join(srcdir, 'erfam.h')
-    with open(erfamhfn, 'r') as f:
-        erfa_m_h = f.read()
+    for section, subsection, functions in section_subsection_functions:
+        log.debug("{0}.{1}".format(section, subsection))
+        if section != "Astronomy":
+            # For now we omit all functions not in the "Astronomy" section of
+            # erfa.h
+            continue
+
+        func_names = re.findall(' (\w+)\(.*?\);', functions, flags=re.DOTALL)
+        for name in func_names:
+            log.debug("{0}.{1}.{2}...".format(section, subsection, name))
+            if multi_file:
+                # easy because it just looks in the file itself
+                funcs.append(Function(name, src))
+            else:
+                # Have to tell it to look for a declaration matching
+                # the start of the header declaration, otherwise it
+                # might find a *call* of the function instead of the
+                # definition
+                for line in functions.split('\n'):
+                    if name in line:
+                        # [:-1] is to remove trailing semicolon, and
+                        # splitting on '(' is because the header and
+                        # C files don't necessarily have to match
+                        # argument names and line-breaking or
+                        # whitespace
+                        match_line = line[:-1].split('(')[0]
+                        funcs.append(Function(name, src, match_line))
+                        break
+                else:
+                    raise ValueError(
+                        "A name for a C file wasn't found in the string that "
+                        "spawned it.  This should be impossible!")
+
+    return funcs
+
+
+def extract_erfa_constants(src):
+    """Extract all ERFA constants from erfam.h."""
+
+    if os.path.isdir(src):
+        erfam_h_filename = os.path.join(src, 'erfam.h')
+    else:
+        erfam_h_filename = os.path.join(os.path.dirname(src), 'erfam.h')
+
+    with open(erfam_h_filename) as f:
+        erfam_h = f.read()
+
     constants = []
-    for chunk in erfa_m_h.split("\n\n"):
-        result = re.findall("#define (ERFA_\w+?) (.+?)$", chunk, flags=re.DOTALL|re.MULTILINE)
+    for chunk in erfam_h.split("\n\n"):
+        result = re.findall("#define (ERFA_\w+?) (.+?)$", chunk,
+                            flags=re.DOTALL|re.MULTILINE)
         if result:
             doc = re.findall("/\* (.+?) \*/\n", chunk, flags=re.DOTALL)
-            for (name, value) in result:
+            for name, value in result:
                 constants.append(Constant(name, value, doc))
 
-    print_("Rendering template")
-    erfa_pyx = erfa_pyx_in.render(funcs=funcs)
-    erfa_py = erfa_py_in.render(funcs=funcs, constants=constants)
+    return constants
 
-    if outfn is not None:
-        outfnx = outfn + "x"
-        print_("Saving to", outfn, 'and', outfnx)
-        with open(outfn, "w") as f:
-            f.write(erfa_py)
-        with open(outfnx, "w") as f:
-            f.write(erfa_pyx)
 
-    print_("Done!")
+def generate_erfa_pyx(env, funcs, stream=None):
+    """
+    Generate the core.pyx file from the given template and list of functions.
+    """
 
-    return erfa_pyx, erfa_py, funcs
+    log.debug("Rendering template")
 
-DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
-                                '../../cextern/erfa')
-DEFAULT_TEMPLATE_LOC = os.path.split(__file__)[0]
+    def prefix(items, pre):
+        templ = '{0}{{0}}'.format(pre)
+        return map(templ.format, items)
 
-if __name__ == '__main__':
-    from argparse import ArgumentParser
+    def postfix(items, post):
+        templ = '{{0}}{0}'.format(post)
+        return map(templ.format, items)
 
+    def surround(items, pre, post):
+        templ = '{0}{{0}}{1}'.format(pre, post)
+        return map(templ.format, items)
+
+    env.filters['prefix'] = prefix
+    env.filters['postfix'] = postfix
+    env.filters['surround'] = surround
+
+    erfa_pyx_in = env.get_template('core.pyx.templ')
+
+    if stream is None:
+        return erfa_pyx_in.render(funcs=funcs)
+    else:
+        erfa_pyx_in.stream(funcs=funcs).dump(stream)
+
+
+def generate_erfa_json(funcs, stream=None):
+    erfa_json = {func.pyname: func.to_dict() for func in funcs}
+
+    if stream is None:
+        return json.dumps(erfa_json, indent=2)
+    else:
+        json.dump(erfa_json, stream, indent=2)
+
+
+def generate_erfa_constants(env, constants, stream=None):
+    templ = env.get_template('constants.py.templ')
+
+    if stream is None:
+        return templ.render(constants=constants)
+    else:
+        templ.stream(constants=constants).dump(stream)
+
+
+def write_erfa_sources(src=DEFAULT_ERFA_LOC, templates=DEFAULT_TEMPLATE_LOC,
+                       out='.', verbose=False):
+    """
+    Generate and write the core.pyx and erfa.json sources.
+    """
+
+    if verbose:
+        log.setLevel(logging.DEBUG)
+    else:
+        log.setLevel(logging.INFO)
+
+    funcs = extract_erfa_functions(src)
+    constants = extract_erfa_constants(src)
+
+    erfa_pyx_filename = os.path.join(out, 'core.pyx')
+    erfa_json_filename = os.path.join(out, 'erfa.json')
+    constants_py_filename = os.path.join(out, 'constants.py')
+
+    #Prepare the jinja2 templating environment
+    env = Environment(loader=FileSystemLoader(templates))
+
+    generate_erfa_pyx(env, funcs, stream=open(erfa_pyx_filename, 'w'))
+    generate_erfa_json(funcs, stream=open(erfa_json_filename, 'w'))
+    generate_erfa_constants(env, constants,
+                            stream=open(constants_py_filename, 'w'))
+
+
+def main(argv):
     ap = ArgumentParser()
-    ap.add_argument('srcdir', default=DEFAULT_ERFA_LOC, nargs='?',
+    ap.add_argument('src', default=DEFAULT_ERFA_LOC, nargs='?',
                     help='Directory where the ERFA c and header files '
                          'can be found or to a single erfa.c file '
                          '(which must be in the same directory as '
                          'erfa.h). Defaults to the builtin astropy '
                          'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
-    ap.add_argument('-o', '--output', default='core.py',
-                    help='The output filename.  This is the name for only the '
-                         'pure-python output, the Cython part will have the '
-                         'same name but with an "x" appended.')
-    ap.add_argument('-t', '--template-loc',
-                    default=DEFAULT_TEMPLATE_LOC,
-                    help='the location where the "erfa.pyx.templ" '
-                         'template can be found.')
+    ap.add_argument('-t', '--templates', default=DEFAULT_TEMPLATE_LOC,
+                    help='Path to look for Jinja2 templates for core.pyx '
+                         'and constants.py')
+    ap.add_argument('-o', '--output', default='.',
+                    help='Directory to which generated sources should be '
+                         'output (default: .)')
     ap.add_argument('-q', '--quiet', action='store_false', dest='verbose',
                     help='Suppress output normally printed to stdout.')
 
-    args = ap.parse_args()
-    main(args.srcdir, args.output, args.template_loc)
+    args = ap.parse_args(argv)
+
+    write_erfa_sources(args.src, args.templates, args.output,
+                       verbose=args.verbose)
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
