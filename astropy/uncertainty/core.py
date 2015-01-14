@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 """
 Distribution class and associated machinery.
 """
-
 import numpy as np
 
 from astropy import units as u
 from astropy import stats
+
 
 __all__ = ['Distribution']
 
