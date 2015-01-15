@@ -604,3 +604,43 @@ def check_pickling_recovery(original, protocol):
     class_history = [original.__class__]
     generic_recursive_equality_test(original, unpickled,
                                     class_history)
+
+
+def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None, err_msg='', verbose=True):
+    """
+    Raise an assertion if two objects are not equal up to desired tolerance.
+
+    This is a :class:`~astropy.units.Quantity`-aware version of
+    :func:`numpy.testing.assert_allclose`.
+    """
+
+    import numpy as np
+    from .. import units as u
+
+    actual = u.Quantity(actual, subok=True, copy=False)
+
+    desired = u.Quantity(desired, subok=True, copy=False)
+    try:
+        desired = desired.to(actual.unit)
+    except u.UnitsError:
+        raise u.UnitsError("Units for 'desired' ({0}) and 'actual' ({1}) are not convertible".format(desired.unit, actual.unit))
+
+    if atol is None:
+        # by default, we assume an absolute tolerance of 0
+        atol = u.Quantity(0)
+    else:
+        atol = u.Quantity(atol, subok=True, copy=False)
+        try:
+            atol = atol.to(actual.unit)
+        except u.UnitsError:
+            raise u.UnitsError("Units for 'atol' ({0}) and 'actual' ({1}) are not convertible".format(atol.unit, actual.unit))
+
+    rtol =  u.Quantity(rtol, subok=True, copy=False)
+    try:
+        rtol = rtol.to(u.dimensionless_unscaled)
+    except:
+        raise u.UnitsError("`rtol` should be dimensionless")
+
+    np.testing.assert_allclose(actual.value, desired.value,
+                               rtol=rtol.value, atol=atol.value,
+                               err_msg=err_msg, verbose=verbose)

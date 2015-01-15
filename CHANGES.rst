@@ -175,6 +175,10 @@ New Features
 
   - Add ``unique`` convenience method to table. [#3185]
 
+- ``astropy.tests``
+
+  - Added a new Quantity-aware ``assert_quantity_allclose``. [#3273]
+
 - ``astropy.time``
 
   - ``Time`` can now handle arbitrary array dimensions, with operations
