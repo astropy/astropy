@@ -10,7 +10,8 @@ from datetime import datetime, tzinfo, timedelta
 
 import numpy as np
 
-from ...tests.helper import pytest
+from ...tests.helper import pytest, catch_warnings
+from ...extern import six
 from .. import Time, ScaleValueError, erfa_time, TIME_SCALES
 from ...coordinates import EarthLocation
 
@@ -615,7 +616,11 @@ class TestSofaErrors():
 
         # Set month to a good value so now the bad day just gives a warning
         im[0] = 2
-        djm0, djm = erfa_time.cal2jd(iy, im, id)
+        with catch_warnings() as w:
+            djm0, djm = erfa_time.cal2jd(iy, im, id)
+        assert len(w) == 1
+        assert 'bad day    (JD computed)' in six.text_type(w[0].message)
+
         assert allclose_jd(djm0, [2400000.5])
         assert allclose_jd(djm, [53574.])
 
