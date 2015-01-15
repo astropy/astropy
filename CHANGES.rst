@@ -46,6 +46,8 @@ New Features
 
   - ``astropy.coordinates`` now has a ``Galactocentric`` frame, a coordinate
     frame centered on a (user specified) center of the Milky Way. [#2761, #3286]
+  - ``SkyCoord`` now accepts more formats of the coordinate string when the
+    representation has ``ra`` and ``dec`` attributes.
 
 - ``astropy.cosmology``
 
