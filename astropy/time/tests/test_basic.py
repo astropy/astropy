@@ -605,7 +605,7 @@ class TestSubFormat():
 
 
 class TestSofaErrors():
-    """Test that erfa_time.pyx handles erfa status return values correctly"""
+    """Test that erfa status return values are handled correctly"""
 
     def test_bad_time(self):
         iy = np.array([2000], dtype=np.intc)
