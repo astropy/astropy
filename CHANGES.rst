@@ -558,7 +558,7 @@ Other Changes and Additions
   source code from the git repository, in order to allow the ERFA wrappers to
   be generated. [#3166]
 
-0.4.3 (unreleased)
+0.4.3 (2015-01-15)
 ------------------
 
 Bug Fixes
