@@ -54,3 +54,8 @@ def test_identity():
                         np.array([[ 1.,  1.,  1.],
                                   [ 1.,  1.,  1.]])))
     assert_allclose(model.inverse(res_x, res_y), (x, y))
+
+
+def test_name():
+    ident = Identity(1, name='ident_x')
+    assert(ident.name == 'ident_x')
