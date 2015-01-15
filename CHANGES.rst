@@ -123,6 +123,16 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - WCS allows slices of the form slice(None, x, y), which previously resulted
+    in an unsliced copy being returned [#2909]
+
+  - Invalid or out of range values passed to ``wcs_world2pix`` will
+    now be correctly identified and returned as ``nan``
+    values. [#2965]
+
+  - Fixed an issue which meant that Python thought ``WCS`` objects were
+    iterable. [#3066]
+
 - Misc
 
   - Astropy will now work if your Python interpreter does not have the
