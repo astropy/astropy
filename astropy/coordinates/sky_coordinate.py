@@ -22,6 +22,13 @@ from .representation import (BaseRepresentation, SphericalRepresentation,
 
 __all__ = ['SkyCoord']
 
+PLUS_MINUS_RE = re.compile(r'(\+|\-)')
+J_PREFIXED_RA_DEC_RE = re.compile(
+    r"""J                              # J prefix
+    ([0-9]{6,7}\.?[0-9]{0,2})          # RA as HHMMSS.ss or DDDMMSS.ss, optional decimal digits
+    ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$  # Dec as DDMMSS.ss, optional decimal digits
+    """, re.VERBOSE)
+
 
 # Define a convenience mapping.  This is used like a module constants
 # but is actually dynamically evaluated.
@@ -1209,13 +1216,19 @@ def _parse_coordinate_arg(coords, frame, units):
 
         # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
         vals = []
+
+        is_ra_dec_representation = ('ra' in frame.representation_component_names and
+                                    'dec' in frame.representation_component_names)
+
         for ii, coord in enumerate(coords):
             if isinstance(coord, six.string_types):
                 coord1 = coord.split()
                 if len(coord1) == 6:
-                    coord1 = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                coord = coord1
-
+                    coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+                elif is_ra_dec_representation:
+                    coord = _parse_ra_dec(coord)
+                else:
+                    coord = coord1
             vals.append(coord)  # This assumes coord is a sequence at this point
 
         # Do some basic validation of the list elements: all have a length and all
@@ -1256,8 +1269,8 @@ def _parse_coordinate_arg(coords, frame, units):
                 frame_attr_names, repr_attr_classes, values, units):
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
     except Exception as err:
-        raise ValueError('Cannot parse longitude and latitude from first argument: {0}'
-                         .format(err))
+        raise ValueError('Cannot parse longitude and latitude from first argument '
+                         'for the specified frame: {0}'.format(err))
 
     return valid_kwargs
 
@@ -1282,3 +1295,60 @@ def _get_representation_attrs(frame, units, kwargs):
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
 
     return valid_kwargs
+
+
+def _parse_ra_dec(coord_str):
+    """
+    Parse RA and Dec values from a coordinate string. Currently the
+    following formats are supported:
+
+     * space separated 6-value format
+     * space separated <6-value format, this requires a plus or minus sign
+       separation between RA and Dec
+     * sign separated format
+     * JHHMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
+     * JDDDMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
+
+    Parameters
+    ----------
+    coord_str : str
+        Coordinate string to parse.
+
+    Returns
+    -------
+    coord : str or list of str
+        Parsed coordinate values.
+    """
+
+    if isinstance(coord_str, six.string_types):
+        coord1 = coord_str.split()
+    else:
+        # This exception should never be raised from SkyCoord
+        raise TypeError('coord_str must be a single str')
+
+    if len(coord1) == 6:
+        coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+    elif len(coord1) > 2:
+        coord = PLUS_MINUS_RE.split(coord_str)
+        coord = (coord[0], ' '.join(coord[1:]))
+    elif len(coord1) == 1:
+        match_j = J_PREFIXED_RA_DEC_RE.match(coord_str)
+        if match_j:
+            coord = match_j.groups()
+            if len(coord[0].split('.')[0]) == 7:
+                coord = ('{0} {1} {2}'.
+                         format(coord[0][0:3], coord[0][3:5], coord[0][5:]),
+                         '{0} {1} {2}'.
+                         format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
+            else:
+                coord = ('{0} {1} {2}'.
+                         format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
+                         '{0} {1} {2}'.
+                         format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
+        else:
+            coord = PLUS_MINUS_RE.split(coord_str)
+            coord = (coord[0], ' '.join(coord[1:]))
+    else:
+        coord = coord1
+
+    return coord
