@@ -1246,9 +1246,11 @@ def test_unicode_column_names(table_types):
 
 
 def test_unicode_content():
+    # If we don't have unicode literals then return
     if isinstance('', bytes):
         return
 
+    # Define unicode literals
     string_a = 'астрономическая питона'
     string_b = 'миллиарды световых лет'
 
@@ -1257,7 +1259,6 @@ def test_unicode_content():
          [string_b, 3]],
         names=('a', 'b'))
 
-    assert repr(string_a) in repr(a)
     assert string_a in six.text_type(a)
     # This only works because the coding of this file is utf-8, which
     # matches the default encoding of Table.__str__

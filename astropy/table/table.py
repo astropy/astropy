@@ -543,23 +543,37 @@ class Table(object):
 
         table.columns = columns
 
+    def _base_repr_(self, html=False):
+        descr_vals = [self.__class__.__name__]
+        for attr, val in (('masked', self.masked),
+                          ('length', len(self))):
+            descr_vals.append('{0}={1}'.format(attr, repr(val)))
+
+        descr = '<' + ' '.join(descr_vals) + '>\n'
+
+        if html:
+            from ..utils.xml.writer import xml_escape
+            descr = xml_escape(descr)
+
+        tableid = 'table{id}'.format(id=id(self))
+        data_lines, outs = self.formatter._pformat_table(self,
+            tableid=tableid, html=html, max_width=(-1 if html else None),
+            show_name=True, show_unit=None, show_dtype=True)
+
+        out = descr + '\n'.join(data_lines)
+        if six.PY2 and isinstance(out, six.text_type):
+            out = out.encode('utf-8')
+
+        return out
+
+    def _repr_html_(self):
+        return self._base_repr_(html=True)
+
     def __repr__(self):
-        names = ("'{0}'".format(x) for x in self.colnames)
-        units = [getattr(col, 'unit', None) for col in self.columns.values()]
-        if any(units):
-            units = ("{0}".format(None if unit is None else '\''+str(unit)+'\'')
-                     for unit in units)
-            s = "<{3} rows={0} names=({1}) units=({4})>\n{2}".format(
-                self.__len__(), ','.join(names), repr(self.as_array()), self.__class__.__name__
-                ,','.join(units))
-        else:
-            s = "<{3} rows={0} names=({1})>\n{2}".format(
-                self.__len__(), ','.join(names), repr(self.as_array()), self.__class__.__name__)
-        return s
+        return self._base_repr_(html=False)
 
     def __unicode__(self):
-        lines, n_header = self.formatter._pformat_table(self)
-        return '\n'.join(lines)
+        return '\n'.join(self.pformat())
     if six.PY3:
         __str__ = __unicode__
 
@@ -569,7 +583,7 @@ class Table(object):
         __str__ = __bytes__
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_unit=None):
+               show_unit=None, show_dtype=False):
         """Print a formatted string representation of the table.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -598,10 +612,16 @@ class Table(object):
             for units only if one or more columns has a defined value
             for the unit.
 
+        show_dtype : bool
+            Include a header row for column dtypes (default=True)
         """
+        lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
+                                                    show_name=show_name, show_unit=show_unit,
+                                                    show_dtype=show_dtype)
+        if outs['show_length']:
+            lines.append('Length = {0} rows'.format(len(self)))
 
-        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width, show_name,
-                                                        show_unit)
+        n_header = outs['n_header']
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -668,7 +688,7 @@ class Table(object):
                 webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=None, html=False, tableid=None):
+                show_unit=None, show_dtype=False, html=False, tableid=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -698,6 +718,9 @@ class Table(object):
             for units only if one or more columns has a defined value
             for the unit.
 
+        show_dtype : bool
+            Include a header row for column dtypes (default=True)
+
         html : bool
             Format the output as an HTML table (default=False)
 
@@ -712,13 +735,18 @@ class Table(object):
             Formatted table as a list of strings
 
         """
-        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
-                                                        show_name, show_unit, html,
-                                                        tableid=tableid)
+        lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
+                                                    show_name=show_name, show_unit=show_unit,
+                                                    show_dtype=show_dtype, html=html,
+                                                    tableid=tableid)
+
+        if outs['show_length']:
+            lines.append('Length = {0} rows'.format(len(self)))
+
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,
-             show_unit=None):
+             show_unit=None, show_dtype=False):
         """Interactively browse table with a paging interface.
 
         Supported keys::
@@ -748,15 +776,12 @@ class Table(object):
             Include a header row for unit.  Default is to show a row
             for units only if one or more columns has a defined value
             for the unit.
-        """
-        self.formatter._more_tabcol(self, max_lines, max_width, show_name,
-                                    show_unit)
 
-    def _repr_html_(self):
-        # Since the user cannot provide input, need a sensible default
-        tableid = 'table{id}'.format(id=id(self))
-        lines = self.pformat(html=True, tableid=tableid, max_width=-1)
-        return ''.join(lines)
+        show_dtype : bool
+            Include a header row for column dtypes (default=True)
+        """
+        self.formatter._more_tabcol(self, max_lines, max_width, show_name=show_name,
+                                    show_unit=show_unit, show_dtype=show_dtype)
 
     def __getitem__(self, item):
         if isinstance(item, six.string_types):

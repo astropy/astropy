@@ -67,7 +67,7 @@ a new table sorted by ``name`` which has a ``groups`` property specifying the un
 values of ``name`` and the corresponding table rows::
 
   >>> obs_by_name = obs.group_by('name')
-  >>> print obs_by_name  # doctest: +SKIP
+  >>> print(obs_by_name)  # doctest: +SKIP
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
   M101 2012-01-02  15.1  13.5  << First group (index=0, key='M101')
@@ -81,13 +81,13 @@ values of ``name`` and the corresponding table rows::
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
                                << End of groups (index=10)
-  >>> print obs_by_name.groups.keys
+  >>> print(obs_by_name.groups.keys)
   name
   ----
   M101
    M31
    M82
-  >>> print obs_by_name.groups.indices
+  >>> print(obs_by_name.groups.indices)
   [ 0  4  7 10]
 
 The ``groups`` property is the portal to all grouped operations with tables and columns.
@@ -111,7 +111,7 @@ the required groups.
 As an example, to get the average magnitudes for each object on each observing
 night, we would first group the table on both ``name`` and ``obs_date`` as follows::
 
-  >>> print obs.group_by(['name', 'obs_date']).groups.keys
+  >>> print(obs.group_by(['name', 'obs_date']).groups.keys)
   name  obs_date
   ---- ----------
   M101 2012-01-02
@@ -131,7 +131,7 @@ groups or subsets of groups.  In all cases this returns a new grouped table.
 For instance to get the sub-table which corresponds to the second group (index=1)
 do::
 
-  >>> print obs_by_name.groups[1]
+  >>> print(obs_by_name.groups[1])
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
    M31 2012-01-02  17.0  17.5
@@ -141,7 +141,7 @@ do::
 To get the first and second groups together use a slice::
 
   >>> groups01 = obs_by_name.groups[0:2]
-  >>> print groups01
+  >>> print(groups01)
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
   M101 2012-01-02  15.1  13.5
@@ -151,7 +151,7 @@ To get the first and second groups together use a slice::
    M31 2012-01-02  17.0  17.5
    M31 2012-01-02  17.1  17.4
    M31 2012-02-14  16.9  17.3
-  >>> print groups01.groups.keys
+  >>> print(groups01.groups.keys)
   name
   ----
   M101
@@ -161,7 +161,7 @@ You can also supply a numpy array of indices or a boolean mask to select particu
 groups, e.g.::
 
   >>> mask = obs_by_name.groups.keys['name'] == 'M101'
-  >>> print obs_by_name.groups[mask]
+  >>> print(obs_by_name.groups[mask])
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
   M101 2012-01-02  15.1  13.5
@@ -174,7 +174,7 @@ One can iterate over the group sub-tables and corresponding keys with::
   >>> from itertools import izip
   >>> for key, group in izip(obs_by_name.groups.keys, obs_by_name.groups):
   ...     print('****** {0} *******'.format(key['name']))
-  ...     print group
+  ...     print(group)
   ...     print
   ...
   ****** M101 *******
@@ -219,7 +219,7 @@ Examples::
 
   >>> for key, group in izip(cg.groups.keys, cg.groups):
   ...     print('****** {0} *******'.format(key))
-  ...     print group
+  ...     print(group)
   ...     print
   ...
   ****** bar *******
@@ -253,7 +253,7 @@ the `~astropy.table.groups.TableGroups.aggregate` method::
 
   >>> obs_mean = obs_by_name.groups.aggregate(np.mean)  # doctest: +SKIP
   WARNING: Cannot aggregate column 'obs_date' [astropy.table.groups]
-  >>> print obs_mean  # doctest: +SKIP
+  >>> print(obs_mean)  # doctest: +SKIP
   name mag_b mag_v
   ---- ----- ------
   M101  15.0 13.725
@@ -272,14 +272,14 @@ it is automatically ignored from aggregation.
 From a grouped table it is possible to select one or more columns on which
 to perform the aggregation::
 
-  >>> print obs_by_name['mag_b'].groups.aggregate(np.mean)
+  >>> print(obs_by_name['mag_b'].groups.aggregate(np.mean))
   mag_b
   -----
    15.0
    17.0
    15.7
 
-  >>> print obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean)
+  >>> print(obs_by_name['name', 'mag_v', 'mag_b'].groups.aggregate(np.mean))
   name mag_v  mag_b
   ---- ------ -----
   M101 13.725  15.0
@@ -293,7 +293,7 @@ A single column of data can be aggregated as well::
   >>> cg = c.group_by(key_vals)
   >>> cg_sums = cg.groups.aggregate(np.sum)
   >>> for key, cg_sum in izip(cg.groups.keys, cg_sums):
-  ...     print 'Sum for {0} = {1}'.format(key, cg_sum)
+  ...     print('Sum for {0} = {1}'.format(key, cg_sum))
   ...
   Sum for bar = 2
   Sum for foo = 8
@@ -354,7 +354,7 @@ An example of using this function is::
   >>> tg = t.group_by('a')
   >>> t_positive = tg.groups.filter(all_positive)
   >>> for group in t_positive.groups:
-  ...     print group
+  ...     print(group)
   ...     print
   ...
    a   b   c
@@ -405,7 +405,7 @@ column names in common::
 
 Now we can stack these two tables::
 
-  >>> print vstack([obs1, obs2])
+  >>> print(vstack([obs1, obs2]))
     name   obs_date  mag_b logLx
   ------- ---------- ----- -----
       M31 2012-01-02  17.0  42.5
@@ -420,7 +420,7 @@ table those values are marked as missing.  This is the default behavior and corr
 ``join_type='outer'``.  There are two other allowed values for the ``join_type`` argument,
 ``'inner'`` and ``'exact'``::
 
-  >>> print vstack([obs1, obs2], join_type='inner')
+  >>> print(vstack([obs1, obs2], join_type='inner'))
     name   obs_date  logLx
   ------- ---------- -----
       M31 2012-01-02  42.5
@@ -430,7 +430,7 @@ table those values are marked as missing.  This is the default behavior and corr
       M31 1999-01-05  43.1
       M82 2012-10-30  45.0
 
-  >>> print vstack([obs1, obs2], join_type='exact')
+  >>> print(vstack([obs1, obs2], join_type='exact'))
   Traceback (most recent call last):
     ...
   TableMergeError: Inconsistent columns in input arrays (use 'inner'
@@ -445,7 +445,7 @@ More than two tables can be stacked by supplying a list of table objects::
 
   >>> obs3 = Table.read("""name    obs_date    mag_b  logLx
   ...                      M45     2012-02-03  15.0   40.5""", format='ascii')
-  >>> print vstack([obs1, obs2, obs3])
+  >>> print(vstack([obs1, obs2, obs3]))
     name   obs_date  mag_b logLx
   ------- ---------- ----- -----
       M31 2012-01-02  17.0  42.5
@@ -483,7 +483,7 @@ For example, suppose one has the following two tables::
 
 Now we can stack these two tables horizontally::
 
-  >>> print hstack([t1, t2])
+  >>> print(hstack([t1, t2]))
    a   b   c   d     e
   --- --- --- ---- -----
     1 foo 1.4  ham  eggs
@@ -497,13 +497,13 @@ values.  This is illustrated in the example above.  The other options give the
 intersection of rows, where ``'exact'`` requires that all tables have exactly the same
 number of rows::
 
-  >>> print hstack([t1, t2], join_type='inner')
+  >>> print(hstack([t1, t2], join_type='inner'))
    a   b   c   d     e
   --- --- --- ---- -----
     1 foo 1.4  ham  eggs
     2 bar 2.1 spam toast
 
-  >>> print hstack([t1, t2], join_type='exact')
+  >>> print(hstack([t1, t2], join_type='exact'))
   Traceback (most recent call last):
     ...
   TableMergeError: Inconsistent number of rows in input arrays (use 'inner' or
@@ -515,7 +515,7 @@ below also illustrates the behavior when there is a conflict in the input column
 
   >>> t3 = Table.read("""a    b
   ...                    M45  2012-02-03""", format='ascii')
-  >>> print hstack([t1, t2, t3])
+  >>> print(hstack([t1, t2, t3]))
   a_1 b_1  c   d     e   a_3    b_3
   --- --- --- ---- ----- --- ----------
     1 foo 1.4  ham  eggs M45 2012-02-03
@@ -556,7 +556,7 @@ that are common to both tables.  In this case the key columns are ``name`` and
 follows::
 
   >>> opt_xray = join(optical, xray)
-  >>> print opt_xray
+  >>> print(opt_xray)
   name  obs_date  mag_b mag_v logLx
   ---- ---------- ----- ----- -----
    M82 2012-10-29  16.2  15.2  45.0
@@ -564,7 +564,7 @@ follows::
 We can perform the match only by ``name`` by providing the ``keys`` argument, which can be
 either a single column name or a list of column names::
 
-  >>> print join(optical, xray, keys='name')
+  >>> print(join(optical, xray, keys='name'))
   name obs_date_1 mag_b mag_v obs_date_2 logLx
   ---- ---------- ----- ----- ---------- -----
    M31 2012-01-02  17.0  16.0 1999-01-05  43.1
@@ -581,7 +581,7 @@ the two tables on the key columns.
 If one wants to make a new table which has *every* row from the left table and includes
 matching values from the right table when available, this is known as a left join::
 
-  >>> print join(optical, xray, join_type='left')
+  >>> print(join(optical, xray, join_type='left'))
   name  obs_date  mag_b mag_v logLx
   ---- ---------- ----- ----- -----
   M101 2012-10-31  15.1  15.5    --
@@ -594,7 +594,7 @@ surprised that there is no X-ray data for M31 in the output.  Remember that the 
 matching key includes both ``name`` and ``obs_date``.  Specifying the key as only the
 ``name`` column gives::
 
-  >>> print join(optical, xray, join_type='left', keys='name')
+  >>> print(join(optical, xray, join_type='left', keys='name'))
   name obs_date_1 mag_b mag_v obs_date_2 logLx
   ---- ---------- ----- ----- ---------- -----
   M101 2012-10-31  15.1  15.5         --    --
@@ -606,7 +606,7 @@ values (when available) using ``join_type='right'``.
 
 Finally, to make a table with the union of rows from both tables do an "outer" join::
 
-  >>> print join(optical, xray, join_type='outer')
+  >>> print(join(optical, xray, join_type='outer'))
     name   obs_date  mag_b mag_v logLx
   ------- ---------- ----- ----- -----
      M101 2012-10-31  15.1  15.5    --
@@ -625,14 +625,14 @@ values.  For example the following tables have multiple rows for the key column 
   >>> from astropy.table import Table, join
   >>> left = Table([[0, 1, 1, 2], ['L1', 'L2', 'L3', 'L4']], names=('key', 'L'))
   >>> right = Table([[1, 1, 2, 4], ['R1', 'R2', 'R3', 'R4']], names=('key', 'R'))
-  >>> print left
+  >>> print(left)
   key  L
   --- ---
     0  L1
     1  L2
     1  L3
     2  L4
-  >>> print right
+  >>> print(right)
   key  R
   --- ---
     1  R1
@@ -647,7 +647,7 @@ the left or right table, the corresponding column values are designated as missi
 
 .. doctest-skip:: win32
 
-  >>> print join(left, right, join_type='outer')
+  >>> print(join(left, right, join_type='outer'))
   key  L   R
   --- --- ---
     0  L1  --
@@ -670,7 +670,7 @@ left and right tables:
 
 .. doctest-skip:: win32
 
-  >>> print join(left, right, join_type='inner')
+  >>> print(join(left, right, join_type='inner'))
   key  L   R
   --- --- ---
     1  L2  R1
@@ -710,9 +710,9 @@ keyword arguments that control the renaming behavior:
 This is most easily understood by example using the ``optical`` and ``xray`` tables
 in the |join| example defined previously::
 
-  >>> print join(optical, xray, keys='name',
+  >>> print(join(optical, xray, keys='name',
   ...            table_names=['OPTICAL', 'XRAY'],
-  ...            uniq_col_name='{table_name}_{col_name}')
+  ...            uniq_col_name='{table_name}_{col_name}'))
   name OPTICAL_obs_date mag_b mag_v XRAY_obs_date logLx
   ---- ---------------- ----- ----- ------------- -----
    M31       2012-01-02  17.0  16.0    1999-01-05  43.1
@@ -807,7 +807,7 @@ occurrence of each of the three targets::
   ...                           M101    2012-03-26  14.8   14.3
   ...                           """, format='ascii')
   >>> unique_by_name = table.unique(obs, keys='name')
-  >>> print unique_by_name
+  >>> print(unique_by_name)
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
   M101 2012-01-02  15.1  13.5
@@ -817,7 +817,7 @@ occurrence of each of the three targets::
 Using multiple columns as ``keys``::
 
   >>> unique_by_name_date = table.unique(obs, keys=['name', 'obs_date'])
-  >>> print unique_by_name_date
+  >>> print(unique_by_name_date)
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
   M101 2012-01-02  15.1  13.5
@@ -827,4 +827,3 @@ Using multiple columns as ``keys``::
    M31 2012-02-14  16.9  17.3
    M82 2012-02-14  16.2  14.5
    M82 2012-03-26  15.7  16.5
-

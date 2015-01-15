@@ -374,6 +374,9 @@ API Changes
     ``MaskedArray``.  Previously if the column was multidimensional then a
     Column object would be returned. [#3095]
 
+  - The representation of Table and Column objects has been changed to
+    be formatted similar to the print output. [#3239]
+
 - ``astropy.time``
 
   - The ``Time.val`` and ``Time.vals`` properties (deprecated in v0.3) and the

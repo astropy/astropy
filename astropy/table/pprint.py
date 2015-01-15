@@ -170,8 +170,8 @@ class TableFormatter(object):
             max_lines = lines
         elif max_lines < 0:
             max_lines = sys.maxsize
-        if max_lines < 6:
-            max_lines = 6
+        if max_lines < 8:
+            max_lines = 8
 
         if max_width is None:
             max_width = width
@@ -183,7 +183,8 @@ class TableFormatter(object):
         return max_lines, max_width
 
 
-    def _pformat_col(self, col, max_lines=None, show_name=True, show_unit=None):
+    def _pformat_col(self, col, max_lines=None, show_name=True, show_unit=None,
+                     show_dtype=False, show_length=None, html=False):
         """Return a list of formatted string representation of column values.
 
         Parameters
@@ -199,6 +200,16 @@ class TableFormatter(object):
             for units only if one or more columns has a defined value
             for the unit.
 
+        show_dtype : bool
+            Include column dtype (default=False)
+
+        show_length : bool
+            Include column length at end.  Default is to show this only
+            if the column is not shown completely.
+
+        html : bool
+            Output column as HTML
+
         Returns
         -------
         lines : list
@@ -208,24 +219,56 @@ class TableFormatter(object):
             Number of lines in the header
 
         """
+        if show_unit is None:
+            show_unit = getattr(col, 'unit', None) is not None
+
         outs = {}  # Some values from _pformat_col_iter iterator that are needed here
-        col_strs = list(self._pformat_col_iter(col, max_lines, show_name, show_unit, outs))
-        col_width = max(len(x) for x in col_strs)
+        col_strs_iter = self._pformat_col_iter(col, max_lines, show_name=show_name, show_unit=show_unit,
+                                               show_dtype=show_dtype, show_length=show_length,
+                                               outs=outs)
+        col_strs = list(col_strs_iter)
 
-        # Center line content and generate dashed headerline
-        for i in outs['i_centers']:
-            col_strs[i] = col_strs[i].center(col_width)
-        if outs['i_dashes'] is not None:
-            col_strs[outs['i_dashes']] = '-' * col_width
+        if html:
+            from ..utils.xml.writer import xml_escape
+            n_header = outs['n_header']
+            for i, col_str in enumerate(col_strs):
+                # _pformat_col output has a header line '----' which is not needed here
+                if i == n_header - 1:
+                    continue
+                td = 'th' if i < n_header else 'td'
+                val = '<{0}>{1}</{2}>'.format(td, xml_escape(col_str.strip()), td)
+                row = ('<tr>' + val + '</tr>')
+                if i < n_header:
+                    row = ('<thead>' + row + '</thead>')
+                col_strs[i] = row
 
-        # Now bring all the column string values to the same fixed width
-        for i, col_str in enumerate(col_strs):
-            col_strs[i] = col_str.rjust(col_width)
+            if n_header > 0:
+                # Get rid of '---' header line
+                col_strs.pop(n_header - 1)
+            col_strs.insert(0, '<table>')
+            col_strs.append('</table>')
 
-        return col_strs, outs['n_header']
+        else:
+            col_width = max(len(x) for x in col_strs) if col_strs else 1
+
+            # Center line content and generate dashed headerline
+            for i in outs['i_centers']:
+                col_strs[i] = col_strs[i].center(col_width)
+            if outs['i_dashes'] is not None:
+                col_strs[outs['i_dashes']] = '-' * col_width
+
+            # Now bring all the column string values to the same fixed width
+            for i, col_str in enumerate(col_strs):
+                col_strs[i] = col_str.rjust(col_width)
+
+        if outs['show_length']:
+            col_strs.append('Length = {0} rows'.format(len(col)))
+
+        return col_strs, outs
 
 
-    def _pformat_col_iter(self, col, max_lines, show_name, show_unit, outs):
+    def _pformat_col_iter(self, col, max_lines, show_name, show_unit, outs,
+                          show_dtype=False, show_length=None):
         """Iterator which yields formatted string representation of column values.
 
         Parameters
@@ -240,6 +283,13 @@ class TableFormatter(object):
             Include a header row for unit.  Default is to show a row
             for units only if one or more columns has a defined value
             for the unit.
+
+        show_dtype : bool
+            Include column dtype (default=False)
+
+        show_length : bool
+            Include column length at end.  Default is to show this only
+            if the column is not shown completely.
 
         out : dict
             Must be a dict which is used to pass back additional values
@@ -269,7 +319,15 @@ class TableFormatter(object):
             i_centers.append(n_header)
             n_header += 1
             yield six.text_type(getattr(col, 'unit', None) or '')
-        if show_unit or show_name:
+        if show_dtype:
+            i_centers.append(n_header)
+            n_header += 1
+            try:
+                dtype = col.dtype.name
+            except AttributeError:
+                dtype = 'object'
+            yield six.text_type(dtype)
+        if show_unit or show_name or show_dtype:
             i_dashes = n_header
             n_header += 1
             yield '---'
@@ -281,7 +339,9 @@ class TableFormatter(object):
         col_format = getattr(col, 'format', None)
         format_func = _format_funcs.get(col_format, _auto_format_func)
         if len(col) > max_lines:
-            i0 = n_print2
+            if show_length is None:
+                show_length = True
+            i0 = n_print2 - (1 if show_length else 0)
             i1 = n_rows - n_print2 - max_lines % 2
         else:
             i0 = len(col)
@@ -306,13 +366,15 @@ class TableFormatter(object):
             elif i == i0:
                 yield '...'
 
+        outs['show_length'] = show_length
         outs['n_header'] = n_header
         outs['i_centers'] = i_centers
         outs['i_dashes'] = i_dashes
 
 
     def _pformat_table(self, table, max_lines=None, max_width=None, show_name=True,
-                       show_unit=None, html=False, tableid=None):
+                       show_unit=None, show_dtype=False,
+                       html=False, tableid=None):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -331,6 +393,9 @@ class TableFormatter(object):
             Include a header row for unit.  Default is to show a row
             for units only if one or more columns has a defined value
             for the unit.
+
+        show_dtype : bool
+            Include a header row for column dtypes (default=False)
 
         html : bool
             Format the output as an HTML table (default=False)
@@ -357,9 +422,14 @@ class TableFormatter(object):
             show_unit = any([getattr(col, 'unit', None) for col in six.itervalues(table.columns)])
 
         for col in six.itervalues(table.columns):
-            lines, n_header = self._pformat_col(col, max_lines, show_name,
-                                                show_unit)
+            lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
+                                            show_unit=show_unit, show_dtype=show_dtype)
+            if outs['show_length']:
+                lines = lines[:-1]
             cols.append(lines)
+
+        # Use the values for the last column since they are all the same
+        n_header = outs['n_header']
 
         if not cols:
             return []
@@ -405,11 +475,11 @@ class TableFormatter(object):
                 row = ' '.join(col[i] for col in cols)
                 rows.append(row)
 
-        return rows, n_header
+        return rows, outs
 
 
     def _more_tabcol(self, tabcol, max_lines=None, max_width=None, show_name=True,
-                     show_unit=None):
+                     show_unit=None, show_dtype=False):
         """Interactive "more" of a table or column.
 
         Parameters
@@ -427,6 +497,9 @@ class TableFormatter(object):
             Include a header row for unit.  Default is to show a row
             for units only if one or more columns has a defined value
             for the unit.
+
+        show_dtype : bool
+            Include a header row for column dtypes (default=False)
         """
         allowed_keys = 'f br<>qhpn'
 
@@ -436,11 +509,14 @@ class TableFormatter(object):
             n_header += 1
         if show_unit:
             n_header += 1
-        if show_name or show_unit:
+        if show_dtype:
+            n_header += 1
+        if show_name or show_unit or show_dtype:
             n_header += 1
 
         # Set up kwargs for pformat call.  Only Table gets max_width.
-        kwargs = dict(max_lines=-1, show_name=show_name, show_unit=show_unit)
+        kwargs = dict(max_lines=-1, show_name=show_name, show_unit=show_unit,
+                      show_dtype=show_dtype)
         if hasattr(tabcol, 'columns'):  # tabcol is a table
             kwargs['max_width'] = max_width
 
