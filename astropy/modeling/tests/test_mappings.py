@@ -41,6 +41,14 @@ def test_drop_axes_2():
         mapping.inverse
 
 
+def test_drop_axes_3():
+    mapping = Mapping((1,), n_inputs=2)
+    assert(mapping.n_inputs == 2)
+    rotation = Rotation2D(60)
+    model = rotation | mapping
+    assert_allclose(model(1, 2), 1.86602540378)
+
+
 def test_identity():
     ident1 = Identity(1)
     shift = Shift(1)
@@ -54,3 +62,4 @@ def test_identity():
                         np.array([[ 1.,  1.,  1.],
                                   [ 1.,  1.,  1.]])))
     assert_allclose(model.inverse(res_x, res_y), (x, y))
+

@@ -10,12 +10,16 @@ __all__ = ['Mapping', 'Identity']
 
 
 class Mapping(Model):
-    def __init__(self, mapping, **kwargs):
-        self._inputs = tuple('x' + str(idx)
-                             for idx in range(max(mapping) + 1))
+    def __init__(self, mapping, n_inputs=None):
+        if n_inputs is None:
+            self._inputs = tuple('x' + str(idx)
+                                 for idx in range(max(mapping) + 1))
+        else:
+            self._inputs = tuple('x' + str(idx)
+                                 for idx in range(n_inputs))
         self._outputs = tuple('x' + str(idx) for idx in range(len(mapping)))
         self._mapping = mapping
-        super(Mapping, self).__init__(**kwargs)
+        super(Mapping, self).__init__()
 
     @property
     def name(self):
@@ -62,13 +66,13 @@ class Mapping(Model):
 
 
 class Identity(Mapping):
-    def __init__(self, n_inputs):
-        mapping = tuple(range(n_inputs))
+    def __init__(self, n_outputs):
+        mapping = tuple(range(n_outputs))
         super(Identity, self).__init__(mapping)
 
     @property
     def name(self):
-        return 'Identity({0})'.format(self.n_inputs)
+        return 'Identity({0})'.format(self.n_outputs)
 
     @property
     def inverse(self):
