@@ -46,8 +46,9 @@ New Features
 
   - ``astropy.coordinates`` now has a ``Galactocentric`` frame, a coordinate
     frame centered on a (user specified) center of the Milky Way. [#2761, #3286]
+
   - ``SkyCoord`` now accepts more formats of the coordinate string when the
-    representation has ``ra`` and ``dec`` attributes.
+    representation has ``ra`` and ``dec`` attributes. [#2920]
 
 - ``astropy.cosmology``
 
@@ -86,7 +87,7 @@ New Features
     in ``read`` and ``fast_writer`` in ``write``. [#2716]
 
   - Make Latex/AASTex tables use unit attribute of Column for output. [#3064]
-  
+
   - Store comment lines encountered during reading in metadata of the
     output table via ``meta['comment_lines']``. [#3222]
 
@@ -197,7 +198,7 @@ New Features
   - When viewed in IPython, ``Quantity`` objects with array values now render
     using LaTeX and scientific notation. [#2271]
 
-  - Added units.quantity_input decorator to validate quantity inputs to a 
+  - Added units.quantity_input decorator to validate quantity inputs to a
     function for unit compatibility. [#3072]
 
 - ``astropy.utils``
@@ -686,7 +687,7 @@ Bug Fixes
     ``super()`` in their ``__init__`` method. [#3004]
 
   - Fixed a bug which caused the ``metadata_conflicts`` parameter to be
-    ignored in the ``astropy.utils.metadata.merge`` function. [#3294]  
+    ignored in the ``astropy.utils.metadata.merge`` function. [#3294]
 
 - ``astropy.vo``
 
