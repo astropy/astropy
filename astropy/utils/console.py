@@ -431,7 +431,7 @@ def human_file_size(size):
     size : str
         A human-friendly representation of the size of the file
     """
-    suffixes = ' kMGTPEH'
+    suffixes = ' kMGTPEZY'
     if size == 0:
         num_scale = 0
     else:
@@ -443,7 +443,9 @@ def human_file_size(size):
     num_scale = int(math.pow(1000, num_scale))
     value = size / num_scale
     str_value = str(value)
-    if str_value[2] == '.':
+    if suffix == ' ':
+        str_value = str_value[:str_value.index('.')]
+    elif str_value[2] == '.':
         str_value = str_value[:2]
     else:
         str_value = str_value[:3]

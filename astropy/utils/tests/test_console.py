@@ -202,3 +202,14 @@ def test_human_time(seconds, string):
     human_time = console.human_time(seconds)
     assert human_time == string
 
+@pytest.mark.parametrize("size,string",
+       [(8640882,"8.6M"),
+       (187213, "187k"),
+       (3905,   "3.9k"),
+       (64,     " 64 "),
+       (2,      "  2 ")]
+)
+def test_human_file_size(size, string):
+    human_time = console.human_file_size(size)
+    assert human_time == string
+
