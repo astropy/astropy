@@ -1732,6 +1732,9 @@ Bug Fixes
   - Progressbar will be limited to 100% so that the bar does not exceed the
     terminal width.  The numerical display can still exceed 100%, however.
 
+  - Converted representation of progress bar units without suffix
+    from float to int in console.human_file_size. [#2201,#2202,#2721,#3299]
+
 - ``astropy.vo``
 
   - Fixed ``format()`` compatibility with Python 2.6. [#2129]
