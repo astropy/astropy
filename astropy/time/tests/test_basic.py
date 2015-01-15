@@ -610,8 +610,6 @@ class TestSofaErrors():
         iy = np.array([2000], dtype=np.intc)
         im = np.array([2000], dtype=np.intc)  # bad month
         id = np.array([2000], dtype=np.intc)  # bad day
-        djm0 = np.array([0], dtype=np.double)
-        djm = np.array([0], dtype=np.double)
         with pytest.raises(ValueError):  # bad month, fatal error
             djm0, djm = erfa_time.cal2jd(iy, im, id)
 
