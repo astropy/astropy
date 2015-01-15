@@ -106,6 +106,10 @@ New Features
     to export headers into any of the data formats supported by
     ``astropy.table``. [#2555, #2588]
 
+  - ``Section`` now supports all advanced indexing features ``ndarray`` does
+    (slices with any steps, integer arrays, boolean arrays, None, Ellipsis).
+    It also properly returns scalars when this is appropriate.
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

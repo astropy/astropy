@@ -151,10 +151,10 @@ class TestImageFunctions(FitsTestCase):
             r[0].header.rename_key('fname', 'filename')
 
             # get a subsection of data
-            assert (r[2].data[:3, :3] ==
-                    np.array([[349, 349, 348],
-                              [349, 349, 347],
-                              [347, 350, 349]], dtype=np.int16)).all()
+            assert np.array_equal(r[2].data[:3, :3],
+                                  np.array([[349, 349, 348],
+                                            [349, 349, 347],
+                                            [347, 350, 349]], dtype=np.int16))
 
             # We can create a new FITS file by opening a new file with "append"
             # mode.
@@ -240,11 +240,11 @@ class TestImageFunctions(FitsTestCase):
         # create an HDU with data only
         data = np.ones((3, 5), dtype=np.float32)
         hdu = fits.ImageHDU(data=data, name='SCI')
-        assert (hdu.data ==
-                np.array([[1.,  1.,  1.,  1.,  1.],
-                          [1.,  1.,  1.,  1.,  1.],
-                          [1.,  1.,  1.,  1.,  1.]],
-                         dtype=np.float32)).all()
+        assert np.array_equal(hdu.data,
+                              np.array([[1.,  1.,  1.,  1.,  1.],
+                                        [1.,  1.,  1.,  1.,  1.],
+                                        [1.,  1.,  1.,  1.,  1.]],
+                                       dtype=np.float32))
 
         # create an HDU with header and data
         # notice that the header has the right NAXIS's since it is constructed
@@ -284,56 +284,80 @@ class TestImageFunctions(FitsTestCase):
     def test_section(self):
         # section testing
         fs = fits.open(self.data('arange.fits'))
-        assert (fs[0].section[3, 2, 5] == np.array([357])).all()
-        assert (fs[0].section[3, 2, :] ==
-                np.array([352, 353, 354, 355, 356, 357, 358, 359, 360, 361,
-                          362])).all()
-        assert (fs[0].section[3, 2, 4:] ==
-                np.array([356, 357, 358, 359, 360, 361, 362])).all()
-        assert (fs[0].section[3, 2, :8] ==
-                np.array([352, 353, 354, 355, 356, 357, 358, 359])).all()
-        assert (fs[0].section[3, 2, -8:8] ==
-                np.array([355, 356, 357, 358, 359])).all()
-        assert (fs[0].section[3, 2:5, :] ==
-                np.array([[352, 353, 354, 355, 356, 357, 358, 359, 360, 361,
-                           362],
-                          [363, 364, 365, 366, 367, 368, 369, 370, 371, 372,
-                           373],
-                          [374, 375, 376, 377, 378, 379, 380, 381, 382, 383,
-                           384]])).all()
+        assert np.array_equal(fs[0].section[3, 2, 5], 357)
+        assert np.array_equal(
+            fs[0].section[3, 2, :],
+            np.array([352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362]))
+        assert np.array_equal(fs[0].section[3, 2, 4:],
+                              np.array([356, 357, 358, 359, 360, 361, 362]))
+        assert np.array_equal(fs[0].section[3, 2, :8],
+                              np.array([352, 353, 354, 355, 356, 357, 358, 359]))
+        assert np.array_equal(fs[0].section[3, 2, -8:8],
+                              np.array([355, 356, 357, 358, 359]))
+        assert np.array_equal(
+            fs[0].section[3, 2:5, :],
+            np.array([[352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362],
+                      [363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373],
+                      [374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384]]))
 
-        assert (fs[0].section[3, :, :][:3, :3] ==
-                np.array([[330, 331, 332],
-                          [341, 342, 343],
-                          [352, 353, 354]])).all()
+        assert np.array_equal(fs[0].section[3, :, :][:3, :3],
+                              np.array([[330, 331, 332],
+                                        [341, 342, 343],
+                                        [352, 353, 354]]))
 
         dat = fs[0].data
-        assert (fs[0].section[3, 2:5, :8] == dat[3, 2:5, :8]).all()
-        assert (fs[0].section[3, 2:5, 3] == dat[3, 2:5, 3]).all()
+        assert np.array_equal(fs[0].section[3, 2:5, :8], dat[3, 2:5, :8])
+        assert np.array_equal(fs[0].section[3, 2:5, 3], dat[3, 2:5, 3])
 
-        assert (fs[0].section[3:6, :, :][:3, :3, :3] ==
-                np.array([[[330, 331, 332],
-                           [341, 342, 343],
-                           [352, 353, 354]],
-                          [[440, 441, 442],
-                           [451, 452, 453],
-                           [462, 463, 464]],
-                          [[550, 551, 552],
-                           [561, 562, 563],
-                           [572, 573, 574]]])).all()
+        assert np.array_equal(fs[0].section[3:6, :, :][:3, :3, :3],
+                              np.array([[[330, 331, 332],
+                                         [341, 342, 343],
+                                         [352, 353, 354]],
+                                        [[440, 441, 442],
+                                         [451, 452, 453],
+                                         [462, 463, 464]],
+                                        [[550, 551, 552],
+                                         [561, 562, 563],
+                                         [572, 573, 574]]]))
 
-        assert (fs[0].section[:, :, :][:3, :2, :2] ==
-                np.array([[[0,   1],
-                           [11,  12]],
-                          [[110, 111],
-                           [121, 122]],
-                          [[220, 221],
-                           [231, 232]]])).all()
+        assert np.array_equal(fs[0].section[:, :, :][:3, :2, :2],
+                              np.array([[[0,   1],
+                                         [11,  12]],
+                                        [[110, 111],
+                                         [121, 122]],
+                                        [[220, 221],
+                                         [231, 232]]]))
 
-        assert (fs[0].section[:, 2, :] == dat[:, 2, :]).all()
-        assert (fs[0].section[:, 2:5, :] == dat[:, 2:5, :]).all()
-        assert (fs[0].section[3:6, 3, :] == dat[3:6, 3, :]).all()
-        assert (fs[0].section[3:6, 3:7, :] == dat[3:6, 3:7, :]).all()
+        assert np.array_equal(fs[0].section[:, 2, :], dat[:, 2, :])
+        assert np.array_equal(fs[0].section[:, 2:5, :], dat[:, 2:5, :])
+        assert np.array_equal(fs[0].section[3:6, 3, :], dat[3:6, 3, :])
+        assert np.array_equal(fs[0].section[3:6, 3:7, :], dat[3:6, 3:7, :])
+
+        assert np.array_equal(fs[0].section[:, ::2], dat[:, ::2])
+        assert np.array_equal(fs[0].section[:, [1, 2, 4], 3],
+                              dat[:, [1, 2, 4], 3])
+        assert np.array_equal(
+            fs[0].section[:, np.array([True, False, True]), :],
+            dat[:, np.array([True, False, True]), :])
+
+        assert np.array_equal(
+            fs[0].section[3:6, 3, :, ...], dat[3:6, 3, :, ...])
+        assert np.array_equal(fs[0].section[..., ::2], dat[..., ::2])
+        assert np.array_equal(fs[0].section[..., [1, 2, 4], 3],
+                              dat[..., [1, 2, 4], 3])
+
+    def test_section_data_single(self):
+        a = np.array([1])
+        hdu = fits.PrimaryHDU(a)
+        hdu.writeto(self.temp('test_new.fits'))
+
+        hdul = fits.open(self.temp('test_new.fits'))
+        sec = hdul[0].section
+        dat = hdul[0].data
+        assert np.array_equal(sec[0], dat[0])
+        assert np.array_equal(sec[...], dat[...])
+        assert np.array_equal(sec[..., 0], dat[..., 0])
+        assert np.array_equal(sec[0, ...], dat[0, ...])
 
     def test_section_data_square(self):
         a = np.arange(4).reshape((2, 2))

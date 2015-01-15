@@ -779,52 +779,6 @@ def _str_to_num(val):
     return num
 
 
-def _normalize_slice(input, naxis):
-    """
-    Set the slice's start/stop in the regular range.
-    """
-
-    def _normalize(indx, npts):
-        if indx < -npts:
-            indx = 0
-        elif indx < 0:
-            indx += npts
-        elif indx > npts:
-            indx = npts
-        return indx
-
-    _start = input.start
-    if _start is None:
-        _start = 0
-    elif _is_int(_start):
-        _start = _normalize(_start, naxis)
-    else:
-        raise IndexError('Illegal slice %s; start must be integer.' % input)
-
-    _stop = input.stop
-    if _stop is None:
-        _stop = naxis
-    elif _is_int(_stop):
-        _stop = _normalize(_stop, naxis)
-    else:
-        raise IndexError('Illegal slice %s; stop must be integer.' % input)
-
-    if _stop < _start:
-        raise IndexError('Illegal slice %s; stop < start.' % input)
-
-    _step = input.step
-    if _step is None:
-        _step = 1
-    elif _is_int(_step):
-        if _step <= 0:
-            raise IndexError('Illegal slice %s; step must be positive.'
-                             % input)
-    else:
-        raise IndexError('Illegal slice %s; step must be integer.' % input)
-
-    return slice(_start, _stop, _step)
-
-
 def _words_group(input, strlen):
     """
     Split a long string into parts where each part is no longer
