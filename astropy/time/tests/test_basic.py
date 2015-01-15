@@ -614,8 +614,12 @@ class TestSofaErrors():
         with pytest.raises(ValueError):  # bad month, fatal error
             djm0, djm = erfa_time.cal2jd(iy, im, id)
 
-        # Set month to a good value so now the bad day just gives a warning
+        iy[0] = -5000
         im[0] = 2
+        with pytest.raises(ValueError):  # bad year, fatal error
+            djm0, djm = erfa_time.cal2jd(iy, im, id)
+
+        iy[0] = 2000
         with catch_warnings() as w:
             djm0, djm = erfa_time.cal2jd(iy, im, id)
         assert len(w) == 1
@@ -623,9 +627,6 @@ class TestSofaErrors():
 
         assert allclose_jd(djm0, [2400000.5])
         assert allclose_jd(djm, [53574.])
-
-        # How do you test for warnings in pytest?  Test that dubious year for
-        # UTC works.
 
 
 class TestCopyReplicate():
