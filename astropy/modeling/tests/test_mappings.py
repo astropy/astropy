@@ -29,10 +29,8 @@ def test_duplicate_axes():
 
 
 def test_drop_axes_1():
-    mapping = Mapping((0, ))
+    mapping = Mapping((0, ), n_inputs=2)
     assert(mapping(1, 2) == (1.))
-    assert(mapping.inverse(1) == 1)
-
 
 def test_drop_axes_2():
     mapping = Mapping((1, ))
