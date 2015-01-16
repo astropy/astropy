@@ -10,7 +10,8 @@ from datetime import datetime, tzinfo, timedelta
 
 import numpy as np
 
-from ...tests.helper import pytest
+from ...tests.helper import pytest, catch_warnings
+from ...extern import six
 from .. import Time, ScaleValueError, erfa_time, TIME_SCALES
 from ...coordinates import EarthLocation
 
@@ -602,30 +603,30 @@ class TestSubFormat():
         t = Time('2004-09-16T23:59:59', scale='utc')
         assert allclose_sec(t.unix, 1095379199.0)
 
-# this test fails because it uses the  erfa_time.pyx cal2jd, which doesn't raise
-# an error on a "bad day".  Can just eliminate the test if we don't care about
-# this anymore
-@pytest.mark.xfail
+
 class TestSofaErrors():
-    """Test that erfa_time.pyx handles erfa status return values correctly"""
+    """Test that erfa status return values are handled correctly"""
 
     def test_bad_time(self):
         iy = np.array([2000], dtype=np.intc)
         im = np.array([2000], dtype=np.intc)  # bad month
         id = np.array([2000], dtype=np.intc)  # bad day
-        djm0 = np.array([0], dtype=np.double)
-        djm = np.array([0], dtype=np.double)
         with pytest.raises(ValueError):  # bad month, fatal error
-            djm0, djm= erfa_time.cal2jd(iy, im, id)
+            djm0, djm = erfa_time.cal2jd(iy, im, id)
 
-        # Set month to a good value so now the bad day just gives a warning
+        iy[0] = -5000
         im[0] = 2
-        djm0, djm = erfa_time.cal2jd(iy, im, id)
+        with pytest.raises(ValueError):  # bad year, fatal error
+            djm0, djm = erfa_time.cal2jd(iy, im, id)
+
+        iy[0] = 2000
+        with catch_warnings() as w:
+            djm0, djm = erfa_time.cal2jd(iy, im, id)
+        assert len(w) == 1
+        assert 'bad day    (JD computed)' in six.text_type(w[0].message)
+
         assert allclose_jd(djm0, [2400000.5])
         assert allclose_jd(djm, [53574.])
-
-        # How do you test for warnings in pytest?  Test that dubious year for
-        # UTC works.
 
 
 class TestCopyReplicate():

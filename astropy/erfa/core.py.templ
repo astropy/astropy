@@ -66,7 +66,20 @@ class ErfaWarning(AstropyUserWarning):
 
 STATUS_CODES = {}  # populated below before each function that returns an int
 
+# This is a hard-coded list of status codes that need to be remapped,
+# such as to turn errors into warnings.
+STATUS_CODES_REMAP = {
+    'cal2jd': {-3: 3}
+}
+
+
 def check_errwarn(statcodes, func_name):
+    # Remap any errors into warnings in the STATUS_CODES_REMAP dict.
+    if func_name in STATUS_CODES_REMAP:
+        for before, after in STATUS_CODES_REMAP[func_name].items():
+            statcodes[statcodes == before] = after
+            STATUS_CODES[func_name][after] = STATUS_CODES[func_name][before]
+
     if numpy.any(statcodes<0):
         # errors present - only report the errors.
         if statcodes.shape:
