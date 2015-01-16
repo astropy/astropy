@@ -38,8 +38,8 @@ class Mapping(Model):
         return self._mapping
 
     def evaluate(self, *args):
-        if len(args) < self.n_inputs:
-            raise TypeError('{0} expects at most {1} inputs; got {2}'.format(
+        if len(args) != self.n_inputs:
+            raise TypeError('{0} expects {1} inputs; got {2}'.format(
                 self.name, self.n_inputs, len(args)))
 
         result = tuple(args[idx] for idx in self._mapping)
@@ -66,13 +66,13 @@ class Mapping(Model):
 
 
 class Identity(Mapping):
-    def __init__(self, n_outputs):
-        mapping = tuple(range(n_outputs))
-        super(Identity, self).__init__(mapping)
+    def __init__(self, n_inputs):
+        mapping = tuple(range(n_inputs))
+        super(Identity, self).__init__(mapping, n_inputs=n_inputs)
 
     @property
     def name(self):
-        return 'Identity({0})'.format(self.n_outputs)
+        return 'Identity({0})'.format(self.n_inputs)
 
     @property
     def inverse(self):
