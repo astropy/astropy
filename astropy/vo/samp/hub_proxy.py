@@ -78,14 +78,14 @@ class SAMPHubProxy(object):
             certificate passed from the Hub end of the connection.
 
         ssl_version : int, optional
-            Which version of the SSL protocol to use. Typically, the server
-            chooses a particular protocol version, and the client must adapt
-            to the server's choice. Most of the versions are not interoperable
-            with the other versions. If not specified the default SSL version
-            is `ssl.PROTOCOL_SSLv3`. This version provides the most
-            compatibility with other versions server side. Other SSL protocol
-            versions are: `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and
-            `ssl.PROTOCOL_TLSv1`.
+            Which version of the SSL protocol to use. Typically, the
+            server chooses a particular protocol version, and the
+            client must adapt to the server's choice. Most of the
+            versions are not interoperable with the other versions. If
+            not specified, the default SSL version is taken from the
+            default in the installed version of the Python standard
+            `ssl` library.  See the `ssl` documentation for more
+            information.
 
         pool_size : int, optional
             The number of socket connections opened to communicate with the
@@ -94,9 +94,6 @@ class SAMPHubProxy(object):
 
         self._connected = False
         self.lockfile = {}
-
-        if SSL_SUPPORT and ssl_version is None:
-            ssl_version = ssl.PROTOCOL_SSLv3
 
         if hub is not None and hub_params is not None:
             raise ValueError("Cannot specify both hub and hub_params")

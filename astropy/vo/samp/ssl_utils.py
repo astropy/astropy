@@ -32,7 +32,7 @@ if six.PY2:
 
         def __init__(self, host, port=None, key_file=None, cert_file=None,
                      cert_reqs=ssl.CERT_NONE, ca_certs=None,
-                     ssl_version=ssl.PROTOCOL_SSLv3, strict=None):
+                     ssl_version=None, strict=None):
 
             HTTPConnection.__init__(self, host, port, strict)
 
@@ -47,12 +47,18 @@ if six.PY2:
 
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((self.host, self.port))
-            sslconn = ssl.wrap_socket(sock, server_side=False,
-                                      certfile=self.cert_file,
-                                      keyfile=self.key_file,
-                                      cert_reqs=self.cert_reqs,
-                                      ca_certs=self.ca_certs,
-                                      ssl_version=self.ssl_version)
+            # We have to explicitly not pass the ssl_version to
+            # `ssl.wrap_socket` if it's None.
+            kwargs = {
+                'server_size': False,
+                'certfile': self.cert_file,
+                'keyfile': self.key_file,
+                'cert_reqs': self.cert_reqs,
+                'ca_certs': self.ca_certs,
+            }
+            if self.ssl_version is not None:
+                kwargs['ssl_version'] = self.ssl_version
+            sslconn = ssl.wrap_socket(sock, **args)
             self.sock = sslconn
 
     class HTTPS(HTTP):
@@ -64,7 +70,7 @@ if six.PY2:
 
         def __init__(self, host='', port=None, key_file=None, cert_file=None,
                      cert_reqs=ssl.CERT_NONE, ca_certs=None,
-                     ssl_version=ssl.PROTOCOL_SSLv3):
+                     ssl_version=None):
 
             # provide a default host, pass the X509 cert info
 
@@ -97,7 +103,7 @@ class SafeTransport(xmlrpc.Transport):
 
     def __init__(self, key_file=None, cert_file=None,
                  cert_reqs=ssl.CERT_NONE, ca_certs=None,
-                 ssl_version=ssl.PROTOCOL_SSLv3, strict=None,
+                 ssl_version=None, strict=None,
                  use_datetime=0):
 
         xmlrpc.Transport.__init__(self, use_datetime)
@@ -151,10 +157,16 @@ class SecureXMLRPCServer(ThreadingXMLRPCServer):
     def get_request(self):
         # override this to wrap socket with SSL
         sock, addr = self.socket.accept()
-        sslconn = ssl.wrap_socket(sock, server_side=True,
-                                  certfile=self.cert_file,
-                                  keyfile=self.key_file,
-                                  cert_reqs=self.cert_reqs,
-                                  ca_certs=self.ca_certs,
-                                  ssl_version=self.ssl_version)
+        # We have to explicitly not pass the ssl_version to
+        # `ssl.wrap_socket` if it's None.
+        kwargs = {
+            'server_side': True,
+            'certfile': self.cert_file,
+            'keyfile': self.key_file,
+            'cert_reqs': self.cert_reqs,
+            'ca_certs': self.ca_certs
+        }
+        if self.ssl_version is not None:
+            kwargs['ssl_version'] = self.ssl_version
+        sslconn = ssl.wrap_socket(sock, **kwargs)
         return sslconn, addr

@@ -1,7 +1,25 @@
 0.4.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.vo.samp``
+
+  - ``astropy.vo.samp`` is now usable on Python builds that do not
+    support the SSLv3 protocol (which depends both on the version of
+    Python and the version of OpenSSL or LibreSSL that it is built
+    against.) [#3308]
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.vo.samp``
+
+  - The default SSL protocol used is now determined from the default
+    used in the Python `ssl` standard library.  This default may be
+    different depending on the exact version of Python you are using.
+    [#3308]
 
 
 0.4.3 (2015-01-15)

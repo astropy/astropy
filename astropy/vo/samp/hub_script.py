@@ -148,10 +148,14 @@ def hub_script(timeout=0):
                                "SSL protocol to use. Typically, the server chooses a particular "
                                "protocol version, and the client must adapt to the server's choice. "
                                "Most of the versions are not interoperable with the other versions. "
-                               "If not specified the default SSL version is SSLv23. This version "
-                               "provides the most compatibility with other versions client side. "
-                               "Other SSL protocol versions are: SSLv2, SSLv3 and TLSv1.",
-                               type=str, choices=["SSLv23", "SSLv2", "SSLv3", "TLSv1"], default="SSLv23")
+                               "If not specified the default SSL version is taken from the default in "
+                               "the Python standard `ssl` library for the version of Python that is "
+                               "installed. Other SSL protocol versions are: SSLv2, SSLv3, SSLv23, "
+                               "TLSv1, TLSv1_1, TLSv1_2 but not all of them may be available on all "
+                               "versions of Python.",
+                               type=str,
+                               choices=["SSLv23", "SSLv2", "SSLv3", "TLSv1", "TLSv1_1", "TLSv1_2"],
+                               default=None)
 
         parser.add_argument_group(ssl_group)
 
@@ -170,14 +174,14 @@ def hub_script(timeout=0):
             else:
                 options.cert_reqs = ssl.CERT_NONE
 
-            if options.ssl_version == "SSLv2":
-                options.ssl_version = ssl.PROTOCOL_SSLv2
-            elif options.ssl_version == "SSLv3":
-                options.ssl_version = ssl.PROTOCOL_SSLv3
-            elif options.ssl_version == "TLSv1":
-                options.ssl_version = ssl.PROTOCOL_TLSv1
-            else:
-                options.ssl_version = ssl.PROTOCOL_SSLv23
+            if options.ssl_version is not None:
+                if hasattr(ssl, 'PROTOCOL_' + options.ssl_version):
+                    options.ssl_version = getattr(
+                        ssl, 'PROTOCOL_' + options.ssl_version)
+                else:
+                    raise ValueError(
+                        "SSL protocol '{0}' not supported on this version of "
+                        "Python".format(options.ssl_version))
 
         if options.loglevel in ("OFF", "ERROR", "WARNING", "DEBUG", "INFO"):
             log.setLevel(options.loglevel)
