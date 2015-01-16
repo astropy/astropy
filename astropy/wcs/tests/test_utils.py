@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
 from ...wcs import WCS
 from .. import utils
-from ..utils import celestial_pixel_scale, non_celestial_pixel_scales
+from ..utils import celestial_pixel_scales, non_celestial_pixel_scales
 from ...tests.helper import pytest, catch_warnings
 from ...utils.exceptions import AstropyUserWarning
 from ... import units as u
@@ -241,47 +241,27 @@ def test_pixscale_nodrop():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cdelt = [0.1,0.1]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(sum(celestial_pixel_scale(mywcs))/2.0, 0.1)
 
     mywcs.wcs.cdelt = [-0.1,0.1]
-    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(sum(celestial_pixel_scale(mywcs))/2.0, 0.1)
 
 def test_pixscale_withdrop():
     mywcs = WCS(naxis=3)
     mywcs.wcs.cdelt = [0.1,0.1,1]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT']
-    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(sum(celestial_pixel_scale(mywcs))/2.0, 0.1)
 
     mywcs.wcs.cdelt = [-0.1,0.1,1]
-    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(sum(celestial_pixel_scale(mywcs))/2.0, 0.1)
 
 
 def test_pixscale_cd():
     mywcs = WCS(naxis=2)
     mywcs.wcs.cd = [[-0.1,0],[0,0.1]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(sum(celestial_pixel_scale(mywcs))/2.0, 0.1)
 
-def test_pixscale_warning(recwarn):
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.cd = [[-0.1,0],[0,0.1]]
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-
-    with catch_warnings(AstropyUserWarning) as warning_lines:
-
-        celestial_pixel_scale(mywcs)
-        assert ("Pixel sizes may very over the image for "
-                "projection class TAN"
-                in str(warning_lines[0].message))
-
-def test_pixscale_asymmetric():
-    mywcs = WCS(naxis=2)
-    mywcs.wcs.cd = [[-0.2,0],[0,0.1]]
-    mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-
-    with pytest.raises(ValueError) as exc:
-        celestial_pixel_scale(mywcs)
-    assert exc.value.args[0] == "Pixels are not square: 'pixel scale' is ambiguous"
 
 @pytest.mark.parametrize('angle',
                          (30,45,60,75))
@@ -292,7 +272,7 @@ def test_pixscale_cd_rotated(angle):
     mywcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
                     [scale*np.sin(rho), scale*np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(sum(celestial_pixel_scale(mywcs))/2.0, 0.1)
 
 @pytest.mark.parametrize('angle',
                          (30,45,60,75))
@@ -304,7 +284,7 @@ def test_pixscale_pc_rotated(angle):
     mywcs.wcs.pc = [[np.cos(rho), -np.sin(rho)],
                     [np.sin(rho), np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(celestial_pixel_scale(mywcs).to(u.deg).value, 0.1)
+    assert_almost_equal(sum(celestial_pixel_scale(mywcs))/2.0, 0.1)
 
 @pytest.mark.parametrize(('cdelt','pc','pccd'),
                          (([0.1,0.2], np.eye(2), np.diag([0.1,0.2])),
