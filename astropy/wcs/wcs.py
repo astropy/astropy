@@ -1970,6 +1970,12 @@ naxis kwarg.
 
         wcs_new = self.deepcopy()
         for i, iview in enumerate(view):
+            if iview.step is not None and iview.start is None:
+                # Slice from "None" is equivalent to slice from 0 (but one
+                # might want to downsample, so allow slices with
+                # None,None,step or None,stop,step)
+                iview = slice(0, iview.stop, iview.step)
+
             if iview.start is not None:
                 if numpy_order:
                     wcs_index = self.wcs.naxis - 1 - i
