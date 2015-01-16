@@ -562,6 +562,7 @@ Other Changes and Additions
   source code from the git repository, in order to allow the ERFA wrappers to
   be generated. [#3166]
 
+
 0.4.4 (unreleased)
 ------------------
 
@@ -584,6 +585,13 @@ API Changes
     used in the Python `ssl` standard library.  This default may be
     different depending on the exact version of Python you are using.
     [#3308]
+
+- ``astropy.wcs``
+
+  - WCS allows slices of the form slice(None, x, y), which previously resulted
+    in an unsliced copy being returned (note: this was previously incorrectly
+    reported as fixed in v0.4.3) [#2909]
+
 
 0.4.3 (2015-01-15)
 ------------------
@@ -703,9 +711,6 @@ Bug Fixes
   - Fixed an issue with reconnecting to a SAMP Hub. [#2674]
 
 - ``astropy.wcs``
-
-  - WCS allows slices of the form slice(None, x, y), which previously resulted
-    in an unsliced copy being returned [#2909]
 
   - Invalid or out of range values passed to ``wcs_world2pix`` will
     now be correctly identified and returned as ``nan``
