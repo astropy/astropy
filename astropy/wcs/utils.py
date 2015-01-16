@@ -10,7 +10,8 @@ __doctest_skip__ = ['wcs_to_celestial_frame']
 
 __all__ = ['add_stokes_axis_to_wcs',
            'custom_frame_mappings',
-           'wcs_to_celestial_frame', 'celestial_pixel_scale',
+           'wcs_to_celestial_frame', 'celestial_pixel_scales',
+           'celestial_pixel_area',
            'non_celestial_pixel_scales', 'skycoord_to_pixel',
            'pixel_to_skycoord']
 
@@ -149,41 +150,89 @@ def wcs_to_celestial_frame(wcs):
                      "the specified WCS object")
 
 
-def celestial_pixel_scale(inwcs, allow_nonsquare=False):
+def celestial_pixel_scales(inwcs):
     """
-    For a WCS, if the pixels are square, return the pixel scale in the spatial
-    dimensions
+    For a WCS return the celestial pixel scale at ``CRPIX`` for the
+    spatial dimensions of the celestial WCS.
+
+    .. note::
+        In general, pixel scales will vary across an image for most WCS
+        projections except, possibly, for the Cartesian projection assuming
+        no non-linear distortions are present.
 
     Parameters
     ----------
     inwcs : `~astropy.wcs.WCS`
-        The world coordinate system object
-    allow_nonsquare : bool
-        Return the average of the X and Y scales if True
+        A world coordinate system object.
 
     Returns
     -------
-    scale : float
-        The square pixel scale
+    scale : tuple of float
+        A tuple of two celestial increments corresponding to each pixel side.
+        The units of the returned results are the same as the units of
+        the `~astropy.wcs.Wcsprm.cdelt`, `~astropy.wcs.Wcsprm.crval`,
+        and `~astropy.wcs.Wcsprm.cd` for the celestial WCS and can be
+        obtained by inquiring the value of `~astropy.wcs.Wcsprm.cunit`
+        property of the `~astropy.wcs.WCS.celestial` WCS object.
+
+    See Also
+    --------
+    astropy.wcs.utils.celestial_pixel_area
+
+    """
+    scale = np.sqrt((inwcs.celestial.pixel_scale_matrix**2).sum(axis=0))
+    return tuple(map(float, scale))
+
+
+def celestial_pixel_area(inwcs):
+    """
+    For a WCS return the celestial pixel area at the ``CRPIX`` location
+    of the celestial WCS.
+
+    .. note::
+        In general, pixel area will vary across an image for most WCS
+        projections except, possibly, for the Cartesian projection assuming
+        no non-linear distortions are present.
+
+    Parameters
+    ----------
+    inwcs : `~astropy.wcs.WCS`
+        A world coordinate system object
+
+    Returns
+    -------
+    area : float
+        Celestial area of the pixel at ``CRPIX`` location.
+        The units of the returned result are the same as the units of
+        the `~astropy.wcs.Wcsprm.cdelt`, `~astropy.wcs.Wcsprm.crval`,
+        and `~astropy.wcs.Wcsprm.cd` for the celestial WCS and can be
+        obtained by inquiring the value of `~astropy.wcs.Wcsprm.cunit`
+        property of the `~astropy.wcs.WCS.celestial` WCS object.
 
     Raises
     ------
-    ValueError : if the pixels are nonsquare and ``allow_nonsquare==False``
+    ValueError
+        Pixel area is defined only for 2D pixels. Most likely the
+        `~astropy.wcs.Wcsprm.cd` matrix of the `~astropy.wcs.WCS.celestial`
+        WCS is not a square matrix of second order.
+
+    Notes
+    -----
+
+    Depending on the aplication, square root of the pixel area can be used to
+    represent a single celestial pixel scale of an equivalent square pixel
+    whose area is equal to the celestial area of a generally non-square
+    pixel.
+
+    See Also
+    --------
+    astropy.wcs.utils.celestial_pixel_scales
+
     """
-    cwcs = inwcs.celestial
-    if cwcs.wcs.ctype[0][-3:] != 'CAR':
-        warnings.warn("Pixel sizes may very over the image for "
-                      "projection class {0}".format(cwcs.wcs.ctype[0][-3:]),
-                      AstropyUserWarning)
-    scale = (cwcs.pixel_scale_matrix**2).sum(axis=0)**0.5
-    if not np.allclose(scale[0],scale[1]):
-        if allow_nonsquare:
-            warnings.warn("Pixels are not square, using an average pixel scale")
-            return np.mean(scale)*u.deg
-        else:
-            raise ValueError("Pixels are not square: 'pixel scale' is ambiguous")
-    # Return a quantity: WCS always stores in degrees
-    return scale[0]*u.deg
+    psm = inwcs.celestial.pixel_scale_matrix
+    if psm.shape != (2, 2):
+        raise ValueError("Pixel area is defined only for 2D pixels.")
+    return float(np.abs(np.linalg.det(psm)))
 
 
 def non_celestial_pixel_scales(inwcs):
@@ -203,7 +252,7 @@ def non_celestial_pixel_scales(inwcs):
     """
 
     if inwcs.is_celestial:
-        raise ValueError("WCS is celestial, use celestial_pixel_scale instead")
+        raise ValueError("WCS is celestial, use celestial_pixel_scales instead")
 
     pccd = inwcs.pixel_scale_matrix
 
