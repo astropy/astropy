@@ -153,29 +153,16 @@ class BaseRepresentation(object):
         return unitstr
 
     def __str__(self):
-        if self.isscalar and len(set(self._units.values())) > 1:
-            return '({0})'.format(', '.join(
-                ['{0}'.format(getattr(self, component))
-                 for component in self.components]))
-        else:
-            return '{0} {1:s}'.format(self._values, self._unitstr)
+        return '{0} {1:s}'.format(self._values, self._unitstr)
 
     def __repr__(self):
-        if self.isscalar:
-            return '<{0} {1}>'.format(
-                self.__class__.__name__,
-                ', '.join(['{0}={1}'.format(component,
-                                            getattr(self, component))
-                           for component in self.components]))
+        prefixstr = '    '
+        arrstr = np.array2string(self._values, separator=', ',
+                                 prefix=prefixstr)
 
-        else:
-            prefixstr = '    '
-            arrstr = np.array2string(self._values, separator=', ',
-                                     prefix=prefixstr)
-
-            return '<{0} ({1}) in {2:s}\n{3}{4}>'.format(
-                self.__class__.__name__, ', '.join(self.components),
-                self._unitstr, prefixstr, arrstr)
+        return '<{0} ({1}) in {2:s}\n{3}{4}>'.format(
+            self.__class__.__name__, ', '.join(self.components),
+            self._unitstr, prefixstr, arrstr)
 
 
 class CartesianRepresentation(BaseRepresentation):
