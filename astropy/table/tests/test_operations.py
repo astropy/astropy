@@ -571,6 +571,10 @@ class TestVStack():
             assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
                     in str(warning_lines[1].message))
 
+    def test_vstack_one_table(self):
+        assert (self.t1 == table.vstack(self.t1)).all()
+        assert (self.t1 == table.vstack([self.t1])).all()
+
 
 class TestHStack():
 
@@ -749,6 +753,10 @@ class TestHStack():
             # Make sure we got a copy of meta, not ref
             t1['b'].meta['b'] = None
             assert out['b'].meta['b'] == [1, 2]
+
+    def test_hstack_one_table(self):
+        assert (self.t1 == table.hstack(self.t1)).all()
+        assert (self.t1 == table.hstack([self.t1])).all()
 
 
 def test_unique():
