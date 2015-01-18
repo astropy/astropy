@@ -358,9 +358,7 @@ def test_highlevel_api():
     #funny ways
     #assert repr(sc.frame) == '<ICRS Coordinate: ra=120.0 deg, dec=5.0 deg>'
     rscf = repr(sc.frame)
-    assert '<ICRS Coordinate: ra=' in rscf
-    assert 'deg, dec=' in rscf
-    assert 'deg>' in rscf
+    assert rscf.startswith('<ICRS Coordinate: (ra, dec) in deg')
 
     # and  the string representation will be inherited from the low-level class.
 
@@ -368,9 +366,7 @@ def test_highlevel_api():
     # versions may round the numbers differently
     #assert repr(sc) == '<SkyCoord (ICRS): ra=120.0 deg, dec=5.0 deg>'
     rsc = repr(sc)
-    assert '<SkyCoord (ICRS): ra=' in rsc
-    assert 'deg, dec=' in rsc
-    assert 'deg>' in rsc
+    assert rsc.startswith('<SkyCoord (ICRS): (ra, dec) in deg')
 
     # Supports a variety of possible complex string formats
     sc = coords.SkyCoord('8h00m00s +5d00m00.0s', frame='icrs')
@@ -413,7 +409,7 @@ def test_highlevel_api():
     # v0.2/0.3 coordinate objects.  This will *not* be in the low-level classes
     sc = coords.SkyCoord(ra=8 * u.hour, dec=5 * u.deg, frame='icrs')
     scgal = sc.galactic
-    assert str(scgal).startswith('<SkyCoord (Galactic): l=216.316')
+    assert str(scgal).startswith('<SkyCoord (Galactic): (l, b)')
 
     # the existing `from_name` and `match_to_catalog_*` methods will be moved to the
     # high-level class as convenience functionality.
