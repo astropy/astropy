@@ -10,8 +10,8 @@ __doctest_skip__ = ['wcs_to_celestial_frame']
 
 __all__ = ['add_stokes_axis_to_wcs',
            'custom_frame_mappings',
-           'wcs_to_celestial_frame', 'celestial_pixel_scales',
-           'celestial_pixel_area',
+           'wcs_to_celestial_frame', 'proj_plane_pixel_scales',
+           'proj_plane_pixel_area',
            'non_celestial_pixel_scales', 'skycoord_to_pixel',
            'pixel_to_skycoord']
 
@@ -150,59 +150,80 @@ def wcs_to_celestial_frame(wcs):
                      "the specified WCS object")
 
 
-def celestial_pixel_scales(inwcs):
+def proj_plane_pixel_scales(wcs):
     """
-    For a WCS return the celestial pixel scale at ``CRPIX`` for the
-    spatial dimensions of the celestial WCS.
+    For a WCS returns pixel scales along each axis of the image pixel at the
+    ``CRPIX`` location once it is projected onto the
+    "plane of intermediate world coordinates" as defined in
+    `Greisen, E. W. & Calabretta, M. R. 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
 
     .. note::
-        In general, pixel scales will vary across an image for most WCS
-        projections except, possibly, for the Cartesian projection assuming
-        no non-linear distortions are present.
+        This function is concerned **only** about the transformation
+        "image plane"->"projection plane" and **not** about the
+        transformation "celestial sphere"->"projection plane"->"image plane".
+        Therefore, this function ignores distortions arising due to
+        non-linear nature of most projections.
+
+    .. note::
+        In order to compute the scales corresponding to celestial axes only,
+        make sure that the input `~astropy.wcs.WCS` object contains
+        celestial axes only, e.g., by passing in the
+        `~astropy.wcs.WCS.celestial` WCS object.
 
     Parameters
     ----------
-    inwcs : `~astropy.wcs.WCS`
+    wcs : `~astropy.wcs.WCS`
         A world coordinate system object.
 
     Returns
     -------
     scale : tuple of float
-        A tuple of two celestial increments corresponding to each pixel side.
-        The units of the returned results are the same as the units of
-        the `~astropy.wcs.Wcsprm.cdelt`, `~astropy.wcs.Wcsprm.crval`,
+        A tuple of projection plane increments corresponding to each
+        pixel side (axis). The units of the returned results are the same as
+        the units of `~astropy.wcs.Wcsprm.cdelt`, `~astropy.wcs.Wcsprm.crval`,
         and `~astropy.wcs.Wcsprm.cd` for the celestial WCS and can be
         obtained by inquiring the value of `~astropy.wcs.Wcsprm.cunit`
-        property of the `~astropy.wcs.WCS.celestial` WCS object.
+        property of the input `~astropy.wcs.WCS` WCS object.
 
     See Also
     --------
-    astropy.wcs.utils.celestial_pixel_area
+    astropy.wcs.utils.proj_plane_pixel_area
 
     """
-    scale = np.sqrt((inwcs.celestial.pixel_scale_matrix**2).sum(axis=0))
+    scale = np.sqrt((wcs.pixel_scale_matrix**2).sum(axis=0))
     return tuple(map(float, scale))
 
 
-def celestial_pixel_area(inwcs):
+def proj_plane_pixel_area(wcs):
     """
-    For a WCS return the celestial pixel area at the ``CRPIX`` location
-    of the celestial WCS.
+    For a **celestial** WCS (see `astropy.wcs.WCS.celestial`) returns pixel
+    area of the image pixel at the ``CRPIX`` location once it is projected
+    onto the "plane of intermediate world coordinates" as defined in
+    `Greisen, E. W. & Calabretta, M. R. 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
 
     .. note::
-        In general, pixel area will vary across an image for most WCS
-        projections except, possibly, for the Cartesian projection assuming
-        no non-linear distortions are present.
+        This function is concerned **only** about the transformation
+        "image plane"->"projection plane" and **not** about the
+        transformation "celestial sphere"->"projection plane"->"image plane".
+        Therefore, this function ignores distortions arising due to
+        non-linear nature of most projections.
+
+    .. note::
+        In order to compute the area of pixels corresponding to celestial
+        axes only, this function uses the `~astropy.wcs.WCS.celestial` WCS
+        object of the input `wcs`.  This is different from the
+        `~astropy.wcs.utils.proj_plane_pixel_scales` function
+        that computes the scales for the axes of the input WCS itself.
 
     Parameters
     ----------
-    inwcs : `~astropy.wcs.WCS`
-        A world coordinate system object
+    wcs : `~astropy.wcs.WCS`
+        A world coordinate system object.
 
     Returns
     -------
     area : float
-        Celestial area of the pixel at ``CRPIX`` location.
+        Area (in the projection plane) of the pixel at ``CRPIX`` location.
         The units of the returned result are the same as the units of
         the `~astropy.wcs.Wcsprm.cdelt`, `~astropy.wcs.Wcsprm.crval`,
         and `~astropy.wcs.Wcsprm.cd` for the celestial WCS and can be
@@ -220,16 +241,15 @@ def celestial_pixel_area(inwcs):
     -----
 
     Depending on the aplication, square root of the pixel area can be used to
-    represent a single celestial pixel scale of an equivalent square pixel
-    whose area is equal to the celestial area of a generally non-square
-    pixel.
+    represent a single pixel scale of an equivalent square pixel
+    whose area is equal to the area of a generally non-square pixel.
 
     See Also
     --------
-    astropy.wcs.utils.celestial_pixel_scales
+    astropy.wcs.utils.proj_plane_pixel_scales
 
     """
-    psm = inwcs.celestial.pixel_scale_matrix
+    psm = wcs.celestial.pixel_scale_matrix
     if psm.shape != (2, 2):
         raise ValueError("Pixel area is defined only for 2D pixels.")
     return float(np.abs(np.linalg.det(psm)))

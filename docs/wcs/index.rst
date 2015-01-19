@@ -181,10 +181,10 @@ included.
 
 The pixel scales of a celestial image or the pixel dimensions of a non-celestial
 image can be extracted with the utility functions
-`~astropy.wcs.utils.celestial_pixel_scales` and
+`~astropy.wcs.utils.proj_plane_pixel_scales` and
 `~astropy.wcs.utils.non_celestial_pixel_scales`. Likewise, celestial pixel
 area can be extracted with the utility function
-`~astropy.wcs.utils.celestial_pixel_area`.
+`~astropy.wcs.utils.proj_plane_pixel_area`.
 
 Matplotlib plots with correct WCS projection
 ============================================
