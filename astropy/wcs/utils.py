@@ -211,7 +211,7 @@ def proj_plane_pixel_area(wcs):
     .. note::
         In order to compute the area of pixels corresponding to celestial
         axes only, this function uses the `~astropy.wcs.WCS.celestial` WCS
-        object of the input `wcs`.  This is different from the
+        object of the input ``wcs``.  This is different from the
         `~astropy.wcs.utils.proj_plane_pixel_scales` function
         that computes the scales for the axes of the input WCS itself.
 
