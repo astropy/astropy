@@ -250,10 +250,10 @@ def test_pixscale_withdrop():
     mywcs = WCS(naxis=3)
     mywcs.wcs.cdelt = [0.1,0.1,1]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT']
-    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs))/2.0, 0.1)
+    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs.celestial))/2.0, 0.1)
 
     mywcs.wcs.cdelt = [-0.1,0.1,1]
-    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs))/2.0, 0.1)
+    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs.celestial))/2.0, 0.1)
 
 
 def test_pixscale_cd():
