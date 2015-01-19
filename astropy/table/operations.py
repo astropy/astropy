@@ -105,7 +105,7 @@ def _get_list_of_tables(tables):
         tables = [tables]
 
     # Make sure each thing is a Table or Row
-    if any(not isinstance(x, (Table, Row)) for x in tables):
+    if any(not isinstance(x, (Table, Row)) for x in tables) or len(tables) == 0:
         raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows')
 
     # Convert any Rows to Tables

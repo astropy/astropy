@@ -445,6 +445,8 @@ class TestVStack():
 
     def test_bad_input_type(self):
         with pytest.raises(TypeError):
+            table.vstack([])
+        with pytest.raises(TypeError):
             table.vstack(1)
         with pytest.raises(TypeError):
             table.vstack([self.t2, 1])
@@ -656,6 +658,8 @@ class TestHStack():
             out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='nonsense')
 
     def test_bad_input_type(self):
+        with pytest.raises(TypeError):
+            table.hstack([])
         with pytest.raises(TypeError):
             table.hstack(1)
         with pytest.raises(TypeError):
