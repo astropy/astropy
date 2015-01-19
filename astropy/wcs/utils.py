@@ -152,10 +152,10 @@ def wcs_to_celestial_frame(wcs):
 
 def proj_plane_pixel_scales(wcs):
     """
-    For a WCS returns pixel scales along each axis of the image pixel at the
-    ``CRPIX`` location once it is projected onto the
+    For a WCS returns pixel scales along each axis of the image pixel at
+    the ``CRPIX`` location once it is projected onto the
     "plane of intermediate world coordinates" as defined in
-    `Greisen, E. W. & Calabretta, M. R. 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
+    `Greisen & Calabretta 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
 
     .. note::
         This function is concerned **only** about the transformation
@@ -199,7 +199,7 @@ def proj_plane_pixel_area(wcs):
     For a **celestial** WCS (see `astropy.wcs.WCS.celestial`) returns pixel
     area of the image pixel at the ``CRPIX`` location once it is projected
     onto the "plane of intermediate world coordinates" as defined in
-    `Greisen, E. W. & Calabretta, M. R. 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
+    `Greisen & Calabretta 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
 
     .. note::
         This function is concerned **only** about the transformation
