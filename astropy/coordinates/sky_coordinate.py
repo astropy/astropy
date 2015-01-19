@@ -1289,8 +1289,8 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
             # Must have no more coord inputs than representation attributes
             if n_coords > n_attr_names:
-                raise ValueError('Input coordinates have {0} values but {1} representation '
-                                 'only accepts {2}'
+                raise ValueError('Input coordinates have {0} values but '
+                                 'representation {1} only accepts {2}'
                                  .format(n_coords, frame.representation.get_name(), n_attr_names))
 
             # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
@@ -1312,8 +1312,8 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                 frame_attr_names, repr_attr_classes, values, units):
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
     except Exception as err:
-        raise ValueError('Cannot parse coordinate data "{0}" from first argument: {1}'
-                         .format(value, err))
+        raise ValueError('Cannot parse first argument data "{0}" for attribute '
+                         '{1}'.format(value, frame_attr_name), err)
     return valid_kwargs
 
 

@@ -134,7 +134,7 @@ def test_coord_init_string():
 
     with pytest.raises(ValueError) as err:
         SkyCoord('1d 2d 3d')
-    assert "Cannot parse coordinate data" in str(err)
+    assert "Cannot parse first argument data" in str(err)
 
     sc1 = SkyCoord('8 00 00 +5 00 00.0', unit=(u.hour, u.deg), frame='icrs')
     assert isinstance(sc1, SkyCoord)
@@ -240,11 +240,11 @@ def test_coord_init_list():
 
     with pytest.raises(ValueError) as err:
         SkyCoord(['1d 2d 3d'])
-    assert "Cannot parse coordinate data" in str(err)
+    assert "Cannot parse first argument data" in str(err)
 
     with pytest.raises(ValueError) as err:
         SkyCoord([('1d', '2d', '3d')])
-    assert "Cannot parse coordinate data" in str(err)
+    assert "Cannot parse first argument data" in str(err)
 
     sc = SkyCoord([1 * u.deg, 1 * u.deg], [2 * u.deg, 2 * u.deg])
     assert allclose(sc.ra, Angle('1d'))
