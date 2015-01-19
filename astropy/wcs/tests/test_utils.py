@@ -239,28 +239,28 @@ def test_wcs_to_celestial_frame_extend():
 
 def test_pixscale_nodrop():
     mywcs = WCS(naxis=2)
-    mywcs.wcs.cdelt = [0.1,0.1]
+    mywcs.wcs.cdelt = [0.1,0.2]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs))/2.0, 0.1)
+    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
-    mywcs.wcs.cdelt = [-0.1,0.1]
-    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs))/2.0, 0.1)
+    mywcs.wcs.cdelt = [-0.1,0.2]
+    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
 def test_pixscale_withdrop():
     mywcs = WCS(naxis=3)
-    mywcs.wcs.cdelt = [0.1,0.1,1]
+    mywcs.wcs.cdelt = [0.1,0.2,1]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN','VOPT']
-    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs.celestial))/2.0, 0.1)
+    assert_almost_equal(proj_plane_pixel_scales(mywcs.celestial), (0.1, 0.2))
 
-    mywcs.wcs.cdelt = [-0.1,0.1,1]
-    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs.celestial))/2.0, 0.1)
+    mywcs.wcs.cdelt = [-0.1,0.2,1]
+    assert_almost_equal(proj_plane_pixel_scales(mywcs.celestial), (0.1, 0.2))
 
 
 def test_pixscale_cd():
     mywcs = WCS(naxis=2)
-    mywcs.wcs.cd = [[-0.1,0],[0,0.1]]
+    mywcs.wcs.cd = [[-0.1,0],[0,0.2]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs))/2.0, 0.1)
+    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.2))
 
 
 @pytest.mark.parametrize('angle',
@@ -272,7 +272,7 @@ def test_pixscale_cd_rotated(angle):
     mywcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
                     [scale*np.sin(rho), scale*np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs))/2.0, 0.1)
+    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
 
 @pytest.mark.parametrize('angle',
                          (30,45,60,75))
@@ -284,7 +284,7 @@ def test_pixscale_pc_rotated(angle):
     mywcs.wcs.pc = [[np.cos(rho), -np.sin(rho)],
                     [np.sin(rho), np.cos(rho)]]
     mywcs.wcs.ctype = ['RA---TAN','DEC--TAN']
-    assert_almost_equal(sum(proj_plane_pixel_scales(mywcs))/2.0, 0.1)
+    assert_almost_equal(proj_plane_pixel_scales(mywcs), (0.1, 0.1))
 
 @pytest.mark.parametrize(('cdelt','pc','pccd'),
                          (([0.1,0.2], np.eye(2), np.diag([0.1,0.2])),
