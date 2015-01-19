@@ -1222,30 +1222,11 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     elif isinstance(coords, (collections.Sequence, np.ndarray)):
         # Handles list-like input.
 
-        # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]],
-        # and check if there are any coordinate objects mixed in
         vals = []
-
         is_ra_dec_representation = ('ra' in frame.representation_component_names and
                                     'dec' in frame.representation_component_names)
-
-        hascoordobjs = False
-        for coord in coords:
-            if isinstance(coord, (SkyCoord, BaseCoordinateFrame, BaseRepresentation)):
-                hascoordobjs = True
-                vals = []
-                break  # we break out here because the path in this case needs no vals
-            if isinstance(coord, six.string_types):
-                coord1 = coord.split()
-                if len(coord1) == 6:
-                    coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                elif is_ra_dec_representation:
-                    coord = _parse_ra_dec(coord)
-                else:
-                    coord = coord1
-            vals.append(coord)  # This assumes coord is a sequence at this point
-
-        if hascoordobjs:
+        coord_types = (SkyCoord, BaseCoordinateFrame, BaseRepresentation)
+        if any(isinstance(coord, coord_types) for coord in coords):
             # this parsing path is used when there are coordinate-like objects
             # in the list - instead of creating lists of values, we create
             # SkyCoords from the list elements and then combine them.
@@ -1278,6 +1259,19 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
                     concat_vals._unit = data_val.unit
                 values.append(concat_vals)
         else:
+            #none of the elements are "frame-like"
+            #turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
+            for coord in coords:
+                if isinstance(coord, six.string_types):
+                    coord1 = coord.split()
+                    if len(coord1) == 6:
+                        coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+                    elif is_ra_dec_representation:
+                        coord = _parse_ra_dec(coord)
+                    else:
+                        coord = coord1
+                vals.append(coord)  # Assumes coord is a sequence at this point
+
             # Do some basic validation of the list elements: all have a length and all
             # lengths the same
             try:
