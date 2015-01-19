@@ -1267,13 +1267,16 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
             # Now combine the values, to be used below
             values = []
-            for aname in frame_attr_names:
-                values.append([])
+            for data_attr_name in frame_attr_names:
+                data_vals = []
                 for sc in scs:
-                    if sc.isscalar:
-                        values[-1].append(getattr(sc, aname))
-                    else:
-                        values[-1].extend(getattr(sc, aname))
+                    data_val = getattr(sc, data_attr_name)
+                    data_vals.append(data_val.reshape(1,) if sc.isscalar else data_val)
+                concat_vals = np.concatenate(data_vals)
+                # Hack because np.concatenate doesn't fully work with Quantity
+                if isinstance(concat_vals, u.Quantity):
+                    concat_vals._unit = data_val.unit
+                values.append(concat_vals)
         else:
             # Do some basic validation of the list elements: all have a length and all
             # lengths the same
