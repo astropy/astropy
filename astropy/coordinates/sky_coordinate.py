@@ -1253,8 +1253,8 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
             # now check that they're all self-consistent in their frame attributes
             # and frame name
-            if len(set((sc.frame.name for sc in scs if hasattr(sc, 'frame')))) > 1:
-                frames = [sc.frame.name if hasattr(sc, 'frame') else None for sc in scs]
+            if len(set((sc.frame.name for sc in scs))) > 1:
+                frames = [sc.frame.name for sc in scs]
                 raise ValueError("List of inputs have different frames: {0}".format(frames))
             for fattrnm in FRAME_ATTR_NAMES_SET():
                 vals = [getattr(sc, fattrnm) for sc in scs]
