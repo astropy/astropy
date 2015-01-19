@@ -574,6 +574,7 @@ class TestVStack():
                     in str(warning_lines[1].message))
 
     def test_vstack_one_table(self):
+        """Regression test for issue #3313"""
         assert (self.t1 == table.vstack(self.t1)).all()
         assert (self.t1 == table.vstack([self.t1])).all()
 
@@ -759,6 +760,7 @@ class TestHStack():
             assert out['b'].meta['b'] == [1, 2]
 
     def test_hstack_one_table(self):
+        """Regression test for issue #3313"""
         assert (self.t1 == table.hstack(self.t1)).all()
         assert (self.t1 == table.hstack([self.t1])).all()
 
