@@ -308,14 +308,14 @@ def set_enabled_units(units):
     >>> u.m.find_equivalent_units()
       Primary name | Unit definition | Aliases
     [
-      AU           | 1.49598e+11 m   | au           ,
-      Angstrom     | 1e-10 m         | AA, angstrom ,
-      cm           | 0.01 m          | centimeter   ,
-      lyr          | 9.46073e+15 m   | lightyear    ,
-      m            | irreducible     | meter        ,
-      micron       | 1e-06 m         |              ,
-      pc           | 3.08568e+16 m   | parsec       ,
-      solRad       | 6.95508e+08 m   | R_sun, Rsun  ,
+      AU           | 1.49598e+11 m   | au, astronomical_unit ,
+      Angstrom     | 1e-10 m         | AA, angstrom          ,
+      cm           | 0.01 m          | centimeter            ,
+      lyr          | 9.46073e+15 m   | lightyear             ,
+      m            | irreducible     | meter                 ,
+      micron       | 1e-06 m         |                       ,
+      pc           | 3.08568e+16 m   | parsec                ,
+      solRad       | 6.95508e+08 m   | R_sun, Rsun           ,
     ]
     """
     # get a context with a new registry, using equivalencies of the current one
@@ -355,19 +355,19 @@ def add_enabled_units(units):
     ...
       Primary name | Unit definition | Aliases
     [
-      AU           | 1.49598e+11 m   | au               ,
-      Angstrom     | 1e-10 m         | AA, angstrom     ,
-      cm           | 0.01 m          | centimeter       ,
-      ft           | 0.3048 m        | foot             ,
-      inch         | 0.0254 m        |                  ,
-      lyr          | 9.46073e+15 m   | lightyear        ,
-      m            | irreducible     | meter            ,
-      mi           | 1609.34 m       | mile             ,
-      micron       | 1e-06 m         |                  ,
-      nmi          | 1852 m          | nauticalmile, NM ,
-      pc           | 3.08568e+16 m   | parsec           ,
-      solRad       | 6.95508e+08 m   | R_sun, Rsun      ,
-      yd           | 0.9144 m        | yard             ,
+      AU           | 1.49598e+11 m   | au, astronomical_unit ,
+      Angstrom     | 1e-10 m         | AA, angstrom          ,
+      cm           | 0.01 m          | centimeter            ,
+      ft           | 0.3048 m        | foot                  ,
+      inch         | 0.0254 m        |                       ,
+      lyr          | 9.46073e+15 m   | lightyear             ,
+      m            | irreducible     | meter                 ,
+      mi           | 1609.34 m       | mile                  ,
+      micron       | 1e-06 m         |                       ,
+      nmi          | 1852 m          | nauticalmile, NM      ,
+      pc           | 3.08568e+16 m   | parsec                ,
+      solRad       | 6.95508e+08 m   | R_sun, Rsun           ,
+      yd           | 0.9144 m        | yard                  ,
     ]
     """
     # get a context with a new registry, which is a copy of the current one

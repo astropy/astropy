@@ -185,7 +185,7 @@ requires the beam area and frequency as arguments.  Example::
 Temperature Energy Equivalency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This equivalency allows conversion between temperature and its equivalent 
+This equivalency allows conversion between temperature and its equivalent
 in energy (i.e., the temperature multiplied by the Boltzmann constant),
 usually expressed in electronvolts. This is used frequently for
 observations at high-energy, be it for solar or X-ray astronomy. Example::
@@ -274,22 +274,22 @@ all kinds of things that ``Hz`` can be converted to::
   >>> u.Hz.find_equivalent_units(equivalencies=u.spectral())
     Primary name | Unit definition        | Aliases
   [
-    AU           | 1.49598e+11 m          | au             ,
-    Angstrom     | 1e-10 m                | AA, angstrom   ,
-    Bq           | 1 / s                  | becquerel      ,
-    Ci           | 2.7027e-11 / s         | curie          ,
-    Hz           | 1 / s                  | Hertz, hertz   ,
-    J            | kg m2 / s2             | Joule, joule   ,
-    Ry           | 2.17987e-18 kg m2 / s2 | rydberg        ,
-    cm           | 0.01 m                 | centimeter     ,
-    eV           | 1.60218e-19 kg m2 / s2 | electronvolt   ,
-    erg          | 1e-07 kg m2 / s2       |                ,
-    k            | 100 / m                | Kayser, kayser ,
-    lyr          | 9.46073e+15 m          | lightyear      ,
-    m            | irreducible            | meter          ,
-    micron       | 1e-06 m                |                ,
-    pc           | 3.08568e+16 m          | parsec         ,
-    solRad       | 6.95508e+08 m          | R_sun, Rsun    ,
+    AU           | 1.49598e+11 m          | au, astronomical_unit ,
+    Angstrom     | 1e-10 m                | AA, angstrom          ,
+    Bq           | 1 / s                  | becquerel             ,
+    Ci           | 2.7027e-11 / s         | curie                 ,
+    Hz           | 1 / s                  | Hertz, hertz          ,
+    J            | kg m2 / s2             | Joule, joule          ,
+    Ry           | 2.17987e-18 kg m2 / s2 | rydberg               ,
+    cm           | 0.01 m                 | centimeter            ,
+    eV           | 1.60218e-19 kg m2 / s2 | electronvolt          ,
+    erg          | 1e-07 kg m2 / s2       |                       ,
+    k            | 100 / m                | Kayser, kayser        ,
+    lyr          | 9.46073e+15 m          | lightyear             ,
+    m            | irreducible            | meter                 ,
+    micron       | 1e-06 m                |                       ,
+    pc           | 3.08568e+16 m          | parsec                ,
+    solRad       | 6.95508e+08 m          | R_sun, Rsun           ,
   ]
 
 .. _equivalency-context:
