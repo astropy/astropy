@@ -57,13 +57,13 @@ rt_sets = []
 rt_frames = [ICRS, FK4, FK5, Galactic]
 for rt_frame0 in rt_frames:
     for rt_frame1 in rt_frames:
-            for equinox0 in (None, 'J1975.0'):
-                for obstime0 in (None, 'J1980.0'):
-                    for equinox1 in (None, 'J1975.0'):
-                        for obstime1 in (None, 'J1980.0'):
-                            rt_sets.append([rt_frame0, rt_frame1,
-                                            equinox0, equinox1,
-                                            obstime0, obstime1])
+        for equinox0 in (None, 'J1975.0'):
+            for obstime0 in (None, 'J1980.0'):
+                for equinox1 in (None, 'J1975.0'):
+                    for obstime1 in (None, 'J1980.0'):
+                        rt_sets.append([rt_frame0, rt_frame1,
+                                        equinox0, equinox1,
+                                        obstime0, obstime1])
 rt_args = 'frame0,frame1,equinox0,equinox1,obstime0,obstime1'
 
 
@@ -485,6 +485,22 @@ def test_repr():
 
     sc_default = SkyCoord(0 * u.deg, 1 * u.deg)
     assert repr(sc_default) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
+
+
+def test_str():
+
+    # Repr tests must use exact floating point vals because Python 2.6
+    # outputs values like 0.1 as 0.1000000000001.  No workaround found.
+    sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
+    sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
+
+    assert str(sc1) == '0 1'
+    assert str(sc2) == '1 1'
+
+    sc3 = SkyCoord(0.25 * u.deg, [1, 2.5] * u.deg, frame='icrs')
+    with pytest.raises(TypeError) as exc:
+        str(sc3)
+    assert exc.value.args[0] == "str() can only be used with scalar coordinates - use to_string() instead"
 
 
 def test_ops():
@@ -1066,4 +1082,3 @@ def test_skycoord_list_creation():
     assert np.all(scnew4.ra == sc.ra)
     assert np.all(scnew4.dec == sc.dec)
     assert scnew4.equinox == Time('J2010')
-
