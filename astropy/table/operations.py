@@ -105,7 +105,7 @@ def _get_list_of_tables(tables):
         tables = [tables]
 
     # Make sure each thing is a Table or Row
-    if any(not isinstance(x, (Table, Row)) for x in tables):
+    if any(not isinstance(x, (Table, Row)) for x in tables) or len(tables) == 0:
         raise TypeError('`tables` arg must be a Table or sequence of Tables or Rows')
 
     # Convert any Rows to Tables
@@ -222,6 +222,8 @@ def vstack(tables, join_type='outer', metadata_conflicts='warn'):
         6   8
     """
     tables = _get_list_of_tables(tables)  # validates input
+    if len(tables) == 1:
+        return tables[0]  # no point in stacking a single table
     col_name_map = OrderedDict()
 
     out = _vstack(tables, join_type, col_name_map)
@@ -257,9 +259,6 @@ def hstack(tables, join_type='outer',
     table_names : list of str or None
         Two-element list of table names used when generating unique output
         column names.  The default is ['1', '2', ..].
-    col_name_map : empty dict or None
-        If passed as a dict then it will be updated in-place with the
-        mapping of output to input column names.
     metadata_conflicts : str
         How to proceed with metadata conflicts. This should be one of:
             * ``'silent'``: silently pick the last conflicting meta-data value
@@ -295,6 +294,8 @@ def hstack(tables, join_type='outer',
         2   4   6   8
     """
     tables = _get_list_of_tables(tables)  # validates input
+    if len(tables) == 1:
+        return tables[0]  # no point in stacking a single table
     col_name_map = OrderedDict()
 
     out = _hstack(tables, join_type, uniq_col_name, table_names,

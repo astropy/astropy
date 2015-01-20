@@ -445,6 +445,8 @@ class TestVStack():
 
     def test_bad_input_type(self):
         with pytest.raises(TypeError):
+            table.vstack([])
+        with pytest.raises(TypeError):
             table.vstack(1)
         with pytest.raises(TypeError):
             table.vstack([self.t2, 1])
@@ -571,6 +573,11 @@ class TestVStack():
             assert ("In merged column 'a' the 'unit' attribute does not match (m != km)"
                     in str(warning_lines[1].message))
 
+    def test_vstack_one_table(self):
+        """Regression test for issue #3313"""
+        assert (self.t1 == table.vstack(self.t1)).all()
+        assert (self.t1 == table.vstack([self.t1])).all()
+
 
 class TestHStack():
 
@@ -652,6 +659,8 @@ class TestHStack():
             out = table.hstack([self.t1, self.t5], join_type='inner', metadata_conflicts='nonsense')
 
     def test_bad_input_type(self):
+        with pytest.raises(TypeError):
+            table.hstack([])
         with pytest.raises(TypeError):
             table.hstack(1)
         with pytest.raises(TypeError):
@@ -749,6 +758,11 @@ class TestHStack():
             # Make sure we got a copy of meta, not ref
             t1['b'].meta['b'] = None
             assert out['b'].meta['b'] == [1, 2]
+
+    def test_hstack_one_table(self):
+        """Regression test for issue #3313"""
+        assert (self.t1 == table.hstack(self.t1)).all()
+        assert (self.t1 == table.hstack([self.t1])).all()
 
 
 def test_unique():

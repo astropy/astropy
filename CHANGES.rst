@@ -492,6 +492,9 @@ Bug Fixes
   - Fix a problem where ``table.hstack`` fails to stack multiple references to
     the same table, e.g. ``table.hstack([t, t])``. [#2995]
 
+  - Fixed a problem where ``table.vstack`` and ``table.hstack`` failed to stack
+    a single table, e.g. ``table.vstack([t])``. [#3313]
+
 - ``astropy.time``
 
   - When creating a Time object from a datetime object the time zone
