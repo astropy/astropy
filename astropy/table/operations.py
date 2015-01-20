@@ -575,8 +575,8 @@ def _join(left, right, keys=None, join_type='inner',
             if hasattr(arr[name], 'mask') and np.any(arr[name].mask):
                 raise TableMergeError('{0} key column {1!r} has missing values'
                                       .format(arr_label, name))
-            if arr._is_mixin_column(name):
-                raise ValueError("mixin column '{0}' not allowed as a key column")
+            if not isinstance(arr[name], np.ndarray):
+                raise ValueError("non-ndarray column '{0}' not allowed as a key column")
 
     len_left, len_right = len(left), len(right)
 

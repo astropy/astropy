@@ -144,6 +144,10 @@ def test_join(table_types):
         t12 = join(t1, t2, keys=['a', 'skycoord'])
     assert 'not allowed as a key column' in str(exc.value)
 
+    # Join does work for a mixin which is a subclass of np.ndarray
+    t12 = join(t1, t2, keys=['quantity'])
+    assert np.all(t12['a_1'] == t1['a'])
+
 def test_hstack(table_types):
     """
     Hstack tables with mixin cols.  Use column "i" as proxy for what the
