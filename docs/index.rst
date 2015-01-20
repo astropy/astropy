@@ -33,7 +33,7 @@ User Documentation
 
 .. only:: html
 
-    :doc:`whatsnew/0.4`
+    :doc:`whatsnew/1.0`
     -------------------
 
 .. only:: latex
@@ -41,7 +41,7 @@ User Documentation
     .. toctree::
        :maxdepth: 1
 
-       whatsnew/0.4
+       whatsnew/1.0
 
 **Astropy at a glance**
 
