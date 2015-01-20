@@ -4,13 +4,13 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from .. import units as u
-from .. import erfa
+from .. import _erfa as erfa
 from ..utils import OrderedDict
 from . import Longitude, Latitude
 
 try:
     # Not guaranteed available at setup time.
-    from .. import erfa
+    from .. import _erfa as erfa
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise

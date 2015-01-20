@@ -143,7 +143,7 @@ def get_sun(time):
     250 km over the 1000-3000.
 
     """
-    from .. import erfa
+    from .. import _erfa as erfa
     from .representation import CartesianRepresentation
     from .sky_coordinate import SkyCoord
     from .builtin_frames import GCRS

@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module is a compatibility layer, mapping the `astropy.erfa` function names
+This module is a compatibility layer, mapping the `astropy._erfa` function names
 to the names used in the ``astropy/time/erfa_time.pyx`` wrapper that was used
-before `astropy.erfa` was implemented.
+before `astropy._erfa` was implemented.
 
 This module will probably remove in a future version - either `time` will be
-changed to use names fully compatible with `astropy.erfa`, or `astropy.erfa`
+changed to use names fully compatible with `astropy._erfa`, or `astropy._erfa`
 will gain the ability to have "official" aliases to match these names.
 """
 

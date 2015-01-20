@@ -13,7 +13,7 @@ from ..builtin_frames import ICRS, AltAz, CIRS
 from .. import EarthLocation
 from .. import Angle, SkyCoord
 from ...tests.helper import pytest
-from ... import erfa
+from ... import _erfa as erfa
 from ...utils import iers
 from .utils import randomly_sample_sphere
 
