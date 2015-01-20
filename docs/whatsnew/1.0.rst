@@ -32,6 +32,11 @@ New ``astropy.visualization`` subpackage
 New ``astropy.analytic_functions`` subpackage
 ---------------------------------------------
 
+This subpackage provides analytic functions that are commonly used in astronomy.
+These already understand `~astropy.units.Quantity`, i.e., they can handle units
+of input and output parameters. In future versions of ``astropy``, many of these
+might be accessible as `~astropy.modeling.Model`.
+See :ref:`astropy_analytic_functions` for more details.
 
 
 Fast readers/writers for ASCII files
