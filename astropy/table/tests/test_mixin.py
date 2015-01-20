@@ -269,6 +269,15 @@ def test_insert_row(mixin_cols):
             t.insert_row(1, t[-1])
         assert "Unable to insert row" in str(exc.value)
 
+def test_insert_row_bad_unit():
+    """
+    Insert a row into a QTable with the wrong unit
+    """
+    t = QTable([[1] * u.m])
+    with pytest.raises(ValueError) as exc:
+        t.insert_row(0, (2 * u.m / u.s,))
+    assert "'m / s' (speed) and 'm' (length) are not convertible" in str(exc.value)
+
 def test_convert_np_array(mixin_cols):
     """
     Test that converting to numpy array creates an object dtype and that
