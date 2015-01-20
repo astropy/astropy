@@ -20,7 +20,7 @@ conf = Conf()
 
 from .column import Column, MaskedColumn
 from .groups import TableGroups, ColumnGroups
-from .table import Table, TableColumns, Row, TableFormatter
+from .table import Table, QTable, TableColumns, Row, TableFormatter
 from .operations import join, hstack, vstack, unique, TableMergeError
 
 # Import routines that connect readers/writers to astropy.table

@@ -11,6 +11,7 @@ fixedwidth.py:
 from __future__ import absolute_import, division, print_function
 
 from ...extern.six.moves import zip
+from ...table.column import col_iter_str_vals, col_getattr
 
 from . import core
 from .core import InconsistentTableError, DefaultSplitter
@@ -224,12 +225,13 @@ class FixedWidthData(basic.BasicData):
         for i, col in enumerate(self.cols):
             col.width = max([len(vals[i]) for vals in vals_list])
             if self.header.start_line is not None:
-                col.width = max(col.width, len(col.name))
+                col.width = max(col.width, len(col_getattr(col, 'name')))
 
         widths = [col.width for col in self.cols]
 
         if self.header.start_line is not None:
-            lines.append(self.splitter.join([col.name for col in self.cols], widths))
+            lines.append(self.splitter.join([col_getattr(col, 'name') for col in self.cols],
+                                            widths))
 
         if self.header.position_line is not None:
             char = self.header.position_char

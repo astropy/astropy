@@ -25,6 +25,7 @@ from ...extern.six.moves import cStringIO as StringIO
 from ...utils.exceptions import AstropyWarning
 
 from ...table import Table
+from ...table.column import col_getattr, col_setattr, col_iter_str_vals
 from ...utils.compat import ignored
 from ...utils.data import get_readable_fileobj
 from ...utils import OrderedDict
@@ -457,12 +458,13 @@ class BaseHeader(object):
             for i, spacer_line in zip(range(self.start_line),
                                       itertools.cycle(self.write_spacer_lines)):
                 lines.append(spacer_line)
-            lines.append(self.splitter.join([x.name for x in self.cols]))
+            lines.append(self.splitter.join([col_getattr(x, 'name') for x in self.cols]))
 
     @property
     def colnames(self):
         """Return the column names of the table"""
-        return tuple(col.name for col in self.cols)
+        return tuple(col.name if isinstance(col, Column) else col_getattr(col, 'name')
+                     for col in self.cols)
 
     def get_type_map_key(self, col):
         return col.raw_type
@@ -645,7 +647,7 @@ class BaseData(object):
         self._set_fill_values(self.cols)
         self._set_col_formats()
         for col in self.cols:
-            col.str_vals = list(col.iter_str_vals())
+            col.str_vals = list(col_iter_str_vals(col))
         self._replace_vals(self.cols)
         return [col.str_vals for col in self.cols]
 
@@ -666,8 +668,8 @@ class BaseData(object):
         """
         """
         for col in self.cols:
-            if col.name in self.formats:
-                col.format = self.formats[col.name]
+            if col_getattr(col, 'name') in self.formats:
+                col_setattr(col, 'format', self.formats[col.name])
 
 
 def convert_numpy(numpy_type):

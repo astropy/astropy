@@ -153,6 +153,10 @@ class Time(object):
     # gets called over the __mul__ of Numpy arrays.
     __array_priority__ = 20000
 
+    # Declare that Time can be used as a Table column by defining the
+    # attribute where column attributes will be stored.
+    _astropy_column_attrs = None
+
     def __new__(cls, val, val2=None, format=None, scale=None,
                 precision=None, in_subfmt=None, out_subfmt=None,
                 location=None, copy=False):

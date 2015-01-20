@@ -24,6 +24,7 @@ from . import basic
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from ...table.pprint import _format_funcs, _auto_format_func
+from ...table.column import col_iter_str_vals, col_getattr
 
 
 class IpacFormatErrorDBMS(Exception):
@@ -222,11 +223,11 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         else:
             IpacFormatE = IpacFormatError
 
-        namelist = [col.name for col in self.cols]
+        namelist = self.colnames
         if self.DBMS:
             countnamelist = defaultdict(int)
-            for col in self.cols:
-                countnamelist[col.name.lower()] += 1
+            for name in self.colnames:
+                countnamelist[name.lower()] += 1
             doublenames = [x for x in countnamelist if countnamelist[x] > 1]
             if doublenames != []:
                 raise IpacFormatE('IPAC DBMS tables are not case sensitive. '
@@ -255,20 +256,26 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         unitlist = []
         nullist = []
         for col in self.cols:
-            if col.dtype.kind in ['i', 'u']:
+            col_dtype = col_getattr(col, 'dtype')
+            col_unit = col_getattr(col, 'unit')
+            col_format = col_getattr(col, 'format')
+
+            if col_dtype.kind in ['i', 'u']:
                 dtypelist.append('long')
-            elif col.dtype.kind == 'f':
+            elif col_dtype.kind == 'f':
                 dtypelist.append('double')
             else:
                 dtypelist.append('char')
-            if col.unit is None:
+
+            if col_unit is None:
                 unitlist.append('')
             else:
                 unitlist.append(str(col.unit))
+            # This may be incompatible with mixin columns
             null = col.fill_values[core.masked]
             try:
-                format_func = _format_funcs.get(col.format, _auto_format_func)
-                nullist.append((format_func(col.format, null)).strip())
+                format_func = _format_funcs.get(col_format, _auto_format_func)
+                nullist.append((format_func(col_format, null)).strip())
             except:
                 # It is possible that null and the column values have different
                 # data types (e.g. number und null = 'null' (i.e. a string).

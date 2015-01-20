@@ -45,6 +45,130 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
+COLUMN_ATTRS = set(['name', 'unit', 'dtype', 'format', 'description', 'meta', 'parent_table'])
+
+def col_setattr(col, attr, value):
+    """
+    Set one of the column attributes.
+
+    Warning: this function is subject to change or removal.
+    """
+    if attr not in COLUMN_ATTRS:
+        raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
+
+    # The unit and dtype attributes are considered univeral and do NOT get
+    # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
+    if isinstance(col, BaseColumn):
+        setattr(col, attr, value)
+    else:
+        # If no _astropy_column_attrs or it is None then convert to dict
+        if getattr(col, '_astropy_column_attrs', None) is None:
+            col._astropy_column_attrs = {}
+        if attr == 'parent_table':
+            value = None if value is None else weakref.ref(value)
+        col._astropy_column_attrs[attr] = value
+
+def col_getattr(col, attr, default=None):
+    """
+    Get one of the column attributes
+
+    Warning: this function is subject to change or removal.
+    """
+    if attr not in COLUMN_ATTRS:
+        raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
+
+    # The unit and dtype attributes are considered univeral and do NOT get
+    # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
+    if (isinstance(col, BaseColumn) or
+            (isinstance(col, Quantity) and attr in ('dtype', 'unit'))):
+        value = getattr(col, attr, default)
+    else:
+        # If col does not have _astropy_column_attrs or it is None (meaning
+        # nothing has been set yet) then return default, otherwise look for
+        # the attribute in the astropy_column_attrs dict.
+        if getattr(col, '_astropy_column_attrs', None) is None:
+            value = default
+        else:
+            value = col._astropy_column_attrs.get(attr, default)
+
+        # Weak ref for parent table
+        if attr == 'parent_table' and callable(value):
+            value = value()
+
+        # Mixins have a default dtype of Object if nothing else was set
+        if attr == 'dtype' and value is None:
+            value = np.dtype('O')
+
+    return value
+
+def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
+    """
+    Update _astropy_column_attrs from mixin `col` to `newcol`.  Does nothing
+    for BaseColumn cols
+
+    Warning: this function is subject to change or removal.
+    """
+    if isinstance(newcol, BaseColumn):
+        return
+
+    attrs = COLUMN_ATTRS - set(exclude_attrs)
+    for attr in attrs:
+        val = col_getattr(col, attr)
+        if val is not None:
+            col_setattr(newcol, attr, deepcopy(val))
+
+def col_iter_str_vals(col):
+    """
+    This is a mixin-safe version of Column.iter_str_vals.
+
+    Warning: this function is subject to change or removal.
+    """
+    parent_table = col_getattr(col, 'parent_table')
+    formatter = FORMATTER if parent_table is None else parent_table.formatter
+    _pformat_col_iter = formatter._pformat_col_iter
+    for str_val in _pformat_col_iter(col, -1, False, False, {}):
+        yield str_val
+
+def col_copy(col):
+    """
+    This is a mixin-safe version of Column.copy() (with copy_data=True).
+
+    Warning: this function is subject to change or removal.
+    """
+    if isinstance(col, BaseColumn):
+        return col.copy()
+
+    if hasattr(col, '_astropy_column_attrs'):
+        col_setattr(col, 'parent_table', None)  # Don't copy weakref to parent table
+    newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
+
+    # Copy old attributes.  Even deepcopy above may not get this (e.g. pandas).
+    if (not hasattr(newcol, '_astropy_column_attrs') or
+            newcol._astropy_column_attrs is None):
+        _column_attrs = deepcopy(getattr(col, '_astropy_column_attrs', {}))
+        newcol._astropy_column_attrs = _column_attrs
+
+    return newcol
+
+
+class FalseArray(np.ndarray):
+    def __new__(cls, shape):
+        obj = np.zeros(shape, dtype=np.bool).view(cls)
+        return obj
+
+    def __setitem__(self, item, val):
+        val = np.asarray(val)
+        if np.any(val):
+            raise ValueError('Cannot set any element of {0} class to True'
+                             .format(self.__class__.__name__))
+
+    def __setslice__(self, start, stop, val):
+        val = np.asarray(val)
+        if np.any(val):
+            raise ValueError('Cannot set any element of {0} class to True'
+                             .format(self.__class__.__name__))
+
+
 class BaseColumn(np.ndarray):
 
     meta = MetaData()
@@ -78,6 +202,13 @@ class BaseColumn(np.ndarray):
                 unit = data.unit
             else:
                 self_data = np.array(data.to(unit), dtype=dtype, copy=copy)
+            if description is None:
+                description = col_getattr(data, 'description')
+            if format is None:
+                format = col_getattr(data, 'format')
+            if meta is None:
+                meta = deepcopy(col_getattr(data, 'meta'))
+
         else:
             self_data = np.array(data, dtype=dtype, copy=copy)
 
@@ -219,10 +350,7 @@ class BaseColumn(np.ndarray):
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
         self.parent_table = None
-        for attr in ('name', 'unit', 'format', 'description'):
-            val = getattr(obj, attr, None)
-            setattr(self, attr, val)
-        self.meta = deepcopy(getattr(obj, 'meta', {}))
+        self._copy_attrs(obj)
 
     def __array_wrap__(self, out_arr, context=None):
         """
@@ -560,6 +688,15 @@ class BaseColumn(np.ndarray):
         """
         return self.quantity.to(unit, equivalencies)
 
+    def _copy_attrs(self, obj):
+        """
+        Copy key column attributes from ``obj`` to self
+        """
+        for attr in ('name', 'unit', 'format', 'description'):
+            val = getattr(obj, attr, None)
+            setattr(self, attr, val)
+        self.meta = deepcopy(getattr(obj, 'meta', {}))
+
 
 class Column(BaseColumn):
     """Define a data column for use in a Table object.
@@ -694,6 +831,42 @@ class Column(BaseColumn):
     # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
     def __setslice__(self, start, stop, value):
         self.data.__setslice__(start, stop, value)
+
+    def insert(self, obj, values):
+        """
+        Insert values before the given indices in the column and return
+        a new `~astropy.table.Column` object.
+
+        Parameters
+        ----------
+        obj : int, slice or sequence of ints
+            Object that defines the index or indices before which ``values`` is
+            inserted.
+        values : array_like
+            Value(s) to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+            ``values`` should be shaped so that it can be broadcast appropriately
+
+        Returns
+        -------
+        out : `~astropy.table.Column`
+            A copy of column with ``values`` and ``mask`` inserted.  Note that the
+            insertion does not occur in-place: a new column is returned.
+        """
+        if self.dtype.kind == 'O':
+            # Even if values is array-like (e.g. [1,2,3]), insert as a single
+            # object.  Numpy.insert instead inserts each element in an array-like
+            # input individually.
+            data = np.insert(self, obj, None, axis=0)
+            data[obj] = values
+        else:
+            # Explicitly convert to dtype of this column.  Needed because numpy 1.7
+            # enforces safe casting by default, so .  This isn't the case for 1.6 or 1.8+.
+            values = np.asarray(values, dtype=self.dtype)
+            data = np.insert(self, obj, values, axis=0)
+        out = data.view(self.__class__)
+        out.__array_finalize__(self)
+        return out
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name
@@ -888,6 +1061,57 @@ class MaskedColumn(Column, ma.MaskedArray):
                          meta=deepcopy(self.meta))
         return out
 
+    def insert(self, obj, values, mask=None):
+        """
+        Insert values along the given axis before the given indices and return
+        a new `~astropy.table.MaskedColumn` object.
+
+        Parameters
+        ----------
+        obj : int, slice or sequence of ints
+            Object that defines the index or indices before which ``values`` is
+            inserted.
+        values : array_like
+            Value(s) to insert.  If the type of ``values`` is different
+            from that of quantity, ``values`` is converted to the matching type.
+            ``values`` should be shaped so that it can be broadcast appropriately
+        mask : boolean array_like
+            Mask value(s) to insert.  If not supplied then False is used.
+
+        Returns
+        -------
+        out : `~astropy.table.MaskedColumn`
+            A copy of column with ``values`` and ``mask`` inserted.  Note that the
+            insertion does not occur in-place: a new masked column is returned.
+        """
+        self_ma = self.data  # self viewed as MaskedArray
+
+        if self.dtype.kind == 'O':
+            # Even if values is array-like (e.g. [1,2,3]), insert as a single
+            # object.  Numpy.insert instead inserts each element in an array-like
+            # input individually.
+            new_data = np.insert(self_ma.data, obj, None, axis=0)
+            new_data[obj] = values
+        else:
+            # Explicitly convert to dtype of this column.  Needed because numpy 1.7
+            # enforces safe casting by default, so .  This isn't the case for 1.6 or 1.8+.
+            values = np.asarray(values, dtype=self.dtype)
+            new_data = np.insert(self_ma.data, obj, values, axis=0)
+
+        if mask is None:
+            if self.dtype.kind == 'O':
+                mask = False
+            else:
+                mask = np.zeros(values.shape, dtype=np.bool)
+        new_mask = np.insert(self_ma.mask, obj, mask, axis=0)
+        new_ma = np.ma.array(new_data, mask=new_mask, copy=False)
+
+        out = new_ma.view(self.__class__)
+        out.parent_table = None
+        out._copy_attrs(self)
+
+        return out
+
     def __getitem__(self, item):
         out = super(MaskedColumn, self).__getitem__(item)
 
@@ -895,10 +1119,7 @@ class MaskedColumn(Column, ma.MaskedArray):
         # the original object attributes are not copied.
         if out.__class__ is self.__class__:
             out.parent_table = None
-            for attr in ('name', 'unit', 'format', 'description'):
-                val = getattr(self, attr, None)
-                setattr(out, attr, val)
-            out.meta = deepcopy(getattr(self, 'meta', {}))
+            out._copy_attrs(self)
 
         return out
 

@@ -210,6 +210,13 @@ def write_table_fits(input, output, overwrite=False):
         Whether to overwrite any existing file without warning.
     """
 
+    # Tables with mixin columns are not supported
+    if input.has_mixin_columns:
+        mixin_names = [name for name, col in input.columns.items()
+                       if not isinstance(col, input.ColumnClass)]
+        raise ValueError('cannot write table with mixin column(s) {0} to FITS'
+                         .format(mixin_names))
+
     # Check if output file already exists
     if isinstance(output, string_types) and os.path.exists(output):
         if overwrite:
