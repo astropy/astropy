@@ -205,8 +205,10 @@ New Features
   - When viewed in IPython, ``Quantity`` objects with array values now render
     using LaTeX and scientific notation. [#2271]
 
-  - Added units.quantity_input decorator to validate quantity inputs to a
+  - Added ``units.quantity_input`` decorator to validate quantity inputs to a
     function for unit compatibility. [#3072]
+
+  - Added ``units.astronomical_unit`` as a long form for ``units.au``. [#3303]
 
 - ``astropy.utils``
 
