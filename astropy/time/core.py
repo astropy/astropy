@@ -17,7 +17,7 @@ from datetime import datetime
 import numpy as np
 
 from .. import units as u
-from .. import erfa
+from .. import _erfa as erfa
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 
