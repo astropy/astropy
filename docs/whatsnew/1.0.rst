@@ -19,6 +19,11 @@ Support for Alt/Az coordinates
 
 
 
+New Galactocentric coordinate frame
+-----------------------------------
+
+
+
 New ``astropy.visualization`` subpackage
 ----------------------------------------
 
