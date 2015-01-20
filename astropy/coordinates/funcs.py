@@ -161,7 +161,7 @@ def concatenate(coords):
     `~astropy.coordinates.SkyCoord`.
 
     "Coordinate objects" here mean frame objects with data,
-    `~astropy.coordinates.SkyCoord`s, or representation objects.  Currently,
+    `~astropy.coordinates.SkyCoord`, or representation objects.  Currently,
     they must all be in the same frame, but in a future version this may be
     relaxed to allow inhomogenous sequences of objects.
 
