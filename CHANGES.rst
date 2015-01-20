@@ -295,6 +295,10 @@ API Changes
     class has now been deprecated, except in the case where a frame with data
     is passed as the sole positional argument. [#3152]
 
+  - ``str(SkyCoord(...))`` now returns the same as ``SkyCoord.to_string`` for
+    scalar values and gives an error for vector coordinates (and refers the
+    user to ``SkyCoord.to_string``). [#3315]
+
 - ``astropy.cosmology``
 
   - The functional interface to the cosmological routines as well as
