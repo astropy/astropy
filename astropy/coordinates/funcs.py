@@ -12,8 +12,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from .. import units as u
+from ..utils import isiterable
 
-__all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun']
+__all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun', 'concatenate']
 
 
 def cartesian_to_spherical(x, y, z):
@@ -153,3 +154,30 @@ def get_sun(time):
     z = -earth_pv_helio[..., 0, 2] * u.AU
     cartrep = CartesianRepresentation(x=x, y=y, z=z)
     return SkyCoord(cartrep, frame=GCRS)
+
+def concatenate(coords):
+    """
+    Combine multiple coordinate objects into a single
+    `~astropy.coordinates.SkyCoord`.
+
+    "Coordinate objects" here mean frame objects with data,
+    `~astropy.coordinates.SkyCoord`, or representation objects.  Currently,
+    they must all be in the same frame, but in a future version this may be
+    relaxed to allow inhomogenous sequences of objects.
+
+    Parameters
+    ----------
+    coords : sequence of coordinate objects
+        The objects to concatenate
+
+    Returns
+    -------
+    cskycoord : SkyCoord
+        A single sky coordinate with its data set to the concatenation of all
+        the elements in ``coords``
+    """
+    from .sky_coordinate import SkyCoord
+
+    if getattr(coords, 'isscalar', False) or not isiterable(coords):
+        raise TypeError('The argument to concatenate must be iterable')
+    return SkyCoord(coords)

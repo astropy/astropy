@@ -10,6 +10,8 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
+from ...tests.helper import pytest
+
 from ... import units as u
 from ...time import Time
 
@@ -30,3 +32,20 @@ def test_sun():
 
     gcrs2 = get_sun(Time([northern_summer_solstice, equinox_2, northern_winter_solstice]))
     assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)
+
+def test_concatenate():
+    from .. import FK5, SkyCoord
+    from ..funcs import concatenate
+
+    fk5 = FK5(1*u.deg, 2*u.deg)
+    sc = SkyCoord(3*u.deg, 4*u.deg, frame='fk5')
+
+    res = concatenate([fk5, sc])
+    np.testing.assert_allclose(res.ra, [1, 3]*u.deg)
+    np.testing.assert_allclose(res.dec, [2, 4]*u.deg)
+
+    with pytest.raises(TypeError):
+        concatenate(fk5)
+
+    with pytest.raises(TypeError):
+        concatenate(1*u.deg)

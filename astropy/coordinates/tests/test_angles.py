@@ -833,3 +833,17 @@ def test_array_angle_tostring():
     aobj = Angle([1, 2], u.deg)
     assert aobj.to_string().dtype.kind == 'U'
     assert np.all(aobj.to_string() == ['1d00m00s', '2d00m00s'])
+
+def test_wrap_at_without_new():
+    """
+    Regression test for subtle bugs from situations where an Angle is
+    created via numpy channels that don't do the standard __new__ but instead
+    depend on array_finalize to set state.  Longitude is used because the
+    bug was in its _wrap_angle not getting initialized correctly
+    """
+    l1 = Longitude([1]*u.deg)
+    l2 = Longitude([2]*u.deg)
+
+    l = np.concatenate([l1, l2])
+    assert l._wrap_angle is not None
+
