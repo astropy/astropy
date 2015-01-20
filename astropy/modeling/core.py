@@ -2155,7 +2155,6 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
     broadcasts = []
 
     for idx, _input in enumerate(inputs):
-        _input = np.asanyarray(_input, dtype=np.float)
         input_shape = _input.shape
 
         if not params:
@@ -2233,8 +2232,6 @@ def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
     pivots = []
 
     for idx, _input in enumerate(inputs):
-        _input = np.asanyarray(_input, dtype=np.float)
-
         max_param_shape = ()
 
         if n_models > 1 and model_set_axis is not False:
