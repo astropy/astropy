@@ -16,7 +16,7 @@ methods::
   Unit("2.17987e-18 kg m2 / s2")
 
 You can limit the selection of units that you want to decompose to
-using the `bases` keyword argument::
+using the ``bases`` keyword argument::
 
   >>> u.Ry.decompose(bases=[u.m, u.N])
   Unit("2.17987e-18 m N")
