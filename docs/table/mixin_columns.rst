@@ -20,14 +20,14 @@ The available built-in mixin column classes are:
 - |SkyCoord|
 - |Time|
 
-.. Warning:: 
+.. Warning::
 
    The interface for using mixin columns is experimental at this point and it
    is not recommended to use this feature in production code.  There are known
    limitations and some table functionality which is not yet implemented for
    mixin columns.  API changes are likely and since the code is all new there
    may be some bugs.
-   
+
 As a first example we can create a table and add a time column::
 
   >>> from astropy.table import Table
@@ -36,7 +36,7 @@ As a first example we can create a table and add a time column::
   >>> t['index'] = [1, 2]
   >>> t['time'] = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
   >>> print(t)
-  index           time         
+  index           time
   ----- -----------------------
       1 2001-01-02T12:34:56.000
       2 2001-02-03T00:01:02.000
@@ -63,7 +63,12 @@ the |Table| class called |QTable| is available.  |QTable| is exactly the same
 as |Table| except that |Quantity| is the default for any data column with a
 defined unit.
 
-To illustrate we first create a standard |Table| where we supply as input a
+If you take advantage of the |Quantity| infrastructure in your analysis then
+|QTable| is the preferred way to create tables with units.  If instead you use
+table column units more as a descriptive label then the plain |Table| class is
+probably the best class to use.
+
+To illustrate these concepts we first create a standard |Table| where we supply as input a
 |Time| object and a |Quantity| object with units of ``m / s``.  In this case
 the quantity is converted to a |Column| (which has a ``unit`` attribute but
 does not have all the features of a |Quantity|)::
@@ -76,7 +81,7 @@ does not have all the features of a |Quantity|)::
 
   >>> print(t)
   index           time          velocity
-                                 m / s  
+                                 m / s
   ----- ----------------------- --------
       1 2001-01-02T12:34:56.000      3.0
       2 2001-02-03T00:01:02.000      4.0
@@ -104,7 +109,7 @@ all have units because this is how |Quantity| prints a single array element::
 
   >>> print(qt)
   index           time           velocity
-                                  m / s  
+                                  m / s
   ----- ----------------------- ---------
       1 2001-01-02T12:34:56.000 3.0 m / s
       2 2001-02-03T00:01:02.000 4.0 m / s
@@ -191,6 +196,12 @@ with the functions ``col_getattr`` and ``col_setattr`` which are available in
 the ``astropy.table.column`` module.  These methods are not part of
 the astropy public API and are likely to change in the future.
 
+**ASCII table writing**
+
+Mixin columns can be written out to file using the `astropy.io.ascii` module,
+but the fast C-based writers are not available.  Instead the legacy pure-Python
+writers will be used.
+
 
 Mixin protocol
 ^^^^^^^^^^^^^^
@@ -211,7 +222,7 @@ with the following properties:
 The `Example: ArrayWrapper`_ section shows a working minimal example of a class
 which can be used as a mixin column.  A `pandas.Series
 <http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html>`_
-object can function as a mixin column as well. 
+object can function as a mixin column as well.
 
 Other interesting possibilities for mixin columns include:
 
