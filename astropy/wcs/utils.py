@@ -177,21 +177,21 @@ def proj_plane_pixel_scales(wcs):
 
     Returns
     -------
-    scale : tuple of float
-        A tuple of projection plane increments corresponding to each
-        pixel side (axis). The units of the returned results are the same as
-        the units of `~astropy.wcs.Wcsprm.cdelt`, `~astropy.wcs.Wcsprm.crval`,
-        and `~astropy.wcs.Wcsprm.cd` for the celestial WCS and can be
-        obtained by inquiring the value of `~astropy.wcs.Wcsprm.cunit`
-        property of the input `~astropy.wcs.WCS` WCS object.
+    scale : `~numpy.ndarray`
+        A vector (`~numpy.ndarray`) of projection plane increments
+        corresponding to each pixel side (axis). The units of the returned
+        results are the same as the units of `~astropy.wcs.Wcsprm.cdelt`,
+        `~astropy.wcs.Wcsprm.crval`, and `~astropy.wcs.Wcsprm.cd` for
+        the celestial WCS and can be obtained by inquiring the value
+        of `~astropy.wcs.Wcsprm.cunit` property of the input
+        `~astropy.wcs.WCS` WCS object.
 
     See Also
     --------
     astropy.wcs.utils.proj_plane_pixel_area
 
     """
-    scale = np.sqrt((wcs.pixel_scale_matrix**2).sum(axis=0))
-    return tuple(map(float, scale))
+    return np.sqrt((wcs.pixel_scale_matrix**2).sum(axis=0, dtype=np.float))
 
 
 def proj_plane_pixel_area(wcs):
@@ -252,7 +252,7 @@ def proj_plane_pixel_area(wcs):
     psm = wcs.celestial.pixel_scale_matrix
     if psm.shape != (2, 2):
         raise ValueError("Pixel area is defined only for 2D pixels.")
-    return float(np.abs(np.linalg.det(psm)))
+    return np.abs(np.linalg.det(psm))
 
 
 def non_celestial_pixel_scales(inwcs):
