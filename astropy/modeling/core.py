@@ -1324,7 +1324,7 @@ class Fittable1DModel(FittableModel):
 
 class Fittable2DModel(FittableModel):
     """
-    Base class for one-dimensional fittable models.
+    Base class for two-dimensional fittable models.
 
     This class provides an easier interface to defining new models.
     Examples can be found in `astropy.modeling.functional_models`.
