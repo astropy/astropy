@@ -590,7 +590,7 @@ API Changes
 - ``astropy.vo.samp``
 
   - The default SSL protocol used is now determined from the default
-    used in the Python `ssl` standard library.  This default may be
+    used in the Python ``ssl`` standard library.  This default may be
     different depending on the exact version of Python you are using.
     [#3308]
 
