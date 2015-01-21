@@ -355,3 +355,14 @@ def test_column_rename():
     for name in names:
         qt.rename_column(name, name + '2')
     assert qt.colnames == [name + '2' for name in names]
+
+
+def test_setitem_as_column_name():
+    """
+    Test for mixin-related regression described in #3321.
+    """
+    t = Table()
+    t['a'] = ['x', 'y']
+    t['b'] = 'b'  # Previously was failing with KeyError
+    assert np.all(t['a'] == ['x', 'y'])
+    assert np.all(t['b'] == ['b', 'b'])

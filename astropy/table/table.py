@@ -626,12 +626,7 @@ class Table(object):
         """
         Determine if ``col`` meets the protocol for a mixin Table column for
         this table.  By definition a BaseColumn instance is not a mixin.
-
-        If ``col`` is a string then it refers to a column name in this table.
         """
-        if isinstance(col, six.string_types):
-            col = self[col]
-
         if isinstance(col, BaseColumn):
             is_mixin = False
         elif isinstance(col, Quantity):
