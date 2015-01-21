@@ -571,7 +571,7 @@ Other Changes and Additions
   be generated. [#3166]
 
 
-0.4.4 (unreleased)
+0.4.4 (2015-01-21)
 ------------------
 
 Bug Fixes
