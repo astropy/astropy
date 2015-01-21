@@ -82,8 +82,8 @@ class _File(object):
     # See self._test_mmap
     _mmap_available = None
 
-    def __init__(self, fileobj=None, mode=None, memmap=None, clobber=False, cached=True):
-
+    def __init__(self, fileobj=None, mode=None, memmap=None, clobber=False,
+                 cache=True):
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
 
@@ -116,7 +116,7 @@ class _File(object):
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
             _is_url(fileobj)): # This is an URL.
-                self.name = download_file(fileobj,cache=cached)
+                self.name = download_file(fileobj, cache=cache)
         else:
             self.name = fileobj_name(fileobj)
 

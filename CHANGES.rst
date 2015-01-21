@@ -324,9 +324,9 @@ API Changes
 
 - ``astropy.io.fits``
 
-  - A new optional argument ``cached`` has been added to
+  - A new optional argument ``cache`` has been added to
     ``astropy.io.fits.open()``.  When opening a FITS file from a URL,
-    ``cached`` is a boolean value specifying whether or not to save the
+    ``cache`` is a boolean value specifying whether or not to save the
     file locally in Astropy's download cache (``True`` by default). [#3041]
 
 - ``astropy.io.misc``
