@@ -47,7 +47,7 @@ for dtype in DTYPES:
 T_DTYPES.meta['comments'] = ['comment1', 'comment2']
 
 # Corresponds to simple_table()
-SIMPLE_LINES = ['# %ECSV 1.0',
+SIMPLE_LINES = ['# %ECSV 0.9',
                 '# ---',
                 '# datatype:',
                 '# - {name: a, datatype: int32}',
@@ -77,7 +77,7 @@ def test_write_full():
     Write a full-featured table with common types and explicitly checkout output
     """
     t = T_DTYPES['bool', 'int64', 'float64', 'str']
-    lines = ['# %ECSV 1.0',
+    lines = ['# %ECSV 0.9',
              '# ---',
              '# datatype:',
              '# - name: bool',
@@ -146,10 +146,10 @@ def test_bad_delimiter():
 @pytest.mark.skipif('not HAS_YAML')
 def test_bad_header_start():
     """
-    Bad header without initial # %ECSV 1.0
+    Bad header without initial # %ECSV x.x
     """
     lines = copy.copy(SIMPLE_LINES)
-    lines[0]  = '# %ECV 1.0'
+    lines[0]  = '# %ECV 0.9'
     with pytest.raises(ascii.InconsistentTableError):
         Table.read('\n'.join(lines), format='ascii.ecsv', guess=False)
 

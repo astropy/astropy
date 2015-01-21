@@ -11,6 +11,7 @@ from ...extern import six
 
 from . import core, basic
 
+ECSV_VERSION = '0.9'
 DELIMITERS = (' ', ',')
 
 class ColumnOrderList(list):
@@ -291,7 +292,7 @@ class EcsvHeader(basic.BasicHeader):
             header['delimiter'] = self.splitter.delimiter
 
         header_yaml = yaml.dump(header, Dumper=TableDumper)
-        outs = ['%ECSV 1.0', '---']
+        outs = ['%ECSV {0}'.format(ECSV_VERSION), '---']
         outs.extend(header_yaml.splitlines())
 
         lines.extend([self.write_comment + line for line in outs])
@@ -341,7 +342,7 @@ class EcsvHeader(basic.BasicHeader):
                              \. (?P<minor> \d+)
                              \.? (?P<bugfix> \d+)? $"""
 
-        no_header_msg = ('ECSV header line like "# %ECSV 1.0" not found as first line.'
+        no_header_msg = ('ECSV header line like "# %ECSV <version>" not found as first line.'
                          '  This is required for a ECSV file.')
 
         if not lines:
@@ -403,7 +404,7 @@ class Ecsv(basic.Basic):
     Values) format.  This format allows for specification of key table
     and column meta-data, in particular the data type and unit.  For example::
 
-      # %ECSV 1.0
+      # %ECSV 0.9
       # ---
       # columns:
       # - {name: a, unit: m / s, type: int64, format: '%03d'}
