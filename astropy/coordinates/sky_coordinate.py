@@ -427,10 +427,7 @@ class SkyCoord(object):
         return dir_values
 
     def __str__(self):
-        if self.isscalar:
-            return self.to_string()
-        else:
-            raise TypeError("str() can only be used with scalar coordinates - use to_string() instead")
+        return str(self.to_string())
 
     def __repr__(self):
         clsnm = self.__class__.__name__

@@ -489,8 +489,6 @@ def test_repr():
 
 def test_str():
 
-    # Repr tests must use exact floating point vals because Python 2.6
-    # outputs values like 0.1 as 0.1000000000001.  No workaround found.
     sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
 
@@ -498,9 +496,7 @@ def test_str():
     assert str(sc2) == '1 1'
 
     sc3 = SkyCoord(0.25 * u.deg, [1, 2.5] * u.deg, frame='icrs')
-    with pytest.raises(TypeError) as exc:
-        str(sc3)
-    assert exc.value.args[0] == "str() can only be used with scalar coordinates - use to_string() instead"
+    assert str(sc3) == "['0.25 1', '0.25 2.5']"
 
 
 def test_ops():
