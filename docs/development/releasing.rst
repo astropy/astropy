@@ -75,7 +75,7 @@ procedure is that ensures a consistent release process each time.
     
         zest.releaser > 3.49 has a still open issue that prevents our release
         code from correctly updating the ``VERSION`` variable in our ``setup.py``;
-        see [zestsoftware/zest.releaser#62](https://github.com/zestsoftware/zest.releaser/pull/62)
+        see `zestsoftware/zest.releaser#62 <https://github.com/zestsoftware/zest.releaser/pull/62>`_.
 
  9. Ensure that all changes to the code have been committed, then start the
     release by running::
