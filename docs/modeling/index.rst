@@ -296,7 +296,7 @@ These new compound models can also be fitted to data, like most other models:
 
     # Now to fit the data create a new superposition with initial
     # guesses for the parameters:
-    gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(1, 0, 0.1)
+    gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(2, 0.5, 0.1)
     fitter = fitting.SLSQPLSQFitter()
     gg_fit = fitter(gg_init, x, y)
 
