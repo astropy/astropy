@@ -21,7 +21,7 @@ class ColumnOrderList(list):
     def sort(self, *args, **kwargs):
         super(ColumnOrderList, self).sort()
 
-        column_keys = ['name', 'unit', 'type', 'format', 'description', 'meta']
+        column_keys = ['name', 'unit', 'datatype', 'format', 'description', 'meta']
         in_dict = dict(self)
         out_list = []
 
@@ -179,7 +179,7 @@ def _get_col_attributes(col):
         type_name = 'string'
     if type_name.endswith('_'):
         type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
-    attrs['type'] = type_name
+    attrs['datatype'] = type_name
 
     if col.unit:
         attrs['unit'] = str(col.unit)
@@ -284,7 +284,7 @@ class EcsvHeader(basic.BasicHeader):
         if self.table_meta:
             header['meta'] = self.table_meta
 
-        header['columns'] = [_get_col_attributes(col) for col in self.cols]
+        header['datatype'] = [_get_col_attributes(col) for col in self.cols]
 
         # Set the delimiter only for the non-default option(s)
         if self.splitter.delimiter != ' ':
@@ -370,8 +370,8 @@ class EcsvHeader(basic.BasicHeader):
             self.data.splitter.delimiter = delimiter
 
         # Create the list of io.ascii column objects from `header`
-        header_cols = OrderedDict((x['name'], x) for x in header['columns'])
-        self.names = [x['name'] for x in header['columns']]
+        header_cols = OrderedDict((x['name'], x) for x in header['datatype'])
+        self.names = [x['name'] for x in header['datatype']]
         self._set_cols_from_names()  # BaseHeader method to create self.cols
 
         # Transfer attributes from the column descriptor stored in the input
@@ -380,7 +380,7 @@ class EcsvHeader(basic.BasicHeader):
             for attr in ('description', 'format', 'unit', 'meta'):
                 if attr in header_cols[col.name]:
                     setattr(col, attr, header_cols[col.name][attr])
-            col.dtype = header_cols[col.name]['type']
+            col.dtype = header_cols[col.name]['datatype']
             # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
             if six.PY3 and col.dtype == 'string':
                 col.dtype = 'str'
