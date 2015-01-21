@@ -10,11 +10,16 @@ the correct extension. The scripts can live in their own module, or be part of
 a larger module that implements a class or function for astropy library use.
 They should have a ``main`` function to parse the arguments and pass those
 arguments on to some library function so that the library function can be used
-programatically when needed.  Command-line options can be parsed however
-desired, but the :mod:`argparse` module is recommended when possible, due to
-its simpler and more flexible interface relative to the older :mod:`optparse`.
-:mod:`argparse` is only available in python >=2.7 and >=3.2, however, so it
-should be imported as ``from astropy.util.compat import argparse`` .
+programatically when needed. The ``main`` function should accept an optional
+single argument that holds the ``sys.argv`` list, except for the script name
+(e.g., ``argv[1:]``). It must then be added to the list of entry points in the
+``setup.py`` file (see the example below).
+
+Command-line options can be parsed however desired, but the :mod:`argparse`
+module is recommended when possible, due to its simpler and more flexible
+interface relative to the older :mod:`optparse`.  :mod:`argparse` is only
+available in python >=2.7 and >=3.2, however, so it should be imported as ``from
+astropy.util.compat import argparse`` .
 
 .. _"entry points": https://pythonhosted.org/setuptools/setuptools.html#automatic-script-creation
 
