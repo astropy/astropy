@@ -255,9 +255,10 @@ New Features
     to allow for approximate comparison of floating-point values. [#2503]
 
   - added ``pixel_scale_matrix``, ``celestial``, ``is_celestial``, and
-    ``has_celestial`` convenience attributes.  Added ``celestial_pixel_scale``
-    and ``non_celestial_pixel_scales`` utility functions for retrieving WCS
-    pixel scale information [#2832]
+    ``has_celestial`` convenience attributes. Added
+    ``proj_plane_pixel_scales``, ``proj_plane_pixel_area``, and
+    ``non_celestial_pixel_scales`` utility functions for retrieving WCS pixel
+    scale and area information [#2832, #3304]
 
   - Added two functions ``pixel_to_skycoord`` and
     ``skycoord_to_pixel`` that make it easy to convert between
