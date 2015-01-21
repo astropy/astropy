@@ -49,6 +49,7 @@ New Features
 
   - ``SkyCoord`` now accepts more formats of the coordinate string when the
     representation has ``ra`` and ``dec`` attributes. [#2920]
+
   - ``SkyCoord`` can now accept lists of ``SkyCoord`` objects, frame objects,
     or representation objects and will combine them into a single object.
     [#3285]
@@ -295,9 +296,8 @@ API Changes
     class has now been deprecated, except in the case where a frame with data
     is passed as the sole positional argument. [#3152]
 
-  - ``str(SkyCoord(...))`` now returns the same as ``SkyCoord.to_string`` for
-    scalar values and gives an error for vector coordinates (and refers the
-    user to ``SkyCoord.to_string``). [#3315]
+  - ``str(SkyCoord(...))`` now returns the same as ``str(SkyCoord.to_string)``.
+    [#3315]
 
 - ``astropy.cosmology``
 
