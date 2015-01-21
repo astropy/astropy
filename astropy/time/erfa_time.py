@@ -9,7 +9,7 @@ changed to use names fully compatible with `astropy._erfa`, or `astropy._erfa`
 will gain the ability to have "official" aliases to match these names.
 """
 
-from ..erfa import *
+from .._erfa import *
 
 d_tai_utc = dat
 jd_dtf = d2dtf
