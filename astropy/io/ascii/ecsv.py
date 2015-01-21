@@ -5,7 +5,6 @@ writing all the meta data associated with an astropy Table object.
 """
 
 import re
-import numpy
 
 from ...utils import OrderedDict
 from ...extern import six
@@ -280,21 +279,37 @@ class EcsvHeader(basic.BasicHeader):
         if self.splitter.delimiter not in DELIMITERS:
             raise ValueError('only space and comma are allowed for delimiter in ECVS format')
 
-        meta = {}
+        # Now assemble the header dict that will be serialized by the YAML dumper
+        header = {}
         if self.table_meta:
-            meta['table_meta'] = self.table_meta
-        meta['columns'] = [_get_col_attributes(col) for col in self.cols]
+            header['meta'] = self.table_meta
+
+        header['columns'] = [_get_col_attributes(col) for col in self.cols]
 
         # Set the delimiter only for the non-default option(s)
         if self.splitter.delimiter != ' ':
-            meta['delimiter'] = self.splitter.delimiter
+            header['delimiter'] = self.splitter.delimiter
 
-        meta_yaml = yaml.dump(meta, Dumper=TableDumper)
+        header_yaml = yaml.dump(header, Dumper=TableDumper)
         outs = ['%ECSV 1.0', '---']
-        outs.extend(meta_yaml.splitlines())
+        outs.extend(header_yaml.splitlines())
 
         lines.extend([self.write_comment + line for line in outs])
         lines.append(self.splitter.join([x.name for x in self.cols]))
+
+    def write_comments(self, lines, meta):
+        """
+        Override the default write_comments to do nothing since this is handled
+        in the custom write method.
+        """
+        pass
+
+    def update_meta(self, lines, meta):
+        """
+        Override the default update_meta to do nothing.  This process is done
+        in get_cols() for this reader.
+        """
+        pass
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
@@ -338,34 +353,34 @@ class EcsvHeader(basic.BasicHeader):
         # ecsv_version could be constructed here, but it is not currently used.
 
         # Now actually load the YAML data structure into `meta`
-        meta_yaml = textwrap.dedent('\n'.join(lines))
+        header_yaml = textwrap.dedent('\n'.join(lines))
         try:
-            meta = yaml.load(meta_yaml, Loader=TableLoader)
+            header = yaml.load(header_yaml, Loader=TableLoader)
         except:
             raise core.InconsistentTableError('unable to parse yaml in header')
 
-        if 'table_meta' in meta:
-            self.table_meta = meta['table_meta']
+        if 'meta' in header:
+            self.table_meta = header['meta']
 
-        if 'delimiter' in meta:
-            delimiter = meta['delimiter']
+        if 'delimiter' in header:
+            delimiter = header['delimiter']
             if delimiter not in DELIMITERS:
                 raise ValueError('only space and comma are allowed for delimiter in ECVS format')
             self.splitter.delimiter = delimiter
             self.data.splitter.delimiter = delimiter
 
-        # Create the list of io.ascii column objects from `meta`
-        meta_cols = OrderedDict((x['name'], x) for x in meta['columns'])
-        self.names = [x['name'] for x in meta['columns']]
+        # Create the list of io.ascii column objects from `header`
+        header_cols = OrderedDict((x['name'], x) for x in header['columns'])
+        self.names = [x['name'] for x in header['columns']]
         self._set_cols_from_names()  # BaseHeader method to create self.cols
 
         # Transfer attributes from the column descriptor stored in the input
         # header YAML metadata to the new columns to create this table.
         for col in self.cols:
             for attr in ('description', 'format', 'unit', 'meta'):
-                if attr in meta_cols[col.name]:
-                    setattr(col, attr, meta_cols[col.name][attr])
-            col.dtype = meta_cols[col.name]['type']
+                if attr in header_cols[col.name]:
+                    setattr(col, attr, header_cols[col.name][attr])
+            col.dtype = header_cols[col.name]['type']
             # ECSV "string" means numpy dtype.kind == 'U' AKA str in Python 3
             if six.PY3 and col.dtype == 'string':
                 col.dtype = 'str'
@@ -377,15 +392,9 @@ class EcsvOutputter(core.TableOutputter):
     """
     Output the table as an astropy.table.Table object.  This overrides the
     default converters to be an empty list because there is no "guessing"
-    of the conversion function.  It also deletes the ``comment_lines``
-    element of ``meta`` prior to calling the base outputter method so
-    this doesn't show up in the final table.
+    of the conversion function.
     """
     default_converters = []
-
-    def __call__(self, cols, meta):
-        del meta['table']['comment_lines']
-        return super(EcsvOutputter, self).__call__(cols, meta)
 
 
 class Ecsv(basic.Basic):

@@ -100,7 +100,7 @@ def test_write_full():
              '#   type: string',
              '#   description: descr_str',
              '#   meta: {meta str: 1}',
-             '# table_meta: !!omap',
+             '# meta: !!omap',
              '# - comments: [comment1, comment2]',
              'bool int64 float64 str',
              'False 0 0.0 "ab 0"',
