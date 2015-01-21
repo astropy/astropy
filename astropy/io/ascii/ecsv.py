@@ -10,6 +10,7 @@ from ...utils import OrderedDict
 from ...extern import six
 
 from . import core, basic
+from ...table.column import col_getattr
 
 ECSV_VERSION = '0.9'
 DELIMITERS = (' ', ',')
@@ -168,28 +169,28 @@ def _get_col_attributes(col):
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
     """
-    if getattr(col, 'ndim', 1) > 1:
+    if len(getattr(col, 'shape', ())) > 1:
         raise ValueError("ECSV format does not support multidimensional column '{0}'"
-                         .format(col.name))
+                         .format(col_getattr(col, 'name')))
 
     attrs = ColumnDict()
-    attrs['name'] = col.name
+    attrs['name'] = col_getattr(col, 'name')
 
-    type_name = col.dtype.type.__name__
+    type_name = col_getattr(col, 'dtype').type.__name__
     if six.PY3 and (type_name.startswith('bytes') or type_name.startswith('str')):
         type_name = 'string'
     if type_name.endswith('_'):
         type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
     attrs['datatype'] = type_name
 
-    if col.unit:
-        attrs['unit'] = str(col.unit)
-    if col.format:
-        attrs['format'] = col.format
-    if col.description:
-        attrs['description'] = col.description
-    if col.meta:
-        attrs['meta'] = col.meta
+    # Set the output attributes
+    for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
+                                    ('format', lambda x: x is not None, None),
+                                    ('description', lambda x: x is not None, None),
+                                    ('meta', lambda x: x, None)):
+        col_attr = col_getattr(col, attr)
+        if nontrivial(col_attr):
+            attrs[attr] = xform(col_attr) if xform else col_attr
 
     return attrs
 
@@ -296,7 +297,7 @@ class EcsvHeader(basic.BasicHeader):
         outs.extend(header_yaml.splitlines())
 
         lines.extend([self.write_comment + line for line in outs])
-        lines.append(self.splitter.join([x.name for x in self.cols]))
+        lines.append(self.splitter.join([col_getattr(x, 'name') for x in self.cols]))
 
     def write_comments(self, lines, meta):
         """
