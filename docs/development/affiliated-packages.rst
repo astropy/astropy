@@ -114,7 +114,7 @@ Starting a new package
 
    The main purpose of the ``_astropy_init.py`` file is to set up the
    ``test()`` command at the root of your package so that you can do
-   ``packagename.test()``. This file is imported into ``__init__``.
+   ``<packagename>.test()``. This file is imported into ``__init__``.
 
    .. important:: Before proceeding, make sure you have edited ``__init__.py`` as
                   indicated above!
@@ -233,10 +233,10 @@ files manually`_ section since this explains what many of the files do.
    if not, you will need to obtain a copy of the package template.  Assuming
    you have `git`_ installed, just do::
 
-      git clone git://github.com/astropy/package-template.git packagename
+      git clone git://github.com/astropy/package-template.git <packagename>
 
   This will download the latest version of the template from `github`_ and
-  place it in a directory named ``packagename``.
+  place it in a directory named ``<packagename>``.
 
 #. Go into the directory you just created, and open the ``setup.cfg``
    file with your favorite text editor.  Edit the settings in the
@@ -255,7 +255,7 @@ files manually`_ section since this explains what many of the files do.
       or just delete it.
    5. Exit out of your text editor
 
-#. Update the main package docstring in ``packagename/__init__.py``.
+#. Update the main package docstring in ``<packagename>/__init__.py``.
 
 #. Decide what license you want to use to release your source code. If
    you don't care and/or are fine with the Astropy license, just edit
@@ -264,13 +264,13 @@ files manually`_ section since this explains what many of the files do.
    sure to replace that file with whatever license you prefer, and
    update the ``license`` variable in ``setup.cfg`` to reflect your
    choice of license. You also may need to update the comment at the
-   top of ``packagename/__init__.py`` to reflect your choice of
+   top of ``<packagename>/__init__.py`` to reflect your choice of
    license.
 
-#. Take a moment to look over the ``packagename/example_mod.py``,
-   ``packagename/tests/test_example.py``, ``scripts/script_example``,
-   and ``packagename/example_c.pyx`` files, as well as the
-   ``packagename/example_subpkg`` directory. These are examples of a
+#. Take a moment to look over the ``<packagename>/example_mod.py``,
+   ``<packagename>/tests/test_example.py``, ``scripts/script_example``,
+   and ``<packagename>/example_c.pyx`` files, as well as the
+   ``<packagename>/example_subpkg`` directory. These are examples of a
    pure-python module, a test script, an example command-line script, a
    `Cython`_ module, and a sub-package, respectively. (`Cython`_ is a
    way to compile python-like code to C to make it run faster - see the
@@ -279,9 +279,9 @@ files manually`_ section since this explains what many of the files do.
    you'll want to delete them (and later replace with your own)::
 
       git rm scripts/script_example
-      git rm packagename/example_c.pyx
-      git rm packagename/tests/test_example.py
-      git rm -r packagename/example_subpkg
+      git rm <packagename>/example_c.pyx
+      git rm <packagename>/tests/test_example.py
+      git rm -r <packagename>/example_subpkg
       git commit -m "removed examples from package template"
 
 #. Optional: If you're hosting your source code on github, you can
@@ -294,25 +294,25 @@ files manually`_ section since this explains what many of the files do.
    To tell your DVCS about this move, you should use it, and not ``mv``
    directly, to make the move.  For example, with git::
 
-    git mv packagename packagename
+    git mv packagename <packagename>
 
 #. Update the names of the documentation files to match your package's name.
    First open ``docs/index.rst`` in a text editor and change the text
-   ``"packagename/index.rst"`` to e.g., ``"packagename/index.rst"``.  Then do::
+   ``"packagename/index.rst"`` to e.g., ``"<packagename>/index.rst"``.  Then do::
 
       git add docs/index.rst
-      git mv docs/packagename docs/packagename
+      git mv docs/packagename docs/<packagename>
 
 #. Edit this file (``README.rst``) and delete all of this content, and replace it
    with a short description of your affiliated package.
 
-#.  Open ``docs/packagename/index.rst`` and you can start writing the documentation
+#.  Open ``docs/<packagename>/index.rst`` and you can start writing the documentation
     for your package, but at least replace ``packagename`` in ``automodapi::``
     with your package name.
 
 #. Now tell git to remember the changes you just made::
 
-      git commit -a -m "Adjusted for new project packagename"
+      git commit -a -m "Adjusted for new project <packagename>"
 
 #. (This step assumes your affiliated package is hosted as part of the astropy
    organization on Github.  If it's instead hosted somewhere else, just adjust
@@ -321,7 +321,7 @@ files manually`_ section since this explains what many of the files do.
    to the repository of *your* project, rather than the package template::
 
       git remote rename origin template
-      git remote add upstream git@github.com:astropy/packagename.git
+      git remote add upstream git@github.com:astropy/<packagename>.git
 
    Now that it is pointing to the correct master, you should push everything up
    to your project and make sure that your local master is tied to your project
@@ -334,10 +334,10 @@ files manually`_ section since this explains what many of the files do.
 
 #. (optional) If you are adopting the standard workflow used by `Astropy`_ with
    github, you will also want to set up a fork of the repo on your own account,
-   by going to the Github page https://github.com/astropy/packagename and clicking
+   by going to the Github page https://github.com/astropy/<packagename> and clicking
    the "fork" button on the upper right.  Then run the following commands::
 
-      git remote add origin git@github.com:yourgithubusername/packagename.git
+      git remote add origin git@github.com:yourgithubusername/<packagename>.git
       git branch master --set-upstream origin/master
 
    Now you can push, pull, and branch whatever you want in your local fork
