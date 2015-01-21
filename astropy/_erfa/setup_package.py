@@ -87,7 +87,7 @@ def get_extensions():
         include_dirs.append('cextern/erfa')
 
     erfa_ext = Extension(
-        name="astropy.erfa._core",
+        name="astropy._erfa._core",
         sources=sources,
         include_dirs=include_dirs,
         libraries=libraries,
@@ -105,4 +105,4 @@ def requires_2to3():
 
 
 def get_package_data():
-    return {'astropy.erfa': ['core.py.templ', 'core.pyx.templ']}
+    return {'astropy._erfa': ['core.py.templ', 'core.pyx.templ']}

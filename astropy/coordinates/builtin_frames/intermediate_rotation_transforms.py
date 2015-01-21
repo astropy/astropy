@@ -13,7 +13,7 @@ import numpy as np
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform
 from ..representation import CartesianRepresentation
-from ... import erfa
+from ... import _erfa as erfa
 
 from .gcrs import GCRS
 from .cirs import CIRS

@@ -13,7 +13,7 @@ from ... import units as u
 from ..baseframe import frame_transform_graph
 from ..transformations import FunctionTransform
 from ..representation import UnitSphericalRepresentation, SphericalRepresentation
-from ... import erfa
+from ... import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
