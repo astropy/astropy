@@ -12,17 +12,10 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ....tests.helper import pytest, catch_warnings
 from .... import units as u
-from ....time import Time
+from ....time import Time, TimeDelta
 from ...builtin_frames import AltAz
 from ... import EarthLocation
 from ... import Angle, SkyCoord
-
-
-# Observatory position for `kpno` from here:
-# http://idlastro.gsfc.nasa.gov/ftp/pro/astro/observatory.pro
-kpno = EarthLocation(lon=Angle('111d36.0m'),
-                     lat=Angle('31d57.8m'),
-                     height=2120. * u.m)
 
 
 def test_against_hor2eq():
@@ -31,30 +24,38 @@ def test_against_hor2eq():
     See EXAMPLE input and output here:
     http://idlastro.gsfc.nasa.gov/ftp/pro/astro/hor2eq.pro
     """
-    obstime = Time('2041-12-25 22:00:00')
+    # Observatory position for `kpno` from here:
+    # http://idlastro.gsfc.nasa.gov/ftp/pro/astro/observatory.pro
+    location = EarthLocation(lon=Angle('-111d36.0m'),
+                             lat=Angle('31d57.8m'),
+                             height=2120. * u.m)
 
-    altaz_frame = AltAz(obstime=obstime, location=kpno,
+    # obstime = Time('2041-12-26 05:00:00')
+    obstime = Time(2466879.7083333, format='jd')
+    # obstime += TimeDelta(-2, format='sec')
+
+    altaz_frame = AltAz(obstime=obstime, location=location,
                         temperature=0 * u.deg_C, pressure=0.781 * u.bar)
     altaz = SkyCoord('264d55m06s 37d54m41s', frame=altaz_frame)
 
-    # TODO: should we use the "fk5" frame here instead of "icrs"?
+    radec_frame = 'icrs'
 
     # The following transformation throws a warning about precision problems
     # because the observation date is in the future
     with catch_warnings() as _:
-        radec_actual = altaz.transform_to('icrs')
+        radec_actual = altaz.transform_to(radec_frame)
 
-    radec_expected = SkyCoord('00h13m14.1s  +15d11m0.3s', frame='icrs')
-    distance = radec_actual.separation(radec_expected)
+    radec_expected = SkyCoord('00h13m14.1s  +15d11m0.3s', frame=radec_frame)
+    distance = radec_actual.separation(radec_expected).to('arcsec')
     # print(radec_expected)
     # print(radec_actual)
+    # print(distance)
 
-    # TODO: the result is currently completely incorrect:
-    # radec_expected = ra=3.30875 deg, dec=15.1834166667 deg
-    # radec_actual = ra=121.164781616 deg, dec=15.5381413966 deg
-    # distance = 111.36448730612365 deg
-    # I'm not sure what's wrong ... effectively disabling the assert for now:
-    assert distance < 1000 * u.degree
+    # TODO: why is there a difference of 2.6 arcsec currently?
+    # radec_expected = ra=3.30875 deg, dec=15.183416666666666 deg
+    # radec_actual = ra=3.3094193224314625 deg, dec=15.183757021354532 deg
+    # distance = 2.6285 arcsec
+    assert distance < 5 * u.arcsec
 
 
 def test_against_pyephem():
@@ -125,10 +126,16 @@ def test_fk5_equinox_and_epoch_j2000_0_to_topocentric_observed():
     """
     http://phn.github.io/pytpm/conversions.html#fk5-equinox-and-epoch-j2000-0-to-topocentric-observed
     """
+    # Observatory position for `kpno` from here:
+    # http://idlastro.gsfc.nasa.gov/ftp/pro/astro/observatory.pro
+    location = EarthLocation(lon=Angle('-111.598333d'),
+                             lat=Angle('31.956389d'),
+                             height=2093.093 * u.m)  # TODO: height correct?
+
     obstime = Time('2010-01-01 12:00:00', scale='utc')
     # relative_humidity = ?
     # obswl = ?
-    altaz_frame = AltAz(obstime=obstime, location=kpno,
+    altaz_frame = AltAz(obstime=obstime, location=location,
                         temperature=0 * u.deg_C, pressure=0.781 * u.bar)
 
     radec = SkyCoord('12h22m54.899s 15d49m20.57s', frame='fk5')
@@ -136,10 +143,17 @@ def test_fk5_equinox_and_epoch_j2000_0_to_topocentric_observed():
     altaz_actual = radec.transform_to(altaz_frame)
 
     altaz_expected = SkyCoord('264d55m06s 37d54m41s', frame='altaz')
+    # altaz_expected = SkyCoord('343.586827647d 15.7683070508d', frame='altaz')
+    # altaz_expected = SkyCoord('133.498195532d 22.0162383595d', frame='altaz')
     distance = altaz_actual.separation(altaz_expected)
-    print(altaz_actual)
-    print(altaz_expected)
-    print(distance)
-    # Current distance: 138.36229823402263 deg
+    # print(altaz_actual)
+    # print(altaz_expected)
+    # print(distance)
+    """TODO: Current output is completely incorrect ... xfailing this test for now.
+
+    <SkyCoord (AltAz: obstime=2010-01-01 12:00:00.000, location=(-1994497.7199061865, -5037954.447348028, 3357437.2294832403) m, pressure=781.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron):00:00.000, location=(-1994497.7199061865, -5037954.447348028, 3357437.2294832403) m, pressure=781.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): az=133.4869896371561 deg, alt=67.97857990957701 deg>
+    <SkyCoord (AltAz: obstime=None, location=None, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0, obswl=1.0 micron): az=264.91833333333335 deg, alt=37.91138888888889 deg>
+    68d02m45.732s
+    """
 
     assert distance < 1 * u.arcsec
