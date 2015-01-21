@@ -478,6 +478,8 @@ Bug Fixes
 
   - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
 
+  - CONTINUE cards no longer end the value of the final card in the series with an ampersand, per the specification of the CONTINUE card convention. [#3282]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``

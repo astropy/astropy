@@ -1268,7 +1268,6 @@ class Card(_Verify):
         output = []
 
         # do the value string
-        value_format = "'%-s&'"
         value = self._value.replace("'", "''")
         words = _words_group(value, value_length)
         for idx, word in enumerate(words):
@@ -1276,15 +1275,29 @@ class Card(_Verify):
                 headstr = '%-*s= ' % (KEYWORD_LENGTH, self.keyword)
             else:
                 headstr = 'CONTINUE  '
+
+            # If this is the final CONTINUE remove the '&'
+            if not self.comment and idx == len(words) - 1:
+                value_format = "'%-s'"
+            else:
+                value_format = "'%-s&'"
+
             value = value_format % word
+
             output.append('%-80s' % (headstr + value))
 
         # do the comment string
         comment_format = "%-s"
         if self.comment:
             words = _words_group(self.comment, comment_length)
-            for word in words:
-                comment = "CONTINUE  '&' / " + comment_format % word
+            for idx, word in enumerate(words):
+                # If this is the final CONTINUE remove the '&'
+                if idx == len(words) - 1:
+                    headstr = "CONTINUE  '' / "
+                else:
+                    headstr = "CONTINUE  '&' / "
+
+                comment = headstr + comment_format % word
                 output.append('%-80s' % comment)
 
         return ''.join(output)
