@@ -273,7 +273,7 @@ def is_proj_plane_distorted(wcs, maxerr=5.0e-6):
         of most projections.
 
     Let's denote by *C* either the original or the reconstructed
-    (from ``PC`` and ``CDELT``) CD matrix. `is_projection_plane_distorted`
+    (from ``PC`` and ``CDELT``) CD matrix. `is_proj_plane_distorted`
     verifies that the transformation from image (detector) coordinates
     to the focal plane coordinates is orthogonal using the following
     check:
