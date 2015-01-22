@@ -139,6 +139,8 @@ class SkyCoord(object):
     # attribute where column attributes will be stored.
     _astropy_column_attrs = None
 
+    _attr_getters = None
+
     def __init__(self, *args, **kwargs):
 
         # Parse the args and kwargs to assemble a sanitized and validated
@@ -353,6 +355,10 @@ class SkyCoord(object):
         Overrides getattr to return coordinates that this can be transformed
         to, based on the alias attr in the master transform graph.
         """
+
+        if self._attr_getters is not None and attr in self._attr_getters:
+            return self._attr_getters[attr]()
+
         if '_sky_coord_frame' in self.__dict__:
             if self.frame.name == attr:
                 return self  # Should this be a deepcopy of self?
@@ -360,21 +366,31 @@ class SkyCoord(object):
             # Anything in the set of all possible frame_attr_names is handled
             # here. If the attr is relevant for the current frame then delegate
             # to self.frame otherwise get it from self._<attr>.
+            getter = None
+
             if attr in FRAME_ATTR_NAMES_SET():
                 if attr in self.frame.get_frame_attr_names():
-                    return getattr(self.frame, attr)
+                    getter = lambda: getattr(self.frame, attr)
                 else:
-                    return getattr(self, '_' + attr)
+                    getter = lambda: getattr(self, '_' + attr)
 
             # Some attributes might not fall in the above category but still
             # are available through self._sky_coord_frame.
-            if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
-                return getattr(self._sky_coord_frame, attr)
+            elif (not attr.startswith('_') and
+                    hasattr(self._sky_coord_frame, attr)):
+                getter = lambda: getattr(self._sky_coord_frame, attr)
+            else:
+                # Try to interpret as a new frame for transforming.
+                frame_cls = frame_transform_graph.lookup_name(attr)
+                if (frame_cls is not None and\
+                        self.frame.is_transformable_to(frame_cls)):
+                    getter = lambda: self.transform_to(attr)
 
-            # Try to interpret as a new frame for transforming.
-            frame_cls = frame_transform_graph.lookup_name(attr)
-            if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
-                return self.transform_to(attr)
+            if getter is not None:
+                if self._attr_getters is None:
+                    self._attr_getters = {}
+                self._attr_getters[attr] = getter
+                return getter()
 
         # Fail
         raise AttributeError("'{0}' object has no attribute '{1}'"
