@@ -618,14 +618,20 @@ class Longitude(Angle):
     """
 
     _wrap_angle = None
+    _default_wrap_angle = Angle(360 * u.deg)
 
     def __new__(cls, angle, unit=None, wrap_angle=None, **kwargs):
         # Forbid creating a Long from a Lat.
         if isinstance(angle, Latitude):
             raise TypeError("A Longitude angle cannot be created from a Latitude angle")
         self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
-        self.wrap_angle = (wrap_angle if wrap_angle is not None
-                           else getattr(angle, 'wrap_angle', 360 * u.deg))
+
+        if wrap_angle is None:
+            self.wrap_angle = getattr(angle, 'wrap_angle',
+                                      self._default_wrap_angle)
+        else:
+            self.wrap_angle = wrap_angle
+
         return self
 
     def __setitem__(self, item, value):
@@ -644,12 +650,20 @@ class Longitude(Angle):
         # Convert the wrap angle and 360 degrees to the native unit of
         # this Angle, then do all the math on raw Numpy arrays rather
         # than Quantity objects for speed.
+        # TODO: This could probably be sped up as well.  u.degree.to(self.unit)
+        # should be faster if self.unit *is* u.degree
         a360 = u.degree.to(self.unit, 360.0)
-        wrap_angle = self.wrap_angle.to(self.unit).value
+
+        # TODO: Quantity.to is currently slow when the quantity is already in
+        # the requested unit.
+        if self.wrap_angle.unit is self.unit:
+            wrap_angle = self.wrap_angle.value
+        else:
+            wrap_angle = self.wrap_angle.to(self.unit).value
         wrap_angle_floor = wrap_angle - a360
         self_angle = self.value
         # Do the wrapping, but only if any angles need to be wrapped
-        if np.any(self_angle < wrap_angle_floor) or np.any(self_angle >= wrap_angle):
+        if np.any((self_angle < wrap_angle_floor) | (self_angle >= wrap_angle)):
             wrapped = np.mod(self_angle - wrap_angle, a360) + wrap_angle_floor
             value = u.Quantity(wrapped, self.unit)
             super(Longitude, self).__setitem__((), value)
@@ -660,7 +674,14 @@ class Longitude(Angle):
 
     @wrap_angle.setter
     def wrap_angle(self, value):
-        self._wrap_angle = Angle(value)
+        if not isinstance(value, Angle):
+            # TODO: Might be nice if Angle() had a better built-in pass-through
+            # for this case
+            # TODO: If the given angle *was* already an Angle, should we copy
+            # it?
+            value = Angle(value)
+
+        self._wrap_angle = value
         self._wrap_internal()
 
     def __array_finalize__(self, obj):
