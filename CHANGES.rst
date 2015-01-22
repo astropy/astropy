@@ -142,6 +142,9 @@ New Features
 
   - Added ``Ellipse2D`` model. [#3124]
 
+  - Fixed a bug in ``SLSQPLSQFitter`` where the ``maxiter`` argument was not
+    passed correctly to the optimizer. [#3339]
+
 - ``astropy.nddata``
 
   - New array-related utility functions in ``astropy.nddata.utils`` for adding
