@@ -71,8 +71,10 @@ class Mapping(Model):
 
     def evaluate(self, *args):
         if len(args) != self.n_inputs:
+            name = self.name if self.name is not None else "Mapping"
+
             raise TypeError('{0} expects {1} inputs; got {2}'.format(
-                self.name, self.n_inputs, len(args)))
+                name, self.n_inputs, len(args)))
 
         result = tuple(args[idx] for idx in self._mapping)
 
