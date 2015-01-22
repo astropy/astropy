@@ -1193,7 +1193,6 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     frame_attr_names = frame.representation_component_names.keys()
     repr_attr_names = frame.representation_component_names.values()
     repr_attr_classes = frame.representation.attr_classes.values()
-    n_attr_names = len(repr_attr_names)
 
     # Turn a single string into a list of strings for convenience
     if isinstance(coords, six.string_types):
@@ -1210,10 +1209,10 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         data = coords.data.represent_as(frame.representation)
 
         values = []  # List of values corresponding to representation attrs
+        is_spherical = isinstance(coords.data, UnitSphericalRepresentation)
         for repr_attr_name in repr_attr_names:
             # If coords did not have an explicit distance then don't include in initializers.
-            if (isinstance(coords.data, UnitSphericalRepresentation) and
-                    repr_attr_name == 'distance'):
+            if is_spherical and repr_attr_name == 'distance':
                 continue
 
             # Get the value from `data` in the eventual representation
@@ -1301,10 +1300,12 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             n_coords = n_coords[0]
 
             # Must have no more coord inputs than representation attributes
-            if n_coords > n_attr_names:
-                raise ValueError('Input coordinates have {0} values but '
-                                 'representation {1} only accepts {2}'
-                                 .format(n_coords, frame.representation.get_name(), n_attr_names))
+            if n_coords > len(repr_attr_names):
+                raise ValueError(
+                    'Input coordinates have {0} values but representation '
+                    '{1} only accepts {2}'.format(
+                        n_coords, frame.representation.get_name(),
+                        len(repr_attr_names)))
 
             # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
             # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
