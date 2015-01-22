@@ -426,6 +426,9 @@ class SkyCoord(object):
 
         return dir_values
 
+    def __str__(self):
+        return str(self.to_string())
+
     def __repr__(self):
         clsnm = self.__class__.__name__
         coonm = self.frame.__class__.__name__
