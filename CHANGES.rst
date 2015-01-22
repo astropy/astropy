@@ -486,6 +486,9 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Fixed a bug in ``SLSQPLSQFitter`` where the ``maxiter`` argument was not
+    passed correctly to the optimizer. [#3339]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
