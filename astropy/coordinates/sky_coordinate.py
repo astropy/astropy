@@ -503,6 +503,41 @@ class SkyCoord(object):
 
         return coord_string
 
+    def is_equivalent_frame(self, other):
+        """
+        Checks if this object's frame as the same as that of the ``other``
+        object.
+
+        To be the same frame, two objects must be the same frame class and have
+        the same frame attributes. For two `SkyCoord` objects, *all* of the
+        frame attributes have to match, not just those relevant for the object's
+        frame.
+
+        Parameters
+        ----------
+        other : SkyCoord or BaseCoordinateFrame
+            The other object to check.
+
+        Returns
+        -------
+        isequiv : bool
+            True if the frames are the same, False if not.
+        """
+        if isinstance(other, BaseCoordinateFrame):
+            return self.frame.is_equivalent_frame(other)
+        elif hasattr(other, 'frame'):
+            # assume it's a SkyCoord-ish thing
+            if other.frame.name != self.frame.name:
+                return False
+
+            for fattrnm in FRAME_ATTR_NAMES_SET():
+                if getattr(self, fattrnm) != getattr(other, fattrnm):
+                    return False
+            return True
+        else:
+            #not a BaseCoordinateFrame nor a SkyCoord-ish object
+            return False
+
     # High-level convinience methods
     def separation(self, other):
         """
@@ -1241,6 +1276,7 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
             # now check that they're all self-consistent in their frame attributes
             # and frame name
+
             frames_to_check = [sc.frame.name for sc in scs]
             if len(set(frames_to_check)) > 1:
                 raise ValueError("List of inputs have different frames: {0}".format(frames_to_check))
