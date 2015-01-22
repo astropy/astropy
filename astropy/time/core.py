@@ -508,7 +508,7 @@ class Time(object):
         'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
 
     def _erfa_sidereal_time(self, model):
-        """Caculate a sidereal time using a IAU precession/nutation model."""
+        """Calculate a sidereal time using a IAU precession/nutation model."""
 
         from ..coordinates import Longitude
 
@@ -1741,7 +1741,7 @@ class TimeDatetime(TimeUnique):
 
 class TimeString(TimeUnique):
     """
-    Base class for string-like time represetations.
+    Base class for string-like time representations.
 
     This class assumes that anything following the last decimal point to the
     right is a fraction of a second.
@@ -2165,7 +2165,7 @@ def two_sum(a, b):
 def two_product(a, b):
     """
     Multiple ``a`` and ``b`` exactly, returning the result as two float64s.
-    The first is the approximate prodcut (with some floating point error)
+    The first is the approximate product (with some floating point error)
     and the second is the error of the float64 product.
 
     Uses the procedure of Shewchuk, 1997,

@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Implements roations, including spherical rotations as defined in WCS Paper II
+Implements rotations, including spherical rotations as defined in WCS Paper II
 [1]_
 
 `RotateNative2Celestial` and `RotateCelestial2Native` follow the convention in

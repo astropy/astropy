@@ -1535,7 +1535,7 @@ naxis kwarg.
 
                 # Check for divergence (we do this in two stages
                 # to optimize performance for the most common
-                # scenario when succesive approximations converge):
+                # scenario when successive approximations converge):
                 if detect_divergence:
                     divergent = (dn >= dnprev)
                     if np.any(divergent):
@@ -2753,7 +2753,7 @@ naxis kwarg.
             pc = np.matrix(self.wcs.get_pc())
         except InconsistentAxisTypesError:
             try:
-                # for non-celestial axes, get_cdelt doesnt work
+                # for non-celestial axes, get_cdelt doesn't work
                 cdelt = np.matrix(self.wcs.cd) * np.matrix(np.diag(self.wcs.cdelt))
             except AttributeError:
                 cdelt = np.matrix(np.diag(self.wcs.cdelt))

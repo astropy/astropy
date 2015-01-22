@@ -2,7 +2,7 @@
 
 """
 This module implements classes (called Fitters) which combine optimization
-algorithms (typically from `scipy.optimize`) with statistic functions to perfom
+algorithms (typically from `scipy.optimize`) with statistic functions to perform
 fitting. Fitters are implemented as callable classes. In addition to the data
 to fit, the ``__call__`` method takes an instance of
 `~astropy.modeling.core.FittableModel` as input, and returns a copy of the
@@ -92,7 +92,7 @@ class Fitter(object):
     Parameters
     ----------
     optimizer : callable
-        A callble implementing an optimization algorithm
+        A callable implementing an optimization algorithm
     statistic : callable
         Statistic function
     """
@@ -131,7 +131,7 @@ class Fitter(object):
         -----
         The list of arguments (args) is set in the `__call__` method.
         Fitters may overwrite this method, e.g. when statistic functions
-        require other aguments.
+        require other arguments.
 
         """
         model = args[0]
@@ -370,7 +370,7 @@ class LevMarLSQFitter(object):
 
     supported_constraints = ['fixed', 'tied', 'bounds']
     """
-    The constaint types supported by this fitter type.
+    The constraint types supported by this fitter type.
     """
 
     def __init__(self):
@@ -487,7 +487,7 @@ class LevMarLSQFitter(object):
         for model constraints.
 
         `scipy.optimize.leastsq` expects the function derivative to have the
-        above signature (parlist, (argtuple)). In order to accomodate model
+        above signature (parlist, (argtuple)). In order to accommodate model
         constraints, instead of using p directly, we set the parameter list in
         this function.
         """
@@ -755,7 +755,7 @@ class JointFitter(object):
 
     def __call__(self, *args):
         """
-        Fit data to these models keeping some of the pramaters common to the
+        Fit data to these models keeping some of the parameters common to the
         two models.
         """
 

@@ -61,7 +61,7 @@ def merge(left, right, merge_func=concat, metadata_conflicts='warn'):
     """
     Merge the ``left`` and ``right`` metadata objects.
 
-    This is a simplistic and limited implemenation at this point.
+    This is a simplistic and limited implementation at this point.
     """
     if not _both_isinstance(left, right, dict):
         raise MergeConflictError('Can only merge two dict-based objects')

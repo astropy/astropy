@@ -82,7 +82,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
                     '\n    %(message)s\n\n' %
                     {'since': since, 'message': message.strip()}) + old_doc)
         if not old_doc:
-            # This is to prevent a spurious 'unexected unindent' warning from
+            # This is to prevent a spurious 'unexpected unindent' warning from
             # docutils when the original docstring was blank.
             new_doc += r'\ '
         return new_doc
@@ -293,7 +293,7 @@ class lazyproperty(object):
     """
     Works similarly to property(), but computes the value only once.
 
-    This essentially memoizes the value of the property by storing the result
+    This essentially memorizes the value of the property by storing the result
     of its computation in the ``__dict__`` of the object instance.  This is
     useful for computing the value of some property that should otherwise be
     invariant.  For example::

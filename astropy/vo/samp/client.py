@@ -362,7 +362,7 @@ class SAMPClient(object):
 
         Returns
         -------
-        confimation : str
+        confirmation : str
             Any confirmation string.
         """
         return self._handle_call(private_key, sender_id, msg_id, message)
@@ -471,7 +471,7 @@ class SAMPClient(object):
         Parameters
         ----------
         mtype : str
-            MType to be catched.
+            MType to be caught.
 
         function : callable
             Application function to be used when ``mtype`` is received.
@@ -514,7 +514,7 @@ class SAMPClient(object):
         Parameters
         ----------
         mtype : str
-            MType to be catched.
+            MType to be caught.
 
         function : callable
             Application function to be used when ``mtype`` is received.
@@ -554,7 +554,7 @@ class SAMPClient(object):
         Parameters
         ----------
         msg_tag : str
-            Message-tag to be catched.
+            Message-tag to be caught.
 
         function : callable
             Application function to be used when ``msg_tag`` is received.
@@ -598,7 +598,7 @@ class SAMPClient(object):
 
         declare : bool
             Specify whether the client must be automatically declared as
-            unsubscribed from the MType (see alse
+            unsubscribed from the MType (see also
             :meth:`~astropy.vo.samp.client.SAMPClient.declare_subscriptions`).
         """
         if self._callable:
@@ -658,11 +658,11 @@ class SAMPClient(object):
             result = self.hub.register(self.hub.lockfile["samp.secret"])
 
             if result["samp.self-id"] == "":
-                raise SAMPClientError("Registation failed - "
+                raise SAMPClientError("Registration failed - "
                                       "samp.self-id was not set by the hub.")
 
             if result["samp.private-key"] == "":
-                raise SAMPClientError("Registation failed - "
+                raise SAMPClientError("Registration failed - "
                                       "samp.private-key was not set by the hub.")
 
             self._public_id = result["samp.self-id"]
@@ -731,7 +731,7 @@ class SAMPClient(object):
         Parameters
         ----------
         metadata : dict, optional
-            Dictionary containig the client application metadata as defined in
+            Dictionary containing the client application metadata as defined in
             the SAMP definition document. If omitted, then no metadata are
             declared.
         """

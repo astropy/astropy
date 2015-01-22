@@ -193,7 +193,7 @@ def conesearch(center, radius, verb=1, **kwargs):
 
 class AsyncSearchAll(AsyncBase):
     """Perform a Cone Search asynchronously, storing all results
-    instead of just the result from first successfull query.
+    instead of just the result from first successful query.
 
     .. note::
 

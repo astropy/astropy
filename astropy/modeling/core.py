@@ -240,7 +240,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         if isinstance(inverse, property):
             fget = inverse.fget
         else:
-            # We allow the @property decoratore to be ommitted entirely from
+            # We allow the @property decorator to be omitted entirely from
             # the class definition, though its use should be encouraged for
             # clarity
             fget = inverse
@@ -777,7 +777,7 @@ class Model(object):
         if n_models == 1 and scalar_params and scalar_inputs:
             # Simplest case is either a parameterless models (currently I don't
             # think we have any but they could exist in principle) or a single
-            # model (not a model set) with all scalar paramaters and all scalar
+            # model (not a model set) with all scalar parameters and all scalar
             # inputs
             return inputs, ()
 
@@ -1526,7 +1526,7 @@ class _CompoundModelMeta(_ModelMeta):
         if cls._evaluate is None:
             func = cls._tree.evaluate(BINARY_OPERATORS,
                                       getter=cls._model_evaluate_getter)[0]
-            # Making this a staticmethod isn's strictly necessary for Python 3,
+            # Making this a staticmethod isn't strictly necessary for Python 3,
             # but it is necessary on Python 2 since looking up cls._evaluate
             # will return an unbound method otherwise
             cls._evaluate = staticmethod(func)
@@ -2055,7 +2055,7 @@ def custom_model(*args, **kwargs):
 
     The next example demonstrates a 2D Moffat function model, and also
     demonstrates the support for docstrings (this example could also include
-    a derivative, but it has been ommitted for simplicity)::
+    a derivative, but it has been omitted for simplicity)::
 
         >>> @custom_model
         ... def Moffat2D(x, y, amplitude=1.0, x_0=0.0, y_0=0.0, gamma=1.0,

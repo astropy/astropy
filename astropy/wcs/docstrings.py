@@ -200,7 +200,7 @@ cd = """
 matrix.
 
 For historical compatibility, three alternate specifications of the
-linear transforations are available in wcslib.  The canonical
+linear transformations are available in wcslib.  The canonical
 ``PCi_ja`` with ``CDELTia``, ``CDi_ja``, and the deprecated
 ``CROTAia`` keywords.  Although the latter may not formally co-exist
 with ``PCi_ja``, the approach here is simply to ignore them if given
@@ -376,7 +376,7 @@ crota = """
 axis.
 
 For historical compatibility, three alternate specifications of the
-linear transforations are available in wcslib.  The canonical
+linear transformations are available in wcslib.  The canonical
 ``PCi_ja`` with ``CDELTia``, ``CDi_ja``, and the deprecated
 ``CROTAia`` keywords.  Although the latter may not formally co-exist
 with ``PCi_ja``, the approach here is simply to ignore them if given
@@ -1311,7 +1311,7 @@ InvalidTransformError
 See also
 --------
 astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
-    Definition of the latitude andlongitude axes
+    Definition of the latitude and longitude axes
 """.format(__.ORIGIN())
 
 p4_pix2foc = """
@@ -1351,7 +1351,7 @@ The order is::
    [PC2_1, PC2_2]]
 
 For historical compatibility, three alternate specifications of the
-linear transforations are available in wcslib.  The canonical
+linear transformations are available in wcslib.  The canonical
 ``PCi_ja`` with ``CDELTia``, ``CDi_ja``, and the deprecated
 ``CROTAia`` keywords.  Although the latter may not formally co-exist
 with ``PCi_ja``, the approach here is simply to ignore them if given
@@ -2106,7 +2106,7 @@ Wcs(*sip, cpdis, wcsprm, det2im*)
 Wcs objects amalgamate basic WCS (as provided by `wcslib`_), with
 `SIP`_ and `Paper IV`_ distortion operations.
 
-To perform all distortion corrections and WCS tranformation, use
+To perform all distortion corrections and WCS transformation, use
 ``all_pix2world``.
 
 Parameters

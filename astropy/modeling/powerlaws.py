@@ -217,7 +217,7 @@ class LogParabola1D(Fittable1DModel):
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, beta):
-        """One dimenional log parabola model function"""
+        """One dimensional log parabola model function"""
 
         xx = x / x_0
         exponent = -alpha - beta * np.log(xx)
@@ -225,7 +225,7 @@ class LogParabola1D(Fittable1DModel):
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, alpha, beta):
-        """One dimensional log parabola derivative with repsect to parameters"""
+        """One dimensional log parabola derivative with respect to parameters"""
 
         xx = x / x_0
         log_xx = np.log(xx)
