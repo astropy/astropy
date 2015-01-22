@@ -21,14 +21,14 @@ The `~astropy.coordinates` package now supports conversion to/from AltAz
 coordinates.  This means `~astropy.coordinates` can now be used for planning
 observations.  For example::
 
->>> from astropy import units as u
->>> from astropy.time import Time
->>> from astropy.coordinates import SkyCoord, EarthLocation, AltAz
->>> greenwich = EarthLocation(lat=51.477*u.deg,lon=0*u.deg)
->>> albireo = SkyCoord('19h30m43.2805s +27d57m34.8483s')
->>> altaz = albireo.transform_to(AltAz(location=greenwich, obstime=Time('2014-6-21 0:00')))
->>> print altaz.alt, altaz.az
-60d32m28.4576s 133d45m36.4967s
+    >>> from astropy import units as u
+    >>> from astropy.time import Time
+    >>> from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+    >>> greenwich = EarthLocation(lat=51.477*u.deg,lon=0*u.deg)
+    >>> albireo = SkyCoord('19h30m43.2805s +27d57m34.8483s')
+    >>> altaz = albireo.transform_to(AltAz(location=greenwich, obstime=Time('2014-6-21 0:00')))
+    >>> print altaz.alt, altaz.az
+    60d32m28.4576s 133d45m36.4967s
 
 For a more detailed outline of this new functionality, see the
 :ref:`observing-example` and the `~astropy.coordinates.AltAz` documentation.
