@@ -30,15 +30,10 @@ J_PREFIXED_RA_DEC_RE = re.compile(
     """, re.VERBOSE)
 
 
-# Define a convenience mapping.  This is used like a module constants
-# but is actually dynamically evaluated.
 def FRAME_ATTR_NAMES_SET():
     """Set of all possible frame-specific attributes"""
-    out = set()
-    for frame_cls in frame_transform_graph.frame_set:
-        for attr in frame_cls.get_frame_attr_names().keys():
-            out.add(attr)
-    return out
+
+    return frame_transform_graph.frame_attr_names
 
 
 class SkyCoord(object):
