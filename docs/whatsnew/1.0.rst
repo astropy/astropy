@@ -13,10 +13,35 @@ Overview
 About Long-term support
 -----------------------
 
+Astropy v1.0 is a long-term support (LTS) release.  This means v1.0 will
+be supported with bug fixes for 2 years from its release, rather than 6
+months like the non-LTS releases. More details about this, including a
+wider rationale for Astropy's version numbering scheme, can be found in
+`Astropy Proposal for Enhancement 2  <https://github.com/astropy/astropy-APEs/blob/master/APE2.rst>`_.
 
 Support for Alt/Az coordinates
 ------------------------------
 
+The `~astropy.coordinates` package now supports conversion to/from AltAz
+coordinates.  This means `~astropy.coordinates` can now be used for planning
+observations.  For example::
+
+    >>> from astropy import units as u
+    >>> from astropy.time import Time
+    >>> from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+    >>> greenwich = EarthLocation(lat=51.477*u.deg,lon=0*u.deg)
+    >>> albireo = SkyCoord('19h30m43.2805s +27d57m34.8483s')
+    >>> altaz = albireo.transform_to(AltAz(location=greenwich, obstime=Time('2014-6-21 0:00')))
+    >>> print altaz.alt, altaz.az
+    60d32m28.4576s 133d45m36.4967s
+
+For a more detailed outline of this new functionality, see the
+:ref:`observing-example` and the `~astropy.coordinates.AltAz` documentation.
+
+To enable this functionality, `~astropy.coordinates` now also contains
+the full IAU-sanctioned coordinate transformation stack from ICRS to AltAz.
+To view the full set of coordinate frames now available, see the coordinates
+:ref:`astropy-coordinates-api`.
 
 
 New Galactocentric coordinate frame
