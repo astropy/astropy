@@ -288,7 +288,7 @@ These new compound models can also be fitted to data, like most other models:
     from astropy.modeling import models, fitting
 
     # Generate fake data
-    np.random.seed(0)
+    np.random.seed(42)
     g1 = models.Gaussian1D(1, 0, 0.2)
     g2 = models.Gaussian1D(2.5, 0.5, 0.1)
     x = np.linspace(-1, 1, 200)
@@ -296,7 +296,7 @@ These new compound models can also be fitted to data, like most other models:
 
     # Now to fit the data create a new superposition with initial
     # guesses for the parameters:
-    gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(1, 0, 0.1)
+    gg_init = models.Gaussian1D(1, 0, 0.1) + models.Gaussian1D(2, 0.5, 0.1)
     fitter = fitting.SLSQPLSQFitter()
     gg_fit = fitter(gg_init, x, y)
 
