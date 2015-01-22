@@ -11,7 +11,7 @@ __doctest_skip__ = ['wcs_to_celestial_frame']
 __all__ = ['add_stokes_axis_to_wcs',
            'custom_frame_mappings',
            'wcs_to_celestial_frame', 'proj_plane_pixel_scales',
-           'proj_plane_pixel_area',
+           'proj_plane_pixel_area', 'is_proj_plane_distorted',
            'non_celestial_pixel_scales', 'skycoord_to_pixel',
            'pixel_to_skycoord']
 
@@ -253,6 +253,75 @@ def proj_plane_pixel_area(wcs):
     if psm.shape != (2, 2):
         raise ValueError("Pixel area is defined only for 2D pixels.")
     return np.abs(np.linalg.det(psm))
+
+
+def is_proj_plane_distorted(wcs, maxerr=5.0e-6):
+    """
+    For a WCS returns `False` if square image (detector) pixels stay square
+    when projected onto the "plane of intermediate world coordinates"
+    as defined in
+    `Greisen & Calabretta 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
+    It will return `True` if transformation from image (detector) coordinates
+    to the focal plane coordinates is non-orthogonal or if WCS contains
+    non-linear (e.g., SIP) distortions.
+
+    .. note::
+        Since this function is concerned **only** about the transformation
+        "image plane"->"focal plane" and **not** about the transformation
+        "celestial sphere"->"focal plane"->"image plane",
+        this function ignores distortions arising due to non-linear nature
+        of most projections.
+
+    Let's denote by *C* either the original or the reconstructed
+    (from ``PC`` and ``CDELT``) CD matrix. `is_projection_plane_distorted`
+    verifies that the transformation from image (detector) coordinates
+    to the focal plane coordinates is orthogonal using the following
+    check:
+
+    .. math::
+        \\left \| \\frac{C \cdot C^{\mathrm{T}} + C^{\mathrm{T}} \cdot C}\
+        {2 | det(C)|} - I \\right \|_{\mathrm{max}} < \epsilon .
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.WCS`
+        World coordinate system object
+
+    maxerr : float
+        Accuracy to which the CD matrix should be close to being an
+        orthogonal matrix as described in the above equation.
+
+    Returns
+    -------
+    distorted : bool
+        Returns `True` if focal (projection) plane is distorted and `False`
+        otherwise.
+
+    """
+    cwcs = wcs.celestial
+    return (not _is_cd_orthogonal(cwcs, maxerr) or _has_distortion(cwcs))
+
+
+def _is_cd_orthogonal(wcs, maxerr):
+
+    cd = wcs.pixel_scale_matrix
+
+    shape = cd.shape
+    if not (len(shape) == 2 and shape[0] == shape[1]):
+        raise ValueError("CD (or PC) matrix must be a 2D square matrix.")
+
+    scale = np.sqrt(np.abs(np.linalg.det(cd)))
+    if (scale <= 0.0):
+        raise ValueError("CD (or PC) matrix is singular.")
+
+    cd /= scale
+
+    # NOTE: Technically, below we should use np.dot(cd, np.conjugate(cd.T))
+    # However, I am not aware of complex CD/PC matrices...
+    I = 0.5 * (np.dot(cd, cd.T) + np.dot(cd, cd.T))
+    cd_unitary_err = np.amax(np.abs(I - np.eye(shape[0])))
+
+    return (cd_unitary_err < maxerr)
 
 
 def non_celestial_pixel_scales(inwcs):
