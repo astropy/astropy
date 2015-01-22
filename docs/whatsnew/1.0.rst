@@ -13,6 +13,11 @@ Overview
 About Long-term support
 -----------------------
 
+Astropy v1.0 is a long-term support (LTS) release.  This means v1.0 will
+be supported with bug fixes for 2 years from its release, rather than 6
+months like the non-LTS releases. More details about this, including a
+wider rationale for Astropy's version numbering scheme, can be found in
+`Astropy Proposal for Enhancement 2  <https://github.com/astropy/astropy-APEs/blob/master/APE2.rst>`_.
 
 Support for Alt/Az coordinates
 ------------------------------
