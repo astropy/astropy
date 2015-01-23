@@ -12,10 +12,10 @@ environment:
                         # to the matrix section.
 
   matrix:
-      - PYTHON_VERSION: "2.6"
+      - PYTHON_VERSION: "2.7"
         NUMPY_VERSION: "1.9.1"
 
-      - PYTHON_VERSION: "2.7"
+      - PYTHON_VERSION: "3.4"
         NUMPY_VERSION: "1.9.1"
 
 platform:
