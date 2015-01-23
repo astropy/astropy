@@ -106,7 +106,25 @@ accessible as `~astropy.modeling.Model` classes.
 Fast readers/writers for ASCII files
 ------------------------------------
 
+The :mod:`astropy.io.ascii` now includes a significantly faster Cython/C engine
+for reading and writing ASCII files.  This is available for the following
+formats: ``basic``, ``commented_header``, ``csv``, ``no_header``, ``rdb``, and
+``tab``.  On average the new engine is about 4 to 5 times faster than the
+corresponding pure-Python implementation, and is often comparable to the speed
+of the `pandas <http://pandas.pydata.org/pandas-docs/stable/>`_ ASCII file
+interface (`read_csv
+<http://pandas.pydata.org/pandas-docs/stable/io.html#io-read-csv-table>`_ and
+`to_csv
+<http://pandas.pydata.org/pandas-docs/stable/io.html#io-store-in-csv>`_).  The
+fast reader has parallel processing option that allows harnessing multiple
+cores for input parsing to achieve even greater speed gains.
 
+By default, :func:`~astropy.io.ascii.read` and :func:`~astropy.io.ascii.write`
+will attempt to use the fast C engine when dealing with compatible formats.
+Certain features of the full read / write interface are not available in the
+fast version, in which case the pure-Python version will automatically be used.
+
+For full details including extensive performance testing, see :ref:`fast_ascii_io`.
 
 New features in :ref:`astropy-modeling`
 ---------------------------------------
