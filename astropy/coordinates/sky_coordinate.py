@@ -522,6 +522,11 @@ class SkyCoord(object):
         -------
         isequiv : bool
             True if the frames are the same, False if not.
+
+        Raises
+        ------
+        TypeError
+            If ``other`` isn't a `SkyCoord` or a `BaseCoordinateFrame` or subclass.
         """
         if isinstance(other, BaseCoordinateFrame):
             return self.frame.is_equivalent_frame(other)
@@ -536,7 +541,8 @@ class SkyCoord(object):
             return True
         else:
             #not a BaseCoordinateFrame nor a SkyCoord-ish object
-            return False
+            raise TypeError("Tried to do is_equivalent_frame on something that "
+                            "isn't frame-like")
 
     # High-level convinience methods
     def separation(self, other):

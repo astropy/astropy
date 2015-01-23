@@ -962,12 +962,20 @@ class BaseCoordinateFrame(object):
         -------
         isequiv : bool
             True if the frames are the same, False if not.
+
+        Raises
+        ------
+        TypeError
+            If ``other`` isn't a `BaseCoordinateFrame` or subclass.
         """
         if self.__class__ == other.__class__:
             for frame_attr_name in self.get_frame_attr_names():
                 if getattr(self, frame_attr_name) != getattr(other, frame_attr_name):
                     return False
             return True
+        elif not isinstance(other, BaseCoordinateFrame):
+            raise TypeError("Tried to do is_equivalent_frame on something that "
+                            "isn't a frame")
         else:
             return False
 
