@@ -279,8 +279,8 @@ def is_proj_plane_distorted(wcs, maxerr=5.0e-6):
     check:
 
     .. math::
-        \\left \| \\frac{C \cdot C^{\mathrm{T}} + C^{\mathrm{T}} \cdot C}\
-        {2 | det(C)|} - I \\right \|_{\mathrm{max}} < \epsilon .
+        \\left \| \\frac{C \cdot C^{\mathrm{T}}}\
+        {| det(C)|} - I \\right \|_{\mathrm{max}} < \epsilon .
 
     Parameters
     ----------
@@ -288,8 +288,10 @@ def is_proj_plane_distorted(wcs, maxerr=5.0e-6):
         World coordinate system object
 
     maxerr : float
-        Accuracy to which the CD matrix should be close to being an
-        orthogonal matrix as described in the above equation.
+        Accuracy to which the CD matrix, **normalized** such
+        that :math:`|det(CD)|=1`, should be close to being an
+        orthogonal matrix as described in the above equation
+        (see :math:`\epsilon`).
 
     Returns
     -------
@@ -303,22 +305,19 @@ def is_proj_plane_distorted(wcs, maxerr=5.0e-6):
 
 
 def _is_cd_orthogonal(wcs, maxerr):
-
     cd = wcs.pixel_scale_matrix
 
     shape = cd.shape
     if not (len(shape) == 2 and shape[0] == shape[1]):
         raise ValueError("CD (or PC) matrix must be a 2D square matrix.")
 
-    scale = np.sqrt(np.abs(np.linalg.det(cd)))
-    if (scale <= 0.0):
+    pixarea = np.abs(np.linalg.det(cd))
+    if (pixarea == 0.0):
         raise ValueError("CD (or PC) matrix is singular.")
-
-    cd /= scale
 
     # NOTE: Technically, below we should use np.dot(cd, np.conjugate(cd.T))
     # However, I am not aware of complex CD/PC matrices...
-    I = 0.5 * (np.dot(cd, cd.T) + np.dot(cd, cd.T))
+    I = np.dot(cd, cd.T) / pixarea
     cd_unitary_err = np.amax(np.abs(I - np.eye(shape[0])))
 
     return (cd_unitary_err < maxerr)
