@@ -49,18 +49,47 @@ New Galactocentric coordinate frame
 
 
 
-New ``astropy.visualization`` subpackage
-----------------------------------------
+New :ref:`astropy-visualization` subpackage
+-------------------------------------------
 
+The new :ref:`Data Visualization <astropy-visualization>` package is intended
+to collect functionality that can be helpful when visualizing data. At the
+moment, the main functionality is image normalizing (including both scaling and
+stretching) but this will be expanded in future. Included in the image
+normalization functionality is the ability to compute interval limits on data,
+(such as percentile limits), stretching with non-linear functions (such as
+square root or arcsinh functions), and the ability to use custom stretches in
+`Matplotlib <http://www.matplotlib.org>`_ that are correctly reflected in the
+colorbar:
 
+.. plot::
+   :include-source:
+   :align: center
 
-New ``astropy.analytic_functions`` subpackage
----------------------------------------------
+    import numpy as np
+    import matplotlib.pyplot as plt
 
-This subpackage provides analytic functions that are commonly used in astronomy.
-These already understand `~astropy.units.Quantity`, i.e., they can handle units
-of input and output parameters. For instance, to calculate blackbody flux for
-10000 K at 6000 Angstrom:
+    from astropy.visualization import SqrtStretch
+    from astropy.visualization.mpl_normalize import ImageNormalize
+
+    # Generate test image
+    image = np.arange(65536).reshape((256, 256))
+
+    # Create normalizer object
+    norm = ImageNormalize(vmin=0., vmax=65536, stretch=SqrtStretch())
+
+    fig = plt.figure(figsize=(6,3))
+    ax = fig.add_subplot(1,1,1)
+    im = ax.imshow(image, norm=norm, origin='lower', aspect='auto')
+    fig.colorbar(im)
+
+New :ref:`astropy_analytic_functions` subpackage
+------------------------------------------------
+
+This subpackage provides analytic functions that are commonly used in
+astronomy. These already understand `~astropy.units.Quantity`, i.e., they can
+handle units of input and output parameters. For instance, to calculate the
+blackbody flux for 10000K at 6000 Angstrom:
 
 >>> astropy import units as u
 >>> from astropy.analytic_functions import blackbody_lambda, blackbody_nu
@@ -69,23 +98,23 @@ of input and output parameters. For instance, to calculate blackbody flux for
 >>> blackbody_nu(6000 * u.AA, 10000 * u.K)
 <Quantity 0.00018391673686797075 erg / (cm2 Hz s sr)
 
-In future versions of ``astropy``, many of these might be accessible as
-`~astropy.modeling.Model`. See :ref:`astropy_analytic_functions` for more
-details.
+See :ref:`astropy_analytic_functions` for more details.
 
+In future versions of Astropy, the functions in this module might also be
+accessible as `~astropy.modeling.Model` classes.
 
 Fast readers/writers for ASCII files
 ------------------------------------
 
 
 
-New features in ``astropy.modeling``
-------------------------------------
+New features in :ref:`astropy-modeling`
+---------------------------------------
 
 .. Compound models and other changes
 
-Support for 'mixin' columns in ``astropy.table``
-------------------------------------------------
+Support for 'mixin' columns in :ref:`astropy-table`
+---------------------------------------------------
 
 
 Deprecation and backward-incompatible changes
