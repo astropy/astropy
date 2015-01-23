@@ -494,10 +494,12 @@ class SkyCoord(object):
                             sph_coord.lat.to_string(**latargs))
         else:
             coord_string = []
-            for lonangle, latangle in zip(sph_coord.lon, sph_coord.lat):
+            for lonangle, latangle in zip(sph_coord.lon.ravel(), sph_coord.lat.ravel()):
                 coord_string += [(lonangle.to_string(**lonargs)
                                  + " " +
                                  latangle.to_string(**latargs))]
+            if len(sph_coord.shape) > 1:
+                coord_string = np.array(coord_string).reshape(sph_coord.shape)
 
         return coord_string
 

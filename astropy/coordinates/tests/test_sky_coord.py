@@ -1067,3 +1067,9 @@ def test_skycoord_list_creation():
     assert np.all(scnew4.dec == sc.dec)
     assert scnew4.equinox == Time('J2010')
 
+
+def test_nd_skycoord_to_string():
+    c = SkyCoord(np.ones((2, 2)), 1, unit=('deg', 'deg'))
+    ts = c.to_string()
+    assert np.all(ts.shape == c.shape)
+    assert np.all(ts == u'1 1')

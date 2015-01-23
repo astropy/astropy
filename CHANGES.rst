@@ -457,6 +457,9 @@ Bug Fixes
 
   - ``Angle.to_string`` now outputs unicode arrays instead of object arrays [#2981]
 
+  - ``SkyCoord.to_string`` no longer gives an error when used with an array
+    coordinate with more than one dimension. [#3340]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
