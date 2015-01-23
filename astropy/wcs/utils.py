@@ -255,7 +255,7 @@ def proj_plane_pixel_area(wcs):
     return np.abs(np.linalg.det(psm))
 
 
-def is_proj_plane_distorted(wcs, maxerr=5.0e-6):
+def is_proj_plane_distorted(wcs, maxerr=1.0e-5):
     """
     For a WCS returns `False` if square image (detector) pixels stay square
     when projected onto the "plane of intermediate world coordinates"
@@ -287,7 +287,7 @@ def is_proj_plane_distorted(wcs, maxerr=5.0e-6):
     wcs : `~astropy.wcs.WCS`
         World coordinate system object
 
-    maxerr : float
+    maxerr : float, optional
         Accuracy to which the CD matrix, **normalized** such
         that :math:`|det(CD)|=1`, should be close to being an
         orthogonal matrix as described in the above equation
@@ -301,12 +301,11 @@ def is_proj_plane_distorted(wcs, maxerr=5.0e-6):
 
     """
     cwcs = wcs.celestial
-    return (not _is_cd_orthogonal(cwcs, maxerr) or _has_distortion(cwcs))
+    return (not _is_cd_orthogonal(cwcs.pixel_scale_matrix, maxerr) or
+            _has_distortion(cwcs))
 
 
-def _is_cd_orthogonal(wcs, maxerr):
-    cd = wcs.pixel_scale_matrix
-
+def _is_cd_orthogonal(cd, maxerr):
     shape = cd.shape
     if not (len(shape) == 2 and shape[0] == shape[1]):
         raise ValueError("CD (or PC) matrix must be a 2D square matrix.")
