@@ -157,8 +157,35 @@ class BaseRepresentation(object):
 
     def __repr__(self):
         prefixstr = '    '
-        arrstr = np.array2string(self._values, separator=', ',
+
+        if self._values.shape == ():
+            v = [tuple([self._values[nm] for nm in self._values.dtype.names])]
+            v = np.array(v, dtype=self._values.dtype)
+        else:
+            v = self._values
+
+        fstyle = lambda x: str(x)
+        if len(self._values.dtype.names) == 2:
+            fmt = {'numpystr' : lambda x: "(" + \
+                                            np.array2string(x['lon'], style=fstyle) + \
+                                            ', ' + \
+                                            np.array2string(x['lat'], style=fstyle) + \
+                                            ")"}
+        else:
+            fmt = {'numpystr' : lambda x: "(" + \
+                                            np.array2string(x['lon'], style=fstyle) + \
+                                            ', ' + \
+                                            np.array2string(x['lat'], style=fstyle) + \
+                                            ', ' + \
+                                            np.array2string(x['distance'], style=fstyle) + \
+                                            ")"}
+
+        arrstr = np.array2string(v, formatter=fmt,
+                                 separator=', ',
                                  prefix=prefixstr)
+
+        if self._values.shape == ():
+            arrstr = arrstr[1:-1]
 
         return '<{0} ({1}) in {2:s}\n{3}{4}>'.format(
             self.__class__.__name__, ', '.join(self.components),

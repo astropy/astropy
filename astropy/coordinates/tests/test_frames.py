@@ -155,9 +155,10 @@ def test_frame_repr():
     i2 = ICRS(ra=1*u.deg, dec=2*u.deg)
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
 
-    assert repr(i2) == '<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg>'
-    assert repr(i3) == ('<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg, '
-                        'distance=3.0 kpc>')
+    assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
+                        '    (1.0, 2.0)>')
+    assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
+                        '    (1.0, 2.0, 3.0)>')
 
 
 def test_converting_units():
@@ -171,16 +172,24 @@ def test_converting_units():
     rexrepr = re.compile(r'(.*?=\d\.).*?( .*?=\d\.).*?( .*)')
 
     # Use values that aren't subject to rounding down to X.9999...
-    i2 = ICRS(ra=1.1*u.deg, dec=2.1*u.deg)
+    i2 = ICRS(ra=2.*u.deg, dec=2.*u.deg)
+    i2_many = ICRS(ra=[2.,4.]*u.deg, dec=[2.,-8.1]*u.deg)
 
     #converting from FK5 to ICRS and back changes the *internal* representation,
     # but it should still come out in the preferred form
 
     i4 = i2.transform_to(FK5).transform_to(ICRS)
+    i4_many = i2_many.transform_to(FK5).transform_to(ICRS)
+
     ri2 = ''.join(rexrepr.split(repr(i2)))
     ri4 = ''.join(rexrepr.split(repr(i4)))
     assert ri2 == ri4
     assert i2.data.lon.unit != i4.data.lon.unit  # Internal repr changed
+
+    ri2_many = ''.join(rexrepr.split(repr(i2_many)))
+    ri4_many = ''.join(rexrepr.split(repr(i4_many)))
+    assert ri2_many == ri4_many
+    assert i2_many.data.lon.unit != i4_many.data.lon.unit  # Internal repr changed
 
     #but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
