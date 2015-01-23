@@ -474,6 +474,9 @@ Bug Fixes
 
   - The IPAC table reader now correctly interprets abbreviated column types. [#3279]
 
+  - Tables that look almost, but not quite like DAOPhot tables could cause guessing
+    to fail. [#3342]
+
 - ``astropy.io.fits``
 
   - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]

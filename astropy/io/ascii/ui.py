@@ -220,7 +220,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader.guessing = True
             return reader.read(table)
 
-        except (core.InconsistentTableError, ValueError, TypeError,
+        except (core.InconsistentTableError, ValueError, TypeError, AttributeError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(guess_kwargs)
     else:
