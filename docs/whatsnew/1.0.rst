@@ -134,6 +134,49 @@ New features in :ref:`astropy-modeling`
 Support for 'mixin' columns in :ref:`astropy-table`
 ---------------------------------------------------
 
+.. |Quantity| replace:: :class:`~astropy.units.Quantity`
+.. |Time| replace:: :class:`~astropy.time.Time`
+.. |SkyCoord| replace:: :class:`~astropy.coordinates.SkyCoord`
+.. |Table| replace:: :class:`~astropy.table.Table`
+.. |Column| replace:: :class:`~astropy.table.Column`
+.. |QTable| replace:: :class:`~astropy.table.QTable`
+
+Version 1.0 of astropy introduces a new concept of the "Mixin
+Column" in tables which allows integration of appropriate non-|Column| based
+class objects within a |Table| object.  These mixin column objects are not
+converted in any way but are used natively.
+
+The available built-in mixin column classes are |Quantity|, |SkyCoord|, and
+|Time|.  User classes for array-like objects that support the
+:ref:`mixin_protocol` can also be used in tables as mixin columns.
+
+.. Warning::
+
+   While the astropy developers are excited about this new capability and
+   intend to improve it, the interface for using mixin columns is not stable at
+   this point and it is not recommended for use in production code.
+
+As an example we can create a table and add a time column::
+
+  >>> from astropy.table import Table
+  >>> from astropy.time import Time
+  >>> t = Table()
+  >>> t['index'] = [1, 2]
+  >>> t['time'] = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
+  >>> print(t)
+  index           time
+  ----- -----------------------
+      1 2001-01-02T12:34:56.000
+      2 2001-02-03T00:01:02.000
+
+The important point here is that the ``time`` column is a bona fide |Time| object::
+
+  >>> t['time']
+  <Time object: scale='utc' format='isot' value=['2001-01-02T12:34:56.000' '2001-02-03T00:01:02.000']>
+  >>> t['time'].mjd
+  array([ 51911.52425926,  51943.00071759])
+
+For all the details, including a new |QTable| class, please see :ref:`mixin_columns`.
 
 Deprecation and backward-incompatible changes
 ---------------------------------------------
