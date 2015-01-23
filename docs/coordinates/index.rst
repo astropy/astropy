@@ -105,18 +105,26 @@ are defined in::
 
 Once you've defined the frame of your coordinates, you can transform from that
 frame to another frame.  You can do this a few different ways: if you just want
-the default version of that frame, you can use attribute-style access.  For
-more control, you can use the `~astropy.coordinates.SkyCoord.transform_to` method,
-which accepts a frame name, frame class, or frame instance::
+the default version of that frame, you can use attribute-style access::
 
     >>> from astropy.coordinates import FK5
     >>> c_icrs.galactic  # doctest: +FLOAT_CMP
     <SkyCoord (Galactic): l=121.174241811 deg, b=-21.5728855724 deg>
+
+For more control, you can use the `~astropy.coordinates.SkyCoord.transform_to`
+method, which accepts a frame name, frame class, or frame instance::
+
     >>> c_fk5 = c_icrs.transform_to('fk5')  # c_icrs.fk5 does the same thing
     >>> c_fk5  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J2000.000): ra=10.6845915393 deg, dec=41.2691714591 deg>
     >>> c_fk5.transform_to(FK5(equinox='J1975'))  # precess to a different equinox  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J1975.000): ra=10.3420913461 deg, dec=41.1323211229 deg>
+
+This form of `~astropy.coordinates.SkyCoord.transform_to` also makes it
+straightforward to convert from celestial coordinates to
+`~astropy.coordinates.AltAz` coordinates, allowing the use of |skycoord|
+as a tool for planning observations.  For a more complete example of
+this, see :doc:`observing-example`.
 
 |skycoord| and all other `~astropy.coordinates` objects also support
 array coordinates.  These work the same as single-value coordinates, but
