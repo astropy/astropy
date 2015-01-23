@@ -112,7 +112,7 @@ def read(table, guess=None, **kwargs):
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
     :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
     :param fast_reader: whether to use the C engine, can also be a dict with options which default to False (default= ``True``)
-    :param Reader: Reader class (DEPRECATED) (default= :class:`ascii.Basic`)
+    :param Reader: Reader class (DEPRECATED) (default= :class:`Basic`)
     """
 
     if 'fill_values' not in kwargs:
@@ -294,7 +294,7 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     """Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
-    :param Writer: Writer class (DEPRECATED) (default= :class:`ascii.Basic`)
+    :param Writer: Writer class (DEPRECATED) (default= :class:`Basic`)
     :param delimiter: column delimiter string
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
@@ -324,12 +324,12 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
     :param write_comment: string defining a comment line in table
     :param quotechar: one-character string to quote fields containing special characters
     :param formats: dict of format specifiers or formatting functions
-    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
+    :param strip_whitespace: strip surrounding whitespace from column values (default= ``True``)
     :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
+    :param include_names: list of names to include in output (default= ``None`` selects all names)
     :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fast_writer: whether to use the fast Cython writer (default=True)
-    :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
+    :param fast_writer: whether to use the fast Cython writer (default= ``True``)
+    :param Writer: Writer class (DEPRECATED) (default= :class:`Basic`)
     """
     if output is None:
         output = sys.stdout
