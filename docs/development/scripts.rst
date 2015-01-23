@@ -10,7 +10,7 @@ the correct extension. The scripts can live in their own module, or be part of
 a larger module that implements a class or function for astropy library use.
 They should have a ``main`` function to parse the arguments and pass those
 arguments on to some library function so that the library function can be used
-programatically when needed. The ``main`` function should accept an optional
+programmatically when needed. The ``main`` function should accept an optional
 single argument that holds the ``sys.argv`` list, except for the script name
 (e.g., ``argv[1:]``). It must then be added to the list of entry points in the
 ``setup.py`` file (see the example below).

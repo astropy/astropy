@@ -630,7 +630,7 @@ def test_slicing_on_instance_with_parameterless_model():
 
 def test_compound_model_with_nonstandard_broadcasting():
     """
-    Ensure that the ``standard_broadcasting`` flag is properly propgataed when
+    Ensure that the ``standard_broadcasting`` flag is properly propagated when
     creating compound models.
 
     See the commit message for the commit in which this was added for more

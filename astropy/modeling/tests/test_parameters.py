@@ -212,7 +212,7 @@ class TestParameters(object):
 
     def test_wrong_size2(self):
         """
-        Tests raising an exception when attemppting to update a model's
+        Tests raising an exception when attempting to update a model's
         parameter (in this case coeff) with a sequence of the wrong size.
         """
 
@@ -221,7 +221,7 @@ class TestParameters(object):
 
     def test_wrong_shape(self):
         """
-        Tests raising an exception when attemppting to update a model's
+        Tests raising an exception when attempting to update a model's
         parameter and the new value has the wrong shape.
         """
 

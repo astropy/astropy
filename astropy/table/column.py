@@ -56,7 +56,7 @@ def col_setattr(col, attr, value):
     if attr not in COLUMN_ATTRS:
         raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
 
-    # The unit and dtype attributes are considered univeral and do NOT get
+    # The unit and dtype attributes are considered universal and do NOT get
     # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
     if isinstance(col, BaseColumn):
         setattr(col, attr, value)
@@ -77,7 +77,7 @@ def col_getattr(col, attr, default=None):
     if attr not in COLUMN_ATTRS:
         raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
 
-    # The unit and dtype attributes are considered univeral and do NOT get
+    # The unit and dtype attributes are considered universal and do NOT get
     # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
     if (isinstance(col, BaseColumn) or
             (isinstance(col, Quantity) and attr in ('dtype', 'unit'))):

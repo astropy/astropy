@@ -140,7 +140,7 @@ column with a numerical index::
 
 When a table column is printed, it is formatted according to the ``format``
 attribute (see :ref:`table_format_string`).  Note the difference between the
-column reprentation above and how it appears via ``print()`` or ``str()``::
+column representation above and how it appears via ``print()`` or ``str()``::
 
   >>> print(t['a'])
      a
