@@ -24,7 +24,7 @@ import math
 import numpy as np
 
 from .core import Model
-from .parameters import Parameter, InputParameterError
+from .parameters import Parameter
 
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D']

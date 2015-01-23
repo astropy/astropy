@@ -17,7 +17,6 @@ import zlib
 import functools
 import multiprocessing
 import os
-import subprocess
 import shutil
 import tempfile
 import types
@@ -30,8 +29,6 @@ try:
     import pkg_resources
 except ImportError:
     pass
-
-from distutils.core import Command
 
 from .. import test
 from ..utils.exceptions import (AstropyWarning,

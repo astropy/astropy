@@ -5,10 +5,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import collections
 import inspect
-
-from textwrap import dedent
 
 import numpy as np
 

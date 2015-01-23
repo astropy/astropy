@@ -7,15 +7,12 @@ This module contains predefined polynomial models.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import collections
-
 import numpy as np
 
 from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
-from ..logger import log
 from ..utils import lazyproperty, indent
 
 

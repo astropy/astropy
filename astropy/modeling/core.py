@@ -21,7 +21,6 @@ import copy
 import inspect
 import functools
 import operator
-import types
 import warnings
 
 from collections import defaultdict
@@ -31,8 +30,6 @@ import numpy as np
 
 from ..utils import indent, isiterable, isinstancemethod, metadata
 from ..extern import six
-from ..extern.six.moves import zip as izip
-from ..extern.six.moves import range
 from ..table import Table
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings)
