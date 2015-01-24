@@ -49,9 +49,14 @@ New Features
 
   - ``SkyCoord`` now accepts more formats of the coordinate string when the
     representation has ``ra`` and ``dec`` attributes. [#2920]
+
   - ``SkyCoord`` can now accept lists of ``SkyCoord`` objects, frame objects,
     or representation objects and will combine them into a single object.
     [#3285]
+
+  - Frames and ``SkyCoord`` instances now have a method ``is_equivalent_frame``
+    that can be used to check that two frames are equivalent (ignoring the data).
+    [#3330]
 
 - ``astropy.cosmology``
 
