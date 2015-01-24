@@ -38,7 +38,7 @@ matrix:
         # We also note the code coverage on Python 2.7.
         - python: 2.7
           env: SETUP_CMD='test --coverage'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
-        - python: 3.3
+        - python: 3.4
           env: SETUP_CMD='test'  OPTIONAL_DEPS=true LC_CTYPE=C.ascii
 
         # Try older numpy versions

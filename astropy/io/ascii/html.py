@@ -9,6 +9,9 @@ must be installed to read HTML tables.
 """
 
 from __future__ import absolute_import, division, print_function
+
+import warnings
+
 from ...extern import six
 from ...extern.six.moves import zip as izip
 
@@ -78,7 +81,14 @@ class HTMLInputter(core.BaseInputter):
         """
 
         try:
-            from bs4 import BeautifulSoup
+            from bs4 import BeautifulSoup as _BeautifulSoup
+            # With Python 3.4, BeautifulSoup emits deprecation warnings over
+            # which we have no control so we wrap it.
+            class BeautifulSoup(_BeautifulSoup):
+                def __init__(self, *args, **kwargs):
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", DeprecationWarning)
+                        return super(BeautifulSoup, self).__init__(*args, **kwargs)
         except ImportError:
             raise core.OptionalTableImportError('BeautifulSoup must be '
                                         'installed to read HTML tables')

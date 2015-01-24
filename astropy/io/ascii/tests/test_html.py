@@ -8,6 +8,8 @@ Requires `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_
 to be installed.
 """
 
+import warnings
+
 from .. import html
 from .. import core
 from ....table import Table
@@ -27,10 +29,18 @@ except ImportError:
 # Check to see if the BeautifulSoup dependency is present.
 
 try:
-    from bs4 import BeautifulSoup, FeatureNotFound
+    from bs4 import BeautifulSoup as _BeautifulSoup, FeatureNotFound
     HAS_BEAUTIFUL_SOUP = True
+        # With Python 3.4, BeautifulSoup emits deprecation warnings over
+        # which we have no control so we wrap it.
+    class BeautifulSoup(_BeautifulSoup):
+        def __init__(self, *args, **kwargs):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
+                return super(BeautifulSoup, self).__init__(*args, **kwargs)
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
+
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_soupstring():
@@ -194,6 +204,7 @@ def test_backend_parsers():
         Table.read('t/html2.html', format='ascii.html',
                    htmldict={'parser': 'foo'}, guess=False)
 
+
 @pytest.mark.skipif('HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter_no_bs4():
     """
@@ -204,6 +215,7 @@ def test_htmlinputter_no_bs4():
     inputter = html.HTMLInputter()
     with pytest.raises(core.OptionalTableImportError):
         inputter.process_lines([])
+
 
 @pytest.mark.skipif('not HAS_BEAUTIFUL_SOUP')
 def test_htmlinputter():
