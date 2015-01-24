@@ -21,7 +21,6 @@ import copy
 import inspect
 import functools
 import operator
-import types
 import warnings
 
 from collections import defaultdict
@@ -31,8 +30,6 @@ import numpy as np
 
 from ..utils import indent, isiterable, isinstancemethod, metadata
 from ..extern import six
-from ..extern.six.moves import zip as izip
-from ..extern.six.moves import range
 from ..table import Table
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings)
@@ -240,7 +237,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         if isinstance(inverse, property):
             fget = inverse.fget
         else:
-            # We allow the @property decoratore to be ommitted entirely from
+            # We allow the @property decorator to be omitted entirely from
             # the class definition, though its use should be encouraged for
             # clarity
             fget = inverse
@@ -777,7 +774,7 @@ class Model(object):
         if n_models == 1 and scalar_params and scalar_inputs:
             # Simplest case is either a parameterless models (currently I don't
             # think we have any but they could exist in principle) or a single
-            # model (not a model set) with all scalar paramaters and all scalar
+            # model (not a model set) with all scalar parameters and all scalar
             # inputs
             return inputs, ()
 
@@ -1107,7 +1104,7 @@ class Model(object):
     def _check_param_broadcast(self, params, max_ndim):
         """
         This subroutine checks that all parameter arrays can be broadcast
-        against each other, and determimes the shapes parameters must have in
+        against each other, and determines the shapes parameters must have in
         order to broadcast correctly.
 
         If model_set_axis is None this merely checks that the parameters
@@ -1526,7 +1523,7 @@ class _CompoundModelMeta(_ModelMeta):
         if cls._evaluate is None:
             func = cls._tree.evaluate(BINARY_OPERATORS,
                                       getter=cls._model_evaluate_getter)[0]
-            # Making this a staticmethod isn's strictly necessary for Python 3,
+            # Making this a staticmethod isn't strictly necessary for Python 3,
             # but it is necessary on Python 2 since looking up cls._evaluate
             # will return an unbound method otherwise
             cls._evaluate = staticmethod(func)
@@ -1773,7 +1770,7 @@ class _CompoundModelMeta(_ModelMeta):
             for param_name in model.param_names:
                 # This is sort of heuristic, but we want to check that
                 # model.param_name *actually* returns a Paramter descriptor,
-                # and that the model isn't some insconsistent type that happens
+                # and that the model isn't some inconsistent type that happens
                 # to have a param_names attribute but does not actually
                 # implement settable parameters.
                 # In the future we can probably remove this check, but this is
@@ -1831,7 +1828,7 @@ class _CompoundModelMeta(_ModelMeta):
             return get_index_from_name(index)
         elif isinstance(index, slice):
             if index.step not in (1, None):
-                # In principle it could be but I can scarecely imagine a case
+                # In principle it could be but I can scarcely imagine a case
                 # where it would be useful.  If someone can think of one then
                 # we can enable it.
                 raise ValueError(
@@ -1892,7 +1889,7 @@ class _CompoundModelMeta(_ModelMeta):
         n_inputs = model.n_inputs
         n_outputs = model.n_outputs
 
-        # There is currently an unfortunate iconsistency in some models, which
+        # There is currently an unfortunate inconsistency in some models, which
         # requires them to be instantiated for their evaluate to work.  I think
         # that needs to be reconsidered and fixed somehow, but in the meantime
         # we need to check for that case
@@ -2027,10 +2024,10 @@ def custom_model(*args, **kwargs):
         corresponds to the `~astropy.modeling.Model.evaluate` method.
     fit_deriv : function, optional
         Function which defines the Jacobian derivative of the model. I.e., the
-        derivive with respect to the *parameters* of the model.  It should
+        derivative with respect to the *parameters* of the model.  It should
         have the same argument signature as ``func``, but should return a
         sequence where each element of the sequence is the derivative
-        with respect to the correseponding argument. This corresponds to the
+        with respect to the corresponding argument. This corresponds to the
         :meth:`~astropy.modeling.FittableModel.fit_deriv` method.
 
     Examples
@@ -2055,7 +2052,7 @@ def custom_model(*args, **kwargs):
 
     The next example demonstrates a 2D Moffat function model, and also
     demonstrates the support for docstrings (this example could also include
-    a derivative, but it has been ommitted for simplicity)::
+    a derivative, but it has been omitted for simplicity)::
 
         >>> @custom_model
         ... def Moffat2D(x, y, amplitude=1.0, x_0=0.0, y_0=0.0, gamma=1.0,

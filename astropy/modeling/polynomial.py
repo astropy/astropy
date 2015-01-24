@@ -7,15 +7,12 @@ This module contains predefined polynomial models.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import collections
-
 import numpy as np
 
 from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
-from ..logger import log
 from ..utils import lazyproperty, indent
 
 
@@ -30,7 +27,7 @@ __all__ = [
 class PolynomialBase(FittableModel):
     """
     Base class for all polynomial-like models with an arbitrary number of
-    parameters in the form of coeffecients.
+    parameters in the form of coefficients.
 
     In this case Parameter instances are returned through the class's
     ``__getattr__`` rather than through class descriptors.
@@ -907,7 +904,7 @@ class Legendre2D(OrthoPolynomialBase):
 
     def fit_deriv(self, x, y, *params):
         """
-        Derivatives with repect to the coefficients.
+        Derivatives with respect to the coefficients.
         This is an array with Legendre polynomials:
 
         Lx0Ly0  Lx1Ly0...LxnLy0...LxnLym

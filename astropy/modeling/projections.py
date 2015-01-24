@@ -302,7 +302,7 @@ class Pix2Sky_SIN(Pix2SkyProjection, Zenithal):
 
 class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
     """
-    SIN : Slant othographic projection - sky to pixel.
+    SIN : Slant orthographic projection - sky to pixel.
     """
 
     @property

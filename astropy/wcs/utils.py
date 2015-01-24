@@ -240,7 +240,7 @@ def proj_plane_pixel_area(wcs):
     Notes
     -----
 
-    Depending on the aplication, square root of the pixel area can be used to
+    Depending on the application, square root of the pixel area can be used to
     represent a single pixel scale of an equivalent square pixel
     whose area is equal to the area of a generally non-square pixel.
 

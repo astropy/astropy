@@ -53,7 +53,7 @@ def descr(col):
 
 def is_mixin_class(obj):
     """
-    Abstaction to determine if ``obj`` should be used as a mixin column
+    Abstraction to determine if ``obj`` should be used as a mixin column
     when input to a table.  This function does not apply to ``Quantity``.
 
     Parameters

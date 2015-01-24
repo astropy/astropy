@@ -789,9 +789,9 @@ its usual position to avoid overlap with the axis labels.
 Example 2: Plotting star positions in bulge and disk
 ====================================================
 
-This is more realitic example how to make a plot in the Aitoff projection
+This is more realistic example how to make a plot in the Aitoff projection
 using data in a |SkyCoord| object.
-Here a randomly generated data set (multivariante
+Here a randomly generated data set (multivariate
 normal distribution) for both stars in the bulge and in the disk of a galaxy
 will be used. Both types will be plotted with different number counts.
 
@@ -836,9 +836,9 @@ We use the same plotting setup as in the last example:
 
 .. plot::
 
-    # This is more realitic example how to make a plot in the Aitoff projection
+    # This is more realistic example how to make a plot in the Aitoff projection
     # using data in a SkyCoord object.
-    # Here a randomly generated data set (multivariante normal distribution)
+    # Here a randomly generated data set (multivariate normal distribution)
     # for both stars in the bulge and in the disk of a galaxy
     # will be used. Both types will be plotted with different number counts. The
     # final script can be found below.

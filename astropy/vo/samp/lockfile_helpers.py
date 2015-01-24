@@ -224,7 +224,7 @@ def check_running_hub(lockfilename):
     is_running = False
     lockfiledict = {}
 
-    # Check whether a lockfile alredy exists
+    # Check whether a lockfile already exists
     try:
         lockfiledict = read_lockfile(lockfilename)
     except IOError:
@@ -241,7 +241,7 @@ def check_running_hub(lockfilename):
             # but the server is alive
             is_running = True
         except SSL_EXCEPTIONS:
-            # SSL connection refused for certifcate reasons...
+            # SSL connection refused for certificate reasons...
             # anyway the server is alive
             is_running = True
         except socket.error:

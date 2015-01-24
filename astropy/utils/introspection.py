@@ -136,7 +136,7 @@ def find_mod_objs(modname, onlylocals=False):
     .. note::
         The returned list *not* include subpackages or modules of
         ``modname``, nor does it include private attributes (those that
-        beginwith '_' or are not in `__all__`).
+        begin with '_' or are not in `__all__`).
 
     Parameters
     ----------

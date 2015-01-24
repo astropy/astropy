@@ -17,7 +17,7 @@ class QuantityInput(object):
 
         Unit specifications can be provided as keyword arguments to the decorator,
         or by using Python 3's function annotation syntax. Arguments to the decorator
-        take precidence over any function annotations present.
+        take precedence over any function annotations present.
 
         A `~astropy.units.UnitsError` will be raised if the unit attribute of
         the argument is not equivalent to the unit specified to the decorator

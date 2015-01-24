@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module prvoides the tools used to internally run the astropy test suite
+This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
 from __future__ import (absolute_import, division, print_function,
@@ -17,7 +17,6 @@ import zlib
 import functools
 import multiprocessing
 import os
-import subprocess
 import shutil
 import tempfile
 import types
@@ -30,8 +29,6 @@ try:
     import pkg_resources
 except ImportError:
     pass
-
-from distutils.core import Command
 
 from .. import test
 from ..utils.exceptions import (AstropyWarning,

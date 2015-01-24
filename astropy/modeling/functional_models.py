@@ -5,10 +5,7 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import collections
 import inspect
-
-from textwrap import dedent
 
 import numpy as np
 
@@ -554,7 +551,7 @@ class Lorentz1D(Fittable1DModel):
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, fwhm):
-        """One dimensional Lorentzian model derivative wiht respect to parameters"""
+        """One dimensional Lorentzian model derivative with respect to parameters"""
 
         d_amplitude = fwhm ** 2 / (fwhm ** 2 + (x - x_0) ** 2)
         d_x_0 = (amplitude * d_amplitude * (2 * x - 2 * x_0) /
@@ -591,7 +588,7 @@ class Const1D(Fittable1DModel):
         """One dimensional Constant model function"""
 
         if amplitude.size == 1:
-            # This is slighly faster than using ones_like and multiplying
+            # This is slightly faster than using ones_like and multiplying
             x = np.empty_like(x)
             x.fill(amplitude.item())
         else:
@@ -637,7 +634,7 @@ class Const2D(Fittable2DModel):
         """Two dimensional Constant model function"""
 
         if amplitude.size == 1:
-            # This is slighly faster than using ones_like and multiplying
+            # This is slightly faster than using ones_like and multiplying
             x = np.empty_like(x)
             x.fill(amplitude.item())
         else:

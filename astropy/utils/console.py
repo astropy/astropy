@@ -82,7 +82,7 @@ _DEFAULT_ENCODING = 'utf-8'
 
 def _get_stdout(stderr=False):
     """
-    This utility fucntion contains the logic to determine what streams to use
+    This utility function contains the logic to determine what streams to use
     by default for standard out/err.
 
     Typically this will just return `sys.stdout`, but it contains additional
@@ -622,7 +622,7 @@ class ProgressBar(six.Iterator):
     def _update_ipython_widget(self, value=None):
         """
         Update the progress bar to the given value (out of a total
-        given to the contructor).
+        given to the constructor).
 
         This method is for use in the IPython notebook 2+.
         """
