@@ -48,6 +48,9 @@ class Galactocentric(BaseCoordinateFrame):
     be 27 pc, as measured by
     http://adsabs.harvard.edu/abs/2001ApJ...553..184C.
 
+    For a more detailed look at the math behind this transformation, see
+    the document :ref:`coordinates-galactocentric`.
+
     Parameters
     ----------
     representation : `BaseRepresentation` or None
