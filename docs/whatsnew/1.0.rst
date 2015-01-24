@@ -106,7 +106,7 @@ accessible as `~astropy.modeling.Model` classes.
 Fast readers/writers for ASCII files
 ------------------------------------
 
-The :mod:`astropy.io.ascii` now includes a significantly faster Cython/C engine
+The :mod:`astropy.io.ascii` module now includes a significantly faster Cython/C engine
 for reading and writing ASCII files.  This is available for the following
 formats: ``basic``, ``commented_header``, ``csv``, ``no_header``, ``rdb``, and
 ``tab``.  On average the new engine is about 4 to 5 times faster than the
