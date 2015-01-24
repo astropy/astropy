@@ -530,8 +530,7 @@ class SkyCoord(object):
         """
         if isinstance(other, BaseCoordinateFrame):
             return self.frame.is_equivalent_frame(other)
-        elif hasattr(other, 'frame'):
-            # assume it's a SkyCoord-ish thing
+        elif isinstance(other, SkyCoord):
             if other.frame.name != self.frame.name:
                 return False
 
@@ -540,7 +539,7 @@ class SkyCoord(object):
                     return False
             return True
         else:
-            #not a BaseCoordinateFrame nor a SkyCoord-ish object
+            #not a BaseCoordinateFrame nor a SkyCoord object
             raise TypeError("Tried to do is_equivalent_frame on something that "
                             "isn't frame-like")
 
