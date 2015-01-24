@@ -104,5 +104,5 @@ midplane.
 
 The full transformation is then:
 
-.. math:: \boldsymbol{r}_{\rm GC} = \boldsymbol{H} \left( \boldsymbol{R}\boldsymbol{r}_{\rm icrs} - \hat{\boldsymbol{x}}_{\rm GC}\right).
+.. math:: \boldsymbol{r}_{\rm GC} = \boldsymbol{H} \left( \boldsymbol{R}\boldsymbol{r}_{\rm icrs} - d_{\rm GC}\hat{\boldsymbol{x}}_{\rm GC}\right).
 
