@@ -503,6 +503,46 @@ class SkyCoord(object):
 
         return coord_string
 
+    def is_equivalent_frame(self, other):
+        """
+        Checks if this object's frame as the same as that of the ``other``
+        object.
+
+        To be the same frame, two objects must be the same frame class and have
+        the same frame attributes. For two `SkyCoord` objects, *all* of the
+        frame attributes have to match, not just those relevant for the object's
+        frame.
+
+        Parameters
+        ----------
+        other : SkyCoord or BaseCoordinateFrame
+            The other object to check.
+
+        Returns
+        -------
+        isequiv : bool
+            True if the frames are the same, False if not.
+
+        Raises
+        ------
+        TypeError
+            If ``other`` isn't a `SkyCoord` or a `BaseCoordinateFrame` or subclass.
+        """
+        if isinstance(other, BaseCoordinateFrame):
+            return self.frame.is_equivalent_frame(other)
+        elif isinstance(other, SkyCoord):
+            if other.frame.name != self.frame.name:
+                return False
+
+            for fattrnm in FRAME_ATTR_NAMES_SET():
+                if getattr(self, fattrnm) != getattr(other, fattrnm):
+                    return False
+            return True
+        else:
+            #not a BaseCoordinateFrame nor a SkyCoord object
+            raise TypeError("Tried to do is_equivalent_frame on something that "
+                            "isn't frame-like")
+
     # High-level convinience methods
     def separation(self, other):
         """
@@ -1239,18 +1279,15 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # SkyCoords from the list elements and then combine them.
             scs = [SkyCoord(coord, **init_kwargs) for coord in coords]
 
-            # now check that they're all self-consistent in their frame attributes
-            # and frame name
-            frames_to_check = [sc.frame.name for sc in scs]
-            if len(set(frames_to_check)) > 1:
-                raise ValueError("List of inputs have different frames: {0}".format(frames_to_check))
-            for fattrnm in FRAME_ATTR_NAMES_SET():
-                vals = [getattr(sc, fattrnm) for sc in scs]
-                for val in vals[1:]:
-                    if val != vals[0]:
-                        raise ValueError("List of inputs don't give consistent "
-                                         "frame attribute {0}: {1}".format(fattrnm, vals))
+            # now check that they're all self-consistent in their frames
+            for sc in scs[1:]:
+                if not sc.is_equivalent_frame(scs[0]):
+                        raise ValueError("List of inputs don't have equivalent "
+                                         "frames: {0} != {1}".format(sc, scs[0]))
 
+            # get the frame attributes from the first one, because from above we
+            # know it matches all the others
+            for fattrnm in FRAME_ATTR_NAMES_SET():
                 valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
 
             # Now combine the values, to be used below

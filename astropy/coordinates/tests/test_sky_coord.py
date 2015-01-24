@@ -1073,3 +1073,30 @@ def test_nd_skycoord_to_string():
     ts = c.to_string()
     assert np.all(ts.shape == c.shape)
     assert np.all(ts == u'1 1')
+
+
+def test_equiv_skycoord():
+    sci1 = SkyCoord(1*u.deg, 2*u.deg, frame='icrs')
+    sci2 = SkyCoord(1*u.deg, 3*u.deg, frame='icrs')
+    assert sci1.is_equivalent_frame(sci1)
+    assert sci1.is_equivalent_frame(sci2)
+
+    assert sci1.is_equivalent_frame(ICRS())
+    assert not sci1.is_equivalent_frame(FK5())
+    with pytest.raises(TypeError):
+        sci1.is_equivalent_frame(10)
+
+    scf1 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5')
+    scf2 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5', equinox='J2005')
+    #obstime is *not* an FK5 attribute, but we still want scf1 and scf3 to come
+    #to come out different because they're part of SkyCoord
+    scf3 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5', obstime='J2005')
+
+    assert scf1.is_equivalent_frame(scf1)
+    assert not scf1.is_equivalent_frame(sci1)
+    assert scf1.is_equivalent_frame(FK5())
+
+    assert not scf1.is_equivalent_frame(scf2)
+    assert scf2.is_equivalent_frame(FK5(equinox='J2005'))
+    assert not scf3.is_equivalent_frame(scf1)
+    assert not scf3.is_equivalent_frame(FK5(equinox='J2005'))
