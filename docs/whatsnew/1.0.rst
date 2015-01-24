@@ -47,7 +47,27 @@ To view the full set of coordinate frames now available, see the coordinates
 New Galactocentric coordinate frame
 -----------------------------------
 
+Added a new, customizable :class:`~astropy.coordinates.Galactocentric`
+coordinate frame. The other coordinate frames (e.g.,
+:class:`~astropy.coordinates.ICRS`, :class:`~astropy.coordinates.Galactic`)
+are all Heliocentric (or barycentric). The center of this new coordinate frame
+is at the center of the Galaxy, with customizable parameters allowing the user
+to specify the distance to the Galactic center (``galcen_distance``), the
+ICRS position of the Galactic center (``galcen_ra``, ``galcen_dec``), the
+height of the Sun above the Galactic midplane (``z_sun``), and a final roll
+angle that allows for specifying the orientation of the z axis (``roll``)::
 
+    >>> from astropy import units as u
+    >>> from astropy.coordinates import SkyCoord, Galactocentric
+    >>> c = SkyCoord(ra=152.718 * u.degree,
+    ...              dec=-11.214 * u.degree,
+    ...              distance=21.5 * u.kpc)
+    >>> c.transform_to(Galactocentric)
+    <SkyCoord (Galactocentric: galcen_distance=8.3 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=27.0 pc, roll=0.0 deg): (x, y, z) in kpc
+        (-13.6512648452, -16.6847348677, 12.4862582821)>
+    >>> c.transform_to(Galactocentric(galcen_distance=8*u.kpc, z_sun=15*u.pc))
+    <SkyCoord (Galactocentric: galcen_distance=8.0 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=15.0 pc, roll=0.0 deg): (x, y, z) in kpc
+        (-13.368458678, -16.6847348677, 12.466872262)>
 
 New :ref:`astropy-visualization` subpackage
 -------------------------------------------
