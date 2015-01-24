@@ -12,7 +12,12 @@ environment:
                         # to the matrix section.
 
   matrix:
-      - PYTHON_VERSION: "2.7"
+
+      # We test Python 2.6 and 3.4 because 2.6 is most likely to have issues in
+      # Python 2 (if 2.6 passes, 2.7 virtually always passes) and Python 3.4 is
+      # the latest Python 3 release.
+
+      - PYTHON_VERSION: "2.6"
         NUMPY_VERSION: "1.9.1"
 
       - PYTHON_VERSION: "3.4"
