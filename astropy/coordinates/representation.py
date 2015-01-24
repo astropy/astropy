@@ -165,19 +165,20 @@ class BaseRepresentation(object):
             v = self._values
 
         fstyle = lambda x: str(x)
-        if len(self._values.dtype.names) == 2:
+        names = self._values.dtype.names
+        if len(names) == 2:
             fmt = {'numpystr' : lambda x: "(" + \
-                                            np.array2string(x['lon'], style=fstyle) + \
+                                            np.array2string(x[names[0]], style=fstyle) + \
                                             ', ' + \
-                                            np.array2string(x['lat'], style=fstyle) + \
+                                            np.array2string(x[names[1]], style=fstyle) + \
                                             ")"}
         else:
             fmt = {'numpystr' : lambda x: "(" + \
-                                            np.array2string(x['lon'], style=fstyle) + \
+                                            np.array2string(x[names[0]], style=fstyle) + \
                                             ', ' + \
-                                            np.array2string(x['lat'], style=fstyle) + \
+                                            np.array2string(x[names[1]], style=fstyle) + \
                                             ', ' + \
-                                            np.array2string(x['distance'], style=fstyle) + \
+                                            np.array2string(x[names[2]], style=fstyle) + \
                                             ")"}
 
         arrstr = np.array2string(v, formatter=fmt,
