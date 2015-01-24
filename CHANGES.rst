@@ -483,6 +483,11 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
+- ``astropy.logger``
+
+  - Fix a bug that occured when displaying warnings that produced an error
+    message ``dictionary changed size during iteration``. [#3353]
+
 - ``astropy.modeling``
 
 - ``astropy.nddata``
