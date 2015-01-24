@@ -203,6 +203,8 @@ but the fast C-based writers are not available.  Instead the legacy pure-Python
 writers will be used.
 
 
+.. _mixin_protocol:
+
 Mixin protocol
 ^^^^^^^^^^^^^^
 
