@@ -1,10 +1,8 @@
+.. _coordinates-galactocentric:
+
 ==========================================
 Transforming to Galactocentric coordinates
 ==========================================
-
-.. role:: math(raw)
-   :format: html latex
-..
 
 [sec:transform]
 
