@@ -1083,7 +1083,8 @@ def test_equiv_skycoord():
 
     assert sci1.is_equivalent_frame(ICRS())
     assert not sci1.is_equivalent_frame(FK5())
-    assert not sci1.is_equivalent_frame(10)
+    with pytest.raises(TypeError):
+        sci1.is_equivalent_frame(10)
 
     scf1 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5')
     scf2 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5', equinox='J2005')

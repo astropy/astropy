@@ -539,12 +539,17 @@ def test_eloc_attributes():
 
 
 def test_equivalent_frames():
+    from .. import SkyCoord
     from ..builtin_frames import ICRS, FK4, FK5, AltAz
 
     i = ICRS()
     i2 = ICRS(1*u.deg, 2*u.deg)
     assert i.is_equivalent_frame(i)
     assert i.is_equivalent_frame(i2)
+    with pytest.raises(TypeError):
+        assert i.is_equivalent_frame(10)
+    with pytest.raises(TypeError):
+        assert i2.is_equivalent_frame(SkyCoord(i2))
 
     f1 = FK5()
     f2 = FK5(1*u.deg, 2*u.deg, equinox='J2000')
