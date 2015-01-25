@@ -4,7 +4,9 @@
 Transforming to Galactocentric coordinates
 ==========================================
 
-[sec:transform]
+This document describes the mathematics behind the transformation from
+:class:`astropy.coordinates.ICRS` to `~astropy.coordinates.Galactocentric`
+coordinates.
 
 We assume that we start with a 3D position in the ICRS reference frame:
 a Right Ascension, Declination, and heliocentric distance,
@@ -47,9 +49,10 @@ The transformation thus far has aligned the :math:`x'` axis with the
 vector pointing from the Sun to the GC, but the :math:`y'` and
 :math:`z'` axes point in an arbitrary direction. We adopt the
 orientation of the Galactic plane as the normal to the north pole of
-Galactic coordinates defined by the IAU (Blaauw et. al. 1960). This
-extra “roll” angle, :math:`\eta`, was measured by transforming a grid of
-points along :math:`l=0` to this interim frame and minimizing the square
+Galactic coordinates defined by the IAU
+(`Blaauw et. al. 1960 <http://adsabs.harvard.edu/abs/1960MNRAS.121..164B>`_).
+This extra “roll” angle, :math:`\eta`, was measured by transforming a grid
+of points along :math:`l=0` to this interim frame and minimizing the square
 of their :math:`y'` positions. We find:
 
 .. math::
