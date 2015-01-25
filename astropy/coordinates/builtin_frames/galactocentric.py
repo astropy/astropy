@@ -28,10 +28,10 @@ class Galactocentric(BaseCoordinateFrame):
     The position of the Sun is assumed to be on the x axis of the final,
     right-handed system. That is, the x axis points from the position of
     the Sun projected to the Galactic midplane to the Galactic center --
-    roughly towards ``l,b = (0º,0º)``. For the default transformation
-    (``roll=0º``), the y axis points roughly towards Galactic longitude
-    ``l=90º``, and the z axis points roughly towards the North Galactic
-    Pole (``b=90º``).
+    roughly towards :math:`l,b = (0^\circ,0^\circ)``. For the default
+    transformation (:math:`roll=0^\circ`), the y axis points roughly
+    towards Galactic longitude :math:`l=90^\circ`, and the z axis points
+    roughly towards the North Galactic Pole (:math:`b=90^\circ`).
 
     The default position of the Galactic Center in ICRS coordinates is
     taken from Reid et al. 2004,
