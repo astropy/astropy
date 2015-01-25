@@ -20,7 +20,7 @@ from .icrs import ICRS
 ROLL0 = Angle(58.5986320306*u.degree)
 
 class Galactocentric(BaseCoordinateFrame):
-    """
+    r"""
     A coordinate or frame in the Galactocentric system. This frame
     requires specifying the Sun-Galactic center distance, and optionally
     the height of the Sun above the Galactic midplane.
@@ -28,8 +28,8 @@ class Galactocentric(BaseCoordinateFrame):
     The position of the Sun is assumed to be on the x axis of the final,
     right-handed system. That is, the x axis points from the position of
     the Sun projected to the Galactic midplane to the Galactic center --
-    roughly towards :math:`l,b = (0^\circ,0^\circ)``. For the default
-    transformation (:math:`roll=0^\circ`), the y axis points roughly
+    roughly towards :math:`(l,b) = (0^\circ,0^\circ)`. For the default
+    transformation (:math:`{\rm roll}=0^\circ`), the y axis points roughly
     towards Galactic longitude :math:`l=90^\circ`, and the z axis points
     roughly towards the North Galactic Pole (:math:`b=90^\circ`).
 
@@ -37,8 +37,10 @@ class Galactocentric(BaseCoordinateFrame):
     taken from Reid et al. 2004,
     http://adsabs.harvard.edu/abs/2004ApJ...616..872R.
 
-        RA = 17:45:37.224 (hours)
-        Dec = -28:56:10.23 (degrees)
+    .. math::
+
+        {\rm RA} = 17:45:37.224~{\rm hr}\\
+        {\rm Dec} = -28:56:10.23~{\rm deg}
 
     The default distance to the Galactic Center is 8.3 kpc, e.g.,
     Gillessen et al. 2009,
