@@ -16,7 +16,7 @@ from . import core
 
 class SExtractorHeader(core.BaseHeader):
     """Read the header from a file produced by SExtractor."""
-    comment = r'^\s*#\s*\S\D.*'  # Find lines that dont have "# digit"
+    comment = r'^\s*#\s*\S\D.*'  # Find lines that don't have "# digit"
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a SExtractor

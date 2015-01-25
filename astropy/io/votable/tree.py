@@ -1784,7 +1784,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
     It contains the following publicly-accessible members:
 
-      *ref*: An XML ID refering to a <PARAM> element.
+      *ref*: An XML ID referring to a <PARAM> element.
     """
     _attr_list_11 = ['ref']
     _attr_list_12 = _attr_list_11 + ['ucd', 'utype']

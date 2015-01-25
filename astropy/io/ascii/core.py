@@ -818,7 +818,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
     :param table: input table (Reader object, NumPy struct array, list of lists, etc)
     :param names: list of names to override those in table (default=None uses existing names)
     :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param exclude_names: list of names to exclude from output (applied after ``include_names``)
     """
 
     if names is not None:

@@ -342,7 +342,7 @@ class W03(VOTableChangeWarning):
     <http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html#sec:name>`__
     """
 
-    message_template = "Implictly generating an ID from a name '%s' -> '%s'"
+    message_template = "Implicitly generating an ID from a name '%s' -> '%s'"
     default_args = ('x', 'y')
 
 

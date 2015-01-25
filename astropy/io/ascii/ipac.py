@@ -236,7 +236,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         for name in namelist:
             m = re.match('\w+', name)
             if m.end() != len(name):
-                raise IpacFormatE('{0} - Only alphanumaric characters and _ '
+                raise IpacFormatE('{0} - Only alphanumeric characters and _ '
                                   'are allowed in column names.'.format(name))
             if self.DBMS and not(name[0].isalpha() or (name[0] == '_')):
                 raise IpacFormatE('Column name cannot start with numbers: {}'.format(name))
@@ -278,7 +278,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 nullist.append((format_func(col_format, null)).strip())
             except:
                 # It is possible that null and the column values have different
-                # data types (e.g. number und null = 'null' (i.e. a string).
+                # data types (e.g. number and null = 'null' (i.e. a string).
                 # This could cause all kinds of exceptions, so a catch all
                 # block is needed here
                 nullist.append(str(null).strip())
@@ -409,9 +409,9 @@ class Ipac(basic.Basic):
           * 'left' - Character is associated with the column to the left
 
     DBMS : bool, optional
-        If true, this varifies that written tables adhere (semantically)
+        If true, this verifies that written tables adhere (semantically)
         to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
-        definiton of IPAC tables. If 'False' it only checks for the (less strict)
+        definition of IPAC tables. If 'False' it only checks for the (less strict)
         `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
     """

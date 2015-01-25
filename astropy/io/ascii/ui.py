@@ -60,10 +60,10 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     :param header_Splitter: Splitter class to split header columns
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default= ``None`` selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param exclude_names: list of names to exclude from output (applied after ``include_names``)
     :param fill_values: specification of fill values for bad or missing table values
     :param fill_include_names: list of names to include in fill_values (default= ``None`` selects all names)
-    :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
+    :param fill_exclude_names: list of names to exclude from fill_values (applied after ``fill_include_names``)
     """
     # This function is a light wrapper around core._get_reader to provide a public interface
     # with a default Reader.
@@ -107,10 +107,10 @@ def read(table, guess=None, **kwargs):
     :param header_Splitter: Splitter class to split header columns
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default= ``None`` selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param exclude_names: list of names to exclude from output (applied after ``include_names``)
     :param fill_values: specification of fill values for bad or missing table values (default= ``('', '0')``)
     :param fill_include_names: list of names to include in fill_values (default=None selects all names)
-    :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
+    :param fill_exclude_names: list of names to exclude from fill_values (applied after ``fill_include_names``)
     :param fast_reader: whether to use the C engine, can also be a dict with options which default to False (default= ``True``)
     :param Reader: Reader class (DEPRECATED) (default= :class:`Basic`)
     """
@@ -302,7 +302,7 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     :param strip_whitespace: strip surrounding whitespace from column values (default= ``True``)
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default= ``None`` selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param exclude_names: list of names to exclude from output (applied after ``include_names``)
     :param fast_writer: whether to use the fast Cython writer (default= ``True``)
     """
     if Writer is None:
@@ -327,7 +327,7 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
     :param strip_whitespace: strip surrounding whitespace from column values (default= ``True``)
     :param names: list of names corresponding to each data column
     :param include_names: list of names to include in output (default= ``None`` selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    :param exclude_names: list of names to exclude from output (applied after ``include_names``)
     :param fast_writer: whether to use the fast Cython writer (default= ``True``)
     :param Writer: Writer class (DEPRECATED) (default= :class:`Basic`)
     """
