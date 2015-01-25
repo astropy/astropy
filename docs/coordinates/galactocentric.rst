@@ -5,8 +5,10 @@ Transforming to Galactocentric coordinates
 ==========================================
 
 This document describes the mathematics behind the transformation from
-:class:`astropy.coordinates.ICRS` to `~astropy.coordinates.Galactocentric`
-coordinates.
+:class:`~astropy.coordinates.ICRS` to `~astropy.coordinates.Galactocentric`
+coordinates. For examples of how to use this transformation in code, see
+the _Examples_ section of the
+`~astropy.coordinates.Galactocentric` class documentation.
 
 We assume that we start with a 3D position in the ICRS reference frame:
 a Right Ascension, Declination, and heliocentric distance,
