@@ -328,6 +328,14 @@ API Changes
     signature, so these methods should only be overridden by ``Model``
     subclasses in order to provide new functionality. [#2835]
 
+  - Most models included in Astropy now have sensible default values for most
+    or all of their parameters.  Call ``help(ModelClass)`` on any model to
+    check what those defaults are.  Most of them time they should be
+    overridden, but some of them are useful (for example spatial offsets are
+    always set at the origin by default). Another rule of thumb is that, where
+    possible, default parameters are set so that the model is a no-op, or
+    close to it, by default. [#2932]
+
   - The ``Model.inverse`` method has been changed to a *property*, so that
     now accessing ``model.inverse`` on a model returns a new model that
     implements that model's inverse, and *calling* ``model.inverse(...)``` on
