@@ -13,10 +13,10 @@ from numpy import char as chararray
 
 from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
-                     _wrapx, _unwrapx, _makep, _convert_ascii_format, Delayed)
+                     _wrapx, _unwrapx, _makep, Delayed)
 from .util import decode_ascii, encode_ascii
 from ...extern.six import string_types
-from ...extern.six.moves import xrange, map
+from ...extern.six.moves import xrange
 from ...utils import lazyproperty
 from ...utils.compat import ignored
 from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning

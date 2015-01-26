@@ -17,7 +17,7 @@ from numpy import memmap as Memmap
 
 from .util import (isreadable, iswritable, isfile, fileobj_open, fileobj_name,
                    fileobj_closed, fileobj_mode, _array_from_file,
-                   _array_to_file, _write_string, encode_ascii)
+                   _array_to_file, _write_string)
 from ...extern.six import b, string_types
 from ...extern.six.moves import urllib
 from ...utils.exceptions import AstropyUserWarning

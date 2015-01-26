@@ -192,7 +192,7 @@ class Latex(core.BaseReader):
                             latexdict = {'tabletype': 'table*'})
 
         * tablealign : positioning of table in text.
-            The default is not to specifiy a position preference in the text.
+            The default is not to specify a position preference in the text.
             If, e.g. the alignment is ``ht``, then the LaTeX will be ``\\begin{table}[ht]``.
 
         * col_align : Alignment of columns

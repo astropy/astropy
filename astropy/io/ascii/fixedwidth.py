@@ -11,7 +11,7 @@ fixedwidth.py:
 from __future__ import absolute_import, division, print_function
 
 from ...extern.six.moves import zip
-from ...table.column import col_iter_str_vals, col_getattr
+from ...table.column import col_getattr
 
 from . import core
 from .core import InconsistentTableError, DefaultSplitter
@@ -138,7 +138,7 @@ class FixedWidthHeader(basic.BasicHeader):
                 if len(set(line) - set([self.splitter.delimiter, ' '])) != 1:
                     raise InconsistentTableError('Position line should only contain delimiters and one other character, e.g. "--- ------- ---".')
                     # The line above lies. It accepts white space as well.
-                    # We don't wnat to encourage using three different
+                    # We don't want to encourage using three different
                     # characters, because that can cause ambiguities, but white
                     # spaces are so common everywhere that practicality beats
                     # purity here.

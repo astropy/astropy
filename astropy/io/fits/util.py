@@ -106,7 +106,7 @@ def ignore_sigint(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         # Get the name of the current thread and determine if this is a single
-        # treaded application
+        # threaded application
         curr_thread = threading.currentThread()
         single_thread = (threading.activeCount() == 1 and
                          curr_thread.getName() == 'MainThread')
@@ -621,7 +621,7 @@ def _array_from_file(infile, dtype, count, sep):
     else:
         # treat as file-like object with "read" method; this includes gzip file
         # objects, because numpy.fromfile just reads the compressed bytes from
-        # their underlying file object, instead of the decompresed bytes
+        # their underlying file object, instead of the decompressed bytes
         read_size = np.dtype(dtype).itemsize * count
         s = infile.read(read_size)
         return np.fromstring(s, dtype=dtype, count=count, sep=sep)
@@ -655,7 +655,7 @@ def _array_to_file(arr, outfile):
 
     # Implements a workaround for a bug deep in OSX's stdlib file writing
     # functions; on 64-bit OSX it is not possible to correctly write a number
-    # of bytes greater than 2 ** 32 and divisble by 4096 (or possibly 8192--
+    # of bytes greater than 2 ** 32 and divisible by 4096 (or possibly 8192--
     # whatever the default blocksize for the filesystem is).
     # This issue should have a workaround in Numpy too, but hasn't been
     # implemented there yet: https://github.com/astropy/astropy/issues/839
@@ -689,9 +689,9 @@ def _array_to_file_like(arr, fileobj):
     """
 
     if arr.flags.contiguous:
-        # It sufficies to just pass the underlying buffer directly to the
+        # It suffices to just pass the underlying buffer directly to the
         # fileobj's write (assuming it supports the buffer interface, which
-        # unforunately there's no simple way to check)
+        # unfortunately there's no simple way to check)
         fileobj.write(arr.data)
     elif hasattr(np, 'nditer'):
         # nditer version for non-contiguous arrays

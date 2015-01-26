@@ -1769,7 +1769,7 @@ class _CompoundModelMeta(_ModelMeta):
 
             for param_name in model.param_names:
                 # This is sort of heuristic, but we want to check that
-                # model.param_name *actually* returns a Paramter descriptor,
+                # model.param_name *actually* returns a Parameter descriptor,
                 # and that the model isn't some inconsistent type that happens
                 # to have a param_names attribute but does not actually
                 # implement settable parameters.

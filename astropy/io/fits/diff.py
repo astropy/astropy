@@ -29,7 +29,7 @@ from ...utils import indent
 from .card import Card, BLANK_CARD
 from .header import Header
 # HDUList is used in one of the doctests
-from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
+from .hdu.hdulist import fitsopen  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
 
 
@@ -93,7 +93,7 @@ class _BaseDiff(object):
     @classmethod
     def fromdiff(cls, other, a, b):
         """
-        Returns a new Diff object of a specfic subclass from an existing diff
+        Returns a new Diff object of a specific subclass from an existing diff
         object, passing on the values for any arguments they share in common
         (such as ignore_keywords).
 
@@ -237,7 +237,7 @@ class FITSDiff(_BaseDiff):
             differences.  Though the count of differences is the same either
             way, this allows controlling the number of different values that
             are kept in memory or output.  If a negative value is given, then
-            numdifs is treated as unlimited (default: 10).
+            numdiffs is treated as unlimited (default: 10).
 
         tolerance : float, optional
             The relative difference to allow when comparing two float values
@@ -947,7 +947,7 @@ class TableDataDiff(_BaseDiff):
       objects.
 
     - ``diff_column_attributes``: Lists columns that are in both tables but
-      have different secondard attributes, such as TUNIT or TDISP.  The format
+      have different secondary attributes, such as TUNIT or TDISP.  The format
       is a list of 2-tuples: The first a tuple of the column name and the
       attribute, the second a tuple of the different values.
 

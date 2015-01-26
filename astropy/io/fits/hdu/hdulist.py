@@ -78,7 +78,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
 
         - **disable_image_compression** : bool
 
-            If `True`, treates compressed image HDU's like normal
+            If `True`, treats compressed image HDU's like normal
             binary table HDU's.
 
         - **do_not_scale_image_data** : bool
@@ -946,7 +946,7 @@ class HDUList(list, _Verify):
 
         if not self.__file.file_like:
             old_mode = os.stat(old_name).st_mode
-            # The underlying file is an acutal file object.  The HDUList is
+            # The underlying file is an actual file object.  The HDUList is
             # resized, so we need to write it to a tmp file, delete the
             # original file, and rename the tmp file to the original file.
             if self.__file.compression == 'gzip':

@@ -543,7 +543,7 @@ class SkyCoord(object):
             raise TypeError("Tried to do is_equivalent_frame on something that "
                             "isn't frame-like")
 
-    # High-level convinience methods
+    # High-level convenience methods
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.

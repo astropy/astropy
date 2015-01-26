@@ -13,8 +13,6 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-import numpy as np
-
 from . import core
 from ...table.column import col_getattr
 
@@ -214,7 +212,7 @@ class Csv(Basic):
       2,38.12321,-88.1321,2.2,17.0
 
     Plain csv (comma separated value) files typically contain as many entries
-    as there are columns on each line. In contrast, common spreadsheed editors
+    as there are columns on each line. In contrast, common spreadsheet editors
     stop writing if all remaining cells on a line are empty, which can lead to
     lines where the rightmost entries are missing. This Reader can deal with
     such files.

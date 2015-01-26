@@ -11,7 +11,6 @@ from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import conf
 from ...extern.six import string_types, integer_types, text_type, binary_type
-from ...extern.six.moves import xrange
 from ...utils import deprecated
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
@@ -501,7 +500,7 @@ class Card(_Verify):
             elif self._keywd_hierarch_RE.match(keyword):
                 # In prior versions of PyFITS HIERARCH cards would only be
                 # created if the user-supplied keyword explicitly started with
-                # 'HIERARCH '.  Now we will create them automtically for long
+                # 'HIERARCH '.  Now we will create them automatically for long
                 # keywords, but we still want to support the old behavior too;
                 # the old behavior makes it possible to create HEIRARCH cards
                 # that would otherwise be recognized as RVKCs
@@ -855,7 +854,7 @@ class Card(_Verify):
         If one argument is given, that argument is treated as a full card image
         and parsed as such.  If two arguments are given, the first is treated
         as the card keyword (including the field-specifier if the card is
-        intened as a RVKC), and the second as the card value OR the first value
+        intended as a RVKC), and the second as the card value OR the first value
         can be the base keyword, and the second value the 'field-specifier:
         value' string.
 
@@ -901,7 +900,7 @@ class Card(_Verify):
     def _check_if_rvkc_image(self, *args):
         """
         Implements `Card._check_if_rvkc` for the case of an unparsed card
-        image.  If given one argment this is the full intact image.  If given
+        image.  If given one argument this is the full intact image.  If given
         two arguments the card has already been split between keyword and
         value+comment at the standard value indicator '= '.
         """
