@@ -11,6 +11,11 @@ __all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'overlap_slices']
 
 
+class NoOverlapError(ValueError):
+    '''Raised when determining the overlap of non-overlapping arrays.'''
+    pass
+
+
 def overlap_slices(large_array_shape, small_array_shape, position):
     """
     Get slices for the overlapping part of a small and a large array.
@@ -27,9 +32,12 @@ def overlap_slices(large_array_shape, small_array_shape, position):
         Shape of the large array.
     small_array_shape : tuple
         Shape of the small array.
-    position : tuple
+    position : tuple of integers
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
+        When determining the center for a coordinate with an even number of
+        elements, the position is rounded up. So the coordinates of the
+        center of an array with shape=(2,3) will be (0,1).
 
     Returns
     -------
@@ -42,11 +50,24 @@ def overlap_slices(large_array_shape, small_array_shape, position):
         ``small_array[slices_small]`` extracts the region that is inside the
         large array.
     """
+    if len(small_array_shape) != len(large_array_shape):
+        raise ValueError("Both arrays must have the same number of dimensions.")
+
+    if len(small_array_shape) != len(position):
+        raise ValueError("Position must have the same number of dimensions as array.")
+
     # Get edge coordinates
-    edges_min = [int(pos + 0.5 - small_shape / 2.) for (pos, small_shape) in
-                 zip(position, small_array_shape)]
-    edges_max = [int(pos + 0.5 + small_shape / 2.) for (pos, small_shape) in
-                 zip(position, small_array_shape)]
+    edges_min = [int(np.floor(pos + 1 - small_shape / 2.))
+                 for (pos, small_shape) in zip(position, small_array_shape)]
+    edges_max = [int(np.floor(pos + 1 + small_shape / 2.))
+                 for (pos, small_shape) in zip(position, small_array_shape)]
+
+    for e_max in edges_max:
+        if e_max <= 0:
+            raise NoOverlapError('Arrays do not overlap.')
+    for e_min, large_shape in zip(edges_min, large_array_shape):
+        if e_min >= large_shape:
+            raise NoOverlapError('Arrays do not overlap.')
 
     # Set up slices
     slices_large = tuple(slice(max(0, edge_min), min(large_shape, edge_max))
@@ -76,8 +97,9 @@ def extract_array(array_large, shape, position):
 
     Returns
     -------
-    array_small : `~numpy.ndarray`
-        The extracted array
+    array_small : `~numpy.ma.ndarray`
+        The extracted array. Values that do not overlap with ``array_large``
+        are masked.
 
     Examples
     --------
@@ -89,17 +111,23 @@ def extract_array(array_large, shape, position):
     >>> large_array = np.arange(110).reshape((11, 10))
     >>> large_array[4:9, 4:9] = np.ones((5, 5))
     >>> extract_array(large_array, (3, 5), (7, 7))
-    array([[ 1,  1,  1,  1, 69],
-           [ 1,  1,  1,  1, 79],
-           [ 1,  1,  1,  1, 89]])
+    masked_array(data =
+     [[1 1 1 1 69]
+     [1 1 1 1 79]
+     [1 1 1 1 89]],
+                 mask =
+     [[False False False False False]
+     [False False False False False]
+     [False False False False False]],
+           fill_value = 999999)
+
     """
-    # Check if larger array is really larger
-    if all(large_shape > small_shape for (large_shape, small_shape)
-           in zip(array_large.shape, shape)):
-        large_slices, _ = overlap_slices(array_large.shape, shape, position)
-        return array_large[large_slices]
-    else:
-        raise ValueError("Can't extract array. Shape too large.")
+    large_slices, small_slices = overlap_slices(array_large.shape,
+                                                shape, position)
+    extracted_array = np.ma.zeros(shape, dtype=array_large.dtype)
+    extracted_array.mask = np.ma.masked
+    extracted_array[small_slices] = array_large[large_slices]
+    return extracted_array
 
 
 def add_array(array_large, array_small, position):
