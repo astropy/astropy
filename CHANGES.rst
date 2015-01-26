@@ -546,6 +546,8 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - ``astropy.wcs.WCS.sub`` now accepts unicode strings as input on
+    Python 2.x [#3356]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -753,6 +753,15 @@ def test_wcs_sub_error_message():
     assert str(e).endswith("axes must None, a sequence or an integer")
 
 
+def test_wcs_sub():
+    # Issue #3356
+    w = _wcs.Wcsprm()
+    w.sub(['latitude'])
+
+    w = _wcs.Wcsprm()
+    w.sub([b'latitude'])
+
+
 def test_compare():
     header = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
     w = _wcs.Wcsprm(header)
