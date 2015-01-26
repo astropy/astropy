@@ -1,4 +1,5 @@
 .. include:: links.inc
+.. _modeling-instantiating:
 
 ***********************************
 Instantiating and Evaluating Models
@@ -63,6 +64,7 @@ error::
     with parameter 'stddev' of shape (3,).  All parameter arrays must have
     shapes that are mutually compatible according to the broadcasting rules.
 
+.. _modeling-model-sets:
 
 Model Sets
 ==========

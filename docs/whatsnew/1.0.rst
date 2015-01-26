@@ -149,7 +149,38 @@ For full details including extensive performance testing, see :ref:`fast_ascii_i
 New features in :ref:`astropy-modeling`
 ---------------------------------------
 
-.. Compound models and other changes
+New subclasses of `~astropy.modeling.Model` are now a bit easier to define,
+requiring less boilerplate code in general.  Now all that is necessary to
+define a new model class is an `~astropy.modeling.Model.evaluate` method that
+computes the model.  Optionally one can define :ref:`fittable parameters
+<modeling-parameters>`, a `~astropy.modeling.FittableModel.fit_deriv`, and/or
+an `~astropy.modeling.Model.inverse`.  The new, improved
+`~astropy.modeling.custom_model` decorator reduces to boilerplate needed for
+many models even more.  See :ref:`modeling-new-classes` for more details.
+
+Array broadcasting has also been improved, enabling a broader range of
+possibilities for the values of model parameters and inputs.  Support has also
+been improved for :ref:`modeling-model-sets` (previously referred to as
+parameter sets) which can be thought of like an array of models of the same
+class, each with different sets of parameters, which can be fitted
+simultaneously either to the same data, or to different data sets per model.
+See :ref:`modeling-instantiating` for more details.
+
+It is now possible to create *compound* models by combining existing models
+using the standard arithmetic operators such as ``+`` and ``*``, as well as
+functional composition using the ``|`` operator.  This provides a powerful
+and flexible new way to create more complex models without having to define
+any special classes or functions.  For example::
+
+    >>> from astropy.modeling.models import Gaussian1D
+    >>> gaussian1 = Gaussian1D(1, 0, 0.2)
+    >>> gaussian2 = Gaussian1D(2.5, 0.5, 0.1)
+    >>> sum_of_gaussians = gaussian1 + gaussian2
+
+The resulting model works like any other model, and also works with the
+fitting framework.  See the
+:ref:`introduction to compound models <compound-models-intro>` and full
+:ref:`compound models documentation <compound-models>` for more examples.
 
 Support for 'mixin' columns in :ref:`astropy-table`
 ---------------------------------------------------

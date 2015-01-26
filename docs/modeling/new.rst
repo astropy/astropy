@@ -1,3 +1,5 @@
+.. _modeling-new-classes:
+
 Defining New Model Classes
 ==========================
 
