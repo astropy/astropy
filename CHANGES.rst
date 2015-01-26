@@ -495,6 +495,11 @@ Bug Fixes
 
 - ``astropy.io.votable``
 
+- ``astropy.logger``
+
+  - Fix a bug that occured when displaying warnings that produced an error
+    message ``dictionary changed size during iteration``. [#3353]
+
 - ``astropy.modeling``
 
   - Fixed a bug in ``SLSQPLSQFitter`` where the ``maxiter`` argument was not
