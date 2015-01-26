@@ -22,7 +22,8 @@ from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning
 
 
-def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
+def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
+             cache=True, **kwargs):
     """Factory function to open a FITS file and return an `HDUList` object.
 
     Parameters
@@ -30,7 +31,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
     name : file path, file object or file-like object
         File to be opened.
 
-    mode : str
+    mode : str, optional
         Open mode, 'readonly' (default), 'update', 'append', 'denywrite', or
         'ostream'.
 
@@ -38,17 +39,22 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
         match the mode the file was opened with, readonly (rb), update (rb+),
         append (ab+), ostream (w), denywrite (rb)).
 
-    memmap : bool
+    memmap : bool, optional
         Is memory mapping to be used?
 
-    save_backup : bool
+    save_backup : bool, optional
         If the file was opened in update or append mode, this ensures that a
         backup of the original file is saved before any changes are flushed.
         The backup has the same name as the original file with ".bak" appended.
         If "file.bak" already exists then "file.bak.1" is used, and so on.
 
-    kwargs : dict
-        optional keyword arguments, possible values are:
+    cache : bool, optional
+        If the file name is a URL, `~astropy.utils.data.download_file` is used
+        to open the file.  This specifies whether or not to save the file
+        locally in Astropy's download cache (default: `True`).
+
+    kwargs : dict, optional
+        additional optional keyword arguments, possible values are:
 
         - **uint** : bool
 
@@ -120,7 +126,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False, **kwargs):
     if not name:
         raise ValueError('Empty filename: %s' % repr(name))
 
-    return HDUList.fromfile(name, mode, memmap, save_backup, **kwargs)
+    return HDUList.fromfile(name, mode, memmap, save_backup, cache, **kwargs)
 
 
 class HDUList(list, _Verify):
@@ -252,7 +258,7 @@ class HDUList(list, _Verify):
 
     @classmethod
     def fromfile(cls, fileobj, mode=None, memmap=None,
-                 save_backup=False, **kwargs):
+                 save_backup=False, cache=True, **kwargs):
         """
         Creates an `HDUList` instance from a file-like object.
 
@@ -262,7 +268,7 @@ class HDUList(list, _Verify):
         """
 
         return cls._readfrom(fileobj=fileobj, mode=mode, memmap=memmap,
-                             save_backup=save_backup, **kwargs)
+                             save_backup=save_backup, cache=cache, **kwargs)
 
     @classmethod
     def fromstring(cls, data, **kwargs):
@@ -769,7 +775,7 @@ class HDUList(list, _Verify):
 
     @classmethod
     def _readfrom(cls, fileobj=None, data=None, mode=None,
-                  memmap=None, save_backup=False, **kwargs):
+                  memmap=None, save_backup=False, cache=True, **kwargs):
         """
         Provides the implementations from HDUList.fromfile and
         HDUList.fromstring, both of which wrap this method, as their
@@ -779,7 +785,7 @@ class HDUList(list, _Verify):
         if fileobj is not None:
             if not isinstance(fileobj, _File):
                 # instantiate a FITS file object (ffo)
-                ffo = _File(fileobj, mode=mode, memmap=memmap)
+                ffo = _File(fileobj, mode=mode, memmap=memmap, cache=cache)
             else:
                 ffo = fileobj
             # The pyfits mode is determined by the _File initializer if the
