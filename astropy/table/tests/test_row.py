@@ -200,3 +200,10 @@ class TestRow():
         else:
             assert t[0].as_void()[0] == {'a': 1}
             assert t[0].as_void()['a'] == {'a': 1}
+
+    def test_bounds_checking(self, table_types):
+        """Row gives index error upon creation for out-of-bounds index"""
+        self._setup(table_types)
+        for ibad in (-5, -4, 3, 4):
+            with pytest.raises(IndexError):
+                self.t[ibad]
