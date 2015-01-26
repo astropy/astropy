@@ -777,16 +777,6 @@ class Model(object):
         params = [getattr(self, name) for name in self.param_names]
         inputs = [np.asanyarray(_input, dtype=float) for _input in inputs]
 
-        scalar_params = all(not param.shape for param in params)
-        scalar_inputs = all(not np.shape(_input) for _input in inputs)
-
-        if n_models == 1 and scalar_params and scalar_inputs:
-            # Simplest case is either a parameterless models (currently I don't
-            # think we have any but they could exist in principle) or a single
-            # model (not a model set) with all scalar parameters and all scalar
-            # inputs
-            return inputs, ()
-
         _validate_input_shapes(inputs, self.inputs, n_models,
                                model_set_axis, self.standard_broadcasting)
 
@@ -2164,8 +2154,13 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
     broadcasts = []
 
     for idx, _input in enumerate(inputs):
-        _input = np.asanyarray(_input, dtype=np.float)
         input_shape = _input.shape
+
+        # Ensure that array scalars are always upgrade to 1-D arrays for the
+        # sake of consistency with how parameters work.  They will be cast back
+        # to scalars at the end
+        if not input_shape:
+            inputs[idx] = _input.reshape((1,))
 
         if not params:
             max_broadcast = input_shape
@@ -2210,13 +2205,6 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
 
 
 def _prepare_outputs_single_model(model, outputs, format_info):
-    if not format_info:
-        # This is the shortcut for models with all scalar inputs/parameters
-        if model.n_outputs == 1:
-            return np.asscalar(outputs[0])
-        else:
-            return tuple(np.asscalar(output) for output in outputs)
-
     broadcasts = format_info[0]
 
     outputs = list(outputs)
@@ -2242,8 +2230,6 @@ def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
     pivots = []
 
     for idx, _input in enumerate(inputs):
-        _input = np.asanyarray(_input, dtype=np.float)
-
         max_param_shape = ()
 
         if n_models > 1 and model_set_axis is not False:
