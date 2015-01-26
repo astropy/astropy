@@ -229,6 +229,13 @@ Full example
 A full example of a LineModel
 -----------------------------
 
+This example demonstrates one other optional feature for model classes, which
+is an *inverse*.  An `~astropy.modeling.Model.inverse` implementation should be
+a `property` that returns a new model instance (not necessarily of the same
+class as the model being inverted) that computes the inverse of that model, so
+that for some model instance with an inverse, ``model.inverse(model(*input)) ==
+input``.
+
 .. code-block:: python
 
     from astropy.modeling import FittableModel, Parameter
@@ -248,6 +255,12 @@ A full example of a LineModel
             d_slope = x
             d_intercept = np.ones_like(x)
             return [d_slope, d_intercept]
+
+        @property
+        def inverse(self):
+            new_slope = self.slope ** -1
+            new_intercept = -self.intercept / self.slope
+            return LineModel(slope=new_slope, intercept=new_intercept)
 
 
 Defining New Fitter Classes
