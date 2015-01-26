@@ -953,23 +953,6 @@ class Table(object):
         elif isinstance(item, tuple):
             self.remove_columns(item)
 
-    def __iter__(self):
-        self._iter_index = 0
-        self._len = len(self)
-        return self
-
-    def __next__(self):
-        """Python 3 iterator"""
-        if self._iter_index < self._len:
-            val = self.Row(self, self._iter_index)
-            self._iter_index += 1
-            return val
-        else:
-            raise StopIteration
-
-    if six.PY2:
-        next = __next__
-
     def field(self, item):
         """Return column[item] for recarray compatibility."""
         return self.columns[item]

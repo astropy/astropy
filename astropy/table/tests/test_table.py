@@ -1353,3 +1353,14 @@ def test_table_deletion():
     gc.collect()
 
     assert the_id in deleted
+
+def test_nested_iteration():
+    """
+    Regression test for issue 3358 where nested iteration over a single table fails.
+    """
+    t = table.Table([[0, 1]], names=['a'])
+    out = []
+    for r1 in t:
+        for r2 in t:
+            out.append((r1['a'], r2['a']))
+    assert out == [(0, 0), (0, 1), (1, 0), (1, 1)]
