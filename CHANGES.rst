@@ -629,8 +629,8 @@ New Features
 
 - ``astropy.wcs``
 
-  - astropy now requires wcslib version 4.23 or later.  The version of
-    wcslib included with astropy has been updated to version 4.23.
+  - astropy now requires wcslib version 4.23.  The version of wcslib
+    included with astropy has been updated to version 4.23.
 
   - Bounds checking is now performed on native spherical
     coordinates.  Any out-of-bounds values will be returned as
@@ -991,8 +991,8 @@ Bug Fixes
 
 - ``astropy.wcs``
 
-  - Astropy now requires wcslib version 4.23 or later.  The version of
-    wcslib included with astropy has been updated to version 4.23.
+  - Astropy now requires wcslib version 4.23.  The version of wcslib
+    included with astropy has been updated to version 4.23.
 
   - Bug fixes in the projection routines: in ``hpxx2s`` [the
     cartesian-to-spherical operation of the ``HPX`` projection]
