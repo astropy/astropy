@@ -201,6 +201,8 @@ New Features
 
 - ``astropy.units``
 
+  - Support for subclasses of UnitSphericalRepresentation has been improved [#3354]
+
   - Support for VOUnit has been updated to be compliant with version
     1.0 of the standard. [#2901]
 
