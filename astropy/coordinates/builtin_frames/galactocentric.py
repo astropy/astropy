@@ -98,25 +98,25 @@ class Galactocentric(BaseCoordinateFrame):
             [(-9.407859235565343, -9.400621883358546, 6.520665737962164),
              (-21.08239383088295, 18.763340128812384, 7.84798134569032)]>
 
-    Similarly, transforming from the Galacotcentric frame to another coordinate frame::
+    Similarly, transforming from the Galactocentric frame to another coordinate frame::
 
-        >>> c = coord.Galactocentric(x=[61.2, 4.5] * u.kpc,
-        ...                          y=[-17.3, 81.52] * u.kpc,
-        ...                          z=[11.5, 24.12] * u.kpc)
+        >>> c = coord.Galactocentric(x=[-8.3, 4.5] * u.kpc,
+        ...                          y=[0., 81.52] * u.kpc,
+        ...                          z=[0.027, 24.12] * u.kpc)
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
-            [(247.8479074769003, -34.608240137320756, 72.5338791511158),
+            [(86.22349058727241, 28.8389413808627, 4.391577882957292e-05),
              (289.6680265194508, 49.88763881149547, 85.96407345372828)]>
 
     Or, with custom specification of the Galactic center::
 
-        >>> c = coord.Galactocentric(x=[61.2, 4.5] * u.kpc,
-        ...                          y=[-17.3, 81.52] * u.kpc,
-        ...                          z=[11.5, 24.12] * u.kpc,
+        >>> c = coord.Galactocentric(x=[-8.0, 4.5] * u.kpc,
+        ...                          y=[0., 81.52] * u.kpc,
+        ...                          z=[21.0, 24120.0] * u.pc,
         ...                          z_sun=21 * u.pc, galcen_distance=8. * u.kpc)
         >>> c.transform_to(coord.ICRS) # doctest: +FLOAT_CMP
         <ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)
-            [(247.79632258754506, -34.6454381202894, 72.24744719603724),
+            [(86.25852490164378, 28.85773187391088, 2.7562547481200286e-05),
              (289.77285254989323, 50.062904565432014, 85.92160096237191)]>
 
     """
