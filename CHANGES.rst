@@ -497,7 +497,7 @@ Bug Fixes
 
 - ``astropy.logger``
 
-  - Fix a bug that occured when displaying warnings that produced an error
+  - Fix a bug that occurred when displaying warnings that produced an error
     message ``dictionary changed size during iteration``. [#3353]
 
 - ``astropy.modeling``
