@@ -947,12 +947,15 @@ class TestFileFunctions(FitsTestCase):
 
         self._test_write_string_bytes_io(io.BytesIO())
 
+    @pytest.mark.skipif(str('sys.platform.startswith("win32")'))
     def test_filename_with_colon(self):
         """
         Test reading and writing a file with a colon in the filename.
 
         Regression test for https://github.com/astropy/astropy/issues/3122
         """
+
+        # Skip on Windows since colons in filenames makes NTFS sad.
 
         filename = 'APEXHET.2014-04-01T15:18:01.000.fits'
         hdu = fits.PrimaryHDU(data=np.arange(10))
