@@ -112,9 +112,12 @@ class _File(object):
         if mode not in PYFITS_MODES:
             raise ValueError("Mode '%s' not recognized" % mode)
 
+        protocols = ['http' , 'https', 'ftp', 'sftp', 'ftps'] # Used for verifying fileobj as URL
+
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
-            len(urllib.parse.urlparse(fileobj).scheme) > 1): # This is an URL.
+            str(urllib.parse.urlparse(fileobj).scheme) in protocols):
+            #The above verifies the given file is an URL by matching the scheme to HTTP(S) and FTP protocols
                 self.name, _ = urllib.request.urlretrieve(fileobj)
         else:
             self.name = fileobj_name(fileobj)

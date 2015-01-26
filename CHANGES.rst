@@ -489,6 +489,8 @@ Bug Fixes
 
   - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
 
+  - Fixes the problem in ``fits.open`` of some filenames with colon (:) in the name being taken as URL instead of file. [#3122]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
