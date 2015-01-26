@@ -4,8 +4,6 @@ which outputs from a source model are mapped to which inputs of a target model.
 """
 
 from .core import Model
-from .functional_models import Shift, Scale
-from .polynomial import Polynomial2D
 
 
 __all__ = ['Mapping', 'Identity']
@@ -18,13 +16,18 @@ class Mapping(Model):
     Parameters
     ----------
     mapping : tuple
-        Integers representing indices of the inputs.
+        A tuple of integers representing indices of the inputs to this model
+        to return and in what order to return them.  See
+        :ref:`compound-model-mappings` for more details.
     n_inputs : int
-        Number of inputs; if None(default) then ``max(mapping)`` + 1 is used.
-    name : str
-        Name for this model.
+        Number of inputs; if `None` (default) then ``max(mapping) + 1`` is
+        used (i.e. the highest input index used in the mapping).
+    name : str, optional
+        A human-friendly name associated with this model instance
+        (particularly useful for identifying the individual components of a
+        compound model).
     meta : dict-like
-        Metadata
+        Free-form metadata to associate with this model.
 
     Raises
     ------
@@ -33,10 +36,12 @@ class Mapping(Model):
 
     Examples
     --------
+
+    >>> from astropy.modeling.models import Polynomial1D, Shift, Mapping
     >>> poly1 = Polynomial2D(1, c0_0=1, c1_0=2, c0_1=3)
     >>> poly2 = Polynomial2D(1, c0_0=1, c1_0=2.4, c0_1=2.1)
     >>> model = (Shift(1) & Shift(2)) | Mapping((0, 1, 0, 1)) | (poly1 & poly2)
-    >>> model(1, 2) # doctest: +FLOAT_CMP
+    >>> model(1, 2)  # doctest: +FLOAT_CMP
     (17.0, 14.2)
     """
 
@@ -53,14 +58,22 @@ class Mapping(Model):
 
     @property
     def inputs(self):
+        """
+        The name(s) of the input variable(s) on which a model is evaluated.
+        """
+
         return self._inputs
 
     @property
     def outputs(self):
+        """The name(s) of the output(s) of the model."""
+
         return self._outputs
 
     @property
     def mapping(self):
+        """Integers representing indices of the inputs."""
+
         return self._mapping
 
     def __repr__(self):
@@ -85,6 +98,16 @@ class Mapping(Model):
 
     @property
     def inverse(self):
+        """
+        A `Mapping` representing the inverse of the current mapping.
+
+        Raises
+        ------
+        `NotImplementedError`
+            An inverse does no exist on mappings that drop some of its inputs
+            (there is then no way to reconstruct the inputs that were dropped).
+        """
+
         try:
             mapping = tuple(self.mapping.index(idx)
                             for idx in range(self.n_inputs))
@@ -109,20 +132,26 @@ class Identity(Mapping):
     Parameters
     ----------
     n_inputs : int
-        Specifies how many of the inputs will be returned.
-    name : str
-        User supplied model name.
+        Specifies the number of inputs this identity model accepts.
+    name : str, optional
+        A human-friendly name associated with this model instance
+        (particularly useful for identifying the individual components of a
+        compound model).
     meta : dict-like
-        Metadata
+        Free-form metadata to associate with this model.
 
     Examples
     --------
-    >>> # Transform (x, y) by a shift in x, followed by scaling the two inputs.
-    >>> model = (Shift(1) & Identity(1)) | Scale(1.2) & Scale(2)
-    >>> model(1,1) # doctest: +FLOAT_CMP
-    (2.4, 2.0)
-    >>> model.inverse(2.4, 2) # doctest: +FLOAT_CMP
-    (1.0, 1.0)
+
+    Transform ``(x, y)`` by a shift in x, followed by scaling the two inputs::
+
+        >>> from astropy.modeling.models import (Polynomial1D, Shift, Scale
+        ...                                      Identity)
+        >>> model = (Shift(1) & Identity(1)) | Scale(1.2) & Scale(2)
+        >>> model(1,1)  # doctest: +FLOAT_CMP
+        (2.4, 2.0)
+        >>> model.inverse(2.4, 2) # doctest: +FLOAT_CMP
+        (1.0, 1.0)
     """
 
     def __init__(self, n_inputs, name=None, meta=None):
@@ -137,4 +166,10 @@ class Identity(Mapping):
 
     @property
     def inverse(self):
+        """
+        The inverse transformation.
+
+        In this case of `Identity`, ``self.inverse is self``.
+        """
+
         return self
