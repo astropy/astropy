@@ -37,7 +37,7 @@ def overlap_slices(large_array_shape, small_array_shape, position):
         Coordinates should be in the same order as the array shape.
         When determining the center for a coordinate with an even number of
         elements, the position is rounded up. So the coordinates of the
-        center of an array with shape=(2,3) will be (0,1).
+        center of an array with shape=(2,3) will be (1,1).
 
     Returns
     -------
@@ -57,9 +57,9 @@ def overlap_slices(large_array_shape, small_array_shape, position):
         raise ValueError("Position must have the same number of dimensions as array.")
 
     # Get edge coordinates
-    edges_min = [int(np.floor(pos + 1 - small_shape / 2.))
+    edges_min = [int(np.floor(pos + 0.5 - small_shape / 2.))
                  for (pos, small_shape) in zip(position, small_array_shape)]
-    edges_max = [int(np.floor(pos + 1 + small_shape / 2.))
+    edges_max = [int(np.floor(pos + 0.5 + small_shape / 2.))
                  for (pos, small_shape) in zip(position, small_array_shape)]
 
     for e_max in edges_max:

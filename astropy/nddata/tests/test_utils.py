@@ -19,7 +19,7 @@ test_slices = [slice(10.52, 3.12), slice(5.62, 12.97),
 
 subsampling = 5
 
-test_pos_bad = [(-2, -4), (-2, 0), (5, 2), (5, 5)]
+test_pos_bad = [(-1, -4), (-1, 0), (6, 2), (6, 6)]
 
 
 def test_slices_different_dim():
@@ -39,7 +39,7 @@ def test_slices_pos_different_dim():
 @pytest.mark.parametrize('pos', test_pos_bad)
 def test_slices_no_overlap(pos):
     with pytest.raises(NoOverlapError):
-        temp = overlap_slices((5,5), (2,2), pos)
+        temp = overlap_slices((5, 5), (2, 2), pos)
 
 
 def test_extract_array_1d_even():
@@ -47,10 +47,10 @@ def test_extract_array_1d_even():
 
     All dimensions are treated the same, so we can test in 1 dim.
     '''
-    assert np.all(extract_array(np.arange(4), (2,), (-1, )) == np.array([np.ma.masked, 0]))
-    for i in [0,1,2]:
-        assert np.all(extract_array(np.arange(4), (2,), (i, )) == np.array([i, i+1]))
-    assert np.all(extract_array(np.arange(4), (2,), (3, )) == np.array([3, np.ma.masked]))
+    assert np.all(extract_array(np.arange(4), (2, ), (0, )) == np.array([np.ma.masked, 0]))
+    for i in [1, 2, 3]:
+        assert np.all(extract_array(np.arange(4), (2, ), (i, )) == np.array([i -1 , i]))
+    assert np.all(extract_array(np.arange(4), (2, ), (4, )) == np.array([3, np.ma.masked]))
 
 def test_extract_array_1d_odd():
     '''Extract 1 d arrays.
