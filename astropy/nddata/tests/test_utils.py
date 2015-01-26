@@ -2,10 +2,10 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
-from numpy.testing import assert_allclose
 
 from ...tests.helper import pytest
-from ..utils import extract_array, add_array, subpixel_indices
+from ..utils import extract_array, add_array, subpixel_indices, \
+                    overlap_slices, NoOverlapError
 
 test_positions = [(10.52, 3.12), (5.62, 12.97), (31.33, 31.77),
                   (0.46, 0.94), (20.45, 12.12), (42.24, 24.42)]
@@ -19,8 +19,53 @@ test_slices = [slice(10.52, 3.12), slice(5.62, 12.97),
 
 subsampling = 5
 
+test_pos_bad = [(-2, -4), (-2, 0), (5, 2), (5, 5)]
 
-def test_extract_array():
+
+def test_slices_different_dim():
+    '''Overlap from arrays with different number of dim is undefined.'''
+    with pytest.raises(ValueError) as e:
+        temp = overlap_slices((4, 5, 6), (1, 2), (0, 0))
+    assert "the same number of dimensions" in str(e.value)
+
+
+def test_slices_pos_different_dim():
+    '''Position must have same dim as arrays.'''
+    with pytest.raises(ValueError) as e:
+        temp = overlap_slices((4, 5), (1, 2), (0, 0, 3))
+    assert "the same number of dimensions" in str(e.value)
+
+
+@pytest.mark.parametrize('pos', test_pos_bad)
+def test_slices_no_overlap(pos):
+    with pytest.raises(NoOverlapError):
+        temp = overlap_slices((5,5), (2,2), pos)
+
+
+def test_extract_array_1d_even():
+    '''Extract 1 d arrays.
+
+    All dimensions are treated the same, so we can test in 1 dim.
+    '''
+    assert np.all(extract_array(np.arange(4), (2,), (-1, )) == np.array([np.ma.masked, 0]))
+    for i in [0,1,2]:
+        assert np.all(extract_array(np.arange(4), (2,), (i, )) == np.array([i, i+1]))
+    assert np.all(extract_array(np.arange(4), (2,), (3, )) == np.array([3, np.ma.masked]))
+
+def test_extract_array_1d_odd():
+    '''Extract 1 d arrays.
+
+    All dimensions are treated the same, so we can test in 1 dim.
+    '''
+    assert np.all(extract_array(np.arange(4), (3,), (-1, )) == np.array([np.ma.masked, np.ma.masked, 0]))
+    assert np.all(extract_array(np.arange(4), (3,), (0, )) == np.array([np.ma.masked, 0, 1]))
+    for i in [1,2]:
+        assert np.all(extract_array(np.arange(4), (3,), (i, )) == np.array([i-1, i, i+1]))
+    assert np.all(extract_array(np.arange(4), (3,), (3, )) == np.array([2, 3, np.ma.masked]))
+    assert np.all(extract_array(np.arange(4), (3,), (4, )) == np.array([3, np.ma.masked, np.ma.masked]))
+
+
+def test_extract_array_easy():
     """
     Test extract_array utility function.
 
