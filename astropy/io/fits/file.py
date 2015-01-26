@@ -3,6 +3,7 @@
 from __future__ import division, with_statement
 
 from ...utils.compat import gzip as _astropy_gzip
+from ...utils.data import download_file, _is_url
 import gzip as _system_gzip
 import mmap
 import os
@@ -81,7 +82,7 @@ class _File(object):
     # See self._test_mmap
     _mmap_available = None
 
-    def __init__(self, fileobj=None, mode=None, memmap=None, clobber=False):
+    def __init__(self, fileobj=None, mode=None, memmap=None, clobber=False, cached=True):
 
         self.strict_memmap = bool(memmap)
         memmap = True if memmap is None else memmap
@@ -114,8 +115,8 @@ class _File(object):
 
         if (isinstance(fileobj, string_types) and
             mode not in ('ostream', 'append') and
-            len(urllib.parse.urlparse(fileobj).scheme) > 1): # This is an URL.
-                self.name, _ = urllib.request.urlretrieve(fileobj)
+            _is_url(fileobj)): # This is an URL.
+                self.name = download_file(fileobj,cache=cached)
         else:
             self.name = fileobj_name(fileobj)
 
