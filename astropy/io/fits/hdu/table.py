@@ -46,7 +46,7 @@ class _TableLikeHDU(_ValidHDU):
     """
     A class for HDUs that have table-like data.  This is used for both
     Binary/ASCII tables as well as Random Access Group HDUs (which are
-    otherwise too dissimlary for tables to use _TableBaseHDU directly).
+    otherwise too dissimilar for tables to use _TableBaseHDU directly).
     """
 
     _data_type = FITS_rec
@@ -623,7 +623,7 @@ class TableHDU(_TableBaseHDU):
             # This is the case where the data has not been read from the file
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
-            # all.  This can also be handled in a gereric manner.
+            # all.  This can also be handled in a generic manner.
             return super(TableHDU, self)._calculate_datasum(blocking)
 
     def _verify(self, option='warn'):
