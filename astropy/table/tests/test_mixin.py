@@ -10,6 +10,12 @@ except ImportError:
 else:
     HAS_H5PY = True
 
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+
 import numpy as np
 
 from ...tests.helper import pytest
@@ -83,6 +89,8 @@ def test_io_ascii_write():
     from ...io.ascii.connect import _get_connectors_table
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
+        if fmt['Format'] == 'ascii.ecsv' and not HAS_YAML:
+            continue
         if fmt['Write'] and '.fast_' not in fmt['Format']:
             out = StringIO()
             t.write(out, format=fmt['Format'])

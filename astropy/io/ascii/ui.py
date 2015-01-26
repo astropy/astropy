@@ -18,6 +18,7 @@ from . import core
 from . import basic
 from . import cds
 from . import daophot
+from . import ecsv
 from . import sextractor
 from . import ipac
 from . import latex
@@ -28,6 +29,12 @@ from . import fixedwidth
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
+
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
 # Default setting for guess parameter in read()
 _GUESS = True
@@ -120,7 +127,6 @@ def read(table, guess=None, **kwargs):
 
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
-    new_kwargs['Outputter'] = core.TableOutputter
     fast_reader_param = kwargs.get('fast_reader', True)
     if 'Outputter' in kwargs: # user specified Outputter, not supported for fast reading
         fast_reader_param = False
@@ -254,7 +260,13 @@ def _guess(table, read_kwargs, format, fast_reader):
 
 def _get_guess_kwargs_list(read_kwargs):
     guess_kwargs_list = []
-    # First try readers that accept the common arguments with the input arguments
+
+    # Start with ECSV because an ECSV file will be read by Basic.  This format
+    # has very specific header requirements and fails out quickly.
+    if HAS_YAML:
+        guess_kwargs_list.append(dict(Reader=ecsv.Ecsv))
+
+    # Now try readers that accept the common arguments with the input arguments
     # (Unless there are not arguments - we try that in the next step anyway.)
     # FixedWidthTwoLine would also be read by Basic, so it needs to come first.
     if len(read_kwargs) > 0:
@@ -263,6 +275,7 @@ def _get_guess_kwargs_list(read_kwargs):
             first_kwargs = read_kwargs.copy()
             first_kwargs.update(dict(Reader=reader))
             guess_kwargs_list.append(first_kwargs)
+
     # Then try a list of readers with default arguments
     guess_kwargs_list.extend([dict(Reader=fixedwidth.FixedWidthTwoLine),
                               dict(Reader=fastbasic.FastBasic),
@@ -278,6 +291,7 @@ def _get_guess_kwargs_list(read_kwargs):
                               dict(Reader=latex.AASTex),
                               dict(Reader=html.HTML)
                               ])
+
     for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastNoHeader, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
