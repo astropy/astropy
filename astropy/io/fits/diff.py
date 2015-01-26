@@ -99,10 +99,11 @@ class _BaseDiff(object):
 
         For example::
 
-            >>> hdul1, hdul2 = HDUList(), HDUList()
-            >>> headera, headerb = Header(), Header()
-            >>> fd = FITSDiff(hdul1, hdul2, ignore_keywords=['*'])
-            >>> hd = HeaderDiff.fromdiff(fd, headera, headerb)
+            >>> from astropy.io import fits
+            >>> hdul1, hdul2 = fits.HDUList(), fits.HDUList()
+            >>> headera, headerb = fits.Header(), fits.Header()
+            >>> fd = fits.FITSDiff(hdul1, hdul2, ignore_keywords=['*'])
+            >>> hd = fits.HeaderDiff.fromdiff(fd, headera, headerb)
             >>> list(hd.ignore_keywords)
             ['*']
         """
