@@ -22,13 +22,14 @@ The goal is to eventually provide a rich toolset of models and fitters such
 that most users will not need to define new model classes, nor special purpose
 fitting routines (while making it reasonably easy to do when necessary).
 
-.. warning::
+.. note::
 
     `astropy.modeling` is currently a work-in-progress, and thus it is likely
-    there will still be API changes in later versions of Astropy, though
-    backwards compatibility support between versions will still be maintained
-    as much as possible. If you have specific ideas for how it might be
-    improved, feel free to let us know on the `astropy-dev mailing list`_ or at
+    there will still be API changes in later versions of Astropy.  Backwards
+    compatibility support between versions will still be maintained as much as
+    possible, but new features and enhancements are coming in future versions.
+    If you have specific ideas for how it might be improved, feel free to let
+    us know on the `astropy-dev mailing list`_ or at
     http://feedback.astropy.org
 
 
