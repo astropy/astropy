@@ -9,7 +9,6 @@ import warnings
 import numpy as np
 
 from .. import registry as io_registry
-from ... import log
 from ... import units as u
 from ...extern import six
 from ...extern.six import string_types

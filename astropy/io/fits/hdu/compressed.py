@@ -12,14 +12,13 @@ from .base import DELAYED, ExtensionHDU
 from .image import _ImageBaseHDU, ImageHDU
 from .table import BinTableHDU
 from ..card import Card
-from ..column import Column, ColDefs, _FormatP, TDEF_RE
+from ..column import Column, ColDefs, TDEF_RE
 from ..column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from ..fitsrec import FITS_rec
 from ..header import Header
 from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 
 from ....extern.six import string_types, iteritems
-from ....extern.six.moves import xrange, filter
 from ....utils import lazyproperty, deprecated
 from ....utils.compat import ignored
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,

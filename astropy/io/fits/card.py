@@ -11,7 +11,6 @@ from .verify import _Verify, _ErrList, VerifyError, VerifyWarning
 
 from . import conf
 from ...extern.six import string_types, integer_types, text_type, binary_type
-from ...extern.six.moves import xrange
 from ...utils import deprecated
 from ...utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 

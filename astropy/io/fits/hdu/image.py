@@ -11,7 +11,6 @@ from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from ..verify import VerifyWarning
 
 from ....extern.six import string_types
-from ....extern.six.moves import xrange
 from ....utils import isiterable, lazyproperty
 
 

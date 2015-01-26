@@ -29,7 +29,7 @@ from ...utils import indent
 from .card import Card, BLANK_CARD
 from .header import Header
 # HDUList is used in one of the doctests
-from .hdu.hdulist import fitsopen, HDUList  # pylint: disable=W0611
+from .hdu.hdulist import fitsopen  # pylint: disable=W0611
 from .hdu.table import _TableLikeHDU
 
 

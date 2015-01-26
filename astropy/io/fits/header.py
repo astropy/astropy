@@ -10,8 +10,6 @@ import re
 import sys
 import warnings
 
-from collections import defaultdict
-
 from .card import Card, CardList, _pad, KEYWORD_LENGTH
 from .file import _File
 from .util import (encode_ascii, decode_ascii, fileobj_closed,
