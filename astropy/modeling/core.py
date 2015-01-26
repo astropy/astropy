@@ -528,10 +528,19 @@ class Model(object):
     fittable = False
     linear = True
 
-    _custom_inverse = None
-
     meta = metadata.MetaData()
     """A dict-like object to store optional information."""
+
+    # By default models either use their own inverse property or have no
+    # inverse at all, but users my also assign a custom inverse to a model,
+    # optionally; in that case it is of course up to the user to determine
+    # whether their inverse is *actually* an inverse to the model they assign
+    # it to.
+    _custom_inverse = None
+
+    # Default n_models attribute, so that __len__ is still defined even when a
+    # model hasn't completed initialization yet
+    _n_models = 1
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
