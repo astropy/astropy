@@ -197,6 +197,8 @@ the automatically-detected ECSV we get::
       1.0 False
       2.0  True
 
+Note that using the ECSV reader requires the `PyYAML <http://pyyaml.org>`_
+package to be installed.
 
 New features in :ref:`astropy-modeling`
 ---------------------------------------
