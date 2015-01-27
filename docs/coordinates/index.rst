@@ -277,6 +277,7 @@ listed below.
    frames
    sgr-example
    definitions
+   galactocentric
 
 
 In addition, another resource for the capabilities of this package is the
