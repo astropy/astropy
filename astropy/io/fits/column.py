@@ -368,7 +368,7 @@ class Column(object):
         name : str, optional
             column name, corresponding to ``TTYPE`` keyword
 
-        format : str, optional
+        format : str
             column format, corresponding to ``TFORM`` keyword
 
         unit : str, optional
