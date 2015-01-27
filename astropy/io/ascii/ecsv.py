@@ -314,10 +314,14 @@ class EcsvHeader(basic.BasicHeader):
         pass
 
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines``.
+        """
+        Initialize the header Column objects from the table ``lines``.
 
-        :param lines: list of table lines
-        :returns: None (but sets self.cols)
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
         import textwrap
         try:
