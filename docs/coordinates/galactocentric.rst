@@ -90,7 +90,7 @@ distance to the GC, :math:`d_{\rm GC}`, which is purely along the
    \begin{aligned}
        \boldsymbol{r}' &= \boldsymbol{R}\boldsymbol{r}_{\rm icrs} - d_{\rm GC}\hat{\boldsymbol{x}}_{\rm GC}.\end{aligned}
 
-where :math:`\hat{\boldsymbol{x}}_{\rm GC} = (1,0,0)^{\mathsf{T}}}`.
+where :math:`\hat{\boldsymbol{x}}_{\rm GC} = (1,0,0)^{\mathsf{T}}`.
 
 The final transformation is to account for the height of the Sun above
 the Galactic midplane by rotating about the final :math:`y''` axis by
