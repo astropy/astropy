@@ -14,12 +14,6 @@ New Features
   - The ``astropy.analytic_functions`` was added to contain analytic functions
     useful for astronomy [#3077].
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
 - ``astropy.coordinates``
 
   - ``astropy.coordinates`` now has a full stack of frames allowing
@@ -123,10 +117,6 @@ New Features
     files (e.g. empty header lines). This add as ``--exact`` option where
     nothing is ignored. [#2782], finished in [#3110]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
 - ``astropy.io.votable``
 
   - ``astropy.io.votable.parse`` now takes a ``datatype_mapping``
@@ -176,8 +166,6 @@ New Features
   - New function ``sigma_clipped_stats`` which can be used to quickly get
     common statistics for an array, using sigma clipping at the same time.
     [#3201]
-
-- ``astropy.sphinx``
 
 - ``astropy.table``
 
@@ -244,8 +232,6 @@ New Features
     which can be used to set a uniform plotstyle specifically for tutorials
     that is improved compared to matplotlib defaults. [#2719, #2787, #3200]
 
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - ``wcslib`` has been upgraded to version 4.25.  This brings a
@@ -282,12 +268,6 @@ New Features
 
 API Changes
 ^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
 
 - ``astropy.coordinates``
 
@@ -330,12 +310,6 @@ API Changes
     ``astropy.io.fits.open()``.  When opening a FITS file from a URL,
     ``cache`` is a boolean value specifying whether or not to save the
     file locally in Astropy's download cache (``True`` by default). [#3041]
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
 
 - ``astropy.modeling``
 
@@ -389,8 +363,6 @@ API Changes
     conversion to a numpy array removed from ``astropy.nddata.NDData``. The
     class ``astropy.nddata.NDDataArray`` is functionally equivalent to the
     old ``NDData``.  [#2905]
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -454,8 +426,6 @@ API Changes
     display output to IPython notebook with the addition of an
     ``interactive`` kwarg. [#2658] [#2789]
 
-- ``astropy.vo``
-
 - ``astropy.wcs``
 
   - The ``WCS.calcFootprint`` method (deprecated in v0.4) has now been removed.
@@ -467,10 +437,6 @@ API Changes
 
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
 
 - ``astropy.convolution``
 
@@ -485,8 +451,6 @@ Bug Fixes
 
   - Fixed support for subclasses of ``UnitSphericalRepresentation`` and
     ``SphericalRepresentation`` [#3354, #3366]
-
-- ``astropy.cosmology``
 
 - ``astropy.io.ascii``
 
@@ -515,12 +479,6 @@ Bug Fixes
 
   - CONTINUE cards no longer end the value of the final card in the series with an ampersand, per the specification of the CONTINUE card convention. [#3282]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.logger``
 
   - Fix a bug that occurred when displaying warnings that produced an error
@@ -530,10 +488,6 @@ Bug Fixes
 
   - Fixed a bug in ``SLSQPLSQFitter`` where the ``maxiter`` argument was not
     passed correctly to the optimizer. [#3339]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -569,8 +523,6 @@ Bug Fixes
 
   - ``treat_deprecations_as_exceptions`` has been fixed to recognize Astropy
     deprecation warnings. [#3015]
-
-- ``astropy.vo``
 
 - ``astropy.wcs``
 
