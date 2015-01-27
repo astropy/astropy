@@ -568,3 +568,44 @@ def test_equivalent_frames():
     assert aa2.is_equivalent_frame(aa2)
     assert not aa1.is_equivalent_frame(i)
     assert not aa1.is_equivalent_frame(aa2)
+
+
+def test_representation_subclass():
+
+    # Regression test for #3354
+
+    from ..builtin_frames import FK5
+
+    # Normally when instantiating a frame without a distance the frame will try
+    # and use UnitSphericalRepresentation internally instead of
+    # SphericalRepresentation.
+    frame = FK5(representation=representation.SphericalRepresentation, ra=32 * u.deg, dec=20 * u.deg)
+    assert type(frame._data) == representation.UnitSphericalRepresentation
+    assert frame.representation == representation.SphericalRepresentation
+
+    # If using a SphericalRepresentation class this used to not work, so we
+    # test here that this is now fixed.
+    class NewSphericalRepresentation(representation.SphericalRepresentation):
+        attr_classes = representation.SphericalRepresentation.attr_classes
+
+    frame = FK5(representation=NewSphericalRepresentation, lon=32 * u.deg, lat=20 * u.deg)
+    assert type(frame._data) == representation.UnitSphericalRepresentation
+    assert frame.representation == NewSphericalRepresentation
+
+    # A similar issue then happened in __repr__ with subclasses of
+    # SphericalRepresentation.
+    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000): lon=32.0 deg, lat=20.0 deg>"
+
+    # A more subtle issue is when specifying a custom
+    # UnitSphericalRepresentation subclass for the data and
+    # SphericalRepresentation or a subclass for the representation.
+
+    class NewUnitSphericalRepresentation(representation.UnitSphericalRepresentation):
+        attr_classes = representation.UnitSphericalRepresentation.attr_classes
+        def __repr__(self):
+            return "<NewUnitSphericalRepresentation: spam spam spam>"
+
+    frame = FK5(NewUnitSphericalRepresentation(lon=32 * u.deg, lat=20 * u.deg),
+                representation=NewSphericalRepresentation)
+
+    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000):  spam spam spam>"

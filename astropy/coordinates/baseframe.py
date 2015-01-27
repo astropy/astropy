@@ -589,7 +589,7 @@ class BaseCoordinateFrame(object):
             if repr_kwargs:
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
-                if (self.representation == SphericalRepresentation and
+                if (issubclass(self.representation, SphericalRepresentation) and
                         'distance' not in repr_kwargs):
                     representation_data = UnitSphericalRepresentation(**repr_kwargs)
                 else:
@@ -985,9 +985,9 @@ class BaseCoordinateFrame(object):
 
         if self.has_data:
             if self.representation:
-                if (self.representation == SphericalRepresentation and
+                if (issubclass(self.representation, SphericalRepresentation) and
                         isinstance(self.data, UnitSphericalRepresentation)):
-                    data = self.represent_as(UnitSphericalRepresentation,
+                    data = self.represent_as(self.data.__class__,
                                              in_frame_units=True)
                 else:
                     data = self.represent_as(self.representation,
@@ -1207,5 +1207,3 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
-
-
