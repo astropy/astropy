@@ -201,8 +201,6 @@ New Features
 
 - ``astropy.units``
 
-  - Support for subclasses of UnitSphericalRepresentation has been improved [#3354]
-
   - Support for VOUnit has been updated to be compliant with version
     1.0 of the standard. [#2901]
 
@@ -466,6 +464,9 @@ Bug Fixes
 
   - ``SkyCoord.to_string`` no longer gives an error when used with an array
     coordinate with more than one dimension. [#3340]
+
+  - Fixed support for subclasses of ``UnitSphericalRepresentation`` and
+    ``SphericalRepresentation`` [#3354, #3366]
 
 - ``astropy.cosmology``
 
