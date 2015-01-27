@@ -162,10 +162,18 @@ class BaseInputter(object):
     * List of strings
     """
     def get_lines(self, table):
-        """Get the lines from the ``table`` input.
+        """
+        Get the lines from the ``table`` input.
 
-        :param table: table input
-        :returns: list of lines
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+            Table input
+
+        Returns
+        -------
+        lines : list
+            List of lines
         """
         try:
             if (hasattr(table, 'read') or
@@ -200,7 +208,8 @@ class BaseInputter(object):
 
 
 class BaseSplitter(object):
-    """Base splitter that uses python's split method to do the work.
+    """
+    Base splitter that uses python's split method to do the work.
 
     This does not handle quoted values.  A key feature is the formulation of
     __call__ as a generator that returns a list of the split line values at
@@ -216,6 +225,7 @@ class BaseSplitter(object):
       reader.header.splitter.process_val = lambda x: x.lstrip()
       reader.data.splitter.process_val = None
 
+    # TODO: not sure what to do here because this is an optional, class-level attribute...
     :param delimiter: one-character string used to separate fields
     """
     delimiter = None
@@ -259,6 +269,7 @@ class DefaultSplitter(BaseSplitter):
           for col_val in col_vals:
                ...
 
+    # TODO: not sure what to do here because these are optional, class-level attributes...
     :param delimiter: one-character string used to separate fields.
     :param doublequote:  control how instances of *quotechar* in a field are quoted
     :param escapechar: character to remove special meaning from following character
@@ -289,8 +300,15 @@ class DefaultSplitter(BaseSplitter):
         """Return an iterator over the table ``lines``, where each iterator output
         is a list of the split line values.
 
-        :param lines: list of table lines
-        :returns: iterator
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
+        Returns
+        -------
+        lines : iterator
+
         """
         if self.process_line:
             lines = [self.process_line(x) for x in lines]
@@ -378,6 +396,7 @@ def _get_line_index(line_or_func, lines):
 class BaseHeader(object):
     """Base table header reader
 
+    # TODO: not sure what to do here because this is an optional, class-level attribute...
     :param auto_format: format string for auto-generating column names
     :param start_line: None, int, or a function of ``lines`` that returns None or int
     :param comment: regular expression for comment lines
@@ -420,8 +439,11 @@ class BaseHeader(object):
         Based on the previously set Header attributes find or create the column names.
         Sets ``self.cols`` with the list of Columns.
 
-        :param lines: list of table lines
-        :returns: None
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
 
         start_line = _get_line_index(self.start_line, self.process_lines(lines))
@@ -486,15 +508,22 @@ class BaseHeader(object):
                 col.raw_type, col.name))
 
     def check_column_names(self, names, strict_names, guessing):
-        """Check column names.
+        """
+        Check column names.
 
         This must be done before applying the names transformation
-        so that guessing will fail appropriately if `names` is supplied.
+        so that guessing will fail appropriately if ``names`` is supplied.
         For instance if the basic reader is given a table with no column header
         row.
 
-        :param names: user-supplied list of column names
-        :param strict_names: whether to impose extra requirements on names
+        Parameters
+        ----------
+        names : list
+            User-supplied list of column names
+        strict_names : bool
+            Whether to impose extra requirements on names
+        guessing : bool
+            TODO: ?
         """
         if strict_names:
             # Impose strict requirements on column names (normally used in guessing)
@@ -518,6 +547,7 @@ class BaseHeader(object):
 class BaseData(object):
     """Base table data reader.
 
+    # TODO: not sure what to do here because this is an optional, class-level attribute...
     :param start_line: None, int, or a function of ``lines`` that returns None or int
     :param end_line: None, int, or a function of ``lines`` that returns None or int
     :param comment: Regular expression for comment lines
@@ -544,10 +574,19 @@ class BaseData(object):
         self.splitter = self.splitter_class()
 
     def process_lines(self, lines):
-        """Strip out comment lines and blank lines from list of ``lines``
+        """
+        Strip out comment lines and blank lines from list of ``lines``
 
-        :param lines: all lines in table
-        :returns: list of lines
+        Parameters
+        ----------
+        lines : list
+            All lines in table
+
+        Returns
+        -------
+        lines : list
+            List of lines
+
         """
         nonblank_lines = (x for x in lines if x.strip())
         if self.comment:
@@ -851,12 +890,20 @@ def _is_number(x):
     return False
 
 def _apply_include_exclude_names(table, names, include_names, exclude_names):
-    """Apply names, include_names and exclude_names to a table.
+    """
+    Apply names, include_names and exclude_names to a table.
 
-    :param table: input table (Reader object, NumPy struct array, list of lists, etc)
-    :param names: list of names to override those in table (default=None uses existing names)
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exclude from output (applied after ``include_names``)
+    Parameters
+    ----------
+    table : `~astropy.io.ascii.BaseReader`, array_like
+        Input table
+    names : list
+        List of names to override those in table (set to None to use existing names)
+    include_names : list
+        List of names to include in output
+    exclude_names: list
+        List of names to exclude from output (applied after ``include_names``)
+
     """
 
     if names is not None:
@@ -936,8 +983,16 @@ class BaseReader(object):
         * String (newline separated) with all header and data lines (must have at least 2 lines)
         * List of strings
 
-        :param table: table input
-        :returns: output table
+        Parameters
+        ----------
+        table : str, file_like, list
+            Input table.
+
+        Returns
+        -------
+        table : `~astropy.table.Table`
+            Output table
+
         """
         # If ``table`` is a file then store the name in the ``data``
         # attribute. The ``table`` is a "file" if it is a string
@@ -997,7 +1052,8 @@ class BaseReader(object):
         return table
 
     def inconsistent_handler(self, str_vals, ncols):
-        """Adjust or skip data entries if a row is inconsistent with the header.
+        """
+        Adjust or skip data entries if a row is inconsistent with the header.
 
         The default implementation does no adjustment, and hence will always trigger
         an exception in read() any time the number of data entries does not match
@@ -1005,10 +1061,17 @@ class BaseReader(object):
 
         Note that this will *not* be called if the row already matches the header.
 
-        :param str_vals: A list of value strings from the current row of the table.
-        :param ncols: The expected number of entries from the table header.
-        :returns:
-            list of strings to be parsed into data entries in the output table. If
+        Parameters
+        ----------
+        str_vals : list
+            A list of value strings from the current row of the table.
+        ncols : int
+            The expected number of entries from the table header.
+
+        Returns
+        -------
+        str_vals : list
+            List of strings to be parsed into data entries in the output table. If
             the length of this list does not match ``ncols``, an exception will be
             raised in read().  Can also be None, in which case the row will be
             skipped.
@@ -1033,10 +1096,19 @@ class BaseReader(object):
         self.header.write(lines)
 
     def write(self, table):
-        """Write ``table`` as list of strings.
+        """
+        Write ``table`` as list of strings.
 
-        :param table: input table data (astropy.table.Table object)
-        :returns: list of strings corresponding to ASCII table
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+            Input table data.
+
+        Returns
+        -------
+        lines : list
+            List of strings corresponding to ASCII table
+
         """
 
         # Check column names before altering
