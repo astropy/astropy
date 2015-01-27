@@ -1297,8 +1297,10 @@ class FittableModel(Model):
     # derivative with respect to parameters
     fit_deriv = None
     """
-    Function (similar to the model's ``eval``) to compute the derivatives of
-    the model with respect to its parameters, for use by fitting algorithms.
+    Function (similar to the model's `~Model.evaluate`) to compute the
+    derivatives of the model with respect to its parameters, for use by fitting
+    algorithms.  In other words, this computes the Jacobian matrix with respect
+    to the model's parameters.
     """
     # Flag that indicates if the model derivatives with respect to parameters
     # are given in columns or rows
