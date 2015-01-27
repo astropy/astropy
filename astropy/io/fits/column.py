@@ -1154,6 +1154,9 @@ class ColDefs(object):
         return [col._dims for col in self.columns]
 
     def __getitem__(self, key):
+        if isinstance(key, string_types):
+            key = _get_index(self.names, key)
+
         x = self.columns[key]
         if _is_int(key):
             return x
@@ -1509,9 +1512,9 @@ class _VLF(np.ndarray):
 
 def _get_index(names, key):
     """
-    Get the index of the `key` in the `names` list.
+    Get the index of the ``key`` in the ``names`` list.
 
-    The `key` can be an integer or string.  If integer, it is the index
+    The ``key`` can be an integer or string.  If integer, it is the index
     in the list.  If string,
 
         a. Field (column) names are case sensitive: you can have two
