@@ -187,9 +187,6 @@ class Rotation2D(Model):
         single coordinate pair.
         """
 
-        if x.shape != y.shape:
-            raise ValueError("Expected input arrays to have the same shape")
-
         # Note: If the original shape was () (an array scalar) convert to a
         # 1-element 1-D array on output for consistency with most other models
         orig_shape = x.shape or (1,)
