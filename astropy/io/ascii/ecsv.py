@@ -403,7 +403,10 @@ class Ecsv(basic.Basic):
     """
     Read a file which conforms to the ECSV (Enhanced Character Separated
     Values) format.  This format allows for specification of key table
-    and column meta-data, in particular the data type and unit.  For example::
+    and column meta-data, in particular the data type and unit.  For details
+    see: https://github.com/astropy/astropy-APEs/blob/master/APE6.rst.
+
+    For example::
 
       # %ECSV 0.9
       # ---
