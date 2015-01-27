@@ -22,11 +22,12 @@ __all__ = ["BaseRepresentation", "CartesianRepresentation",
            "SphericalRepresentation", "UnitSphericalRepresentation",
            "PhysicsSphericalRepresentation", "CylindricalRepresentation"]
 
+NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
+
 # Module-level dict mapping representation string alias names to class.
 # This is populated by the metaclass init so all representation classes
 # get registered automatically.
 REPRESENTATION_CLASSES = {}
-
 
 class MetaBaseRepresentation(type):
     def __init__(cls, name, bases, dct):
@@ -42,6 +43,15 @@ class MetaBaseRepresentation(type):
 
         REPRESENTATION_CLASSES[cls.get_name()] = cls
 
+p_opt = np.get_printoptions()
+def _fstyle(x):
+    fmt_str = "{:." + str(p_opt['precision']) + "f}"
+    s = fmt_str.format(x)
+    s_trunc = s.rstrip("0")
+    if s_trunc.split(".")[1] == "":
+        return s_trunc + "0"
+    else:
+        return str(x)
 
 @six.add_metaclass(MetaBaseRepresentation)
 class BaseRepresentation(object):
@@ -164,26 +174,30 @@ class BaseRepresentation(object):
         else:
             v = self._values
 
-        fstyle = lambda x: str(x)
         names = self._values.dtype.names
         if len(names) == 2:
             fmt = {'numpystr' : lambda x: "(" + \
-                                            np.array2string(x[names[0]], style=fstyle) + \
+                                            np.array2string(x[names[0]], style=_fstyle) + \
                                             ', ' + \
-                                            np.array2string(x[names[1]], style=fstyle) + \
+                                            np.array2string(x[names[1]], style=_fstyle) + \
                                             ")"}
         else:
             fmt = {'numpystr' : lambda x: "(" + \
-                                            np.array2string(x[names[0]], style=fstyle) + \
+                                            np.array2string(x[names[0]], style=_fstyle) + \
                                             ', ' + \
-                                            np.array2string(x[names[1]], style=fstyle) + \
+                                            np.array2string(x[names[1]], style=_fstyle) + \
                                             ', ' + \
-                                            np.array2string(x[names[2]], style=fstyle) + \
+                                            np.array2string(x[names[2]], style=_fstyle) + \
                                             ")"}
 
-        arrstr = np.array2string(v, formatter=fmt,
-                                 separator=', ',
-                                 prefix=prefixstr)
+        if NUMPY_LT_1P7:
+            arrstr = np.array2string(v, separator=', ',
+                                     prefix=prefixstr)
+
+        else:
+            arrstr = np.array2string(v, formatter=fmt,
+                                     separator=', ',
+                                     prefix=prefixstr)
 
         if self._values.shape == ():
             arrstr = arrstr[1:-1]
