@@ -36,6 +36,11 @@ class Row(object):
         self._table = table
         self._index = index
 
+        n = len(table)
+        if index < -n or index >= n:
+            raise IndexError('index {0} out of range for table with length {1}'
+                             .format(index, len(table)))
+
     def __getitem__(self, item):
         return self._table.columns[item][self._index]
 

@@ -538,6 +538,8 @@ Bug Fixes
   - Fixed a problem where ``table.vstack`` and ``table.hstack`` failed to stack
     a single table, e.g. ``table.vstack([t])``. [#3313]
 
+  - Fix a problem when doing nested iterators on a single table. [#3358]
+
 - ``astropy.time``
 
   - When creating a Time object from a datetime object the time zone
