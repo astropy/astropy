@@ -277,7 +277,6 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         data = self._get_tbdata()
         data._coldefs = self.columns
-        data.formats = self.columns.formats
         data.parnames = self.parnames
         del self.columns
         return data

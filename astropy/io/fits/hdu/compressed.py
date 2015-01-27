@@ -1663,7 +1663,6 @@ class CompImageHDU(BinTableHDU):
         self.compressed_data._coldefs = self.columns
         self.compressed_data._heapoffset = self._theap
         self.compressed_data._heapsize = heapsize
-        self.compressed_data.formats = self.columns.formats
 
     @deprecated('0.3', alternative='(refactor your code)')
     def updateCompressedData(self):

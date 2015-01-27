@@ -349,7 +349,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     def data(self):
         data = self._get_tbdata()
         data._coldefs = self.columns
-        data.formats = self.columns.formats
         # Columns should now just return a reference to the data._coldefs
         del self.columns
         return data
