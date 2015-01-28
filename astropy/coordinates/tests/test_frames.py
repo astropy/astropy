@@ -625,7 +625,8 @@ def test_representation_subclass():
 
     # A similar issue then happened in __repr__ with subclasses of
     # SphericalRepresentation.
-    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000): lon=32.0 deg, lat=20.0 deg>"
+    assert repr(frame) == ("<FK5 Coordinate (equinox=J2000.000): (lon, lat) in deg\n"
+                           "    (32.0, 20.0)>")
 
     # A more subtle issue is when specifying a custom
     # UnitSphericalRepresentation subclass for the data and
