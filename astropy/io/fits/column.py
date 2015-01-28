@@ -1279,8 +1279,7 @@ class ColDefs(object):
             The new value for the attribute
         """
 
-        indx = _get_index(self.names, col_name)
-        getattr(self, attrib + 's')[indx] = new_value
+        setattr(self[col_name], attrib, new_value)
 
         # If this ColDefs is being tracked by a Table, inform the
         # table that its data is now invalid.
