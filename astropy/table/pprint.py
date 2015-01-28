@@ -429,11 +429,11 @@ class TableFormatter(object):
                 lines = lines[:-1]
             cols.append(lines)
 
+        if not cols:
+            return ['<No columns>'], {'show_length': False}
+
         # Use the values for the last column since they are all the same
         n_header = outs['n_header']
-
-        if not cols:
-            return []
 
         n_rows = len(cols[0])
         outwidth = lambda cols: sum(len(c[0]) for c in cols) + len(cols) - 1
