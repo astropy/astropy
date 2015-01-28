@@ -885,7 +885,7 @@ def test_immutable():
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
-@pytest.mark.skipif(str('OLD_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_search_around():
     """
     Test the search_around_* methods
