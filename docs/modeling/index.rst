@@ -168,13 +168,15 @@ background in an image.
     # Plot the data with the best-fit model
     plt.figure(figsize=(8,2.5))
     plt.subplot(1,3,1)
-    plt.imshow(z, interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.imshow(z, origin='lower', interpolation='nearest', vmin=-1e4, vmax=5e4)
     plt.title("Data")
     plt.subplot(1,3,2)
-    plt.imshow(p(x, y), interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.imshow(p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
+               vmax=5e4)
     plt.title("Model")
     plt.subplot(1,3,3)
-    plt.imshow(z - p(x, y), interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
+               vmax=5e4)
     plt.title("Residual")
 
 A list of models is provided in the `Reference/API`_ section. The fitting
