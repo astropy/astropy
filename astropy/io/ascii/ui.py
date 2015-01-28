@@ -365,7 +365,7 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
 
     Parameters
     ----------
-    Writer : `~astropy.io.ascii.BaseWriter`
+    Writer : ``Writer``
         Writer class (DEPRECATED) (default= :class:`Basic`)
     delimiter : str
         Column delimiter string
@@ -406,7 +406,7 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
         file-like object, list of strings, or single newline-separated string.
     output : str, file_like
         Output [filename, file-like object] (default = ``sys.stdout``)
-    format : str, `~astropy.io.ascii.BaseWriter`
+    format : str
         Output table format (default= ``basic``)
     delimiter : str
         Column delimiter string
@@ -426,7 +426,7 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
         List of names to exclude from output (applied after ``include_names``)
     fast_writer : bool
         Whether to use the fast Cython writer (default= ``True``)
-    Writer : `~astropy.io.ascii.BaseWriter`
+    Writer : ``Writer``
         Writer class (DEPRECATED) (default= :class:`Basic`)
     """
     if output is None:
