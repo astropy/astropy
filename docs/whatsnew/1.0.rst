@@ -182,8 +182,8 @@ fitting framework.  See the
 :ref:`introduction to compound models <compound-models-intro>` and full
 :ref:`compound models documentation <compound-models>` for more examples.
 
-Support for 'mixin' columns in :ref:`astropy-table`
----------------------------------------------------
+New features  in :ref:`astropy-table`
+-------------------------------------
 
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Time| replace:: :class:`~astropy.time.Time`
@@ -191,6 +191,25 @@ Support for 'mixin' columns in :ref:`astropy-table`
 .. |Table| replace:: :class:`~astropy.table.Table`
 .. |Column| replace:: :class:`~astropy.table.Column`
 .. |QTable| replace:: :class:`~astropy.table.QTable`
+
+Refactor of table infrastructure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The underlying data container for the astropy |Table| object has been changed
+in astropy 1.0.  Previously tables were stored internally as a numpy structured
+array object, with column access being a memory view of the corresponding numpy
+array field.  Starting with this release the fundamental data container is an
+ordered dictionary of individual column objects and each |Column| object is the
+sole owner of its data.
+
+The biggest impact to users is that operations such as adding or removing
+table columns is now signicantly faster because there is no structured array
+to rebuild each time.
+
+For details please see :ref:`table_implementation_change`.
+
+Support for 'mixin' columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Version 1.0 of astropy introduces a new concept of the "Mixin
 Column" in tables which allows integration of appropriate non-|Column| based
