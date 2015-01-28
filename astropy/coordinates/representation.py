@@ -45,7 +45,7 @@ class MetaBaseRepresentation(type):
 
 p_opt = np.get_printoptions()
 def _fstyle(x):
-    fmt_str = "{:." + str(p_opt['precision']) + "f}"
+    fmt_str = "{0:." + str(p_opt['precision']) + "f}"
     s = fmt_str.format(x)
     s_trunc = s.rstrip("0")
     if s_trunc.split(".")[1] == "":
