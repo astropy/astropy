@@ -21,7 +21,7 @@ Astropy also depends on other packages for optional features:
 - `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files
 
-- `PyYAML <http:://pyyaml.org>`_: To read/write
+- `PyYAML <http://pyyaml.org>`_: To read/write
   :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table format.
 
 - `scipy`_: To power a variety of features (currently

@@ -123,8 +123,11 @@ See :ref:`astropy_analytic_functions` for more details.
 In future versions of Astropy, the functions in this module might also be
 accessible as `~astropy.modeling.Model` classes.
 
+New features in :ref:`io-ascii`
+-------------------------------
+
 Fast readers/writers for ASCII files
-------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :mod:`astropy.io.ascii` module now includes a significantly faster Cython/C engine
 for reading and writing ASCII files.  This is available for the following
@@ -145,6 +148,57 @@ Certain features of the full read / write interface are not available in the
 fast version, in which case the pure-Python version will automatically be used.
 
 For full details including extensive performance testing, see :ref:`fast_ascii_io`.
+
+Enhanced CSV format
+^^^^^^^^^^^^^^^^^^^
+
+One of the problems when storing a table in an ASCII format is preserving table
+meta-data such as comments, keywords and column data types, units, and
+descriptions.  Using the newly defined `Enhanced Character Separated Values
+format <https://github.com/astropy/astropy-APEs/blob/master/APE6.rst>`_ it is
+now possible to write a table to an ASCII-format file and read it back with no
+loss of information.  The ECSV format has been designed to be both
+human-readable and compatible with most simple CSV readers.
+
+In the example below we show writing a table that has ``float32`` and ``bool``
+types.  This illustrates the simple look of the format which has a few header
+lines (starting with ``#``) in `YAML <http://www.yaml.org/>`_ format and then
+the data values in CSV format.
+::
+
+  >>> t = Table()
+  >>> t['x'] = Column([1.0, 2.0], unit='m', dtype='float32')
+  >>> t['y'] = Column([False, True], dtype='bool')
+
+  >>> from astropy.extern.six.moves import StringIO
+  >>> fh = StringIO()
+  >>> t.write(fh, format='ascii.ecsv')  # doctest: +SKIP
+  >>> table_string = fh.getvalue()      # doctest: +SKIP
+  >>> print(table_string)               # doctest: +SKIP
+  # %ECSV 0.9
+  # ---
+  # columns:
+  # - {name: x, unit: m, type: float32}
+  # - {name: y, type: bool}
+  x y
+  1.0 False
+  2.0 True
+
+Without the header this table would get read back with different types
+(``float64`` and ``string`` respectively) and no unit values.  Instead with
+the automatically-detected ECSV we get::
+
+  >>> Table.read(table_string, format='ascii')  # doctest: +SKIP
+  <Table masked=False length=2>
+     x      y
+     m
+  float32  bool
+  ------- -----
+      1.0 False
+      2.0  True
+
+Note that using the ECSV reader requires the `PyYAML <http://pyyaml.org>`_
+package to be installed.
 
 New features in :ref:`astropy-modeling`
 ---------------------------------------
