@@ -227,9 +227,9 @@ class BaseSplitter(object):
       reader.header.splitter.process_val = lambda x: x.lstrip()
       reader.data.splitter.process_val = None
 
-    # TODO: not sure what to do here because this is an optional, class-level attribute...
-    :param delimiter: one-character string used to separate fields
     """
+
+    #: one-character string used to separate fields
     delimiter = None
 
     def process_line(self, line):
@@ -271,20 +271,13 @@ class DefaultSplitter(BaseSplitter):
           for col_val in col_vals:
                ...
 
-    # TODO: not sure what to do here because these are optional, class-level attributes...
-    :param delimiter: one-character string used to separate fields.
-    :param doublequote:  control how instances of *quotechar* in a field are quoted
-    :param escapechar: character to remove special meaning from following character
-    :param quotechar: one-character stringto quote fields containing special characters
-    :param quoting: control when quotes are recognised by the reader
-    :param skipinitialspace: ignore whitespace immediately following the delimiter
     """
-    delimiter = ' '
-    quotechar = '"'
-    doublequote = True
-    escapechar = None
-    quoting = csv.QUOTE_MINIMAL
-    skipinitialspace = True
+    delimiter = ' '  #: one-character string used to separate fields.
+    quotechar = '"'  #: control how instances of *quotechar* in a field are quoted
+    doublequote = True  #: character to remove special meaning from following character
+    escapechar = None  #: one-character stringto quote fields containing special characters
+    quoting = csv.QUOTE_MINIMAL  #: control when quotes are recognised by the reader
+    skipinitialspace = True  #: ignore whitespace immediately following the delimiter
     csv_writer = None
     csv_writer_out = StringIO()
 
@@ -396,20 +389,14 @@ def _get_line_index(line_or_func, lines):
 
 
 class BaseHeader(object):
-    """Base table header reader
-
-    # TODO: not sure what to do here because this is an optional, class-level attribute...
-    :param auto_format: format string for auto-generating column names
-    :param start_line: None, int, or a function of ``lines`` that returns None or int
-    :param comment: regular expression for comment lines
-    :param splitter_class: Splitter class for splitting data lines into columns
-    :param names: list of names corresponding to each data column
     """
-    auto_format = 'col%d'
-    start_line = None
-    comment = None
-    splitter_class = DefaultSplitter
-    names = None
+    Base table header reader
+    """
+    auto_format = 'col%d'  #: format string for auto-generating column names
+    start_line = None  #: None, int, or a function of ``lines`` that returns None or int
+    comment = None  #: regular expression for comment lines
+    splitter_class = DefaultSplitter  #: Splitter class for splitting data lines into columns
+    names = None  #: list of names corresponding to each data column
     write_comment = False
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
@@ -547,18 +534,13 @@ class BaseHeader(object):
 
 
 class BaseData(object):
-    """Base table data reader.
-
-    # TODO: not sure what to do here because this is an optional, class-level attribute...
-    :param start_line: None, int, or a function of ``lines`` that returns None or int
-    :param end_line: None, int, or a function of ``lines`` that returns None or int
-    :param comment: Regular expression for comment lines
-    :param splitter_class: Splitter class for splitting data lines into columns
     """
-    start_line = None
-    end_line = None
-    comment = None
-    splitter_class = DefaultSplitter
+    Base table data reader.
+    """
+    start_line = None  #: None, int, or a function of ``lines`` that returns None or int
+    end_line = None  #: None, int, or a function of ``lines`` that returns None or int
+    comment = None  #: Regular expression for comment lines
+    splitter_class = DefaultSplitter  #: Splitter class for splitting data lines into columns
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     fill_include_names = None
     fill_exclude_names = None
