@@ -4,7 +4,6 @@ from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
 from astropy.wcs import WCS
-from astropy.utils import InheritDocstrings
 from astropy.extern import six
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
@@ -26,7 +25,6 @@ IDENTITY.wcs.crpix = [1., 1.]
 IDENTITY.wcs.cdelt = [1., 1.]
 
 
-@six.add_metaclass(InheritDocstrings)
 class WCSAxes(Axes):
 
     def __init__(self, fig, rect, wcs=None, transform=None, coord_meta=None,
@@ -91,6 +89,17 @@ class WCSAxes(Axes):
     # set to ``lower`` for all images, which means that we need to flip RGB
     # images.
     def imshow(self, X, *args, **kwargs):
+        """
+        Wrapper to Matplotlib's :meth:`~matplotlib.axes.Axes.imshow`.
+
+        If an RGB image is passed as a PIL object, it will be flipped
+        vertically and ``origin`` will be set to ``lower``, since WCS
+        transformations - like FITS files - assume that the origin is the lower
+        left pixel of the image (whereas RGB images have the origin in the top
+        left).
+
+        All arguments are passed to :meth:`~matplotlib.axes.Axes.imshow`.
+        """
 
         origin = kwargs.get('origin', None)
 
