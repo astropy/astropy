@@ -106,7 +106,7 @@ process:
     This function declares whether the package requires processing
     through the `2to3`_ tool to run on Python 3.  If not included, it
     defaults to `True`.  The use of `2to3`_ is phased out in astropy
-    and is retained for use in affliate packages which have not switched
+    and is retained for use in affiliate packages which have not switched
     to using `six`_ instead.  See :ref:`dev-portable` for more information.
 
 The ``astropy_helpers.setup_helpers`` modules includes an
