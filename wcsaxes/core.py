@@ -111,7 +111,7 @@ class WCSAxes(Axes):
                 X = X.transpose(FLIP_TOP_BOTTOM)
                 kwargs['origin'] = 'lower'
 
-        super(WCSAxes, self).imshow(X, *args, **kwargs)
+        return super(WCSAxes, self).imshow(X, *args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
