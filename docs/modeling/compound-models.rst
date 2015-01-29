@@ -432,7 +432,7 @@ example:
     for idx, theta in enumerate((0, 45, 90)):
         g = RotatedGaussian(theta)
         plt.subplot(1, 3, idx + 1)
-        plt.imshow(g(x, y))
+        plt.imshow(g(x, y), origin='lower')
         plt.xticks([])
         plt.yticks([])
         plt.title('Rotated $ {0}^\circ $'.format(theta))
