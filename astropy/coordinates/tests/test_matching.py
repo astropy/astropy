@@ -5,6 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from numpy import testing as npt
+from distutils import version
 from ...tests.helper import pytest
 
 from ... import units as u
@@ -21,6 +22,12 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
+
+if HAS_SCIPY and version.LooseVersion(scipy.__version__) > version.LooseVersion('0.12.0'):
+    OLDER_SCIPY = False
+else:
+    OLDER_SCIPY = True
+
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function():
@@ -116,6 +123,7 @@ def test_matching_method():
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_search_around():
     from .. import ICRS
     from ..matching import search_around_sky, search_around_3d
