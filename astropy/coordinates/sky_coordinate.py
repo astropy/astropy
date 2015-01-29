@@ -780,7 +780,7 @@ class SkyCoord(object):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -827,7 +827,7 @@ class SkyCoord(object):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in

@@ -14,6 +14,7 @@ import functools
 
 import numpy as np
 from numpy import testing as npt
+from distutils import version
 
 from ... import units as u
 from ...tests.helper import pytest, catch_warnings
@@ -38,6 +39,11 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
+
+if HAS_SCIPY and version.LooseVersion(scipy.__version__) > version.LooseVersion('0.12.0'):
+    OLDER_SCIPY = False
+else:
+    OLDER_SCIPY = True
 
 
 def test_transform_to():
@@ -879,6 +885,7 @@ def test_immutable():
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_search_around():
     """
     Test the search_around_* methods
