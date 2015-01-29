@@ -9,20 +9,20 @@ from __future__ import (absolute_import, division, print_function,
 """Test initalization of angles not already covered by the API tests"""
 
 import functools
-from distutils import version
 import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
 from ...tests.helper import pytest
+from ...utils import minversion
 from ... import units as u
 
-NUMPY_VERSION = version.LooseVersion(np.__version__)
 
 allclose_m14 = functools.partial(np.allclose, rtol=1.e-14, atol=1.e-14)
 allclose_m8 = functools.partial(np.allclose, rtol=1.e-8, atol=1.e-8)
 
-if NUMPY_VERSION >= version.LooseVersion('1.7.0'):
+
+if minversion(np, '1.7.0'):
     isclose_m14 = functools.partial(np.isclose, rtol=1.e-14, atol=1.e-14)
     isclose_m8 = functools.partial(np.isclose, rtol=1.e-8, atol=1.e-8)
 else:

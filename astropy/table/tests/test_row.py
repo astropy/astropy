@@ -4,16 +4,14 @@
 
 import sys
 
-from distutils import version
 import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
 from ... import table
 from ...table import Row
+from ...utils.compat import NUMPY_LT_1_8
 from ...utils.exceptions import AstropyDeprecationWarning
 from .conftest import MaskedTable
-
-numpy_lt_1p8 = version.LooseVersion(np.__version__) < version.LooseVersion('1.8')
 
 
 def test_masked_row_with_object_col():
@@ -22,7 +20,7 @@ def test_masked_row_with_object_col():
     a column with object type.
     """
     t = table.Table([[1]], dtype=['O'], masked=True)
-    if numpy_lt_1p8:
+    if NUMPY_LT_1_8:
         with pytest.raises(ValueError):
             t['col0'].mask = False
             t[0].as_void()
@@ -192,7 +190,7 @@ class TestRow():
         t = table_types.Table([[{'a': 1}, {'b': 2}]], names=('a',))
         assert t[0][0] == {'a': 1}
         assert t[0]['a'] == {'a': 1}
-        if numpy_lt_1p8 and t.masked:
+        if NUMPY_LT_1_8 and t.masked:
             # With numpy < 1.8 there is a bug setting mvoid with
             # an object.
             with pytest.raises(ValueError):

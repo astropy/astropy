@@ -601,7 +601,8 @@ def _array_from_file(infile, dtype, count, sep):
 
         global CHUNKED_FROMFILE
         if CHUNKED_FROMFILE is None:
-            if sys.platform == 'darwin' and LooseVersion(platform.mac_ver()[0]) < LooseVersion('10.9'):
+            if (sys.platform == 'darwin' and
+                    LooseVersion(platform.mac_ver()[0]) < LooseVersion('10.9')):
                 CHUNKED_FROMFILE = True
             else:
                 CHUNKED_FROMFILE = False

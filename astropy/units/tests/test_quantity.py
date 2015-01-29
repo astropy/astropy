@@ -9,15 +9,14 @@ from __future__ import (absolute_import, unicode_literals, division,
 
 import copy
 import decimal
-from distutils import version
 
 import numpy as np
 from numpy.testing import (assert_allclose, assert_array_equal,
                            assert_array_almost_equal)
-NUMPY_VERSION = version.LooseVersion(np.__version__)
+
 
 from ...tests.helper import raises, pytest
-from ...utils import isiterable
+from ...utils import isiterable, minversion
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import xrange
@@ -709,7 +708,7 @@ class TestQuantityDisplay(object):
         assert (q2scalar._repr_latex_() ==
                 '$1.5 \\times 10^{14} \\; \\mathrm{\\frac{m}{s}}$')
 
-        if NUMPY_VERSION < version.LooseVersion('1.7.0'):
+        if not minversion(np, '1.7.0'):
             with pytest.raises(NotImplementedError):
                 self.arrq._repr_latex_()
             return  # all arrays should fail
@@ -1132,7 +1131,7 @@ def test_insert():
     assert q2.unit is u.m
     assert q2.dtype.kind == 'f'
 
-    if NUMPY_VERSION >= version.LooseVersion('1.8.0'):
+    if minversion(np, '1.8.0'):
         q2 = q.insert(1, [1, 2] * u.km)
         assert np.all(q2.value == [1, 1000, 2000, 2])
         assert q2.unit is u.m
