@@ -66,23 +66,12 @@ class FixedWidthHeaderSplitter(DefaultSplitter):
 
 
 class FixedWidthHeader(basic.BasicHeader):
-    """Fixed width table header reader.
-
-    The key settable class attributes are:
-
-    # TODO: not sure what to do here because this is an optional, class-level attribute...
-    :param auto_format: format string for auto-generating column names
-    :param start_line: None, int, or a function of ``lines`` that returns None or int
-    :param comment: regular expression for comment lines
-    :param splitter_class: Splitter class for splitting data lines into columns
-    :param position_line: row index of line that specifies position (default = 1)
-    :param position_char: character used to write the position line (default = "-")
-    :param col_starts: list of start positions for each column (0-based counting)
-    :param col_ends: list of end positions (inclusive) for each column
-    :param delimiter_pad: padding around delimiter when writing (default = None)
-    :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
+    Fixed width table header reader.
+    """
+    #: Splitter class for splitting data lines into columns
     splitter_class = FixedWidthHeaderSplitter
+    #: row index of line that specifies position (default = 1)
     position_line = None   # secondary header line position
     set_of_position_line_characters = set(r'`~!#$%^&*-_+=\|":' + "'")
 
@@ -228,14 +217,8 @@ class FixedWidthHeader(basic.BasicHeader):
 class FixedWidthData(basic.BasicData):
     """
     Base table data reader.
-
-    # TODO: not sure what to do here because this is an optional, class-level attribute...
-    :param start_line: None, int, or a function of ``lines`` that returns None or int
-    :param end_line: None, int, or a function of ``lines`` that returns None or int
-    :param comment: Regular expression for comment lines
-    :param splitter_class: Splitter class for splitting data lines into columns
     """
-
+    #: Splitter class for splitting data lines into columns
     splitter_class = FixedWidthSplitter
 
     def write(self, lines):
@@ -293,11 +276,6 @@ class FixedWidth(basic.Basic):
 
     See the :ref:`fixed_width_gallery` for specific usage examples.
 
-    # TODO: not sure what to do here because this is an optional, class-level attribute...
-    :param col_starts: list of start positions for each column (0-based counting)
-    :param col_ends: list of end positions (inclusive) for each column
-    :param delimiter_pad: padding around delimiter when writing (default = None)
-    :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
     _format_name = 'fixed_width'
     _description = 'Fixed width'
@@ -349,11 +327,6 @@ class FixedWidthNoHeader(FixedWidth):
 
     See the :ref:`fixed_width_gallery` for specific usage examples.
 
-    # TODO: not sure what to do here because this is an optional, class-level attribute...
-    :param col_starts: list of start positions for each column (0-based counting)
-    :param col_ends: list of end positions (inclusive) for each column
-    :param delimiter_pad: padding around delimiter when writing (default = None)
-    :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
     _format_name = 'fixed_width_no_header'
     _description = 'Fixed width with no header'
@@ -410,11 +383,6 @@ class FixedWidthTwoLine(FixedWidth):
 
     See the :ref:`fixed_width_gallery` for specific usage examples.
 
-    # TODO: not sure what to do here because this is an optional, class-level attribute...
-    :param position_line: row index of line that specifies position (default = 1)
-    :param position_char: character used to write the position line (default = "-")
-    :param delimiter_pad: padding around delimiter when writing (default = None)
-    :param bookend: put the delimiter at start and end of line when writing (default = False)
     """
     _format_name = 'fixed_width_two_line'
     _description = 'Fixed width with second header line'
