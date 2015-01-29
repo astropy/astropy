@@ -1751,7 +1751,7 @@ class TimeString(TimeUnique):
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for these classes
         try:
-            assert val1.dtype.kind in ('S', 'U')
+            assert isinstance(val1, six.string_types)
         except:
             raise TypeError('Input values for {0} class must be strings'
                             .format(self.name))
