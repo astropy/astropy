@@ -512,7 +512,7 @@ class BaseHeader(object):
         strict_names : bool
             Whether to impose extra requirements on names
         guessing : bool
-            TODO: ?
+            True if this method is being called while guessing the table format
         """
         if strict_names:
             # Impose strict requirements on column names (normally used in guessing)
@@ -879,7 +879,7 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
 
     Parameters
     ----------
-    table : `~astropy.io.ascii.BaseReader`, array_like
+    table : `~astropy.table.Table`
         Input table
     names : list
         List of names to override those in table (set to None to use existing names)
