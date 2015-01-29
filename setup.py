@@ -18,7 +18,11 @@ builtins._ASTROPY_SETUP_ = True
 import astropy
 from astropy_helpers.setup_helpers import (
     register_commands, adjust_compiler, get_package_info, get_debug_option)
-from astropy_helpers.distutils_helpers import is_distutils_display_option
+try:
+    from astropy_helpers.distutils_helpers import is_distutils_display_option
+except:
+    # For astropy-helpers v0.4.x
+    from astropy_helpers.setup_helpers import is_distutils_display_option
 from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
 
