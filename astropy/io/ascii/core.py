@@ -153,22 +153,24 @@ class Column(object):
 
 class BaseInputter(object):
     """
-    Get the lines from the table input and return a list of lines.  The input
-    table can be one of:
+    Get the lines from the table input and return a list of lines.
 
-    * File name
-    * String (newline separated) with all header and data lines (must have at least 2 lines)
-    * File-like object with read() method
-    * List of strings
     """
     def get_lines(self, table):
         """
-        Get the lines from the ``table`` input.
+        Get the lines from the ``table`` input. The input table can be one of:
+
+        * File name
+        * String (newline separated) with all header and data lines (must have at least 2 lines)
+        * File-like object with read() method
+        * List of strings
 
         Parameters
         ----------
-        table : `~astropy.table.Table`
-            Table input
+        table : str, file_like, list
+            Can be either a file name, string (newline separated) with all header and data
+            lines (must have at least 2 lines), a file-like object with a ``read()`` method,
+            or a list of strings.
 
         Returns
         -------
