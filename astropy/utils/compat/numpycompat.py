@@ -18,6 +18,7 @@ __all__ = ['NUMPY_LT_1_6_1', 'NUMPY_LT_1_7', 'NUMPY_LT_1_8', 'NUMPY_LT_1_9',
 # features/bugs we're checking for (ex:
 # astropy.table.table._BROKEN_UNICODE_TABLE_SORT)
 NUMPY_LT_1_6_1 = not minversion(np, '1.6.1')
+NUMPY_LE_1_7 = not minversion(np, '1.7.0', inclusive=False)
 NUMPY_LT_1_7 = not minversion(np, '1.7.0')
 NUMPY_LT_1_8 = not minversion(np, '1.8.0')
 NUMPY_LT_1_9 = not minversion(np, '1.9.0')
@@ -32,7 +33,7 @@ def _monkeypatch_unicode_mask_fill_values():
     This monkey patches the function that validates and corrects a
     fill value to handle this case.
     """
-    if NUMPY_LT_1_7 and six.PY2:
+    if NUMPY_LE_1_7 and six.PY2:
         from numpy.ma import core as ma_core
         _check_fill_value_original = ma_core._check_fill_value
 
