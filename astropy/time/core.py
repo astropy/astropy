@@ -1313,11 +1313,9 @@ class TimeFormat(object):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        try:
-            assert (val1.dtype == np.double and np.all(np.isfinite(val1)) and
-                    (val2 is None or
-                     val2.dtype == np.double and np.all(np.isfinite(val2))))
-        except:
+        if not (val1.dtype == np.double and np.all(np.isfinite(val1)) and
+                (val2 is None or
+                 val2.dtype == np.double and np.all(np.isfinite(val2)))):
             raise TypeError('Input values for {0} class must be finite doubles'
                             .format(self.name))
 
@@ -1692,9 +1690,7 @@ class TimeDatetime(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
-        try:
-            assert all(isinstance(val, datetime) for val in val1.flat)
-        except:
+        if not all(isinstance(val, datetime) for val in val1.flat):
             raise TypeError('Input values for {0} class must be '
                             'datetime objects'.format(self.name))
         return val1, None
@@ -1751,9 +1747,7 @@ class TimeString(TimeUnique):
     """
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for these classes
-        try:
-            assert val1.dtype.kind in ('S', 'U')
-        except:
+        if val1.dtype.kind not in ('S', 'U'):
             raise TypeError('Input values for {0} class must be strings'
                             .format(self.name))
         return val1, None
