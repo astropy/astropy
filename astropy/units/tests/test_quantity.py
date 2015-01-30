@@ -17,6 +17,7 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
+from ...utils.compat import NUMPY_LT_1_7
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import xrange
@@ -708,7 +709,7 @@ class TestQuantityDisplay(object):
         assert (q2scalar._repr_latex_() ==
                 '$1.5 \\times 10^{14} \\; \\mathrm{\\frac{m}{s}}$')
 
-        if not minversion(np, '1.7.0'):
+        if NUMPY_LT_1_7:
             with pytest.raises(NotImplementedError):
                 self.arrq._repr_latex_()
             return  # all arrays should fail
