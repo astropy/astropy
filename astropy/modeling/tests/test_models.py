@@ -459,7 +459,7 @@ class Fittable1DModelTester(object):
         new_model_no_deriv = fitter_no_deriv(model_no_deriv, x, data,
                                              estimate_jacobian=True)
         utils.assert_allclose(new_model_with_deriv.parameters,
-                              new_model_no_deriv.parameters, atol=0.1)
+                              new_model_no_deriv.parameters, atol=0.15)
 
 
 def create_model(model_class, test_parameters, use_constraints=True,
