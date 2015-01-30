@@ -475,6 +475,9 @@ Bug Fixes
 
   - Tables that look almost, but not quite like DAOPhot tables could cause guessing
     to fail. [#3342]
+    
+  - The fast C reader no longer issues a segmentation fault when input data
+    contains an empty quoted string. [#3412]
 
 - ``astropy.io.fits``
 
