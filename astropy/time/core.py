@@ -1318,7 +1318,7 @@ class TimeFormat(object):
                     (val2 is None or
                      val2.dtype == np.double and np.all(np.isfinite(val2))))
         except:
-            raise TypeError('Input values for {0} class must be doubles'
+            raise TypeError('Input values for {0} class must be finite doubles'
                             .format(self.name))
 
         if hasattr(val1, 'to'):
