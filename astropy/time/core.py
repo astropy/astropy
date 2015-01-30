@@ -1314,8 +1314,9 @@ class TimeFormat(object):
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
         try:
-            assert (val1.dtype == np.double and
-                    (val2 is None or val2.dtype == np.double))
+            assert (val1.dtype == np.double and np.all(np.isfinite(val1)) and
+                    (val2 is None or
+                     val2.dtype == np.double and np.all(np.isfinite(val2))))
         except:
             raise TypeError('Input values for {0} class must be doubles'
                             .format(self.name))
