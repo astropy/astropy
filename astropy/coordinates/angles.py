@@ -85,59 +85,43 @@ class Angle(u.Quantity):
     _include_easy_conversion_members = True
 
     def __new__(cls, angle, unit=None, dtype=None, copy=True):
-        unit = cls._convert_unit_to_angle_unit(unit)
-        if (unit is not None and not unit.is_equivalent(u.radian)):
-            raise u.UnitsError("Requested unit {0} is not convertible to an "
-                               "angle".format(unit))
 
-        if isinstance(angle, u.Quantity):
-            # This includes Angle subclasses as well
+        if not isinstance(angle, u.Quantity):
             if unit is not None:
-                angle = angle.to(unit).value
-            elif not isinstance(angle, Angle):
-                unit = angle.unit
                 unit = cls._convert_unit_to_angle_unit(unit)
-                if not unit.is_equivalent(u.radian):
-                    raise u.UnitsError(
-                        "Given quantity {0} is not convertible to an "
-                        "angle".format(angle))
 
-                angle = angle.value
-        else:
-            # this does nothing if it's not a tuple
-            angle = cls._tuple_to_float(angle, unit)
-
-            if isinstance(angle, six.string_types):
-                angle, new_unit = util.parse_angle(angle, unit)
-                if new_unit is not None and unit is None:
-                    unit = new_unit
+            if isinstance(angle, tuple):
                 angle = cls._tuple_to_float(angle, unit)
-                if new_unit is not None and unit is not None and new_unit != unit:
-                    angle = new_unit.to(unit, angle)
+
+            elif isinstance(angle, six.string_types):
+                angle, angle_unit = util.parse_angle(angle, unit)
+                if angle_unit is None:
+                    angle_unit = unit
+
+                if isinstance(angle, tuple):
+                    angle = cls._tuple_to_float(angle, angle_unit or unit)
+
+                if angle_unit is not unit:
+                    # Possible conversion to `unit` will be done below.
+                    angle = u.Quantity(angle, angle_unit, copy=False)
+
             elif (isiterable(angle) and
                   not (isinstance(angle, np.ndarray) and
                        angle.dtype.kind not in 'SUVO')):
                 angle = [Angle(x, unit) for x in angle]
-                if unit is None:
-                    unit = angle[0].unit
-                angle = [x.to(unit) for x in angle]
 
         self = super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
                                          copy=copy)
 
         if not isinstance(angle, Angle):
-            # These checks are unnecessary if we're just copying an existing
-            # Angle
             if self.unit is u.dimensionless_unscaled:
-                raise u.UnitsError(
-                    "No unit was given - must be some kind of angle")
-            elif not self.unit.is_equivalent(u.radian):
-                raise u.UnitsError(
-                    "Unit {0} is not an angle".format(self.unit))
+                raise u.UnitsError("No unit was given - "
+                                   "must be some kind of angle")
 
-            if self.dtype.kind not in 'iuf':
-                raise TypeError(
-                    "Unsupported dtype for Angle:'{0}'".format(angle.dtype))
+            self._unit = cls._convert_unit_to_angle_unit(self.unit)
+            if not self.unit.is_equivalent(u.radian):
+                raise u.UnitsError("Unit {0} is not an angle"
+                                   .format(self.unit))
 
         return self
 
@@ -147,26 +131,18 @@ class Angle(u.Quantity):
         Converts an angle represented as a 3-tuple or 2-tuple into a floating
         point number in the given unit.
         """
-        if isinstance(angle, tuple):
-            # TODO: Numpy array of tuples?
-            if unit is u.hourangle:
-                angle = util.hms_to_hours(*angle)
-            elif unit is u.degree:
-                angle = util.dms_to_degrees(*angle)
-            else:
-                raise u.UnitsError(
-                    "Can not parse '{0}' as unit '{1}'".format(
-                        angle, unit))
-        return angle
+        # TODO: Numpy array of tuples?
+        if unit == u.hourangle:
+            return util.hms_to_hours(*angle)
+        elif unit == u.degree:
+            return util.dms_to_degrees(*angle)
+        else:
+            raise u.UnitsError("Can not parse '{0}' as unit '{1}'"
+                               .format(angle, unit))
 
     @staticmethod
     def _convert_unit_to_angle_unit(unit):
-        if unit is not None:
-            unit = u.Unit(unit)
-
-            if unit is u.hour:
-                unit = u.hourangle
-        return unit
+        return u.hourangle if unit is u.hour else unit
 
     def __quantity_subclass__(self, unit):
         unit = self._convert_unit_to_angle_unit(unit)
@@ -281,6 +257,8 @@ class Angle(u.Quantity):
         """
         if unit is None:
             unit = self.unit
+        else:
+            unit = u.Unit(unit)
         unit = self._convert_unit_to_angle_unit(unit)
 
         separators = {
@@ -628,7 +606,8 @@ class Longitude(Angle):
     def __new__(cls, angle, unit=None, wrap_angle=None, **kwargs):
         # Forbid creating a Long from a Lat.
         if isinstance(angle, Latitude):
-            raise TypeError("A Longitude angle cannot be created from a Latitude angle")
+            raise TypeError("A Longitude angle cannot be created from "
+                            "a Latitude angle.")
         self = super(Longitude, cls).__new__(cls, angle, unit=unit, **kwargs)
 
         if wrap_angle is None:
@@ -679,14 +658,13 @@ class Longitude(Angle):
 
     @wrap_angle.setter
     def wrap_angle(self, value):
-        value = Angle(value)
-
-        self._wrap_angle = value
+        self._wrap_angle = Angle(value)
         self._wrap_internal()
 
     def __array_finalize__(self, obj):
         super(Longitude, self).__array_finalize__(obj)
-        self._wrap_angle = getattr(obj, '_wrap_angle', 360 * u.deg)
+        self._wrap_angle = getattr(obj, '_wrap_angle',
+                                   self._default_wrap_angle)
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):
