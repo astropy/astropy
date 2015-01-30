@@ -94,7 +94,7 @@ class Angle(u.Quantity):
             # This includes Angle subclasses as well
             if unit is not None:
                 angle = angle.to(unit).value
-            else:
+            elif not isinstance(angle, Angle):
                 unit = angle.unit
                 unit = cls._convert_unit_to_angle_unit(unit)
                 if not unit.is_equivalent(u.radian):
@@ -125,14 +125,19 @@ class Angle(u.Quantity):
         self = super(Angle, cls).__new__(cls, angle, unit, dtype=dtype,
                                          copy=copy)
 
-        if self.unit is u.dimensionless_unscaled:
-            raise u.UnitsError("No unit was given - must be some kind of angle")
-        elif not self.unit.is_equivalent(u.radian):
-            raise u.UnitsError("Unit {0} is not an angle".format(self.unit))
+        if not isinstance(angle, Angle):
+            # These checks are unnecessary if we're just copying an existing
+            # Angle
+            if self.unit is u.dimensionless_unscaled:
+                raise u.UnitsError(
+                    "No unit was given - must be some kind of angle")
+            elif not self.unit.is_equivalent(u.radian):
+                raise u.UnitsError(
+                    "Unit {0} is not an angle".format(self.unit))
 
-        if self.dtype.kind not in 'iuf':
-                raise TypeError("Unsupported dtype for "
-                                "Angle:'{0}'".format(angle.dtype))
+            if self.dtype.kind not in 'iuf':
+                raise TypeError(
+                    "Unsupported dtype for Angle:'{0}'".format(angle.dtype))
 
         return self
 
@@ -674,12 +679,7 @@ class Longitude(Angle):
 
     @wrap_angle.setter
     def wrap_angle(self, value):
-        if not isinstance(value, Angle):
-            # TODO: Might be nice if Angle() had a better built-in pass-through
-            # for this case
-            # TODO: If the given angle *was* already an Angle, should we copy
-            # it?
-            value = Angle(value)
+        value = Angle(value)
 
         self._wrap_angle = value
         self._wrap_internal()
