@@ -575,6 +575,9 @@ New Features
 
   - Added ``units.astronomical_unit`` as a long form for ``units.au``. [#3303]
 
+  - Clarified imperial mass measurements and added pound force (lbf),
+    kilopound (kip), and pound per square inch (psi)
+
 - ``astropy.utils``
 
   - Added a new decorator ``astropy.utils.wraps`` which acts as a replacement
