@@ -762,3 +762,13 @@ a b c
     table = read_basic(text, parallel=parallel, check_meta=True)
     assert_equal(table.meta['comments'],
                  ['header comment', 'comment 2', 'comment 3'])
+
+@pytest.mark.parametrize("parallel", [True, False])
+def test_empty_quotes(parallel):
+    """
+    Make sure the C reader doesn't segfault when the
+    input data contains empty quotes. [#3407]
+    """
+    table = read_basic('a b\n1 ""\n2 ""', parallel=parallel)
+    expected = Table([[1, 2], [0, 0]], names=('a', 'b'))
+    assert_table_equal(table, expected)
