@@ -4,10 +4,14 @@ Normalization class for Matplotlib that can be used to produce colorbars.
 
 from __future__ import division, print_function
 
+from distutils.version import LooseVersion
+
 import numpy as np
 from numpy import ma
 
 try:
+    import matplotlib
+    MATPLOTLIB_LT_12 = LooseVersion(matplotlib.__version__) < LooseVersion("1.2.0")
     from matplotlib.colors import Normalize
 except ImportError:
     class Normalize(object):
@@ -33,7 +37,10 @@ class ImageNormalize(Normalize):
 
     def __init__(self, vmin=None, vmax=None, stretch=None, clip=False):
 
-        super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
+        if MATPLOTLIB_LT_12:  # Normalize is an old-style class
+            Normalize.__init__(self, vmin=vmin, vmax=vmax, clip=clip)
+        else:  # Normalize is a new-style class
+            super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
 
         self.vmin = vmin
         self.vmax = vmax
