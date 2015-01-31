@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ...utils.data import get_pkg_data_contents, get_pkg_data_filename
 from ...wcs import WCS
 from .. import utils
-from ..utils import proj_plane_pixel_scales, non_celestial_pixel_scales
+from ..utils import proj_plane_pixel_scales, is_proj_plane_distorted, non_celestial_pixel_scales
 from ...tests.helper import pytest, catch_warnings
 from ...utils.exceptions import AstropyUserWarning
 from ... import units as u
@@ -370,6 +370,23 @@ def test_skycoord_to_pixel(mode):
     assert new2.__class__ is SkyCoord2
     assert_allclose(new2.ra.degree, ref.ra.degree)
     assert_allclose(new2.dec.degree, ref.dec.degree)
+
+
+def test_is_proj_plane_distorted():
+    # non-orthogonal CD:
+    wcs = WCS(naxis=2)
+    wcs.wcs.cd = [[-0.1,0],[0,0.2]]
+    wcs.wcs.ctype = ['RA---TAN','DEC--TAN']
+    assert(is_proj_plane_distorted(wcs))
+
+    # almost orthogonal CD:
+    wcs.wcs.cd = [[0.1+2.0e-7,1.7e-7],[1.2e-7,0.1-1.3e-7]]
+    assert(not is_proj_plane_distorted(wcs))
+
+    # real case:
+    header = get_pkg_data_filename('data/sip.fits')
+    wcs = WCS(header)
+    assert(is_proj_plane_distorted(wcs))
 
 
 @pytest.mark.parametrize('mode', ['all', 'wcs'])
