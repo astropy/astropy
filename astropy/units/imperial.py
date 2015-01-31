@@ -81,7 +81,7 @@ def_unit(['kn', 'kt', 'knot', 'NMPH'], nmi / si.h, namespace=_ns,
 ###########################################################################
 # FORCE
 
-def_unit('lbf', 4.4482216 * si.N, namespace=_ns,
+def_unit('lbf', 32.174049 * lb * ft * s**-2, namespace=_ns,
          doc="Pound: force")
 def_unit(['kip', 'kilopound'], 1000 * lbf, namespace=_ns,
          doc="Kilopound: force")
