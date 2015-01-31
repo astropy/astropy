@@ -424,6 +424,7 @@ cdef class CParser:
             process.start()
 
         cdef list chunks = [None] * N
+        cdef list comments_chunks = [None] * N
         cdef dict failed_procs = {}
 
         for i in range(N):
@@ -435,8 +436,10 @@ cdef class CParser:
             elif err is not None: # err is (error code, error line)
                 failed_procs[proc] = err
             comments, data = queue_ret
-            line_comments.extend(comments)
+            comments_chunks[proc] = comments
             chunks[proc] = data
+        for chunk in comments_chunks:
+            line_comments.extend(chunk)
 
         if failed_procs:
             # find the line number of the error
