@@ -28,7 +28,7 @@ export CONDA_INSTALL="conda install --yes python=$PYTHON_VERSION numpy=$NUMPY_VE
 $CONDA_INSTALL pytest Cython jinja2 psutil
 
 # OPTIONAL DEPENDENCIES
-if [ $OPTIONAL_DEPS ]
+if $OPTIONAL_DEPS
 then
   $CONDA_INSTALL scipy h5py matplotlib pyyaml
   pip install beautifulsoup4
