@@ -62,7 +62,7 @@ matrix:
           env: PYTHON_VERSION=2.7 MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
 
 install:
-    - source continuous-integration/travis/setup_environment_$TRAVIS_OS_NAME.sh
+    - source .continuous-integration/travis/setup_environment_$TRAVIS_OS_NAME.sh
 
 script:
     - $MAIN_CMD $SETUP_CMD
