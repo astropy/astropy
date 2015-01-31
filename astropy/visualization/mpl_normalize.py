@@ -11,9 +11,11 @@ from numpy import ma
 
 try:
     import matplotlib
+    MATPLOTLIB_INSTALLED = True
     MATPLOTLIB_LT_12 = LooseVersion(matplotlib.__version__) < LooseVersion("1.2.0")
     from matplotlib.colors import Normalize
 except ImportError:
+    MATPLOTLIB_INSTALLED = False
     class Normalize(object):
         def __init__(self, *args, **kwargs):
             raise ImportError("matplotlib is required in order to use this class")
@@ -37,7 +39,8 @@ class ImageNormalize(Normalize):
 
     def __init__(self, vmin=None, vmax=None, stretch=None, clip=False):
 
-        if MATPLOTLIB_LT_12:  # Normalize is an old-style class
+        if MATPLOTLIB_INSTALLED and MATPLOTLIB_LT_12:
+            # Normalize is an old-style class
             Normalize.__init__(self, vmin=vmin, vmax=vmax, clip=clip)
         else:  # Normalize is a new-style class
             super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
