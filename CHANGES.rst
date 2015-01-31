@@ -266,6 +266,9 @@ New Features
   - Add ability to use ``WCS`` object to define projections in Matplotlib,
     using the ``WCSAxes`` package. [#3183]
 
+  - Added ``is_proj_plane_distorted`` for testing if pixels are
+    distorted. [#3329]
+
 API Changes
 ^^^^^^^^^^^
 
