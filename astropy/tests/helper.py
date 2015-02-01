@@ -456,6 +456,18 @@ def treat_deprecations_as_exceptions():
             r"'U' mode is deprecated",
             DeprecationWarning)
 
+        # BeautifulSoup4 triggers a DeprecationWarning in stdlib's
+        # html module.x
+        warnings.filterwarnings(
+            "always",
+            "The strict argument and mode are deprecated.",
+            DeprecationWarning)
+        warnings.filterwarnings(
+            "always",
+            "The value of convert_charrefs will become True in 3.5. "
+            "You are encouraged to set the value explicitly.",
+            DeprecationWarning)
+
 
 class catch_warnings(warnings.catch_warnings):
     """
