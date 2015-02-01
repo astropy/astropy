@@ -5,7 +5,7 @@ import numpy as np
 
 from ...tests.helper import pytest
 from ..utils import extract_array, add_array, subpixel_indices, \
-                    overlap_slices, NoOverlapError
+                    overlap_slices, NoOverlapError, PartialOverlapError
 
 test_positions = [(10.52, 3.12), (5.62, 12.97), (31.33, 31.77),
                   (0.46, 0.94), (20.45, 12.12), (42.24, 24.42)]
@@ -38,8 +38,30 @@ def test_slices_pos_different_dim():
 
 @pytest.mark.parametrize('pos', test_pos_bad)
 def test_slices_no_overlap(pos):
+    '''If there is no overlap between arrays, an error should be raised.'''
     with pytest.raises(NoOverlapError):
         temp = overlap_slices((5, 5), (2, 2), pos)
+
+
+def test_slices_partial_overlap():
+    '''Compute a slice for partially overlapping arrays.'''
+    temp = overlap_slices((5,), (3,), (0,))
+    assert temp == ((slice(0, 2, None),), (slice(1, 3, None),))
+
+    temp = overlap_slices((5,), (3,), (0,), mode='partial')
+    assert temp == ((slice(0, 2, None),), (slice(1, 3, None),))
+
+    for pos in [0, 4]:
+        with pytest.raises(PartialOverlapError) as e:
+            temp = overlap_slices((5,), (3,), (pos,), mode='strict')
+        assert 'Arrays overlap only partially.' in str(e.value)
+
+
+def test_slices_overlap_wrong_mode():
+    '''Call overlap_slices with non-existing mode'''
+    with pytest.raises(ValueError) as e:
+        temp = overlap_slices((5,), (3,), (0,), mode='full')
+    assert "Mode can only be" in str(e.value)
 
 
 def test_extract_array_1d_even():
@@ -47,22 +69,30 @@ def test_extract_array_1d_even():
 
     All dimensions are treated the same, so we can test in 1 dim.
     '''
-    assert np.all(extract_array(np.arange(4), (2, ), (0, )) == np.array([np.ma.masked, 0]))
+    assert np.all(extract_array(np.arange(4), (2, ), (0, ), fill_value=-99) == np.array([-99, 0]))
     for i in [1, 2, 3]:
         assert np.all(extract_array(np.arange(4), (2, ), (i, )) == np.array([i -1 , i]))
-    assert np.all(extract_array(np.arange(4), (2, ), (4, )) == np.array([3, np.ma.masked]))
+    assert np.all(extract_array(np.arange(4.), (2, ), (4, ), fill_value=np.inf) == np.array([3, np.inf]))
 
 def test_extract_array_1d_odd():
     '''Extract 1 d arrays.
 
     All dimensions are treated the same, so we can test in 1 dim.
+    The first few lines test the most error-prone part: Extraction of an
+    array on the boundaries.
+    Additional tests (e.g. dtype of return array) are done for the last
+    case only.
     '''
-    assert np.all(extract_array(np.arange(4), (3,), (-1, )) == np.array([np.ma.masked, np.ma.masked, 0]))
-    assert np.all(extract_array(np.arange(4), (3,), (0, )) == np.array([np.ma.masked, 0, 1]))
+    assert np.all(extract_array(np.arange(4), (3,), (-1, ), fill_value=-99) == np.array([-99, -99, 0]))
+    assert np.all(extract_array(np.arange(4), (3,), (0, ), fill_value=-99) == np.array([-99, 0, 1]))
     for i in [1,2]:
         assert np.all(extract_array(np.arange(4), (3,), (i, )) == np.array([i-1, i, i+1]))
-    assert np.all(extract_array(np.arange(4), (3,), (3, )) == np.array([2, 3, np.ma.masked]))
-    assert np.all(extract_array(np.arange(4), (3,), (4, )) == np.array([3, np.ma.masked, np.ma.masked]))
+    assert np.all(extract_array(np.arange(4), (3,), (3, ), fill_value=-99) == np.array([2, 3, -99]))
+    arrayin = np.arange(4.)
+    extracted = extract_array(arrayin, (3,), (4, ))
+    assert extracted[0] == 3
+    assert np.isnan(extracted[1]) # since I cannot use `==` to test for nan
+    assert extracted.dtype == arrayin.dtype
 
 
 def test_extract_array_easy():
