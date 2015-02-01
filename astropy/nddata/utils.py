@@ -15,8 +15,11 @@ class NoOverlapError(ValueError):
     '''Raised when determining the overlap of non-overlapping arrays.'''
     pass
 
+class PartialOverlapError(ValueError):
+    '''Raised when arrays only partially overlap.'''
+    pass
 
-def overlap_slices(large_array_shape, small_array_shape, position):
+def overlap_slices(large_array_shape, small_array_shape, position, mode='partial'):
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -38,6 +41,12 @@ def overlap_slices(large_array_shape, small_array_shape, position):
         When determining the center for a coordinate with an even number of
         elements, the position is rounded up. So the coordinates of the
         center of an array with shape=(2,3) will be (1,1).
+    mode : ['partial', 'strict']
+        In `partial` mode, a partial overlap of the small and the large
+        array is sufficient. In the `strict` mode, the small array has to be
+        fully contained in the large array, otherwise an
+        :class:`IncompleteOverlapError` is raised. In both modes,
+        non-overlapping arrays will raise a :class:`NoOverlapError`.
 
     Returns
     -------
@@ -50,6 +59,8 @@ def overlap_slices(large_array_shape, small_array_shape, position):
         ``small_array[slices_small]`` extracts the region that is inside the
         large array.
     """
+    if mode not in ['partial', 'strict']:
+        raise ValueError('Mode can only be "partial" or "strict".')
     if len(small_array_shape) != len(large_array_shape):
         raise ValueError("Both arrays must have the same number of dimensions.")
 
@@ -69,6 +80,14 @@ def overlap_slices(large_array_shape, small_array_shape, position):
         if e_min >= large_shape:
             raise NoOverlapError('Arrays do not overlap.')
 
+    if mode == 'strict':
+        for e_min in edges_min:
+            if e_min < 0:
+                raise PartialOverlapError('Arrays overlap only partially.')
+        for e_max, large_shape in zip(edges_max, large_array_shape):
+            if e_max >= large_shape:
+                raise PartialOverlapError('Arrays overlap only partially.')
+
     # Set up slices
     slices_large = tuple(slice(max(0, edge_min), min(large_shape, edge_max))
                          for (edge_min, edge_max, large_shape) in
@@ -81,7 +100,7 @@ def overlap_slices(large_array_shape, small_array_shape, position):
     return slices_large, slices_small
 
 
-def extract_array(array_large, shape, position):
+def extract_array(array_large, shape, position, mode='partial', fill_value=np.nan):
     """
     Extract smaller array of given shape and position out of a larger array.
 
@@ -94,10 +113,16 @@ def extract_array(array_large, shape, position):
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
+    mode : string
+        Mode for call to :func:`overlap_slices`.
+    fill_value : object of type array_large.dtype
+        If `mode` allows the extraction of arrays that overlap only partially,
+        `fill_value` set the values in the extracted array that do not overlap
+        with `large_array`.
 
     Returns
     -------
-    array_small : `~numpy.ma.ndarray`
+    array_small : `~numpy.ndarray`
         The extracted array. Values that do not overlap with ``array_large``
         are masked.
 
@@ -109,24 +134,19 @@ def extract_array(array_large, shape, position):
     >>> import numpy as np
     >>> from astropy.nddata.utils import extract_array
     >>> large_array = np.arange(110).reshape((11, 10))
-    >>> large_array[4:9, 4:9] = np.ones((5, 5))
     >>> extract_array(large_array, (3, 5), (7, 7))
-    masked_array(data =
-     [[1 1 1 1 69]
-     [1 1 1 1 79]
-     [1 1 1 1 89]],
-                 mask =
-     [[False False False False False]
-     [False False False False False]
-     [False False False False False]],
-           fill_value = 999999)
-
+    array([[65, 66, 67, 68, 69],
+           [75, 76, 77, 78, 79],
+           [85, 86, 87, 88, 89]])
     """
     large_slices, small_slices = overlap_slices(array_large.shape,
-                                                shape, position)
-    extracted_array = np.ma.zeros(shape, dtype=array_large.dtype)
-    extracted_array.mask = np.ma.masked
-    extracted_array[small_slices] = array_large[large_slices]
+                                                shape, position, mode=mode)
+    extracted_array = array_large[large_slices]
+    # Extracting on the edges is presumably a rare case, so treat special here.
+    if extracted_array.shape != shape:
+        extracted_array = np.zeros(shape, dtype=array_large.dtype)
+        extracted_array[:] = fill_value
+        extracted_array[small_slices] = array_large[large_slices]
     return extracted_array
 
 
