@@ -230,6 +230,9 @@ def get_extensions():
         cfg['sources'].extend(join(wcslib_cpath, x) for x in wcslib_files)
         cfg['include_dirs'].append(wcslib_cpath)
     else:
+        wcsconfig_h_path = join(WCSROOT, 'include', 'wcsconfig.h')
+        if os.path.exists(wcsconfig_h_path):
+            os.unlink(wcsconfig_h_path)
         cfg.update(setup_helpers.pkg_config(['wcslib'], ['wcs']))
 
     astropy_wcs_files = [  # List of astropy.wcs files to compile
