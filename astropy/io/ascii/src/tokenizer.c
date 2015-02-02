@@ -112,6 +112,7 @@ static inline void push(tokenizer_t *self, char c, int col)
     {
         resize_col(self, col);
     }
+
     *self->col_ptrs[col]++ = c;
 }
 
@@ -488,8 +489,7 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
             }
             else if (c == self->quotechar) // empty quotes
             {
-                END_FIELD();
-                break;
+                self->state = FIELD; // parse the rest of the field normally
             }
             else
             {
