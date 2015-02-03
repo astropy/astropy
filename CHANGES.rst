@@ -305,6 +305,10 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+- ``astropy.units``
+
+  - Clarified imperial mass measurements and added pound force (lbf),
+    kilopound (kip), and pound per square inch (psi). [#3409]
 
 
 1.0.1 (2015-03-06)
@@ -574,9 +578,6 @@ New Features
     function for unit compatibility. [#3072]
 
   - Added ``units.astronomical_unit`` as a long form for ``units.au``. [#3303]
-
-  - Clarified imperial mass measurements and added pound force (lbf),
-    kilopound (kip), and pound per square inch (psi)
 
 - ``astropy.utils``
 
