@@ -389,7 +389,11 @@ cdef class CParser:
 
         cdef list line_comments = self._get_comments(self.tokenizer)
         cdef int N = self.parallel
-        queue = multiprocessing.Queue()
+        try:
+            queue = multiprocessing.Queue()
+        except ImportError:
+            self.raise_error("shared semaphore implementation required "
+                             "but not available")
         cdef int offset = self.tokenizer.source_pos
 
         if offset == source_len: # no data
