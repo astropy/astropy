@@ -382,6 +382,9 @@ class TestBasic():
             Time(50000.0, 'bad', format='mjd', scale='tai')
         with pytest.raises(ValueError):
             Time('2005-08-04T00:01:02.000Z', scale='tai')
+        # regression test against #3396
+        with pytest.raises(ValueError):
+            Time(np.nan, format='jd', scale='utc')
 
     def test_utc_leap_sec(self):
         """Time behaves properly near or in UTC leap second.  This
