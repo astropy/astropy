@@ -6,7 +6,7 @@ environment:
   global:
       PYTHON: "C:\\conda"
       MINICONDA_VERSION: "3.5.5"
-      CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\.appveyor_windows_sdk.cmd"
+      CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\.continuous-integration\\appveyor\\windows_sdk.cmd"
       PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
                         # of 32 bit and 64 bit builds are needed, move this
                         # to the matrix section.
@@ -23,7 +23,7 @@ platform:
 
 install:
     # Install miniconda using a powershell script.
-    - "powershell ./.install-miniconda.ps1"
+    - "powershell .continuous-integration/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
     # Install the build and runtime dependencies of the project.
