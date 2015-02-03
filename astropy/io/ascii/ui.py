@@ -156,7 +156,7 @@ def read(table, guess=None, **kwargs):
             fast_reader = get_reader(**new_kwargs)
             try:
                 return fast_reader.read(table)
-            except (core.ParameterError, cparser.CParserError) as e:
+            except (core.ParameterError, cparser.CParserError, ImportError) as e:
                 # special testing value to avoid falling back on the slow reader
                 if fast_reader_param == 'force':
                     raise e
