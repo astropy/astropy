@@ -19,7 +19,7 @@ __all__ = sorted([
     'AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
     'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
     'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
-    'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Redshift',
+    'MexicanHat1D', 'MexicanHat2D', 'Scale', 'RedshiftWavelength',
     'RedshiftSpectrum', 'Shift', 'Sine1D', 'Trapezoid1D',
     'TrapezoidDisk2D', 'Ring2D', 'custom_model_1d'
 ])
@@ -400,7 +400,7 @@ class Scale(Model):
         return factor * x
 
 
-class Redshift(Fittable1DModel):
+class RedshiftWavelength(Fittable1DModel):
     """
     One dimensional redshift model.
 
