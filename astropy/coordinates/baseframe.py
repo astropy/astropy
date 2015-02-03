@@ -301,7 +301,7 @@ class TimeFrameAttribute(FrameAttribute):
             converted = True
 
         if not out.isscalar:
-            msg0 = ('Time input {0}={1!r} is not a single (scalar) value. Some '
+            msg0 = ('Time input "{0}" is not a single (scalar) value. Some '
                     'transformations do not yet support vector frame '
                     'attributes, so some transformations may not work.')
             msg = msg0.format(self.name, value)
