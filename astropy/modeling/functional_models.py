@@ -404,9 +404,11 @@ class Redshift(Fittable1DModel):
     """
     One dimensional redshift model.
 
+    Redshifts a wavelength array from rest (z=0) to the input redshift.
+
     Parameters
     ----------
-    z : float or a list of floats
+    z : int or float
         Redshift value(s).
 
     Notes
@@ -414,20 +416,20 @@ class Redshift(Fittable1DModel):
     Model formula:
 
         .. math:: \\lambda_{obs} = (1 + z) \\lambda_{rest}
-
     """
 
     z = Parameter(description='redshift', default=0)
 
     @staticmethod
     def evaluate(x, z):
-        """One dimensional Redshift model function"""
+        """One dimensional Redshift model function."""
 
         return (1 + z) * x
 
     @staticmethod
     def fit_deriv(x, z):
-        """One dimensional Redshift model derivative"""
+        """One dimensional Redshift model derivative."""
+
         d_z = x
         return [d_z]
 
