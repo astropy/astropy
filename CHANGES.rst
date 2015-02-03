@@ -513,6 +513,8 @@ Bug Fixes
   - When creating a Time object from a datetime object the time zone
     info is now correctly used. [#3160]
 
+  - For Time objects, it is now checked that numerical input is finite. [#3396]
+    
 - ``astropy.units``
 
   - Added a ``latex_inline`` unit format that returns the units in LaTeX math
