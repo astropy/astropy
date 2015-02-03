@@ -154,6 +154,28 @@ insert a row into the previously defined table an exception occurs::
   ValueError: Unable to insert row because of exception in column 'time':
   'Time' object has no attribute 'insert'
 
+**Initializing from a list of rows or a list of dicts**
+
+This mode of initializing a table does not work with mixin columns, so both of
+the following will fail::
+
+   >>> qt = QTable([{'a': 1 * u.m, 'b': 2},
+   ...              {'a': 2 * u.m, 'b': 3}])
+   Traceback (most recent call last):
+    ...
+   ValueError: setting an array element with a sequence.
+
+   >>> qt = QTable(rows=[[1 * u.m, 2],
+   ...                   [2 * u.m, 3]])
+   Traceback (most recent call last):
+    ...
+   ValueError: setting an array element with a sequence.
+
+The problem lies in knowing if and how to assemble the individual elements
+for each column into an appropriate mixin column.  The current code uses
+numpy to perform this function on numerical or string types, but it obviously
+does not handle mixin column types like |Quantity| or |SkyCoord|.
+
 **Masking**
 
 Mixin columns do not support masking, but there is limited support for use of
