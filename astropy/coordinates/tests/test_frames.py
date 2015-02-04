@@ -323,7 +323,7 @@ def test_sep():
     assert_allclose(sep3d.to(u.kpc).value, np.array([1, 1]))
 
 
-def test_time_inputs(recwarn):
+def test_time_inputs():
     """
     Test validation and conversion of inputs for equinox and obstime attributes.
     """
@@ -343,10 +343,8 @@ def test_time_inputs(recwarn):
         c = FK4(1 * u.deg, 2 * u.deg, obstime='hello')
     assert 'Invalid time input' in str(err)
 
-    #should yield a warning about vector times not always working
-    c = FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
-    w = recwarn.pop(AstropyWarning)
-    assert "is not a single (scalar) value" in str(w.message)
+    #should work fine without a warning even with vector times not always working
+    FK4(1 * u.deg, 2 * u.deg, obstime=['J2000', 'J2001'])
 
 
 def test_is_frame_attr_default():
