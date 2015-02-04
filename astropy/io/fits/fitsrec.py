@@ -1077,6 +1077,12 @@ class FITS_rec(np.recarray):
         fmt = ''.join([_pc, format[1:], ASCII2STR[format[0]],
                        (' ' * trail)])
 
+        # Even if the format precision is 0, we should output a decimal point
+        # as long as there is space to do so--not including a decimal point in
+        # a float value is discouraged by the FITS Standard
+        trailing_decimal = (format.precision == 0 and
+                            format.format in ('F', 'E', 'D'))
+
         # not using numarray.strings's num2char because the
         # result is not allowed to expand (as C/Python does).
         for jdx, value in enumerate(input_field):
@@ -1085,6 +1091,11 @@ class FITS_rec(np.recarray):
                 raise ValueError(
                     "Value %r does not fit into the output's itemsize of "
                     "%s." % (value, spans[col_idx]))
+
+            if trailing_decimal and value[0] == ' ':
+                # We have some extra space in the field for the trailing
+                # decimal point
+                value = value[1:] + '.'
 
             output_field[jdx] = value
 
