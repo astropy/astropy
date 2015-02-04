@@ -83,7 +83,9 @@ class NDData(NDDataBase):
         super(NDData, self).__init__()
 
         if isinstance(data, self.__class__):
-            self._data = np.array(data.data, subok=True, copy=False)
+            # No need to check the data because data must have successfully
+            # initialized.
+            self._data = data._data
             self.uncertainty = data.uncertainty
             self._mask = data.mask
             self._wcs = data.wcs
