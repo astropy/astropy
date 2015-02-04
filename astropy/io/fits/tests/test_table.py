@@ -2383,6 +2383,23 @@ class TestColumnFunctions(FitsTestCase):
         assert c.format.width == 15
         assert c.format.precision == 8
 
+        # zero-precision should be allowed as well, for float types
+        # https://github.com/astropy/astropy/issues/3422
+        c = fits.Column('TEST', 'F10.0')
+        assert c.format.format == 'F'
+        assert c.format.width == 10
+        assert c.format.precision == 0
+
+        c = fits.Column('TEST', 'E10.0')
+        assert c.format.format == 'E'
+        assert c.format.width == 10
+        assert c.format.precision == 0
+
+        c = fits.Column('TEST', 'D10.0')
+        assert c.format.format == 'D'
+        assert c.format.width == 10
+        assert c.format.precision == 0
+
         # These are a couple cases where the format code is a valid binary
         # table format, and is not strictly a valid ASCII table format but
         # could be *interpreted* as one by appending a default width.  This
