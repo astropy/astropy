@@ -3450,10 +3450,6 @@ _setup_wcsprm_type(
   wcsprintf_set(NULL);
   wcserr_enable(1);
 
-  if (PyModule_AddStringConstant(m, "__version__", XSTRINGIFY(WCSLIB_VERSION))) {
-      return -1;
-  }
-
   return (
     PyModule_AddObject(m, "Wcsprm", (PyObject *)&PyWcsprmType) ||
     CONSTANT(WCSSUB_LONGITUDE) ||
