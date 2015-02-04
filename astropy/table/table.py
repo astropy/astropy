@@ -509,6 +509,8 @@ class Table(object):
         """Initialize table from a list of Column objects"""
 
         lengths = set(len(col) for col in cols)
+        if len(lengths) == 0:
+            raise ValueError('Cannot slice table with empty iterator')
         if len(lengths) != 1:
             raise ValueError('Inconsistent data column lengths: {0}'
                              .format(lengths))
