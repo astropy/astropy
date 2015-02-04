@@ -246,6 +246,7 @@ The examples here assume this import statement was executed::
    g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1],
                           n_models=2)
    y = g1(x, model_set_axis=False)
+   plt.figure(figsize=(8, 4))
    plt.plot(x, y.T)
    plt.title('Evaluate two Gaussian1D models on 1 set of input data')
    plt.show()
@@ -259,6 +260,7 @@ The examples here assume this import statement was executed::
    g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1],
                           n_models=2)
    y = g1([x, x - 3])
+   plt.figure(figsize=(8, 4))
    plt.plot(x, y[0])
    plt.plot(x - 3, y[1])
    plt.title('Evaluate two Gaussian1D models with 2 sets of input data')
@@ -296,6 +298,7 @@ The examples here assume this import statement was executed::
    p1 = models.Polynomial1D(1, n_models=5)
    p1.c1 = [0, 1, 2, 3, 4]
    y = p1(x, model_set_axis=False)
+   plt.figure(figsize=(8, 4))
    plt.plot(x, y.T)
    plt.title("Polynomial1D with a 5 model set on the same input")
    plt.show()
