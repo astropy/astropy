@@ -573,7 +573,7 @@ Other Changes and Additions
 - The list of modules displayed in the pytest header can now be customized.
   [#3157]
 
-- `jinja2 <http://jinja.pocoo.org/docs/dev/>`_ is now required to build the
+- `jinja2 <http://jinja.pocoo.org/docs/dev/>`_>=2.7 is now required to build the
   source code from the git repository, in order to allow the ERFA wrappers to
   be generated. [#3166]
 
