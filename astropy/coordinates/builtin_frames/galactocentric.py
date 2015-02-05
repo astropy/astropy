@@ -17,7 +17,9 @@ from .icrs import ICRS
 
 # Measured by minimizing the difference between a plane of coordinates along
 #   l=0, b=[-90,90] and the Galactocentric x-z plane
-ROLL0 = Angle(58.5986320306*u.degree)
+# This is not used directly, but accessed via `get_roll0`.  We define it here to
+# prevent having to create new Angle objects every time `get_roll0` is called.
+_ROLL0 = Angle(58.5986320306*u.degree)
 
 class Galactocentric(BaseCoordinateFrame):
     r"""
@@ -129,6 +131,19 @@ class Galactocentric(BaseCoordinateFrame):
     z_sun = FrameAttribute(default=27.*u.pc)
     roll = FrameAttribute(default=0.*u.deg)
 
+    @classmethod
+    def get_roll0(cls):
+        """
+        The additional roll angle (about the final x axis) necessary to align
+        the final z axis to match the Galactic yz-plane.  Setting the ``roll``
+        frame attribute to  -this method's return value removes this rotation,
+        allowing the use of the `Galactocentric` frame in more general contexts.
+        """
+        # not that the actual value is defined at the module level.  We make at
+        # a property here because this module isn't actually part of the public
+        # API, so it's better for it to be accessable from Galactocentric
+        return _ROLL0
+
 # ICRS to/from Galactocentric ----------------------->
 @frame_transform_graph.transform(FunctionTransform, ICRS, Galactocentric)
 def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
@@ -148,7 +163,7 @@ def icrs_to_galactocentric(icrs_coord, galactocentric_frame):
     R1 = mat1 * mat2
 
     # extra roll away from the Galactic x-z plane
-    R2 = rotation_matrix(ROLL0 - galactocentric_frame.roll, 'x')
+    R2 = rotation_matrix(galactocentric_frame.get_roll0() - galactocentric_frame.roll, 'x')
 
     # construct transformation matrix
     R = R2*R1
@@ -197,7 +212,7 @@ def galactocentric_to_icrs(galactocentric_coord, icrs_frame):
     R1 = mat1 * mat2
 
     # extra roll away from the Galactic x-z plane
-    R2 = rotation_matrix(ROLL0 - galactocentric_coord.roll, 'x')
+    R2 = rotation_matrix(galactocentric_coord.get_roll0() - galactocentric_coord.roll, 'x')
 
     # construct transformation matrix
     R = R2*R1
