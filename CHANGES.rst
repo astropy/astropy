@@ -58,6 +58,9 @@ New Features
     that can be used to check that two frames are equivalent (ignoring the data).
     [#3330]
 
+  - The ``repr`` of coordinate objects now shows scalar coordinates in the
+    same format as vector coordinates. [#3350]
+
 - ``astropy.cosmology``
 
   - Add lookback_distance, which is c * lookback_time. [#3145]
@@ -514,7 +517,7 @@ Bug Fixes
     info is now correctly used. [#3160]
 
   - For Time objects, it is now checked that numerical input is finite. [#3396]
-    
+
 - ``astropy.units``
 
   - Added a ``latex_inline`` unit format that returns the units in LaTeX math
