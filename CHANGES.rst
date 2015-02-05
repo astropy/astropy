@@ -58,8 +58,8 @@ New Features
     that can be used to check that two frames are equivalent (ignoring the data).
     [#3330]
 
-  - The ``repr`` of coordinate objects now shows scalar coordinates in the
-    same format as vector coordinates. [#3350]
+  - The ``__repr__`` of coordinate objects now shows scalar coordinates in the
+    same format as vector coordinates. [#3350, 3448]
 
 - ``astropy.cosmology``
 
