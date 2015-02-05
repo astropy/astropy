@@ -139,7 +139,7 @@ class Galactocentric(BaseCoordinateFrame):
         frame attribute to  -this method's return value removes this rotation,
         allowing the use of the `Galactocentric` frame in more general contexts.
         """
-        # not that the actual value is defined at the module level.  We make at
+        # note that the actual value is defined at the module level.  We make at
         # a property here because this module isn't actually part of the public
         # API, so it's better for it to be accessable from Galactocentric
         return _ROLL0
