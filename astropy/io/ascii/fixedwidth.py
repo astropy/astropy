@@ -69,10 +69,10 @@ class FixedWidthHeader(basic.BasicHeader):
     """
     Fixed width table header reader.
     """
-    #: Splitter class for splitting data lines into columns
     splitter_class = FixedWidthHeaderSplitter
-    #: row index of line that specifies position (default = 1)
+    """ Splitter class for splitting data lines into columns """
     position_line = None   # secondary header line position
+    """ row index of line that specifies position (default = 1) """
     set_of_position_line_characters = set(r'`~!#$%^&*-_+=\|":' + "'")
 
     def get_line(self, lines, index):
@@ -218,8 +218,8 @@ class FixedWidthData(basic.BasicData):
     """
     Base table data reader.
     """
-    #: Splitter class for splitting data lines into columns
     splitter_class = FixedWidthSplitter
+    """ Splitter class for splitting data lines into columns """
 
     def write(self, lines):
         vals_list = []

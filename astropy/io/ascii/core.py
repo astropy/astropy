@@ -229,8 +229,8 @@ class BaseSplitter(object):
 
     """
 
-    #: one-character string used to separate fields
     delimiter = None
+    """ one-character string used to separate fields """
 
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line.  This is especially useful for
@@ -272,12 +272,18 @@ class DefaultSplitter(BaseSplitter):
                ...
 
     """
-    delimiter = ' '  #: one-character string used to separate fields.
-    quotechar = '"'  #: control how instances of *quotechar* in a field are quoted
-    doublequote = True  #: character to remove special meaning from following character
-    escapechar = None  #: one-character stringto quote fields containing special characters
-    quoting = csv.QUOTE_MINIMAL  #: control when quotes are recognised by the reader
-    skipinitialspace = True  #: ignore whitespace immediately following the delimiter
+    delimiter = ' '
+    """ one-character string used to separate fields. """
+    quotechar = '"'
+    """ control how instances of *quotechar* in a field are quoted """
+    doublequote = True
+    """ character to remove special meaning from following character """
+    escapechar = None
+    """ one-character stringto quote fields containing special characters """
+    quoting = csv.QUOTE_MINIMAL
+    """ control when quotes are recognised by the reader """
+    skipinitialspace = True
+    """ ignore whitespace immediately following the delimiter """
     csv_writer = None
     csv_writer_out = StringIO()
 
@@ -392,11 +398,16 @@ class BaseHeader(object):
     """
     Base table header reader
     """
-    auto_format = 'col%d'  #: format string for auto-generating column names
-    start_line = None  #: None, int, or a function of ``lines`` that returns None or int
-    comment = None  #: regular expression for comment lines
-    splitter_class = DefaultSplitter  #: Splitter class for splitting data lines into columns
-    names = None  #: list of names corresponding to each data column
+    auto_format = 'col%d'
+    """ format string for auto-generating column names """
+    start_line = None
+    """ None, int, or a function of ``lines`` that returns None or int """
+    comment = None
+    """ regular expression for comment lines """
+    splitter_class = DefaultSplitter
+    """ Splitter class for splitting data lines into columns """
+    names = None
+    """ list of names corresponding to each data column """
     write_comment = False
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
@@ -537,10 +548,14 @@ class BaseData(object):
     """
     Base table data reader.
     """
-    start_line = None  #: None, int, or a function of ``lines`` that returns None or int
-    end_line = None  #: None, int, or a function of ``lines`` that returns None or int
-    comment = None  #: Regular expression for comment lines
-    splitter_class = DefaultSplitter  #: Splitter class for splitting data lines into columns
+    start_line = None
+    """ None, int, or a function of ``lines`` that returns None or int """
+    end_line = None
+    """ None, int, or a function of ``lines`` that returns None or int """
+    comment = None
+    """ Regular expression for comment lines """
+    splitter_class = DefaultSplitter
+    """ Splitter class for splitting data lines into columns """
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     fill_include_names = None
     fill_exclude_names = None
