@@ -79,7 +79,7 @@ removed, and the points are still located on a unit sphere:
 
     >>> sph_unit = car.represent_as(UnitSphericalRepresentation)
     >>> sph_unit.represent_as(CartesianRepresentation) # doctest: +FLOAT_CMP
-    <CartesianRepresentation (x, y, z) in
+    <CartesianRepresentation (x, y, z) [dimensionless]
         (0.424264068712, 0.707106781187, 0.565685424949)>
 
 Array values
