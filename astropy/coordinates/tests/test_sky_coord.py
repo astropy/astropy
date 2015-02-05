@@ -482,15 +482,18 @@ def test_repr():
     sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
 
-    assert repr(sc1) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
-    assert repr(sc2) == '<SkyCoord (ICRS): ra=1.0 deg, dec=1.0 deg, distance=1.0 kpc>'
+    assert repr(sc1) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
+                         '    (0.0, 1.0)>')
+    assert repr(sc2) == ('<SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)\n'
+                         '    (1.0, 1.0, 1.0)>')
 
     sc3 = SkyCoord(0.25 * u.deg, [1, 2.5] * u.deg, frame='icrs')
     assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                          '    [(0.25, 1.0), (0.25, 2.5)]>')
 
     sc_default = SkyCoord(0 * u.deg, 1 * u.deg)
-    assert repr(sc_default) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
+    assert repr(sc_default) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
+                                '    (0.0, 1.0)>')
 
 
 def test_ops():

@@ -11,6 +11,7 @@ from ... import units as u
 from ...tests.helper import pytest
 from .. import representation
 
+NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
 
 def test_frame_attribute_descriptor():
     """ Unit tests of the FrameAttribute descriptor """
@@ -155,9 +156,29 @@ def test_frame_repr():
     i2 = ICRS(ra=1*u.deg, dec=2*u.deg)
     i3 = ICRS(ra=1*u.deg, dec=2*u.deg, distance=3*u.kpc)
 
-    assert repr(i2) == '<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg>'
-    assert repr(i3) == ('<ICRS Coordinate: ra=1.0 deg, dec=2.0 deg, '
-                        'distance=3.0 kpc>')
+    if NUMPY_LT_1P7:
+        assert repr(i2).startswith("<ICRS Coordinate: (ra, dec) in deg")
+        assert repr(i3).startswith("<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)")
+
+    else:
+        assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
+                            '    (1.0, 2.0)>')
+        assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
+                            '    (1.0, 2.0, 3.0)>')
+
+    # try with arrays
+    i2 = ICRS(ra=[1.1,2.1]*u.deg, dec=[2.1,3.1]*u.deg)
+    i3 = ICRS(ra=[1.1,2.1]*u.deg, dec=[-15.6,17.1]*u.deg, distance=[11.,21.]*u.kpc)
+
+    if NUMPY_LT_1P7:
+        assert repr(i2).startswith("<ICRS Coordinate: (ra, dec) in deg")
+        assert repr(i3).startswith("<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)")
+
+    else:
+        assert repr(i2) == ('<ICRS Coordinate: (ra, dec) in deg\n'
+                            '    [(1.1, 2.1), (2.1, 3.1)]>')
+        assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
+                            '    [(1.1, -15.6, 11.0), (2.1, 17.1, 21.0)]>')
 
 
 def test_converting_units():
@@ -171,16 +192,26 @@ def test_converting_units():
     rexrepr = re.compile(r'(.*?=\d\.).*?( .*?=\d\.).*?( .*)')
 
     # Use values that aren't subject to rounding down to X.9999...
-    i2 = ICRS(ra=1.1*u.deg, dec=2.1*u.deg)
+    i2 = ICRS(ra=2.*u.deg, dec=2.*u.deg)
+    i2_many = ICRS(ra=[2.,4.]*u.deg, dec=[2.,-8.1]*u.deg)
 
     #converting from FK5 to ICRS and back changes the *internal* representation,
     # but it should still come out in the preferred form
 
     i4 = i2.transform_to(FK5).transform_to(ICRS)
+    i4_many = i2_many.transform_to(FK5).transform_to(ICRS)
+
     ri2 = ''.join(rexrepr.split(repr(i2)))
     ri4 = ''.join(rexrepr.split(repr(i4)))
-    assert ri2 == ri4
+    if not NUMPY_LT_1P7:
+        assert ri2 == ri4
     assert i2.data.lon.unit != i4.data.lon.unit  # Internal repr changed
+
+    ri2_many = ''.join(rexrepr.split(repr(i2_many)))
+    ri4_many = ''.join(rexrepr.split(repr(i4_many)))
+    if not NUMPY_LT_1P7:
+        assert ri2_many == ri4_many
+    assert i2_many.data.lon.unit != i4_many.data.lon.unit  # Internal repr changed
 
     #but that *shouldn't* hold if we turn off units for the representation
     class FakeICRS(ICRS):
@@ -592,7 +623,8 @@ def test_representation_subclass():
 
     # A similar issue then happened in __repr__ with subclasses of
     # SphericalRepresentation.
-    assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000): lon=32.0 deg, lat=20.0 deg>"
+    assert repr(frame) == ("<FK5 Coordinate (equinox=J2000.000): (lon, lat) in deg\n"
+                           "    (32.0, 20.0)>")
 
     # A more subtle issue is when specifying a custom
     # UnitSphericalRepresentation subclass for the data and

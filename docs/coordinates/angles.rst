@@ -106,8 +106,9 @@ Angles will also behave correctly for appropriate arithmetic operations::
 |Angle| objects can also be used for creating coordinate objects::
 
     >>> from astropy.coordinates import ICRS
-    >>> ICRS(Angle(1, u.radian), Angle(0.5, u.radian))
-    <ICRS Coordinate: ra=57.2957795131 deg, dec=28.6478897565 deg>
+    >>> ICRS(Angle(1, u.radian), Angle(0.5, u.radian)) # doctest: +FLOAT_CMP
+    <ICRS Coordinate: (ra, dec) in deg
+        (57.2957795131, 28.6478897565)>
 
 
 Wrapping and bounds
