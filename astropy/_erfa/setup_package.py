@@ -33,19 +33,22 @@ def pre_sdist_hook(cmd_obj):
     preprocess_source()
 
 def is_release():
+    """
+    Determines if we're on a release version of astropy
+    """
     if sys.version_info[0] < 3:
         # in py 2.x this import works fine
-        from .. import version
-        return version.release
+        from .. import version as version_mod
     else:
         # in py 3.x the import fails because _erfa hasn't been imported yet.
-        # this hack instead finds the actual version.py file and executes it.
+        # this instead finds the actual version.py file and executes it.
+        from importlib import machinery as import_machinery
+
         path_to_vers = os.path.join(os.path.dirname(__file__), '..', 'version.py')
-        dct = {'__file__': os.path.abspath(path_to_vers),
-               '__name__': 'astropy.version'}
-        with open(dct['__file__']) as f:
-            exec(f.read(), dct)
-        return dct.get('release', False)
+        loader = import_machinery.SourceFileLoader('astropy.version',
+                                                   os.path.abspath(path_to_vers))
+        version_mod = loader.load_module()
+    return version_mod.release
 
 def preprocess_source():
     # Generating the ERFA wrappers should only be done if needed. This also
