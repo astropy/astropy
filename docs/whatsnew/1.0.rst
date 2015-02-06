@@ -302,6 +302,16 @@ The important point here is that the ``time`` column is a bona fide |Time| objec
 
 For all the details, including a new |QTable| class, please see :ref:`mixin_columns`.
 
+Integration with WCSAxes
+------------------------
+
+The :class:`~astropy.wcs.WCS` class can now be used as a `Matplotlib
+<http://www.matplotlib.org>`_ projection to make plots of images with WCS
+coordinates overlaid, making use of the `WCSAxes
+<http://wcsaxes.readthedocs.org>`_ affiliated package behind the scenes. More
+information on using this functionality can be found in the `WCSAxes
+<http://wcsaxes.readthedocs.org>`_ documentation.
+
 Deprecation and backward-incompatible changes
 ---------------------------------------------
 
