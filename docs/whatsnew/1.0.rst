@@ -315,16 +315,13 @@ information on using this functionality can be found in the `WCSAxes
 Deprecation and backward-incompatible changes
 ---------------------------------------------
 
-.. Dropped support for Numpy 1.5
-.. Other big API changes
+Astropy is now no longer supported on Python 3.1 and 3.2. Python 3.x users
+should use Python 3.3 or 3.4. In addition, support for Numpy 1.5 has been
+dropped, and users should make sure they are using Numpy 1.6 or later.
 
 Full change log
 ---------------
 
 To see a detailed list of all changes in version v1.0 and prior, please see the
 :ref:`changelog`.
-
-Note on future versions
------------------------
-
 
