@@ -53,8 +53,11 @@ class DaophotHeader(core.BaseHeader):
         header.  The DAOphot header is specialized so that we just copy the entire BaseHeader
         get_cols routine and modify as needed.
 
-        :param lines: list of table lines
-        :returns: list of table Columns
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
 
         # Parse a series of column definition lines like below.  There may be several
