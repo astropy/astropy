@@ -548,6 +548,9 @@ class SkyCoord(object):
         """
         Computes on-sky separation between this coordinate and another.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
@@ -592,6 +595,9 @@ class SkyCoord(object):
         Computes three dimensional separation between this coordinate
         and another.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
@@ -635,6 +641,9 @@ class SkyCoord(object):
         """
         Finds the nearest on-sky matches of this coordinate in a set of
         catalog coordinates.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -697,6 +706,9 @@ class SkyCoord(object):
         This finds the 3-dimensional closest neighbor, which is only different
         from the on-sky distance if ``distance`` is set in this object or the
         ``catalogcoord`` object.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -762,6 +774,9 @@ class SkyCoord(object):
         coordinate, it is better to use
         `~astropy.coordinates.SkyCoord.separation`.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
@@ -816,6 +831,9 @@ class SkyCoord(object):
         with coordinate arrays, rather than a scalar coordinate.  For a scalar
         coordinate, it is better to use
         `~astropy.coordinates.SkyCoord.separation_3d`.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
 
         Parameters
         ----------
