@@ -270,7 +270,9 @@ class GithubSuggestBackports(object):
         # Get the last tag that should be in this branch
         for tag in tags:
             tag_ver = pkg_resources.parse_version(tag['name'].lstrip('v'))
-            if tag_ver[:2] == branch_ver[:2]:
+            branch_base_ver = branch_ver[:branch_ver.index('*x')]
+            cmp_indx = len(branch_base_ver)
+            if tag_ver[:cmp_indx] == branch_ver[:cmp_indx]:
                 self._last_tag = tag
                 return tag
 
@@ -298,6 +300,11 @@ class GithubSuggestBackports(object):
         log.info('Merge these into {0} by doing "git checkout {0}; git pull; '
                  'git cherry-pick -m 1 <SHA>"'.format(self.branch))
         last_tag_commit = self.get_last_tag_commit()
+
+        if not last_tag_commit:
+            # There have *been* no tags of this release line so just quit
+            raise StopIteration
+
         last_tag_date = last_tag_commit['commit']['committer']['date']
 
         # Get the issue #s of all closed issues in the relevant milestone
