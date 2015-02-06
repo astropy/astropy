@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import abc
+import functools
 
 import numpy as np
 import astropy.units as u
@@ -43,15 +44,17 @@ class MetaBaseRepresentation(type):
 
         REPRESENTATION_CLASSES[cls.get_name()] = cls
 
-p_opt = np.get_printoptions()
-def _fstyle(x):
-    fmt_str = "{0:." + str(p_opt['precision']) + "f}"
-    s = fmt_str.format(x)
-    s_trunc = s.rstrip("0")
-    if s_trunc.split(".")[1] == "":
-        return s_trunc + "0"
+
+def _fstyle(precision, x):
+    fmt_str = '{0:.{precision}f}'
+    s = fmt_str.format(x, precision=precision)
+    s_trunc = s.rstrip('0')
+    if s_trunc[-1] == '.':
+        # Ensure there is one trailing 0 after a bare decimal point
+        return s_trunc + '0'
     else:
-        return str(x)
+        return s_trunc
+
 
 @six.add_metaclass(MetaBaseRepresentation)
 class BaseRepresentation(object):
@@ -175,27 +178,20 @@ class BaseRepresentation(object):
             v = self._values
 
         names = self._values.dtype.names
-        if len(names) == 2:
-            fmt = {'numpystr' : lambda x: "(" + \
-                                            np.array2string(x[names[0]], style=_fstyle) + \
-                                            ', ' + \
-                                            np.array2string(x[names[1]], style=_fstyle) + \
-                                            ")"}
-        else:
-            fmt = {'numpystr' : lambda x: "(" + \
-                                            np.array2string(x[names[0]], style=_fstyle) + \
-                                            ', ' + \
-                                            np.array2string(x[names[1]], style=_fstyle) + \
-                                            ', ' + \
-                                            np.array2string(x[names[2]], style=_fstyle) + \
-                                            ")"}
+        precision = np.get_printoptions()['precision']
+        fstyle = functools.partial(_fstyle, precision)
+        format_val = lambda val: np.array2string(val, style=fstyle)
+        formatter = {
+            'numpystr': lambda x: '({0})'.format(
+                ', '.join(format_val(x[name]) for name in names))
+        }
 
         if NUMPY_LT_1P7:
             arrstr = np.array2string(v, separator=', ',
                                      prefix=prefixstr)
 
         else:
-            arrstr = np.array2string(v, formatter=fmt,
+            arrstr = np.array2string(v, formatter=formatter,
                                      separator=', ',
                                      prefix=prefixstr)
 
