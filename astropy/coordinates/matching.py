@@ -166,6 +166,10 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     Searches for pairs of points that are at least as close as a specified
     distance in 3D space.
 
+    This is inteded for use on coordinate objects with arrays of coordinates,
+    not scalars.  For scalar coordinates, it is better to use the
+    ``separation_3d`` methods.
+
     Parameters
     ----------
     coords1 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
@@ -251,6 +255,10 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     """
     Searches for pairs of points that have an angular separation at least as
     close as a specified angle.
+
+    This is inteded for use on coordinate objects with arrays of coordinates,
+    not scalars.  For scalar coordinates, it is better to use the ``separation``
+    methods.
 
     Parameters
     ----------

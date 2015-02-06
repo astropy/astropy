@@ -755,11 +755,17 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given on-sky separation.
 
+        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        with coordinate arrays, rather than a scalar coordinate.  For a scalar
+        coordinate, it is better to use
+        `~astropy.coordinates.SkyCoord.separation`.
+
         Parameters
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate(s) to search around to try to find matching points in
-            this `SkyCoord`.
+            The coordinates to search around to try to find matching points in
+            this `SkyCoord`. This should be an object with array coordinates,
+            not a scalar coordinate object.
         seplimit : `~astropy.units.Quantity` with angle units
             The on-sky separation to search within.
 
@@ -802,11 +808,17 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given 3D radius.
 
+        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        with coordinate arrays, rather than a scalar coordinate.  For a scalar
+        coordinate, it is better to use
+        `~astropy.coordinates.SkyCoord.separation_3d`.
+
         Parameters
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate(s) to search around to try to find matching points in
-            this `SkyCoord`.
+            The coordinates to search around to try to find matching points in
+            this `SkyCoord`. This should be an object with array coordinates,
+            not a scalar coordinate object.
         distlimit : `~astropy.units.Quantity` with distance units
             The physical radius to search within.
 
