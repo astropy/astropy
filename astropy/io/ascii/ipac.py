@@ -163,13 +163,17 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 col.raw_type, col.name))
 
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines``.
+        """
+        Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
         Sets ``self.cols`` with the list of Columns.
 
-        :param lines: list of table lines
-        :returns: list of table Columns
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
@@ -433,10 +437,19 @@ class Ipac(basic.Basic):
         self.header.DBMS = DBMS
 
     def write(self, table):
-        """Write ``table`` as list of strings.
+        """
+        Write ``table`` as list of strings.
 
-        :param table: input table data (astropy.table.Table object)
-        :returns: list of strings corresponding to ASCII table
+        Parameters
+        ----------
+        table: `~astropy.table.Table`
+            Input table data
+
+        Returns
+        -------
+        lines : list
+            List of strings corresponding to ASCII table
+
         """
         # Set a default null value for all columns by adding at the end, which
         # is the position with the lowest priority.
