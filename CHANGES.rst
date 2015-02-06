@@ -508,6 +508,9 @@ Bug Fixes
 
   - Fix a problem when doing nested iterators on a single table. [#3358]
 
+  - Fix an error when an empty list, tuple, or ndarray is used for item access
+    within a table.  This now returns the table with no rows. [#3442]
+
 - ``astropy.time``
 
   - When creating a Time object from a datetime object the time zone
