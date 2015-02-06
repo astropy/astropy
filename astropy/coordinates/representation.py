@@ -202,9 +202,10 @@ class BaseRepresentation(object):
         if self._values.shape == ():
             arrstr = arrstr[1:-1]
 
-        return '<{0} ({1}) in {2:s}\n{3}{4}>'.format(
+        unitstr = ('in ' + self._unitstr) if self._unitstr else '[dimensionless]'
+        return '<{0} ({1}) {2:s}\n{3}{4}>'.format(
             self.__class__.__name__, ', '.join(self.components),
-            self._unitstr, prefixstr, arrstr)
+            unitstr, prefixstr, arrstr)
 
 
 class CartesianRepresentation(BaseRepresentation):
