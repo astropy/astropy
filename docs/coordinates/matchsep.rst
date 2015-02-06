@@ -110,6 +110,11 @@ will work on either |skycoord| objects *or* the lower-level frame classes::
     >>> idx, d2d, d3d = match_coordinates_sky(c, catalog)  # doctest: +SKIP
     >>> idx, d2d, d3d = match_coordinates_sky(c.frame, catalog.frame)  # doctest: +SKIP
 
+.. _astropy-searching-coordinates:
+
+Searching Around Coordinates
+============================
+
 Closely-related functionality can be used to search for *all* coordinates within
 a certain distance (either 3D distance or on-sky) of another set of coordinates.
 The ``search_around_*`` methods (and functions) provide this functionality,
