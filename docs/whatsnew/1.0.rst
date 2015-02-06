@@ -322,6 +322,6 @@ dropped, and users should make sure they are using Numpy 1.6 or later.
 Full change log
 ---------------
 
-To see a detailed list of all changes in version v1.0 and prior, please see the
-:ref:`changelog`.
+To see a detailed list of all changes in version v1.0, including changes in API,
+please see the :ref:`changelog`.
 
