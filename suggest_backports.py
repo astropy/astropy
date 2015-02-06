@@ -202,7 +202,13 @@ class GithubSuggestBackports(object):
             raise
         return pr
 
-    def find_unmerged_commit(self, commit, since=None):
+    def find_merged_commit(self, commit, since=None):
+        """
+        Determines whether or not this commit was already merged into the
+        release branch, and if so returns the merge commit from the branch.
+        Returns `None` if the commit was not found to be merged.
+        """
+
         def expand_cache():
             if not self._cached_commits:
                 # Initialize with the first page of commits from the bug fix
@@ -322,8 +328,12 @@ class GithubSuggestBackports(object):
 
             merge_commit = self.get_pull_request_merge_commit(pr['number'])
 
-            if not self.find_unmerged_commit(merge_commit,
-                                             since=last_tag_date):
+            # Ignore commits that were merged before the last tag date
+            if merge_commit['commit']['committer']['date'] < last_tag_date:
+                continue
+
+            if not self.find_merged_commit(merge_commit,
+                                           since=last_tag_date):
                 yield pr, merge_commit['sha']
 
 
