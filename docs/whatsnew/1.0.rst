@@ -109,14 +109,14 @@ New :ref:`astropy_analytic_functions` subpackage
 This subpackage provides analytic functions that are commonly used in
 astronomy. These already understand `~astropy.units.Quantity`, i.e., they can
 handle units of input and output parameters. For instance, to calculate the
-blackbody flux for 10000K at 6000 Angstrom:
+blackbody flux for 10000K at 6000 Angstrom::
 
->>> astropy import units as u
->>> from astropy.analytic_functions import blackbody_lambda, blackbody_nu
->>> blackbody_lambda(6000 * u.AA, 10000 * u.K)
-<Quantity 15315791.836941158 erg / (Angstrom cm2 s sr)>
->>> blackbody_nu(6000 * u.AA, 10000 * u.K)
-<Quantity 0.00018391673686797075 erg / (cm2 Hz s sr)
+    >>> from astropy import units as u
+    >>> from astropy.analytic_functions import blackbody_lambda, blackbody_nu
+    >>> blackbody_lambda(6000 * u.AA, 10000 * u.K)
+    <Quantity 15315791.836941158 erg / (Angstrom cm2 s sr)>
+    >>> blackbody_nu(6000 * u.AA, 10000 * u.K)
+    <Quantity 0.00018391673686797075 erg / (cm2 Hz s sr)
 
 See :ref:`astropy_analytic_functions` for more details.
 
@@ -209,7 +209,7 @@ define a new model class is an `~astropy.modeling.Model.evaluate` method that
 computes the model.  Optionally one can define :ref:`fittable parameters
 <modeling-parameters>`, a `~astropy.modeling.FittableModel.fit_deriv`, and/or
 an `~astropy.modeling.Model.inverse`.  The new, improved
-`~astropy.modeling.custom_model` decorator reduces to boilerplate needed for
+`~astropy.modeling.custom_model` decorator reduces the boilerplate needed for
 many models even more.  See :ref:`modeling-new-classes` for more details.
 
 Array broadcasting has also been improved, enabling a broader range of
@@ -236,8 +236,8 @@ fitting framework.  See the
 :ref:`introduction to compound models <compound-models-intro>` and full
 :ref:`compound models documentation <compound-models>` for more examples.
 
-New features  in :ref:`astropy-table`
--------------------------------------
+New features in :ref:`astropy-table`
+------------------------------------
 
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Time| replace:: :class:`~astropy.time.Time`
@@ -249,9 +249,9 @@ New features  in :ref:`astropy-table`
 Refactor of table infrastructure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The underlying data container for the astropy |Table| object has been changed
-in astropy 1.0.  Previously tables were stored internally as a numpy structured
-array object, with column access being a memory view of the corresponding numpy
+The underlying data container for the Astropy |Table| object has been changed
+in Astropy v1.0.  Previously, tables were stored internally as a Numpy structured
+array object, with column access being a memory view of the corresponding Numpy
 array field.  Starting with this release the fundamental data container is an
 ordered dictionary of individual column objects and each |Column| object is the
 sole owner of its data.
@@ -265,7 +265,7 @@ For details please see :ref:`table_implementation_change`.
 Support for 'mixin' columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Version 1.0 of astropy introduces a new concept of the "Mixin
+Version v1.0 of Astropy introduces a new concept of the "Mixin
 Column" in tables which allows integration of appropriate non-|Column| based
 class objects within a |Table| object.  These mixin column objects are not
 converted in any way but are used natively.
@@ -276,7 +276,7 @@ The available built-in mixin column classes are |Quantity|, |SkyCoord|, and
 
 .. Warning::
 
-   While the astropy developers are excited about this new capability and
+   While the Astropy developers are excited about this new capability and
    intend to improve it, the interface for using mixin columns is not stable at
    this point and it is not recommended for use in production code.
 
@@ -321,7 +321,7 @@ Deprecation and backward-incompatible changes
 Full change log
 ---------------
 
-To see a detailed list of all changes in version 1.0 and prior, please see the
+To see a detailed list of all changes in version v1.0 and prior, please see the
 :ref:`changelog`.
 
 Note on future versions
