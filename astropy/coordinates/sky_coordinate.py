@@ -673,6 +673,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.match_coordinates_sky
+        SkyCoord.match_to_catalog_3d
         """
         from .matching import match_coordinates_sky
 
@@ -734,6 +735,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.match_coordinates_3d
+        SkyCoord.match_to_catalog_sky
         """
         from .matching import match_coordinates_3d
 
@@ -798,6 +800,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.search_around_sky
+        SkyCoord.search_around_3d
         """
         from .matching import search_around_sky
 
@@ -852,6 +855,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.search_around_3d
+        SkyCoord.search_around_sky
         """
         from .matching import search_around_3d
 
