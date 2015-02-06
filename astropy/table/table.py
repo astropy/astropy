@@ -842,8 +842,8 @@ class Table(object):
             return self.columns[item]
         elif isinstance(item, (int, np.integer)):
             return self.Row(self, item)
-        elif isinstance(item, (tuple, list)) and all(isinstance(x, six.string_types)
-                                                     for x in item):
+        elif (isinstance(item, (tuple, list)) and item and
+              all(isinstance(x, six.string_types) for x in item)):
             bad_names = [x for x in item if x not in self.colnames]
             if bad_names:
                 raise ValueError('Slice name(s) {0} not valid column name(s)'
@@ -852,6 +852,10 @@ class Table(object):
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
             return out
+        elif ((isinstance(item, np.ndarray) and len(item) == 0) or
+              (isinstance(item, (tuple, list)) and not item)):
+            # If item is an empty array/list/tuple then return the table with no rows
+            return self._new_from_slice([])
         elif (isinstance(item, slice) or
               isinstance(item, np.ndarray) or
               isinstance(item, list) or

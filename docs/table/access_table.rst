@@ -46,6 +46,7 @@ the data contained in that object relate to the original table data
   t[2:5]       # Table object with rows 2:5
   t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
+  t[[]]        # Same table definition but with no rows of data
   t['a', 'c']  # Table with cols 'a', 'c' (copy)
   dat = np.array(t)  # Copy table data to numpy structured array object
   t['a'].quantity  # an astropy.units.Quantity for Column 'a'
