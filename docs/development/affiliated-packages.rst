@@ -452,6 +452,16 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
    You may need to add the ``--remote-data`` flag or any other flags that you
    normally add when fully testing your affiliated package.
 
+   .. note::
+
+       Running ``python setup.py build sdist`` runs two setup commands in
+       succession.  First it runs ``build``, then immediately runs ``sdist``
+       to create the source distribution.  The reason to do this is that
+       there are several generated source files that must be included in the
+       source distribution for it to be valid.  Running ``build`` first
+       ensures that those files will be generated and packaged in the source
+       distribution.
+
 #. Go back to the root of the directory and remove the generated files with::
 
         git clean -fxd
