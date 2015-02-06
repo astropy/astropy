@@ -9,6 +9,24 @@ What's New in Astropy 1.0?
 Overview
 --------
 
+Astropy 1.0 is a major release that adds significant new functionality since the 0.4.x series of releases.
+
+In particular, coordinate conversions to/from Altitude/Azimuth are now
+supported (see `Support for Alt/Az coordinates`_), a new package to help with
+data visualization has been added (see :ref:`whatsnew_viz`), and a new package
+for common analytic functions is now also included (see
+:ref:`whatsnew_analytical_functions`).
+
+The :mod:`astropy.io.ascii` sub-pacakge now includes fast C-based
+readers/writers for common formats, and also supports a new ASCII format the
+better preserves meta-data (see :ref:`whatsnew_io_ascii`), the modeling package
+has been significantly improved and now supports composite models (see
+:ref:`whatsnew_modeling`), and the :class:`~astropy.table.Table` class can now
+include :class:`~astropy.coordinates.SkyCoord` and :class:`~astropy.time.Time`
+objects containing arrays (see :ref:`whatsnew_table`).
+
+In addition to these major changes, Astropy 1.0 includes a large number of
+smaller improvements, which are described in the `Full change log`_
 
 About Long-term support
 -----------------------
@@ -69,8 +87,10 @@ angle that allows for specifying the orientation of the z axis (``roll``)::
     <SkyCoord (Galactocentric: galcen_distance=8.0 kpc, galcen_ra=266d24m18.36s, galcen_dec=-28d56m10.23s, z_sun=15.0 pc, roll=0.0 deg): (x, y, z) in kpc
         (-13.368458678, -16.6847348677, 12.466872262)>
 
-New :ref:`astropy-visualization` subpackage
--------------------------------------------
+.. _whatsnew_viz:
+
+New data visualization subpackage
+---------------------------------
 
 The new :ref:`Data Visualization <astropy-visualization>` package is intended
 to collect functionality that can be helpful when visualizing data. At the
@@ -103,8 +123,10 @@ colorbar:
     im = ax.imshow(image, norm=norm, origin='lower', aspect='auto')
     fig.colorbar(im)
 
-New :ref:`astropy_analytic_functions` subpackage
-------------------------------------------------
+.. _whatsnew_analytical_functions:
+
+New analytic functions subpackage
+---------------------------------
 
 This subpackage provides analytic functions that are commonly used in
 astronomy. These already understand `~astropy.units.Quantity`, i.e., they can
@@ -123,8 +145,10 @@ See :ref:`astropy_analytic_functions` for more details.
 In future versions of Astropy, the functions in this module might also be
 accessible as `~astropy.modeling.Model` classes.
 
-New features in :ref:`io-ascii`
--------------------------------
+.. _whatsnew_io_ascii:
+
+New ASCII features
+------------------
 
 Fast readers/writers for ASCII files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -200,8 +224,10 @@ the automatically-detected ECSV we get::
 Note that using the ECSV reader requires the `PyYAML <http://pyyaml.org>`_
 package to be installed.
 
-New features in :ref:`astropy-modeling`
----------------------------------------
+.. _whatsnew_modeling:
+
+New modeling features
+---------------------
 
 New subclasses of `~astropy.modeling.Model` are now a bit easier to define,
 requiring less boilerplate code in general.  Now all that is necessary to
@@ -236,8 +262,10 @@ fitting framework.  See the
 :ref:`introduction to compound models <compound-models-intro>` and full
 :ref:`compound models documentation <compound-models>` for more examples.
 
-New features in :ref:`astropy-table`
-------------------------------------
+.. _whatsnew_table:
+
+New Table features
+------------------
 
 .. |Quantity| replace:: :class:`~astropy.units.Quantity`
 .. |Time| replace:: :class:`~astropy.time.Time`
