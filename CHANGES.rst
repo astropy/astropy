@@ -260,6 +260,10 @@ New Features
 - ``astropy.stats``
 
 - ``astropy.sphinx``
+- ``astropy.table``
+
+  - Add ``info`` method that outputs a summary description of the
+    table columns.  [#3455]
 
 - ``astropy.table``
 
