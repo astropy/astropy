@@ -44,13 +44,7 @@ units::
 Also note that the two input coordinates were not in the same frame -
 one is  automatically converted to match the other, ensuring that even
 though they are  in different frames, the separation is determined
-consistently.  This does mean, however, that a |skycoord| without a
-frame cannot be compared in this manner::
-
-    >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s')
-    >>> c2 = SkyCoord('0h52m44.8s', '-72d49m43s')
-    >>> sep = c1.separation(c2)  # doctest: +SKIP
-    ValueError: Cannot transform to/from this SkyCoord because the frame was not specified at creation.
+consistently.
 
 In addition to the on-sky separation described above,
 :meth:`astropy.coordinates.BaseCoordinateFrame.separation_3d` or
@@ -124,7 +118,7 @@ with an interface very similar to ``match_coordinates_*``::
    >>> np.all(d2d < 1*u.deg)  # doctest: +SKIP
    True
    >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_3d(c, 1*u.kpc)  # doctest: +SKIP
-   >>> np.all(d2d < 1*u.kpc)  # doctest: +SKIP
+   >>> np.all(d3d < 1*u.kpc)  # doctest: +SKIP
    True
 
 The key difference for these methods is that there can be multiple (or no)
