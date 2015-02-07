@@ -17,8 +17,8 @@ data visualization has been added (see :ref:`whatsnew_viz`), and a new package
 for common analytic functions is now also included (see
 :ref:`whatsnew_analytical_functions`).
 
-The :mod:`astropy.io.ascii` sub-pacakge now includes fast C-based
-readers/writers for common formats, and also supports a new ASCII format the
+The :mod:`astropy.io.ascii` sub-package now includes fast C-based
+readers/writers for common formats, and also supports a new ASCII format that
 better preserves meta-data (see :ref:`whatsnew_io_ascii`), the modeling package
 has been significantly improved and now supports composite models (see
 :ref:`whatsnew_modeling`), and the :class:`~astropy.table.Table` class can now
@@ -26,7 +26,7 @@ include :class:`~astropy.coordinates.SkyCoord` and :class:`~astropy.time.Time`
 objects containing arrays (see :ref:`whatsnew_table`).
 
 In addition to these major changes, Astropy 1.0 includes a large number of
-smaller improvements, which are described in the `Full change log`_
+smaller improvements and bug fixes, which are described in the `Full change log`_
 
 About Long-term support
 -----------------------
