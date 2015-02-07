@@ -5,7 +5,10 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
+import sys
+import os
 import re
+import collections
 
 from copy import deepcopy
 
@@ -2173,6 +2176,49 @@ class Table(object):
                 out[name] = Column(data=data, name=name)
 
         return cls(out)
+
+
+    def info(self, out=None):
+        """
+        Write summary information about table to the ``out`` filehandle.
+        By default this prints to standard output via sys.stdout.
+
+        Parameters
+        ----------
+        out: file-like object
+            Output destination (default=sys.stdout)
+        """
+        if out is None:
+            out = sys.stdout
+
+        descr_vals = [self.__class__.__name__]
+        if self.masked:
+            descr_vals.append('masked=True')
+        descr_vals.append('length={0}'.format(len(self)))
+
+        outlines = ['<' + ' '.join(descr_vals) + '>']
+
+        info = collections.defaultdict(list)
+        attrs = ('name', 'dtype', 'unit', 'format', 'description', 'class')
+        for attr in attrs:
+            for col in self.columns.values():
+                if attr == 'class':
+                    val = '' if isinstance(col, BaseColumn) else col.__class__.__name__
+                elif attr == 'dtype':
+                    val = col_getattr(col, attr).name
+                else:
+                    val = col_getattr(col, attr)
+                if val is None:
+                    val = ''
+                info[attr].append(str(val))
+
+        info = Table(info, names=attrs)
+        for attr in attrs:
+            if np.all(info[attr] == ''):
+                del info[attr]
+
+        outlines.extend(info.pformat(max_width=-1, max_lines=-1, show_unit=False))
+        out.writelines(outline + os.linesep for outline in outlines)
 
 
 class QTable(Table):
