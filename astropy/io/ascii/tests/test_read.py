@@ -481,7 +481,8 @@ def test_read_rdb_wrong_type(fast_reader):
     table = """col1\tcol2
 N\tN
 1\tHello"""
-    with pytest.raises(ascii.InconsistentTableError):
+    err_type = ValueError if not fast_reader else ascii.InconsistentTableError
+    with pytest.raises(err_type):
         ascii.read(table, Reader=ascii.Rdb, fast_reader=fast_reader)
 
 
@@ -875,9 +876,18 @@ def test_guess_fail():
     Check the error message when guess fails
     """
     with pytest.raises(ascii.InconsistentTableError) as err:
-        ascii.read('asfdasdf\n1 2 3', format='html')
-
+        ascii.read('asfdasdf\n1 2 3', format='basic')
     assert "** To figure out why the table did not read, use guess=False and" in str(err.value)
+
+    # Test the case with guessing enabled but for a format that has no free params
+    with pytest.raises(ValueError) as err:
+        ascii.read('asfdasdf\n1 2 3', format='ipac')
+    assert 'At least one header line beginning and ending with delimiter required' in str(err.value)
+
+    # Test the case with guessing enabled but with all params specified
+    with pytest.raises(ValueError) as err:
+        ascii.read('asfdasdf\n1 2 3', format='basic', quotechar='"', delimiter=' ', fast_reader=False)
+    assert 'Number of header columns (1) inconsistent with data columns (3)' in str(err.value)
 
 
 def test_guessing_file_object():
