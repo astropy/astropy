@@ -174,10 +174,10 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     ----------
     coords1 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The first set of coordinates, which will be searched for matches from
-        ``coords2`` within ``seplimit``.
+        ``coords2`` within ``seplimit``.  Cannot be a scalar coordinate.
     coords2 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The second set of coordinates, which will be searched for matches from
-        ``coords1`` within ``seplimit``.
+        ``coords1`` within ``seplimit``.  Cannot be a scalar coordinate.
     distlimit : `~astropy.units.Quantity` with distance units
         The physical radius to search within.
     storekdtree : bool or str, optional
@@ -271,10 +271,10 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     ----------
     coords1 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The first set of coordinates, which will be searched for matches from
-        ``coords2`` within ``seplimit``.
+        ``coords2`` within ``seplimit``. Cannot be a scalar coordinate.
     coords2 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The second set of coordinates, which will be searched for matches from
-        ``coords1`` within ``seplimit``.
+        ``coords1`` within ``seplimit``. Cannot be a scalar coordinate.
     seplimit : `~astropy.units.Quantity` with angle units
         The on-sky separation to search within.
     storekdtree : bool or str, optional
