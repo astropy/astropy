@@ -52,7 +52,7 @@ The current planned and existing sub-packages are:
     .stability img {
         max-width: none;
         margin: 0px;
-    } 
+    }
     </style>
 
     <table border="1" class="docutils stability" align='center'>
@@ -189,7 +189,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                Significant changes in v1.0 to implement <a href="https://github.com/astropy/astropy-APEs/blob/master/APE7.rst">APE 7</a>. 
+                Significant changes in v1.0 to implement <a href="https://github.com/astropy/astropy-APEs/blob/master/APE7.rst">APE 7</a>.
             </td>
         </tr>
         <tr>
@@ -230,10 +230,11 @@ The current planned and existing sub-packages are:
                 astropy.time
             </td>
             <td align='center'>
-                <img alt="stable" src="_images/stable.png">
+                <img alt="mature" src="_images/mature.png">
             </td>
             <td>
-                Incremental improvements since v0.1, but mostly stable API.
+                Incremental improvements since v0.1, API likely to remain stable
+                for the foreseeable future.
             </td>
         </tr>
         <tr>
