@@ -841,11 +841,7 @@ class Column(object):
                 return _convert_array(array, np.dtype('uint8'))
             else:
                 # Preserve byte order of the original array for now; see #77
-                # TODO: For some reason we drop the format repeat here; need
-                # to investigate why that was and if it's something we can
-                # avoid doing...
-                new_format = _convert_format(format.format)
-                numpy_format = array.dtype.byteorder + new_format
+                numpy_format = array.dtype.byteorder + format.recformat
 
                 # Handle arrays passed in as unsigned ints as pseudo-unsigned
                 # int arrays; blatantly tacked in here for now--we need columns
@@ -864,7 +860,12 @@ class Column(object):
                     numpy_format = numpy_format.replace('i', 'u')
                     self._pseudo_unsigned_ints = True
 
-                return _convert_array(array, np.dtype(numpy_format))
+                # The .base here means we're dropping the shape information,
+                # which is only used to format recarray fields, and is not
+                # useful for converting input arrays to the correct data type
+                dtype = np.dtype(numpy_format).base
+
+                return _convert_array(array, dtype)
 
 
 class ColDefs(object):
@@ -1693,9 +1694,10 @@ def _parse_tformat(tform):
 
 
 def _parse_ascii_tformat(tform, strict=False):
-    """Parse the ``TFORMn`` keywords for ASCII tables into a
-    ``(format, width, precision)`` tuple (the latter is zero unless
-    width is one of 'E', 'F', or 'D').
+    """
+    Parse the ``TFORMn`` keywords for ASCII tables into a ``(format, width,
+    precision)`` tuple (the latter is always zero unless format is one of 'E',
+    'F', or 'D').
     """
 
     match = TFORMAT_ASCII_RE.match(tform.strip())
@@ -1730,13 +1732,10 @@ def _parse_ascii_tformat(tform, strict=False):
 
     def convert_int(val):
         msg = ('Format %r is not valid--field width and decimal precision '
-               'must be positive integers.')
+               'must be integers.')
         try:
             val = int(val)
         except (ValueError, TypeError):
-            raise VerifyError(msg % tform)
-
-        if val <= 0:
             raise VerifyError(msg % tform)
 
         return val
@@ -1750,6 +1749,10 @@ def _parse_ascii_tformat(tform, strict=False):
     else:
         # For any format, if width was unspecified use the set defaults
         width, precision = ASCII_DEFAULT_WIDTHS[format]
+
+    if width <= 0:
+        raise VerifyError("Format %r not valid--field width must be a "
+                          "positive integeter." % tform)
 
     if precision >= width:
         raise VerifyError("Format %r not valid--the number of decimal digits "

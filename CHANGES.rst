@@ -481,9 +481,19 @@ Bug Fixes
   - Fixed the problem in ``fits.open`` of some filenames with colon (``:``) in
     the name being recognized as URLs instead of file names. [#3122]
 
-  - Setting ``memmap=True`` in ``fits.open`` and related functions now raises a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
+  - Setting ``memmap=True`` in ``fits.open`` and related functions now raises
+    a ValueError if opening a file in memory-mapped mode is impossible. [#2298]
 
-  - CONTINUE cards no longer end the value of the final card in the series with an ampersand, per the specification of the CONTINUE card convention. [#3282]
+  - CONTINUE cards no longer end the value of the final card in the series with
+    an ampersand, per the specification of the CONTINUE card convention. [#3282]
+
+  - Fixed a crash that occurred when reading an ASCII table containing
+    zero-precision floating point fields. [#3422]
+
+  - When a float field for an ASCII table has zero-precision a decimal point
+    (with no digits following it) is still written to the field as long as
+    there is space for it, as recommended by the FITS standard.  This makes it
+    less ambiguous that these columns should be interpreted as floats. [#3422]
 
 - ``astropy.logger``
 
