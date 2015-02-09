@@ -123,7 +123,7 @@ with an interface very similar to ``match_coordinates_*``::
 
 The key difference for these methods is that there can be multiple (or no)
 matches in ``catalog`` around any locations in ``c``.  Hence, indecies into both
-``c`` and ``catalog`` are returned instead of just indecies into ``catalog``. 
+``c`` and ``catalog`` are returned instead of just indecies into ``catalog``.
 These can then be indexed back into the two |skycoord| objects, or, for that
 matter, any array with the same order::
 
@@ -135,7 +135,7 @@ matter, any array with the same order::
    ['NGC 1234' 'NGC 4567' ...]
 
 Note, though, that this dual-indexing means that ``search_around_*`` does not
-work well if one of the coordinates is a scalar, because the returned index 
+work well if one of the coordinates is a scalar, because the returned index
 would not make sense for a scalar::
 
    >>> scalarc = SkyCoord(1*u.deg, 2*u.deg)  # doctest: +SKIP
@@ -143,7 +143,7 @@ would not make sense for a scalar::
    >>> scalarc[idxscalarc]  # doctest: +SKIP
    IndexError: 0-d arrays can't be indexed
 
-As a result (and because the ``search_around_*`` algorithm is inefficient in 
+As a result (and because the ``search_around_*`` algorithm is inefficient in
 the scalar case, anyway), the best approach for this scenario is to instead
 use the ``separation*`` methods::
 
@@ -152,5 +152,10 @@ use the ``separation*`` methods::
    >>> d3d = scalarc.separation_3d(catalog)  # doctest: +SKIP
    >>> catalog3dmsk = d3d < 1*u.deg < 1*u.kpc  # doctest: +SKIP
 
-The resulting ``catalogmsk`` or ``catalog3dmsk`` variables can then be used in
-mostly the same way as ``idxcatalog`` in the above examples.
+The resulting ``catalogmsk`` or ``catalog3dmsk`` variables are boolean arrays
+rather than arrays of indicies, but in practice they usually can be used in
+the same way as ``idxcatalog`` from the above examples.  If you definitely do
+need indicies instead of boolean masks, you can do:
+
+   >>> idxcatalog = np.where(catalogmsk)[0]  # doctest: +SKIP
+   >>> idxcatalog3d = np.where(catalog3dmsk)[0]  # doctest: +SKIP
