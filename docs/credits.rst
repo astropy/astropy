@@ -22,12 +22,17 @@ Core Package Contributors
 * Chris Beaumont
 * Daniel Bell
 * Francesco Biscani
+* Thompson Le Blanc
 * Christopher Bonnett
+* Joseph Jon Booker
 * Médéric Boquien
+* Azalee Bostroem
+* Matthew Bourque
 * Larry Bradley
 * Gustavo Bragança
 * Erik M. Bray
 * Eli Bressert
+* Hugo Buddelmeijer
 * Mihai Cara
 * Mabry Cervin
 * Pritish Chakraborty
@@ -35,10 +40,11 @@ Core Package Contributors
 * Jean Connelly
 * Simon Conseil
 * Ryan Cooke
-* Matt Craig
+* Matthew Craig
 * Steven Crawford
 * Neil Crighton
 * Kelle Cruz
+* Daniel Datsev
 * Matt Davis
 * Christoph Deil
 * Nadia Dencheva
@@ -51,24 +57,35 @@ Core Package Contributors
 * Jonathan Foster
 * Ryan Fox
 * Lehman Garrison
+* Simon Gibbons
 * Adam Ginsburg
 * Christoph Gohlke
 * Perry Greenfield
 * Dylan Gregersen
 * Frédéric Grollier
 * Karan Grover
+* Kevin Gullikson
 * Hans Moritz Günther
 * Alex Hagen
+* Michael Hoenig
 * Emma Hogan
 * Chris Hanley
 * JC Hsu
+* Anthony Horton
+* Eric Jeschke
+* Sarah Kendrew
 * Marten van Kerkwijk
 * Wolfgang Kerzendorf
 * Lennard Kiehl
+* Rashid Khan
+* Dominik Klaes
 * Kacper Kowalik
-* Roban Kramer
+* Roban Hultman Kramer
+* Antony Lee
 * Simon Liedtke
 * Pey Lian Lim
+* Joseph Long
+* Aaron Meisner
 * Serge Montagnac
 * José Sabater Montes
 * Michael Mueller
@@ -76,6 +93,8 @@ Core Package Contributors
 * Demitri Muna
 * Prasanth Nair
 * Bogdan Nicula
+* Joe Philip Ninan
+* Bryce Nordgren
 * Miruna Oprescu
 * Luigi Paioro
 * Asish Panda
@@ -85,6 +104,9 @@ Core Package Contributors
 * David Perez-Suarez
 * Ray Plante
 * Adrian Price-Whelan
+* J. Xavier Prochaska
+* David Pérez-Suárez
+* QuanTakeuchi
 * Tanuj Rastogi
 * Thomas Robitaille
 * Juan Luis Cano Rodríguez
@@ -92,11 +114,15 @@ Core Package Contributors
 * Alex Rudy
 * Joseph Ryan
 * Eloy Salinas
+* Gerrit Schellenberger
 * David Shiga
 * David Shupe
+* Jonathan Sick
 * Leo Singer
 * Brigitta Sipocz
+* Shivan Sornarajah
 * Shantanu Srivastava
+* Bernardo Sulzbach
 * James Taylor
 * Jeff Taylor
 * Kirill Tchernyshyov
@@ -105,9 +131,11 @@ Core Package Contributors
 * James Turner
 * Miguel de Val-Borro
 * Jonathan Whitmore
+* Lisa Walter
 * Benjamin Alan Weaver
+* Jonathan Whitmore
 * Julien Woillez
-* Victor Zabalza
+* Víctor Zabalza
 
 Other Credits
 =============
