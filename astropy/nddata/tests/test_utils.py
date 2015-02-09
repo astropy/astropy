@@ -58,10 +58,17 @@ def test_slices_partial_overlap():
 
 
 def test_slices_overlap_wrong_mode():
-    '''Call overlap_slices with non-existing mode'''
+    '''Call overlap_slices with non-existing mode.'''
     with pytest.raises(ValueError) as e:
         temp = overlap_slices((5,), (3,), (0,), mode='full')
     assert "Mode can only be" in str(e.value)
+
+
+def test_extract_array_wrong_mode():
+    '''Call extract_array with non-existing mode.'''
+    with pytest.raises(ValueError) as e:
+        temp = extract_array(np.arange(4), (2, ), (0, ), mode='full')
+    assert "Valid modes are 'partial', 'trim', and 'strict'" == str(e.value)
 
 
 def test_extract_array_1d_even():
@@ -73,6 +80,7 @@ def test_extract_array_1d_even():
     for i in [1, 2, 3]:
         assert np.all(extract_array(np.arange(4), (2, ), (i, )) == np.array([i -1 , i]))
     assert np.all(extract_array(np.arange(4.), (2, ), (4, ), fill_value=np.inf) == np.array([3, np.inf]))
+
 
 def test_extract_array_1d_odd():
     '''Extract 1 d arrays.
@@ -95,7 +103,19 @@ def test_extract_array_1d_odd():
     assert extracted.dtype == arrayin.dtype
 
 
-def test_extract_array_easy():
+def test_extract_array_1d_trim():
+    '''Extract 1 d arrays.
+
+    All dimensions are treated the same, so we can test in 1 dim.
+    '''
+    assert np.all(extract_array(np.arange(4), (2, ), (0, ), mode='trim') == np.array([0]))
+    for i in [1, 2, 3]:
+        assert np.all(extract_array(np.arange(4), (2, ), (i, ), mode='trim') == np.array([i -1 , i]))
+    assert np.all(extract_array(np.arange(4.), (2, ), (4, ), mode='trim') == np.array([3]))
+
+
+@pytest.mark.parametrize('mode', ['partial', 'trim', 'strict'])
+def test_extract_array_easy(mode):
     """
     Test extract_array utility function.
 
@@ -104,7 +124,7 @@ def test_extract_array_easy():
     large_test_array = np.zeros((11, 11))
     small_test_array = np.ones((5, 5))
     large_test_array[3:8, 3:8] = small_test_array
-    extracted_array = extract_array(large_test_array, (5, 5), (5, 5))
+    extracted_array = extract_array(large_test_array, (5, 5), (5, 5), mode=mode)
     assert np.all(extracted_array == small_test_array)
 
 
