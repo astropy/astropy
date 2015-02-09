@@ -20,6 +20,7 @@ The on-sky separation is easily computed with the
 which computes the great-circle distance (*not* the small-angle
 approximation)::
 
+    >>> import numpy as np
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', frame='icrs')
