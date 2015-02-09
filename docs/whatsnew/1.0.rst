@@ -37,6 +37,13 @@ months like the non-LTS releases. More details about this, including a
 wider rationale for Astropy's version numbering scheme, can be found in
 `Astropy Proposal for Enhancement 2  <https://github.com/astropy/astropy-APEs/blob/master/APE2.rst>`_.
 
+Note that different sub-packages in Astropy have different stability levels. See
+the :doc:`/stability` page for an overview of the status of major components.
+LTS can be expected for anything with green or blue (stable or mature) status on
+that page.  For yellow (in development) subpackages, LTS *may* be provided, but
+major changes may prevent backporting of complex changes, particularly if they
+are connected to new features.
+
 Support for Alt/Az coordinates
 ------------------------------
 
