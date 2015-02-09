@@ -40,7 +40,7 @@ wider rationale for Astropy's version numbering scheme, can be found in
 Note that different sub-packages in Astropy have different stability levels. See
 the :doc:`/stability` page for an overview of the status of major components.
 LTS can be expected for anything with green or blue (stable or mature) status on
-that page.  For yellow (in development) packages, LTS *may* be provided, but
+that page.  For yellow (in development) subpackages, LTS *may* be provided, but
 major changes may prevent backporting of complex changes, particularly if they
 are connected to new features.
 
