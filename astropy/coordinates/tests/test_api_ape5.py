@@ -434,7 +434,7 @@ def test_highlevel_api():
 def test_highlevel_api_remote():
     m31icrs = coords.SkyCoord.from_name('M31', frame='icrs')
 
-    assert str(m31icrs) == '<SkyCoord (ICRS): ra=10.6847083 deg, dec=41.26875 deg>'
+    assert str(m31icrs) == '<SkyCoord (ICRS): (ra, dec) in deg\n    (10.6847083, 41.26875)>'
 
     m31fk4 = coords.SkyCoord.from_name('M31', frame='fk4')
 
