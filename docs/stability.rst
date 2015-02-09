@@ -189,7 +189,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                Significant changes in v1.0 to implement <a href="https://github.com/astropy/astropy-APEs/blob/master/APE7.rst">APE 7</a>.
+                Significantly revised in v1.0 to implement <a href="https://github.com/astropy/astropy-APEs/blob/master/APE7.rst">APE 7</a>. Major changes in the API are not anticipated, broader use may reveal flaws that require API changes.
             </td>
         </tr>
         <tr>
