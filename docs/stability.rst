@@ -8,11 +8,6 @@ sub-packages. This document summarizes the current status of the Astropy
 sub-packages, so that users understand where they might expect changes in
 future, and which sub-packages they can safely use for production code.
 
-Note that until version 1.0, even sub-packages considered *Mature* could
-undergo some user interface changes as we work to integrate the packages
-better. Thus, we cannot guarantee complete backward-compatibility between
-versions at this stage.
-
 .. |planned| image:: _static/planned.png
 
 .. |dev| image:: _static/dev.png
@@ -32,15 +27,15 @@ The classification is as follows:
       </tr>
       <tr>
         <td align='center'><img src='_images/dev.png'></td>
-        <td>Actively developed, be prepared for possible significant changes</td>
+        <td>Actively developed, be prepared for possible significant changes.</td>
       </tr>
       <tr>
         <td align='center'><img src='_images/stable.png'></td>
-        <td>Reasonably stable, no major changes likely</td>
+        <td>Reasonably stable, any significant changes/additions will generally include backwards-compatiblity.</td>
       </tr>
       <tr>
         <td align='center'><img src='_images/mature.png'></td>
-        <td>Mature</td>
+        <td>Mature.  Additions/improvements possible, but no major changes planned. </td>
       </tr>
     </table>
 
