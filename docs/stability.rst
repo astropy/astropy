@@ -48,7 +48,14 @@ The current planned and existing sub-packages are:
 
 .. raw:: html
 
-    <table border="1" class="docutils" align='center'>
+    <style>
+    .stability img {
+        max-width: none;
+        margin: 0px;
+    } 
+    </style>
+
+    <table border="1" class="docutils stability" align='center'>
         <tr>
             <th class="head">
                 Sub-Package
