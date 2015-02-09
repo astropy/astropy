@@ -166,14 +166,18 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     Searches for pairs of points that are at least as close as a specified
     distance in 3D space.
 
+    This is intended for use on coordinate objects with arrays of coordinates,
+    not scalars.  For scalar coordinates, it is better to use the
+    ``separation_3d`` methods.
+
     Parameters
     ----------
     coords1 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The first set of coordinates, which will be searched for matches from
-        ``coords2`` within ``seplimit``.
+        ``coords2`` within ``seplimit``.  Cannot be a scalar coordinate.
     coords2 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The second set of coordinates, which will be searched for matches from
-        ``coords1`` within ``seplimit``.
+        ``coords1`` within ``seplimit``.  Cannot be a scalar coordinate.
     distlimit : `~astropy.units.Quantity` with distance units
         The physical radius to search within.
     storekdtree : bool or str, optional
@@ -215,6 +219,13 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     if not distlimit.isscalar:
         raise ValueError('distlimit must be a scalar in search_around_3d')
 
+    if coords1.isscalar or coords2.isscalar:
+        raise ValueError('One of the inputs to search_around_3d is a scalar. '
+                         'search_around_3d is intended for use with array '
+                         'coordinates, not scalars.  Instead, use '
+                         '``coord1.separation_3d(coord2) < distlimit`` to find '
+                         'the coordinates near a scalar coordinate.')
+
     kdt2 = _get_cartesian_kdtree(coords2, storekdtree)
     cunit = coords2.cartesian.x.unit
 
@@ -252,14 +263,18 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     Searches for pairs of points that have an angular separation at least as
     close as a specified angle.
 
+    This is intended for use on coordinate objects with arrays of coordinates,
+    not scalars.  For scalar coordinates, it is better to use the ``separation``
+    methods.
+
     Parameters
     ----------
     coords1 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The first set of coordinates, which will be searched for matches from
-        ``coords2`` within ``seplimit``.
+        ``coords2`` within ``seplimit``. Cannot be a scalar coordinate.
     coords2 : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
         The second set of coordinates, which will be searched for matches from
-        ``coords1`` within ``seplimit``.
+        ``coords1`` within ``seplimit``. Cannot be a scalar coordinate.
     seplimit : `~astropy.units.Quantity` with angle units
         The on-sky separation to search within.
     storekdtree : bool or str, optional
@@ -298,6 +313,13 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
 
     if not seplimit.isscalar:
         raise ValueError('seplimit must be a scalar in search_around_sky')
+
+    if coords1.isscalar or coords2.isscalar:
+        raise ValueError('One of the inputs to search_around_sky is a scalar. '
+                         'search_around_sky is intended for use with array '
+                         'coordinates, not scalars.  Instead, use '
+                         '``coord1.separation(coord2) < seplimit`` to find the '
+                         'coordinates near a scalar coordinate.')
 
     # we convert coord1 to match coord2's frame.  We do it this way
     # so that if the conversion does happen, the KD tree of coord2 at least gets

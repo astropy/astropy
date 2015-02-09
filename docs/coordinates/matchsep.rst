@@ -20,6 +20,7 @@ The on-sky separation is easily computed with the
 which computes the great-circle distance (*not* the small-angle
 approximation)::
 
+    >>> import numpy as np
     >>> from astropy import units as u
     >>> from astropy.coordinates import SkyCoord
     >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s', frame='icrs')
@@ -44,13 +45,7 @@ units::
 Also note that the two input coordinates were not in the same frame -
 one is  automatically converted to match the other, ensuring that even
 though they are  in different frames, the separation is determined
-consistently.  This does mean, however, that a |skycoord| without a
-frame cannot be compared in this manner::
-
-    >>> c1 = SkyCoord('5h23m34.5s', '-69d45m22s')
-    >>> c2 = SkyCoord('0h52m44.8s', '-72d49m43s')
-    >>> sep = c1.separation(c2)  # doctest: +SKIP
-    ValueError: Cannot transform to/from this SkyCoord because the frame was not specified at creation.
+consistently.
 
 In addition to the on-sky separation described above,
 :meth:`astropy.coordinates.BaseCoordinateFrame.separation_3d` or
@@ -110,18 +105,58 @@ will work on either |skycoord| objects *or* the lower-level frame classes::
     >>> idx, d2d, d3d = match_coordinates_sky(c, catalog)  # doctest: +SKIP
     >>> idx, d2d, d3d = match_coordinates_sky(c.frame, catalog.frame)  # doctest: +SKIP
 
+.. _astropy-searching-coordinates:
+
+Searching Around Coordinates
+============================
+
 Closely-related functionality can be used to search for *all* coordinates within
 a certain distance (either 3D distance or on-sky) of another set of coordinates.
 The ``search_around_*`` methods (and functions) provide this functionality,
 with an interface very similar to ``match_coordinates_*``::
 
-   >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_sky(c, 1*u.deg)  # doctest: +SKIP
-   >>> np.all(d2d < 1*u.deg)  # doctest: +SKIP
-   True
-   >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_3d(c, 1*u.kpc)  # doctest: +SKIP
-   >>> np.all(d2d < 1*u.kpc)  # doctest: +SKIP
-   True
+    >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_sky(c, 1*u.deg)  # doctest: +SKIP
+    >>> np.all(d2d < 1*u.deg)  # doctest: +SKIP
+    True
+    >>> idxc, idxcatalog, d2d, d3d = catalog.search_around_3d(c, 1*u.kpc)  # doctest: +SKIP
+    >>> np.all(d3d < 1*u.kpc)  # doctest: +SKIP
+    True
 
 The key difference for these methods is that there can be multiple (or no)
 matches in ``catalog`` around any locations in ``c``.  Hence, indecies into both
 ``c`` and ``catalog`` are returned instead of just indecies into ``catalog``.
+These can then be indexed back into the two |skycoord| objects, or, for that
+matter, any array with the same order::
+
+    >>> np.all(c[idxc].separation(catalog[idxcatalog]) == d2d)  # doctest: +SKIP
+    True
+    >>> np.all(c[idxc].separation_3d(catalog[idxcatalog]) == d3d)  # doctest: +SKIP
+    True
+    >>> print catalog_objectnames[idxcatalog]  # doctest: +SKIP
+    ['NGC 1234' 'NGC 4567' ...]
+
+Note, though, that this dual-indexing means that ``search_around_*`` does not
+work well if one of the coordinates is a scalar, because the returned index
+would not make sense for a scalar::
+
+    >>> scalarc = SkyCoord(1*u.deg, 2*u.deg)  # doctest: +SKIP
+    >>> idxscalarc, idxcatalog, d2d, d3d = catalog.search_around_sky(scalarc, 1*u.deg)  # THIS DOESN'T ACTUALLY WORK  # doctest: +SKIP
+    >>> scalarc[idxscalarc]  # doctest: +SKIP
+    IndexError: 0-d arrays can't be indexed
+
+As a result (and because the ``search_around_*`` algorithm is inefficient in
+the scalar case, anyway), the best approach for this scenario is to instead
+use the ``separation*`` methods::
+
+    >>> d2d = scalarc.separation(catalog)  # doctest: +SKIP
+    >>> catalogmsk = d2d < 1*u.deg  # doctest: +SKIP
+    >>> d3d = scalarc.separation_3d(catalog)  # doctest: +SKIP
+    >>> catalog3dmsk = d3d < 1*u.kpc  # doctest: +SKIP
+
+The resulting ``catalogmsk`` or ``catalog3dmsk`` variables are boolean arrays
+rather than arrays of indicies, but in practice they usually can be used in
+the same way as ``idxcatalog`` from the above examples.  If you definitely do
+need indicies instead of boolean masks, you can do:
+
+    >>> idxcatalog = np.where(catalogmsk)[0]  # doctest: +SKIP
+    >>> idxcatalog3d = np.where(catalog3dmsk)[0]  # doctest: +SKIP
