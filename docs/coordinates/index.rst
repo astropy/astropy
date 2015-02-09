@@ -214,7 +214,8 @@ uses `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object::
 
     >>> SkyCoord.from_name("M42")  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SkyCoord (ICRS): ra=83.82208 deg, dec=-5.39111 deg>
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (83.82208, -5.39111)>
 
 .. note::
 
