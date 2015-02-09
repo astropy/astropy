@@ -83,10 +83,10 @@ The current planned and existing sub-packages are:
                 astropy.constants
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/dev.png">
+                <img alt="stable" src="_images/stable.png">
             </td>
             <td>
-                Constants have been changed to <tt class="docutils literal"><span class="pre">Quantity</span></tt> objects in v0.2.
+                Constants were changed to <tt class="docutils literal"><span class="pre">Quantity</span></tt> objects in v0.2. Since then on, the package has been stable, with occasional additions of new constants.
             </td>
         </tr>
         <tr>
@@ -94,12 +94,12 @@ The current planned and existing sub-packages are:
                 astropy.convolution
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/dev.png">
+                <img alt="stable" src="_images/stable.png">
             </td>
             <td>
                 New top-level package in v0.3 (was previously part of
                 <tt class="docutils literal"><span class="pre">astropy.nddata</span></tt>).
-                No major changes in v0.4.
+                No major changes since, likely will maintain backwards compatibility but possible future additions or improvements.
             </td>
         </tr>
         <tr>
@@ -107,11 +107,11 @@ The current planned and existing sub-packages are:
                 astropy.coordinates
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/stable.png">
+                <img alt="stable" src="_images/stable.png">
             </td>
             <td>
                 New in v0.2, major changes in v0.4.  Subsequent versions should
-                maintain a stable/backwards-compatible API.
+                maintain a stable/backwards-compatible API, following the plan of <a href="https://github.com/astropy/astropy-APEs/blob/master/APE5.rst">APE 5</a>.  Further major additions/enhancements likely, but with basic framework unchanged.
             </td>
         </tr>
         <tr>
@@ -178,7 +178,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                New in v0.3
+                New in v0.3.  Major changes in v1.0, signficant additions planned.  Backwards-compatibility likely to be maintained, but not guaranteed.
             </td>
         </tr>
         <tr>
@@ -189,7 +189,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                In development, and does not yet contain much functionality apart from a base class for N-dimensional datasets.
+                Significant changes in v1.0 to implement <a href="https://github.com/astropy/astropy-APEs/blob/master/APE7.rst">APE 7</a>. 
             </td>
         </tr>
         <tr>
@@ -211,7 +211,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                Still in development, and does not yet contain much functionality.
+                Likely to maintain backwards-compatibility, but functionality continually being expanded, so significant additions likely in the future.
             </td>
         </tr>
         <tr>
@@ -244,7 +244,7 @@ The current planned and existing sub-packages are:
                 <img alt="stable" src="_images/stable.png">
             </td>
             <td>
-                New in v0.2. Adapted from <tt class="docutils literal"><span class="pre">pnbody</span></tt> and integrated into Astropy.
+                New in v0.2. Adapted from <tt class="docutils literal"><span class="pre">pnbody</span></tt> and integrated into Astropy. Current functionality stable with intent to maintain backwards compatibility. Significant new functionality is likely to be added in future versions.
             </td>
         </tr>
         <tr>
@@ -255,7 +255,7 @@ The current planned and existing sub-packages are:
                 <img alt="dev" src="_images/dev.png">
             </td>
             <td>
-                This sub-package contains mostly utilities destined for use in other parts of Astropy, and is not yet stable.
+                Contains mostly utilities destined for internal use with other parts of Astropy.  Existing functionality generally stable, but reglar additions and occasional changes.
             </td>
         </tr>
         <tr>
