@@ -222,10 +222,9 @@ def search_around_3d(coords1, coords2, distlimit, storekdtree='_kdtree_3d'):
     if coords1.isscalar or coords2.isscalar:
         raise ValueError('One of the inputs to search_around_3d is a scalar. '
                          'search_around_3d is intended for use with array '
-                         'coordinates, not scalars.  Use the `separation_3d` '
-                         'method on coordinate objects along with '
-                         '`numpy.argmin` to find the closest match to a scalar'
-                         'coordinate.')
+                         'coordinates, not scalars.  Instead, use '
+                         '``coord1.separation_3d(coord2) < distlimit`` to find '
+                         'the coordinates near a scalar coordinate.')
 
     kdt2 = _get_cartesian_kdtree(coords2, storekdtree)
     cunit = coords2.cartesian.x.unit
@@ -318,10 +317,9 @@ def search_around_sky(coords1, coords2, seplimit, storekdtree='_kdtree_sky'):
     if coords1.isscalar or coords2.isscalar:
         raise ValueError('One of the inputs to search_around_sky is a scalar. '
                          'search_around_sky is intended for use with array '
-                         'coordinates, not scalars.  Use the `separation` '
-                         'method on coordinate objects along with '
-                         '`numpy.argmin` to find the closest match to a scalar'
-                         'coordinate.')
+                         'coordinates, not scalars.  Instead, use '
+                         '``coord1.separation(coord2) < seplimit`` to find the '
+                         'coordinates near a scalar coordinate.')
 
     # we convert coord1 to match coord2's frame.  We do it this way
     # so that if the conversion does happen, the KD tree of coord2 at least gets
