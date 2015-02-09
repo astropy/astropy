@@ -150,7 +150,7 @@ use the ``separation*`` methods::
    >>> d2d = scalarc.separation(catalog)  # doctest: +SKIP
    >>> catalogmsk = d2d < 1*u.deg  # doctest: +SKIP
    >>> d3d = scalarc.separation_3d(catalog)  # doctest: +SKIP
-   >>> catalog3dmsk = d3d < 1*u.deg < 1*u.kpc  # doctest: +SKIP
+   >>> catalog3dmsk = d3d < 1*u.kpc  # doctest: +SKIP
 
 The resulting ``catalogmsk`` or ``catalog3dmsk`` variables are boolean arrays
 rather than arrays of indicies, but in practice they usually can be used in
