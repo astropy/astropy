@@ -30,15 +30,10 @@ J_PREFIXED_RA_DEC_RE = re.compile(
     """, re.VERBOSE)
 
 
-# Define a convenience mapping.  This is used like a module constants
-# but is actually dynamically evaluated.
 def FRAME_ATTR_NAMES_SET():
     """Set of all possible frame-specific attributes"""
-    out = set()
-    for frame_cls in frame_transform_graph.frame_set:
-        for attr in frame_cls.get_frame_attr_names().keys():
-            out.add(attr)
-    return out
+
+    return frame_transform_graph.frame_attr_names
 
 
 class SkyCoord(object):
@@ -143,6 +138,8 @@ class SkyCoord(object):
     # Declare that SkyCoord can be used as a Table column by defining the
     # attribute where column attributes will be stored.
     _astropy_column_attrs = None
+
+    _attr_getters = None
 
     def __init__(self, *args, **kwargs):
 
@@ -358,6 +355,10 @@ class SkyCoord(object):
         Overrides getattr to return coordinates that this can be transformed
         to, based on the alias attr in the master transform graph.
         """
+
+        if self._attr_getters is not None and attr in self._attr_getters:
+            return self._attr_getters[attr]()
+
         if '_sky_coord_frame' in self.__dict__:
             if self.frame.name == attr:
                 return self  # Should this be a deepcopy of self?
@@ -365,21 +366,31 @@ class SkyCoord(object):
             # Anything in the set of all possible frame_attr_names is handled
             # here. If the attr is relevant for the current frame then delegate
             # to self.frame otherwise get it from self._<attr>.
+            getter = None
+
             if attr in FRAME_ATTR_NAMES_SET():
                 if attr in self.frame.get_frame_attr_names():
-                    return getattr(self.frame, attr)
+                    getter = lambda: getattr(self.frame, attr)
                 else:
-                    return getattr(self, '_' + attr)
+                    getter = lambda: getattr(self, '_' + attr)
 
             # Some attributes might not fall in the above category but still
             # are available through self._sky_coord_frame.
-            if not attr.startswith('_') and hasattr(self._sky_coord_frame, attr):
-                return getattr(self._sky_coord_frame, attr)
+            elif (not attr.startswith('_') and
+                    hasattr(self._sky_coord_frame, attr)):
+                getter = lambda: getattr(self._sky_coord_frame, attr)
+            else:
+                # Try to interpret as a new frame for transforming.
+                frame_cls = frame_transform_graph.lookup_name(attr)
+                if (frame_cls is not None and\
+                        self.frame.is_transformable_to(frame_cls)):
+                    getter = lambda: self.transform_to(attr)
 
-            # Try to interpret as a new frame for transforming.
-            frame_cls = frame_transform_graph.lookup_name(attr)
-            if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
-                return self.transform_to(attr)
+            if getter is not None:
+                if self._attr_getters is None:
+                    self._attr_getters = {}
+                self._attr_getters[attr] = getter
+                return getter()
 
         # Fail
         raise AttributeError("'{0}' object has no attribute '{1}'"
@@ -1260,7 +1271,6 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     frame_attr_names = frame.representation_component_names.keys()
     repr_attr_names = frame.representation_component_names.values()
     repr_attr_classes = frame.representation.attr_classes.values()
-    n_attr_names = len(repr_attr_names)
 
     # Turn a single string into a list of strings for convenience
     if isinstance(coords, six.string_types):
@@ -1277,10 +1287,10 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
         data = coords.data.represent_as(frame.representation)
 
         values = []  # List of values corresponding to representation attrs
+        is_spherical = isinstance(coords.data, UnitSphericalRepresentation)
         for repr_attr_name in repr_attr_names:
             # If coords did not have an explicit distance then don't include in initializers.
-            if (isinstance(coords.data, UnitSphericalRepresentation) and
-                    repr_attr_name == 'distance'):
+            if is_spherical and repr_attr_name == 'distance':
                 continue
 
             # Get the value from `data` in the eventual representation
@@ -1365,10 +1375,12 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             n_coords = n_coords[0]
 
             # Must have no more coord inputs than representation attributes
-            if n_coords > n_attr_names:
-                raise ValueError('Input coordinates have {0} values but '
-                                 'representation {1} only accepts {2}'
-                                 .format(n_coords, frame.representation.get_name(), n_attr_names))
+            if n_coords > len(repr_attr_names):
+                raise ValueError(
+                    'Input coordinates have {0} values but representation '
+                    '{1} only accepts {2}'.format(
+                        n_coords, frame.representation.get_name(),
+                        len(repr_attr_names)))
 
             # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
             # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)

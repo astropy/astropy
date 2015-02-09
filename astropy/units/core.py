@@ -868,13 +868,22 @@ class UnitBase(object):
         UnitsError
             If units are inconsistent
         """
-        other = Unit(other)
 
-        try:
-            scale = self._to(other)
-        except UnitsError:
-            return self._apply_equivalences(
-                self, other, self._normalize_equivalencies(equivalencies))
+        if self is other:
+            # Shortcut
+            # TODO: Should this even bother with the conversion or just pass
+            # the value straight through?  Should it still be run through
+            # _condition_arg at least?
+            scale = 1.0
+        else:
+            other = Unit(other)
+
+            try:
+                scale = self._to(other)
+            except UnitsError:
+                return self._apply_equivalences(
+                    self, other, self._normalize_equivalencies(equivalencies))
+
         return lambda val: scale * _condition_arg(val)
 
     def _to(self, other):

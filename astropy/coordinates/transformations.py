@@ -26,12 +26,14 @@ from collections import defaultdict
 
 import numpy as np
 
+from ..utils import lazyproperty
 from ..utils.compat import ignored
 from ..extern import six
 
 
 __all__ = ['TransformGraph', 'CoordinateTransform', 'FunctionTransform',
-           'StaticMatrixTransform', 'DynamicMatrixTransform', 'CompositeTransform']
+           'StaticMatrixTransform', 'DynamicMatrixTransform',
+           'CompositeTransform']
 
 
 class TransformGraph(object):
@@ -43,30 +45,40 @@ class TransformGraph(object):
         self._graph = defaultdict(dict)
         self.invalidate_cache()  # generates cache entries
 
-    @property
+    @lazyproperty
     def _cached_names(self):
-        if self._cached_names_dct is None:
-            self._cached_names_dct = dct = {}
-            for c in self.frame_set:
-                nm = getattr(c, 'name', None)
-                if nm is not None:
-                    dct[nm] = c
+        cached_names = {}
+        for c in self.frame_set:
+            nm = getattr(c, 'name', None)
+            if nm is not None:
+                cached_names[nm] = c
 
-        return self._cached_names_dct
+        return cached_names
 
-    @property
+    @lazyproperty
     def frame_set(self):
         """
         A `set` of all the frame classes present in this `TransformGraph`.
         """
-        if self._cached_frame_set is None:
-            self._cached_frame_set = frm_set = set()
-            for a in self._graph:
-                frm_set.add(a)
-                for b in self._graph[a]:
-                    frm_set.add(b)
 
-        return self._cached_frame_set.copy()
+        frame_set = set()
+        for a in self._graph:
+            frame_set.add(a)
+            for b in self._graph[a]:
+                frame_set.add(b)
+
+        return frozenset(frame_set)
+
+    @lazyproperty
+    def frame_attr_names(self):
+        """Set of the names of all possible frame-specific attributes."""
+
+        out = set()
+        for frame_cls in self.frame_set:
+            for attr in frame_cls.get_frame_attr_names():
+                out.add(attr)
+
+        return frozenset(out)
 
     def invalidate_cache(self):
         """
@@ -75,8 +87,11 @@ class TransformGraph(object):
         are added or removed, but will need to be called manually if
         weights on transforms are modified inplace.
         """
-        self._cached_names_dct = None
-        self._cached_frame_set = None
+
+        del self._cached_names
+        del self.frame_set
+        del self.frame_attr_names
+
         self._shortestpaths = {}
         self._composite_cache = {}
 
