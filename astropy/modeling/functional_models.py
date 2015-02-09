@@ -269,7 +269,7 @@ class Gaussian2D(Fittable2DModel):
             if cov_matrix.shape != (2, 2):
                 # TODO: Maybe it should be possible for the covariance matrix
                 # to be some (x, y, ..., z, 2, 2) array to be broadcast with
-                # other paramters of shape (x, y, ..., z)
+                # other parameters of shape (x, y, ..., z)
                 # But that's maybe a special case to work out if/when needed
                 raise ValueError("Covariance matrix must be 2x2")
 
