@@ -123,4 +123,34 @@ with an interface very similar to ``match_coordinates_*``::
 
 The key difference for these methods is that there can be multiple (or no)
 matches in ``catalog`` around any locations in ``c``.  Hence, indecies into both
-``c`` and ``catalog`` are returned instead of just indecies into ``catalog``.
+``c`` and ``catalog`` are returned instead of just indecies into ``catalog``. 
+These can then be indexed back into the two |skycoord| objects, or, for that
+matter, any array with the same order::
+
+   >>> np.all(c[idxc].separation(catalog[idxcatalog]) == d2d)  # doctest: +SKIP
+   True
+   >>> np.all(c[idxc].separation_3d(catalog[idxcatalog]) == d3d)  # doctest: +SKIP
+   True
+   >>> print catalog_objectnames[idxcatalog]  # doctest: +SKIP
+   ['NGC 1234' 'NGC 4567' ...]
+
+Note, though, that this dual-indexing means that ``search_around_*`` does not
+work well if one of the coordinates is a scalar, because the returned index 
+would not make sense for a scalar::
+
+   >>> scalarc = SkyCoord(1*u.deg, 2*u.deg)  # doctest: +SKIP
+   >>> idxscalarc, idxcatalog, d2d, d3d = catalog.search_around_sky(scalarc, 1*u.deg)  # THIS DOESN'T ACTUALLY WORK  # doctest: +SKIP
+   >>> scalarc[idxscalarc]  # doctest: +SKIP
+   IndexError: 0-d arrays can't be indexed
+
+As a result (and because the ``search_around_*`` algorithm is inefficient in 
+the scalar case, anyway), the best approach for this scenario is to instead
+use the ``separation*`` methods::
+
+   >>> d2d = scalarc.separation(catalog)  # doctest: +SKIP
+   >>> catalogmsk = d2d < 1*u.deg  # doctest: +SKIP
+   >>> d3d = scalarc.separation_3d(catalog)  # doctest: +SKIP
+   >>> catalog3dmsk = d3d < 1*u.deg < 1*u.kpc  # doctest: +SKIP
+
+The resulting ``catalogmsk`` or ``catalog3dmsk`` variables can then be used in
+mostly the same way as ``idxcatalog`` in the above examples.
