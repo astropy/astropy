@@ -173,14 +173,32 @@ only dependent on the aperture size.  See `Tools of Radio Astronomy
 <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
-The `~astropy.units.equivalencies.brightness_temperature` equivalency
-requires the beam area and frequency as arguments.  Example::
+The `~astropy.units.equivalencies.brightness_temperature` equivalency requires
+the beam area and frequency as arguments.  Recalling that the area of a 2D
+gaussian is :math:`2 \pi \sigma^2` (see `wikipedia
+<http://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function>`_),
+here is an example::
 
     >>> import numpy as np
-    >>> omega_B = np.pi * (50 * u.arcsec)**2
+    >>> beam_sigma = 50*u.arcsec
+    >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
-    7.052588858...
+    3.526294...
+
+If you have beam full-width half-maxima (FWHM), which are often quoted and are
+the values stored in the FITS header keywords BMAJ and BMIN, a more appropriate
+example converts the FWHM to sigma::
+
+    >>> import numpy as np
+    >>> beam_fwhm = 50*u.arcsec
+    >>> fwhm_to_sigma = 1./(8*np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm*fwhm_to_sigma
+    >>> omega_B = 2 * np.pi * beam_sigma**2
+    >>> freq = 5 * u.GHz
+    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
+    19.55392833...
+
 
 Temperature Energy Equivalency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
