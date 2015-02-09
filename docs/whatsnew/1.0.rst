@@ -285,7 +285,7 @@ ordered dictionary of individual column objects and each |Column| object is the
 sole owner of its data.
 
 The biggest impact to users is that operations such as adding or removing
-table columns is now signicantly faster because there is no structured array
+table columns is now significantly faster because there is no structured array
 to rebuild each time.
 
 For details please see :ref:`table_implementation_change`.

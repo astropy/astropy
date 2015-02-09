@@ -1398,7 +1398,7 @@ class SAMPHubServer(object):
         return ""
 
     def _web_profile_register(self, identity_info,
-                              client_address=("uknown", 0),
+                              client_address=("unknown", 0),
                               origin="unknown"):
 
         self._update_last_activity_time()
