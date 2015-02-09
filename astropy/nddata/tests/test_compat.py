@@ -72,3 +72,25 @@ def test_convert_unit_to():
     assert d.mask[0, 0] != d1.mask[0, 0]
     d.flags = np.zeros_like(d.data)
     d1 = d.convert_unit_to('m')
+
+
+# check that subclasses can require wcs and/or unit to be present and use
+# _arithmetic and convert_unit_to
+class SubNDData(NDDataArray):
+    """
+    Subclass for test initialization of subclasses in NDData._arithmetic and
+    NDData.convert_unit_to
+    """
+    def __init__(self, *arg, **kwd):
+        super(SubNDData, self).__init__(*arg, **kwd)
+        if self.unit is None:
+            raise ValueError("Unit for subclass must be specified")
+        if self.wcs is None:
+            raise ValueError("WCS for subclass must be specified")
+
+
+def test_init_of_subclass_in_convert_unit_to():
+    data = np.ones([10, 10])
+    arr1 = SubNDData(data, unit='m', wcs=5)
+    result = arr1.convert_unit_to('km')
+    np.testing.assert_array_equal(arr1.data, 1000 * result.data)
