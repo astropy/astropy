@@ -152,9 +152,9 @@ def extract_array(array_large, shape, position, mode='partial', fill_value=np.na
     elif mode == 'strict':
         slicemode = mode
     else:
-        raise ValueError("Valid modes are 'partial', 'trim', and 'strict'".)
+        raise ValueError("Valid modes are 'partial', 'trim', and 'strict'.")
     large_slices, small_slices = overlap_slices(array_large.shape,
-                                                shape, position, mode=mode)
+                                                shape, position, mode=slicemode)
     extracted_array = array_large[large_slices]
     # Extracting on the edges is presumably a rare case, so treat special here.
     if (extracted_array.shape != shape) and (mode=='partial'):
