@@ -12,6 +12,8 @@ import sys
 import numpy as np
 
 from .. import log
+# Note, in numpy <= 1.6, some classes do not properly represent themselves.
+from ..utils.compat import NUMPY_LT_1_6_1
 from ..utils.console import Getch, color_print, terminal_size, conf
 
 if six.PY3:
@@ -27,8 +29,7 @@ elif six.PY2:
 
 ### The first three functions are helpers for _auto_format_func
 
-# In numpy <= 1.6, some classes do not properly represent themselves.
-NUMPY_LE_1P6 = [int(x) for x in np.__version__.split('.')[:2]] <= [1, 6]
+
 def _use_val_tolist(format_func):
     """Wrap format function to work with values converted to python equivalents.
 
@@ -72,7 +73,7 @@ def _auto_format_func(format_, val):
     """
     if six.callable(format_):
         format_func = lambda format_, val: format_(val)
-        if NUMPY_LE_1P6:
+        if NUMPY_LT_1_6_1:
             format_func = _use_val_tolist(format_func)
         try:
             out = format_func(format_, val)
@@ -103,7 +104,7 @@ def _auto_format_func(format_, val):
             return str(val)
 
         for format_func in _possible_string_format_functions(format_):
-            if NUMPY_LE_1P6:
+            if NUMPY_LT_1_6_1:
                 format_func = _use_val_tolist(format_func)
 
             try:

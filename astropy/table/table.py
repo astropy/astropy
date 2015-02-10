@@ -8,7 +8,6 @@ from ..extern.six.moves import range as xrange
 import re
 
 from copy import deepcopy
-from distutils import version
 
 import numpy as np
 from numpy import ma
@@ -16,7 +15,7 @@ from numpy import ma
 from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity, Unit
-from ..utils import OrderedDict, isiterable, deprecated
+from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from . import groups
@@ -30,8 +29,7 @@ from .np_utils import fix_column_name, recarray_fromrecords
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays containing Unicode columns to
 # silently fail.
-_NUMPY_VERSION = version.LooseVersion(np.__version__)
-_BROKEN_UNICODE_TABLE_SORT = _NUMPY_VERSION < version.LooseVersion('1.6.2')
+_BROKEN_UNICODE_TABLE_SORT = not minversion(np, '1.6.2')
 
 
 __doctest_skip__ = ['Table.read', 'Table.write',

@@ -5,10 +5,10 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from numpy import testing as npt
-from distutils import version
 from ...tests.helper import pytest
 
 from ... import units as u
+from ...utils import minversion
 
 
 """
@@ -23,7 +23,7 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-if HAS_SCIPY and version.LooseVersion(scipy.__version__) > version.LooseVersion('0.12.0'):
+if HAS_SCIPY and minversion(scipy, '0.12.0', inclusive=False):
     OLDER_SCIPY = False
 else:
     OLDER_SCIPY = True
