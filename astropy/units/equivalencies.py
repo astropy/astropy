@@ -428,21 +428,25 @@ def brightness_temperature(beam_area, disp):
 
         >>> import numpy as np
         >>> from astropy import units as u
-        >>> beam_area = np.pi*(50*u.arcsec)**2
+        >>> beam_sigma = 50*u.arcsec
+        >>> beam_area = 2*np.pi*(beam_sigma)**2
         >>> freq = 5*u.GHz
         >>> equiv = u.brightness_temperature(beam_area, freq)
         >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        7.052588858846446
+        3.526294429423223
         >>> (1*u.Jy).to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        <Quantity 7.052588858846446 K>
+        <Quantity 3.526294429423223 K>
 
     VLA synthetic beam::
 
-        >>> beam_area = np.pi*(15*u.arcsec)**2
+        >>> bmaj = 15*u.arcsec
+        >>> bmin = 15*u.arcsec
+        >>> fwhm_to_sigma = 1./(8*np.log(2))**0.5
+        >>> beam_area = 2.*np.pi*(bmaj*bmin/fwhm_to_sigma**2)
         >>> freq = 5*u.GHz
         >>> equiv = u.brightness_temperature(beam_area, freq)
         >>> u.Jy.to(u.K, equivalencies=equiv)  # doctest: +FLOAT_CMP
-        78.36209843162719
+        7.065788175060084
     """
     beam = beam_area.to(si.sr).value
     nu = disp.to(si.GHz, spectral())
