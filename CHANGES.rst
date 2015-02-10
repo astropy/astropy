@@ -410,6 +410,10 @@ API Changes
       - Custom units can be defined "inline" by placing them between single
         quotes.
 
+  - ``Unit.get_converter`` has been deprecated.  It is not strictly
+    necessary for end users, and it was confusing due to lack of
+    support for ``Quantity`` objects. [#3456]
+
 - ``astropy.utils``
 
   - Some members of ``astropy.utils.misc`` were moved into new submodules.
