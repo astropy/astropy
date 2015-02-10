@@ -49,12 +49,13 @@ def resolve_name(name):
         If the module or named object is not found.
     """
 
-    parts = name.split('.')
+    # Note: On python 2 these must be str objects and not unicode
+    parts = [str(part) for part in name.split('.')]
 
     if len(parts) == 1:
         # No dots in the name--just a straight up module import
         cursor = 1
-        attr_name = ''
+        attr_name = str('')  # Must not be unicode on Python 2
     else:
         cursor = len(parts) - 1
         attr_name = parts[-1]
@@ -63,7 +64,7 @@ def resolve_name(name):
 
     while cursor > 0:
         try:
-            ret = __import__('.'.join(module_name), fromlist=[attr_name])
+            ret = __import__(str('.'.join(module_name)), fromlist=[attr_name])
             break
         except ImportError:
             if cursor == 0:
