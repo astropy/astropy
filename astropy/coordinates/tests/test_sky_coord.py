@@ -14,7 +14,6 @@ import functools
 
 import numpy as np
 from numpy import testing as npt
-from distutils import version
 
 from ... import units as u
 from ...tests.helper import pytest, catch_warnings
@@ -24,6 +23,7 @@ from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             UnitSphericalRepresentation)
 from ...coordinates import Latitude, Longitude
 from ...time import Time
+from ...utils import minversion
 from ...utils.exceptions import AstropyDeprecationWarning
 
 RA = 1.0 * u.deg
@@ -40,7 +40,7 @@ try:
 except ImportError:
     HAS_SCIPY = False
 
-if HAS_SCIPY and version.LooseVersion(scipy.__version__) > version.LooseVersion('0.12.0'):
+if HAS_SCIPY and minversion(scipy, '0.12.0', inclusive=False):
     OLDER_SCIPY = False
 else:
     OLDER_SCIPY = True

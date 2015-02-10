@@ -37,13 +37,16 @@ py:obj n
 py:obj ndarray
 py:obj args
 
-# other classes that cannot be linked to
+# other classes and functions that cannot be linked to
 py:class numpy.ma.core.MaskedArray
 py:class numpy.core.records.recarray
 py:class xmlrpclib.Fault
 py:class xmlrpclib.Error
 py:class xmlrpc.client.Fault
 py:class xmlrpc.client.Error
+py:obj distutils.version.LooseVersion
+py:obj pkg_resources.parse_version
+
 
 # Pending on python docs links issue #11975
 py:class list
