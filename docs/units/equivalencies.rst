@@ -173,6 +173,13 @@ only dependent on the aperture size.  See `Tools of Radio Astronomy
 <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
+.. note:: The brightness temperature mentioned here is the Rayleigh-Jeans 
+          equivalent temperature, which results in a linear relation between
+          flux and temperature. This is the convention that is most often used
+          in relation to observations, but if you are interested in computing
+          the *exact* temperature of a planck function that would produce a
+          given flux, you should not use this equivalency.
+
 The `~astropy.units.equivalencies.brightness_temperature` equivalency requires
 the beam area and frequency as arguments.  Recalling that the area of a 2D
 gaussian is :math:`2 \pi \sigma^2` (see `wikipedia
@@ -185,6 +192,11 @@ here is an example::
     >>> freq = 5 * u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
     3.526294...
+
+.. note:: Despite the Astropy unit on the left being shown as ``u.Jy``, this is
+          the conversion factor from Jy/beam to K (because ``u.beam`` cannot
+          currently be used as a meaningful unit since it depends on the
+          observations).
 
 If you have beam full-width half-maxima (FWHM), which are often quoted and are
 the values stored in the FITS header keywords BMAJ and BMIN, a more appropriate
