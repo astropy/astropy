@@ -18,6 +18,8 @@ New Features
 
 - ``astropy.cosmology``
 
+  - Add Planck 2015 cosmology [#3476]
+
 - ``astropy.io.ascii``
 
   - Automatically use ``guess=False`` when reading if the file ``format`` is
