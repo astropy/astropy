@@ -17,12 +17,10 @@ define new equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
 ``equivalencies`` keyword argument of :meth:`Quantity.to
-<astropy.units.quantity.Quantity.to>`, :meth:`Unit.to
-<astropy.units.core.UnitBase.to>` or :meth:`Unit.get_converter
-<astropy.units.core.UnitBase.get_converter>` methods.
-Alternatively, if a
-larger piece of code needs the same equivalencies, one can set them
-for a :ref:`given context <equivalency-context>`.
+<astropy.units.quantity.Quantity.to>` or :meth:`Unit.to
+<astropy.units.core.UnitBase.to>` methods.  Alternatively, if a larger
+piece of code needs the same equivalencies, one can set them for a
+:ref:`given context <equivalency-context>`.
 
 Built-in equivalencies
 ----------------------
