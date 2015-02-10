@@ -15,6 +15,7 @@ from ..angles import Longitude, Latitude, Angle
 from ...tests.helper import pytest
 from ... import units as u
 from ..errors import IllegalSecondError, IllegalMinuteError, IllegalHourError
+from ...utils.compat import NUMPY_LT_1_7
 
 
 def test_create_angles():
@@ -847,3 +848,31 @@ def test_wrap_at_without_new():
     l = np.concatenate([l1, l2])
     assert l._wrap_angle is not None
 
+
+def test_repr_latex():
+    """
+    Check the _repr_latex_ method, used primarily by IPython notebooks
+    """
+
+    # try with both scalar
+    scangle = Angle(2.1, u.deg)
+    rlscangle = scangle._repr_latex_()
+
+    # and array angles
+    arrangle = Angle([1, 2.1], u.deg)
+    rlarrangle = arrangle._repr_latex_()
+
+    if NUMPY_LT_1_7:
+        # numpy 1.6 gives weird latex output for unclear reasons.  We don't care
+        # that much though, so just xfail after making sure it isn't
+        # over-backslashing
+        assert '\\\\' not in rlscangle
+        assert '\\\\' not in rlarrangle
+        pytest.xfail('numpy 1.6 does not give correct to_string latex output')
+
+    assert rlscangle == '$2^\circ06{}^\prime00{}^{\prime\prime}$'
+    assert rlscangle.split('$')[1] in rlarrangle
+
+    # make sure the ... appears for large arrays
+    bigarrangle = Angle(np.ones(50000)/50000., u.deg)
+    assert '...' in bigarrangle._repr_latex_()
