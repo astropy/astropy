@@ -33,7 +33,7 @@ def test_getting_started():
         speed_unit = u.cm / u.s
         x = speed_unit.to(imperial.mile / u.hour, 1)
         assert_allclose(x, 0.02236936292054402)
-        speed_converter = speed_unit.get_converter("mile hour^-1")
+        speed_converter = speed_unit._get_converter("mile hour^-1")
         x = speed_converter([1., 1000., 5000.])
         assert_allclose(x, [2.23693629e-02, 2.23693629e+01, 1.11846815e+02])
 
@@ -74,7 +74,7 @@ def test_invalid_compare():
 
 
 def test_convert():
-    assert u.h.get_converter(u.s)(1) == 3600
+    assert u.h._get_converter(u.s)(1) == 3600
 
 
 def test_convert_fail():
@@ -85,7 +85,7 @@ def test_convert_fail():
 
 
 def test_composite():
-    assert (u.cm / u.s * u.h).get_converter(u.m)(1) == 36
+    assert (u.cm / u.s * u.h)._get_converter(u.m)(1) == 36
     assert u.cm * u.cm == u.cm ** 2
 
     assert u.cm * u.cm * u.cm == u.cm ** 3
@@ -177,7 +177,7 @@ def test_unknown_unit3():
     assert not unit.is_equivalent(unit3)
 
     with pytest.raises(ValueError):
-        unit.get_converter(unit3)
+        unit._get_converter(unit3)
 
     x = unit.to_string('latex')
     y = unit2.to_string('cgs')
