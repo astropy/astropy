@@ -812,8 +812,8 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     Raises
     ------
-    ConfigurationDefaultMissingError
-        If the default configuration could not be found.
+    AttributeError
+        If the version number of the package could not determined.
 
     """
 
@@ -826,7 +826,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         # There is no template configuration file, which basically
         # means the affiliated package is not using the configuration
         # system, so just return.
-        return
+        return False
 
     cfgfn = get_config(pkg).filename
 
@@ -842,9 +842,6 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     if version is None:
         mod = __import__(pkg)
-        if not hasattr(mod, '__version__'):
-            raise ConfigurationDefaultMissingError(
-                'Could not determine version of package {0}'.format(pkg))
         version = mod.__version__
 
     # Don't install template files for dev versions, or we'll end up
