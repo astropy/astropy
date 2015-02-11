@@ -10,6 +10,5 @@ imported here for easier access.
 
 from .misc import *
 
-if not _ASTROPY_SETUP_:
-    # Importing this module will also install monkey-patches defined in it
-    from .numpycompat import *
+# Importing this module will also install monkey-patches defined in it
+from .numpycompat import *
