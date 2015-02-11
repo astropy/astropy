@@ -230,6 +230,14 @@ New Features
     ``Quantity`` and other ``ndarray`` subclasses (using the ``subok=True``
     flag). [#2327]
 
+  - Added ``astropy.utils.resolve_name`` which returns a member of a module
+    or class given the fully qualified dotted name of that object as a
+    string. [#3389]
+
+  - Added ``astropy.utils.minversion`` which can be used to check minimum
+    version requirements of Python modules (to test for specific features and/
+    or bugs and the like). [#3389]
+
 - ``astropy.visualization``
 
   - Created ``astropy.visualization`` module and added functionality relating
@@ -559,6 +567,11 @@ Bug Fixes
 
   - ``astropy.wcs.WCS.sub`` now accepts unicode strings as input on
     Python 2.x [#3356]
+
+- Misc
+
+  - Some modules and tests that would crash upon import when using a non-final
+    release of Numpy (e.g. 1.9.0rc1). [#3471]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
