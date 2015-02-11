@@ -4,8 +4,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import sys
-
 import numpy as np
 from numpy.testing import assert_allclose
 
@@ -15,7 +13,6 @@ from ...extern import six
 from .. import representation
 
 NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
-WINDOWS = sys.platform == 'win32'
 
 def test_frame_attribute_descriptor():
     """ Unit tests of the FrameAttribute descriptor """
@@ -184,9 +181,7 @@ def test_frame_repr():
         assert repr(i3) == ('<ICRS Coordinate: (ra, dec, distance) in (deg, deg, kpc)\n'
                             '    [(1.1, -15.6, 11.0), (2.1, 17.1, 21.0)]>')
 
-@pytest.mark.xfail(WINDOWS and six.PY3,
-                   reason='Python 3.x on Windows rounds different from '
-                          'everything else for unknown reasons')
+
 def test_converting_units():
     import re
     from ..baseframe import RepresentationMapping
