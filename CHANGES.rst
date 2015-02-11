@@ -468,6 +468,8 @@ Bug Fixes
   - Fixed support for subclasses of ``UnitSphericalRepresentation`` and
     ``SphericalRepresentation`` [#3354, #3366]
 
+  - Fixed latex display of array angles in IPython notebook. [#3480]
+
 - ``astropy.io.ascii``
 
   - In the ``CommentedHeader`` the ``data_start`` parameter now defaults to
