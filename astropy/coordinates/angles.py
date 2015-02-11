@@ -475,15 +475,15 @@ class Angle(u.Quantity):
         if self.isscalar:
             return self.to_string(format='latex')
         else:
-            # need to do a magic incantation to convert to str.  Regular str
-            # or array2string causes all baslashes to get doubled
+            # Need to do a magic incantation to convert to str.  Regular str
+            # or array2string causes all backslashes to get doubled.
             if NUMPY_LT_1_7:
-                #except that numpy 1.6 doesn't do formatter... so instead we
-                #just replace all double-backslashes with one
+                # Except that numpy 1.6 doesn't do formatter... so instead we
+                # just replace all double-backslashes with one.
                 return str(self.to_string(format='latex')).replace('\\\\', '\\')
             else:
                 return np.array2string(self.to_string(format='latex'),
-                                       formatter={'str_kind':lambda x:x})
+                                       formatter={'str_kind': lambda x: x})
 
 
 class Latitude(Angle):
