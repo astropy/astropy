@@ -105,20 +105,15 @@ def test_against_jpl_horizons():
     location = EarthLocation(lon=Angle('248.405300d'),
                              lat=Angle('31.9585d'),
                              height=2.06 * u.km)
-    temperature = 15 * u.deg_C  # TODO: correct???
-    pressure = 1.010 * u.bar  # TODO: correct???
-    # relative_humidity = ?
-    # obswl = ?
-    altaz_frame = AltAz(obstime=obstime, location=location,
-                        temperature=temperature, pressure=pressure)
+    # No atmosphere
+    altaz_frame = AltAz(obstime=obstime, location=location)
 
     altaz = SkyCoord('143.2970d 2.6223d', frame=altaz_frame)
     radec_actual = altaz.transform_to('icrs')
     radec_expected = SkyCoord('19h24m55.01s -40d56m28.9s', frame='icrs')
     distance = radec_actual.separation(radec_expected).to('arcsec')
-    # TODO: why is this difference so large?
-    # It currently is: 557.2748864283525 arcsec
-    assert distance < 1e4 * u.arcsec
+    # Current value: 0.238111 arcsec
+    assert distance < 1 * u.arcsec
 
 
 @pytest.mark.xfail
