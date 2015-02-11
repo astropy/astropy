@@ -49,14 +49,22 @@ def resolve_name(name):
         If the module or named object is not found.
     """
 
-    parts = name.split('.')
-    cursor = len(parts) - 1
+    # Note: On python 2 these must be str objects and not unicode
+    parts = [str(part) for part in name.split('.')]
+
+    if len(parts) == 1:
+        # No dots in the name--just a straight up module import
+        cursor = 1
+        attr_name = str('')  # Must not be unicode on Python 2
+    else:
+        cursor = len(parts) - 1
+        attr_name = parts[-1]
+
     module_name = parts[:cursor]
-    attr_name = parts[-1]
 
     while cursor > 0:
         try:
-            ret = __import__('.'.join(module_name), fromlist=[attr_name])
+            ret = __import__(str('.'.join(module_name)), fromlist=[attr_name])
             break
         except ImportError:
             if cursor == 0:
@@ -87,8 +95,10 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     Parameters
     ----------
 
-    module : module
-        An imported module of which to check the version.
+    module : module or `str`
+        An imported module of which to check the version, or the name of
+        that module (in which case an import of that module is attempted--
+        if this fails `False` is returned).
 
     version : `str`
         The version as a string that this module must have at a minimum (e.g.
@@ -110,6 +120,19 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     >>> minversion(astropy, '0.4.4')
     True
     """
+
+    if isinstance(module, types.ModuleType):
+        module_name = module.__name__
+    elif isinstance(module, six.string_types):
+        module_name = module
+        try:
+            module = resolve_name(module_name)
+        except ImportError:
+            return False
+    else:
+        raise ValueError('module argument must be an actual imported '
+                         'module, or the import name of the module; '
+                         'got {0!r}'.format(module))
 
     if '.' not in version_path:
         have_version = getattr(module, version_path)
