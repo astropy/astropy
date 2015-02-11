@@ -45,7 +45,8 @@ cmdclassd = register_commands(NAME, VERSION, RELEASE)
 adjust_compiler(NAME)
 
 # Freeze build information in version.py
-generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME))
+generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME),
+                    uses_git=not RELEASE)
 
 # Treat everything in scripts except README.rst as a script to be installed
 scripts = [fname for fname in glob.glob(os.path.join('scripts', '*'))

@@ -304,7 +304,7 @@ def _do_download(version='', find_links=None, index_url=None):
             allow_hosts = None
         # Annoyingly, setuptools will not handle other arguments to
         # Distribution (such as options) before handling setup_requires, so it
-        # is not straightfoward to programmatically augment the arguments which
+        # is not straightforward to programmatically augment the arguments which
         # are passed to easy_install
         class _Distribution(Distribution):
             def get_option_dict(self, command_name):
@@ -353,10 +353,10 @@ def _do_upgrade(dist, index_url):
     # release (so API compatibility is guaranteed)
     # sketchy version parsing--maybe come up with something a bit more
     # robust for this
-    major, minor = (int(part) for part in dist.parsed_version[:2])
-    next_minor = '.'.join([str(major), str(minor + 1), '0'])
+    next_version = _next_version(dist.parsed_version)
+
     req = pkg_resources.Requirement.parse(
-        '{0}>{1},<{2}'.format(DIST_NAME, dist.version, next_minor))
+        '{0}>{1},<{2}'.format(DIST_NAME, dist.version, next_version))
 
     package_index = PackageIndex(index_url=index_url)
 
@@ -405,7 +405,7 @@ def _check_submodule(path, use_git=True, offline=False):
     Check if the given path is a git submodule.
 
     See the docstrings for ``_check_submodule_using_git`` and
-    ``_check_submodule_no_git`` for futher details.
+    ``_check_submodule_no_git`` for further details.
     """
 
     if use_git:
@@ -512,7 +512,7 @@ def _check_submodule_no_git(path):
 
     # This is a minimal reader for gitconfig-style files.  It handles a few of
     # the quirks that make gitconfig files incompatible with ConfigParser-style
-    # files, but does not support the full gitconfig syntaix (just enough
+    # files, but does not support the full gitconfig syntax (just enough
     # needed to read a .gitmodules file).
     gitmodules_fileobj = io.StringIO()
 
@@ -602,6 +602,40 @@ def _update_submodule(submodule, status, offline):
     if err_msg:
         log.warn('An unexpected error occurred updating the git submodule '
                  '{0!r}:\n{1}\n{2}'.format(submodule, err_msg, _err_help_msg))
+
+
+def _next_version(version):
+    """
+    Given a parsed version from pkg_resources.parse_version, returns a new
+    version string with the next minor version.
+
+    Examples
+    ========
+    >>> _next_version(pkg_resources.parse_version('1.2.3'))
+    '1.3.0'
+    """
+
+    if hasattr(version, 'base_version'):
+        # New version parsing from setuptools >= 8.0
+        if version.base_version:
+            parts = version.base_version.split('.')
+        else:
+            parts = []
+    else:
+        parts = []
+        for part in version:
+            if part.startswith('*'):
+                break
+            parts.append(part)
+
+    parts = [int(p) for p in parts]
+
+    if len(parts) < 3:
+        parts += [0] * (3 - len(parts))
+
+    major, minor, micro = parts[:3]
+
+    return '{0}.{1}.{2}'.format(major, minor + 1, 0)
 
 
 class _DummyFile(object):
