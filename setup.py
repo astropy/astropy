@@ -49,7 +49,8 @@ cmdclassd = register_commands(NAME, VERSION, RELEASE)
 adjust_compiler(NAME)
 
 # Freeze build information in version.py
-generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME))
+generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME),
+                    uses_git=not RELEASE)
 
 # Get configuration information from all of the various subpackages.
 # See the docstring for setup_helpers.update_package_files for more
