@@ -225,13 +225,7 @@ class ConfigItem(object):
         from ..utils import isiterable
 
         if module is None:
-            module = find_current_module(2)
-            if module is None:
-                msg1 = 'Cannot automatically determine get_config module, '
-                msg2 = 'because it is not called from inside a valid module'
-                raise RuntimeError(msg1 + msg2)
-            else:
-                module = module.__name__
+            module = self.__class__.__module__
 
         self.module = module
         self.description = description
