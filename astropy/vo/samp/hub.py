@@ -188,9 +188,9 @@ class SAMPHubServer(object):
                 self._web_profile_server.register_introspection_functions()
                 log.info("Hub set to run with Web Profile support enabled.")
             except socket.error:
-                log.warn("Port {0} already in use. Impossible to run the "
-                         "Hub with Web Profile support.".format(self._web_port),
-                         SAMPWarning)
+                log.warning("Port {0} already in use. Impossible to run the "
+                            "Hub with Web Profile support.".format(self._web_port),
+                            SAMPWarning)
                 self._web_profile = web_profile = False
 
         # SSL general settings
