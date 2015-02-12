@@ -1481,9 +1481,9 @@ class NamedUnit(UnitBase):
 
         if doc is None:
             doc = self._generate_doc()
-
-        doc = textwrap.dedent(doc)
-        doc = textwrap.fill(doc)
+        else:
+            doc = textwrap.dedent(doc)
+            doc = textwrap.fill(doc)
 
         self.__doc__ = doc
 
