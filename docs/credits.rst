@@ -51,6 +51,7 @@ Core Package Contributors
 * Jörg Dietrich
 * Axel Donath
 * Michael Droettboom
+* Jonathan Eisenhamer
 * Zach Edwards
 * Thomas Erben
 * Henry Ferguson
@@ -81,6 +82,7 @@ Core Package Contributors
 * Dominik Klaes
 * Kacper Kowalik
 * Roban Hultman Kramer
+* Arne de Laat
 * Antony Lee
 * Simon Liedtke
 * Pey Lian Lim
@@ -122,6 +124,7 @@ Core Package Contributors
 * Brigitta Sipocz
 * Shivan Sornarajah
 * Shantanu Srivastava
+* Ole Streicher
 * Bernardo Sulzbach
 * James Taylor
 * Jeff Taylor
