@@ -981,11 +981,6 @@ def _save_config(packageormod=None, filename=None):
         sec.write()
 
 
-_unsafe_import_regex = [r'.*.setup_package']
-_unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
-_unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
-
-
 def generate_all_config_items(pkgornm=None, reset_to_default=False,
                               filename=None):
     """ Given a root package name or package, this function walks
@@ -1017,6 +1012,10 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
 
     from ..utils import find_current_module
 
+    unsafe_import_regex = [r'.*.setup_package']
+    unsafe_import_regex = [('(' + pat + ')') for pat in _unsafe_import_regex]
+    unsafe_import_regex = re.compile('|'.join(_unsafe_import_regex))
+
     if pkgornm is None:
         pkgornm = find_current_module(1).__name__.split('.')[0]
 
@@ -1041,7 +1040,7 @@ def generate_all_config_items(pkgornm=None, reset_to_default=False,
     for imper, nm, ispkg in pkgutil.walk_packages(pkgpath, prefix):
         if nm == 'astropy.config.tests.test_configs':
             continue
-        if not _unsafe_import_regex.match(nm):
+        if not unsafe_import_regex.match(nm):
             imper.find_module(nm)
             if reset_to_default:
                 for cfgitem in six.itervalues(get_config_items(nm)):
