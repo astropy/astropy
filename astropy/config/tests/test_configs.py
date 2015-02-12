@@ -178,17 +178,21 @@ def test_configitem_setters():
 def test_empty_config_file():
     from ..configuration import is_unedited_config_file
 
-    fn = get_pkg_data_filename('data/empty.cfg')
-    assert is_unedited_config_file(fn)
+    def get_content(fn):
+        with io.open(get_pkg_data_filename(fn), 'rt', encoding='latin-1') as fd:
+            return fd.read()
 
-    fn = get_pkg_data_filename('data/not_empty.cfg')
-    assert not is_unedited_config_file(fn)
+    content = get_content('data/empty.cfg')
+    assert is_unedited_config_file(content)
 
-    fn = get_pkg_data_filename('data/astropy.0.3.cfg')
-    assert is_unedited_config_file(fn)
+    content = get_content('data/not_empty.cfg')
+    assert not is_unedited_config_file(content)
 
-    fn = get_pkg_data_filename('data/astropy.0.3.windows.cfg')
-    assert is_unedited_config_file(fn)
+    content = get_content('data/astropy.0.3.cfg')
+    assert is_unedited_config_file(content)
+
+    content = get_content('data/astropy.0.3.windows.cfg')
+    assert is_unedited_config_file(content)
 
 
 def test_alias():
