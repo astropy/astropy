@@ -463,12 +463,10 @@ class _Bootstrapper(object):
     def _do_upgrade(self, dist):
         # Build up a requirement for a higher bugfix release but a lower minor
         # release (so API compatibility is guaranteed)
-        # sketchy version parsing--maybe come up with something a bit more
-        # robust for this
-        major, minor = (int(part) for part in dist.parsed_version[:2])
-        next_minor = '.'.join([str(major), str(minor + 1), '0'])
+        next_version = _next_version(dist.parsed_version)
+
         req = pkg_resources.Requirement.parse(
-            '{0}>{1},<{2}'.format(DIST_NAME, dist.version, next_minor))
+            '{0}>{1},<{2}'.format(DIST_NAME, dist.version, next_version))
 
         package_index = PackageIndex(index_url=self.index_url)
 
@@ -532,7 +530,7 @@ class _Bootstrapper(object):
             perl_warning = ('perl: warning: Falling back to the standard locale '
                             '("C").')
             if not stderr.strip().endswith(perl_warning):
-                # Some other uknown error condition occurred
+                # Some other unknown error condition occurred
                 log.warn('git submodule command failed '
                          'unexpectedly:\n{0}'.format(stderr))
                 return False
@@ -732,6 +730,40 @@ def run_cmd(cmd):
     return (p.returncode, stdout, stderr)
 
 
+def _next_version(version):
+    """
+    Given a parsed version from pkg_resources.parse_version, returns a new
+    version string with the next minor version.
+
+    Examples
+    ========
+    >>> _next_version(pkg_resources.parse_version('1.2.3'))
+    '1.3.0'
+    """
+
+    if hasattr(version, 'base_version'):
+        # New version parsing from setuptools >= 8.0
+        if version.base_version:
+            parts = version.base_version.split('.')
+        else:
+            parts = []
+    else:
+        parts = []
+        for part in version:
+            if part.startswith('*'):
+                break
+            parts.append(part)
+
+    parts = [int(p) for p in parts]
+
+    if len(parts) < 3:
+        parts += [0] * (3 - len(parts))
+
+    major, minor, micro = parts[:3]
+
+    return '{0}.{1}.{2}'.format(major, minor + 1, 0)
+
+
 class _DummyFile(object):
     """A noop writeable object."""
 
@@ -846,7 +878,7 @@ def use_astropy_helpers(**kwargs):
         that should be added to `sys.path` so that `astropy_helpers` can be
         imported from that path.
 
-        If the path is a git submodule it will automatically be initialzed
+        If the path is a git submodule it will automatically be initialized
         and/or updated.
 
         The path may also be to a ``.tar.gz`` archive of the astropy_helpers
