@@ -27,6 +27,7 @@ from .standard_profile import ThreadingXMLRPCServer
 from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
 
 from .constants import SSL_SUPPORT
+from ...utils.exceptions import AstropyWarning
 
 if SSL_SUPPORT:
     import ssl
@@ -188,9 +189,9 @@ class SAMPHubServer(object):
                 self._web_profile_server.register_introspection_functions()
                 log.info("Hub set to run with Web Profile support enabled.")
             except socket.error:
-                log.warn("Port {0} already in use. Impossible to run the "
-                         "Hub with Web Profile support.".format(self._web_port),
-                         SAMPWarning)
+                warnings.warn("Port {0} already in use. Impossible to run the "
+                              "Hub with Web Profile support.".format(self._web_port),
+                              SAMPWarning)
                 self._web_profile = web_profile = False
 
         # SSL general settings

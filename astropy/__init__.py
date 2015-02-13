@@ -216,6 +216,7 @@ def _initialize_astropy():
     import os
     import sys
     from warnings import warn
+    from .utils.exceptions import AstropyWarning
 
     # If this __init__.py file is in ./astropy/ then import is within a source dir
     source_dir = os.path.abspath(os.path.dirname(__file__))

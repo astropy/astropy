@@ -51,6 +51,7 @@ import textwrap
 import warnings
 
 from ... import fits
+from ....utils.exceptions import AstropyWarning
 
 
 log = logging.getLogger('fitscheck')
@@ -141,12 +142,12 @@ def verify_checksums(filename):
     if not OPTIONS.ignore_missing:
         for i, hdu in enumerate(hdulist):
             if not hdu._checksum:
-                log.warn('MISSING %r .. Checksum not found in HDU #%d' %
-                         (filename, i))
+                warnings.warn('MISSING %r .. Checksum not found in HDU #%d' %
+                         (filename, i), AstropyWarning)
                 return 1
             if not hdu._datasum:
-                log.warn('MISSING %r .. Datasum not found in HDU #%d' %
-                         (filename, i))
+                warnings.warn('MISSING %r .. Datasum not found in HDU #%d' %
+                         (filename, i), AstropyWarning)
                 return 1
     if not errors:
         log.info('OK %r' % filename)
@@ -160,8 +161,8 @@ def verify_compliance(filename):
     try:
         hdulist.verify('exception')
     except fits.VerifyError as exc:
-        log.warn('NONCOMPLIANT %r .. %s' %
-                 (filename), str(exc).replace('\n', ' '))
+        warnings.warn('NONCOMPLIANT %r .. %s' %
+                 (filename), str(exc).replace('\n', ' '), AstropyWarning)
         return 1
     return 0
 
@@ -216,5 +217,5 @@ def main():
     for filename in fits_files:
         errors += process_file(filename)
     if errors:
-        log.warn('%d errors' % errors)
+        warnings.warn('%d errors' % errors, AstropyWarning)
     return int(bool(errors))
