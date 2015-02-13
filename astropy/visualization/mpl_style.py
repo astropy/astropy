@@ -102,12 +102,12 @@ astropy_mpl_style_1 = {
 '''
 Version 1 astropy plotting style for matplotlib.
 
-This style improves some settings over the matpotlib default.
+This style improves some settings over the matplotlib default.
 '''
 
 astropy_mpl_style = astropy_mpl_style_1
 '''
 Most recent version of the astropy plotting style for matplotlib.
 
-This style improves some settings over the matpotlib default.
+This style improves some settings over the matplotlib default.
 '''

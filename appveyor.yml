@@ -6,16 +6,21 @@ environment:
   global:
       PYTHON: "C:\\conda"
       MINICONDA_VERSION: "3.5.5"
-      CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\.appveyor_windows_sdk.cmd"
+      CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\.continuous-integration\\appveyor\\windows_sdk.cmd"
       PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
                         # of 32 bit and 64 bit builds are needed, move this
                         # to the matrix section.
 
   matrix:
+
+      # We test Python 2.6 and 3.4 because 2.6 is most likely to have issues in
+      # Python 2 (if 2.6 passes, 2.7 virtually always passes) and Python 3.4 is
+      # the latest Python 3 release.
+
       - PYTHON_VERSION: "2.6"
         NUMPY_VERSION: "1.9.1"
 
-      - PYTHON_VERSION: "2.7"
+      - PYTHON_VERSION: "3.4"
         NUMPY_VERSION: "1.9.1"
 
 platform:
@@ -23,7 +28,7 @@ platform:
 
 install:
     # Install miniconda using a powershell script.
-    - "powershell ./.install-miniconda.ps1"
+    - "powershell .continuous-integration/appveyor/install-miniconda.ps1"
     - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
     # Install the build and runtime dependencies of the project.
@@ -36,7 +41,7 @@ install:
     - "python --version"
 
     # Install specified version of numpy and dependencies
-    - "conda install -q --yes numpy=%NUMPY_VERSION% pytest Cython scipy h5py beautiful-soup jinja2"
+    - "conda install -q --yes numpy=%NUMPY_VERSION% pytest Cython scipy h5py beautiful-soup jinja2 pyyaml"
 
 # Not a .NET project, we build SunPy in the install step instead
 build: false

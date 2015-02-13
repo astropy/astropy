@@ -17,7 +17,7 @@ from datetime import datetime
 import numpy as np
 
 from .. import units as u
-from .. import erfa
+from .. import _erfa as erfa
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 
@@ -508,7 +508,7 @@ class Time(object):
         'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
 
     def _erfa_sidereal_time(self, model):
-        """Caculate a sidereal time using a IAU precession/nutation model."""
+        """Calculate a sidereal time using a IAU precession/nutation model."""
 
         from ..coordinates import Longitude
 
@@ -1313,11 +1313,10 @@ class TimeFormat(object):
 
     def _check_val_type(self, val1, val2):
         """Input value validation, typically overridden by derived classes"""
-        try:
-            assert (val1.dtype == np.double and
-                    (val2 is None or val2.dtype == np.double))
-        except:
-            raise TypeError('Input values for {0} class must be doubles'
+        if not (val1.dtype == np.double and np.all(np.isfinite(val1)) and
+                (val2 is None or
+                 val2.dtype == np.double and np.all(np.isfinite(val2)))):
+            raise TypeError('Input values for {0} class must be finite doubles'
                             .format(self.name))
 
         if hasattr(val1, 'to'):
@@ -1691,9 +1690,7 @@ class TimeDatetime(TimeUnique):
 
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for this class
-        try:
-            assert all(isinstance(val, datetime) for val in val1.flat)
-        except:
+        if not all(isinstance(val, datetime) for val in val1.flat):
             raise TypeError('Input values for {0} class must be '
                             'datetime objects'.format(self.name))
         return val1, None
@@ -1741,7 +1738,7 @@ class TimeDatetime(TimeUnique):
 
 class TimeString(TimeUnique):
     """
-    Base class for string-like time represetations.
+    Base class for string-like time representations.
 
     This class assumes that anything following the last decimal point to the
     right is a fraction of a second.
@@ -1750,9 +1747,7 @@ class TimeString(TimeUnique):
     """
     def _check_val_type(self, val1, val2):
         # Note: don't care about val2 for these classes
-        try:
-            assert val1.dtype.kind in ('S', 'U')
-        except:
+        if val1.dtype.kind not in ('S', 'U'):
             raise TypeError('Input values for {0} class must be strings'
                             .format(self.name))
         return val1, None
@@ -2165,7 +2160,7 @@ def two_sum(a, b):
 def two_product(a, b):
     """
     Multiple ``a`` and ``b`` exactly, returning the result as two float64s.
-    The first is the approximate prodcut (with some floating point error)
+    The first is the approximate product (with some floating point error)
     and the second is the error of the float64 product.
 
     Uses the procedure of Shewchuk, 1997,

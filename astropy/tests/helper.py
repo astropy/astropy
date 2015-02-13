@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
-This module prvoides the tools used to internally run the astropy test suite
+This module provides the tools used to internally run the astropy test suite
 from the installed astropy.  It makes use of the `pytest` testing framework.
 """
 from __future__ import (absolute_import, division, print_function,
@@ -17,7 +17,6 @@ import zlib
 import functools
 import multiprocessing
 import os
-import subprocess
 import shutil
 import tempfile
 import types
@@ -30,8 +29,6 @@ try:
     import pkg_resources
 except ImportError:
     pass
-
-from distutils.core import Command
 
 from .. import test
 from ..utils.exceptions import (AstropyWarning,
@@ -457,6 +454,18 @@ def treat_deprecations_as_exceptions():
         warnings.filterwarnings(
             "always",
             r"'U' mode is deprecated",
+            DeprecationWarning)
+
+        # BeautifulSoup4 triggers a DeprecationWarning in stdlib's
+        # html module.x
+        warnings.filterwarnings(
+            "always",
+            "The strict argument and mode are deprecated.",
+            DeprecationWarning)
+        warnings.filterwarnings(
+            "always",
+            "The value of convert_charrefs will become True in 3.5. "
+            "You are encouraged to set the value explicitly.",
             DeprecationWarning)
 
 

@@ -39,6 +39,25 @@ class FakeUncertainty(NDUncertainty):
         pass
 
 
+class FakeNumpyArray(object):
+    """
+    Class that has a few of the attributes of a numpy array.
+
+    These attributes are checked for by NDData.
+    """
+    def __init__(self):
+        super(FakeNumpyArray, self).__init__()
+
+    def shape(self):
+        pass
+
+    def __getitem__(self):
+        pass
+
+    def __array__(self):
+        pass
+
+
 def test_nddata_empty():
     with pytest.raises(TypeError):
         NDData()  # empty initializer should fail
@@ -145,6 +164,16 @@ def test_nddata_init_from_nddata_data_argument_only():
     assert ndd2.mask == ndd1.mask
     assert ndd2.unit == ndd1.unit
     assert ndd2.meta == ndd1.meta
+
+
+def test_nddata_init_from_nddata_does_not_convert_data():
+    ndd1 = NDData(FakeNumpyArray())
+    # First make sure that NDData isn't converting its data to a numpy array.
+    assert isinstance(ndd1.data, FakeNumpyArray)
+    # Make a new NDData initialized from an NDData
+    ndd2 = NDData(ndd1)
+    # Check that the data wasn't converted to numpy
+    assert isinstance(ndd2.data, FakeNumpyArray)
 
 
 def test_nddata_copy_ref():

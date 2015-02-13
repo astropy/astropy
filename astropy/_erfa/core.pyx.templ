@@ -6,7 +6,7 @@
 # update it.
 
 """
-This module contains the Cython parts of the ERFA python warppers.  
+This module contains the Cython parts of the ERFA python wrappers.
 This is separated from the python code in ``core.py`` because putting it all in
 Cython results in very long compile times.  By having only the vectorized core
 in Cython, the compilation time is kept short without sacrificing much (if any)
@@ -17,7 +17,6 @@ For more about the module and how to use it, see the ``core.py`` docstrings.
 from __future__ import absolute_import, division, print_function
 
 import warnings
-from distutils.version import LooseVersion
 
 from ..utils.exceptions import AstropyUserWarning
 

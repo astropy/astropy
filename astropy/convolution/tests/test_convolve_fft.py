@@ -462,7 +462,7 @@ class TestConvolve2D(object):
     def test_big_fail(self):
         """ Test that convolve_fft raises an exception if a too-large array is passed in """
 
-        with pytest.raises(ValueError) as ex:
+        with pytest.raises((ValueError, MemoryError)) as ex:
             # while a good idea, this approach did not work; it actually writes to disk
             #arr = np.memmap('file.np', mode='w+', shape=(512, 512, 512), dtype=np.complex)
             # this just allocates the memory but never touches it; it's better:

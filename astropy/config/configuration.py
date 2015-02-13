@@ -727,7 +727,7 @@ def reload_config(packageormod=None):
     sec.reload()
 
 
-def is_unedited_config_file(filename, template_content=None):
+def is_unedited_config_file(content, template_content=None):
     """
     Determines if a config file can be safely replaced because it doesn't
     actually contain any meaningful content.
@@ -739,19 +739,10 @@ def is_unedited_config_file(filename, template_content=None):
     - An exact match to a "legacy" version of the config file prior to
       Astropy 0.4, when APE3 was implemented and the config file
       contained commented-out values by default.
-
-    If the config file is already identical to the template config
-    file, `False` is returned so it is not needlessly overwritten.
     """
     # We want to calculate the md5sum using universal line endings, so
     # that even if the files had their line endings converted to \r\n
     # on Windows, this will still work.
-
-    with io.open(filename, 'rt', encoding='latin-1') as fd:
-        content = fd.read()
-
-    if content == template_content:
-        return False
 
     content = content.encode('latin-1')
 
@@ -812,8 +803,8 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
 
     Raises
     ------
-    ConfigurationDefaultMissingError
-        If the default configuration could not be found.
+    AttributeError
+        If the version number of the package could not determined.
 
     """
 
@@ -826,7 +817,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
         # There is no template configuration file, which basically
         # means the affiliated package is not using the configuration
         # system, so just return.
-        return
+        return False
 
     cfgfn = get_config(pkg).filename
 
@@ -836,15 +827,20 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
     doupdate = False
     if cfgfn is not None:
         if path.exists(cfgfn):
-            doupdate = is_unedited_config_file(cfgfn, template_content)
+            with io.open(cfgfn, 'rt', encoding='latin-1') as fd:
+                content = fd.read()
+
+            identical = (content == template_content)
+
+            if not identical:
+                doupdate = is_unedited_config_file(
+                    content, template_content)
         elif path.exists(path.dirname(cfgfn)):
             doupdate = True
+            identical = False
 
     if version is None:
         mod = __import__(pkg)
-        if not hasattr(mod, '__version__'):
-            raise ConfigurationDefaultMissingError(
-                'Could not determine version of package {0}'.format(pkg))
         version = mod.__version__
 
     # Don't install template files for dev versions, or we'll end up
@@ -863,7 +859,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
             # If we just installed a new template file and we can't
             # update the main configuration file because it has user
             # changes, display a warning.
-            if not doupdate:
+            if not identical and not doupdate:
                 warn(
                     "The configuration options in {0} {1} may have changed, "
                     "your configuration file was not updated in order to "
@@ -872,7 +868,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
                         pkg, version, template_path),
                     ConfigurationChangedWarning)
 
-        if doupdate:
+        if doupdate and not identical:
             with io.open(cfgfn, 'wt', encoding='latin-1') as fw:
                 fw.write(template_content)
             return True

@@ -8,7 +8,7 @@ Each cosmology has the following parameters defined:
     Oc0         Omega cold dark matter at z=0
     Ob0         Omega baryon at z=0
     Om0         Omega matter at z=0
-    flat        Is this assumed flat?  If not, Ode0 must be specifiec
+    flat        Is this assumed flat?  If not, Ode0 must be specified
     Ode0        Omega dark energy at z=0 if flat is False
     H0          Hubble parameter at z=0 in km/s/Mpc
     n           Density perturbation spectral index

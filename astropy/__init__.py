@@ -58,15 +58,12 @@ def _check_numpy():
     except ImportError:
         pass
     else:
-        major, minor, rest = numpy.__version__.split(".", 2)
-        rmajor, rminor, rest = __minimum_numpy_version__.split(".", 2)
-        requirement_met = ((int(major), int(minor)) >=
-                           (int(rmajor), int(rminor)))
+        from .utils import minversion
+        requirement_met = minversion(numpy, __minimum_numpy_version__)
 
     if not requirement_met:
-        msg = ("numpy version {0} or later must be installed to use "
-               "astropy".format(
-                   __minimum_numpy_version__))
+        msg = ("Numpy version {0} or later must be installed to use "
+               "Astropy".format(__minimum_numpy_version__))
         raise ImportError(msg)
 
     return numpy

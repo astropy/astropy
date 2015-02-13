@@ -913,3 +913,20 @@ def test_ipac_abbrev():
         assert dat[name].dtype.kind == 'i'
     for name in dat.columns[10:12]:
         assert dat[name].dtype.kind in ('U', 'S')
+
+
+def test_almost_but_not_quite_daophot():
+    '''Regression test for #3319.
+    This tables looks so close to a daophot table, that the daophot reader gets
+    quite far before it fails with an AttributeError.
+
+    Note that this table will actually be read as Commented Header table with
+    the columns ['some', 'header', 'info'].
+    '''
+    lines = ["# some header info",
+             "#F header info beginning with 'F'",
+             "1 2 3",
+             "4 5 6",
+             "7 8 9"]
+    dat = ascii.read(lines)
+    assert len(dat) == 3

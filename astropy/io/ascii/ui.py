@@ -18,6 +18,7 @@ from . import core
 from . import basic
 from . import cds
 from . import daophot
+from . import ecsv
 from . import sextractor
 from . import ipac
 from . import latex
@@ -29,41 +30,74 @@ from . import fixedwidth
 from ...table import Table
 from ...utils.data import get_readable_fileobj
 
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+
 # Default setting for guess parameter in read()
 _GUESS = True
 
 
 def set_guess(guess):
-    """Set the default value of the ``guess`` parameter for read()
+    """
+    Set the default value of the ``guess`` parameter for read()
 
-    :param guess: New default ``guess`` value (True|False)
+    Parameters
+    ----------
+    guess : bool
+        New default ``guess`` value (e.g., True or False)
+
     """
     global _GUESS
     _GUESS = guess
 
 
 def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
-    """Initialize a table reader allowing for common customizations.  Most of the
+    """
+    Initialize a table reader allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Reader class.
 
-    :param Reader: Reader class (DEPRECATED) (default= :class:`Basic`)
-    :param Inputter: Inputter class
-    :param Outputter: Outputter class
-    :param delimiter: column delimiter string
-    :param comment: regular expression defining a comment line in table
-    :param quotechar: one-character string to quote fields containing special characters
-    :param header_start: line index for the header line not counting comment lines
-    :param data_start: line index for the start of data not counting comment lines
-    :param data_end: line index for the end of data (can be negative to count from end)
-    :param converters: dict of converters
-    :param data_Splitter: Splitter class to split data columns
-    :param header_Splitter: Splitter class to split header columns
-    :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fill_values: specification of fill values for bad or missing table values
-    :param fill_include_names: list of names to include in fill_values (default=None selects all names)
-    :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
+    Parameters
+    ----------
+    Reader : `~astropy.io.ascii.BaseReader`
+        Reader class (DEPRECATED) (default= :class:`Basic`)
+    Inputter : `~astropy.io.ascii.BaseInputter`
+        Inputter class
+    Outputter : `~astropy.io.ascii.BaseOutputter`
+        Outputter class
+    delimiter : str
+        Column delimiter string
+    comment : str
+        Regular expression defining a comment line in table
+    quotechar : str
+        One-character string to quote fields containing special characters
+    header_start : int
+        Line index for the header line not counting comment lines
+    data_start : int
+        Line index for the start of data not counting comment lines
+    data_end : int
+        Line index for the end of data (can be negative to count from end)
+    converters : dict
+        Dictionary of converters
+    data_Splitter : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split data columns
+    header_Splitter : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split header columns
+    names : list
+        List of names corresponding to each data column
+    include_names : list
+        List of names to include in output (default= ``None`` selects all names)
+    exclude_names : list
+        List of names to exclude from output (applied after ``include_names``)
+    fill_values : dict
+        specification of fill values for bad or missing table values
+    fill_include_names : list
+        List of names to include in fill_values (default= ``None`` selects all names)
+    fill_exclude_names : list
+        List of names to exclude from fill_values (applied after ``fill_include_names``)
+
     """
     # This function is a light wrapper around core._get_reader to provide a public interface
     # with a default Reader.
@@ -87,32 +121,59 @@ def _get_format_class(format, ReaderWriter, label):
 
 
 def read(table, guess=None, **kwargs):
-    """Read the input ``table`` and return the table.  Most of
+    """
+    Read the input ``table`` and return the table.  Most of
     the default behavior for various parameters is determined by the Reader
     class.
 
-    :param table: input table (file name, file-like object, list of strings, or single newline-separated string)
-    :param guess: try to guess the table format (default=True)
-    :param format: input table format
-    :param Inputter: Inputter class
-    :param Outputter: Outputter class (default=TableOutputter)
-    :param delimiter: column delimiter string
-    :param comment: regular expression defining a comment line in table
-    :param quotechar: one-character string to quote fields containing special characters
-    :param header_start: line index for the header line not counting comment lines
-    :param data_start: line index for the start of data not counting comment lines
-    :param data_end: line index for the end of data (can be negative to count from end)
-    :param converters: dict of converters
-    :param data_Splitter: Splitter class to split data columns
-    :param header_Splitter: Splitter class to split header columns
-    :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
-    :param fill_include_names: list of names to include in fill_values (default=None selects all names)
-    :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
-    :param fast_reader: whether to use the C engine, can also be a dict with options which default to False (default=True)
-    :param Reader: Reader class (DEPRECATED) (default=``ascii.Basic``)
+    Parameters
+    ----------
+    table : str, file-like, list
+        Input table as a file name, file-like object, list of strings, or
+        single newline-separated string.
+    guess : bool
+        Try to guess the table format (default= ``True``)
+    format : str, `~astropy.io.ascii.BaseReader`
+        Input table format
+    Inputter : `~astropy.io.ascii.BaseInputter`
+        Inputter class
+    Outputter : `~astropy.io.ascii.BaseOutputter`
+        Outputter class
+    delimiter : str
+        Column delimiter string
+    comment : str
+        Regular expression defining a comment line in table
+    quotechar : str
+        One-character string to quote fields containing special characters
+    header_start : int
+        Line index for the header line not counting comment lines
+    data_start : int
+        Line index for the start of data not counting comment lines
+    data_end : int
+        Line index for the end of data (can be negative to count from end)
+    converters : dict
+        Dictionary of converters
+    data_Splitter : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split data columns
+    header_Splitter : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split header columns
+    names : list
+        List of names corresponding to each data column
+    include_names : list
+        List of names to include in output (default= ``None`` selects all names)
+    exclude_names : list
+        List of names to exclude from output (applied after ``include_names``)
+    fill_values : dict
+        specification of fill values for bad or missing table values
+    fill_include_names : list
+        List of names to include in fill_values (default= ``None`` selects all names)
+    fill_exclude_names : list
+        List of names to exclude from fill_values (applied after ``fill_include_names``)
+    fast_reader : bool
+        Whether to use the C engine, can also be a dict with options which default to ``False``
+        (default= ``True``)
+    Reader : `~astropy.io.ascii.BaseReader`
+        Reader class (DEPRECATED) (default= :class:`Basic`).
     """
 
     if 'fill_values' not in kwargs:
@@ -120,7 +181,6 @@ def read(table, guess=None, **kwargs):
 
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
-    new_kwargs['Outputter'] = core.TableOutputter
     fast_reader_param = kwargs.get('fast_reader', True)
     if 'Outputter' in kwargs: # user specified Outputter, not supported for fast reading
         fast_reader_param = False
@@ -220,7 +280,7 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader.guessing = True
             return reader.read(table)
 
-        except (core.InconsistentTableError, ValueError, TypeError,
+        except (core.InconsistentTableError, ValueError, TypeError, AttributeError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(guess_kwargs)
     else:
@@ -254,7 +314,13 @@ def _guess(table, read_kwargs, format, fast_reader):
 
 def _get_guess_kwargs_list(read_kwargs):
     guess_kwargs_list = []
-    # First try readers that accept the common arguments with the input arguments
+
+    # Start with ECSV because an ECSV file will be read by Basic.  This format
+    # has very specific header requirements and fails out quickly.
+    if HAS_YAML:
+        guess_kwargs_list.append(dict(Reader=ecsv.Ecsv))
+
+    # Now try readers that accept the common arguments with the input arguments
     # (Unless there are not arguments - we try that in the next step anyway.)
     # FixedWidthTwoLine would also be read by Basic, so it needs to come first.
     if len(read_kwargs) > 0:
@@ -263,6 +329,7 @@ def _get_guess_kwargs_list(read_kwargs):
             first_kwargs = read_kwargs.copy()
             first_kwargs.update(dict(Reader=reader))
             guess_kwargs_list.append(first_kwargs)
+
     # Then try a list of readers with default arguments
     guess_kwargs_list.extend([dict(Reader=fixedwidth.FixedWidthTwoLine),
                               dict(Reader=fastbasic.FastBasic),
@@ -278,6 +345,7 @@ def _get_guess_kwargs_list(read_kwargs):
                               dict(Reader=latex.AASTex),
                               dict(Reader=html.HTML)
                               ])
+
     for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastNoHeader, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
@@ -291,19 +359,33 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
 
 
 def get_writer(Writer=None, fast_writer=True, **kwargs):
-    """Initialize a table writer allowing for common customizations.  Most of the
+    """
+    Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
-    :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
-    :param delimiter: column delimiter string
-    :param write_comment: string defining a comment line in table
-    :param quotechar: one-character string to quote fields containing special characters
-    :param formats: dict of format specifiers or formatting functions
-    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
-    :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fast_writer: whether to use the fast Cython writer (default=True)
+    Parameters
+    ----------
+    Writer : ``Writer``
+        Writer class (DEPRECATED) (default= :class:`Basic`)
+    delimiter : str
+        Column delimiter string
+    write_comment : str
+        String defining a comment line in table
+    quotechar : str
+        One-character string to quote fields containing special characters
+    formats : dict
+        Dictionary of format specifiers or formatting functions
+    strip_whitespace : bool
+        Strip surrounding whitespace from column values (default= ``True``)
+    names : list
+        List of names corresponding to each data column
+    include_names : list
+        List of names to include in output (default= ``None`` selects all names)
+    exclude_names : list
+        List of names to exclude from output (applied after ``include_names``)
+    fast_writer : bool
+        Whether to use the fast Cython writer (default= ``True``)
+
     """
     if Writer is None:
         Writer = basic.Basic
@@ -317,19 +399,35 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
-    :param table: input table (Reader object, NumPy struct array, list of lists, etc)
-    :param output: output [filename, file-like object] (default = sys.stdout)
-    :param format: output format (default=``basic``)
-    :param delimiter: column delimiter string
-    :param write_comment: string defining a comment line in table
-    :param quotechar: one-character string to quote fields containing special characters
-    :param formats: dict of format specifiers or formatting functions
-    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
-    :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fast_writer: whether to use the fast Cython writer (default=True)
-    :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
+    Parameters
+    ----------
+    table : `~astropy.io.ascii.BaseReader`, array_like, str, file_like, list
+        Input table as a Reader object, Numpy struct array, file name,
+        file-like object, list of strings, or single newline-separated string.
+    output : str, file_like
+        Output [filename, file-like object] (default = ``sys.stdout``)
+    format : str
+        Output table format (default= ``basic``)
+    delimiter : str
+        Column delimiter string
+    write_comment : str
+        String defining a comment line in table
+    quotechar : str
+        One-character string to quote fields containing special characters
+    formats : dict
+        Dictionary of format specifiers or formatting functions
+    strip_whitespace : bool
+        Strip surrounding whitespace from column values (default= ``True``)
+    names : list
+        List of names corresponding to each data column
+    include_names : list
+        List of names to include in output (default= ``None`` selects all names)
+    exclude_names : list
+        List of names to exclude from output (applied after ``include_names``)
+    fast_writer : bool
+        Whether to use the fast Cython writer (default= ``True``)
+    Writer : ``Writer``
+        Writer class (DEPRECATED) (default= :class:`Basic`)
     """
     if output is None:
         output = sys.stdout

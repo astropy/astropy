@@ -530,6 +530,27 @@ def test_mapping_inverse():
     assert_allclose((0, 1, 2), m.inverse(*m(0, 1, 2)), atol=1e-08)
 
 
+def test_identity_input():
+    """
+    Test a case where an Identity (or Mapping) model is the first in a chain
+    of composite models and thus is responsible for handling input broadcasting
+    properly.
+
+    Regression test for https://github.com/astropy/astropy/pull/3362
+    """
+
+    ident1 = Identity(1)
+    shift = Shift(1)
+    rotation = Rotation2D(angle=90)
+    model = ident1 & shift | rotation
+    assert_allclose(model(1, 2), [-3.0, 1.0])
+
+    # Same test case but using class composition
+    TestModel = ident1 & Shift | Rotation2D
+    model = TestModel(offset_1=1, angle_2=90)
+    assert_allclose(model(1, 2), [-3.0, 1.0])
+
+
 def test_slicing_on_instances_2():
     """
     More slicing tests.
@@ -630,7 +651,7 @@ def test_slicing_on_instance_with_parameterless_model():
 
 def test_compound_model_with_nonstandard_broadcasting():
     """
-    Ensure that the ``standard_broadcasting`` flag is properly propgataed when
+    Ensure that the ``standard_broadcasting`` flag is properly propagated when
     creating compound models.
 
     See the commit message for the commit in which this was added for more

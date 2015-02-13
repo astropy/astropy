@@ -300,13 +300,6 @@ class TimeFrameAttribute(FrameAttribute):
                                                                value, err))
             converted = True
 
-        if not out.isscalar:
-            msg0 = ('Time input {0}={1!r} is not a single (scalar) value. Some '
-                    'transformations do not yet support vector frame '
-                    'attributes, so some transformations may not work.')
-            msg = msg0.format(self.name, value)
-            warnings.warn(msg, AstropyWarning)
-
         return out, converted
 
 
@@ -589,7 +582,7 @@ class BaseCoordinateFrame(object):
             if repr_kwargs:
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
-                if (self.representation == SphericalRepresentation and
+                if (issubclass(self.representation, SphericalRepresentation) and
                         'distance' not in repr_kwargs):
                     representation_data = UnitSphericalRepresentation(**repr_kwargs)
                 else:
@@ -810,11 +803,13 @@ class BaseCoordinateFrame(object):
         >>> from astropy.coordinates import SkyCoord, CartesianRepresentation
         >>> coord = SkyCoord(0*u.deg, 0*u.deg)
         >>> coord.represent_as(CartesianRepresentation)
-        <CartesianRepresentation x=1.0, y=0.0, z=0.0>
+        <CartesianRepresentation (x, y, z) [dimensionless]
+                (1.0, 0.0, 0.0)>
 
         >>> coord.representation = CartesianRepresentation
         >>> coord
-        <SkyCoord (ICRS): x=1.0, y=0.0, z=0.0>
+        <SkyCoord (ICRS): (x, y, z) [dimensionless]
+            (1.0, 0.0, 0.0)>
         """
         new_representation = _get_repr_cls(new_representation)
 
@@ -945,15 +940,49 @@ class BaseCoordinateFrame(object):
         """
         return attrnm in self._attr_names_with_defaults
 
+    def is_equivalent_frame(self, other):
+        """
+        Checks if this object is the same frame as the ``other`` object.
+
+        To be the same frame, two objects must be the same frame class and have
+        the same frame attributes.  Note that it does *not* matter what, if any,
+        data either object has.
+
+        Parameters
+        ----------
+        other : BaseCoordinateFrame
+            the other frame to check
+
+        Returns
+        -------
+        isequiv : bool
+            True if the frames are the same, False if not.
+
+        Raises
+        ------
+        TypeError
+            If ``other`` isn't a `BaseCoordinateFrame` or subclass.
+        """
+        if self.__class__ == other.__class__:
+            for frame_attr_name in self.get_frame_attr_names():
+                if getattr(self, frame_attr_name) != getattr(other, frame_attr_name):
+                    return False
+            return True
+        elif not isinstance(other, BaseCoordinateFrame):
+            raise TypeError("Tried to do is_equivalent_frame on something that "
+                            "isn't a frame")
+        else:
+            return False
+
     def __repr__(self):
         frameattrs = ', '.join([attrnm + '=' + str(getattr(self, attrnm))
                                 for attrnm in self.get_frame_attr_names()])
 
         if self.has_data:
             if self.representation:
-                if (self.representation == SphericalRepresentation and
+                if (issubclass(self.representation, SphericalRepresentation) and
                         isinstance(self.data, UnitSphericalRepresentation)):
-                    data = self.represent_as(UnitSphericalRepresentation,
+                    data = self.represent_as(self.data.__class__,
                                              in_frame_units=True)
                 else:
                     data = self.represent_as(self.representation,
@@ -1173,5 +1202,3 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
-
-

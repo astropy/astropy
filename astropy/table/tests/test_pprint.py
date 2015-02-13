@@ -117,6 +117,14 @@ class TestPprint():
         self.tb['col19'].unit = 'kg s m**-2'
         self.ts = table_type(SMALL_ARR)
 
+    def test_empty_table(self, table_type):
+        t = table_type()
+        lines = t.pformat()
+        assert lines == ['<No columns>']
+        c = repr(t)
+        assert c.splitlines() == ['<{0} masked={1} length=0>'.format(table_type.__name__, t.masked),
+                                  '<No columns>']
+
     def test_format0(self, table_type):
         """Try getting screen size but fail to defaults because testing doesn't
         have access to screen (fcntl.ioctl fails).

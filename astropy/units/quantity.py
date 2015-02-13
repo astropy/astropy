@@ -14,9 +14,6 @@ import re
 import numbers
 
 import numpy as np
-NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
-NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
-NUMPY_LT_1P9 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 9]
 
 # AstroPy
 from ..extern import six
@@ -24,6 +21,7 @@ from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
 from .format.latex import Latex
 from ..utils import lazyproperty
+from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import validate_power
@@ -47,7 +45,7 @@ class Conf(_config.ConfigNamespace):
     latex_array_threshold = _config.ConfigItem(100,
         'The maximum size an array Quantity can be before its LaTeX '
         'representation for IPython gets "summarized" (meaning only the first '
-        'and last few elements areshown with "..." between). Setting this to a '
+        'and last few elements are shown with "..." between). Setting this to a '
         'negative number means that the value will instead be whatever numpy '
         'gets from get_printoptions.')
 conf = Conf()
@@ -725,7 +723,7 @@ class Quantity(np.ndarray):
         else:
             return value
 
-    if not NUMPY_LT_1P9:
+    if not NUMPY_LT_1_9:
         # Equality (return False if units do not match) needs to be handled
         # explicitly for numpy >=1.9, since it no longer traps errors.
         def __eq__(self, other):
@@ -955,7 +953,7 @@ class Quantity(np.ndarray):
         lstr
             A LaTeX string with the contents of this Quantity
         """
-        if NUMPY_LT_1P7:
+        if NUMPY_LT_1_7:
             if self.isscalar:
                 latex_value = Latex.format_exponential_notation(self.value)
             else:
@@ -1258,7 +1256,7 @@ class Quantity(np.ndarray):
     def round(self, decimals=0, out=None):
         return self._wrap_function(np.round, decimals, out=out)
 
-    if NUMPY_LT_1P7:
+    if NUMPY_LT_1_7:
         # 'keepdims' was not yet available.
         def max(self, axis=None, out=None):
             return self._wrap_function(np.max, axis, out=out)
@@ -1330,7 +1328,7 @@ class Quantity(np.ndarray):
     def ediff1d(self, to_end=None, to_begin=None):
         return self._wrap_function(np.ediff1d, to_end, to_begin)
 
-    if NUMPY_LT_1P8:
+    if NUMPY_LT_1_8:
         def nansum(self, axis=None):
             return self._wrap_function(np.nansum, axis)
     else:

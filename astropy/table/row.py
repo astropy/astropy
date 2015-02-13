@@ -4,13 +4,13 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import collections
-from distutils import version
 
 import numpy as np
 from numpy import ma
 
 from ..extern import six
 from ..utils import deprecated
+from ..utils.compat import NUMPY_LT_1_8
 
 class Row(object):
     """A class to represent one row of a Table object.
@@ -35,6 +35,11 @@ class Row(object):
     def __init__(self, table, index):
         self._table = table
         self._index = index
+
+        n = len(table)
+        if index < -n or index >= n:
+            raise IndexError('index {0} out of range for table with length {1}'
+                             .format(index, len(table)))
 
     def __getitem__(self, item):
         return self._table.columns[item][self._index]
@@ -138,12 +143,14 @@ class Row(object):
                 # ValueError: Setting void-array with object members using buffer. [numpy.ma.core]
                 #
                 # All we do here is re-raise with a more informative message
-                if (six.text_type(err).startswith('Setting void-array with object members')
-                        and version.LooseVersion(np.__version__) < version.LooseVersion('1.8')):
-                    raise ValueError('Cannot convert masked table row with Object type columns '
-                                     'using as_void(), due to a bug in numpy {0}.  Please upgrade '
-                                     'to numpy 1.8 or newer.'
-                                     .format(np.__version__))
+                msg = six.text_type(err)
+                if ('Setting void-array with object members' in msg and
+                        NUMPY_LT_1_8):
+                    raise ValueError(
+                        'Cannot convert masked table row with Object type '
+                        'columns using as_void(), due to a bug in Numpy '
+                        '{0}.  Please upgrade to Numpy 1.8 or newer.'.format(
+                            np.__version__))
                 else:
                     raise
         else:

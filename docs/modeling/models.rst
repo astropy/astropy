@@ -1,4 +1,5 @@
 .. include:: links.inc
+.. _modeling-instantiating:
 
 ***********************************
 Instantiating and Evaluating Models
@@ -63,6 +64,7 @@ error::
     with parameter 'stddev' of shape (3,).  All parameter arrays must have
     shapes that are mutually compatible according to the broadcasting rules.
 
+.. _modeling-model-sets:
 
 Model Sets
 ==========
@@ -244,6 +246,7 @@ The examples here assume this import statement was executed::
    g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1],
                           n_models=2)
    y = g1(x, model_set_axis=False)
+   plt.figure(figsize=(8, 4))
    plt.plot(x, y.T)
    plt.title('Evaluate two Gaussian1D models on 1 set of input data')
    plt.show()
@@ -257,6 +260,7 @@ The examples here assume this import statement was executed::
    g1 = models.Gaussian1D(amplitude=[10, 9], mean=[2,3], stddev=[.15,.1],
                           n_models=2)
    y = g1([x, x - 3])
+   plt.figure(figsize=(8, 4))
    plt.plot(x, y[0])
    plt.plot(x - 3, y[1])
    plt.title('Evaluate two Gaussian1D models with 2 sets of input data')
@@ -294,6 +298,7 @@ The examples here assume this import statement was executed::
    p1 = models.Polynomial1D(1, n_models=5)
    p1.c1 = [0, 1, 2, 3, 4]
    y = p1(x, model_set_axis=False)
+   plt.figure(figsize=(8, 4))
    plt.plot(x, y.T)
    plt.title("Polynomial1D with a 5 model set on the same input")
    plt.show()
@@ -310,65 +315,4 @@ The examples here assume this import statement was executed::
              [  54.,   57.,   60.,   63.,   66.,   69.],
              [  96.,  100.,  104.,  108.,  112.,  116.]])
       >>> print(y.shape)
-      (5, 6) 
-
-
-Composite model examples
-------------------------
-
-.. note::
-
-    Composite models in Astropy are currently in the process of being reworked,
-    but in the meantime the existing implementation is still useful.
-
-Create and evaluate a parallel composite model::
-
-    >>> from astropy.modeling import SummedCompositeModel
-    >>> from astropy.modeling.models import Polynomial1D, Gaussian1D
-    >>> x = np.arange(1,10,.1)
-    >>> p1 = Polynomial1D(1)
-    >>> g1 = Gaussian1D(amplitude=10., stddev=2.1, mean=4.2)
-    >>> sum_of_models = SummedCompositeModel([g1, p1])
-    >>> y = sum_of_models(x)
-
-This is equivalent to applying the two models in parallel::
-
-    >>> y = x + g1(x) + p1(x)
-
-In more complex cases the input and output may be mapped to transformations::
-
-    >>> from astropy.modeling import SerialCompositeModel
-    >>> from astropy.modeling.models import Polynomial2D, Shift
-    >>> y, x = np.mgrid[:5, :5]
-    >>> off = Shift(-3.2)
-    >>> poly2 = Polynomial2D(2)
-    >>> serial_composite_model = SerialCompositeModel(
-    ...     [off, poly2], inmap=[['x'], ['x', 'y']], outmap=[['x'], ['z']])
-
-The above composite transform will apply an inplace shift to x, followed by a
-2-D polynomial and will save the result in an array, labeled 'z'.  To evaluate
-this model use a `~astropy.modeling.LabeledInput` object::
-
-    >>> from astropy.modeling import LabeledInput
-    >>> labeled_data = LabeledInput([x, y], ['x', 'y'])
-    >>> result = serial_composite_model(labeled_data)
-
-The output is also a `~astropy.modeling.LabeledInput` object and the
-result is stored in label 'z'::
-
-    >>> print(result)  # doctest: +SKIP
-    {'x': array([[-3.2, -2.2, -1.2, -0.2,  0.8],
-           [-3.2, -2.2, -1.2, -0.2,  0.8],
-           [-3.2, -2.2, -1.2, -0.2,  0.8],
-           [-3.2, -2.2, -1.2, -0.2,  0.8],
-           [-3.2, -2.2, -1.2, -0.2,  0.8]]),
-     'y':  array([[0, 0, 0, 0, 0],
-           [1, 1, 1, 1, 1],
-           [2, 2, 2, 2, 2],
-           [3, 3, 3, 3, 3],
-           [4, 4, 4, 4, 4]]),
-     'z': array([[ 0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.]])}
+      (5, 6)

@@ -10,8 +10,7 @@ from ...tests.helper import pytest, assert_follows_unicode_guidelines
 from ... import table
 from ... import units as u
 from ...extern import six
-
-NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
+from ...utils.compat import NUMPY_LT_1_8
 
 
 class TestColumn():
@@ -463,7 +462,7 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    if NUMPY_LT_1P8:
+    if NUMPY_LT_1_8:
         with pytest.raises(ValueError):
             c.take(0)
         with pytest.raises(ValueError):
@@ -483,7 +482,7 @@ def test_getitem_metadata_regression():
         assert subset.meta['c'] == 8
 
     # Metadata isn't copied for scalar values
-    if NUMPY_LT_1P8:
+    if NUMPY_LT_1_8:
         with pytest.raises(ValueError):
             c.take(0)
         with pytest.raises(ValueError):

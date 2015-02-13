@@ -302,7 +302,7 @@ class Pix2Sky_SIN(Pix2SkyProjection, Zenithal):
 
 class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
     """
-    SIN : Slant othographic projection - sky to pixel.
+    SIN : Slant orthographic projection - sky to pixel.
     """
 
     @property
@@ -349,8 +349,8 @@ class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
                     "CYP projection is not defined for mu=-lambda")
         return lam
 
-    mu = Parameter(setter=_validate_mu)
-    lam = Parameter(setter=_validate_lam)
+    mu = Parameter(default=0, setter=_validate_mu)
+    lam = Parameter(default=0, setter=_validate_lam)
 
     @property
     def inverse(self):
@@ -386,8 +386,8 @@ class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
                     "CYP projection is not defined for mu=-lambda")
         return lam
 
-    mu = Parameter(setter=_validate_mu)
-    lam = Parameter(setter=_validate_lam)
+    mu = Parameter(default=0, setter=_validate_mu)
+    lam = Parameter(default=0, setter=_validate_lam)
 
     @property
     def inverse(self):

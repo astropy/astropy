@@ -13,8 +13,6 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-import numpy as np
-
 from . import core
 from ...table.column import col_getattr
 
@@ -214,7 +212,7 @@ class Csv(Basic):
       2,38.12321,-88.1321,2.2,17.0
 
     Plain csv (comma separated value) files typically contain as many entries
-    as there are columns on each line. In contrast, common spreadsheed editors
+    as there are columns on each line. In contrast, common spreadsheet editors
     stop writing if all remaining cells on a line are empty, which can lead to
     lines where the rightmost entries are missing. This Reader can deal with
     such files.
@@ -237,16 +235,24 @@ class Csv(Basic):
     data_class = CsvData
 
     def inconsistent_handler(self, str_vals, ncols):
-        '''Adjust row if it is too short.
+        '''
+        Adjust row if it is too short.
 
         If a data row is shorter than the header, add empty values to make it the
         right length.
         Note that this will *not* be called if the row already matches the header.
 
-        :param str_vals: A list of value strings from the current row of the table.
-        :param ncols: The expected number of entries from the table header.
-        :returns:
-            list of strings to be parsed into data entries in the output table.
+        Parameters
+        ----------
+        str_vals : list
+            A list of value strings from the current row of the table.
+        ncols : int
+            The expected number of entries from the table header.
+
+        Returns
+        -------
+        str_vals : list
+            List of strings to be parsed into data entries in the output table.
         '''
         if len(str_vals) < ncols:
             str_vals.extend((ncols - len(str_vals)) * [''])

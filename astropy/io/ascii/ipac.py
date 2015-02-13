@@ -24,7 +24,7 @@ from . import basic
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from ...table.pprint import _format_funcs, _auto_format_func
-from ...table.column import col_iter_str_vals, col_getattr
+from ...table.column import col_getattr
 
 
 class IpacFormatErrorDBMS(Exception):
@@ -163,13 +163,17 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 col.raw_type, col.name))
 
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines``.
+        """
+        Initialize the header Column objects from the table ``lines``.
 
         Based on the previously set Header attributes find or create the column names.
         Sets ``self.cols`` with the list of Columns.
 
-        :param lines: list of table lines
-        :returns: list of table Columns
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
         header_lines = self.process_lines(lines)  # generator returning valid header lines
         header_vals = [vals for vals in self.splitter(header_lines)]
@@ -236,7 +240,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         for name in namelist:
             m = re.match('\w+', name)
             if m.end() != len(name):
-                raise IpacFormatE('{0} - Only alphanumaric characters and _ '
+                raise IpacFormatE('{0} - Only alphanumeric characters and _ '
                                   'are allowed in column names.'.format(name))
             if self.DBMS and not(name[0].isalpha() or (name[0] == '_')):
                 raise IpacFormatE('Column name cannot start with numbers: {}'.format(name))
@@ -278,7 +282,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 nullist.append((format_func(col_format, null)).strip())
             except:
                 # It is possible that null and the column values have different
-                # data types (e.g. number und null = 'null' (i.e. a string).
+                # data types (e.g. number and null = 'null' (i.e. a string).
                 # This could cause all kinds of exceptions, so a catch all
                 # block is needed here
                 nullist.append(str(null).strip())
@@ -409,9 +413,9 @@ class Ipac(basic.Basic):
           * 'left' - Character is associated with the column to the left
 
     DBMS : bool, optional
-        If true, this varifies that written tables adhere (semantically)
+        If true, this verifies that written tables adhere (semantically)
         to the `IPAC/DBMS <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/DBMSrestriction.html>`_
-        definiton of IPAC tables. If 'False' it only checks for the (less strict)
+        definition of IPAC tables. If 'False' it only checks for the (less strict)
         `IPAC <http://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
         definition.
     """
@@ -433,10 +437,19 @@ class Ipac(basic.Basic):
         self.header.DBMS = DBMS
 
     def write(self, table):
-        """Write ``table`` as list of strings.
+        """
+        Write ``table`` as list of strings.
 
-        :param table: input table data (astropy.table.Table object)
-        :returns: list of strings corresponding to ASCII table
+        Parameters
+        ----------
+        table: `~astropy.table.Table`
+            Input table data
+
+        Returns
+        -------
+        lines : list
+            List of strings corresponding to ASCII table
+
         """
         # Set a default null value for all columns by adding at the end, which
         # is the position with the lowest priority.

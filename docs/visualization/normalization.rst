@@ -15,7 +15,7 @@ visualization. Two main types of transformations are provided:
 
 * *Stretching* of values in the [0:1] range to the [0:1] range using a linear
   or non-linear function:
-  
+
 .. math::
 
     z = f(y)
@@ -116,7 +116,7 @@ percentile value, followed by a square root stretch, you can do::
     >>> transform = SqrtStretch() + PercentileInterval(90.)
     >>> transform([1, 3, 4, 5, 6])
     array([ 0.        ,  0.60302269,  0.76870611,  0.90453403,  1.        ])
-    
+
 As before, the combined transformation can also accept a ``clip`` argument
 (which is `True` by default).
 
@@ -151,7 +151,7 @@ instance:
     # Make the figure
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    im = ax.imshow(image, norm=norm)
+    im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 
 As shown above, the colorbar ticks are automatically adjusted.

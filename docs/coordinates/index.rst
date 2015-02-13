@@ -39,7 +39,8 @@ equivalent::
     >>> c = SkyCoord('00 42 30 +41 12 00', frame='icrs', unit=(u.hourangle, u.deg))
     >>> c = SkyCoord('00:42.5 +41:12', frame='icrs', unit=(u.hourangle, u.deg))
     >>> c
-    <SkyCoord (ICRS): ra=10.625 deg, dec=41.2 deg>
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (10.625, 41.2)>
 
 The examples above illustrate a few simple rules to follow when creating a coordinate
 object:
@@ -104,19 +105,27 @@ are defined in::
     >>> c_icrs = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, frame='icrs')
 
 Once you've defined the frame of your coordinates, you can transform from that
-frame to another frame.  You can do this a few different ways: if you just want
-the default version of that frame, you can use attribute-style access.  For
-more control, you can use the `~astropy.coordinates.SkyCoord.transform_to` method,
-which accepts a frame name, frame class, or frame instance::
+frame to another frame.  You can do this a few different ways: For more control,
+you can use the `~astropy.coordinates.SkyCoord.transform_to` method, which
+accepts a frame name, frame class, or frame instance::
 
     >>> from astropy.coordinates import FK5
     >>> c_icrs.galactic  # doctest: +FLOAT_CMP
-    <SkyCoord (Galactic): l=121.174241811 deg, b=-21.5728855724 deg>
+    <SkyCoord (Galactic): (l, b) in deg
+        (121.174241811, -21.5728855724)>
     >>> c_fk5 = c_icrs.transform_to('fk5')  # c_icrs.fk5 does the same thing
     >>> c_fk5  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5: equinox=J2000.000): ra=10.6845915393 deg, dec=41.2691714591 deg>
+    <SkyCoord (FK5: equinox=J2000.000): (ra, dec) in deg
+        (10.6845915393, 41.2691714591)>
     >>> c_fk5.transform_to(FK5(equinox='J1975'))  # precess to a different equinox  # doctest: +FLOAT_CMP
-    <SkyCoord (FK5: equinox=J1975.000): ra=10.3420913461 deg, dec=41.1323211229 deg>
+    <SkyCoord (FK5: equinox=J1975.000): (ra, dec) in deg
+        (10.3420913461, 41.1323211229)>
+
+This form of `~astropy.coordinates.SkyCoord.transform_to` also makes it
+straightforward to convert from celestial coordinates to
+`~astropy.coordinates.AltAz` coordinates, allowing the use of |skycoord|
+as a tool for planning observations.  For a more complete example of
+this, see :doc:`observing-example`.
 
 |skycoord| and all other `~astropy.coordinates` objects also support
 array coordinates.  These work the same as single-value coordinates, but
@@ -141,13 +150,15 @@ coordinate objects::
 
     >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', frame='icrs', representation='cartesian')
     >>> c
-    <SkyCoord (ICRS): x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>
+    <SkyCoord (ICRS): (x, y, z) in kpc
+        (1.0, 2.0, 3.0)>
     >>> c.x, c.y, c.z
     (<Quantity 1.0 kpc>, <Quantity 2.0 kpc>, <Quantity 3.0 kpc>)
 
     >>> c.representation = 'cylindrical'
     >>> c  # doctest: +FLOAT_CMP
-    <SkyCoord (ICRS): rho=2.2360679775 kpc, phi=63.4349488229 deg, z=3.0 kpc>
+    <SkyCoord (ICRS): (rho, phi, z) in (kpc, deg, kpc)
+        (2.2360679775, 63.4349488229, 3.0)>
     >>> c.phi
     <Angle 63.434948... deg>
     >>> c.phi.to(u.radian)
@@ -155,11 +166,13 @@ coordinate objects::
 
     >>> c.representation = 'spherical'
     >>> c  # doctest: +FLOAT_CMP
-    <SkyCoord (ICRS): ra=63.4349488229 deg, dec=53.3007747995 deg, distance=3.74165738677 kpc>
+    <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
+        (63.4349488229, 53.3007747995, 3.74165738677)>
 
     >>> c.representation = 'unitspherical'
     >>> c  # doctest: +FLOAT_CMP
-    <SkyCoord (ICRS): ra=63.4349488229 deg, dec=53.3007747995 deg>
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (63.4349488229, 53.3007747995)>
 
 |skycoord| defines a number of convenience methods as well, like on-sky
 separation between two coordinates and catalog matching (detailed in
@@ -201,7 +214,8 @@ uses `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object::
 
     >>> SkyCoord.from_name("M42")  # doctest: +REMOTE_DATA +FLOAT_CMP
-    <SkyCoord (ICRS): ra=83.82208 deg, dec=-5.39111 deg>
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (83.82208, -5.39111)>
 
 .. note::
 
@@ -269,6 +283,7 @@ listed below.
    frames
    sgr-example
    definitions
+   galactocentric
 
 
 In addition, another resource for the capabilities of this package is the

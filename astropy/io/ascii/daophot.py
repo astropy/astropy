@@ -53,11 +53,14 @@ class DaophotHeader(core.BaseHeader):
         header.  The DAOphot header is specialized so that we just copy the entire BaseHeader
         get_cols routine and modify as needed.
 
-        :param lines: list of table lines
-        :returns: list of table Columns
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
 
-        # Parse a series of column defintion lines like below.  There may be several
+        # Parse a series of column definition lines like below.  There may be several
         # such blocks in a single file (where continuation characters have already been
         # stripped).
         # #N ID    XCENTER   YCENTER   MAG         MERR          MSKY           NITER
@@ -89,7 +92,7 @@ class DaophotHeader(core.BaseHeader):
                         last_coldef_line[i] = line_stripped
                         break
 
-        # We need to check wheter daophot file has multiple aperture data, in its keywords
+        # We need to check whether daophot file has multiple aperture data, in its keywords
         if (',' in self.aperture_values) or (':' in self.aperture_values):
             apertures=[]
             for aper in self.aperture_values.split(','):

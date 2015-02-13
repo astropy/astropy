@@ -22,7 +22,7 @@ few terms where there have been points of confusion:
 
   - All models in `astropy.modeling`, whether it represents some
     `function <astropy.modeling.functional_models>`, a
-    `rotation <astropy.modeling.rotations>`, etc. is represented in the
+    `rotation <astropy.modeling.rotations>`, etc., are represented in the
     abstract by a model *class*--specifically a subclass of
     `~astropy.modeling.Model`--that encapsulates the routine for evaluating the
     model, a list of its required parameters, and other metadata about the
@@ -88,7 +88,7 @@ As discussed in the :ref:`introduction to compound models
 <compound-models-intro>`, the only way, currently, to create compound models is
 to combine existing single models and/or compound models using expressions in
 Python with the binary operators ``+``, ``-``, ``*``, ``/``, ``**``, ``|``,
-and ``&``, each of which are discussed in the following sections.  The operands
+and ``&``, each of which is discussed in the following sections.  The operands
 used in these expressions may be model *classes*, or model *instances*.  In
 other words, any object for which either ``isinstance(obj, Model)`` or
 ``issubclass(obj, Model)`` is `True`.
@@ -125,7 +125,7 @@ the command prompt we can get some more information about it::
     Outputs: ('y',)
     Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
     Expression: [0] + [1]
-    Components: 
+    Components:
         [0]: <class 'astropy.modeling.functional_models.Gaussian1D'>
         Name: Gaussian1D
         Inputs: ('x',)
@@ -147,7 +147,7 @@ the first and second components of the model listed next (in this case both
 components are the `~astropy.modeling.functional_models.Gaussian1D` class).
 
 Each component of a compound model is a single, non-compound model.  This is
-the case even when performing an existing compound model in a new expression.
+the case even when including an existing compound model in a new expression.
 The existing compound model is not treated as a single model--instead the
 expression represented by that compound model is extended.  An expression
 involving two or more compound models results in a new expression that is the
@@ -161,7 +161,7 @@ concatenation of all involved models' expressions::
     Outputs: ('y',)
     Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', ..., 'amplitude_3', 'mean_3', 'stddev_3')
     Expression: [0] + [1] + [2] + [3]
-    Components: 
+    Components:
         [0]: <class 'astropy.modeling.functional_models.Gaussian1D'>
         Name: Gaussian1D
         Inputs: ('x',)
@@ -263,13 +263,13 @@ the already known parameter values.  We can see this by checking the type of
     Outputs: ('y',)
     Fittable parameters: ('amplitude_0', 'mean_0', 'stddev_0', 'amplitude_1', 'mean_1', 'stddev_1')
     Expression: [0] + [1]
-    Components: 
+    Components:
         [0]: <Gaussian1D(amplitude=1.0, mean=0.0, stddev=0.2)>
     <BLANKLINE>
         [1]: <Gaussian1D(amplitude=2.5, mean=0.5, stddev=0.1)>
 
 It is also possible, and sometimes useful, to make a compound model from a
-combinatation of classes *and* instances in the same expression::
+combination of classes *and* instances in the same expression::
 
     >>> from astropy.modeling.models import Linear1D, Sine1D
     >>> MyModel = Linear1D + Sine1D(amplitude=1, frequency=1)
@@ -280,7 +280,7 @@ combinatation of classes *and* instances in the same expression::
     Outputs: ('y',)
     Fittable parameters: ('slope_0', 'intercept_0', 'amplitude_1', 'frequency_1')
     Expression: [0] + [1]
-    Components: 
+    Components:
         [0]: <class 'astropy.modeling.functional_models.Linear1D'>
         Name: Linear1D
         Inputs: ('x',)
@@ -331,14 +331,15 @@ Operators
 Arithmetic operators
 ^^^^^^^^^^^^^^^^^^^^
 
-Compound models can be created from expressions that include any number of the
-arithmetic operators ``+``, ``-``, ``*``, ``/``, and ``**`` which have the same
-meanings as they do for other numeric objects in Python.
+Compound models can be created from expressions that include any
+number of the arithmetic operators ``+``, ``-``, ``*``, ``/``, and
+``**``, which have the same meanings as they do for other numeric
+objects in Python.
 
 .. note::
 
     In the case of division ``/`` always means floating point division--integer
-    division and the ``//`` operator are not supported for models).
+    division and the ``//`` operator is not supported for models).
 
 As demonstrated in previous examples, for models that have a single output
 the result of evaluating a model like ``A + B`` is to evaluate ``A`` and
@@ -431,7 +432,7 @@ example:
     for idx, theta in enumerate((0, 45, 90)):
         g = RotatedGaussian(theta)
         plt.subplot(1, 3, idx + 1)
-        plt.imshow(g(x, y))
+        plt.imshow(g(x, y), origin='lower')
         plt.xticks([])
         plt.yticks([])
         plt.title('Rotated $ {0}^\circ $'.format(theta))
@@ -524,7 +525,7 @@ of operations.  For example::
     Name: CompoundModel...
     ...
     Expression: [0] + [1] * [2]
-    Components: 
+    Components:
         [0]: <class '__main__.A'>
         Name: A (Const1D)
         ...
@@ -542,7 +543,7 @@ multiplication is evaluated before the addition per usual arithmetic rules.
 However, the components of this model are simply read off left to right from
 the expression ``A + B * C``, with ``A -> 0``, ``B -> 1``, ``C -> 2``.  If we
 had instead defined ``M = C * B + A`` then the indices would be reversed
-(though the expression is mathetmatically equivalent).  This convention is
+(though the expression is mathematically equivalent).  This convention is
 chosen for simplicity--given the list of components it is not necessary to
 jump around when mentally mapping them to the expression.
 
@@ -572,7 +573,7 @@ subexpression ``B * C``::
     Outputs: ('y',)
     Fittable parameters: ('amplitude_1', 'amplitude_2')
     Expression: [0] * [1]
-    Components: 
+    Components:
         [0]: <class '__main__.B'>
         Name: B (Const1D)
         ...
@@ -616,7 +617,7 @@ Slicing also works with names.  When using names the start and end points are
     <class 'astropy.modeling.utils.CompoundModel...'>
     ...
     Expression: [0] * [1]
-    Components: 
+    Components:
         [0]: <class '__main__.B'>
         Name: B (Const1D)
         ...

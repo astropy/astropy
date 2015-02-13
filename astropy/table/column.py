@@ -6,12 +6,12 @@ from ..extern import six
 import weakref
 
 from copy import deepcopy
-from distutils import version
 
 import numpy as np
 from numpy import ma
 
 from ..units import Unit, Quantity
+from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from . import groups
@@ -20,7 +20,6 @@ from .np_utils import fix_column_name
 
 from ..config import ConfigAlias
 
-NUMPY_VERSION = version.LooseVersion(np.__version__)
 
 AUTO_COLNAME = ConfigAlias(
     '0.4', 'AUTO_COLNAME', 'auto_colname',
@@ -56,7 +55,7 @@ def col_setattr(col, attr, value):
     if attr not in COLUMN_ATTRS:
         raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
 
-    # The unit and dtype attributes are considered univeral and do NOT get
+    # The unit and dtype attributes are considered universal and do NOT get
     # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
     if isinstance(col, BaseColumn):
         setattr(col, attr, value)
@@ -77,7 +76,7 @@ def col_getattr(col, attr, default=None):
     if attr not in COLUMN_ATTRS:
         raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
 
-    # The unit and dtype attributes are considered univeral and do NOT get
+    # The unit and dtype attributes are considered universal and do NOT get
     # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
     if (isinstance(col, BaseColumn) or
             (isinstance(col, Quantity) and attr in ('dtype', 'unit'))):
@@ -992,8 +991,9 @@ class MaskedColumn(Column, ma.MaskedArray):
         3).  Here we change the string to a byte string so that in Python 3 the
         isinstance(val, basestring) part fails.
         """
-        if (NUMPY_VERSION < version.LooseVersion('1.8.0') and
-                isinstance(val, six.string_types) and (self.dtype.char not in 'SV')):
+
+        if (NUMPY_LT_1_8 and isinstance(val, six.string_types) and
+                (self.dtype.char not in 'SV')):
             val = val.encode()
         return val
 

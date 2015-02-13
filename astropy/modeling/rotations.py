@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """
-Implements roations, including spherical rotations as defined in WCS Paper II
+Implements rotations, including spherical rotations as defined in WCS Paper II
 [1]_
 
 `RotateNative2Celestial` and `RotateCelestial2Native` follow the convention in
@@ -24,7 +24,7 @@ import math
 import numpy as np
 
 from .core import Model
-from .parameters import Parameter, InputParameterError
+from .parameters import Parameter
 
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D']
@@ -40,9 +40,9 @@ class EulerAngleRotation(Model):
         Euler angles in deg
     """
 
-    phi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
-    theta = Parameter(getter=np.rad2deg, setter=np.deg2rad)
-    psi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
+    phi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    theta = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    psi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
 
     @staticmethod
     def _rotate_zxz(phi_i, theta_i, phi, theta, psi):

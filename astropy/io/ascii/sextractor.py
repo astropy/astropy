@@ -16,15 +16,19 @@ from . import core
 
 class SExtractorHeader(core.BaseHeader):
     """Read the header from a file produced by SExtractor."""
-    comment = r'^\s*#\s*\S\D.*'  # Find lines that dont have "# digit"
+    comment = r'^\s*#\s*\S\D.*'  # Find lines that don't have "# digit"
 
     def get_cols(self, lines):
-        """Initialize the header Column objects from the table ``lines`` for a SExtractor
+        """
+        Initialize the header Column objects from the table ``lines`` for a SExtractor
         header.  The SExtractor header is specialized so that we just copy the entire BaseHeader
         get_cols routine and modify as needed.
 
-        :param lines: list of table lines
-        :returns: list of table Columns
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
 
         # This assumes that the columns are listed in order, one per line with a

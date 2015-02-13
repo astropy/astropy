@@ -46,16 +46,11 @@ the data contained in that object relate to the original table data
   t[2:5]       # Table object with rows 2:5
   t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
+  t[[]]        # Same table definition but with no rows of data
   t['a', 'c']  # Table with cols 'a', 'c' (copy)
   dat = np.array(t)  # Copy table data to numpy structured array object
   t['a'].quantity  # an astropy.units.Quantity for Column 'a'
   t['a'].to('km')  # an astropy.units.Quantity for Column 'a' in units of kilometers
-
-.. Note::
-   Although they appear nearly equivalent, there is a factor of two performance
-   difference between ``t[1]['a']`` (slower, because an intermediate |Row|
-   object gets created) versus ``t['a'][1]`` (faster).  Always use the latter
-   when possible.
 
 .. Note::
    Although they appear nearly equivalent, there is a factor of two performance
@@ -146,7 +141,7 @@ column with a numerical index::
 
 When a table column is printed, it is formatted according to the ``format``
 attribute (see :ref:`table_format_string`).  Note the difference between the
-column reprentation above and how it appears via ``print()`` or ``str()``::
+column representation above and how it appears via ``print()`` or ``str()``::
 
   >>> print(t['a'])
      a

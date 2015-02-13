@@ -494,17 +494,62 @@ class SkyCoord(object):
                             sph_coord.lat.to_string(**latargs))
         else:
             coord_string = []
-            for lonangle, latangle in zip(sph_coord.lon, sph_coord.lat):
+            for lonangle, latangle in zip(sph_coord.lon.ravel(), sph_coord.lat.ravel()):
                 coord_string += [(lonangle.to_string(**lonargs)
                                  + " " +
                                  latangle.to_string(**latargs))]
+            if len(sph_coord.shape) > 1:
+                coord_string = np.array(coord_string).reshape(sph_coord.shape)
 
         return coord_string
 
-    # High-level convinience methods
+    def is_equivalent_frame(self, other):
+        """
+        Checks if this object's frame as the same as that of the ``other``
+        object.
+
+        To be the same frame, two objects must be the same frame class and have
+        the same frame attributes. For two `SkyCoord` objects, *all* of the
+        frame attributes have to match, not just those relevant for the object's
+        frame.
+
+        Parameters
+        ----------
+        other : SkyCoord or BaseCoordinateFrame
+            The other object to check.
+
+        Returns
+        -------
+        isequiv : bool
+            True if the frames are the same, False if not.
+
+        Raises
+        ------
+        TypeError
+            If ``other`` isn't a `SkyCoord` or a `BaseCoordinateFrame` or subclass.
+        """
+        if isinstance(other, BaseCoordinateFrame):
+            return self.frame.is_equivalent_frame(other)
+        elif isinstance(other, SkyCoord):
+            if other.frame.name != self.frame.name:
+                return False
+
+            for fattrnm in FRAME_ATTR_NAMES_SET():
+                if getattr(self, fattrnm) != getattr(other, fattrnm):
+                    return False
+            return True
+        else:
+            #not a BaseCoordinateFrame nor a SkyCoord object
+            raise TypeError("Tried to do is_equivalent_frame on something that "
+                            "isn't frame-like")
+
+    # High-level convenience methods
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -550,6 +595,9 @@ class SkyCoord(object):
         Computes three dimensional separation between this coordinate
         and another.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
@@ -594,6 +642,9 @@ class SkyCoord(object):
         Finds the nearest on-sky matches of this coordinate in a set of
         catalog coordinates.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         catalogcoord : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
@@ -631,6 +682,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.match_coordinates_sky
+        SkyCoord.match_to_catalog_3d
         """
         from .matching import match_coordinates_sky
 
@@ -654,6 +706,9 @@ class SkyCoord(object):
         This finds the 3-dimensional closest neighbor, which is only different
         from the on-sky distance if ``distance`` is set in this object or the
         ``catalogcoord`` object.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -692,6 +747,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.match_coordinates_3d
+        SkyCoord.match_to_catalog_sky
         """
         from .matching import match_coordinates_3d
 
@@ -713,22 +769,32 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given on-sky separation.
 
+        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        with coordinate arrays, rather than a scalar coordinate.  For a scalar
+        coordinate, it is better to use
+        `~astropy.coordinates.SkyCoord.separation`.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate(s) to search around to try to find matching points in
-            this `SkyCoord`.
+            The coordinates to search around to try to find matching points in
+            this `SkyCoord`. This should be an object with array coordinates,
+            not a scalar coordinate object.
         seplimit : `~astropy.units.Quantity` with angle units
             The on-sky separation to search within.
 
         Returns
         -------
         idxsearcharound : integer array
-            Indices into ``coords1`` that matches to the corresponding element of
+            Indices into ``self`` that matches to the corresponding element of
             ``idxself``. Shape matches ``idxself``.
         idxself : integer array
-            Indices into ``coords2`` that matches to the corresponding element of
-            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+            Indices into ``searcharoundcoords`` that matches to the
+            corresponding element of ``idxsearcharound``. Shape matches
+            ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
@@ -738,7 +804,7 @@ class SkyCoord(object):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -749,6 +815,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.search_around_sky
+        SkyCoord.search_around_3d
         """
         from .matching import search_around_sky
 
@@ -760,22 +827,32 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given 3D radius.
 
+        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        with coordinate arrays, rather than a scalar coordinate.  For a scalar
+        coordinate, it is better to use
+        `~astropy.coordinates.SkyCoord.separation_3d`.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate(s) to search around to try to find matching points in
-            this `SkyCoord`.
+            The coordinates to search around to try to find matching points in
+            this `SkyCoord`. This should be an object with array coordinates,
+            not a scalar coordinate object.
         distlimit : `~astropy.units.Quantity` with distance units
             The physical radius to search within.
 
         Returns
         -------
         idxsearcharound : integer array
-            Indices into ``coords1`` that matches to the corresponding element of
+            Indices into ``self`` that matches to the corresponding element of
             ``idxself``. Shape matches ``idxself``.
         idxself : integer array
-            Indices into ``coords2`` that matches to the corresponding element of
-            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+            Indices into ``searcharoundcoords`` that matches to the
+            corresponding element of ``idxsearcharound``. Shape matches
+            ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
@@ -785,7 +862,7 @@ class SkyCoord(object):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -796,6 +873,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.search_around_3d
+        SkyCoord.search_around_sky
         """
         from .matching import search_around_3d
 
@@ -1237,18 +1315,15 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # SkyCoords from the list elements and then combine them.
             scs = [SkyCoord(coord, **init_kwargs) for coord in coords]
 
-            # now check that they're all self-consistent in their frame attributes
-            # and frame name
-            frames_to_check = [sc.frame.name for sc in scs]
-            if len(set(frames_to_check)) > 1:
-                raise ValueError("List of inputs have different frames: {0}".format(frames_to_check))
-            for fattrnm in FRAME_ATTR_NAMES_SET():
-                vals = [getattr(sc, fattrnm) for sc in scs]
-                for val in vals[1:]:
-                    if val != vals[0]:
-                        raise ValueError("List of inputs don't give consistent "
-                                         "frame attribute {0}: {1}".format(fattrnm, vals))
+            # now check that they're all self-consistent in their frames
+            for sc in scs[1:]:
+                if not sc.is_equivalent_frame(scs[0]):
+                        raise ValueError("List of inputs don't have equivalent "
+                                         "frames: {0} != {1}".format(sc, scs[0]))
 
+            # get the frame attributes from the first one, because from above we
+            # know it matches all the others
+            for fattrnm in FRAME_ATTR_NAMES_SET():
                 valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
 
             # Now combine the values, to be used below

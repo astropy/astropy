@@ -893,10 +893,12 @@ def test_unit_spherical_roundtrip():
 
 def test_representation_repr():
     r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
-    assert repr(r1) == '<SphericalRepresentation lon=1.0 deg, lat=2.5 deg, distance=1.0 kpc>'
+    assert repr(r1) == ('<SphericalRepresentation (lon, lat, distance) in (deg, deg, kpc)\n'
+                        '    (1.0, 2.5, 1.0)>')
 
     r2 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
-    assert repr(r2) == '<CartesianRepresentation x=1.0 kpc, y=2.0 kpc, z=3.0 kpc>'
+    assert repr(r2) == ('<CartesianRepresentation (x, y, z) in kpc\n'
+                        '    (1.0, 2.0, 3.0)>')
 
     r3 = CartesianRepresentation(x=[1, 2, 3] * u.kpc, y=4 * u.kpc, z=[9, 10, 11] * u.kpc)
     assert repr(r3) == ('<CartesianRepresentation (x, y, z) in kpc\n'
@@ -905,7 +907,7 @@ def test_representation_repr():
 
 def test_representation_str():
     r1 = SphericalRepresentation(lon=1 * u.deg, lat=2.5 * u.deg, distance=1 * u.kpc)
-    assert str(r1) == '(1.0 deg, 2.5 deg, 1.0 kpc)'
+    assert str(r1) == '(1.0, 2.5, 1.0) (deg, deg, kpc)'
 
     r2 = CartesianRepresentation(x=1 * u.kpc, y=2 * u.kpc, z=3 * u.kpc)
     assert str(r2) == '(1.0, 2.0, 3.0) kpc'

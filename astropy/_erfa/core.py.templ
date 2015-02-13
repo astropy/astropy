@@ -34,15 +34,15 @@ github repository for more about this.)
 from __future__ import absolute_import, division, print_function
 
 import warnings
-from distutils.version import LooseVersion
 
+from ..utils.compat import NUMPY_LT_1_8
 from ..utils.exceptions import AstropyUserWarning
 
 import numpy
 from . import _core
 
-NPYLT18 = LooseVersion(numpy.__version__) < LooseVersion('1.8')
-# TODO: remove the above variable and the code using it and make_outputs_scalar when numpy < 1.8 is no longer supported
+# TODO: remove the above variable and the code using it and make_outputs_scalar
+# when numpy < 1.8 is no longer supported
 
 __all__ = ['ErfaError', 'ErfaWarning',
            {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }},
@@ -192,7 +192,7 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
 
     {%- if func.args_by_inout('in|inout') %}
     make_outputs_scalar = False
-    if NPYLT18:
+    if NUMPY_LT_1_8:
         # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
         # so we replace all scalars with 1d arrays
         make_outputs_scalar = True
