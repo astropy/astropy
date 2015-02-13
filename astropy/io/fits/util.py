@@ -649,7 +649,10 @@ def _array_to_file(arr, outfile):
     """
 
 
-    if isfile(outfile):
+    if isinstance(outfile, io.TextIOWrapper):
+        outfile = outfile.buffer
+        write = _array_to_file_like
+    elif isfile(outfile):
         write = lambda a, f: a.tofile(f)
     else:
         write = _array_to_file_like
