@@ -2086,6 +2086,42 @@ class Table(object):
 
         return groups.table_group_by(self, keys)
 
+    def to_pandas(self):
+        """
+        Return a :class:`pandas.DataFrame` instance
+
+        Returns
+        -------
+        dataframe : :class:`pandas.DataFrame`
+            A pandas :class:`pandas.DataFrame` instance
+        """
+        from pandas import DataFrame
+        print(self.has_mixin_columns)
+        if self.has_mixin_columns:
+            raise ValueError("Cannot convert a table with mixin columns to a pandas DataFrame")
+        for column in self.columns:
+            print(self.dtype[column].shape)
+            if len(self.dtype[column].shape) > 0:
+                raise ValueError("Cannot convert a table with multi-dimensional columns to a pandas DataFrame")
+        return DataFrame(self.as_array())
+
+    @classmethod
+    def from_pandas(cls, dataframe):
+        """
+        Create a `Table` from a :class:`pandas.DataFrame` instance
+
+        Parameters
+        ----------
+        dataframe : :class:`pandas.DataFrame`
+            The pandas :class:`pandas.DataFrame` instance
+
+        Returns
+        -------
+        table : `Table`
+            A `Table` instance
+        """
+        return cls(dataframe.to_records())
+
 
 class QTable(Table):
     """A class to represent tables of heterogeneous data.
