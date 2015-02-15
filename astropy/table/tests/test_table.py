@@ -1443,6 +1443,7 @@ class TestPandas(object):
                 assert np.all(t[column] == t2[column])
             else:
                 assert_allclose(t[column], t2[column])
+                assert t[column].dtype == t2[column].dtype
 
     @pytest.mark.skipif('not HAS_PANDAS')
     def test_2d(self):
@@ -1469,3 +1470,27 @@ class TestPandas(object):
         with pytest.raises(ValueError) as exc:
             d = t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with mixin columns to a pandas DataFrame"
+
+    @pytest.mark.skipif('not HAS_PANDAS')
+    def test_masking(self):
+
+        from pandas import DataFrame
+
+        t = table.Table(masked=True)
+
+        t['a'] = [1, 2, 3]
+        t['a'].mask = [True, False, True]
+
+        t['b'] = [1., 2., 3.]
+        t['b'].mask = [False, False, True]
+
+        t['u'] = ['a','b','c']
+        t['u'].mask = [False, True, False]
+
+        d = t.to_pandas()
+
+        t2 = table.Table.from_pandas(d)
+
+        for name, column in t.columns.items():
+            assert np.all(column.data == t2[name].data)
+            assert np.all(column.mask == t2[name].mask)

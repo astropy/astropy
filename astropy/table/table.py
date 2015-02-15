@@ -2096,14 +2096,30 @@ class Table(object):
             A pandas :class:`pandas.DataFrame` instance
         """
         from pandas import DataFrame
-        print(self.has_mixin_columns)
+
         if self.has_mixin_columns:
             raise ValueError("Cannot convert a table with mixin columns to a pandas DataFrame")
+
         for column in self.columns:
-            print(self.dtype[column].shape)
             if len(self.dtype[column].shape) > 0:
                 raise ValueError("Cannot convert a table with multi-dimensional columns to a pandas DataFrame")
-        return DataFrame(self.as_array())
+
+        if self.masked:
+            # We have to add the columns manually so as to treat the mask
+            # correctly
+            d = DataFrame()
+            for name, column in self.columns.items():
+                if isinstance(column, MaskedColumn):
+                    if column.dtype.kind in ['i']:
+                        d[name] = column.astype(float).filled(np.nan)
+                    elif column.dtype.kind in ['f', 'c']:
+                        d[name] = column.filled(np.nan)
+                    else:
+                        d[name] = column.astype(np.object).filled(np.nan)
+        else:
+            d = DataFrame(self.as_array())
+
+        return d
 
     @classmethod
     def from_pandas(cls, dataframe):
@@ -2120,7 +2136,19 @@ class Table(object):
         table : `Table`
             A `Table` instance
         """
-        return cls(dataframe.to_records())
+
+        self = cls()
+
+        for name in dataframe.columns:
+            column = dataframe[name]
+            data = np.array(column)
+            mask = np.array(column.isnull())
+            if np.any(mask):
+                self[name] = MaskedColumn(data=data, name=name, mask=mask)
+            else:
+                self[name] = Column(data=data, name=name)
+
+        return self
 
 
 class QTable(Table):
