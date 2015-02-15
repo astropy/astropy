@@ -214,11 +214,13 @@ def read(table, guess=None, **kwargs):
             except:
                 pass
 
-        # Get the table from guess in ``dat`` along with an update to the
-        # ``guess`` value. If ``guess`` comes back as False then there is just
-        # one set of kwargs in the guess list so fall through below to the
-        # non-guess way so that any problems result in a more useful traceback.
-        dat, guess = _guess(table, new_kwargs, format, fast_reader_param)
+        # Get the table from guess in ``dat``.  If ``dat`` comes back as None
+        # then there was just one set of kwargs in the guess list so fall
+        # through below to the non-guess way so that any problems result in a
+        # more useful traceback.
+        dat = _guess(table, new_kwargs, format, fast_reader_param)
+        if dat is None:
+            guess = False
 
     if not guess:
         reader = get_reader(**new_kwargs)
@@ -302,11 +304,12 @@ def _guess(table, read_kwargs, format, fast_reader):
         if guess_kwargs not in filtered_guess_kwargs:
             filtered_guess_kwargs.append(guess_kwargs)
 
-    # If there are not at least two formats to guess then return no table and
-    # indicate that guessing did not occur.  In that case the non-guess read()
-    # will occur and any problems will result in a more useful traceback.
+    # If there are not at least two formats to guess then return no table
+    # (None) to indicate that guessing did not occur.  In that case the
+    # non-guess read() will occur and any problems will result in a more useful
+    # traceback.
     if len(filtered_guess_kwargs) <= 1:
-        return None, False  # dat, guess
+        return None
 
     # Now cycle through each possible reader and associated keyword arguments.
     # Try to read the table using those args, and if an exception occurs then
@@ -319,7 +322,7 @@ def _guess(table, read_kwargs, format, fast_reader):
 
             reader = get_reader(**guess_kwargs)
             reader.guessing = True
-            return reader.read(table), True
+            return reader.read(table)
 
         except (core.InconsistentTableError, ValueError, TypeError, AttributeError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
@@ -328,7 +331,8 @@ def _guess(table, read_kwargs, format, fast_reader):
         # Failed all guesses, try the original read_kwargs without column requirements
         try:
             reader = get_reader(**read_kwargs)
-            return reader.read(table), True
+            return reader.read(table)
+
         except (core.InconsistentTableError, ValueError, ImportError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(read_kwargs)
