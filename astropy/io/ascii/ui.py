@@ -98,6 +98,10 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     fill_exclude_names : list
         List of names to exclude from fill_values (applied after ``fill_include_names``)
 
+    Returns
+    -------
+    reader : `~astropy.io.ascii.BaseReader` subclass
+        ASCII format reader instance
     """
     # This function is a light wrapper around core._get_reader to provide a public interface
     # with a default Reader.
@@ -174,6 +178,11 @@ def read(table, guess=None, **kwargs):
         (default= ``True``)
     Reader : `~astropy.io.ascii.BaseReader`
         Reader class (DEPRECATED) (default= :class:`Basic`).
+
+    Returns
+    -------
+    dat : `~astropy.table.Table`
+        Output table
     """
 
     if 'fill_values' not in kwargs:
@@ -247,7 +256,8 @@ def _guess(table, read_kwargs, format, fast_reader):
     """
     Try to read the table using various sets of keyword args.  Start with the
     standard guess list and filter to make it unique and consistent with
-    user-suppled read keyword args.
+    user-suppled read keyword args.  Finally, if none of those work then
+    try the original user-supplied keyword args.
 
     Parameters
     ----------
@@ -261,6 +271,11 @@ def _guess(table, read_kwargs, format, fast_reader):
     fast_reader : bool
         Whether to use the C engine, can also be a dict with options which
         default to ``False`` (default= ``True``)
+
+    Returns
+    -------
+    dat : `~astropy.table.Table` or None
+        Output table or None if only one guess format was available
     """
 
     # Keep a trace of all failed guesses kwarg
@@ -377,6 +392,11 @@ def _get_guess_kwargs_list(read_kwargs):
     ----------
     read_kwargs : dict
        User-supplied read keyword args
+
+    Returns
+    -------
+    guess_kwargs_list : list
+        List of read format keyword arg dicts
     """
     guess_kwargs_list = []
 
@@ -454,6 +474,10 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     fast_writer : bool
         Whether to use the fast Cython writer (default= ``True``)
 
+    Returns
+    -------
+    writer : `~astropy.io.ascii.BaseReader` subclass
+        ASCII format writer instance
     """
     if Writer is None:
         Writer = basic.Basic
