@@ -98,6 +98,10 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     fill_exclude_names : list
         List of names to exclude from fill_values (applied after ``fill_include_names``)
 
+    Returns
+    -------
+    reader : `~astropy.io.ascii.BaseReader` subclass
+        ASCII format reader instance
     """
     # This function is a light wrapper around core._get_reader to provide a public interface
     # with a default Reader.
@@ -174,6 +178,11 @@ def read(table, guess=None, **kwargs):
         (default= ``True``)
     Reader : `~astropy.io.ascii.BaseReader`
         Reader class (DEPRECATED) (default= :class:`Basic`).
+
+    Returns
+    -------
+    dat : `~astropy.table.Table`
+        Output table
     """
 
     if 'fill_values' not in kwargs:
@@ -199,9 +208,30 @@ def read(table, guess=None, **kwargs):
 
     if guess is None:
         guess = _GUESS
+
     if guess:
+        # If `table` is a filename or readable file object then read in the
+        # file now.  This prevents problems in Python 3 with the file object
+        # getting closed or left at the file end.  See #3132, #3013, #3109,
+        # #2001.  If a `readme` arg was passed that implies CDS format, in
+        # which case the original `table` as the data filename must be left
+        # intact.
+        if 'readme' not in new_kwargs:
+            try:
+                with get_readable_fileobj(table) as fileobj:
+                    table = fileobj.read()
+            except:
+                pass
+
+        # Get the table from guess in ``dat``.  If ``dat`` comes back as None
+        # then there was just one set of kwargs in the guess list so fall
+        # through below to the non-guess way so that any problems result in a
+        # more useful traceback.
         dat = _guess(table, new_kwargs, format, fast_reader_param)
-    else:
+        if dat is None:
+            guess = False
+
+    if not guess:
         reader = get_reader(**new_kwargs)
         # Try the fast reader first if applicable
         if fast_reader_param and format is not None and 'fast_{0}'.format(format) \
@@ -223,38 +253,51 @@ def read(table, guess=None, **kwargs):
 
 
 def _guess(table, read_kwargs, format, fast_reader):
-    """Try to read the table using various sets of keyword args. First try the
-    original args supplied in the read() call. Then try the standard guess
-    keyword args. For each key/val pair specified explicitly in the read()
-    call make sure that if there is a corresponding definition in the guess
-    then it must have the same val.  If not then skip this guess."""
+    """
+    Try to read the table using various sets of keyword args.  Start with the
+    standard guess list and filter to make it unique and consistent with
+    user-suppled read keyword args.  Finally, if none of those work then
+    try the original user-supplied keyword args.
 
-    # If `table` is a readable file object then read in the file now.  This
-    # prevents problems in Python 3 with the file object getting closed or
-    # left at the file end.  See #3132, #3013, #3109, #2001.  If a `readme`
-    # arg was passed that implies CDS format, in which case the original
-    # `table` as the data filename must be left intact.
-    if 'readme' not in read_kwargs:
-        try:
-            with get_readable_fileobj(table) as fileobj:
-                table = fileobj.read()
-        except:
-            pass
+    Parameters
+    ----------
+    table : str, file-like, list
+        Input table as a file name, file-like object, list of strings, or
+        single newline-separated string.
+    read_kwargs : dict
+        Keyword arguments from user to be supplied to reader
+    format : str
+        Table format
+    fast_reader : bool
+        Whether to use the C engine, can also be a dict with options which
+        default to ``False`` (default= ``True``)
+
+    Returns
+    -------
+    dat : `~astropy.table.Table` or None
+        Output table or None if only one guess format was available
+    """
 
     # Keep a trace of all failed guesses kwarg
     failed_kwargs = []
+
+    # Get an ordered list of read() keyword arg dicts that will be cycled
+    # through in order to guess the format.
     full_list_guess = _get_guess_kwargs_list(read_kwargs)
 
+    # If a fast version of the reader is available, try that before the slow version
     if fast_reader and format is not None and 'fast_{0}'.format(format) in \
                                                          core.FAST_CLASSES:
-        # If a fast version of the reader is available, try that before the slow version
         fast_kwargs = read_kwargs.copy()
         fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
         full_list_guess = [fast_kwargs] + full_list_guess
     else:
         fast_kwargs = None
 
-    # First try guessing
+    # Filter the full guess list so that each entry is consistent with user kwarg inputs.
+    # This also removes any duplicates from the list.
+    filtered_guess_kwargs = []
+
     for guess_kwargs in full_list_guess:
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
         for key, val in read_kwargs.items():
@@ -271,6 +314,22 @@ def _guess(table, read_kwargs, format, fast_reader):
             # user supplies delimiter="|" but the guess wants to try delimiter=" ",
             # so skip the guess entirely.
             continue
+
+        # Add the guess_kwargs to filtered list only if it is not already there.
+        if guess_kwargs not in filtered_guess_kwargs:
+            filtered_guess_kwargs.append(guess_kwargs)
+
+    # If there are not at least two formats to guess then return no table
+    # (None) to indicate that guessing did not occur.  In that case the
+    # non-guess read() will occur and any problems will result in a more useful
+    # traceback.
+    if len(filtered_guess_kwargs) <= 1:
+        return None
+
+    # Now cycle through each possible reader and associated keyword arguments.
+    # Try to read the table using those args, and if an exception occurs then
+    # keep track of the failed guess and move on.
+    for guess_kwargs in filtered_guess_kwargs:
         try:
             # If guessing will try all Readers then use strict req'ts on column names
             if 'Reader' not in read_kwargs:
@@ -284,10 +343,11 @@ def _guess(table, read_kwargs, format, fast_reader):
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(guess_kwargs)
     else:
-        # failed all guesses, try the original read_kwargs without column requirements
+        # Failed all guesses, try the original read_kwargs without column requirements
         try:
             reader = get_reader(**read_kwargs)
             return reader.read(table)
+
         except (core.InconsistentTableError, ValueError, ImportError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(read_kwargs)
@@ -313,6 +373,31 @@ def _guess(table, read_kwargs, format, fast_reader):
             raise core.InconsistentTableError('\n'.join(lines))
 
 def _get_guess_kwargs_list(read_kwargs):
+    """
+    Get the full list of reader keyword argument dicts that are the basis
+    for the format guessing process.  The returned full list will then be:
+
+    - Filtered to be consistent with user-supplied kwargs
+    - Cleaned to have only unique entries
+    - Used one by one to try reading the input table
+
+    Note that the order of the guess list has been tuned over years of usage.
+    Maintainers need to be very careful about any adjustments as the
+    reasoning may not be immediately evident in all cases.
+
+    This list can (and usually does) include duplicates.  This is a result
+    of the order tuning, but these duplicates get removed later.
+
+    Parameters
+    ----------
+    read_kwargs : dict
+       User-supplied read keyword args
+
+    Returns
+    -------
+    guess_kwargs_list : list
+        List of read format keyword arg dicts
+    """
     guess_kwargs_list = []
 
     # Start with ECSV because an ECSV file will be read by Basic.  This format
@@ -346,12 +431,15 @@ def _get_guess_kwargs_list(read_kwargs):
                               dict(Reader=html.HTML)
                               ])
 
+    # Cycle through the basic-style readers using all combinations of delimiter
+    # and quotechar.
     for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastNoHeader, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
             for quotechar in ('"', "'"):
                 guess_kwargs_list.append(dict(
                     Reader=Reader, delimiter=delimiter, quotechar=quotechar))
+
     return guess_kwargs_list
 
 extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
@@ -386,6 +474,10 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     fast_writer : bool
         Whether to use the fast Cython writer (default= ``True``)
 
+    Returns
+    -------
+    writer : `~astropy.io.ascii.BaseReader` subclass
+        ASCII format writer instance
     """
     if Writer is None:
         Writer = basic.Basic

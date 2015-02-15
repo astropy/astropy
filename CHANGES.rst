@@ -1,7 +1,14 @@
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.io.ascii``
+
+  - Automatically use ``guess=False`` when reading if the file ``format`` is
+    provided and the format parameters are uniquely specified.  This update
+    also removes duplicate format guesses to improve performance. [#3418]
 
 
 1.0rc1 (2015-01-27)
