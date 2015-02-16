@@ -370,7 +370,7 @@ class Angle(u.Quantity):
                 s = '${0}$'.format(s)
             return s
 
-        if NUMPY_LT_1_7 and not np.isscalar(values):
+        if NUMPY_LT_1_7 and not np.isscalar(values):  # pragma: no cover
             format_ufunc = np.vectorize(do_format, otypes=[np.object])
             # In Numpy 1.6, unicode output is broken.  vectorize always seems to
             # yieled U2 even if you tell it something else.  So we convert in
