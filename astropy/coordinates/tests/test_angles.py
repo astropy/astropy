@@ -295,7 +295,6 @@ def test_angle_formatting():
     res = 'Angle as rad decimal: 0.0629763'
     assert "Angle as rad decimal: {0}".format(angle.to_string(unit=u.radian, decimal=True)) == res
 
-
     # check negative angles
 
     angle = Angle(-1.23456789, unit=u.degree)
@@ -306,6 +305,14 @@ def test_angle_formatting():
     assert angle.to_string(unit=u.hour) == '-0h04m56.2963s'
     assert angle2.to_string(unit=u.hour, pad=True) == '-01h14m04.4444s'
     assert angle.to_string(unit=u.radian, decimal=True) == '-0.0215473'
+
+
+def test_to_string_vector():
+    # Regression test for the fact that vectorize doesn't work with Numpy 1.6
+    assert Angle([1./7., 1./7.], unit='deg').to_string()[0] == "0d08m34.2857s"
+    assert Angle([1./7.], unit='deg').to_string()[0] == "0d08m34.2857s"
+    assert Angle(1./7., unit='deg').to_string() == "0d08m34.2857s"
+
 
 def test_angle_format_roundtripping():
     """
