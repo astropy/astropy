@@ -61,4 +61,4 @@ def test_identity():
                                   [-1.73205081, -1.73205081, -1.73205081]]),
                         np.array([[ 1.,  1.,  1.],
                                   [ 1.,  1.,  1.]])))
-    assert_allclose(model.inverse(res_x, res_y), (x, y))
+    assert_allclose(model.inverse(res_x, res_y), (x, y), atol=1.e-10)
