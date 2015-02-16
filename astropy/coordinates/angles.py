@@ -20,7 +20,6 @@ from ..utils import isiterable
 from ..utils.compat import NUMPY_LT_1_7
 
 
-
 __all__ = ['Angle', 'Latitude', 'Longitude']
 
 
@@ -373,14 +372,14 @@ class Angle(u.Quantity):
 
         if NUMPY_LT_1_7 and not np.isscalar(values):
             format_ufunc = np.vectorize(do_format, otypes=[np.object])
-            #In Numpy 1.6, unicode output is broken.  vectorize always seems to
+            # In Numpy 1.6, unicode output is broken.  vectorize always seems to
             # yieled U2 even if you tell it something else.  So we convert in
             # a second step with 60 chars, on the theory that you'll never want
             # better than what double-precision decimals give, which end up
             # around that many characters.
             result = format_ufunc(values).astype('U60')
         else:
-            #for newer numpy's, this just works as you would expect
+            #for newer Numpy versions, this just works as you would expect
             format_ufunc = np.vectorize(do_format, otypes=['U'])
             result = format_ufunc(values)
 

@@ -308,9 +308,10 @@ def test_angle_formatting():
 
 
 def test_to_string_vector():
-    # Regression test for the fact that vectorize didn't work. This test works
-    # by comparing the result of ``to_string`` for a vector and a scalar angle.
-    assert Angle([1./7.], unit='deg').to_string() == Angle(1./7., unit='deg').to_string()
+    # Regression test for the fact that vectorize doesn't work with Numpy 1.6
+    assert Angle([1./7., 1./7.], unit='deg').to_string()[0] == "0d08m34.2857s"
+    assert Angle([1./7.], unit='deg').to_string()[0] == "0d08m34.2857s"
+    assert Angle(1./7., unit='deg').to_string() == "0d08m34.2857s"
 
 
 def test_angle_format_roundtripping():
