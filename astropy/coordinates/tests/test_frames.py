@@ -552,20 +552,29 @@ def test_eloc_attributes():
 
     el1 = AltAz(location=el).location
     assert isinstance(el1, EarthLocation)
+    # these should match *exactly* because the EarthLocation
     assert el1.latitude == el.latitude
     assert el1.longitude == el.longitude
     assert el1.height == el.height
 
     el2 = AltAz(location=it).location
     assert isinstance(el2, EarthLocation)
-    assert el2.latitude != it.spherical.lat
-    assert el2.longitude != it.spherical.lon
+    # these should *not* match because giving something in Spherical ITRS is
+    # *not* the same as giving it as an EarthLocation: EarthLocation is on an
+    # elliptical geoid. So the longitude should match (because flattening is
+    # only along the z-axis), but latitude should not. Also, height is relative
+    # to the *surface* in EarthLocation, but the ITRS distance is relative to
+    # the center of the Earth
+    assert not np.allclose(el2.latitude, it.spherical.lat)
+    assert np.allclose(el2.longitude, it.spherical.lon)
     assert el2.height < -6000*u.km
 
-    el3 = AltAz(location=gc).location  #this one implicitly does transform_to
+    el3 = AltAz(location=gc).location
+    # GCRS inputs implicitly get transformed to ITRS and then onto
+    # EarthLocation's elliptical geoid. So both lat and lon shouldn't match
     assert isinstance(el3, EarthLocation)
-    assert el3.latitude != gc.dec
-    assert el3.longitude != gc.ra
+    assert not np.allclose(el3.latitude, gc.dec)
+    assert not np.allclose(el3.longitude, gc.ra)
     assert np.abs(el3.height) < 500*u.km
 
 
