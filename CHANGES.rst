@@ -624,6 +624,23 @@ Other Changes and Additions
   be generated. [#3166]
 
 
+0.4.5 (2015-02-16)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- Fixed unnecessary attempt to run ``git`` when importing astropy.  In
+  particular, fixed a crash in Python 3 that could result from this when
+  importing Astropy when the the current working directory is an empty git
+  repository. [#3475]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Updated bundled copy of astropy-helpers to v0.4.6. [#3508]
+
+
 0.4.4 (2015-01-21)
 ------------------
 
