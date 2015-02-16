@@ -12,7 +12,7 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Updated bundled copy of astropy-helpers to v0.4.5. [#3484]
+- Updated bundled copy of astropy-helpers to v0.4.6. [#3508]
 
 
 0.4.4 (2015-01-21)
