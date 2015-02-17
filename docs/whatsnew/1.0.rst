@@ -17,7 +17,7 @@ data visualization has been added (see :ref:`whatsnew_viz`), and a new package
 for common analytic functions is now also included (see
 :ref:`whatsnew_analytical_functions`).
 
-The :mod:`astropy.io.ascii` sub-package now includes fast C-based
+The :ref:`io-ascii` sub-package now includes fast C-based
 readers/writers for common formats, and also supports a new ASCII format that
 better preserves meta-data (see :ref:`whatsnew_io_ascii`), the modeling package
 has been significantly improved and now supports composite models (see

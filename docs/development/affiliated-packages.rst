@@ -491,7 +491,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
         git add CHANGES.rst setup.py
 
-    and commit with message::
+   and commit with message::
 
         git commit -m "Back to development: <next_version>"
 
@@ -500,7 +500,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
         python setup.py register build sdist --format=gztar upload
 
-    or, if you are concerned about security, you can also use ``twine`` as described
+   or, if you are concerned about security, you can also use ``twine`` as described
     in `these <https://packaging.python.org/en/latest/tutorial.html#uploading-your-project-to-pypi>`_
     instructions. Either way, check that the entry on PyPI is correct, and that
     the tarfile is present.
@@ -510,9 +510,9 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
         git checkout master
         git push --tags origin master
 
-    Once you have done this, if you use readthedocs, trigger a ``latest`` build
-    then go to the project settings, and under **Versions** you should see the
-    tag you just pushed. Select the tag to activate it, and save.
+   Once you have done this, if you use readthedocs, trigger a ``latest`` build
+   then go to the project settings, and under **Versions** you should see the
+   tag you just pushed. Select the tag to activate it, and save.
 
 .. note:: The instructions above assume that you do not make use of bug fix
           branches in your workflow. If you do wish to create a bug fix branch,
