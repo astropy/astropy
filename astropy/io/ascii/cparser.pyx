@@ -391,7 +391,7 @@ cdef class CParser:
         cdef int N = self.parallel
         try:
             queue = multiprocessing.Queue()
-        except (ImportError, NotImplementedError, AttributeError):
+        except (ImportError, NotImplementedError, AttributeError, OSError):
             self.raise_error("shared semaphore implementation required "
                              "but not available")
         cdef int offset = self.tokenizer.source_pos
