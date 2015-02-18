@@ -159,6 +159,9 @@ class Ticks(Line2D):
 
         for axis in self.get_visible_axes():
 
+            if not axis in pixel_array:
+                continue
+
             for loc, angle in zip(pixel_array[axis], angle_array[axis]):
 
                 # Set the rotation for this tick
