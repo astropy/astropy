@@ -11,13 +11,13 @@ New Features
     also removes duplicate format guesses to improve performance. [#3418]
 
 
-1.0rc1 (2015-01-27)
--------------------
+1.0 (unreleased)
+----------------
 
 General
 ^^^^^^^
 
-astropy now requires a Numpy 1.6.0 or later.
+Astropy now requires a Numpy 1.6.0 or later.
 
 New Features
 ^^^^^^^^^^^^
@@ -62,15 +62,15 @@ New Features
     [#3285]
 
   - Frames and ``SkyCoord`` instances now have a method ``is_equivalent_frame``
-    that can be used to check that two frames are equivalent (ignoring the data).
-    [#3330]
+    that can be used to check that two frames are equivalent (ignoring the
+    data).  [#3330]
 
   - The ``__repr__`` of coordinate objects now shows scalar coordinates in the
     same format as vector coordinates. [#3350, 3448]
 
 - ``astropy.cosmology``
 
-  - Add lookback_distance, which is c * lookback_time. [#3145]
+  - Added ``lookback_distance``, which is ``c * lookback_time``. [#3145]
 
   - Add baryonic matter density and dark matter only density parameters
     to cosmology objects [#2757].
@@ -85,12 +85,6 @@ New Features
   - Cosmology functions that take a single (redshift) input now
     broadcast like numpy ufuncs.  So, passing an arbitrarily shaped
     array of inputs will produce an output of the same shape. [#3178, #3194]
-
-- ``astropy.erfa``
-
-  - ``astropy.erfa`` was added as a new subpackage wrapping the functionality
-    of the ERFA library in python.  This is primarily of use for other astropy
-    subpackages, but the API may be made more public in the future. [#2992]
 
 - ``astropy.io.ascii``
 
@@ -112,6 +106,7 @@ New Features
   - Write comment lines in Table metadata during output for all basic formats,
     IPAC, and fast writers. This functionality can be disabled with
     ``comment=False``. [#3255]
+
   - Add reader / writer for the Enhanced CSV format which stores table and
     column meta data, in particular data type and unit. [#2319]
 
@@ -128,10 +123,7 @@ New Features
 
   - ``Section`` now supports all advanced indexing features ``ndarray`` does
     (slices with any steps, integer arrays, boolean arrays, None, Ellipsis).
-    It also properly returns scalars when this is appropriate.
-  - The ``fitsdiff`` script ignore some things be default when comparing fits
-    files (e.g. empty header lines). This add as ``--exact`` option where
-    nothing is ignored. [#2782], finished in [#3110]
+    It also properly returns scalars when this is appropriate. [#3148]
 
 - ``astropy.io.votable``
 
@@ -140,6 +132,10 @@ New Features
     order to support non-compliant files. [#2675]
 
 - ``astropy.modeling``
+
+  - Added the capability of creating new "compound" models by combining
+    existing models using arithmetic operators.  See the "What's New in 1.0"
+    page in the Astropy documentation for more details. [#3231]
 
   - A new ``custom_model`` decorator/factory function has been added for
     converting normal functions to ``Model`` classes that can work within
@@ -293,6 +289,13 @@ New Features
   - Added ``is_proj_plane_distorted`` for testing if pixels are
     distorted. [#3329]
 
+- Misc
+
+  - ``astropy._erfa`` was added as a new subpackage wrapping the functionality
+    of the ERFA library in python.  This is primarily of use for other astropy
+    subpackages, but the API may be made more public in the future. [#2992]
+
+
 API Changes
 ^^^^^^^^^^^
 
@@ -315,6 +318,9 @@ API Changes
     class has now been deprecated, except in the case where a frame with data
     is passed as the sole positional argument. [#3152]
 
+  - Improved ``__repr__`` of coordinate objects representing a single
+    coordinate point for the sake of easier copy/pasting. [#3350]
+
 - ``astropy.cosmology``
 
   - The functional interface to the cosmological routines as well as
@@ -327,8 +333,8 @@ API Changes
     ``parser``, which allows the user to specify which parser
     BeautifulSoup should use as a backend. [#2815]
 
-  - Add ``FixedWidthTwoLine`` reader to guessing. This will allows to read tables
-    that a copied from screen output like ``print my_table`` to be read
+  - Add ``FixedWidthTwoLine`` reader to guessing. This will allows to read
+    tables that a copied from screen output like ``print my_table`` to be read
     automatically. Discussed in #3025 and #3099 [#3109]
 
 - ``astropy.io.fits``
@@ -378,8 +384,8 @@ API Changes
   - The ``Model.param_dim`` property (deprecated in v0.4) has now been removed.
     [#2990]
 
-  - The ``Beta1D`` and ``Beta2D`` models have been renamed to
-    ``Moffat1D`` and ``Moffat2D`` [#3029]
+  - The ``Beta1D`` and ``Beta2D`` models have been renamed to ``Moffat1D`` and
+    ``Moffat2D``. [#3029]
 
 - ``astropy.nddata``
 
@@ -471,11 +477,13 @@ Bug Fixes
 
 - ``astropy.convolution``
 
-  - ``astropy.convolution.discretize_model`` now handles arbitrary callables correctly [#2274].
+  - ``astropy.convolution.discretize_model`` now handles arbitrary callables
+    correctly [#2274].
 
 - ``astropy.coordinates``
 
-  - ``Angle.to_string`` now outputs unicode arrays instead of object arrays [#2981]
+  - ``Angle.to_string`` now outputs unicode arrays instead of object arrays.
+    [#2981]
 
   - ``SkyCoord.to_string`` no longer gives an error when used with an array
     coordinate with more than one dimension. [#3340]
@@ -498,10 +506,11 @@ Bug Fixes
     specify the output null values.  Previously the behavior was inconsistent
     or incorrect. [#3259]
 
-  - The IPAC table reader now correctly interprets abbreviated column types. [#3279]
+  - The IPAC table reader now correctly interprets abbreviated column types.
+    [#3279]
 
-  - Tables that look almost, but not quite like DAOPhot tables could cause guessing
-    to fail. [#3342]
+  - Tables that look almost, but not quite like DAOPhot tables could cause
+    guessing to fail. [#3342]
 
 - ``astropy.io.fits``
 
@@ -585,7 +594,7 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- The bundled copy of astropy-helpers has been updated to v1.0. [#3513]
+- The bundled copy of astropy-helpers has been updated to v1.0. [#3515]
 
 - Updated ``astropy.extern.configobj`` to Version 5. Version 5 uses ``six``
   and the same code covers both Python 2 and Python 3. [#3149]
@@ -693,7 +702,7 @@ Bug Fixes
     gets used if no corresponding value was explicitly specified. [#3106]
 
   - ``Angle`` accepts hours:mins or deg:mins initializers (without
-     seconds). In these cases float minutes are also accepted.
+     seconds). In these cases float minutes are also accepted. [#2843]
 
   - ``astropy.coordinates.SkyCoord`` objects are now copyable. [#2888]
 
