@@ -11,7 +11,7 @@ New Features
     also removes duplicate format guesses to improve performance. [#3418]
 
 
-1.0 (unreleased)
+1.0 (2015-02-18)
 ----------------
 
 General
