@@ -27,6 +27,11 @@ objects containing arrays (see :ref:`whatsnew_table`).
 
 In addition to these major changes, Astropy 1.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
+By the numbers:
+
+* 679 issues have been closed since v0.4
+* 417 pull requests have been merged since v0.4
+* 122 distinct people have contributed code
 
 About Long-term support
 -----------------------
