@@ -4,11 +4,72 @@
 Known Issues
 ============
 
+.. contents::
+   :local:
+   :depth: 1
+
 While most bugs and issues are managed using the `astropy issue
 tracker <https://github.com/astropy/astropy/issues>`_, this document
 lists issues that are too difficult to fix, may require some
 intervention from the user to workaround, or are due to bugs in other
 projects or packages.
+
+Anaconda users should upgrade with ``conda``, not ``pip``
+---------------------------------------------------------
+
+Upgrading Astropy in the anaconda python distribution using ``pip`` can result
+in a corrupted install with a mix of files from the old version and the new
+version. Anaconda users should update with ``conda update astropy``. There
+may be a brief delay between the release of Astropy on PyPI and its release
+via the ``conda`` package manager; users can check the availability of new
+versions with ``conda search astropy``.
+
+Locale errors in MacOS X and Linux
+----------------------------------
+
+On MacOS X, you may see the following error when running ``setup.py``::
+
+      ...
+    ValueError: unknown locale: UTF-8
+
+This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
+``UTF-8`` by default, which is not a valid locale setting.
+
+On MacOS X or Linux (or other platforms) you may also encounter the following
+error::
+
+      ...
+      stderr = stderr.decode(stdio_encoding)
+    TypeError: decode() argument 1 must be str, not None
+
+This also indicates that your locale is not set correctly.
+
+To fix either of these issues, set this environment variable, as well as the
+``LANG`` and ``LC_ALL`` environment variables to e.g. ``en_US.UTF-8`` using, in
+the case of ``bash``::
+
+    export LANG="en_US.UTF-8"
+    export LC_ALL="en_US.UTF-8"
+    export LC_CTYPE="en_US.UTF-8"
+
+To avoid any issues in future, you should add this line to your e.g.
+``~/.bash_profile`` or ``.bashrc`` file.
+
+To test these changes, open a new terminal and type ``locale``, and you should
+see something like::
+
+    $ locale
+    LANG="en_US.UTF-8"
+    LC_COLLATE="en_US.UTF-8"
+    LC_CTYPE="en_US.UTF-8"
+    LC_MESSAGES="en_US.UTF-8"
+    LC_MONETARY="en_US.UTF-8"
+    LC_NUMERIC="en_US.UTF-8"
+    LC_TIME="en_US.UTF-8"
+    LC_ALL="en_US.UTF-8"
+
+If so, you can go ahead and try running ``setup.py`` again (in the new
+terminal).
 
 .. _quantity_issues:
 
@@ -81,8 +142,6 @@ An easy solution is::
     >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
     array([False], dtype=bool)
 
-
-
 Some docstrings can not be displayed in IPython < 0.13.2
 --------------------------------------------------------
 
@@ -111,59 +170,6 @@ acceptable.
 
 The IPython issue: https://github.com/ipython/ipython/pull/2738
 
-Locale errors
--------------
-
-On MacOS X, you may see the following error when running ``setup.py``::
-
-      ...
-    ValueError: unknown locale: UTF-8
-
-You may also (on MacOS X or other platforms) see errors such as::
-
-      ...
-      stderr = stderr.decode(stdio_encoding)
-    TypeError: decode() argument 1 must be str, not None
-
-This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
-``UTF-8`` by default, which is not a valid locale setting. To fix this, set
-this environment variable, as well as the ``LANG`` and ``LC_ALL`` environment
-variables to e.g. ``en_US.UTF-8`` using, in the case of ``bash``::
-
-    export LANG="en_US.UTF-8"
-    export LC_ALL="en_US.UTF-8"
-    export LC_CTYPE="en_US.UTF-8"
-
-To avoid any issues in future, you should add this line to your e.g.
-``~/.bash_profile`` or ``.bashrc`` file.
-
-To test these changes, open a new terminal and type ``locale``, and you should
-see something like::
-
-    $ locale
-    LANG="en_US.UTF-8"
-    LC_COLLATE="en_US.UTF-8"
-    LC_CTYPE="en_US.UTF-8"
-    LC_MESSAGES="en_US.UTF-8"
-    LC_MONETARY="en_US.UTF-8"
-    LC_NUMERIC="en_US.UTF-8"
-    LC_TIME="en_US.UTF-8"
-    LC_ALL="en_US.UTF-8"
-
-If so, you can go ahead and try running ``setup.py`` again (in the new
-terminal).
-
-Floating point precision issues on Python 2.6 on Microsoft Windows
-------------------------------------------------------------------
-
-When converting floating point numbers to strings on Python 2.6 on a
-Microsoft Windows platform, some of the requested precision may be
-lost.
-
-The easiest workaround is to install Python 2.7.
-
-The Python issue: http://bugs.python.org/issue7117
-
 Failing logging tests when running the tests in IPython
 -------------------------------------------------------
 
@@ -184,21 +190,6 @@ result in a warning (and mmap will be disabled on the file automatically).
 
 See: https://github.com/astropy/astropy/issues/968
 
-Crash on upgrading from Astropy 0.2 to a newer version
-------------------------------------------------------
-
-It is possible for installation of a new version of Astropy, or upgrading of an
-existing installation to crash due to not having permissions on the
-``~/.astropy/`` directory (in your home directory) or some file or subdirectory
-in that directory.  In particular this can occur if you installed Astropy as
-the root user (such as with ``sudo``) at any point.  This can manifest in
-several ways, but the most common is a traceback ending with ``ImportError:
-cannot import name config``.  To resolve this issue either run ``sudo chown -R
-<your_username> ~/.astropy`` or, if you don't need anything in it you can blow
-it away with ``sudo rm -rf ~/.astropy``.
-
-See for example: https://github.com/astropy/astropy/issues/987
-
 Color printing on Windows
 -------------------------
 
@@ -216,32 +207,6 @@ other platforms other than Linux.  Since ``Table.sort`` relies on Numpy to
 internally sort the data, it is also affected by this bug.  If you are using
 Python 3, and need the sorting functionality for tables, we recommend updating
 to a more recent version of Numpy.
-
-Anaconda users should upgrade with ``conda``, not ``pip``
----------------------------------------------------------
-
-Upgrading Astropy in the anaconda python distribution using ``pip`` can result
-in a corrupted install with a mix of files from the old version and the new
-version. Anaconda users should update with ``conda update astropy``. There
-may be a brief delay between the release of Astropy on PyPI and its release
-via the ``conda`` package manager; users can check the availability of new
-versions with ``conda search astropy``.
-
-Installation fails on Mageia-2 or Mageia-3 distributions
---------------------------------------------------------
-
-Building may fail with warning messages such as::
-
-    unable to find 'pow' or 'sincos'
-
-at the linking phase. Upgrading the OS packages for Python should
-fix the issue, though an immediate workaround is to edit the file::
-
-    /usr/lib/python2.7/config/Makefile
-
-and search for the line that adds the option ``-Wl,--no-undefined`` to the
-``LDFLAGS`` variable and remove that option.
-
 
 Remote data utilities in `astropy.utils.data` fail on some Python distributions
 -------------------------------------------------------------------------------
@@ -261,6 +226,66 @@ such as::
     ImportError: No module named _bsddb
 
 One workaround is to install the ``bsddb3`` module.
+
+Error *'buffer' does not have the buffer interface* in ``io.fits``
+--------------------------------------------------------------------
+
+For Python 2.7.x versions prior to 2.7.4, the `astropy.io.fits` may under
+certain circumstances output the following error::
+
+    TypeError: 'buffer' does not have the buffer interface
+
+This can be resolved by upgrading to Python 2.7.4 or later (at the time of
+writing, the latest Python 2.7.x version is 2.7.9).
+
+Floating point precision issues on Python 2.6 on Microsoft Windows
+------------------------------------------------------------------
+
+When converting floating point numbers to strings on Python 2.6 on a
+Microsoft Windows platform, some of the requested precision may be
+lost.
+
+The easiest workaround is to install Python 2.7.
+
+The Python issue: http://bugs.python.org/issue7117
+
+Bug with unicode endianness in ``io.fits`` for big-endian processors
+--------------------------------------------------------------------
+
+On big-endian processors (e.g. SPARC, PowerPC, MIPS), string columnn in FITS
+files may not be correctly read when using the ``Table.read`` interface. This
+will be fixed in a subsequent bug fix release of Astropy (see `bug report here
+<https://github.com/astropy/astropy/issues/3415>`_)
+
+Installation fails on Mageia-2 or Mageia-3 distributions
+--------------------------------------------------------
+
+Building may fail with warning messages such as::
+
+    unable to find 'pow' or 'sincos'
+
+at the linking phase. Upgrading the OS packages for Python should
+fix the issue, though an immediate workaround is to edit the file::
+
+    /usr/lib/python2.7/config/Makefile
+
+and search for the line that adds the option ``-Wl,--no-undefined`` to the
+``LDFLAGS`` variable and remove that option.
+
+Crash on upgrading from Astropy 0.2 to a newer version
+------------------------------------------------------
+
+It is possible for installation of a new version of Astropy, or upgrading of an
+existing installation to crash due to not having permissions on the
+``~/.astropy/`` directory (in your home directory) or some file or subdirectory
+in that directory.  In particular this can occur if you installed Astropy as
+the root user (such as with ``sudo``) at any point.  This can manifest in
+several ways, but the most common is a traceback ending with ``ImportError:
+cannot import name config``.  To resolve this issue either run ``sudo chown -R
+<your_username> ~/.astropy`` or, if you don't need anything in it you can blow
+it away with ``sudo rm -rf ~/.astropy``.
+
+See for example: https://github.com/astropy/astropy/issues/987
 
 .. [#] Continuum `says
        <https://groups.google.com/a/continuum.io/forum/#!topic/anaconda/mCQL6fVx55A>`_
