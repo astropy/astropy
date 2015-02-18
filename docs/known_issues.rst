@@ -24,8 +24,8 @@ may be a brief delay between the release of Astropy on PyPI and its release
 via the ``conda`` package manager; users can check the availability of new
 versions with ``conda search astropy``.
 
-Locale errors
--------------
+Locale errors in MacOS X
+------------------------
 
 On MacOS X, you may see the following error when running ``setup.py``::
 
