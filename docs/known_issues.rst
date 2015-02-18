@@ -24,24 +24,29 @@ may be a brief delay between the release of Astropy on PyPI and its release
 via the ``conda`` package manager; users can check the availability of new
 versions with ``conda search astropy``.
 
-Locale errors in MacOS X
-------------------------
+Locale errors in MacOS X and Linux
+----------------------------------
 
 On MacOS X, you may see the following error when running ``setup.py``::
 
       ...
     ValueError: unknown locale: UTF-8
 
-You may also (on MacOS X or other platforms) see errors such as::
+This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
+``UTF-8`` by default, which is not a valid locale setting.
+
+On MacOS X or Linux (or other platforms) you may also encounter the following
+error::
 
       ...
       stderr = stderr.decode(stdio_encoding)
     TypeError: decode() argument 1 must be str, not None
 
-This is due to the ``LC_CTYPE`` environment variable being incorrectly set to
-``UTF-8`` by default, which is not a valid locale setting. To fix this, set
-this environment variable, as well as the ``LANG`` and ``LC_ALL`` environment
-variables to e.g. ``en_US.UTF-8`` using, in the case of ``bash``::
+This also indicates that your locale is not set correctly.
+
+To fix either of these issues, set this environment variable, as well as the
+``LANG`` and ``LC_ALL`` environment variables to e.g. ``en_US.UTF-8`` using, in
+the case of ``bash``::
 
     export LANG="en_US.UTF-8"
     export LC_ALL="en_US.UTF-8"
