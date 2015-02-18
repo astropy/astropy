@@ -586,6 +586,7 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - The bundled copy of astropy-helpers has been updated to v1.0. [#3515]
+- The bundled copy of astropy-helpers has been updated to v1.0. [#3513]
 
 - Updated ``astropy.extern.configobj`` to Version 5. Version 5 uses ``six``
   and the same code covers both Python 2 and Python 3. [#3149]
