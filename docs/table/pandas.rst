@@ -9,16 +9,16 @@ The `pandas <http://pandas.pydata.org/>`__ package is a package for high
 performance data analysis of table-like structures that is complementary to the
 :class:`~astropy.table.Table` class in Astropy.
 
-In order to be able to easily exchange data between the :class:`~astropy.table.Table` class and the pandas ``DataFrame`` class (the main data structure in pandas), the :class:`~astropy.table.Table` class includes two methods, :meth:`~astropy.table.Table.to_pandas` and :meth:`~astropy.table.Table.from_pandas`.
+In order to be able to easily exchange data between the :class:`~astropy.table.Table` class and the pandas `DataFrame`_ class (the main data structure in pandas), the :class:`~astropy.table.Table` class includes two methods, :meth:`~astropy.table.Table.to_pandas` and :meth:`~astropy.table.Table.from_pandas`.
 
-To demonstrate this, we can create a simple table::
+To demonstrate these, we can create a simple table::
 
     >>> from astropy.table import Table
     >>> t = Table()
     >>> t['a'] = [1, 2, 3, 4]
     >>> t['b'] = ['a', 'b', 'c', 'd']
     
-which we can then convert to a pandas ``DataFrame``::
+which we can then convert to a pandas `DataFrame`_::
 
     >>> df = t.to_pandas()
     >>> df
@@ -30,7 +30,7 @@ which we can then convert to a pandas ``DataFrame``::
     >>> type(df)
     <class 'pandas.core.frame.DataFrame'>
 
-It is also possible to create a table from a ``DataFrame``::
+It is also possible to create a table from a `DataFrame`_::
 
     >>> t2 = Table.from_pandas(df)
     >>> t2
@@ -45,18 +45,20 @@ It is also possible to create a table from a ``DataFrame``::
         
 The conversions to/from pandas are subject to the following caveats:
 
-* The pandas ``DataFrame`` structure does not support multi-dimensional
+* The pandas `DataFrame`_ structure does not support multi-dimensional
   columns, so :class:`~astropy.table.Table` objects with multi-dimensional
-  columns cannot be converted to ``DataFrame``.
+  columns cannot be converted to `DataFrame`_.
 
-* Masked tables can be converted, but ``DataFrame`` uses ``np.nan`` to
+* Masked tables can be converted, but `DataFrame`_ uses ``numpy.nan`` to
   indicated masked values, so all numerical columns (integer or float) are
-  converted to ``np.float`` columns in ``DataFrame``, and string columns with
-  missing values are converted to object columns with ``np.nan`` values to
+  converted to ``numpy.float`` columns in `DataFrame`_, and string columns with
+  missing values are converted to object columns with ``numpy.nan`` values to
   indicate missing values. For numerical columns, the conversion therefore does
   not round-trip if converting back to an Astropy table, because the
-  distinction between ``np.nan`` and masked values is lost, and the different
+  distinction between ``numpy.nan`` and masked values is lost, and the different
   numerical types for columns are also lost.
   
 * Tables with mixin columns can currently not be converted, but this may be
   implemented in future.
+
+.. _DataFrame: http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html
