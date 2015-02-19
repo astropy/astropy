@@ -481,7 +481,6 @@ def test_strip_names(fast_writer):
     assert out.getvalue().splitlines()[0] == 'A,B,C'
 
 
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 def test_latex_units():
     """
     Check to make sure that Latex and AASTex writers attempt to fall

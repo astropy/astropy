@@ -22,7 +22,6 @@ from ....tests.helper import pytest
 from ....extern import six
 
 TRAVIS = os.environ.get('TRAVIS', False)
-pytestmark = pytest.mark.skipif(os.environ.get('APPVEYOR'),  reason="fails on AppVeyor")
 
 def assert_table_equal(t1, t2, check_meta=False):
     assert_equal(len(t1), len(t2))
