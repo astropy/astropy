@@ -399,7 +399,7 @@ def test_equivalent_units2():
         units = set(u.Hz.find_equivalent_units(u.spectral()))
         match = set(
             [u.AU, u.Angstrom, imperial.BTU, u.Hz, u.J, u.Ry,
-             imperial.cal, u.cm, u.eV, u.erg, imperial.ft,
+             imperial.cal, u.cm, u.eV, u.erg, imperial.fur, imperial.ft,
              imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi,
              u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
              imperial.nmi, u.k])
