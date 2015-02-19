@@ -13,6 +13,10 @@
 
 #ifdef _MSC_VER
 #define inline __inline
+    #ifndef NAN
+        static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
+        #define NAN (*(const float *) __nan)
+    #endif
 #endif
 
 typedef enum
