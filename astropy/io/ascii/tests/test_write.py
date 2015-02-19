@@ -44,17 +44,17 @@ XCENTER YCENTER
          ),
     dict(kwargs=dict(Writer=ascii.Rdb, exclude_names=['CHI']),
          out="""\
-ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	PIER	PERROR
-N	N	N	N	N	N	N	N	N	S
-14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0	No_error
-18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	0	No_error
+ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tPIER\tPERROR
+N\tN\tN\tN\tN\tN\tN\tN\tN\tS
+14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0\tNo_error
+18\t18.114\t280.170\t22.329\t0.206\t30.12784\t4\t-2.544\t0\tNo_error
 """
          ),
     dict(kwargs=dict(Writer=ascii.Tab),
          out="""\
-ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	CHI	PIER	PERROR
-14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0.802	0	No_error
-18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	1.104	0	No_error
+ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tCHI\tPIER\tPERROR
+14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0.802\t0\tNo_error
+18\t18.114\t280.170\t22.329\t0.206\t30.12784\t4\t-2.544\t1.104\t0\tNo_error
 """
          ),
     dict(kwargs=dict(Writer=ascii.Csv),
