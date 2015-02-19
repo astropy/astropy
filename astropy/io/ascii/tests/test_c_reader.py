@@ -554,8 +554,18 @@ def test_fast_reader():
         ascii.read(text, format='fast_basic', guess=False, comment='##')
 
     # Enable multiprocessing and the fast converter
-    ascii.read(text, format='basic', guess=False, fast_reader={'parallel': True,
-                                                    'use_fast_converter': True})
+    try:
+        ascii.read(text, format='basic', guess=False,
+                   fast_reader={'parallel': True, 'use_fast_converter': True})
+    except NotImplementedError:
+        # Might get this on Windows, try without parallel...
+        if os.name == 'nt':
+            ascii.read(text, format='basic', guess=False,
+                       fast_reader={'parallel': False,
+                                    'use_fast_converter': True})
+        else:
+            raise
+
     # Should raise an error if fast_reader has an invalid key
     with pytest.raises(FastOptionsError):
         ascii.read(text, format='fast_basic', guess=False, fast_reader={'foo': True})
