@@ -601,10 +601,15 @@ double str_to_double(tokenizer_t *self, char *str)
     {
         val = strtod(str, &tmp);
 
-        if (tmp == str || *tmp != 0)
+        if (tmp == str || *tmp != 0) {
+		    if (0 == strncmp(str, "nan", 3)) {
+				return NAN;
+		    }
             self->code = CONVERSION_ERROR;
-        else if (errno == ERANGE)
+		}
+        else if (errno == ERANGE) {
             self->code = OVERFLOW_ERROR;
+		}
     }
 
     return val;
