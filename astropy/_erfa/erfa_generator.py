@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 This module's main purpose is to act as a script to create new versions
-of erfa.pyx when ERFA is updated (or this generator is enhanced).
+of erfa.c when ERFA is updated (or this generator is enhanced).
 
 `Jinja2 <http://jinja.pocoo.org/>`_ must be installed for this
 module/script to function.
@@ -364,7 +364,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
     env.filters['postfix'] = postfix
     env.filters['surround'] = surround
 
-    erfa_pyx_in = env.get_template('core.pyx.templ')
+    erfa_c_in = env.get_template('core.c.templ')
     erfa_py_in = env.get_template('core.py.templ')
 
     #Extract all the ERFA function names from erfa.h
@@ -378,7 +378,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
     with open(erfahfn, "r") as f:
         erfa_h = f.read()
 
-    funcs = []
+    funcs = {}
     section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
                                               erfa_h, flags=re.DOTALL|re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
@@ -389,7 +389,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
                 print_("{0}.{1}.{2}...".format(section, subsection, name))
                 if multifilserc:
                     # easy because it just looks in the file itself
-                    funcs.append(Function(name, srcdir))
+                    funcs[name] = Function(name, srcdir)
                 else:
                     # Have to tell it to look for a declaration matching
                     # the start of the header declaration, otherwise it
@@ -403,13 +403,15 @@ def main(srcdir, outfn, templateloc, verbose=True):
                             # argument names and line-breaking or
                             # whitespace
                             match_line = line[:-1].split('(')[0]
-                            funcs.append(Function(name, srcdir, match_line))
+                            funcs[name] = Function(name, srcdir, match_line)
                             break
                     else:
                         raise ValueError("A name for a C file wasn't "
                                          "found in the string that "
                                          "spawned it.  This should be "
                                          "impossible!")
+
+    funcs = list(funcs.values())
 
     #Extract all the ERFA constants from erfam.h
     erfamhfn = os.path.join(srcdir, 'erfam.h')
@@ -424,20 +426,20 @@ def main(srcdir, outfn, templateloc, verbose=True):
                 constants.append(Constant(name, value, doc))
 
     print_("Rendering template")
-    erfa_pyx = erfa_pyx_in.render(funcs=funcs)
+    erfa_c = erfa_c_in.render(funcs=funcs)
     erfa_py = erfa_py_in.render(funcs=funcs, constants=constants)
 
     if outfn is not None:
-        outfnx = outfn + "x"
-        print_("Saving to", outfn, 'and', outfnx)
+        outfn_c = os.path.splitext(outfn)[0] + ".c"
+        print_("Saving to", outfn, 'and', outfn_c)
         with open(outfn, "w") as f:
             f.write(erfa_py)
-        with open(outfnx, "w") as f:
-            f.write(erfa_pyx)
+        with open(outfn_c, "w") as f:
+            f.write(erfa_c)
 
     print_("Done!")
 
-    return erfa_pyx, erfa_py, funcs
+    return erfa_c, erfa_py, funcs
 
 DEFAULT_ERFA_LOC = os.path.join(os.path.split(__file__)[0],
                                 '../../cextern/erfa')
@@ -455,11 +457,11 @@ if __name__ == '__main__':
                          'erfa: "{0}"'.format(DEFAULT_ERFA_LOC))
     ap.add_argument('-o', '--output', default='core.py',
                     help='The output filename.  This is the name for only the '
-                         'pure-python output, the Cython part will have the '
-                         'same name but with an "x" appended.')
+                         'pure-python output, the C part will have the '
+                         'same name but with a ".c" extension.')
     ap.add_argument('-t', '--template-loc',
                     default=DEFAULT_TEMPLATE_LOC,
-                    help='the location where the "erfa.pyx.templ" '
+                    help='the location where the "core.c.templ" '
                          'template can be found.')
     ap.add_argument('-q', '--quiet', action='store_false', dest='verbose',
                     help='Suppress output normally printed to stdout.')
