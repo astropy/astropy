@@ -338,6 +338,17 @@ class TestColumn():
         with pytest.raises(ValueError):
             c1 = c.insert(1, [100, 200], mask=[True, False, True])
 
+    def test_mask_on_non_masked(self, Column):
+        """
+        Test for #3505: Raise AttributeError when trying to set mask
+        on an unmasked column
+        """
+
+        c = Column(data=[1, 2, 3])
+
+        with pytest.raises(AttributeError):
+            c.mask = [False, True, False]
+
 
 class TestAttrEqual():
     """Bunch of tests originally from ATpy that test the attrs_equal method."""

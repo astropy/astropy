@@ -774,6 +774,12 @@ class Column(BaseColumn):
                                           unit=unit, format=format, meta=meta, copy=copy)
         return self
 
+    def __setattr__(self, item, value):
+        if item == "mask":
+            raise AttributeError("Setting mask on non-masked column")
+        else:
+            return super(Column, self).__setattr__(item, value)
+
     def _base_repr_(self, html=False):
         descr_vals = [self.__class__.__name__]
         unit = None if self.unit is None else str(self.unit)
