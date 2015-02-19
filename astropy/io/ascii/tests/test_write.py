@@ -501,7 +501,8 @@ a & 1 \\\\
 b & 2 \\\\
 \\enddata
 \\end{table}
-'''
+'''.replace('\n', os.linesep)
+
     ascii.write(t, out, format='aastex', latexdict=latexdict)
     assert out.getvalue() == expected
     # use unit attribute instead
