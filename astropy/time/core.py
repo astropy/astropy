@@ -869,6 +869,9 @@ class Time(object):
     """TDB - TT time scale offset"""
 
     def __len__(self):
+        if self.isscalar:
+            raise TypeError("Scalar {0} object has no len()"
+                            .format(self.__class__.__name__))
         return len(self.jd1)
 
     def __sub__(self, other):
