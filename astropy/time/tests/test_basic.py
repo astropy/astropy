@@ -157,7 +157,11 @@ class TestBasic():
         assert np.all(t7[:, 2]._time.jd2 == t7._time.jd2[:, 2])
         assert np.all(t7[:, 0]._time.jd1 == t._time.jd1)
         assert np.all(t7[:, 0]._time.jd2 == t._time.jd2)
-
+        # Finally check empty array.
+        t8 = t[:0]
+        assert t8.isscalar is False
+        assert t8.shape == (0,)
+        assert t8.size == 0
 
     def test_properties(self):
         """Use properties to convert scales and formats.  Note that the UT1 to
@@ -744,6 +748,31 @@ def test_decimalyear():
 def test_dir():
     t = Time('2000:001', format='yday', scale='tai')
     assert 'utc' in dir(t)
+
+
+def test_bool():
+    """Any Time object should evaluate to True unless it is empty [#3520]."""
+    t = Time(np.arange(50000, 50010), format='mjd', scale='utc')
+    assert bool(t) is True
+    assert bool(t[0]) is True
+    assert bool(t[:0]) is False
+
+
+def test_len_size():
+    """Check length of Time objects and that scalar ones do not have one."""
+    t = Time(np.arange(50000, 50010), format='mjd', scale='utc')
+    assert len(t) == 10 and t.size == 10
+    t1 = Time(np.arange(50000, 50010).reshape(2, 5), format='mjd', scale='utc')
+    assert len(t1) == 2 and t1.size == 10
+    # Can have length 1 or length 0 arrays.
+    t2 = t[:1]
+    assert len(t2) == 1 and t2.size == 1
+    t3 = t[:0]
+    assert len(t3) == 0 and t3.size == 0
+    # But cannot get length from scalar.
+    t4 = t[0]
+    with pytest.raises(TypeError):
+        len(t4)
 
 
 def test_TimeFormat_scale():

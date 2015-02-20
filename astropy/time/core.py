@@ -416,6 +416,10 @@ class Time(object):
     def size(self):
         return self._time.jd1.size
 
+    def __bool__(self):
+        """Any time should evaulate to True, but an empty object is False."""
+        return self.size > 0
+
     @property
     def isscalar(self):
         return self.shape == ()
@@ -451,7 +455,7 @@ class Time(object):
             ``'mean'`` or ``'apparent'``, i.e., accounting for precession
             only, or also for nutation.
         longitude : `~astropy.units.Quantity`, `str`, or `None`; optional
-           The longitude on the Earth at which to compute the sidereal time.
+            The longitude on the Earth at which to compute the sidereal time.
             Can be given as a `~astropy.units.Quantity` with angular units
             (or an `~astropy.coordinates.Angle` or
             `~astropy.coordinates.Longitude`), or as a name of an
