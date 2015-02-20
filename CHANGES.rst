@@ -761,6 +761,8 @@ Bug Fixes
 
   - For Time objects, it is now checked that numerical input is finite. [#3396]
 
+  - Time objects now always evalutate to ``True``, except when empty. [#3530]
+
 - ``astropy.units``
 
   - Added a ``latex_inline`` unit format that returns the units in LaTeX math

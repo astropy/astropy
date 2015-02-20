@@ -417,8 +417,11 @@ class Time(object):
         return self._time.jd1.size
 
     def __bool__(self):
-        """Any time should evaulate to True, but an empty object is False."""
+        """Any time should evaluate to True, except when it is empty."""
         return self.size > 0
+
+    # In python2, __bool__ is not defined.
+    __nonzero__ = __bool__
 
     @property
     def isscalar(self):
