@@ -10,6 +10,10 @@ New Features
     provided and the format parameters are uniquely specified.  This update
     also removes duplicate format guesses to improve performance. [#3418]
 
+- ``astropy.units``
+
+  - Added furlong to imperial units.
+
 
 1.0 (2015-02-18)
 ----------------
