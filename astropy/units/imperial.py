@@ -30,6 +30,8 @@ def_unit(['mi', 'mile'], 5280 * ft, namespace=_ns,
          doc="International mile")
 def_unit(['nmi', 'nauticalmile', 'NM'], 1852 * si.m, namespace=_ns,
          doc="Nautical mile")
+def_unit(['fur', 'furlong'], 660 * ft, namespace=_ns,
+         doc="Furlong")
 
 
 ###########################################################################
