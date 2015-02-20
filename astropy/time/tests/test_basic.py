@@ -771,8 +771,11 @@ def test_len_size():
     assert len(t3) == 0 and t3.size == 0
     # But cannot get length from scalar.
     t4 = t[0]
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as err:
         len(t4)
+    # Ensure we're not just getting the old error of
+    # "object of type 'float' has no len()".
+    assert 'Time' in str(err)
 
 
 def test_TimeFormat_scale():
