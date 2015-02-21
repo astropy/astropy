@@ -131,6 +131,58 @@ Other Changes and Additions
 
 - Nothing changed yet.
 
+1.0.1 (unreleased)
+------------------
+
+Bug fixes
+^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
 
 1.0 (2015-02-18)
 ----------------
