@@ -47,6 +47,16 @@ class DaophotHeader(core.BaseHeader):
                     table_meta['keywords'][m.group('name')] = keyword_dict
                     if m.group('name') == 'APERTURES':
                         self.aperture_values = keyword_dict['value']
+                        
+        #The list of apertures given in the #K APERTURES keyword may not be complete!!
+        #This happens if the string description of the aperture list is longer than the 
+        #field width %len(self.aperture_values) of the #K APERTURES field.  
+        #In this case we have to figure out how many apertures there are based on the file
+        #structure.
+        col_len_def = re.compile(r'[0-9]+')
+        meta_aps = meta['table']['keywords']['APERTURES']
+        aps_field_len = int( col_len_def.search( meta_aps['format'] ).group() )
+        self.unknown_apertures = len( meta_aps['value'].strip() ) == aps_field_len-1
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a DAOphot
@@ -91,7 +101,24 @@ class DaophotHeader(core.BaseHeader):
                         coldef_lines[i] = coldef_lines[i] + line_stripped
                         last_coldef_line[i] = line_stripped
                         break
-
+        
+        if self.unknown_apertures:
+            #determine the number of apertures in the record from the first data-containing line
+            #in the table given the width specifications in the header.
+            def first_true(iterable, default=False, pred=None):
+                return next(filter(pred, iterable), default)
+            
+            non_comment_finder = re.compile('[^#]')
+            first_data_line = first_true(lines, pred=non_comment_finder.match)
+            unknown_columns = first_data_line[sum(col_width):]
+            lW0, W = last_width[0], sum(last_width)
+            Naperts = len(unknown_columns) // W
+            #extract the aperture values
+            aperture_value_str = [ unknown_columns[W*i:W*i+lW0].strip()
+                                        for i in range(Naperts) ]
+            self.aperture_values = ', '.join(aperture_value_str)
+        
+        
         # We need to check whether daophot file has multiple aperture data, in its keywords
         if (',' in self.aperture_values) or (':' in self.aperture_values):
             apertures=[]
