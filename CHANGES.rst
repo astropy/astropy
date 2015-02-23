@@ -172,6 +172,8 @@ Bug fixes
 
 - ``astropy.constants``
 
+  - Ensure constants can be turned into ``Quantity`` safely. [#3537, #3538]
+  
 - ``astropy.convolution``
 
 - ``astropy.coordinates``

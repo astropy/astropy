@@ -125,3 +125,40 @@ def test_copy():
 
     cc = copy.copy(const.c)
     assert cc == const.c
+
+
+def test_view():
+    """Check that Constant and Quantity views can be taken."""
+    from .. import c
+    c2 = c.view(Constant)
+    assert c2 == c
+    assert c2.value == c.value
+    # make sure it has the necessary attributes and they're not blank
+    assert c2.uncertainty == 0  # c is a *defined* quantity
+    assert c2.name == c.name
+    assert c2.reference == c.reference
+    assert c2.unit == c.unit
+
+    q1 = c.view(Q)
+    assert q1 == c
+    assert q1.value == c.value
+    assert type(q1) is Q
+    assert not hasattr(q1, 'reference')
+
+    q2 = Q(c)
+    assert q2 == c
+    assert q2.value == c.value
+    assert type(q2) is Q
+    assert not hasattr(q2, 'reference')
+
+    c3 = Q(c, subok=True)
+    assert c3 == c
+    assert c3.value == c.value
+    # make sure it has the necessary attributes and they're not blank
+    assert c3.uncertainty == 0  # c is a *defined* quantity
+    assert c3.name == c.name
+    assert c3.reference == c.reference
+    assert c3.unit == c.unit
+
+    c4 = Q(c, subok=True, copy=False)
+    assert c4 is c
