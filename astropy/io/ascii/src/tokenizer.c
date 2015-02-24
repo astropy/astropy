@@ -568,6 +568,31 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
     RETURN(0);
 }
 
+
+// Lower-case a single C locale character
+static inline int ascii_tolower(int c) {
+    if (c >= 'A' || c <= 'Z') {
+        return c + ('a' - 'A');
+    }
+
+    return c;
+}
+
+
+static int ascii_strncasecmp(const char *str1, const char *str2, size_t n)
+{
+    int char1, char2;
+
+    do {
+        char1 = tolower(*(str1++));
+        char2 = tolower(*(str2++));
+        n--;
+    } while (n && char1 != '\0' && char1 == char2);
+
+    return (char1 - char2);
+}
+
+
 long str_to_long(tokenizer_t *self, char *str)
 {
     char *tmp;
@@ -631,14 +656,14 @@ conversion_error:
         val = -1.0;
     }
 
-    if (0 == strncasecmp(tmp, "nan", 3)) {
+    if (0 == ascii_strncasecmp(tmp, "nan", 3)) {
         // Handle optional nan type specifier; this is ignored
         tmp += 3;
         val = NAN;
     }
-    else if (0 == strncasecmp(tmp, "inf", 3)) {
+    else if (0 == ascii_strncasecmp(tmp, "inf", 3)) {
         tmp += 3;
-        if (0 == strncasecmp(tmp, "inity", 5)) {
+        if (0 == ascii_strncasecmp(tmp, "inity", 5)) {
             tmp += 5;
         }
         val *= INFINITY;
