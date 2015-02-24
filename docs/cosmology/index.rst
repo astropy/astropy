@@ -241,14 +241,15 @@ the WMAP and Planck satellite data. For example,
 A full list of the pre-defined cosmologies is given by
 ``cosmology.parameters.available``, and summarized below:
 
-========  ============================= ====  ===== =======
-Name      Source                        H0    Om    Flat
-========  ============================= ====  ===== =======
-WMAP5     Komatsu et al. 2009           70.2  0.277 Yes
-WMAP7     Komatsu et al. 2011           70.4  0.272 Yes
-WMAP9     Hinshaw et al. 2013           69.3  0.287 Yes
-Planck13  Planck Collab 2013, Paper XVI 67.8  0.307 Yes
-========  ============================= ====  ===== =======
+========  ============================== ====  ===== =======
+Name      Source                         H0    Om    Flat
+========  ============================== ====  ===== =======
+WMAP5     Komatsu et al. 2009            70.2  0.277 Yes
+WMAP7     Komatsu et al. 2011            70.4  0.272 Yes
+WMAP9     Hinshaw et al. 2013            69.3  0.287 Yes
+Planck13  Planck Collab 2013, Paper XVI  67.8  0.307 Yes
+Planck15  Planck Collab 2015, Paper XIII 67.7  0.307 Yes
+========  ============================== ====  ===== =======
 
 Currently, all are instances of `~astropy.cosmology.FlatLambdaCDM`.
 More details about exactly where each set of parameters come from
@@ -308,8 +309,9 @@ This is not the simple
 :math:`\Omega_{\nu 0} h^2 = \sum_i m_{\nu\, i} / 93.04\,\mathrm{eV}`
 approximation.  Also note that the values of :math:`\Omega_{\nu}(z)`
 include both the kinetic energy and the rest-mass energy components,
-and that the Planck13 cosmology includes a single species of neutrinos
-with non-zero mass (which is not included in :math:`\Omega_{m0}`).
+and that the Planck13 and Planck15 cosmologies includes a single
+species of neutrinos with non-zero mass (which is not included in
+:math:`\Omega_{m0}`).
 
 The contribution of photons and neutrinos to the total mass-energy density
 can be found as a function of redshift::
@@ -437,10 +439,10 @@ please let us know by `opening an issue at the github repository
 The built in cosmologies use the parameters as listed in the
 respective papers.  These provide only a limited range of precision,
 and so you should not expect derived quantities to match beyond
-that precision.  For example, the Planck 2013 results only provide the
-Hubble constant to 4 digits.  Therefore, the Planck13 built-in
-cosmology should only be expected to match the age of the Universe
-quoted by the Planck team to 4 digits, although they provide 5 in the paper.
+that precision.  For example, the Planck 2013 and 2015 results only provide the
+Hubble constant to 4 digits.  Therefore, they shouldn't be expected
+to match the age quoted by the Planck team to better than that, despite
+the fact that 5 digits are quoted in the papers.
 
 Reference/API
 =============

@@ -24,6 +24,9 @@ Each cosmology has the following parameters defined:
 The list of cosmologies available are given by the tuple
 `available`. Current cosmologies available:
 
+Planck 15 parameters from Planck Collaboration 2015, arXiv: 1502.01589
+ (Paper XIII), Table 4 (TT, TE, EE + lowP + lensing + ext)
+
 Planck13 parameters from Planck Collaboration 2013, arXiv:1303.5076
  (Paper XVI), Table 5 (Planck + WP + highL + BAO)
 
@@ -48,9 +51,29 @@ del unicode_literals
 
 # Note: if you add a new cosmology, please also update the table
 # in the 'Built-in Cosmologies' section of astropy/docs/cosmology/index.rst
-# in addition to the list above.
+# in addition to the list above.  You also need to add them to
+# __all__ in core.py
 
-# Ade et al. Planck 2013 paper XVI Table 5 penultimate column (best fit)
+# Planck 2015 paper XII Table 4 final column (best fit)
+Planck15 = dict(
+    Oc0=0.2589,
+    Ob0=0.04860,
+    Om0=0.3075,
+    H0=67.74,
+    n=0.9667,
+    sigma8=0.8159,
+    tau=0.066,
+    z_reion=8.8,
+    t0=13.799,
+    Tcmb0=2.7255,
+    Neff=3.046,
+    flat=True,
+    m_nu=[0., 0., 0.06],
+    reference=("Planck Collaboration 2015, Paper XII, arXiv:1502.01589"
+               " Table 4 (TT, TE, EE + lowP + lensing + ext)")
+)
+
+# Planck 2013 paper XVI Table 5 penultimate column (best fit)
 Planck13 = dict(
     Oc0=0.25886,
     Ob0=0.048252,
