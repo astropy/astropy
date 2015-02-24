@@ -266,18 +266,3 @@ from ...utils.tests.test_metadata import MetaBaseTest
 class TestMetaNDData(MetaBaseTest):
     test_class = NDData
     args = np.array([[1.]])
-
-
-# check that subclasses can require wcs and/or unit to be present and use
-# _arithmetic and convert_unit_to
-class SubNDData(NDData):
-    """
-    Subclass for test initialization of subclasses in NDData._arithmetic and
-    NDData.convert_unit_to
-    """
-    def __init__(self, *arg, **kwd):
-        super(SubNDData, self).__init__(*arg, **kwd)
-        if self.unit is None:
-            raise ValueError("Unit for subclass must be specified")
-        if self.wcs is None:
-            raise ValueError("WCS for subclass must be specified")
