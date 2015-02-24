@@ -88,7 +88,7 @@ class FunctionUnitBase(object):
     # ^^^^^ the above four need to be set by subclasses
 
     # have priority over arrays, regular units, and regular quantities
-    __array_priority__ = 3000
+    __array_priority__ = 30000
 
     def __init__(self, physical_unit=None, function_unit=None):
         if physical_unit is None:
@@ -449,7 +449,7 @@ class FunctionQuantity(Quantity):
     """
 
     # Ensure priority over ndarray, regular Unit & Quantity, and FunctionUnit.
-    __array_priority__ = 4000
+    __array_priority__ = 40000
 
     # Store unit in different private property than is done by Quantity,
     # to allow a Quantity view with just the function unit (stored in _unit)

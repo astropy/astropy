@@ -171,7 +171,7 @@ class Quantity(np.ndarray):
     # Constants can not initialize properly
     _equivalencies = []
 
-    __array_priority__ = 2000
+    __array_priority__ = 10000
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0):

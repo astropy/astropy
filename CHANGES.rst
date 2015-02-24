@@ -50,6 +50,9 @@ New Features
 
   - Added furlong to imperial units.
 
+  - Added support for functional units, in particular the logarithmic ones
+    ``Magnitude``, ``Decibel``, and ``Dex``. [#1894]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
