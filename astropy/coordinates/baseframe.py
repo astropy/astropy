@@ -491,7 +491,7 @@ class BaseCoordinateFrame(object):
                            'or other non-Quantity arguments is deprecated, and '
                            'will be removed in the next version of Astropy.  '
                            'Instead, you probably want to use the SkyCoord '
-                           'class with the "system={1}" keyword, or if you '
+                           'class with the "frame={1}" keyword, or if you '
                            'really want to use the low-level frame classes, '
                            'create it with an Angle or Quantity.')
 
