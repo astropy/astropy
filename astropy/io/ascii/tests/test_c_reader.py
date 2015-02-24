@@ -873,3 +873,16 @@ def test_empty_quotes(parallel, read_basic):
     table = read_basic('a b\n1 ""\n2 ""', parallel=parallel)
     expected = Table([[1, 2], [0, 0]], names=('a', 'b'))
     assert_table_equal(table, expected)
+
+@pytest.mark.parametrize("parallel", [True, False])
+def test_fast_tab_with_names(parallel, read_tab):
+    """
+    Make sure the C reader doesn't segfault when the header for the
+    first column is missing [#3545]
+    """
+    content = """#
+\tdecDeg\tRate_pn_offAxis\tRate_mos2_offAxis\tObsID\tSourceID\tRADeg\tversion\tCounts_pn\tRate_pn\trun\tRate_mos1\tRate_mos2\tInserted_pn\tInserted_mos2\tbeta\tRate_mos1_offAxis\trcArcsec\tname\tInserted\tCounts_mos1\tInserted_mos1\tCounts_mos2\ty\tx\tCounts\toffAxis\tRot
+-3.007559\t0.0000\t0.0010\t0013140201\t0\t213.462574\t0\t2\t0.0002\t0\t0.0001\t0.0001\t0\t1\t0.66\t0.0217\t3.0\tfakeXMMXCS J1413.8-0300\t3\t1\t2\t1\t398.000\t127.000\t5\t13.9\t72.3\t"""
+    head = ['A{0}'.format(i) for i in range(28)]
+    table = read_tab(content, data_start=1,
+                     parallel=parallel, names=head)
