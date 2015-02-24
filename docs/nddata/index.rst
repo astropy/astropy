@@ -152,7 +152,9 @@ not need to be modified.
 
 Code that uses the arithemtic methods that used to be included in
 `~astropy.nddata.NDData` and relied on it to behave like a numpy array should
-instead subclass `~astropy.nddata.NDDataArray`.
+instead subclass `~astropy.nddata.NDDataArray`; that class is equivalent to
+the original `~astropy.nddata.NDData` class.
+
 
 Using ``nddata``
 ================
