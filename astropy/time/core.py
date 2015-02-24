@@ -416,6 +416,13 @@ class Time(object):
     def size(self):
         return self._time.jd1.size
 
+    def __bool__(self):
+        """Any time should evaluate to True, except when it is empty."""
+        return self.size > 0
+
+    # In python2, __bool__ is not defined.
+    __nonzero__ = __bool__
+
     @property
     def isscalar(self):
         return self.shape == ()
@@ -451,7 +458,7 @@ class Time(object):
             ``'mean'`` or ``'apparent'``, i.e., accounting for precession
             only, or also for nutation.
         longitude : `~astropy.units.Quantity`, `str`, or `None`; optional
-           The longitude on the Earth at which to compute the sidereal time.
+            The longitude on the Earth at which to compute the sidereal time.
             Can be given as a `~astropy.units.Quantity` with angular units
             (or an `~astropy.coordinates.Angle` or
             `~astropy.coordinates.Longitude`), or as a name of an
@@ -865,6 +872,9 @@ class Time(object):
     """TDB - TT time scale offset"""
 
     def __len__(self):
+        if self.isscalar:
+            raise TypeError("Scalar {0} object has no len()"
+                            .format(self.__class__.__name__))
         return len(self.jd1)
 
     def __sub__(self, other):
