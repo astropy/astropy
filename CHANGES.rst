@@ -126,6 +126,9 @@ Bug fixes
 
 - ``astropy.io.ascii``
 
+  - Fix a segfault in the fast C parser when one of the column headers
+    is empty [#3545].
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
