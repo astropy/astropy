@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 The astropy.time package provides functionality for manipulating times and
@@ -89,6 +90,11 @@ SCALE_OFFSETS = {('tt', 'tai'): None,
                  ('tai', 'tcg'): erfa.ELG / (1. - erfa.ELG),
                  ('tcb', 'tdb'): -erfa.ELB,
                  ('tdb', 'tcb'): erfa.ELB / (1. - erfa.ELB)}
+
+# Translations between deprecated FITS timescales defined by
+# Rots et al. 2015, A&A 574:A36, and timescales used here.
+FITS_DEPRECATED_SCALES = {'TDT': 'tt', 'TDT': 'tt', 'ET': 'tt',
+                          'GMT': 'utc', 'UT': 'utc', 'IAT': 'tai'}
 
 # triple-level dictionary, yay!
 SIDEREAL_TIME_MODELS = {
@@ -1796,6 +1802,43 @@ class TimeString(TimeUnique):
                             .format(self.name))
         return val1, None
 
+    def parse_string(self, timestr, subfmts):
+        """Read time from a single string, using a set of possible formats."""
+        # Datetime components required for conversion to JD by ERFA, along
+        # with the default values.
+        components = ('year', 'mon', 'mday', 'hour', 'min', 'sec')
+        defaults = (None, 1, 1, 0, 0, 0)
+        # Assume that anything following "." on the right side is a
+        # floating fraction of a second.
+        try:
+            idot = timestr.rindex('.')
+        except:
+            fracsec = 0.0
+        else:
+            timestr, fracsec = timestr[:idot], timestr[idot:]
+            fracsec = float(fracsec)
+
+        for _, strptime_fmt_or_regex, _ in subfmts:
+            if isinstance(strptime_fmt_or_regex, six.string_types):
+                try:
+                    tm = time.strptime(timestr, strptime_fmt_or_regex)
+                except ValueError:
+                    continue
+                else:
+                    return [getattr(tm, 'tm_' + component)
+                            for component in components] + [fracsec]
+
+            else:
+                tm = re.match(strptime_fmt_or_regex, timestr)
+                if tm is None:
+                    continue
+                tm = tm.groupdict()
+                return [int(tm.get(component, default)) for component, default
+                        in six.moves.zip(components, defaults)] + [fracsec]
+        else:
+            raise ValueError('Time {0} does not match {1} format'
+                             .format(timestr, self.name))
+
     def set_jds(self, val1, val2):
         """Parse the time strings contained in val1 and set jd1, jd2"""
         # Select subformats based on current self.in_subfmt
@@ -1804,52 +1847,11 @@ class TimeString(TimeUnique):
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              op_dtypes=[val1.dtype] + 5*[np.intc] + [np.double])
 
-        # Datetime components required for conversion to JD by ERFA, along
-        # with the default values.
-        time_comps = ('year', 'mon', 'mday', 'hour', 'min', 'sec')
-        comp_defaults = (None, 1, 1, 0, 0, 0)
 
         for val, iy, im, id, ihr, imin, dsec in iterator:
-            timestr = val.item()
-            # Handle trailing 'Z' for UTC time
-            if timestr.endswith('Z'):
-                if self.scale != 'utc':
-                    raise ValueError("Time input terminating in 'Z' must have scale='UTC'")
-                timestr = timestr[:-1]
-
-            # Assume that anything following "." on the right side is a
-            # floating fraction of a second.
-            try:
-                idot = timestr.rindex('.')
-            except:
-                fracsec = 0.0
-            else:
-                timestr, fracsec = timestr[:idot], timestr[idot:]
-                fracsec = float(fracsec)
-
-            for _, strptime_fmt_or_regex, _ in subfmts:
-                if isinstance(strptime_fmt_or_regex, six.string_types):
-                    try:
-                        tm = time.strptime(timestr, strptime_fmt_or_regex)
-                    except ValueError:
-                        continue
-                    tm_vals = [getattr(tm, 'tm_' + comp) for comp in time_comps]
-
-                else:
-                    tm = re.match(strptime_fmt_or_regex, timestr)
-                    if tm is None:
-                        continue
-                    tm = tm.groupdict()
-                    tm_vals = [int(tm.get(comp, default)) for comp, default
-                               in six.moves.zip(time_comps, comp_defaults)]
-
-                iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = tm_vals
-                dsec[...] += fracsec
-                break
-
-            else:
-                raise ValueError('Time {0} does not match {1} format'
-                                 .format(timestr, self.name))
+            iy[...], im[...], id[...], ihr[...], imin[...], sec, fracsec = (
+                self.parse_string(val.item(), subfmts))
+            dsec[...] = sec + fracsec
 
         self.jd1, self.jd2 = erfa_time.dtf_jd(
             self.scale.upper().encode('utf8'), *iterator.operands[1:])
@@ -1886,6 +1888,14 @@ class TimeString(TimeUnique):
                    'hour': int(ihr), 'min': int(imin), 'sec': int(isec),
                    'fracsec': int(ifracsec), 'yday': yday}
 
+    def format_string(self, str_fmt, **kwargs):
+        """Write time to a string using a given format.
+
+        By default, just interprets str_fmt as a format string,
+        but subclasses can add to this.
+        """
+        return str_fmt.format(**kwargs)
+
     @property
     def value(self):
         # Select the first available subformat based on current
@@ -1901,7 +1911,7 @@ class TimeString(TimeUnique):
         # output could change, e.g. year rolls from 999 to 1000.
         outs = []
         for kwargs in self.str_kwargs():
-            outs.append(str(str_fmt.format(**kwargs)))
+            outs.append(str(self.format_string(str_fmt, **kwargs)))
 
         return np.array(outs).reshape(self.jd1.shape)
 
@@ -1942,8 +1952,17 @@ class TimeISO(TimeString):
                 '%Y-%m-%d',
                 '{year:d}-{mon:02d}-{day:02d}'))
 
+    def parse_string(self, timestr, subfmts):
+        # Handle trailing 'Z' for UTC time
+        if timestr.endswith('Z'):
+            if self.scale != 'utc':
+                raise ValueError("Time input terminating in 'Z' must have "
+                                 "scale='UTC'")
+            timestr = timestr[:-1]
+        return super(TimeISO, self).parse_string(timestr, subfmts)
 
-class TimeISOT(TimeString):
+
+class TimeISOT(TimeISO):
     """
     ISO 8601 compliant date-time format "YYYY-MM-DDTHH:MM:SS.sss...".
     This is the same as TimeISO except for a "T" instead of space between
@@ -1969,7 +1988,7 @@ class TimeISOT(TimeString):
                 '{year:d}-{mon:02d}-{day:02d}'))
 
 
-class TimeYearDayTime(TimeString):
+class TimeYearDayTime(TimeISO):
     """
     Year, day-of-year and time as "YYYY:DOY:HH:MM:SS.sss...".
     The day-of-year (DOY) goes from 001 to 365 (366 in leap years).
@@ -1992,6 +2011,82 @@ class TimeYearDayTime(TimeString):
                ('date',
                 '%Y:%j',
                 '{year:d}:{yday:03d}'))
+
+
+class TimeFITS(TimeString):
+    """
+    FITS compliant date-time format: "[±Y]YYYY-MM-DDTHH:MM:SS.sss...(SCALE)".
+
+    ISOT with two extensions:
+    - Signed five-digit year (mostly for negative years);
+    - A possible time scale appended in parentheses.
+    """
+    name = 'fits'
+    subfmts = (
+        ('date_hms',
+         '%Y-%m-%dT%H:%M:%S',
+         '{year:04d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'),
+        ('date_hm',
+         '%Y-%m-%dT%H:%M',
+         '{year:04d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}'),
+        ('date',
+         '%Y-%m-%d',
+         '{year:04d}-{mon:02d}-{day:02d}'),
+        ('longdate_hms',
+         r'(?P<year>[+-]\d{1,5})-%m-%dT%H:%M:%S',
+         '{year:+06d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'),
+        ('longdate_hm',
+         r'(?P<year>[+-]\d{1,5})-%m-%dT%H:%M',
+         '{year:+06d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}'),
+        ('longdate',
+         r'(?P<year>[+-]\d{1,5})-%m-%d',
+         '{year:+06d}-{mon:02d}-{day:02d}'))
+    _fits_scale = None
+
+    def parse_string(self, timestr, subfmts):
+        """Read time from string, but taking care of trailing scale codes
+        as well as years before 0 and beyond 9999."""
+        if timestr.endswith(')'):
+            iscale = timestr.index('(')
+            fits_scale = timestr[iscale+1:-1].upper()
+            timestr = timestr[:iscale]
+            if fits_scale.endswith(')'):
+                # Have representation as well.
+                scale = fits_scale[:fits_scale.index('(')]
+            else:
+                scale = fits_scale
+
+            # Translate deprecated timescale identifiers.
+            scale = FITS_DEPRECATED_SCALES.get(scale, scale.lower())
+            if scale not in TIME_SCALES:
+                raise ValueError("Scale {0} is not in the allowed scales {1}"
+                                 .format(repr(scale), sorted(TIME_SCALES)))
+
+            if self._scale is None:
+                self._scale = scale
+                self._fits_scale = fits_scale
+            elif scale != self.scale or fits_scale != self._fits_scale:
+                    raise ValueError("Input strings for {0} class must all "
+                                     "have consistent time scales."
+                                     .format(self.name))
+        return super(TimeFITS, self).parse_string(timestr, subfmts)
+
+    def format_string(self, str_fmt, **kwargs):
+        time_str = super(TimeFITS, self).format_string(str_fmt, **kwargs)
+        if self._fits_scale and self._fits_scale.endswith(')'):
+            fits_scale = self._fits_scale
+        else:
+            fits_scale = self._scale.upper()
+        return '{0}({1})'.format(time_str, fits_scale)
+
+    @property
+    def value(self):
+        if 'long' not in self.out_subfmt:
+            # If we have times before year 0 or after year 9999, we can
+            # output only in a "long" format, using signed 5-digit years.
+            if np.any((self.jd1 < 1721425.5) | (self.jd1 >= 5373484.5)):
+                self.out_subfmt = 'long' + self.out_subfmt
+        return super(TimeFITS, self).value
 
 
 class TimeEpochDate(TimeFormat):
