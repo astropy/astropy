@@ -8,6 +8,8 @@ except ImportError: # cStringIO doesn't exist in Python 3
 import os
 import functools
 
+from textwrap import dedent
+
 import numpy as np
 from numpy import ma
 
@@ -434,6 +436,36 @@ N\tN\tS
     # empty table if data_end is too small
     table = read_rdb(text, data_end=1, parallel=parallel)
     expected = Table([[], [], []], names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+
+
+@pytest.mark.parametrize("parallel", [True, False])
+def test_inf_nan(parallel, read_basic):
+    """
+    Test that inf and nan-like values are correctly parsed on all platforms.
+
+    Regression test for https://github.com/astropy/astropy/pull/3525
+    """
+
+    text = dedent("""\
+        A
+        nan
+        +nan
+        -nan
+        inf
+        infinity
+        +inf
+        +infinity
+        -inf
+        -infinity
+    """)
+
+    expected = Table({'A': [np.nan, np.nan, np.nan,
+                            np.inf, np.inf, np.inf, np.inf,
+                            -np.inf, -np.inf]})
+
+    table = read_basic(text, parallel=parallel)
+    assert table['A'].dtype.kind == 'f'
     assert_table_equal(table, expected)
 
 

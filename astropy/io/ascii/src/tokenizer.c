@@ -576,7 +576,7 @@ long str_to_long(tokenizer_t *self, char *str)
     ret = strtol(str, &tmp, 0);
 
     if (tmp == str || *tmp != '\0')
-     self->code = CONVERSION_ERROR;
+        self->code = CONVERSION_ERROR;
     else if (errno == ERANGE)
         self->code = OVERFLOW_ERROR;
 
@@ -587,29 +587,66 @@ double str_to_double(tokenizer_t *self, char *str)
 {
     char *tmp;
     double val;
+    errno = 0;
 
     if (self->use_fast_converter)
     {
         val = xstrtod(str, &tmp, '.', 'E', ',', 1);
-        if (*tmp)
-            self->code = CONVERSION_ERROR;
-        else if (errno == ERANGE)
+
+        if (*tmp) {
+            goto conversion_error;
+        }
+        else if (errno == ERANGE) {
             self->code = OVERFLOW_ERROR;
+        }
+
+        return val;
     }
 
     else
     {
         val = strtod(str, &tmp);
 
-        if (tmp == str || *tmp != 0) {
-            if (0 == strncmp(str, "nan", 3)) {
-                return NAN;
-            }
-            self->code = CONVERSION_ERROR;
+        if (errno == EINVAL || tmp == str || *tmp != '\0') {
+            goto conversion_error;
         }
         else if (errno == ERANGE) {
             self->code = OVERFLOW_ERROR;
         }
+
+        return val;
+    }
+
+conversion_error:
+    // Handle inf and nan values for xstrtod and platforms whose strtod
+    // doesn't support this
+    val = 1.0;
+    tmp = str;
+
+    if (*tmp == '+') {
+        tmp++;
+    }
+    else if (*tmp == '-') {
+        tmp++;
+        val = -1.0;
+    }
+
+    if (0 == strncasecmp(tmp, "nan", 3)) {
+        // Handle optional nan type specifier; this is ignored
+        tmp += 3;
+        val = NAN;
+    }
+    else if (0 == strncasecmp(tmp, "inf", 3)) {
+        tmp += 3;
+        if (0 == strncasecmp(tmp, "inity", 5)) {
+            tmp += 5;
+        }
+        val *= INFINITY;
+    }
+
+    if (tmp == str || *tmp != '\0') {
+        self->code = CONVERSION_ERROR;
+        val = 0;
     }
 
     return val;
