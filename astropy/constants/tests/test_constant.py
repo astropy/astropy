@@ -128,7 +128,7 @@ def test_copy():
 
 
 def test_view():
-    """Check that Constant and Quantity views can be taken."""
+    """Check that Constant and Quantity views can be taken (#3537, #3538)."""
     from .. import c
     c2 = c.view(Constant)
     assert c2 == c
