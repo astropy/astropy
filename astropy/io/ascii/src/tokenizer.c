@@ -47,8 +47,8 @@ void delete_data(tokenizer_t *tokenizer)
     int i;
 
     if (tokenizer->output_cols)
-	for (i = 0; i < tokenizer->num_cols; ++i)
-	    free(tokenizer->output_cols[i]);
+    for (i = 0; i < tokenizer->num_cols; ++i)
+        free(tokenizer->output_cols[i]);
 
     free(tokenizer->output_cols);
     free(tokenizer->col_ptrs);
@@ -158,7 +158,7 @@ static inline void end_comment(tokenizer_t *self)
 static inline void end_field(tokenizer_t *self, int *col, int header)
 {
     if (self->strip_whitespace_fields && self->col_ptrs[*col]
-	!= self->output_cols[*col])
+    != self->output_cols[*col])
     {
         --self->col_ptrs[*col];
         while (*self->col_ptrs[*col] == ' ' || *self->col_ptrs[*col] == '\t')
@@ -204,13 +204,13 @@ static inline int end_line(tokenizer_t *self, int col, int header, int end,
         RETURN(NO_ERROR);                       
     }                                           
     else if (self->fill_extra_cols)             
-	while (col < self->num_cols)            
-	{                                       
+    while (col < self->num_cols)            
+    {                                       
             PUSH('\x01');                       
-	    END_FIELD();                        
-	}                                       
+        END_FIELD();                        
+    }                                       
     else if (col < self->num_cols)              
-	RETURN(NOT_ENOUGH_COLS);                
+    RETURN(NOT_ENOUGH_COLS);                
     ++self->num_rows;                           
     *old_state = START_LINE;                     
     if (end != -1 && self->num_rows == end)     
@@ -234,7 +234,7 @@ int skip_lines(tokenizer_t *self, int offset, int header)
 
     while (i < offset)
     {
-	if (self->source_pos >= self->source_len)
+    if (self->source_pos >= self->source_len)
         {
             if (header)
                 RETURN(INVALID_LINE); // header line is required
@@ -260,8 +260,8 @@ int skip_lines(tokenizer_t *self, int offset, int header)
             comment = 0;
         }
 
-	else if ((c != ' ' && c != '\t') || !self->strip_whitespace_lines || header)
-	{
+    else if ((c != ' ' && c != '\t') || !self->strip_whitespace_lines || header)
+    {
             // comment line
             if (!signif_chars && self->comment != 0 && c == self->comment)
                 comment = 1;
@@ -272,7 +272,7 @@ int skip_lines(tokenizer_t *self, int offset, int header)
             // tokenization, we count whitespace unlike data tokenization
             // (see #2654)
             ++signif_chars;
-	}
+    }
 
         else if (comment && !header)
             push_comment(self, c);
@@ -576,7 +576,7 @@ long str_to_long(tokenizer_t *self, char *str)
     ret = strtol(str, &tmp, 0);
 
     if (tmp == str || *tmp != '\0')
- 	self->code = CONVERSION_ERROR;
+     self->code = CONVERSION_ERROR;
     else if (errno == ERANGE)
         self->code = OVERFLOW_ERROR;
 
@@ -602,14 +602,14 @@ double str_to_double(tokenizer_t *self, char *str)
         val = strtod(str, &tmp);
 
         if (tmp == str || *tmp != 0) {
-		    if (0 == strncmp(str, "nan", 3)) {
-				return NAN;
-		    }
+            if (0 == strncmp(str, "nan", 3)) {
+                return NAN;
+            }
             self->code = CONVERSION_ERROR;
-		}
+        }
         else if (errno == ERANGE) {
             self->code = OVERFLOW_ERROR;
-		}
+        }
     }
 
     return val;
@@ -836,7 +836,7 @@ char *next_field(tokenizer_t *self, int *size)
 
     // pass through the entire field until reaching the delimiter
     while (*self->curr_pos != '\x00')
-	++self->curr_pos;
+    ++self->curr_pos;
 
     ++self->curr_pos; // next field begins after the delimiter
 
