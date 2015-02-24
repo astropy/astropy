@@ -105,7 +105,7 @@ void resize_comments(tokenizer_t *self)
     memset(self->comment_lines + self->comment_lines_len * sizeof(char), 0,
            (self->comment_pos + 1 - self->comment_lines_len) * sizeof(char));
 
-    self->comment_lines_len *= self->comment_pos + 1;
+    self->comment_lines_len = self->comment_pos + 1;
 }
 
 /*
