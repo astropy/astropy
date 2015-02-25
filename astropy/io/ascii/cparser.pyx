@@ -124,7 +124,7 @@ cdef class FileString:
         self.fhandle = open(fname, 'r')
         if not self.fhandle:
             raise IOError('File "{0}" could not be opened'.format(fname))
-        self.mmap = mmap.mmap(self.fhandle.fileno(), 0, prot=mmap.PROT_READ)
+        self.mmap = mmap.mmap(self.fhandle.fileno(), 0, access=mmap.ACCESS_READ)
         cdef Py_ssize_t buf_len = len(self.mmap)
         if six.PY2:
             PyObject_AsReadBuffer(self.mmap, &self.mmap_ptr, &buf_len)
