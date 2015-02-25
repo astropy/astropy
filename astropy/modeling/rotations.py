@@ -23,11 +23,12 @@ import math
 
 import numpy as np
 
-from .core import Model
-from .parameters import Parameter
+from astropy.modeling.core import Model
+from astropy.modeling.parameters import Parameter, InputParameterError
 
 
-__all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D']
+__all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
+           'RotationByMatrix2D']
 
 
 class EulerAngleRotation(Model):
@@ -207,3 +208,66 @@ class Rotation2D(Model):
         return np.array([[math.cos(angle), -math.sin(angle)],
                          [math.sin(angle), math.cos(angle)]],
                         dtype=np.float64)
+
+
+class RotationByMatrix2D(Model):
+    """                                                                         
+    Perform a 2D rotation given a rotation matrix.               
+
+    Parameters                                                                 
+    ----------                                                                  
+    matrix : array
+        A 2x2 rotation matrix.
+
+    """
+
+    standard_broadcasting = False
+
+    inputs = ('x', 'y')
+    outputs = ('x', 'y')
+
+    matrix = Parameter(
+        setter=lambda m: RotationByMatrix2D._validate_matrix(m),
+        default=[[1.0, 0.0], [0.0, 1.0]])
+
+    @property
+    def inverse(self):
+        """Inverse rotation."""
+        try:
+            matrix = np.linalg.inv(self.matrix)
+        except np.linalg.LinAlgError:
+            raise InputParameterError(
+                "Rotation matrix is singular; {0} model does not "
+                "have an inverse".format(self.__class__.__name__))
+
+        return self.__class__(matrix)
+
+    def evaluate(self, x, y, matrix):
+        """                                                                     
+        Apply the rotation to a set of 2D Cartesian coordinates given as two    
+        lists--one for the x coordinates.                                                 
+        """
+        if x.shape != y.shape:
+            raise ValueError("Expected input arrays to have the same shape")
+
+        # Note: If the original shape was () (an array scalar) convert to a     
+        # 1-element 1-D array on output for consistency with most other models  
+        orig_shape = x.shape or (1,)
+
+        inarr = np.array([x.flatten(), y.flatten()])
+
+        result = np.dot(self.matrix, inarr)
+        x, y = result[0], result[1]
+        x.shape = y.shape = orig_shape
+
+        return x, y
+
+    @staticmethod
+    def _validate_matrix(matrix):
+        """Validates that the input matrix is a 2x2 2D array."""
+
+        matrix = np.array(matrix)
+        if matrix.shape != (2, 2):
+            raise ValueError(
+                "Expected rotation matrix to be a 2x2 array.")
+        return matrix
