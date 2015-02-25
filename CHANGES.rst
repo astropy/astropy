@@ -48,7 +48,7 @@ New Features
 
 - ``astropy.units``
 
-  - Added furlong to imperial units.
+  - Added furlong to imperial units. [#3529]
 
 - ``astropy.utils``
 
@@ -182,6 +182,12 @@ Bug fixes
 
 - ``astropy.io.ascii``
 
+  - Fixed support for reading inf and nan values with the fast reader in
+    Windows.  Also fixed in the case of using ``use_fast_converter=True``
+    with the fast reader. [#3525]
+
+  - Fixed use of mmap in the fast reader on Windows. [#3525]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
@@ -216,21 +222,6 @@ Bug fixes
 - ``astropy.vo``
 
 - ``astropy.wcs``
-
-
-1.0.1 (unreleased)
-------------------
-
-Bug Fixes
-^^^^^^^^^
-
-- ``astropy.io.ascii``
-
-  - Fixed support for reading inf and nan values with the fast reader in
-    Windows.  Also fixed in the case of using ``use_fast_converter=True``
-    with the fast reader. [#3525]
-
-  - Fixed use of mmap in the fast reader on Windows. [#3525]
 
 
 1.0 (2015-02-18)
