@@ -478,11 +478,11 @@ def pytest_report_header(config):
         args = config.args
 
     # TESTED_VERSIONS can contain the affiliated package version, too
-    if len(TESTED_VERSIONS.keys()) > 1:
-        for pkg in TESTED_VERSIONS.keys():
+    if len(TESTED_VERSIONS) > 1:
+        for pkg, version in TESTED_VERSIONS.items():
             if pkg != 'Astropy':
                 s = "\nRunning tests with {0} version {1}.\n".format(
-                    pkg, TESTED_VERSIONS[pkg], " ".join(args))
+                    pkg, version)
     else:
         s = "\nRunning tests with Astropy version {0}.\n".format(
             TESTED_VERSIONS['Astropy'])
