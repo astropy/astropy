@@ -48,8 +48,12 @@ void delete_data(tokenizer_t *tokenizer)
     int i;
 
     if (tokenizer->output_cols)
-    for (i = 0; i < tokenizer->num_cols; ++i)
-        free(tokenizer->output_cols[i]);
+    {
+        for (i = 0; i < tokenizer->num_cols; ++i)
+        {
+            free(tokenizer->output_cols[i]);
+        }
+    }
 
     free(tokenizer->output_cols);
     free(tokenizer->col_ptrs);
