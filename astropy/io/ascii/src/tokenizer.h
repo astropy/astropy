@@ -13,6 +13,14 @@
 
 #ifdef _MSC_VER
 #define inline __inline
+    #ifndef NAN
+        static const unsigned long __nan[2] = {0xffffffff, 0x7fffffff};
+        #define NAN (*(const double *) __nan)
+    #endif
+    #ifndef INFINITY
+        static const unsigned long __infinity[2] = {0x00000000, 0x7ff00000};
+        #define INFINITY (*(const double *) __infinity)
+    #endif
 #endif
 
 typedef enum
