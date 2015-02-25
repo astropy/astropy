@@ -23,8 +23,8 @@ import math
 
 import numpy as np
 
-from astropy.modeling.core import Model
-from astropy.modeling.parameters import Parameter, InputParameterError
+from .core import Model
+from .parameters import Parameter, InputParameterError
 
 
 __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
@@ -244,8 +244,7 @@ class RotationByMatrix2D(Model):
 
     def evaluate(self, x, y, matrix):
         """                                                                     
-        Apply the rotation to a set of 2D Cartesian coordinates given as two    
-        lists--one for the x coordinates.                                                 
+        Apply the rotation to a set of 2D Cartesian coordinates - x and y.                                                 
         """
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
