@@ -6,6 +6,7 @@ from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
 import re
+import collections
 
 from copy import deepcopy
 
@@ -219,8 +220,23 @@ class Table(object):
         # Set up a placeholder empty table
         self._set_masked(masked)
         self.columns = self.TableColumns()
-        self.meta = meta
         self.formatter = self.TableFormatter()
+
+        # Validate input for meta
+        if meta is None or isinstance(meta, collections.Mapping):
+            self.meta = meta
+        else:
+            raise TypeError('Meta type {0} not allowed to init Table'
+                             .format(type(meta)))
+
+        # Validate input for names and dtype
+        if isinstance(names, six.string_types):
+            raise TypeError('Names type {0} not allowed to init Table'
+                             .format(type(names)))
+    
+        if isinstance(dtype, six.string_types):
+            raise TypeError('Dtype type {0} not allowed to init Table'
+                             .format(type(dtype)))
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:

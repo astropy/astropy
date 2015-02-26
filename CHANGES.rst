@@ -394,6 +394,9 @@ New Features
 
 - ``astropy.table``
 
+  - Added validation of meta, names and dtype parameters to only accept
+    the correct types. [#3511]
+
   - Changed the internal implementation of the ``Table`` class changed so that
     it no longer uses numpy structured arrays as the core table data container.
     [#2790, #3179]
