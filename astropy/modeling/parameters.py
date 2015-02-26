@@ -124,7 +124,7 @@ class Parameter(object):
         creating bound Parameters
     """
 
-    constraints = ['fixed', 'tied', 'bounds']
+    constraints = ('fixed', 'tied', 'bounds')
     """
     Types of constraints a parameter can have.  Excludes 'min' and 'max'
     which are just aliases for the first and second elements of the 'bounds'

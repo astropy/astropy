@@ -494,7 +494,7 @@ class Model(object):
     True
     """
 
-    parameter_constraints = ('fixed', 'tied', 'bounds')
+    parameter_constraints = Parameter.constraints
     """
     Primarily for informational purposes, these are the types of constraints
     that can be set on a model's parameters.
