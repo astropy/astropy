@@ -10,7 +10,6 @@ define their own models.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import collections
 import inspect
 import functools
 import numbers
@@ -53,20 +52,6 @@ def _tofloat(value):
             "Don't know how to convert parameter of {0} to "
             "float".format(type(value)))
     return value
-
-
-class _Bounds(collections.namedtuple('_Bounds', ('min', 'max'))):
-    """
-    A two-tuple representing min and max bounds.
-
-    Currently this is used stricly internally for convenience.
-    TODO: Consider exposing this for Astropy v1.1.
-    """
-
-    def __nonzero__(self):
-        return self.min is not None and self.max is not None
-
-    __bool__ = __nonzero__
 
 
 class Parameter(object):
@@ -154,9 +139,8 @@ class Parameter(object):
                 raise ValueError(
                     'bounds may not be specified simulatenously with min or '
                     'or max when instantiating Parameter {0}'.format(name))
-            bounds = _Bounds(*bounds)
         else:
-            bounds = _Bounds(min, max)
+            bounds = (min, max)
 
         self._fixed = fixed
         self._tied = tied
@@ -257,7 +241,7 @@ class Parameter(object):
 
         for cons in self.constraints:
             val = getattr(self, cons)
-            if val:
+            if val not in (None, False, (None, None)):
                 # Maybe non-obvious, but False is the default for the fixed and
                 # tied constraints
                 args += ', {0}={1}'.format(cons, val)
