@@ -20,6 +20,7 @@ import numpy as np
 
 from .. import units as u
 from .. import _erfa as erfa
+from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
 from ..extern import six
 
@@ -45,9 +46,11 @@ except ImportError:
     if not _ASTROPY_SETUP_:
         raise
 
-# These both get filled in at end after TimeFormat subclasses defined
-TIME_FORMATS = {}
-TIME_DELTA_FORMATS = {}
+# These both get filled in at end after TimeFormat subclasses defined.
+# Use an OrderedDict to fix the order in which formats are tried.
+# This ensures, e.g., that 'isot' gets tried before 'fits'.
+TIME_FORMATS = OrderedDict()
+TIME_DELTA_FORMATS = OrderedDict()
 
 TIME_SCALES = ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
 MULTI_HOPS = {('tai', 'tcb'): ('tt', 'tdb'),
