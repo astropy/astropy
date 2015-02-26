@@ -37,7 +37,7 @@ from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
-                    IncompatibleShapeError)
+                    IncompatibleShapeError, AliasDict)
 
 from .parameters import Parameter, InputParameterError
 
@@ -864,7 +864,6 @@ class Model(object):
         """
 
         # Basically this is an alternative __init__
-        # TODO: Support constraints properly
         if isinstance(self, type):
             # self is a class, not an instance
             needs_initialization = True
@@ -874,13 +873,21 @@ class Model(object):
             needs_initialization = False
             self = self.copy()
 
-        self._initialize_constraints({})
+        aliases = dict(zip(self.param_names, param_names))
+        # This is basically an alternative _initialize_constraints
+        constraints = {}
+        for cons_type in self.parameter_constraints:
+            orig = existing._constraints[cons_type]
+            constraints[cons_type] = AliasDict(orig, aliases)
+
+        self._constraints = constraints
+
         self._n_models = existing._n_models
         self._model_set_axis = existing._model_set_axis
         self._parameters = existing._parameters
 
         self._param_metrics = defaultdict(dict)
-        for param_a, param_b in zip(self.param_names, param_names):
+        for param_a, param_b in six.iteritems(aliases):
             # Take the param metrics info for the giving parameters in the
             # existing model, and hand them to the appropriate parameters in
             # the new model
@@ -1728,10 +1735,15 @@ class _CompoundModelMeta(_ModelMeta):
                 else:
                     default = orig_param.default
 
+                # Copy constraints
+                constraints = {key: getattr(orig_param, key)
+                               for key in Model.parameter_constraints}
+
                 # Note: Parameter.copy() returns a new unbound Parameter, never
                 # a bound Parameter even if submodel is a Model instance (as
                 # opposed to a Model subclass)
-                new_param = orig_param.copy(name=param_name, default=default)
+                new_param = orig_param.copy(name=param_name, default=default,
+                                            **constraints)
 
             setattr(cls, param_name, new_param)
 
@@ -1927,7 +1939,12 @@ class _CompoundModel(Model):
     _submodels = None
 
     def __getattr__(self, attr):
-        return getattr(self.__class__, attr)
+        value = getattr(self.__class__, attr)
+        if hasattr(value, '__get__'):
+            # Object is a descriptor, so we should really return the result of
+            # its __get__
+            value = value.__get__(self, self.__class__)
+        return value
 
     def __getitem__(self, index):
         index = self.__class__._normalize_index(index)
