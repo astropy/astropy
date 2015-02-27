@@ -52,6 +52,9 @@ New Features
 
 - ``astropy.utils``
 
+  - extract array now offers different options to deal with array boundaries
+    [#3333]
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
