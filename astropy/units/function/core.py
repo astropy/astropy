@@ -458,6 +458,10 @@ class FunctionQuantity(Quantity):
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0):
 
+        if unit is not None:
+            # Convert possible string input to a (function) unit.
+            unit = Unit(unit)
+
         value_unit = getattr(value, 'unit', None)
         if value_unit is None:
             # if iterable, see if first item has a unit; mixed lists fail below
