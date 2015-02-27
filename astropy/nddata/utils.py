@@ -45,8 +45,8 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
         In "partial" mode, a partial overlap of the small and the large
         array is sufficient. In the "strict" mode, the small array has to be
         fully contained in the large array, otherwise an
-        `IncompleteOverlapError` is raised. In both modes,
-        non-overlapping arrays will raise a `~nddata.utils.NoOverlapError`.
+        `~astropy.nddata.utils.PartialOverlapError` is raised. In both modes,
+        non-overlapping arrays will raise a `~astropy.nddata.utils.NoOverlapError`.
 
     Returns
     -------
@@ -117,7 +117,7 @@ def extract_array(array_large, shape, position, mode='partial', fill_value=np.na
         In "partial" and "trim" mode, a partial overlap of the small and the large
         array is sufficient. In the "strict" mode, the small array has to be
         fully contained in the large array, otherwise an
-        `~astropy.nddata.utils.IncompleteOverlapError` is raised. In both modes,
+        `~astropy.nddata.utils.PartialOverlapError` is raised. In both modes,
         non-overlapping arrays will raise a `~astropy.nddata.utils.NoOverlapError`.
         In "partial" mode, positions in the extracted array, that do not overlap
         with the original array, will be filled with ``fill_value``. In "trim" mode
