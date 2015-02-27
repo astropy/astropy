@@ -110,9 +110,9 @@ Here, ``ST`` is a short-hand for the ST zero-point flux::
     >>> (-21.1 * u.STmag).to(u.erg/u.s/u.cm**2/u.AA)  # doctest: +FLOAT_CMP
     <Quantity 1. erg / (Angstrom cm2 s)>
 
-.. note:: only ST and AB magnitudes are implemented at present, as these are
-	  defined in terms of flux densities, i.e., do not depend on the filter
-	  the measurement was made with.
+.. note:: only ST [H+95]_ and AB [OG83]_ magnitudes are implemented at
+	  present, as these are defined in terms of flux densities, i.e.,
+          do not depend on the filter the measurement was made with.
     
 Now applying the calibration, we find (note the proper change in units)::
 
@@ -127,7 +127,8 @@ appropriate equivalency::
     >>> V.to(u.ABmag, u.spectral_density(5500.*u.AA))  # doctest: +FLOAT_CMP
     <Magnitude [ 16.99023831, 21.10978201, 22.50053827] mag(AB)>
 
-Suppose we also knew the intrinsic color of the first start, then we can calculate the reddening::
+Suppose we also knew the intrinsic color of the first star, then we can
+calculate the reddening::
 
     >>> B_V0 = -0.2 * u.mag
     >>> EB_V = (B - V)[0] - B_V0
@@ -139,11 +140,11 @@ Suppose we also knew the intrinsic color of the first start, then we can calcula
      <Quantity 1.2399999999999978 mag>,
      <Quantity 1.639999999999997 mag>)
 
-In general, in division and multiplication, magnitudes are converted to
-corresponding quantities, since these processes work only for dimensionless
-magnitudes (otherwise, the physical unit would have to be raised to some
-power), and |quantity| objects, unlike logarithmic quantities, allow units like
-``mag / d``.
+Here, one sees that the extinctions have been converted to quantities. This
+happens generally for division and multiplication, since these processes
+work only for dimensionless magnitudes (otherwise, the physical unit would have
+to be raised to some power), and |quantity| objects, unlike logarithmic
+quantities, allow units like ``mag / d``.
 
 Note that one can take the automatic unit conversion quite far (perhaps too
 far, but it is fun).  For instance, suppose we also knew the absolute
@@ -172,15 +173,21 @@ the 5-5log rule::
 Numpy functions
 ---------------
 
-For logarithmic quanties, most numpy functions do not make sense, hence they
-are disabled.  But one can use those one would expect to work::
+For logarithmic quanties, most numpy functions and many array methods do not
+make sense, hence they are disabled.  But one can use those one would expect to
+work::
 
     >>> np.max(v_i)  # doctest: +FLOAT_CMP
     <Magnitude 4.005149978319905 mag(ct / s)>
     >>> np.std(v_i)  # doctest: +FLOAT_CMP
     <Magnitude 2.339711494548601 mag(ct / s)>
 
-    
+.. note:: This is implemented by having a list of supported ufuncs in
+	  ``units/function/core.py`` and by explicitly disabling some
+	  array methods in :class:`~astropy.units.function.FunctionQuantity`.
+          If you believe a function or method is incorrectly treated,
+	  please `let us know <http://www.astropy.org/contribute.html>`_.
+	  
 Dimensionless logarithmic quantities
 ------------------------------------
 
@@ -198,3 +205,10 @@ supported as logarithmic units.  For instance::
     >>> better_cable_loss = 0.2 * u.dB / u.m
     >>> signal_in - better_cable_loss * 100. * u.m
     <Decibel 80.0 dB(mW)>
+
+
+
+.. [H+95] E.g., Holtzman et al., 1995, `PASP 107, 1065
+          <http://adsabs.harvard.edu/abs/1995PASP..107.1065H>`_
+.. [OG83] Oke, J.B., & Gunn, J. E., 1983, `ApJ 266, 713
+	  <http://adsabs.harvard.edu/abs/1983ApJ...266..713O>`_

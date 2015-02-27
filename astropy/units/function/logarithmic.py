@@ -291,5 +291,7 @@ ST0 = Unit('ST', 10.**(-0.4*21.1) * 1.e-3 * si.W / si.m**2 / si.AA,
            doc="ST magnitude zero flux density.")
 
 STmag = MagUnit(ST0)
+STmag.__doc__ = "ST magnitude: STmag=-21.1 corresponds to 1 erg/s/cm2/A"
 
 ABmag = MagUnit(AB0)
+ABmag.__doc__ = "AB magnitude: ABmag=-48.6 corresponds to 1 erg/s/cm2/Hz"
