@@ -38,7 +38,12 @@ def test_unit_grammar():
         (["10+8m"], u.Unit(u.m * 1e8)),
         # This is the VOUnits documentation, but doesn't seem to follow the
         # unity grammar (["3.45 10**(-4)Jy"], 3.45 * 1e-4 * u.Jy)
-        (["sqrt(m)"], u.m ** 0.5)
+        (["sqrt(m)"], u.m ** 0.5),
+        (["dB(mW)", "dB (mW)"], u.DecibelUnit(u.mW)),
+        (["mag"], u.mag),
+        (["mag(ct/s)"], u.MagUnit(u.ct / u.s)),
+        (["dex"], u.dex),
+        (["dex(cm s**-2)", "dex(cm/s2)"], u.DexUnit(u.cm / u.s**2))
     ]
 
     for strings, unit in data:
