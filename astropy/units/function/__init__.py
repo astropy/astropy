@@ -2,7 +2,7 @@
 
 """
 This subpackage contains classes and functions for defining and converting
-between different functional units and quantities, i.e., using units which
+between different function units and quantities, i.e., using units which
 are some function of a physical unit, such as magnitudes and decibels.
 """
 from .core import *

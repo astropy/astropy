@@ -24,7 +24,7 @@ from .utils import (is_effectively_unity, sanitize_scale, validate_power,
                     add_powers)
 from . import format as unit_format
 
-# TODO: Support functional units, e.g. log(x), ln(x)
+# TODO: Support function units, e.g. log(x), ln(x)
 
 __all__ = [
     'UnitsError', 'UnitsWarning', 'UnitBase', 'NamedUnit',
@@ -907,7 +907,7 @@ class UnitBase(object):
             return 1.0
 
         # Don't presume decomposition is possible; e.g.,
-        # conversion to functional units is through equivalencies.
+        # conversion to function units is through equivalencies.
         if isinstance(other, UnitBase):
             self_decomposed = self.decompose()
             other_decomposed = other.decompose()
