@@ -35,9 +35,9 @@ equivalent::
     >>> c = SkyCoord(ra=10.625*u.degree, dec=41.2*u.degree, frame='icrs')
     >>> c = SkyCoord(10.625, 41.2, frame='icrs', unit='deg')
     >>> c = SkyCoord('00h42m30s', '+41d12m00s', frame='icrs')
-    >>> c = SkyCoord('00h42.5m', '+41d12m', frame='icrs')
-    >>> c = SkyCoord('00 42 30 +41 12 00', frame='icrs', unit=(u.hourangle, u.deg))
-    >>> c = SkyCoord('00:42.5 +41:12', frame='icrs', unit=(u.hourangle, u.deg))
+    >>> c = SkyCoord('00h42.5m', '+41d12m')
+    >>> c = SkyCoord('00 42 30 +41 12 00', unit=(u.hourangle, u.deg))
+    >>> c = SkyCoord('00:42.5 +41:12', unit=(u.hourangle, u.deg))
     >>> c
     <SkyCoord (ICRS): (ra, dec) in deg
         (10.625, 41.2)>
@@ -47,16 +47,35 @@ object:
 
 - Coordinate values can be provided either as unnamed positional arguments or
   via keyword arguments like ``ra``, ``dec``, ``l``, or ``b`` (depending on the frame).
-- Coordinate frame value is optional and can be specified as a positional
-  argument or via the ``frame`` keyword.
+- Coordinate ``frame`` keyword is optional and defaults to ICRS.
 - Angle units must be specified, either in the values themselves
   (e.g. ``10.5*u.degree`` or ``'+41d12m00s'``) or via the ``unit`` keyword.
 
-The individual components of equatorial coordinates are
-`~astropy.coordinates.Longitude` or `~astropy.coordinates.Latitude`
-objects, which are specialized versions of the general
-`~astropy.coordinates.Angle` class.  The component values are accessed
-using aptly named attributes::
+|skycoord| and all other `~astropy.coordinates` objects also support
+array coordinates.  These work the same as single-value coordinates, but
+they store multiple coordinates in a single object.  When you're going
+to apply the same operation to many different coordinates (say, from a
+catalog), this is a better choice than a list of |skycoord| objects,
+because it will be *much* faster than applying the operation to each
+|skycoord| in a for loop.
+::
+
+    >>> c = SkyCoord(ra=[10, 11]*u.degree, dec=[41, -5]*u.degree)
+    >>> c
+    <SkyCoord (ICRS): (ra, dec) in deg
+        [(10.0, 41.0), (11.0, -5.0)]>
+    >>> c[1]
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (11.0, -5.0)>
+
+Coordinate access
+-----------------
+
+Once you have a coordinate object you can now access the components of that
+coordinate (e.g. RA, Dec) and get a specific string representation of the full
+coordinate.
+
+The component values are accessed using aptly named attributes::
 
     >>> c = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree)
     >>> c.ra  # doctest: +FLOAT_CMP
@@ -83,40 +102,29 @@ Coordinates can easily be converted to strings using the
     >>> c.to_string('hmsdms')
     '00h42m44.2992s +41d16m09.012s'
 
-For more control over the string formatting, use the
-`~astropy.coordinates.Angle.to_string` method of the individual
-components::
+For additional information see the section on :ref:`working_with_angles`.
 
-    >>> c.ra.to_string(decimal=True)
-    '10.6846'
-    >>> c.dec.to_string(format='latex')
-    '$41^\\circ16{}^\\prime09.012{}^{\\prime\\prime}$'
-    >>> msg = 'My coordinates are: ra="{0}"" dec="{1}"'
-    >>> msg.format(c.ra.to_string(sep=':'), c.dec.to_string(sep=':'))
-    'My coordinates are: ra="10:41:04.488"" dec="41:16:09.012"'
+Transformation
+--------------
 
-
-Many of the above examples did not explicitly specify the coordinate frame.
-This is fine if you do not need to transform to other frames or compare with
-coordinates defined in a different frame.  However, to use the full power of
-`~astropy.coordinates`, you should specify the reference frame your coordinates
-are defined in::
+The simplest way to transform to a new coordinate frame is by accessing
+the appropriately-named attribute.  For instance to get the coordinate in
+the Galactic frame use::
 
     >>> c_icrs = SkyCoord(ra=10.68458*u.degree, dec=41.26917*u.degree, frame='icrs')
-
-Once you've defined the frame of your coordinates, you can transform from that
-frame to another frame.  You can do this a few different ways: For more control,
-you can use the `~astropy.coordinates.SkyCoord.transform_to` method, which
-accepts a frame name, frame class, or frame instance::
-
-    >>> from astropy.coordinates import FK5
     >>> c_icrs.galactic  # doctest: +FLOAT_CMP
     <SkyCoord (Galactic): (l, b) in deg
         (121.174241811, -21.5728855724)>
+
+For more control, you can use the `~astropy.coordinates.SkyCoord.transform_to`
+method, which accepts a frame name, frame class, or frame instance::
+
     >>> c_fk5 = c_icrs.transform_to('fk5')  # c_icrs.fk5 does the same thing
     >>> c_fk5  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J2000.000): (ra, dec) in deg
         (10.6845915393, 41.2691714591)>
+
+    >>> from astropy.coordinates import FK5
     >>> c_fk5.transform_to(FK5(equinox='J1975'))  # precess to a different equinox  # doctest: +FLOAT_CMP
     <SkyCoord (FK5: equinox=J1975.000): (ra, dec) in deg
         (10.3420913461, 41.1323211229)>
@@ -127,19 +135,8 @@ straightforward to convert from celestial coordinates to
 as a tool for planning observations.  For a more complete example of
 this, see :doc:`observing-example`.
 
-|skycoord| and all other `~astropy.coordinates` objects also support
-array coordinates.  These work the same as single-value coordinates, but
-they store multiple coordinates in a single object.  When you're going
-to apply the same operation to many different coordinates (say, from a
-catalog), this is a better choice than a list of |skycoord| objects,
-because it will be *much* faster than applying the operation to each
-|skycoord| in a for loop.
-
-::
-
-    >>> SkyCoord(ra=[10, 11]*u.degree, dec=[41, -5]*u.degree)
-    <SkyCoord (ICRS): (ra, dec) in deg
-        [(10.0, 41.0), (11.0, -5.0)]>
+Representation
+--------------
 
 So far we have been using a spherical coordinate representation in the all the
 examples, and this is the default for the built-in frames.  Frequently it is
@@ -184,6 +181,9 @@ separation between two coordinates and catalog matching (detailed in
     <Angle 1.4045335865905868 deg>
 
 
+Distance
+--------
+
 Distance from the origin (which is system-dependent, but often the Earth
 center) can also be assigned to a |skycoord|. With two angles and a
 distance, a unique point in 3D space is available, which also allows
@@ -206,6 +206,8 @@ they can make use of the 3D information. For example::
     >>> c1.separation_3d(c2)  # doctest: +FLOAT_CMP
     <Distance 1.5228602415117989 pc>
 
+Name resolution
+---------------
 
 Finally, the `astropy.coordinates` subpackage also provides a quick way to get
 coordinates for named objects assuming you have an active internet
