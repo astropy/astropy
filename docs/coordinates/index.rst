@@ -145,7 +145,7 @@ representation such as cartesian or cylindrical.  This can be done by setting
 the ``representation`` for either |SkyCoord| objects or low-level frame
 coordinate objects::
 
-    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', frame='icrs', representation='cartesian')
+    >>> c = SkyCoord(x=1, y=2, z=3, unit='kpc', representation='cartesian')
     >>> c
     <SkyCoord (ICRS): (x, y, z) in kpc
         (1.0, 2.0, 3.0)>
@@ -156,30 +156,8 @@ coordinate objects::
     >>> c  # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (rho, phi, z) in (kpc, deg, kpc)
         (2.2360679775, 63.4349488229, 3.0)>
-    >>> c.phi
-    <Angle 63.434948... deg>
-    >>> c.phi.to(u.radian)
-    <Angle 1.107148... rad>
 
-    >>> c.representation = 'spherical'
-    >>> c  # doctest: +FLOAT_CMP
-    <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)
-        (63.4349488229, 53.3007747995, 3.74165738677)>
-
-    >>> c.representation = 'unitspherical'
-    >>> c  # doctest: +FLOAT_CMP
-    <SkyCoord (ICRS): (ra, dec) in deg
-        (63.4349488229, 53.3007747995)>
-
-|skycoord| defines a number of convenience methods as well, like on-sky
-separation between two coordinates and catalog matching (detailed in
-:ref:`astropy-coordinates-matching`)::
-
-    >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
-    >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
-    >>> c1.separation(c2)  # Differing frames handled correctly  # doctest: +FLOAT_CMP
-    <Angle 1.4045335865905868 deg>
-
+For all the details see :ref:`astropy-skycoord-representations`.
 
 Distance
 --------
@@ -206,10 +184,19 @@ they can make use of the 3D information. For example::
     >>> c1.separation_3d(c2)  # doctest: +FLOAT_CMP
     <Distance 1.5228602415117989 pc>
 
-Name resolution
----------------
+Convenience methods
+-------------------
 
-Finally, the `astropy.coordinates` subpackage also provides a quick way to get
+|skycoord| defines a number of convenience methods as well, like on-sky
+separation between two coordinates and catalog matching (detailed in
+:ref:`astropy-coordinates-matching`)::
+
+    >>> c1 = SkyCoord(ra=10*u.degree, dec=9*u.degree, frame='icrs')
+    >>> c2 = SkyCoord(ra=11*u.degree, dec=10*u.degree, frame='fk5')
+    >>> c1.separation(c2)  # Differing frames handled correctly  # doctest: +FLOAT_CMP
+    <Angle 1.4045335865905868 deg>
+
+The `astropy.coordinates` subpackage also provides a quick way to get
 coordinates for named objects assuming you have an active internet
 connection. The `~astropy.coordinates.SkyCoord.from_name` method of |skycoord|
 uses `Sesame <http://cds.u-strasbg.fr/cgi-bin/Sesame>`_ to retrieve coordinates
