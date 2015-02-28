@@ -87,7 +87,7 @@ install:
     - source activate test
 
     # CORE DEPENDENCIES
-    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION pytest pip Cython; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION pytest pip Cython jinja2; fi
     - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL pytest-xdist; fi
 
     # ASTROPY
