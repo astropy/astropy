@@ -107,6 +107,9 @@ API changes
 
 - ``astropy.wcs``
 
+  - Improved documentation of WCS.calc_footprint [#3551]
+
+
 Bug fixes
 ^^^^^^^^^
 
