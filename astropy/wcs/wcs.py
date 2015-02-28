@@ -600,6 +600,7 @@ naxis kwarg.
         Parameters
         ----------
         header : `~astropy.io.fits.Header` object, optional
+            Used to get ``NAXIS1`` and ``NAXIS2``
 
         undistort : bool, optional
             If `True`, take SIP and distortion lookup table into
@@ -636,7 +637,8 @@ naxis kwarg.
                 naxis2 = header.get('NAXIS2', None)
 
         if naxis1 is None or naxis2 is None:
-            return None
+            raise ValueError(
+                    "image size could not be determined.")
 
         if center == True:
             corners = np.array([[1, 1],
