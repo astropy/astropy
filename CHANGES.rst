@@ -117,6 +117,9 @@ API changes
 
 - ``astropy.wcs``
 
+  - If NAXIS1 or NAXIS2 is not passed with the header object to
+    WCS.calc_footprint, a ValueError is raised. [#3557]
+
 Bug fixes
 ^^^^^^^^^
 
