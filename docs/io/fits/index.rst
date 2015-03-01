@@ -535,6 +535,42 @@ table's structure needs more information. First of all, tables can only be an
 extension HDU, not a primary. There are two kinds of FITS table extensions:
 ASCII and binary. We'll use binary table examples here.
 
+.. note::
+    
+    If you want to create a simple binary FITS table with no other HDUs,
+    you should use the Table_ interface in Astropy instead and then 
+    write to FITS.
+
+    >>> from astropy.table import Table
+    >>> t = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+    >>> t.write('table.fits', format='fits')
+
+    Same code in PyFITS would look like this:
+
+    >>> import pyfits
+    >>> import numpy as np
+    >>> c1 = np.array([1,2])
+    >>> c2 = np.array([4,5])
+    >>> c3 = np.array([7,8])
+    >>> t = pyfits.BinTableHDU.from_columns([
+    ...     pyfits.Column(name='a', array=c1),
+    ...     pyfits.Column(name='b', array=c2),
+    ...     pyfits.Column(name='c', array=c3)])
+    >>> t.writeto('table.fits')
+
+    When using "lower-level" FITS interface, it is not usually necessary to
+    create column object explicitly as long as the data is stored in a 
+    `structured array <http://docs.scipy.org/doc/numpy/user/basics.rec.html>`_. 
+    
+    The data in the structured numpy array can directly be used to create a FITS table. 
+    Use of old interface is required only in certain cases.
+    
+    Benefits:
+
+    - Code complexity is decreased.
+
+.. _Table: http://astropy.readthedocs.org/en/latest/api/astropy.table.Table.html#astropy.table.Table
+
 To create a table from scratch, we need to define columns first, by
 constructing the :class:`Column` objects and their data. Suppose we have two
 columns, the first containing strings, and the second containing floating point
