@@ -516,6 +516,16 @@ additional data or header keywords in the primary HDU you may still create a
 :class:`PrimaryHDU` object and build up the FITS file manually using an
 :class:`HDUList`.
 
+.. note::
+    
+    If you want to create a simple binary FITS table with no other HDUs,
+    you should use the ``Table`` interface in Astropy instead and then 
+    write to FITS.
+
+    >>> from astropy.table import Table
+    >>> t = Table()
+    >>> t.write(filename, format='fits')
+
 For example, first create a new :class:`Header` object to encapsulate any
 keywords you want to include in the primary HDU, then as before create a
 :class:`PrimaryHDU`::
