@@ -223,6 +223,13 @@ Bug fixes
 
 - ``astropy.wcs``
 
+Miscellaneous
+^^^^^^^^^^^^^
+
+- ``astropy._erfa``
+
+  - The ERFA wrappers are now written directly in the Python/C API
+    rather than using Cython, for greater performance. [#3521]
 
 1.0 (2015-02-18)
 ----------------
