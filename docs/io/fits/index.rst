@@ -473,6 +473,35 @@ table's structure needs more information. First of all, tables can only be an
 extension HDU, not a primary. There are two kinds of FITS table extensions:
 ASCII and binary. We'll use binary table examples here.
 
+.. note::
+    
+    If you want to create a simple binary FITS table with no other HDUs,
+    you should use the Table_ interface in Astropy instead and then 
+    write to FITS.
+
+    >>> from astropy.table import Table
+    >>> t = Table([[1,2],[4,5],[7,8]], names=('a','b','c'))
+    >>> t.write('table.fits', format='fits')
+
+    Same code in PyFITS would look like this:
+
+    >>> import pyfits
+    >>> import numpy as np
+    >>> c1 = np.array([1,2])
+    >>> c2 = np.array([4,5])
+    >>> c3 = np.array([7,8])
+    >>> t = pyfits.BinTableHDU.from_columns([
+    ...     pyfits.Column(name='a', array=c1),
+    ...     pyfits.Column(name='b', array=c2),
+    ...     pyfits.Column(name='c', array=c3)])
+    >>> t.writeto('table.fits')
+
+    Benefits:
+
+    - Code complexity is decreased.
+
+.. _Table: http://astropy.readthedocs.org/en/latest/api/astropy.table.Table.html#astropy.table.Table
+
 To create a table from scratch, we need to define columns first, by
 constructing the :class:`Column` objects and their data. Suppose we have two
 columns, the first containing strings, and the second containing floating point
@@ -515,16 +544,6 @@ prepend it to the table HDU to create a valid FITS file.  If you require
 additional data or header keywords in the primary HDU you may still create a
 :class:`PrimaryHDU` object and build up the FITS file manually using an
 :class:`HDUList`.
-
-.. note::
-    
-    If you want to create a simple binary FITS table with no other HDUs,
-    you should use the ``Table`` interface in Astropy instead and then 
-    write to FITS.
-
-    >>> from astropy.table import Table
-    >>> t = Table()
-    >>> t.write(filename, format='fits')
 
 For example, first create a new :class:`Header` object to encapsulate any
 keywords you want to include in the primary HDU, then as before create a
