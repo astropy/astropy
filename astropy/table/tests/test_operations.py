@@ -499,7 +499,9 @@ class TestVStack():
     def test_stack_incompatible(self):
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type='inner')
-        assert "The 'b' columns have incompatible types:" in str(excinfo)
+        assert ("The 'b' columns have incompatible types: {0}"
+                .format([self.t1['b'].dtype.name, self.t3['b'].dtype.name])
+                in str(excinfo))
 
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type='outer')
