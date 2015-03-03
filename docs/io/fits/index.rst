@@ -496,6 +496,13 @@ ASCII and binary. We'll use binary table examples here.
     ...     pyfits.Column(name='c', array=c3)])
     >>> t.writeto('table.fits')
 
+    When using "lower-level" FITS interface, it is not usually necessary to
+    create column object explicitly as long as the data is stored in a 
+    `structured array <http://docs.scipy.org/doc/numpy/user/basics.rec.html>`_. 
+    
+    The data in the structured numpy array can directly be used to create a FITS table. 
+    Use of old interface is required only in certain cases.
+    
     Benefits:
 
     - Code complexity is decreased.
