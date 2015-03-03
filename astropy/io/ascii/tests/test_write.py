@@ -513,3 +513,22 @@ b & 2 \\\\
         'colhead{s}', 'colhead{$\mathrm{s}$}').replace(
         'colhead{ }', 'colhead{$\mathrm{yr}$}')
 
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_commented_header_comment(fast_writer):
+    """
+    Test the fix for #3562 with confusing exception using comment=False
+    for the commented_header writer.
+    """
+    t = table.Table([[1, 2]])
+    t.meta['comments'] = ['comment 1', 'comment 2']
+
+    out = StringIO()
+    ascii.write(t, out, format='commented_header', fast_writer=fast_writer)
+    assert '# comment 1' in out.getvalue()
+
+    with pytest.raises(ValueError) as err:
+        out = StringIO()
+        ascii.write(t, out, format='commented_header', comment=False,
+                    fast_writer=fast_writer)
+    assert "for the commented_header writer you must supply a string" in str(err.value)
