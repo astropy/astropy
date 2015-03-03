@@ -957,3 +957,8 @@ def test_commented_header_comments(fast):
     ascii.write(dat, out, format='commented_header', fast_writer=fast)
     assert out.getvalue().splitlines() == lines
 
+    lines = ['# a b',
+             '1 2',
+             '3 4']
+    dat = ascii.read(lines, format='commented_header', fast_reader=fast)
+    assert 'comments' not in dat.meta

@@ -148,6 +148,8 @@ class CommentedHeader(Basic):
         # commented_header format.
         if 'comments' in out.meta:
             out.meta['comments'] = out.meta['comments'][1:]
+            if not out.meta['comments']:
+                del out.meta['comments']
 
         return out
 
