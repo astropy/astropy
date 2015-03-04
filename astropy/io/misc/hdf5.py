@@ -10,12 +10,16 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 import warnings
+import json
 
 import numpy as np
 from ...utils.exceptions import AstropyUserWarning
 from ...extern import six
+from ...table.column import col_getattr
+# from ...utils import OrderedDict
 
 HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
+META_KEY = '__table_column_meta__'
 
 __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
@@ -53,6 +57,64 @@ def is_hdf5(origin, filepath, fileobj, *args, **kwargs):
     else:
         return isinstance(args[0], (h5py.highlevel.File, h5py.highlevel.Group, h5py.highlevel.Dataset))
 
+
+def _decode_list(data):
+    rv = []
+    for item in data:
+        if isinstance(item, unicode):
+            item = item.encode('utf-8')
+        elif isinstance(item, list):
+            item = _decode_list(item)
+        elif isinstance(item, dict):
+            item = _decode_dict(item)
+        rv.append(item)
+    return rv
+
+
+def _decode_dict(data):
+    rv = {}  # OrderedDict()
+    for key, value in data.iteritems():
+        if isinstance(key, unicode):
+            key = key.encode('utf-8')
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+        elif isinstance(value, list):
+            value = _decode_list(value)
+        elif isinstance(value, dict):
+            value = _decode_dict(value)
+        rv[key] = value
+    return rv
+
+def _get_col_attributes(col):
+    """
+    Extract information from a column (apart from the values) that is required
+    to fully serialize the column.
+    """
+    if len(getattr(col, 'shape', ())) > 1:
+        raise ValueError("ECSV format does not support multidimensional column '{0}'"
+                         .format(col_getattr(col, 'name')))
+
+    # attrs = ColumnDict()
+    attrs = dict()
+    attrs['name'] = col_getattr(col, 'name')
+
+    type_name = col_getattr(col, 'dtype').type.__name__
+    if six.PY3 and (type_name.startswith('bytes') or type_name.startswith('str')):
+        type_name = 'string'
+    if type_name.endswith('_'):
+        type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
+    attrs['datatype'] = type_name
+
+    # Set the output attributes
+    for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
+                                    ('format', lambda x: x is not None, None),
+                                    ('description', lambda x: x is not None, None),
+                                    ('meta', lambda x: x, None)):
+        col_attr = col_getattr(col, attr)
+        if nontrivial(col_attr):
+            attrs[attr] = xform(col_attr) if xform else col_attr
+
+    return attrs
 
 def read_table_hdf5(input, path=None):
     """
@@ -137,14 +199,25 @@ def read_table_hdf5(input, path=None):
     from ...table import Table
     table = Table(np.array(input))
 
-    # Read the meta-data from the file
-    table.meta.update(input.attrs)
+    if META_KEY in input.attrs:
+        header = json.loads(input.attrs[META_KEY])  # , object_pairs_hook=OrderedDict)
+        header = _decode_dict(header)
+        table.meta = header['meta']
+
+        header_cols = dict((x['name'], x) for x in header['datatype'])
+        for col in table.columns.values():
+            for attr in ('description', 'format', 'unit', 'meta'):
+                if attr in header_cols[col.name]:
+                    setattr(col, attr, header_cols[col.name][attr])
+    else:
+        # Read the meta-data from the file
+        table.meta.update(input.attrs)
 
     return table
 
 
 def write_table_hdf5(table, output, path=None, compression=False,
-                     append=False, overwrite=False):
+                     append=False, overwrite=False, serialize_meta=False):
     """
     Write a Table object to an HDF5 file
 
@@ -221,7 +294,8 @@ def write_table_hdf5(table, output, path=None, compression=False,
         try:
             return write_table_hdf5(table, f, path=path,
                                     compression=compression, append=append,
-                                    overwrite=overwrite)
+                                    overwrite=overwrite,
+                                    serialize_meta=serialize_meta)
         finally:
             f.close()
 
@@ -247,12 +321,21 @@ def write_table_hdf5(table, output, path=None, compression=False,
     else:
         dset = output_group.create_dataset(name, data=table.as_array())
 
-    # Write the meta-data to the file
-    for key in table.meta:
-        val = table.meta[key]
-        try:
-            dset.attrs[key] = val
-        except TypeError:
-            warnings.warn("Attribute `{0}` of type {1} cannot be written to "
-                          "HDF5 files - skipping".format(key, type(val)),
-                          AstropyUserWarning)
+    if serialize_meta:
+        header = {}
+        if table.meta:
+            header['meta'] = table.meta
+        header['datatype'] = [_get_col_attributes(col) for col in table.columns.values()]
+        header_json = json.dumps(header, separators=(',', ': '))
+        dset.attrs[META_KEY] = header_json
+
+    else:
+        # Write the meta-data to the file
+        for key in table.meta:
+            val = table.meta[key]
+            try:
+                dset.attrs[key] = val
+            except TypeError:
+                warnings.warn("Attribute `{0}` of type {1} cannot be written to "
+                              "HDF5 files - skipping".format(key, type(val)),
+                              AstropyUserWarning)
