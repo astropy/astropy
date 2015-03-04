@@ -1,5 +1,7 @@
 .. include:: references.txt
 
+.. _working_with_angles:
+
 Working with Angles
 -------------------
 
