@@ -132,6 +132,82 @@ Other Changes and Additions
 - Updated bundled astropy-helpers version to v1.0.1 to address installation
   issues with some packages that depend on Astropy. [#3541]
 
+1.0.1 (unreleased)
+------------------
+
+Bug fixes
+^^^^^^^^^
+
+- ``astropy.analytic_functions``
+
+- ``astropy.config``
+
+- ``astropy.conftest.py``
+
+- ``astropy.constants``
+
+  - Ensure constants can be turned into ``Quantity`` safely. [#3537, #3538]
+  
+- ``astropy.convolution``
+
+- ``astropy.coordinates``
+
+- ``astropy.cosmology``
+
+- ``astropy.io.ascii``
+
+  - Fixed support for reading inf and nan values with the fast reader in
+    Windows.  Also fixed in the case of using ``use_fast_converter=True``
+    with the fast reader. [#3525]
+
+  - Fixed use of mmap in the fast reader on Windows. [#3525]
+
+  - Fixed issue where commented header would treat comments defining the table
+    (i.e. column headers) as purely information comments, leading to problems
+    when trying to round-trip the table. [#3562]
+
+- ``astropy.io.fits``
+
+- ``astropy.io.misc``
+
+- ``astropy.io.votable``
+
+- ``astropy.logger.py``
+
+- ``astropy.modeling``
+
+- ``astropy.nddata``
+
+  - Restore several properties to the compatibility class ``NDDataArray`` that
+    were inadvertently omitted [#3466].
+
+- ``astropy.stats``
+
+- ``astropy.table``
+
+- ``astropy.tests``
+
+- ``astropy.time``
+
+  - Time objects now always evalutate to ``True``, except when empty. [#3530]
+
+- ``astropy.units``
+
+- ``astropy.utils``
+
+- ``astropy.visualization``
+
+- ``astropy.vo``
+
+- ``astropy.wcs``
+
+Miscellaneous
+^^^^^^^^^^^^^
+
+- ``astropy._erfa``
+
+  - The ERFA wrappers are now written directly in the Python/C API
+    rather than using Cython, for greater performance. [#3521]
 
 1.0 (2015-02-18)
 ----------------
