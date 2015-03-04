@@ -129,7 +129,8 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Updated bundled astropy-helpers version to v1.0.1 to address installation
+  issues with some packages that depend on Astropy. [#3541]
 
 
 1.0 (2015-02-18)
