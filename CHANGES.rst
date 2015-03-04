@@ -190,6 +190,10 @@ Bug fixes
 
   - Fixed use of mmap in the fast reader on Windows. [#3525]
 
+  - Fixed issue where commented header would treat comments defining the table
+    (i.e. column headers) as purely information comments, leading to problems
+    when trying to round-trip the table. [#3562]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
