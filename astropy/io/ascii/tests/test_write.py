@@ -5,11 +5,7 @@
 import os
 import copy
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
+from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
 from ....tests.helper import pytest
@@ -513,3 +509,16 @@ b & 2 \\\\
         'colhead{s}', 'colhead{$\mathrm{s}$}').replace(
         'colhead{ }', 'colhead{$\mathrm{yr}$}')
 
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_commented_header_comments(fast_writer):
+    """
+    Test the fix for #3562 with confusing exception using comment=False
+    for the commented_header writer.
+    """
+    t = table.Table([[1, 2]])
+    with pytest.raises(ValueError) as err:
+        out = StringIO()
+        ascii.write(t, out, format='commented_header', comment=False,
+                    fast_writer=fast_writer)
+    assert "for the commented_header writer you must supply a string" in str(err.value)

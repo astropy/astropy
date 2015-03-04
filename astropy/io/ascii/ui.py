@@ -14,6 +14,7 @@ import re
 import os
 import sys
 
+
 from . import core
 from . import basic
 from . import cds
@@ -29,6 +30,7 @@ from . import fixedwidth
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
+from ...extern import six
 
 try:
     import yaml
@@ -457,7 +459,7 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
         Writer class (DEPRECATED) (default= :class:`Basic`)
     delimiter : str
         Column delimiter string
-    write_comment : str
+    comment : str
         String defining a comment line in table
     quotechar : str
         One-character string to quote fields containing special characters
@@ -484,6 +486,19 @@ def get_writer(Writer=None, fast_writer=True, **kwargs):
     if 'strip_whitespace' not in kwargs:
         kwargs['strip_whitespace'] = True
     writer = core._get_writer(Writer, fast_writer, **kwargs)
+
+    # Handle the corner case of wanting to disable writing table comments for the
+    # commented_header format.  This format *requires* a string for `write_comment`
+    # because that is used for the header column row, so it is not possible to
+    # set the input `comment` to None.  Without adding a new keyword or assuming
+    # a default comment character, there is no other option but to tell user to
+    # simply remove the meta['comments'].
+    if (isinstance(writer, (basic.CommentedHeader, fastbasic.FastCommentedHeader))
+            and not isinstance(kwargs.get('comment', ''), six.string_types)):
+        raise ValueError("for the commented_header writer you must supply a string\n"
+                         "value for the `comment` keyword.  In order to disable writing\n"
+                         "table comments use `del t.meta['comments']` prior to writing.")
+
     return writer
 
 
@@ -502,7 +517,7 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
         Output table format (default= ``basic``)
     delimiter : str
         Column delimiter string
-    write_comment : str
+    comment : str
         String defining a comment line in table
     quotechar : str
         One-character string to quote fields containing special characters

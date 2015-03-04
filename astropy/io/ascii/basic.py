@@ -136,6 +136,23 @@ class CommentedHeader(Basic):
     header_class = CommentedHeaderHeader
     data_class = NoHeaderData
 
+
+    def read(self, table):
+        """
+        Read input data (file-like object, filename, list of strings, or
+        single string) into a Table and return the result.
+        """
+        out = super(CommentedHeader, self).read(table)
+
+        # Strip off first comment since this is the header line for
+        # commented_header format.
+        if 'comments' in out.meta:
+            out.meta['comments'] = out.meta['comments'][1:]
+            if not out.meta['comments']:
+                del out.meta['comments']
+
+        return out
+
     def write_header(self, lines, meta):
         """
         Write comment lines after, rather than before, the header.
