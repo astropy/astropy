@@ -7,6 +7,7 @@ import re
 
 import numpy as np
 
+from ....extern.six.moves import cStringIO as StringIO
 from ....utils import OrderedDict
 from ....tests.helper import pytest
 from ... import ascii
@@ -930,3 +931,28 @@ def test_almost_but_not_quite_daophot():
              "7 8 9"]
     dat = ascii.read(lines)
     assert len(dat) == 3
+
+
+@pytest.mark.parametrize('fast', [True, False])
+def test_commented_header_comments(fast):
+    """
+    Test that comments in commented_header are as expected and that the
+    table round-trips.
+    """
+    lines = ['# a b',
+             '# comment 1',
+             '# comment 2',
+             '1 2',
+             '3 4']
+    dat = ascii.read(lines, format='commented_header', fast_reader=fast)
+    assert dat.meta['comments'] == ['comment 1', 'comment 2']
+
+    out = StringIO()
+    ascii.write(dat, out, format='commented_header', fast_writer=fast)
+    assert out.getvalue().splitlines() == lines
+
+    lines = ['# a b',
+             '1 2',
+             '3 4']
+    dat = ascii.read(lines, format='commented_header', fast_reader=fast)
+    assert 'comments' not in dat.meta
