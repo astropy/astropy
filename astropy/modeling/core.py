@@ -1736,8 +1736,8 @@ class _CompoundModelMeta(_ModelMeta):
                     default = orig_param.default
 
                 # Copy constraints
-                constraints = {key: getattr(orig_param, key)
-                               for key in Model.parameter_constraints}
+                constraints = dict((key, getattr(orig_param, key))
+                                   for key in Model.parameter_constraints)
 
                 # Note: Parameter.copy() returns a new unbound Parameter, never
                 # a bound Parameter even if submodel is a Model instance (as
