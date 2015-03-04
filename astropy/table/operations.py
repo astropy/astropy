@@ -500,7 +500,7 @@ def common_dtype(cols):
                      for col in cols)
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
-        incompat_types = [col_getattr(col, 'name') for col in cols]
+        incompat_types = [dtype(col).name for col in cols]
         tme = TableMergeError('Columns have incompatible types {0}'
                               .format(incompat_types))
         tme._incompat_types = incompat_types
