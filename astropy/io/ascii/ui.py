@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function
 import re
 import os
 import sys
-import six
+
 
 from . import core
 from . import basic
@@ -30,6 +30,7 @@ from . import fixedwidth
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
+from ...extern import six
 
 try:
     import yaml
