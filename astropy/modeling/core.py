@@ -2348,7 +2348,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
 
     try:
         input_broadcast = check_broadcast(*all_shapes)
-    except IncompatibleShapesError as exc:
+    except IncompatibleShapeError as exc:
         shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
         arg_a = argnames[shape_a_idx]
         arg_b = argnames[shape_b_idx]
