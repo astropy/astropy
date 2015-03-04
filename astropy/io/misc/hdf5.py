@@ -90,20 +90,9 @@ def _get_col_attributes(col):
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
     """
-    if len(getattr(col, 'shape', ())) > 1:
-        raise ValueError("ECSV format does not support multidimensional column '{0}'"
-                         .format(col_getattr(col, 'name')))
-
     # attrs = ColumnDict()
     attrs = dict()
     attrs['name'] = col_getattr(col, 'name')
-
-    type_name = col_getattr(col, 'dtype').type.__name__
-    if six.PY3 and (type_name.startswith('bytes') or type_name.startswith('str')):
-        type_name = 'string'
-    if type_name.endswith('_'):
-        type_name = type_name[:-1]  # string_ and bool_ lose the final _ for ECSV
-    attrs['datatype'] = type_name
 
     # Set the output attributes
     for attr, nontrivial, xform in (('unit', lambda x: x is not None, str),
