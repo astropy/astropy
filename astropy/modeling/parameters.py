@@ -101,9 +101,19 @@ class Parameter(object):
         the lower bound of a parameter
     max : float
         the upper bound of a parameter
+    bounds : tuple
+        specify min and max as a single tuple--bounds may not be specified
+        simultaneously with min or max
     model : object
         an instance of a Model class; this should only be used internally for
         creating bound Parameters
+    """
+
+    constraints = ('fixed', 'tied', 'bounds')
+    """
+    Types of constraints a parameter can have.  Excludes 'min' and 'max'
+    which are just aliases for the first and second elements of the 'bounds'
+    constraint (which is represented as a 2-tuple).
     """
 
     # See the _nextid classmethod
@@ -111,7 +121,7 @@ class Parameter(object):
 
     def __init__(self, name='', description='', default=None, getter=None,
                  setter=None, fixed=False, tied=False, min=None, max=None,
-                 model=None):
+                 bounds=None, model=None):
         super(Parameter, self).__init__()
 
         if model is not None and not name:
@@ -124,10 +134,17 @@ class Parameter(object):
         # NOTE: These are *default* constraints--on model instances constraints
         # are taken from the model if set, otherwise the defaults set here are
         # used
+        if bounds is not None:
+            if min is not None or max is not None:
+                raise ValueError(
+                    'bounds may not be specified simulatenously with min or '
+                    'or max when instantiating Parameter {0}'.format(name))
+        else:
+            bounds = (min, max)
+
         self._fixed = fixed
         self._tied = tied
-        self._min = min
-        self._max = max
+        self._bounds = bounds
 
         self._order = None
         self._shape = None
@@ -163,9 +180,8 @@ class Parameter(object):
 
         return self.__class__(self._name, default=self._default,
                               getter=self._getter, setter=self._setter,
-                              fixed=self._fixed,
-                              tied=self._tied, min=self._min,
-                              max=self._max, model=obj)
+                              fixed=self._fixed, tied=self._tied,
+                              bounds=self._bounds, model=obj)
 
     def __set__(self, obj, value):
         value, shape = self._validate_value(obj, value)
@@ -222,6 +238,14 @@ class Parameter(object):
                 args += ', default={0}'.format(self._default)
         else:
             args += ', value={0}'.format(self.value)
+
+        for cons in self.constraints:
+            val = getattr(self, cons)
+            if val not in (None, False, (None, None)):
+                # Maybe non-obvious, but False is the default for the fixed and
+                # tied constraints
+                args += ', {0}={1}'.format(cons, val)
+
         return "Parameter({0})".format(args)
 
     @property
@@ -350,10 +374,9 @@ class Parameter(object):
 
         if self._model is not None:
             bounds = self._model._constraints['bounds']
-            default_bounds = (self._min, self._max)
-            return bounds.get(self._name, default_bounds)
+            return bounds.get(self._name, self._bounds)
         else:
-            return (self._min, self._max)
+            return self._bounds
 
     @bounds.setter
     def bounds(self, value):
@@ -410,7 +433,8 @@ class Parameter(object):
                                  "definition")
 
     def copy(self, name=None, description=None, default=None, getter=None,
-             setter=None, fixed=False, tied=False, min=None, max=None):
+             setter=None, fixed=False, tied=False, min=None, max=None,
+             bounds=None):
         """
         Make a copy of this `Parameter`, overriding any of its core attributes
         in the process (or an exact copy).
@@ -430,7 +454,16 @@ class Parameter(object):
 
         for key, value in six.iteritems(kwargs):
             if value is None:
-                kwargs[key] = getattr(self, '_' + key)
+                # Annoying special cases for min/max where are just aliases for
+                # the components of bounds
+                if key in ('min', 'max'):
+                    continue
+                else:
+                    if hasattr(self, key):
+                        value = getattr(self, key)
+                    elif hasattr(self, '_' + key):
+                        value = getattr(self, '_' + key)
+                kwargs[key] = value
 
         return self.__class__(**kwargs)
 

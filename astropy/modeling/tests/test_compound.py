@@ -13,6 +13,7 @@ from numpy.testing.utils import (assert_allclose, assert_array_equal,
 from ...tests.helper import pytest
 
 from ..core import Model, ModelDefinitionError
+from ..parameters import Parameter
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                       Gaussian2D, Polynomial1D, Polynomial2D,
                       AffineTransformation2D,
@@ -714,3 +715,77 @@ def test_invalid_operands():
 
     with pytest.raises(ModelDefinitionError):
         Rotation2D(90) + Gaussian1D(1, 0, 0.1)
+
+
+class _ConstraintsTestA(Model):
+    stddev = Parameter(default=0, min=0, max=0.3)
+    mean = Parameter(default=0, fixed=True)
+
+    @staticmethod
+    def evaluate(stddev, mean):
+        return stddev, mean
+
+
+class _ConstraintsTestB(Model):
+    mean = Parameter(default=0, fixed=True)
+
+    @staticmethod
+    def evaluate(mean):
+        return mean
+
+
+@pytest.mark.parametrize('model',
+        [Gaussian1D(bounds={'stddev': (0, 0.3)}, fixed={'mean': True}) +
+            Gaussian1D(fixed={'mean': True}),
+         (_ConstraintsTestA + _ConstraintsTestB)()])
+def test_inherit_constraints(model):
+    """
+    Various tests for copying of constraint values between compound models and
+    their members.
+
+    There are two versions of this test: One where a compound model is created
+    from two model instances, and another where a compound model is created
+    from two model classes that have default constraints set on some of their
+    parameters.
+
+    Regression test for https://github.com/astropy/astropy/issues/3481
+    """
+
+    # Lots of assertions in this test as there are multiple interfaces to
+    # parameter constraints
+
+    assert 'stddev_0' in model.bounds
+    assert model.bounds['stddev_0'] == (0, 0.3)
+    assert model.stddev_0.bounds == (0, 0.3)
+    assert 'mean_0' in model.fixed
+    assert model.fixed['mean_0'] is True
+    assert model.mean_0.fixed is True
+    assert 'mean_1' in model.fixed
+    assert model.fixed['mean_1'] is True
+    assert model.mean_1.fixed is True
+
+    # Great, all the constraints were inherited properly
+    # Now what about if we update them through the sub-models?
+    model[0].stddev.bounds = (0, 0.4)
+    assert model.bounds['stddev_0'] == (0, 0.4)
+    assert model.stddev_0.bounds == (0, 0.4)
+    assert model[0].stddev.bounds == (0, 0.4)
+    assert model[0].bounds['stddev'] == (0, 0.4)
+
+    model[0].bounds['stddev'] = (0.1, 0.5)
+    assert model.bounds['stddev_0'] == (0.1, 0.5)
+    assert model.stddev_0.bounds == (0.1, 0.5)
+    assert model[0].stddev.bounds == (0.1, 0.5)
+    assert model[0].bounds['stddev'] == (0.1, 0.5)
+
+    model[1].mean.fixed = False
+    assert model.fixed['mean_1'] is False
+    assert model.mean_1.fixed is False
+    assert model[1].mean.fixed is False
+    assert model[1].fixed['mean'] is False
+
+    model[1].fixed['mean'] = True
+    assert model.fixed['mean_1'] is True
+    assert model.mean_1.fixed is True
+    assert model[1].mean.fixed is True
+    assert model[1].fixed['mean'] is True

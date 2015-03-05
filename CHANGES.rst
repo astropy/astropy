@@ -204,6 +204,11 @@ Bug fixes
 
 - ``astropy.modeling``
 
+  - Fixed propagation of parameter constraints ('fixed', 'bounds', 'tied')
+    between compound models and their components.  There is may still be some
+    difficulty defining 'tied' constraints properly for use with compound
+    models, however. [#3481]
+
 - ``astropy.nddata``
 
   - Restore several properties to the compatibility class ``NDDataArray`` that
