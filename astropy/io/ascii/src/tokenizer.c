@@ -100,12 +100,12 @@ void resize_comments(tokenizer_t *self)
 {
     // Double the size of the comments string
     self->comment_lines = (char *) realloc(self->comment_lines,
-                                           2 * self->comment_lines_len);
+                                           self->comment_pos + 1);
     // Set the second (newly allocated) half of the column string to all zeros
     memset(self->comment_lines + self->comment_lines_len * sizeof(char), 0,
-           self->comment_lines_len * sizeof(char));
+           (self->comment_pos + 1 - self->comment_lines_len) * sizeof(char));
 
-    self->comment_lines_len *= 2;
+    self->comment_lines_len = self->comment_pos + 1;
 }
 
 /*
@@ -130,7 +130,7 @@ static inline void push(tokenizer_t *self, char c, int col)
 */
 static inline void push_comment(tokenizer_t *self, char c)
 {
-    if (self->comment_pos == self->comment_lines_len)
+    if (self->comment_pos >= self->comment_lines_len)
     {
         resize_comments(self);
     }
@@ -453,6 +453,8 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                                 ++self->source_pos;
                             }
 
+                        if (col >= self->num_cols)
+                            RETURN(TOO_MANY_COLS);
                         END_FIELD(); // whitespace counts as a field
                     }
                 }
