@@ -135,139 +135,50 @@ Other Changes and Additions
 1.0.1 (2015-03-06)
 ------------------
 
-New Features
-^^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
 Bug Fixes
 ^^^^^^^^^
 
-- ``astropy.config``
-
 - ``astropy.constants``
 
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
+  - Ensure constants can be turned into ``Quantity`` safely. [#3537, #3538]
 
 - ``astropy.io.ascii``
 
   - Fix a segfault in the fast C parser when one of the column headers
     is empty [#3545].
 
-- ``astropy.io.fits``
+  - Fixed support for reading inf and nan values with the fast reader in
+    Windows.  Also fixed in the case of using ``use_fast_converter=True``
+    with the fast reader. [#3525]
 
-- ``astropy.io.misc``
+  - Fixed use of mmap in the fast reader on Windows. [#3525]
 
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
+  - Fixed issue where commented header would treat comments defining the table
+    (i.e. column headers) as purely information comments, leading to problems
+    when trying to round-trip the table. [#3562]
 
 - ``astropy.modeling``
 
+  - Fixed propagation of parameter constraints ('fixed', 'bounds', 'tied')
+    between compound models and their components.  There is may still be some
+    difficulty defining 'tied' constraints properly for use with compound
+    models, however. [#3481]
+
 - ``astropy.nddata``
 
-- ``astropy.stats``
-
-- ``astropy.table``
+  - Restore several properties to the compatibility class ``NDDataArray`` that
+    were inadvertently omitted [#3466].
 
 - ``astropy.time``
 
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
+  - Time objects now always evalutate to ``True``, except when empty. [#3530]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Updated bundled astropy-helpers version to v1.0.1 to address installation
   issues with some packages that depend on Astropy. [#3541]
+
 
 1.0.1 (unreleased)
 ------------------
@@ -283,8 +194,6 @@ Bug fixes
 
 - ``astropy.constants``
 
-  - Ensure constants can be turned into ``Quantity`` safely. [#3537, #3538]
-  
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
@@ -292,16 +201,6 @@ Bug fixes
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
-
-  - Fixed support for reading inf and nan values with the fast reader in
-    Windows.  Also fixed in the case of using ``use_fast_converter=True``
-    with the fast reader. [#3525]
-
-  - Fixed use of mmap in the fast reader on Windows. [#3525]
-
-  - Fixed issue where commented header would treat comments defining the table
-    (i.e. column headers) as purely information comments, leading to problems
-    when trying to round-trip the table. [#3562]
 
 - ``astropy.io.fits``
 
@@ -313,15 +212,7 @@ Bug fixes
 
 - ``astropy.modeling``
 
-  - Fixed propagation of parameter constraints ('fixed', 'bounds', 'tied')
-    between compound models and their components.  There is may still be some
-    difficulty defining 'tied' constraints properly for use with compound
-    models, however. [#3481]
-
 - ``astropy.nddata``
-
-  - Restore several properties to the compatibility class ``NDDataArray`` that
-    were inadvertently omitted [#3466].
 
 - ``astropy.stats``
 
@@ -330,8 +221,6 @@ Bug fixes
 - ``astropy.tests``
 
 - ``astropy.time``
-
-  - Time objects now always evalutate to ``True``, except when empty. [#3530]
 
 - ``astropy.units``
 
@@ -361,12 +250,6 @@ Bug Fixes
 ^^^^^^^^^
 
 - ``astropy.io.ascii``
-
-  - Fixed support for reading inf and nan values with the fast reader in
-    Windows.  Also fixed in the case of using ``use_fast_converter=True``
-    with the fast reader. [#3525]
-
-  - Fixed use of mmap in the fast reader on Windows. [#3525]
 
 
 1.0 (2015-02-18)
