@@ -105,9 +105,9 @@ class EulerAngleRotation(Model):
                               order=self.order[::-1])
 
     def evaluate(self, alpha, delta, phi, theta, psi):
-        input = self.directional_cosine(alpha, delta)
+        inp = self.directional_cosine(alpha, delta)
         matrix = self._create_matrix(phi, theta, psi, self.order)
-        result = np.dot(matrix, input)
+        result = np.dot(matrix, inp)
         return (np.rad2deg(np.arctan2(result[1], result[0])),
                 np.rad2deg(np.arcsin(result[2])))
 
@@ -118,16 +118,20 @@ class _SkyRotation(Model):
 
     Parameters
     ----------
-    phi, theta, psi : float
-        Euler angles in deg
+    lon : float
+        Celestial longitude of the fiducial point.
+    lat : float
+        Celestial latitude of the fiducial point.
+    lon_pole : float
+        Longitude of the celestial pole in the native system.
     """
 
-    phi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    theta = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
-    psi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    lon = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    lat = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    lon_pole = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
 
     @staticmethod
-    def _rotate_zxz(phi_i, theta_i, phi, theta, psi):
+    def _rotate_zxz(phi_i, theta_i, lon, lat, lon_pole):
         """
         Defines a ZXZ rotation from initial coordinates phi_i, theta_i.
 
@@ -136,17 +140,17 @@ class _SkyRotation(Model):
 
         cos_theta_i = np.cos(theta_i)
         sin_theta_i = np.sin(theta_i)
-        cos_theta = np.cos(theta)
-        sin_theta = np.sin(theta)
-        delta = phi_i - psi
+        cos_lat = np.cos(lat)
+        sin_lat = np.sin(lat)
+        delta = phi_i - lon_pole
         cos_delta = np.cos(delta)
 
-        phi_f = phi + np.arctan2(-cos_theta_i * np.sin(delta),
-                                 sin_theta_i * cos_theta -
-                                 cos_theta_i * sin_theta * cos_delta)
+        phi_f = lon + np.arctan2(-cos_theta_i * np.sin(delta),
+                                 sin_theta_i * cos_lat -
+                                 cos_theta_i * sin_lat * cos_delta)
 
-        theta_f = np.arcsin(sin_theta_i * sin_theta +
-                            cos_theta_i * cos_theta * cos_delta)
+        theta_f = np.arcsin(sin_theta_i * sin_lat +
+                            cos_theta_i * cos_lat * cos_delta)
 
         return phi_f, theta_f
 
@@ -159,8 +163,12 @@ class RotateNative2Celestial(_SkyRotation):
 
     Parameters
     ----------
-    phi, theta, psi : float
-        Euler angles in deg
+    lon : float
+        Celestial longitude of the fiducial point.
+    lat : float
+        Celestial latitude of the fiducial point.
+    lon_pole : float
+        Longitude of the celestial pole in the native system.
     """
 
     inputs = ('phi_N', 'theta_N')
@@ -168,10 +176,10 @@ class RotateNative2Celestial(_SkyRotation):
 
     @property
     def inverse(self):
-        return RotateCelestial2Native(self.phi, self.theta, self.psi)
+        return RotateCelestial2Native(self.lon, self.lat, self.lon_pole)
 
     @classmethod
-    def evaluate(cls, phi_N, theta_N, phi, theta, psi):
+    def evaluate(cls, phi_N, theta_N, lon, lat, lon_pole):
         """
         Evaluate ZXZ rotation into celestial coordinates.
         """
@@ -179,7 +187,7 @@ class RotateNative2Celestial(_SkyRotation):
         phi_N = np.deg2rad(phi_N)
         theta_N = np.deg2rad(theta_N)
 
-        alpha_C, delta_C = cls._rotate_zxz(phi_N, theta_N, phi, theta, psi)
+        alpha_C, delta_C = cls._rotate_zxz(phi_N, theta_N, lon, lat, lon_pole)
 
         alpha_C = np.rad2deg(alpha_C)
         delta_C = np.rad2deg(delta_C)
@@ -201,8 +209,12 @@ class RotateCelestial2Native(_SkyRotation):
 
     Parameters
     ----------
-    phi, theta, psi : float
-        Euler angles in deg
+    lon : float
+        Celestial longitude of the fiducial point.
+    lat : float
+        Celestial latitude of the fiducial point.
+    lon_pole : float
+        Longitude of the celestial pole in the native system.
     """
 
     inputs = ('alpha_C', 'delta_C')
@@ -210,10 +222,10 @@ class RotateCelestial2Native(_SkyRotation):
 
     @property
     def inverse(self):
-        return RotateNative2Celestial(self.phi, self.theta, self.psi)
+        return RotateNative2Celestial(self.lon, self.lat, self.lon_pole)
 
     @classmethod
-    def evaluate(cls, alpha_C, delta_C, phi, theta, psi):
+    def evaluate(cls, alpha_C, delta_C, lon, lat, lon_pole):
         """
         Evaluate ZXZ rotation into native coordinates.
 
@@ -224,7 +236,7 @@ class RotateCelestial2Native(_SkyRotation):
         alpha_C = np.deg2rad(alpha_C)
         delta_C = np.deg2rad(delta_C)
 
-        phi_N, theta_N = cls._rotate_zxz(alpha_C, delta_C, psi, theta, phi)
+        phi_N, theta_N = cls._rotate_zxz(alpha_C, delta_C, lon_pole, lat, lon)
 
         phi_N = np.rad2deg(phi_N)
         theta_N = np.rad2deg(theta_N)
