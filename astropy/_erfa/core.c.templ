@@ -48,6 +48,8 @@ static PyObject *Py_{{ func.pyname }}(PyObject *self, PyObject *args, PyObject *
     char **dataptrarray = NpyIter_GetDataPtrArray(it);
     NpyIter_IterNextFunc *iternext = NpyIter_GetIterNext(it, NULL);
 
+    Py_BEGIN_ALLOW_THREADS
+
     do {
         {%- for arg in func.args_by_inout('in|inout|out') %}
         _{{ arg.name }} = (({{ arg.ctype }} *)(dataptrarray[{{ func.args.index(arg) }}])){%- if arg.ctype_ptr[-1] != '*' %}[0]{%- endif %};
@@ -65,6 +67,8 @@ static PyObject *Py_{{ func.pyname }}(PyObject *self, PyObject *args, PyObject *
         }
         {%- endfor %}
     } while (iternext(it));
+
+    Py_END_ALLOW_THREADS
 
     {%- if func.args_by_inout('stat')|length > 0 %}
     if (stat_ok) {
