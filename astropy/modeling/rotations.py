@@ -43,7 +43,7 @@ class EulerAngleRotation(Model):
     ----------
     phi, theta, psi : float
         "proper" Euler angles in deg
-    order : str
+    axes_order : str
         A 3 character string, a combination of 'x', 'y' and 'z',
         where each character denotes an axis in 3D space.
     """
@@ -55,20 +55,22 @@ class EulerAngleRotation(Model):
     theta = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
     psi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
 
-    def __init__(self, phi, theta, psi, order):
-        if len(order) != 3:
+    def __init__(self, phi, theta, psi, axes_order):
+        self.axes = ['x', 'y', 'z']
+        if len(axes_order) != 3:
             raise TypeError(
-                "Expected order to be a character sequence of length 3, got {0}".format(order))
-        for i in order:
-            if i not in ['x', 'y', 'z']:
-                raise ValueError("Expected order to be a combination of characters"
-                                 "'x', 'y' and 'z', got {0}".format(order))
-        self.order = order
+                "Expected axes_order to be a character sequence of length 3,"
+                "got {0}".format(axes_order))
+        unrecognized = set(axes_order).difference(self.axes)
+        if unrecognized:
+            raise ValueError("Unrecognized axis label {0}; "
+                             "should be one of {1} ".format(unrecognized, self.axes))
+        self.axes_order = axes_order
         super(EulerAngleRotation, self).__init__(phi=phi, theta=theta, psi=psi)
 
-    def _create_matrix(self, phi, theta, psi, order):
+    def _create_matrix(self, phi, theta, psi, axes_order):
         matrices = []
-        for angle, axis in zip([phi, theta, psi], order):
+        for angle, axis in zip([phi, theta, psi], axes_order):
             matrix = np.zeros((3, 3), dtype=np.float)
             mat = self._rotation_matrix_from_angle(angle)
             if axis == 'x':
@@ -82,8 +84,9 @@ class EulerAngleRotation(Model):
                 matrix[2, 2] = 1
                 matrix[:2, :2] = mat
             else:
-                raise ValueError("Expected order to be a combination of characters"
-                                 "'x', 'y' and 'z', got {0}".format(order))
+                raise ValueError("Expected axes_order to be a combination of characters"
+                                 "'x', 'y' and 'z', got {0}".format(
+                                     set(axes_order).difference(self.axes)))
             matrices.append(matrix)
         return np.dot(matrices[2], np.dot(matrices[1], matrices[0]))
 
@@ -110,7 +113,7 @@ class EulerAngleRotation(Model):
 
     def evaluate(self, alpha, delta, phi, theta, psi):
         inp = self.directional_cosine(alpha, delta)
-        matrix = self._create_matrix(phi, theta, psi, self.order)
+        matrix = self._create_matrix(phi, theta, psi, self.axes_order)
         result = np.dot(matrix, inp)
         return (np.rad2deg(np.arctan2(result[1], result[0])),
                 np.rad2deg(np.arcsin(result[2])))

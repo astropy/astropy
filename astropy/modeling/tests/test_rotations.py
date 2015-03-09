@@ -9,20 +9,20 @@ from ...tests.helper import pytest
 
 
 def test_RotateNative2Celestial():
-    phi, theta, psi = 42, 43, 44
-    model = models.RotateNative2Celestial(phi, theta, psi)
-    model.phi = model.phi + 1
-    model.psi = model.psi + 1
-    model.theta = model.theta + 1
-    assert model.phi == phi + 1
-    assert model.theta == theta + 1
-    assert model.psi == psi + 1
+    lon, lat, lon_pole = 42, 43, 44
+    model = models.RotateNative2Celestial(lon, lat, lon_pole)
+    model.lon = model.lon + 1
+    model.lon_pole = model.lon_pole + 1
+    model.lat = model.lat + 1
+    assert model.lon == lon + 1
+    assert model.lat == lat + 1
+    assert model.lon_pole == lon_pole + 1
 
 
 def test_native_celestial_native():
-    phi, theta, psi = 42, 43, 44
-    n2c = models.RotateNative2Celestial(phi, theta, psi)
-    c2n = models.RotateCelestial2Native(phi, theta, psi)
+    lon, lat, lon_pole = 42, 43, 44
+    n2c = models.RotateNative2Celestial(lon, lat, lon_pole)
+    c2n = models.RotateCelestial2Native(lon, lat, lon_pole)
 
     nnphi, ntheta = 33, 44
     calpha, cdelta = n2c(nnphi, ntheta)
@@ -34,7 +34,7 @@ def test_native_celestial_native():
     assert c2n.inverse(nnphi, ntheta) == n2c(nnphi, ntheta)
 
 
-def test_native_celestial_theta90():
+def test_native_celestial_lat90():
     n2c = models.RotateNative2Celestial(1, 90, 0)
     alpha, delta = n2c(1, 1)
     utils.assert_allclose( delta, 1)
