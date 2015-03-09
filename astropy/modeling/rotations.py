@@ -98,6 +98,12 @@ class EulerAngleRotation(Model):
                   np.sin(np.deg2rad(delta)))
         return np.array([result]).T
 
+    def inverse(self):
+        return self.__class__(phi=-self.psi,
+                              theta=-self.theta,
+                              psi=-self.phi,
+                              order=self.order[::-1])
+
     def evaluate(self, alpha, delta, phi, theta, psi):
         input = self.directional_cosine(alpha, delta)
         matrix = self._create_matrix(phi, theta, psi, self.order)
@@ -187,7 +193,7 @@ class RotateNative2Celestial(_SkyRotation):
         return alpha_C, delta_C
 
 
-class RotateCelestial2Native(EulerAngleRotation):
+class RotateCelestial2Native(_SkyRotation):
     """
     Transformation from Celestial to Native to Spherical Coordinates.
 
