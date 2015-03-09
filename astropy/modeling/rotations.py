@@ -27,10 +27,86 @@ from .core import Model
 from .parameters import Parameter
 
 
-__all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D']
+__all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
+           'EulerAngleRotation']
 
 
 class EulerAngleRotation(Model):
+    """
+    Implements Euler angle rotation.
+
+    Parameters
+    ----------
+    phi, theta, psi : float
+        Euler angles in deg
+    order : str
+        A 3 character string, a combination of 'x', 'y' and 'z',
+        where each character denotes an axis in 3D space.
+    """
+
+    inputs = ('alpha', 'delta')
+    outputs = ('alpha', 'delta')
+
+    phi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    theta = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    psi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+
+    def __init__(self, phi, theta, psi, order):
+        if len(order) >3 or len(order) < 2:
+            raise TypeError(
+                "Expected order to be a character sequence of 2 or 3, got {0}".format(order))
+        for i in order:
+            if i not in ['x', 'y', 'z']:
+                raise ValueError("Expected order to be a combination of characters"
+                                 "'x', 'y' and 'z', got {0}".format(order))
+        self.order = order
+        super(EulerAngleRotation, self).__init__(phi=phi, theta=theta, psi=psi)
+
+    def _create_matrix(self, phi, theta, psi, order):
+        matrices = []
+        for angle, axis in zip([phi, theta, psi], order):
+            matrix = np.zeros((3, 3), dtype=np.float)
+            mat = self._rotation_matrix_from_angle(angle)
+            if axis == 'x':
+                matrix[0, 0] = 1
+                matrix[1:, 1:] = mat
+            elif axis == 'y':
+                matrix[1, 1] = 1
+                matrix[0] = mat[0]
+                matrix[2] = mat[1]
+            elif axis == 'z':
+                matrix[2, 2] = 1
+                matrix[:2, :2] = mat
+            else:
+                raise ValueError("Expected order to be a combination of characters"
+                                 "'x', 'y' and 'z', got {0}".format(order))
+            matrices.append(matrix)
+        return np.dot(matrices[2], np.dot(matrices[1], matrices[0]))
+
+
+    def _rotation_matrix_from_angle(self, angle):
+        """
+        Clockwise rotation matrix.
+        """
+        return np.array([[math.cos(angle), math.sin(angle)],
+                         [-math.sin(angle), math.cos(angle)]])
+
+    @staticmethod
+    def directional_cosine(alpha, delta):
+        result = (np.cos(np.deg2rad(alpha)) * np.cos(np.deg2rad(delta)),
+                  np.cos(np.deg2rad(delta)) * np.sin(np.deg2rad(alpha)),
+                  np.sin(np.deg2rad(delta)))
+        return np.array([result]).T
+
+    def evaluate(self, alpha, delta, phi, theta, psi):
+        input = self.directional_cosine(alpha, delta)
+        matrix = self._create_matrix(phi, theta, psi, self.order)
+        result = np.dot(matrix, input)
+        return (np.rad2deg(np.arctan2(result[1], result[0])),
+                np.rad2deg(np.arcsin(result[2])))
+
+
+class _SkyRotation(Model):
     """
     Base class for Euler angle rotations.
 
@@ -69,7 +145,7 @@ class EulerAngleRotation(Model):
         return phi_f, theta_f
 
 
-class RotateNative2Celestial(EulerAngleRotation):
+class RotateNative2Celestial(_SkyRotation):
     """
     Transformation from Native to Celestial Spherical Coordinates.
 
