@@ -33,12 +33,16 @@ __all__ = ['RotateCelestial2Native', 'RotateNative2Celestial', 'Rotation2D',
 
 class EulerAngleRotation(Model):
     """
-    Implements Euler angle rotation.
+    Implements Euler angle intrinsic rotations.
+
+    Rotates one coordinate system into another (fixed) coordinate system.
+    All coordinate systems are right-handed. All intrinsic rotations are
+    performed clockwise.
 
     Parameters
     ----------
     phi, theta, psi : float
-        Euler angles in deg
+        "proper" Euler angles in deg
     order : str
         A 3 character string, a combination of 'x', 'y' and 'z',
         where each character denotes an axis in 3D space.
@@ -52,9 +56,9 @@ class EulerAngleRotation(Model):
     psi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, phi, theta, psi, order):
-        if len(order) >3 or len(order) < 2:
+        if len(order) != 3:
             raise TypeError(
-                "Expected order to be a character sequence of 2 or 3, got {0}".format(order))
+                "Expected order to be a character sequence of length 3, got {0}".format(order))
         for i in order:
             if i not in ['x', 'y', 'z']:
                 raise ValueError("Expected order to be a combination of characters"
@@ -114,7 +118,7 @@ class EulerAngleRotation(Model):
 
 class _SkyRotation(Model):
     """
-    Base class for Euler angle rotations.
+    Base class for FITS WCS sky rotations.
 
     Parameters
     ----------
@@ -157,9 +161,7 @@ class _SkyRotation(Model):
 
 class RotateNative2Celestial(_SkyRotation):
     """
-    Transformation from Native to Celestial Spherical Coordinates.
-
-    Defines a ZXZ rotation.
+    Transform from Native to Celestial Spherical Coordinates.
 
     Parameters
     ----------
@@ -181,7 +183,7 @@ class RotateNative2Celestial(_SkyRotation):
     @classmethod
     def evaluate(cls, phi_N, theta_N, lon, lat, lon_pole):
         """
-        Evaluate ZXZ rotation into celestial coordinates.
+        Rotate native spherical coordinates into celestial coordinates.
         """
 
         phi_N = np.deg2rad(phi_N)
@@ -203,9 +205,7 @@ class RotateNative2Celestial(_SkyRotation):
 
 class RotateCelestial2Native(_SkyRotation):
     """
-    Transformation from Celestial to Native to Spherical Coordinates.
-
-    Defines a ZXZ rotation.
+    Transform from Celestial to Native to Spherical Coordinates.
 
     Parameters
     ----------
@@ -227,10 +227,9 @@ class RotateCelestial2Native(_SkyRotation):
     @classmethod
     def evaluate(cls, alpha_C, delta_C, lon, lat, lon_pole):
         """
-        Evaluate ZXZ rotation into native coordinates.
+        Rotate celestial coordinates into native spherical coordinates.
 
-        This is like RotateNative2Celestial.evaluate except phi and psi are
-        swapped in ZXZ rotation.
+        This is the inverse transformation of RotateNative2Celestial.
         """
 
         alpha_C = np.deg2rad(alpha_C)
