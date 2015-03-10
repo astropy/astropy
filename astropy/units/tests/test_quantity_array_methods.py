@@ -563,7 +563,11 @@ class TestRecArray(object):
         qra = u.Quantity(self.ra, u.m)
         assert np.all(qra[:2].value == self.ra[:2])
 
+    # Pending resolution of https://github.com/numpy/numpy/issues/4855
+    # have to use explicity pytest.xfail, since this causes segmentation fault
     def test_equality(self):
         qra = u.Quantity(self.ra, u.m)
         qra[1] = qra[2]
+        if not NUMPY_LT_1_10:
+            pytest.xfail()
         assert qra[1] == qra[2]

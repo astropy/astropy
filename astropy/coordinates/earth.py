@@ -290,6 +290,21 @@ class EarthLocation(u.Quantity):
         else:
             return super(EarthLocation, self).__len__()
 
+    # Explicitly do __eq__, __ne__ to work around a bug in numpy 1.10-dev,
+    # where comparing two Quantities holding record arrays causes a segfault.
+    # See https://github.com/numpy/numpy/issues/4855
+    def __eq__(self, other):
+        if isinstance(other, EarthLocation):
+            return self.value == other.to(self.unit).value
+        else:
+            return False
+
+    def __ne__(self, other):
+        if isinstance(other, EarthLocation):
+            return self.value != other.to(self.unit).value
+        else:
+            return True
+
     def to(self, unit, equivalencies=[]):
         array_view = self.view(self._array_dtype, u.Quantity)
         converted = array_view.to(unit, equivalencies)
