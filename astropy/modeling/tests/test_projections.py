@@ -17,7 +17,7 @@ from ...tests.helper import pytest
 
 
 def test_Projection_properties():
-    projection = projections.Sky2Pix_CAR()
+    projection = projections.Sky2Pix_PlateCarree()
     assert projection.n_inputs == 2
     assert projection.n_outputs == 2
 
@@ -26,12 +26,12 @@ PIX_COORDINATES = [-10, 30]
 
 
 pars = [
-    ('TAN', projections.Sky2Pix_TAN, {}),
-    ('STG', projections.Sky2Pix_STG, {}),
-    ('SIN', projections.Sky2Pix_SIN, {}),
-    ('CEA', projections.Sky2Pix_CEA, {}),
-    ('CAR', projections.Sky2Pix_CAR, {}),
-    ('MER', projections.Sky2Pix_MER, {})
+    ('TAN', projections.Sky2Pix_Gnomonic, {}),
+    ('STG', projections.Sky2Pix_Stereographic, {}),
+    ('SIN', projections.Sky2Pix_SlantOrthographic, {}),
+    ('CEA', projections.Sky2Pix_CylindricalEqualArea, {}),
+    ('CAR', projections.Sky2Pix_PlateCarree, {}),
+    ('MER', projections.Sky2Pix_Mercator, {})
 ]
 
 
@@ -55,12 +55,12 @@ def test_Sky2Pix(ID, model, args):
     utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
 pars = [
-    ('TAN', projections.Pix2Sky_TAN, {}),
-    ('STG', projections.Pix2Sky_STG, {}),
-    ('SIN', projections.Pix2Sky_SIN, {}),
-    ('CEA', projections.Pix2Sky_CEA, {}),
-    ('CAR', projections.Pix2Sky_CAR, {}),
-    ('MER', projections.Pix2Sky_MER, {}),
+    ('TAN', projections.Pix2Sky_Gnomonic, {}),
+    ('STG', projections.Pix2Sky_Stereographic, {}),
+    ('SIN', projections.Pix2Sky_SlantOrthographic, {}),
+    ('CEA', projections.Pix2Sky_CylindricalEqualArea, {}),
+    ('CAR', projections.Pix2Sky_PlateCarree, {}),
+    ('MER', projections.Pix2Sky_Mercator, {}),
 ]
 
 
@@ -85,8 +85,8 @@ def test_Pix2Sky(ID, model, args):
     utils.assert_almost_equal(np.asarray(theta), wcs_theta)
 
 
-class TestAZP(object):
-    """Test AZP projection"""
+class TestZenithalPerspective(object):
+    """Test Zenithal Perspective projection"""
 
     def setup_class(self):
         ID = 'AZP'
@@ -99,8 +99,7 @@ class TestAZP(object):
         self.wazp.wcs.crval = np.array([0., 0.])
         self.wazp.wcs.cdelt = np.array([1., 1.])
         self.pv_kw = [kw[2] for kw in self.wazp.wcs.get_pv()]
-        proj = projections.__getattribute__("Pix2Sky_{0}".format(ID))
-        self.azp = proj(*self.pv_kw)
+        self.azp = projections.Pix2Sky_ZenithalPerspective(*self.pv_kw)
 
     def test_AZP_p2s(self):
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)
@@ -118,8 +117,8 @@ class TestAZP(object):
         utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
 
-class TestCYP(object):
-    """Test CYP projection"""
+class TestCylindricalPerspective(object):
+    """Test cylindrical perspective projection"""
 
     def setup_class(self):
         ID = "CYP"
@@ -132,8 +131,7 @@ class TestCYP(object):
         self.wazp.wcs.crval = np.array([0., 0.])
         self.wazp.wcs.cdelt = np.array([1., 1.])
         self.pv_kw = [kw[2] for kw in self.wazp.wcs.get_pv()]
-        proj = projections.__getattribute__("Pix2Sky_{0}".format(ID))
-        self.azp = proj(*self.pv_kw)
+        self.azp = projections.Pix2Sky_CylindricalPerspective(*self.pv_kw)
 
     def test_CYP_p2s(self):
         wcslibout = self.wazp.wcs.p2s([[-10, 30]], 1)

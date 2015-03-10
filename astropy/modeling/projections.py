@@ -24,6 +24,7 @@ from .core import Model
 from .parameters import Parameter, InputParameterError
 
 from ..utils.compat import ignored
+from ..utils.decorators import deprecated
 
 
 projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
@@ -32,12 +33,23 @@ projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
 
 __all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
            'Zenithal', 'Cylindrical',
+           'AffineTransformation2D',
+
+           'Pix2Sky_ZenithalPerspective', 'Sky2Pix_ZenithalPerspective',
+           'Pix2Sky_Gnomonic', 'Sky2Pix_Gnomonic',
+           'Pix2Sky_Stereographic', 'Sky2Pix_Stereographic',
+           'Pix2Sky_SlantOrthographic', 'Sky2Pix_SlantOrthographic',
+           'Pix2Sky_CylindricalPerspective', 'Sky2Pix_CylindricalPerspective',
+           'Pix2Sky_CylindricalEqualArea', 'Sky2Pix_CylindricalEqualArea',
+           'Pix2Sky_PlateCarree', 'Sky2Pix_PlateCarree',
+           'Pix2Sky_Mercator', 'Sky2Pix_Mercator',
+
+           # The following were @deprecated in 1.1
            'Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
            'Pix2Sky_CEA', 'Sky2Pix_CEA', 'Pix2Sky_CYP', 'Sky2Pix_CYP',
            'Pix2Sky_MER', 'Sky2Pix_MER',
            'Pix2Sky_SIN', 'Sky2Pix_SIN', 'Pix2Sky_STG', 'Sky2Pix_STG',
-           'Pix2Sky_TAN', 'Sky2Pix_TAN',
-           'AffineTransformation2D']
+           'Pix2Sky_TAN', 'Sky2Pix_TAN']
 
 
 class Projection(Model):
@@ -88,9 +100,11 @@ class Zenithal(Projection):
     """
 
 
-class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
+class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
     r"""
-    AZP : Zenithal perspective projection - pixel to sky.
+    Zenithal perspective projection - pixel to sky.
+
+    Corresponds to the ``AZP`` projection in FITS WCS.
 
     .. math::
         \phi &= \arg(-y \cos \gamma, x) \\
@@ -116,7 +130,8 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
 
     def _validate_mu(mu):
         if np.asarray(mu == -1).any():
-            raise ValueError("AZP projection is not defined for mu=-1")
+            raise ValueError(
+                "Zenithal perspective projection is not defined for mu=-1")
         return mu
 
     mu = Parameter(default=0.0, setter=_validate_mu)
@@ -126,15 +141,16 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
         self.check_mu(mu)
         # units : mu - in spherical radii, gamma - in deg
         # TODO: Support quantity objects here and in similar contexts
-        super(Pix2Sky_AZP, self).__init__(mu, gamma, **kwargs)
+        super(Pix2Sky_ZenithalPerspective, self).__init__(mu, gamma, **kwargs)
 
     def check_mu(self, val):
         if np.asarray(val == -1).any():
-            raise ValueError("AZP projection is not defined for mu=-1")
+            raise ValueError(
+                "Zenithal perspective projection is not defined for mu=-1")
 
     @property
     def inverse(self):
-        return Sky2Pix_AZP(self.mu.value, self.gamma.value)
+        return Sky2Pix_ZenithalPerspective(self.mu.value, self.gamma.value)
 
     @classmethod
     def evaluate(cls, x, y, mu, gamma):
@@ -168,9 +184,16 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
         return np.sqrt(x ** 2 + y ** 2 * (np.cos(gamma)) ** 2)
 
 
-class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
+@deprecated('1.1', alternative="Pix2Sky_ZenithalPerspective")
+class Pix2Sky_AZP(Pix2Sky_ZenithalPerspective):
+    pass
+
+
+class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
     r"""
-    AZP : Zenithal perspective projection - sky to pixel.
+    Zenithal perspective projection - sky to pixel.
+
+    Corresponds to the ``AZP`` projection in FITS WCS.
 
     .. math::
         x &= R \sin \phi \\
@@ -193,7 +216,7 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
 
     def _validate_mu(mu):
         if np.asarray(mu == -1).any():
-            raise ValueError("AZP projection is not defined for mu=-1")
+            raise ValueError("Zenithal perspective projection is not defined for mu=-1")
         return mu
 
     mu = Parameter(default=0.0, setter=_validate_mu)
@@ -201,7 +224,7 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
 
     def check_mu(self, val):
         if np.asarray(val == -1).any():
-            raise ValueError("AZP projection is not defined for mu=-1")
+            raise ValueError("Zenithal perspective projection is not defined for mu=-1")
 
     @property
     def inverse(self):
@@ -225,9 +248,16 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
                  np.cos(theta) * np.cos(phi) * np.tan(gamma)))
 
 
-class Pix2Sky_TAN(Pix2SkyProjection, Zenithal):
+@deprecated('1.1', alternative='Sky2Pix_ZenithalPerspective')
+class Sky2Pix_AZP(Sky2Pix_ZenithalPerspective):
+    pass
+
+
+class Pix2Sky_Gnomonic(Pix2SkyProjection, Zenithal):
     r"""
-    TAN : Gnomonic projection - pixel to sky.
+    Gnomonic projection - pixel to sky.
+
+    Corresponds to the ``TAN`` projection in FITS WCS.
 
     See `Zenithal` for a definition of the full transformation.
 
@@ -237,7 +267,7 @@ class Pix2Sky_TAN(Pix2SkyProjection, Zenithal):
 
     @property
     def inverse(self):
-        return Sky2Pix_TAN()
+        return Sky2Pix_Gnomonic()
 
     @classmethod
     def evaluate(cls, x, y):
@@ -252,9 +282,16 @@ class Pix2Sky_TAN(Pix2SkyProjection, Zenithal):
         return np.sqrt(x ** 2 + y ** 2)
 
 
-class Sky2Pix_TAN(Sky2PixProjection, Zenithal):
+@deprecated('1.1', alternative='Pix2Sky_Gnomonic')
+class Pix2Sky_TAN(Pix2Sky_Gnomonic):
+    pass
+
+
+class Sky2Pix_Gnomonic(Sky2PixProjection, Zenithal):
     r"""
-    TAN : Gnomonic Projection - sky to pixel.
+    Gnomonic Projection - sky to pixel.
+
+    Corresponds to the ``TAN`` projection in FITS WCS.
 
     See `Zenithal` for a definition of the full transformation.
 
@@ -264,7 +301,7 @@ class Sky2Pix_TAN(Sky2PixProjection, Zenithal):
 
     @property
     def inverse(self):
-        return Pix2Sky_TAN()
+        return Pix2Sky_Gnomonic()
 
     @classmethod
     def evaluate(cls, phi, theta):
@@ -282,9 +319,16 @@ class Sky2Pix_TAN(Sky2PixProjection, Zenithal):
         return 1 / np.tan(theta)
 
 
-class Pix2Sky_STG(Pix2SkyProjection, Zenithal):
+@deprecated('1.1', alternative='Sky2Pix_Gnomonic')
+class Sky2Pix_TAN(Sky2Pix_Gnomonic):
+    pass
+
+
+class Pix2Sky_Stereographic(Pix2SkyProjection, Zenithal):
     r"""
-    STG : Stereographic Projection - pixel to sky.
+    Stereographic Projection - pixel to sky.
+
+    Corresponds to the ``STG`` projection in FITS WCS.
 
     See `Zenithal` for a definition of the full transformation.
 
@@ -294,7 +338,7 @@ class Pix2Sky_STG(Pix2SkyProjection, Zenithal):
 
     @property
     def inverse(self):
-        return Sky2Pix_STG()
+        return Sky2Pix_Stereographic()
 
     @classmethod
     def evaluate(cls, x, y):
@@ -309,9 +353,16 @@ class Pix2Sky_STG(Pix2SkyProjection, Zenithal):
         return np.sqrt(x ** 2 + y ** 2)
 
 
-class Sky2Pix_STG(Sky2PixProjection, Zenithal):
+@deprecated('1.1', alternative='Pix2Sky_Stereographic')
+class Pix2Sky_STG(Pix2Sky_Stereographic):
+    pass
+
+
+class Sky2Pix_Stereographic(Sky2PixProjection, Zenithal):
     r"""
-    STG : Stereographic Projection - sky to pixel.
+    Stereographic Projection - sky to pixel.
+
+    Corresponds to the ``STG`` projection in FITS WCS.
 
     See `Zenithal` for a definition of the full transformation.
 
@@ -321,7 +372,7 @@ class Sky2Pix_STG(Sky2PixProjection, Zenithal):
 
     @property
     def inverse(self):
-        return Pix2Sky_STG()
+        return Pix2Sky_Stereographic()
 
     @classmethod
     def evaluate(cls, phi, theta):
@@ -339,9 +390,16 @@ class Sky2Pix_STG(Sky2PixProjection, Zenithal):
         return (cls.r0 * 2 * np.cos(theta)) / (1 + np.sin(theta))
 
 
-class Pix2Sky_SIN(Pix2SkyProjection, Zenithal):
+@deprecated('1.1', alternative='Sky2Pix_Stereographic')
+class Sky2Pix_STG(Sky2Pix_Stereographic):
+    pass
+
+
+class Pix2Sky_SlantOrthographic(Pix2SkyProjection, Zenithal):
     r"""
-    SIN : Slant orthographic projection - pixel to sky.
+    Slant orthographic projection - pixel to sky.
+
+    Corresponds to the ``SIN`` projection in FITS WCS.
 
     See `Zenithal` for a definition of the full transformation.
 
@@ -351,7 +409,7 @@ class Pix2Sky_SIN(Pix2SkyProjection, Zenithal):
 
     @property
     def inverse(self):
-        return Sky2Pix_SIN()
+        return Sky2Pix_SlantOrthographic()
 
     @classmethod
     def evaluate(cls, x, y):
@@ -366,9 +424,16 @@ class Pix2Sky_SIN(Pix2SkyProjection, Zenithal):
         return np.sqrt(x ** 2 + y ** 2)
 
 
-class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
+@deprecated('1.1', alternative='Pix2Sky_SlantOrthographic')
+class Pix2Sky_SIN(Pix2Sky_SlantOrthographic):
+    pass
+
+
+class Sky2Pix_SlantOrthographic(Sky2PixProjection, Zenithal):
     r"""
-    SIN : Slant orthographic projection - sky to pixel.
+    Slant orthographic projection - sky to pixel.
+
+    Corresponds to the ``SIN`` projection in FITS WCS.
 
     See `Zenithal` for a definition of the full transformation.
 
@@ -378,7 +443,7 @@ class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
 
     @property
     def inverse(self):
-        return Pix2Sky_SIN()
+        return Pix2Sky_SlantOrthographic()
 
     @classmethod
     def evaluate(cls, phi, theta):
@@ -395,6 +460,11 @@ class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
         return cls.r0 * np.cos(theta)
 
 
+@deprecated('1.1', alternative='Sky2Pix_SlantOrthographic')
+class Sky2Pix_SIN(Sky2Pix_SlantOrthographic):
+    pass
+
+
 class Cylindrical(Projection):
     r"""Base class for Cylindrical projections.
 
@@ -403,9 +473,11 @@ class Cylindrical(Projection):
     """
 
 
-class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
+class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
     r"""
-    CYP : Cylindrical perspective - pixel to sky.
+    Cylindrical perspective - pixel to sky.
+
+    Corresponds to the ``CYP`` projection in FITS WCS.
 
     .. math::
         \phi &= \frac{x}{\lambda} \\
@@ -447,7 +519,7 @@ class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
 
     @property
     def inverse(self):
-        return Sky2Pix_CYP(self.mu.value, self.lam.value)
+        return Sky2Pix_CylindricalPerspective(self.mu.value, self.lam.value)
 
     @classmethod
     def evaluate(cls, x, y, mu, lam):
@@ -459,9 +531,16 @@ class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
         return phi, np.rad2deg(theta)
 
 
-class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
+@deprecated('1.1', alternative='Pix2Sky_CylindricalPerspective')
+class Pix2Sky_CYP(Pix2Sky_CylindricalPerspective):
+    pass
+
+
+class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
     r"""
-    CYP : Cylindrical Perspective - sky to pixel.
+    Cylindrical Perspective - sky to pixel.
+
+    Corresponds to the ``CYP`` projection in FITS WCS.
 
     .. math::
         x &= \lambda \phi \\
@@ -497,7 +576,7 @@ class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
 
     @property
     def inverse(self):
-        return Pix2Sky_CYP(self.mu, self.lam)
+        return Pix2Sky_CylindricalPerspective(self.mu, self.lam)
 
     @classmethod
     def evaluate(cls, phi, theta, mu, lam):
@@ -508,9 +587,16 @@ class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
         return x, y
 
 
-class Pix2Sky_CEA(Pix2SkyProjection, Cylindrical):
+@deprecated('1.1', alternative='Sky2Pix_CylindricalPerspective')
+class Sky2Pix_CYP(Sky2Pix_CylindricalPerspective):
+    pass
+
+
+class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
     r"""
-    CEA : Cylindrical equal area projection - pixel to sky.
+    Cylindrical equal area projection - pixel to sky.
+
+    Corresponds to the ``CEA`` projection in FITS WCS.
 
     .. math::
         \phi &= x \\
@@ -526,7 +612,7 @@ class Pix2Sky_CEA(Pix2SkyProjection, Cylindrical):
 
     @property
     def inverse(self):
-        return Sky2Pix_CEA(self.lam)
+        return Sky2Pix_CylindricalEqualArea(self.lam)
 
     @classmethod
     def evaluate(cls, x, y, lam):
@@ -536,9 +622,16 @@ class Pix2Sky_CEA(Pix2SkyProjection, Cylindrical):
         return phi, theta
 
 
-class Sky2Pix_CEA(Sky2PixProjection, Cylindrical):
+@deprecated('1.1', alternative='Pix2Sky_CylindricalEqualArea')
+class Pix2Sky_CEA(Pix2Sky_CylindricalEqualArea):
+    pass
+
+
+class Sky2Pix_CylindricalEqualArea(Sky2PixProjection, Cylindrical):
     r"""
-    CEA: Cylindrical equal area projection - sky to pixel.
+    Cylindrical equal area projection - sky to pixel.
+
+    Corresponds to the ``CEA`` projection in FITS WCS.
 
     .. math::
         x &= \phi \\
@@ -554,7 +647,7 @@ class Sky2Pix_CEA(Sky2PixProjection, Cylindrical):
 
     @property
     def inverse(self):
-        return Pix2Sky_CEA(self.lam)
+        return Pix2Sky_CylindricalEqualArea(self.lam)
 
     @classmethod
     def evaluate(cls, phi, theta, lam):
@@ -565,9 +658,16 @@ class Sky2Pix_CEA(Sky2PixProjection, Cylindrical):
         return x, y
 
 
-class Pix2Sky_CAR(Pix2SkyProjection, Cylindrical):
+@deprecated('1.1', alternative='Sky2Pix_CylindricalEqualArea')
+class Sky2Pix_CEA(Sky2Pix_CylindricalEqualArea):
+    pass
+
+
+class Pix2Sky_PlateCarree(Pix2SkyProjection, Cylindrical):
     r"""
-    CAR: Plate carrée projection - pixel to sky.
+    Plate carrée projection - pixel to sky.
+
+    Corresponds to the ``CAR`` projection in FITS WCS.
 
     .. math::
         \phi &= x \\
@@ -576,7 +676,7 @@ class Pix2Sky_CAR(Pix2SkyProjection, Cylindrical):
 
     @property
     def inverse(self):
-        return Sky2Pix_CAR()
+        return Sky2Pix_PlateCarree()
 
     @staticmethod
     def evaluate(x, y):
@@ -587,9 +687,16 @@ class Pix2Sky_CAR(Pix2SkyProjection, Cylindrical):
         return phi, theta
 
 
-class Sky2Pix_CAR(Sky2PixProjection, Cylindrical):
+@deprecated('1.1', alternative='Pix2Sky_PlateCarree')
+class Pix2Sky_CAR(Pix2Sky_PlateCarree):
+    pass
+
+
+class Sky2Pix_PlateCarree(Sky2PixProjection, Cylindrical):
     r"""
-    CAR: Plate carrée projection - sky to pixel.
+    Plate carrée projection - sky to pixel.
+
+    Corresponds to the ``CAR`` projection in FITS WCS.
 
     .. math::
         x &= \phi \\
@@ -598,7 +705,7 @@ class Sky2Pix_CAR(Sky2PixProjection, Cylindrical):
 
     @property
     def inverse(self):
-        return Pix2Sky_CAR()
+        return Pix2Sky_PlateCarree()
 
     @staticmethod
     def evaluate(phi, theta):
@@ -609,9 +716,16 @@ class Sky2Pix_CAR(Sky2PixProjection, Cylindrical):
         return x, y
 
 
-class Pix2Sky_MER(Pix2SkyProjection, Cylindrical):
+@deprecated('1.1', alternative='Sky2Pix_PlateCarree')
+class Sky2Pix_CAR(Sky2Pix_PlateCarree):
+    pass
+
+
+class Pix2Sky_Mercator(Pix2SkyProjection, Cylindrical):
     r"""
-    MER: Mercator - pixel to sky.
+    Mercator - pixel to sky.
+
+    Corresponds to the ``MER`` projection in FITS WCS.
 
     .. math::
         \phi &= x \\
@@ -620,7 +734,7 @@ class Pix2Sky_MER(Pix2SkyProjection, Cylindrical):
 
     @property
     def inverse(self):
-        return Sky2Pix_MER()
+        return Sky2Pix_Mercator()
 
     @classmethod
     def evaluate(cls, x, y):
@@ -630,9 +744,16 @@ class Pix2Sky_MER(Pix2SkyProjection, Cylindrical):
         return phi, theta
 
 
-class Sky2Pix_MER(Sky2PixProjection, Cylindrical):
+@deprecated('1.1', alternative='Pix2Sky_Mercator')
+class Pix2Sky_MER(Pix2Sky_Mercator):
+    pass
+
+
+class Sky2Pix_Mercator(Sky2PixProjection, Cylindrical):
     r"""
-    MER: Mercator - sky to pixel.
+    Mercator - sky to pixel.
+
+    Corresponds to the ``MER`` projection in FITS WCS.
 
     .. math::
         x &= \phi \\
@@ -641,7 +762,7 @@ class Sky2Pix_MER(Sky2PixProjection, Cylindrical):
 
     @property
     def inverse(self):
-        return Pix2Sky_MER()
+        return Pix2Sky_Mercator()
 
     @classmethod
     def evaluate(cls, phi, theta):
@@ -650,6 +771,11 @@ class Sky2Pix_MER(Sky2PixProjection, Cylindrical):
         y = cls.r0 * np.log(np.tan((np.pi / 2 + theta) / 2))
 
         return x, y
+
+
+@deprecated('1.1', alternative='Sky2Pix_Mercator')
+class Sky2Pix_MER(Sky2Pix_Mercator):
+    pass
 
 
 class AffineTransformation2D(Model):
