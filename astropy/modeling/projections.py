@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# -*- coding: utf-8 -*-
 
 """
 Implements projections--particularly sky projections defined in WCS Paper II
@@ -30,6 +31,7 @@ projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
 
 
 __all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
+           'Zenithal', 'Cylindrical',
            'Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
            'Pix2Sky_CEA', 'Sky2Pix_CEA', 'Pix2Sky_CYP', 'Sky2Pix_CYP',
            'Pix2Sky_MER', 'Sky2Pix_MER',
@@ -66,12 +68,39 @@ class Sky2PixProjection(Projection):
 
 
 class Zenithal(Projection):
-    """Base class for all Zenithal projections."""
+    r"""Base class for all Zenithal projections.
+
+    Zenithal (or azimuthal) projections map the sphere directly onto a
+    plane.  All zenithal projections are specified by defining the
+    radius as a function of native latitude, :math:`R_\theta`.
+
+    The pixel-to-sky transformation is defined as:
+
+    .. math::
+        \phi &= \arg(-y, x) \\
+        R_\theta &= \sqrt{x^2 + y^2}
+
+    and the inverse (sky-to-pixel) is defined as:
+
+    .. math::
+        x &= R_\theta \sin \phi \\
+        y &= R_\theta \cos \phi
+    """
 
 
 class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
-    """
-    AZP : Zenital perspective projection - pixel to sky.
+    r"""
+    AZP : Zenithal perspective projection - pixel to sky.
+
+    See `Zenithal` for a definition of the full transformation.
+
+    .. math::
+        \theta = \arg(\rho, 1) - \sin^{-1}\left(\frac{\rho \mu}{\sqrt{\rho^2 + 1}}\right)
+
+    where:
+
+    .. math::
+        \rho = \frac{\pi}{180^{\circ}}\frac{R_\theta}{\mu + 1}
 
     Parameters
     --------------
@@ -138,14 +167,20 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
 
 
 class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
-    """
+    r"""
     AZP : Zenital perspective projection - sky to pixel.
 
+    See `Zenithal` for a definition of the full transformation.
+
+    .. math::
+        R_\theta = \frac{180^{\circ}}{\pi}\frac{(\mu + 1) \cos \theta}{\mu + \sin \theta}
+
     Parameters
-    --------------
+    ----------
     mu : float
         distance from point of projection to center of sphere
         in spherical radii, default is 0.
+
     gamma : float
         look angle in deg, default is 0.
     """
@@ -185,8 +220,13 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
 
 
 class Pix2Sky_TAN(Pix2SkyProjection, Zenithal):
-    """
+    r"""
     TAN : Gnomonic projection - pixel to sky.
+
+    See `Zenithal` for a definition of the full transformation.
+
+    .. math::
+        \theta = \tan^{-1}\left(\frac{180^{\circ}}{\pi R_\theta}\right)
     """
 
     @property
@@ -207,8 +247,13 @@ class Pix2Sky_TAN(Pix2SkyProjection, Zenithal):
 
 
 class Sky2Pix_TAN(Sky2PixProjection, Zenithal):
-    """
+    r"""
     TAN : Gnomonic Projection - sky to pixel.
+
+    See `Zenithal` for a definition of the full transformation.
+
+    .. math::
+        R_\theta = \frac{180^{\circ}}{\pi}\cot \theta
     """
 
     @property
@@ -232,8 +277,13 @@ class Sky2Pix_TAN(Sky2PixProjection, Zenithal):
 
 
 class Pix2Sky_STG(Pix2SkyProjection, Zenithal):
-    """
+    r"""
     STG : Stereographic Projection - pixel to sky.
+
+    See `Zenithal` for a definition of the full transformation.
+
+    .. math::
+        \theta = 90^{\circ} - 2 \tan^{-1}\left(\frac{\pi R_\theta}{360^{\circ}}\right)
     """
 
     @property
@@ -254,8 +304,13 @@ class Pix2Sky_STG(Pix2SkyProjection, Zenithal):
 
 
 class Sky2Pix_STG(Sky2PixProjection, Zenithal):
-    """
+    r"""
     STG : Stereographic Projection - sky to pixel.
+
+    See `Zenithal` for a definition of the full transformation.
+
+    .. math::
+        R_\theta = \frac{180^{\circ}}{\pi}\frac{2 \cos \theta}{1 + \sin \theta}
     """
 
     @property
@@ -279,8 +334,13 @@ class Sky2Pix_STG(Sky2PixProjection, Zenithal):
 
 
 class Pix2Sky_SIN(Pix2SkyProjection, Zenithal):
-    """
+    r"""
     SIN : Slant orthographic projection - pixel to sky.
+
+    See `Zenithal` for a definition of the full transformation.
+
+    .. math::
+        \theta = \cos^{-1}\left(\frac{\pi}{180^{\circ}}R_\theta\right)
     """
 
     @property
@@ -301,8 +361,13 @@ class Pix2Sky_SIN(Pix2SkyProjection, Zenithal):
 
 
 class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
-    """
+    r"""
     SIN : Slant orthographic projection - sky to pixel.
+
+    See `Zenithal` for a definition of the full transformation.
+
+    .. math::
+        R_\theta = \frac{180^{\circ}}{\pi}\cos \theta
     """
 
     @property
@@ -325,12 +390,34 @@ class Sky2Pix_SIN(Sky2PixProjection, Zenithal):
 
 
 class Cylindrical(Projection):
-    """Base class for Cylindrical projections."""
+    r"""Base class for Cylindrical projections.
+
+    Cylindrical projections are so-named because the surface of
+    projection is a cylinder.
+    """
 
 
 class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
-    """
+    r"""
     CYP : Cylindrical perspective - pixel to sky.
+
+    .. math::
+        \phi &= \frac{x}{\lambda} \\
+        \theta &= \arg(1, \eta) + \sin{-1}\left(\frac{\eta \mu}{\sqrt{\eta^2 + 1}}\right)
+
+    where:
+
+    .. math::
+        \eta = \frac{\pi}{180^{\circ}}\frac{y}{\mu + \lambda}
+
+    Parameters
+    ----------
+    mu : float
+        distance from center of sphere in the direction opposite the
+        projected surface, in spherical radii, default is 0.
+
+    lam : float
+        radius of the cylinder in spherical radii, default is 0.
     """
 
     def _validate_mu(mu, model):
@@ -367,8 +454,21 @@ class Pix2Sky_CYP(Pix2SkyProjection, Cylindrical):
 
 
 class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
-    """
+    r"""
     CYP : Cylindrical Perspective - sky to pixel.
+
+    .. math::
+        x &= \lambda \phi
+        y &= \frac{180^{\circ}}{\pi}\left(\frac{\mu + \lambda}{\mu + \cos \theta}\right)\sin \theta
+
+    Parameters
+    ----------
+    mu : float
+        distance from center of sphere in the direction opposite the
+        projected surface, in spherical radii, default is 0.
+
+    lam : float
+        radius of the cylinder in spherical radii, default is 0.
     """
 
     # TODO: Eliminate duplication on these
@@ -403,8 +503,17 @@ class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
 
 
 class Pix2Sky_CEA(Pix2SkyProjection, Cylindrical):
-    """
+    r"""
     CEA : Cylindrical equal area projection - pixel to sky.
+
+    .. math::
+        \phi &= x \\
+        \theta &= \sin^{-1}\left(\frac{\pi}{180^{\circ}}\lambda y\right)
+
+    Parameters
+    ----------
+    lam : float
+        radius of the cylinder in spherical radii, default is 0.
     """
 
     lam = Parameter(default=1)
@@ -422,8 +531,17 @@ class Pix2Sky_CEA(Pix2SkyProjection, Cylindrical):
 
 
 class Sky2Pix_CEA(Sky2PixProjection, Cylindrical):
-    """
+    r"""
     CEA: Cylindrical equal area projection - sky to pixel.
+
+    .. math::
+        x &= \phi \\
+        y &= \frac{180^{\circ}}{\pi}\frac{\sin \theta}{\lambda}
+
+    Parameters
+    ----------
+    lam : float
+        radius of the cylinder in spherical radii, default is 0.
     """
 
     lam = Parameter(default=1)
@@ -442,8 +560,12 @@ class Sky2Pix_CEA(Sky2PixProjection, Cylindrical):
 
 
 class Pix2Sky_CAR(Pix2SkyProjection, Cylindrical):
-    """
-    CAR: Plate carree projection - pixel to sky.
+    r"""
+    CAR: Plate carrée projection - pixel to sky.
+
+    .. math::
+        \phi &= x \\
+        \theta &= y
     """
 
     @property
@@ -460,8 +582,12 @@ class Pix2Sky_CAR(Pix2SkyProjection, Cylindrical):
 
 
 class Sky2Pix_CAR(Sky2PixProjection, Cylindrical):
-    """
-    CAR: Plate carree projection - sky to pixel.
+    r"""
+    CAR: Plate carrée projection - sky to pixel.
+
+    .. math::
+        x &= \phi \\
+        y &= \theta
     """
 
     @property
@@ -478,8 +604,12 @@ class Sky2Pix_CAR(Sky2PixProjection, Cylindrical):
 
 
 class Pix2Sky_MER(Pix2SkyProjection, Cylindrical):
-    """
+    r"""
     MER: Mercator - pixel to sky.
+
+    .. math::
+        \phi &= x \\
+        \theta &= 2 \tan^{-1}\left(e^{y \pi / 180^{\circ}}\right)-90^{\circ}
     """
 
     @property
@@ -495,8 +625,12 @@ class Pix2Sky_MER(Pix2SkyProjection, Cylindrical):
 
 
 class Sky2Pix_MER(Sky2PixProjection, Cylindrical):
-    """
+    r"""
     MER: Mercator - sky to pixel.
+
+    .. math::
+        x &= \phi \\
+        y &= \frac{180^{\circ}}{\pi}\ln \tan \left(\frac{90^{\circ} + \theta}{2}\right)
     """
 
     @property
