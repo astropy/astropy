@@ -156,6 +156,8 @@ API changes
 
 - ``astropy.constants``
 
+  - Ensure constants can be turned into ``Quantity`` safely. [#3537, #3538]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
@@ -255,6 +257,10 @@ Bug fixes
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
+
+  - The projection classes that are named based on the 3-letter FITS
+    WCS projections (e.g. ``Pix2Sky_TAN``) are deprecated in favor of
+    longer class names (e.g. ``Pix2Sky_Gnomonic``).  [#3583]
 
 - ``astropy.nddata``
 
