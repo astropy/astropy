@@ -92,15 +92,17 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
     r"""
     AZP : Zenithal perspective projection - pixel to sky.
 
-    See `Zenithal` for a definition of the full transformation.
-
     .. math::
-        \theta = \arg(\rho, 1) - \sin^{-1}\left(\frac{\rho \mu}{\sqrt{\rho^2 + 1}}\right)
+        \phi &= \arg(-y \cos \gamma, x) \\
+        \theta &= \left\{\genfrac{}{}{0pt}{}{\psi - \omega}{\psi + \omega + 180^{\circ}}\right.
 
     where:
 
     .. math::
-        \rho = \frac{\pi}{180^{\circ}}\frac{R_\theta}{\mu + 1}
+        \psi &= \arg(\rho, 1) \\
+        \omega &= \sin^{-1}\left(\frac{\rho \mu}{\sqrt{\rho^2 + 1}}\right) \\
+        \rho &= \frac{R}{\frac{180^{\circ}}{\pi}(\mu + 1) + y \sin \gamma} \\
+        R &= \sqrt{x^2 + y^2 \cos^2 \gamma}
 
     Parameters
     --------------
@@ -170,10 +172,14 @@ class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
     r"""
     AZP : Zenital perspective projection - sky to pixel.
 
-    See `Zenithal` for a definition of the full transformation.
+    .. math::
+        x &= R \sin \phi \\
+        y &= -R \sec \gamma \cos \theta
+
+    where:
 
     .. math::
-        R_\theta = \frac{180^{\circ}}{\pi}\frac{(\mu + 1) \cos \theta}{\mu + \sin \theta}
+        R = \frac{180^{\circ}}{\pi} \frac{(\mu + 1) \cos \theta}{(\mu + \sin \theta) + \cos \theta \cos \phi \tan \gamma}
 
     Parameters
     ----------
