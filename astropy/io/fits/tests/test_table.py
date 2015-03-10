@@ -1758,6 +1758,10 @@ class TestTableFunctions(FitsTestCase):
         pytest.raises(VerifyError, fits.Column, name='a', format='2I',
                       dim='(2,2)', array=arra)
 
+    def test_tdim_of_size_one(self):
+        hdulist = fits.open(self.data('tdim.fits'))
+        assert hdulist[1].data['V_mag'].shape == (3,1,1)
+
     def test_slicing(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/52"""
 
