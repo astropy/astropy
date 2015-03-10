@@ -458,7 +458,7 @@ class Sky2Pix_CYP(Sky2PixProjection, Cylindrical):
     CYP : Cylindrical Perspective - sky to pixel.
 
     .. math::
-        x &= \lambda \phi
+        x &= \lambda \phi \\
         y &= \frac{180^{\circ}}{\pi}\left(\frac{\mu + \lambda}{\mu + \cos \theta}\right)\sin \theta
 
     Parameters
