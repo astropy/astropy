@@ -154,7 +154,8 @@ def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
     return filtered_data
 
 
-def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
+def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0,
+                        sigma_lower=3.0, sigma_upper=3.0, iters=None):
     """
     Calculate sigma-clipped statistics from data.
 
@@ -196,6 +197,7 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
         data = np.ma.MaskedArray(data, mask)
     if mask_val is not None:
         data = np.ma.masked_values(data, mask_val)
-    data_clip = sigma_clip(data, sig=sigma, iters=iters)
+    data_clip = sigma_clip(data, sig=sigma, sigma_lower=sigma_lower,
+                           sigma_upper=sigma_upper, iters=iters)
     goodvals = data_clip.data[~data_clip.mask]
     return np.mean(goodvals), np.median(goodvals), np.std(goodvals)
