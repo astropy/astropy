@@ -9,7 +9,7 @@ import numpy as np
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
+def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, stdfunc=np.std,
                axis=None, copy=True):
     """Perform sigma-clipping on the provided data.
 
@@ -37,18 +37,18 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
         The technique to compute the center for the clipping. Must be a
         callable that takes in a masked array and outputs the central value.
         Defaults to the median (numpy.median).
-    varfunc : callable
+    stdfunc : callable
         The technique to compute the standard deviation about the center. Must
         be a callable that takes in a masked array and outputs a width
         estimator::
 
-             deviation**2 > sig**2 * varfunc(deviation)
+             deviation**2 > sig**2 * stdfunc(deviation)**2
 
-        Defaults to the variance (numpy.var).
+        Defaults to the standard deviation (`numpy.std`).
 
     axis : int or `None`
         If not `None`, clip along the given axis.  For this case, axis=int will
-        be passed on to cenfunc and varfunc, which are expected to return an
+        be passed on to cenfunc and stdfunc, which are expected to return an
         array with the axis dimension removed (like the numpy functions).
         If `None`, clip over all values.  Defaults to `None`.
     copy : bool
@@ -69,7 +69,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
 
         and then setting a mask for points outside the range::
 
-            data.mask = deviation**2 > sig**2 * varfunc(deviation)
+            data.mask = deviation**2 > sig**2 * stdfunc(deviation)**2
 
         It will iterate a given number of times, or until no further points are
         rejected.
@@ -120,9 +120,9 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
 
     if axis is not None:
         cenfunc_in = cenfunc
-        varfunc_in = varfunc
+        stdfunc_in = stdfunc
         cenfunc = lambda d: np.expand_dims(cenfunc_in(d, axis=axis), axis=axis)
-        varfunc = lambda d: np.expand_dims(varfunc_in(d, axis=axis), axis=axis)
+        stdfunc = lambda d: np.expand_dims(stdfunc_in(d, axis=axis), axis=axis)
 
     filtered_data = np.ma.array(data, copy=copy)
 
@@ -133,11 +133,11 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
             i += 1
             lastrej = filtered_data.count()
             do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            filtered_data.mask |= do * do > stdfunc(filtered_data)**2 * sig**2
     else:
         for i in range(iters):
             do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            filtered_data.mask |= do * do > stdfunc(filtered_data)**2 * sig**2
 
     return filtered_data
 
