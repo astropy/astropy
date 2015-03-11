@@ -233,6 +233,7 @@ class TableFormatter(object):
                                                show_dtype=show_dtype, show_length=show_length,
                                                outs=outs)
         col_strs = list(col_strs_iter)
+        col_width = max(len(x) for x in col_strs)
 
         if html:
             from ..utils.xml.writer import xml_escape
