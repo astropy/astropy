@@ -27,8 +27,7 @@ from ..utils.compat import ignored
 from ..utils.decorators import deprecated
 
 
-projcodes = ['TAN', 'AZP', 'SZP', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
-             'CYP', 'CEA', 'MER']
+projcodes = ['TAN', 'AZP', 'STG', 'SIN', 'CYP', 'CEA', 'MER']
 
 
 __all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
@@ -43,6 +42,7 @@ __all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
            'Pix2Sky_CylindricalEqualArea', 'Sky2Pix_CylindricalEqualArea',
            'Pix2Sky_PlateCarree', 'Sky2Pix_PlateCarree',
            'Pix2Sky_Mercator', 'Sky2Pix_Mercator',
+           'projcodes', 'get_projection_from_wcs_code',
 
            # The following were @deprecated in 1.1
            'Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
@@ -892,3 +892,46 @@ class AffineTransformation2D(Model):
         augmented_matrix[0:2, 2:].flat = translation
         augmented_matrix[2] = [0, 0, 1]
         return augmented_matrix
+
+
+def get_projection_from_wcs_code(direction, code):
+    """
+    Get a projection class from a 3-letter FITS WCS projection code.
+
+    Parameters
+    ----------
+    direction : string
+       Must be ``pix2sky`` or ``sky2pix``.
+
+    code : string
+       Must be a 3-letter FITS WCS projection code, such as ``TAN``.
+
+    Returns
+    -------
+    projection : Model subclass
+    """
+    direction_mapping = {
+        'pix2sky': 'Pix2Sky',
+        'sky2pix': 'Sky2Pix'
+    }
+
+    direction = direction_mapping.get(direction.lower(), None)
+    if direction is None:
+        raise ValueError("direction must be 'pix2sky' or 'sky2pix'")
+
+    code_mapping = {
+        'TAN': 'Gnomonic',
+        'AZP': 'ZenithalPerspective',
+        'STG': 'Stereographic',
+        'SIN': 'SlantedOrthographic',
+        'CYP': 'CylindricalPerspective',
+        'CEA': 'CylindricalEqualArea',
+        'CAR': 'PlateCarree',
+        'MER': 'Mercator'
+    }
+
+    code = code_mapping.get(code.upper(), None)
+    if code is None:
+        raise ValueError("Unknown code '{0}'".format(code))
+
+    return globals().get('{0}_{1}'.format(direction, code))
