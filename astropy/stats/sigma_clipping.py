@@ -9,8 +9,8 @@ import numpy as np
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, stdfunc=np.std,
-               axis=None, copy=True):
+def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
+               cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
     """Perform sigma-clipping on the provided data.
 
     This performs the sigma clipping algorithm - i.e. the data will be iterated
@@ -118,6 +118,11 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, stdfunc=np.std,
 
     """
 
+    if sigma_lower is None:
+        sigma_lower = sig
+    if sigma_upper is None:
+        sigma_upper = sig
+
     if axis is not None:
         cenfunc_in = cenfunc
         stdfunc_in = stdfunc
@@ -133,11 +138,13 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, stdfunc=np.std,
             i += 1
             lastrej = filtered_data.count()
             do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > stdfunc(filtered_data)**2 * sig**2
+            filtered_data.mask |= (do < -stdfunc(filtered_data) * sigma_lower)
+            filtered_data.mask |= (do > stdfunc(filtered_data) * sigma_upper)
     else:
         for i in range(iters):
             do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > stdfunc(filtered_data)**2 * sig**2
+            filtered_data.mask |= (do < -stdfunc(filtered_data) * sigma_lower)
+            filtered_data.mask |= (do > stdfunc(filtered_data) * sigma_upper)
 
     return filtered_data
 
