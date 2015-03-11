@@ -329,6 +329,9 @@ class FITS_rec(np.recarray):
         raw_data.fill(ord(columns._padding_byte))
         data = np.recarray(nrows, dtype=columns.dtype, buf=raw_data).view(cls)
 
+        # Make sure the data is a listener for changes to the columns
+        columns._add_listener(data)
+
         # Previously this assignment was made from hdu.columns, but that's a
         # bug since if a _TableBaseHDU has a FITS_rec in its .data attribute
         # the _TableBaseHDU.columns property is actually returned from
@@ -620,6 +623,29 @@ class FITS_rec(np.recarray):
             return converted
 
         return self._convert[field_indx]
+
+    def _update_column_attribute_changed(self, column, idx, attr, old_value,
+                                         new_value):
+        """
+        Update how the data is formatted depending on changes to column
+        attributes initiated by the user through the `Column` interface.
+
+        Dispatches column attribute change notifications to individual methods
+        for each attribute ``_update_column_<attr>``
+        """
+
+        method_name = '_update_column_{0}'.format(attr)
+        if hasattr(self, method_name):
+            # Right now this is so we can be lazy and not implement updaters
+            # for every attribute yet--some we may not need at all, TBD
+            getattr(self, method_name)(column, idx, old_value, new_value)
+
+    def _update_column_name(self, column, idx, old_name, name):
+        """Update the dtype field names when a column name is changed."""
+
+        dtype = self.dtype
+        # Updating the names on the dtype should suffice
+        dtype.names = dtype.names[:idx] + (name,) + dtype.names[idx + 1:]
 
     def _convert_x(self, field, recformat):
         """Convert a raw table column to a bit array as specified by the

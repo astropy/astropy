@@ -7,6 +7,7 @@ import itertools
 import io
 import mmap
 import os
+import platform
 import signal
 import string
 import sys
@@ -14,7 +15,8 @@ import tempfile
 import textwrap
 import threading
 import warnings
-import platform
+import weakref
+
 from distutils.version import LooseVersion
 
 import numpy as np
@@ -39,6 +41,129 @@ if six.PY3:
     cmp = lambda a, b: (a > b) - (a < b)
 elif six.PY2:
     cmp = cmp
+
+
+class NotifierMixin(object):
+    """
+    Mixin class that provides services by which objects can register
+    listeners to changes on that object.
+
+    All methods provided by this class are underscored, since this is intended
+    for internal use to communicate between classes in a generic way, and is
+    not machinery that should be exposed to users of the classes involved.
+
+    Use the ``_add_listener`` method to register a listener on an instance of
+    the notifier.  This registers the listener with a weak reference, so if
+    no other references to the listener exist it is automatically dropped from
+    the list and does not need to be manually removed.
+
+    Call the ``_notify`` method on the notifier to update all listeners
+    upon changes.  ``_notify('change_type', *args, **kwargs)`` results
+    in calling ``listener._update_change_type(*args, **kwargs)`` on all
+    listeners subscribed to that notifier.
+
+    If a particular listener does not have the appropriate update method
+    it is ignored.
+
+    Examples
+    --------
+
+    >>> class Widget(NotifierMixin):
+    ...     state = 1
+    ...     def __init__(self, name):
+    ...         self.name = name
+    ...     def update_state(self):
+    ...         self.state += 1
+    ...         self._notify('widget_state_changed', self)
+    ...
+    >>> class WidgetListener(object):
+    ...     def _update_widget_state_changed(self, widget):
+    ...         print('Widget {0} changed state to {1}'.format(
+    ...             widget.name, widget.state))
+    ...
+    >>> widget = Widget('fred')
+    >>> listener = WidgetListener()
+    >>> widget._add_listener(listener)
+    >>> widget.update_state()
+    Widget fred changed state to 2
+    """
+
+    _listeners = None
+
+    def _add_listener(self, listener):
+        """
+        Add an object to the list of listeners to notify of changes to this
+        object.  This adds a weakref to the list of listeners that is
+        removed from the listeners list when the listener has no other
+        references to it.
+        """
+
+        if self._listeners is None:
+            self._listeners = []
+
+        def remove(p):
+            self._listeners.remove(p)
+
+        # Make sure this object is not already in the listeners:
+        for ref in self._listeners:
+            if ref() is listener:
+                return
+
+        ref = weakref.ref(listener, remove)
+        self._listeners.append(ref)
+
+    def _remove_listener(self, listener):
+        """
+        Removes the specified listener from the listeners list.  This relies
+        on object identity (i.e. the ``is`` operator).
+        """
+
+        if self._listeners is None:
+            return
+
+        for idx, ref in enumerate(self._listeners[:]):
+            if ref() is listener:
+                del self._listeners[idx]
+                break
+
+    def _notify(self, notification, *args, **kwargs):
+        """
+        Notify all listeners of some particular state change by calling their
+        ``_update_<notification>`` method with the given ``*args`` and
+        ``**kwargs``.
+
+        The notification does not by default include the object that actually
+        changed (``self``), but it certainly may if required.
+        """
+
+        if self._listeners is None:
+            return
+
+        method_name = '_update_{0}'.format(notification)
+        for listener in self._listeners:
+            listener = listener()  # dereference weakref
+            if hasattr(listener, method_name):
+                method = getattr(listener, method_name)
+                if callable(method):
+                    method(*args, **kwargs)
+
+    def __getstate__(self):
+        """
+        Exclude listeners when saving the listener's state, since they may be
+        ephemeral.
+        """
+
+        # TODO: This hasn't come up often, but if anyone needs to pickle HDU
+        # objects it will be necessary when HDU objects' states are restored to
+        # re-register themselves as listeners on their new column instances.
+        try:
+            state = super(NotifierMixin, self).__getstate__()
+        except AttributeError:
+            # Chances are the super object doesn't have a getstate
+            state = self.__dict__.copy()
+
+        state['_listeners'] = None
+        return state
 
 
 def first(iterable):

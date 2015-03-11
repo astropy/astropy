@@ -16,14 +16,16 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 # This module may have many dependencies on pyfits.column, but pyfits.column
 # has fewer dependencies overall, so it's easier to keep table/column-related
 # utilities in pyfits.column
-from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_ATTRIBUTES, TDEF_RE,
-                      Column, ColDefs, _AsciiColDefs, _FormatP, _FormatQ,
-                      _makep, _parse_tformat, _scalar_to_format,
-                      _convert_format, _cmp_recformats, _get_index)
+from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
+                      ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
+                      _AsciiColDefs, _FormatP, _FormatQ, _makep,
+                      _parse_tformat, _scalar_to_format, _convert_format,
+                      _cmp_recformats, _get_index)
 from ..fitsrec import FITS_rec
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
+from ....extern import six
 from ....extern.six import string_types
 from ....utils import deprecated, lazyproperty
 from ....utils.compat import ignored
@@ -153,7 +155,9 @@ class _TableLikeHDU(_ValidHDU):
             data = raw_data.view(np.rec.recarray)
 
         self._init_tbdata(data)
-        return data.view(self._data_type)
+        data = data.view(self._data_type)
+        columns._add_listener(data)
+        return data
 
     def _init_tbdata(self, data):
         columns = self.columns
@@ -180,6 +184,72 @@ class _TableLikeHDU(_ValidHDU):
         # delete the _arrays attribute so that it is recreated to point to the
         # new data placed in the column object above
         del columns._arrays
+
+    def _update_column_added(self, columns, column):
+        """
+        Update the data upon addition of a new column through the `ColDefs`
+        interface.
+        """
+
+        # TODO: It's not clear that this actually works--it probably does not.
+        # This is what the code used to do before introduction of the
+        # notifier interface, but I don't believe it actually worked (there are
+        # several bug reports related to this...)
+        if self._data_loaded:
+            del self.data
+
+    def _update_column_removed(self, columns, col_idx):
+        """
+        Update the data upon removal of a column through the `ColDefs`
+        interface.
+        """
+
+        # For now this doesn't do anything fancy--it just deletes the data
+        # attribute so that it is forced to be recreated again.  It doesn't
+        # change anything on the existing data recarray (this is also how this
+        # worked before introducing the notifier interface)
+        if self._data_loaded:
+            del self.data
+
+    def _update_column_attribute_changed(self, column, col_idx, attr,
+                                         old_value, new_value):
+        """
+        Update the header when one of the column objects is updated.
+        """
+
+        # base_keyword is the keyword without the index such as TDIM
+        # while keyword is like TDIM1
+        base_keyword = ATTRIBUTE_TO_KEYWORD[attr]
+        keyword = base_keyword + str(col_idx + 1)
+
+        if keyword in self._header:
+            if new_value is None:
+                # If the new value is None, i.e. None was assigned to the
+                # column attribute, then treat this as equivalent to deleting
+                # that attribute
+                del self._header[keyword]
+            else:
+                self._header[keyword] = new_value
+        else:
+            keyword_idx = KEYWORD_NAMES.index(base_keyword)
+            # Determine the appropriate keyword to insert this one before/after
+            # if it did not already exist in the header
+            for before_keyword in reversed(KEYWORD_NAMES[:keyword_idx]):
+                before_keyword += str(col_idx + 1)
+                if before_keyword in self._header:
+                    self._header.insert(before_keyword, (keyword, new_value),
+                                        after=True)
+                    break
+            else:
+                for after_keyword in KEYWORD_NAMES[keyword_idx + 1:]:
+                    after_keyword += str(col_idx + 1)
+                    if after_keyword in header:
+                        self._header.insert(after_keyword,
+                                            (keyword, new_value))
+                        break
+                else:
+                    # Just append
+                    self._header[keyword] = new_value
 
 
 class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
@@ -528,18 +598,16 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 keyword = keyword.group('label')
             except:
                 continue                # skip if there is no match
-            if keyword in KEYWORD_NAMES:
+            if keyword in KEYWORD_TO_ATTRIBUTE:
                 del self._header[idx]
 
     def _populate_table_keywords(self):
         """Populate the new table definition keywords from the header."""
 
-        cols = self.columns
-
-        for idx in range(len(cols)):
-            for attr, keyword in zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES):
-                val = getattr(cols, attr + 's')[idx]
-                if val:
+        for idx, column in enumerate(self.columns):
+            for keyword, attr in six.iteritems(KEYWORD_TO_ATTRIBUTE):
+                val = getattr(column, attr)
+                if val is not None:
                     keyword = keyword + str(idx + 1)
                     self._header[keyword] = val
 
