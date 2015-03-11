@@ -308,7 +308,7 @@ class Quantity(np.ndarray):
             maybe_arbitrary_arg = args[scales.index(0.)]
             try:
                 if _can_have_arbitrary_unit(maybe_arbitrary_arg):
-                    scales = [1., 1.]
+                    scales = [None, None]
                 else:
                     raise UnitsError("Can only apply '{0}' function to "
                                      "dimensionless quantities when other "
@@ -363,8 +363,10 @@ class Quantity(np.ndarray):
             # decomposed, which involves being scaled by a float, but since
             # the array is an integer the output then gets converted to an int
             # and truncated.
-            if(any(not np.can_cast(arg, obj.dtype) for arg in args) or
-               np.any(np.array(scales, dtype=obj.dtype) != np.array(scales))):
+            result_dtype = np.result_type(*(args + tuple(
+                (float if scale is not None and scale % 1. != 0. else int)
+                for scale in scales)))
+            if not np.can_cast(result_dtype, obj.dtype):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
 
@@ -382,7 +384,7 @@ class Quantity(np.ndarray):
         # the issue is that we can't actually scale the inputs since that
         # would be changing the objects passed to the ufunc, which would not
         # be expected by the user.
-        if any(scale != 1. for scale in scales):
+        if any(scales):
 
             # If self is both output and input (which happens for in-place
             # operations), input will get overwritten with junk. To avoid
@@ -457,7 +459,7 @@ class Quantity(np.ndarray):
                 # Set the inputs, rescaling as necessary
                 inputs = []
                 for arg, scale in zip(args, scales):
-                    if scale != 1.:
+                    if scale is not None:
                         inputs.append(arg.value * scale)
                     else:  # for scale==1, input is not necessarily a Quantity
                         inputs.append(getattr(arg, 'value', arg))
