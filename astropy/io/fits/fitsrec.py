@@ -764,6 +764,8 @@ class FITS_rec(np.recarray):
                 nitems = reduce(operator.mul, dim)
                 if _str:
                     actual_nitems = field.itemsize
+                elif len(field.shape) == 1:  # No repeat count in TFORMn, equivalent to 1
+                    actual_nitems = 1
                 else:
                     actual_nitems = field.shape[1]
                 if nitems > actual_nitems:
