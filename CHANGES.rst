@@ -173,65 +173,6 @@ Bug Fixes
 
   - Time objects now always evalutate to ``True``, except when empty. [#3530]
 
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-- Updated bundled astropy-helpers version to v1.0.1 to address installation
-  issues with some packages that depend on Astropy. [#3541]
-
-
-1.0.1 (unreleased)
-------------------
-
-Bug fixes
-^^^^^^^^^
-
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.votable``
-
-- ``astropy.logger.py``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.tests``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
 Miscellaneous
 ^^^^^^^^^^^^^
 
@@ -243,13 +184,11 @@ Miscellaneous
 
   - Improve import time of astropy [#3488].
 
-1.0.1 (unreleased)
-------------------
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Bug Fixes
-^^^^^^^^^
-
-- ``astropy.io.ascii``
+- Updated bundled astropy-helpers version to v1.0.1 to address installation
+  issues with some packages that depend on Astropy. [#3541]
 
 
 1.0 (2015-02-18)
