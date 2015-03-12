@@ -1237,6 +1237,9 @@ class BinTableHDU(_TableBaseHDU):
         # new_table() could use a similar feature.
         hdu = BinTableHDU.from_columns(np.recarray(shape=1, dtype=dtype),
                                        nrows=nrows, fill=True)
+
+        # TODO: It seems to me a lot of this could/should be handled from
+        # within the FITS_rec class rather than here.
         data = hdu.data
         for idx, length in enumerate(vla_lengths):
             if length is not None:
@@ -1249,7 +1252,8 @@ class BinTableHDU(_TableBaseHDU):
                 # warning that this is not supported.
                 recformats[idx] = _FormatP(dt, max=length)
                 data.columns._recformats[idx] = recformats[idx]
-                data._convert[idx] = _makep(arr, arr, recformats[idx])
+                name = data.columns.names[idx]
+                data._converted[name] = _makep(arr, arr, recformats[idx])
 
         def format_value(col, val):
             # Special formatting for a couple particular data types

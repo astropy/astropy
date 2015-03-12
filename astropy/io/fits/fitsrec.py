@@ -183,7 +183,7 @@ class FITS_rec(np.recarray):
                                        buf=input.data, strides=input.strides)
 
         self._nfields = len(self.dtype.names)
-        self._convert = [None] * len(self.dtype.names)
+        self._converted = {}
         self._heapoffset = 0
         self._heapsize = 0
         self._coldefs = None
@@ -215,7 +215,7 @@ class FITS_rec(np.recarray):
         column_state = []
         meta = []
 
-        for attrs in ['_convert', '_heapoffset', '_heapsize', '_nfields',
+        for attrs in ['_converted', '_heapoffset', '_heapsize', '_nfields',
                       '_gap', '_uint', 'parnames', '_coldefs']:
 
             with ignored(AttributeError):
@@ -236,7 +236,7 @@ class FITS_rec(np.recarray):
             return
 
         if isinstance(obj, FITS_rec):
-            self._convert = obj._convert
+            self._converted = obj._converted
             self._heapoffset = obj._heapoffset
             self._heapsize = obj._heapsize
             self._coldefs = obj._coldefs
@@ -247,7 +247,7 @@ class FITS_rec(np.recarray):
             # This will allow regular ndarrays with fields, rather than
             # just other FITS_rec objects
             self._nfields = len(obj.dtype.names)
-            self._convert = [None] * len(obj.dtype.names)
+            self._converted = {}
 
             self._heapoffset = getattr(obj, '_heapoffset', 0)
             self._heapsize = getattr(obj, '_heapsize', 0)
@@ -256,7 +256,7 @@ class FITS_rec(np.recarray):
             self._gap = getattr(obj, '_gap', 0)
             self._uint = getattr(obj, '_uint', False)
 
-            attrs = ['_convert', '_coldefs', '_gap']
+            attrs = ['_converted', '_coldefs', '_gap']
             for attr in attrs:
                 if hasattr(obj, attr):
                     value = getattr(obj, attr, None)
@@ -306,14 +306,17 @@ class FITS_rec(np.recarray):
             columns = ColDefs(columns)
 
         # read the delayed data
-        for idx in range(len(columns)):
-            arr = columns._arrays[idx]
+        for column in columns:
+            arr = column.array
             if isinstance(arr, Delayed):
                 if arr.hdu.data is None:
-                    columns._arrays[idx] = None
+                    column.array = None
                 else:
-                    columns._arrays[idx] = np.rec.recarray.field(arr.hdu.data,
-                                                                 arr.field)
+                    column.array = np.rec.recarray.field(arr.hdu.data,
+                                                         arr.field)
+        # Reset columns._arrays (which we may want to just do away with
+        # altogether
+        del columns._arrays
 
         # use the largest column shape as the shape of the record
         if nrows == 0:
@@ -349,14 +352,14 @@ class FITS_rec(np.recarray):
 
         # Otherwise we have to fill the recarray with data from the input
         # columns
-        for idx in range(len(columns)):
+        for idx, column in enumerate(columns):
             # For each column in the ColDef object, determine the number of
             # rows in that column.  This will be either the number of rows in
             # the ndarray associated with the column, or the number of rows
             # given in the call to this function, which ever is smaller.  If
             # the input FILL argument is true, the number of rows is set to
             # zero so that no data is copied from the original input data.
-            arr = columns._arrays[idx]
+            arr = column.array
 
             if arr is None:
                 array_size = 0
@@ -375,8 +378,9 @@ class FITS_rec(np.recarray):
                 continue
 
             field = np.rec.recarray.field(data, idx)
-            fitsformat = columns.formats[idx]
-            recformat = columns._recformats[idx]
+            name = column.name
+            fitsformat = column.format
+            recformat = fitsformat.recformat
 
             outarr = field[:n]
             inarr = arr[:n]
@@ -387,8 +391,8 @@ class FITS_rec(np.recarray):
                     _wrapx(inarr, outarr, recformat.repeat)
                     continue
             elif isinstance(recformat, _FormatP):
-                data._convert[idx] = _makep(inarr, field, recformat,
-                                            nrows=nrows)
+                data._converted[name] = _makep(inarr, field, recformat,
+                                               nrows=nrows)
                 continue
             # TODO: Find a better way of determining that the column is meant
             # to be FITS L formatted
@@ -399,17 +403,18 @@ class FITS_rec(np.recarray):
                 field[:] = ord('F')
                 # Also save the original boolean array in data._converted so
                 # that it doesn't have to be re-converted
-                data._convert[idx] = np.zeros(field.shape, dtype=bool)
-                data._convert[idx][:n] = inarr
+                data._converted[name] = np.zeros(field.shape, dtype=bool)
+                data._converted[name][:n] = inarr
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
                 inarr = np.where(inarr == False, ord('F'), ord('T'))
             elif (columns[idx]._physical_values and
                     columns[idx]._pseudo_unsigned_ints):
                 # Temporary hack...
-                bzero = columns[idx].bzero
-                data._convert[idx] = np.zeros(field.shape, dtype=inarr.dtype)
-                data._convert[idx][:n] = inarr
+                bzero = column.bzero
+                data._converted[name] = np.zeros(field.shape,
+                                                 dtype=inarr.dtype)
+                data._converted[name][:n] = inarr
                 if n < nrows:
                     # Pre-scale rows below the input data
                     field[n:] = -bzero
@@ -427,8 +432,8 @@ class FITS_rec(np.recarray):
                     outarr = field.view(np.uint8, np.ndarray)[:n]
                 elif not isinstance(arr, chararray.chararray):
                     # Fill with the appropriate blanks for the column format
-                    data._convert[idx] = np.zeros(nrows, dtype=arr.dtype)
-                    outarr = data._convert[idx][:n]
+                    data._converted[name] = np.zeros(nrows, dtype=arr.dtype)
+                    outarr = data._converted[name][:n]
 
                 outarr[:] = inarr
                 continue
@@ -472,20 +477,20 @@ class FITS_rec(np.recarray):
             out = self.view(np.recarray).__getitem__(key).view(subtype)
             out._coldefs = ColDefs(self._coldefs)
             arrays = []
-            out._convert = [None] * len(self.dtype.names)
-            for idx in range(len(self.dtype.names)):
+            out._converted = {}
+            for idx, name in enumerate(self._coldefs.names):
                 #
                 # Store the new arrays for the _coldefs object
                 #
                 arrays.append(self._coldefs._arrays[idx][key])
 
-                # touch all fields to expand the original ._convert list
+                # touch all fields to expand the original ._converted dict
                 # so the sliced FITS_rec will view the same scaled columns as
                 # the original
                 dummy = self.field(idx)
-                if self._convert[idx] is not None:
-                    out._convert[idx] = \
-                        np.ndarray.__getitem__(self._convert[idx], key)
+                if name in self._converted:
+                    out._converted[name] = \
+                        np.ndarray.__getitem__(self._converted[name], key)
             del dummy
 
             out._coldefs._arrays = arrays
@@ -543,9 +548,9 @@ class FITS_rec(np.recarray):
         `numpy.copy`.  Differences include that it re-views the copied array as
         self's ndarray subclass, as though it were taking a slice; this means
         ``__array_finalize__`` is called and the copy shares all the array
-        attributes (including ``._convert``!).  So we need to make a deep copy
-        of all those attributes so that the two arrays truly do not share any
-        data.
+        attributes (including ``._converted``!).  So we need to make a deep
+        copy of all those attributes so that the two arrays truly do not share
+        any data.
         """
 
         new = super(FITS_rec, self).copy(order=order)
@@ -596,6 +601,7 @@ class FITS_rec(np.recarray):
         n_phantom = len([c for c in self.columns[:col_indx] if c._phantom])
         field_indx = col_indx - n_phantom
 
+        name = self._coldefs.names[col_indx]
         recformat = self._coldefs._recformats[col_indx]
 
         # If field's base is a FITS_rec, we can run into trouble because it
@@ -610,7 +616,7 @@ class FITS_rec(np.recarray):
         # recursion
         field = np.recarray.field(base, field_indx)
 
-        if self._convert[field_indx] is None:
+        if name not in self._converted:
             if isinstance(recformat, _FormatP):
                 # for P format
                 converted = self._convert_p(col_indx, field, recformat)
@@ -619,10 +625,10 @@ class FITS_rec(np.recarray):
                 # fields
                 converted = self._convert_other(col_indx, field, recformat)
 
-            self._convert[field_indx] = converted
+            self._converted[name] = converted
             return converted
 
-        return self._convert[field_indx]
+        return self._converted[name]
 
     def _update_column_attribute_changed(self, column, idx, attr, old_value,
                                          new_value):
@@ -937,7 +943,7 @@ class FITS_rec(np.recarray):
         # Running total for the new heap size
         heapsize = 0
 
-        for indx in range(len(self.dtype.names)):
+        for indx, name in enumerate(self.dtype.names):
             recformat = self._coldefs._recformats[indx]
             field = super(FITS_rec, self).field(indx)
 
@@ -950,11 +956,11 @@ class FITS_rec(np.recarray):
                 # an array of characters.
                 dtype = np.array([], dtype=recformat.dtype).dtype
 
-                if update_heap_pointers and self._convert[indx] is not None:
+                if update_heap_pointers and name in self._converted:
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
                     field[:] = 0  # reset
-                    npts = [len(arr) for arr in self._convert[indx]]
+                    npts = [len(arr) for arr in self._converted[name]]
 
                     field[:len(npts), 0] = npts
                     field[1:, 1] = (np.add.accumulate(field[:-1, 0]) *
@@ -966,11 +972,11 @@ class FITS_rec(np.recarray):
                 # include the size of its constituent arrays in the heap size
                 # total
 
-            if self._convert[indx] is None:
+            if name not in self._converted:
                 continue
 
             if isinstance(recformat, _FormatX):
-                _wrapx(self._convert[indx], field, recformat.repeat)
+                _wrapx(self._converted[name], field, recformat.repeat)
                 continue
 
             _str, _bool, _number, _scale, _zero, bscale, bzero, _ = \
@@ -980,7 +986,7 @@ class FITS_rec(np.recarray):
             if _number or _str:
                 column = self._coldefs[indx]
                 if _number and (_scale or _zero) and column._physical_values:
-                    dummy = self._convert[indx].copy()
+                    dummy = self._converted[name].copy()
                     if _zero:
                         dummy -= bzero
                     if _scale:
@@ -990,9 +996,9 @@ class FITS_rec(np.recarray):
                     # be mark is not scaled
                     column._physical_values = False
                 elif _str:
-                    dummy = self._convert[indx]
+                    dummy = self._converted[name]
                 elif isinstance(self._coldefs, _AsciiColDefs):
-                    dummy = self._convert[indx]
+                    dummy = self._converted[name]
                 else:
                     continue
 
@@ -1035,7 +1041,7 @@ class FITS_rec(np.recarray):
 
             # ASCII table does not have Boolean type
             elif _bool:
-                field[:] = np.choose(self._convert[indx],
+                field[:] = np.choose(self._converted[name],
                                      (np.array([ord('F')], dtype=np.int8)[0],
                                       np.array([ord('T')], dtype=np.int8)[0]))
 

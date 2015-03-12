@@ -172,16 +172,16 @@ class GroupData(FITS_rec):
             self._coldefs = coldefs
             self.parnames = parnames
 
-            for idx in range(npars):
+            for idx, name in enumerate(unique_parnames[:-1]):
                 scale, zero = self._get_scale_factors(idx)[3:5]
                 if scale or zero:
-                    self._convert[idx] = pardata[idx]
+                    self._converted[name] = pardata[idx]
                 else:
                     np.rec.recarray.field(self, idx)[:] = pardata[idx]
 
             scale, zero = self._get_scale_factors(npars)[3:5]
             if scale or zero:
-                self._convert[npars] = input
+                self._converted['DATA'] = input
             else:
                 np.rec.recarray.field(self, npars)[:] = input
         else:
