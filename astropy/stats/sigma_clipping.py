@@ -9,7 +9,7 @@ import numpy as np
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
+def sigma_clip(data, sig=3.0, iters=1, cenfunc=np.ma.median, varfunc=np.var,
                axis=None, copy=True):
     """Perform sigma-clipping on the provided data.
 
