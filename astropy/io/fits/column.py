@@ -170,6 +170,14 @@ class _BaseColumnFormat(str):
     def __hash__(self):
         return hash(self.canonical)
 
+    @lazyproperty
+    def dtype(self):
+        """
+        The Numpy dtype object created from the format's associated recformat.
+        """
+
+        return np.dtype(self.recformat)
+
     @classmethod
     def from_column_format(cls, format):
         """Creates a column format object from another column format object
@@ -650,7 +658,7 @@ class Column(NotifierMixin):
 
     @lazyproperty
     def dtype(self):
-        return np.dtype(_convert_format(self.format))
+        return self.format.dtype
 
     def copy(self):
         """

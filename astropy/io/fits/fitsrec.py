@@ -591,6 +591,7 @@ class FITS_rec(np.recarray):
         # NOTE: The *column* index may not be the same as the field index in
         # the recarray, if the column is a phantom column
         col_indx = _get_index(self.columns.names, key)
+
         if self.columns[col_indx]._phantom:
             warnings.warn(
                 'Field %r has a repeat count of 0 in its format code, '
