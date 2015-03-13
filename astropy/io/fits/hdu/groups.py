@@ -150,7 +150,7 @@ class GroupData(FITS_rec):
             if bitpix is None:
                 bitpix = _ImageBaseHDU.ImgCode[input.dtype.name]
 
-            fits_fmt = GroupsHDU._width2format[bitpix]  # -32 -> 'E'
+            fits_fmt = GroupsHDU._bitpix2tform[bitpix]  # -32 -> 'E'
             format = FITS2NUMPY[fits_fmt]  # 'E' -> 'f4'
             data_fmt = '%s%s' % (str(input.shape[1:]), format)
             formats = ','.join(([format] * npars) + [data_fmt])
@@ -169,19 +169,30 @@ class GroupData(FITS_rec):
                                                  formats=formats,
                                                  names=coldefs.names,
                                                  shape=gcount))
+
+            # By default the data field will just be 'DATA', but it may be
+            # uniquified if 'DATA' is already used by one of the group names
+            self._data_field = unique_parnames[-1]
+
             self._coldefs = coldefs
             self.parnames = parnames
 
             for idx, name in enumerate(unique_parnames[:-1]):
-                scale, zero = self._get_scale_factors(idx)[3:5]
+                column = coldefs[idx]
+                # Note: _get_scale_factors is used here and in other cases
+                # below to determine whether the column has non-default
+                # scale/zero factors.
+                # TODO: Find a better way to do this than using this interface
+                scale, zero = self._get_scale_factors(column)[3:5]
                 if scale or zero:
                     self._converted[name] = pardata[idx]
                 else:
                     np.rec.recarray.field(self, idx)[:] = pardata[idx]
 
-            scale, zero = self._get_scale_factors(npars)[3:5]
+            column = coldefs[self._data_field]
+            scale, zero = self._get_scale_factors(column)[3:5]
             if scale or zero:
-                self._converted['DATA'] = input
+                self._converted[self._data_field] = input
             else:
                 np.rec.recarray.field(self, npars)[:] = input
         else:
@@ -245,16 +256,17 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
     details on working with this type of HDU.
     """
 
-    _width2format = {8: 'B', 16: 'I', 32: 'J', 64: 'K', -32: 'E', -64: 'D'}
+    _bitpix2tform = {8: 'B', 16: 'I', 32: 'J', 64: 'K', -32: 'E', -64: 'D'}
     _data_type = GroupData
+    _data_field = 'DATA'
+    """
+    The name of the table record array field that will contain the group data
+    for each group; 'DATA' by default, but may be preceded by any number of
+    underscores if 'DATA' is already a parameter name
+    """
 
     def __init__(self, data=None, header=None):
         super(GroupsHDU, self).__init__(data=data, header=header)
-
-        # The name of the table record array field that will contain the group
-        # data for each group; 'data' by default, but may be preceded by any
-        # number of underscores if 'data' is already a parameter name
-        self._data_field = 'DATA'
 
         # Update the axes; GROUPS HDUs should always have at least one axis
         if len(self._axes) <= 0:
@@ -295,37 +307,41 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         if self._has_data and hasattr(self.data, '_coldefs'):
             return self.data._coldefs
 
-        format = self._width2format[self._header['BITPIX']]
+        format = self._bitpix2tform[self._header['BITPIX']]
         pcount = self._header['PCOUNT']
         parnames = []
         bscales = []
         bzeros = []
 
         for idx in range(pcount):
-            bscales.append(self._header.get('PSCAL' + str(idx + 1), 1))
-            bzeros.append(self._header.get('PZERO' + str(idx + 1), 0))
+            bscales.append(self._header.get('PSCAL' + str(idx + 1), None))
+            bzeros.append(self._header.get('PZERO' + str(idx + 1), None))
             parnames.append(self._header['PTYPE' + str(idx + 1)])
+
+        formats = [format] * len(parnames)
+        dim = [None] * len(parnames)
 
         # Now create columns from collected parameters, but first add the DATA
         # column too, to contain the group data.
-        formats = [format] * len(parnames)
         parnames.append('DATA')
-        bscales.append(self._header.get('BSCALE', 1))
-        bzeros.append(self._header.get('BZEROS', 0))
+        bscales.append(self._header.get('BSCALE'))
+        bzeros.append(self._header.get('BZEROS'))
         data_shape = self.shape[:-1]
-        formats.append(str(int(np.array(data_shape).sum())) + format)
+        formats.append(str(int(np.prod(data_shape))) + format)
+        dim.append(data_shape)
         parnames = _unique_parnames(parnames)
+
         self._data_field = parnames[-1]
 
-        cols = [Column(name=name, format=fmt, bscale=bscale, bzero=bzero)
-                for name, fmt, bscale, bzero in
-                zip(parnames, formats, bscales, bzeros)]
+        cols = [Column(name=name, format=fmt, bscale=bscale, bzero=bzero,
+                       dim=dim)
+                for name, fmt, bscale, bzero, dim in
+                zip(parnames, formats, bscales, bzeros, dim)]
 
         coldefs = ColDefs(cols)
         # TODO: Something has to be done about this spaghetti code of arbitrary
         # attributes getting tacked on to the coldefs here.
         coldefs._shape = self._header['GCOUNT']
-        coldefs._dat_format = FITS2NUMPY[format]
         return coldefs
 
     @lazyproperty
@@ -394,22 +410,22 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                              after='NAXIS' + str(len(self._axes)))
             self._header.set('PCOUNT', len(self.data.parnames), after='GROUPS')
             self._header.set('GCOUNT', len(self.data), after='PCOUNT')
-            npars = len(self.data.parnames)
-            scale, zero = self.data._get_scale_factors(npars)[3:5]
+
+            column = self.data._coldefs[self.data._data_field]
+            scale, zero = self.data._get_scale_factors(column)[3:5]
             if scale:
-                self._header.set('BSCALE', self.data._coldefs.bscales[npars])
+                self._header.set('BSCALE', column.bscale)
             if zero:
-                self._header.set('BZERO', self.data._coldefs.bzeros[npars])
-            for idx in range(npars):
-                self._header.set('PTYPE' + str(idx + 1),
-                                 self.data.parnames[idx])
-                scale, zero = self.data._get_scale_factors(idx)[3:5]
+                self._header.set('BZERO', column.bzero)
+
+            for idx, name in enumerate(self.data.parnames):
+                self._header.set('PTYPE' + str(idx + 1), name)
+                column = self.data._coldefs[idx]
+                scale, zero = self.data._get_scale_factors(column)[3:5]
                 if scale:
-                    self._header.set('PSCAL' + str(idx + 1),
-                                     self.data._coldefs.bscales[idx])
+                    self._header.set('PSCAL' + str(idx + 1), column.bscale)
                 if zero:
-                    self._header.set('PZERO' + str(idx + 1),
-                                     self.data._coldefs.bzeros[idx])
+                    self._header.set('PZERO' + str(idx + 1), column.bzero)
 
         # Update the position of the EXTEND keyword if it already exists
         if 'EXTEND' in self._header:
@@ -418,14 +434,6 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             else:
                 after = 'NAXIS'
             self._header.set('EXTEND', after=after)
-
-    def _get_tbdata(self):
-        # get the right shape for the data part of the random group,
-        # since binary table does not support ND yet
-        self.columns._recformats[-1] = (repr(self.shape[:-1]) +
-                                        self.columns._dat_format)
-
-        return super(GroupsHDU, self)._get_tbdata()
 
     def _writedata_internal(self, fileobj):
         """

@@ -545,17 +545,6 @@ class Column(NotifierMixin):
         self._dims = self.dim
         self.dim = dim
 
-        # Zero-length formats are legal in the FITS format, but since they
-        # are not supported by numpy we mark columns that use them as
-        # "phantom" columns, that are not considered when reading the data
-        # as a record array.
-        if self.format[0] == '0' or \
-           (self.format[-1] == '0' and self.format[-2].isalpha()):
-            self._phantom = True
-            array = None
-        else:
-            self._phantom = False
-
         # Awful hack to use for now to keep track of whether the column holds
         # pseudo-unsigned int data
         self._pseudo_unsigned_ints = False
@@ -655,6 +644,12 @@ class Column(NotifierMixin):
     disp = ColumnAttribute('TDISP')
     start = ColumnAttribute('TBCOL')
     dim = ColumnAttribute('TDIM')
+
+    @lazyproperty
+    def ascii(self):
+        """Whether this `Column` represents an column in an ASCII table."""
+
+        return isinstance(self.format, _AsciiColumnFormat)
 
     @lazyproperty
     def dtype(self):
@@ -1271,12 +1266,9 @@ class ColDefs(NotifierMixin):
 
     @lazyproperty
     def dtype(self):
-        recformats = [f for idx, f in enumerate(self._recformats)
-                      if not self[idx]._phantom]
-        formats = ','.join(recformats)
-        names = [n for idx, n in enumerate(self.names)
-                 if not self[idx]._phantom]
-        return np.rec.format_parser(formats, names, None).dtype
+        dtypes = [f.dtype for idx, f in enumerate(self.formats)]
+        names = [n for idx, n in enumerate(self.names)]
+        return np.dtype(list(zip(names, dtypes)))
 
     @lazyproperty
     def _arrays(self):

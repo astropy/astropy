@@ -176,10 +176,9 @@ class _TableLikeHDU(_ValidHDU):
         # pass the attributes
         fidx = 0
         for idx in range(len(columns)):
-            if not columns[idx]._phantom:
-                # get the data for each column object from the rec.recarray
-                columns[idx].array = data.field(fidx)
-                fidx += 1
+            # get the data for each column object from the rec.recarray
+            columns[idx].array = data.field(fidx)
+            fidx += 1
 
         # delete the _arrays attribute so that it is recreated to point to the
         # new data placed in the column object above
@@ -639,8 +638,7 @@ class TableHDU(_TableBaseHDU):
 
     def _get_tbdata(self):
         columns = self.columns
-        names = [n for idx, n in enumerate(columns.names)
-                 if not columns[idx]._phantom]
+        names = [n for idx, n in enumerate(columns.names)]
 
         # determine if there are duplicate field names and if there
         # are throw an exception

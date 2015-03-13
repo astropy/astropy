@@ -590,20 +590,15 @@ class FITS_rec(np.recarray):
 
         # NOTE: The *column* index may not be the same as the field index in
         # the recarray, if the column is a phantom column
-        col_indx = _get_index(self.columns.names, key)
+        column = self.columns[key]
+        name = column.name
+        format = column.format
 
-        if self.columns[col_indx]._phantom:
+        if format.dtype.itemsize == 0:
             warnings.warn(
                 'Field %r has a repeat count of 0 in its format code, '
                 'indicating an empty field.' % key)
-            recformat = self.columns._recformats[col_indx].lstrip('0')
-            return np.array([], dtype=recformat)
-        # Ignore phantom columns in determining the physical field number
-        n_phantom = len([c for c in self.columns[:col_indx] if c._phantom])
-        field_indx = col_indx - n_phantom
-
-        name = self._coldefs.names[col_indx]
-        recformat = self._coldefs._recformats[col_indx]
+            return np.array([], dtype=format.dtype)
 
         # If field's base is a FITS_rec, we can run into trouble because it
         # contains a reference to the ._coldefs object of the original data;
@@ -615,16 +610,19 @@ class FITS_rec(np.recarray):
         # base could still be a FITS_rec in some cases, so take care to
         # use rec.recarray.field to avoid a potential infinite
         # recursion
-        field = np.recarray.field(base, field_indx)
+        field = np.recarray.field(base, name)
 
         if name not in self._converted:
+            recformat = format.recformat
+            # TODO: If we're now passing the column to these subroutines, do we
+            # really need to pass them the recformat?
             if isinstance(recformat, _FormatP):
                 # for P format
-                converted = self._convert_p(col_indx, field, recformat)
+                converted = self._convert_p(column, field, recformat)
             else:
                 # Handle all other column data types which are fixed-width
                 # fields
-                converted = self._convert_other(col_indx, field, recformat)
+                converted = self._convert_other(column, field, recformat)
 
             self._converted[name] = converted
             return converted
@@ -663,7 +661,7 @@ class FITS_rec(np.recarray):
         _unwrapx(field, dummy, recformat.repeat)
         return dummy
 
-    def _convert_p(self, indx, field, recformat):
+    def _convert_p(self, column, field, recformat):
         """Convert a raw table column of FITS P or Q format descriptors
         to a VLA column with the array data returned from the heap.
         """
@@ -674,7 +672,7 @@ class FITS_rec(np.recarray):
         if raw_data is None:
             raise IOError(
                 "Could not find heap data for the %r variable-length "
-                "array column." % self.columns.names[indx])
+                "array column." % column.name)
 
         for idx in range(len(self)):
             offset = field[idx, 1] + self._heapoffset
@@ -700,20 +698,21 @@ class FITS_rec(np.recarray):
                 # TODO: Test that this works for X format; I don't think
                 # that it does--the recformat variable only applies to the P
                 # format not the X format
-                dummy[idx] = self._convert_other(indx, dummy[idx], recformat)
+                dummy[idx] = self._convert_other(column, dummy[idx],
+                                                 recformat)
 
         return dummy
 
-    def _convert_ascii(self, indx, field):
+    def _convert_ascii(self, column, field):
         """
         Special handling for ASCII table columns to convert columns containing
         numeric types to actual numeric arrays from the string representation.
         """
 
-        format = self._coldefs.formats[indx]
+        format = column.format
         recformat = ASCII2NUMPY[format[0]]
         # if the string = TNULL, return ASCIITNULL
-        nullval = str(self._coldefs.nulls[indx]).strip().encode('ascii')
+        nullval = str(column.null).strip().encode('ascii')
         if len(nullval) > format.width:
             nullval = nullval[:format.width]
 
@@ -729,6 +728,7 @@ class FITS_rec(np.recarray):
         try:
             dummy = np.array(dummy, dtype=recformat)
         except ValueError as exc:
+            indx = self._coldefs.names.index(column.name)
             raise ValueError(
                 '%s; the header may be missing the necessary TNULL%d '
                 'keyword or the table contains invalid data' %
@@ -736,7 +736,7 @@ class FITS_rec(np.recarray):
 
         return dummy
 
-    def _convert_other(self, indx, field, recformat):
+    def _convert_other(self, column, field, recformat):
         """Perform conversions on any other fixed-width column data types.
 
         This may not perform any conversion at all if it's not necessary, in
@@ -748,7 +748,9 @@ class FITS_rec(np.recarray):
             return self._convert_x(field, recformat)
 
         (_str, _bool, _number, _scale, _zero, bscale, bzero, dim) = \
-            self._get_scale_factors(indx)
+            self._get_scale_factors(column)
+
+        indx = self._coldefs.names.index(column.name)
 
         # ASCII table, convert strings to numbers
         # TODO:
@@ -758,7 +760,7 @@ class FITS_rec(np.recarray):
         # converting their data from FITS format to native format and vice
         # versa...
         if not _str and isinstance(self._coldefs, _AsciiColDefs):
-            field = self._convert_ascii(indx, field)
+            field = self._convert_ascii(column, field)
 
         # Test that the dimensions given in dim are sensible; otherwise
         # display a warning and ignore them
@@ -796,17 +798,25 @@ class FITS_rec(np.recarray):
         # actually doing the scaling
         # TODO: This also needs to be fixed in the effort to make Columns
         # responsible for scaling their arrays to/from FITS native values
-        column = self._coldefs[indx]
+        if not column.ascii and column.format.p_format:
+            format_code = column.format.p_format
+        else:
+            # TODO: Rather than having this if/else it might be nice if the
+            # ColumnFormat class had an attribute guaranteed to give the format
+            # of actual values in a column regardless of whether the true
+            # format is something like P or Q
+            format_code = column.format.format
+
         if (_number and (_scale or _zero) and not column._physical_values):
             # This is to handle pseudo unsigned ints in table columns
             # TODO: For now this only really works correctly for binary tables
             # Should it work for ASCII tables as well?
             if self._uint:
-                if bzero == 2**15 and 'I' in self._coldefs.formats[indx]:
+                if bzero == 2**15 and format_code == 'I':
                     field = np.array(field, dtype=np.uint16)
-                elif bzero == 2**31 and 'J' in self._coldefs.formats[indx]:
+                elif bzero == 2**31 and format_code == 'J':
                     field = np.array(field, dtype=np.uint32)
-                elif bzero == 2**63 and 'K' in self._coldefs.formats[indx]:
+                elif bzero == 2**63 and format_code == 'K':
                     field = np.array(field, dtype=np.uint64)
                     bzero64 = np.uint64(2 ** 63)
                 else:
@@ -817,7 +827,7 @@ class FITS_rec(np.recarray):
             if _scale:
                 np.multiply(field, bscale, field)
             if _zero:
-                if self._uint and 'K' in self._coldefs.formats[indx]:
+                if self._uint and format_code == 'K':
                     # There is a chance of overflow, so be careful
                     test_overflow = field.copy()
                     try:
@@ -898,34 +908,30 @@ class FITS_rec(np.recarray):
             if hasattr(base, 'nbytes') and base.nbytes >= raw_data_bytes:
                 return base
 
-    def _get_scale_factors(self, indx):
-        """
-        Get the scaling flags and factors for one field.
+    def _get_scale_factors(self, column):
+        """Get all the scaling flags and factors for one column."""
 
-        `indx` is the index of the field.
-        """
-
-        if isinstance(self._coldefs, _AsciiColDefs):
-            _str = self._coldefs.formats[indx][0] == 'A'
-            _bool = False  # there is no boolean in ASCII table
-        else:
-            _str = 'a' in self._coldefs._recformats[indx]
-            # TODO: Determine a better way to determine if the column is bool
-            # formatted
-            _bool = self._coldefs._recformats[indx][-2:] == FITS2NUMPY['L']
+        # TODO: Maybe this should be a method/property on Column?  Or maybe
+        # it's not really needed at all...
+        _str = column.format.format == 'A'
+        _bool = column.format.format == 'L'
 
         _number = not (_bool or _str)
-        bscale = self._coldefs.bscales[indx]
-        bzero = self._coldefs.bzeros[indx]
+        bscale = column.bscale
+        bzero = column.bzero
+
         _scale = bscale not in ('', None, 1)
         _zero = bzero not in ('', None, 0)
+
         # ensure bscale/bzero are numbers
         if not _scale:
             bscale = 1
         if not _zero:
             bzero = 0
 
-        dim = self._coldefs._dims[indx]
+        # column._dims gives a tuple, rather than column.dim which returns the
+        # original string format code from the FITS header...
+        dim = column._dims
 
         return (_str, _bool, _number, _scale, _zero, bscale, bzero, dim)
 
@@ -945,7 +951,8 @@ class FITS_rec(np.recarray):
         heapsize = 0
 
         for indx, name in enumerate(self.dtype.names):
-            recformat = self._coldefs._recformats[indx]
+            column = self._coldefs[indx]
+            recformat = column.format.recformat
             field = super(FITS_rec, self).field(indx)
 
             # add the location offset of the heap area for each
@@ -981,11 +988,10 @@ class FITS_rec(np.recarray):
                 continue
 
             _str, _bool, _number, _scale, _zero, bscale, bzero, _ = \
-                self._get_scale_factors(indx)
+                self._get_scale_factors(column)
 
             # conversion for both ASCII and binary tables
             if _number or _str:
-                column = self._coldefs[indx]
                 if _number and (_scale or _zero) and column._physical_values:
                     dummy = self._converted[name].copy()
                     if _zero:
