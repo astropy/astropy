@@ -115,8 +115,8 @@ class PolynomialModel(PolynomialBase):
         Return the number of coefficients in one parameter set
         """
 
-        if self.degree < 0  or self.degree > 16:
-            raise ValueError("Degree of polynomial must be 0 < deg < 16")
+        if self.degree < 0:
+            raise ValueError("Degree of polynomial must be positive or null")
         # deg+1 is used to account for the difference between iraf using
         # degree and numpy using exact degree
         if ndim != 1:
