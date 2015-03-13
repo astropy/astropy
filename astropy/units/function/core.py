@@ -7,10 +7,10 @@ from __future__ import (absolute_import, unicode_literals,
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 import numpy as np
-# LOCAL
+
 from ...extern import six
 from .. import (Unit, UnitBase, UnitsError,
-                dimensionless_unscaled, dex, Quantity, quantity_helper as qh)
+                dimensionless_unscaled, Quantity, quantity_helper as qh)
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 
@@ -96,7 +96,7 @@ class FunctionUnitBase(object):
         else:
             self._physical_unit = Unit(physical_unit)
             if(not isinstance(self._physical_unit, UnitBase) or
-               self._physical_unit.is_equivalent(dex)):
+               self._physical_unit.is_equivalent(self._default_function_unit)):
                 raise ValueError("Unit {0} is not a physical unit."
                                  .format(self._physical_unit))
 

@@ -140,18 +140,6 @@ def_unit(['beam'], namespace=_ns, prefixes=True)
 def_unit(['electron'], doc="Number of electrons", namespace=_ns,
          format={'latex': r'e^{-}', 'unicode': 'e⁻'})
 
-###########################################################################
-# Logarithmic units
-
-def_unit(['dex'], namespace=_ns, prefixes=False,
-         doc="Dex: Base 10 logarithmic unit")
-
-def_unit(['dB', 'decibel'], 0.1 * dex, namespace=_ns, prefixes=False,
-         doc="Decibel: ten per base 10 logarithmic unit")
-
-def_unit(['mag'], -0.4 * dex, namespace=_ns, prefixes=True,
-         doc="Astronomical magnitude: -2.5 per base 10 logarithmic unit")
-
 
 ###########################################################################
 # CLEANUP

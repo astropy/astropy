@@ -18,20 +18,22 @@ from .decorators import *
 from . import si
 from . import cgs
 from . import astrophys
+from .function import units as function_units
 
 from .si import *
 from .astrophys import *
 from .cgs import *
 from .physical import *
+from .function.units import *
 
 from .equivalencies import *
 
-from .function import (MagUnit, DecibelUnit, DexUnit,
-                       Magnitude, Decibel, Dex, STmag, ABmag)
+from .function.core import *
+from .function.logarithmic import *
 
 del bases
 
 # Enable the set of default units.  This notably does *not* include
 # Imperial units.
 
-set_enabled_units([si, cgs, astrophys])
+set_enabled_units([si, cgs, astrophys, function_units])

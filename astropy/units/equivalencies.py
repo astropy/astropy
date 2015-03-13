@@ -11,6 +11,7 @@ from ..constants import si as _si
 from . import si
 from . import cgs
 from . import astrophys
+from .function import units as function_units
 from . import dimensionless_unscaled
 
 
@@ -33,7 +34,7 @@ def dimensionless_angles():
 def logarithmic():
     """Allow logarithmic units to be converted to dimensionless fractions"""
     return [
-        (dimensionless_unscaled, astrophys.dex,
+        (dimensionless_unscaled, function_units.dex,
          lambda x: np.log10(x), lambda x: 10.**x)
     ]
 
