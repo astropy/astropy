@@ -101,7 +101,8 @@ def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
         >>> from numpy.random import randn
         >>> from numpy import mean
         >>> randvar = randn(10000)
-        >>> filtered_data = sigma_clip(randvar, 3, None, mean, copy=False)
+        >>> filtered_data = sigma_clip(randvar, 3, iters=None, cenfunc=mean,
+        ...                            copy=False)
 
     This will clip along one axis on a similar distribution with bad points
     inserted::
