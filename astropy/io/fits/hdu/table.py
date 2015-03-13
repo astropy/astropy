@@ -121,7 +121,9 @@ class _TableLikeHDU(_ValidHDU):
 
         coldefs = cls._columns_type(columns)
         data = FITS_rec.from_columns(coldefs, nrows=nrows, fill=fill)
-        return cls(data=data, header=header, **kwargs)
+        hdu = cls(data=data, header=header, **kwargs)
+        coldefs._add_listener(hdu)
+        return hdu
 
     @lazyproperty
     def columns(self):
@@ -154,6 +156,7 @@ class _TableLikeHDU(_ValidHDU):
         # specific to FITS binary tables
         if (any(type(r) in (_FormatP, _FormatQ)
                 for r in columns._recformats) and
+                self._data_size is not None and
                 self._data_size > self._theap):
             # We have a heap; include it in the raw_data
             raw_data = self._get_raw_data(self._data_size, np.uint8,
@@ -163,6 +166,12 @@ class _TableLikeHDU(_ValidHDU):
         else:
             raw_data = self._get_raw_data(self._nrows, columns.dtype,
                                           self._data_offset)
+            if raw_data is None:
+                # This can happen when a brand new table HDU is being created
+                # and no data has been assigned to the columns, which case just
+                # return an empty array
+                raw_data = np.array([], dtype=columns.dtype)
+
             data = raw_data.view(np.rec.recarray)
 
         self._init_tbdata(data)
@@ -220,46 +229,6 @@ class _TableLikeHDU(_ValidHDU):
         # worked before introducing the notifier interface)
         if self._data_loaded:
             del self.data
-
-    def _update_column_attribute_changed(self, column, col_idx, attr,
-                                         old_value, new_value):
-        """
-        Update the header when one of the column objects is updated.
-        """
-
-        # base_keyword is the keyword without the index such as TDIM
-        # while keyword is like TDIM1
-        base_keyword = ATTRIBUTE_TO_KEYWORD[attr]
-        keyword = base_keyword + str(col_idx + 1)
-
-        if keyword in self._header:
-            if new_value is None:
-                # If the new value is None, i.e. None was assigned to the
-                # column attribute, then treat this as equivalent to deleting
-                # that attribute
-                del self._header[keyword]
-            else:
-                self._header[keyword] = new_value
-        else:
-            keyword_idx = KEYWORD_NAMES.index(base_keyword)
-            # Determine the appropriate keyword to insert this one before/after
-            # if it did not already exist in the header
-            for before_keyword in reversed(KEYWORD_NAMES[:keyword_idx]):
-                before_keyword += str(col_idx + 1)
-                if before_keyword in self._header:
-                    self._header.insert(before_keyword, (keyword, new_value),
-                                        after=True)
-                    break
-            else:
-                for after_keyword in KEYWORD_NAMES[keyword_idx + 1:]:
-                    after_keyword += str(col_idx + 1)
-                    if after_keyword in header:
-                        self._header.insert(after_keyword,
-                                            (keyword, new_value))
-                        break
-                else:
-                    # Just append
-                    self._header[keyword] = new_value
 
 
 class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
@@ -605,18 +574,101 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         return (self.name, class_name, ncards, dims, format)
 
-    def _clear_table_keywords(self):
-        """Wipe out any existing table definition keywords from the header."""
+    def _update_column_removed(self, columns, idx):
+        super(_TableBaseHDU, self)._update_column_removed(columns, idx)
 
-        # Go in reverse so as to not confusing indexing while deleting.
-        for idx, keyword in reversed(list(enumerate(self._header.keys()))):
-            keyword = TDEF_RE.match(keyword)
+        # Fix the header to reflect the column removal
+        self._clear_table_keywords(index=idx)
+
+    def _update_column_attribute_changed(self, column, col_idx, attr,
+                                         old_value, new_value):
+        """
+        Update the header when one of the column objects is updated.
+        """
+
+        # base_keyword is the keyword without the index such as TDIM
+        # while keyword is like TDIM1
+        base_keyword = ATTRIBUTE_TO_KEYWORD[attr]
+        keyword = base_keyword + str(col_idx + 1)
+
+        if keyword in self._header:
+            if new_value is None:
+                # If the new value is None, i.e. None was assigned to the
+                # column attribute, then treat this as equivalent to deleting
+                # that attribute
+                del self._header[keyword]
+            else:
+                self._header[keyword] = new_value
+        else:
+            keyword_idx = KEYWORD_NAMES.index(base_keyword)
+            # Determine the appropriate keyword to insert this one before/after
+            # if it did not already exist in the header
+            for before_keyword in reversed(KEYWORD_NAMES[:keyword_idx]):
+                before_keyword += str(col_idx + 1)
+                if before_keyword in self._header:
+                    self._header.insert(before_keyword, (keyword, new_value),
+                                        after=True)
+                    break
+            else:
+                for after_keyword in KEYWORD_NAMES[keyword_idx + 1:]:
+                    after_keyword += str(col_idx + 1)
+                    if after_keyword in header:
+                        self._header.insert(after_keyword,
+                                            (keyword, new_value))
+                        break
+                else:
+                    # Just append
+                    self._header[keyword] = new_value
+
+    def _clear_table_keywords(self, index=None):
+        """
+        Wipe out any existing table definition keywords from the header.
+
+        If specified, only clear keywords for the given table index (shifting
+        up keywords for any other columns).  The index is zero-based.
+        Otherwise keywords for all columns.
+        """
+
+        # First collect all the table structure related keyword in the header
+        # into a single list so we can then sort them by index, which will be
+        # useful later for updating the header in a sensible order (since the
+        # header *might* not already be written in a reasonable order)
+        table_keywords = []
+
+        for idx, keyword in enumerate(self._header.keys()):
+            match = TDEF_RE.match(keyword)
             try:
-                keyword = keyword.group('label')
+                base_keyword = match.group('label')
             except:
                 continue                # skip if there is no match
-            if keyword in KEYWORD_TO_ATTRIBUTE:
+
+            if base_keyword in KEYWORD_TO_ATTRIBUTE:
+                num = int(match.group('num')) - 1  # convert to zero-base
+                table_keywords.append((idx, match.group(0), base_keyword,
+                                       num))
+
+        # First delete
+        for idx, keyword, _, num in sorted(table_keywords,
+                                           key=lambda k: k[0], reverse=True):
+            if index is None or index == num:
                 del self._header[idx]
+
+        # Now shift up remaining column keywords if only one column was cleared
+        if index is not None:
+            for _, keyword, base_keyword, num in sorted(table_keywords,
+                                                        key=lambda k: k[3]):
+                if num <= index:
+                    continue
+
+                old_card = self._header.cards[keyword]
+                new_card = (base_keyword + str(num), old_card.value,
+                            old_card.comment)
+                self._header.insert(keyword, new_card)
+                del self._header[keyword]
+
+            # Also decrement TFIELDS
+            if 'TFIELDS' in self._header:
+                self._header['TFIELDS'] -= 1
 
     def _populate_table_keywords(self):
         """Populate the new table definition keywords from the header."""

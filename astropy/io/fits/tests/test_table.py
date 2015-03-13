@@ -1789,9 +1789,10 @@ class TestTableFunctions(FitsTestCase):
         s4 = data[:1]
         for s in [s1, s2, s3, s4]:
             assert isinstance(s, fits.FITS_rec)
-        assert (s1 == s2).all()
-        assert (s2 == s3).all()
-        assert (s3 == s4).all()
+
+        assert comparerecords(s1, s2)
+        assert comparerecords(s2, s3)
+        assert comparerecords(s3, s4)
 
     def test_array_broadcasting(self):
         """
@@ -1824,9 +1825,9 @@ class TestTableFunctions(FitsTestCase):
         s4 = data[:1]
         for s in [s1, s2, s3, s4]:
             assert isinstance(s, fits.FITS_rec)
-        assert (s1 == s2).all()
-        assert (s2 == s3).all()
-        assert (s3 == s4).all()
+        assert comparerecords(s1, s2)
+        assert comparerecords(s2, s3)
+        assert comparerecords(s3, s4)
 
     def test_dump_load_round_trip(self):
         """
@@ -2527,3 +2528,53 @@ class TestColumnFunctions(FitsTestCase):
 
         assert cols['a'] == cols[0]
         assert cols['b'] == cols[1]
+
+    def test_column_attribute_change_after_removal(self):
+        """
+        This is a test of the column attribute change notification system.
+
+        After a column has been removed from a table (but other references
+        are kept to that same column) changes to that column's attributes
+        should not trigger a notification on the table it was removed from.
+        """
+
+        # One way we can check this is to ensure there are no further changes
+        # to the header
+        table = fits.BinTableHDU.from_columns([
+            fits.Column('a', format='D'),
+            fits.Column('b', format='D')])
+
+        b = table.columns['b']
+
+        table.columns.del_col('b')
+        assert table.data.dtype.names == ('a',)
+
+        b.name = 'HELLO'
+
+        assert b.name == 'HELLO'
+        assert 'TTYPE2' not in table.header
+        assert table.header['TTYPE1'] == 'a'
+        assert table.columns.names == ['a']
+
+        with pytest.raises(KeyError):
+            table.columns['b']
+
+        # Make sure updates to the remaining column still work
+        table.columns.change_name('a', 'GOODBYE')
+        with pytest.raises(KeyError):
+            table.columns['a']
+
+        assert table.columns['GOODBYE'].name == 'GOODBYE'
+        assert table.data.dtype.names == ('GOODBYE',)
+        assert table.columns.names == ['GOODBYE']
+        assert table.data.columns.names == ['GOODBYE']
+
+        table.columns['GOODBYE'].name = 'foo'
+        with pytest.raises(KeyError):
+            table.columns['GOODBYE']
+
+        assert table.columns['foo'].name == 'foo'
+        assert table.data.dtype.names == ('foo',)
+        assert table.columns.names == ['foo']
+        assert table.data.columns.names == ['foo']
+
