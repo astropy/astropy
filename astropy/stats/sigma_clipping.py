@@ -25,32 +25,40 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
     ----------
     data : array-like
         The data to be sigma-clipped (any shape).
-    sigma : float
-        The number of standard deviations (*not* variances) to use as the
-        clipping limit.
-    iters : int or `None`
+    sigma : float, optional
+        The number of standard deviations to use as the lower and upper
+        clipping limit.  These limits are overridden by ``sigma_lower``
+        and ``sigma_upper``, if input.
+    sigma_lower : float, optional
+        The number of standard deviations to use as the lower bound for
+        the clipping limit.  If `None` then the value of ``sigma`` is used.
+    sigma_upper : float, optional
+        The number of standard deviations to use as the upper bound for
+        the clipping limit.  If `None` then the value of ``sigma`` is used.
+    iters : int or `None`, optional
         The number of iterations to perform clipping for, or `None` to clip
         until convergence is achieved (i.e. continue until the last
         iteration clips nothing).
-    cenfunc : callable
+    cenfunc : callable, optional
         The technique to compute the center for the clipping. Must be a
         callable that takes in a masked array and outputs the central value.
         Defaults to the median (numpy.median).
-    stdfunc : callable
+    stdfunc : callable, optional
         The technique to compute the standard deviation about the center. Must
         be a callable that takes in a masked array and outputs a width
-        estimator::
+        estimator.  Masked (rejected) pixels are those where::
 
-             deviation**2 > sig**2 * stdfunc(deviation)**2
+             deviation < (-sigma_lower * stdfunc(deviation))
+             deviation > (sigma_upper * stdfunc(deviation))
 
         Defaults to the standard deviation (`numpy.std`).
 
-    axis : int or `None`
+    axis : int or `None`, optional
         If not `None`, clip along the given axis.  For this case, axis=int will
         be passed on to cenfunc and stdfunc, which are expected to return an
         array with the axis dimension removed (like the numpy functions).
         If `None`, clip over all values.  Defaults to `None`.
-    copy : bool
+    copy : bool, optional
         If `True`, the data array will be copied.  If `False`, the masked array
         data will contain the same array as ``data``.  Defaults to `True`.
 
@@ -68,7 +76,8 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
 
         and then setting a mask for points outside the range::
 
-            data.mask = deviation**2 > sigma**2 * stdfunc(deviation)**2
+           deviation < (-sigma_lower * stdfunc(deviation))
+           deviation > (sigma_upper * stdfunc(deviation))
 
         It will iterate a given number of times, or until no further points are
         rejected.
@@ -92,7 +101,7 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> filtered_data = sigma_clip(randvar, 2, 1)
+        >>> filtered_data = sigma_clip(randvar, 2, iters=1)
 
     This will clipping on a similar distribution, but for 3 sigma relative to
     the sample *mean*, will clip until converged, and does not copy the data::
@@ -115,7 +124,6 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
 
     Note that along the other axis, no points would be masked, as the variance
     is higher.
-
     """
 
     if sigma_lower is None:
@@ -179,7 +187,17 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         in addition to any input ``mask``.
 
     sigma : float, optional
-        The number of standard deviations to use as the clipping limit.
+        The number of standard deviations to use as the lower and upper
+        clipping limit.  These limits are overridden by ``sigma_lower``
+        and ``sigma_upper``, if input.
+
+    sigma_lower : float, optional
+        The number of standard deviations to use as the lower bound for
+        the clipping limit.  If `None` then the value of ``sigma`` is used.
+
+    sigma_upper : float, optional
+        The number of standard deviations to use as the upper bound for
+        the clipping limit.  If `None` then the value of ``sigma`` is used.
 
     iters : int, optional
         The number of iterations to perform sigma clipping, or `None` to
