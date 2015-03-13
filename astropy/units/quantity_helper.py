@@ -20,7 +20,7 @@ def get_converter(from_unit, to_unit):
     try:
         scale = from_unit._to(to_unit)
     except UnitsError:
-        return from_unit._apply_equivalences(
+        return from_unit._apply_equivalencies(
                 from_unit, to_unit, get_current_unit_registry().equivalencies)
     if scale == 1.:
         return None

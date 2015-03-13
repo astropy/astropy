@@ -364,8 +364,8 @@ class Quantity(np.ndarray):
             # the array is an integer the output then gets converted to an int
             # and truncated.
             result_dtype = np.result_type(*(args + tuple(
-                (float if converter is not None and converter(1.) % 1. != 0.
-                 else int) for converter in converters)))
+                (float if converter and converter(1.) % 1. != 0. else int)
+                for converter in converters)))
             if not np.can_cast(result_dtype, obj.dtype):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
@@ -459,7 +459,7 @@ class Quantity(np.ndarray):
                 # Set the inputs, rescaling as necessary
                 inputs = []
                 for arg, converter in zip(args, converters):
-                    if converter is not None:
+                    if converter:
                         inputs.append(converter(arg.value))
                     else:  # with no conversion, input can be non-Quantity.
                         inputs.append(getattr(arg, 'value', arg))
