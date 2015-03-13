@@ -519,11 +519,10 @@ def test_temperature():
 
 
 def test_temperature_energy():
-    from ... import constants
     x = 1000 * u.K
     y = (x * constants.k_B).to(u.keV)
-    assert_allclose(x.to(u.keV, u.temperature_energy()).value, y)
-    assert_allclose(y.to(u.K, u.temperature_energy()).value, x)
+    assert_allclose(x.to(u.keV, u.temperature_energy()).value, y.value)
+    assert_allclose(y.to(u.K, u.temperature_energy()).value, x.value)
 
 
 def test_compose_equivalencies():
