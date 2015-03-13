@@ -126,8 +126,8 @@ class PolynomialModel(PolynomialBase):
         Return the number of coefficients in one parameter set
         """
 
-        if self.degree < 1  or self.degree > 16:
-            raise ValueError("Degree of polynomial must be 1< deg < 16")
+        if self.degree < 0  or self.degree > 16:
+            raise ValueError("Degree of polynomial must be 0 < deg < 16")
         # deg+1 is used to account for the difference between iraf using
         # degree and numpy using exact degree
         if ndim != 1:
@@ -381,10 +381,11 @@ class Chebyshev1D(PolynomialModel):
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = x * 0 + 1
-        x2 = 2 * x
-        v[1] = x
-        for i in range(2, self.degree + 1):
-            v[i] = v[i - 1] * x2 - v[i - 2]
+        if self.degree > 0:
+            x2 = 2 * x
+            v[1] = x
+            for i in range(2, self.degree + 1):
+                v[i] = v[i - 1] * x2 - v[i - 2]
         return np.rollaxis(v, 0, v.ndim)
 
     def prepare_inputs(self, x, **kwargs):
@@ -487,9 +488,10 @@ class Legendre1D(PolynomialModel):
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
         v[0] = x * 0 + 1
-        v[1] = x
-        for i in range(2, self.degree + 1):
-            v[i] = (v[i - 1] * x * (2 * i - 1) - v[i - 2] * (i - 1)) / i
+        if self.degree > 0:
+            v[1] = x
+            for i in range(2, self.degree + 1):
+                v[i] = (v[i - 1] * x * (2 * i - 1) - v[i - 2] * (i - 1)) / i
         return np.rollaxis(v, 0, v.ndim)
 
     @staticmethod
@@ -575,9 +577,10 @@ class Polynomial1D(PolynomialModel):
 
         v = np.empty((self.degree + 1,) + x.shape, dtype=np.float)
         v[0] = x * 0 + 1
-        v[1] = x
-        for i in range(2, self.degree + 1):
-            v[i] = v[i - 1] * x
+        if self.degree > 0:
+            v[1] = x
+            for i in range(2, self.degree + 1):
+                v[i] = v[i - 1] * x
         return np.rollaxis(v, 0, v.ndim)
 
     @staticmethod
