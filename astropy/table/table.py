@@ -1065,7 +1065,7 @@ class Table(object):
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def add_column(self, col, index=None):
+    def add_column(self, col, index=None, unique_name=False):
         """
         Add a new Column object ``col`` to the table.  If ``index``
         is supplied then insert column before ``index`` position
@@ -1078,6 +1078,8 @@ class Table(object):
             Column object to add.
         index : int or `None`
             Insert column before this position or at end (default)
+        unique_name : bool
+            Uniquify column name if it already exist (default=False)
 
         Examples
         --------
@@ -1114,13 +1116,25 @@ class Table(object):
               2   b 0.2   y
               3   c 0.3   z
 
+        Add second column named 'b' with unique_name::
+
+        >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
+        >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
+        >>> t.add_column(col_b, unique_name=True)
+        >>> print(t)
+        a   b   b_1
+        --- --- ---
+          1 0.1 1.1
+          2 0.2 1.2
+          3 0.3 1.3
+
         To add several columns use add_columns.
         """
         if index is None:
             index = len(self.columns)
-        self.add_columns([col], [index])
+        self.add_columns([col], [index], unique_name=unique_name)
 
-    def add_columns(self, cols, indexes=None, copy=True):
+    def add_columns(self, cols, indexes=None, copy=True, unique_name=False):
         """
         Add a list of new Column objects ``cols`` to the table.  If a
         corresponding list of ``indexes`` is supplied then insert column before
@@ -1135,6 +1149,8 @@ class Table(object):
             Insert column before this position or at end (default)
         copy : bool
             Make a copy of the new columns (default=True)
+        unique_name : bool
+            Uniquify new column names if they duplicate the existing ones (default=False)
 
         Examples
         --------
@@ -1173,6 +1189,20 @@ class Table(object):
               x   1   u 0.1
               y   2   v 0.2
               z   3   w 0.3
+
+        Add second column 'b' and column 'c' with ``unique_name``::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
+            >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
+            >>> col_c = Column(name='c', data=['x', 'y', 'z'])
+            >>> t.add_columns([col_b, col_c], unique_name=True)
+            >>> print(t)
+            a   b   b_1 c
+            --- --- --- ---
+              1 0.1 1.1  x
+              2 0.2 1.2  y
+              3 0.3 1.3  z
+
         """
         if indexes is None:
             indexes = [len(self.columns)] * len(cols)
@@ -1192,6 +1222,21 @@ class Table(object):
                 i = new_indexes.index(index)
                 new_indexes.insert(i, None)
                 newcols.insert(i, col)
+
+        if unique_name:
+            colnames = set(col_getattr(col, 'name') for col in newcols)
+            if len(colnames) != len(newcols):
+                final_names = set(self.colnames)
+                for col in cols:
+                    name = col_getattr(col, 'name')
+                    if name in final_names:
+                        i = 1
+                        newname = name+'_%d' % i
+                        while newname in final_names:
+                            i += 1
+                            newname = name+'_%d' % i
+                        col_setattr(col, 'name', newname)
+                        final_names.add(newname)
 
         self._init_from_cols(newcols)
 
