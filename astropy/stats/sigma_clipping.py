@@ -155,7 +155,7 @@ def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
     return filtered_data
 
 
-def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0,
+def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
                         sigma_lower=3.0, sigma_upper=3.0, iters=None):
     """
     Calculate sigma-clipped statistics from data.
@@ -173,10 +173,10 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0,
         value indicates the corresponding element of ``data`` is masked.
         Masked pixels are excluded when computing the image statistics.
 
-    mask_val : float, optional
+    mask_value : float, optional
         An image data value (e.g., ``0.0``) that is ignored when
-        computing the image statistics.  ``mask_val`` will be masked in
-        addition to any input ``mask``.
+        computing the image statistics.  ``mask_value`` will be masked
+        in addition to any input ``mask``.
 
     sigma : float, optional
         The number of standard deviations to use as the clipping limit.
@@ -196,8 +196,8 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0,
 
     if mask is not None:
         data = np.ma.MaskedArray(data, mask)
-    if mask_val is not None:
-        data = np.ma.masked_values(data, mask_val)
+    if mask_value is not None:
+        data = np.ma.masked_values(data, mask_value)
     data_clip = sigma_clip(data, sig=sigma, sigma_lower=sigma_lower,
                            sigma_upper=sigma_upper, iters=iters)
     goodvals = data_clip.data[~data_clip.mask]
