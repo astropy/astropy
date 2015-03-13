@@ -1141,8 +1141,6 @@ class ColDefs(NotifierMixin):
     def _init_from_table(self, table):
         hdr = table._header
         nfields = hdr['TFIELDS']
-        self._width = hdr['NAXIS1']
-        self._shape = hdr['NAXIS2']
 
         # go through header keywords to pick out column definition keywords
         # definition dictionaries for each field

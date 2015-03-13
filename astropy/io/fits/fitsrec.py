@@ -494,8 +494,6 @@ class FITS_rec(np.recarray):
             del dummy
 
             out._coldefs._arrays = arrays
-            out._coldefs._shape = len(arrays[0])
-
             return out
 
         # if not a slice, do this because Record has no __getstate__.

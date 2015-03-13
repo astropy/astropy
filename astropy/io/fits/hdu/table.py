@@ -133,6 +133,17 @@ class _TableLikeHDU(_ValidHDU):
         # definitions come from, so just return an empty ColDefs
         return ColDefs([])
 
+    @property
+    def _nrows(self):
+        """
+        Table-like HDUs must provide an attribute that specifies the number of
+        rows in the HDU's table.
+
+        For now this is an internal-only attribute.
+        """
+
+        raise NotImplementedError
+
     def _get_tbdata(self):
         """Get the table data from an input HDU object."""
 
@@ -150,7 +161,7 @@ class _TableLikeHDU(_ValidHDU):
             data = raw_data[:self._theap].view(dtype=columns.dtype,
                                                type=np.rec.recarray)
         else:
-            raw_data = self._get_raw_data(columns._shape, columns.dtype,
+            raw_data = self._get_raw_data(self._nrows, columns.dtype,
                                           self._data_offset)
             data = raw_data.view(np.rec.recarray)
 
@@ -478,6 +489,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         # setting self.__dict__['data']
         return data
 
+    @property
+    def _nrows(self):
+        if not self._data_loaded:
+            return self._header.get('NAXIS2', 0)
+        else:
+            return len(self.data)
+
     @lazyproperty
     def _theap(self):
         size = self._header['NAXIS1'] * self._header['NAXIS2']
@@ -663,7 +681,7 @@ class TableHDU(_TableBaseHDU):
                                 self._header['NAXIS1'] - itemsize)
             dtype[columns.names[idx]] = (data_type, columns.starts[idx] - 1)
 
-        raw_data = self._get_raw_data(columns._shape, dtype, self._data_offset)
+        raw_data = self._get_raw_data(self._nrows, dtype, self._data_offset)
         data = raw_data.view(np.rec.recarray)
         self._init_tbdata(data)
         return data.view(self._data_type)

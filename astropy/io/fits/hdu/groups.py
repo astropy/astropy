@@ -339,10 +339,16 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
                 zip(parnames, formats, bscales, bzeros, dim)]
 
         coldefs = ColDefs(cols)
-        # TODO: Something has to be done about this spaghetti code of arbitrary
-        # attributes getting tacked on to the coldefs here.
-        coldefs._shape = self._header['GCOUNT']
         return coldefs
+
+    @property
+    def _nrows(self):
+        if not self._data_loaded:
+            # The number of 'groups' equates to the number of rows in the table
+            # representation of the data
+            return self._header.get('GCOUNT', 0)
+        else:
+            return len(self.data)
 
     @lazyproperty
     def _theap(self):
