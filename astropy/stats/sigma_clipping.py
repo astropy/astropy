@@ -2,7 +2,6 @@
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
 import numpy as np
 
 
@@ -137,14 +136,20 @@ def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
         while filtered_data.count() != lastrej:
             i += 1
             lastrej = filtered_data.count()
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= (do < -stdfunc(filtered_data) * sigma_lower)
-            filtered_data.mask |= (do > stdfunc(filtered_data) * sigma_upper)
+            deviation = filtered_data - cenfunc(filtered_data)
+            std = stdfunc(filtered_data)
+            filtered_data.mask |= np.ma.masked_less(deviation,
+                                                    -std * sigma_lower).mask
+            filtered_data.mask |= np.ma.masked_greater(deviation,
+                                                       std * sigma_upper).mask
     else:
         for i in range(iters):
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= (do < -stdfunc(filtered_data) * sigma_lower)
-            filtered_data.mask |= (do > stdfunc(filtered_data) * sigma_upper)
+            deviation = filtered_data - cenfunc(filtered_data)
+            std = stdfunc(filtered_data)
+            filtered_data.mask |= np.ma.masked_less(deviation,
+                                                    -std * sigma_lower).mask
+            filtered_data.mask |= np.ma.masked_greater(deviation,
+                                                       std * sigma_upper).mask
 
     return filtered_data
 
