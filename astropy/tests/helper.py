@@ -616,7 +616,7 @@ def check_pickling_recovery(original, protocol):
 
 
 def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
-                             err_msg='', verbose=True):
+                             **kwargs):
     """
     Raise an assertion if two objects are not equal up to desired tolerance.
 
@@ -626,10 +626,10 @@ def assert_quantity_allclose(actual, desired, rtol=1.e-7, atol=None,
     import numpy as np
     np.testing.assert_allclose(*_unquantify_allclose_arguments(actual, desired,
                                                                rtol, atol),
-                               err_msg=err_msg, verbose=verbose)
+                               **kwargs)
 
 
-def quantity_allclose(a, b, rtol=1.e-5, atol=None, equal_nan=False):
+def quantity_allclose(a, b, rtol=1.e-5, atol=None, **kwargs):
     """
     Returns True if two arrays are element-wise equal within a tolerance.
 
@@ -638,7 +638,7 @@ def quantity_allclose(a, b, rtol=1.e-5, atol=None, equal_nan=False):
     """
     import numpy as np
     return np.allclose(*_unquantify_allclose_arguments(a, b, rtol, atol),
-                       equal_nan=equal_nan)
+                       **kwargs)
 
 
 def _unquantify_allclose_arguments(actual, desired, rtol, atol):
