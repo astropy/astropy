@@ -10,12 +10,20 @@ daophot.py:
 
 from __future__ import absolute_import, division, print_function
 
+import os
 import re
 import numpy as np
 from . import core
 from . import basic
 from . import fixedwidth
 from ...utils import OrderedDict
+from ...utils.compat import ignored
+
+
+def _first_true_idx(iterable, pred=None, default=None):
+    func = lambda x : pred(x[1])        if pred         else lambda x : x[1]
+    ii = next( filter(func, enumerate(iterable)), default )     #either index-item pair or default
+    return ii[0]        if ii   else default
 
 
 class DaophotHeader(core.BaseHeader):
@@ -47,16 +55,6 @@ class DaophotHeader(core.BaseHeader):
                     table_meta['keywords'][m.group('name')] = keyword_dict
                     if m.group('name') == 'APERTURES':
                         self.aperture_values = keyword_dict['value']
-                        
-        #The list of apertures given in the #K APERTURES keyword may not be complete!!
-        #This happens if the string description of the aperture list is longer than the 
-        #field width %len(self.aperture_values) of the #K APERTURES field.  
-        #In this case we have to figure out how many apertures there are based on the file
-        #structure.
-        col_len_def = re.compile(r'[0-9]+')
-        meta_aps = meta['table']['keywords']['APERTURES']
-        aps_field_len = int( col_len_def.search( meta_aps['format'] ).group() )
-        self.unknown_apertures = len( meta_aps['value'].strip() ) == aps_field_len-1
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a DAOphot
@@ -102,23 +100,6 @@ class DaophotHeader(core.BaseHeader):
                         last_coldef_line[i] = line_stripped
                         break
         
-        if self.unknown_apertures:
-            #determine the number of apertures in the record from the first data-containing line
-            #in the table given the width specifications in the header.
-            def first_true(iterable, default=False, pred=None):
-                return next(filter(pred, iterable), default)
-            
-            non_comment_finder = re.compile('[^#]')
-            first_data_line = first_true(lines, pred=non_comment_finder.match)
-            unknown_columns = first_data_line[sum(col_width):]
-            lW0, W = last_width[0], sum(last_width)
-            Naperts = len(unknown_columns) // W
-            #extract the aperture values
-            aperture_value_str = [ unknown_columns[W*i:W*i+lW0].strip()
-                                        for i in range(Naperts) ]
-            self.aperture_values = ', '.join(aperture_value_str)
-        
-        
         # We need to check whether daophot file has multiple aperture data, in its keywords
         if (',' in self.aperture_values) or (':' in self.aperture_values):
             apertures=[]
@@ -146,9 +127,6 @@ class DaophotHeader(core.BaseHeader):
         if not self.names:
             raise core.InconsistentTableError('No column names found in DAOphot header')
 
-        ends = np.cumsum(col_width)
-        starts = ends - col_width
-
         # If there wasn't a #U defined (not sure of DAOphot specification), then
         # replace the empty line with the right number of ## indicators, which matches
         # the DAOphot "no unit" tag.
@@ -172,9 +150,11 @@ class DaophotHeader(core.BaseHeader):
                 col.format = coldefs[col.name][1]
 
         # Set column start and end positions.
+        ends = np.cumsum(col_width)
+        starts = ends - col_width
         for i, col in enumerate(self.cols):
-            col.start = starts[i]
-            col.end = ends[i]
+            col.start, col.end = starts[i], ends[i]
+            col.span = col.end-col.start
             if hasattr(col, 'format'):
                 if any(x in col.format for x in 'fg'):
                     col.type = core.FloatType
@@ -195,7 +175,44 @@ class DaophotData(core.BaseData):
 
 class DaophotInputter(core.ContinuationLinesInputter):
     no_continue = r'\s*#'
-
+    
+    def search_special_rows(self, lines, depth=150):
+        '''search lines for special continuation character to determine number of continued lines.'''
+        #The list of apertures given in the #K APERTURES keyword may not be complete!!
+        #This happens if the string description of the aperture list is longer than the 
+        #field width %len(self.aperture_values) of the #K APERTURES field.  
+        #In this case we have to figure out how many apertures there are based on the file
+        #structure.
+        re_data_finder = re.compile( '[^#]' )
+        re_special_continue = re.compile( r'\*\\*$' )
+        re_last_special = re.compile( r'\*\s*$' )
+        
+        #find first non-comment line
+        ixd1 = _first_true_idx( lines[:depth], pred=re_data_finder.match )
+        if ixd1 is None: #no data in lines[:depth]
+            return None, None
+        
+        #find first line ending on special row continuation character '*'
+        ixe1 = _first_true_idx( lines[ixd1:depth], pred=re_special_continue.search )    #index relative to ixd1
+        if ixe1 is None:  #no special lines
+            return None, None
+        
+        #last line ending on special '*', but not on line continue '/'
+        ixe2 = _first_true_idx( lines[ixd1+ixe1:depth], pred=re_last_special.search )  #index relative to ixe1
+        #if ixe1 is None: #no end of special lines within search depth!  increase search depth
+            #return self.search_special_rows( lines, depth=2*depth )
+        
+        markers = np.cumsum( [ixd1,ixe1,ixe2] )                    #indexing now relative to line[0]
+        multiline_block = lines[ markers[1]: markers[-1]+1 ]       #multiline portion of first data block
+        
+        return markers, multiline_block
+        
+    def process_lines(self, lines):
+        #self.raw = lines
+        self.multiline, self.first_block = self.search_special_rows( lines )
+        
+        return core.ContinuationLinesInputter.process_lines(self, lines)
+    
 
 class Daophot(core.BaseReader):
     """Read a DAOphot file.
@@ -265,7 +282,93 @@ class Daophot(core.BaseReader):
     header_class = DaophotHeader
     data_class = DaophotData
     inputter_class = DaophotInputter
+    
+    def read(self, table):
+        """Read the ``table`` and return the results in a format determined by
+        the ``outputter`` attribute.
 
+        The ``table`` parameter is any string or object that can be processed
+        by the instance ``inputter``.  For the base Inputter class ``table`` can be
+        one of:
+
+        * File name
+        * File-like object
+        * String (newline separated) with all header and data lines (must have at least 2 lines)
+        * List of strings
+
+        Parameters
+        ----------
+        table : str, file_like, list
+            Input table.
+
+        Returns
+        -------
+        table : `~astropy.table.Table`
+            Output table
+
+        """
+        # If ``table`` is a file then store the name in the ``data``
+        # attribute. The ``table`` is a "file" if it is a string
+        # without the new line specific to the OS.
+        with ignored(TypeError):
+            # Strings only
+            if os.linesep not in table + '':
+                self.data.table_name = os.path.basename(table)
+
+        # Get a list of the lines (rows) in the table
+        self.lines = self.inputter.get_lines(table)
+
+        # Set self.data.data_lines to a slice of lines contain the data rows
+        self.data.get_data_lines(self.lines)
+
+        # Extract table meta values (e.g. keywords, comments, etc).  Updates self.meta.
+        self.header.update_meta(self.lines, self.meta)
+        
+        # Special case for certain daophot databases. Extract the aperture values from the first data multiline
+        if hasattr(self.inputter,'multiline') and not self.inputter.multiline is None:  
+            #grab the first column of the special block (aperture values) and recreate the aperture description string
+            aplist = next( zip(*map(str.split, self.inputter.first_block)) ) 
+            self.header.aperture_values = ', '.join( aplist ) 
+        
+        # Get the table column definitions
+        self.header.get_cols(self.lines)
+
+        # Make sure columns are valid
+        self.header.check_column_names(self.names, self.strict_names, self.guessing)
+
+        self.cols = cols = self.header.cols
+        self.data.splitter.cols = cols
+        n_cols = len(cols)
+
+        for i, str_vals in enumerate(self.data.get_str_vals()):
+            if len(str_vals) != n_cols:
+                str_vals = self.inconsistent_handler(str_vals, n_cols)
+
+                # if str_vals is None, we skip this row
+                if str_vals is None:
+                    continue
+
+                # otherwise, we raise an error only if it is still inconsistent
+                if len(str_vals) != n_cols:
+                    errmsg = ('Number of header columns (%d) inconsistent with '
+                              'data columns (%d) at data line %d\n'
+                              'Header values: %s\n'
+                              'Data values: %s' % (n_cols, len(str_vals), i,
+                                                   [x.name for x in cols], str_vals))
+                    raise InconsistentTableError(errmsg)
+
+            for j, col in enumerate(cols):
+                col.str_vals.append(str_vals[j])
+
+        self.data.masks(cols)
+        table = self.outputter(cols, self.meta)
+        if hasattr(self.header, 'table_meta'):
+            table.meta.update(self.header.table_meta)
+        self.cols = self.header.cols
+
+        core._apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
+
+        return table
 
     def write(self, table=None):
         raise NotImplementedError
