@@ -8,7 +8,7 @@ import numpy as np
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
+def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
                cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
     """Perform sigma-clipping on the provided data.
 
@@ -25,7 +25,7 @@ def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
     ----------
     data : array-like
         The data to be sigma-clipped (any shape).
-    sig : float
+    sigma : float
         The number of standard deviations (*not* variances) to use as the
         clipping limit.
     iters : int or `None`
@@ -68,7 +68,7 @@ def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
 
         and then setting a mask for points outside the range::
 
-            data.mask = deviation**2 > sig**2 * stdfunc(deviation)**2
+            data.mask = deviation**2 > sigma**2 * stdfunc(deviation)**2
 
         It will iterate a given number of times, or until no further points are
         rejected.
@@ -111,7 +111,7 @@ def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
         >>> from numpy.random import normal
         >>> from numpy import arange, diag, ones
         >>> data = arange(5)+normal(0.,0.05,(5,5))+diag(ones(5))
-        >>> filtered_data = sigma_clip(data, axis=0, sig=2.3)
+        >>> filtered_data = sigma_clip(data, axis=0, sigma=2.3)
 
     Note that along the other axis, no points would be masked, as the variance
     is higher.
@@ -119,9 +119,9 @@ def sigma_clip(data, sig=3, sigma_lower=None, sigma_upper=None, iters=1,
     """
 
     if sigma_lower is None:
-        sigma_lower = sig
+        sigma_lower = sigma
     if sigma_upper is None:
-        sigma_upper = sig
+        sigma_upper = sigma
 
     if axis is not None:
         cenfunc_in = cenfunc
@@ -198,7 +198,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         data = np.ma.MaskedArray(data, mask)
     if mask_value is not None:
         data = np.ma.masked_values(data, mask_value)
-    data_clip = sigma_clip(data, sig=sigma, sigma_lower=sigma_lower,
+    data_clip = sigma_clip(data, sigma=sigma, sigma_lower=sigma_lower,
                            sigma_upper=sigma_upper, iters=iters)
     goodvals = data_clip.data[~data_clip.mask]
     return np.mean(goodvals), np.median(goodvals), np.std(goodvals)
