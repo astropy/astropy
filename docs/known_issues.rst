@@ -142,6 +142,46 @@ An easy solution is::
     >>> np.isclose(500* u.km/u.s, 300 * u.km / u.s, atol=1e-8 * u.mm / u.s)
     array([False], dtype=bool)
 
+
+Creating a Time object fails with ValueError after upgrading Astropy
+--------------------------------------------------------------------
+
+In some cases, have users have upgraded Astropy from an older version to v1.0
+or greater they have run into the following crash when trying to create a
+`~astropy.time.Time` object::
+
+    >>> datetime = Time('2012-03-01T13:08:00', scale='utc')
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/usr/lib/python2.7/site-packages/astropy/time/core.py", line 198, in __init__
+        self._init_from_vals(val, val2, format, scale, copy)
+      File "/usr/lib/python2.7/site-packages/astropy/time/core.py", line 240, in _init_from_vals
+        self._time = self._get_time_fmt(val, val2, format, scale)
+      File "/usr/lib/python2.7/site-packages/astropy/time/core.py", line 278, in _get_time_fmt
+        raise ValueError('Input values did not match {0}'.format(err_msg))
+    ValueError: Input values did not match any of the formats where the format keyword is optional [u'astropy_time', u'datetime', u'jyear_str', u'iso', u'isot', u'yday', u'byear_str']
+
+This problem can occur when there is a version mismatch between the compiled
+ERFA library (this is included as part of Astropy in most distributions), and
+the version of the Astropy Python source.
+
+This can have a number of causes.  The most likely is that when installing the
+new Astropy version, your previous Astropy version was not fully uninstalled
+first, resulting in a mishmash of versions.  Your best bet is to fully remove
+Astropy from its installation path, and reinstall from scratch using your
+preferred installation method.  How to remove the old version may be a simple
+matter if removing the entire ``astropy/`` directory from within the
+``site-packages`` directory it is installed in.  However, if in doubt, ask
+how best to uninstall packages from your preferred Python distribution.
+
+Another possible cause of this, in particular for people developing on Astropy
+and installing from a source checkout, is simply that your Astropy build
+directory is unclean.  To fix this, run ``git clean -dfx``.  This removes
+*all* build artifacts from the repository that aren't normally tracked by git.
+Make sure before running this that there are no untracked files in the
+repository you intend to save.  Then rebuild/reinstall from the clean repo.
+
+
 Some docstrings can not be displayed in IPython < 0.13.2
 --------------------------------------------------------
 
