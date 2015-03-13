@@ -72,15 +72,19 @@ class EulerAngleRotation(Model):
         matrices = []
         for angle, axis in zip([phi, theta, psi], axes_order):
             matrix = np.zeros((3, 3), dtype=np.float)
-            mat = self._rotation_matrix_from_angle(angle)
             if axis == 'x':
+                mat = self._rotation_matrix_from_angle(angle)
                 matrix[0, 0] = 1
                 matrix[1:, 1:] = mat
             elif axis == 'y':
+                mat = self._rotation_matrix_from_angle(-angle)
                 matrix[1, 1] = 1
-                matrix[0] = mat[0]
-                matrix[2] = mat[1]
+                matrix[0, 0] = mat[0, 0]
+                matrix[0, 2] = mat[0, 1]
+                matrix[2, 0] = mat[1, 0]
+                matrix[2, 2] = mat[1, 1]
             elif axis == 'z':
+                mat = self._rotation_matrix_from_angle(angle)
                 matrix[2, 2] = 1
                 matrix[:2, :2] = mat
             else:
@@ -99,20 +103,23 @@ class EulerAngleRotation(Model):
                          [-math.sin(angle), math.cos(angle)]])
 
     @staticmethod
-    def directional_cosine(alpha, delta):
-        result = (np.cos(np.deg2rad(alpha)) * np.cos(np.deg2rad(delta)),
-                  np.cos(np.deg2rad(delta)) * np.sin(np.deg2rad(alpha)),
-                  np.sin(np.deg2rad(delta)))
-        return np.array([result]).T
+    def spherical2cartesian(alpha, delta):
+        alpha = np.deg2rad(alpha)
+        delta = np.deg2rad(delta)
+
+        x = np.cos(alpha) * np.cos(delta)
+        y = np.cos(delta) * np.sin(alpha)
+        z = np.sin(delta)
+        return np.array([x, y, z])
 
     def inverse(self):
         return self.__class__(phi=-self.psi,
                               theta=-self.theta,
                               psi=-self.phi,
-                              order=self.order[::-1])
+                              axes_order=self.axes_order[::-1])
 
     def evaluate(self, alpha, delta, phi, theta, psi):
-        inp = self.directional_cosine(alpha, delta)
+        inp = self.spherical2cartesian(alpha, delta)
         matrix = self._create_matrix(phi, theta, psi, self.axes_order)
         result = np.dot(matrix, inp)
         return (np.rad2deg(np.arctan2(result[1], result[0])),

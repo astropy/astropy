@@ -3,8 +3,11 @@
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-from .. import models
+from math import cos, sin
+import numpy as np
 from numpy.testing import utils
+from .. import models
+
 from ...tests.helper import pytest
 
 
@@ -51,3 +54,51 @@ def test_Rotation2D_inverse():
     model = models.Rotation2D(angle=234.23494)
     x, y = model.inverse(*model(1, 0))
     utils.assert_allclose([x, y], [1, 0], atol=1e-10)
+
+
+def test_euler_angle_rotations():
+    x = (0, 0)
+    y = (90, 0)
+    z = (0, 90)
+    negx = (180, 0)
+    negy = (-90, 0)
+
+    # rotate y into minus z
+    model = models.EulerAngleRotation(0, 90, 0, 'zxz')
+    utils.assert_allclose(model(*z), y, atol=10**-12)
+    # rotate z into minus x
+    model = models.EulerAngleRotation(0, 90, 0, 'zyz')
+    utils.assert_allclose(model(*z), negx, atol=10**-12)
+    # rotate x into minus y
+    model = models.EulerAngleRotation(0, 90, 0, 'yzy')
+    utils.assert_allclose(model(*x), negy, atol=10**-12)
+
+
+def test_euler_against_sky():
+    """
+    Test sky transformations against euler angle rotations
+    """
+    # Write the Euler angles in terms of FITS WCS angles on the sky
+
+    # This corresponds to FITS WCS CRVAL1 = 5.63 deg
+    phi = 5.63 + 90
+    # This corresponds to FITS WCS CRVAL2 = -72.63 deg
+    theta = 90 - -72.63
+    # This corresponds to FITS WCS LONPOLE = 180 deg
+    psi = 180 - 90
+
+    # Create rotations between celestial and Native systems
+    c2n = models.RotateCelestial2Native(5.63, -72.63, 180)
+    n2c = models.RotateNative2Celestial(5.63, -72.63, 180)
+
+    # And the corresponding rotation in terms of Euler angles
+    # This corresponds to c2n since it's rotating coordinate systems,
+    # not vectors
+    model= models.EulerAngleRotation(phi, theta, -psi, 'zxz')
+
+    utils.assert_allclose(model(1, 23.1), c2n(1, 23.1))
+    ra, dec = model.inverse(1, 23.1)
+    if ra < 0:
+        ra += 360
+    utils.assert_allclose((ra, dec), n2c(1, 23.1))
+
