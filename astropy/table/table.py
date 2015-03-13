@@ -1241,10 +1241,10 @@ class Table(object):
                     name = col_getattr(col, 'name')
                     if name in final_names:
                         i = 1
-                        newname = name+'_{0}'.format(i)
+                        newname = '{0}_{1}'.format(name, i)
                         while newname in final_names:
                             i += 1
-                            newname = name+'_{0}'.format(i)
+                            newname = '{0}_{1}'.format(name, i)
                         col_setattr(col, 'name', newname)
                         warnings.warn("Column '{0}' is renamed to '{1}'"
                                       .format(name, newname), AstropyUserWarning)
