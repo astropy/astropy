@@ -6,6 +6,7 @@ from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
 import re
+import warnings
 
 from copy import deepcopy
 
@@ -18,6 +19,7 @@ from ..units import Quantity, Unit
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
+from ..utils.exceptions import AstropyUserWarning
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -1065,7 +1067,8 @@ class Table(object):
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def add_column(self, col, index=None, unique_name=False):
+    def add_column(self, col, index=None, rename_duplicate=False,
+                   rename_warning=True):
         """
         Add a new Column object ``col`` to the table.  If ``index``
         is supplied then insert column before ``index`` position
@@ -1078,8 +1081,10 @@ class Table(object):
             Column object to add.
         index : int or `None`
             Insert column before this position or at end (default)
-        unique_name : bool
+        rename_duplicate : bool
             Uniquify column name if it already exist (default=False)
+        rename_warning : bool
+            Issue warning when renaming duplicate columns (default=True)
 
         Examples
         --------
@@ -1116,11 +1121,11 @@ class Table(object):
               2   b 0.2   y
               3   c 0.3   z
 
-        Add second column named 'b' with unique_name::
+        Add second column named 'b' with rename_duplicate::
 
         >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
         >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
-        >>> t.add_column(col_b, unique_name=True)
+        >>> t.add_column(col_b, rename_duplicate=True)
         >>> print(t)
         a   b   b_1
         --- --- ---
@@ -1132,9 +1137,10 @@ class Table(object):
         """
         if index is None:
             index = len(self.columns)
-        self.add_columns([col], [index], unique_name=unique_name)
+        self.add_columns([col], [index], rename_duplicate=rename_duplicate)
 
-    def add_columns(self, cols, indexes=None, copy=True, unique_name=False):
+    def add_columns(self, cols, indexes=None, copy=True, rename_duplicate=False,
+                    rename_warning=True):
         """
         Add a list of new Column objects ``cols`` to the table.  If a
         corresponding list of ``indexes`` is supplied then insert column before
@@ -1149,8 +1155,12 @@ class Table(object):
             Insert column before this position or at end (default)
         copy : bool
             Make a copy of the new columns (default=True)
-        unique_name : bool
-            Uniquify new column names if they duplicate the existing ones (default=False)
+        rename_duplicate : bool
+            Uniquify new column names if they duplicate the existing ones
+            (default=False)
+        rename_warning : bool
+            Issue warning when renaming duplicate columns (default=True)
+
 
         Examples
         --------
@@ -1190,12 +1200,12 @@ class Table(object):
               y   2   v 0.2
               z   3   w 0.3
 
-        Add second column 'b' and column 'c' with ``unique_name``::
+        Add second column 'b' and column 'c' with ``rename_duplicate``::
 
             >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
             >>> col_b = Column(name='b', data=[1.1, 1.2, 1.3])
             >>> col_c = Column(name='c', data=['x', 'y', 'z'])
-            >>> t.add_columns([col_b, col_c], unique_name=True)
+            >>> t.add_columns([col_b, col_c], rename_duplicate=True)
             >>> print(t)
             a   b   b_1 c
             --- --- --- ---
@@ -1223,7 +1233,7 @@ class Table(object):
                 new_indexes.insert(i, None)
                 newcols.insert(i, col)
 
-        if unique_name:
+        if rename_duplicate:
             colnames = set(col_getattr(col, 'name') for col in newcols)
             if len(colnames) != len(newcols):
                 final_names = set(self.colnames)
@@ -1231,11 +1241,13 @@ class Table(object):
                     name = col_getattr(col, 'name')
                     if name in final_names:
                         i = 1
-                        newname = name+'_%d' % i
+                        newname = name+'_{0}'.format(i)
                         while newname in final_names:
                             i += 1
-                            newname = name+'_%d' % i
+                            newname = name+'_{0}'.format(i)
                         col_setattr(col, 'name', newname)
+                        warnings.warn("Column '{0}' is renamed to '{1}'"
+                                      .format(name, newname), AstropyUserWarning)
                         final_names.add(newname)
 
         self._init_from_cols(newcols)
