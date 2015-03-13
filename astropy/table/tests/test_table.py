@@ -476,17 +476,25 @@ class TestAddColumns(SetupData):
         t.add_column(self.a)
         with pytest.raises(ValueError):
             t.add_column(table_types.Column(name='a', data=[0, 1, 2]))
+        t.add_column(table_types.Column(name='a', data=[0, 1, 2]),
+                     rename_duplicate=True)
         t.add_column(self.b)
         t.add_column(self.c)
-        assert t.colnames == ['a', 'b', 'c']
+        assert t.colnames == ['a', 'a_1', 'b', 'c']
+        t.add_column(table_types.Column(name='a', data=[0, 1, 2]),
+                     rename_duplicate=True)
+        assert t.colnames == ['a', 'a_1', 'b', 'c', 'a_2']
 
     def test_add_duplicate_columns(self, table_types):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b, self.c])
         with pytest.raises(ValueError):
             t.add_columns([table_types.Column(name='a', data=[0, 1, 2]), table_types.Column(name='b', data=[0, 1, 2])])
+        t.add_columns([table_types.Column(name='a', data=[0, 1, 2]),
+                       table_types.Column(name='b', data=[0, 1, 2])],
+                      rename_duplicate=True)
         t.add_column(self.d)
-        assert t.colnames == ['a', 'b', 'c', 'd']
+        assert t.colnames == ['a', 'b', 'c', 'a_1', 'b_1', 'd']
 
 
 @pytest.mark.usefixtures('table_types')
