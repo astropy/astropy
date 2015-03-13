@@ -380,7 +380,7 @@ class Chebyshev1D(PolynomialModel):
 
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
-        v[0] = x * 0 + 1
+        v[0] = 1
         if self.degree > 0:
             x2 = 2 * x
             v[1] = x
@@ -487,7 +487,7 @@ class Legendre1D(PolynomialModel):
 
         x = np.array(x, dtype=np.float, copy=False, ndmin=1)
         v = np.empty((self.degree + 1,) + x.shape, dtype=x.dtype)
-        v[0] = x * 0 + 1
+        v[0] = 1
         if self.degree > 0:
             v[1] = x
             for i in range(2, self.degree + 1):
@@ -576,7 +576,7 @@ class Polynomial1D(PolynomialModel):
         """
 
         v = np.empty((self.degree + 1,) + x.shape, dtype=np.float)
-        v[0] = x * 0 + 1
+        v[0] = 1
         if self.degree > 0:
             v[1] = x
             for i in range(2, self.degree + 1):
