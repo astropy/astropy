@@ -15,7 +15,7 @@ from numpy import ma
 
 from .. import log
 from ..io import registry as io_registry
-from ..units import Quantity, Unit
+from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
