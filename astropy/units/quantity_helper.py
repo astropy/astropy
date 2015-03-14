@@ -511,8 +511,9 @@ def check_output(output, unit, inputs, function=None):
                                     .format(function.__name__)))
 
     # check we can handle the dtype (e.g., that we are not int
-    # when float is required)
-    if not np.can_cast(np.result_type(*inputs), output.dtype):
+    # when float is required); specifically exclude None for numpy <=1.7.
+    if not np.can_cast(np.result_type(*[i for i in inputs if i is not None]),
+                       output.dtype):
         raise TypeError("Arguments cannot be cast safely to output "
                         "with dtype={0}".format(output.dtype))
     return output
