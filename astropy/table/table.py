@@ -1067,8 +1067,7 @@ class Table(object):
         except ValueError:
             raise ValueError("Column {0} does not exist".format(name))
 
-    def add_column(self, col, index=None, rename_duplicate=False,
-                   rename_warning=True):
+    def add_column(self, col, index=None, rename_duplicate=False):
         """
         Add a new Column object ``col`` to the table.  If ``index``
         is supplied then insert column before ``index`` position
@@ -1083,8 +1082,6 @@ class Table(object):
             Insert column before this position or at end (default)
         rename_duplicate : bool
             Uniquify column name if it already exist (default=False)
-        rename_warning : bool
-            Issue warning when renaming duplicate columns (default=True)
 
         Examples
         --------
@@ -1139,13 +1136,12 @@ class Table(object):
             index = len(self.columns)
         self.add_columns([col], [index], rename_duplicate=rename_duplicate)
 
-    def add_columns(self, cols, indexes=None, copy=True, rename_duplicate=False,
-                    rename_warning=True):
+    def add_columns(self, cols, indexes=None, copy=True, rename_duplicate=False):
         """
         Add a list of new Column objects ``cols`` to the table.  If a
-        corresponding list of ``indexes`` is supplied then insert column before
-        each ``index`` position in the *original* list of columns, otherwise
-        append columns to the end of the list.
+        corresponding list of ``indexes`` is supplied then insert column
+        before each ``index`` position in the *original* list of columns,
+        otherwise append columns to the end of the list.
 
         Parameters
         ----------
@@ -1158,8 +1154,6 @@ class Table(object):
         rename_duplicate : bool
             Uniquify new column names if they duplicate the existing ones
             (default=False)
-        rename_warning : bool
-            Issue warning when renaming duplicate columns (default=True)
 
 
         Examples
@@ -1234,21 +1228,19 @@ class Table(object):
                 newcols.insert(i, col)
 
         if rename_duplicate:
-            colnames = set(col_getattr(col, 'name') for col in newcols)
-            if len(colnames) != len(newcols):
-                final_names = set(self.colnames)
-                for col in cols:
-                    name = col_getattr(col, 'name')
-                    if name in final_names:
-                        i = 1
-                        newname = '{0}_{1}'.format(name, i)
-                        while newname in final_names:
-                            i += 1
-                            newname = '{0}_{1}'.format(name, i)
-                        col_setattr(col, 'name', newname)
-                        warnings.warn("Column '{0}' is renamed to '{1}'"
-                                      .format(name, newname), AstropyUserWarning)
-                        final_names.add(newname)
+            existing_names = set(self.colnames)
+            for col in cols:
+                i = 1
+                orig_name = col_getattr(col, 'name')
+                while col_getattr(col, 'name') in existing_names:
+                    # If the column belongs to another table then copy it
+                    # before renaming
+                    if col_getattr(col, 'parent_table') is not None:
+                        col = col_copy(col)
+                    new_name = '{0}_{1}'.format(orig_name, i)
+                    col_setattr(col, 'name', new_name)
+                    i += 1
+                existing_names.add(new_name)
 
         self._init_from_cols(newcols)
 

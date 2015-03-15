@@ -485,6 +485,13 @@ class TestAddColumns(SetupData):
                      rename_duplicate=True)
         assert t.colnames == ['a', 'a_1', 'b', 'c', 'a_2']
 
+        t1 = table_types.Table()
+        t1.add_column(self.a)
+        with pytest.raises(ValueError):
+            t.add_column(t1['a'])
+        t.add_column(t1['a'], rename_duplicate=True)
+        assert t.colnames == ['a', 'a_1', 'b', 'c', 'a_2', 'a_3']
+
     def test_add_duplicate_columns(self, table_types):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b, self.c])
