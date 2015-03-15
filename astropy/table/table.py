@@ -6,7 +6,6 @@ from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
 import re
-import warnings
 
 from copy import deepcopy
 
@@ -19,7 +18,6 @@ from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.exceptions import AstropyUserWarning
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
