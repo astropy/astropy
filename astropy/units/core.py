@@ -17,7 +17,7 @@ import textwrap
 import warnings
 import numpy as np
 
-from ..utils.decorators import lazyproperty
+from ..utils.decorators import lazyproperty, deprecated
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import (is_effectively_unity, sanitize_scale, validate_power,
@@ -359,6 +359,7 @@ def add_enabled_units(units):
       Angstrom     | 1e-10 m         | AA, angstrom          ,
       cm           | 0.01 m          | centimeter            ,
       ft           | 0.3048 m        | foot                  ,
+      fur          | 201.168 m       | furlong               ,
       inch         | 0.0254 m        |                       ,
       lyr          | 9.46073e+15 m   | lightyear             ,
       m            | irreducible     | meter                 ,
@@ -787,7 +788,7 @@ class UnitBase(object):
 
     def _apply_equivalences(self, unit, other, equivalencies):
         """
-        Internal function (used from `get_converter`) to apply
+        Internal function (used from `_get_converter`) to apply
         equivalence pairs.
         """
         def make_converter(scale1, func, scale2):
@@ -839,6 +840,17 @@ class UnitBase(object):
             "{0} and {1} are not convertible".format(
                 unit_str, other_str))
 
+    def _get_converter(self, other, equivalencies=[]):
+        other = Unit(other)
+
+        try:
+            scale = self._to(other)
+        except UnitsError:
+            return self._apply_equivalences(
+                self, other, self._normalize_equivalencies(equivalencies))
+        return lambda val: scale * _condition_arg(val)
+
+    @deprecated('1.0')
     def get_converter(self, other, equivalencies=[]):
         """
         Return the conversion function to convert values from ``self``
@@ -868,14 +880,7 @@ class UnitBase(object):
         UnitsError
             If units are inconsistent
         """
-        other = Unit(other)
-
-        try:
-            scale = self._to(other)
-        except UnitsError:
-            return self._apply_equivalences(
-                self, other, self._normalize_equivalencies(equivalencies))
-        return lambda val: scale * _condition_arg(val)
+        return self._get_converter(other, equivalencies=equivalencies)
 
     def _to(self, other):
         """
@@ -938,7 +943,7 @@ class UnitBase(object):
         UnitsError
             If units are inconsistent
         """
-        return self.get_converter(other, equivalencies=equivalencies)(value)
+        return self._get_converter(other, equivalencies=equivalencies)(value)
 
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
@@ -1689,7 +1694,7 @@ class UnrecognizedUnit(IrreducibleUnit):
         self._normalize_equivalencies(equivalencies)
         return self == other
 
-    def get_converter(self, other, equivalencies=None):
+    def _get_converter(self, other, equivalencies=None):
         self._normalize_equivalencies(equivalencies)
         raise ValueError(
             "The unit {0!r} is unrecognized.  It can not be converted "

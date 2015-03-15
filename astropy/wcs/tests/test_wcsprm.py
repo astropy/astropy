@@ -3,7 +3,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from distutils.version import LooseVersion
 import gc
 import locale
 import re
@@ -753,6 +752,15 @@ def test_wcs_sub_error_message():
     assert str(e).endswith("axes must None, a sequence or an integer")
 
 
+def test_wcs_sub():
+    # Issue #3356
+    w = _wcs.Wcsprm()
+    w.sub(['latitude'])
+
+    w = _wcs.Wcsprm()
+    w.sub([b'latitude'])
+
+
 def test_compare():
     header = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
     w = _wcs.Wcsprm(header)
@@ -776,18 +784,14 @@ def test_compare():
     assert w.compare(w2, tolerance=1e-6)
 
 
-@pytest.mark.xfail(
-    LooseVersion(_wcs.__version__) < LooseVersion("4.25"),
-    reason="wcslib < 4.25")
+@pytest.mark.xfail()
 def test_radesys_defaults():
     w = _wcs.Wcsprm()
     w.ctype = ['RA---TAN', 'DEC--TAN']
     w.set()
     assert w.radesys == "ICRS"
 
-@pytest.mark.xfail(
-    LooseVersion(_wcs.__version__) < LooseVersion("4.25"),
-    reason="wcslib < 4.25")
+@pytest.mark.xfail()
 def test_radesys_defaults_full():
 
     # As described in Section 3.1 of the FITS standard "Equatorial and ecliptic

@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
-           'overlap_slices']
+           'overlap_slices', 'NoOverlapError', 'PartialOverlapError']
 
 
 class NoOverlapError(ValueError):
@@ -43,11 +43,11 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
         center of an array with shape=(2,3) will be (1,1).
         (For 1D arrays, this can be an integer.)
     mode : ['partial', 'strict']
-        In `partial` mode, a partial overlap of the small and the large
-        array is sufficient. In the `strict` mode, the small array has to be
+        In "partial" mode, a partial overlap of the small and the large
+        array is sufficient. In the "strict" mode, the small array has to be
         fully contained in the large array, otherwise an
-        :class:`IncompleteOverlapError` is raised. In both modes,
-        non-overlapping arrays will raise a :class:`NoOverlapError`.
+        `~astropy.nddata.utils.PartialOverlapError` is raised. In both modes,
+        non-overlapping arrays will raise a `~astropy.nddata.utils.NoOverlapError`.
 
     Returns
     -------
@@ -121,12 +121,20 @@ def extract_array(array_large, shape, position, mode='partial', fill_value=np.na
     position : tuple
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
-    mode : string
-        Mode for call to :func:`overlap_slices`.
+    mode : ['partial', 'trim', 'strict']
+        In "partial" and "trim" mode, a partial overlap of the small and the large
+        array is sufficient. In the "strict" mode, the small array has to be
+        fully contained in the large array, otherwise an
+        `~astropy.nddata.utils.PartialOverlapError` is raised. In both modes,
+        non-overlapping arrays will raise a `~astropy.nddata.utils.NoOverlapError`.
+        In "partial" mode, positions in the extracted array, that do not overlap
+        with the original array, will be filled with ``fill_value``. In "trim" mode
+        only the overlapping elements are returned, thus the resulting array may
+        be smaller than requested.
+
     fill_value : object of type array_large.dtype
-        If `mode` allows the extraction of arrays that overlap only partially,
-        `fill_value` set the values in the extracted array that do not overlap
-        with `large_array`.
+        In "partial" mode ``fill_value`` set the values in the extracted array that
+        do not overlap with ``large_array``.
 
     Returns
     -------
@@ -147,11 +155,17 @@ def extract_array(array_large, shape, position, mode='partial', fill_value=np.na
            [75, 76, 77, 78, 79],
            [85, 86, 87, 88, 89]])
     """
+    if mode in  ['partial', 'trim']:
+        slicemode = 'partial'
+    elif mode == 'strict':
+        slicemode = mode
+    else:
+        raise ValueError("Valid modes are 'partial', 'trim', and 'strict'.")
     large_slices, small_slices = overlap_slices(array_large.shape,
-                                                shape, position, mode=mode)
+                                                shape, position, mode=slicemode)
     extracted_array = array_large[large_slices]
     # Extracting on the edges is presumably a rare case, so treat special here.
-    if extracted_array.shape != shape:
+    if (extracted_array.shape != shape) and (mode=='partial'):
         extracted_array = np.zeros(shape, dtype=array_large.dtype)
         extracted_array[:] = fill_value
         extracted_array[small_slices] = array_large[large_slices]

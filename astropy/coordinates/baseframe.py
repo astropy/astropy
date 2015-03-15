@@ -300,13 +300,6 @@ class TimeFrameAttribute(FrameAttribute):
                                                                value, err))
             converted = True
 
-        if not out.isscalar:
-            msg0 = ('Time input {0}={1!r} is not a single (scalar) value. Some '
-                    'transformations do not yet support vector frame '
-                    'attributes, so some transformations may not work.')
-            msg = msg0.format(self.name, value)
-            warnings.warn(msg, AstropyWarning)
-
         return out, converted
 
 
@@ -498,7 +491,7 @@ class BaseCoordinateFrame(object):
                            'or other non-Quantity arguments is deprecated, and '
                            'will be removed in the next version of Astropy.  '
                            'Instead, you probably want to use the SkyCoord '
-                           'class with the "system={1}" keyword, or if you '
+                           'class with the "frame={1}" keyword, or if you '
                            'really want to use the low-level frame classes, '
                            'create it with an Angle or Quantity.')
 
@@ -589,7 +582,7 @@ class BaseCoordinateFrame(object):
             if repr_kwargs:
                 if repr_kwargs.get('distance', True) is None:
                     del repr_kwargs['distance']
-                if (self.representation == SphericalRepresentation and
+                if (issubclass(self.representation, SphericalRepresentation) and
                         'distance' not in repr_kwargs):
                     representation_data = UnitSphericalRepresentation(**repr_kwargs)
                 else:
@@ -810,11 +803,13 @@ class BaseCoordinateFrame(object):
         >>> from astropy.coordinates import SkyCoord, CartesianRepresentation
         >>> coord = SkyCoord(0*u.deg, 0*u.deg)
         >>> coord.represent_as(CartesianRepresentation)
-        <CartesianRepresentation x=1.0, y=0.0, z=0.0>
+        <CartesianRepresentation (x, y, z) [dimensionless]
+                (1.0, 0.0, 0.0)>
 
         >>> coord.representation = CartesianRepresentation
         >>> coord
-        <SkyCoord (ICRS): x=1.0, y=0.0, z=0.0>
+        <SkyCoord (ICRS): (x, y, z) [dimensionless]
+            (1.0, 0.0, 0.0)>
         """
         new_representation = _get_repr_cls(new_representation)
 
@@ -985,9 +980,9 @@ class BaseCoordinateFrame(object):
 
         if self.has_data:
             if self.representation:
-                if (self.representation == SphericalRepresentation and
+                if (issubclass(self.representation, SphericalRepresentation) and
                         isinstance(self.data, UnitSphericalRepresentation)):
-                    data = self.represent_as(UnitSphericalRepresentation,
+                    data = self.represent_as(self.data.__class__,
                                              in_frame_units=True)
                 else:
                     data = self.represent_as(self.representation,
@@ -1207,5 +1202,3 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
-
-

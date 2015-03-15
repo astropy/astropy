@@ -33,11 +33,15 @@ latexdicts = {'AA':  {'tabletype': 'table',
 
 
 def add_dictval_to_list(adict, key, alist):
-    '''add a value from a dictionary to a list
+    '''
+    Add a value from a dictionary to a list
 
-    :param adict: dictionary
-    :param key: key of value
-    :param list: list where value should be added
+    Parameters
+    ----------
+    adict : dictionary
+    key : hashable
+    alist: list
+        List where value should be added
     '''
     if key in adict:
         if isinstance(adict[key], six.string_types):
@@ -47,11 +51,21 @@ def add_dictval_to_list(adict, key, alist):
 
 
 def find_latex_line(lines, latex):
-    '''Find the first line which matches a patters
+    '''
+    Find the first line which matches a patters
 
-    :param lines: list of strings
-    :param latex: search pattern
-    :returns: line number or None, if no match was found
+    Parameters
+    ----------
+    lines : list
+        List of strings
+    latex : str
+        Search pattern
+
+    Returns
+    -------
+    line_num : int, None
+        Line number. Returns None, if no match was found
+
     '''
     re_string = re.compile(latex.replace('\\', '\\\\'))
     for i, line in enumerate(lines):
@@ -192,7 +206,7 @@ class Latex(core.BaseReader):
                             latexdict = {'tabletype': 'table*'})
 
         * tablealign : positioning of table in text.
-            The default is not to specifiy a position preference in the text.
+            The default is not to specify a position preference in the text.
             If, e.g. the alignment is ``ht``, then the LaTeX will be ``\\begin{table}[ht]``.
 
         * col_align : Alignment of columns

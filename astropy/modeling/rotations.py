@@ -40,9 +40,9 @@ class EulerAngleRotation(Model):
         Euler angles in deg
     """
 
-    phi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
-    theta = Parameter(getter=np.rad2deg, setter=np.deg2rad)
-    psi = Parameter(getter=np.rad2deg, setter=np.deg2rad)
+    phi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    theta = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
+    psi = Parameter(default=0, getter=np.rad2deg, setter=np.deg2rad)
 
     @staticmethod
     def _rotate_zxz(phi_i, theta_i, phi, theta, psi):

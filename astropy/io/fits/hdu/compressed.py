@@ -12,14 +12,13 @@ from .base import DELAYED, ExtensionHDU
 from .image import _ImageBaseHDU, ImageHDU
 from .table import BinTableHDU
 from ..card import Card
-from ..column import Column, ColDefs, _FormatP, TDEF_RE
+from ..column import Column, ColDefs, TDEF_RE
 from ..column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from ..fitsrec import FITS_rec
 from ..header import Header
 from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 
 from ....extern.six import string_types, iteritems
-from ....extern.six.moves import xrange, filter
 from ....utils import lazyproperty, deprecated
 from ....utils.compat import ignored
 from ....utils.exceptions import (AstropyPendingDeprecationWarning,
@@ -460,7 +459,7 @@ class CompImageHDU(BinTableHDU):
                convention are described at the `FITS Support Office web site
                <http://fits.gsfc.nasa.gov/registry/tilecompression.html>`_.
                Basically, the compressed image tiles are stored in rows of a
-               variable length arrray column in a FITS binary table.  The
+               variable length array column in a FITS binary table.  The
                astropy.io.fits recognizes that this binary table extension
                contains an image and treats it as if it were an image
                extension.  Under this tile-compression format, FITS header
@@ -508,7 +507,7 @@ class CompImageHDU(BinTableHDU):
         range -2 to -100).
 
         Very high compression factors (of 100 or more) can be achieved by using
-        large ``hcomp_scale`` values, however, this can produce undesireable
+        large ``hcomp_scale`` values, however, this can produce undesirable
         'blocky' artifacts in the compressed image.  A variation of the
         HCOMPRESS algorithm (called HSCOMPRESS) can be used in this case to
         apply a small amount of smoothing of the image when it is uncompressed
@@ -526,9 +525,9 @@ class CompImageHDU(BinTableHDU):
         GZIP, RICE, or HCOMPRESS).  This technique produces much higher
         compression factors than simply using the GZIP utility to externally
         compress the whole FITS file, but it also means that the original
-        floating point value pixel values are not exactly perserved.  When done
+        floating point value pixel values are not exactly preserved.  When done
         properly, this integer scaling technique will only discard the
-        insignificant noise while still preserving all the real imformation in
+        insignificant noise while still preserving all the real information in
         the image.  The amount of precision that is retained in the pixel
         values is controlled by the ``quantize_level`` parameter.  Larger
         values will result in compressed images whose pixels more closely match
@@ -548,7 +547,7 @@ class CompImageHDU(BinTableHDU):
         between adjacent scaled integer pixel values will equal 2.0 by default.
         Note that the RMS noise is independently calculated for each tile of
         the image, so the resulting integer scaling factor may fluctuate
-        slightly for each tile.  In some cases, it may be desireable to specify
+        slightly for each tile.  In some cases, it may be desirable to specify
         the exact quantization level to be used, instead of specifying it
         relative to the calculated noise value.  This may be done by specifying
         the negative of desired quantization level for the value of
@@ -1457,7 +1456,7 @@ class CompImageHDU(BinTableHDU):
         # The header attribute is the header for the image data.  It
         # is not actually stored in the object dictionary.  Instead,
         # the _image_header is stored.  If the _image_header attribute
-        # has already been defined we just return it.  If not, we nust
+        # has already been defined we just return it.  If not, we must
         # create it from the table header (the _header attribute).
         if hasattr(self, '_image_header'):
             return self._image_header
@@ -1764,7 +1763,7 @@ class CompImageHDU(BinTableHDU):
         self._bitpix = _ImageBaseHDU.ImgCode[self.data.dtype.name]
         self._bzero = self.header.get('BZERO', 0)
         self._bscale = self.header.get('BSCALE', 1)
-        # Update BITPIX for the image header specificially
+        # Update BITPIX for the image header specifically
         # TODO: Make this more clear by using self._image_header, but only once
         # this has been fixed so that the _image_header attribute is guaranteed
         # to be valid
@@ -1810,7 +1809,7 @@ class CompImageHDU(BinTableHDU):
 
             # Now we need to perform an ugly hack to set the compressed data as
             # the .data attribute on the HDU so that the call to _writedata
-            # handles it propertly
+            # handles it properly
             self.__dict__['data'] = self.compressed_data
 
         return super(CompImageHDU, self)._prewriteto(checksum=checksum,
@@ -1910,7 +1909,7 @@ class CompImageHDU(BinTableHDU):
             # indices of slices (starting from 0)
             first_tile = self.data[tuple(slice(d) for d in tile_dims)]
 
-            # The checksum agorithm used is literally just the sum of the bytes
+            # The checksum algorithm used is literally just the sum of the bytes
             # of the tile data (not its actual floating point values).  Integer
             # overflow is irrelevant.
             csum = first_tile.view(dtype='uint8').sum()

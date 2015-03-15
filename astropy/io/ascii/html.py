@@ -256,7 +256,7 @@ class HTML(core.BaseReader):
 
         * table_id : ID for the input table
             If a string, this defines the HTML id of the table to be processed.
-            If an integer, this specificies the index of the input table in the
+            If an integer, this specifies the index of the input table in the
             available tables. Unless this parameter is given, the reader will
             use the first table found in the input file.
 

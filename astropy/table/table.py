@@ -8,7 +8,6 @@ from ..extern.six.moves import range as xrange
 import re
 
 from copy import deepcopy
-from distutils import version
 
 import numpy as np
 from numpy import ma
@@ -16,7 +15,7 @@ from numpy import ma
 from .. import log
 from ..io import registry as io_registry
 from ..units import Quantity, Unit
-from ..utils import OrderedDict, isiterable, deprecated
+from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from . import groups
@@ -30,8 +29,7 @@ from .np_utils import fix_column_name, recarray_fromrecords
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays containing Unicode columns to
 # silently fail.
-_NUMPY_VERSION = version.LooseVersion(np.__version__)
-_BROKEN_UNICODE_TABLE_SORT = _NUMPY_VERSION < version.LooseVersion('1.6.2')
+_BROKEN_UNICODE_TABLE_SORT = not minversion(np, '1.6.2')
 
 
 __doctest_skip__ = ['Table.read', 'Table.write',
@@ -842,8 +840,8 @@ class Table(object):
             return self.columns[item]
         elif isinstance(item, (int, np.integer)):
             return self.Row(self, item)
-        elif isinstance(item, (tuple, list)) and all(isinstance(x, six.string_types)
-                                                     for x in item):
+        elif (isinstance(item, (tuple, list)) and item and
+              all(isinstance(x, six.string_types) for x in item)):
             bad_names = [x for x in item if x not in self.colnames]
             if bad_names:
                 raise ValueError('Slice name(s) {0} not valid column name(s)'
@@ -852,6 +850,10 @@ class Table(object):
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
             return out
+        elif ((isinstance(item, np.ndarray) and len(item) == 0) or
+              (isinstance(item, (tuple, list)) and not item)):
+            # If item is an empty array/list/tuple then return the table with no rows
+            return self._new_from_slice([])
         elif (isinstance(item, slice) or
               isinstance(item, np.ndarray) or
               isinstance(item, list) or
@@ -952,23 +954,6 @@ class Table(object):
             self.remove_column(item)
         elif isinstance(item, tuple):
             self.remove_columns(item)
-
-    def __iter__(self):
-        self._iter_index = 0
-        self._len = len(self)
-        return self
-
-    def __next__(self):
-        """Python 3 iterator"""
-        if self._iter_index < self._len:
-            val = self.Row(self, self._iter_index)
-            self._iter_index += 1
-            return val
-        else:
-            raise StopIteration
-
-    if six.PY2:
-        next = __next__
 
     def field(self, item):
         """Return column[item] for recarray compatibility."""

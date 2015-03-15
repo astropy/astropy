@@ -26,7 +26,7 @@ from . import parameters
 
 __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
            "Flatw0waCDM", "w0waCDM", "wpwaCDM", "w0wzCDM", "WMAP5", "WMAP7",
-           "WMAP9", "Planck13", "default_cosmology"]
+           "WMAP9", "Planck13", "Planck15", "default_cosmology"]
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
@@ -76,7 +76,8 @@ class FLRW(Cosmology):
 
     Om0 : float
         Omega matter: density of non-relativistic matter in units of the
-        critical density at z=0.
+        critical density at z=0.  Note that this does not include
+        massive neutrinos.
 
     Ode0 : float
         Omega dark energy: density of dark energy in units of the critical
@@ -448,7 +449,7 @@ class FLRW(Cosmology):
           The dark energy equation of state
 
         Notes
-        ------
+        -----
         The dark energy equation of state is defined as
         :math:`w(z) = P(z)/\\rho(z)`, where :math:`P(z)` is the
         pressure at redshift z and :math:`\\rho(z)` is the density
@@ -472,6 +473,11 @@ class FLRW(Cosmology):
         Om : ndarray, or float if input scalar
           The density of non-relativistic matter relative to the critical
           density at each redshift.
+
+        Notes
+        -----
+        This does not include neutrinos, even if non-relativistic
+        at the redshift of interest; see `Onu`.
         """
 
         if isiterable(z):
@@ -522,6 +528,10 @@ class FLRW(Cosmology):
         ------
         ValueError
           If Ob0 is None.
+        Notes
+        -----
+        This does not include neutrinos, even if non-relativistic
+        at the redshift of interest.
         """
 
         if self._Odm0 is None:
@@ -603,7 +613,8 @@ class FLRW(Cosmology):
         return self._Ogamma0 * (1. + z) ** 4 * self.inv_efunc(z) ** 2
 
     def Onu(self, z):
-        """ Return the density parameter for massless neutrinos at redshift ``z``.
+        """ Return the density parameter for massless neutrinos at
+        redshift ``z``.
 
         Parameters
         ----------

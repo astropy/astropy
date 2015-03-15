@@ -22,7 +22,7 @@ __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
 def _find_all_structured_arrays(handle):
     """
-    Find all sturctured arrays in an HDF5 file
+    Find all structured arrays in an HDF5 file
     """
     import h5py
     structured_arrays = []

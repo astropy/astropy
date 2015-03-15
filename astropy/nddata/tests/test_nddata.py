@@ -39,6 +39,25 @@ class FakeUncertainty(NDUncertainty):
         pass
 
 
+class FakeNumpyArray(object):
+    """
+    Class that has a few of the attributes of a numpy array.
+
+    These attributes are checked for by NDData.
+    """
+    def __init__(self):
+        super(FakeNumpyArray, self).__init__()
+
+    def shape(self):
+        pass
+
+    def __getitem__(self):
+        pass
+
+    def __array__(self):
+        pass
+
+
 def test_nddata_empty():
     with pytest.raises(TypeError):
         NDData()  # empty initializer should fail
@@ -147,6 +166,16 @@ def test_nddata_init_from_nddata_data_argument_only():
     assert ndd2.meta == ndd1.meta
 
 
+def test_nddata_init_from_nddata_does_not_convert_data():
+    ndd1 = NDData(FakeNumpyArray())
+    # First make sure that NDData isn't converting its data to a numpy array.
+    assert isinstance(ndd1.data, FakeNumpyArray)
+    # Make a new NDData initialized from an NDData
+    ndd2 = NDData(ndd1)
+    # Check that the data wasn't converted to numpy
+    assert isinstance(ndd2.data, FakeNumpyArray)
+
+
 def test_nddata_copy_ref():
     """
     Tests to ensure that creating a new NDData object copies by *reference*.
@@ -237,18 +266,3 @@ from ...utils.tests.test_metadata import MetaBaseTest
 class TestMetaNDData(MetaBaseTest):
     test_class = NDData
     args = np.array([[1.]])
-
-
-# check that subclasses can require wcs and/or unit to be present and use
-# _arithmetic and convert_unit_to
-class SubNDData(NDData):
-    """
-    Subclass for test initialization of subclasses in NDData._arithmetic and
-    NDData.convert_unit_to
-    """
-    def __init__(self, *arg, **kwd):
-        super(SubNDData, self).__init__(*arg, **kwd)
-        if self.unit is None:
-            raise ValueError("Unit for subclass must be specified")
-        if self.wcs is None:
-            raise ValueError("WCS for subclass must be specified")

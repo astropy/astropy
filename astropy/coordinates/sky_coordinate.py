@@ -543,10 +543,13 @@ class SkyCoord(object):
             raise TypeError("Tried to do is_equivalent_frame on something that "
                             "isn't frame-like")
 
-    # High-level convinience methods
+    # High-level convenience methods
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -592,6 +595,9 @@ class SkyCoord(object):
         Computes three dimensional separation between this coordinate
         and another.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
@@ -636,6 +642,9 @@ class SkyCoord(object):
         Finds the nearest on-sky matches of this coordinate in a set of
         catalog coordinates.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         catalogcoord : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
@@ -673,6 +682,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.match_coordinates_sky
+        SkyCoord.match_to_catalog_3d
         """
         from .matching import match_coordinates_sky
 
@@ -696,6 +706,9 @@ class SkyCoord(object):
         This finds the 3-dimensional closest neighbor, which is only different
         from the on-sky distance if ``distance`` is set in this object or the
         ``catalogcoord`` object.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -734,6 +747,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.match_coordinates_3d
+        SkyCoord.match_to_catalog_sky
         """
         from .matching import match_coordinates_3d
 
@@ -755,22 +769,32 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given on-sky separation.
 
+        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        with coordinate arrays, rather than a scalar coordinate.  For a scalar
+        coordinate, it is better to use
+        `~astropy.coordinates.SkyCoord.separation`.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate(s) to search around to try to find matching points in
-            this `SkyCoord`.
+            The coordinates to search around to try to find matching points in
+            this `SkyCoord`. This should be an object with array coordinates,
+            not a scalar coordinate object.
         seplimit : `~astropy.units.Quantity` with angle units
             The on-sky separation to search within.
 
         Returns
         -------
         idxsearcharound : integer array
-            Indices into ``coords1`` that matches to the corresponding element of
+            Indices into ``self`` that matches to the corresponding element of
             ``idxself``. Shape matches ``idxself``.
         idxself : integer array
-            Indices into ``coords2`` that matches to the corresponding element of
-            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+            Indices into ``searcharoundcoords`` that matches to the
+            corresponding element of ``idxsearcharound``. Shape matches
+            ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
@@ -780,7 +804,7 @@ class SkyCoord(object):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -791,6 +815,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.search_around_sky
+        SkyCoord.search_around_3d
         """
         from .matching import search_around_sky
 
@@ -802,22 +827,32 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given 3D radius.
 
+        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        with coordinate arrays, rather than a scalar coordinate.  For a scalar
+        coordinate, it is better to use
+        `~astropy.coordinates.SkyCoord.separation_3d`.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate(s) to search around to try to find matching points in
-            this `SkyCoord`.
+            The coordinates to search around to try to find matching points in
+            this `SkyCoord`. This should be an object with array coordinates,
+            not a scalar coordinate object.
         distlimit : `~astropy.units.Quantity` with distance units
             The physical radius to search within.
 
         Returns
         -------
         idxsearcharound : integer array
-            Indices into ``coords1`` that matches to the corresponding element of
+            Indices into ``self`` that matches to the corresponding element of
             ``idxself``. Shape matches ``idxself``.
         idxself : integer array
-            Indices into ``coords2`` that matches to the corresponding element of
-            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+            Indices into ``searcharoundcoords`` that matches to the
+            corresponding element of ``idxsearcharound``. Shape matches
+            ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
@@ -827,7 +862,7 @@ class SkyCoord(object):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -838,6 +873,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.search_around_3d
+        SkyCoord.search_around_sky
         """
         from .matching import search_around_3d
 

@@ -165,7 +165,7 @@ Bug Fixes
   (spacetelescope/PyFITS#53)
 
 - Improved behavior when writing large compressed images on OSX by removing an
-  unncessary check for platform architecture. (spacetelescope/PyFITS#57)
+  unnecessary check for platform architecture. (spacetelescope/PyFITS#57)
 
 - Allow reading FITS files from file-like objects that do not have a
   ``.closed`` attribute (and as such may not even have an "open" vs. "closed"
@@ -194,7 +194,7 @@ Bug Fixes
   (Backported from 3.2.3)
 
 - Improved behavior when writing large compressed images on OSX by removing an
-  unncessary check for platform architecture. (Backported from 3.2.3)
+  unnecessary check for platform architecture. (Backported from 3.2.3)
 
 - Allow reading FITS files from file-like objects that do not have a
   ``.closed`` attribute (and as such may not even have an "open" vs. "closed"
@@ -230,7 +230,7 @@ Bug Fixes
   accepting an integer index as the first argument, it also supports supplying
   a keyword name as the first argument for insertion relative to a specific
   keyword.  It also now supports an optional ``after`` argument.  If
-  ``after=True`` the the insertion is made below the insertion point instead
+  ``after=True`` the insertion is made below the insertion point instead
   of above it. (spacetelescope/PyFITS#12)
 
 - Fixed support for broadcasting of values assigned to table columns.
@@ -304,7 +304,7 @@ Bug Fixes
   accepting an integer index as the first argument, it also supports supplying
   a keyword name as the first argument for insertion relative to a specific
   keyword.  It also now supports an optional ``after`` argument.  If
-  ``after=True`` the the insertion is made below the insertion point instead
+  ``after=True`` the insertion is made below the insertion point instead
   of above it. (Backported from 3.2.1)
 
 - A grab bag of minor performance improvements in headers.
@@ -2903,7 +2903,7 @@ Minor changes since v0.9.6:
 
 - Add output verification in methods flush() and close().
 
-- Modify the the design of the open() function to remove the output_verify
+- Modify the design of the open() function to remove the output_verify
   argument.
 
 - Remove the groups argument in GroupsHDU's constructor.
@@ -3079,7 +3079,7 @@ Changes since 0.7.5:
   in order for pyfits to run under numarray 0.4.
 
 - edit _readblock to add the (optional) firstblock argument and raise IOError
-  if the the first 8 characters in the first block is not 'SIMPLE  ' or
+  if the first 8 characters in the first block is not 'SIMPLE  ' or
   'XTENSION'.  Edit the function open to check for IOError to skip the last
   null filled block(s).  Edit readHDU to add the firstblock argument.
 

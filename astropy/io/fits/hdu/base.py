@@ -319,7 +319,7 @@ class _BaseHDU(object):
         Parameters
         ----------
         data : str, bytearray, memoryview, ndarray
-           A byte string contining the HDU's header and data.
+           A byte string containing the HDU's header and data.
 
         checksum : bool, optional
            Check the HDU's checksum and/or datasum.
@@ -1231,7 +1231,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             err_text = "'%s' card does not exist." % keyword
             fix_text = "Fixed by inserting a new '%s' card." % keyword
             if fixable:
-                # use repr to accomodate both string and non-string types
+                # use repr to accommodate both string and non-string types
                 # Boolean is also OK in this constructor
                 card = (keyword, fix_value)
 
@@ -1723,7 +1723,7 @@ class ExtensionHDU(_ValidHDU):
                        1, option, errs)
 
         return errs
-# For backwards compatilibity, though this needs to be deprecated
+# For backwards compatibility, though this needs to be deprecated
 # TODO: Mark this as deprecated
 _ExtensionHDU = ExtensionHDU
 

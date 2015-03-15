@@ -42,9 +42,9 @@ class PowerLaw1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter()
-    x_0 = Parameter()
-    alpha = Parameter()
+    amplitude = Parameter(default=1)
+    x_0 = Parameter(default=1)
+    alpha = Parameter(default=1)
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha):
@@ -100,10 +100,10 @@ class BrokenPowerLaw1D(Fittable1DModel):
                    \\right.
     """
 
-    amplitude = Parameter()
-    x_break = Parameter()
-    alpha_1 = Parameter()
-    alpha_2 = Parameter()
+    amplitude = Parameter(default=1)
+    x_break = Parameter(default=1)
+    alpha_1 = Parameter(default=1)
+    alpha_2 = Parameter(default=1)
 
     @staticmethod
     def evaluate(x, amplitude, x_break, alpha_1, alpha_2):
@@ -156,10 +156,10 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter()
-    x_0 = Parameter()
-    alpha = Parameter()
-    x_cutoff = Parameter()
+    amplitude = Parameter(default=1)
+    x_0 = Parameter(default=1)
+    alpha = Parameter(default=1)
+    x_cutoff = Parameter(default=1)
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, x_cutoff):
@@ -210,10 +210,10 @@ class LogParabola1D(Fittable1DModel):
 
     """
 
-    amplitude = Parameter()
-    x_0 = Parameter()
-    alpha = Parameter()
-    beta = Parameter()
+    amplitude = Parameter(default=1)
+    x_0 = Parameter(default=1)
+    alpha = Parameter(default=1)
+    beta = Parameter(default=0)
 
     @staticmethod
     def evaluate(x, amplitude, x_0, alpha, beta):

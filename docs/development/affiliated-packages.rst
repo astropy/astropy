@@ -441,7 +441,7 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
 #. Run::
 
-        python setup.py sdist --format=gztar
+        python setup.py build sdist --format=gztar
 
    and make sure that generated file is good to
    go by going inside ``dist``, expanding the tar file, going inside the
@@ -451,6 +451,16 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
    You may need to add the ``--remote-data`` flag or any other flags that you
    normally add when fully testing your affiliated package.
+
+   .. note::
+
+       Running ``python setup.py build sdist`` runs two setup commands in
+       succession.  First it runs ``build``, then immediately runs ``sdist``
+       to create the source distribution.  The reason to do this is that
+       there are several generated source files that must be included in the
+       source distribution for it to be valid.  Running ``build`` first
+       ensures that those files will be generated and packaged in the source
+       distribution.
 
 #. Go back to the root of the directory and remove the generated files with::
 
@@ -481,16 +491,16 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
         git add CHANGES.rst setup.py
 
-    and commit with message::
+   and commit with message::
 
         git commit -m "Back to development: <next_version>"
 
 #. Check out the release commit with ``git checkout v<version>``. Run
    ``git clean -fxd`` to remove any non-committed files, then either release with::
 
-        python setup.py register sdist --format=gztar upload
+        python setup.py register build sdist --format=gztar upload
 
-    or, if you are concerned about security, you can also use ``twine`` as described
+   or, if you are concerned about security, you can also use ``twine`` as described
     in `these <https://packaging.python.org/en/latest/tutorial.html#uploading-your-project-to-pypi>`_
     instructions. Either way, check that the entry on PyPI is correct, and that
     the tarfile is present.
@@ -500,9 +510,9 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
         git checkout master
         git push --tags origin master
 
-    Once you have done this, if you use readthedocs, trigger a ``latest`` build
-    then go to the project settings, and under **Versions** you should see the
-    tag you just pushed. Select the tag to activate it, and save.
+   Once you have done this, if you use readthedocs, trigger a ``latest`` build
+   then go to the project settings, and under **Versions** you should see the
+   tag you just pushed. Select the tag to activate it, and save.
 
 .. note:: The instructions above assume that you do not make use of bug fix
           branches in your workflow. If you do wish to create a bug fix branch,

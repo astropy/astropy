@@ -8,11 +8,18 @@ import numpy as np
 from numpy import ma
 
 try:
+    import matplotlib
     from matplotlib.colors import Normalize
+
+    # On older versions of matplotlib Normalize is an old-style class
+    if not isinstance(Normalize, type):
+        class Normalize(Normalize, object):
+            pass
 except ImportError:
     class Normalize(object):
         def __init__(self, *args, **kwargs):
             raise ImportError("matplotlib is required in order to use this class")
+
 
 __all__ = ['ImageNormalize']
 
@@ -32,7 +39,6 @@ class ImageNormalize(Normalize):
     """
 
     def __init__(self, vmin=None, vmax=None, stretch=None, clip=False):
-
         super(ImageNormalize, self).__init__(vmin=vmin, vmax=vmax, clip=clip)
 
         self.vmin = vmin

@@ -119,6 +119,7 @@ For example, to enable Imperial units, simply do::
       Angstrom     | 1e-10 m         | AA, angstrom     ,
       cm           | 0.01 m          | centimeter       ,
       ft           | 0.3048 m        | foot             ,
+      fur          | 201.168 m       | furlong          ,
       inch         | 0.0254 m        |                  ,
       lyr          | 9.46073e+15 m   | lightyear        ,
       m            | irreducible     | meter            ,

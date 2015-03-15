@@ -8,26 +8,33 @@ observability curves to assist planning or executing an observing run.
 This serves to demonstrate typical usage of `~astropy.coordinates.SkyCoord`
 and the transformation framework.
 
-Let's suppose you are planning to visit picturesque Bear Mountain State
-Park in New York, USA.  You're bringing your telescope with you (of course),
-and someone told you M33 is a great target to observe there.  You happen to
-know you're free at 11:00 pm local time, and you want to know if it will be
-up. Astropy can answer that:
+Let's suppose you are planning to visit picturesque
+`Bear Mountain State Park in New York, USA <https://www.google.com/maps/place/Bear+Mountain+State+Park/@41.288417,-74.003729,11z>`_.
+You're bringing your telescope with you (of course), and someone told you M33 is
+a great target to observe there.  You happen to know you're free at 11:00 pm
+local time, and you want to know if it will be up. Astropy can answer that.
+In the example below, we make a `~astropy.coordinates.SkyCoord` to look up
+the coordinates of M33 online, and then transform to horizontal coordinates
+(`~astropy.coordinates.AltAz`) using an `astropy.time.Time` object for when
+we're observing and an `~astropy.coordinates.EarthLocation` object for the
+park::
 
->>> import numpy as np
->>> from astropy import units as u
->>> from astropy.time import Time
->>> from astropy.coordinates import SkyCoord, EarthLocation, AltAz
->>> m33 = SkyCoord.from_name('M33')  # doctest: +REMOTE_DATA
->>> bear_mountain = EarthLocation(lat=41.3*u.deg, lon=-74*u.deg, height=390*u.m)
->>> utcoffset = -4*u.hour  # Eastern Daylight Time
->>> time = Time('2012-7-12 23:00:00') - utcoffset
->>> m33altaz = m33.transform_to(AltAz(obstime=time,location=bear_mountain))  # doctest: +REMOTE_DATA
->>> "M33's Altitude = {0.alt:.2}".format(m33altaz)  # doctest: +FLOAT_CMP +REMOTE_DATA
-"M33's Altitude = 0.13 deg"
+    >>> import numpy as np
+    >>> from astropy import units as u
+    >>> from astropy.time import Time
+    >>> from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+    >>> m33 = SkyCoord.from_name('M33')  # doctest: +REMOTE_DATA
+    >>> bear_mountain = EarthLocation(lat=41.3*u.deg, lon=-74*u.deg, height=390*u.m)
+    >>> utcoffset = -4*u.hour  # Eastern Daylight Time
+    >>> time = Time('2012-7-12 23:00:00') - utcoffset
+    >>> m33altaz = m33.transform_to(AltAz(obstime=time,location=bear_mountain))  # doctest: +REMOTE_DATA
+    >>> "M33's Altitude = {0.alt:.2}".format(m33altaz)  # doctest: +FLOAT_CMP +REMOTE_DATA
+    "M33's Altitude = 0.13 deg"
 
-Oops, it's only just rising, so the trees and mountains will be in the way.
-You'd better make a plot to see what the night is going to look like.
+Oops, so low of an altitude indicates M33 is only just rising, so the trees and
+mountains will be in the way. You'd better make a plot to see what the night is
+going to look like.  We'll do it by airmass, too, because that's a better
+measure of telescope observing conditions::
 
     >>> midnight = Time('2012-7-13 00:00:00') - utcoffset
     >>> delta_midnight = np.linspace(-2, 7, 100)*u.hour
@@ -71,8 +78,10 @@ You'd better make a plot to see what the night is going to look like.
 
 
 Hmm, looks like you may need to stay up pretty late.  But maybe you're an
-early-riser?  But then you need to know when the sun is rising, and
-when it will be twilight::
+early-riser?  Then you need to know when the sun is rising, and when
+it will be twilight. We can get the sun's location with
+`~astropy.coordinates.get_sun` and then plot the altitude and color-code by
+azimuth::
 
     >>> from astropy.coordinates import get_sun
     >>> delta_midnight = np.linspace(-12, 12, 1000)*u.hour

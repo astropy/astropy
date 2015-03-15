@@ -2,7 +2,6 @@
 
 # TEST_UNICODE_LITERALS
 
-import os
 import re
 
 import numpy as np
@@ -96,7 +95,6 @@ def test_read_with_names_arg(fast_reader):
         dat = ascii.read(['c d', 'e f'], names=('a', ), guess=False, fast_reader=fast_reader)
 
 
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_read_all_files(fast_reader):
     for testfile in get_testfiles():
@@ -118,7 +116,6 @@ def test_read_all_files(fast_reader):
                 assert_equal(len(table[colname]), testfile['nrows'])
 
 
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_read_all_files_via_table(fast_reader):
     for testfile in get_testfiles():
@@ -205,7 +202,6 @@ def test_daophot_multiple_aperture():
     assert np.all(table['RAPERT5'] == 23.3)  # assert all the 5th apertures are same 23.3
 
 
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_empty_table_no_header(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):
@@ -481,7 +477,8 @@ def test_read_rdb_wrong_type(fast_reader):
     table = """col1\tcol2
 N\tN
 1\tHello"""
-    with pytest.raises(ascii.InconsistentTableError):
+    err_type = ValueError if not fast_reader else ascii.InconsistentTableError
+    with pytest.raises(err_type):
         ascii.read(table, Reader=ascii.Rdb, fast_reader=fast_reader)
 
 
@@ -875,9 +872,18 @@ def test_guess_fail():
     Check the error message when guess fails
     """
     with pytest.raises(ascii.InconsistentTableError) as err:
-        ascii.read('asfdasdf\n1 2 3', format='html')
-
+        ascii.read('asfdasdf\n1 2 3', format='basic')
     assert "** To figure out why the table did not read, use guess=False and" in str(err.value)
+
+    # Test the case with guessing enabled but for a format that has no free params
+    with pytest.raises(ValueError) as err:
+        ascii.read('asfdasdf\n1 2 3', format='ipac')
+    assert 'At least one header line beginning and ending with delimiter required' in str(err.value)
+
+    # Test the case with guessing enabled but with all params specified
+    with pytest.raises(ValueError) as err:
+        ascii.read('asfdasdf\n1 2 3', format='basic', quotechar='"', delimiter=' ', fast_reader=False)
+    assert 'Number of header columns (1) inconsistent with data columns (3)' in str(err.value)
 
 
 def test_guessing_file_object():

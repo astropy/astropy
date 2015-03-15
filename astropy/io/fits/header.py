@@ -10,8 +10,6 @@ import re
 import sys
 import warnings
 
-from collections import defaultdict
-
 from .card import Card, CardList, _pad, KEYWORD_LENGTH
 from .file import _File
 from .util import (encode_ascii, decode_ascii, fileobj_closed,
@@ -126,7 +124,7 @@ class Header(object):
         if keyword in self._keyword_indices or keyword in self._rvkc_indices:
             # For the most common case (single, standard form keyword lookup)
             # this will work and is an O(1) check.  If it fails that doesn't
-            # guarantee absense, just that we have to perform the full set of
+            # guarantee absence, just that we have to perform the full set of
             # checks in self._cardindex
             return True
         try:
@@ -565,11 +563,11 @@ class Header(object):
     @classmethod
     def _find_end_card(cls, block, card_len):
         """
-        Utitility method to search a header block for the END card and handle
+        Utility method to search a header block for the END card and handle
         invalid END cards.
 
         This method can also returned a modified copy of the input header block
-        in case an invalid end card needs to be sanitized
+        in case an invalid end card needs to be sanitized.
         """
 
         for mo in HEADER_END_RE.finditer(block):
@@ -1335,7 +1333,7 @@ class Header(object):
         # We don't immediately modify the header, because first we need to sift
         # out any duplicates in the new header prior to adding them to the
         # existing header, but while *allowing* duplicates from the header
-        # being exteded from (see ticket #156)
+        # being extended from (see ticket #156)
         extend_cards = []
 
         for idx, card in enumerate(temp.cards):
@@ -1660,7 +1658,7 @@ class Header(object):
             existing_card = self._cards[idx]
             existing_card.value = value
             if comment is not None:
-                # '' should be used to explictly blank a comment
+                # '' should be used to explicitly blank a comment
                 existing_card.comment = comment
             if existing_card._modified:
                 self._modified = True

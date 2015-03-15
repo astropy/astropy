@@ -442,7 +442,7 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  'string value long string value long string value &'                  "
             "CONTINUE  '&' / long comment long comment long comment long comment long        "
             "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-            "CONTINUE  '&' / long comment                                                    ")
+            "CONTINUE  '' / long comment                                                     ")
 
     def test_long_unicode_string(self):
         """Regression test for
@@ -481,7 +481,7 @@ class TestHeaderFunctions(FitsTestCase):
              "CONTINUE  'string value long string value long string value &'                  ",
              "CONTINUE  '&' / long comment long comment long comment long comment long        ",
              "CONTINUE  '&' / comment long comment long comment long comment long comment     ",
-             "CONTINUE  '&' / long comment                                                    ",
+             "CONTINUE  '' / long comment                                                     ",
              str(fits.Card('TEST3', 'Regular value', 'Regular comment'))])
 
     def test_blank_keyword_long_value(self):
@@ -520,7 +520,7 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  'string value long string value long string value &'                  "
             "CONTINUE  '&' / long comment long comment long comment long comment long        "
             "CONTINUE  '&' / comment long comment long comment long comment long comment     "
-            "CONTINUE  '&' / long comment                                                    ")
+            "CONTINUE  '' / long comment                                                     ")
 
     def test_word_in_long_string_too_long(self):
         # if a word in a long string is too long, it will be cut in the middle
@@ -530,7 +530,7 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  'ingvaluelongstringvaluelongstringvaluelongstringvaluelongstringvalu&'"
             "CONTINUE  'elongstringvalue&'                                                   "
             "CONTINUE  '&' / longcommentlongcommentlongcommentlongcommentlongcommentlongcomme"
-            "CONTINUE  '&' / ntlongcommentlongcommentlongcommentlongcomment                  ")
+            "CONTINUE  '' / ntlongcommentlongcommentlongcommentlongcomment                   ")
 
     def test_long_string_value_via_fromstring(self, capsys):
         # long string value via fromstring() method
@@ -544,7 +544,7 @@ class TestHeaderFunctions(FitsTestCase):
         assert (str(c) ==
                 "ABC     = 'longstring''s testing  continue with long string but without the &'  "
                  "CONTINUE  'ampersand at the endcontinue must have string value (with quotes)&'  "
-                 "CONTINUE  '&' / comments in line 1 comments with ''.                            ")
+                 "CONTINUE  '' / comments in line 1 comments with ''.                             ")
 
     def test_continue_card_with_equals_in_value(self):
         """
@@ -561,6 +561,28 @@ class TestHeaderFunctions(FitsTestCase):
                 '/grp/hst/cdbs//grid/pickles/dat_uvk/pickles_uk_10.fits '
                 '* 5.87359e-12 * MWAvg(Av=0.12)')
         assert c.comment == 'pysyn expression'
+
+    def test_final_continue_card_lacks_ampersand(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/3282
+        """
+
+        h = fits.Header()
+        h['SVALUE'] = 'A' * 69
+        assert repr(h).splitlines()[-1] == _pad("CONTINUE  'AA'")
+
+    def test_final_continue_card_ampersand_removal_on_long_comments(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/3282
+        """
+
+        c = fits.Card('TEST', 'long value' * 10, 'long comment &' * 10)
+        assert (str(c) ==
+            "TEST    = 'long valuelong valuelong valuelong valuelong valuelong valuelong &'  "
+            "CONTINUE  'valuelong valuelong valuelong value&'                                "
+            "CONTINUE  '&' / long comment &long comment &long comment &long comment &long    "
+            "CONTINUE  '&' / comment &long comment &long comment &long comment &long comment "
+            "CONTINUE  '' / &long comment &                                                  ")
 
     def test_hierarch_card_creation(self):
         # Test automatic upgrade to hierarch card

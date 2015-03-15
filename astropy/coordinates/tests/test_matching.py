@@ -8,6 +8,7 @@ from numpy import testing as npt
 from ...tests.helper import pytest
 
 from ... import units as u
+from ...utils import minversion
 
 
 """
@@ -21,6 +22,12 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
+
+if HAS_SCIPY and minversion(scipy, '0.12.0', inclusive=False):
+    OLDER_SCIPY = False
+else:
+    OLDER_SCIPY = True
+
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
 def test_matching_function():
@@ -116,6 +123,7 @@ def test_matching_method():
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_search_around():
     from .. import ICRS
     from ..matching import search_around_sky, search_around_3d
@@ -138,3 +146,23 @@ def test_search_around():
     assert list(zip(idx1_1kpc, idx2_1kpc)) == [(0, 0), (0, 1), (0, 2), (1, 3)]
     assert list(zip(idx1_sm, idx2_sm)) == [(0, 1), (0, 2)]
     npt.assert_allclose(d2d_sm, [2, 1]*u.deg)
+
+
+@pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
+def test_search_around_scalar():
+    from astropy.coordinates import SkyCoord, Angle
+
+    cat = SkyCoord([1, 2, 3], [-30, 45, 8], unit="deg")
+    target = SkyCoord('1.1 -30.1', unit="deg")
+
+    with pytest.raises(ValueError) as excinfo:
+        cat.search_around_sky(target, Angle('2d'))
+
+    # make sure the error message is *specific* to search_around_sky rather than
+    # generic as reported in #3359
+    assert 'search_around_sky' in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        cat.search_around_3d(target, Angle('2d'))
+    assert 'search_around_3d' in str(excinfo.value)

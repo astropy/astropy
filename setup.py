@@ -18,14 +18,18 @@ builtins._ASTROPY_SETUP_ = True
 import astropy
 from astropy_helpers.setup_helpers import (
     register_commands, adjust_compiler, get_package_info, get_debug_option)
-from astropy_helpers.distutils_helpers import is_distutils_display_option
+try:
+    from astropy_helpers.distutils_helpers import is_distutils_display_option
+except:
+    # For astropy-helpers v0.4.x
+    from astropy_helpers.setup_helpers import is_distutils_display_option
 from astropy_helpers.git_helpers import get_git_devstr
 from astropy_helpers.version_helpers import generate_version_py
 
 NAME = 'astropy'
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '1.0.dev'
+VERSION = '1.1.dev'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
@@ -45,7 +49,8 @@ cmdclassd = register_commands(NAME, VERSION, RELEASE)
 adjust_compiler(NAME)
 
 # Freeze build information in version.py
-generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME))
+generate_version_py(NAME, VERSION, RELEASE, get_debug_option(NAME),
+                    uses_git=not RELEASE)
 
 # Get configuration information from all of the various subpackages.
 # See the docstring for setup_helpers.update_package_files for more

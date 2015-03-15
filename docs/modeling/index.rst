@@ -22,13 +22,14 @@ The goal is to eventually provide a rich toolset of models and fitters such
 that most users will not need to define new model classes, nor special purpose
 fitting routines (while making it reasonably easy to do when necessary).
 
-.. warning::
+.. note::
 
     `astropy.modeling` is currently a work-in-progress, and thus it is likely
-    there will still be API changes in later versions of Astropy, though
-    backwards compatibility support between versions will still be maintained
-    as much as possible. If you have specific ideas for how it might be
-    improved, feel free to let us know on the `astropy-dev mailing list`_ or at
+    there will still be API changes in later versions of Astropy.  Backwards
+    compatibility support between versions will still be maintained as much as
+    possible, but new features and enhancements are coming in future versions.
+    If you have specific ideas for how it might be improved, feel free to let
+    us know on the `astropy-dev mailing list`_ or at
     http://feedback.astropy.org
 
 
@@ -167,13 +168,15 @@ background in an image.
     # Plot the data with the best-fit model
     plt.figure(figsize=(8,2.5))
     plt.subplot(1,3,1)
-    plt.imshow(z, interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.imshow(z, origin='lower', interpolation='nearest', vmin=-1e4, vmax=5e4)
     plt.title("Data")
     plt.subplot(1,3,2)
-    plt.imshow(p(x, y), interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.imshow(p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
+               vmax=5e4)
     plt.title("Model")
     plt.subplot(1,3,3)
-    plt.imshow(z - p(x, y), interpolation='nearest', vmin=-1e4, vmax=5e4)
+    plt.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
+               vmax=5e4)
     plt.title("Residual")
 
 A list of models is provided in the `Reference/API`_ section. The fitting

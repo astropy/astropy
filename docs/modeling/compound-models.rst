@@ -22,7 +22,7 @@ few terms where there have been points of confusion:
 
   - All models in `astropy.modeling`, whether it represents some
     `function <astropy.modeling.functional_models>`, a
-    `rotation <astropy.modeling.rotations>`, etc. is represented in the
+    `rotation <astropy.modeling.rotations>`, etc., are represented in the
     abstract by a model *class*--specifically a subclass of
     `~astropy.modeling.Model`--that encapsulates the routine for evaluating the
     model, a list of its required parameters, and other metadata about the
@@ -88,7 +88,7 @@ As discussed in the :ref:`introduction to compound models
 <compound-models-intro>`, the only way, currently, to create compound models is
 to combine existing single models and/or compound models using expressions in
 Python with the binary operators ``+``, ``-``, ``*``, ``/``, ``**``, ``|``,
-and ``&``, each of which are discussed in the following sections.  The operands
+and ``&``, each of which is discussed in the following sections.  The operands
 used in these expressions may be model *classes*, or model *instances*.  In
 other words, any object for which either ``isinstance(obj, Model)`` or
 ``issubclass(obj, Model)`` is `True`.
@@ -147,7 +147,7 @@ the first and second components of the model listed next (in this case both
 components are the `~astropy.modeling.functional_models.Gaussian1D` class).
 
 Each component of a compound model is a single, non-compound model.  This is
-the case even when performing an existing compound model in a new expression.
+the case even when including an existing compound model in a new expression.
 The existing compound model is not treated as a single model--instead the
 expression represented by that compound model is extended.  An expression
 involving two or more compound models results in a new expression that is the
@@ -331,14 +331,15 @@ Operators
 Arithmetic operators
 ^^^^^^^^^^^^^^^^^^^^
 
-Compound models can be created from expressions that include any number of the
-arithmetic operators ``+``, ``-``, ``*``, ``/``, and ``**`` which have the same
-meanings as they do for other numeric objects in Python.
+Compound models can be created from expressions that include any
+number of the arithmetic operators ``+``, ``-``, ``*``, ``/``, and
+``**``, which have the same meanings as they do for other numeric
+objects in Python.
 
 .. note::
 
     In the case of division ``/`` always means floating point division--integer
-    division and the ``//`` operator are not supported for models).
+    division and the ``//`` operator is not supported for models).
 
 As demonstrated in previous examples, for models that have a single output
 the result of evaluating a model like ``A + B`` is to evaluate ``A`` and
@@ -431,7 +432,7 @@ example:
     for idx, theta in enumerate((0, 45, 90)):
         g = RotatedGaussian(theta)
         plt.subplot(1, 3, idx + 1)
-        plt.imshow(g(x, y))
+        plt.imshow(g(x, y), origin='lower')
         plt.xticks([])
         plt.yticks([])
         plt.title('Rotated $ {0}^\circ $'.format(theta))

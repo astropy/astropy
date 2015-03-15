@@ -142,8 +142,8 @@ class GroupData(FITS_rec):
                 parnames = ['PAR%d' % (idx + 1) for idx in range(npars)]
 
             if len(parnames) != npars:
-                raise ValueError('The number of paramater data arrays does '
-                                 'not match the number of paramaters.')
+                raise ValueError('The number of parameter data arrays does '
+                                 'not match the number of parameters.')
 
             unique_parnames = _unique_parnames(parnames + ['DATA'])
 
@@ -252,7 +252,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         super(GroupsHDU, self).__init__(data=data, header=header)
 
         # The name of the table record array field that will contain the group
-        # data for each group; 'data' by default, but may be precdeded by any
+        # data for each group; 'data' by default, but may be preceded by any
         # number of underscores if 'data' is already a parameter name
         self._data_field = 'DATA'
 
@@ -527,7 +527,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             # This is the case where the data has not been read from the file
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
-            # all.  This can also be handled in a gereric manner.
+            # all.  This can also be handled in a generic manner.
             return super(GroupsHDU, self)._calculate_datasum(blocking=blocking)
 
     def _summary(self):
