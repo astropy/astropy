@@ -95,6 +95,12 @@ def test_extract_array_1d_odd():
     assert extracted.dtype == arrayin.dtype
 
 
+def test_extract_array_1d():
+    """In 1d, shape can be int instead of tuple"""
+    assert np.all(extract_array(np.arange(4), 3, (-1, ), fill_value=-99) == np.array([-99, -99, 0]))
+    assert np.all(extract_array(np.arange(4), 3, -1, fill_value=-99) == np.array([-99, -99, 0]))
+
+
 def test_extract_array_easy():
     """
     Test extract_array utility function.

@@ -31,16 +31,17 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
 
     Parameters
     ----------
-    large_array_shape : tuple
-        Shape of the large array.
-    small_array_shape : tuple
-        Shape of the small array.
-    position : tuple of integers
+    large_array_shape : tuple or int
+        Shape of the large array (for 1D arrays, this can be an integer).
+    small_array_shape : tuple or int
+        Shape of the small array (for 1D arrays, this can be an integer).
+    position : tuple of integers or int
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
         When determining the center for a coordinate with an even number of
         elements, the position is rounded up. So the coordinates of the
         center of an array with shape=(2,3) will be (1,1).
+        (For 1D arrays, this can be an integer.)
     mode : ['partial', 'strict']
         In `partial` mode, a partial overlap of the small and the large
         array is sufficient. In the `strict` mode, the small array has to be
@@ -61,6 +62,13 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
     """
     if mode not in ['partial', 'strict']:
         raise ValueError('Mode can only be "partial" or "strict".')
+    if np.isscalar(small_array_shape):
+        small_array_shape = (small_array_shape, )
+    if np.isscalar(large_array_shape):
+        large_array_shape = (large_array_shape, )
+    if np.isscalar(position):
+        position = (position, )
+
     if len(small_array_shape) != len(large_array_shape):
         raise ValueError("Both arrays must have the same number of dimensions.")
 
