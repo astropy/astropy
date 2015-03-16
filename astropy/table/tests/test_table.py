@@ -485,12 +485,19 @@ class TestAddColumns(SetupData):
                      rename_duplicate=True)
         assert t.colnames == ['a', 'a_1', 'b', 'c', 'a_2']
 
+        # test adding column from a separate Table
         t1 = table_types.Table()
         t1.add_column(self.a)
         with pytest.raises(ValueError):
             t.add_column(t1['a'])
         t.add_column(t1['a'], rename_duplicate=True)
+
+        t1['a'][0] = 100  # Change original column
         assert t.colnames == ['a', 'a_1', 'b', 'c', 'a_2', 'a_3']
+        assert t1.colnames == ['a']
+
+        # Check new column didn't change (since name conflict forced a copy)
+        assert t['a_3'][0] == self.a[0]
 
     def test_add_duplicate_columns(self, table_types):
         self._setup(table_types)
