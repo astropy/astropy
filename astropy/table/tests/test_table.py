@@ -1407,9 +1407,9 @@ def test_table_init_from_degenerate_arrays(table_types):
     assert len(t.columns) == 3
 
 
+@pytest.mark.skipif('not HAS_PANDAS')
 class TestPandas(object):
 
-    @pytest.mark.skipif('not HAS_PANDAS')
     def test_simple(self):
 
         from pandas import DataFrame
@@ -1431,10 +1431,14 @@ class TestPandas(object):
         for column in t.columns:
             if column == 'u':
                 assert np.all(t['u'] == np.array(['a','b','c']))
+                assert d[column].dtype == np.dtype("O")
             elif column == 's':
                 assert np.all(t['s'] == np.array([b'a',b'b',b'c']))
+                assert d[column].dtype == np.dtype("S1")
             else:
-                assert_allclose(t[column], d[column])
+                # We should be able to compare exact values here
+                assert np.all(t[column] == d[column])
+                assert d[column].dtype == t[column].dtype
 
         t2 = table.Table.from_pandas(d)
 
@@ -1445,7 +1449,6 @@ class TestPandas(object):
                 assert_allclose(t[column], t2[column])
                 assert t[column].dtype == t2[column].dtype
 
-    @pytest.mark.skipif('not HAS_PANDAS')
     def test_2d(self):
 
         from pandas import DataFrame
@@ -1458,7 +1461,6 @@ class TestPandas(object):
             d = t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with multi-dimensional columns to a pandas DataFrame"
 
-    @pytest.mark.skipif('not HAS_PANDAS')
     def test_mixin(self):
 
         from pandas import DataFrame
@@ -1471,7 +1473,6 @@ class TestPandas(object):
             d = t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with mixin columns to a pandas DataFrame"
 
-    @pytest.mark.skipif('not HAS_PANDAS')
     def test_masking(self):
 
         from pandas import DataFrame

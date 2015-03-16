@@ -50,15 +50,15 @@ The conversions to/from pandas are subject to the following caveats:
   columns cannot be converted to `DataFrame`_.
 
 * Masked tables can be converted, but `DataFrame`_ uses ``numpy.nan`` to
-  indicated masked values, so all numerical columns (integer or float) are
+  indicate masked values, so all numerical columns (integer or float) are
   converted to ``numpy.float`` columns in `DataFrame`_, and string columns with
   missing values are converted to object columns with ``numpy.nan`` values to
   indicate missing values. For numerical columns, the conversion therefore does
-  not round-trip if converting back to an Astropy table, because the
+  not necessarily round-trip if converting back to an Astropy table, because the
   distinction between ``numpy.nan`` and masked values is lost, and the different
-  numerical types for columns are also lost.
+  for example integer columns will be converted to floating-point.
   
 * Tables with mixin columns can currently not be converted, but this may be
-  implemented in future.
+  implemented in the future.
 
 .. _DataFrame: http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html

@@ -2094,32 +2094,36 @@ class Table(object):
         -------
         dataframe : :class:`pandas.DataFrame`
             A pandas :class:`pandas.DataFrame` instance
+
+        Raises
+        ------
+        ImportError
+            If pandas is not installed
+        ValueError
+            If the Table contains mixin or multi-dimensional colunns
         """
         from pandas import DataFrame
 
         if self.has_mixin_columns:
             raise ValueError("Cannot convert a table with mixin columns to a pandas DataFrame")
 
-        for column in self.columns:
-            if len(self.dtype[column].shape) > 0:
-                raise ValueError("Cannot convert a table with multi-dimensional columns to a pandas DataFrame")
+        if any(getattr(col, 'ndim', 1) > 1 for col in self.columns.values()):
+            raise ValueError("Cannot convert a table with multi-dimensional columns to a pandas DataFrame")
 
-        if self.masked:
-            # We have to add the columns manually so as to treat the mask
-            # correctly
-            d = DataFrame()
-            for name, column in self.columns.items():
-                if isinstance(column, MaskedColumn):
-                    if column.dtype.kind in ['i']:
-                        d[name] = column.astype(float).filled(np.nan)
-                    elif column.dtype.kind in ['f', 'c']:
-                        d[name] = column.filled(np.nan)
-                    else:
-                        d[name] = column.astype(np.object).filled(np.nan)
-        else:
-            d = DataFrame(self.as_array())
+        out = OrderedDict()
 
-        return d
+        for name, column in self.columns.items():
+            if isinstance(column, MaskedColumn):
+                if column.dtype.kind in ['i', 'u']:
+                    out[name] = column.astype(float).filled(np.nan)
+                elif column.dtype.kind in ['f', 'c']:
+                    out[name] = column.filled(np.nan)
+                else:
+                    out[name] = column.astype(np.object).filled(np.nan)
+            else:
+                out[name] = column
+
+        return DataFrame(out)
 
     @classmethod
     def from_pandas(cls, dataframe):
@@ -2134,21 +2138,21 @@ class Table(object):
         Returns
         -------
         table : `Table`
-            A `Table` instance
+            A `Table` (or subclass) instance
         """
 
-        self = cls()
+        out = OrderedDict()
 
         for name in dataframe.columns:
             column = dataframe[name]
             data = np.array(column)
             mask = np.array(column.isnull())
             if np.any(mask):
-                self[name] = MaskedColumn(data=data, name=name, mask=mask)
+                out[name] = MaskedColumn(data=data, name=name, mask=mask)
             else:
-                self[name] = Column(data=data, name=name)
+                out[name] = Column(data=data, name=name)
 
-        return self
+        return cls(out)
 
 
 class QTable(Table):
