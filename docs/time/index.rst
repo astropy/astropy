@@ -586,7 +586,7 @@ predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
 
   >>> from astropy.utils.iers import IERS_A, IERS_A_URL
   >>> from astropy.utils.data import download_file
-  >>> iers_a_file = download_file(IERS_A_URL, cache=True))  # doctest: +SKIP
+  >>> iers_a_file = download_file(IERS_A_URL, cache=True)  # doctest: +SKIP
   >>> iers_a = IERS_A.open(iers_a_file)                     # doctest: +SKIP
   >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)         # doctest: +SKIP
 
