@@ -12,7 +12,7 @@ import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
 from ...extern import six
-from .. import Time, ScaleValueError, erfa_time, TIME_SCALES
+from .. import Time, ScaleValueError, erfa_time, TIME_SCALES, TimeString
 from ...coordinates import EarthLocation
 
 
@@ -814,3 +814,16 @@ def test_datetime_tzinfo():
     d = datetime(2002, 1, 2, 10, 3, 4, tzinfo=TZm6())
     t = Time(d)
     assert t.value == datetime(2002, 1, 2, 16, 3, 4)
+
+def test_subfmts_regex():
+    """
+    Test having a custom subfmts with a regular expression
+    """
+    class TimeLongYear(TimeString):
+        name = 'longyear'
+        subfmts = (('date',
+                    r'(?P<year>[+-]\d{5})-%m-%d',  # hybrid
+                    '{year:+06d}-{mon:02d}-{day:02d}'),)
+    t = Time('+02000-02-03', format='longyear')
+    assert t.value == '+02000-02-03'
+    assert t.jd == Time('2000-02-03').jd

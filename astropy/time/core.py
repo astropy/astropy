@@ -11,6 +11,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import fnmatch
 import time
+import re
 
 from datetime import datetime
 
@@ -1255,6 +1256,36 @@ class TimeDelta(Time):
                           u.day).to(*args, **kwargs)
 
 
+def _regexify_subfmts(subfmts):
+    """
+    Iterate through each of the sub-formats and try substituting simple
+    regular expressions for the strptime codes for year, month, day-of-month,
+    hour, minute, second.  If no % characters remain then turn the final string
+    into a compiled regex.  This assumes time formats do not have a % in them.
+
+    This is done both to speed up parsing of strings and to allow mixed formats
+    where strptime does not quite work well enough.
+    """
+    new_subfmts = []
+    for subfmt_tuple in subfmts:
+        subfmt_in = subfmt_tuple[1]
+        for strptime_code, regex in (('%Y', r'(?P<year>\d\d\d\d)'),
+                                     ('%m', r'(?P<mon>\d{1,2})'),
+                                     ('%d', r'(?P<mday>\d{1,2})'),
+                                     ('%H', r'(?P<hour>\d{1,2})'),
+                                     ('%M', r'(?P<min>\d{1,2})'),
+                                     ('%S', r'(?P<sec>\d{1,2})')):
+            subfmt_in = re.sub(strptime_code, regex, subfmt_in)
+
+        if '%' not in subfmt_in:
+            subfmt_tuple = (subfmt_tuple[0],
+                            re.compile(subfmt_in + '$'),
+                            subfmt_tuple[2])
+        new_subfmts.append(subfmt_tuple)
+
+    return tuple(new_subfmts)
+
+
 class TimeFormatMeta(type):
     """
     Metaclass that adds `TimeFormat` and `TimeDeltaFormat` to the
@@ -1268,6 +1299,9 @@ class TimeFormatMeta(type):
 
         if 'name' in members:
             mcls._registry[cls.name] = cls
+
+        if 'subfmts' in members:
+            cls.subfmts = _regexify_subfmts(members['subfmts'])
 
         return cls
 
@@ -1769,6 +1803,12 @@ class TimeString(TimeUnique):
 
         iterator = np.nditer([val1, None, None, None, None, None, None],
                              op_dtypes=[val1.dtype] + 5*[np.intc] + [np.double])
+
+        # Datetime components required for conversion to JD by ERFA, along
+        # with the default values.
+        time_comps = ('year', 'mon', 'mday', 'hour', 'min', 'sec')
+        comp_defaults = (None, 1, 1, 0, 0, 0)
+
         for val, iy, im, id, ihr, imin, dsec in iterator:
             timestr = val.item()
             # Handle trailing 'Z' for UTC time
@@ -1787,19 +1827,26 @@ class TimeString(TimeUnique):
                 timestr, fracsec = timestr[:idot], timestr[idot:]
                 fracsec = float(fracsec)
 
-            for _, strptime_fmt, _ in subfmts:
-                try:
-                    tm = time.strptime(timestr, strptime_fmt)
-                except ValueError:
-                    pass
+            for _, strptime_fmt_or_regex, _ in subfmts:
+                if isinstance(strptime_fmt_or_regex, six.string_types):
+                    try:
+                        tm = time.strptime(timestr, strptime_fmt_or_regex)
+                    except ValueError:
+                        continue
+                    tm_vals = [getattr(tm, 'tm_' + comp) for comp in time_comps]
+
                 else:
-                    iy[...] = tm.tm_year
-                    im[...] = tm.tm_mon
-                    id[...] = tm.tm_mday
-                    ihr[...] = tm.tm_hour
-                    imin[...] = tm.tm_min
-                    dsec[...] = tm.tm_sec + fracsec
-                    break
+                    tm = re.match(strptime_fmt_or_regex, timestr)
+                    if tm is None:
+                        continue
+                    tm = tm.groupdict()
+                    tm_vals = [int(tm.get(comp, default)) for comp, default
+                               in six.moves.zip(time_comps, comp_defaults)]
+
+                iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = tm_vals
+                dsec[...] += fracsec
+                break
+
             else:
                 raise ValueError('Time {0} does not match {1} format'
                                  .format(timestr, self.name))
