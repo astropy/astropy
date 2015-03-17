@@ -102,3 +102,49 @@ def test_euler_against_sky():
         ra += 360
     utils.assert_allclose((ra, dec), n2c(1, 23.1))
 
+
+
+euler_axes_order = ['zxz', 'zyz', 'yzy', 'yxy', 'xyx', 'xzx']
+
+@pytest.mark.parametrize(('axes_order'), euler_axes_order)
+def test_euler_angles(axes_order):
+    """
+    Tests against all Euler sequences.
+    The rotation matrices definitions come from Wikipedia.
+    """
+    phi = np.deg2rad(23.4)
+    theta = np.deg2rad(12.2)
+    psi = np.deg2rad(34)
+    c1 =cos(phi)
+    c2 = cos(theta)
+    c3 = cos(psi)
+    s1 = sin(phi)
+    s2 = sin(theta)
+    s3 = sin(psi)
+
+    matrices = {'zxz': np.array([[(c1*c3 - c2*s1*s3), (-c1*s3 - c2*c3*s1), (s1*s2)],
+                        [(c3*s1 + c1*c2*s3), (c1*c2*c3 - s1*s3), (-c1*s2)],
+                        [(s2*s3),             (c3*s2),            (c2)   ]]),
+                'zyz': np.array([[(c1*c2*c3 -s1*s3), (-c3*s1 - c1*c2*s3), (c1*s2)],
+                        [(c1*s3 +c2*c3*s1), (c1*c3 - c2*s1*s3),  (s1*s2)],
+                        [(-c3*s2),           (s2*s3),             (c2)]]),
+                'yzy': np.array([[(c1*c2*c3 - s1*s3), (-c1*s2), (c3*s1+c1*c2*s3)],
+                                  [(c3*s2), (c2), (s2*s3)],
+                                  [(-c1*s3 - c2*c3*s1), (s1*s2), (c1*c3-c2*s1*s3)]]),
+                'yxy': np.array([[(c1*c3 - c2*s1*s3), (s1*s2), (c1*s3+c2*c3*s1)],
+                                 [(s2*s3), (c2), (-c3*s2)],
+                                 [(-c3*s1 - c1*c2*s3), (c1*s2), (c1*c2*c3 - s1*s3)]]),
+                'xyx': np.array([[(c2), (s2*s3), (c3*s2)],
+                                 [(s1*s2), (c1*c3 - c2*s1*s3), (-c1*s3 - c2*c3*s1)],
+                                 [(-c1*s2), (c3*s1 + c1*c2*s3), (c1*c2*c3 - s1*s3)]]),
+                'xzx': np.array([[(c2), (-c3*s2), (s2*s3)],
+                                 [(c1*s2), (c1*c2*c3 - s1*s3), (-c3*s1 - c1*c2*s3)],
+                                 [(s1*s2), (c1*s3 + c2*c3*s1), (c1*c3 - c2*s1*s3)]])
+
+                }
+    model = models.EulerAngleRotation(23.4, 12.2, 34, axes_order)
+    mat = model._create_matrix(phi, theta, psi, axes_order)
+
+
+    utils.assert_allclose(mat.T, matrices[axes_order])#get_rotation_matrix(axes_order))
+
