@@ -1262,6 +1262,9 @@ def _regexify_subfmts(subfmts):
     regular expressions for the strptime codes for year, month, day-of-month,
     hour, minute, second.  If no % characters remain then turn the final string
     into a compiled regex.  This assumes time formats do not have a % in them.
+
+    This is done both to speed up parsing of strings and to allow mixed formats
+    where strptime does not quite work well enough.
     """
     new_subfmts = []
     for subfmt_tuple in subfmts:
