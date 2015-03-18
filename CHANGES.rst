@@ -87,6 +87,10 @@ API changes
 
 - ``astropy.modeling``
 
+  - Renamed the parameters of ``RotateNative2Celestial`` and 
+    ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to 
+    ``lon``, ``lat`` and ``lon_pole``. [#3578]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
