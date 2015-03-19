@@ -5,6 +5,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import os
+
+from itertools import product
+
 import numpy as np
 
 from numpy.testing import utils
@@ -26,28 +29,52 @@ except ImportError:
 
 
 linear1d = {
-    Chebyshev1D: {'parameters': [3],
-                  'kwargs': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2,
-                             'domain': [1, 10]}},
-    Legendre1D: {'parameters': [3],
-                 'kwargs': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2,
-                            'domain': [1, 10]}},
-    Polynomial1D: {'parameters': [3],
-                   'kwargs': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2}},
-    Linear1D: {'parameters': [1.2, 23.1],
-               'kwargs': {}}
+    Chebyshev1D: {
+        'args': (3,),
+        'kwargs': {'domain': [1, 10]},
+        'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
+        'constraints': {'fixed': {'c0': 1.2}}
+    },
+    Legendre1D: {
+        'args': (3,),
+        'kwargs': {'domain': [1, 10]},
+        'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
+        'constraints': {'fixed': {'c0': 1.2}}
+    },
+    Polynomial1D: {
+        'args': (3,),
+        'kwargs': {'domain': [1, 10]},
+        'parameters': {'c0': 1.2, 'c1': 2, 'c2': 2.3, 'c3': 0.2},
+        'constraints': {'fixed': {'c0': 1.2}}
+    },
+    Linear1D: {
+        'args': (),
+        'kwargs': {},
+        'parameters': {'intercept': 1.2, 'slope': 23.1},
+        'constraints': {'fixed': {'intercept': 1.2}}
+    }
 }
 
 
 linear2d = {
-    Chebyshev2D: {'parameters': [1, 1],
-                  'kwargs': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2,
-                             'x_domain': [0, 99], 'y_domain': [0, 82]}},
-    Legendre2D: {'parameters': [1, 1],
-                 'kwargs': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2,
-                            'x_domain': [0, 99], 'y_domain': [0, 82]}},
-    Polynomial2D: {'parameters': [1],
-                   'kwargs': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3}},
+    Chebyshev2D: {
+        'args': (1, 1),
+        'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
+        'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
+        'constraints': {'fixed': {'c0_0': 1.2}}
+    },
+    Legendre2D: {
+        'args': (1, 1),
+        'kwargs': {'x_domain': [0, 99], 'y_domain': [0, 82]},
+        'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3, 'c1_1': 0.2},
+        'constraints': {'fixed': {'c0_0': 1.2}}
+    },
+    Polynomial2D: {
+        'args': (1,),
+        'kwargs': {},
+        'parameters': {'c0_0': 1.2, 'c1_0': 2, 'c0_1': 2.3},
+        'constraints': {'fixed': {'c0_0': 1.2}}
+    }
 }
 
 
@@ -67,54 +94,123 @@ class TestFitting(object):
         self.linear_fitter = fitting.LinearLSQFitter()
         self.non_linear_fitter = fitting.LevMarLSQFitter()
 
-    @pytest.mark.parametrize(('model_class'), linear1d.keys())
-    def test_linear_fitter_1D(self, model_class):
+    # TODO: Most of these test cases have some pretty repetitive setup that we
+    # could probably factor out
+
+    @pytest.mark.parametrize('model_class,constraints',
+                             product(linear1d.keys(), (False, True)))
+    def test_linear_fitter_1D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
-        parameters = linear1d[model_class]['parameters']
-        kwargs = linear1d[model_class]['kwargs']
-        model = model_class(*parameters, **kwargs)
+        model_args = linear1d[model_class]
+        kwargs = {}
+        kwargs.update(model_args['kwargs'])
+        kwargs.update(model_args['parameters'])
+
+        if constraints:
+            kwargs.update(model_args['constraints'])
+
+        model = model_class(*model_args['args'], **kwargs)
+
         y1 = model(self.x1)
         model_lin = self.linear_fitter(model, self.x1, y1 + self.n1)
-        utils.assert_allclose(model_lin.parameters, model.parameters,
-                              atol=0.2)
 
-    @pytest.mark.parametrize(('model_class'), linear1d.keys())
-    def test_non_linear_fitter_1D(self, model_class):
+        if constraints:
+            # For the constraints tests we're not checking the overall fit,
+            # just that the constraint was maintained
+            fixed = model_args['constraints'].get('fixed', None)
+            if fixed:
+                for param, value in fixed.items():
+                    expected = model_args['parameters'][param]
+                    assert getattr(model_lin, param).value == expected
+        else:
+            utils.assert_allclose(model_lin.parameters, model.parameters,
+                                  atol=0.2)
+
+    @pytest.mark.parametrize('model_class,constraints',
+                             product(linear1d.keys(), (False, True)))
+    def test_non_linear_fitter_1D(self, model_class, constraints):
         """Test fitting with non-linear LevMarLSQFitter"""
 
-        parameters = linear1d[model_class]['parameters']
-        kwargs = linear1d[model_class]['kwargs']
-        model = model_class(*parameters, **kwargs)
+        model_args = linear1d[model_class]
+        kwargs = {}
+        kwargs.update(model_args['kwargs'])
+        kwargs.update(model_args['parameters'])
+
+        if constraints:
+            kwargs.update(model_args['constraints'])
+
+        model = model_class(*model_args['args'], **kwargs)
+
         y1 = model(self.x1)
         model_nlin = self.non_linear_fitter(model, self.x1, y1 + self.n1)
-        utils.assert_allclose(model_nlin.parameters, model.parameters,
-                              atol=0.2)
 
-    @pytest.mark.parametrize(('model_class'), linear2d.keys())
-    def test_linear_fitter_2D(self, model_class):
+        if constraints:
+            fixed = model_args['constraints'].get('fixed', None)
+            if fixed:
+                for param, value in fixed.items():
+                    expected = model_args['parameters'][param]
+                    assert getattr(model_nlin, param).value == expected
+        else:
+            utils.assert_allclose(model_nlin.parameters, model.parameters,
+                                  atol=0.2)
+
+    @pytest.mark.parametrize('model_class,constraints',
+                             product(linear2d.keys(), (False, True)))
+    def test_linear_fitter_2D(self, model_class, constraints):
         """Test fitting with LinearLSQFitter"""
 
-        parameters = linear2d[model_class]['parameters']
-        kwargs = linear2d[model_class]['kwargs']
-        model = model_class(*parameters, **kwargs)
+        model_args = linear2d[model_class]
+        kwargs = {}
+        kwargs.update(model_args['kwargs'])
+        kwargs.update(model_args['parameters'])
+
+        if constraints:
+            kwargs.update(model_args['constraints'])
+
+        model = model_class(*model_args['args'], **kwargs)
+
         z = model(self.x2, self.y2)
         model_lin = self.linear_fitter(model, self.x2, self.y2, z + self.n2)
-        utils.assert_allclose(model_lin.parameters, model.parameters,
-                              atol=0.2)
 
-    @pytest.mark.parametrize(('model_class'), linear2d.keys())
-    def test_non_linear_fitter_2D(self, model_class):
+        if constraints:
+            fixed = model_args['constraints'].get('fixed', None)
+            if fixed:
+                for param, value in fixed.items():
+                    expected = model_args['parameters'][param]
+                    assert getattr(model_lin, param).value == expected
+        else:
+            utils.assert_allclose(model_lin.parameters, model.parameters,
+                                  atol=0.2)
+
+    @pytest.mark.parametrize('model_class,constraints',
+                             product(linear2d.keys(), (False, True)))
+    def test_non_linear_fitter_2D(self, model_class, constraints):
         """Test fitting with non-linear LevMarLSQFitter"""
 
-        parameters = linear2d[model_class]['parameters']
-        kwargs = linear2d[model_class]['kwargs']
-        model = model_class(*parameters, **kwargs)
+        model_args = linear2d[model_class]
+        kwargs = {}
+        kwargs.update(model_args['kwargs'])
+        kwargs.update(model_args['parameters'])
+
+        if constraints:
+            kwargs.update(model_args['constraints'])
+
+        model = model_class(*model_args['args'], **kwargs)
+
         z = model(self.x2, self.y2)
         model_nlin = self.non_linear_fitter(model, self.x2, self.y2,
                                             z + self.n2)
-        utils.assert_allclose(model_nlin.parameters, model.parameters,
-                              atol=0.2)
+
+        if constraints:
+            fixed = model_args['constraints'].get('fixed', None)
+            if fixed:
+                for param, value in fixed.items():
+                    expected = model_args['parameters'][param]
+                    assert getattr(model_nlin, param).value == expected
+        else:
+            utils.assert_allclose(model_nlin.parameters, model.parameters,
+                                  atol=0.2)
 
 
 @pytest.mark.parametrize('model_class',
