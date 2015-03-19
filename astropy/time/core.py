@@ -2030,56 +2030,64 @@ class TimeFITS(TimeString):
     name = 'fits'
     subfmts = (
         ('date_hms',
-         (r'(?P<year>\d{4})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2})T'
-          r'(?P<hour>\d{1,2}):(?P<min>\d{1,2}):(?P<sec>\d{1,2})'),
+         (r'(?P<year>\d{4})-(?P<mon>\d\d)-(?P<mday>\d\d)T'
+          r'(?P<hour>\d\d):(?P<min>\d\d):(?P<sec>\d\d(\.\d*)?)'),
          '{year:04d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'),
         ('date',
-         r'(?P<year>\d{4})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2})',
+         r'(?P<year>\d{4})-(?P<mon>\d\d)-(?P<mday>\d\d)',
          '{year:04d}-{mon:02d}-{day:02d}'),
         ('longdate_hms',
-         (r'(?P<year>[+-]\d{1,5})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2})T'
-          r'(?P<hour>\d{1,2}):(?P<min>\d{1,2}):(?P<sec>\d{1,2})'),
+         (r'(?P<year>[+-]\d{5})-(?P<mon>\d\d)-(?P<mday>\d\d)T'
+          r'(?P<hour>\d\d):(?P<min>\d\d):(?P<sec>\d\d(\.\d*)?)'),
          '{year:+06d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'),
         ('longdate',
-         r'(?P<year>[+-]\d{1,5})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2})',
+         r'(?P<year>[+-]\d{5})-(?P<mon>\d\d)-(?P<mday>\d\d)',
          '{year:+06d}-{mon:02d}-{day:02d}'))
+    subfmts = tuple(
+        (subfmt[0],
+         subfmt[1] + r'(\((?P<scale>\w+)(\((?P<repr>\w+)\))?\))?',
+         subfmt[2]) for subfmt in subfmts)
     _fits_scale = None
+    _fits_repr = None
 
     def parse_string(self, timestr, subfmts):
-        """Read time from string, but taking care of trailing scale codes
-        as well as years before 0 and beyond 9999."""
-        if timestr.endswith(')'):
-            iscale = timestr.index('(')
-            fits_scale = timestr[iscale+1:-1].upper()
-            timestr = timestr[:iscale]
-            if fits_scale.endswith(')'):
-                # Have representation as well.
-                scale = fits_scale[:fits_scale.index('(')]
-            else:
-                scale = fits_scale
-
+        """Read time and set scale according to trailing scale codes."""
+        for _, regex, _ in subfmts:
+            tm = re.match(regex, timestr)
+            if tm:
+                break
+        else:
+            raise ValueError('Time {0} does not match {1} format'
+                             .format(timestr, self.name))
+        tm = tm.groupdict()
+        if tm['scale'] is not None:
             # Translate deprecated timescale identifiers.
-            scale = FITS_DEPRECATED_SCALES.get(scale, scale.lower())
+            fits_scale = tm['scale'].upper()
+            scale = FITS_DEPRECATED_SCALES.get(fits_scale, fits_scale.lower())
             if scale not in TIME_SCALES:
                 raise ValueError("Scale {0} is not in the allowed scales {1}"
                                  .format(repr(scale), sorted(TIME_SCALES)))
-
+            fits_repr = tm['repr'].upper() if tm['repr'] else None
             if self._scale is None:
                 self._scale = scale
                 self._fits_scale = fits_scale
-            elif scale != self.scale or fits_scale != self._fits_scale:
-                    raise ValueError("Input strings for {0} class must all "
-                                     "have consistent time scales."
-                                     .format(self.name))
-        return super(TimeFITS, self).parse_string(timestr, subfmts)
+                self._fits_repr = fits_repr
+            elif (scale != self.scale or fits_scale != self._fits_scale or
+                  fits_repr != self._fits_repr):
+                raise ValueError("Input strings for {0} class must all "
+                                 "have consistent time scales."
+                                 .format(self.name))
+        return [int(tm['year']), int(tm['mon']), int(tm['mday']),
+                int(tm.get('hour', 0)), int(tm.get('min', 0)),
+                float(tm.get('sec', 0.))]
 
     def format_string(self, str_fmt, **kwargs):
         time_str = super(TimeFITS, self).format_string(str_fmt, **kwargs)
-        if self._fits_scale and self._fits_scale.endswith(')'):
-            fits_scale = self._fits_scale
+        if self._fits_scale and self._fits_repr:
+            return '{0}({1}({2}))'.format(time_str, self._fits_scale,
+                                          self._fits_repr)
         else:
-            fits_scale = self._scale.upper()
-        return '{0}({1})'.format(time_str, fits_scale)
+            return '{0}({1})'.format(time_str, self._scale.upper())
 
     @property
     def value(self):
