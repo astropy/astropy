@@ -537,24 +537,20 @@ class TestSubFormat():
     def test_fits_format(self):
         """FITS format includes bigger years."""
         # Heterogeneous input formats with in_subfmt='*' (default)
-        times = ['2000-01-01', '2000-01-01T01:01',
-                 '2000-01-01T01:01:01', '2000-01-01T01:01:01.123']
+        times = ['2000-01-01', '2000-01-01T01:01:01', '2000-01-01T01:01:01.123']
         t = Time(times, format='fits', scale='tai')
         assert np.all(t.fits == np.array(['2000-01-01T00:00:00.000(TAI)',
-                                          '2000-01-01T01:01:00.000(TAI)',
                                           '2000-01-01T01:01:01.000(TAI)',
                                           '2000-01-01T01:01:01.123(TAI)']))
         # Explicit long format for output, default scale is UTC.
         t2 = Time(times, format='fits', out_subfmt='long*')
         assert np.all(t2.fits == np.array(['+02000-01-01T00:00:00.000(UTC)',
-                                           '+02000-01-01T01:01:00.000(UTC)',
                                            '+02000-01-01T01:01:01.000(UTC)',
                                            '+02000-01-01T01:01:01.123(UTC)']))
         # Implicit long format for output, because of negative year.
-        times[3] = '-00594-01-01'
+        times[2] = '-00594-01-01'
         t3 = Time(times, format='fits', scale='tai')
         assert np.all(t3.fits == np.array(['+02000-01-01T00:00:00.000(TAI)',
-                                           '+02000-01-01T01:01:00.000(TAI)',
                                            '+02000-01-01T01:01:01.000(TAI)',
                                            '-00594-01-01T00:00:00.000(TAI)']))
 

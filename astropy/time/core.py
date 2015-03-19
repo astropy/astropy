@@ -2027,22 +2027,18 @@ class TimeFITS(TimeString):
     name = 'fits'
     subfmts = (
         ('date_hms',
-         '%Y-%m-%dT%H:%M:%S',
+         (r'(?P<year>\d{4})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2})T'
+          r'(?P<hour>\d{1,2}):(?P<min>\d{1,2}):(?P<sec>\d{1,2})'),
          '{year:04d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'),
-        ('date_hm',
-         '%Y-%m-%dT%H:%M',
-         '{year:04d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}'),
         ('date',
-         '%Y-%m-%d',
+         r'(?P<year>\d{4})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2})',
          '{year:04d}-{mon:02d}-{day:02d}'),
         ('longdate_hms',
-         r'(?P<year>[+-]\d{1,5})-%m-%dT%H:%M:%S',
+         (r'(?P<year>[+-]\d{1,5})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2})T'
+          r'(?P<hour>\d{1,2}):(?P<min>\d{1,2}):(?P<sec>\d{1,2})'),
          '{year:+06d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}:{sec:02d}'),
-        ('longdate_hm',
-         r'(?P<year>[+-]\d{1,5})-%m-%dT%H:%M',
-         '{year:+06d}-{mon:02d}-{day:02d}T{hour:02d}:{min:02d}'),
         ('longdate',
-         r'(?P<year>[+-]\d{1,5})-%m-%d',
+         r'(?P<year>[+-]\d{1,5})-(?P<mon>\d{1,2})-(?P<mday>\d{1,2})',
          '{year:+06d}-{mon:02d}-{day:02d}'))
     _fits_scale = None
 
