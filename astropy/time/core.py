@@ -1828,16 +1828,20 @@ class TimeString(TimeUnique):
                 except ValueError:
                     continue
                 else:
-                    return [getattr(tm, 'tm_' + component)
-                            for component in components] + [fracsec]
+                    vals = [getattr(tm, 'tm_' + component)
+                            for component in components]
 
             else:
                 tm = re.match(strptime_fmt_or_regex, timestr)
                 if tm is None:
                     continue
                 tm = tm.groupdict()
-                return [int(tm.get(component, default)) for component, default
-                        in six.moves.zip(components, defaults)] + [fracsec]
+                vals = [int(tm.get(component, default)) for component, default
+                        in six.moves.zip(components, defaults)]
+
+            # Add fractional seconds
+            vals[-1] = vals[-1] + fracsec
+            return vals
         else:
             raise ValueError('Time {0} does not match {1} format'
                              .format(timestr, self.name))
@@ -1852,9 +1856,8 @@ class TimeString(TimeUnique):
 
 
         for val, iy, im, id, ihr, imin, dsec in iterator:
-            iy[...], im[...], id[...], ihr[...], imin[...], sec, fracsec = (
+            iy[...], im[...], id[...], ihr[...], imin[...], dsec[...] = (
                 self.parse_string(val.item(), subfmts))
-            dsec[...] = sec + fracsec
 
         self.jd1, self.jd2 = erfa_time.dtf_jd(
             self.scale.upper().encode('utf8'), *iterator.operands[1:])
