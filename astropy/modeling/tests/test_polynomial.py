@@ -13,7 +13,8 @@ from ...tests.helper import pytest
 from ... import wcs
 from ...io import fits
 from ..polynomial import (Chebyshev1D, Legendre1D, Polynomial1D,
-                          Chebyshev2D, Legendre2D, Polynomial2D, SIP)
+                          Chebyshev2D, Legendre2D, Polynomial2D, SIP,
+                          PolynomialBase, OrthoPolynomialBase)
 from ..functional_models import Linear1D
 from ...utils.data import get_pkg_data_filename
 
@@ -114,6 +115,36 @@ class TestFitting(object):
                                             z + self.n2)
         utils.assert_allclose(model_nlin.parameters, model.parameters,
                               atol=0.2)
+
+
+@pytest.mark.parametrize('model_class',
+                         [cls for cls in list(linear1d) + list(linear2d)
+                          if isinstance(cls, PolynomialBase)])
+def test_polynomial_init_with_constraints(model_class):
+    """
+    Test that polynomial models can be instantiated with constraints, but no
+    parameters specified.
+
+    Regression test for https://github.com/astropy/astropy/issues/3606
+    """
+
+    # Just determine which parameter to place a constraint on; it doesn't
+    # matter which parameter it is to exhibit the problem so long as it's a
+    # valid parameter for the model
+    if '1D' in model_class.__name__:
+        param = 'c0'
+    else:
+        param = 'c0_0'
+
+    if issubclass(model_class, OrthoPolynomialBase):
+        degree = (2, 2)
+    else:
+        degree = (2,)
+
+    m = model_class(*degree, fixed={param: True})
+
+    assert m.fixed[param] is True
+    assert getattr(m, param).fixed is True
 
 
 def test_sip_hst():
