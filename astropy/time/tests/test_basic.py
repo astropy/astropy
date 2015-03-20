@@ -553,6 +553,12 @@ class TestSubFormat():
         assert np.all(t3.fits == np.array(['+02000-01-01T00:00:00.000(TAI)',
                                            '+02000-01-01T01:01:01.000(TAI)',
                                            '-00594-01-01T00:00:00.000(TAI)']))
+        # Implicit long format for output, because of large positive year.
+        times[2] = '+10594-01-01'
+        t4 = Time(times, format='fits', scale='tai')
+        assert np.all(t4.fits == np.array(['+02000-01-01T00:00:00.000(TAI)',
+                                           '+02000-01-01T01:01:01.000(TAI)',
+                                           '+10594-01-01T00:00:00.000(TAI)']))
 
     def test_yday_format(self):
         """Year:Day_of_year format"""
@@ -799,6 +805,15 @@ def test_fits_year0():
     assert t.fits == '+00000-01-01T00:00:00.000(UTC)'
     t = Time(1721425.5 - 366. - 365., format='jd')
     assert t.fits == '-00001-01-01T00:00:00.000(UTC)'
+
+
+def test_fits_year10000():
+    t = Time(5373484.5, format='jd', scale='tai')
+    assert t.fits == '+10000-01-01T00:00:00.000(TAI)'
+    t = Time(5373484.5 - 365., format='jd', scale='tai')
+    assert t.fits == '9999-01-01T00:00:00.000(TAI)'
+    t = Time(5373484.5, -1./24./3600., format='jd', scale='tai')
+    assert t.fits == '9999-12-31T23:59:59.000(TAI)'
 
 
 def test_dir():

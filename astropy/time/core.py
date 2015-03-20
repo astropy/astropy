@@ -29,10 +29,10 @@ __all__ = ['Time', 'TimeDelta', 'TimeFormat', 'TimeJD', 'TimeMJD',
            'TimeFromEpoch', 'TimeUnix', 'TimeCxcSec', 'TimeGPS',
            'TimeDecimalYear',
            'TimePlotDate', 'TimeDatetime', 'TimeString',
-           'TimeISO', 'TimeISOT', 'TimeYearDayTime', 'TimeEpochDate',
-           'TimeBesselianEpoch', 'TimeJulianEpoch', 'TimeDeltaFormat',
-           'TimeDeltaSec', 'TimeDeltaJD', 'ScaleValueError',
-           'OperandTypeError', 'TimeEpochDateString',
+           'TimeISO', 'TimeISOT', 'TimeFITS', 'TimeYearDayTime',
+           'TimeEpochDate', 'TimeBesselianEpoch', 'TimeJulianEpoch',
+           'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
+           'ScaleValueError', 'OperandTypeError', 'TimeEpochDateString',
            'TimeBesselianEpochString', 'TimeJulianEpochString',
            'TIME_FORMATS', 'TIME_DELTA_FORMATS', 'TIME_SCALES',
            'TIME_DELTA_SCALES']
@@ -2021,11 +2021,24 @@ class TimeYearDayTime(TimeISO):
 
 class TimeFITS(TimeString):
     """
-    FITS compliant date-time format: "[±Y]YYYY-MM-DDTHH:MM:SS.sss...(SCALE)".
+    FITS format: "[±Y]YYYY-MM-DD[THH:MM:SS[.sss]][(SCALE[(REALIZATION)])]".
 
     ISOT with two extensions:
     - Signed five-digit year (mostly for negative years);
-    - A possible time scale appended in parentheses.
+    - A possible time scale (and realization) appended in parentheses.
+      Note: FITS supports some deprecated names for timescales; these are
+      translated to the formal names upon initialization.  Furthermore, any
+      specific realization information is stored only as long as the time scale
+      is not changed.
+
+    The allowed subformats are:
+
+    - 'date_hms': date + hours, mins, secs (and optional fractional secs)
+    - 'date': date
+    - 'longdate_hms': as 'date_hms', but with signed 5-digit year
+    - 'longdate': as 'date', but with signed 5-digit year
+
+    See Rots et al., 2015, A&A 574:A36 (arXiv:1409.7583).
     """
     name = 'fits'
     subfmts = (
@@ -2043,15 +2056,17 @@ class TimeFITS(TimeString):
         ('longdate',
          r'(?P<year>[+-]\d{5})-(?P<mon>\d\d)-(?P<mday>\d\d)',
          '{year:+06d}-{mon:02d}-{day:02d}'))
+    # Add the regex that parses the scale and possible realization.
     subfmts = tuple(
         (subfmt[0],
-         subfmt[1] + r'(\((?P<scale>\w+)(\((?P<repr>\w+)\))?\))?',
+         subfmt[1] + r'(\((?P<scale>\w+)(\((?P<realization>\w+)\))?\))?',
          subfmt[2]) for subfmt in subfmts)
     _fits_scale = None
-    _fits_repr = None
+    _fits_realization = None
 
     def parse_string(self, timestr, subfmts):
         """Read time and set scale according to trailing scale codes."""
+        # Try parsing with any of the allowed sub-formats.
         for _, regex, _ in subfmts:
             tm = re.match(regex, timestr)
             if tm:
@@ -2061,19 +2076,24 @@ class TimeFITS(TimeString):
                              .format(timestr, self.name))
         tm = tm.groupdict()
         if tm['scale'] is not None:
-            # Translate deprecated timescale identifiers.
+            # If a scale was given, translate from a possible deprecated
+            # timescale identifier to the scale used by Time.
             fits_scale = tm['scale'].upper()
             scale = FITS_DEPRECATED_SCALES.get(fits_scale, fits_scale.lower())
             if scale not in TIME_SCALES:
                 raise ValueError("Scale {0} is not in the allowed scales {1}"
                                  .format(repr(scale), sorted(TIME_SCALES)))
-            fits_repr = tm['repr'].upper() if tm['repr'] else None
+            # If no scale was given in the initialiser, set the scale to
+            # that given in the string.  Also store a possible realization,
+            # so we can round-trip (as long as no scale changes are made).
+            fits_realization = (tm['realization'].upper()
+                                if tm['realization'] else None)
             if self._scale is None:
                 self._scale = scale
                 self._fits_scale = fits_scale
-                self._fits_repr = fits_repr
+                self._fits_realization = fits_realization
             elif (scale != self.scale or fits_scale != self._fits_scale or
-                  fits_repr != self._fits_repr):
+                  fits_realization != self._fits_realization):
                 raise ValueError("Input strings for {0} class must all "
                                  "have consistent time scales."
                                  .format(self.name))
@@ -2082,19 +2102,22 @@ class TimeFITS(TimeString):
                 float(tm.get('sec', 0.))]
 
     def format_string(self, str_fmt, **kwargs):
+        """Format time-string: append the scale to the normal ISOT format."""
         time_str = super(TimeFITS, self).format_string(str_fmt, **kwargs)
-        if self._fits_scale and self._fits_repr:
+        if self._fits_scale and self._fits_realization:
             return '{0}({1}({2}))'.format(time_str, self._fits_scale,
-                                          self._fits_repr)
+                                          self._fits_realization)
         else:
             return '{0}({1})'.format(time_str, self._scale.upper())
 
     @property
     def value(self):
+        """Convert times to strings, using signed 5 digit if necessary."""
         if 'long' not in self.out_subfmt:
             # If we have times before year 0 or after year 9999, we can
             # output only in a "long" format, using signed 5-digit years.
-            if np.any((self.jd1 < 1721425.5) | (self.jd1 >= 5373484.5)):
+            jd = self.jd1 + self.jd2
+            if jd.min() < 1721425.5 or jd.max() >= 5373484.5:
                 self.out_subfmt = 'long' + self.out_subfmt
         return super(TimeFITS, self).value
 
