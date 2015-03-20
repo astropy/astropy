@@ -37,7 +37,9 @@ class Ticks(Line2D):
         self.clear()
         line2d_kwargs = {
             'color': rcParams['xtick.color'],
-            'linewidth': rcParams['xtick.major.width']
+            # For the linewidth we need to set a default since old versions of
+            # matplotlib don't have this.
+            'linewidth': rcParams.get('xtick.major.width', 1)
         }
         line2d_kwargs.update(kwargs)
         Line2D.__init__(self, [0.], [0.], **line2d_kwargs)
