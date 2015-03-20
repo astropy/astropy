@@ -179,7 +179,7 @@ class Gaussian2D(Fittable2DModel):
         matrix (``cov_matrix``) is input.
     theta : float, optional
         Rotation angle in radians. The rotation angle increases
-        counterclockwise, from the positive x-axis.
+        counterclockwise.
     cov_matrix : ndarray, optional
         A 2x2 covariance matrix. If specified, overrides the ``x_stddev``,
         ``y_stddev``, and ``theta`` specification.
