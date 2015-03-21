@@ -289,6 +289,8 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Ensure ``QTable`` can be pickled [#3590]
+
 - ``astropy.time``
 
 - ``astropy.units``
