@@ -50,6 +50,8 @@ New Features
 
 - ``astropy.time``
 
+  - Add support for FITS standard time strings. [#3547]
+  
 - ``astropy.units``
 
   - Added furlong to imperial units. [#3529]

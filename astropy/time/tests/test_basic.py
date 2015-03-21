@@ -167,14 +167,14 @@ class TestBasic():
         """Use properties to convert scales and formats.  Note that the UT1 to
         UTC transformation requires a supplementary value (``delta_ut1_utc``)
         that can be obtained by interpolating from a table supplied by IERS.
-        This will be included in the package later."""
+        This is tested separately."""
 
         t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
         t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
         assert allclose_jd(t.jd, 2455197.5)
         assert t.iso == '2010-01-01 00:00:00.000'
         assert t.tt.iso == '2010-01-01 00:01:06.184'
-        assert t.tai.iso == '2010-01-01 00:00:34.000'
+        assert t.tai.fits == '2010-01-01T00:00:34.000(TAI)'
         assert allclose_jd(t.utc.jd, 2455197.5)
         assert allclose_jd(t.ut1.jd, 2455197.500003867)
         assert t.tcg.isot == '2010-01-01T00:01:06.910'
@@ -317,6 +317,9 @@ class TestBasic():
         Time('2000-01-01 12:23:34.0Z', format='iso', scale='utc')
         Time('2000-01-01T12:23:34.0', format='isot', scale='tai')
         Time('2000-01-01T12:23:34.0Z', format='isot', scale='utc')
+        Time('2000-01-01T12:23:34.0', format='fits')
+        Time('2000-01-01T12:23:34.0', format='fits', scale='tdb')
+        Time('2000-01-01T12:23:34.0(TDB)', format='fits')
         Time(2400000.5, 51544.0333981, format='jd', scale='tai')
         Time(0.0, 51544.0333981, format='mjd', scale='tai')
         Time('2000:001:12:23:34.0', format='yday', scale='tai')
@@ -389,6 +392,12 @@ class TestBasic():
         # regression test against #3396
         with pytest.raises(ValueError):
             Time(np.nan, format='jd', scale='utc')
+        with pytest.raises(ValueError):
+            Time('2000-01-02T03:04:05(TAI)', scale='utc')
+        with pytest.raises(ValueError):
+            Time('2000-01-02T03:04:05(TAI')
+        with pytest.raises(ValueError):
+            Time('2000-01-02T03:04:05(UT(NIST)')
 
     def test_utc_leap_sec(self):
         """Time behaves properly near or in UTC leap second.  This
@@ -525,6 +534,32 @@ class TestSubFormat():
                                          '2000-01-01 01:01',
                                          '2000-01-01 01:01']))
 
+    def test_fits_format(self):
+        """FITS format includes bigger years."""
+        # Heterogeneous input formats with in_subfmt='*' (default)
+        times = ['2000-01-01', '2000-01-01T01:01:01', '2000-01-01T01:01:01.123']
+        t = Time(times, format='fits', scale='tai')
+        assert np.all(t.fits == np.array(['2000-01-01T00:00:00.000(TAI)',
+                                          '2000-01-01T01:01:01.000(TAI)',
+                                          '2000-01-01T01:01:01.123(TAI)']))
+        # Explicit long format for output, default scale is UTC.
+        t2 = Time(times, format='fits', out_subfmt='long*')
+        assert np.all(t2.fits == np.array(['+02000-01-01T00:00:00.000(UTC)',
+                                           '+02000-01-01T01:01:01.000(UTC)',
+                                           '+02000-01-01T01:01:01.123(UTC)']))
+        # Implicit long format for output, because of negative year.
+        times[2] = '-00594-01-01'
+        t3 = Time(times, format='fits', scale='tai')
+        assert np.all(t3.fits == np.array(['+02000-01-01T00:00:00.000(TAI)',
+                                           '+02000-01-01T01:01:01.000(TAI)',
+                                           '-00594-01-01T00:00:00.000(TAI)']))
+        # Implicit long format for output, because of large positive year.
+        times[2] = '+10594-01-01'
+        t4 = Time(times, format='fits', scale='tai')
+        assert np.all(t4.fits == np.array(['+02000-01-01T00:00:00.000(TAI)',
+                                           '+02000-01-01T01:01:01.000(TAI)',
+                                           '+10594-01-01T00:00:00.000(TAI)']))
+
     def test_yday_format(self):
         """Year:Day_of_year format"""
         # Heterogeneous input formats with in_subfmt='*' (default)
@@ -555,6 +590,24 @@ class TestSubFormat():
         # Check that bad scale is caught when format is auto-determined
         with pytest.raises(ScaleValueError):
             Time('2000:001:00:00:00', scale='bad scale')
+
+    def test_fits_scale(self):
+        """Test that scale gets interpreted correctly for FITS strings."""
+        t = Time('2000-01-02(TAI)')
+        assert t.scale == 'tai'
+        # Test deprecated scale.
+        t = Time('2000-01-02(IAT)')
+        assert t.scale == 'tai'
+        # Check that inconsistent scales lead to errors.
+        with pytest.raises(ValueError):
+            Time('2000-01-02(TAI)', scale='utc')
+        with pytest.raises(ValueError):
+            Time(['2000-01-02(TAI)', '2001-02-03(UTC)'])
+
+    def test_fits_scale_representation(self):
+        t = Time('1960-01-02T03:04:05.678(ET(NIST))')
+        assert t.scale == 'tt'
+        assert t.value == '1960-01-02T03:04:05.678(ET(NIST))'
 
     def test_scale_default(self):
         """Test behavior when no scale is provided"""
@@ -743,6 +796,24 @@ def test_decimalyear():
     d_jd = jd1 - jd0
     assert np.all(t.jd == [jd0 + 0.5 * d_jd,
                            jd0 + 0.75 * d_jd])
+
+
+def test_fits_year0():
+    t = Time(1721425.5, format='jd')
+    assert t.fits == '0001-01-01T00:00:00.000(UTC)'
+    t = Time(1721425.5 - 366., format='jd')
+    assert t.fits == '+00000-01-01T00:00:00.000(UTC)'
+    t = Time(1721425.5 - 366. - 365., format='jd')
+    assert t.fits == '-00001-01-01T00:00:00.000(UTC)'
+
+
+def test_fits_year10000():
+    t = Time(5373484.5, format='jd', scale='tai')
+    assert t.fits == '+10000-01-01T00:00:00.000(TAI)'
+    t = Time(5373484.5 - 365., format='jd', scale='tai')
+    assert t.fits == '9999-01-01T00:00:00.000(TAI)'
+    t = Time(5373484.5, -1./24./3600., format='jd', scale='tai')
+    assert t.fits == '9999-12-31T23:59:59.000(TAI)'
 
 
 def test_dir():
