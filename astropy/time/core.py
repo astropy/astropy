@@ -2024,12 +2024,13 @@ class TimeFITS(TimeString):
     FITS format: "[±Y]YYYY-MM-DD[THH:MM:SS[.sss]][(SCALE[(REALIZATION)])]".
 
     ISOT with two extensions:
-    - Signed five-digit year (mostly for negative years);
+    - Can give signed five-digit year (mostly for negative years);
     - A possible time scale (and realization) appended in parentheses.
-      Note: FITS supports some deprecated names for timescales; these are
-      translated to the formal names upon initialization.  Furthermore, any
-      specific realization information is stored only as long as the time scale
-      is not changed.
+
+    Note: FITS supports some deprecated names for timescales; these are
+    translated to the formal names upon initialization.  Furthermore, any
+    specific realization information is stored only as long as the time scale
+    is not changed.
 
     The allowed subformats are:
 
