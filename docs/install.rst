@@ -29,6 +29,10 @@ Astropy also depends on other packages for optional features:
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
 
+- `matplotlib <http://matplotlib.org/>`_: To provide plotting functionality that `astropy.visualization` enhances.
+
+- `WCSAxes <http://wcsaxes.readthedocs.org/en/latest/>`_: To use `astropy.wcs` to define projections in Matplotlib. 
+
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
 
