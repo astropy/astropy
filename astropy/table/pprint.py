@@ -26,7 +26,7 @@ if six.PY3:
 elif six.PY2:
     _format_funcs = {None: lambda format_, val: text_type(val)}
 
-
+import ipdb
 ### The first three functions are helpers for _auto_format_func
 
 
@@ -255,7 +255,21 @@ class TableFormatter(object):
             col_strs.insert(0, '<table>')
             col_strs.append('</table>')
 
-        # Now bring all the column string values to the same fixed width
+        # Now bring all the column string values to the same fixed width        
+        else:
+            col_width = max(len(x) for x in col_strs) if col_strs else 1
+
+            # Center line content and generate dashed headerline
+            for i in outs['i_centers']:
+                col_strs[i] = col_strs[i].center(col_width)
+            if outs['i_dashes'] is not None:
+                col_strs[outs['i_dashes']] = '-' * col_width
+
+            # Now bring all the column string values to the same fixed width
+            for i, col_str in enumerate(col_strs):
+                col_strs[i] = col_str.rjust(col_width)
+
+        '''
         justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust'}
         try:
             # if col.format is not a string, this raises an exception, causing a default to 'rjust'.
@@ -281,23 +295,13 @@ class TableFormatter(object):
 
         for i, col_str in enumerate(col_strs):
             col_strs[i] = justify(col_str, col_width)
+        '''
 
-        else:
-            col_width = max(len(x) for x in col_strs) if col_strs else 1
-
-            # Center line content and generate dashed headerline
-            for i in outs['i_centers']:
-                col_strs[i] = col_strs[i].center(col_width)
-            if outs['i_dashes'] is not None:
-                col_strs[outs['i_dashes']] = '-' * col_width
-
-            # Now bring all the column string values to the same fixed width
-            for i, col_str in enumerate(col_strs):
-                col_strs[i] = col_str.rjust(col_width)
-
+                
         if outs['show_length']:
             col_strs.append('Length = {0} rows'.format(len(col)))
 
+        #ipdb.set_trace()
         return col_strs, outs
 
 
