@@ -50,7 +50,6 @@ distribute-*.tar.gz
 .coverage
 cover
 htmlcov
-.idea
 
 # Mac OSX
 .DS_Store
