@@ -30,7 +30,8 @@ from .constants import SSL_SUPPORT
 
 if SSL_SUPPORT:
     import ssl
-    from .ssl_utils import SafeTransport, SecureXMLRPCServer
+    from .ssl_utils import (SafeTransport, SecureXMLRPCServer,
+                            get_ssl_version_name)
 
 __all__ = ['SAMPHubServer', 'WebProfileDialog']
 
@@ -507,8 +508,8 @@ class SAMPHubServer(object):
             params['hub.ssl.certificate'] = cert_reqs_types[self._cert_reqs]
 
             # SSL protocol version
-            ssl_protocol_types = ["SSLv2", "SSLv3", "SSLv23", "TLSv1"]
-            params['hub.ssl.protocol'] = ssl_protocol_types[self._ssl_version]
+            params['hub.ssl.protocol'] = get_ssl_version_name(
+                self._ssl_version)
 
         return params
 

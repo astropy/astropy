@@ -50,7 +50,7 @@ if six.PY2:
             # We have to explicitly not pass the ssl_version to
             # `ssl.wrap_socket` if it's None.
             kwargs = {
-                'server_size': False,
+                'server_side': False,
                 'certfile': self.cert_file,
                 'keyfile': self.key_file,
                 'cert_reqs': self.cert_reqs,
@@ -58,7 +58,7 @@ if six.PY2:
             }
             if self.ssl_version is not None:
                 kwargs['ssl_version'] = self.ssl_version
-            sslconn = ssl.wrap_socket(sock, **args)
+            sslconn = ssl.wrap_socket(sock, **kwargs)
             self.sock = sslconn
 
     class HTTPS(HTTP):
@@ -170,3 +170,28 @@ class SecureXMLRPCServer(ThreadingXMLRPCServer):
             kwargs['ssl_version'] = self.ssl_version
         sslconn = ssl.wrap_socket(sock, **kwargs)
         return sslconn, addr
+
+
+def get_ssl_version_name(ssl_version):
+    if ssl_version is None:
+        # create_default_context added after the OpenSSL bugfix in
+        # Python 2.7.9 etc.  It's the best way to get the default SSL
+        # protocol from Python ... otherwise, we just assume it's the
+        # old default of PROTOCOL_SSLv23.
+        if hasattr(ssl, 'create_default_context'):
+            context = ssl.create_default_context()
+            ssl_version = context.protocol
+        else:
+            ssl_version = ssl.PROTOCOL_SSLv23
+
+    # get_protocol_name is an undocumented method
+    if hasattr(ssl, 'get_protocol_name'):
+        return ssl.get_protocol_name(ssl_version)
+    else:
+        # Not all versions of Python support all protocols,
+        # so we have to only accept those that are present.
+        for protocol in ['SSLv2', 'SSLv23', 'SSLv3', 'TLSv1']:
+            value = getattr(ssl, 'PROTOCOL_' + protocol, None)
+            if ssl_version == value:
+                return protocol
+        return '<unknown>'
