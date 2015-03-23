@@ -26,7 +26,7 @@ if six.PY3:
 elif six.PY2:
     _format_funcs = {None: lambda format_, val: text_type(val)}
 
-import ipdb
+
 ### The first three functions are helpers for _auto_format_func
 
 
@@ -185,7 +185,7 @@ class TableFormatter(object):
 
 
     def _pformat_col(self, col, max_lines=None, show_name=True, show_unit=None,
-                     show_dtype=False, show_length=None, html=False, align='right'):
+                     show_dtype=False, show_length=None, html=False, align=None):
         """Return a list of formatted string representation of column values.
 
         Parameters
@@ -265,43 +265,49 @@ class TableFormatter(object):
             if outs['i_dashes'] is not None:
                 col_strs[outs['i_dashes']] = '-' * col_width
 
-            # Now bring all the column string values to the same fixed width
+            # Format columns according to alignment
+            justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust'}
             for i, col_str in enumerate(col_strs):
-                col_strs[i] = col_str.rjust(col_width)
-
-        '''
-        justify_methods = {'<': 'ljust', '^': 'center', '>': 'rjust'}
-        try:
-            # if col.format is not a string, this raises an exception, causing a default to 'rjust'.
-            if col.format[:2] == '0=':
-                justify = (lambda col_str, col_width:
-                           getattr(col_str, 'zfill')(col_width))
-            else:
-                justify_method = justify_methods.get(col.format[0], None)
-                if justify_method is None:
-                    # try whether a fill character precedes the justification
-                    # character (if not, this will raise an exception,
-                    # causing a default to rjust below)
-                    justify_method = justify_methods[col.format[1]]
-                    justify = (lambda col_str, col_width: \
-                               getattr(col_str, justify_method)(col_width,
-                                                                col.format[0]))
+                if align is None:
+                    try:
+                        if col.format[:2] == '0=':
+                            justify = (lambda col_str, col_width:
+                                       getattr(col_str, 'zfill')(col_width))
+                        else:
+                            justify_method = justify_methods.get(col.format[0], None)
+                            if justify_method is None:
+                                justify_method = justify_methods[col.format[1]]
+                                justify = (lambda col_str, col_width: \
+                                           getattr(col_str, justify_method)(col_width,
+                                                                            col.format[0]))
+                            else:
+                                justify = (lambda col_str, col_width:
+                                           getattr(col_str, justify_method)(col_width))
+                    except:
+                        justify = (lambda col_str, col_width:
+                                   getattr(col_str, 'rjust')(col_width))
                 else:
-                    justify = (lambda col_str, col_width:
-                               getattr(col_str, justify_method)(col_width))
-        except:
-            justify = (lambda col_str, col_width:
-                       getattr(col_str, 'rjust')(col_width))
-
-        for i, col_str in enumerate(col_strs):
-            col_strs[i] = justify(col_str, col_width)
-        '''
-
+                    if align == '0=':
+                        justify = (lambda col_str, col_width:
+                                       getattr(col_str, 'zfill')(col_width))
+                    elif align in ['<','^','>']:
+                        justify_method = justify_methods.get(align, None)
+                        if justify_method is None:
+                            justify_method = justify_methods[col.format[1]]
+                            justify = (lambda col_str, col_width: \
+                                       getattr(col_str, justify_method)(col_width,
+                                                                        col.format[0]))
+                        else:
+                            justify = (lambda col_str, col_width:
+                                       getattr(col_str, justify_method)(col_width))
+                    else:
+                        justify = (lambda col_str, col_width:
+                                   getattr(col_str, 'rjust')(col_width))
+                col_strs[i] = justify(col_str, col_width)
                 
         if outs['show_length']:
             col_strs.append('Length = {0} rows'.format(len(col)))
 
-        #ipdb.set_trace()
         return col_strs, outs
 
 
@@ -465,13 +471,7 @@ class TableFormatter(object):
         if show_unit is None:
             show_unit = any([getattr(col, 'unit', None) for col in six.itervalues(table.columns)])
 
-        for col in six.itervalues(table.columns):
-            lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
-                                            show_unit=show_unit, show_dtype=show_dtype)
-            if outs['show_length']:
-                lines = lines[:-1]
-            cols.append(lines)
-
+        # Figure out align
         if isinstance(align,str):
             align = align
         elif isinstance(align,list) and len(align) == 1:
@@ -483,14 +483,19 @@ class TableFormatter(object):
 
         # If align remains a list, need to loop over values
         if type(align) == list:
-            for i,col in enumerate(six.itervalues(table.columns)):
-                lines, n_header = self._pformat_col(col, max_lines, show_name,
-                                                show_unit, align=align[i])
+            for i,col in enumerate(table.columns.values()):
+                lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
+                                                show_unit=show_unit, show_dtype=show_dtype,
+                                                align=align[i])
+                if outs['show_length']:
+                    lines = lines[:-1]
                 cols.append(lines)
         else:
             for col in six.itervalues(table.columns):
-                lines, n_header = self._pformat_col(col, max_lines, show_name,
-                                                show_unit, align=align)
+                lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
+                                                show_unit=show_unit, show_dtype=show_dtype)
+                if outs['show_length']:
+                    lines = lines[:-1]
                 cols.append(lines)
 
         if not cols:

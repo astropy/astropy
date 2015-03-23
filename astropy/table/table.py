@@ -588,7 +588,8 @@ class Table(object):
         tableid = 'table{id}'.format(id=id(self))
         data_lines, outs = self.formatter._pformat_table(self,
             tableid=tableid, html=html, max_width=(-1 if html else None),
-            show_name=True, show_unit=None, show_dtype=True)
+                                                    show_name=True, show_unit=None,
+                                                         show_dtype=True)
 
         out = descr + '\n'.join(data_lines)
         if six.PY2 and isinstance(out, six.text_type):
@@ -672,7 +673,7 @@ class Table(object):
         """
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
-                                                    show_dtype=show_dtype)
+                                                    show_dtype=show_dtype, align=align)
         if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))
 
@@ -799,7 +800,7 @@ class Table(object):
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
                                                     show_dtype=show_dtype, html=html,
-                                                    tableid=tableid)
+                                                    tableid=tableid, align=align)
 
         if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))
