@@ -785,7 +785,7 @@ class UnitBase(object):
 
         return False
 
-    def _apply_equivalences(self, unit, other, equivalencies):
+    def _apply_equivalencies(self, unit, other, equivalencies):
         """
         Internal function (used from `_get_converter`) to apply
         equivalence pairs.
@@ -845,7 +845,7 @@ class UnitBase(object):
         try:
             scale = self._to(other)
         except UnitsError:
-            return self._apply_equivalences(
+            return self._apply_equivalencies(
                 self, other, self._normalize_equivalencies(equivalencies))
         return lambda val: scale * _condition_arg(val)
 
