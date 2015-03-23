@@ -1,0 +1,6 @@
+
+@import url("bootstrap-astropy.css");
+
+body, .topbar, .related {
+  min-width: 645px;
+}
