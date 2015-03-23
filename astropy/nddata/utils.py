@@ -26,7 +26,7 @@ def _round(a):
 
     >>> import numpy as np
     >>> np.round([1.5, 2.5, 3.5, 4.5, 5.5, 6.5])
-    array([ 0.,  2.,  2.,  4.,  4.,  6.,  6.])
+    array([ 2.,  2.,  4.,  4.,  6.,  6.])
 
     This function can be replaced by np.round as soon as the doctest above
     fails for all relevant numpy versions.
