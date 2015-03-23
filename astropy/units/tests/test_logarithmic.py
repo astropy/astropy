@@ -30,6 +30,12 @@ class TestLogUnitCreation(object):
         assert u.dex.to(u.mag) == -2.5
         assert u.mag.to(u.dB) == -4
 
+    @pytest.mark.parametrize('lu_cls', lu_subclasses)
+    def test_equality_to_normal_unit_for_dimensionless(self, lu_cls):
+        lu = lu_cls()
+        assert lu == lu._default_function_unit  # eg, MagUnit() == u.mag
+        assert lu._default_function_unit == lu  # and u.mag == MagUnit()
+
     @pytest.mark.parametrize('lu_cls, physical_unit',
                              itertools.product(lu_subclasses, pu_sample))
     def test_subclass_creation(self, lu_cls, physical_unit):

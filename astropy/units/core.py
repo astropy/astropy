@@ -710,6 +710,12 @@ class UnitBase(object):
             other = Unit(other, parse_strict='silent')
         except (ValueError, UnitsError, TypeError):
             return False
+
+        # Other is Unit-like, but the test below requires it is a UnitBase
+        # instance; if it is not, give up (so that other can try).
+        if not isinstance(other, UnitBase):
+            return NotImplemented
+
         try:
             return is_effectively_unity(self._to(other))
         except UnitsError:
