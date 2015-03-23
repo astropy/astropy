@@ -109,6 +109,12 @@ def test_extract_array_1d():
     assert np.all(extract_array(np.arange(4), 3, -1, fill_value=-99) == np.array([-99, -99, 0]))
 
 
+def test_extract_Array_float():
+    """integer is at bin center"""
+    for a in np.arange(2.51, 3.49, 0.1):
+        assert np.all(extract_array(np.arange(5), 3, a) == np.array([2, 3, 4]))
+
+
 def test_extract_array_1d_trim():
     '''Extract 1 d arrays.
 

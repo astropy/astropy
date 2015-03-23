@@ -15,9 +15,34 @@ class NoOverlapError(ValueError):
     '''Raised when determining the overlap of non-overlapping arrays.'''
     pass
 
+
 class PartialOverlapError(ValueError):
     '''Raised when arrays only partially overlap.'''
     pass
+
+
+def _round(a):
+    '''correctly round. Might not be required for all numpy versions.
+
+    np.round([1.5, 2.5, 3.5, 4.5, 5.5, 6.5])
+    >>> array([ 0.,  2.,  2.,  4.,  4.,  6.,  6.])
+    '''
+    return int(np.floor(a + 0.5))
+
+
+def _offset(a):
+    '''Offset by 0.5 for an even array.
+
+    For an array with an odd number of elements, the center is
+    symmetric, e.g. for 3 elements, it's center +/-1 elements, but for
+    four elements it's center -2 / +1
+    This function introduces that offset.
+    '''
+    if np.mod(a, 2) == 0:
+        return -0.5
+    else:
+        return 0.
+
 
 def overlap_slices(large_array_shape, small_array_shape, position, mode='partial'):
     """
@@ -28,20 +53,20 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
     used to extract, add or subtract the small array at the given
     position. This function takes care of the correct behavior at the
     boundaries, where the small array is cut of appropriately.
+    Integer positions are at the pixel centers.
 
     Parameters
     ----------
-    large_array_shape : tuple or int
-        Shape of the large array (for 1D arrays, this can be an integer).
-    small_array_shape : tuple or int
-        Shape of the small array (for 1D arrays, this can be an integer).
+    large_array_shape : tuple or number
+        Shape of the large array (for 1D arrays, this can be an int or float).
+    small_array_shape : tuple or number
+        Shape of the small array (for 1D arrays, this can be an int or float).
     position : tuple of integers or int
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
-        When determining the center for a coordinate with an even number of
-        elements, the position is rounded up. So the coordinates of the
-        center of an array with shape=(2,3) will be (1,1).
-        (For 1D arrays, this can be an integer.)
+        For a coordinate with an even number of elements, the position is
+        rounded up, e.g. extracting two elements with a center of `1` will
+        give positions `[0, 1]`.
     mode : ['partial', 'strict']
         In "partial" mode, a partial overlap of the small and the large
         array is sufficient. In the "strict" mode, the small array has to be
@@ -76,9 +101,9 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
         raise ValueError("Position must have the same number of dimensions as array.")
 
     # Get edge coordinates
-    edges_min = [int(np.floor(pos + 0.5 - small_shape / 2.))
+    edges_min = [_round(pos + 0.5 - small_shape / 2. + _offset(small_shape))
                  for (pos, small_shape) in zip(position, small_array_shape)]
-    edges_max = [int(np.floor(pos + 0.5 + small_shape / 2.))
+    edges_max = [_round(pos + 0.5 + small_shape / 2. + _offset(small_shape))
                  for (pos, small_shape) in zip(position, small_array_shape)]
 
     for e_max in edges_max:
