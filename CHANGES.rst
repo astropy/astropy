@@ -308,6 +308,10 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+- ``astropy.units``
+
+  - Clarified imperial mass measurements and added pound force (lbf),
+    kilopound (kip), and pound per square inch (psi). [#3409]
 
 
 1.0.1 (2015-03-06)
