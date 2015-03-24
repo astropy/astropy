@@ -58,6 +58,8 @@ if six.PY2:
             }
             if self.ssl_version is not None:
                 kwargs['ssl_version'] = self.ssl_version
+            else:
+                kwargs['ssl_version'] = ssl.PROTOCOL_TLSv1
             sslconn = ssl.wrap_socket(sock, **kwargs)
             self.sock = sslconn
 
@@ -190,7 +192,8 @@ def get_ssl_version_name(ssl_version):
     else:
         # Not all versions of Python support all protocols,
         # so we have to only accept those that are present.
-        for protocol in ['SSLv2', 'SSLv23', 'SSLv3', 'TLSv1']:
+        for protocol in ['SSLv2', 'SSLv23', 'SSLv3', 'TLSv1', 'TLSv1_1',
+                         'TLSv1_2']:
             value = getattr(ssl, 'PROTOCOL_' + protocol, None)
             if ssl_version == value:
                 return protocol
