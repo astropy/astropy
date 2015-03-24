@@ -186,3 +186,23 @@ class TestTimeDeltaQuantity():
         t0 = TimeDelta(np.arange(12.).reshape(4, 3), format='sec')
         with pytest.raises(ValueError):
             t0 + np.arange(4.) * u.s
+
+
+class TestDeltaAttributes():
+    def test_delta_ut1_utc(self):
+        t = Time('2010-01-01 00:00:00', format='iso', scale='utc', precision=6)
+        t.delta_ut1_utc = 0.3 * u.s
+        assert t.ut1.iso == '2010-01-01 00:00:00.300000'
+        t.delta_ut1_utc = 0.4 / 60. * u.minute
+        assert t.ut1.iso == '2010-01-01 00:00:00.400000'
+        with pytest.raises(u.UnitsError):
+            t.delta_ut1_utc = 0.4 * u.m
+
+    def test_delta_tdb_tt(self):
+        t = Time('2010-01-01 00:00:00', format='iso', scale='tt', precision=6)
+        t.delta_tdb_tt = 20. * u.second
+        assert t.tdb.iso == '2010-01-01 00:00:20.000000'
+        t.delta_tdb_tt = 30. / 60. * u.minute
+        assert t.tdb.iso == '2010-01-01 00:00:30.000000'
+        with pytest.raises(u.UnitsError):
+            t.delta_tdb_tt = 0.4 * u.m
