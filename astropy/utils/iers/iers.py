@@ -39,11 +39,10 @@ configurable or automatic, but currently it requires handiwork.  For
     >>> from astropy.utils.iers import IERS_A
     >>> iers_a = IERS_A.open('finals2000A.all')    # doctest: +SKIP
     >>> iers_a.ut1_utc(t2)                         # doctest: +SKIP
-    0.069727551794218745
+    <Quantity -0.5631187323911956 s>
     >>> t2.delta_ut1_utc = iers_a.ut1_utc(t2)      # doctest: +SKIP
     >>> t2.ut1.iso                                 # doctest: +SKIP
-    <Time object: scale='ut1' format='datetime'
-     value=2013-06-22 17:01:13.446632>
+    '2015-03-24 03:33:57.288'
 
 Instead of local copies of IERS files, one can also download them, using
 `iers.IERS_A_URL` and `iers.IERS_B_URL`::
@@ -58,8 +57,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from ... import units as u
-from ...table import Table
+from ...table import Table, QTable
 from ...utils.data import get_pkg_data_filename
 
 __all__ = ['IERS', 'IERS_B', 'IERS_A',
@@ -87,10 +85,10 @@ TIME_BEYOND_IERS_RANGE = -2
 MJD_ZERO = 2400000.5
 
 
-class IERS(Table):
+class IERS(QTable):
     """Generic IERS table class, defining interpolation functions.
 
-    Sub-classed from `astropy.table.Table`.  The table should hold columns
+    Sub-classed from `astropy.table.QTable`.  The table should hold columns
     'MJD', 'UT1_UTC', and 'PM_x'/'PM_y'.
     """
 
@@ -189,51 +187,8 @@ class IERS(Table):
             `iers.TIME_BEFORE_IERS_RANGE`
             `iers.TIME_BEYOND_IERS_RANGE`
         """
-
-        mjd, utc = self.mjd_utc(jd1, jd2)
-        # enforce array
-        is_scalar = not hasattr(mjd, '__array__') or mjd.ndim == 0
-        if is_scalar:
-            mjd = np.array([mjd])
-            utc = np.array([utc])
-        # For typical format, will always find a match (since MJD are integer)
-        # hence, important to define which side we will be; this ensures
-        # self['MJD'][i-1]<=mjd<self['MJD'][i]
-        i = np.searchsorted(self['MJD'], mjd, side='right')
-        # Get index to MJD at or just below given mjd, clipping to ensure we
-        # stay in range of table (status will be set below for those outside)
-        i1 = np.clip(i, 1, len(self)-1)
-        i0 = i1-1
-        mjd_0, mjd_1 = self['MJD'][i0], self['MJD'][i1]
-        ut1_utc_0, ut1_utc_1 = self['UT1_UTC'][i0], self['UT1_UTC'][i1]
-        # Check and correct for possible leap second (correcting difference,
-        # not first point, since jump can only happen right at second point)
-        d_ut1_utc = ut1_utc_1 - ut1_utc_0
-        d_ut1_utc -= np.round(d_ut1_utc)
-        # Linearly interpolate to get UT1-UTC
-        # (which is what TEMPO does, but may want to follow IERS gazette #13
-        # for more precise interpolation and correction for tidal effects;
-        # http://maia.usno.navy.mil/iers-gaz13)
-        ut1_utc = ut1_utc_0 + (mjd-mjd_0+utc)/(mjd_1-mjd_0)*d_ut1_utc
-
-        if is_scalar:
-            ut1_utc = ut1_utc[0]
-
-        if return_status:
-            # Set status to source, possibly using routine provided by subclass
-            status = self.ut1_utc_source(i1)
-            # Check for out of range
-            status[i == 0] = TIME_BEFORE_IERS_RANGE
-            status[i == len(self)] = TIME_BEYOND_IERS_RANGE
-            if is_scalar:
-                status = status[0]
-            return ut1_utc, status
-        else:
-            # Not returning status, so raise an exception for out-of-range
-            if np.any(i1 != i):
-                raise IndexError('(some) times are outside of range covered '
-                                 'by IERS table.')
-            return ut1_utc
+        return self._interpolate(jd1, jd2, ['UT1_UTC'],
+                                 self.ut1_utc_source if return_status else None)
 
     def pm_xy(self, jd1, jd2=0., return_status=False):
         """Interpolate polar motions from IERS Table for given dates.
@@ -263,7 +218,10 @@ class IERS(Table):
             `iers.TIME_BEFORE_IERS_RANGE`
             `iers.TIME_BEYOND_IERS_RANGE`
         """
+        return self._interpolate(jd1, jd2, ['PM_x', 'PM_y'],
+                                 self.pm_source if return_status else None)
 
+    def _interpolate(self, jd1, jd2, columns, source=None):
         mjd, utc = self.mjd_utc(jd1, jd2)
         # enforce array
         is_scalar = not hasattr(mjd, '__array__') or mjd.ndim == 0
@@ -273,38 +231,47 @@ class IERS(Table):
         # For typical format, will always find a match (since MJD are integer)
         # hence, important to define which side we will be; this ensures
         # self['MJD'][i-1]<=mjd<self['MJD'][i]
-        i = np.searchsorted(self['MJD'], mjd, side='right')
+        i = np.searchsorted(self['MJD'].value, mjd, side='right')
         # Get index to MJD at or just below given mjd, clipping to ensure we
         # stay in range of table (status will be set below for those outside)
         i1 = np.clip(i, 1, len(self)-1)
         i0 = i1-1
-        mjd_0, mjd_1 = self['MJD'][i0], self['MJD'][i1]
-        pm_x_0, pm_x_1 = self['PM_x'][i0], self['PM_x'][i1]
-        pm_y_0, pm_y_1 = self['PM_y'][i0], self['PM_y'][i1]
+        mjd_0, mjd_1 = self['MJD'][i0].value, self['MJD'][i1].value
+        results = []
+        for column in columns:
+            val_0, val_1 = self[column][i0], self[column][i1]
+            d_val = val_1 - val_0
+            if column == 'UT1_UTC':
+                # Check & correct for possible leap second (correcting diff.,
+                # not 1st point, since jump can only happen right at 2nd point)
+                d_val -= d_val.round()
+            # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
+            # may want to follow IERS gazette #13 for more precise
+            # interpolation and correction for tidal effects;
+            # http://maia.usno.navy.mil/iers-gaz13)
+            val = val_0 + (mjd - mjd_0 + utc) / (mjd_1 - mjd_0) * d_val
 
-        # Linearly interpolate both components
-        pm_x = u.Quantity(pm_x_0 + (mjd - mjd_0)*(pm_x_1 - pm_x_0)/(mjd_1 - mjd_0), copy=False)
-        pm_y = u.Quantity(pm_y_0 + (mjd - mjd_0)*(pm_y_1 - pm_y_0)/(mjd_1 - mjd_0), copy=False)
+            if is_scalar:
+                val = val[0]
 
-        if is_scalar:
-            pm_x = pm_x[0]
-            pm_y = pm_y[0]
+            results.append(val)
 
-        if return_status:
-            # Set status to source, possibly using routine provided by subclass
-            status = self.pm_source(i1)
+        if source:
+            # Set status to source, using the routine passed in.
+            status = source(i1)
             # Check for out of range
             status[i == 0] = TIME_BEFORE_IERS_RANGE
             status[i == len(self)] = TIME_BEYOND_IERS_RANGE
             if is_scalar:
                 status = status[0]
-            return pm_x, pm_y, status
+            results.append(status)
+            return results
         else:
             # Not returning status, so raise an exception for out-of-range
             if np.any(i1 != i):
                 raise IndexError('(some) times are outside of range covered '
                                  'by IERS table.')
-            return pm_x, pm_y
+            return results[0] if len(results) == 1 else results
 
     def ut1_utc_source(self, i):
         """Source for UT1-UTC.  To be overridden by subclass."""
@@ -336,26 +303,29 @@ class IERS_A(IERS):
 
         Combines UT1-UTC values, taking UT1_UTC_B if available, else UT1_UTC_A
         """
-        # run np.where on the data from the table columns, since in numpy 1.9
+        # Run np.where on the data from the table columns, since in numpy 1.9
         # it otherwise returns an only partially initialized column.
         table['UT1_UTC'] = np.where(table['UT1_UTC_B'].mask,
                                     table['UT1_UTC_A'].data,
                                     table['UT1_UTC_B'].data)
+        # Ensure the unit is correct, for later column conversion to Quantity.
+        table['UT1_UTC'].unit = table['UT1_UTC_A'].unit
         table['UT1Flag'] = np.where(table['UT1_UTC_B'].mask,
                                     table['UT1Flag_A'].data,
                                     'B')
-        #repeat for polar motions
+        # Repeat for polar motions.
         table['PM_x'] = np.where(table['PM_X_B'].mask,
                                  table['PM_x_A'].data,
                                  table['PM_X_B'].data)
-        table['PM_x'].unit = table['PM_x_A'].unit  # needed for Quantity-ing
+        table['PM_x'].unit = table['PM_x_A'].unit
         table['PM_y'] = np.where(table['PM_Y_B'].mask,
                                  table['PM_y_A'].data,
                                  table['PM_Y_B'].data)
-        table['PM_y'].unit = table['PM_y_A'].unit  # needed for Quantity-ing
+        table['PM_y'].unit = table['PM_y_A'].unit
         table['PolPMFlag'] = np.where(table['PM_X_B'].mask,
                                       table['PolPMFlag_A'].data,
                                       'B')
+        # Fill any masked values, and convert to a QTable.
         super(IERS_A, self).__init__(table.filled())
 
     @classmethod
@@ -377,6 +347,8 @@ class IERS_A(IERS):
         """
         if readme is None:
             readme = IERS_A_README
+        # Read in as a regular Table, including possible masked columns.
+        # Columns will be filled and converted to Quantity in cls.__init__.
         iers_a = Table.read(file, format='cds', readme=readme)
         # IERS A has some rows at the end that hold nothing but dates & MJD
         # presumably to be filled later.  Exclude those a priori -- there
@@ -438,11 +410,11 @@ class IERS_B(IERS):
         if readme is None:
             readme = IERS_B_README
 
-        # can this be done more elegantly, initialising directly, without
-        # passing a Table to the Table initialiser?
+        # Read in as a regular Table, including possible masked columns.
+        # Columns will be filled and converted to Quantity in cls.__init__.
         iers_b = Table.read(file, format='cds', readme=readme,
                             data_start=data_start)
-        return cls(iers_b)
+        return cls(iers_b.filled())
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
