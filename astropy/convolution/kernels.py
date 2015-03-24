@@ -146,10 +146,10 @@ class Gaussian2DKernel(Kernel2D):
     _separable = True
     _is_bool = False
 
-   def __init__(self, width, height, position_angle, support_scaling=8, **kwargs):
-        self._model = models.Gaussian2D(1. / (2 * np.pi * width * height), 0,
+      def __init__(self, height=amplitude, width=amplitude.default, theta, support_scaling=8, **kwargs):
+        self._model = models.Gaussian2D(1. / (2 * np.pi * height * width), 0,
                                         0, x_stddev=width, y_stddev=height,
-                                        theta=position_angle)
+                                        theta=theta.default)
         self._default_size = _round_up_to_odd_integer(support_scaling *
                                                       np.max([width,height]))
         super(Gaussian2DKernel, self).__init__(**kwargs)
