@@ -33,6 +33,38 @@ def test_sun():
     gcrs2 = get_sun(Time([northern_summer_solstice, equinox_2, northern_winter_solstice]))
     assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)
 
+def test_sun_02():
+    """
+    Test `that get_sun` produces similar values to skyfield (de421).
+
+    Commands to produce skyfield values:
+
+    from skyfield.api import sun, earth
+    from skyfield.units import Angle
+
+    apparent_gcrs = earth(utc=(2010,6,21)).observe(sun).apparent().radec()
+
+    skyf_ra_apparent = Angle(apparent_gcrs[0]).degrees
+    skyf_dec_apparent = Angle(apparent_gcrs[1]).degrees
+    skyf_dist_apparent = apparent_gcrs[2].AU
+    """
+    from ..funcs import get_sun
+
+    time_apy = Time('2010-6-21')
+    gcrs_apy = get_sun(time_apy)
+
+    apy_ra = gcrs_apy.ra.deg
+    apy_dec = gcrs_apy.dec.deg
+    apy_dist = gcrs_apy.distance.AU
+    
+    skyf_ra_apparent = 89.338458132829359
+    skyf_dec_apparent = 23.436389712068134 
+    skyf_dist_apparent = 1.016198586488303
+
+    assert abs(apy_ra - skyf_ra_apparent) < 0.01
+    assert abs(apy_dec - skyf_dec_apparent) < 0.01
+    assert abs(apy_dist - skyf_dist_apparent) < 0.01
+
 def test_concatenate():
     from .. import FK5, SkyCoord
     from ..funcs import concatenate

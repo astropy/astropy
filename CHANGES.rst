@@ -171,7 +171,8 @@ Bug fixes
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+- ``astropy.coordinates``
+  - Added test_sun_02 to test_funcs.py. 
 
 1.0.2 (unreleased)
 ------------------
