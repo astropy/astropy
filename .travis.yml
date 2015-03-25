@@ -53,8 +53,6 @@ matrix:
           env: NUMPY_VERSION=1.7 SETUP_CMD='test --remote-data'
         - python: 2.7
           env: NUMPY_VERSION=1.6 SETUP_CMD='test --remote-data'
-        - python: 2.7
-          env: NUMPY_VERSION=1.5 SETUP_CMD='test --remote-data'
 
 before_install:
 
