@@ -125,6 +125,10 @@ class WCSPixel2WorldTransform(CurvedTransform):
             self.x_index = slice.index('x')
             self.y_index = slice.index('y')
 
+    @property
+    def output_dims(self):
+        return self.wcs.wcs.naxis
+
     def get_coord_slices(self, xmin, xmax, ymin, ymax, nx, ny):
         """
         Get a coordinate slice
