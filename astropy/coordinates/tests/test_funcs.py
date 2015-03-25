@@ -33,7 +33,7 @@ def test_sun():
     gcrs2 = get_sun(Time([northern_summer_solstice, equinox_2, northern_winter_solstice]))
     assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)
 
-def test_sun_02()
+def test_sun_02():
     """
     Test that get_sun produces same value as skyfield (using de421).
 
@@ -42,7 +42,7 @@ def test_sun_02()
     SKYFIELD COMMANDS HERE
 
     """
-    from ...funcs import get_sun
+    from ..funcs import get_sun
 
     sf_locate_1 = 1.1
     sf_locate_2 = 2.2
@@ -54,15 +54,15 @@ def test_sun_02()
 
     #gs_locate_1 = get_sun(time_1)
     gs_locate_1 = 1.1
-    assert gs_locate_1 = sf_locate_1
+    assert gs_locate_1 == sf_locate_1
 
     #gs_locate_2 = get_sun(time_2)
     gs_locate_2 = 2.2
-    assert gs_locate_2 = sf_locate_2
+    assert gs_locate_2 == sf_locate_2
 
     #gs_locate_3 = get_sun(time_3)
     gs_locate_3 = 3.3
-    assert gs_locate_3 = sf_locate_3
+    assert gs_locate_3 == sf_locate_3
 
 def test_concatenate():
     from .. import FK5, SkyCoord
