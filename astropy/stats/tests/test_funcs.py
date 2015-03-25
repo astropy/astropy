@@ -9,6 +9,8 @@ from numpy.random import randn, normal
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
 
+from scipy.stats import spearmanr
+
 try:
     import scipy
 except ImportError:
@@ -235,6 +237,25 @@ def test_bootstrap():
     with NumpyRNGContext(42):
         bootresult = np.mean(funcs.bootstrap(bootarr, 10000, bootfunc=np.mean))
         assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
+
+    #test a bootfunc with several output values
+    with NumpyRNGContext(42):
+        bootarr = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+                            [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]]).T
+        spearmanr(bootarr)
+
+        print('one output')
+        bootresult = np.mean(funcs.bootstrap(bootarr, 2,
+                                             bootfunc=spearmanr))
+
+        print('two output')
+        bootresult = np.mean(funcs.bootstrap(bootarr, 2,
+                                             bootfunc=spearmanr,
+                                             output_index=(0,1)))
+
+        #assert_allclose(spearmanr(bootarr), bootresult, atol=1e-3)
+
+
 
 
 def test_mad_std():
