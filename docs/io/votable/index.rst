@@ -103,6 +103,15 @@ example, suppose we had a ``FIELD`` specified as follows:
     that is both unique and required, which would be the most
     convenient mechanism to uniquely identify a column.
 
+    When converting from a `astropy.io.votable.tree.Table` object to
+    an `astropy.table.Table` object, one can specify whether to give
+    preference to ``name`` or ``ID`` attributes when naming the
+    columns.  By default, ``ID`` is given preference.  To give
+    ``name`` preference, pass the keyword argument
+    ``use_names_over_ids=True``::
+
+      >>> votable.get_first_table().to_table(use_names_over_ids=True)
+
 This column of data can be extracted from the record array using::
 
   >>> table.array['dec_targ']
