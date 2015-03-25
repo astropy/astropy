@@ -121,6 +121,8 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Ensure ``QTable`` can be pickled [#3590]
+
 - ``astropy.time``
 
   - Ensure a ``Column`` without units is treated as an ``array``, not as an
