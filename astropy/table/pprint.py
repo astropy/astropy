@@ -229,11 +229,14 @@ class TableFormatter(object):
             show_unit = getattr(col, 'unit', None) is not None
 
         outs = {}  # Some values from _pformat_col_iter iterator that are needed here
-        col_strs_iter = self._pformat_col_iter(col, max_lines, show_name=show_name, show_unit=show_unit,
-                                               show_dtype=show_dtype, show_length=show_length,
+        col_strs_iter = self._pformat_col_iter(col, max_lines, show_name=show_name,
+                                               show_unit=show_unit,
+                                               show_dtype=show_dtype,
+                                               show_length=show_length,
                                                outs=outs)
         col_strs = list(col_strs_iter)
-        col_width = max(len(x) for x in col_strs)
+        if len(col_strs) > 0:
+            col_width = max(len(x) for x in col_strs)
 
         if html:
             from ..utils.xml.writer import xml_escape
@@ -277,7 +280,7 @@ class TableFormatter(object):
                             justify_method = justify_methods.get(col.format[0], None)
                             if justify_method is None:
                                 justify_method = justify_methods[col.format[1]]
-                                justify = (lambda col_str, col_width: \
+                                justify = (lambda col_str, col_width:
                                            getattr(col_str, justify_method)(col_width,
                                                                             col.format[0]))
                             else:
@@ -294,7 +297,7 @@ class TableFormatter(object):
                         justify_method = justify_methods.get(align, None)
                         if justify_method is None:
                             justify_method = justify_methods[col.format[1]]
-                            justify = (lambda col_str, col_width: \
+                            justify = (lambda col_str, col_width:
                                        getattr(col_str, justify_method)(col_width,
                                                                         col.format[0]))
                         else:
