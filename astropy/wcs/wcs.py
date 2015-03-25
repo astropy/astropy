@@ -2470,6 +2470,41 @@ naxis kwarg.
 
         print('NAXIS    : {0!r} {1!r}'.format(self._naxis1, self._naxis2))
 
+    def __repr__(self):
+        '''
+        Return a short description. Simply porting the behavior from
+        the `printwcs()` method.
+        '''
+        description = ["WCS Keywords\n",
+                       "Number of WCS axes: {0!r}".format(self.naxis)]
+        sfmt = ' : ' +  "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
+        
+        keywords = ['CTYPE', 'CRVAL', 'CRPIX']
+        values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]
+        for keyword, value in zip(keywords, values):
+            description.append(keyword+sfmt.format(*value))
+
+        if hasattr(self.wcs, 'pc'):
+            for i in range(self.naxis):
+                s = ''
+                for j in range(self.naxis):
+                    s += ''.join(['PC', str(i+1), '_', str(j+1), ' '])
+                s += sfmt
+                description.append(s.format(*self.wcs.pc[i]))
+            s = 'CDELT' + sfmt
+            description.append(s.format(*self.wcs.cdelt))
+        elif hasattr(self.wcs, 'cd'):
+            for i in range(self.naxis):
+                s = ''
+                for j in range(self.naxis):
+                    s += "".join(['CD', str(i+1), '_', str(j+1), ' '])
+                s += sfmt
+                description.append(s.format(*self.wcs.cd[i]))
+
+        description.append('NAXIS    : {0!r} {1!r}'.format(self._naxis1, 
+                           self._naxis2))
+        return '\n'.join(description)
+
     def get_axis_types(self):
         """
         Similar to `self.wcsprm.axis_types <astropy.wcs.Wcsprm.axis_types>`
