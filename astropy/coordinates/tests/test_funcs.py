@@ -34,35 +34,35 @@ def test_sun():
     assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)
 
 def test_sun_02()
-	"""
-	Test that get_sun produces same value as skyfield (using de421).
-	
-	Corresponding skyfield commands:
-	
-	SKYFIELD COMMANDS HERE
+    """
+    Test that get_sun produces same value as skyfield (using de421).
 
-	"""
-	from ...funcs import get_sun
+    Corresponding skyfield commands:
 
-	sf_locate_1 = 1.1
-	sf_locate_2 = 2.2
-	sf_locate_3 = 3.3
+    SKYFIELD COMMANDS HERE
 
-	#time_1 = Time('')
-	#time_2 = Time('')
-	#time_3 = Time('')
+    """
+    from ...funcs import get_sun
 
-	#gs_locate_1 = get_sun(time_1)
-	gs_locate_1 = 1.1
-	assert gs_locate_1 = sf_locate_1
+    sf_locate_1 = 1.1
+    sf_locate_2 = 2.2
+    sf_locate_3 = 3.3
 
-	#gs_locate_2 = get_sun(time_2)
-	gs_locate_2 = 2.2
-	assert gs_locate_2 = sf_locate_2
+    #time_1 = Time('')
+    #time_2 = Time('')
+    #time_3 = Time('')
 
-	#gs_locate_3 = get_sun(time_3)
-	gs_locate_3 = 3.3
-	assert gs_locate_3 = sf_locate_3
+    #gs_locate_1 = get_sun(time_1)
+    gs_locate_1 = 1.1
+    assert gs_locate_1 = sf_locate_1
+
+    #gs_locate_2 = get_sun(time_2)
+    gs_locate_2 = 2.2
+    assert gs_locate_2 = sf_locate_2
+
+    #gs_locate_3 = get_sun(time_3)
+    gs_locate_3 = 3.3
+    assert gs_locate_3 = sf_locate_3
 
 def test_concatenate():
     from .. import FK5, SkyCoord
