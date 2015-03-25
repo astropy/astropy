@@ -297,7 +297,12 @@ Bug Fixes
 
   - Ensure equivalencies that do more than just scale a ``Quantity`` are
     properly handled also in ``ufunc`` evaluations. [#2496, #3586]
-  
+
+  - The LaTeX representation of the Angstrom unit has changed from
+    ``\overset{\circ}{A}`` to ``\mathring{A}``, which should have
+    better support across regular LaTeX, MathJax and matplotlib (as of
+    version 1.5) [#3617]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
