@@ -3666,6 +3666,9 @@ New Features
   - Add ``axis=int`` option to ``stropy.stats.funcs.sigma_clip`` to allow
     clipping along a given axis for multidimensional data. [#1083]
 
+  - Add ``output_index`` option to ``astropy.stats.funcs.bootstrap`` which
+    allows the user to supply functions with multiple outputs to ``bootfunc``
+
 - ``astropy.table``
 
   - New columns can be added to a table via assignment to a non-existing
