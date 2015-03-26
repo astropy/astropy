@@ -895,7 +895,9 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
     return signal / noise
 
 
-def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
+def bootstrap(data, bootnum=100, samples=None, bootfunc=None,
+        output_index=0):
+
     """Performs bootstrap resampling on numpy arrays.
 
     Bootstrap resampling is used to understand confidence intervals of sample
@@ -919,6 +921,11 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
         Function to reduce the resampled data. Each bootstrap resample will
         be put through this function and the results returned. If `None`, the
         bootstrapped data will be returned
+    output_index : int, tuple
+        Index or tuple of indices corresponding to which indices of the
+        bootfunc output should be stored in the bootstrap resample. If the
+        bootfunc returns only one output, output_index will be ignored. Default
+        is 0.
 
     Returns
     -------
@@ -926,26 +933,65 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
         Bootstrapped data. Each row is a bootstrap resample of the data.
 
     """
+
     if samples is None:
         samples = data.shape[0]
 
     # make sure the input is sane
     assert samples > 0, "samples cannot be less than one"
     assert bootnum > 0, "bootnum cannot be less than one"
+    assert type(data) is np.ndarray, "data must be a numpy.ndarray"
 
     if bootfunc is None:
-        resultdims = (bootnum,) + (samples,) + data.shape[1:]
-        boot = np.empty(resultdims)
+        resultdims = [bootnum,] + [samples,] + list(data.shape[1:])
     else:
-        resultdims = (bootnum,)
-        boot = np.empty(resultdims)
+        resultdims = [bootnum,]
 
+        # Get number of outputs from bootfunc,  adjust output accordingly
+        output = bootfunc(data)
+
+        try:
+            # if the output is not a tuple or array, this check will raise a
+            # TypeError
+            if len(output) > 1:
+                single_output = False
+            else:
+                single_output = True
+        except TypeError:
+            single_output = True
+
+        if not single_output:
+            # indices will be a list of the output index/indices
+            indices = []
+
+            if type(output_index) is not int:
+                resultdims.append(len(output_index))
+
+                [indices.append(index) for index in output_index]
+            else:
+                indices.append(output_index)
+
+    boot = np.empty(resultdims)
+
+    # Perform bootstrapping
     for i in xrange(bootnum):
         bootarr = np.random.randint(low=0, high=data.shape[0], size=samples)
+
         if bootfunc is None:
             boot[i] = data[bootarr]
-        else:
+        elif single_output:
+            # if bootfunc has only one output
             boot[i] = bootfunc(data[bootarr])
+        else:
+            # if bootfunc has more than one output
+            output = bootfunc(data[bootarr])
+
+            # Check if single output, if not index the output
+            if len(indices) == 1:
+                boot[i] = output[indices[0]]
+            else:
+                for j, index in enumerate(indices):
+                    boot[i][j] = output[index]
 
     return boot
 
