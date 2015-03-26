@@ -251,6 +251,21 @@ def test_bootstrap():
 
         assert_allclose(answer, bootresult, atol=1e-3)
 
+    # test a bootfunc with several output values
+    # return just bootstrapping with the second output from bootfunc
+    with NumpyRNGContext(42):
+        bootarr = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+                            [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]]).T
+
+        answer = np.array((0.5907,
+                           0.9541))
+
+        bootresult = funcs.bootstrap(bootarr, 2,
+                                     bootfunc=spearmanr,
+                                     output_index=1)
+
+        assert_allclose(answer, bootresult, atol=1e-3)
+
     # return just bootstrapping with two outputs from bootfunc
     with NumpyRNGContext(42):
         answer = np.array(((0.1942, 0.5907),
@@ -263,6 +278,18 @@ def test_bootstrap():
         assert bootresult.shape == (3, 2)
         assert_allclose(answer, bootresult, atol=1e-3)
 
+    # return just bootstrapping with two outputs from bootfunc, switch order of
+    # outputs
+    with NumpyRNGContext(42):
+        answer = np.array(((0.5907, 0.1942),
+                           (0.9541, 0.0209),
+                           (0.2165, 0.4286)))
+        bootresult = funcs.bootstrap(bootarr, 3,
+                                     bootfunc=spearmanr,
+                                     output_index=(1, 0))
+
+        assert bootresult.shape == (3, 2)
+        assert_allclose(answer, bootresult, atol=1e-3)
 
 
 
