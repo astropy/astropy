@@ -3667,7 +3667,7 @@ New Features
     clipping along a given axis for multidimensional data. [#1083]
 
   - Add ``output_index`` option to ``astropy.stats.funcs.bootstrap`` which
-    allows the user to supply functions with multiple outputs to ``bootfunc``
+    allows the user to supply functions with multiple outputs to ``bootfunc`` 
 
 - ``astropy.table``
 
