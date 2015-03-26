@@ -374,7 +374,7 @@ For columns the syntax and behavior of
   2973.0
   Length = 100 rows
 
-  Column alignment
+Column alignment
 ''''''''''''''''
 
 Individual columns have the ability to be aligned in a number of different
