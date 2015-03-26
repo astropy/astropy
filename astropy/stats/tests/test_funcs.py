@@ -238,22 +238,30 @@ def test_bootstrap():
         bootresult = np.mean(funcs.bootstrap(bootarr, 10000, bootfunc=np.mean))
         assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
 
-    #test a bootfunc with several output values
+    # test a bootfunc with several output values
+    # return just bootstrapping with one output from bootfunc
     with NumpyRNGContext(42):
         bootarr = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
                             [4, 8, 8, 3, 6, 5, 2, 8, 6, 2]]).T
-        spearmanr(bootarr)
 
-        print('one output')
-        bootresult = np.mean(funcs.bootstrap(bootarr, 2,
-                                             bootfunc=spearmanr))
+        answer = np.array((0.19425, 0.02094))
 
-        print('two output')
-        bootresult = np.mean(funcs.bootstrap(bootarr, 2,
-                                             bootfunc=spearmanr,
-                                             output_index=(0,1)))
+        bootresult = funcs.bootstrap(bootarr, 2,
+                                     bootfunc=spearmanr)
 
-        #assert_allclose(spearmanr(bootarr), bootresult, atol=1e-3)
+        assert_allclose(answer, bootresult, atol=1e-3)
+
+    # return just bootstrapping with two outputs from bootfunc
+    with NumpyRNGContext(42):
+        answer = np.array(((0.1942, 0.5907),
+                           (0.0209, 0.9541),
+                           (0.4286, 0.2165)))
+        bootresult = funcs.bootstrap(bootarr, 3,
+                                     bootfunc=spearmanr,
+                                     output_index=(0,1))
+
+        assert bootresult.shape == (3, 2)
+        assert_allclose(answer, bootresult, atol=1e-3)
 
 
 
