@@ -588,8 +588,7 @@ class Table(object):
         tableid = 'table{id}'.format(id=id(self))
         data_lines, outs = self.formatter._pformat_table(self,
             tableid=tableid, html=html, max_width=(-1 if html else None),
-                                                    show_name=True, show_unit=None,
-                                                         show_dtype=True)
+            show_name=True, show_unit=None, show_dtype=True)
 
         out = descr + '\n'.join(data_lines)
         if six.PY2 and isinstance(out, six.text_type):
