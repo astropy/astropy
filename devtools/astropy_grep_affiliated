@@ -26,7 +26,9 @@ def search_astropy_affiliated_packages(args):
     for package in registry['packages']:
         repo_url = package.get('repo_url', '')
         if repo_url.startswith('http://github.com/'):
-            repos.append('repo:' + repo_url[len('http://github.com/'):-4])
+            if repo_url.endswith('.git'):
+                repo_url = repo_url[:-4]
+            repos.append('repo:' + repo_url[len('http://github.com/'):])
 
     query = ' '.join(repos + [search_string])
 
