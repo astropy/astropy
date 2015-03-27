@@ -35,7 +35,7 @@ def test_sun():
 
 def test_sun_02():
     """
-    Test `that get_sun` produces similar values to skyfield (de421).
+    Test that `astropy.coordinates.get_sun` produces similar values to `skyfield <https://github.com/brandon-rhodes/python-skyfield>`_ (de421).
 
     Commands to produce skyfield values:
 
@@ -50,20 +50,20 @@ def test_sun_02():
     """
     from ..funcs import get_sun
 
-    time_apy = Time('2010-6-21')
-    gcrs_apy = get_sun(time_apy)
+    test_time = Time('2010-6-21')
+    test_gcrs = get_sun(test_time)
 
-    apy_ra = gcrs_apy.ra.deg
-    apy_dec = gcrs_apy.dec.deg
-    apy_dist = gcrs_apy.distance.AU
+    gcrs_ra = gcrs_apy.ra.deg
+    gcrs_dec = gcrs_apy.dec.deg
+    gcrs_dist = gcrs_apy.distance.AU
     
     skyf_ra_apparent = 89.338458132829359
     skyf_dec_apparent = 23.436389712068134 
     skyf_dist_apparent = 1.016198586488303
 
-    assert abs(apy_ra - skyf_ra_apparent) < 0.01
-    assert abs(apy_dec - skyf_dec_apparent) < 0.01
-    assert abs(apy_dist - skyf_dist_apparent) < 0.01
+    assert abs(gcrs_ra - skyf_ra_apparent) < 0.001
+    assert abs(gcrs_dec - skyf_dec_apparent) < 0.001
+    assert abs(gcrs_dist - skyf_dist_apparent) < 0.001
 
 def test_concatenate():
     from .. import FK5, SkyCoord
