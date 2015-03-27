@@ -35,6 +35,8 @@ New Features
   - A new method was added to ``astropy.io.votable.VOTable``,
     ``get_info_by_id`` to conveniently find an ``INFO`` element by its
     ``ID`` attribute. [#3633]
+  - Instances in the votable tree now have better ``__repr__``
+    methods. [#3639]
 
 - ``astropy.logger.py``
 
