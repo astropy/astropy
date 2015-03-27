@@ -51,7 +51,7 @@ New Features
 - ``astropy.time``
 
   - Add support for FITS standard time strings. [#3547]
-  
+
 - ``astropy.units``
 
   - Added furlong to imperial units. [#3529]
@@ -93,8 +93,8 @@ API changes
 
 - ``astropy.modeling``
 
-  - Renamed the parameters of ``RotateNative2Celestial`` and 
-    ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to 
+  - Renamed the parameters of ``RotateNative2Celestial`` and
+    ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
     ``lon``, ``lat`` and ``lon_pole``. [#3578]
 
 - ``astropy.nddata``
@@ -282,6 +282,9 @@ Bug Fixes
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
+
+  - Loading a ``TABLE`` element without any ``DATA`` now correctly
+    creates a 0-row array. [#3636]
 
 - ``astropy.modeling``
 
