@@ -2960,6 +2960,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         iterator emitting all matches.
         """)
 
+    def iter_info(self):
+        for info in self.infos:
+            yield info
+
 
 class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
                _DescriptionProperty):
@@ -3176,6 +3180,20 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         for resource in self.resources:
             for coosys in resource.iter_coosys():
                 yield coosys
+
+    def iter_info(self):
+        """
+        Recursively iterates over all the INFO_ elements in the
+        resource and nested resources.
+        """
+        for info in self.infos:
+            yield info
+        for table in self.tables:
+            for info in table.iter_info():
+                yield info
+        for resource in self.resources:
+            for info in resource.iter_info():
+                yield info
 
 
 class VOTableFile(Element, _IDProperty, _DescriptionProperty):
@@ -3564,6 +3582,21 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_coosys_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_coosys', 'COOSYS',
         """Looks up a COOSYS_ element by the given ID.""")
+
+    def iter_info(self):
+        """
+        Recursively iterate over all INFO_ elements in the VOTABLE_
+        file.
+        """
+        for info in self.infos:
+            yield info
+        for resource in self.resources:
+            for info in resource.iter_info():
+                yield info
+
+    get_info_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_info', 'INFO',
+        """Looks up a INFO element by the given ID.""")
 
     def set_all_tables_format(self, format):
         """

@@ -32,6 +32,10 @@ New Features
 
 - ``astropy.io.votable``
 
+  - A new method was added to ``astropy.io.votable.VOTable``,
+    ``get_info_by_id`` to conveniently find an ``INFO`` element by its
+    ``ID`` attribute. [#3633]
+
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
