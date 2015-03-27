@@ -913,7 +913,7 @@ class Model(object):
         # Pop any constraints off the keyword arguments
         for constraint in self.parameter_constraints:
             values = kwargs.pop(constraint, {})
-            self._constraints[constraint] = values
+            self._constraints[constraint] = values.copy()
 
             # Update with default parameter constraints
             for param_name in self.param_names:

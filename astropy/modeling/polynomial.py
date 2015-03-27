@@ -78,14 +78,6 @@ class PolynomialBase(FittableModel):
         else:
             super(PolynomialBase, self).__setattr__(attr, value)
 
-    def _validate_params(self, **params):
-        valid_params = set(self._param_names)
-        provided_params = set(params)
-        intersection = valid_params.intersection(provided_params)
-        if len(intersection) != len(provided_params):
-            diff = list(provided_params.difference(valid_params))
-            raise TypeError('Unrecognized input parameters: %s' % diff)
-
 
 class PolynomialModel(PolynomialBase):
     """
@@ -101,9 +93,6 @@ class PolynomialModel(PolynomialBase):
         self._degree = degree
         self._order = self.get_num_coeff(self.n_inputs)
         self._param_names = self._generate_coeff_names(self.n_inputs)
-
-        if params:
-            self._validate_params(**params)
 
         super(PolynomialModel, self).__init__(
             n_models=n_models, model_set_axis=model_set_axis, name=name,
@@ -208,9 +197,6 @@ class OrthoPolynomialBase(PolynomialBase):
         self.x_window = x_window
         self.y_window = y_window
         self._param_names = self._generate_coeff_names()
-
-        if params:
-            self._validate_params(**params)
 
         super(OrthoPolynomialBase, self).__init__(
             n_models=n_models, model_set_axis=model_set_axis,
@@ -982,9 +968,6 @@ class _SIP1D(PolynomialBase):
         self.order = order
         self.coeff_prefix = coeff_prefix
         self._param_names = self._generate_coeff_names(coeff_prefix)
-
-        if params:
-            self._validate_params(**params)
 
         super(_SIP1D, self).__init__(n_models=n_models,
                                      model_set_axis=model_set_axis,

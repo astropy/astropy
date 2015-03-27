@@ -293,6 +293,12 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Fixed instantiation of polynomial models with constraints for parameters
+    (constraints could still be assigned after instantiation, but not during).
+    [#3606]
+
+  - Fixed fitting of 2D polynomial models with the ``LeVMarLSQFitter``. [#3606]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
