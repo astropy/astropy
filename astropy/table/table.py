@@ -248,8 +248,8 @@ class Table(object):
         default_names = None
 
         if (isinstance(data, np.ndarray) and
-            data.shape == (0,) and
-            not data.dtype.names):
+                data.shape == (0,) and
+                not data.dtype.names):
             data = None
 
         if isinstance(data, self.Row):
