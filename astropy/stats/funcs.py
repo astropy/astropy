@@ -940,7 +940,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None,
     # make sure the input is sane
     assert samples > 0, "samples cannot be less than one"
     assert bootnum > 0, "bootnum cannot be less than one"
-    assert type(data) is np.ndarray, "data must be a numpy.ndarray"
+    isinstance(data, np.ndarray)
 
     if bootfunc is None:
         resultdims = [bootnum,] + [samples,] + list(data.shape[1:])
@@ -964,7 +964,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None,
             # indices will be a list of the output index/indices
             indices = []
 
-            if type(output_index) is not int:
+            if not isinstance(output_index, int):
                 resultdims.append(len(output_index))
 
                 [indices.append(index) for index in output_index]

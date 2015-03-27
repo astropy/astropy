@@ -9,8 +9,6 @@ from numpy.random import randn, normal
 from numpy.testing import assert_equal
 from numpy.testing.utils import assert_allclose
 
-from scipy.stats import spearmanr
-
 try:
     import scipy
 except ImportError:
@@ -237,6 +235,12 @@ def test_bootstrap():
     with NumpyRNGContext(42):
         bootresult = np.mean(funcs.bootstrap(bootarr, 10000, bootfunc=np.mean))
         assert_allclose(np.mean(bootarr), bootresult, atol=0.01)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_bootstrap_multiple_outputs():
+
+    from scipy.stats import spearmanr
 
     # test a bootfunc with several output values
     # return just bootstrapping with one output from bootfunc
