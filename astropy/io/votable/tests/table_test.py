@@ -143,3 +143,11 @@ def test_write_with_format():
     t.write(output, format='votable', tabledata_format="binary2")
     assert b'BINARY2' in output.getvalue()
     assert b'TABLEDATA' not in output.getvalue()
+
+
+def test_empty_table():
+    votable = parse(
+        get_pkg_data_filename('data/empty_table.xml'),
+        pedantic=False)
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
