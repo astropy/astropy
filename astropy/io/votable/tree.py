@@ -2341,6 +2341,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     elif tag == 'TABLE':
                         # For error checking purposes
                         Field.uniqify_names(self.fields)
+                        # We still need to create arrays, even if the file
+                        # contains no DATA section
+                        self.create_arrays(nrows=0, config=config)
                         return self
 
         self.create_arrays(nrows=self._nrows, config=config)
