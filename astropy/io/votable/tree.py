@@ -476,7 +476,7 @@ class SimpleElement(Element):
     def __repr__(self):
         buff = io.StringIO()
         SimpleElement.to_xml(self, XMLWriter(buff))
-        return buff.getvalue()
+        return buff.getvalue().strip()
 
     def parse(self, iterator, config):
         for start, tag, data, pos in iterator:
@@ -844,7 +844,7 @@ class Values(Element, _IDProperty):
     def __repr__(self):
         buff = io.StringIO()
         self.to_xml(XMLWriter(buff))
-        return buff.getvalue()
+        return buff.getvalue().strip()
 
     @property
     def null(self):
@@ -3015,7 +3015,7 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         XMLWriter(buff).element(
             self._element_name,
             attrib=w.object_attrs(self, self._attr_list))
-        return buff.getvalue()
+        return buff.getvalue().strip()
 
     @property
     def type(self):
