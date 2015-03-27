@@ -32,6 +32,10 @@ New Features
 
 - ``astropy.io.votable``
 
+  - A new method was added to ``astropy.io.votable.VOTable``,
+    ``get_info_by_id`` to conveniently find an ``INFO`` element by its
+    ``ID`` attribute. [#3633]
+
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
@@ -51,7 +55,7 @@ New Features
 - ``astropy.time``
 
   - Add support for FITS standard time strings. [#3547]
-  
+
 - ``astropy.units``
 
   - Added furlong to imperial units. [#3529]
@@ -93,8 +97,8 @@ API changes
 
 - ``astropy.modeling``
 
-  - Renamed the parameters of ``RotateNative2Celestial`` and 
-    ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to 
+  - Renamed the parameters of ``RotateNative2Celestial`` and
+    ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
     ``lon``, ``lat`` and ``lon_pole``. [#3578]
 
 - ``astropy.nddata``
