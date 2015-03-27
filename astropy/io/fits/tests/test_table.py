@@ -2170,6 +2170,38 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits')) as hdul:
             assert np.all(hdul[1].data['TEST'] == data)
 
+    def test_fits_rec_from_existing(self):
+        """
+        Tests creating a `FITS_rec` object with `FITS_rec.from_columns`
+        from an existing `FITS_rec` object read from a FITS file.
+
+        This ensures that the per-column arrays are updated properly.
+
+        Regression test for https://github.com/spacetelescope/PyFITS/issues/99
+        """
+
+        # The use case that revealed this problem was trying to create a new
+        # table from an existing table, but with additional rows so that we can
+        # append data from a second table (with the same column structure)
+
+        data1 = fits.getdata(self.data('tb.fits'))
+        data2 = fits.getdata(self.data('tb.fits'))
+        nrows = len(data1) + len(data2)
+
+        merged = fits.FITS_rec.from_columns(data1, nrows=nrows)
+        merged[len(data1):] = data2
+        mask = merged['c1'] > 1
+        masked = merged[mask]
+
+        # The test table only has two rows, only the second of which is > 1 for
+        # the 'c1' column
+        assert comparerecords(data1[1:], masked[:1])
+        assert comparerecords(data1[1:], masked[1:])
+
+        # Double check that the original data1 table hasn't been affected by
+        # its use in creating the "merged" table
+        assert comparerecords(data1, fits.getdata(self.data('tb.fits')))
+
 
 class TestVLATables(FitsTestCase):
     """Tests specific to tables containing variable-length arrays."""
