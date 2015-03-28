@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-import gzip
+import gzip as _system_gzip
 import itertools
 import io
 import mmap
@@ -34,7 +34,11 @@ from ...extern.six import (string_types, integer_types, text_type,
                            binary_type, next)
 from ...extern.six.moves import zip
 from ...utils import wraps
+from ...utils.compat import gzip as _astropy_gzip
 from ...utils.exceptions import AstropyUserWarning
+
+
+_GZIP_FILE_TYPES = (_astropy_gzip.GzipFile, _system_gzip.GzipFile)
 
 
 if six.PY3:
@@ -424,6 +428,15 @@ def fileobj_name(f):
 
     if isinstance(f, string_types):
         return f
+    elif isinstance(f, _GZIP_FILE_TYPES):
+        # The .name attribute on GzipFiles does not always represent the name
+        # of the file being read/written--it can also represent the original
+        # name of the file being compressed
+        # See the documentation at
+        # https://docs.python.org/3/library/gzip.html#gzip.GzipFile
+        # As such, for gzip files only return the name of the underlying
+        # fileobj, if it exists
+        return fileobj_name(f.fileobj)
     elif hasattr(f, 'name'):
         return f.name
     elif hasattr(f, 'filename'):
@@ -483,11 +496,11 @@ def _fileobj_normalize_mode(f):
     # normalize it for them:
     mode = f.mode
 
-    if isinstance(f, gzip.GzipFile):
+    if isinstance(f, _GZIP_FILE_TYPES):
         # GzipFiles can be either readonly or writeonly
-        if mode == gzip.READ:
+        if mode == _system_gzip.READ:
             return 'rb'
-        elif mode == gzip.WRITE:
+        elif mode == _system_gzip.WRITE:
             return 'wb'
         else:
             # This shouldn't happen?
