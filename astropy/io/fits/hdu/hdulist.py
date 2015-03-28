@@ -149,7 +149,7 @@ class HDUList(list, _Verify):
             The opened physical file associated with the `HDUList`.
         """
 
-        self.__file = file
+        self._file = file
         self._save_backup = False
 
         if hdus is None:
@@ -340,7 +340,7 @@ class HDUList(list, _Verify):
 
         """
 
-        if self.__file is not None:
+        if self._file is not None:
             output = self[index].fileinfo()
 
             if not output:
@@ -361,7 +361,7 @@ class HDUList(list, _Verify):
                 output = {'file': f, 'filemode': fm, 'hdrLoc': None,
                           'datLoc': None, 'datSpan': None}
 
-            output['filename'] = self.__file.name
+            output['filename'] = self._file.name
             output['resized'] = self._wasresized()
         else:
             output = None
@@ -557,13 +557,13 @@ class HDUList(list, _Verify):
             When `True`, print verbose messages
         """
 
-        if self.__file.mode not in ('append', 'update', 'ostream'):
+        if self._file.mode not in ('append', 'update', 'ostream'):
             warnings.warn("Flush for '%s' mode is not supported."
-                          % self.__file.mode, AstropyUserWarning)
+                          % self._file.mode, AstropyUserWarning)
             return
 
-        if self._save_backup and self.__file.mode in ('append', 'update'):
-            filename = self.__file.name
+        if self._save_backup and self._file.mode in ('append', 'update'):
+            filename = self._file.name
             if os.path.exists(filename):
                 # The the file doesn't actually exist anymore for some reason
                 # then there's no point in trying to make a backup
@@ -582,7 +582,7 @@ class HDUList(list, _Verify):
 
         self.verify(option=output_verify)
 
-        if self.__file.mode in ('append', 'ostream'):
+        if self._file.mode in ('append', 'ostream'):
             for hdu in self:
                 if verbose:
                     try:
@@ -594,13 +594,13 @@ class HDUList(list, _Verify):
                 if hdu._new:
                     hdu._prewriteto(checksum=hdu._output_checksum)
                     try:
-                        hdu._writeto(self.__file)
+                        hdu._writeto(self._file)
                         if verbose:
                             print('append HDU', hdu.name, extver)
                         hdu._new = False
                     finally:
                         hdu._postwriteto()
-        elif self.__file.mode == 'update':
+        elif self._file.mode == 'update':
             self._flush_update()
 
     def update_extend(self):
@@ -679,7 +679,7 @@ class HDUList(list, _Verify):
         for hdu in self:
             hdu._prewriteto(checksum=checksum)
             try:
-                hdu._writeto(hdulist.__file)
+                hdu._writeto(hdulist._file)
             finally:
                 hdu._postwriteto()
 
@@ -705,12 +705,12 @@ class HDUList(list, _Verify):
             When `True`, close the underlying file object.
         """
 
-        if self.__file:
-            if self.__file.mode in ['append', 'update']:
+        if self._file:
+            if self._file.mode in ['append', 'update']:
                 self.flush(output_verify=output_verify, verbose=verbose)
 
-            if closed and hasattr(self.__file, 'close'):
-                self.__file.close()
+            if closed and hasattr(self._file, 'close'):
+                self._file.close()
 
     def info(self, output=None):
         """
@@ -730,10 +730,10 @@ class HDUList(list, _Verify):
         if output is None:
             output = sys.stdout
 
-        if self.__file is None:
+        if self._file is None:
             name = '(No file associated with this HDUList)'
         else:
-            name = self.__file.name
+            name = self._file.name
 
         results = ['Filename: %s' % name,
                    'No.    Name         Type      Cards   Dimensions   Format']
@@ -768,9 +768,9 @@ class HDUList(list, _Verify):
                    HDUList object if an association exists.  Otherwise returns
                    None.
         """
-        if self.__file is not None:
-            if hasattr(self.__file, 'name'):
-                return self.__file.name
+        if self._file is not None:
+            if hasattr(self._file, 'name'):
+                return self._file.name
         return None
 
     @classmethod
@@ -926,12 +926,12 @@ class HDUList(list, _Verify):
 
             # if the HDUList is resized, need to write out the entire contents of
             # the hdulist to the file.
-            if self._resize or self.__file.compression:
+            if self._resize or self._file.compression:
                 self._flush_resize()
             else:
                 # if not resized, update in place
                 for hdu in self:
-                    hdu._writeto(self.__file, inplace=True)
+                    hdu._writeto(self._file, inplace=True)
 
             # reset the modification attributes after updating
             for hdu in self:
@@ -946,16 +946,16 @@ class HDUList(list, _Verify):
         need to be resized.
         """
 
-        old_name = self.__file.name
-        old_memmap = self.__file.memmap
+        old_name = self._file.name
+        old_memmap = self._file.memmap
         name = _tmp_name(old_name)
 
-        if not self.__file.file_like:
+        if not self._file.file_like:
             old_mode = os.stat(old_name).st_mode
             # The underlying file is an actual file object.  The HDUList is
             # resized, so we need to write it to a tmp file, delete the
             # original file, and rename the tmp file to the original file.
-            if self.__file.compression == 'gzip':
+            if self._file.compression == 'gzip':
                 new_file = gzip.GzipFile(name, mode='ab+')
             else:
                 new_file = name
@@ -963,7 +963,7 @@ class HDUList(list, _Verify):
             hdulist = self.fromfile(new_file, mode='append')
 
             for hdu in self:
-                hdu._writeto(hdulist.__file, inplace=True, copy=True)
+                hdu._writeto(hdulist._file, inplace=True, copy=True)
 
             if sys.platform.startswith('win'):
                 # Collect a list of open mmaps to the data; this well be used
@@ -971,8 +971,8 @@ class HDUList(list, _Verify):
                 mmaps = [(idx, _get_array_mmap(hdu.data), hdu.data)
                          for idx, hdu in enumerate(self) if hdu._has_data]
 
-            hdulist.__file.close()
-            self.__file.close()
+            hdulist._file.close()
+            self._file.close()
 
             if sys.platform.startswith('win'):
                 # Close all open mmaps to the data.  This is only necessary on
@@ -982,7 +982,7 @@ class HDUList(list, _Verify):
                     if mmap is not None:
                         mmap.close()
 
-            os.remove(self.__file.name)
+            os.remove(self._file.name)
 
             # reopen the renamed new file with "update" mode
             os.rename(name, old_name)
@@ -995,7 +995,7 @@ class HDUList(list, _Verify):
 
             ffo = _File(old_file, mode='update', memmap=old_memmap)
 
-            self.__file = ffo
+            self._file = ffo
 
             for hdu in self:
                 # Need to update the _file attribute and close any open mmaps
@@ -1029,7 +1029,7 @@ class HDUList(list, _Verify):
             # like object.
             self.writeto(name)
             hdulist = self.fromfile(name)
-            ffo = self.__file
+            ffo = self._file
 
             ffo.truncate(0)
             ffo.seek(0)
@@ -1039,7 +1039,7 @@ class HDUList(list, _Verify):
 
             # Close the temporary file and delete it.
             hdulist.close()
-            os.remove(hdulist.__file.name)
+            os.remove(hdulist._file.name)
 
         # reset the resize attributes after updating
         self._resize = False
@@ -1085,7 +1085,7 @@ class HDUList(list, _Verify):
 
             if self._truncate:
                 try:
-                    self.__file.truncate(hdu._data_offset + hdu._data_size)
+                    self._file.truncate(hdu._data_offset + hdu._data_size)
                 except IOError:
                     self._resize = True
                 self._truncate = False
