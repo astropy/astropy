@@ -370,14 +370,14 @@ def _replace_tab_with_space(line, escapechar, quotechar):
     line : str
         String containing tabs to be replaced with spaces.
     escapechar : str
-        Character in `line` used to escape special characters.
+        Character in ``line`` used to escape special characters.
     quotechar: str
-        Character in `line` indicating the start/end of a substring.
+        Character in ``line`` indicating the start/end of a substring.
         
     Returns
     -------
     line : str
-        A copy of `line` with tabs replaced by spaces, preserving quoted substrings.
+        A copy of ``line`` with tabs replaced by spaces, preserving quoted substrings.
     """
     newline = []
     in_quote = False
@@ -740,7 +740,7 @@ def convert_numpy(numpy_type):
     Parameters
     ----------
     numpy_type : numpy data-type
-        The numpy type required of an array returned by `converter`. Must be a
+        The numpy type required of an array returned by ``converter``. Must be a
         valid `numpy type <http://docs.scipy.org/doc/numpy/user/basics.types.html>`_,
         e.g. numpy.int, numpy.uint, numpy.int8, numpy.int64, numpy.float,
         numpy.float64, numpy.str.
@@ -748,15 +748,15 @@ def convert_numpy(numpy_type):
     Returns
     -------
     (converter, converter_type) : (function, generic data-type)
-        `converter` is a function which accepts a list and converts it to a
-        numpy array of type `numpy_type`.
-        `converter_type` tracks the generic data type produced by the converter
+        ``converter`` is a function which accepts a list and converts it to a
+        numpy array of type ``numpy_type``.
+        ``converter_type`` tracks the generic data type produced by the converter
         function.
         
     Raises
     ------
     ValueError
-        Raised by `converter` if the list elements could not be converted to 
+        Raised by ``converter`` if the list elements could not be converted to 
         the required type.
     """
 
