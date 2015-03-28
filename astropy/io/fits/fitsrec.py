@@ -438,7 +438,9 @@ class FITS_rec(np.recarray):
                 continue
 
             if inarr.shape != outarr.shape:
-                if inarr.dtype != outarr.dtype:
+                if (inarr.dtype.kind == outarr.dtype.kind and
+                        inarr.dtype.kind in ('U', 'S') and
+                        inarr.dtype != outarr.dtype):
                     inarr = inarr.view(outarr.dtype)
 
                 # This is a special case to handle input arrays with
