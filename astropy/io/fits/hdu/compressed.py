@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import ctypes
+import gc
 import math
 import re
 import time
@@ -16,7 +17,8 @@ from ..column import Column, ColDefs, TDEF_RE
 from ..column import KEYWORD_NAMES as TABLE_KEYWORD_NAMES
 from ..fitsrec import FITS_rec
 from ..header import Header
-from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
+from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
+                    _get_array_mmap)
 
 from ....extern.six import string_types, iteritems
 from ....utils import lazyproperty, deprecated
@@ -1436,6 +1438,26 @@ class CompImageHDU(BinTableHDU):
 
         return self.compressed_data
 
+    @compressed_data.deleter
+    def compressed_data(self):
+        # Deleting the compressed_data attribute has to be handled
+        # with a little care to prevent a reference leak
+        # First delete the ._coldefs attributes under it to break a possible
+        # reference cycle
+        if 'compressed_data' in self.__dict__:
+            del self.__dict__['compressed_data']._coldefs
+
+            # Now go ahead and delete from self.__dict__; normally
+            # lazyproperty.__delete__ does this for us, but we can prempt it to
+            # do some additional cleanup
+            del self.__dict__['compressed_data']
+
+            # If this file was mmap'd, numpy.memmap will hold open a file
+            # handle until the underlying mmap object is garbage-collected;
+            # since this reference leak can sometimes hang around longer than
+            # welcome go ahead and force a garbage collection
+            gc.collect()
+
     @lazyproperty
     @deprecated('0.3', alternative='the ``compressed_data`` attribute',
                 pending=True)
@@ -1641,6 +1663,10 @@ class CompImageHDU(BinTableHDU):
                 del self._header['THEAP']
             self._theap = tbsize
 
+            # First delete the original compressed data, if it exists
+            del self.compressed_data
+
+
             # Compress the data.
             # The current implementation of compress_hdu assumes the empty
             # compressed data table has already been initialized in
@@ -1838,6 +1864,17 @@ class CompImageHDU(BinTableHDU):
                 del self._imagedata
             else:
                 del self.data
+
+    def _close(self, closed=True):
+        super(CompImageHDU, self)._close(closed=closed)
+
+        # Also make sure to close access to the compressed data mmaps
+        if (closed and self._data_loaded and
+                _get_array_mmap(self.compressed_data) is not None):
+            del self.compressed_data
+            # Close off the deprected compData attribute as well if it has been
+            # used
+            del self.compData
 
     # TODO: This was copied right out of _ImageBaseHDU; get rid of it once we
     # find a way to rewrite this class as either a subclass or wrapper for an

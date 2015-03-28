@@ -712,6 +712,10 @@ class HDUList(list, _Verify):
             if closed and hasattr(self._file, 'close'):
                 self._file.close()
 
+        # Give individual HDUs an opportunity to do on-close cleanup
+        for hdu in self:
+            hdu._close(closed=closed)
+
     def info(self, output=None):
         """
         Summarize the info of the HDUs in this `HDUList`.
