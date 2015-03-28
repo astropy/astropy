@@ -363,7 +363,22 @@ class DefaultSplitter(BaseSplitter):
 
 
 def _replace_tab_with_space(line, escapechar, quotechar):
-    """Replace tab with space within ``line`` while respecting quoted substrings"""
+    """Replace tabs with spaces in given string, preserving quoted substrings
+    
+    Parameters
+    ----------
+    line : str
+        String containing tabs to be replaced with spaces.
+    escapechar : str
+        Character in `line` used to escape special characters.
+    quotechar: str
+        Character in `line` indicating the start/end of a substring.
+        
+    Returns
+    -------
+    ''.join(newline) : str
+        A copy of `line` with tabs replaced by spaces, preserving quoted substrings.
+    """
     newline = []
     in_quote = False
     lastchar = 'NONE'
@@ -719,13 +734,30 @@ class BaseData(object):
 
 
 def convert_numpy(numpy_type):
-    """Return a tuple ``(converter_func, converter_type)``.  The converter
-    function converts a list into a numpy array of the given ``numpy_type``.
-    This type must be a valid `numpy type
-    <http://docs.scipy.org/doc/numpy/user/basics.types.html>`_, e.g.
-    numpy.int, numpy.uint, numpy.int8, numpy.int64, numpy.float, numpy.float64,
-    numpy.str.  The converter type is used to track the generic data type (int,
-    float, str) that is produced by the converter function.
+    """Return a tuple containing a function which converts a list into a numpy
+    array and the type produced by the converter function.
+    
+    Parameters
+    ----------
+    numpy_type : numpy data-type
+        The numpy type required of an array returned by `converter`. Must be a
+        valid numpy type e.g. numpy.int, numpy.uint, numpy.int8, numpy.int64,
+        numpy.float, numpy.float64, numpy.str.
+        See <http://docs.scipy.org/doc/numpy/user/basics.types.html>
+        
+    Returns
+    -------
+    (converter, converter_type) : (function, generic data-type)
+        `converter` is a function which accepts a list and converts it to a
+        numpy array of type `numpy_type`.
+        `converter_type` tracks the generic data type produced by the converter
+        function.
+        
+    Raises
+    ------
+    ValueError
+        Raised by `converter` if the list elements could not be converted to 
+        the required type.
     """
 
     # Infer converter type from an instance of numpy_type.

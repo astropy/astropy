@@ -179,6 +179,10 @@ Bug fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- ``astropy.io.ascii``
+
+  - Update some function docstrings to the Numpy format [#3352]
+
 
 1.0.2 (unreleased)
 ------------------
