@@ -287,6 +287,10 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed bug where column data could be unintentionally byte-swapped when
+    copying data from an existing FITS file to a new FITS table with a
+    TDIMn keyword for that column. [#3561]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
