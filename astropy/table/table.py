@@ -635,7 +635,7 @@ class Table(object):
         return is_mixin
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_unit=None, show_dtype=False):
+               show_unit=None, show_dtype=False, align='right'):
         """Print a formatted string representation of the table.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -663,17 +663,19 @@ class Table(object):
             Include a header row for unit.  Default is to show a row
             for units only if one or more columns has a defined value
             for the unit.
-
         show_dtype : bool
             Include a header row for column dtypes (default=True)
+        align : str
+            Left/right alignment of a column. Default is 'right'.
         """
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
-                                                    show_dtype=show_dtype)
+                                                    show_dtype=show_dtype, align=align)
         if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))
 
-        n_header = outs['n_header']
+        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width, show_name,
+                                                        show_unit,align=align)
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -740,7 +742,8 @@ class Table(object):
                 webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=None, show_dtype=False, html=False, tableid=None):
+                show_unit=None, show_dtype=False, html=False, tableid=None,
+                align='right'):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -781,6 +784,9 @@ class Table(object):
             "table{id}", where id is the unique integer id of the table object,
             id(self)
 
+        align : str
+            Left/right alignment of a column. Default is 'right'.
+
         Returns
         -------
         lines : list
@@ -790,7 +796,7 @@ class Table(object):
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
                                                     show_dtype=show_dtype, html=html,
-                                                    tableid=tableid)
+                                                    tableid=tableid, align=align)
 
         if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))

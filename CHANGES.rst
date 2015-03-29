@@ -590,6 +590,8 @@ New Features
 - ``astropy.tests``
 
   - Added a new Quantity-aware ``assert_quantity_allclose``. [#3273]
+  - Added column alignment formatting for better pprint viewing
+    experience. [#3037]
 
 - ``astropy.time``
 
