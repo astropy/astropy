@@ -635,11 +635,7 @@ class Table(object):
         return is_mixin
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-<<<<<<< HEAD
-               show_unit=None, align='right'):
-=======
-               show_unit=None, show_dtype=False):
->>>>>>> 09aab699f183032b5030754c561fa3953b05c3fc
+               show_unit=None, show_dtype=False, align='right'):
         """Print a formatted string representation of the table.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -667,27 +663,19 @@ class Table(object):
             Include a header row for unit.  Default is to show a row
             for units only if one or more columns has a defined value
             for the unit.
-
-<<<<<<< HEAD
-        align : str
-            Left/right alignment of a column. Default is 'right'.
-=======
         show_dtype : bool
             Include a header row for column dtypes (default=True)
->>>>>>> 09aab699f183032b5030754c561fa3953b05c3fc
+        align : str
+            Left/right alignment of a column. Default is 'right'.
         """
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
-                                                    show_dtype=show_dtype)
+                                                    show_dtype=show_dtype, align=align)
         if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))
 
-<<<<<<< HEAD
         lines, n_header = self.formatter._pformat_table(self, max_lines, max_width, show_name,
                                                         show_unit,align=align)
-=======
-        n_header = outs['n_header']
->>>>>>> 09aab699f183032b5030754c561fa3953b05c3fc
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -754,11 +742,8 @@ class Table(object):
                 webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-<<<<<<< HEAD
-                show_unit=None, html=False, tableid=None, align='right'):
-=======
-                show_unit=None, show_dtype=False, html=False, tableid=None):
->>>>>>> 09aab699f183032b5030754c561fa3953b05c3fc
+                show_unit=None, show_dtype=False, html=False, tableid=None,
+                align='right'):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -808,20 +793,14 @@ class Table(object):
             Formatted table as a list of strings
 
         """
-<<<<<<< HEAD
-        lines, n_header = self.formatter._pformat_table(self, max_lines, max_width,
-                                                        show_name, show_unit, html,
-                                                        tableid=tableid,align=align)
-=======
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
                                                     show_dtype=show_dtype, html=html,
-                                                    tableid=tableid)
+                                                    tableid=tableid, align=align)
 
         if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))
 
->>>>>>> 09aab699f183032b5030754c561fa3953b05c3fc
         return lines
 
     def more(self, max_lines=None, max_width=None, show_name=True,

@@ -374,6 +374,49 @@ For columns the syntax and behavior of
   2973.0
   Length = 100 rows
 
+Column alignment
+''''''''''''''''
+
+Individual columns have the ability to be aligned in a number of different
+ways, for an enhanced viewing experience.
+
+ >>> t1 = Table()
+ >>> t1['long column name 1'] = [1,2,3]
+ >>> t1['long column name 2'] = [4,5,6]
+ >>> t1['long column name 3'] = [7,8,9]
+ >>> t1['long column name 4'] = [700000,800000,900000]
+ >>> t1['long column name 2'].format = '<'
+ >>> t1['long column name 3'].format = '0='
+ >>> t1['long column name 4'].format = '^'
+ >>> t1.pprint()
+   long column name 1 long column name 2 long column name 3 long column name 4
+  ------------------ ------------------ ------------------ ------------------
+                   1 4                  000000000000000007       700000      
+                   2 5                  000000000000000008       800000      
+                   3 6                  000000000000000009       900000      
+
+Conveniently, alignment can be handled another way, by passing a list to the
+keyword argument ``align``.
+
+ >>> t1 = Table()
+ >>> t1['column1'] = [1,2,3,4,5]
+ >>> t1['column2'] = [2,4,6,8,10]
+ >>> t1.pprint(align=['<','0='])
+   column1 column2
+ ------- -------
+ 1       0000002
+ 2       0000004
+ 3       0000006
+ 4       0000008
+ 5       0000010
+
+By default, if the length of the list does not match the number of columns
+within the table, alignment defaults to right-aligned columns. This default
+behavior also holds true even if a single alignment character is passed in as a
+list (e.g., align=['^']), where global alignment of all columns within a table
+is intended. For very large tables, this can be a nuissance, and so looping is the
+recommended solution for this task.
+ 
 pformat() method
 ''''''''''''''''
 
