@@ -67,7 +67,7 @@ ASCII2NUMPY = {'A': 'a', 'I': 'i4', 'J': 'i8', 'F': 'f4', 'E': 'f4',
 ASCII2STR = {'A': 's', 'I': 'd', 'J': 'd', 'F': 'f', 'E': 'E', 'D': 'E'}
 
 # For each ASCII table format code, provides a default width (and decimal
-# precision) for when one isn't given explicity in the column format
+# precision) for when one isn't given explicitly in the column format
 ASCII_DEFAULT_WIDTHS= {'A': (1, 0), 'I': (10, 0), 'J': (15, 0),
                        'E': (15, 7), 'F': (16, 7), 'D': (25, 17)}
 
@@ -395,7 +395,7 @@ class Column(object):
 
         array : iterable, optional
             a `list`, `numpy.ndarray` (or other iterable that can be used to
-            initialize an ndarray) providing intial data for this column.
+            initialize an ndarray) providing initial data for this column.
             The array will be automatically converted, if possible, to the data
             format of the column.  In the case were non-trivial ``bscale``
             and/or ``bzero`` arguments are given, the values in the array must
@@ -741,7 +741,7 @@ class Column(object):
         BINARY tables.
         """
 
-        # If the given format string is unabiguously a Numpy dtype or one of
+        # If the given format string is unambiguously a Numpy dtype or one of
         # the Numpy record format type specifiers supported by PyFITS then that
         # should take priority--otherwise assume it is a FITS format
         if isinstance(format, np.dtype):
@@ -798,7 +798,7 @@ class Column(object):
         except VerifyError:
             # For whatever reason our guess was wrong (for example if we got
             # just 'F' that's not a valid binary format, but it an ASCII format
-            # code albeit with the width/precision ommitted
+            # code albeit with the width/precision omitted
             guess_format = (_AsciiColumnFormat
                             if guess_format is _ColumnFormat
                             else _ColumnFormat)
@@ -841,11 +841,7 @@ class Column(object):
                 return _convert_array(array, np.dtype('uint8'))
             else:
                 # Preserve byte order of the original array for now; see #77
-                # TODO: For some reason we drop the format repeat here; need
-                # to investigate why that was and if it's something we can
-                # avoid doing...
-                new_format = _convert_format(format.format)
-                numpy_format = array.dtype.byteorder + new_format
+                numpy_format = array.dtype.byteorder + format.recformat
 
                 # Handle arrays passed in as unsigned ints as pseudo-unsigned
                 # int arrays; blatantly tacked in here for now--we need columns
@@ -864,7 +860,12 @@ class Column(object):
                     numpy_format = numpy_format.replace('i', 'u')
                     self._pseudo_unsigned_ints = True
 
-                return _convert_array(array, np.dtype(numpy_format))
+                # The .base here means we're dropping the shape information,
+                # which is only used to format recarray fields, and is not
+                # useful for converting input arrays to the correct data type
+                dtype = np.dtype(numpy_format).base
+
+                return _convert_array(array, dtype)
 
 
 class ColDefs(object):
@@ -891,7 +892,7 @@ class ColDefs(object):
         else:
             tbtype = 'BinTableHDU'  # The old default
 
-        # Backards-compat support
+        # Backwards-compat support
         # TODO: Remove once the tbtype argument is removed entirely
         if tbtype == 'BinTableHDU':
             klass = cls
@@ -1084,7 +1085,7 @@ class ColDefs(object):
 
         # Handle a few special cases of column format options that are not
         # compatible between ASCII an binary tables
-        # TODO: This is sort of hacked in right now; we really neet
+        # TODO: This is sort of hacked in right now; we really need
         # separate classes for ASCII and Binary table Columns, and they
         # should handle formatting issues like these
         if not isinstance(new_column.format, _AsciiColumnFormat):
@@ -1693,9 +1694,10 @@ def _parse_tformat(tform):
 
 
 def _parse_ascii_tformat(tform, strict=False):
-    """Parse the ``TFORMn`` keywords for ASCII tables into a
-    ``(format, width, precision)`` tuple (the latter is zero unless
-    width is one of 'E', 'F', or 'D').
+    """
+    Parse the ``TFORMn`` keywords for ASCII tables into a ``(format, width,
+    precision)`` tuple (the latter is always zero unless format is one of 'E',
+    'F', or 'D').
     """
 
     match = TFORMAT_ASCII_RE.match(tform.strip())
@@ -1730,13 +1732,10 @@ def _parse_ascii_tformat(tform, strict=False):
 
     def convert_int(val):
         msg = ('Format %r is not valid--field width and decimal precision '
-               'must be positive integers.')
+               'must be integers.')
         try:
             val = int(val)
         except (ValueError, TypeError):
-            raise VerifyError(msg % tform)
-
-        if val <= 0:
             raise VerifyError(msg % tform)
 
         return val
@@ -1750,6 +1749,10 @@ def _parse_ascii_tformat(tform, strict=False):
     else:
         # For any format, if width was unspecified use the set defaults
         width, precision = ASCII_DEFAULT_WIDTHS[format]
+
+    if width <= 0:
+        raise VerifyError("Format %r not valid--field width must be a "
+                          "positive integeter." % tform)
 
     if precision >= width:
         raise VerifyError("Format %r not valid--the number of decimal digits "
@@ -1832,7 +1835,7 @@ def _convert_fits2record(format):
     if dtype in FITS2NUMPY:
         if dtype == 'A':
             output_format = FITS2NUMPY[dtype] + str(repeat)
-            # to accomodate both the ASCII table and binary table column
+            # to accommodate both the ASCII table and binary table column
             # format spec, i.e. A7 in ASCII table is the same as 7A in
             # binary table, so both will produce 'a7'.
             # Technically the FITS standard does not allow this but it's a very
@@ -1949,7 +1952,7 @@ def _convert_ascii_format(format, reverse=False):
             return 'A1'
         elif kind == 'i':
             # Use for the width the maximum required to represent integers
-            # of that byte size plus 1 for signs, but use a minumum of the
+            # of that byte size plus 1 for signs, but use a minimum of the
             # default width (to keep with existing behavior)
             width = 1 + len(str(2 ** (itemsize * 8)))
             width = max(width, ASCII_DEFAULT_WIDTHS['I'][0])

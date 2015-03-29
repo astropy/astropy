@@ -15,8 +15,8 @@ MANIFEST
 astropy/version.py
 astropy/cython_version.py
 astropy/wcs/include/wcsconfig.h
-astropy/erfa/core.py
-astropy/erfa/core.pyx
+astropy/_erfa/core.py
+astropy/_erfa/core.pyx
 
 # Sphinx
 _build

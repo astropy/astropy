@@ -5,6 +5,7 @@ from ...extern import six
 from ...table import Table
 from . import cparser
 from ...extern.six.moves import zip as izip
+from ...utils import OrderedDict
 import re
 
 @six.add_metaclass(core.MetaBaseReader)
@@ -95,8 +96,11 @@ class FastBasic(object):
             try_float = {}
             try_string = {}
 
-        data = self.engine.read(try_int, try_float, try_string)
-        return Table(data, names=list(self.engine.get_names()))
+        data, comments = self.engine.read(try_int, try_float, try_string)
+        meta = OrderedDict()
+        if comments:
+            meta['comments'] = comments
+        return Table(data, names=list(self.engine.get_names()), meta=meta)
 
     def check_header(self):
         if self.strict_names:
@@ -142,7 +146,6 @@ class FastCsv(FastBasic):
     :class:`FastBasic` simply raises an error.
     """
     _format_name = 'fast_csv'
-    _io_registry_suffix = '.csv'
     _description = 'Comma-separated values table using the fast C engine'
     _fast = True
     fill_extra_cols = True
@@ -207,6 +210,22 @@ class FastCommentedHeader(FastBasic):
         # is relative to header_start if unspecified; see #2692
         if 'data_start' not in kwargs:
             self.data_start = 0
+
+    def read(self, table):
+        """
+        Read input data (file-like object, filename, list of strings, or
+        single string) into a Table and return the result.
+        """
+        out = super(FastCommentedHeader, self).read(table)
+
+        # Strip off first comment since this is the header line for
+        # commented_header format.
+        if 'comments' in out.meta:
+            out.meta['comments'] = out.meta['comments'][1:]
+            if not out.meta['comments']:
+                del out.meta['comments']
+
+        return out
 
     def _read_header(self):
         tmp = self.engine.source

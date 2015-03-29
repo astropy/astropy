@@ -14,9 +14,6 @@ import re
 import numbers
 
 import numpy as np
-NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
-NUMPY_LT_1P8 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 8]
-NUMPY_LT_1P9 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 9]
 
 # AstroPy
 from ..extern import six
@@ -24,6 +21,7 @@ from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
 from .format.latex import Latex
 from ..utils import lazyproperty
+from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import validate_power
@@ -47,7 +45,7 @@ class Conf(_config.ConfigNamespace):
     latex_array_threshold = _config.ConfigItem(100,
         'The maximum size an array Quantity can be before its LaTeX '
         'representation for IPython gets "summarized" (meaning only the first '
-        'and last few elements areshown with "..." between). Setting this to a '
+        'and last few elements are shown with "..." between). Setting this to a '
         'negative number means that the value will instead be whatever numpy '
         'gets from get_printoptions.')
 conf = Conf()
@@ -294,23 +292,23 @@ class Quantity(np.ndarray):
         # should be multiplied before being passed to the ufunc, as well as
         # the unit the output from the ufunc will have.
         if function in UFUNC_HELPERS:
-            scales, result_unit = UFUNC_HELPERS[function](function, *units)
+            converters, result_unit = UFUNC_HELPERS[function](function, *units)
         else:
             raise TypeError("Unknown ufunc {0}.  Please raise issue on "
                             "https://github.com/astropy/astropy"
                             .format(function.__name__))
 
-        if any(scale == 0. for scale in scales):
+        if any(converter is False for converter in converters):
             # for two-argument ufuncs with a quantity and a non-quantity,
             # the quantity normally needs to be dimensionless, *except*
             # if the non-quantity can have arbitrary unit, i.e., when it
             # is all zero, infinity or NaN.  In that case, the non-quantity
             # can just have the unit of the quantity
             # (this allows, e.g., `q > 0.` independent of unit)
-            maybe_arbitrary_arg = args[scales.index(0.)]
+            maybe_arbitrary_arg = args[converters.index(False)]
             try:
                 if _can_have_arbitrary_unit(maybe_arbitrary_arg):
-                    scales = [1., 1.]
+                    converters = [None, None]
                 else:
                     raise UnitsError("Can only apply '{0}' function to "
                                      "dimensionless quantities when other "
@@ -365,8 +363,10 @@ class Quantity(np.ndarray):
             # decomposed, which involves being scaled by a float, but since
             # the array is an integer the output then gets converted to an int
             # and truncated.
-            if(any(not np.can_cast(arg, obj.dtype) for arg in args) or
-               np.any(np.array(scales, dtype=obj.dtype) != np.array(scales))):
+            result_dtype = np.result_type(*(args + tuple(
+                (float if converter and converter(1.) % 1. != 0. else int)
+                for converter in converters)))
+            if not np.can_cast(result_dtype, obj.dtype):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
 
@@ -384,7 +384,7 @@ class Quantity(np.ndarray):
         # the issue is that we can't actually scale the inputs since that
         # would be changing the objects passed to the ufunc, which would not
         # be expected by the user.
-        if any(scale != 1. for scale in scales):
+        if any(converters):
 
             # If self is both output and input (which happens for in-place
             # operations), input will get overwritten with junk. To avoid
@@ -411,7 +411,7 @@ class Quantity(np.ndarray):
                     result._contiguous = self.copy()
 
             # ensure we remember the scales we need
-            result._scales = scales
+            result._converters = converters
 
         # unit output will get (setting _unit could prematurely change input
         # if obj is self, which happens for in-place operations; see above)
@@ -434,10 +434,10 @@ class Quantity(np.ndarray):
 
             # We now need to re-calculate quantities for which the input
             # needed to be scaled.
-            if hasattr(obj, '_scales'):
+            if hasattr(obj, '_converters'):
 
-                scales = obj._scales
-                del obj._scales
+                converters = obj._converters
+                del obj._converters
 
                 # For in-place operations, input will get overwritten with
                 # junk. To avoid that, we hid it in a new object in
@@ -458,19 +458,18 @@ class Quantity(np.ndarray):
 
                 # Set the inputs, rescaling as necessary
                 inputs = []
-                for arg, scale in zip(args, scales):
-                    if scale != 1.:
-                        inputs.append(arg.value * scale)
-                    else:  # for scale==1, input is not necessarily a Quantity
+                for arg, converter in zip(args, converters):
+                    if converter:
+                        inputs.append(converter(arg.value))
+                    else:  # with no conversion, input can be non-Quantity.
                         inputs.append(getattr(arg, 'value', arg))
 
                 # For output arrays that require scaling, we can reuse the
                 # output array to perform the scaling in place, as long as the
                 # array is not integral. Here, we set the obj_array to `None`
                 # when it can not be used to store the scaled result.
-                if(result_unit is not None and
-                   any(not np.can_cast(scaled_arg, obj_array.dtype)
-                       for scaled_arg in inputs)):
+                if not (result_unit is None or
+                        np.can_cast(np.result_type(*inputs), obj_array.dtype)):
                     obj_array = None
 
                 # Re-compute the output using the ufunc
@@ -725,7 +724,7 @@ class Quantity(np.ndarray):
         else:
             return value
 
-    if not NUMPY_LT_1P9:
+    if not NUMPY_LT_1_9:
         # Equality (return False if units do not match) needs to be handled
         # explicitly for numpy >=1.9, since it no longer traps errors.
         def __eq__(self, other):
@@ -955,7 +954,7 @@ class Quantity(np.ndarray):
         lstr
             A LaTeX string with the contents of this Quantity
         """
-        if NUMPY_LT_1P7:
+        if NUMPY_LT_1_7:
             if self.isscalar:
                 latex_value = Latex.format_exponential_notation(self.value)
             else:
@@ -1258,7 +1257,7 @@ class Quantity(np.ndarray):
     def round(self, decimals=0, out=None):
         return self._wrap_function(np.round, decimals, out=out)
 
-    if NUMPY_LT_1P7:
+    if NUMPY_LT_1_7:
         # 'keepdims' was not yet available.
         def max(self, axis=None, out=None):
             return self._wrap_function(np.max, axis, out=out)
@@ -1330,7 +1329,7 @@ class Quantity(np.ndarray):
     def ediff1d(self, to_end=None, to_begin=None):
         return self._wrap_function(np.ediff1d, to_end, to_begin)
 
-    if NUMPY_LT_1P8:
+    if NUMPY_LT_1_8:
         def nansum(self, axis=None):
             return self._wrap_function(np.nansum, axis)
     else:
@@ -1350,7 +1349,7 @@ class Quantity(np.ndarray):
         obj : int, slice or sequence of ints
             Object that defines the index or indices before which ``values`` is
             inserted.
-        values : array_like
+        values : array-like
             Values to insert.  If the type of ``values`` is different
             from that of quantity, ``values`` is converted to the matching type.
             ``values`` should be shaped so that it can be broadcast appropriately

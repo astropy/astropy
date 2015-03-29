@@ -114,14 +114,14 @@ class SAMPHubServer(object):
         passed from the Hub end of the connection.
 
     ssl_version : int, optional
-        The ``ssl_version`` option specifies which version of the SSL protocol
-        to use. Typically, the server chooses a particular protocol version,
-        and the client must adapt to the server's choice. Most of the versions
-        are not interoperable with the other versions. If not specified the
-        default SSL version is `ssl.PROTOCOL_SSLv23`. This version provides
-        the most compatibility with other versions client side. Other SSL
-        protocol versions are: `ssl.PROTOCOL_SSLv2`, `ssl.PROTOCOL_SSLv3` and
-        `ssl.PROTOCOL_TLSv1`.
+        The ``ssl_version`` option specifies which version of the SSL
+        protocol to use. Typically, the server chooses a particular
+        protocol version, and the client must adapt to the server's
+        choice. Most of the versions are not interoperable with the
+        other versions. If not specified, the default SSL version is
+        taken from the default in the installed version of the Python
+        standard `ssl` library.  See the `ssl` documentation for more
+        information.
 
     web_profile : bool, optional
         Enables or disables the Web Profile support.
@@ -165,9 +165,6 @@ class SAMPHubServer(object):
         self._client_timeout = client_timeout
         self._pool_size = pool_size
 
-        if SSL_SUPPORT and ssl_version is None:
-            ssl_version = ssl.PROTOCOL_SSLv23
-
         self._web_profile = web_profile
         self._web_profile_server = None
         self._web_profile_callbacks = {}
@@ -191,9 +188,9 @@ class SAMPHubServer(object):
                 self._web_profile_server.register_introspection_functions()
                 log.info("Hub set to run with Web Profile support enabled.")
             except socket.error:
-                log.warn("Port {0} already in use. Impossible to run the "
-                         "Hub with Web Profile support.".format(self._web_port),
-                         SAMPWarning)
+                log.warning("Port {0} already in use. Impossible to run the "
+                            "Hub with Web Profile support.".format(self._web_port),
+                            SAMPWarning)
                 self._web_profile = web_profile = False
 
         # SSL general settings
@@ -1401,7 +1398,7 @@ class SAMPHubServer(object):
         return ""
 
     def _web_profile_register(self, identity_info,
-                              client_address=("uknown", 0),
+                              client_address=("unknown", 0),
                               origin="unknown"):
 
         self._update_last_activity_time()

@@ -2,11 +2,11 @@
 
 # TEST_UNICODE_LITERALS
 
-import os
 import re
 
 import numpy as np
 
+from ....extern.six.moves import cStringIO as StringIO
 from ....utils import OrderedDict
 from ....tests.helper import pytest
 from ... import ascii
@@ -96,7 +96,6 @@ def test_read_with_names_arg(fast_reader):
         dat = ascii.read(['c d', 'e f'], names=('a', ), guess=False, fast_reader=fast_reader)
 
 
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_read_all_files(fast_reader):
     for testfile in get_testfiles():
@@ -118,7 +117,6 @@ def test_read_all_files(fast_reader):
                 assert_equal(len(table[colname]), testfile['nrows'])
 
 
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_read_all_files_via_table(fast_reader):
     for testfile in get_testfiles():
@@ -205,7 +203,6 @@ def test_daophot_multiple_aperture():
     assert np.all(table['RAPERT5'] == 23.3)  # assert all the 5th apertures are same 23.3
 
 
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_empty_table_no_header(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):
@@ -366,6 +363,7 @@ def test_comment_lines():
     table = ascii.get_reader(Reader=ascii.Rdb)
     data = table.read('t/apostrophe.rdb')
     assert_equal(table.comment_lines, ['# first comment', '  # second comment'])
+    assert_equal(data.meta['comments'], ['first comment', 'second comment'])
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -480,7 +478,8 @@ def test_read_rdb_wrong_type(fast_reader):
     table = """col1\tcol2
 N\tN
 1\tHello"""
-    with pytest.raises(ascii.InconsistentTableError):
+    err_type = ValueError if not fast_reader else ascii.InconsistentTableError
+    with pytest.raises(err_type):
         ascii.read(table, Reader=ascii.Rdb, fast_reader=fast_reader)
 
 
@@ -860,14 +859,32 @@ def test_commented_csv():
     assert len(t) == 2
     assert t['#a'][1] == '#3'
 
+def test_meta_comments():
+    """
+    Make sure that line comments are included in the ``meta`` attribute
+    of the output Table.
+    """
+    t = ascii.read(['#comment1', '#   comment2 \t', 'a,b,c', '1,2,3'])
+    assert t.colnames == ['a', 'b', 'c']
+    assert t.meta['comments'] == ['comment1', 'comment2']
+
 def test_guess_fail():
     """
     Check the error message when guess fails
     """
     with pytest.raises(ascii.InconsistentTableError) as err:
-        ascii.read('asfdasdf\n1 2 3', format='html')
-
+        ascii.read('asfdasdf\n1 2 3', format='basic')
     assert "** To figure out why the table did not read, use guess=False and" in str(err.value)
+
+    # Test the case with guessing enabled but for a format that has no free params
+    with pytest.raises(ValueError) as err:
+        ascii.read('asfdasdf\n1 2 3', format='ipac')
+    assert 'At least one header line beginning and ending with delimiter required' in str(err.value)
+
+    # Test the case with guessing enabled but with all params specified
+    with pytest.raises(ValueError) as err:
+        ascii.read('asfdasdf\n1 2 3', format='basic', quotechar='"', delimiter=' ', fast_reader=False)
+    assert 'Number of header columns (1) inconsistent with data columns (3)' in str(err.value)
 
 
 def test_guessing_file_object():
@@ -891,3 +908,57 @@ def test_pformat_roundtrip():
     for c in dat.colnames:
         assert np.all(dat[c] == out[c])
 
+
+def test_ipac_abbrev():
+    lines = ['| c1 | c2 | c3   |   c4 | c5| c6 | c7  | c8 | c9|c10|c11|c12|',
+             '| r  | rE | rea  | real | D | do | dou | f  | i | l | da| c |',
+             '  1    2    3       4     5   6    7     8    9   10  11  12 ']
+    dat = ascii.read(lines, format='ipac')
+    for name in dat.columns[0:8]:
+        assert dat[name].dtype.kind == 'f'
+    for name in dat.columns[8:10]:
+        assert dat[name].dtype.kind == 'i'
+    for name in dat.columns[10:12]:
+        assert dat[name].dtype.kind in ('U', 'S')
+
+
+def test_almost_but_not_quite_daophot():
+    '''Regression test for #3319.
+    This tables looks so close to a daophot table, that the daophot reader gets
+    quite far before it fails with an AttributeError.
+
+    Note that this table will actually be read as Commented Header table with
+    the columns ['some', 'header', 'info'].
+    '''
+    lines = ["# some header info",
+             "#F header info beginning with 'F'",
+             "1 2 3",
+             "4 5 6",
+             "7 8 9"]
+    dat = ascii.read(lines)
+    assert len(dat) == 3
+
+
+@pytest.mark.parametrize('fast', [True, False])
+def test_commented_header_comments(fast):
+    """
+    Test that comments in commented_header are as expected and that the
+    table round-trips.
+    """
+    lines = ['# a b',
+             '# comment 1',
+             '# comment 2',
+             '1 2',
+             '3 4']
+    dat = ascii.read(lines, format='commented_header', fast_reader=fast)
+    assert dat.meta['comments'] == ['comment 1', 'comment 2']
+
+    out = StringIO()
+    ascii.write(dat, out, format='commented_header', fast_writer=fast)
+    assert out.getvalue().splitlines() == lines
+
+    lines = ['# a b',
+             '1 2',
+             '3 4']
+    dat = ascii.read(lines, format='commented_header', fast_reader=fast)
+    assert 'comments' not in dat.meta

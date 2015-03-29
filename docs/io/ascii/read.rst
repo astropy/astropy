@@ -260,8 +260,11 @@ look like a number.
 The order of guessing is shown by this Python code, where ``Reader`` is the
 class which actually implements reading the different file formats::
 
-  for Reader in (Rdb, FastTab, Tab, Cds, Daophot, SExtractor, Ipac, Latex, AASTex, HTML):
+  for Reader in (Ecsv, FixedWidthTwoLine, FastBasic, Basic,
+                 Rdb, FastTab, Tab, Cds, Daophot, SExtractor,
+                 Ipac, Latex, AASTex, HTML):
       read(Reader=Reader)
+
   for Reader in (CommentedHeader, FastBasic, Basic, FastNoHeader, NoHeader):
       for delimiter in ("|", ",", " ", "\\s"):
           for quotechar in ('"', "'"):
@@ -294,6 +297,36 @@ Guessing can be disabled in two ways::
   data = astropy.io.ascii.read(table, guess=False)  # disable for this call
   astropy.io.ascii.set_guess(False)                 # set default to False globally
   data = astropy.io.ascii.read(table)               # guessing disabled
+
+Comments and metadata
+^^^^^^^^^^^^^^^^^^^^^
+
+Any comment lines detected during reading are inserted into the output table
+via the ``comments`` key in the table's ``.meta`` dictionary. For example::
+
+ >>> table='''# TELESCOPE = 30 inch
+ ...          # TARGET = PV Ceph
+ ...          # BAND = V
+ ...          MJD mag
+ ...          55555 12.3
+ ...          55556 12.4'''
+ >>> dat = ascii.read(table)
+ >>> print(dat.meta['comments'])
+ ['TELESCOPE = 30 inch', 'TARGET = PV Ceph', 'BAND = V']
+
+While :mod:`astropy.io.ascii` will not do any post-processing on comment lines,
+custom post-processing can be accomplished by re-reading with the metadata line
+comments. Here is one example, where comments are of the form "# KEY = VALUE"::
+
+ >>> header = ascii.read(dat.meta['comments'], delimiter='=',
+ ...                     format='no_header', names=['key', 'val'])
+ >>> print(header)
+    key      val
+ --------- -------
+ TELESCOPE 30 inch
+    TARGET PV Ceph
+      BAND       V
+
 
 Converters
 ^^^^^^^^^^
@@ -340,7 +373,7 @@ This is the way all the build-in readers are defined, so there are plenty
 of examples in the code.
 
 In most cases, you will define one class to handle the header,
-one class that handles the data and a reader class that ties it all together. 
+one class that handles the data and a reader class that ties it all together.
 Here is a simple example from the code that defines a reader that is just like
 the basic reader, but header and data start in different lines of the file::
 
@@ -348,7 +381,7 @@ the basic reader, but header and data start in different lines of the file::
   class NoHeaderHeader(BasicHeader):
       '''Reader for table header without a header
 
-      Set the start of header line number to `None`, which tells the basic 
+      Set the start of header line number to `None`, which tells the basic
       reader there is no header line.
       '''
       start_line = None
@@ -374,7 +407,7 @@ the basic reader, but header and data start in different lines of the file::
       header_class = NoHeaderHeader
       data_class = NoHeaderData
 
-In a slightly more involved case, the implementation can also override some of 
+In a slightly more involved case, the implementation can also override some of
 the methods in the base class::
 
   # Note: CommentedHeader is already included in astropy.io.ascii for convenience.

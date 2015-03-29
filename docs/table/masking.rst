@@ -38,13 +38,14 @@ A masked table can be created in several ways:
 **Create a new table object and specify masked=True** ::
 
   >>> from astropy.table import Table, Column, MaskedColumn
-  >>> t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True)
+  >>> t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True, dtype=('i4', 'i8'))
   >>> t
-  <Table rows=2 names=('a','b')>
-  masked_array(data = [(1, 3) (2, 4)],
-               mask = [(False, False) (False, False)],
-         fill_value = (999999, 999999),
-              dtype = [('a', '<i8'), ('b', '<i8')])
+  <Table masked=True length=2>
+    a     b
+  int32 int64
+  ----- -----
+      1     3
+      2     4
   <BLANKLINE>
 
 Notice the table attributes ``mask`` and ``fill_value`` that are

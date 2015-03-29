@@ -10,7 +10,8 @@ __doctest_skip__ = ['wcs_to_celestial_frame']
 
 __all__ = ['add_stokes_axis_to_wcs',
            'custom_frame_mappings',
-           'wcs_to_celestial_frame', 'celestial_pixel_scale',
+           'wcs_to_celestial_frame', 'proj_plane_pixel_scales',
+           'proj_plane_pixel_area', 'is_proj_plane_distorted',
            'non_celestial_pixel_scales', 'skycoord_to_pixel',
            'pixel_to_skycoord']
 
@@ -149,41 +150,176 @@ def wcs_to_celestial_frame(wcs):
                      "the specified WCS object")
 
 
-def celestial_pixel_scale(inwcs, allow_nonsquare=False):
+def proj_plane_pixel_scales(wcs):
     """
-    For a WCS, if the pixels are square, return the pixel scale in the spatial
-    dimensions
+    For a WCS returns pixel scales along each axis of the image pixel at
+    the ``CRPIX`` location once it is projected onto the
+    "plane of intermediate world coordinates" as defined in
+    `Greisen & Calabretta 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
+
+    .. note::
+        This function is concerned **only** about the transformation
+        "image plane"->"projection plane" and **not** about the
+        transformation "celestial sphere"->"projection plane"->"image plane".
+        Therefore, this function ignores distortions arising due to
+        non-linear nature of most projections.
+
+    .. note::
+        In order to compute the scales corresponding to celestial axes only,
+        make sure that the input `~astropy.wcs.WCS` object contains
+        celestial axes only, e.g., by passing in the
+        `~astropy.wcs.WCS.celestial` WCS object.
 
     Parameters
     ----------
-    inwcs : `~astropy.wcs.WCS`
-        The world coordinate system object
-    allow_nonsquare : bool
-        Return the average of the X and Y scales if True
+    wcs : `~astropy.wcs.WCS`
+        A world coordinate system object.
 
     Returns
     -------
-    scale : float
-        The square pixel scale
+    scale : `~numpy.ndarray`
+        A vector (`~numpy.ndarray`) of projection plane increments
+        corresponding to each pixel side (axis). The units of the returned
+        results are the same as the units of `~astropy.wcs.Wcsprm.cdelt`,
+        `~astropy.wcs.Wcsprm.crval`, and `~astropy.wcs.Wcsprm.cd` for
+        the celestial WCS and can be obtained by inquiring the value
+        of `~astropy.wcs.Wcsprm.cunit` property of the input
+        `~astropy.wcs.WCS` WCS object.
+
+    See Also
+    --------
+    astropy.wcs.utils.proj_plane_pixel_area
+
+    """
+    return np.sqrt((wcs.pixel_scale_matrix**2).sum(axis=0, dtype=np.float))
+
+
+def proj_plane_pixel_area(wcs):
+    """
+    For a **celestial** WCS (see `astropy.wcs.WCS.celestial`) returns pixel
+    area of the image pixel at the ``CRPIX`` location once it is projected
+    onto the "plane of intermediate world coordinates" as defined in
+    `Greisen & Calabretta 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
+
+    .. note::
+        This function is concerned **only** about the transformation
+        "image plane"->"projection plane" and **not** about the
+        transformation "celestial sphere"->"projection plane"->"image plane".
+        Therefore, this function ignores distortions arising due to
+        non-linear nature of most projections.
+
+    .. note::
+        In order to compute the area of pixels corresponding to celestial
+        axes only, this function uses the `~astropy.wcs.WCS.celestial` WCS
+        object of the input ``wcs``.  This is different from the
+        `~astropy.wcs.utils.proj_plane_pixel_scales` function
+        that computes the scales for the axes of the input WCS itself.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.WCS`
+        A world coordinate system object.
+
+    Returns
+    -------
+    area : float
+        Area (in the projection plane) of the pixel at ``CRPIX`` location.
+        The units of the returned result are the same as the units of
+        the `~astropy.wcs.Wcsprm.cdelt`, `~astropy.wcs.Wcsprm.crval`,
+        and `~astropy.wcs.Wcsprm.cd` for the celestial WCS and can be
+        obtained by inquiring the value of `~astropy.wcs.Wcsprm.cunit`
+        property of the `~astropy.wcs.WCS.celestial` WCS object.
 
     Raises
     ------
-    ValueError : if the pixels are nonsquare and ``allow_nonsquare==False``
+    ValueError
+        Pixel area is defined only for 2D pixels. Most likely the
+        `~astropy.wcs.Wcsprm.cd` matrix of the `~astropy.wcs.WCS.celestial`
+        WCS is not a square matrix of second order.
+
+    Notes
+    -----
+
+    Depending on the application, square root of the pixel area can be used to
+    represent a single pixel scale of an equivalent square pixel
+    whose area is equal to the area of a generally non-square pixel.
+
+    See Also
+    --------
+    astropy.wcs.utils.proj_plane_pixel_scales
+
     """
-    cwcs = inwcs.celestial
-    if cwcs.wcs.ctype[0][-3:] != 'CAR':
-        warnings.warn("Pixel sizes may very over the image for "
-                      "projection class {0}".format(cwcs.wcs.ctype[0][-3:]),
-                      AstropyUserWarning)
-    scale = (cwcs.pixel_scale_matrix**2).sum(axis=0)**0.5
-    if not np.allclose(scale[0],scale[1]):
-        if allow_nonsquare:
-            warnings.warn("Pixels are not square, using an average pixel scale")
-            return np.mean(scale)*u.deg
-        else:
-            raise ValueError("Pixels are not square: 'pixel scale' is ambiguous")
-    # Return a quantity: WCS always stores in degrees
-    return scale[0]*u.deg
+    psm = wcs.celestial.pixel_scale_matrix
+    if psm.shape != (2, 2):
+        raise ValueError("Pixel area is defined only for 2D pixels.")
+    return np.abs(np.linalg.det(psm))
+
+
+def is_proj_plane_distorted(wcs, maxerr=1.0e-5):
+    """
+    For a WCS returns `False` if square image (detector) pixels stay square
+    when projected onto the "plane of intermediate world coordinates"
+    as defined in
+    `Greisen & Calabretta 2002, A&A, 395, 1061 <http://adsabs.harvard.edu/abs/2002A%26A...395.1061G>`_.
+    It will return `True` if transformation from image (detector) coordinates
+    to the focal plane coordinates is non-orthogonal or if WCS contains
+    non-linear (e.g., SIP) distortions.
+
+    .. note::
+        Since this function is concerned **only** about the transformation
+        "image plane"->"focal plane" and **not** about the transformation
+        "celestial sphere"->"focal plane"->"image plane",
+        this function ignores distortions arising due to non-linear nature
+        of most projections.
+
+    Let's denote by *C* either the original or the reconstructed
+    (from ``PC`` and ``CDELT``) CD matrix. `is_proj_plane_distorted`
+    verifies that the transformation from image (detector) coordinates
+    to the focal plane coordinates is orthogonal using the following
+    check:
+
+    .. math::
+        \\left \| \\frac{C \cdot C^{\mathrm{T}}}\
+        {| det(C)|} - I \\right \|_{\mathrm{max}} < \epsilon .
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.WCS`
+        World coordinate system object
+
+    maxerr : float, optional
+        Accuracy to which the CD matrix, **normalized** such
+        that :math:`|det(CD)|=1`, should be close to being an
+        orthogonal matrix as described in the above equation
+        (see :math:`\epsilon`).
+
+    Returns
+    -------
+    distorted : bool
+        Returns `True` if focal (projection) plane is distorted and `False`
+        otherwise.
+
+    """
+    cwcs = wcs.celestial
+    return (not _is_cd_orthogonal(cwcs.pixel_scale_matrix, maxerr) or
+            _has_distortion(cwcs))
+
+
+def _is_cd_orthogonal(cd, maxerr):
+    shape = cd.shape
+    if not (len(shape) == 2 and shape[0] == shape[1]):
+        raise ValueError("CD (or PC) matrix must be a 2D square matrix.")
+
+    pixarea = np.abs(np.linalg.det(cd))
+    if (pixarea == 0.0):
+        raise ValueError("CD (or PC) matrix is singular.")
+
+    # NOTE: Technically, below we should use np.dot(cd, np.conjugate(cd.T))
+    # However, I am not aware of complex CD/PC matrices...
+    I = np.dot(cd, cd.T) / pixarea
+    cd_unitary_err = np.amax(np.abs(I - np.eye(shape[0])))
+
+    return (cd_unitary_err < maxerr)
 
 
 def non_celestial_pixel_scales(inwcs):
@@ -203,7 +339,7 @@ def non_celestial_pixel_scales(inwcs):
     """
 
     if inwcs.is_celestial:
-        raise ValueError("WCS is celestial, use celestial_pixel_scale instead")
+        raise ValueError("WCS is celestial, use celestial_pixel_scales instead")
 
     pccd = inwcs.pixel_scale_matrix
 

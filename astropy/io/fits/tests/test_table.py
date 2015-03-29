@@ -2149,6 +2149,24 @@ class TestTableFunctions(FitsTestCase):
         field = hdu.data.field(1)
         assert field.shape == (0,)
 
+    def test_dim_column_byte_order_mismatch(self):
+        """
+        When creating a table column with non-trivial TDIMn, and
+        big-endian array data read from an existing FITS file, the data
+        should not be unnecessarily byteswapped.
+
+        Regression test for https://github.com/astropy/astropy/issues/3561
+        """
+
+        data = fits.getdata(self.data('random_groups.fits'))['DATA']
+        col = fits.Column(name='TEST', array=data, dim='(3,1,128,1,1)',
+                          format='1152E')
+        thdu = fits.BinTableHDU.from_columns([col])
+        thdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert np.all(hdul[1].data['TEST'] == data)
+
 
 class TestVLATables(FitsTestCase):
     """Tests specific to tables containing variable-length arrays."""
@@ -2383,6 +2401,23 @@ class TestColumnFunctions(FitsTestCase):
         assert c.format.width == 15
         assert c.format.precision == 8
 
+        # zero-precision should be allowed as well, for float types
+        # https://github.com/astropy/astropy/issues/3422
+        c = fits.Column('TEST', 'F10.0')
+        assert c.format.format == 'F'
+        assert c.format.width == 10
+        assert c.format.precision == 0
+
+        c = fits.Column('TEST', 'E10.0')
+        assert c.format.format == 'E'
+        assert c.format.width == 10
+        assert c.format.precision == 0
+
+        c = fits.Column('TEST', 'D10.0')
+        assert c.format.format == 'D'
+        assert c.format.width == 10
+        assert c.format.precision == 0
+
         # These are a couple cases where the format code is a valid binary
         # table format, and is not strictly a valid ASCII table format but
         # could be *interpreted* as one by appending a default width.  This
@@ -2410,6 +2445,25 @@ class TestColumnFunctions(FitsTestCase):
         assert c.format.recformat == 'f8'
         c = fits.Column('TEST', 'D', ascii=True)
         assert c.format == 'D25.17'
+
+    def test_zero_precision_float_column(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/3422
+        """
+
+        c = fits.Column('TEST', 'F5.0', array=[1.1, 2.2, 3.3])
+        # The decimal places will be clipped
+        t = fits.TableHDU.from_columns([c])
+        t.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert hdul[1].header['TFORM1'] == 'F5.0'
+            assert hdul[1].data['TEST'].dtype == np.dtype('float32')
+            assert np.all(hdul[1].data['TEST'] == [1.0, 2.0, 3.0])
+
+            # Check how the raw data looks
+            raw = np.rec.recarray.field(hdul[1].data, 'TEST')
+            assert raw.tostring() == b'   1.   2.   3.'
 
     def test_column_array_type_mismatch(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218"""

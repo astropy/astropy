@@ -60,29 +60,39 @@ and ``c``.  These columns have integer, float, and string values respectively::
   >>> t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
 
 If you have row-oriented input data such as a list of records, use the ``rows``
-keyword::
+keyword.  In this example we also explicitly set the data types for each column::
 
   >>> data_rows = [(1, 2.0, 'x'),
   ...              (4, 5.0, 'y'),
   ...              (5, 8.2, 'z')]
-  >>> t = Table(rows=data_rows, names=('a', 'b', 'c'), meta={'name': 'first table'})
+  >>> t = Table(rows=data_rows, names=('a', 'b', 'c'), meta={'name': 'first table'},
+  ...           dtype=('i4', 'f8', 'S1'))
 
 There are a few ways to examine the table.  You can get detailed information
 about the table values and column definitions as follows::
 
   >>> t
-  <Table rows=3 names=('a','b','c')>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
+  <Table masked=False length=3>
+    a      b       c
+  int32 float64 string8
+  ----- ------- -------
+      1     2.0       x
+      4     5.0       y
+      5     8.2       z
 
 You can also assign a unit to the columns. If any column has a unit
 assigned, all units would be shown as follows::
 
   >>> t['b'].unit = 's'
   >>> t
-  <Table rows=3 names=('a','b','c') units=(None,'s',None)>
-  array([(1, 2.0, 'x'), (4, 5.0, 'y'), (5, 8..., 'z')],
-        dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
+  <Table masked=False length=3>
+    a      b       c
+           s
+  int32 float64 string8
+  ----- ------- -------
+      1     2.0       x
+      4     5.0       y
+      5     8.2       z
 
 A column with a unit works with and can be easily converted to an
 `~astropy.units.Quantity` object::
@@ -143,8 +153,10 @@ Now examine some high-level information about the table::
 Access the data by column or row using familiar `numpy` structured array syntax::
 
   >>> t['a']       # Column 'a'
-  <Column name='a' unit=None format=None description=None>
-  array([1, 4, 5])
+  <Column name='a' dtype='int32' length=3>
+  1
+  4
+  5
 
   >>> t['a'][1]    # Row 1 of column 'a'
   4
@@ -152,7 +164,7 @@ Access the data by column or row using familiar `numpy` structured array syntax:
   >>> t[1]         # Row obj for with row 1 values
   <Row 1 of table
    values=(4, 5.0, 'y')
-   dtype=[('a', '<i8'), ('b', '<f8'), ('c', 'S1')]>
+   dtype=[('a', '<i4'), ('b', '<f8'), ('c', 'S1')]>
 
   >>> t[1]['a']    # Column 'a' of row 1
   4
@@ -206,21 +218,16 @@ Adding a new row of data to the table is as follows::
 Lastly, you can create a table with support for missing values, for example by setting
 ``masked=True``::
 
-  >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True)
+  >>> t = Table([a, b, c], names=('a', 'b', 'c'), masked=True, dtype=('i4', 'f8', 'S1'))
   >>> t['a'].mask = [True, True, False]
   >>> t
-  <Table rows=3 names=('a','b','c')>
-  masked_array(data = [(--, 2.0, 'x') (--, 5.0, 'y') (5, 8..., 'z')],
-               mask = [(True, False, False) (True, False, False) (False, False, False)],
-         fill_value = (999999, 1e+20, 'N'),
-              dtype = [('a', '<i8'), ('b', '<f8'), ('c', 'S1')])
-
-  >>> print(t)
-   a   b   c
-  --- --- ---
-   -- 2.0   x
-   -- 5.0   y
-    5 8.2   z
+  <Table masked=True length=3>
+    a      b       c
+  int32 float64 string8
+  ----- ------- -------
+     --     2.0       x
+     --     5.0       y
+      5     8.2       z
 
 .. _using_astropy_table:
 
@@ -276,6 +283,14 @@ I/O with tables
    :maxdepth: 2
 
    io.rst
+
+Mixin columns
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   mixin_columns.rst
 
 Implementation
 ----------------

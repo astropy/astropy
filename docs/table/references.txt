@@ -1,5 +1,6 @@
 .. |Row| replace:: :class:`~astropy.table.Row`
 .. |Table| replace:: :class:`~astropy.table.Table`
+.. |QTable| replace:: :class:`~astropy.table.QTable`
 .. |Column| replace:: :class:`~astropy.table.Column`
 .. |MaskedColumn| replace:: :class:`~astropy.table.MaskedColumn`
 .. |TableColumns| replace:: :class:`~astropy.table.TableColumns`

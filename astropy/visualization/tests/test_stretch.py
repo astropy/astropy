@@ -29,14 +29,21 @@ RESULTS[HistEqStretch(DATA ** 0.5)] = np.array([0., 0.125, 0.25, 0.5674767, 1.])
 
 class TestStretch(object):
 
-    def setup_class(self):
-        DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
-
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_no_clip(self, stretch):
 
         np.testing.assert_allclose(stretch(DATA, clip=False),
                                    RESULTS[stretch], atol=1.e-6)
+
+    @pytest.mark.parametrize('ndim', [2,3])
+    @pytest.mark.parametrize('stretch', RESULTS.keys())
+    def test_clip_ndimensional(self, stretch, ndim):
+
+        new_shape = DATA.shape + (1,) * ndim
+
+        np.testing.assert_allclose(stretch(DATA.reshape(new_shape), clip=True).ravel(),
+                                   np.clip(RESULTS[stretch], 0., 1), atol=1.e-6)
+
 
     @pytest.mark.parametrize('stretch', RESULTS.keys())
     def test_clip(self, stretch):

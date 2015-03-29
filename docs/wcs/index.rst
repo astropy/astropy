@@ -99,6 +99,8 @@ saves those settings to a new FITS header.
 .. literalinclude:: examples/programmatic.py
    :language: python
 
+.. _wcslint:
+
 Validating the WCS keywords in a FITS file
 ------------------------------------------
 
@@ -177,10 +179,12 @@ WCS objects can be broken apart into their constituent axes using the
 convenience function that will return a WCS object with only the celestial axes
 included.
 
-The pixel scale of a celestial image or the pixel dimensions of a non-celestial
+The pixel scales of a celestial image or the pixel dimensions of a non-celestial
 image can be extracted with the utility functions
-`~astropy.wcs.utils.celestial_pixel_scale` and
-`~astropy.wcs.utils.non_celestial_pixel_scales`.
+`~astropy.wcs.utils.proj_plane_pixel_scales` and
+`~astropy.wcs.utils.non_celestial_pixel_scales`. Likewise, celestial pixel
+area can be extracted with the utility function
+`~astropy.wcs.utils.proj_plane_pixel_area`.
 
 Matplotlib plots with correct WCS projection
 ============================================

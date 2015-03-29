@@ -2,13 +2,13 @@
 
 # TEST_UNICODE_LITERALS
 
-import os
-
 from ..ui import read
 from ..ipac import Ipac, IpacFormatError, IpacFormatErrorDBMS
 from ....tests.helper import pytest, catch_warnings
 from ... import ascii
 from ....table import Table
+from ..core import masked
+
 
 try:
     from cStringIO import StringIO
@@ -118,12 +118,16 @@ def test_too_long_comment():
 """
     assert out.getvalue().strip().splitlines() == expected_out.splitlines()
 
+
 def test_out_with_nonstring_null():
-    # unmasked tables don't have fill_values
+    '''Test a (non-string) fill value.
+
+    Even for an unmasked tables, the fill_value should show up in the
+    table header.
+    '''
     table = Table([[3]], masked=True)
-    table['col0'].fill_value = -99999
     out = StringIO()
-    ascii.write(table, out, Writer=Ipac)
+    ascii.write(table, out, Writer=Ipac, fill_values=[(masked, -99999)])
     expected_out = """\
 |  col0|
 |  long|
@@ -132,6 +136,7 @@ def test_out_with_nonstring_null():
       3
 """
     assert out.getvalue().strip().splitlines() == expected_out.splitlines()
+
 
 def test_include_exclude_names():
     table = Table([[1], [2], [3]], names=('A', 'B', 'C'))

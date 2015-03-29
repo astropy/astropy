@@ -399,7 +399,7 @@ def test_equivalent_units2():
         units = set(u.Hz.find_equivalent_units(u.spectral()))
         match = set(
             [u.AU, u.Angstrom, imperial.BTU, u.Hz, u.J, u.Ry,
-             imperial.cal, u.cm, u.eV, u.erg, imperial.ft,
+             imperial.cal, u.cm, u.eV, u.erg, imperial.ft, imperial.fur,
              imperial.inch, imperial.kcal, u.lyr, u.m, imperial.mi,
              u.micron, u.pc, u.solRad, imperial.yd, u.Bq, u.Ci,
              imperial.nmi, u.k])
@@ -476,6 +476,14 @@ def test_equivalency_context():
     assert all(eq in set(eq_on) for eq in eq_off)
     assert set(eq_off) < set(eq_on)
 
+    # Check the equivalency manager also works in ufunc evaluations,
+    # not just using (wrong) scaling. [#2496]
+    l2v = u.doppler_optical(6000 * u.angstrom)
+    l1 = 6010 * u.angstrom
+    assert l1.to(u.km/u.s, equivalencies=l2v) > 100. * u.km / u.s
+    with u.set_enabled_equivalencies(l2v):
+        assert l1 > 100. * u.km / u.s
+        assert abs((l1 - 500. * u.km / u.s).to(u.angstrom)) < 1. * u.km/u.s
 
 def test_equivalency_context_manager():
     base_registry = u.get_current_unit_registry()
@@ -519,7 +527,6 @@ def test_temperature():
 
 
 def test_temperature_energy():
-    from ... import constants
     x = 1000 * u.K
     y = (x * constants.k_B).to(u.keV)
     assert_allclose(x.to(u.keV, u.temperature_energy()).value, y)

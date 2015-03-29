@@ -7,13 +7,11 @@ import numpy as np
 
 from .base import DELAYED, _ValidHDU, ExtensionHDU
 from ..header import Header
-from ..util import (_is_pseudo_unsigned, _unsigned_zero, _is_int,
-                    _normalize_slice)
+from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from ..verify import VerifyWarning
 
 from ....extern.six import string_types
-from ....extern.six.moves import xrange
-from ....utils import lazyproperty
+from ....utils import isiterable, lazyproperty
 
 
 class _ImageBaseHDU(_ValidHDU):
@@ -321,7 +319,7 @@ class _ImageBaseHDU(_ValidHDU):
                          after='BITPIX')
 
         # TODO: This routine is repeated in several different classes--it
-        # should probably be made available as a methond on all standard HDU
+        # should probably be made available as a method on all standard HDU
         # types
         # add NAXISi if it does not exist
         for idx, axis in enumerate(self._axes):
@@ -711,7 +709,7 @@ class _ImageBaseHDU(_ValidHDU):
             # This is the case where the data has not been read from the file
             # yet.  We can handle that in a generic manner so we do it in the
             # base class.  The other possibility is that there is no data at
-            # all.  This can also be handled in a gereric manner.
+            # all.  This can also be handled in a generic manner.
             return super(_ImageBaseHDU, self)._calculate_datasum(
                 blocking=blocking)
 
@@ -734,109 +732,80 @@ class Section(object):
         self.hdu = hdu
 
     def __getitem__(self, key):
-        dims = []
         if not isinstance(key, tuple):
             key = (key,)
         naxis = len(self.hdu.shape)
-        if naxis < len(key):
-            raise IndexError('too many indices')
-        elif naxis > len(key):
-            key = key + (slice(None),) * (naxis - len(key))
+        return_scalar = (all(isinstance(k, (int, np.integer)) for k in key)
+                         and len(key) == naxis)
+        if not any(k is Ellipsis for k in key):
+            # We can always add a ... at the end, after making note of whether
+            # to return a scalar.
+            key += Ellipsis,
+        ellipsis_count = len([k for k in key if k is Ellipsis])
+        if len(key) - ellipsis_count > naxis or ellipsis_count > 1:
+            raise IndexError('too many indices for array')
+        # Insert extra dimensions as needed.
+        idx = next(i for i, k in enumerate(key + (Ellipsis,)) if k is Ellipsis)
+        key = key[:idx] + (slice(None),) * (naxis - len(key) + 1) + key[idx+1:]
+        return_0dim = (all(isinstance(k, (int, np.integer)) for k in key)
+                       and len(key) == naxis)
 
+        dims = []
         offset = 0
-
-        # Declare outside of loop scope for use below--don't abuse for loop
-        # scope leak defect
-        idx = 0
+        # Find all leading axes for which a single point is used.
         for idx in range(naxis):
             axis = self.hdu.shape[idx]
-            indx = _iswholeline(key[idx], axis)
+            indx = _IndexInfo(key[idx], axis)
             offset = offset * axis + indx.offset
-
-            # all elements after the first WholeLine must be WholeLine or
-            # OnePointAxis
-            if isinstance(indx, (_WholeLine, _LineSlice)):
+            if not _is_int(key[idx]):
                 dims.append(indx.npts)
                 break
-            elif isinstance(indx, _SteppedSlice):
-                raise IndexError('Stepped Slice not supported')
 
-        contiguousSubsection = True
-
+        is_contiguous = indx.contiguous
         for jdx in range(idx + 1, naxis):
             axis = self.hdu.shape[jdx]
-            indx = _iswholeline(key[jdx], axis)
+            indx = _IndexInfo(key[jdx], axis)
             dims.append(indx.npts)
-            if not isinstance(indx, _WholeLine):
-                contiguousSubsection = False
-
-            # the offset needs to multiply the length of all remaining axes
-            else:
+            if indx.npts == axis and indx.contiguous:
+                # The offset needs to multiply the length of all remaining axes
                 offset *= axis
+            else:
+                is_contiguous = False
 
-        if contiguousSubsection:
-            if not dims:
-                dims = [1]
-
-            dims = tuple(dims)
+        if is_contiguous:
+            dims = tuple(dims) or (1,)
             bitpix = self.hdu._orig_bitpix
-            offset = self.hdu._data_offset + (offset * abs(bitpix) // 8)
+            offset = self.hdu._data_offset + offset * abs(bitpix) // 8
             data = self.hdu._get_scaled_image_data(offset, dims)
         else:
             data = self._getdata(key)
 
+        if return_scalar:
+            data = data.item()
+        elif return_0dim:
+            data = data.squeeze()
         return data
 
     def _getdata(self, keys):
-        out = []
-
-        # Determine the number of slices in the set of input keys.
-        # If there is only one slice then the result is a one dimensional
-        # array, otherwise the result will be a multidimensional array.
-        n_slices = 0
-        for idx, key in enumerate(keys):
+        for idx, (key, axis) in enumerate(zip(keys, self.hdu.shape)):
             if isinstance(key, slice):
-                n_slices = n_slices + 1
-
-        for idx, key in enumerate(keys):
-            if isinstance(key, slice):
-                # OK, this element is a slice so see if we can get the data for
-                # each element of the slice.
-                axis = self.hdu.shape[idx]
-                ns = _normalize_slice(key, axis)
-
-                for k in range(ns.start, ns.stop):
-                    key1 = list(keys)
-                    key1[idx] = k
-                    key1 = tuple(key1)
-
-                    if n_slices > 1:
-                        # This is not the only slice in the list of keys so
-                        # we simply get the data for this section and append
-                        # it to the list that is output.  The out variable will
-                        # be a list of arrays.  When we are done we will pack
-                        # the list into a single multidimensional array.
-                        out.append(self[key1])
-                    else:
-                        # This is the only slice in the list of keys so if this
-                        # is the first element of the slice just set the output
-                        # to the array that is the data for the first slice.
-                        # If this is not the first element of the slice then
-                        # append the output for this slice element to the array
-                        # that is to be output.  The out variable is a single
-                        # dimensional array.
-                        if k == ns.start:
-                            out = self[key1]
-                        else:
-                            out = np.append(out, self[key1])
-
-                # We have the data so break out of the loop.
+                ks = range(*key.indices(axis))
                 break
+            elif isiterable(key):
+                # Handle both integer and boolean arrays.
+                ks = np.arange(axis, dtype=int)[key]
+                break
+            # This should always break at some point if _getdata is called.
 
-        if isinstance(out, list):
-            out = np.array(out)
+        data = [self[keys[:idx] + (k,) + keys[idx + 1:]] for k in ks]
 
-        return out
+        if any(isinstance(key, slice) or isiterable(key)
+               for key in keys[idx + 1:]):
+            # data contains multidimensional arrays; combine them.
+            return np.array(data)
+        else:
+            # Only singleton dimensions remain; concatenate in a 1D array.
+            return np.concatenate([np.atleast_1d(array) for array in data])
 
 
 class PrimaryHDU(_ImageBaseHDU):
@@ -995,7 +964,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
 
         errs = super(ImageHDU, self)._verify(option=option)
         naxis = self._header.get('NAXIS', 0)
-        # PCOUNT must == 0, GCOUNT must == 1; the former is verifed in
+        # PCOUNT must == 0, GCOUNT must == 1; the former is verified in
         # ExtensionHDU._verify, however ExtensionHDU._verify allows PCOUNT
         # to be >= 0, so we need to check it here
         self.req_cards('PCOUNT', naxis + 3, lambda v: (_is_int(v) and v == 0),
@@ -1003,50 +972,23 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         return errs
 
 
-def _iswholeline(indx, naxis):
-    if _is_int(indx):
-        if indx >= 0 and indx < naxis:
-            if naxis > 1:
-                return _SinglePoint(1, indx)
-            elif naxis == 1:
-                return _OnePointAxis(1, 0)
-        else:
-            raise IndexError('Index %s out of range.' % indx)
-    elif isinstance(indx, slice):
-        indx = _normalize_slice(indx, naxis)
-        if (indx.start == 0) and (indx.stop == naxis) and (indx.step == 1):
-            return _WholeLine(naxis, 0)
-        else:
-            if indx.step == 1:
-                return _LineSlice(indx.stop - indx.start, indx.start)
+class _IndexInfo(object):
+    def __init__(self, indx, naxis):
+        if _is_int(indx):
+            if 0 <= indx < naxis:
+                self.npts = 1
+                self.offset = indx
+                self.contiguous = True
             else:
-                return _SteppedSlice((indx.stop - indx.start) // indx.step,
-                                     indx.start)
-    else:
-        raise IndexError('Illegal index %s' % indx)
-
-
-class _KeyType(object):
-    def __init__(self, npts, offset):
-        self.npts = npts
-        self.offset = offset
-
-
-class _WholeLine(_KeyType):
-    pass
-
-
-class _SinglePoint(_KeyType):
-    pass
-
-
-class _OnePointAxis(_KeyType):
-    pass
-
-
-class _LineSlice(_KeyType):
-    pass
-
-
-class _SteppedSlice(_KeyType):
-    pass
+                raise IndexError('Index %s out of range.' % indx)
+        elif isinstance(indx, slice):
+            start, stop, step = indx.indices(naxis)
+            self.npts = (stop - start) // step
+            self.offset = start
+            self.contiguous = step == 1
+        elif isiterable(indx):
+            self.npts = len(indx)
+            self.offset = 0
+            self.contiguous = False
+        else:
+            raise IndexError('Illegal index %s' % indx)

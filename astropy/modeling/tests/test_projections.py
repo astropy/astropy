@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Test sky projections defined in WCS Paper II
-"""
+
+"""Test sky projections defined in WCS Paper II"""
 
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
-import os.path
+import os
 import numpy as np
 from numpy.testing import utils
 from .. import projections
@@ -22,7 +21,9 @@ def test_Projection_properties():
     assert projection.n_inputs == 2
     assert projection.n_outputs == 2
 
+
 PIX_COORDINATES = [-10, 30]
+
 
 pars = [
     ('TAN', projections.Sky2Pix_TAN, {}),
@@ -37,7 +38,9 @@ pars = [
 @pytest.mark.parametrize(('ID', 'model', 'args'), pars)
 def test_Sky2Pix(ID, model, args):
     """Check astropy model eval against wcslib eval"""
-    wcs_map = os.path.join("../../wcs/tests/maps", "1904-66_{0}.hdr".format(ID))
+
+    wcs_map = os.path.join(os.pardir, os.pardir, "wcs", "tests", "maps",
+                           "1904-66_{0}.hdr".format(ID))
     test_file = get_pkg_data_filename(wcs_map)
     header = fits.Header.fromfile(test_file, endcard=False, padding=False)
     w = wcs.WCS(header)
@@ -64,7 +67,9 @@ pars = [
 @pytest.mark.parametrize(('ID', 'model', 'args'), pars)
 def test_Pix2Sky(ID, model, args):
     """Check astropy model eval against wcslib eval"""
-    wcs_map = os.path.join("../../wcs/tests/maps", "1904-66_{0}.hdr".format(ID))
+
+    wcs_map = os.path.join(os.pardir, os.pardir, "wcs", "tests", "maps",
+                           "1904-66_{0}.hdr".format(ID))
     test_file = get_pkg_data_filename(wcs_map)
     header = fits.Header.fromfile(test_file, endcard=False, padding=False)
     w = wcs.WCS(header)
@@ -81,13 +86,12 @@ def test_Pix2Sky(ID, model, args):
 
 
 class TestAZP(object):
+    """Test AZP projection"""
 
-    """
-    Test AZP projection
-    """
     def setup_class(self):
         ID = 'AZP'
-        wcs_map = os.path.join("../../wcs/tests/maps", "1904-66_{0}.hdr".format(ID))
+        wcs_map = os.path.join(os.pardir, os.pardir, "wcs", "tests", "maps",
+                               "1904-66_{0}.hdr".format(ID))
         test_file = get_pkg_data_filename(wcs_map)
         header = fits.Header.fromfile(test_file, endcard=False, padding=False)
         self.wazp = wcs.WCS(header)
@@ -115,13 +119,12 @@ class TestAZP(object):
 
 
 class TestCYP(object):
+    """Test CYP projection"""
 
-    """
-    Test CYP projection
-    """
     def setup_class(self):
         ID = "CYP"
-        wcs_map = os.path.join("../../wcs/tests/maps", "1904-66_{0}.hdr".format(ID))
+        wcs_map = os.path.join(os.pardir, os.pardir, "wcs", "tests", "maps",
+                               "1904-66_{0}.hdr".format(ID))
         test_file = get_pkg_data_filename(wcs_map)
         header = fits.Header.fromfile(test_file, endcard=False, padding=False)
         self.wazp = wcs.WCS(header)

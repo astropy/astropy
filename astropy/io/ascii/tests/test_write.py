@@ -5,11 +5,7 @@
 import os
 import copy
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
+from ....extern.six.moves import cStringIO as StringIO
 from ... import ascii
 from .... import table
 from ....tests.helper import pytest
@@ -44,17 +40,17 @@ XCENTER YCENTER
          ),
     dict(kwargs=dict(Writer=ascii.Rdb, exclude_names=['CHI']),
          out="""\
-ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	PIER	PERROR
-N	N	N	N	N	N	N	N	N	S
-14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0	No_error
-18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	0	No_error
+ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tPIER\tPERROR
+N\tN\tN\tN\tN\tN\tN\tN\tN\tS
+14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0\tNo_error
+18\t18.114\t280.170\t22.329\t0.206\t30.12784\t4\t-2.544\t0\tNo_error
 """
          ),
     dict(kwargs=dict(Writer=ascii.Tab),
          out="""\
-ID	XCENTER	YCENTER	MAG	MERR	MSKY	NITER	SHARPNESS	CHI	PIER	PERROR
-14	138.538	256.405	15.461	0.003	34.85955	4	-0.032	0.802	0	No_error
-18	18.114	280.170	22.329	0.206	30.12784	4	-2.544	1.104	0	No_error
+ID\tXCENTER\tYCENTER\tMAG\tMERR\tMSKY\tNITER\tSHARPNESS\tCHI\tPIER\tPERROR
+14\t138.538\t256.405\t15.461\t0.003\t34.85955\t4\t-0.032\t0.802\t0\tNo_error
+18\t18.114\t280.170\t22.329\t0.206\t30.12784\t4\t-2.544\t1.104\t0\tNo_error
 """
          ),
     dict(kwargs=dict(Writer=ascii.Csv),
@@ -452,6 +448,27 @@ def test_write_no_data_ipac(fast_writer):
         check_write_table_via_table(test_def, data, fast_writer)
 
 @pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_comments(fast_writer):
+    """Write comments in output originally read by io.ascii."""
+    data = ascii.read('#c1\n  # c2\t\na,b,c\n#  c3\n1,2,3')
+    out = StringIO()
+    ascii.write(data, out, format='basic', fast_writer=fast_writer)
+    expected = ['# c1', '# c2', '# c3', 'a b c', '1 2 3']
+    assert out.getvalue().splitlines() == expected
+
+    # header comes before comments for commented-header
+    out = StringIO()
+    ascii.write(data, out, format='commented_header', fast_writer=fast_writer)
+    expected = ['# a b c', '# c1', '# c2', '# c3', '1 2 3']
+    assert out.getvalue().splitlines() == expected
+
+    # setting comment=False should disable comment writing
+    out = StringIO()
+    ascii.write(data, out, format='basic', comment=False, fast_writer=fast_writer)
+    expected = ['a b c', '1 2 3']
+    assert out.getvalue().splitlines() == expected
+
+@pytest.mark.parametrize("fast_writer", [True, False])
 def test_strip_names(fast_writer):
     """Names should be stripped of whitespace by default."""
     data = table.Table([[1], [2], [3]], names=(' A', 'B ', ' C '))
@@ -460,7 +477,6 @@ def test_strip_names(fast_writer):
     assert out.getvalue().splitlines()[0] == 'A,B,C'
 
 
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 def test_latex_units():
     """
     Check to make sure that Latex and AASTex writers attempt to fall
@@ -480,7 +496,8 @@ a & 1 \\\\
 b & 2 \\\\
 \\enddata
 \\end{table}
-'''
+'''.replace('\n', os.linesep)
+
     ascii.write(t, out, format='aastex', latexdict=latexdict)
     assert out.getvalue() == expected
     # use unit attribute instead
@@ -491,3 +508,17 @@ b & 2 \\\\
     assert out.getvalue() == expected.replace(
         'colhead{s}', 'colhead{$\mathrm{s}$}').replace(
         'colhead{ }', 'colhead{$\mathrm{yr}$}')
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_commented_header_comments(fast_writer):
+    """
+    Test the fix for #3562 with confusing exception using comment=False
+    for the commented_header writer.
+    """
+    t = table.Table([[1, 2]])
+    with pytest.raises(ValueError) as err:
+        out = StringIO()
+        ascii.write(t, out, format='commented_header', comment=False,
+                    fast_writer=fast_writer)
+    assert "for the commented_header writer you must supply a string" in str(err.value)

@@ -33,7 +33,7 @@ User Documentation
 
 .. only:: html
 
-    :doc:`whatsnew/0.4`
+    :doc:`whatsnew/1.0`
     -------------------
 
 .. only:: latex
@@ -41,7 +41,7 @@ User Documentation
     .. toctree::
        :maxdepth: 1
 
-       whatsnew/0.4
+       whatsnew/1.0
 
 **Astropy at a glance**
 
@@ -191,6 +191,10 @@ The developer documentation contains instructions for how to contribute to
 Astropy or affiliated packages, as well as coding, documentation, and
 testing guidelines. For the guiding vision of this process and the project
 as a whole, see :doc:`development/vision`.
+
+There are additional tools of use for developers in the
+`astropy/astropy-tools repository
+<http://github.com/astropy/astropy-tools>`__.
 
 .. toctree::
    :maxdepth: 1

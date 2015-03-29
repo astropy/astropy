@@ -101,9 +101,19 @@ class Parameter(object):
         the lower bound of a parameter
     max : float
         the upper bound of a parameter
+    bounds : tuple
+        specify min and max as a single tuple--bounds may not be specified
+        simultaneously with min or max
     model : object
         an instance of a Model class; this should only be used internally for
         creating bound Parameters
+    """
+
+    constraints = ('fixed', 'tied', 'bounds')
+    """
+    Types of constraints a parameter can have.  Excludes 'min' and 'max'
+    which are just aliases for the first and second elements of the 'bounds'
+    constraint (which is represented as a 2-tuple).
     """
 
     # See the _nextid classmethod
@@ -111,20 +121,30 @@ class Parameter(object):
 
     def __init__(self, name='', description='', default=None, getter=None,
                  setter=None, fixed=False, tied=False, min=None, max=None,
-                 model=None):
+                 bounds=None, model=None):
         super(Parameter, self).__init__()
 
         if model is not None and not name:
             raise TypeError('Bound parameters must have a name specified.')
 
         self._name = name
-        self.__doc__ = description.strip()
+        self.__doc__ = self._description = description.strip()
         self._default = default
 
-        self._default_fixed = fixed
-        self._default_tied = tied
-        self._default_min = min
-        self._default_max = max
+        # NOTE: These are *default* constraints--on model instances constraints
+        # are taken from the model if set, otherwise the defaults set here are
+        # used
+        if bounds is not None:
+            if min is not None or max is not None:
+                raise ValueError(
+                    'bounds may not be specified simulatenously with min or '
+                    'or max when instantiating Parameter {0}'.format(name))
+        else:
+            bounds = (min, max)
+
+        self._fixed = fixed
+        self._tied = tied
+        self._bounds = bounds
 
         self._order = None
         self._shape = None
@@ -160,9 +180,8 @@ class Parameter(object):
 
         return self.__class__(self._name, default=self._default,
                               getter=self._getter, setter=self._setter,
-                              fixed=self._default_fixed,
-                              tied=self._default_tied, min=self._default_min,
-                              max=self._default_max, model=obj)
+                              fixed=self._fixed, tied=self._tied,
+                              bounds=self._bounds, model=obj)
 
     def __set__(self, obj, value):
         value, shape = self._validate_value(obj, value)
@@ -213,11 +232,21 @@ class Parameter(object):
                     "dimension {2}".format(key, self.name, n_models))
 
     def __repr__(self):
+        args = "'{0}'".format(self._name)
         if self._model is None:
-            return "Parameter('{0}')".format(self._name)
+            if self._default is not None:
+                args += ', default={0}'.format(self._default)
         else:
-            return "Parameter('{0}', value={1})".format(
-                self._name, self.value)
+            args += ', value={0}'.format(self.value)
+
+        for cons in self.constraints:
+            val = getattr(self, cons)
+            if val not in (None, False, (None, None)):
+                # Maybe non-obvious, but False is the default for the fixed and
+                # tied constraints
+                args += ', {0}={1}'.format(cons, val)
+
+        return "Parameter({0})".format(args)
 
     @property
     def name(self):
@@ -298,9 +327,9 @@ class Parameter(object):
 
         if self._model is not None:
             fixed = self._model._constraints['fixed']
-            return fixed.get(self._name, self._default_fixed)
+            return fixed.get(self._name, self._fixed)
         else:
-            return self._default_fixed
+            return self._fixed
 
     @fixed.setter
     def fixed(self, value):
@@ -323,9 +352,9 @@ class Parameter(object):
 
         if self._model is not None:
             tied = self._model._constraints['tied']
-            return tied.get(self._name, self._default_tied)
+            return tied.get(self._name, self._tied)
         else:
-            return self._default_tied
+            return self._tied
 
     @tied.setter
     def tied(self, value):
@@ -345,10 +374,9 @@ class Parameter(object):
 
         if self._model is not None:
             bounds = self._model._constraints['bounds']
-            default_bounds = (self._default_min, self._default_max)
-            return bounds.get(self._name, default_bounds)
+            return bounds.get(self._name, self._bounds)
         else:
-            return (self._default_min, self._default_max)
+            return self._bounds
 
     @bounds.setter
     def bounds(self, value):
@@ -404,6 +432,56 @@ class Parameter(object):
             raise AttributeError("can't set attribute 'max' on Parameter "
                                  "definition")
 
+    def copy(self, name=None, description=None, default=None, getter=None,
+             setter=None, fixed=False, tied=False, min=None, max=None,
+             bounds=None):
+        """
+        Make a copy of this `Parameter`, overriding any of its core attributes
+        in the process (or an exact copy).
+
+        The arguments to this method are the same as those for the `Parameter`
+        initializer.  This simply returns a new `Parameter` instance with any
+        or all of the attributes overridden, and so returns the equivalent of:
+
+        .. code:: python
+
+            Parameter(self.name, self.description, ...)
+
+        """
+
+        kwargs = locals().copy()
+        del kwargs['self']
+
+        for key, value in six.iteritems(kwargs):
+            if value is None:
+                # Annoying special cases for min/max where are just aliases for
+                # the components of bounds
+                if key in ('min', 'max'):
+                    continue
+                else:
+                    if hasattr(self, key):
+                        value = getattr(self, key)
+                    elif hasattr(self, '_' + key):
+                        value = getattr(self, '_' + key)
+                kwargs[key] = value
+
+        return self.__class__(**kwargs)
+
+    @property
+    def _raw_value(self):
+        """
+        Currently for internal use only.
+
+        Like Parameter.value but does not pass the result through
+        Parameter.getter.  By design this should only be used from bound
+        parameters.
+
+        This will probably be removed are retweaked at some point in the
+        process of rethinking how parameter values are stored/updated.
+        """
+
+        return self._get_model_value(self._model)
+
     @classmethod
     def _get_nextid(cls):
         """Returns a monotonically increasing ID used to order Parameter
@@ -434,7 +512,8 @@ class Parameter(object):
 
         # Use the _param_metrics to extract the parameter value from the
         # _parameters array
-        param_slice, param_shape = model._param_metrics[self._name]
+        param_slice = model._param_metrics[self._name]['slice']
+        param_shape = model._param_metrics[self._name]['shape']
         value = model._parameters[param_slice]
         if param_shape:
             value = value.reshape(param_shape)
@@ -453,7 +532,8 @@ class Parameter(object):
         """
 
         # TODO: Maybe handle exception on invalid input shape
-        param_slice, param_shape = model._param_metrics[self._name]
+        param_slice = model._param_metrics[self._name]['slice']
+        param_shape = model._param_metrics[self._name]['shape']
         param_size = np.prod(param_shape)
 
         if np.size(value) != param_size:

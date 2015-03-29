@@ -4,13 +4,13 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from .. import units as u
-from .. import erfa
+from .. import _erfa as erfa
 from ..utils import OrderedDict
 from . import Longitude, Latitude
 
 try:
     # Not guaranteed available at setup time.
-    from .. import erfa
+    from .. import _erfa as erfa
 except ImportError:
     if not _ASTROPY_SETUP_:
         raise
@@ -139,7 +139,7 @@ class EarthLocation(u.Quantity):
             Height above reference ellipsoid (if float, in meters; default: 0).
         ellipsoid : str, optional
             Name of the reference ellipsoid to use (default: 'WGS84').
-            Available ellipoids are:  'WGS84', 'GRS80', 'WGS72'.
+            Available ellipsoids are:  'WGS84', 'GRS80', 'WGS72'.
 
         Raises
         ------
@@ -236,7 +236,7 @@ class EarthLocation(u.Quantity):
         """Height of the location, for the default ellipsoid."""
         return self.geodetic[2]
 
-    # mostly for symmetry with geodedic and to_geodetic.
+    # mostly for symmetry with geodetic and to_geodetic.
     @property
     def geocentric(self):
         """Convert to a tuple with X, Y, and Z as quantities"""

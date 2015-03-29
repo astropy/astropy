@@ -101,19 +101,22 @@ class AsymmetricPercentileInterval(BaseInterval):
     def get_limits(self, values):
 
         # Make sure values is a Numpy array
-        values = np.asarray(values)
+        values = np.asarray(values).ravel()
 
         # If needed, limit the number of samples. We sample with replacement
         # since this is much faster.
         if self.n_samples is not None and values.size > self.n_samples:
-            values = np.random.choice(values, self.n_samples)
+            try:
+                values = np.random.choice(values, self.n_samples)
+            except AttributeError:  # Numpy 1.6.x
+                values = values[np.random.randint(0, values.size, self.n_samples)]
 
         # Filter out invalid values (inf, nan)
         values = values[np.isfinite(values)]
 
         # Determine values at percentiles
-        vmin = np.percentile(values, self.lower_percentile)
-        vmax = np.percentile(values, self.upper_percentile)
+        vmin, vmax = np.percentile(values, (self.lower_percentile,
+                                            self.upper_percentile))
 
         return vmin, vmax
 

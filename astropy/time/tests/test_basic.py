@@ -6,12 +6,13 @@ import copy
 import functools
 import sys
 
-from datetime import datetime
+from datetime import datetime, tzinfo, timedelta
 
 import numpy as np
 
-from ...tests.helper import pytest
-from .. import Time, ScaleValueError, erfa_time, TIME_SCALES
+from ...tests.helper import pytest, catch_warnings
+from ...extern import six
+from .. import Time, ScaleValueError, erfa_time, TIME_SCALES, TimeString
 from ...coordinates import EarthLocation
 
 
@@ -156,20 +157,24 @@ class TestBasic():
         assert np.all(t7[:, 2]._time.jd2 == t7._time.jd2[:, 2])
         assert np.all(t7[:, 0]._time.jd1 == t._time.jd1)
         assert np.all(t7[:, 0]._time.jd2 == t._time.jd2)
-
+        # Finally check empty array.
+        t8 = t[:0]
+        assert t8.isscalar is False
+        assert t8.shape == (0,)
+        assert t8.size == 0
 
     def test_properties(self):
         """Use properties to convert scales and formats.  Note that the UT1 to
         UTC transformation requires a supplementary value (``delta_ut1_utc``)
         that can be obtained by interpolating from a table supplied by IERS.
-        This will be included in the package later."""
+        This is tested separately."""
 
         t = Time('2010-01-01 00:00:00', format='iso', scale='utc')
         t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
         assert allclose_jd(t.jd, 2455197.5)
         assert t.iso == '2010-01-01 00:00:00.000'
         assert t.tt.iso == '2010-01-01 00:01:06.184'
-        assert t.tai.iso == '2010-01-01 00:00:34.000'
+        assert t.tai.fits == '2010-01-01T00:00:34.000(TAI)'
         assert allclose_jd(t.utc.jd, 2455197.5)
         assert allclose_jd(t.ut1.jd, 2455197.500003867)
         assert t.tcg.isot == '2010-01-01T00:01:06.910'
@@ -300,6 +305,7 @@ class TestBasic():
 
     def test_creating_all_formats(self):
         """Create a time object using each defined format"""
+        Time(2000.5, format='decimalyear')
         Time(100.0, format='cxcsec')
         Time(100.0, format='unix')
         Time(100.0, format='gps')
@@ -311,6 +317,9 @@ class TestBasic():
         Time('2000-01-01 12:23:34.0Z', format='iso', scale='utc')
         Time('2000-01-01T12:23:34.0', format='isot', scale='tai')
         Time('2000-01-01T12:23:34.0Z', format='isot', scale='utc')
+        Time('2000-01-01T12:23:34.0', format='fits')
+        Time('2000-01-01T12:23:34.0', format='fits', scale='tdb')
+        Time('2000-01-01T12:23:34.0(TDB)', format='fits')
         Time(2400000.5, 51544.0333981, format='jd', scale='tai')
         Time(0.0, 51544.0333981, format='mjd', scale='tai')
         Time('2000:001:12:23:34.0', format='yday', scale='tai')
@@ -380,6 +389,15 @@ class TestBasic():
             Time(50000.0, 'bad', format='mjd', scale='tai')
         with pytest.raises(ValueError):
             Time('2005-08-04T00:01:02.000Z', scale='tai')
+        # regression test against #3396
+        with pytest.raises(ValueError):
+            Time(np.nan, format='jd', scale='utc')
+        with pytest.raises(ValueError):
+            Time('2000-01-02T03:04:05(TAI)', scale='utc')
+        with pytest.raises(ValueError):
+            Time('2000-01-02T03:04:05(TAI')
+        with pytest.raises(ValueError):
+            Time('2000-01-02T03:04:05(UT(NIST)')
 
     def test_utc_leap_sec(self):
         """Time behaves properly near or in UTC leap second.  This
@@ -516,6 +534,32 @@ class TestSubFormat():
                                          '2000-01-01 01:01',
                                          '2000-01-01 01:01']))
 
+    def test_fits_format(self):
+        """FITS format includes bigger years."""
+        # Heterogeneous input formats with in_subfmt='*' (default)
+        times = ['2000-01-01', '2000-01-01T01:01:01', '2000-01-01T01:01:01.123']
+        t = Time(times, format='fits', scale='tai')
+        assert np.all(t.fits == np.array(['2000-01-01T00:00:00.000(TAI)',
+                                          '2000-01-01T01:01:01.000(TAI)',
+                                          '2000-01-01T01:01:01.123(TAI)']))
+        # Explicit long format for output, default scale is UTC.
+        t2 = Time(times, format='fits', out_subfmt='long*')
+        assert np.all(t2.fits == np.array(['+02000-01-01T00:00:00.000(UTC)',
+                                           '+02000-01-01T01:01:01.000(UTC)',
+                                           '+02000-01-01T01:01:01.123(UTC)']))
+        # Implicit long format for output, because of negative year.
+        times[2] = '-00594-01-01'
+        t3 = Time(times, format='fits', scale='tai')
+        assert np.all(t3.fits == np.array(['+02000-01-01T00:00:00.000(TAI)',
+                                           '+02000-01-01T01:01:01.000(TAI)',
+                                           '-00594-01-01T00:00:00.000(TAI)']))
+        # Implicit long format for output, because of large positive year.
+        times[2] = '+10594-01-01'
+        t4 = Time(times, format='fits', scale='tai')
+        assert np.all(t4.fits == np.array(['+02000-01-01T00:00:00.000(TAI)',
+                                           '+02000-01-01T01:01:01.000(TAI)',
+                                           '+10594-01-01T00:00:00.000(TAI)']))
+
     def test_yday_format(self):
         """Year:Day_of_year format"""
         # Heterogeneous input formats with in_subfmt='*' (default)
@@ -546,6 +590,24 @@ class TestSubFormat():
         # Check that bad scale is caught when format is auto-determined
         with pytest.raises(ScaleValueError):
             Time('2000:001:00:00:00', scale='bad scale')
+
+    def test_fits_scale(self):
+        """Test that scale gets interpreted correctly for FITS strings."""
+        t = Time('2000-01-02(TAI)')
+        assert t.scale == 'tai'
+        # Test deprecated scale.
+        t = Time('2000-01-02(IAT)')
+        assert t.scale == 'tai'
+        # Check that inconsistent scales lead to errors.
+        with pytest.raises(ValueError):
+            Time('2000-01-02(TAI)', scale='utc')
+        with pytest.raises(ValueError):
+            Time(['2000-01-02(TAI)', '2001-02-03(UTC)'])
+
+    def test_fits_scale_representation(self):
+        t = Time('1960-01-02T03:04:05.678(ET(NIST))')
+        assert t.scale == 'tt'
+        assert t.value == '1960-01-02T03:04:05.678(ET(NIST))'
 
     def test_scale_default(self):
         """Test behavior when no scale is provided"""
@@ -601,30 +663,30 @@ class TestSubFormat():
         t = Time('2004-09-16T23:59:59', scale='utc')
         assert allclose_sec(t.unix, 1095379199.0)
 
-# this test fails because it uses the  erfa_time.pyx cal2jd, which doesn't raise
-# an error on a "bad day".  Can just eliminate the test if we don't care about
-# this anymore
-@pytest.mark.xfail
+
 class TestSofaErrors():
-    """Test that erfa_time.pyx handles erfa status return values correctly"""
+    """Test that erfa status return values are handled correctly"""
 
     def test_bad_time(self):
         iy = np.array([2000], dtype=np.intc)
         im = np.array([2000], dtype=np.intc)  # bad month
         id = np.array([2000], dtype=np.intc)  # bad day
-        djm0 = np.array([0], dtype=np.double)
-        djm = np.array([0], dtype=np.double)
         with pytest.raises(ValueError):  # bad month, fatal error
-            djm0, djm= erfa_time.cal2jd(iy, im, id)
+            djm0, djm = erfa_time.cal2jd(iy, im, id)
 
-        # Set month to a good value so now the bad day just gives a warning
+        iy[0] = -5000
         im[0] = 2
-        djm0, djm = erfa_time.cal2jd(iy, im, id)
+        with pytest.raises(ValueError):  # bad year, fatal error
+            djm0, djm = erfa_time.cal2jd(iy, im, id)
+
+        iy[0] = 2000
+        with catch_warnings() as w:
+            djm0, djm = erfa_time.cal2jd(iy, im, id)
+        assert len(w) == 1
+        assert 'bad day    (JD computed)' in six.text_type(w[0].message)
+
         assert allclose_jd(djm0, [2400000.5])
         assert allclose_jd(djm, [53574.])
-
-        # How do you test for warnings in pytest?  Test that dubious year for
-        # UTC works.
 
 
 class TestCopyReplicate():
@@ -722,9 +784,69 @@ def test_now():
     assert total_secs(dt) < 0.1
 
 
+def test_decimalyear():
+    t = Time('2001:001', format='yday')
+    assert t.decimalyear == 2001.0
+
+    t = Time(2000.0, [0.5, 0.75], format='decimalyear')
+    assert np.all(t.value == [2000.5, 2000.75])
+
+    jd0 = Time('2000:001').jd
+    jd1 = Time('2001:001').jd
+    d_jd = jd1 - jd0
+    assert np.all(t.jd == [jd0 + 0.5 * d_jd,
+                           jd0 + 0.75 * d_jd])
+
+
+def test_fits_year0():
+    t = Time(1721425.5, format='jd')
+    assert t.fits == '0001-01-01T00:00:00.000(UTC)'
+    t = Time(1721425.5 - 366., format='jd')
+    assert t.fits == '+00000-01-01T00:00:00.000(UTC)'
+    t = Time(1721425.5 - 366. - 365., format='jd')
+    assert t.fits == '-00001-01-01T00:00:00.000(UTC)'
+
+
+def test_fits_year10000():
+    t = Time(5373484.5, format='jd', scale='tai')
+    assert t.fits == '+10000-01-01T00:00:00.000(TAI)'
+    t = Time(5373484.5 - 365., format='jd', scale='tai')
+    assert t.fits == '9999-01-01T00:00:00.000(TAI)'
+    t = Time(5373484.5, -1./24./3600., format='jd', scale='tai')
+    assert t.fits == '9999-12-31T23:59:59.000(TAI)'
+
+
 def test_dir():
     t = Time('2000:001', format='yday', scale='tai')
     assert 'utc' in dir(t)
+
+
+def test_bool():
+    """Any Time object should evaluate to True unless it is empty [#3520]."""
+    t = Time(np.arange(50000, 50010), format='mjd', scale='utc')
+    assert bool(t) is True
+    assert bool(t[0]) is True
+    assert bool(t[:0]) is False
+
+
+def test_len_size():
+    """Check length of Time objects and that scalar ones do not have one."""
+    t = Time(np.arange(50000, 50010), format='mjd', scale='utc')
+    assert len(t) == 10 and t.size == 10
+    t1 = Time(np.arange(50000, 50010).reshape(2, 5), format='mjd', scale='utc')
+    assert len(t1) == 2 and t1.size == 10
+    # Can have length 1 or length 0 arrays.
+    t2 = t[:1]
+    assert len(t2) == 1 and t2.size == 1
+    t3 = t[:0]
+    assert len(t3) == 0 and t3.size == 0
+    # But cannot get length from scalar.
+    t4 = t[0]
+    with pytest.raises(TypeError) as err:
+        len(t4)
+    # Ensure we're not just getting the old error of
+    # "object of type 'float' has no len()".
+    assert 'Time' in str(err)
 
 
 def test_TimeFormat_scale():
@@ -750,3 +872,29 @@ def test_byteorder():
     time_little = Time(little_endian, format='mjd')
     assert np.all(time_big == time_mjd)
     assert np.all(time_little == time_mjd)
+
+
+def test_datetime_tzinfo():
+    """
+    Test #3160 that time zone info in datetime objects is respected.
+    """
+    class TZm6(tzinfo):
+        def utcoffset(self, dt):
+            return timedelta(hours=-6)
+
+    d = datetime(2002, 1, 2, 10, 3, 4, tzinfo=TZm6())
+    t = Time(d)
+    assert t.value == datetime(2002, 1, 2, 16, 3, 4)
+
+def test_subfmts_regex():
+    """
+    Test having a custom subfmts with a regular expression
+    """
+    class TimeLongYear(TimeString):
+        name = 'longyear'
+        subfmts = (('date',
+                    r'(?P<year>[+-]\d{5})-%m-%d',  # hybrid
+                    '{year:+06d}-{mon:02d}-{day:02d}'),)
+    t = Time('+02000-02-03', format='longyear')
+    assert t.value == '+02000-02-03'
+    assert t.jd == Time('2000-02-03').jd

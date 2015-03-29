@@ -78,8 +78,14 @@ TT.  This uses the same attribute mechanism as above but now returns a new
   array([ 2451179.5007443 ,  2455197.50076602])
 
 Note that both the ISO (ISOT) and JD representations of ``t2`` are different
-than for ``t`` because they are expressed relative to the TT time scale.
+than for ``t`` because they are expressed relative to the TT time scale.  Of
+course, from the numbers or strings one could not tell; one format in which
+this information is kept is the ``fits`` format::
 
+  >>> t2.fits
+  array(['1999-01-01T00:01:04.307(TT)', '2010-01-01T00:01:06.184(TT)'],
+        dtype='|S27')
+  
 Finally, some further examples of what is possible.  For details, see
 the API documentation below.
 
@@ -133,47 +139,64 @@ that derives from the base :class:`~astropy.time.TimeFormat` class.
 This class structure can be easily adapted and extended by users for
 specialized time formats not supplied in `astropy.time`.
 
-=========  =================================================  ==============================
-Format            Class                                        Example argument
-=========  =================================================  ==============================
-byear      :class:`~astropy.time.TimeBesselianEpoch`          1950.0
-byear_str  :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
-cxcsec     :class:`~astropy.time.TimeCxcSec`                  63072064.184
-datetime   :class:`~astropy.time.TimeDatetime`                datetime(2000, 1, 2, 12, 0, 0)
-gps        :class:`~astropy.time.TimeGPS`                     630720013.0
-iso        :class:`~astropy.time.TimeISO`                     '2000-01-01 00:00:00.000'
-isot       :class:`~astropy.time.TimeISOT`                    '2000-01-01T00:00:00.000'
-jd         :class:`~astropy.time.TimeJD`                      2451544.5
-jyear      :class:`~astropy.time.TimeJulianEpoch`             2000.0
-jyear_str  :class:`~astropy.time.TimeJulianEpochString`       'J2000.0'
-mjd        :class:`~astropy.time.TimeMJD`                     51544.0
-plot_date  :class:`~astropy.time.TimePlotDate`                730120.0003703703
-unix       :class:`~astropy.time.TimeUnix`                    946684800.0
-yday       :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
-=========  =================================================  ==============================
+===========  =================================================  ==============================
+Format            Class                                         Example argument
+===========  =================================================  ==============================
+byear        :class:`~astropy.time.TimeBesselianEpoch`          1950.0
+byear_str    :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
+cxcsec       :class:`~astropy.time.TimeCxcSec`                  63072064.184
+datetime     :class:`~astropy.time.TimeDatetime`                datetime(2000, 1, 2, 12, 0, 0)
+decimalyear  :class:`~astropy.time.TimeDecimalYear`             2000.45
+fits         :class:`~astropy.time.TimeFITS`                    '2000-01-01T00:00:00.000(TAI)'
+gps          :class:`~astropy.time.TimeGPS`                     630720013.0
+iso          :class:`~astropy.time.TimeISO`                     '2000-01-01 00:00:00.000'
+isot         :class:`~astropy.time.TimeISOT`                    '2000-01-01T00:00:00.000'
+jd           :class:`~astropy.time.TimeJD`                      2451544.5
+jyear        :class:`~astropy.time.TimeJulianEpoch`             2000.0
+jyear_str    :class:`~astropy.time.TimeJulianEpochString`       'J2000.0'
+mjd          :class:`~astropy.time.TimeMJD`                     51544.0
+plot_date    :class:`~astropy.time.TimePlotDate`                730120.0003703703
+unix         :class:`~astropy.time.TimeUnix`                    946684800.0
+yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
+===========  =================================================  ==============================
 
+.. note:: The :class:`~astropy.time.TimeFITS` format allows for most
+   but not all of the the FITS standard [#]_. Not implemented (yet) is
+   support for a ``LOCAL`` timescale. Furthermore, FITS supports some deprecated
+   names for timescales; these are translated to the formal names upon
+   initialization.  Furthermore, any specific realization information,
+   such as ``UT(NIST)`` is stored only as long as the time scale is not changed.
+.. [#] `Rots et al. 2015, A&A 574:A36 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
+	  
 Subformat
 """""""""
 
 The time format classes :class:`~astropy.time.TimeISO`,
-:class:`~astropy.time.TimeISOT`, and
+:class:`~astropy.time.TimeISOT`, :class:`~astropy.time.TimeFITS`, and
 :class:`~astropy.time.TimeYearDayTime` support the concept of
 subformats.  This allows for variations on the basic theme of a format in both
 the input string parsing and the output.
 
-The supported subformats are ``date_hms``, ``date_hm``, and ``date``.  The
-table below illustrates these subformats for ``iso`` and ``yday`` formats:
+The supported subformats are ``date_hms``, ``date_hm``, and ``date``
+for all but the :class:`~astropy.time.TimeFITS` format; the latter
+does not support ``data_hm`` but does support ``longdate_hms`` and
+``longdate`` for years before the year 0 and after the year 10000.  The
+table below illustrates these subformats for ``iso``, ``fits``, ``yday``
+formats:
 
-=========  ========== ===========================
-Format     Subformat  Input / output
-=========  ========== ===========================
-``iso``    date_hms   2001-01-02 03:04:05.678
-``iso``    date_hm    2001-01-02 03:04
-``iso``    date       2001-01-02
-``yday``   date_hms   2001:032:03:04:05.678
-``yday``   date_hm    2001:032:03:04
-``yday``   date       2001:032
-=========  ========== ===========================
+========  ============ ==============================
+Format    Subformat    Input / output
+========  ============ ==============================
+``iso``   date_hms     2001-01-02 03:04:05.678
+``iso``   date_hm      2001-01-02 03:04
+``iso``   date         2001-01-02
+``fits``  date_hms     2001-01-02T03:04:05.678(UTC)
+``fits``  longdate_hms +02001-01-02T03:04:05.678(UTC)
+``fits``  longdate     +02001-01-02(UTC)
+``yday``  date_hms     2001:032:03:04:05.678
+``yday``  date_hm      2001:032:03:04
+``yday``  date         2001:032
+========  ============ ==============================
 
 Time from epoch formats
 """""""""""""""""""""""
@@ -585,7 +608,7 @@ predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
 
   >>> from astropy.utils.iers import IERS_A, IERS_A_URL
   >>> from astropy.utils.data import download_file
-  >>> iers_a_file = download_file(IERS_A_URL, cache=True))  # doctest: +SKIP
+  >>> iers_a_file = download_file(IERS_A_URL, cache=True)  # doctest: +SKIP
   >>> iers_a = IERS_A.open(iers_a_file)                     # doctest: +SKIP
   >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)         # doctest: +SKIP
 

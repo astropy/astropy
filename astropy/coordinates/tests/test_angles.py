@@ -15,6 +15,7 @@ from ..angles import Longitude, Latitude, Angle
 from ...tests.helper import pytest
 from ... import units as u
 from ..errors import IllegalSecondError, IllegalMinuteError, IllegalHourError
+from ...utils.compat import NUMPY_LT_1_7
 
 
 def test_create_angles():
@@ -295,7 +296,6 @@ def test_angle_formatting():
     res = 'Angle as rad decimal: 0.0629763'
     assert "Angle as rad decimal: {0}".format(angle.to_string(unit=u.radian, decimal=True)) == res
 
-
     # check negative angles
 
     angle = Angle(-1.23456789, unit=u.degree)
@@ -306,6 +306,14 @@ def test_angle_formatting():
     assert angle.to_string(unit=u.hour) == '-0h04m56.2963s'
     assert angle2.to_string(unit=u.hour, pad=True) == '-01h14m04.4444s'
     assert angle.to_string(unit=u.radian, decimal=True) == '-0.0215473'
+
+
+def test_to_string_vector():
+    # Regression test for the fact that vectorize doesn't work with Numpy 1.6
+    assert Angle([1./7., 1./7.], unit='deg').to_string()[0] == "0d08m34.2857s"
+    assert Angle([1./7.], unit='deg').to_string()[0] == "0d08m34.2857s"
+    assert Angle(1./7., unit='deg').to_string() == "0d08m34.2857s"
+
 
 def test_angle_format_roundtripping():
     """
@@ -833,3 +841,45 @@ def test_array_angle_tostring():
     aobj = Angle([1, 2], u.deg)
     assert aobj.to_string().dtype.kind == 'U'
     assert np.all(aobj.to_string() == ['1d00m00s', '2d00m00s'])
+
+def test_wrap_at_without_new():
+    """
+    Regression test for subtle bugs from situations where an Angle is
+    created via numpy channels that don't do the standard __new__ but instead
+    depend on array_finalize to set state.  Longitude is used because the
+    bug was in its _wrap_angle not getting initialized correctly
+    """
+    l1 = Longitude([1]*u.deg)
+    l2 = Longitude([2]*u.deg)
+
+    l = np.concatenate([l1, l2])
+    assert l._wrap_angle is not None
+
+
+def test_repr_latex():
+    """
+    Check the _repr_latex_ method, used primarily by IPython notebooks
+    """
+
+    # try with both scalar
+    scangle = Angle(2.1, u.deg)
+    rlscangle = scangle._repr_latex_()
+
+    # and array angles
+    arrangle = Angle([1, 2.1], u.deg)
+    rlarrangle = arrangle._repr_latex_()
+
+    if NUMPY_LT_1_7:
+        # numpy 1.6 gives weird latex output for unclear reasons.  We don't care
+        # that much though, so just xfail after making sure it isn't
+        # over-backslashing
+        assert '\\\\' not in rlscangle
+        assert '\\\\' not in rlarrangle
+        pytest.xfail('numpy 1.6 does not give correct to_string latex output')
+
+    assert rlscangle == '$2^\circ06{}^\prime00{}^{\prime\prime}$'
+    assert rlscangle.split('$')[1] in rlarrangle
+
+    # make sure the ... appears for large arrays
+    bigarrangle = Angle(np.ones(50000)/50000., u.deg)
+    assert '...' in bigarrangle._repr_latex_()

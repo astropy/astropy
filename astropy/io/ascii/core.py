@@ -25,6 +25,7 @@ from ...extern.six.moves import cStringIO as StringIO
 from ...utils.exceptions import AstropyWarning
 
 from ...table import Table
+from ...table.column import col_getattr, col_setattr, col_iter_str_vals
 from ...utils.compat import ignored
 from ...utils.data import get_readable_fileobj
 from ...utils import OrderedDict
@@ -110,6 +111,12 @@ class FloatType(NumType):
     """
 
 
+class BoolType(NoType):
+    """
+    Describes boolean data.
+    """
+
+
 class IntType(NumType):
     """
     Describes integer data.
@@ -132,31 +139,43 @@ class Column(object):
 
     * **name** : column name
     * **type** : column type (NoType, StrType, NumType, FloatType, IntType)
+    * **dtype** : numpy dtype (optional, overrides **type** if set)
     * **str_vals** : list of column values as strings
     * **data** : list of converted column values
     """
     def __init__(self, name):
         self.name = name
-        self.type = NoType
+        self.type = NoType  # Generic type (Int, Float, Str etc)
+        self.dtype = None  # Numpy dtype if available
         self.str_vals = []
         self.fill_values = {}
 
 
 class BaseInputter(object):
     """
-    Get the lines from the table input and return a list of lines.  The input
-    table can be one of:
+    Get the lines from the table input and return a list of lines.
 
-    * File name
-    * String (newline separated) with all header and data lines (must have at least 2 lines)
-    * File-like object with read() method
-    * List of strings
     """
     def get_lines(self, table):
-        """Get the lines from the ``table`` input.
+        """
+        Get the lines from the ``table`` input. The input table can be one of:
 
-        :param table: table input
-        :returns: list of lines
+        * File name
+        * String (newline separated) with all header and data lines (must have at least 2 lines)
+        * File-like object with read() method
+        * List of strings
+
+        Parameters
+        ----------
+        table : str, file_like, list
+            Can be either a file name, string (newline separated) with all header and data
+            lines (must have at least 2 lines), a file-like object with a ``read()`` method,
+            or a list of strings.
+
+        Returns
+        -------
+        lines : list
+            List of lines
         """
         try:
             if (hasattr(table, 'read') or
@@ -191,7 +210,8 @@ class BaseInputter(object):
 
 
 class BaseSplitter(object):
-    """Base splitter that uses python's split method to do the work.
+    """
+    Base splitter that uses python's split method to do the work.
 
     This does not handle quoted values.  A key feature is the formulation of
     __call__ as a generator that returns a list of the split line values at
@@ -207,9 +227,10 @@ class BaseSplitter(object):
       reader.header.splitter.process_val = lambda x: x.lstrip()
       reader.data.splitter.process_val = None
 
-    :param delimiter: one-character string used to separate fields
     """
+
     delimiter = None
+    """ one-character string used to separate fields """
 
     def process_line(self, line):
         """Remove whitespace at the beginning or end of line.  This is especially useful for
@@ -250,19 +271,19 @@ class DefaultSplitter(BaseSplitter):
           for col_val in col_vals:
                ...
 
-    :param delimiter: one-character string used to separate fields.
-    :param doublequote:  control how instances of *quotechar* in a field are quoted
-    :param escapechar: character to remove special meaning from following character
-    :param quotechar: one-character stringto quote fields containing special characters
-    :param quoting: control when quotes are recognised by the reader
-    :param skipinitialspace: ignore whitespace immediately following the delimiter
     """
     delimiter = ' '
+    """ one-character string used to separate fields. """
     quotechar = '"'
+    """ control how instances of *quotechar* in a field are quoted """
     doublequote = True
+    """ character to remove special meaning from following character """
     escapechar = None
+    """ one-character stringto quote fields containing special characters """
     quoting = csv.QUOTE_MINIMAL
+    """ control when quotes are recognised by the reader """
     skipinitialspace = True
+    """ ignore whitespace immediately following the delimiter """
     csv_writer = None
     csv_writer_out = StringIO()
 
@@ -280,8 +301,15 @@ class DefaultSplitter(BaseSplitter):
         """Return an iterator over the table ``lines``, where each iterator output
         is a list of the split line values.
 
-        :param lines: list of table lines
-        :returns: iterator
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
+        Returns
+        -------
+        lines : iterator
+
         """
         if self.process_line:
             lines = [self.process_line(x) for x in lines]
@@ -367,19 +395,20 @@ def _get_line_index(line_or_func, lines):
 
 
 class BaseHeader(object):
-    """Base table header reader
-
-    :param auto_format: format string for auto-generating column names
-    :param start_line: None, int, or a function of ``lines`` that returns None or int
-    :param comment: regular expression for comment lines
-    :param splitter_class: Splitter class for splitting data lines into columns
-    :param names: list of names corresponding to each data column
+    """
+    Base table header reader
     """
     auto_format = 'col%d'
+    """ format string for auto-generating column names """
     start_line = None
+    """ None, int, or a function of ``lines`` that returns None or int """
     comment = None
+    """ regular expression for comment lines """
     splitter_class = DefaultSplitter
+    """ Splitter class for splitting data lines into columns """
     names = None
+    """ list of names corresponding to each data column """
+    write_comment = False
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
 
     def __init__(self):
@@ -392,8 +421,17 @@ class BaseHeader(object):
         """
         Extract any table-level metadata, e.g. keywords, comments, column metadata, from
         the table ``lines`` and update the OrderedDict ``meta`` in place.  This base
-        method does nothing.
+        method extracts comment lines and stores them in ``meta`` for output.
         """
+        if self.comment:
+            re_comment = re.compile(self.comment)
+            comment_lines = [x for x in lines if re_comment.match(x)]
+        else:
+            comment_lines = []
+        comment_lines = [re.sub('^' + self.comment, '', x).strip()
+                         for x in comment_lines]
+        if comment_lines:
+            meta.setdefault('table', {})['comments'] = comment_lines
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines``.
@@ -401,8 +439,11 @@ class BaseHeader(object):
         Based on the previously set Header attributes find or create the column names.
         Sets ``self.cols`` with the list of Columns.
 
-        :param lines: list of table lines
-        :returns: None
+        Parameters
+        ----------
+        lines : list
+            List of table lines
+
         """
 
         start_line = _get_line_index(self.start_line, self.process_lines(lines))
@@ -437,17 +478,23 @@ class BaseHeader(object):
             if line and (not self.comment or not re_comment.match(line)):
                 yield line
 
+    def write_comments(self, lines, meta):
+        if self.write_comment is not False:
+            for comment in meta.get('comments', []):
+                lines.append(self.write_comment + comment)
+
     def write(self, lines):
         if self.start_line is not None:
             for i, spacer_line in zip(range(self.start_line),
                                       itertools.cycle(self.write_spacer_lines)):
                 lines.append(spacer_line)
-            lines.append(self.splitter.join([x.name for x in self.cols]))
+            lines.append(self.splitter.join([col_getattr(x, 'name') for x in self.cols]))
 
     @property
     def colnames(self):
         """Return the column names of the table"""
-        return tuple(col.name for col in self.cols)
+        return tuple(col.name if isinstance(col, Column) else col_getattr(col, 'name')
+                     for col in self.cols)
 
     def get_type_map_key(self, col):
         return col.raw_type
@@ -461,15 +508,22 @@ class BaseHeader(object):
                 col.raw_type, col.name))
 
     def check_column_names(self, names, strict_names, guessing):
-        """Check column names.
+        """
+        Check column names.
 
         This must be done before applying the names transformation
-        so that guessing will fail appropriately if `names` is supplied.
+        so that guessing will fail appropriately if ``names`` is supplied.
         For instance if the basic reader is given a table with no column header
         row.
 
-        :param names: user-supplied list of column names
-        :param strict_names: whether to impose extra requirements on names
+        Parameters
+        ----------
+        names : list
+            User-supplied list of column names
+        strict_names : bool
+            Whether to impose extra requirements on names
+        guessing : bool
+            True if this method is being called while guessing the table format
         """
         if strict_names:
             # Impose strict requirements on column names (normally used in guessing)
@@ -491,17 +545,17 @@ class BaseHeader(object):
 
 
 class BaseData(object):
-    """Base table data reader.
-
-    :param start_line: None, int, or a function of ``lines`` that returns None or int
-    :param end_line: None, int, or a function of ``lines`` that returns None or int
-    :param comment: Regular expression for comment lines
-    :param splitter_class: Splitter class for splitting data lines into columns
+    """
+    Base table data reader.
     """
     start_line = None
+    """ None, int, or a function of ``lines`` that returns None or int """
     end_line = None
+    """ None, int, or a function of ``lines`` that returns None or int """
     comment = None
+    """ Regular expression for comment lines """
     splitter_class = DefaultSplitter
+    """ Splitter class for splitting data lines into columns """
     write_spacer_lines = ['ASCII_TABLE_WRITE_SPACER_LINE']
     fill_include_names = None
     fill_exclude_names = None
@@ -519,10 +573,19 @@ class BaseData(object):
         self.splitter = self.splitter_class()
 
     def process_lines(self, lines):
-        """Strip out comment lines and blank lines from list of ``lines``
+        """
+        Strip out comment lines and blank lines from list of ``lines``
 
-        :param lines: all lines in table
-        :returns: list of lines
+        Parameters
+        ----------
+        lines : list
+            All lines in table
+
+        Returns
+        -------
+        lines : list
+            List of lines
+
         """
         nonblank_lines = (x for x in lines if x.strip())
         if self.comment:
@@ -625,6 +688,15 @@ class BaseData(object):
                     for i in col.mask.nonzero()[0]:
                         col.str_vals[i] = mask_val
 
+    def str_vals(self):
+        '''convert all values in table to a list of lists of strings'''
+        self._set_fill_values(self.cols)
+        self._set_col_formats()
+        for col in self.cols:
+            col.str_vals = list(col_iter_str_vals(col))
+        self._replace_vals(self.cols)
+        return [col.str_vals for col in self.cols]
+
     def write(self, lines):
         if hasattr(self.start_line, '__call__'):
             raise TypeError('Start_line attribute cannot be callable for write()')
@@ -634,12 +706,7 @@ class BaseData(object):
         while len(lines) < data_start_line:
             lines.append(itertools.cycle(self.write_spacer_lines))
 
-        self._set_fill_values(self.cols)
-        self._set_col_formats()
-        for col in self.cols:
-            col.str_vals = list(col.iter_str_vals())
-        self._replace_vals(self.cols)
-        col_str_iters = [col.str_vals for col in self.cols]
+        col_str_iters = self.str_vals()
         for vals in zip(*col_str_iters):
             lines.append(self.splitter.join(vals))
 
@@ -647,8 +714,8 @@ class BaseData(object):
         """
         """
         for col in self.cols:
-            if col.name in self.formats:
-                col.format = self.formats[col.name]
+            if col_getattr(col, 'name') in self.formats:
+                col_setattr(col, 'format', self.formats[col.name])
 
 
 def convert_numpy(numpy_type):
@@ -667,13 +734,35 @@ def convert_numpy(numpy_type):
         converter_type = IntType
     elif 'float' in type_name:
         converter_type = FloatType
+    elif 'bool' in type_name:
+        converter_type = BoolType
     elif 'str' in type_name:
         converter_type = StrType
     else:
         converter_type = AllType
 
-    def converter(vals):
+    def bool_converter(vals):
+        """
+        Convert values "False" and "True" to bools.  Raise an exception
+        for any other string values.
+        """
+        # Try a smaller subset first for a long array
+        if len(vals) > 10000:
+            svals = numpy.asarray(vals[:1000])
+            if not numpy.all((svals == 'False') | (svals == 'True')):
+                raise ValueError('bool input strings must be only False or True')
+        vals = numpy.asarray(vals)
+        trues = vals == 'True'
+        falses = vals == 'False'
+        if not numpy.all(trues | falses):
+            raise ValueError('bool input strings must be only False or True')
+        return trues
+
+    def generic_converter(vals):
         return numpy.array(vals, numpy_type)
+
+    converter = bool_converter if converter_type is BoolType else generic_converter
+
     return converter, converter_type
 
 
@@ -705,8 +794,14 @@ class BaseOutputter(object):
 
     def _convert_vals(self, cols):
         for col in cols:
-            converters = self.converters.get(col.name,
-                                             self.default_converters)
+            # If a specific dtype was specified for a column, then use that
+            # to set the defaults, otherwise use the generic defaults.
+            default_converters = ([convert_numpy(col.dtype)] if col.dtype
+                                  else self.default_converters)
+
+            # If the user supplied a specific convert then that takes precedence over defaults
+            converters = self.converters.get(col.name, default_converters)
+
             col.converters = self._validate_and_copy(col, converters)
 
             while not hasattr(col, 'data'):
@@ -752,6 +847,8 @@ class TableOutputter(BaseOutputter):
             for attr in ('format', 'unit', 'description'):
                 if hasattr(col, attr):
                     setattr(out_col, attr, getattr(col, attr))
+            if hasattr(col, 'meta'):
+                out_col.meta.update(col.meta)
 
         return out
 
@@ -792,12 +889,20 @@ def _is_number(x):
     return False
 
 def _apply_include_exclude_names(table, names, include_names, exclude_names):
-    """Apply names, include_names and exclude_names to a table.
+    """
+    Apply names, include_names and exclude_names to a table.
 
-    :param table: input table (Reader object, NumPy struct array, list of lists, etc)
-    :param names: list of names to override those in table (default=None uses existing names)
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
+    Parameters
+    ----------
+    table : `~astropy.table.Table`
+        Input table
+    names : list
+        List of names to override those in table (set to None to use existing names)
+    include_names : list
+        List of names to include in output
+    exclude_names: list
+        List of names to exclude from output (applied after ``include_names``)
+
     """
 
     if names is not None:
@@ -877,8 +982,16 @@ class BaseReader(object):
         * String (newline separated) with all header and data lines (must have at least 2 lines)
         * List of strings
 
-        :param table: table input
-        :returns: output table
+        Parameters
+        ----------
+        table : str, file_like, list
+            Input table.
+
+        Returns
+        -------
+        table : `~astropy.table.Table`
+            Output table
+
         """
         # If ``table`` is a file then store the name in the ``data``
         # attribute. The ``table`` is a "file" if it is a string
@@ -929,13 +1042,17 @@ class BaseReader(object):
 
         self.data.masks(cols)
         table = self.outputter(cols, self.meta)
+        if hasattr(self.header, 'table_meta'):
+            table.meta.update(self.header.table_meta)
+        self.cols = self.header.cols
 
         _apply_include_exclude_names(table, self.names, self.include_names, self.exclude_names)
 
         return table
 
     def inconsistent_handler(self, str_vals, ncols):
-        """Adjust or skip data entries if a row is inconsistent with the header.
+        """
+        Adjust or skip data entries if a row is inconsistent with the header.
 
         The default implementation does no adjustment, and hence will always trigger
         an exception in read() any time the number of data entries does not match
@@ -943,10 +1060,17 @@ class BaseReader(object):
 
         Note that this will *not* be called if the row already matches the header.
 
-        :param str_vals: A list of value strings from the current row of the table.
-        :param ncols: The expected number of entries from the table header.
-        :returns:
-            list of strings to be parsed into data entries in the output table. If
+        Parameters
+        ----------
+        str_vals : list
+            A list of value strings from the current row of the table.
+        ncols : int
+            The expected number of entries from the table header.
+
+        Returns
+        -------
+        str_vals : list
+            List of strings to be parsed into data entries in the output table. If
             the length of this list does not match ``ncols``, an exception will be
             raised in read().  Can also be None, in which case the row will be
             skipped.
@@ -958,7 +1082,7 @@ class BaseReader(object):
     def comment_lines(self):
         """Return lines in the table that match header.comment regexp"""
         if not hasattr(self, 'lines'):
-            raise ValueError('Table must be read prior to accessing the header_comment_lines')
+            raise ValueError('Table must be read prior to accessing the header comment lines')
         if self.header.comment:
             re_comment = re.compile(self.header.comment)
             comment_lines = [x for x in self.lines if re_comment.match(x)]
@@ -966,11 +1090,24 @@ class BaseReader(object):
             comment_lines = []
         return comment_lines
 
-    def write(self, table):
-        """Write ``table`` as list of strings.
+    def write_header(self, lines, meta):
+        self.header.write_comments(lines, meta)
+        self.header.write(lines)
 
-        :param table: input table data (astropy.table.Table object)
-        :returns: list of strings corresponding to ASCII table
+    def write(self, table):
+        """
+        Write ``table`` as list of strings.
+
+        Parameters
+        ----------
+        table : `~astropy.table.Table`
+            Input table data.
+
+        Returns
+        -------
+        lines : list
+            List of strings corresponding to ASCII table
+
         """
 
         # Check column names before altering
@@ -984,10 +1121,11 @@ class BaseReader(object):
         # link information about the columns to the writer object (i.e. self)
         self.header.cols = new_cols
         self.data.cols = new_cols
+        self.header.table_meta = table.meta
 
         # Write header and data to lines list
         lines = []
-        self.header.write(lines)
+        self.write_header(lines, table.meta)
         self.data.write(lines)
 
         return lines

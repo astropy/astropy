@@ -30,7 +30,7 @@ Validation report for /tmp/astropy-test-D69Wr6/lib.linux-x86_64-2.7/astropy/io/v
   ^
 
 29: W26: 'INFO' inside 'TABLE' added in VOTable 1.2
-<INFO name="Error" value="One might expect to find some INFO here, ...
+<INFO name="Error" ID="ErrorInfo" value="One might expect to find s...
 ^
 
 33: W01: Array uses commas rather than whitespace

@@ -26,7 +26,7 @@ _ns = globals()
 ###########################################################################
 # LENGTH
 
-def_unit((['AU', 'au'], []), _si.au.value * si.m, namespace=_ns, prefixes=True,
+def_unit((['AU', 'au'], ['astronomical_unit']), _si.au.value * si.m, namespace=_ns, prefixes=True,
          doc="astronomical unit: approximately the mean Earth--Sun "
          "distance.")
 

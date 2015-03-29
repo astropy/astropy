@@ -600,6 +600,9 @@ naxis kwarg.
         Parameters
         ----------
         header : `~astropy.io.fits.Header` object, optional
+            Used to get ``NAXIS1`` and ``NAXIS2``
+            header and axes are mutually exclusive, alternative ways
+            to provide the same information.
 
         undistort : bool, optional
             If `True`, take SIP and distortion lookup table into
@@ -636,7 +639,8 @@ naxis kwarg.
                 naxis2 = header.get('NAXIS2', None)
 
         if naxis1 is None or naxis2 is None:
-            return None
+            raise ValueError(
+                    "Image size could not be determined.")
 
         if center == True:
             corners = np.array([[1, 1],
@@ -1535,7 +1539,7 @@ naxis kwarg.
 
                 # Check for divergence (we do this in two stages
                 # to optimize performance for the most common
-                # scenario when succesive approximations converge):
+                # scenario when successive approximations converge):
                 if detect_divergence:
                     divergent = (dn >= dnprev)
                     if np.any(divergent):
@@ -2753,7 +2757,7 @@ naxis kwarg.
             pc = np.matrix(self.wcs.get_pc())
         except InconsistentAxisTypesError:
             try:
-                # for non-celestial axes, get_cdelt doesnt work
+                # for non-celestial axes, get_cdelt doesn't work
                 cdelt = np.matrix(self.wcs.cd) * np.matrix(np.diag(self.wcs.cdelt))
             except AttributeError:
                 cdelt = np.matrix(np.diag(self.wcs.cdelt))

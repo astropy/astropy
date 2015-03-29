@@ -1733,9 +1733,7 @@ PyWcsprm_sub(
   PyObject*  py_axes        = NULL;
   PyWcsprm*  py_dest_wcs    = NULL;
   PyObject*  element        = NULL;
-  #if PY3K
   PyObject*  element_utf8   = NULL;
-  #endif
   char*      element_str    = NULL;
   int        element_val    = 0;
   int        nsub           = 0;
@@ -1770,19 +1768,19 @@ PyWcsprm_sub(
         goto exit;
       }
 
-      #if PY3K
-      if (PyUnicode_Check(element)) {
-        element_utf8 = PyUnicode_AsUTF8String(element);
-        if (element_utf8 == NULL) {
-          goto exit;
+      if (PyUnicode_Check(element) || PyBytes_Check(element)) {
+        if (PyUnicode_Check(element)) {
+          element_utf8 = PyUnicode_AsUTF8String(element);
+          if (element_utf8 == NULL) {
+            goto exit;
+          }
+
+          element_str = PyBytes_AsString(element_utf8);
+          Py_DECREF(element_utf8); element_utf8 = NULL;
+        } else if (PyBytes_Check(element)) {
+          element_str = PyBytes_AsString(element);
         }
-        element_str = PyBytes_AsString(element_utf8);
-        Py_DECREF(element_utf8); element_utf8 = NULL;
-      #else
-      if (PyString_Check(element)) {
-        /* Doesn't return NULL, because we already known it's a string */
-        element_str = PyString_AsString(element);
-      #endif
+
         if (strncmp(element_str, "longitude", 10) == 0) {
           element_val = WCSSUB_LONGITUDE;
         } else if (strncmp(element_str, "latitude", 9) == 0) {
@@ -3451,10 +3449,6 @@ _setup_wcsprm_type(
 
   wcsprintf_set(NULL);
   wcserr_enable(1);
-
-  if (PyModule_AddStringConstant(m, "__version__", XSTRINGIFY(WCSLIB_VERSION))) {
-      return -1;
-  }
 
   return (
     PyModule_AddObject(m, "Wcsprm", (PyObject *)&PyWcsprmType) ||

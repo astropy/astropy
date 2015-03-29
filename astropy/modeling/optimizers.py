@@ -135,8 +135,7 @@ class SLSQP(Optimization):
             other keyword arguments to be passed to the solver
 
         """
-        if 'maxiter' not in kwargs:
-            kwargs['iter'] = self._maxiter
+        kwargs['iter'] = kwargs.pop('maxiter', self._maxiter)
 
         if 'epsilon' not in kwargs:
             kwargs['epsilon'] = self._eps

@@ -67,9 +67,15 @@ def _resize(masked, new_size):
     """
     new_array = ma.zeros((new_size,), dtype=masked.dtype)
     length = min(len(masked), new_size)
-    new_array.data[:length] = masked.data[:length]
-    if length != 0:
-        new_array.mask[:length] = masked.mask[:length]
+    try:
+        # Pre Numpy 1.10 way
+        new_array.data[:length] = masked.data[:length]
+    except TypeError:
+        # Numpy 1.10 and later
+        new_array[:length] = masked[:length]
+    else:
+        if length != 0:
+            new_array.mask[:length] = masked.mask[:length]
     return new_array
 
 
@@ -1784,7 +1790,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
     It contains the following publicly-accessible members:
 
-      *ref*: An XML ID refering to a <PARAM> element.
+      *ref*: An XML ID referring to a <PARAM> element.
     """
     _attr_list_11 = ['ref']
     _attr_list_12 = _attr_list_11 + ['ucd', 'utype']
@@ -2335,6 +2341,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     elif tag == 'TABLE':
                         # For error checking purposes
                         Field.uniqify_names(self.fields)
+                        # We still need to create arrays, even if the file
+                        # contains no DATA section
+                        self.create_arrays(nrows=0, config=config)
                         return self
 
         self.create_arrays(nrows=self._nrows, config=config)
@@ -2954,6 +2963,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         iterator emitting all matches.
         """)
 
+    def iter_info(self):
+        for info in self.infos:
+            yield info
+
 
 class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
                _DescriptionProperty):
@@ -3170,6 +3183,20 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         for resource in self.resources:
             for coosys in resource.iter_coosys():
                 yield coosys
+
+    def iter_info(self):
+        """
+        Recursively iterates over all the INFO_ elements in the
+        resource and nested resources.
+        """
+        for info in self.infos:
+            yield info
+        for table in self.tables:
+            for info in table.iter_info():
+                yield info
+        for resource in self.resources:
+            for info in resource.iter_info():
+                yield info
 
 
 class VOTableFile(Element, _IDProperty, _DescriptionProperty):
@@ -3558,6 +3585,21 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_coosys_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_coosys', 'COOSYS',
         """Looks up a COOSYS_ element by the given ID.""")
+
+    def iter_info(self):
+        """
+        Recursively iterate over all INFO_ elements in the VOTABLE_
+        file.
+        """
+        for info in self.infos:
+            yield info
+        for resource in self.resources:
+            for info in resource.iter_info():
+                yield info
+
+    get_info_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_info', 'INFO',
+        """Looks up a INFO element by the given ID.""")
 
     def set_all_tables_format(self, format):
         """

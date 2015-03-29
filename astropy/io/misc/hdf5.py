@@ -22,7 +22,7 @@ __all__ = ['read_table_hdf5', 'write_table_hdf5']
 
 def _find_all_structured_arrays(handle):
     """
-    Find all sturctured arrays in an HDF5 file
+    Find all structured arrays in an HDF5 file
     """
     import h5py
     structured_arrays = []
@@ -178,6 +178,13 @@ def write_table_hdf5(table, output, path=None, compression=False,
         import h5py
     except ImportError:
         raise Exception("h5py is required to read and write HDF5 files")
+
+    # Tables with mixin columns are not supported
+    if table.has_mixin_columns:
+        mixin_names = [name for name, col in table.columns.items()
+                       if not isinstance(col, table.ColumnClass)]
+        raise ValueError('cannot write table with mixin column(s) {0} to HDF5'
+                         .format(mixin_names))
 
     if path is None:
         raise ValueError("table path should be set via the path= argument")

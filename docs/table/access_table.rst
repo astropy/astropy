@@ -46,6 +46,7 @@ the data contained in that object relate to the original table data
   t[2:5]       # Table object with rows 2:5
   t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
   t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
+  t[[]]        # Same table definition but with no rows of data
   t['a', 'c']  # Table with cols 'a', 'c' (copy)
   dat = np.array(t)  # Copy table data to numpy structured array object
   t['a'].quantity  # an astropy.units.Quantity for Column 'a'
@@ -84,12 +85,12 @@ For all the following examples it is assumed that the table has been created as 
   >>> from astropy.table import Table, Column
   >>> import numpy as np
 
-  >>> arr = np.arange(15).reshape(5, 3)
+  >>> arr = np.arange(15, dtype=np.int32).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
   >>> t['a'].format = "%6.3f"  # print as a float with 3 digits after decimal point
   >>> t['a'].unit = 'm sec^-1'
   >>> t['a'].description = 'unladen swallow velocity'
-  >>> print t
+  >>> print(t)
        a      b   c
     m sec^-1
     -------- --- ---
@@ -127,19 +128,25 @@ As expected you can access a table column by name and get an element from that
 column with a numerical index::
 
   >>> t['a']  # Column 'a'
-  <Column name='a' unit='m sec^-1' format='%6.3f' description='unladen swallow velocity'>
-  array([ 0,  3,  6,  9, 12])
+  <Column name='a' dtype='int32' unit='m sec^-1' format='%6.3f' description='unladen swallow velocity' length=5>
+   0.000
+   3.000
+   6.000
+   9.000
+  12.000
+
 
   >>> t['a'][1]  # Row 1 of column 'a'
   3
 
-When a table column is printed, either with ``print`` or via the ``str()``
-built-in function, it is formatted according to the ``format`` attribute (see
-:ref:`table_format_string`)::
+When a table column is printed, it is formatted according to the ``format``
+attribute (see :ref:`table_format_string`).  Note the difference between the
+column representation above and how it appears via ``print()`` or ``str()``::
 
   >>> print(t['a'])
-      a
-    ------
+     a
+  m sec^-1
+  --------
      0.000
      3.000
      6.000
@@ -170,15 +177,20 @@ meta-data and column definitions are copied.
 ::
 
   >>> t[2:5]  # Table object with rows 2:5 (reference)
-  <Table rows=3 names=('a','b','c') units=('m sec^-1',None,None)>
-  array([(6, 7, 8), (9, 10, 11), (12, 13, 14)],
-        dtype=[('a', '<i8'), ('b', '<i8'), ('c', '<i8')])
+  <Table masked=False length=3>
+     a       b     c
+  m sec^-1
+   int32   int32 int32
+  -------- ----- -----
+     6.000     7     8
+     9.000    10    11
+    12.000    13    14
 
 It is possible to select table rows with an array of indexes or by specifying
 multiple column names.  This returns a copy of the original table for the
 selected rows or columns.  ::
 
-  >>> print t[[1, 3, 4]]  # Table object with rows 1, 3, 4 (copy)
+  >>> print(t[[1, 3, 4]])  # Table object with rows 1, 3, 4 (copy)
        a      b   c
     m sec^-1
     -------- --- ---
@@ -187,7 +199,7 @@ selected rows or columns.  ::
       12.000  13  14
 
 
-  >>> print t[np.array([1, 3, 4])]  # Table object with rows 1, 3, 4 (copy)
+  >>> print(t[np.array([1, 3, 4])])  # Table object with rows 1, 3, 4 (copy)
        a      b   c
     m sec^-1
     -------- --- ---
@@ -196,8 +208,8 @@ selected rows or columns.  ::
       12.000  13  14
 
 
-  >>> print t['a', 'c']  # or t[['a', 'c']] or t[('a', 'c')]
-  ...                    # Table with cols 'a', 'c' (copy)
+  >>> print(t['a', 'c'])  # or t[['a', 'c']] or t[('a', 'c')]
+  ...                     # Table with cols 'a', 'c' (copy)
        a      c
     m sec^-1
     -------- ---
@@ -242,27 +254,32 @@ too large then rows and/or columns are cut from the middle so it fits.  For exam
 
   >>> arr = np.arange(3000).reshape(100, 30)  # 100 rows x 30 columns array
   >>> t = Table(arr)
-  >>> print t
-  col0 col1 col2 col3 col4 col5 col6 ... col24 col25 col26 col27 col28 col29
-  ---- ---- ---- ---- ---- ---- ---- ... ----- ----- ----- ----- ----- -----
-     0    1    2    3    4    5    6 ...    24    25    26    27    28    29
-    30   31   32   33   34   35   36 ...    54    55    56    57    58    59
-    60   61   62   63   64   65   66 ...    84    85    86    87    88    89
-    90   91   92   93   94   95   96 ...   114   115   116   117   118   119
-   120  121  122  123  124  125  126 ...   144   145   146   147   148   149
-   150  151  152  153  154  155  156 ...   174   175   176   177   178   179
-   180  181  182  183  184  185  186 ...   204   205   206   207   208   209
-   210  211  212  213  214  215  216 ...   234   235   236   237   238   239
-   240  241  242  243  244  245  246 ...   264   265   266   267   268   269
-   ...  ...  ...  ...  ...  ...  ... ...   ...   ...   ...   ...   ...   ...
-  2760 2761 2762 2763 2764 2765 2766 ...  2784  2785  2786  2787  2788  2789
-  2790 2791 2792 2793 2794 2795 2796 ...  2814  2815  2816  2817  2818  2819
-  2820 2821 2822 2823 2824 2825 2826 ...  2844  2845  2846  2847  2848  2849
-  2850 2851 2852 2853 2854 2855 2856 ...  2874  2875  2876  2877  2878  2879
-  2880 2881 2882 2883 2884 2885 2886 ...  2904  2905  2906  2907  2908  2909
-  2910 2911 2912 2913 2914 2915 2916 ...  2934  2935  2936  2937  2938  2939
-  2940 2941 2942 2943 2944 2945 2946 ...  2964  2965  2966  2967  2968  2969
-  2970 2971 2972 2973 2974 2975 2976 ...  2994  2995  2996  2997  2998  2999
+  >>> print(t)
+  col0 col1 col2 col3 col4 col5 col6 ... col23 col24 col25 col26 col27 col28 col29
+  ---- ---- ---- ---- ---- ---- ---- ... ----- ----- ----- ----- ----- ----- -----
+     0    1    2    3    4    5    6 ...    23    24    25    26    27    28    29
+    30   31   32   33   34   35   36 ...    53    54    55    56    57    58    59
+    60   61   62   63   64   65   66 ...    83    84    85    86    87    88    89
+    90   91   92   93   94   95   96 ...   113   114   115   116   117   118   119
+   120  121  122  123  124  125  126 ...   143   144   145   146   147   148   149
+   150  151  152  153  154  155  156 ...   173   174   175   176   177   178   179
+   180  181  182  183  184  185  186 ...   203   204   205   206   207   208   209
+   210  211  212  213  214  215  216 ...   233   234   235   236   237   238   239
+   240  241  242  243  244  245  246 ...   263   264   265   266   267   268   269
+   270  271  272  273  274  275  276 ...   293   294   295   296   297   298   299
+   ...  ...  ...  ...  ...  ...  ... ...   ...   ...   ...   ...   ...   ...   ...
+  2670 2671 2672 2673 2674 2675 2676 ...  2693  2694  2695  2696  2697  2698  2699
+  2700 2701 2702 2703 2704 2705 2706 ...  2723  2724  2725  2726  2727  2728  2729
+  2730 2731 2732 2733 2734 2735 2736 ...  2753  2754  2755  2756  2757  2758  2759
+  2760 2761 2762 2763 2764 2765 2766 ...  2783  2784  2785  2786  2787  2788  2789
+  2790 2791 2792 2793 2794 2795 2796 ...  2813  2814  2815  2816  2817  2818  2819
+  2820 2821 2822 2823 2824 2825 2826 ...  2843  2844  2845  2846  2847  2848  2849
+  2850 2851 2852 2853 2854 2855 2856 ...  2873  2874  2875  2876  2877  2878  2879
+  2880 2881 2882 2883 2884 2885 2886 ...  2903  2904  2905  2906  2907  2908  2909
+  2910 2911 2912 2913 2914 2915 2916 ...  2933  2934  2935  2936  2937  2938  2939
+  2940 2941 2942 2943 2944 2945 2946 ...  2963  2964  2965  2966  2967  2968  2969
+  2970 2971 2972 2973 2974 2975 2976 ...  2993  2994  2995  2996  2997  2998  2999
+  Length = 100 rows
 
 more() method
 '''''''''''''
@@ -300,18 +317,26 @@ meaning as shown below::
   >>> t['col29'].unit = 'kg sec m**-2'
 
   >>> t.pprint(max_lines=8, max_width=40)
-        col0     ...    col29
-        km2      ... kg sec m**-2
-    ------------ ... ------------
-    0.000000e+00 ...         29.0
-    3.000000e+01 ...         59.0
-             ... ...          ...
-    2.940000e+03 ...       2969.0
-    2.970000e+03 ...       2999.0
-
+      col0     ...    col29
+      km2      ... kg sec m**-2
+  ------------ ... ------------
+  0.000000e+00 ...         29.0
+           ... ...          ...
+  2.940000e+03 ...       2969.0
+  2.970000e+03 ...       2999.0
+  Length = 100 rows
 
   >>> t.pprint(max_lines=8, max_width=40, show_unit=True)
       col0     ...    col29
+      km2      ... kg sec m**-2
+  ------------ ... ------------
+  0.000000e+00 ...         29.0
+           ... ...          ...
+  2.940000e+03 ...       2969.0
+  2.970000e+03 ...       2999.0
+  Length = 100 rows
+
+  >>> t.pprint(max_lines=8, max_width=40, show_name=False)
       km2      ... kg sec m**-2
   ------------ ... ------------
   0.000000e+00 ...         29.0
@@ -319,40 +344,21 @@ meaning as shown below::
            ... ...          ...
   2.940000e+03 ...       2969.0
   2.970000e+03 ...       2999.0
-
-  >>> t.pprint(max_lines=8, max_width=40, show_name=False)
-        km2      ... kg sec m**-2
-    ------------ ... ------------
-    0.000000e+00 ...         29.0
-    3.000000e+01 ...         59.0
-    6.000000e+01 ...         89.0
-             ... ...          ...
-    2.940000e+03 ...       2969.0
-    2.970000e+03 ...       2999.0
+  Length = 100 rows
 
 In order to force printing all values regardless of the output length or width
 set ``max_lines`` or ``max_width`` to ``-1``, respectively.  For the wide
 table in this example you see 6 lines of wrapped output like the following::
 
-  >>> t.pprint(max_lines=6, max_width=-1)  # doctest: +SKIP
-      col0         col1     col2   col3   col4   col5   col6   col7   col8   col
-  9  col10  col11  col12  col13  col14  col15  col16  col17  col18  col19  col20
-    col21  col22  col23  col24  col25  col26  col27  col28  col29
-  ------------ ----------- ------ ------ ------ ------ ------ ------ ------ ----
-  -- ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ -----
-  - ------ ------ ------ ------ ------ ------ ------ ------ ------
-  0.000000e+00    1.000000    2.0    3.0    4.0    5.0    6.0    7.0    8.0    9
-  .0   10.0   11.0   12.0   13.0   14.0   15.0   16.0   17.0   18.0   19.0   20.
-  0   21.0   22.0   23.0   24.0   25.0   26.0   27.0   28.0   29.0
-  3.000000e+01   31.000000   32.0   33.0   34.0   35.0   36.0   37.0   38.0   39
-  .0   40.0   41.0   42.0   43.0   44.0   45.0   46.0   47.0   48.0   49.0   50.
-  0   51.0   52.0   53.0   54.0   55.0   56.0   57.0   58.0   59.0
-           ...         ...    ...    ...    ...    ...    ...    ...    ...    .
-  ..    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ..
-  .    ...    ...    ...    ...    ...    ...    ...    ...    ...
-  2.970000e+03 2971.000000 2972.0 2973.0 2974.0 2975.0 2976.0 2977.0 2978.0 2979
-  .0 2980.0 2981.0 2982.0 2983.0 2984.0 2985.0 2986.0 2987.0 2988.0 2989.0 2990.
-  0 2991.0 2992.0 2993.0 2994.0 2995.0 2996.0 2997.0 2998.0 2999.0
+  >>> t.pprint(max_lines=8, max_width=-1)  # doctest: +SKIP
+      col0         col1     col2   col3   col4   col5   col6   col7   col8   col9  col10  col11  col12  col13  col14  col15  col16  col17  col18  col19  col20  col21  col22  col23  col24  col25  col26  col27  col28     col29
+      km2                                                                                                                                                                                                               kg sec m**-2
+  ------------ ----------- ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------ ------------
+  0.000000e+00    1.000000    2.0    3.0    4.0    5.0    6.0    7.0    8.0    9.0   10.0   11.0   12.0   13.0   14.0   15.0   16.0   17.0   18.0   19.0   20.0   21.0   22.0   23.0   24.0   25.0   26.0   27.0   28.0         29.0
+           ...         ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...          ...
+  2.940000e+03 2941.000000 2942.0 2943.0 2944.0 2945.0 2946.0 2947.0 2948.0 2949.0 2950.0 2951.0 2952.0 2953.0 2954.0 2955.0 2956.0 2957.0 2958.0 2959.0 2960.0 2961.0 2962.0 2963.0 2964.0 2965.0 2966.0 2967.0 2968.0       2969.0
+  2.970000e+03 2971.000000 2972.0 2973.0 2974.0 2975.0 2976.0 2977.0 2978.0 2979.0 2980.0 2981.0 2982.0 2983.0 2984.0 2985.0 2986.0 2987.0 2988.0 2989.0 2990.0 2991.0 2992.0 2993.0 2994.0 2995.0 2996.0 2997.0 2998.0       2999.0
+  Length = 100 rows
 
 For columns the syntax and behavior of
 :func:`~astropy.table.Column.pprint` is the same except that there is no
@@ -363,10 +369,10 @@ For columns the syntax and behavior of
   ------
      3.0
     33.0
-    63.0
      ...
   2943.0
   2973.0
+  Length = 100 rows
 
 pformat() method
 ''''''''''''''''
@@ -378,8 +384,6 @@ the Table :meth:`~astropy.table.Table.pformat` or Column
 :meth:`~astropy.table.Table.pprint` output.
 
   >>> lines = t['col3'].pformat(max_lines=8)
-  >>> lines
-  [' col3 ', '------', '   3.0', '  33.0', '  63.0', '   ...', '2943.0', '2973.0']
 
 Multidimensional columns
 ''''''''''''''''''''''''
@@ -413,15 +417,13 @@ In order to see all the data values for a multidimensional column use the
 column representation.  This uses the standard `numpy` mechanism for printing
 any array::
 
-  >>> t['a']
-  <Column name='a' unit=None format=None description=None>
+  >>> t['a'].data
   array([[[ 1,  2],
           [10, 20]],
          [[ 3,  4],
           [30, 40]],
          [[ 5,  6],
           [50, 60]]])
-
 
 Columns and Quantities
 ''''''''''''''''''''''
@@ -447,12 +449,17 @@ values of a column in a way that respects units by making in-place
 changes to the :attr:`~astropy.table.Column.quantity` property::
 
   >>> t['b']
-  <Column name='b' unit=u'km / s' format=None description=None>
-  array([ 40000.,  50000.,  60000.])
+  <Column name='b' dtype='float64' unit='km / s' length=3>
+  40000.0
+  50000.0
+  60000.0
+
   >>> t['b'].quantity[0] = 45000000*u.m/u.s
   >>> t['b']
-  <Column name='b' unit=u'km / s' format=None description=None>
-  array([ 45000.,  50000.,  60000.])
+  <Column name='b' dtype='float64' unit='km / s' length=3>
+  45000.0
+  50000.0
+  60000.0
 
 Even without explicit conversion, columns with units can be treated like
 like an Astropy `~astropy.units.Quantity` in *some* arithmetic
@@ -479,8 +486,9 @@ expressions (see the warning below for caveats to this)::
     >>> t = Table(data, names=('angle',))
     >>> t['angle'].unit = 'deg'
     >>> np.sin(t['angle'])  # doctest: +FLOAT_CMP
-    <Column name='angle' unit=u'deg' format=None description=None>
-    array([-0.98803162,  0.89399666])
+    <Column name='angle' dtype='float64' unit='deg' length=2>
+    -0.988031624093
+     0.893996663601
 
   This is wrong both in that it says the unit is degrees, *and* ``sin``
   treated the values and radians rather than degrees.  If at all in
@@ -489,4 +497,3 @@ expressions (see the warning below for caveats to this)::
 
     >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
     <Quantity [ 0.5, 1. ]>
-

@@ -35,6 +35,9 @@ Project Status
 .. image:: https://coveralls.io/repos/astropy/astropy/badge.png
     :target: https://coveralls.io/r/astropy/astropy
 
+.. image:: https://ci.appveyor.com/api/projects/status/ym7lxajcs5qwm31e/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/Astropy/astropy/branch/master
+
 For an overview of the testing and build status of all packages associated 
 with the Astropy Project, see http://dashboard.astropy.org.
 

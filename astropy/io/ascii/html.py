@@ -14,6 +14,7 @@ from ...extern.six.moves import zip as izip
 
 from . import core
 from ...table import Column
+from ...table.column import col_iter_str_vals, col_getattr
 from ...utils.xml import writer
 
 from copy import deepcopy
@@ -255,7 +256,7 @@ class HTML(core.BaseReader):
 
         * table_id : ID for the input table
             If a string, this defines the HTML id of the table to be processed.
-            If an integer, this specificies the index of the input table in the
+            If an integer, this specifies the index of the input table in the
             available tables. Unless this parameter is given, the reader will
             use the first table found in the input file.
 
@@ -357,7 +358,7 @@ class HTML(core.BaseReader):
                                     w.start('th', colspan=col.shape[1])
                                 else:
                                     w.start('th')
-                                w.data(col.name.strip())
+                                w.data(col_getattr(col, 'name').strip())
                                 w.end(indent=False)
                         col_str_iters = []
                         for col in cols:
@@ -366,9 +367,9 @@ class HTML(core.BaseReader):
                                 for i in range(span):
                                     # Split up multicolumns into separate columns
                                     new_col = Column([el[i] for el in col])
-                                    col_str_iters.append(new_col.iter_str_vals())
+                                    col_str_iters.append(col_iter_str_vals(new_col))
                             else:
-                                col_str_iters.append(col.iter_str_vals())
+                                col_str_iters.append(col_iter_str_vals(col))
 
                     for row in izip(*col_str_iters):
                         with w.tag('tr'):

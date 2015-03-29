@@ -106,7 +106,7 @@ def ignore_sigint(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         # Get the name of the current thread and determine if this is a single
-        # treaded application
+        # threaded application
         curr_thread = threading.currentThread()
         single_thread = (threading.activeCount() == 1 and
                          curr_thread.getName() == 'MainThread')
@@ -601,7 +601,8 @@ def _array_from_file(infile, dtype, count, sep):
 
         global CHUNKED_FROMFILE
         if CHUNKED_FROMFILE is None:
-            if sys.platform == 'darwin' and LooseVersion(platform.mac_ver()[0]) < LooseVersion('10.9'):
+            if (sys.platform == 'darwin' and
+                    LooseVersion(platform.mac_ver()[0]) < LooseVersion('10.9')):
                 CHUNKED_FROMFILE = True
             else:
                 CHUNKED_FROMFILE = False
@@ -621,7 +622,7 @@ def _array_from_file(infile, dtype, count, sep):
     else:
         # treat as file-like object with "read" method; this includes gzip file
         # objects, because numpy.fromfile just reads the compressed bytes from
-        # their underlying file object, instead of the decompresed bytes
+        # their underlying file object, instead of the decompressed bytes
         read_size = np.dtype(dtype).itemsize * count
         s = infile.read(read_size)
         return np.fromstring(s, dtype=dtype, count=count, sep=sep)
@@ -655,7 +656,7 @@ def _array_to_file(arr, outfile):
 
     # Implements a workaround for a bug deep in OSX's stdlib file writing
     # functions; on 64-bit OSX it is not possible to correctly write a number
-    # of bytes greater than 2 ** 32 and divisble by 4096 (or possibly 8192--
+    # of bytes greater than 2 ** 32 and divisible by 4096 (or possibly 8192--
     # whatever the default blocksize for the filesystem is).
     # This issue should have a workaround in Numpy too, but hasn't been
     # implemented there yet: https://github.com/astropy/astropy/issues/839
@@ -689,9 +690,9 @@ def _array_to_file_like(arr, fileobj):
     """
 
     if arr.flags.contiguous:
-        # It sufficies to just pass the underlying buffer directly to the
+        # It suffices to just pass the underlying buffer directly to the
         # fileobj's write (assuming it supports the buffer interface, which
-        # unforunately there's no simple way to check)
+        # unfortunately there's no simple way to check)
         fileobj.write(arr.data)
     elif hasattr(np, 'nditer'):
         # nditer version for non-contiguous arrays
@@ -777,52 +778,6 @@ def _str_to_num(val):
         # If this fails then an exception should be raised anyways
         num = float(val)
     return num
-
-
-def _normalize_slice(input, naxis):
-    """
-    Set the slice's start/stop in the regular range.
-    """
-
-    def _normalize(indx, npts):
-        if indx < -npts:
-            indx = 0
-        elif indx < 0:
-            indx += npts
-        elif indx > npts:
-            indx = npts
-        return indx
-
-    _start = input.start
-    if _start is None:
-        _start = 0
-    elif _is_int(_start):
-        _start = _normalize(_start, naxis)
-    else:
-        raise IndexError('Illegal slice %s; start must be integer.' % input)
-
-    _stop = input.stop
-    if _stop is None:
-        _stop = naxis
-    elif _is_int(_stop):
-        _stop = _normalize(_stop, naxis)
-    else:
-        raise IndexError('Illegal slice %s; stop must be integer.' % input)
-
-    if _stop < _start:
-        raise IndexError('Illegal slice %s; stop < start.' % input)
-
-    _step = input.step
-    if _step is None:
-        _step = 1
-    elif _is_int(_step):
-        if _step <= 0:
-            raise IndexError('Illegal slice %s; step must be positive.'
-                             % input)
-    else:
-        raise IndexError('Illegal slice %s; step must be integer.' % input)
-
-    return slice(_start, _stop, _step)
 
 
 def _words_group(input, strlen):

@@ -82,7 +82,7 @@ _DEFAULT_ENCODING = 'utf-8'
 
 def _get_stdout(stderr=False):
     """
-    This utility fucntion contains the logic to determine what streams to use
+    This utility function contains the logic to determine what streams to use
     by default for standard out/err.
 
     Typically this will just return `sys.stdout`, but it contains additional
@@ -431,7 +431,7 @@ def human_file_size(size):
     size : str
         A human-friendly representation of the size of the file
     """
-    suffixes = ' kMGTPEH'
+    suffixes = ' kMGTPEZY'
     if size == 0:
         num_scale = 0
     else:
@@ -443,7 +443,9 @@ def human_file_size(size):
     num_scale = int(math.pow(1000, num_scale))
     value = size / num_scale
     str_value = str(value)
-    if str_value[2] == '.':
+    if suffix == ' ':
+        str_value = str_value[:str_value.index('.')]
+    elif str_value[2] == '.':
         str_value = str_value[:2]
     else:
         str_value = str_value[:3]
@@ -620,7 +622,7 @@ class ProgressBar(six.Iterator):
     def _update_ipython_widget(self, value=None):
         """
         Update the progress bar to the given value (out of a total
-        given to the contructor).
+        given to the constructor).
 
         This method is for use in the IPython notebook 2+.
         """

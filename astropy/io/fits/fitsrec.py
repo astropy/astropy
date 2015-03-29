@@ -13,10 +13,10 @@ from numpy import char as chararray
 
 from .column import (ASCIITNULL, FITS2NUMPY, ASCII2NUMPY, ASCII2STR, ColDefs,
                      _AsciiColDefs, _FormatX, _FormatP, _VLF, _get_index,
-                     _wrapx, _unwrapx, _makep, _convert_ascii_format, Delayed)
+                     _wrapx, _unwrapx, _makep, Delayed)
 from .util import decode_ascii, encode_ascii
 from ...extern.six import string_types
-from ...extern.six.moves import xrange, map
+from ...extern.six.moves import xrange
 from ...utils import lazyproperty
 from ...utils.compat import ignored
 from ...utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
@@ -266,7 +266,8 @@ class FITS_rec(np.recarray):
                 if hasattr(obj, attr):
                     value = getattr(obj, attr, None)
                     if value is None:
-                        warnings.warn('Setting attribute %s as None' % attr, AstropyUserWarning)
+                        warnings.warn('Setting attribute %s as None' % attr,
+                                      AstropyUserWarning)
                     setattr(self, attr, value)
 
             if self._coldefs is None:
@@ -437,7 +438,9 @@ class FITS_rec(np.recarray):
                 continue
 
             if inarr.shape != outarr.shape:
-                if inarr.dtype != outarr.dtype:
+                if (inarr.dtype.kind == outarr.dtype.kind and
+                        inarr.dtype.kind in ('U', 'S') and
+                        inarr.dtype != outarr.dtype):
                     inarr = inarr.view(outarr.dtype)
 
                 # This is a special case to handle input arrays with
@@ -688,9 +691,9 @@ class FITS_rec(np.recarray):
         return dummy
 
     def _convert_ascii(self, indx, field):
-        """Special handling for ASCII table columns to convert columns
-        containing numeric types to actual numeric arrays from the string
-        representation.
+        """
+        Special handling for ASCII table columns to convert columns containing
+        numeric types to actual numeric arrays from the string representation.
         """
 
         format = self._coldefs.formats[indx]
@@ -988,57 +991,7 @@ class FITS_rec(np.recarray):
 
                 # ASCII table, convert numbers to strings
                 if isinstance(self._coldefs, _AsciiColDefs):
-                    starts = self._coldefs.starts[:]
-                    spans = self._coldefs.spans
-                    format = self._coldefs.formats[indx].strip()
-
-                    # The the index of the "end" column of the record, beyond
-                    # which we can't write
-                    end = super(FITS_rec, self).field(-1).itemsize
-                    starts.append(end + starts[-1])
-
-                    if indx > 0:
-                        lead = (starts[indx] - starts[indx - 1] -
-                                spans[indx - 1])
-                    else:
-                        lead = 0
-
-                    if lead < 0:
-                        warnings.warn(
-                            'Column %r starting point overlaps the '
-                            'previous column.' % (indx + 1))
-
-                    trail = starts[indx + 1] - starts[indx] - spans[indx]
-
-                    if trail < 0:
-                        warnings.warn(
-                            'Column %r ending point overlaps the next '
-                            'column.' % (indx + 1))
-
-                    # TODO: It would be nice if these string column formatting
-                    # details were left to a specialized class, as is the case
-                    # with FormatX and FormatP
-                    if 'A' in format:
-                        _pc = '%-'
-                    else:
-                        _pc = '%'
-
-                    fmt = ''.join([_pc, format[1:], ASCII2STR[format[0]],
-                                   (' ' * trail)])
-
-                    # not using numarray.strings's num2char because the
-                    # result is not allowed to expand (as C/Python does).
-                    for jdx in xrange(len(dummy)):
-                        x = fmt % dummy[jdx]
-                        if len(x) > starts[indx + 1] - starts[indx]:
-                            raise ValueError(
-                                "Value %r does not fit into the output's "
-                                "itemsize of %s." % (x, spans[indx]))
-                        else:
-                            field[jdx] = x
-                    # Replace exponent separator in floating point numbers
-                    if 'D' in format:
-                        field.replace(encode_ascii('E'), encode_ascii('D'))
+                    self._scale_back_ascii(indx, dummy, field)
                 # binary table
                 else:
                     if len(field) and isinstance(field[0], np.integer):
@@ -1081,3 +1034,73 @@ class FITS_rec(np.recarray):
 
         # Store the updated heapsize
         self._heapsize = heapsize
+
+    def _scale_back_ascii(self, col_idx, input_field, output_field):
+        """
+        Convert internal array values back to ASCII table representation.
+
+        The ``input_field`` is the internal representation of the values, and
+        the ``output_field`` is the character array representing the ASCII
+        output that will be written.
+        """
+
+        starts = self._coldefs.starts[:]
+        spans = self._coldefs.spans
+        format = self._coldefs.formats[col_idx]
+
+        # The the index of the "end" column of the record, beyond
+        # which we can't write
+        end = super(FITS_rec, self).field(-1).itemsize
+        starts.append(end + starts[-1])
+
+        if col_idx > 0:
+            lead = starts[col_idx] - starts[col_idx - 1] - spans[col_idx - 1]
+        else:
+            lead = 0
+
+        if lead < 0:
+            warnings.warn('Column %r starting point overlaps the previous '
+                          'column.' % (col_idx + 1))
+
+        trail = starts[col_idx + 1] - starts[col_idx] - spans[col_idx]
+
+        if trail < 0:
+            warnings.warn('Column %r ending point overlaps the next '
+                          'column.' % (col_idx + 1))
+
+        # TODO: It would be nice if these string column formatting
+        # details were left to a specialized class, as is the case
+        # with FormatX and FormatP
+        if 'A' in format:
+            _pc = '%-'
+        else:
+            _pc = '%'
+
+        fmt = ''.join([_pc, format[1:], ASCII2STR[format[0]],
+                       (' ' * trail)])
+
+        # Even if the format precision is 0, we should output a decimal point
+        # as long as there is space to do so--not including a decimal point in
+        # a float value is discouraged by the FITS Standard
+        trailing_decimal = (format.precision == 0 and
+                            format.format in ('F', 'E', 'D'))
+
+        # not using numarray.strings's num2char because the
+        # result is not allowed to expand (as C/Python does).
+        for jdx, value in enumerate(input_field):
+            value = fmt % value
+            if len(value) > starts[col_idx + 1] - starts[col_idx]:
+                raise ValueError(
+                    "Value %r does not fit into the output's itemsize of "
+                    "%s." % (value, spans[col_idx]))
+
+            if trailing_decimal and value[0] == ' ':
+                # We have some extra space in the field for the trailing
+                # decimal point
+                value = value[1:] + '.'
+
+            output_field[jdx] = value
+
+        # Replace exponent separator in floating point numbers
+        if 'D' in format:
+            output_field.replace(encode_ascii('E'), encode_ascii('D'))

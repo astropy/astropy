@@ -8,6 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from .core import custom_model
+from .mappings import *
 from .projections import *
 from .rotations import *
 from .polynomial import *
@@ -51,7 +52,7 @@ CONSTRAINTS_DOC = """
 
 
 MODELS_WITH_CONSTRAINTS = [
-    AiryDisk2D, Beta1D, Beta2D, Box1D, Box2D,
+    AiryDisk2D, Moffat1D, Moffat2D, Box1D, Box2D,
     Const1D, Const2D, Ellipse2D, Disk2D,
     Gaussian1D, GaussianAbsorption1D, Gaussian2D,
     Linear1D, Lorentz1D, MexicanHat1D, MexicanHat2D,

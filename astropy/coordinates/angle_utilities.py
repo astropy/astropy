@@ -640,7 +640,7 @@ def angular_separation(lon1, lat1, lon2, lat2):
     Notes
     -----
     The angular separation is calculated using the Vincenty formula [1]_,
-    which is slighly more complex and computationally expensive than
+    which is slightly more complex and computationally expensive than
     some alternatives, but is stable at at all distances, including the
     poles and antipodes.
 

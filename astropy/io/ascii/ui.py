@@ -14,10 +14,12 @@ import re
 import os
 import sys
 
+
 from . import core
 from . import basic
 from . import cds
 from . import daophot
+from . import ecsv
 from . import sextractor
 from . import ipac
 from . import latex
@@ -28,42 +30,80 @@ from . import fixedwidth
 
 from ...table import Table
 from ...utils.data import get_readable_fileobj
+from ...extern import six
+
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
 # Default setting for guess parameter in read()
 _GUESS = True
 
 
 def set_guess(guess):
-    """Set the default value of the ``guess`` parameter for read()
+    """
+    Set the default value of the ``guess`` parameter for read()
 
-    :param guess: New default ``guess`` value (True|False)
+    Parameters
+    ----------
+    guess : bool
+        New default ``guess`` value (e.g., True or False)
+
     """
     global _GUESS
     _GUESS = guess
 
 
 def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
-    """Initialize a table reader allowing for common customizations.  Most of the
+    """
+    Initialize a table reader allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Reader class.
 
-    :param Reader: Reader class (DEPRECATED) (default= :class:`Basic`)
-    :param Inputter: Inputter class
-    :param Outputter: Outputter class
-    :param delimiter: column delimiter string
-    :param comment: regular expression defining a comment line in table
-    :param quotechar: one-character string to quote fields containing special characters
-    :param header_start: line index for the header line not counting comment lines
-    :param data_start: line index for the start of data not counting comment lines
-    :param data_end: line index for the end of data (can be negative to count from end)
-    :param converters: dict of converters
-    :param data_Splitter: Splitter class to split data columns
-    :param header_Splitter: Splitter class to split header columns
-    :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fill_values: specification of fill values for bad or missing table values
-    :param fill_include_names: list of names to include in fill_values (default=None selects all names)
-    :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
+    Parameters
+    ----------
+    Reader : `~astropy.io.ascii.BaseReader`
+        Reader class (DEPRECATED) (default= :class:`Basic`)
+    Inputter : `~astropy.io.ascii.BaseInputter`
+        Inputter class
+    Outputter : `~astropy.io.ascii.BaseOutputter`
+        Outputter class
+    delimiter : str
+        Column delimiter string
+    comment : str
+        Regular expression defining a comment line in table
+    quotechar : str
+        One-character string to quote fields containing special characters
+    header_start : int
+        Line index for the header line not counting comment lines
+    data_start : int
+        Line index for the start of data not counting comment lines
+    data_end : int
+        Line index for the end of data (can be negative to count from end)
+    converters : dict
+        Dictionary of converters
+    data_Splitter : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split data columns
+    header_Splitter : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split header columns
+    names : list
+        List of names corresponding to each data column
+    include_names : list
+        List of names to include in output (default= ``None`` selects all names)
+    exclude_names : list
+        List of names to exclude from output (applied after ``include_names``)
+    fill_values : dict
+        specification of fill values for bad or missing table values
+    fill_include_names : list
+        List of names to include in fill_values (default= ``None`` selects all names)
+    fill_exclude_names : list
+        List of names to exclude from fill_values (applied after ``fill_include_names``)
+
+    Returns
+    -------
+    reader : `~astropy.io.ascii.BaseReader` subclass
+        ASCII format reader instance
     """
     # This function is a light wrapper around core._get_reader to provide a public interface
     # with a default Reader.
@@ -87,32 +127,64 @@ def _get_format_class(format, ReaderWriter, label):
 
 
 def read(table, guess=None, **kwargs):
-    """Read the input ``table`` and return the table.  Most of
+    """
+    Read the input ``table`` and return the table.  Most of
     the default behavior for various parameters is determined by the Reader
     class.
 
-    :param table: input table (file name, file-like object, list of strings, or single newline-separated string)
-    :param guess: try to guess the table format (default=True)
-    :param format: input table format
-    :param Inputter: Inputter class
-    :param Outputter: Outputter class (default=TableOutputter)
-    :param delimiter: column delimiter string
-    :param comment: regular expression defining a comment line in table
-    :param quotechar: one-character string to quote fields containing special characters
-    :param header_start: line index for the header line not counting comment lines
-    :param data_start: line index for the start of data not counting comment lines
-    :param data_end: line index for the end of data (can be negative to count from end)
-    :param converters: dict of converters
-    :param data_Splitter: Splitter class to split data columns
-    :param header_Splitter: Splitter class to split header columns
-    :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fill_values: specification of fill values for bad or missing table values (default=('', '0'))
-    :param fill_include_names: list of names to include in fill_values (default=None selects all names)
-    :param fill_exclude_names: list of names to exlude from fill_values (applied after ``fill_include_names``)
-    :param fast_reader: whether to use the C engine, can also be a dict with options which default to False (default=True)
-    :param Reader: Reader class (DEPRECATED) (default=``ascii.Basic``)
+    Parameters
+    ----------
+    table : str, file-like, list
+        Input table as a file name, file-like object, list of strings, or
+        single newline-separated string.
+    guess : bool
+        Try to guess the table format (default= ``True``)
+    format : str, `~astropy.io.ascii.BaseReader`
+        Input table format
+    Inputter : `~astropy.io.ascii.BaseInputter`
+        Inputter class
+    Outputter : `~astropy.io.ascii.BaseOutputter`
+        Outputter class
+    delimiter : str
+        Column delimiter string
+    comment : str
+        Regular expression defining a comment line in table
+    quotechar : str
+        One-character string to quote fields containing special characters
+    header_start : int
+        Line index for the header line not counting comment lines
+    data_start : int
+        Line index for the start of data not counting comment lines
+    data_end : int
+        Line index for the end of data (can be negative to count from end)
+    converters : dict
+        Dictionary of converters
+    data_Splitter : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split data columns
+    header_Splitter : `~astropy.io.ascii.BaseSplitter`
+        Splitter class to split header columns
+    names : list
+        List of names corresponding to each data column
+    include_names : list
+        List of names to include in output (default= ``None`` selects all names)
+    exclude_names : list
+        List of names to exclude from output (applied after ``include_names``)
+    fill_values : dict
+        specification of fill values for bad or missing table values
+    fill_include_names : list
+        List of names to include in fill_values (default= ``None`` selects all names)
+    fill_exclude_names : list
+        List of names to exclude from fill_values (applied after ``fill_include_names``)
+    fast_reader : bool
+        Whether to use the C engine, can also be a dict with options which default to ``False``
+        (default= ``True``)
+    Reader : `~astropy.io.ascii.BaseReader`
+        Reader class (DEPRECATED) (default= :class:`Basic`).
+
+    Returns
+    -------
+    dat : `~astropy.table.Table`
+        Output table
     """
 
     if 'fill_values' not in kwargs:
@@ -120,7 +192,6 @@ def read(table, guess=None, **kwargs):
 
     # If an Outputter is supplied in kwargs that will take precedence.
     new_kwargs = {}
-    new_kwargs['Outputter'] = core.TableOutputter
     fast_reader_param = kwargs.get('fast_reader', True)
     if 'Outputter' in kwargs: # user specified Outputter, not supported for fast reading
         fast_reader_param = False
@@ -139,9 +210,30 @@ def read(table, guess=None, **kwargs):
 
     if guess is None:
         guess = _GUESS
+
     if guess:
+        # If `table` is a filename or readable file object then read in the
+        # file now.  This prevents problems in Python 3 with the file object
+        # getting closed or left at the file end.  See #3132, #3013, #3109,
+        # #2001.  If a `readme` arg was passed that implies CDS format, in
+        # which case the original `table` as the data filename must be left
+        # intact.
+        if 'readme' not in new_kwargs:
+            try:
+                with get_readable_fileobj(table) as fileobj:
+                    table = fileobj.read()
+            except:
+                pass
+
+        # Get the table from guess in ``dat``.  If ``dat`` comes back as None
+        # then there was just one set of kwargs in the guess list so fall
+        # through below to the non-guess way so that any problems result in a
+        # more useful traceback.
         dat = _guess(table, new_kwargs, format, fast_reader_param)
-    else:
+        if dat is None:
+            guess = False
+
+    if not guess:
         reader = get_reader(**new_kwargs)
         # Try the fast reader first if applicable
         if fast_reader_param and format is not None and 'fast_{0}'.format(format) \
@@ -163,38 +255,51 @@ def read(table, guess=None, **kwargs):
 
 
 def _guess(table, read_kwargs, format, fast_reader):
-    """Try to read the table using various sets of keyword args. First try the
-    original args supplied in the read() call. Then try the standard guess
-    keyword args. For each key/val pair specified explicitly in the read()
-    call make sure that if there is a corresponding definition in the guess
-    then it must have the same val.  If not then skip this guess."""
+    """
+    Try to read the table using various sets of keyword args.  Start with the
+    standard guess list and filter to make it unique and consistent with
+    user-suppled read keyword args.  Finally, if none of those work then
+    try the original user-supplied keyword args.
 
-    # If `table` is a readable file object then read in the file now.  This
-    # prevents problems in Python 3 with the file object getting closed or
-    # left at the file end.  See #3132, #3013, #3109, #2001.  If a `readme`
-    # arg was passed that implies CDS format, in which case the original
-    # `table` as the data filename must be left intact.
-    if 'readme' not in read_kwargs:
-        try:
-            with get_readable_fileobj(table) as fileobj:
-                table = fileobj.read()
-        except:
-            pass
+    Parameters
+    ----------
+    table : str, file-like, list
+        Input table as a file name, file-like object, list of strings, or
+        single newline-separated string.
+    read_kwargs : dict
+        Keyword arguments from user to be supplied to reader
+    format : str
+        Table format
+    fast_reader : bool
+        Whether to use the C engine, can also be a dict with options which
+        default to ``False`` (default= ``True``)
+
+    Returns
+    -------
+    dat : `~astropy.table.Table` or None
+        Output table or None if only one guess format was available
+    """
 
     # Keep a trace of all failed guesses kwarg
     failed_kwargs = []
+
+    # Get an ordered list of read() keyword arg dicts that will be cycled
+    # through in order to guess the format.
     full_list_guess = _get_guess_kwargs_list(read_kwargs)
 
+    # If a fast version of the reader is available, try that before the slow version
     if fast_reader and format is not None and 'fast_{0}'.format(format) in \
                                                          core.FAST_CLASSES:
-        # If a fast version of the reader is available, try that before the slow version
         fast_kwargs = read_kwargs.copy()
         fast_kwargs['Reader'] = core.FAST_CLASSES['fast_{0}'.format(format)]
         full_list_guess = [fast_kwargs] + full_list_guess
     else:
         fast_kwargs = None
 
-    # First try guessing
+    # Filter the full guess list so that each entry is consistent with user kwarg inputs.
+    # This also removes any duplicates from the list.
+    filtered_guess_kwargs = []
+
     for guess_kwargs in full_list_guess:
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
         for key, val in read_kwargs.items():
@@ -211,6 +316,22 @@ def _guess(table, read_kwargs, format, fast_reader):
             # user supplies delimiter="|" but the guess wants to try delimiter=" ",
             # so skip the guess entirely.
             continue
+
+        # Add the guess_kwargs to filtered list only if it is not already there.
+        if guess_kwargs not in filtered_guess_kwargs:
+            filtered_guess_kwargs.append(guess_kwargs)
+
+    # If there are not at least two formats to guess then return no table
+    # (None) to indicate that guessing did not occur.  In that case the
+    # non-guess read() will occur and any problems will result in a more useful
+    # traceback.
+    if len(filtered_guess_kwargs) <= 1:
+        return None
+
+    # Now cycle through each possible reader and associated keyword arguments.
+    # Try to read the table using those args, and if an exception occurs then
+    # keep track of the failed guess and move on.
+    for guess_kwargs in filtered_guess_kwargs:
         try:
             # If guessing will try all Readers then use strict req'ts on column names
             if 'Reader' not in read_kwargs:
@@ -220,14 +341,15 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader.guessing = True
             return reader.read(table)
 
-        except (core.InconsistentTableError, ValueError, TypeError,
+        except (core.InconsistentTableError, ValueError, TypeError, AttributeError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(guess_kwargs)
     else:
-        # failed all guesses, try the original read_kwargs without column requirements
+        # Failed all guesses, try the original read_kwargs without column requirements
         try:
             reader = get_reader(**read_kwargs)
             return reader.read(table)
+
         except (core.InconsistentTableError, ValueError, ImportError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError):
             failed_kwargs.append(read_kwargs)
@@ -253,8 +375,39 @@ def _guess(table, read_kwargs, format, fast_reader):
             raise core.InconsistentTableError('\n'.join(lines))
 
 def _get_guess_kwargs_list(read_kwargs):
+    """
+    Get the full list of reader keyword argument dicts that are the basis
+    for the format guessing process.  The returned full list will then be:
+
+    - Filtered to be consistent with user-supplied kwargs
+    - Cleaned to have only unique entries
+    - Used one by one to try reading the input table
+
+    Note that the order of the guess list has been tuned over years of usage.
+    Maintainers need to be very careful about any adjustments as the
+    reasoning may not be immediately evident in all cases.
+
+    This list can (and usually does) include duplicates.  This is a result
+    of the order tuning, but these duplicates get removed later.
+
+    Parameters
+    ----------
+    read_kwargs : dict
+       User-supplied read keyword args
+
+    Returns
+    -------
+    guess_kwargs_list : list
+        List of read format keyword arg dicts
+    """
     guess_kwargs_list = []
-    # First try readers that accept the common arguments with the input arguments
+
+    # Start with ECSV because an ECSV file will be read by Basic.  This format
+    # has very specific header requirements and fails out quickly.
+    if HAS_YAML:
+        guess_kwargs_list.append(dict(Reader=ecsv.Ecsv))
+
+    # Now try readers that accept the common arguments with the input arguments
     # (Unless there are not arguments - we try that in the next step anyway.)
     # FixedWidthTwoLine would also be read by Basic, so it needs to come first.
     if len(read_kwargs) > 0:
@@ -263,6 +416,7 @@ def _get_guess_kwargs_list(read_kwargs):
             first_kwargs = read_kwargs.copy()
             first_kwargs.update(dict(Reader=reader))
             guess_kwargs_list.append(first_kwargs)
+
     # Then try a list of readers with default arguments
     guess_kwargs_list.extend([dict(Reader=fixedwidth.FixedWidthTwoLine),
                               dict(Reader=fastbasic.FastBasic),
@@ -278,12 +432,16 @@ def _get_guess_kwargs_list(read_kwargs):
                               dict(Reader=latex.AASTex),
                               dict(Reader=html.HTML)
                               ])
+
+    # Cycle through the basic-style readers using all combinations of delimiter
+    # and quotechar.
     for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastNoHeader, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
             for quotechar in ('"', "'"):
                 guess_kwargs_list.append(dict(
                     Reader=Reader, delimiter=delimiter, quotechar=quotechar))
+
     return guess_kwargs_list
 
 extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
@@ -291,25 +449,56 @@ extra_writer_pars = ('delimiter', 'comment', 'quotechar', 'formats',
 
 
 def get_writer(Writer=None, fast_writer=True, **kwargs):
-    """Initialize a table writer allowing for common customizations.  Most of the
+    """
+    Initialize a table writer allowing for common customizations.  Most of the
     default behavior for various parameters is determined by the Writer class.
 
-    :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
-    :param delimiter: column delimiter string
-    :param write_comment: string defining a comment line in table
-    :param quotechar: one-character string to quote fields containing special characters
-    :param formats: dict of format specifiers or formatting functions
-    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
-    :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fast_writer: whether to use the fast Cython writer (default=True)
+    Parameters
+    ----------
+    Writer : ``Writer``
+        Writer class (DEPRECATED) (default= :class:`Basic`)
+    delimiter : str
+        Column delimiter string
+    comment : str
+        String defining a comment line in table
+    quotechar : str
+        One-character string to quote fields containing special characters
+    formats : dict
+        Dictionary of format specifiers or formatting functions
+    strip_whitespace : bool
+        Strip surrounding whitespace from column values (default= ``True``)
+    names : list
+        List of names corresponding to each data column
+    include_names : list
+        List of names to include in output (default= ``None`` selects all names)
+    exclude_names : list
+        List of names to exclude from output (applied after ``include_names``)
+    fast_writer : bool
+        Whether to use the fast Cython writer (default= ``True``)
+
+    Returns
+    -------
+    writer : `~astropy.io.ascii.BaseReader` subclass
+        ASCII format writer instance
     """
     if Writer is None:
         Writer = basic.Basic
     if 'strip_whitespace' not in kwargs:
         kwargs['strip_whitespace'] = True
     writer = core._get_writer(Writer, fast_writer, **kwargs)
+
+    # Handle the corner case of wanting to disable writing table comments for the
+    # commented_header format.  This format *requires* a string for `write_comment`
+    # because that is used for the header column row, so it is not possible to
+    # set the input `comment` to None.  Without adding a new keyword or assuming
+    # a default comment character, there is no other option but to tell user to
+    # simply remove the meta['comments'].
+    if (isinstance(writer, (basic.CommentedHeader, fastbasic.FastCommentedHeader))
+            and not isinstance(kwargs.get('comment', ''), six.string_types)):
+        raise ValueError("for the commented_header writer you must supply a string\n"
+                         "value for the `comment` keyword.  In order to disable writing\n"
+                         "table comments use `del t.meta['comments']` prior to writing.")
+
     return writer
 
 
@@ -317,24 +506,43 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
     """Write the input ``table`` to ``filename``.  Most of the default behavior
     for various parameters is determined by the Writer class.
 
-    :param table: input table (Reader object, NumPy struct array, list of lists, etc)
-    :param output: output [filename, file-like object] (default = sys.stdout)
-    :param format: output format (default=``basic``)
-    :param delimiter: column delimiter string
-    :param write_comment: string defining a comment line in table
-    :param quotechar: one-character string to quote fields containing special characters
-    :param formats: dict of format specifiers or formatting functions
-    :param strip_whitespace: strip surrounding whitespace from column values (default=True)
-    :param names: list of names corresponding to each data column
-    :param include_names: list of names to include in output (default=None selects all names)
-    :param exclude_names: list of names to exlude from output (applied after ``include_names``)
-    :param fast_writer: whether to use the fast Cython writer (default=True)
-    :param Writer: Writer class (DEPRECATED) (default=``ascii.Basic``)
+    Parameters
+    ----------
+    table : `~astropy.io.ascii.BaseReader`, array_like, str, file_like, list
+        Input table as a Reader object, Numpy struct array, file name,
+        file-like object, list of strings, or single newline-separated string.
+    output : str, file_like
+        Output [filename, file-like object] (default = ``sys.stdout``)
+    format : str
+        Output table format (default= ``basic``)
+    delimiter : str
+        Column delimiter string
+    comment : str
+        String defining a comment line in table
+    quotechar : str
+        One-character string to quote fields containing special characters
+    formats : dict
+        Dictionary of format specifiers or formatting functions
+    strip_whitespace : bool
+        Strip surrounding whitespace from column values (default= ``True``)
+    names : list
+        List of names corresponding to each data column
+    include_names : list
+        List of names to include in output (default= ``None`` selects all names)
+    exclude_names : list
+        List of names to exclude from output (applied after ``include_names``)
+    fast_writer : bool
+        Whether to use the fast Cython writer (default= ``True``)
+    Writer : ``Writer``
+        Writer class (DEPRECATED) (default= :class:`Basic`)
     """
     if output is None:
         output = sys.stdout
 
     table = Table(table, names=kwargs.get('names'))
+
+    if table.has_mixin_columns:
+        fast_writer = False
 
     Writer = _get_format_class(format, Writer, 'Writer')
     writer = get_writer(Writer=Writer, fast_writer=fast_writer, **kwargs)

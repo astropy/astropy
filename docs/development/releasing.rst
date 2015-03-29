@@ -69,7 +69,13 @@ procedure is that ensures a consistent release process each time.
     ensure that the latest version is installed in the virtualenv (if you're
     running a csh variant make sure to run ``rehash`` afterwards too)::
 
-        $ pip install zest.releaser --upgrade --force
+        $ pip install zest.releaser==3.49 --upgrade --force
+        
+    .. note::
+    
+        zest.releaser > 3.49 has a still open issue that prevents our release
+        code from correctly updating the ``VERSION`` variable in our ``setup.py``;
+        see `zestsoftware/zest.releaser#62 <https://github.com/zestsoftware/zest.releaser/pull/62>`_.
 
  9. Ensure that all changes to the code have been committed, then start the
     release by running::

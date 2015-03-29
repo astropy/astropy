@@ -6,8 +6,8 @@
 # update it.
 
 """
-This module uses Cython to wrap the ERFA library in numpy-vectorized
-equivalents.
+This module uses the Python/C API to wrap the ERFA library in
+numpy-vectorized equivalents.
 
 ..warning::
     This is currently *not* part of the public Astropy API, and may change in
@@ -25,24 +25,25 @@ want to give ten matricies (i.e., the ERFA input type is double[3][3]),
 you would pass in a (10, 3, 3) numpy array.  If the output of the ERFA
 function is scalar, you'll get back a length-10 1D array.
 
-Note that the Cython part of these functions are implemented in a separate
-module (compiled as ``_core``), derived from the ``core.pyx`` file.  Splitting
-the wrappers into separate pure-python and Cython portions dramatically reduces
-compilation time without notably impacting performance. (See issue [#3063] on the
-github repository for more about this.)
+Note that the C part of these functions are implemented in a separate
+module (compiled as ``_core``), derived from the ``core.c`` file.
+Splitting the wrappers into separate pure-python and C portions
+dramatically reduces compilation time without notably impacting
+performance. (See issue [#3063] on the github repository for more
+about this.)
 """
 from __future__ import absolute_import, division, print_function
 
 import warnings
-from distutils.version import LooseVersion
 
+from ..utils.compat import NUMPY_LT_1_8
 from ..utils.exceptions import AstropyUserWarning
 
 import numpy
 from . import _core
 
-NPYLT18 = LooseVersion(numpy.__version__) < LooseVersion('1.8')
-# TODO: remove the above variable and the code using it and make_outputs_scalar when numpy < 1.8 is no longer supported
+# TODO: remove the above variable and the code using it and make_outputs_scalar
+# when numpy < 1.8 is no longer supported
 
 __all__ = ['ErfaError', 'ErfaWarning',
            {{ funcs|map(attribute='pyname')|surround("'","'")|join(", ") }},
@@ -66,7 +67,20 @@ class ErfaWarning(AstropyUserWarning):
 
 STATUS_CODES = {}  # populated below before each function that returns an int
 
+# This is a hard-coded list of status codes that need to be remapped,
+# such as to turn errors into warnings.
+STATUS_CODES_REMAP = {
+    'cal2jd': {-3: 3}
+}
+
+
 def check_errwarn(statcodes, func_name):
+    # Remap any errors into warnings in the STATUS_CODES_REMAP dict.
+    if func_name in STATUS_CODES_REMAP:
+        for before, after in STATUS_CODES_REMAP[func_name].items():
+            statcodes[statcodes == before] = after
+            STATUS_CODES[func_name][after] = STATUS_CODES[func_name][before]
+
     if numpy.any(statcodes<0):
         # errors present - only report the errors.
         if statcodes.shape:
@@ -179,7 +193,7 @@ def {{ func.pyname }}({{ func.args_by_inout('in|inout')|map(attribute='name')|jo
 
     {%- if func.args_by_inout('in|inout') %}
     make_outputs_scalar = False
-    if NPYLT18:
+    if NUMPY_LT_1_8:
         # in numpy < 1.8, the iterator used below doesn't work with 0d/scalar arrays
         # so we replace all scalars with 1d arrays
         make_outputs_scalar = True

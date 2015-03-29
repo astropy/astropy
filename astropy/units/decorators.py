@@ -17,7 +17,7 @@ class QuantityInput(object):
 
         Unit specifications can be provided as keyword arguments to the decorator,
         or by using Python 3's function annotation syntax. Arguments to the decorator
-        take precidence over any function annotations present.
+        take precedence over any function annotations present.
 
         A `~astropy.units.UnitsError` will be raised if the unit attribute of
         the argument is not equivalent to the unit specified to the decorator
@@ -27,6 +27,12 @@ class QuantityInput(object):
 
         Where an equivalency is specified in the decorator, the function will be
         executed with that equivalency in force.
+
+        Notes
+        -----
+
+        The checking of arguments inside variable arguments to a function is not
+        supported (i.e. \*arg or \**kwargs).
 
         Examples
         --------
@@ -76,6 +82,10 @@ class QuantityInput(object):
 
             # Iterate through the parameters of the original signature
             for param in wrapped_signature.parameters.values():
+                # We do not support variable arguments (*args, **kwargs)
+                if param.kind in (funcsigs.Parameter.VAR_KEYWORD,
+                                  funcsigs.Parameter.VAR_POSITIONAL):
+                    continue
                 # Catch the (never triggered) case where bind relied on a default value.
                 if param.name not in bound_args.arguments and param.default is not param.empty:
                     bound_args.arguments[param.name] = param.default
@@ -83,7 +93,7 @@ class QuantityInput(object):
                 # Get the value of this parameter (argument to new function)
                 arg = bound_args.arguments[param.name]
 
-                # Get target unit, either from decotrator kwargs or annotations
+                # Get target unit, either from decorator kwargs or annotations
                 if param.name in self.decorator_kwargs:
                     target_unit = self.decorator_kwargs[param.name]
                 else:

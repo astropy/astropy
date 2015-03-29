@@ -21,10 +21,17 @@ Astropy also depends on other packages for optional features:
 - `BeautifulSoup <http://www.crummy.com/software/BeautifulSoup/>`_: To read
   :class:`~astropy.table.table.Table` objects from HTML files
 
+- `PyYAML <http://pyyaml.org>`_: To read/write
+  :class:`~astropy.table.Table` objects from/to the Enhanced CSV ASCII table format.
+
 - `scipy`_: To power a variety of features (currently
   mainly cosmology-related functionality)
 
 - `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
+
+- `matplotlib <http://matplotlib.org/>`_: To provide plotting functionality that `astropy.visualization` enhances.
+
+- `WCSAxes <http://wcsaxes.readthedocs.org/en/latest/>`_: To use `astropy.wcs` to define projections in Matplotlib. 
 
 However, note that these only need to be installed if those particular features
 are needed. Astropy will import even if these dependencies are not installed.
@@ -148,7 +155,7 @@ The `instructions for building Numpy from source
 resource for setting up your environment to build Python packages.
 
 You will also need `Cython <http://cython.org/>`_ (v0.15 or later) and
-`jinja2 <http://jinja.pocoo.org/docs/dev/>`_ installed
+`jinja2 <http://jinja.pocoo.org/docs/dev/>`_ (v2.7 or later) installed
 to build from source, unless you are installing a numbered release. (The
 releases packages have the necessary C files packaged with them, and hence do
 not require Cython.)

@@ -16,7 +16,8 @@ import numpy as np
 from ..extern import six
 from . import angle_utilities as util
 from .. import units as u
-from ..utils import deprecated, isiterable
+from ..utils import isiterable
+from ..utils.compat import NUMPY_LT_1_7
 
 
 __all__ = ['Angle', 'Latitude', 'Longitude']
@@ -200,7 +201,7 @@ class Angle(u.Quantity):
         members.  The ``d``, ``m``, ``s`` are thus always positive, and the sign of
         the angle is given by ``sign``. (This is a read-only property.)
 
-        This is primarily intented for use with `dms` to generate string
+        This is primarily intended for use with `dms` to generate string
         representations of coordinates that are correct for negative angles.
         """
         return signed_dms_tuple(np.sign(self.degree),
@@ -219,7 +220,7 @@ class Angle(u.Quantity):
             used.
 
         decimal : bool, optional
-            If `True`, a decimal respresentation will be used, otherwise
+            If `True`, a decimal representation will be used, otherwise
             the returned string will be in sexagesimal form.
 
         sep : str, optional
@@ -369,10 +370,18 @@ class Angle(u.Quantity):
                 s = '${0}$'.format(s)
             return s
 
-        # we want unicode outputs for degree signs and such
-        # for newer numpy's, this just works as you would expect
-        format_ufunc = np.vectorize(do_format, otypes=['U'])
-        result = format_ufunc(values)
+        if NUMPY_LT_1_7 and not np.isscalar(values):  # pragma: no cover
+            format_ufunc = np.vectorize(do_format, otypes=[np.object])
+            # In Numpy 1.6, unicode output is broken.  vectorize always seems to
+            # yieled U2 even if you tell it something else.  So we convert in
+            # a second step with 60 chars, on the theory that you'll never want
+            # better than what double-precision decimals give, which end up
+            # around that many characters.
+            result = format_ufunc(values).astype('U60')
+        else:
+            #for newer Numpy versions, this just works as you would expect
+            format_ufunc = np.vectorize(do_format, otypes=['U'])
+            result = format_ufunc(values)
 
         if result.ndim == 0:
             result = result[()]
@@ -471,7 +480,18 @@ class Angle(u.Quantity):
         return str(self.to_string())
 
     def _repr_latex_(self):
-        return str(self.to_string(format='latex'))
+        if self.isscalar:
+            return self.to_string(format='latex')
+        else:
+            # Need to do a magic incantation to convert to str.  Regular str
+            # or array2string causes all backslashes to get doubled.
+            if NUMPY_LT_1_7:
+                # Except that numpy 1.6 doesn't do formatter... so instead we
+                # just replace all double-backslashes with one.
+                return str(self.to_string(format='latex')).replace('\\\\', '\\')
+            else:
+                return np.array2string(self.to_string(format='latex'),
+                                       formatter={'str_kind': lambda x: x})
 
 
 class Latitude(Angle):
@@ -530,7 +550,7 @@ class Latitude(Angle):
 
     def _validate_angles(self, angles=None):
         """Check that angles are between -90 and 90 degrees.
-        If not given, the check is done on the object iself"""
+        If not given, the check is done on the object itself"""
         # Convert the lower and upper bounds to the "native" unit of
         # this angle.  This limits multiplication to two values,
         # rather than the N values in `self.value`.  Also, the
@@ -665,7 +685,7 @@ class Longitude(Angle):
 
     def __array_finalize__(self, obj):
         super(Longitude, self).__array_finalize__(obj)
-        self._wrap_angle = getattr(obj, '_wrap_angle', None)
+        self._wrap_angle = getattr(obj, '_wrap_angle', 360 * u.deg)
 
     # Any calculation should drop to Angle
     def __array_wrap__(self, obj, context=None):

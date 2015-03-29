@@ -17,12 +17,10 @@ define new equivalencies.
 
 Equivalencies are used by passing a list of equivalency pairs to the
 ``equivalencies`` keyword argument of :meth:`Quantity.to
-<astropy.units.quantity.Quantity.to>`, :meth:`Unit.to
-<astropy.units.core.UnitBase.to>` or :meth:`Unit.get_converter
-<astropy.units.core.UnitBase.get_converter>` methods.
-Alternatively, if a
-larger piece of code needs the same equivalencies, one can set them
-for a :ref:`given context <equivalency-context>`.
+<astropy.units.quantity.Quantity.to>` or :meth:`Unit.to
+<astropy.units.core.UnitBase.to>` methods.  Alternatively, if a larger
+piece of code needs the same equivalencies, one can set them for a
+:ref:`given context <equivalency-context>`.
 
 Built-in equivalencies
 ----------------------
@@ -173,19 +171,49 @@ only dependent on the aperture size.  See `Tools of Radio Astronomy
 <http://books.google.com/books?id=9KHw6R8rQEMC&pg=PA179&source=gbs_toc_r&cad=4#v=onepage&q&f=false>`__
 for details.
 
-The `~astropy.units.equivalencies.brightness_temperature` equivalency
-requires the beam area and frequency as arguments.  Example::
+.. note:: The brightness temperature mentioned here is the Rayleigh-Jeans 
+          equivalent temperature, which results in a linear relation between
+          flux and temperature. This is the convention that is most often used
+          in relation to observations, but if you are interested in computing
+          the *exact* temperature of a planck function that would produce a
+          given flux, you should not use this equivalency.
+
+The `~astropy.units.equivalencies.brightness_temperature` equivalency requires
+the beam area and frequency as arguments.  Recalling that the area of a 2D
+gaussian is :math:`2 \pi \sigma^2` (see `wikipedia
+<http://en.wikipedia.org/wiki/Gaussian_function#Two-dimensional_Gaussian_function>`_),
+here is an example::
 
     >>> import numpy as np
-    >>> omega_B = np.pi * (50 * u.arcsec)**2
+    >>> beam_sigma = 50*u.arcsec
+    >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
-    7.052588858...
+    3.526294...
+
+.. note:: Despite the Astropy unit on the left being shown as ``u.Jy``, this is
+          the conversion factor from Jy/beam to K (because ``u.beam`` cannot
+          currently be used as a meaningful unit since it depends on the
+          observations).
+
+If you have beam full-width half-maxima (FWHM), which are often quoted and are
+the values stored in the FITS header keywords BMAJ and BMIN, a more appropriate
+example converts the FWHM to sigma::
+
+    >>> import numpy as np
+    >>> beam_fwhm = 50*u.arcsec
+    >>> fwhm_to_sigma = 1./(8*np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm*fwhm_to_sigma
+    >>> omega_B = 2 * np.pi * beam_sigma**2
+    >>> freq = 5 * u.GHz
+    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
+    19.55392833...
+
 
 Temperature Energy Equivalency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This equivalency allows conversion between temperature and its equivalent 
+This equivalency allows conversion between temperature and its equivalent
 in energy (i.e., the temperature multiplied by the Boltzmann constant),
 usually expressed in electronvolts. This is used frequently for
 observations at high-energy, be it for solar or X-ray astronomy. Example::
@@ -274,22 +302,22 @@ all kinds of things that ``Hz`` can be converted to::
   >>> u.Hz.find_equivalent_units(equivalencies=u.spectral())
     Primary name | Unit definition        | Aliases
   [
-    AU           | 1.49598e+11 m          | au             ,
-    Angstrom     | 1e-10 m                | AA, angstrom   ,
-    Bq           | 1 / s                  | becquerel      ,
-    Ci           | 2.7027e-11 / s         | curie          ,
-    Hz           | 1 / s                  | Hertz, hertz   ,
-    J            | kg m2 / s2             | Joule, joule   ,
-    Ry           | 2.17987e-18 kg m2 / s2 | rydberg        ,
-    cm           | 0.01 m                 | centimeter     ,
-    eV           | 1.60218e-19 kg m2 / s2 | electronvolt   ,
-    erg          | 1e-07 kg m2 / s2       |                ,
-    k            | 100 / m                | Kayser, kayser ,
-    lyr          | 9.46073e+15 m          | lightyear      ,
-    m            | irreducible            | meter          ,
-    micron       | 1e-06 m                |                ,
-    pc           | 3.08568e+16 m          | parsec         ,
-    solRad       | 6.95508e+08 m          | R_sun, Rsun    ,
+    AU           | 1.49598e+11 m          | au, astronomical_unit ,
+    Angstrom     | 1e-10 m                | AA, angstrom          ,
+    Bq           | 1 / s                  | becquerel             ,
+    Ci           | 2.7027e-11 / s         | curie                 ,
+    Hz           | 1 / s                  | Hertz, hertz          ,
+    J            | kg m2 / s2             | Joule, joule          ,
+    Ry           | 2.17987e-18 kg m2 / s2 | rydberg               ,
+    cm           | 0.01 m                 | centimeter            ,
+    eV           | 1.60218e-19 kg m2 / s2 | electronvolt          ,
+    erg          | 1e-07 kg m2 / s2       |                       ,
+    k            | 100 / m                | Kayser, kayser        ,
+    lyr          | 9.46073e+15 m          | lightyear             ,
+    m            | irreducible            | meter                 ,
+    micron       | 1e-06 m                |                       ,
+    pc           | 3.08568e+16 m          | parsec                ,
+    solRad       | 6.95508e+08 m          | R_sun, Rsun           ,
   ]
 
 .. _equivalency-context:

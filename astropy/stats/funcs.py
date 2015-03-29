@@ -452,7 +452,7 @@ def median_absolute_deviation(a, axis=None):
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         Input array or object that can be converted to an array.
     axis : int, optional
         Axis along which the medians are computed. The default (axis=None)
@@ -521,12 +521,12 @@ def biweight_location(a, c=6.0, M=None):
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         Input array or object that can be converted to an array.
     c : float
         Tuning constant for the biweight estimator.  Default value is 6.0.
     M : float, optional
-        Initial gues for the biweight location.
+        Initial guess for the biweight location.
 
     Returns
     -------
@@ -537,7 +537,7 @@ def biweight_location(a, c=6.0, M=None):
     --------
 
     This will generate random variates from a Gaussian distribution and return
-    the median absolute deviation for that distribution::
+    the biweight location of the distribution::
 
     >>> from astropy.stats.funcs import biweight_location
     >>> from numpy.random import randn
@@ -606,12 +606,12 @@ def biweight_midvariance(a, c=9.0, M=None):
 
     Parameters
     ----------
-    a : array_like
+    a : array-like
         Input array or object that can be converted to an array.
     c : float
         Tuning constant for the biweight estimator.  Default value is 9.0.
     M : float, optional
-        Initial gues for the biweight location.
+        Initial guess for the biweight location.
 
     Returns
     -------
@@ -622,7 +622,7 @@ def biweight_midvariance(a, c=9.0, M=None):
     --------
 
     This will generate random variates from a Gaussian distribution and return
-    the median absolute deviation for that distribution::
+    the biweight midvariance of the distribution::
 
     >>> from astropy.stats.funcs import biweight_midvariance
     >>> from numpy.random import randn
@@ -677,10 +677,10 @@ def signal_to_noise_oir_ccd(t, source_eps, sky_eps, dark_eps, rd, npix,
         make sense.
     dark_eps : float
         Number of thermal electrons per second per pixel. If this is given in
-        DN or ADU, then multipy by the gain to get the value in electrons.
+        DN or ADU, then multiply by the gain to get the value in electrons.
     rd : float
         Read noise of the CCD in electrons. If this is given in
-        DN or ADU, then multipy by the gain to get the value in electrons.
+        DN or ADU, then multiply by the gain to get the value in electrons.
     npix : float
         Size of the aperture in pixels
     gain : float
@@ -709,7 +709,7 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     Parameters
     ----------
     data : numpy.ndarray
-        N-D array. The boostrap resampling will be performed on the first
+        N-D array. The bootstrap resampling will be performed on the first
         index, so the first index should access the relevant information
         to be bootstrapped.
     bootnum : int
@@ -765,7 +765,7 @@ def mad_std(data):
         \\sigma \\approx \\frac{\\textrm{MAD}}{\Phi^{-1}(3/4)} \\approx 1.4826 \ \\textrm{MAD}
 
     where :math:`\Phi^{-1}(P)` is the normal inverse cumulative
-    distribution function evaulated at probability :math:`P = 3/4`.
+    distribution function evaluated at probability :math:`P = 3/4`.
 
     Parameters
     ----------

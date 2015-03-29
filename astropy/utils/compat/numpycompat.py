@@ -6,25 +6,32 @@ earlier versions of Numpy.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern import six
+from ...utils import minversion
 
-import numpy as np
 
-# Note: We could have used distutils.version for this comparison,
-# but it seems like overkill to import distutils at runtime.
-numpy_major, numpy_minor, numpy_rest = np.__version__.split(".", 2)
-numpy_major = int(numpy_major)
-numpy_minor = int(numpy_minor)
+__all__ = ['NUMPY_LT_1_6_1', 'NUMPY_LT_1_7', 'NUMPY_LT_1_8', 'NUMPY_LT_1_9',
+           'NUMPY_LT_1_9_1']
+
+# TODO: It might also be nice to have aliases to these named for specific
+# features/bugs we're checking for (ex:
+# astropy.table.table._BROKEN_UNICODE_TABLE_SORT)
+NUMPY_LT_1_6_1 = not minversion('numpy', '1.6.1')
+NUMPY_LT_1_7 = not minversion('numpy', '1.7.0')
+NUMPY_LT_1_8 = not minversion('numpy', '1.8.0')
+NUMPY_LT_1_9 = not minversion('numpy', '1.9.0')
+NUMPY_LT_1_9_1 = not minversion('numpy', '1.9.1')
 
 
 def _monkeypatch_unicode_mask_fill_values():
     """
-    Numpy <= 1.7.0 on Python 2 does not support Unicode fill values, since
+    Numpy < 1.8.0 on Python 2 does not support Unicode fill values, since
     it assumes that all of the string dtypes are ``S`` and ``V`` (not ``U``).
 
     This monkey patches the function that validates and corrects a
     fill value to handle this case.
     """
-    if numpy_major == 1 and numpy_minor <= 7 and six.PY2:
+    if NUMPY_LT_1_8 and six.PY2:
+        import numpy as np
         from numpy.ma import core as ma_core
         _check_fill_value_original = ma_core._check_fill_value
 
@@ -38,4 +45,5 @@ def _monkeypatch_unicode_mask_fill_values():
         ma_core._check_fill_value = _check_fill_value
 
 
-_monkeypatch_unicode_mask_fill_values()
+if not _ASTROPY_SETUP_:
+    _monkeypatch_unicode_mask_fill_values()

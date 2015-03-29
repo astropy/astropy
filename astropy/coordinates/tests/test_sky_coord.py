@@ -19,9 +19,11 @@ from ... import units as u
 from ...tests.helper import pytest, catch_warnings
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
-                            SphericalRepresentation, CartesianRepresentation)
+                            SphericalRepresentation, CartesianRepresentation,
+                            UnitSphericalRepresentation)
 from ...coordinates import Latitude, Longitude
 from ...time import Time
+from ...utils import minversion
 from ...utils.exceptions import AstropyDeprecationWarning
 
 RA = 1.0 * u.deg
@@ -37,6 +39,11 @@ try:
     HAS_SCIPY = True
 except ImportError:
     HAS_SCIPY = False
+
+if HAS_SCIPY and minversion(scipy, '0.12.0', inclusive=False):
+    OLDER_SCIPY = False
+else:
+    OLDER_SCIPY = True
 
 
 def test_transform_to():
@@ -133,21 +140,65 @@ def test_coord_init_string():
 
     with pytest.raises(ValueError) as err:
         SkyCoord('1d 2d 3d')
-    assert "Cannot parse longitude and latitude" in str(err)
+    assert "Cannot parse first argument data" in str(err)
 
     sc1 = SkyCoord('8 00 00 +5 00 00.0', unit=(u.hour, u.deg), frame='icrs')
     assert isinstance(sc1, SkyCoord)
     assert allclose(sc1.ra, Angle(120 * u.deg))
     assert allclose(sc1.dec, Angle(5 * u.deg))
 
-    with pytest.raises(ValueError) as err:
-        SkyCoord('8 00 -5 00 00.0', unit=(u.hour, u.deg), frame='icrs')
-    assert 'coordinates have 5 values but spherical representation only accepts 3' in str(err)
+    sc11 = SkyCoord('8h00m00s+5d00m00.0s', unit=(u.hour, u.deg), frame='icrs')
+    assert isinstance(sc11, SkyCoord)
+    assert allclose(sc1.ra, Angle(120 * u.deg))
+    assert allclose(sc1.dec, Angle(5 * u.deg))
+
+    sc2 = SkyCoord('8 00 -5 00 00.0', unit=(u.hour, u.deg), frame='icrs')
+    assert isinstance(sc2, SkyCoord)
+    assert allclose(sc2.ra, Angle(120 * u.deg))
+    assert allclose(sc2.dec, Angle(-5 * u.deg))
+
+    sc3 = SkyCoord('8 00 -5 00.6', unit=(u.hour, u.deg), frame='icrs')
+    assert isinstance(sc3, SkyCoord)
+    assert allclose(sc3.ra, Angle(120 * u.deg))
+    assert allclose(sc3.dec, Angle(-5.01 * u.deg))
+
+    sc4 = SkyCoord('J080000.00-050036.00', unit=(u.hour, u.deg), frame='icrs')
+    assert isinstance(sc4, SkyCoord)
+    assert allclose(sc4.ra, Angle(120 * u.deg))
+    assert allclose(sc4.dec, Angle(-5.01 * u.deg))
+
+    sc41 = SkyCoord('J080000+050036', unit=(u.hour, u.deg), frame='icrs')
+    assert isinstance(sc41, SkyCoord)
+    assert allclose(sc41.ra, Angle(120 * u.deg))
+    assert allclose(sc41.dec, Angle(+5.01 * u.deg))
 
     sc5 = SkyCoord('8h00.6m -5d00.6m', unit=(u.hour, u.deg), frame='icrs')
     assert isinstance(sc5, SkyCoord)
     assert allclose(sc5.ra, Angle(120.15 * u.deg))
     assert allclose(sc5.dec, Angle(-5.01 * u.deg))
+
+    sc6 = SkyCoord('8h00.6m -5d00.6m', unit=(u.hour, u.deg), frame='fk4')
+    assert isinstance(sc6, SkyCoord)
+    assert allclose(sc6.ra, Angle(120.15 * u.deg))
+    assert allclose(sc6.dec, Angle(-5.01 * u.deg))
+
+    sc61 = SkyCoord('8h00.6m-5d00.6m', unit=(u.hour, u.deg), frame='fk4')
+    assert isinstance(sc61, SkyCoord)
+    assert allclose(sc6.ra, Angle(120.15 * u.deg))
+    assert allclose(sc6.dec, Angle(-5.01 * u.deg))
+
+    sc61 = SkyCoord('8h00.6-5d00.6', unit=(u.hour, u.deg), frame='fk4')
+    assert isinstance(sc61, SkyCoord)
+    assert allclose(sc6.ra, Angle(120.15 * u.deg))
+    assert allclose(sc6.dec, Angle(-5.01 * u.deg))
+
+    sc7 = SkyCoord("J1874221.60+122421.6", unit=u.deg)
+    assert isinstance(sc7, SkyCoord)
+    assert allclose(sc7.ra, Angle(187.706 * u.deg))
+    assert allclose(sc7.dec, Angle(12.406 * u.deg))
+
+    with pytest.raises(ValueError):
+        SkyCoord('8 00 -5 00.6', unit=(u.deg, u.deg), frame='galactic')
 
 
 def test_coord_init_unit():
@@ -195,11 +246,11 @@ def test_coord_init_list():
 
     with pytest.raises(ValueError) as err:
         SkyCoord(['1d 2d 3d'])
-    assert "Cannot parse longitude and latitude" in str(err)
+    assert "Cannot parse first argument data" in str(err)
 
     with pytest.raises(ValueError) as err:
         SkyCoord([('1d', '2d', '3d')])
-    assert "Cannot parse longitude and latitude" in str(err)
+    assert "Cannot parse first argument data" in str(err)
 
     sc = SkyCoord([1 * u.deg, 1 * u.deg], [2 * u.deg, 2 * u.deg])
     assert allclose(sc.ra, Angle('1d'))
@@ -431,15 +482,18 @@ def test_repr():
     sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame='icrs')
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
 
-    assert repr(sc1) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
-    assert repr(sc2) == '<SkyCoord (ICRS): ra=1.0 deg, dec=1.0 deg, distance=1.0 kpc>'
+    assert repr(sc1) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
+                         '    (0.0, 1.0)>')
+    assert repr(sc2) == ('<SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, kpc)\n'
+                         '    (1.0, 1.0, 1.0)>')
 
     sc3 = SkyCoord(0.25 * u.deg, [1, 2.5] * u.deg, frame='icrs')
     assert repr(sc3) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                          '    [(0.25, 1.0), (0.25, 2.5)]>')
 
     sc_default = SkyCoord(0 * u.deg, 1 * u.deg)
-    assert repr(sc_default) == '<SkyCoord (ICRS): ra=0.0 deg, dec=1.0 deg>'
+    assert repr(sc_default) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
+                                '    (0.0, 1.0)>')
 
 
 def test_ops():
@@ -834,6 +888,7 @@ def test_immutable():
 
 
 @pytest.mark.skipif(str('not HAS_SCIPY'))
+@pytest.mark.skipif(str('OLDER_SCIPY'))
 def test_search_around():
     """
     Test the search_around_* methods
@@ -978,3 +1033,80 @@ def test_guess_from_table():
     tabgal['gal_l'].name = 'central'
     with pytest.raises(ValueError):
         SkyCoord.guess_from_table(tabgal, frame='galactic')
+
+
+def test_skycoord_list_creation():
+    """
+    Test that SkyCoord can be created in a reasonable way with lists of SkyCoords
+    (regression for #2702)
+    """
+    sc = SkyCoord(ra=[1, 2, 3]*u.deg, dec=[4, 5, 6]*u.deg)
+    sc0 = sc[0]
+    sc2 = sc[2]
+    scnew = SkyCoord([sc0, sc2])
+    assert np.all(scnew.ra == [1, 3]*u.deg)
+    assert np.all(scnew.dec == [4, 6]*u.deg)
+
+    #also check ranges
+    sc01 = sc[:2]
+    scnew2 = SkyCoord([sc01, sc2])
+    assert np.all(scnew2.ra == sc.ra)
+    assert np.all(scnew2.dec == sc.dec)
+
+    #now try with a mix of skycoord, frame, and repr objects
+    frobj = ICRS(2*u.deg, 5*u.deg)
+    reprobj = UnitSphericalRepresentation(3*u.deg, 6*u.deg)
+    scnew3 = SkyCoord([sc0, frobj, reprobj])
+    assert np.all(scnew3.ra == sc.ra)
+    assert np.all(scnew3.dec == sc.dec)
+
+    #should *fail* if different frame attributes or types are passed in
+    scfk5_j2000 = SkyCoord(1*u.deg, 4*u.deg, frame='fk5')
+    with pytest.raises(ValueError):
+        SkyCoord([sc0, scfk5_j2000])
+    scfk5_j2010 = SkyCoord(1*u.deg, 4*u.deg, frame='fk5', equinox='J2010')
+    with pytest.raises(ValueError):
+        SkyCoord([scfk5_j2000, scfk5_j2010])
+
+    # but they should inherit if they're all consistent
+    scfk5_2_j2010 = SkyCoord(2*u.deg, 5*u.deg, frame='fk5', equinox='J2010')
+    scfk5_3_j2010 = SkyCoord(3*u.deg, 6*u.deg, frame='fk5', equinox='J2010')
+
+    scnew4 = SkyCoord([scfk5_j2010, scfk5_2_j2010, scfk5_3_j2010])
+    assert np.all(scnew4.ra == sc.ra)
+    assert np.all(scnew4.dec == sc.dec)
+    assert scnew4.equinox == Time('J2010')
+
+
+def test_nd_skycoord_to_string():
+    c = SkyCoord(np.ones((2, 2)), 1, unit=('deg', 'deg'))
+    ts = c.to_string()
+    assert np.all(ts.shape == c.shape)
+    assert np.all(ts == u'1 1')
+
+
+def test_equiv_skycoord():
+    sci1 = SkyCoord(1*u.deg, 2*u.deg, frame='icrs')
+    sci2 = SkyCoord(1*u.deg, 3*u.deg, frame='icrs')
+    assert sci1.is_equivalent_frame(sci1)
+    assert sci1.is_equivalent_frame(sci2)
+
+    assert sci1.is_equivalent_frame(ICRS())
+    assert not sci1.is_equivalent_frame(FK5())
+    with pytest.raises(TypeError):
+        sci1.is_equivalent_frame(10)
+
+    scf1 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5')
+    scf2 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5', equinox='J2005')
+    #obstime is *not* an FK5 attribute, but we still want scf1 and scf3 to come
+    #to come out different because they're part of SkyCoord
+    scf3 = SkyCoord(1*u.deg, 2*u.deg, frame='fk5', obstime='J2005')
+
+    assert scf1.is_equivalent_frame(scf1)
+    assert not scf1.is_equivalent_frame(sci1)
+    assert scf1.is_equivalent_frame(FK5())
+
+    assert not scf1.is_equivalent_frame(scf2)
+    assert scf2.is_equivalent_frame(FK5(equinox='J2005'))
+    assert not scf3.is_equivalent_frame(scf1)
+    assert not scf3.is_equivalent_frame(FK5(equinox='J2005'))

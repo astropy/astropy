@@ -7,15 +7,12 @@ This module contains predefined polynomial models.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import collections
-
 import numpy as np
 
-from .core import FittableModel, Model, SerialCompositeModel
+from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb
-from ..logger import log
 from ..utils import lazyproperty, indent
 
 
@@ -30,7 +27,7 @@ __all__ = [
 class PolynomialBase(FittableModel):
     """
     Base class for all polynomial-like models with an arbitrary number of
-    parameters in the form of coeffecients.
+    parameters in the form of coefficients.
 
     In this case Parameter instances are returned through the class's
     ``__getattr__`` rather than through class descriptors.
@@ -81,14 +78,6 @@ class PolynomialBase(FittableModel):
         else:
             super(PolynomialBase, self).__setattr__(attr, value)
 
-    def _validate_params(self, **params):
-        valid_params = set(self._param_names)
-        provided_params = set(params)
-        intersection = valid_params.intersection(provided_params)
-        if len(intersection) != len(provided_params):
-            diff = list(provided_params.difference(valid_params))
-            raise TypeError('Unrecognized input parameters: %s' % diff)
-
 
 class PolynomialModel(PolynomialBase):
     """
@@ -100,16 +89,14 @@ class PolynomialModel(PolynomialBase):
     """
 
     def __init__(self, degree, n_models=None, model_set_axis=None,
-                 meta=None, **params):
+                 name=None, meta=None, **params):
         self._degree = degree
         self._order = self.get_num_coeff(self.n_inputs)
         self._param_names = self._generate_coeff_names(self.n_inputs)
 
-        if params:
-            self._validate_params(**params)
-
         super(PolynomialModel, self).__init__(
-            n_models=n_models, model_set_axis=model_set_axis, meta=meta, **params)
+            n_models=n_models, model_set_axis=model_set_axis, name=name,
+            meta=meta, **params)
 
     def __repr__(self):
         return self._format_repr([self.degree])
@@ -197,7 +184,7 @@ class OrthoPolynomialBase(PolynomialBase):
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
                  y_domain=None, y_window=None, n_models=None,
-                 model_set_axis=None, meta=None, **params):
+                 model_set_axis=None, name=None, meta=None, **params):
         # TODO: Perhaps some of these other parameters should be properties?
         # TODO: An awful lot of the functionality in this method is still
         # shared by PolynomialModel; perhaps some of it can be generalized in
@@ -211,12 +198,9 @@ class OrthoPolynomialBase(PolynomialBase):
         self.y_window = y_window
         self._param_names = self._generate_coeff_names()
 
-        if params:
-            self._validate_params(**params)
-
         super(OrthoPolynomialBase, self).__init__(
             n_models=n_models, model_set_axis=model_set_axis,
-            meta=meta, **params)
+            name=name, meta=meta, **params)
 
     def __repr__(self):
         return self._format_repr([self.x_degree, self.y_degree])
@@ -356,12 +340,12 @@ class Chebyshev1D(PolynomialModel):
     outputs = ('y',)
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
-                 model_set_axis=None, meta=None, **params):
+                 model_set_axis=None, name=None, meta=None, **params):
         self.domain = domain
         self.window = window
         super(Chebyshev1D, self).__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
-            meta=meta, **params)
+            name=name, meta=meta, **params)
 
     def fit_deriv(self, x, *params):
         """
@@ -447,12 +431,12 @@ class Legendre1D(PolynomialModel):
     outputs = ('y',)
 
     def __init__(self, degree, domain=None, window=[-1, 1], n_models=None,
-                 model_set_axis=None, meta=None, **params):
+                 model_set_axis=None, name=None, meta=None, **params):
         self.domain = domain
         self.window = window
         super(Legendre1D, self).__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
-            meta=meta, **params)
+            name=name, meta=meta, **params)
 
     def prepare_inputs(self, x, **kwargs):
         inputs, format_info = \
@@ -536,12 +520,12 @@ class Polynomial1D(PolynomialModel):
     outputs = ('y',)
 
     def __init__(self, degree, domain=[-1, 1], window=[-1, 1], n_models=None,
-                 model_set_axis=None, meta=None, **params):
+                 model_set_axis=None, name=None, meta=None, **params):
         self.domain = domain
         self.window = window
         super(Polynomial1D, self).__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
-            meta=meta, **params)
+            name=name, meta=meta, **params)
 
     def prepare_inputs(self, x, **kwargs):
         inputs, format_info = \
@@ -625,10 +609,10 @@ class Polynomial2D(PolynomialModel):
 
     def __init__(self, degree, x_domain=[-1, 1], y_domain=[-1, 1],
                  x_window=[-1, 1], y_window=[-1, 1], n_models=None,
-                 model_set_axis=None, meta=None, **params):
+                 model_set_axis=None, name=None, meta=None, **params):
         super(Polynomial2D, self).__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
-            meta=meta, **params)
+            name=name, meta=meta, **params)
         self.x_domain = x_domain
         self.y_domain = y_domain
         self.x_window = x_window
@@ -763,11 +747,11 @@ class Chebyshev2D(OrthoPolynomialBase):
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1,1], n_models=None,
-                 model_set_axis=None, meta=None, **params):
+                 model_set_axis=None, name=None, meta=None, **params):
         super(Chebyshev2D, self).__init__(
             x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
             x_window=x_window, y_window=y_window, n_models=n_models,
-            model_set_axis=model_set_axis, meta=meta, **params)
+            model_set_axis=model_set_axis, name=name, meta=meta, **params)
 
     def _fcache(self, x, y):
         """
@@ -877,11 +861,11 @@ class Legendre2D(OrthoPolynomialBase):
 
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=[-1, 1],
                  y_domain=None, y_window=[-1, 1], n_models=None,
-                 model_set_axis=None, meta=None, **params):
+                 model_set_axis=None, name=None, meta=None, **params):
         super(Legendre2D, self).__init__(
             x_degree, y_degree, x_domain=x_domain, y_domain=y_domain,
             x_window=x_window, y_window=y_window, n_models=n_models,
-            model_set_axis=model_set_axis, meta=meta, **params)
+            model_set_axis=model_set_axis, name=name, meta=meta, **params)
 
     def _fcache(self, x, y):
         """
@@ -906,7 +890,7 @@ class Legendre2D(OrthoPolynomialBase):
 
     def fit_deriv(self, x, y, *params):
         """
-        Derivatives with repect to the coefficients.
+        Derivatives with respect to the coefficients.
         This is an array with Legendre polynomials:
 
         Lx0Ly0  Lx1Ly0...LxnLy0...LxnLym
@@ -965,17 +949,14 @@ class _SIP1D(PolynomialBase):
     outputs = ('w',)
 
     def __init__(self, order, coeff_prefix, n_models=None,
-                 model_set_axis=None, meta=None, **params):
+                 model_set_axis=None, name=None, meta=None, **params):
         self.order = order
         self.coeff_prefix = coeff_prefix
         self._param_names = self._generate_coeff_names(coeff_prefix)
 
-        if params:
-            self._validate_params(**params)
-
         super(_SIP1D, self).__init__(n_models=n_models,
                                      model_set_axis=model_set_axis,
-                                     meta=meta, **params)
+                                     name=name, meta=meta, **params)
 
     def __repr__(self):
         return self._format_repr(args=[self.order, self.coeff_prefix])
@@ -1087,7 +1068,7 @@ class SIP(Model):
 
     def __init__(self, crpix, a_order, b_order, a_coeff={}, b_coeff={},
                  ap_order=None, bp_order=None, ap_coeff={}, bp_coeff={},
-                 n_models=None, model_set_axis=None, meta=None):
+                 n_models=None, model_set_axis=None, name=None, meta=None):
         self._crpix = crpix
         self._a_order = a_order
         self._b_order = b_order
@@ -1104,7 +1085,8 @@ class SIP(Model):
         self.sip1d_b = _SIP1D(b_order, coeff_prefix='B', n_models=n_models,
                               model_set_axis=model_set_axis, **b_coeff)
         super(SIP, self).__init__(n_models=n_models,
-                                  model_set_axis=model_set_axis, meta=meta)
+                                  model_set_axis=model_set_axis, name=name,
+                                  meta=meta)
 
     def __repr__(self):
         return '<{0}({1!r})>'.format(self.__class__.__name__,
@@ -1157,7 +1139,7 @@ class InverseSIP(Model):
     outputs = ('u', 'v')
 
     def __init__(self, ap_order, bp_order, ap_coeff={}, bp_coeff={},
-                 n_models=None, model_set_axis=None, meta=None):
+                 n_models=None, model_set_axis=None, name=None, meta=None):
         self._ap_order = ap_order
         self._bp_order = bp_order
         self._ap_coeff = ap_coeff
@@ -1180,7 +1162,7 @@ class InverseSIP(Model):
                                      **bp_coeff_params)
         super(InverseSIP, self).__init__(n_models=n_models,
                                          model_set_axis=model_set_axis,
-                                         meta=meta)
+                                         name=name, meta=meta)
 
     def __repr__(self):
         return '<{0}({1!r})>'.format(self.__class__.__name__,

@@ -18,9 +18,16 @@ from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
 from .builtin_frames import ICRS
 from .representation import (BaseRepresentation, SphericalRepresentation,
-                             UnitSphericalRepresentation, CartesianRepresentation)
+                             UnitSphericalRepresentation)
 
 __all__ = ['SkyCoord']
+
+PLUS_MINUS_RE = re.compile(r'(\+|\-)')
+J_PREFIXED_RA_DEC_RE = re.compile(
+    r"""J                              # J prefix
+    ([0-9]{6,7}\.?[0-9]{0,2})          # RA as HHMMSS.ss or DDDMMSS.ss, optional decimal digits
+    ([\+\-][0-9]{6}\.?[0-9]{0,2})\s*$  # Dec as DDMMSS.ss, optional decimal digits
+    """, re.VERBOSE)
 
 
 # Define a convenience mapping.  This is used like a module constants
@@ -38,11 +45,12 @@ class SkyCoord(object):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
 
-    The `SkyCoord` class accepts a wide variety of inputs for initialization.
-    At a minimum these must provide one or more celestial coordinate values
-    with unambiguous units.  Typically one also specifies the coordinate
-    frame, though this is not required.  The general pattern is for spherical
-    representations is::
+    The `SkyCoord` class accepts a wide variety of inputs for initialization. At
+    a minimum these must provide one or more celestial coordinate values with
+    unambiguous units.  Inputs may be scalars or lists/tuples/arrays, yielding
+    scalar or array coordinates (can be checked via ``SkyCoord.isscalar``).
+    Typically one also specifies the coordinate frame, though this is not
+    required. The general pattern for spherical representations is::
 
       SkyCoord(COORD, [FRAME], keyword_args ...)
       SkyCoord(LON, LAT, [FRAME], keyword_args ...)
@@ -87,6 +95,8 @@ class SkyCoord(object):
 
       >>> c = SkyCoord(w=0, u=1, v=2, unit='kpc', frame='galactic', representation='cartesian')
 
+      >>> c = SkyCoord([ICRS(ra=1*u.deg, dec=2*u.deg), ICRS(ra=3*u.deg, dec=4*u.deg)])
+
     As shown, the frame can be a `~astropy.coordinates.BaseCoordinateFrame`
     class or the corresponding string alias.  The frame classes that are built in
     to astropy are `ICRS`, `FK5`, `FK4`, `FK4NoETerms`, and `Galactic`.
@@ -128,6 +138,11 @@ class SkyCoord(object):
         w, u, v : float or `~astropy.units.Quantity`, optional
             Cartesian coordinates values for the Galactic frame.
     """
+
+
+    # Declare that SkyCoord can be used as a Table column by defining the
+    # attribute where column attributes will be stored.
+    _astropy_column_attrs = None
 
     def __init__(self, *args, **kwargs):
 
@@ -227,7 +242,7 @@ class SkyCoord(object):
                 # coord_kwargs will contain keys like 'ra', 'dec', 'distance'
                 # along with any frame attributes like equinox or obstime which
                 # were explicitly specified in the coordinate object (i.e. non-default).
-                coord_kwargs = _parse_coordinate_arg(args[0], frame, units)
+                coord_kwargs = _parse_coordinate_arg(args[0], frame, units, kwargs)
 
             elif len(args) <= 3:
                 frame_attr_names = frame.representation_component_names.keys()
@@ -479,17 +494,62 @@ class SkyCoord(object):
                             sph_coord.lat.to_string(**latargs))
         else:
             coord_string = []
-            for lonangle, latangle in zip(sph_coord.lon, sph_coord.lat):
+            for lonangle, latangle in zip(sph_coord.lon.ravel(), sph_coord.lat.ravel()):
                 coord_string += [(lonangle.to_string(**lonargs)
                                  + " " +
                                  latangle.to_string(**latargs))]
+            if len(sph_coord.shape) > 1:
+                coord_string = np.array(coord_string).reshape(sph_coord.shape)
 
         return coord_string
 
-    # High-level convinience methods
+    def is_equivalent_frame(self, other):
+        """
+        Checks if this object's frame as the same as that of the ``other``
+        object.
+
+        To be the same frame, two objects must be the same frame class and have
+        the same frame attributes. For two `SkyCoord` objects, *all* of the
+        frame attributes have to match, not just those relevant for the object's
+        frame.
+
+        Parameters
+        ----------
+        other : SkyCoord or BaseCoordinateFrame
+            The other object to check.
+
+        Returns
+        -------
+        isequiv : bool
+            True if the frames are the same, False if not.
+
+        Raises
+        ------
+        TypeError
+            If ``other`` isn't a `SkyCoord` or a `BaseCoordinateFrame` or subclass.
+        """
+        if isinstance(other, BaseCoordinateFrame):
+            return self.frame.is_equivalent_frame(other)
+        elif isinstance(other, SkyCoord):
+            if other.frame.name != self.frame.name:
+                return False
+
+            for fattrnm in FRAME_ATTR_NAMES_SET():
+                if getattr(self, fattrnm) != getattr(other, fattrnm):
+                    return False
+            return True
+        else:
+            #not a BaseCoordinateFrame nor a SkyCoord object
+            raise TypeError("Tried to do is_equivalent_frame on something that "
+                            "isn't frame-like")
+
+    # High-level convenience methods
     def separation(self, other):
         """
         Computes on-sky separation between this coordinate and another.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -535,6 +595,9 @@ class SkyCoord(object):
         Computes three dimensional separation between this coordinate
         and another.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         other : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
@@ -579,6 +642,9 @@ class SkyCoord(object):
         Finds the nearest on-sky matches of this coordinate in a set of
         catalog coordinates.
 
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         catalogcoord : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
@@ -616,6 +682,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.match_coordinates_sky
+        SkyCoord.match_to_catalog_3d
         """
         from .matching import match_coordinates_sky
 
@@ -639,6 +706,9 @@ class SkyCoord(object):
         This finds the 3-dimensional closest neighbor, which is only different
         from the on-sky distance if ``distance`` is set in this object or the
         ``catalogcoord`` object.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
 
         Parameters
         ----------
@@ -677,6 +747,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.match_coordinates_3d
+        SkyCoord.match_to_catalog_sky
         """
         from .matching import match_coordinates_3d
 
@@ -698,22 +769,32 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given on-sky separation.
 
+        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        with coordinate arrays, rather than a scalar coordinate.  For a scalar
+        coordinate, it is better to use
+        `~astropy.coordinates.SkyCoord.separation`.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate(s) to search around to try to find matching points in
-            this `SkyCoord`.
+            The coordinates to search around to try to find matching points in
+            this `SkyCoord`. This should be an object with array coordinates,
+            not a scalar coordinate object.
         seplimit : `~astropy.units.Quantity` with angle units
             The on-sky separation to search within.
 
         Returns
         -------
         idxsearcharound : integer array
-            Indices into ``coords1`` that matches to the corresponding element of
+            Indices into ``self`` that matches to the corresponding element of
             ``idxself``. Shape matches ``idxself``.
         idxself : integer array
-            Indices into ``coords2`` that matches to the corresponding element of
-            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+            Indices into ``searcharoundcoords`` that matches to the
+            corresponding element of ``idxsearcharound``. Shape matches
+            ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
@@ -723,7 +804,7 @@ class SkyCoord(object):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -734,6 +815,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.search_around_sky
+        SkyCoord.search_around_3d
         """
         from .matching import search_around_sky
 
@@ -745,22 +827,32 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given 3D radius.
 
+        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        with coordinate arrays, rather than a scalar coordinate.  For a scalar
+        coordinate, it is better to use
+        `~astropy.coordinates.SkyCoord.separation_3d`.
+
+        For more on how to use this (and related) functionality, see the
+        examples in :doc:`/coordinates/matchsep`.
+
         Parameters
         ----------
         searcharoundcoords : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate(s) to search around to try to find matching points in
-            this `SkyCoord`.
+            The coordinates to search around to try to find matching points in
+            this `SkyCoord`. This should be an object with array coordinates,
+            not a scalar coordinate object.
         distlimit : `~astropy.units.Quantity` with distance units
             The physical radius to search within.
 
         Returns
         -------
         idxsearcharound : integer array
-            Indices into ``coords1`` that matches to the corresponding element of
+            Indices into ``self`` that matches to the corresponding element of
             ``idxself``. Shape matches ``idxself``.
         idxself : integer array
-            Indices into ``coords2`` that matches to the corresponding element of
-            ``idxsearcharound``. Shape matches ``idxsearcharound``.
+            Indices into ``searcharoundcoords`` that matches to the
+            corresponding element of ``idxsearcharound``. Shape matches
+            ``idxsearcharound``.
         sep2d : `~astropy.coordinates.Angle`
             The on-sky separation between the coordinates. Shape matches
             ``idxsearcharound`` and ``idxself``.
@@ -770,7 +862,7 @@ class SkyCoord(object):
 
         Notes
         -----
-        This method requires `SciPy <http://www.scipy.org>`_ to be
+        This method requires `SciPy <http://www.scipy.org>`_ (>=0.12.0) to be
         installed or it will fail.
 
         In the current implementation, the return values are always sorted in
@@ -781,6 +873,7 @@ class SkyCoord(object):
         See Also
         --------
         astropy.coordinates.search_around_3d
+        SkyCoord.search_around_sky
         """
         from .matching import search_around_3d
 
@@ -1147,14 +1240,19 @@ def _get_units(args, kwargs):
     return units
 
 
-def _parse_coordinate_arg(coords, frame, units):
+def _parse_coordinate_arg(coords, frame, units, init_kwargs):
     """
     Single unnamed arg supplied.  This must be:
     - Coordinate frame with data
     - Representation
+    - SkyCoord
     - List or tuple of:
       - String which splits into two values
       - Iterable with two values
+      - SkyCoord, frame, or representation objects.
+
+    Returns a dict mapping coordinate attribute names to values (or lists of
+    values)
     """
     is_scalar = False  # Differentiate between scalar and list input
     valid_kwargs = {}  # Returned dict of lon, lat, and distance (optional)
@@ -1205,46 +1303,81 @@ def _parse_coordinate_arg(coords, frame, units):
         values = coords.transpose()  # Iterates over repr attrs
 
     elif isinstance(coords, (collections.Sequence, np.ndarray)):
-        # Handles generic list-like input.
+        # Handles list-like input.
 
-        # First turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
         vals = []
-        for ii, coord in enumerate(coords):
-            if isinstance(coord, six.string_types):
-                coord1 = coord.split()
-                if len(coord1) == 6:
-                    coord1 = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
-                coord = coord1
+        is_ra_dec_representation = ('ra' in frame.representation_component_names and
+                                    'dec' in frame.representation_component_names)
+        coord_types = (SkyCoord, BaseCoordinateFrame, BaseRepresentation)
+        if any(isinstance(coord, coord_types) for coord in coords):
+            # this parsing path is used when there are coordinate-like objects
+            # in the list - instead of creating lists of values, we create
+            # SkyCoords from the list elements and then combine them.
+            scs = [SkyCoord(coord, **init_kwargs) for coord in coords]
 
-            vals.append(coord)  # This assumes coord is a sequence at this point
+            # now check that they're all self-consistent in their frames
+            for sc in scs[1:]:
+                if not sc.is_equivalent_frame(scs[0]):
+                        raise ValueError("List of inputs don't have equivalent "
+                                         "frames: {0} != {1}".format(sc, scs[0]))
 
-        # Do some basic validation of the list elements: all have a length and all
-        # lengths the same
-        try:
-            n_coords = sorted(set(len(x) for x in vals))
-        except:
-            raise ValueError('One or more elements of input sequence does not have a length')
+            # get the frame attributes from the first one, because from above we
+            # know it matches all the others
+            for fattrnm in FRAME_ATTR_NAMES_SET():
+                valid_kwargs[fattrnm] = getattr(scs[0], fattrnm)
 
-        if len(n_coords) > 1:
-            raise ValueError('Input coordinate values must have same number of elements, found {0}'
-                             .format(n_coords))
-        n_coords = n_coords[0]
+            # Now combine the values, to be used below
+            values = []
+            for data_attr_name in frame_attr_names:
+                data_vals = []
+                for sc in scs:
+                    data_val = getattr(sc, data_attr_name)
+                    data_vals.append(data_val.reshape(1,) if sc.isscalar else data_val)
+                concat_vals = np.concatenate(data_vals)
+                # Hack because np.concatenate doesn't fully work with Quantity
+                if isinstance(concat_vals, u.Quantity):
+                    concat_vals._unit = data_val.unit
+                values.append(concat_vals)
+        else:
+            #none of the elements are "frame-like"
+            #turn into a list of lists like [[v1_0, v2_0, v3_0], ... [v1_N, v2_N, v3_N]]
+            for coord in coords:
+                if isinstance(coord, six.string_types):
+                    coord1 = coord.split()
+                    if len(coord1) == 6:
+                        coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+                    elif is_ra_dec_representation:
+                        coord = _parse_ra_dec(coord)
+                    else:
+                        coord = coord1
+                vals.append(coord)  # Assumes coord is a sequence at this point
 
-        # Must have no more coord inputs than representation attributes
-        if n_coords > n_attr_names:
-            raise ValueError('Input coordinates have {0} values but {1} representation '
-                             'only accepts {2}'
-                             .format(n_coords, frame.representation.get_name(), n_attr_names))
+            # Do some basic validation of the list elements: all have a length and all
+            # lengths the same
+            try:
+                n_coords = sorted(set(len(x) for x in vals))
+            except:
+                raise ValueError('One or more elements of input sequence does not have a length')
 
-        # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
-        # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
-        # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
-        # while (a1, a2, ..) doesn't work.
-        values = [list(x) for x in zip(*vals)]
+            if len(n_coords) > 1:
+                raise ValueError('Input coordinate values must have same number of elements, found {0}'
+                                 .format(n_coords))
+            n_coords = n_coords[0]
 
-        if is_scalar:
-            values = [x[0] for x in values]
+            # Must have no more coord inputs than representation attributes
+            if n_coords > n_attr_names:
+                raise ValueError('Input coordinates have {0} values but '
+                                 'representation {1} only accepts {2}'
+                                 .format(n_coords, frame.representation.get_name(), n_attr_names))
 
+            # Now transpose vals to get [(v1_0 .. v1_N), (v2_0 .. v2_N), (v3_0 .. v3_N)]
+            # (ok since we know it is exactly rectangular).  (Note: can't just use zip(*values)
+            # because Longitude et al distinguishes list from tuple so [a1, a2, ..] is needed
+            # while (a1, a2, ..) doesn't work.
+            values = [list(x) for x in zip(*vals)]
+
+            if is_scalar:
+                values = [x[0] for x in values]
     else:
         raise ValueError('Cannot parse coordinates from first argument')
 
@@ -1256,9 +1389,8 @@ def _parse_coordinate_arg(coords, frame, units):
                 frame_attr_names, repr_attr_classes, values, units):
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
     except Exception as err:
-        raise ValueError('Cannot parse longitude and latitude from first argument: {0}'
-                         .format(err))
-
+        raise ValueError('Cannot parse first argument data "{0}" for attribute '
+                         '{1}'.format(value, frame_attr_name), err)
     return valid_kwargs
 
 
@@ -1282,3 +1414,60 @@ def _get_representation_attrs(frame, units, kwargs):
             valid_kwargs[frame_attr_name] = repr_attr_class(value, unit=unit)
 
     return valid_kwargs
+
+
+def _parse_ra_dec(coord_str):
+    """
+    Parse RA and Dec values from a coordinate string. Currently the
+    following formats are supported:
+
+     * space separated 6-value format
+     * space separated <6-value format, this requires a plus or minus sign
+       separation between RA and Dec
+     * sign separated format
+     * JHHMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
+     * JDDDMMSS.ss+DDMMSS.ss format, with up to two optional decimal digits
+
+    Parameters
+    ----------
+    coord_str : str
+        Coordinate string to parse.
+
+    Returns
+    -------
+    coord : str or list of str
+        Parsed coordinate values.
+    """
+
+    if isinstance(coord_str, six.string_types):
+        coord1 = coord_str.split()
+    else:
+        # This exception should never be raised from SkyCoord
+        raise TypeError('coord_str must be a single str')
+
+    if len(coord1) == 6:
+        coord = (' '.join(coord1[:3]), ' '.join(coord1[3:]))
+    elif len(coord1) > 2:
+        coord = PLUS_MINUS_RE.split(coord_str)
+        coord = (coord[0], ' '.join(coord[1:]))
+    elif len(coord1) == 1:
+        match_j = J_PREFIXED_RA_DEC_RE.match(coord_str)
+        if match_j:
+            coord = match_j.groups()
+            if len(coord[0].split('.')[0]) == 7:
+                coord = ('{0} {1} {2}'.
+                         format(coord[0][0:3], coord[0][3:5], coord[0][5:]),
+                         '{0} {1} {2}'.
+                         format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
+            else:
+                coord = ('{0} {1} {2}'.
+                         format(coord[0][0:2], coord[0][2:4], coord[0][4:]),
+                         '{0} {1} {2}'.
+                         format(coord[1][0:3], coord[1][3:5], coord[1][5:]))
+        else:
+            coord = PLUS_MINUS_RE.split(coord_str)
+            coord = (coord[0], ' '.join(coord[1:]))
+    else:
+        coord = coord1
+
+    return coord
