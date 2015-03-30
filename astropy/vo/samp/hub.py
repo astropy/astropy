@@ -37,8 +37,6 @@ __all__ = ['SAMPHubServer', 'WebProfileDialog']
 
 __doctest_skip__ = ['.', 'SAMPHubServer.*']
 
-# N_RETRIES = ConfigurationItem('N_RETRIES', 10)
-N_RETRIES = 10
 
 class SAMPHubServer(object):
     """
@@ -1267,7 +1265,9 @@ class SAMPHubServer(object):
         if recipient_private_key is None:
             raise SAMPHubError("Invalid client ID")
 
-        for attempt in range(N_RETRIES):
+        from . import conf
+
+        for attempt in range(conf.n_retries):
 
             if not self._is_running:
                 time.sleep(0.01)
