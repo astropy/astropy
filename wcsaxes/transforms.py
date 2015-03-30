@@ -81,6 +81,10 @@ class WCSWorld2PixelTransform(CurvedTransform):
         else:
             self.slice = None
 
+    @property
+    def input_dims(self):
+        return self.wcs.wcs.naxis
+
     def transform(self, world):
         """
         Transform world to pixel coordinates. You should pass in a NxM array
@@ -120,6 +124,10 @@ class WCSPixel2WorldTransform(CurvedTransform):
         if self.slice is not None:
             self.x_index = slice.index('x')
             self.y_index = slice.index('y')
+
+    @property
+    def output_dims(self):
+        return self.wcs.wcs.naxis
 
     def get_coord_slices(self, xmin, xmax, ymin, ymax, nx, ny):
         """
