@@ -45,7 +45,9 @@ class AstropyOutputChecker(doctest.OutputChecker):
         # NOTE OutputChecker is an old-style class with no __init__ method,
         # so we can't call the base class version of __init__ here
 
-        got_floats = r'(\d+\.\d*|\.\d+)(?:e[+-]?\d+)?'
+        exp = r'(?:e[+-]?\d+)'
+
+        got_floats = r'(\d+\.\d*%s?|\.\d+%s?|\d+%s)' % (exp, exp, exp)
 
         # floats in the 'want' string may contain ellipses
         want_floats = got_floats + r'(\.{3})?'
