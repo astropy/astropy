@@ -298,6 +298,10 @@ Bug Fixes
     accurately reflected in any associated table data and its FITS header.
     [#3283, #1539, #2618]
 
+  - Fixes an issue with the ``FITS_rec`` interface to FITS table data, where a
+    ``FITS_rec`` created by copying an existing FITS table but adding new rows
+    could not be sliced or masked correctly.  [#3641]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
