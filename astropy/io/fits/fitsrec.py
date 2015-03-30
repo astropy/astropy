@@ -461,6 +461,13 @@ class FITS_rec(np.recarray):
             else:
                 outarr[:] = inarr
 
+        # Now replace the original column array references with the new
+        # fields
+        # This is required to prevent the issue reported in
+        # https://github.com/spacetelescope/PyFITS/issues/99
+        for idx in range(len(columns)):
+            columns._arrays[idx] = data.field(idx)
+
         return data
 
     def __repr__(self):
