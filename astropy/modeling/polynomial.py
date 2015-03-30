@@ -12,7 +12,7 @@ import numpy as np
 from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
-from .utils import poly_map_domain, comb
+from .utils import poly_map_domain, comb, check_broadcast
 from ..utils import lazyproperty, indent
 
 
@@ -639,7 +639,19 @@ class Polynomial2D(PolynomialModel):
 
     def evaluate(self, x, y, *coeffs):
         invcoeff = self.invlex_coeff(coeffs)
-        return self.multivariate_horner(x, y, invcoeff)
+        result = self.multivariate_horner(x, y, invcoeff)
+
+        # Special case for degree==0 to ensure that the shape of the output is
+        # still as expected by the broadcasting rules, even though the x and y
+        # inputs are not used in the evaluation
+        if self.degree == 0:
+            output_shape = check_broadcast(np.shape(coeffs[0]), x.shape)
+            if output_shape:
+                new_result = np.empty(output_shape)
+                new_result[:] = result
+                result = new_result
+
+        return result
 
     def fit_deriv(self, x, y, *params):
         """
@@ -691,7 +703,7 @@ class Polynomial2D(PolynomialModel):
                     name = 'c{0}_{1}'.format(j, i)
                     coeff = coeffs[self.param_names.index(name)]
                     invlex_coeffs.append(coeff)
-        return np.array(invlex_coeffs[::-1])
+        return invlex_coeffs[::-1]
 
     def multivariate_horner(self, x, y, coeffs):
         """
@@ -703,7 +715,7 @@ class Polynomial2D(PolynomialModel):
         coeff : array of coefficients in inverse lexical order
         """
 
-        alpha = np.array(self._invlex())
+        alpha = self._invlex()
         r0 = coeffs[0]
         r1 = r0 * 0.0
         r2 = r0 * 0.0

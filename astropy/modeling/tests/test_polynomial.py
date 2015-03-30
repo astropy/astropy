@@ -299,3 +299,50 @@ def test_sip_no_coeff():
     utils.assert_allclose(sip.sip1d_b.parameters, [0., 0., 0])
     with pytest.raises(NotImplementedError):
         sip.inverse
+
+
+@pytest.mark.parametrize('cls', (Polynomial1D, Chebyshev1D, Legendre1D,
+                                 Polynomial2D, Chebyshev2D, Legendre2D))
+def test_zero_degree_polynomial(cls):
+    """
+    A few tests that degree=0 polynomials are correctly evaluated and
+    fitted.
+
+    Regression test for https://github.com/astropy/astropy/pull/3589
+    """
+
+    if cls.n_inputs == 1:  # Test 1D polynomials
+        p1 = cls(degree=0, c0=1)
+        assert p1(0) == 1
+        assert np.all(p1(np.zeros(5)) == np.ones(5))
+
+        x = np.linspace(0, 1, 100)
+        # Add a little noise along a straight line
+        y = 1 + np.random.uniform(0, 0.1, len(x))
+
+        p1_init = cls(degree=0)
+        fitter = fitting.LinearLSQFitter()
+        p1_fit = fitter(p1_init, x, y)
+
+        # The fit won't be exact of course, but it should get close to within
+        # 1%
+        utils.assert_allclose(p1_fit.c0, 1, atol=0.10)
+    elif cls.n_inputs == 2:  # Test 2D polynomials
+        if issubclass(cls, OrthoPolynomialBase):
+            p2 = cls(x_degree=0, y_degree=0, c0_0=1)
+        else:
+            p2 = cls(degree=0, c0_0=1)
+        assert p2(0, 0) == 1
+        assert np.all(p2(np.zeros(5), np.zeros(5)) == np.ones(5))
+
+        y, x = np.mgrid[0:1:100j,0:1:100j]
+        z = (1 + np.random.uniform(0, 0.1, x.size)).reshape(100, 100)
+
+        if issubclass(cls, OrthoPolynomialBase):
+            p2_init = cls(x_degree=0, y_degree=0)
+        else:
+            p2_init = cls(degree=0)
+        fitter = fitting.LinearLSQFitter()
+        p2_fit = fitter(p2_init, x, y, z)
+
+        utils.assert_allclose(p2_fit.c0_0, 1, atol=0.10)
