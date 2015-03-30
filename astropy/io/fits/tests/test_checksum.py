@@ -353,7 +353,7 @@ class TestChecksumFunctions(FitsTestCase):
         with fits.open(self.temp('checksum.fits')) as hdul:
             assert 'CHECKSUM' in hdul[1].header
             assert 'DATASUM' in hdul[1].header
-            assert (data == hdul[1].data).all()
+            assert comparerecords(data, hdul[1].data)
 
     def test_open_update_mode_update_checksum(self):
         """

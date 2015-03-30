@@ -16,14 +16,16 @@ from .base import DELAYED, _ValidHDU, ExtensionHDU
 # This module may have many dependencies on pyfits.column, but pyfits.column
 # has fewer dependencies overall, so it's easier to keep table/column-related
 # utilities in pyfits.column
-from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_ATTRIBUTES, TDEF_RE,
-                      Column, ColDefs, _AsciiColDefs, _FormatP, _FormatQ,
-                      _makep, _parse_tformat, _scalar_to_format,
-                      _convert_format, _cmp_recformats, _get_index)
+from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
+                      ATTRIBUTE_TO_KEYWORD, TDEF_RE, Column, ColDefs,
+                      _AsciiColDefs, _FormatP, _FormatQ, _makep,
+                      _parse_tformat, _scalar_to_format, _convert_format,
+                      _cmp_recformats, _get_index)
 from ..fitsrec import FITS_rec
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
+from ....extern import six
 from ....extern.six import string_types
 from ....utils import deprecated, lazyproperty
 from ....utils.compat import ignored
@@ -119,7 +121,9 @@ class _TableLikeHDU(_ValidHDU):
 
         coldefs = cls._columns_type(columns)
         data = FITS_rec.from_columns(coldefs, nrows=nrows, fill=fill)
-        return cls(data=data, header=header, **kwargs)
+        hdu = cls(data=data, header=header, **kwargs)
+        coldefs._add_listener(hdu)
+        return hdu
 
     @lazyproperty
     def columns(self):
@@ -131,6 +135,17 @@ class _TableLikeHDU(_ValidHDU):
         # definitions come from, so just return an empty ColDefs
         return ColDefs([])
 
+    @property
+    def _nrows(self):
+        """
+        Table-like HDUs must provide an attribute that specifies the number of
+        rows in the HDU's table.
+
+        For now this is an internal-only attribute.
+        """
+
+        raise NotImplementedError
+
     def _get_tbdata(self):
         """Get the table data from an input HDU object."""
 
@@ -141,6 +156,7 @@ class _TableLikeHDU(_ValidHDU):
         # specific to FITS binary tables
         if (any(type(r) in (_FormatP, _FormatQ)
                 for r in columns._recformats) and
+                self._data_size is not None and
                 self._data_size > self._theap):
             # We have a heap; include it in the raw_data
             raw_data = self._get_raw_data(self._data_size, np.uint8,
@@ -148,12 +164,20 @@ class _TableLikeHDU(_ValidHDU):
             data = raw_data[:self._theap].view(dtype=columns.dtype,
                                                type=np.rec.recarray)
         else:
-            raw_data = self._get_raw_data(columns._shape, columns.dtype,
+            raw_data = self._get_raw_data(self._nrows, columns.dtype,
                                           self._data_offset)
+            if raw_data is None:
+                # This can happen when a brand new table HDU is being created
+                # and no data has been assigned to the columns, which case just
+                # return an empty array
+                raw_data = np.array([], dtype=columns.dtype)
+
             data = raw_data.view(np.rec.recarray)
 
         self._init_tbdata(data)
-        return data.view(self._data_type)
+        data = data.view(self._data_type)
+        columns._add_listener(data)
+        return data
 
     def _init_tbdata(self, data):
         columns = self.columns
@@ -172,14 +196,39 @@ class _TableLikeHDU(_ValidHDU):
         # pass the attributes
         fidx = 0
         for idx in range(len(columns)):
-            if not columns[idx]._phantom:
-                # get the data for each column object from the rec.recarray
-                columns[idx].array = data.field(fidx)
-                fidx += 1
+            # get the data for each column object from the rec.recarray
+            columns[idx].array = data.field(fidx)
+            fidx += 1
 
         # delete the _arrays attribute so that it is recreated to point to the
         # new data placed in the column object above
         del columns._arrays
+
+    def _update_column_added(self, columns, column):
+        """
+        Update the data upon addition of a new column through the `ColDefs`
+        interface.
+        """
+
+        # TODO: It's not clear that this actually works--it probably does not.
+        # This is what the code used to do before introduction of the
+        # notifier interface, but I don't believe it actually worked (there are
+        # several bug reports related to this...)
+        if self._data_loaded:
+            del self.data
+
+    def _update_column_removed(self, columns, col_idx):
+        """
+        Update the data upon removal of a column through the `ColDefs`
+        interface.
+        """
+
+        # For now this doesn't do anything fancy--it just deletes the data
+        # attribute so that it is forced to be recreated again.  It doesn't
+        # change anything on the existing data recarray (this is also how this
+        # worked before introducing the notifier interface)
+        if self._data_loaded:
+            del self.data
 
 
 class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
@@ -349,7 +398,6 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     def data(self):
         data = self._get_tbdata()
         data._coldefs = self.columns
-        data.formats = self.columns.formats
         # Columns should now just return a reference to the data._coldefs
         del self.columns
         return data
@@ -409,6 +457,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         # returning the data signals to lazyproperty that we've already handled
         # setting self.__dict__['data']
         return data
+
+    @property
+    def _nrows(self):
+        if not self._data_loaded:
+            return self._header.get('NAXIS2', 0)
+        else:
+            return len(self.data)
 
     @lazyproperty
     def _theap(self):
@@ -519,28 +574,109 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         return (self.name, class_name, ncards, dims, format)
 
-    def _clear_table_keywords(self):
-        """Wipe out any existing table definition keywords from the header."""
+    def _update_column_removed(self, columns, idx):
+        super(_TableBaseHDU, self)._update_column_removed(columns, idx)
 
-        # Go in reverse so as to not confusing indexing while deleting.
-        for idx, keyword in reversed(list(enumerate(self._header.keys()))):
-            keyword = TDEF_RE.match(keyword)
+        # Fix the header to reflect the column removal
+        self._clear_table_keywords(index=idx)
+
+    def _update_column_attribute_changed(self, column, col_idx, attr,
+                                         old_value, new_value):
+        """
+        Update the header when one of the column objects is updated.
+        """
+
+        # base_keyword is the keyword without the index such as TDIM
+        # while keyword is like TDIM1
+        base_keyword = ATTRIBUTE_TO_KEYWORD[attr]
+        keyword = base_keyword + str(col_idx + 1)
+
+        if keyword in self._header:
+            if new_value is None:
+                # If the new value is None, i.e. None was assigned to the
+                # column attribute, then treat this as equivalent to deleting
+                # that attribute
+                del self._header[keyword]
+            else:
+                self._header[keyword] = new_value
+        else:
+            keyword_idx = KEYWORD_NAMES.index(base_keyword)
+            # Determine the appropriate keyword to insert this one before/after
+            # if it did not already exist in the header
+            for before_keyword in reversed(KEYWORD_NAMES[:keyword_idx]):
+                before_keyword += str(col_idx + 1)
+                if before_keyword in self._header:
+                    self._header.insert(before_keyword, (keyword, new_value),
+                                        after=True)
+                    break
+            else:
+                for after_keyword in KEYWORD_NAMES[keyword_idx + 1:]:
+                    after_keyword += str(col_idx + 1)
+                    if after_keyword in header:
+                        self._header.insert(after_keyword,
+                                            (keyword, new_value))
+                        break
+                else:
+                    # Just append
+                    self._header[keyword] = new_value
+
+    def _clear_table_keywords(self, index=None):
+        """
+        Wipe out any existing table definition keywords from the header.
+
+        If specified, only clear keywords for the given table index (shifting
+        up keywords for any other columns).  The index is zero-based.
+        Otherwise keywords for all columns.
+        """
+
+        # First collect all the table structure related keyword in the header
+        # into a single list so we can then sort them by index, which will be
+        # useful later for updating the header in a sensible order (since the
+        # header *might* not already be written in a reasonable order)
+        table_keywords = []
+
+        for idx, keyword in enumerate(self._header.keys()):
+            match = TDEF_RE.match(keyword)
             try:
-                keyword = keyword.group('label')
+                base_keyword = match.group('label')
             except:
                 continue                # skip if there is no match
-            if keyword in KEYWORD_NAMES:
+
+            if base_keyword in KEYWORD_TO_ATTRIBUTE:
+                num = int(match.group('num')) - 1  # convert to zero-base
+                table_keywords.append((idx, match.group(0), base_keyword,
+                                       num))
+
+        # First delete
+        for idx, keyword, _, num in sorted(table_keywords,
+                                           key=lambda k: k[0], reverse=True):
+            if index is None or index == num:
                 del self._header[idx]
+
+        # Now shift up remaining column keywords if only one column was cleared
+        if index is not None:
+            for _, keyword, base_keyword, num in sorted(table_keywords,
+                                                        key=lambda k: k[3]):
+                if num <= index:
+                    continue
+
+                old_card = self._header.cards[keyword]
+                new_card = (base_keyword + str(num), old_card.value,
+                            old_card.comment)
+                self._header.insert(keyword, new_card)
+                del self._header[keyword]
+
+            # Also decrement TFIELDS
+            if 'TFIELDS' in self._header:
+                self._header['TFIELDS'] -= 1
 
     def _populate_table_keywords(self):
         """Populate the new table definition keywords from the header."""
 
-        cols = self.columns
-
-        for idx in range(len(cols)):
-            for attr, keyword in zip(KEYWORD_ATTRIBUTES, KEYWORD_NAMES):
-                val = getattr(cols, attr + 's')[idx]
-                if val:
+        for idx, column in enumerate(self.columns):
+            for keyword, attr in six.iteritems(KEYWORD_TO_ATTRIBUTE):
+                val = getattr(column, attr)
+                if val is not None:
                     keyword = keyword + str(idx + 1)
                     self._header[keyword] = val
 
@@ -572,8 +708,7 @@ class TableHDU(_TableBaseHDU):
 
     def _get_tbdata(self):
         columns = self.columns
-        names = [n for idx, n in enumerate(columns.names)
-                 if not columns[idx]._phantom]
+        names = [n for idx, n in enumerate(columns.names)]
 
         # determine if there are duplicate field names and if there
         # are throw an exception
@@ -598,7 +733,7 @@ class TableHDU(_TableBaseHDU):
                                 self._header['NAXIS1'] - itemsize)
             dtype[columns.names[idx]] = (data_type, columns.starts[idx] - 1)
 
-        raw_data = self._get_raw_data(columns._shape, dtype, self._data_offset)
+        raw_data = self._get_raw_data(self._nrows, dtype, self._data_offset)
         data = raw_data.view(np.rec.recarray)
         self._init_tbdata(data)
         return data.view(self._data_type)
@@ -1170,6 +1305,9 @@ class BinTableHDU(_TableBaseHDU):
         # new_table() could use a similar feature.
         hdu = BinTableHDU.from_columns(np.recarray(shape=1, dtype=dtype),
                                        nrows=nrows, fill=True)
+
+        # TODO: It seems to me a lot of this could/should be handled from
+        # within the FITS_rec class rather than here.
         data = hdu.data
         for idx, length in enumerate(vla_lengths):
             if length is not None:
@@ -1182,7 +1320,8 @@ class BinTableHDU(_TableBaseHDU):
                 # warning that this is not supported.
                 recformats[idx] = _FormatP(dt, max=length)
                 data.columns._recformats[idx] = recformats[idx]
-                data._convert[idx] = _makep(arr, arr, recformats[idx])
+                name = data.columns.names[idx]
+                data._converted[name] = _makep(arr, arr, recformats[idx])
 
         def format_value(col, val):
             # Special formatting for a couple particular data types

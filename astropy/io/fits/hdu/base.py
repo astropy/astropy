@@ -756,6 +756,15 @@ class _BaseHDU(object):
         self._data_size = datsize
         self._data_replaced = False
 
+    def _close(self, closed=True):
+        # If the data was mmap'd, close the underlying mmap (this will
+        # prevent any future access to the .data attribute if there are
+        # not other references to it; if there are other references then
+        # it is up to the user to clean those up
+        if (closed and self._data_loaded and
+                _get_array_mmap(self.data) is not None):
+            del self.data
+
 # For backwards-compatibility, though nobody should have
 # been using this directly:
 _AllHDU = _BaseHDU
