@@ -25,7 +25,6 @@ from .lockfile_helpers import read_lockfile, create_lock_file
 
 from .standard_profile import ThreadingXMLRPCServer
 from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
-from astropy.config import ConfigurationItem
 
 from .constants import SSL_SUPPORT
 
