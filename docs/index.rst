@@ -16,10 +16,17 @@
 Astropy Core Package Documentation
 ##################################
 
-.. image:: astropy_banner_96.png
-    :width: 485px
-    :height: 96px
-    :target: http://www.astropy.org/
+.. |logo_svg| image:: _static/astropy_banner.svg
+
+.. |logo_png| image:: _static/astropy_banner_96.png
+
+.. raw:: html
+
+   <img src="_images/astropy_banner.svg" onerror="this.src='_images/astropy_banner_96.png'; this.onerror=null;" width="485"/>
+
+.. only:: latex
+
+    .. image:: _static/astropy_logo.pdf
 
 Welcome to the Astropy documentation! Astropy is a community-driven
 package intended to contain much of the core functionality and some common
