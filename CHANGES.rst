@@ -288,6 +288,13 @@ Bug Fixes
     copying data from an existing FITS file to a new FITS table with a
     TDIMn keyword for that column. [#3561]
 
+  - The ``ColDefs.change_attrib``, ``ColDefs.change_name``, and
+    ``ColDefs.change_unit`` methods now work as advertised.  It is also
+    possible (and preferable) to update attributes directly on ``Column``
+    objects (for example setting ``column.name``), and the change will be
+    accurately reflected in any associated table data and its FITS header.
+    [#3283, #1539, #2618]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
