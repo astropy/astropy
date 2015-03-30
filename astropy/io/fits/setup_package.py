@@ -3,10 +3,22 @@ from __future__ import absolute_import
 
 import os
 
+from distutils import sysconfig
 from distutils.core import Extension
 from glob import glob
 
 from astropy_helpers import setup_helpers
+
+
+def _get_c_compiler():
+    # TODO: There should be an easier way to do this
+    # through astropy_helpers
+    if 'CC' in os.environ:
+        compiler = os.environ['CC']
+    else:
+        compiler = sysconfig.get_config_var('CC')
+
+    return setup_helpers.get_compiler_version(compiler)
 
 
 def get_extensions():
@@ -26,7 +38,7 @@ def get_extensions():
                     '/D', '"_MBCS"',
                     '/D', '"_USRDLL"',
                     '/D', '"_CRT_SECURE_NO_DEPRECATE"'])
-        else:
+        elif 'Sun C' not in _get_c_compiler():
             # All of these switches are to silence warnings from compiling CFITSIO
             cfg['extra_compile_args'].extend([
                 '-Wno-unused-variable', '-Wno-parentheses',
