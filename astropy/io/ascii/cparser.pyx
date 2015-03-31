@@ -50,6 +50,7 @@ cdef extern from "src/tokenizer.h":
         char delimiter         # delimiter character
         char comment           # comment character
         char quotechar         # quote character
+        char expchar           # exponential character in scientific notation
         char **output_cols     # array of output strings for each column
         char **col_ptrs        # array of pointers to current output position for each col
         int *output_len        # length of each output column string
@@ -78,7 +79,7 @@ cdef extern from "src/tokenizer.h":
         void *file_ptr
         void *handle
 
-    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
+    tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, char expchar,
                                   int fill_extra_cols, int strip_whitespace_lines,
                                   int strip_whitespace_fields, int use_fast_converter)
     void delete_tokenizer(tokenizer_t *tokenizer)
@@ -213,6 +214,13 @@ cdef class CParser:
         # parallel and use_fast_reader are False by default
         use_fast_converter = fast_reader.pop('use_fast_converter', False)
         parallel = fast_reader.pop('parallel', False)
+        fortran_dexp = fast_reader.pop('fortran_dexp', False)
+        # Fortran double precision notation only supported with fast converter
+        if fortran_dexp:
+            expchar='D'
+            use_fast_converter = True
+        else:
+            expchar='E'
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
         if parallel and os.name == 'nt':
@@ -220,7 +228,8 @@ cdef class CParser:
 
         if comment is None:
             comment = '\x00' # tokenizer ignores all comments if comment='\x00'
-        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment), ord(quotechar),
+        self.tokenizer = create_tokenizer(ord(delimiter), ord(comment),
+                                          ord(quotechar), ord(expchar),
                                           fill_extra_cols,
                                           strip_line_whitespace,
                                           strip_line_fields,
@@ -752,6 +761,7 @@ cdef class CParser:
                                 dict(delimiter=chr(self.tokenizer.delimiter),
                                 comment=chr(self.tokenizer.comment),
                                 quotechar=chr(self.tokenizer.quotechar),
+                                expchar=chr(self.tokenizer.expchar),
                                 header_start=self.header_start,
                                 data_start=self.data_start,
                                 data_end=self.data_end,
@@ -832,6 +842,7 @@ cdef class FastWriter:
         list types
         list line_comments
         str quotechar
+        str expchar
         str delimiter
         int strip_whitespace
         object comment
