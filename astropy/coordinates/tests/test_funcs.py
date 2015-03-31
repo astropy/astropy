@@ -49,21 +49,18 @@ def test_sun_02():
     skyf_dist_apparent = apparent_gcrs[2].AU
     """
     from ..funcs import get_sun
+    from numpy.testing import assert_allclose
 
     test_time = Time('2010-6-21')
     test_gcrs = get_sun(test_time)
-
-    gcrs_ra = test_gcrs.ra.deg
-    gcrs_dec = test_gcrs.dec.deg
-    gcrs_dist = test_gcrs.distance.AU
     
     skyf_ra_apparent = 89.338458132829359
     skyf_dec_apparent = 23.436389712068134 
     skyf_dist_apparent = 1.016198586488303
 
-    assert abs(gcrs_ra - skyf_ra_apparent) < 0.01
-    assert abs(gcrs_dec - skyf_dec_apparent) < 0.001
-    assert abs(gcrs_dist - skyf_dist_apparent) < 0.001
+    assert_allclose(test_gcrs.ra.deg, skyf_ra_apparent, atol=0.01, err_msg='get_sun and Skyfield RAs not within 1%')
+    assert_allclose(test_gcrs.dec.deg, skyf_dec_apparent, atol=0.001, err_msg='get_sun and Skyfield Decs not within 0.1%')
+    assert_allclose(test_gcrs.distance.AU, skyf_dist_apparent, atol=0.001, err_msg='get_sun and Skyfield distances not within 0.1%')
 
 def test_concatenate():
     from .. import FK5, SkyCoord
