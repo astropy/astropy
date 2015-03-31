@@ -31,4 +31,8 @@ class Conf(_config.ConfigNamespace):
         "Whether to allow `astropy.vo.samp` to use "
         "the internet, if available.",
         aliases=['astropy.vo.samp.utils.use_internet'])
+
+    n_retries = _config.ConfigItem(10,
+        "How many times to retry communications when they fail")
+
 conf = Conf()

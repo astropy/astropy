@@ -348,11 +348,15 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
 - ``astropy.units``
 
   - Clarified imperial mass measurements and added pound force (lbf),
     kilopound (kip), and pound per square inch (psi). [#3409]
+
+- ``astropy.vo``
+
+  - The number of retries for connections in ``astropy.vo.samp`` can now be
+    configured by a ``n_retries`` configuration option. [#3612]
 
 
 1.0.1 (2015-03-06)
