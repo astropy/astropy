@@ -330,7 +330,7 @@ Bug Fixes
 - ``astropy.time``
 
   - Ensure a ``Column`` without units is treated as an ``array``, not as an 
-    dimensionless ``Quantity``.
+    dimensionless ``Quantity``. [#3648]
 
 - ``astropy.units``
 
