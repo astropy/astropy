@@ -18,7 +18,12 @@ then
 fi
 
 # NUMPY
-conda install --yes numpy=$NUMPY_VERSION
+if [[ $NUMPY_VERSION == dev ]]
+then
+  pip install git+http://github.com/numpy/numpy.git  
+else
+  conda install --yes numpy=$NUMPY_VERSION
+fi
 
 # Now set up shortcut to conda install command to make sure the Python and Numpy
 # versions are always explicitly specified.

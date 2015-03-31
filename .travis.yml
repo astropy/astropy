@@ -19,7 +19,12 @@ env:
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
 
 matrix:
+
     include:
+
+        # Try developer version of Numpy
+        - os: linux
+          env: NUMPY_VERSION=dev SETUP_CMD='test'
 
         # Try MacOS X
         - os: osx
@@ -60,6 +65,9 @@ matrix:
         # Do a PEP8 test
         - os: linux
           env: PYTHON_VERSION=2.7 MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
+
+    allow_failures:
+      - env: NUMPY_VERSION=dev SETUP_CMD='test'
 
 install:
     - source .continuous-integration/travis/setup_environment_$TRAVIS_OS_NAME.sh
