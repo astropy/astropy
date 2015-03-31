@@ -10,13 +10,13 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import copy
-import functools
 
 import numpy as np
-from numpy import testing as npt
+import numpy.testing as npt
 
 from ... import units as u
-from ...tests.helper import pytest, catch_warnings
+from ...tests.helper import (pytest, catch_warnings, quantity_allclose,
+                             assert_quantity_allclose as assert_allclose)
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
@@ -32,7 +32,11 @@ C_ICRS = ICRS(RA, DEC)
 C_FK5 = C_ICRS.transform_to(FK5)
 J2001 = Time('J2001', scale='utc')
 
-allclose = functools.partial(np.allclose, rtol=0.0, atol=1e-8)
+def allclose(a, b, rtol=0.0, atol=None):
+    if atol is None:
+        atol = 1.e-8 * getattr(a, 'unit', 1.)
+    return quantity_allclose(a, b, rtol, atol)
+
 
 try:
     import scipy
@@ -269,12 +273,12 @@ def test_coord_init_array():
               [['1', '2'], ['3', '4']],
               [[1, 2], [3, 4]]):
         sc = SkyCoord(a, unit='deg')
-        assert allclose(sc.ra - [1, 3] * u.deg, 0)
-        assert allclose(sc.dec - [2, 4] * u.deg, 0)
+        assert allclose(sc.ra - [1, 3] * u.deg, 0 * u.deg)
+        assert allclose(sc.dec - [2, 4] * u.deg, 0 * u.deg)
 
         sc = SkyCoord(np.array(a), unit='deg')
-        assert allclose(sc.ra - [1, 3] * u.deg, 0)
-        assert allclose(sc.dec - [2, 4] * u.deg, 0)
+        assert allclose(sc.ra - [1, 3] * u.deg, 0 * u.deg)
+        assert allclose(sc.dec - [2, 4] * u.deg, 0 * u.deg)
 
 
 def test_coord_init_representation():
@@ -546,13 +550,13 @@ def test_position_angle():
     c1 = SkyCoord(0*u.deg, 0*u.deg)
 
     c2 = SkyCoord(1*u.deg, 0*u.deg)
-    npt.assert_allclose(c1.position_angle(c2) - 90.0 * u.deg, 0)
+    assert_allclose(c1.position_angle(c2) - 90.0 * u.deg, 0*u.deg)
 
     c3 = SkyCoord(1*u.deg, 0.1*u.deg)
     assert c1.position_angle(c3) < 90*u.deg
 
     c4 = SkyCoord(0*u.deg, 1*u.deg)
-    npt.assert_allclose(c1.position_angle(c4), 0)
+    assert_allclose(c1.position_angle(c4), 0*u.deg)
 
     carr1 = SkyCoord(0*u.deg, [0, 1, 2]*u.deg)
     carr2 = SkyCoord([-1, -2, -3]*u.deg, [0.1, 1.1, 2.1]*u.deg)
@@ -585,8 +589,8 @@ def test_table_to_coord():
 
     c = SkyCoord(t['ra'], t['dec'])
 
-    assert allclose(c.ra.to(u.deg), [1, 2, 3])
-    assert allclose(c.dec.to(u.deg), [4, 5, 6])
+    assert allclose(c.ra.to(u.deg), [1, 2, 3] * u.deg)
+    assert allclose(c.dec.to(u.deg), [4, 5, 6] * u.deg)
 
 
 def assert_quantities_allclose(coord, q1s, attrs):
@@ -600,8 +604,7 @@ def assert_quantities_allclose(coord, q1s, attrs):
     assert len(q1s) == len(q2s)
     for q1, q2 in zip(q1s, q2s):
         assert q1.shape == q2.shape
-        dq = q1 - q2
-        assert np.allclose(dq.value, 0.0, rtol=0, atol=1e-13)
+        assert allclose(q1, q2, rtol=0, atol=1e-13 * q1.unit)
 
 
 # Sets of inputs corresponding to Galactic frame
@@ -813,13 +816,13 @@ def test_wcs_methods(mode, origin):
     # WCS is in FK5 so we need to transform back to ICRS
     new = pixel_to_skycoord(xp, yp, wcs, mode=mode, origin=origin).transform_to('icrs')
 
-    npt.assert_allclose(new.ra.degree, ref.ra.degree)
-    npt.assert_allclose(new.dec.degree, ref.dec.degree)
+    assert_allclose(new.ra.degree, ref.ra.degree)
+    assert_allclose(new.dec.degree, ref.dec.degree)
 
     #also try to round-trip with `from_pixel`
     scnew = SkyCoord.from_pixel(xp, yp, wcs, mode=mode, origin=origin).transform_to('icrs')
-    npt.assert_allclose(scnew.ra.degree, ref.ra.degree)
-    npt.assert_allclose(scnew.dec.degree, ref.dec.degree)
+    assert_allclose(scnew.ra.degree, ref.ra.degree)
+    assert_allclose(scnew.dec.degree, ref.dec.degree)
 
     #Also make sure the right type comes out
     class SkyCoord2(SkyCoord):

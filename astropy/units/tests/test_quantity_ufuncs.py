@@ -134,7 +134,7 @@ class TestQuantityTrigonometricFuncs(object):
         q3 = q1 / q2
         q4 = 1.
         at2 = np.arctan2(q3, q4)
-        assert_allclose(at2, np.arctan2(q3.to(1).value, q4))
+        assert_allclose(at2.value, np.arctan2(q3.to(1).value, q4))
 
     def test_arctan2_invalid(self):
         with pytest.raises(u.UnitsError) as exc:

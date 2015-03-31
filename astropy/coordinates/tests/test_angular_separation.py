@@ -11,7 +11,7 @@ Tests for the projected separation stuff
 import numpy as np
 from numpy import testing as npt
 
-from ...tests.helper import pytest
+from ...tests.helper import pytest, assert_quantity_allclose as assert_allclose
 from ... import units as u
 from ..builtin_frames import ICRS, FK5, Galactic
 from .. import Angle, Distance
@@ -74,7 +74,7 @@ def test_proj_separations():
     assert isinstance(sep, Angle)
 
     assert sep.degree == 1
-    npt.assert_allclose(sep.arcminute, 60.)
+    assert_allclose(sep.arcminute, 60.)
 
     # these operations have ambiguous interpretations for points on a sphere
     with pytest.raises(TypeError):
@@ -87,12 +87,12 @@ def test_proj_separations():
 
     # if there is a defined conversion between the relevant coordinate systems,
     # it will be automatically performed to get the right angular separation
-    npt.assert_allclose(ncp.separation(ngp.transform_to(ICRS)).degree,
-                        ncp.separation(ngp).degree)
+    assert_allclose(ncp.separation(ngp.transform_to(ICRS)).degree,
+                    ncp.separation(ngp).degree)
 
     # distance from the north galactic pole to celestial pole
-    npt.assert_allclose(ncp.separation(ngp.transform_to(ICRS)).degree,
-                        62.87174758503201)
+    assert_allclose(ncp.separation(ngp.transform_to(ICRS)).degree,
+                    62.87174758503201)
 
 
 def test_3d_separations():
@@ -105,4 +105,4 @@ def test_3d_separations():
     sep3d = c2.separation_3d(c1)
 
     assert isinstance(sep3d, Distance)
-    npt.assert_allclose(sep3d - 1*u.kpc, 0, atol=1e-12)
+    assert_allclose(sep3d - 1*u.kpc, 0*u.kpc, atol=1e-12*u.kpc)
