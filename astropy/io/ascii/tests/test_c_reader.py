@@ -888,3 +888,30 @@ def test_fast_tab_with_names(parallel, read_tab):
     head = ['A{0}'.format(i) for i in range(28)]
     table = read_tab(content, data_start=1,
                      parallel=parallel, names=head)
+
+@pytest.mark.parametrize("parallel", [True, False])
+def test_fortran_reader(parallel):
+    """
+    Make sure that ascii.read() can read Fortran-style exponential notation
+    using the fast_reader.
+    """
+    text = 'A B C\n1.0001D31 2.0 3\n4.2d-1 5.0D-1 0.6D4'
+    with pytest.raises(ParameterError): # C reader can't handle regex comment
+        ascii.read(text, format='fast_basic', guess=False, comment='##')
+
+    # Enable multiprocessing and the fast converter
+    table = ascii.read(text, format='basic', guess=False, 
+                       fast_reader={'parallel': parallel, 'fortran_dexp': True})
+    expected = Table([[1.0001e31, 0.42], [2, 0.5], [3.0, 6000]], 
+                     names=('A', 'B', 'C'))
+    assert_table_equal(table, expected)
+
+    # Should raise an error if fast_reader has an invalid key
+    #with pytest.raises(FastOptionsError):
+    #    ascii.read(text, format='fast_basic', guess=False, fast_reader={'foo': True})
+
+    # Use the slow reader instead
+    #ascii.read(text, format='basic', guess=False, comment='##', fast_reader=False)
+    # Will try the slow reader afterwards by default
+    #ascii.read(text, format='basic', guess=False, comment='##')
+

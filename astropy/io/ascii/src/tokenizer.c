@@ -2,7 +2,7 @@
 
 #include "tokenizer.h"
 
-tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
+tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar, char expchar,
                               int fill_extra_cols, int strip_whitespace_lines,
                               int strip_whitespace_fields, int use_fast_converter)
 {
@@ -16,6 +16,7 @@ tokenizer_t *create_tokenizer(char delimiter, char comment, char quotechar,
     tokenizer->delimiter = delimiter;
     tokenizer->comment = comment;
     tokenizer->quotechar = quotechar;
+    tokenizer->expchar = expchar;
     tokenizer->output_cols = NULL;
     tokenizer->col_ptrs = NULL;
     tokenizer->output_len = NULL;
@@ -645,7 +646,7 @@ double str_to_double(tokenizer_t *self, char *str)
 
     if (self->use_fast_converter)
     {
-        val = xstrtod(str, &tmp, '.', 'E', ',', 1);
+        val = xstrtod(str, &tmp, '.', self->expchar, ',', 1);
 
         if (*tmp)
         {
