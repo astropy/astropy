@@ -32,6 +32,10 @@ New Features
 
 - ``astropy.io.votable``
 
+  - A new method was added to ``astropy.io.votable.VOTable``,
+    ``get_info_by_id`` to conveniently find an ``INFO`` element by its
+    ``ID`` attribute. [#3633]
+
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
@@ -42,9 +46,15 @@ New Features
 
 - ``astropy.table``
 
+  - ``add_column()`` and ``add_columns()`` now have ``rename_duplicate``
+    option to rename new column(s) rather than raise exception when its name
+    already exists. [#3592]
+
 - ``astropy.tests``
 
 - ``astropy.time``
+
+  - Add support for FITS standard time strings. [#3547]
 
 - ``astropy.units``
 
@@ -87,6 +97,10 @@ API changes
 
 - ``astropy.modeling``
 
+  - Renamed the parameters of ``RotateNative2Celestial`` and
+    ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
+    ``lon``, ``lat`` and ``lon_pole``. [#3578]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
@@ -106,6 +120,9 @@ API changes
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - If NAXIS1 or NAXIS2 is not passed with the header object to
+    WCS.calc_footprint, a ValueError is raised. [#3557]
 
 Bug fixes
 ^^^^^^^^^
@@ -255,6 +272,9 @@ Bug Fixes
 
 - ``astropy.config``
 
+  - The pre-astropy-0.4 configuration API has been fixed. It was
+    inadvertently broken in 1.0.1. [#3627]
+
 - ``astropy.constants``
 
 - ``astropy.convolution``
@@ -267,13 +287,37 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed bug where column data could be unintentionally byte-swapped when
+    copying data from an existing FITS file to a new FITS table with a
+    TDIMn keyword for that column. [#3561]
+
+  - The ``ColDefs.change_attrib``, ``ColDefs.change_name``, and
+    ``ColDefs.change_unit`` methods now work as advertised.  It is also
+    possible (and preferable) to update attributes directly on ``Column``
+    objects (for example setting ``column.name``), and the change will be
+    accurately reflected in any associated table data and its FITS header.
+    [#3283, #1539, #2618]
+
+  - Fixes an issue with the ``FITS_rec`` interface to FITS table data, where a
+    ``FITS_rec`` created by copying an existing FITS table but adding new rows
+    could not be sliced or masked correctly.  [#3641]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
 
 - ``astropy.io.votable``
 
+  - Loading a ``TABLE`` element without any ``DATA`` now correctly
+    creates a 0-row array. [#3636]
+
 - ``astropy.modeling``
+
+  - Fixed instantiation of polynomial models with constraints for parameters
+    (constraints could still be assigned after instantiation, but not during).
+    [#3606]
+
+  - Fixed fitting of 2D polynomial models with the ``LeVMarLSQFitter``. [#3606]
 
 - ``astropy.nddata``
 
@@ -281,9 +325,19 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Ensure ``QTable`` can be pickled [#3590]
+
 - ``astropy.time``
 
 - ``astropy.units``
+
+  - Ensure equivalencies that do more than just scale a ``Quantity`` are
+    properly handled also in ``ufunc`` evaluations. [#2496, #3586]
+
+  - The LaTeX representation of the Angstrom unit has changed from
+    ``\overset{\circ}{A}`` to ``\mathring{A}``, which should have
+    better support across regular LaTeX, MathJax and matplotlib (as of
+    version 1.5) [#3617]
 
 - ``astropy.utils``
 
@@ -294,7 +348,15 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- ``astropy.units``
+
+  - Clarified imperial mass measurements and added pound force (lbf),
+    kilopound (kip), and pound per square inch (psi). [#3409]
+
+- ``astropy.vo``
+
+  - The number of retries for connections in ``astropy.vo.samp`` can now be
+    configured by a ``n_retries`` configuration option. [#3612]
 
 
 1.0.1 (2015-03-06)
@@ -543,6 +605,8 @@ New Features
 - ``astropy.tests``
 
   - Added a new Quantity-aware ``assert_quantity_allclose``. [#3273]
+  - Added column alignment formatting for better pprint viewing
+    experience. [#3037]
 
 - ``astropy.time``
 

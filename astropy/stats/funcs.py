@@ -537,7 +537,7 @@ def biweight_location(a, c=6.0, M=None):
     --------
 
     This will generate random variates from a Gaussian distribution and return
-    the median absolute deviation for that distribution::
+    the biweight location of the distribution::
 
     >>> from astropy.stats.funcs import biweight_location
     >>> from numpy.random import randn
@@ -622,7 +622,7 @@ def biweight_midvariance(a, c=9.0, M=None):
     --------
 
     This will generate random variates from a Gaussian distribution and return
-    the median absolute deviation for that distribution::
+    the biweight midvariance of the distribution::
 
     >>> from astropy.stats.funcs import biweight_midvariance
     >>> from numpy.random import randn

@@ -1529,6 +1529,7 @@ class TestTableFunctions(FitsTestCase):
         # The ORBPARM column should not be in the data, though the data should
         # be readable
         assert 'ORBPARM' in tbhdu.data.names
+        assert 'ORBPARM' in tbhdu.data.dtype.names
         # Verify that some of the data columns are still correctly accessible
         # by name
         assert tbhdu.data[0]['ANNAME'] == 'VLA:_W16'
@@ -1552,6 +1553,7 @@ class TestTableFunctions(FitsTestCase):
         # Verify that the previous tests still hold after writing
         assert 'ORBPARM' in tbhdu.columns.names
         assert 'ORBPARM' in tbhdu.data.names
+        assert 'ORBPARM' in tbhdu.data.dtype.names
         assert tbhdu.data[0]['ANNAME'] == 'VLA:_W16'
         assert comparefloats(
             tbhdu.data[0]['STABXYZ'],
@@ -1787,9 +1789,10 @@ class TestTableFunctions(FitsTestCase):
         s4 = data[:1]
         for s in [s1, s2, s3, s4]:
             assert isinstance(s, fits.FITS_rec)
-        assert (s1 == s2).all()
-        assert (s2 == s3).all()
-        assert (s3 == s4).all()
+
+        assert comparerecords(s1, s2)
+        assert comparerecords(s2, s3)
+        assert comparerecords(s3, s4)
 
     def test_array_broadcasting(self):
         """
@@ -1822,9 +1825,9 @@ class TestTableFunctions(FitsTestCase):
         s4 = data[:1]
         for s in [s1, s2, s3, s4]:
             assert isinstance(s, fits.FITS_rec)
-        assert (s1 == s2).all()
-        assert (s2 == s3).all()
-        assert (s3 == s4).all()
+        assert comparerecords(s1, s2)
+        assert comparerecords(s2, s3)
+        assert comparerecords(s3, s4)
 
     def test_dump_load_round_trip(self):
         """
@@ -2148,6 +2151,56 @@ class TestTableFunctions(FitsTestCase):
 
         field = hdu.data.field(1)
         assert field.shape == (0,)
+
+    def test_dim_column_byte_order_mismatch(self):
+        """
+        When creating a table column with non-trivial TDIMn, and
+        big-endian array data read from an existing FITS file, the data
+        should not be unnecessarily byteswapped.
+
+        Regression test for https://github.com/astropy/astropy/issues/3561
+        """
+
+        data = fits.getdata(self.data('random_groups.fits'))['DATA']
+        col = fits.Column(name='TEST', array=data, dim='(3,1,128,1,1)',
+                          format='1152E')
+        thdu = fits.BinTableHDU.from_columns([col])
+        thdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            assert np.all(hdul[1].data['TEST'] == data)
+
+    def test_fits_rec_from_existing(self):
+        """
+        Tests creating a `FITS_rec` object with `FITS_rec.from_columns`
+        from an existing `FITS_rec` object read from a FITS file.
+
+        This ensures that the per-column arrays are updated properly.
+
+        Regression test for https://github.com/spacetelescope/PyFITS/issues/99
+        """
+
+        # The use case that revealed this problem was trying to create a new
+        # table from an existing table, but with additional rows so that we can
+        # append data from a second table (with the same column structure)
+
+        data1 = fits.getdata(self.data('tb.fits'))
+        data2 = fits.getdata(self.data('tb.fits'))
+        nrows = len(data1) + len(data2)
+
+        merged = fits.FITS_rec.from_columns(data1, nrows=nrows)
+        merged[len(data1):] = data2
+        mask = merged['c1'] > 1
+        masked = merged[mask]
+
+        # The test table only has two rows, only the second of which is > 1 for
+        # the 'c1' column
+        assert comparerecords(data1[1:], masked[:1])
+        assert comparerecords(data1[1:], masked[1:])
+
+        # Double check that the original data1 table hasn't been affected by
+        # its use in creating the "merged" table
+        assert comparerecords(data1, fits.getdata(self.data('tb.fits')))
 
 
 class TestVLATables(FitsTestCase):
@@ -2496,3 +2549,64 @@ class TestColumnFunctions(FitsTestCase):
             zwc_pd = pickle.dumps(zwc[2].data)
             zwc_pl = pickle.loads(zwc_pd)
             assert comparerecords(zwc_pl, zwc[2].data)
+
+    def test_column_lookup_by_name(self):
+        """Tests that a `ColDefs` can be indexed by column name."""
+
+        a = fits.Column(name='a', format='D')
+        b = fits.Column(name='b', format='D')
+
+        cols = fits.ColDefs([a, b])
+
+        assert cols['a'] == cols[0]
+        assert cols['b'] == cols[1]
+
+    def test_column_attribute_change_after_removal(self):
+        """
+        This is a test of the column attribute change notification system.
+
+        After a column has been removed from a table (but other references
+        are kept to that same column) changes to that column's attributes
+        should not trigger a notification on the table it was removed from.
+        """
+
+        # One way we can check this is to ensure there are no further changes
+        # to the header
+        table = fits.BinTableHDU.from_columns([
+            fits.Column('a', format='D'),
+            fits.Column('b', format='D')])
+
+        b = table.columns['b']
+
+        table.columns.del_col('b')
+        assert table.data.dtype.names == ('a',)
+
+        b.name = 'HELLO'
+
+        assert b.name == 'HELLO'
+        assert 'TTYPE2' not in table.header
+        assert table.header['TTYPE1'] == 'a'
+        assert table.columns.names == ['a']
+
+        with pytest.raises(KeyError):
+            table.columns['b']
+
+        # Make sure updates to the remaining column still work
+        table.columns.change_name('a', 'GOODBYE')
+        with pytest.raises(KeyError):
+            table.columns['a']
+
+        assert table.columns['GOODBYE'].name == 'GOODBYE'
+        assert table.data.dtype.names == ('GOODBYE',)
+        assert table.columns.names == ['GOODBYE']
+        assert table.data.columns.names == ['GOODBYE']
+
+        table.columns['GOODBYE'].name = 'foo'
+        with pytest.raises(KeyError):
+            table.columns['GOODBYE']
+
+        assert table.columns['foo'].name == 'foo'
+        assert table.data.dtype.names == ('foo',)
+        assert table.columns.names == ['foo']
+        assert table.data.columns.names == ['foo']
+

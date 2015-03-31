@@ -77,14 +77,14 @@ dimensionless).  For instance, normally the following raise exceptions::
 But when passing we pass the proper conversion function,
 :func:`~astropy.units.equivalencies.dimensionless_angles`, it works.
 
-  >>> u.deg.to('', equivalencies=u.dimensionless_angles())
-  0.01745329...
+  >>> u.deg.to('', equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
+  0.017453292519943295
   >>> (0.5e38 * u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J,
-  ...                            equivalencies=u.dimensionless_angles())
-  <Quantity 1.97392...e+39 J>
+  ...                            equivalencies=u.dimensionless_angles())  # doctest: +FLOAT_CMP
+  <Quantity 1.9739208802178715e+39 J>
   >>> import numpy as np
-  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))
-  <Quantity (0.707106781186...+0.707106781186...j)>
+  >>> np.exp((1j*0.125*u.cycle).to('', equivalencies=u.dimensionless_angles()))  # doctest: +FLOAT_CMP
+  <Quantity (0.7071067811865476+0.7071067811865475j)>
 
 The example with complex numbers is also one may well be doing a fair
 number of similar calculations.  For such situations, there is the
@@ -105,15 +105,15 @@ energy can be converted.
 
   >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())
   <Quantity [  2.99792458e+14,  1.49896229e+14] Hz>
-  >>> ([1000, 2000] * u.nm).to(u.eV, equivalencies=u.spectral())
-  <Quantity [ 1.239..., 0.619...] eV>
+  >>> ([1000, 2000] * u.nm).to(u.eV, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
+  <Quantity [ 1.23984193, 0.61992096] eV>
 
 These equivalencies even work with non-base units::
 
   >>> # Inches to calories
   >>> from astropy.units import imperial
-  >>> imperial.inch.to(imperial.Cal, equivalencies=u.spectral())
-  1.8691807591...e-27
+  >>> imperial.inch.to(imperial.Cal, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
+  1.869180759162485e-27
 
 Spectral (Doppler) equivalencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -157,8 +157,8 @@ location. For example::
     ...                 equivalencies=u.spectral_density(3500 * u.AA))
     <Quantity 1.5e-23 erg / (cm2 Hz s)>
     >>> (1.5 * u.Jy).to(u.erg / u.cm**2 / u.s / u.micron,
-    ...                 equivalencies=u.spectral_density(3500 * u.AA))
-    <Quantity 3.670928057142...e-08 erg / (cm2 micron s)>
+    ...                 equivalencies=u.spectral_density(3500 * u.AA))  # doctest: +FLOAT_CMP
+    <Quantity 3.670928057142856e-08 erg / (cm2 micron s)>
 
 Brightness Temperature / Flux Density Equivalency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -202,12 +202,12 @@ example converts the FWHM to sigma::
 
     >>> import numpy as np
     >>> beam_fwhm = 50*u.arcsec
-    >>> fwhm_to_sigma = 1./(8*np.log(2))**0.5
-    >>> beam_sigma = beam_fwhm*fwhm_to_sigma
+    >>> fwhm_to_sigma = 1. / (8 * np.log(2))**0.5
+    >>> beam_sigma = beam_fwhm * fwhm_to_sigma
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
-    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
-    19.55392833...
+    >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))  # doctest: +FLOAT_CMP
+    19.553928332631582
 
 
 Temperature Energy Equivalency
@@ -220,8 +220,8 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
 
     >>> import astropy.units as u
     >>> t_k = 1e6 * u.K
-    >>> t_k.to(u.eV, equivalencies=u.temperature_energy())
-    <Quantity 86.17332384... eV>
+    >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
+    <Quantity 86.17332384960955 eV>
 
 Writing new equivalencies
 -------------------------
@@ -249,13 +249,13 @@ for them::
 Note that the equivalency can be used with any other compatible units::
 
   >>> from astropy.units import imperial
-  >>> imperial.gallon.to(imperial.pound, 1, equivalencies=liters_water)
-  8.3454044633335...
+  >>> imperial.gallon.to(imperial.pound, 1, equivalencies=liters_water)  # doctest: +FLOAT_CMP
+  8.345404463333525
 
 And it also works in the other direction::
 
-  >>> imperial.lb.to(imperial.pint, 1, equivalencies=liters_water)
-  0.9586114172355...
+  >>> imperial.lb.to(imperial.pint, 1, equivalencies=liters_water)  # doctest: +FLOAT_CMP
+  0.9586114172355459
 
 A slightly more complicated example: Spectral Doppler Equivalencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -270,10 +270,10 @@ but this example is illustrative::
     >>> freq_to_vel = [(u.GHz, u.km/u.s,
     ... lambda x: (restfreq-x) / restfreq * si.c.to('km/s').value,
     ... lambda x: (1-x/si.c.to('km/s').value) * restfreq )]
-    >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)
-    -1895.432192...
+    >>> u.Hz.to(u.km / u.s, 116e9, equivalencies=freq_to_vel)  # doctest: +FLOAT_CMP
+    -1895.4321928669262
     >>> (116e9 * u.Hz).to(u.km / u.s, equivalencies=freq_to_vel)
-    <Quantity -1895.432192... km / s>
+    <Quantity -1895.4321928669262 km / s>
 
 Note that once this is defined for GHz and km/s, it will work for all other
 units of frequency and velocity.  ``x`` is converted from the input frequency
@@ -337,8 +337,8 @@ simply do:
   >>> import astropy.units as u
   >>> u.set_enabled_equivalencies(u.dimensionless_angles())
   <astropy.units.core._UnitContext object at ...>
-  >>> u.deg.to('')
-  0.01745329...
+  >>> u.deg.to('')  # doctest: +FLOAT_CMP
+  0.017453292519943295
 
 Here, any list of equivalencies could be used, or one could add, e.g.,
 :func:`~astropy.units.equivalencies.spectral` and
@@ -355,5 +355,5 @@ a context manager is provided:
   >>> with u.set_enabled_equivalencies(u.dimensionless_angles()):
   ...    phase = 0.5 * u.cycle
   ...    c = np.exp(1j*phase)
-  >>> c
-  <Quantity (-1+...j) >
+  >>> c  # doctest: +FLOAT_CMP
+  <Quantity (-1+1.2246063538223773e-16j) >

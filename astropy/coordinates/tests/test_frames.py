@@ -5,11 +5,10 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from numpy.testing import assert_allclose
 
 from ... import units as u
-from ...tests.helper import pytest
-from ...extern import six
+from ...tests.helper import (pytest, quantity_allclose as allclose,
+                             assert_quantity_allclose as assert_allclose)
 from .. import representation
 
 NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
@@ -353,7 +352,7 @@ def test_sep():
     i4 = ICRS(ra=[1, 2]*u.deg, dec=[3, 4]*u.deg, distance=[4, 5]*u.kpc)
 
     sep3d = i3.separation_3d(i4)
-    assert_allclose(sep3d.to(u.kpc).value, np.array([1, 1]))
+    assert_allclose(sep3d.to(u.kpc), np.array([1, 1])*u.kpc)
 
 
 def test_time_inputs():
@@ -565,16 +564,16 @@ def test_eloc_attributes():
     # only along the z-axis), but latitude should not. Also, height is relative
     # to the *surface* in EarthLocation, but the ITRS distance is relative to
     # the center of the Earth
-    assert not np.allclose(el2.latitude, it.spherical.lat)
-    assert np.allclose(el2.longitude, it.spherical.lon)
+    assert not allclose(el2.latitude, it.spherical.lat)
+    assert allclose(el2.longitude, it.spherical.lon)
     assert el2.height < -6000*u.km
 
     el3 = AltAz(location=gc).location
     # GCRS inputs implicitly get transformed to ITRS and then onto
     # EarthLocation's elliptical geoid. So both lat and lon shouldn't match
     assert isinstance(el3, EarthLocation)
-    assert not np.allclose(el3.latitude, gc.dec)
-    assert not np.allclose(el3.longitude, gc.ra)
+    assert not allclose(el3.latitude, gc.dec)
+    assert not allclose(el3.longitude, gc.ra)
     assert np.abs(el3.height) < 500*u.km
 
 

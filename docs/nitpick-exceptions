@@ -16,6 +16,7 @@ py:class astropy.modeling.projections.Projection
 
 # astropy.io.fits
 py:class astropy.io.fits.hdu.base.ExtensionHDU
+py:class astropy.io.fits.util.NotifierMixin
 
 # astropy.utils
 py:class astropy.extern.six.Iterator

@@ -859,7 +859,7 @@ class TestCompressedImage(FitsTestCase):
         """
 
         hdu = fits.CompImageHDU()
-        hdu.data is None
+        assert hdu.data is None
         hdu.writeto(self.temp('test.fits'))
 
         with fits.open(self.temp('test.fits'), mode='update') as hdul:

@@ -6,7 +6,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ...tests.helper import pytest
+from ...tests.helper import pytest, assert_quantity_allclose as assert_allclose
 
 import numpy as np
 from numpy import testing as npt
@@ -243,13 +243,13 @@ def test_array_indexing():
     assert c2.dec.degree == -10
 
     c3 = c1[2:5]
-    npt.assert_allclose(c3.ra.degree, [80, 120, 160])
-    npt.assert_allclose(c3.dec.degree, [-50, -30, -10])
+    assert_allclose(c3.ra, [80, 120, 160] * u.deg)
+    assert_allclose(c3.dec, [-50, -30, -10] * u.deg)
 
     c4 = c1[np.array([2, 5, 8])]
 
-    npt.assert_allclose(c4.ra.degree, [80, 200, 320])
-    npt.assert_allclose(c4.dec.degree, [-50, 10, 70])
+    assert_allclose(c4.ra, [80, 200, 320] * u.deg)
+    assert_allclose(c4.dec, [-50, 10, 70] * u.deg)
 
     #now make sure the equinox is preserved
     assert c2.equinox == c1.equinox

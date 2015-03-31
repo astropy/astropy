@@ -476,17 +476,39 @@ class TestAddColumns(SetupData):
         t.add_column(self.a)
         with pytest.raises(ValueError):
             t.add_column(table_types.Column(name='a', data=[0, 1, 2]))
+        t.add_column(table_types.Column(name='a', data=[0, 1, 2]),
+                     rename_duplicate=True)
         t.add_column(self.b)
         t.add_column(self.c)
-        assert t.colnames == ['a', 'b', 'c']
+        assert t.colnames == ['a', 'a_1', 'b', 'c']
+        t.add_column(table_types.Column(name='a', data=[0, 1, 2]),
+                     rename_duplicate=True)
+        assert t.colnames == ['a', 'a_1', 'b', 'c', 'a_2']
+
+        # test adding column from a separate Table
+        t1 = table_types.Table()
+        t1.add_column(self.a)
+        with pytest.raises(ValueError):
+            t.add_column(t1['a'])
+        t.add_column(t1['a'], rename_duplicate=True)
+
+        t1['a'][0] = 100  # Change original column
+        assert t.colnames == ['a', 'a_1', 'b', 'c', 'a_2', 'a_3']
+        assert t1.colnames == ['a']
+
+        # Check new column didn't change (since name conflict forced a copy)
+        assert t['a_3'][0] == self.a[0]
 
     def test_add_duplicate_columns(self, table_types):
         self._setup(table_types)
         t = table_types.Table([self.a, self.b, self.c])
         with pytest.raises(ValueError):
             t.add_columns([table_types.Column(name='a', data=[0, 1, 2]), table_types.Column(name='b', data=[0, 1, 2])])
+        t.add_columns([table_types.Column(name='a', data=[0, 1, 2]),
+                       table_types.Column(name='b', data=[0, 1, 2])],
+                      rename_duplicate=True)
         t.add_column(self.d)
-        assert t.colnames == ['a', 'b', 'c', 'd']
+        assert t.colnames == ['a', 'b', 'c', 'a_1', 'b_1', 'd']
 
 
 @pytest.mark.usefixtures('table_types')

@@ -82,6 +82,7 @@ removed, and the points are still located on a unit sphere:
     <CartesianRepresentation (x, y, z) [dimensionless]
         (0.424264068712, 0.707106781187, 0.565685424949)>
 
+
 Array values
 ^^^^^^^^^^^^
 

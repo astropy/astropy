@@ -913,7 +913,7 @@ class Model(object):
         # Pop any constraints off the keyword arguments
         for constraint in self.parameter_constraints:
             values = kwargs.pop(constraint, {})
-            self._constraints[constraint] = values
+            self._constraints[constraint] = values.copy()
 
             # Update with default parameter constraints
             for param_name in self.param_names:
@@ -2365,7 +2365,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
 
     try:
         input_broadcast = check_broadcast(*all_shapes)
-    except IncompatibleShapesError as exc:
+    except IncompatibleShapeError as exc:
         shape_a, shape_a_idx, shape_b, shape_b_idx = exc.args
         arg_a = argnames[shape_a_idx]
         arg_b = argnames[shape_b_idx]

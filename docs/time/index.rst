@@ -78,14 +78,20 @@ TT.  This uses the same attribute mechanism as above but now returns a new
   array([ 2451179.5007443 ,  2455197.50076602])
 
 Note that both the ISO (ISOT) and JD representations of ``t2`` are different
-than for ``t`` because they are expressed relative to the TT time scale.
+than for ``t`` because they are expressed relative to the TT time scale.  Of
+course, from the numbers or strings one could not tell; one format in which
+this information is kept is the ``fits`` format::
 
+  >>> t2.fits
+  array(['1999-01-01T00:01:04.307(TT)', '2010-01-01T00:01:06.184(TT)'],
+        dtype='|S27')
+  
 Finally, some further examples of what is possible.  For details, see
 the API documentation below.
 
   >>> dt = t[1] - t[0]
-  >>> dt
-  <TimeDelta object: scale='tai' format='jd' value=4018.0000217...>
+  >>> dt  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='tai' format='jd' value=4018.00002172>
 
 Here, note the conversion of the timescale to TAI.  Time differences
 can only have scales in which one day is always equal to 86400 seconds.
@@ -141,6 +147,7 @@ byear_str    :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
 cxcsec       :class:`~astropy.time.TimeCxcSec`                  63072064.184
 datetime     :class:`~astropy.time.TimeDatetime`                datetime(2000, 1, 2, 12, 0, 0)
 decimalyear  :class:`~astropy.time.TimeDecimalYear`             2000.45
+fits         :class:`~astropy.time.TimeFITS`                    '2000-01-01T00:00:00.000(TAI)'
 gps          :class:`~astropy.time.TimeGPS`                     630720013.0
 iso          :class:`~astropy.time.TimeISO`                     '2000-01-01 00:00:00.000'
 isot         :class:`~astropy.time.TimeISOT`                    '2000-01-01T00:00:00.000'
@@ -153,28 +160,43 @@ unix         :class:`~astropy.time.TimeUnix`                    946684800.0
 yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
 ===========  =================================================  ==============================
 
+.. note:: The :class:`~astropy.time.TimeFITS` format allows for most
+   but not all of the the FITS standard [#]_. Not implemented (yet) is
+   support for a ``LOCAL`` timescale. Furthermore, FITS supports some deprecated
+   names for timescales; these are translated to the formal names upon
+   initialization.  Furthermore, any specific realization information,
+   such as ``UT(NIST)`` is stored only as long as the time scale is not changed.
+.. [#] `Rots et al. 2015, A&A 574:A36 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
+	  
 Subformat
 """""""""
 
 The time format classes :class:`~astropy.time.TimeISO`,
-:class:`~astropy.time.TimeISOT`, and
+:class:`~astropy.time.TimeISOT`, :class:`~astropy.time.TimeFITS`, and
 :class:`~astropy.time.TimeYearDayTime` support the concept of
 subformats.  This allows for variations on the basic theme of a format in both
 the input string parsing and the output.
 
-The supported subformats are ``date_hms``, ``date_hm``, and ``date``.  The
-table below illustrates these subformats for ``iso`` and ``yday`` formats:
+The supported subformats are ``date_hms``, ``date_hm``, and ``date``
+for all but the :class:`~astropy.time.TimeFITS` format; the latter
+does not support ``data_hm`` but does support ``longdate_hms`` and
+``longdate`` for years before the year 0 and after the year 10000.  The
+table below illustrates these subformats for ``iso``, ``fits``, ``yday``
+formats:
 
-=========  ========== ===========================
-Format     Subformat  Input / output
-=========  ========== ===========================
-``iso``    date_hms   2001-01-02 03:04:05.678
-``iso``    date_hm    2001-01-02 03:04
-``iso``    date       2001-01-02
-``yday``   date_hms   2001:032:03:04:05.678
-``yday``   date_hm    2001:032:03:04
-``yday``   date       2001:032
-=========  ========== ===========================
+========  ============ ==============================
+Format    Subformat    Input / output
+========  ============ ==============================
+``iso``   date_hms     2001-01-02 03:04:05.678
+``iso``   date_hm      2001-01-02 03:04
+``iso``   date         2001-01-02
+``fits``  date_hms     2001-01-02T03:04:05.678(UTC)
+``fits``  longdate_hms +02001-01-02T03:04:05.678(UTC)
+``fits``  longdate     +02001-01-02(UTC)
+``yday``  date_hms     2001:032:03:04:05.678
+``yday``  date_hm      2001:032:03:04
+``yday``  date         2001:032
+========  ============ ==============================
 
 Time from epoch formats
 """""""""""""""""""""""
@@ -306,8 +328,8 @@ and ``jd2`` attributes::
   >>> t.jd1, t.jd2
   (2455197.5, 0.0)
   >>> t2 = t.tai
-  >>> t2.jd1, t2.jd2
-  (2455197.5, 0.00039351851851851...)
+  >>> t2.jd1, t2.jd2  # doctest: +FLOAT_CMP
+  (2455197.5, 0.0003935185185185185)
 
 Creating a Time object
 ----------------------
@@ -370,8 +392,8 @@ string-valued formats ignore ``val2`` and all numeric inputs effectively add
 the two values in a way that maintains the highest precision.  Example::
 
   >>> t = Time(100.0, 0.000001, format='mjd', scale='tt')
-  >>> t.jd, t.jd1, t.jd2  # doctest: +SKIP
-  (2400100.50000..., 2400100.5, 1e-06)
+  >>> t.jd, t.jd1, t.jd2  # doctest: +FLOAT_CMP
+  (2400100.500001, 2400100.5, 1e-06)
 
 format
 ^^^^^^
@@ -460,10 +482,10 @@ no explicit longitude is given.
 
   >>> t = Time('2001-03-22 00:01:44.732327132980', scale='utc',
   ...          location=('120d', '40d'))
-  >>> t.sidereal_time('apparent', 'greenwich')
-  <Longitude 12.00000000000... hourangle>
-  >>> t.sidereal_time('apparent')
-  <Longitude 20.00000000000... hourangle>
+  >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
+  <Longitude 12.00000000000001 hourangle>
+  >>> t.sidereal_time('apparent')  # doctest: +FLOAT_CMP
+  <Longitude 20.00000000000001 hourangle>
 
 .. note:: In future versions, we hope to add the possibility to add observatory
           objects and/or names.
@@ -586,7 +608,7 @@ predictions), and set :attr:`~astropy.time.Time.delta_ut1_utc` as described in
 
   >>> from astropy.utils.iers import IERS_A, IERS_A_URL
   >>> from astropy.utils.data import download_file
-  >>> iers_a_file = download_file(IERS_A_URL, cache=True))  # doctest: +SKIP
+  >>> iers_a_file = download_file(IERS_A_URL, cache=True)  # doctest: +SKIP
   >>> iers_a = IERS_A.open(iers_a_file)                     # doctest: +SKIP
   >>> t.delta_ut1_utc = t.get_delta_ut1_utc(iers_a)         # doctest: +SKIP
 
@@ -632,16 +654,16 @@ transformations, ERFA C-library routines are used under the hood, which support
 calculations following different IAU resolutions.  Sample usage::
 
   >>> t = Time('2006-01-15 21:24:37.5', scale='utc', location=('120d', '45d'))
-  >>> t.sidereal_time('mean')
-  <Longitude 13.089521870640... hourangle>
-  >>> t.sidereal_time('apparent')
-  <Longitude 13.08950367508... hourangle>
-  >>> t.sidereal_time('apparent', 'greenwich')
-  <Longitude 5.08950367508... hourangle>
-  >>> t.sidereal_time('apparent', '-90d')
-  <Longitude 23.08950367508... hourangle>
-  >>> t.sidereal_time('apparent', '-90d', 'IAU1994')
-  <Longitude 23.08950365423... hourangle>
+  >>> t.sidereal_time('mean')  # doctest: +FLOAT_CMP
+  <Longitude 13.089521870640212 hourangle>
+  >>> t.sidereal_time('apparent')  # doctest: +FLOAT_CMP
+  <Longitude 13.089503675087027 hourangle>
+  >>> t.sidereal_time('apparent', 'greenwich')  # doctest: +FLOAT_CMP
+  <Longitude 5.089503675087027 hourangle>
+  >>> t.sidereal_time('apparent', '-90d')  # doctest: +FLOAT_CMP
+  <Longitude 23.08950367508703 hourangle>
+  >>> t.sidereal_time('apparent', '-90d', 'IAU1994')  # doctest: +FLOAT_CMP
+  <Longitude 23.08950365423405 hourangle>
 
 Time Deltas
 -----------
@@ -732,8 +754,8 @@ object::
 i.e., scales for which it is not necessary to know the times that were
 differenced::
 
-  >>> dt.tt
-  <TimeDelta object: scale='tt' format='jd' value=364.99999974...>
+  >>> dt.tt  # doctest: +FLOAT_CMP
+  <TimeDelta object: scale='tt' format='jd' value=364.999999746>
   >>> dt.tdb
   Traceback (most recent call last):
     ...
@@ -781,8 +803,8 @@ of time.  Usage is most easily illustrated by examples::
   array([False,  True,  True], dtype=bool)
   >>> dt + 1.*u.hr                   # can also add/subtract such quantities
   <TimeDelta object: scale='None' format='jd' value=[ 10.04166667  20.04166667  30.04166667]>
-  >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr
-  <Time object: scale='utc' format='mjd' value=50000.041666...>
+  >>> Time(50000., format='mjd', scale='utc') + 1.*u.hr  # doctest: +FLOAT_CMP
+  <Time object: scale='utc' format='mjd' value=50000.0416667>
   >>> dt * 10.*u.km/u.s              # for multiplication and division with a
   ...                                # Quantity, TimeDelta is converted
   <Quantity [ 100., 200., 300.] d km / s>

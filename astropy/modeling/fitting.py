@@ -491,6 +491,7 @@ class LevMarLSQFitter(object):
         constraints, instead of using p directly, we set the parameter list in
         this function.
         """
+
         if any(model.fixed.values()) or any(model.tied.values()):
 
             if z is None:
@@ -508,7 +509,7 @@ class LevMarLSQFitter(object):
 
             if not model.col_fit_deriv:
                 full_deriv = np.asarray(full_deriv).T
-                residues = np.asarray(full_deriv[np.nonzero(ind)])
+                residues = np.asarray(full_deriv[np.nonzero(ind)]).T
             else:
                 residues = full_deriv[np.nonzero(ind)]
 

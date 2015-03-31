@@ -170,16 +170,16 @@ class Gaussian2D(Fittable2DModel):
     y_mean : float
         Mean of the Gaussian in y.
     x_stddev : float
-        Standard deviation of the Gaussian in x.
+        Standard deviation of the Gaussian in x before rotating by theta.
         ``x_stddev`` and ``y_stddev`` must be specified unless a covariance
         matrix (``cov_matrix``) is input.
     y_stddev : float
-        Standard deviation of the Gaussian in y.
+        Standard deviation of the Gaussian in y before rotating by theta.
         ``x_stddev`` and ``y_stddev`` must be specified unless a covariance
         matrix (``cov_matrix``) is input.
     theta : float, optional
         Rotation angle in radians. The rotation angle increases
-        counterclockwise.
+        counterclockwise, from the positive x-axis.
     cov_matrix : ndarray, optional
         A 2x2 covariance matrix. If specified, overrides the ``x_stddev``,
         ``y_stddev``, and ``theta`` specification.
