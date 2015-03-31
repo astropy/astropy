@@ -24,14 +24,14 @@ conda install --yes pytest Cython jinja2 psutil
 if [[ $NUMPY_VERSION == dev ]]
 then
   pip install git+http://github.com/numpy/numpy.git
-  exit # exit to make sure we don't end up accidentally install numpy with conda
+  export CONDA_INSTALL="conda install --yes python=$PYTHON_VERSION"
 else
   conda install --yes numpy=$NUMPY_VERSION
+  export CONDA_INSTALL="conda install --yes python=$PYTHON_VERSION numpy=$NUMPY_VERSION"
 fi
 
 # Now set up shortcut to conda install command to make sure the Python and Numpy
 # versions are always explicitly specified.
-export CONDA_INSTALL="conda install --yes python=$PYTHON_VERSION numpy=$NUMPY_VERSION"
 
 # OPTIONAL DEPENDENCIES
 if $OPTIONAL_DEPS
