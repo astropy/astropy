@@ -1329,15 +1329,14 @@ class TimeFormat(object):
             raise TypeError('Input values for {0} class must be finite doubles'
                             .format(self.name))
 
-        if hasattr(val1, 'to'):
+        if getattr(val1, 'unit', None) is not None:
             # set possibly scaled unit any quantities should be converted to
             _unit = u.CompositeUnit(getattr(self, 'unit', 1.), [u.day], [1])
             val1 = val1.to(_unit).value
             if val2 is not None:
                 val2 = val2.to(_unit).value
-        else:
-            if hasattr(val2, 'to'):
-                raise TypeError('Cannot mix float and Quantity inputs')
+        elif getattr(val2, 'unit', None) is not None:
+            raise TypeError('Cannot mix float and Quantity inputs')
 
         if val2 is None:
             val2 = np.zeros_like(val1)
