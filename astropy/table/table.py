@@ -272,10 +272,8 @@ class Table(object):
                 if data.shape == ():
                     raise ValueError('Can not initialize a Table with a scalar')
                 elif len(data.shape) == 1:
-                    n_cols = data.shape[0]
-                    data = np.expand_dims(data, axis=0)
-                else:
-                    n_cols = data.shape[1]
+                    data = data[np.newaxis, :]
+                n_cols = data.shape[1]
 
         elif isinstance(data, dict):
             init_func = self._init_from_dict
