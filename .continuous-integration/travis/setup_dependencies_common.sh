@@ -18,7 +18,7 @@ then
 fi
 
 # CORE DEPENDENCIES
-$CONDA_INSTALL pytest Cython jinja2 psutil
+conda install --yes pytest Cython jinja2 psutil
 
 # NUMPY
 if [[ $NUMPY_VERSION == dev ]]
