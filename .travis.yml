@@ -20,11 +20,10 @@ env:
 
 matrix:
 
-    include:
+    # Don't wait for allowed failures
+    fast_finish: true
 
-        # Try developer version of Numpy
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+    include:
 
         # Try MacOS X
         - os: osx
@@ -61,6 +60,10 @@ matrix:
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test'
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.6 SETUP_CMD='test'
+
+        # Try developer version of Numpy
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
 
         # Do a PEP8 test
         - os: linux
