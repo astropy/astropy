@@ -771,7 +771,9 @@ double xstrtod(const char *str, char **endptr, char decimal,
     double number;
     int exponent;
     int negative;
+    int autoexp;
     char *p = (char *) str;
+    char exp;
     int num_digits;
     int num_decimals;
     int max_digits = 17;
@@ -809,6 +811,8 @@ double xstrtod(const char *str, char **endptr, char decimal,
                          1e291, 1e292, 1e293, 1e294, 1e295, 1e296, 1e297, 1e298, 1e299, 1e300,
                          1e301, 1e302, 1e303, 1e304, 1e305, 1e306, 1e307, 1e308};
     errno = 0;
+    autoexp = 0;
+    if (toupper(sci) == 'A') autoexp = 1;
 
     // Skip leading whitespace
     while (isspace(*p)) p++;
@@ -871,7 +875,45 @@ double xstrtod(const char *str, char **endptr, char decimal,
     if (negative) number = -number;
 
     // Process an exponent string
-    if (toupper(*p) == toupper(sci))
+    if (autoexp)
+    {
+        // check for possible Fortran exponential notations, including
+        // triple-digits with no character
+        exp = toupper(*p);
+        if (exp == 'E' || exp == 'D' || exp == 'Q' || *p == '+' || *p == '-')
+        {
+            // Handle optional sign
+            negative = 0;
+            switch (exp)
+            {
+            case '-': negative = 1;   // Fall through to increment pos
+            case '+': p++;
+                break;
+            case 'E':
+            case 'D':
+            case 'Q':
+                switch (*++p)
+                {
+                case '-': negative = 1;   // Fall through to increment pos
+                case '+': p++;
+                }
+            }
+
+            // Process string of digits
+            n = 0;
+            while (isdigit(*p))
+            {
+                n = n * 10 + (*p - '0');
+                p++;
+            }
+
+            if (negative)
+                exponent -= n;
+            else
+                exponent += n;
+        }
+    }
+    else if (toupper(*p) == toupper(sci))
     {
         // Handle optional sign
         negative = 0;
