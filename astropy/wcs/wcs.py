@@ -2297,8 +2297,7 @@ naxis kwarg.
         return hdulist
 
     def to_header(self, relax=None, key=None):
-        """
-        Generate an `astropy.io.fits.Header` object with the basic WCS
+        """Generate an `astropy.io.fits.Header` object with the basic WCS
         and SIP information stored in this object.  This should be
         logically identical to the input FITS file, but it will be
         normalized in a number of ways.
@@ -2325,9 +2324,9 @@ naxis kwarg.
               write.  See :ref:`relaxwrite` for details.
 
             If the ``relax`` keyword argument is not given and any
-            keywords were omitted from the output, an `AstropyWarning`
-            is displayed.  To override this, explicitly pass a value to
-            ``relax``.
+            keywords were omitted from the output, an
+            `~astropy.utils.exceptions.AstropyWarning` is displayed.
+            To override this, explicitly pass a value to ``relax``.
 
         key : str
             The name of a particular WCS transform to use.  This may be
@@ -2369,7 +2368,6 @@ naxis kwarg.
              `to_header` tries hard to write meaningful comments.
 
           8. Keyword order may be changed.
-
 
         """
         display_warning = False
