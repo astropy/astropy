@@ -181,24 +181,18 @@ class FixedWidthHeader(basic.BasicHeader):
             List of ending indices.
 
         """
-
-        # If column positions are already specified then just use those, otherwise
-        # figure out positions between delimiters.
+        
+        # If column positions are already specified then just use those.
+        # If neither column starts or ends are given, figure out poistions
+        # between delimiters. Otherwise, either the starts or the ends have 
+        # been given, so figure out whichever wasn't given.
         if self.col_starts is not None and self.col_ends is not None:
             starts = list(self.col_starts)  # could be any iterable, e.g. np.array
             ends = [x + 1 for x in self.col_ends]  # user supplies inclusive endpoint
             if len(starts) != len(ends):
                 raise ValueError('Fixed width col_starts and col_ends must have the same length')
             vals = [line[start:end].strip() for start, end in zip(starts, ends)]
-        elif self.col_starts is not None and self.col_ends is None:
-            # Figure out column end positions from start positions and the length
-            # of the longest data line
-            starts = list(self.col_starts)
-            ends = list(self.col_starts[1:]) # Assume each col ends where the next starts
-            end_of_last_col = max(len(s) for s in self.data.data_lines)
-            ends.append(end_of_last_col)
-            vals = [line[start:end].strip() for start, end in zip(starts, ends)]
-        else:
+        elif self.col_starts is None and self.col_ends is None:
             # There might be a cleaner way to do this but it works...
             vals = line.split(self.splitter.delimiter)
             starts = [0]
@@ -213,6 +207,15 @@ class FixedWidthHeader(basic.BasicHeader):
             vals = [x.strip() for x in vals if x]
             if len(vals) != len(starts) or len(vals) != len(ends):
                 raise InconsistentTableError('Error parsing fixed width header')
+        else:
+            # exactly one of col_starts or col_ends is given...
+            if self.col_starts is not None:
+                starts = list(self.col_starts)
+                ends = starts[1:] + [None] # Assume each col ends where the next starts
+            else: # self.col_ends is not None
+                ends = [x + 1 for x in self.col_ends]
+                starts = [0] + ends[:-1] # Assume each col starts where the last ended
+            vals = [line[start:end].strip() for start, end in zip(starts, ends)]
 
         return vals, starts, ends
 
