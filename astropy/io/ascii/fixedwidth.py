@@ -191,10 +191,12 @@ class FixedWidthHeader(basic.BasicHeader):
                 raise ValueError('Fixed width col_starts and col_ends must have the same length')
             vals = [line[start:end].strip() for start, end in zip(starts, ends)]
         elif self.col_starts is not None and self.col_ends is None:
-            # Figure out column end positions from start positions and data line length
+            # Figure out column end positions from start positions and the length
+            # of the longest data line
             starts = list(self.col_starts)
             ends = list(self.col_starts[1:]) # Assume each col ends where the next starts
-            ends.append(len(self.data.data_lines[0])) # Assume final column ends at end of data line
+            end_of_last_col = max(len(s) for s in self.data.data_lines)
+            ends.append(end_of_last_col)
             vals = [line[start:end].strip() for start, end in zip(starts, ends)]
         else:
             # There might be a cleaner way to do this but it works...
