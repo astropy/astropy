@@ -239,8 +239,9 @@ def read(table, guess=None, **kwargs):
             enable faster but slightly imprecise floating point conversion method
         parallel: bool or int
             multiprocessing conversion using cpu_count() or `number` processes
-        fortran_dexp: bool
-            parse Fortran-style scientific notation like `3.14159D+00`, implies fast converter
+        fortran_exp: str
+            One-character string defining the exponent in Fortran-style scientific
+            notation like `3.14159D+00` (`E`, `D`, `Q`); implies fast converter
     Reader : `~astropy.io.ascii.BaseReader`
         Reader class (DEPRECATED) (default= :class:`Basic`).
 
@@ -376,9 +377,9 @@ def _guess(table, read_kwargs, format, fast_reader):
             enable faster but slightly imprecise floating point conversion method
         parallel: bool or int
             multiprocessing conversion using cpu_count() or `number` processes
-        fortran_dexp: bool
-            parse Fortran-style scientific notation like `3.14159D+00`,
-            implies use_fast_converter
+        fortran_exp: str
+            Exponent  character in Fortran-style scientific notation
+            like `3.14159D+00` (`E`, `D`, `Q`); implies use_fast_converter
 
     Returns
     -------
