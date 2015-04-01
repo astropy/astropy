@@ -352,8 +352,9 @@ class IERS_A(IERS):
         iers_a = Table.read(file, format='cds', readme=readme)
         # IERS A has some rows at the end that hold nothing but dates & MJD
         # presumably to be filled later.  Exclude those a priori -- there
-        # should at least be a predicted UT1-UTC!
-        return cls(iers_a[~iers_a['UT1_UTC_A'].mask])
+        # should at least be a predicted UT1-UTC and PM!
+        return cls(iers_a[~iers_a['UT1_UTC_A'].mask &
+                          ~iers_a['PolPMFlag_A'].mask])
 
     def ut1_utc_source(self, i):
         """Set UT1-UTC source flag for entries in IERS table"""
