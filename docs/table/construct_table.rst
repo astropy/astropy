@@ -316,7 +316,17 @@ Likewise the data type for each column can by changed with ``dtype``::
 
 NumPy homogeneous array
 """""""""""""""""""""""
-A normal `numpy` 2-d array (where all elements have the same type) can be
+A `numpy` 1-d array is treated as a single row table where each element of the
+array corresponds to a column::
+
+  >>> Table(np.array([1, 2, 3]), names=['a', 'b', 'c'])
+  <Table masked=False length=1>
+    a     b     c
+  int64 int64 int64
+  ----- ----- -----
+      1     2     3
+
+A `numpy` 2-d array (where all elements have the same type) can also be
 converted into a |Table|.  In this case the column names are not specified by
 the data and must either be provided by the user or will be automatically
 generated as ``col<N>`` where ``<N>`` is the column number.
@@ -442,9 +452,12 @@ for the ``data`` argument.
     override the existing ``data`` types.
 
 **numpy ndarray (homogeneous)**
-    The ``data`` ndarray must be at least 2-dimensional, with the first
-    (left-most) index corresponding to row number (table length) and the
-    second index corresponding to column number (table width).  Higher
+    If the ``data`` ndarray is 1-dimensional then it is treated as a single row
+    table where each element of the array corresponds to a column.
+
+    If the ``data`` ndarray is at least 2-dimensional then the first
+    (left-most) index corresponds to row number (table length) and the
+    second index corresponds to column number (table width).  Higher
     dimensions get absorbed in the shape of each table cell.
 
     If provided the ``names`` list must match the "width" of the ``data``
