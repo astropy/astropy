@@ -211,16 +211,17 @@ cdef class CParser:
             fast_reader = {}
         elif fast_reader is False: # shouldn't happen
             raise core.ParameterError("fast_reader cannot be False for fast readers")
-        # parallel and use_fast_reader are False by default
-        use_fast_converter = fast_reader.pop('use_fast_converter', False)
-        parallel = fast_reader.pop('parallel', False)
-        fortran_dexp = fast_reader.pop('fortran_dexp', False)
-        # Fortran double precision notation only supported with fast converter
-        if fortran_dexp:
-            expchar='D'
-            use_fast_converter = True
+        expchar = fast_reader.pop('fortran_exp', 'E').upper()
+        # parallel and use_fast_reader are False by default, but only the latter
+        # supports Fortran double precision notation 
+        if expchar == 'E':
+            use_fast_converter = fast_reader.pop('use_fast_converter', False)
         else:
-            expchar='E'
+            use_fast_converter = fast_reader.pop('use_fast_converter', True)
+            if not use_fast_converter:
+                raise core.FastOptionsError("fast_reader: fortran_exp requires use_fast_converter")
+        parallel = fast_reader.pop('parallel', False)
+
         if fast_reader:
             raise core.FastOptionsError("Invalid parameter in fast_reader dict")
         if parallel and os.name == 'nt':

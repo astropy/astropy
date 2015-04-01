@@ -895,23 +895,30 @@ def test_fortran_reader(parallel):
     Make sure that ascii.read() can read Fortran-style exponential notation
     using the fast_reader.
     """
-    text = 'A B C\n1.0001D31 2.0 3\n4.2d-1 5.0D-1 0.6D4'
-    with pytest.raises(ParameterError): # C reader can't handle regex comment
-        ascii.read(text, format='fast_basic', guess=False, comment='##')
+    text = 'A B C\n100.01D+99 2.0 3\n4.2d-1 5.0D-1 0.6D4'
+    expected = Table([[1.0001e101, 0.42], [2, 0.5], [3.0, 6000]], 
+                     names=('A', 'B', 'C'))
+
+    # C strtod (not-fast converter) can't handle Fortran exp
+    with pytest.raises(FastOptionsError) as e:
+        ascii.read(text, format='basic', guess=False, fast_reader=
+                   {'parallel': parallel, 'use_fast_converter': False,
+                    'fortran_exp': 'D'})
+    assert 'fast_reader: fortran_exp requires use_fast_converter' in str(e)
 
     # Enable multiprocessing and the fast converter
     table = ascii.read(text, format='basic', guess=False, 
-                       fast_reader={'parallel': parallel, 'fortran_dexp': True})
-    expected = Table([[1.0001e31, 0.42], [2, 0.5], [3.0, 6000]], 
-                     names=('A', 'B', 'C'))
+                       fast_reader={'parallel': parallel, 'fortran_exp': 'D'})
     assert_table_equal(table, expected)
 
-    # Should raise an error if fast_reader has an invalid key
-    #with pytest.raises(FastOptionsError):
-    #    ascii.read(text, format='fast_basic', guess=False, fast_reader={'foo': True})
+    text = 'A B C\n0.10001Q102 20.0Q-1 3\n.42q0 0.5 6.Q3'
+    table = ascii.read(text, format='basic', guess=False, 
+                       fast_reader={'parallel': parallel, 'fortran_exp': 'q'})
+    assert_table_equal(table, expected)
 
-    # Use the slow reader instead
-    #ascii.read(text, format='basic', guess=False, comment='##', fast_reader=False)
-    # Will try the slow reader afterwards by default
-    #ascii.read(text, format='basic', guess=False, comment='##')
-
+    # mixes and triple-exponents without any character are not handled (yet)!
+    with pytest.raises(AssertionError):
+        text = 'A B C\n1.00001+101 2.0E0 3\n.42d0 0.5 6.E3'
+        table = ascii.read(text, format='basic', guess=False, 
+                           fast_reader={'parallel': parallel, 'fortran_exp': 'a'})
+        assert_table_equal(table, expected)
