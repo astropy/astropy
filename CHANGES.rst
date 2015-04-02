@@ -241,6 +241,10 @@ API Changes
 
 - ``astropy.io.ascii``
 
+  - Calls to ascii.read() for fixed-width tables may now omit one of the keyword
+    arguments ``col_starts`` or ``col_ends``. Columns will be assumed to begin and
+    end immediately adjacent to each other. [#3564]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
