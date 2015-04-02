@@ -26,6 +26,9 @@ New Features
 
 - ``astropy.modeling``
 
+  - Added support for polynomials with degree 0 or degree greater than 15.
+    [#3574, 3589]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
