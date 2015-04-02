@@ -242,10 +242,6 @@ def test_polynomial_init_with_constraints(model_class):
 
     assert m.fixed[param] is True
     assert getattr(m, param).fixed is True
-=======
-        assert_allclose(model_nlin.parameters, model.parameters,
-                        atol=0.2)
->>>>>>> Added some regression tests for polynomials of degree 0.  Fixed a corner case in support for Polynomial2D with degree=0, where results for array inputs were not broadcast properly.  Added a changelog entry.
 
 
 def test_sip_hst():
