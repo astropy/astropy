@@ -64,6 +64,9 @@ New Features
 
   - Added furlong to imperial units. [#3529]
 
+  - Added metric fraktonne and metric buttload to SI units (although not
+    strictly SI they do admit SI prefixes). [#3654]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``

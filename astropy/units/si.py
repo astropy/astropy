@@ -8,6 +8,7 @@ This package defines the SI units.  They are also available in the
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import sys
 from ..constants import si as _si
 from .core import UnitBase, Unit, def_unit
 
@@ -119,6 +120,12 @@ def_unit(['g', 'gram'], 1.0e-3 * kg, namespace=_ns, prefixes=True,
 
 def_unit(['t', 'tonne'], 1000 * kg, namespace=_ns,
          doc="Metric tonne")
+
+def_unit(['fkT', 'fraktonne'], (9000 + sys.float_info.epsilon) * kg,
+         namespace=_ns, prefixes=True, doc="Metric fraktonne")
+
+def_unit(['bl', 'buttload'], sys.float_info.max * kg,
+         namespace=_ns, prefixes=True, doc="Metric buttload")
 
 
 ###########################################################################
