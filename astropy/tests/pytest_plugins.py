@@ -462,17 +462,31 @@ PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
                                      ('Matplotlib', 'matplotlib'),
                                      ('h5py', 'h5py')])
 
+# This always returns with Astropy's version
+from .. import __version__
+
+TESTED_VERSIONS = OrderedDict([('Astropy', __version__)])
+
 
 def pytest_report_header(config):
-    from .. import __version__
 
     stdoutencoding = getattr(sys.stdout, 'encoding') or 'ascii'
 
-    s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
     if six.PY2:
         args = [x.decode('utf-8') for x in config.args]
     elif six.PY3:
         args = config.args
+
+    # TESTED_VERSIONS can contain the affiliated package version, too
+    if len(TESTED_VERSIONS) > 1:
+        for pkg, version in TESTED_VERSIONS.items():
+            if pkg != 'Astropy':
+                s = "\nRunning tests with {0} version {1}.\n".format(
+                    pkg, version)
+    else:
+        s = "\nRunning tests with Astropy version {0}.\n".format(
+            TESTED_VERSIONS['Astropy'])
+
     s += "Running tests in {0}.\n\n".format(" ".join(args))
 
     from platform import platform
