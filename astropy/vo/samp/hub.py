@@ -621,6 +621,8 @@ class SAMPHubServer(object):
                     if read_ready:
                         self._web_profile_server.handle_request()
 
+        self._server.server_close()
+
     def _notify_shutdown(self):
         msubs = SAMPHubServer.get_mtype_subtypes("samp.hub.event.shutdown")
         for mtype in msubs:
