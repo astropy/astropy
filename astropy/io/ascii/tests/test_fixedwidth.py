@@ -208,6 +208,30 @@ def test_read_col_starts():
     assert_equal(dat[1][0], "Mary")
     assert_equal(dat[1][2], "192.168.1.")
     assert_equal(dat[2][2], "192.168.1")  # col_end=28 cuts this column off
+    
+
+def test_read_detect_col_starts_or_ends():
+    """Table with no delimiter with only column start or end values specified"""
+    table = """
+#1       9        19                <== Column start indexes
+#|       |         |                <== Column start positions 
+#<------><--------><------------->  <== Inferred column positions
+  John   555- 1234 192.168.1.10
+  Mary   555- 2134 192.168.1.123
+   Bob   555- 4527  192.168.1.9
+   Bill  555-9875  192.255.255.255
+"""
+    for kwargs in ({'col_starts': (1,9,19)},
+                   {'col_ends': (8,18,33)}):
+        dat = ascii.read(table,
+                         Reader=ascii.FixedWidthNoHeader,
+                         names=('Name', 'Phone', 'TCP'),
+                         **kwargs)
+        assert_equal(tuple(dat.dtype.names), ('Name', 'Phone', 'TCP'))
+        assert_equal(dat[0][1], "555- 1234")
+        assert_equal(dat[1][0], "Mary")
+        assert_equal(dat[1][2], "192.168.1.123")
+        assert_equal(dat[3][2], "192.255.255.255")
 
 
 table = """\
