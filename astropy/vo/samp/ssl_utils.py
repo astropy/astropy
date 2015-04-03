@@ -85,7 +85,7 @@ if six.PY2:
 
             self._setup(self._connection_class(host, port, key_file,
                                                cert_file, cert_reqs,
-                                               ca_certs, ssl_version, None))
+                                               ca_certs, ssl_version))
 
             # we never actually use these for anything, but we keep them
             # here for compatibility with post-1.5.2 CVS.
