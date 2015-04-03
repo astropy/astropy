@@ -66,3 +66,20 @@ def test_inherit_docstrings():
             pass
 
     assert Subclass.__call__.__doc__ == "FOO"
+
+
+def test_gen_ref_comments():
+    comments = misc._generate_referee_comments(seed=1234, num=5)
+    np.testing.assert_array_equal(
+        comments,
+        ['I cannot get past the abstract.',
+         'Change your font to MS Comic Sans.',
+         'No.',
+         'Replace Figure X with a cat pic.',
+         'Cite my paper.'])
+
+
+def test_gen_ref_response():
+    response = misc._generate_referee_response(seed=1234, num=5)
+    np.testing.assert_array_equal(
+        response, ['Maybe.', 'No.', 'No.', 'No.', 'No.'])
