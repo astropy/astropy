@@ -282,6 +282,19 @@ class _Bootstrapper(object):
         strategies = ['local_directory', 'local_file', 'index']
         dist = None
 
+        # First, remove any previously imported versions of astropy_helpers;
+        # this is necessary for nested installs where one package's installer
+        # is installing another package via setuptools.sandbox.run_setup, as in
+        # the case of setup_requires
+        for key in list(sys.modules):
+            try:
+                if key == PACKAGE_NAME or key.startswith(PACKAGE_NAME + '.'):
+                    del sys.modules[key]
+            except AttributeError:
+                # Sometimes mysterious non-string things can turn up in
+                # sys.modules
+                continue
+
         # Check to see if the path is a submodule
         self.is_submodule = self._check_submodule()
 
@@ -310,19 +323,6 @@ class _Bootstrapper(object):
         # do it again
         # Note: Adding the dist to the global working set also activates it
         # (makes it importable on sys.path) by default.
-
-        # But first, remove any previously imported versions of
-        # astropy_helpers; this is necessary for nested installs where one
-        # package's installer is installing another package via
-        # setuptools.sandbox.run_set, as in the case of setup_requires
-        for key in list(sys.modules):
-            try:
-                if key == PACKAGE_NAME or key.startswith(PACKAGE_NAME + '.'):
-                    del sys.modules[key]
-            except AttributeError:
-                # Sometimes mysterious non-string things can turn up in
-                # sys.modules
-                continue
 
         try:
             pkg_resources.working_set.add(dist, replace=True)
