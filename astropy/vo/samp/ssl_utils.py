@@ -31,9 +31,9 @@ class HTTPSConnection(HTTPConnection):
 
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  cert_reqs=ssl.CERT_NONE, ca_certs=None,
-                 ssl_version=None, strict=None):
+                 ssl_version=None):
 
-        HTTPConnection.__init__(self, host, port, strict)
+        HTTPConnection.__init__(self, host, port)
 
         self.key_file = key_file
         self.cert_file = cert_file
