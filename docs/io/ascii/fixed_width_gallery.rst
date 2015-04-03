@@ -208,11 +208,17 @@ will select the first 6 characters.
       Mary 555- 2134 192.168.1.
        Bob 555- 4527  192.168.1
        
-**Table with no delimiter with only column start values specified.**
+**Table with no delimiter with only column start or end values specified.**
 
 If only the col_starts keyword is given, it is assumed that each column
 ends where the next column starts, and the final column ends at the same
 position as the longest line of data.
+
+Conversely, if only the col_ends keyword is given, it is assumed that the first column
+starts at position 0 and that each successive column starts immediately after
+the previous one.
+
+The two examples below read the same table and produce the same result
 ::
 
   >>> table = """
@@ -237,36 +243,20 @@ position as the longest line of data.
       Mary 555- 2134   192.168.1.123
        Bob 555- 4527     192.168.1.9
       Bill  555-9875 192.255.255.255
-
-**Table with no delimiter with only column end values specified.**
-
-If only the col_ends keyword is given, it is assumed that the first column
-starts at position 0 and that each successive column starts immediately after
-the previous one.
-::
-
-  >>> table = """
-  ... #       8        18          30  <== Column end indexes
-  ... #       |         |           |  <== Column end positions 
-  ... #<------><--------><---------->  <== Inferred column positions
-  ...   John   555- 1234 192.168.1.10
-  ...   Mary   555- 2134 192.168.1.123
-  ...    Bob   555- 4527  192.168.1.9
-  ...    Bill  555-9875  192.255.255.255
-  ... """
   >>> ascii.read(table,
   ...                 format='fixed_width_no_header',
   ...                 names=('Name', 'Phone', 'TCP'),
-  ...                 col_ends=(8, 18, 30),
+  ...                 col_ends=(8, 18, 32),
   ...                 )
   <Table masked=False length=4>
-    Name     Phone       TCP     
-  string32  string72   string96  
-  -------- --------- ------------
-      John 555- 1234 192.168.1.10
-      Mary 555- 2134 192.168.1.12
-       Bob 555- 4527  192.168.1.9
-      Bill  555-9875 192.255.255.
+    Name     Phone        TCP      
+  string32  string72   string112   
+  -------- --------- --------------
+      John 555- 1234   192.168.1.10
+      Mary 555- 2134  192.168.1.123
+       Bob 555- 4527    192.168.1.9
+      Bill  555-9875 192.255.255.25
+
 
 FixedWidthTwoLine
 """""""""""""""""
