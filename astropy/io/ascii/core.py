@@ -364,7 +364,7 @@ class DefaultSplitter(BaseSplitter):
 
 def _replace_tab_with_space(line, escapechar, quotechar):
     """Replace tabs with spaces in given string, preserving quoted substrings
-    
+
     Parameters
     ----------
     line : str
@@ -373,7 +373,7 @@ def _replace_tab_with_space(line, escapechar, quotechar):
         Character in ``line`` used to escape special characters.
     quotechar: str
         Character in ``line`` indicating the start/end of a substring.
-        
+
     Returns
     -------
     line : str
@@ -736,7 +736,7 @@ class BaseData(object):
 def convert_numpy(numpy_type):
     """Return a tuple containing a function which converts a list into a numpy
     array and the type produced by the converter function.
-    
+
     Parameters
     ----------
     numpy_type : numpy data-type
@@ -744,7 +744,7 @@ def convert_numpy(numpy_type):
         valid `numpy type <http://docs.scipy.org/doc/numpy/user/basics.types.html>`_,
         e.g. numpy.int, numpy.uint, numpy.int8, numpy.int64, numpy.float,
         numpy.float64, numpy.str.
-        
+
     Returns
     -------
     (converter, converter_type) : (function, generic data-type)
@@ -752,11 +752,11 @@ def convert_numpy(numpy_type):
         numpy array of type ``numpy_type``.
         ``converter_type`` tracks the generic data type produced by the converter
         function.
-        
+
     Raises
     ------
     ValueError
-        Raised by ``converter`` if the list elements could not be converted to 
+        Raised by ``converter`` if the list elements could not be converted to
         the required type.
     """
 
