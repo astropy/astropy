@@ -18,7 +18,7 @@ def _get_c_compiler():
     else:
         compiler = sysconfig.get_config_var('CC')
 
-    return setup_helpers.get_compiler_version(compiler)
+    return setup_helpers.get_compiler_version(compiler).decode('latin1')
 
 
 def get_extensions():
