@@ -29,6 +29,15 @@ except ImportError:
 else:
     HAS_BZ2 = True
 
+try:
+    if sys.version_info >= (3,3,0):
+        import lzma
+    else:
+        from backports import lzma
+except ImportError:
+    HAS_XZ = False
+else:
+    HAS_XZ = True
 
 @remote_data
 def test_download_nocache():
@@ -98,19 +107,20 @@ def test_find_by_hash():
 
 
 # Package data functions
-@pytest.mark.parametrize(('filename'), ['local.dat', 'local.dat.gz', 'local.dat.bz2'])
+@pytest.mark.parametrize(('filename'), ['local.dat', 'local.dat.gz', 'local.dat.bz2', 'local.dat.xz'])
 def test_local_data_obj(filename):
     from ..data import get_pkg_data_fileobj
 
-    try:
+    if (not HAS_BZ2 and 'bz2' in filename) or (not HAS_XZ and 'xz' in filename):
+        with pytest.raises(ValueError) as e:
+            with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
+                f.readline()
+                # assert f.read().rstrip() == b'CONTENT'
+        assert ' format files are not supported' in str(e)
+    else:
         with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
             f.readline()
             assert f.read().rstrip() == b'CONTENT'
-    except ValueError:
-        if not HAS_BZ2 and 'bz2' in filename:
-            pass
-        else:
-            raise
 
 
 @pytest.mark.parametrize(('filename'), ['invalid.dat.gz', 'invalid.dat.bz2'])
@@ -282,19 +292,28 @@ def test_data_noastropy_fallback(monkeypatch):
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
-def test_read_unicode():
+@pytest.mark.parametrize(('filename'), ['unicode.txt', 'unicode.txt.gz', 'unicode.txt.bz2', 'unicode.txt.xz'])
+def test_read_unicode(filename):
     from ..data import get_pkg_data_contents
 
-    contents = get_pkg_data_contents('data/unicode.txt', encoding='utf-8')
-    assert isinstance(contents, six.text_type)
-    contents = contents.splitlines()[1]
-    assert contents == "האסטרונומי פייתון"
+    try:
+        contents = get_pkg_data_contents(os.path.join('data', filename), encoding='utf-8')
+        assert isinstance(contents, six.text_type)
+        contents = contents.splitlines()[1]
+        assert contents == "האסטרונומי פייתון"
 
-    contents = get_pkg_data_contents('data/unicode.txt', encoding='binary')
-    assert isinstance(contents, bytes)
-    x = contents.splitlines()[1]
-    assert x == b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
+        contents = get_pkg_data_contents(os.path.join('data', filename), encoding='binary')
+        assert isinstance(contents, bytes)
+        x = contents.splitlines()[1]
+        assert x == b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
 
+    except ValueError:
+        if not HAS_BZ2 and 'bz2' in filename:
+            pass
+        elif not HAS_XZ and 'xz' in filename:
+            pass
+        else:
+            raise
 
 def test_compressed_stream():
     import base64

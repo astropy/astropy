@@ -124,7 +124,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     manager that yields a readable file-like object.
 
     This supports passing filenames, URLs, and readable file-like
-    objects, any of which can be compressed in gzip or bzip2.
+    objects, any of which can be compressed in gzip, bzip2 or xz
+    (the latter on systems with lzma support).
 
     Notes
     -----
@@ -251,9 +252,33 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             fileobj_new.seek(0)
             close_fds.append(fileobj_new)
             fileobj = fileobj_new
+    elif signature[:3] == b'\xfd7z':  # xz
+        try:
+            # for Python < 3.3 try backports.lzma; pyliblzma installs as lzma,
+            # but does not support TextIOWrapper
+            if sys.version_info >= (3,3,0):
+                import lzma
+                fileobj_new = lzma.LZMAFile(fileobj, mode='rb')
+            else:
+                from backports import lzma
+                from backports.lzma import LZMAFile
+                # this returns a non-seekable instance with a file object
+                fileobj_new = LZMAFile(fileobj.name, mode='rb')
+            fileobj_new.read(1)  # need to check that the file is really xz
+        except ImportError:
+            raise ValueError(
+                ".xz format files are not supported since the Python "
+                "interpreter does not include the lzma module. "
+                "On Python versions < 3.3 consider installing backports.lzma")
+        except (IOError, EOFError):  # invalid xz file
+            fileobj.seek(0)
+            fileobj_new.close()
+        else:
+            fileobj_new.seek(0)
+            fileobj = fileobj_new
 
-    # By this point, we have a file, io.FileIO, gzip.GzipFile, or
-    # bz2.BZ2File instance opened in binary mode (that is, read
+    # By this point, we have a file, io.FileIO, gzip.GzipFile, bz2.BZ2File
+    # or lzma.LZMAFile instance opened in binary mode (that is, read
     # returns bytes).  Now we need to, if requested, wrap it in a
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.
