@@ -67,8 +67,8 @@ These parameters are:
 Parallel and fast conversion options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
-be a dict specifying one or both of two additional parameters, ``parallel`` and
-``use_fast_converter``. For example::
+be a dict specifying any of three additional parameters, ``parallel``,
+``use_fast_converter`` and ``exponent_style``. For example::
 
    >>> ascii.read('data.txt', format='basic', fast_reader={'parallel': True, 'use_fast_converter': True}) # doctest: +SKIP
 
@@ -83,6 +83,14 @@ IPython Notebook and so enabling multiprocessing in this context is discouraged.
 
 Setting ``use_fast_converter`` to be ``True`` enables a faster but
 slightly imprecise conversion method for floating-point values, as described below.
+
+The ``exponent_style`` parameter allows to define a different character
+from the default ``e`` for exponential formats in the input file.
+The special setting ``Fortran`` enables auto-detection of any valid
+Fortran-style exponent character like ``1.495978707D+13`` (``E``, ``D``, 
+``Q``), including triple-digit exponents printed without a character.
+All values are case-insensitive; any value other than the default
+``E``, implies the automatic setting of ``'use_fast_converter': True``.
 
 Writing
 ^^^^^^^

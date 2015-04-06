@@ -903,22 +903,22 @@ def test_fortran_reader(parallel):
     with pytest.raises(FastOptionsError) as e:
         ascii.read(text, format='basic', guess=False, fast_reader=
                    {'parallel': parallel, 'use_fast_converter': False,
-                    'fortran_exp': 'D'})
-    assert 'fast_reader: fortran_exp requires use_fast_converter' in str(e)
+                    'exponent_style': 'D'})
+    assert 'fast_reader: exponent_style requires use_fast_converter' in str(e)
 
     # Enable multiprocessing and the fast converter
     table = ascii.read(text, format='basic', guess=False, 
-                       fast_reader={'parallel': parallel, 'fortran_exp': 'D'})
+                       fast_reader={'parallel': parallel, 'exponent_style': 'D'})
     assert_table_equal(table, expected)
 
     text = 'A B C\n0.10001Q102 20.0Q-1 3\n.42q0 0.5 6.Q3'
     table = ascii.read(text, format='basic', guess=False, 
-                       fast_reader={'parallel': parallel, 'fortran_exp': 'q'})
+                       fast_reader={'parallel': parallel, 'exponent_style': 'q'})
     assert_table_equal(table, expected)
 
     # mixes and triple-exponents without any character using autodetect option
     text = 'A B C\n1.0001+101 2.0E0 3\n.42d0 0.5 0.42-123'
     expected['C'][1] = 4.2e-124
     table = ascii.read(text, format='basic', guess=False, 
-                       fast_reader={'parallel': parallel, 'fortran_exp': 'a'})
+                       fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
