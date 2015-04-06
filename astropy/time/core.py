@@ -24,6 +24,7 @@ from ..units import UnitConversionError
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import InfoDescriptor, DataInfo, data_info_factory
+from ..utils.compat.numpy import broadcast_to
 from ..extern import six
 
 
@@ -235,12 +236,12 @@ class Time(object):
         else:
             self._init_from_vals(val, val2, format, scale, copy)
 
-        if self.location:
+        if self.location and (self.location.size > 1
+                              and self.location.shape != self.shape):
             try:
-                # check the two can be broadcast together
-                b = np.broadcast(self.location, self._time.jd1)
-                # and insist there are not more locations than times
-                assert b.size == self.size
+                # check the location can be broadcast to self's shape.
+                self.location = broadcast_to(self.location, self.shape,
+                                             subok=True)
             except:
                 raise ValueError('The location with shape {0} cannot be '
                                  'broadcast against time with shape {1}. '
@@ -692,16 +693,16 @@ class Time(object):
         # Make the new internal _time object corresponding to the format
         # in the copy.  If the format is unchanged this process is lightweight
         # and does not create any new arrays.
-        if format not in tm.FORMATS:
+        if new_format not in tm.FORMATS:
             raise ValueError('format must be one of {0}'
                              .format(list(tm.FORMATS)))
 
-        NewFormat = tm.FORMATS[format]
+        NewFormat = tm.FORMATS[new_format]
         tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
                              tm._time._scale, tm.precision,
                              tm.in_subfmt, tm.out_subfmt,
                              from_jd=True)
-        tm._format = format
+        tm._format = new_format
 
         return tm
 
@@ -780,13 +781,15 @@ class Time(object):
         then broadcast, otherwise cast to double and make sure shape matches.
         """
         val = _make_array(val, copy=True)  # be conservative and copy
-        try:
-            # check the two can be broadcast together
-            b = np.broadcast(val, self._time.jd1)
-            # and insist there are not more attributes than times
-            assert b.size == self.size
-        except:
-            raise ValueError('Attribute shape must match that of Time object')
+        if val.size > 1 and val.shape != self.shape:
+            try:
+                # check the value can be broadcast to the shape of self.
+                val = broadcast_to(val, self.shape, subok=True)
+            except:
+                raise ValueError('Attribute shape must match or be '
+                                 'broadcastable to that of Time object. '
+                                 'Typically, give either a single value or '
+                                 'one for each time.')
 
         return val
 
