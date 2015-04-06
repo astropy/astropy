@@ -64,10 +64,10 @@ These parameters are:
  * ``data_Splitter``
  * ``header_Splitter``
 
+.. _fast_conversion_opts:
 
 Parallel and fast conversion options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. _fast_conversion_opts:
 In addition to ``True`` and ``False``, the parameter ``fast_reader`` can also
 be a dict specifying any of three additional parameters, ``parallel``,
 ``use_fast_converter`` and ``exponent_style``. For example::
