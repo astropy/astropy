@@ -239,11 +239,11 @@ def read(table, guess=None, **kwargs):
         use_fast_converter: bool
             enable faster but slightly imprecise floating point conversion method
         parallel: bool or int
-            multiprocessing conversion using cpu_count() or `number` processes
+            multiprocessing conversion using ``cpu_count()`` or ``'number'`` processes
         exponent_style: str
-            One-character string defining the exponent or 'Fortran' to auto-detect
-            Fortran-style scientific notation like `3.14159D+00` (`E`, `D`, `Q`),
-            all case-insensitive; default `E`, all other imply use_fast_converter
+            One-character string defining the exponent or `'Fortran'` to auto-detect
+            Fortran-style scientific notation like `'3.14159D+00'` (`'E'`, `'D'`, `'Q'`),
+            all case-insensitive; default `'E'`, all other imply ``use_fast_converter``
     Reader : `~astropy.io.ascii.BaseReader`
         Reader class (DEPRECATED) (default= :class:`Basic`).
 
@@ -379,11 +379,11 @@ def _guess(table, read_kwargs, format, fast_reader):
         use_fast_converter: bool
             enable faster but slightly imprecise floating point conversion method
         parallel: bool or int
-            multiprocessing conversion using cpu_count() or `number` processes
+            multiprocessing conversion using ``cpu_count()`` or ``'number'`` processes
         exponent_style: str
-            Character to use for exponent or 'Fortran' to auto-detect any
-            Fortran-style scientific notation like `3.14159D+00` (`E`, `D`, `Q`),
-            all case-insensitive; default `E`, all other imply use_fast_converter
+            Character to use for exponent or `'Fortran'` to auto-detect any
+            Fortran-style scientific notation like `'3.14159D+00'` (`'E'`, `'D'`, `'Q'`),
+            all case-insensitive; default `'E'`, all other imply ``use_fast_converter``
 
     Returns
     -------

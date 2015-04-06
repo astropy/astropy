@@ -906,12 +906,17 @@ def test_fortran_reader(parallel):
                     'exponent_style': 'D'})
     assert 'fast_reader: exponent_style requires use_fast_converter' in str(e)
 
-    # Enable multiprocessing and the fast converter
+    # Enable multiprocessing and the fast converter; have to catch Windows
+    # environment here since we cannot use _read() with custom fast_reader
+    if parallel and os.name == 'nt':
+        pytest.xfail("Multiprocessing is currently unsupported on Windows")
     table = ascii.read(text, format='basic', guess=False, 
                        fast_reader={'parallel': parallel, 'exponent_style': 'D'})
     assert_table_equal(table, expected)
 
     text = 'A B C\n0.10001Q102 20.0Q-1 3\n.42q0 0.5 6.Q3'
+    if parallel and os.name == 'nt':
+        pytest.xfail("Multiprocessing is currently unsupported on Windows")
     table = ascii.read(text, format='basic', guess=False, 
                        fast_reader={'parallel': parallel, 'exponent_style': 'q'})
     assert_table_equal(table, expected)
@@ -919,6 +924,8 @@ def test_fortran_reader(parallel):
     # mixes and triple-exponents without any character using autodetect option
     text = 'A B C\n1.0001+101 2.0E0 3\n.42d0 0.5 0.42-123'
     expected['C'][1] = 4.2e-124
+    if parallel and os.name == 'nt':
+        pytest.xfail("Multiprocessing is currently unsupported on Windows")
     table = ascii.read(text, format='basic', guess=False, 
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
