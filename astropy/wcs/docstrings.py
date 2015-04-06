@@ -2095,6 +2095,12 @@ See also
 astropy.wcs.Wcsprm.specsys, astropy.wcs.Wcsprm.ssysobs
 """
 
+velref = """
+``int`` AIPS velocity code.
+
+From ``VELREF`` keyword.
+"""
+
 wcs = """
 A `~astropy.wcs.Wcsprm` object to perform the basic `wcslib`_ WCS
 transformation.

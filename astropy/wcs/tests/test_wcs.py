@@ -385,8 +385,13 @@ def test_validate():
     with catch_warnings():
         results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
         results_txt = repr(results)
-        with open(get_pkg_data_filename("data/validate.txt"), "r") as fd:
-            assert set([x.strip() for x in fd.readlines()]) == set([
+        if getattr(wcs._wcs, 'WCSLIB_VERSION', '4.16')[0] == '5':
+            filename = 'data/validate.5.0.txt'
+        else:
+            filename = 'data/validate.txt'
+        with open(get_pkg_data_filename(filename), "r") as fd:
+            lines = fd.readlines()
+            assert set([x.strip() for x in lines]) == set([
                 x.strip() for x in results_txt.splitlines()])
 
 
