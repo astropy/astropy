@@ -3456,7 +3456,9 @@ _setup_wcsprm_type(
     CONSTANT(WCSHDR_none)      ||
     CONSTANT(WCSHDR_all)       ||
     CONSTANT(WCSHDR_reject)    ||
+#ifdef WCSHDR_strict
     CONSTANT(WCSHDR_strict)    ||
+#endif
     CONSTANT(WCSHDR_CROTAia)   ||
     CONSTANT(WCSHDR_EPOCHa)    ||
     CONSTANT(WCSHDR_VELREFa)   ||
