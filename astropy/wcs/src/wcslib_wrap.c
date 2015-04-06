@@ -64,15 +64,13 @@ convert_rejections_to_warnings() {
   PyObject *wcs_module = NULL;
   PyObject *FITSFixedWarning = NULL;
   int status = -1;
-  int vers[3];
   char delimiter;
 
-  wcslib_version(vers);
-  if (vers[0] >= 5) {
-      delimiter = ',';
-  } else {
-      delimiter = ':';
-  }
+#ifdef HAS_WCSLIB_VERSION
+  delimiter = ',';
+#else
+  delimiter = ':';
+#endif
 
   if (wcsprintf_buf()[0] == 0) {
     return 0;
