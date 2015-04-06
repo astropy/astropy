@@ -319,7 +319,7 @@ NumPy homogeneous array
 A `numpy` 1-d array is treated as a single row table where each element of the
 array corresponds to a column::
 
-  >>> Table(np.array([1, 2, 3]), names=['a', 'b', 'c'])
+  >>> Table(np.array([1, 2, 3]), names=['a', 'b', 'c'], dtype=('i8', 'i8', 'i8'))
   <Table masked=False length=1>
     a     b     c
   int64 int64 int64
