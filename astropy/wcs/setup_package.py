@@ -19,7 +19,7 @@ from astropy_helpers import setup_helpers
 from astropy.extern import six
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "4.25"
+WCSVERSION = "5.6"
 
 
 def b(s):
@@ -75,6 +75,9 @@ def write_wcsconfig_h():
     """
     h_file = io.StringIO()
     h_file.write("""
+    /* The bundled version has WCSLIB_VERSION */
+    #define HAVE_WCSLIB_VERSION 1
+
     /* WCSLIB library version number. */
     #define WCSLIB_VERSION {0}
 
@@ -213,6 +216,7 @@ def get_extensions():
             'flexed/wcsulex.c',
             'flexed/wcsutrn.c',
             'cel.c',
+            'dis.c',
             'lin.c',
             'log.c',
             'prj.c',
