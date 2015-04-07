@@ -978,8 +978,6 @@ translated back to pixel coordinates by applying the inverse of the
 linear transformation matrix (``PCi_ja`` or ``CDi_ja``).  The
 difference may be significant if the matrix introduced a scaling.
 
-If all distortions are prior, then `linwarp` uses `diswarp`.
-
 Parameters
 ----------
 pixblc : float[naxis], optional
