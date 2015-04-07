@@ -123,9 +123,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     Given a filename or a readable file-like object, return a context
     manager that yields a readable file-like object.
 
-    This supports passing filenames, URLs, and readable file-like
-    objects, any of which can be compressed in gzip, bzip2 or xz
-    (the latter on systems with lzma support).
+    This supports passing filenames, URLs, and readable file-like objects,
+    any of which can be compressed in gzip, bzip2 or lzma (xz) if the
+    appropriate compression libraries are provided by the Python installation.
 
     Notes
     -----
@@ -241,13 +241,12 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
-            tmp = NamedTemporaryFile("wb", delete=False)
-            tmp.write(fileobj.read())
-            tmp.close()
-            delete_fds.append(tmp)
-            fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
+            with NamedTemporaryFile("wb", delete=False) as tmp:
+                tmp.write(fileobj.read())
+                tmp.close()
+                fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really bzip2
-        except (IOError) as e:  # invalid bzip2 file
+        except IOError:  # invalid bzip2 file
             fileobj.seek(0)
             fileobj_new.close()
             # raise
@@ -268,11 +267,10 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 # when called with file object, returns a non-seekable instance
                 # need a filename here, too, so have to write the data to a 
                 # temporary file
-                tmp = NamedTemporaryFile("wb", delete=False)
-                tmp.write(fileobj.read())
-                tmp.close()
-                delete_fds.append(tmp)
-                fileobj_new = LZMAFile(tmp.name, mode='rb')
+                with NamedTemporaryFile("wb", delete=False) as tmp:
+                    tmp.write(fileobj.read())
+                    tmp.close()
+                    fileobj_new = LZMAFile(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really xz
         except ImportError:
             for fd in close_fds:
@@ -284,7 +282,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         except (IOError, EOFError) as e:  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
-            # raise
+            # should we propagate this to the caller to signal bad content?
+            # raise ValueError(e)
         else:
             fileobj_new.seek(0)
             fileobj = fileobj_new
