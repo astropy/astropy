@@ -66,7 +66,7 @@ convert_rejections_to_warnings() {
   int status = -1;
   char delimiter;
 
-#ifdef HAS_WCSLIB_VERSION
+#ifdef HAVE_WCSLIB_VERSION
   delimiter = ',';
 #else
   delimiter = ':';
