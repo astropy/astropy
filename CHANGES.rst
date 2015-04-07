@@ -215,6 +215,10 @@ New Features
   - Added support for polynomials with degree 0 or degree greater than 15.
     [#3574, 3589]
 
+  - Added workaround to support inverses on compound models when one of the
+    sub-models is itself a compound model with a manually-assigned custom
+    inverse. [#3542]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
