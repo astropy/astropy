@@ -127,14 +127,14 @@ def test_local_data_obj(filename):
 def test_local_data_obj_invalid(filename):
     from ..data import get_pkg_data_fileobj
 
-    try:
+    if (not HAS_BZ2 and 'bz2' in filename) or (not HAS_XZ and 'xz' in filename):
+        with pytest.raises(ValueError) as e:
+            with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
+                f.read()
+        assert ' format files are not supported' in str(e)
+    else:
         with get_pkg_data_fileobj(os.path.join('data', filename), encoding='binary') as f:
             assert f.read().rstrip().endswith(b'invalid')
-    except ValueError:
-        if not HAS_BZ2 and 'bz2' in filename:
-            pass
-        else:
-            raise
 
 
 def test_local_data_name():

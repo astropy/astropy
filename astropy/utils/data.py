@@ -233,6 +233,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         try:
             import bz2
         except ImportError:
+            fileobj.close()
             raise ValueError(
                 ".bz2 format files are not supported since the Python "
                 "interpreter does not include the bz2 module")
@@ -245,9 +246,10 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             delete_fds.append(tmp)
             fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really bzip2
-        except IOError:  # invalid bzip2 file
+        except (IOError) as e:  # invalid bzip2 file
             fileobj.seek(0)
             fileobj_new.close()
+            # raise
         else:
             fileobj_new.seek(0)
             close_fds.append(fileobj_new)
@@ -262,17 +264,25 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
             else:
                 from backports import lzma
                 from backports.lzma import LZMAFile
-                # this returns a non-seekable instance with a file object
-                fileobj_new = LZMAFile(fileobj.name, mode='rb')
+                # when called with file object, returns a non-seekable instance
+                # need a filename here, too, so have to write the data to a 
+                # temporary file
+                tmp = NamedTemporaryFile("wb", delete=False)
+                tmp.write(fileobj.read())
+                tmp.close()
+                delete_fds.append(tmp)
+                fileobj_new = LZMAFile(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really xz
         except ImportError:
+            fileobj.close()
             raise ValueError(
                 ".xz format files are not supported since the Python "
                 "interpreter does not include the lzma module. "
                 "On Python versions < 3.3 consider installing backports.lzma")
-        except (IOError, EOFError):  # invalid xz file
+        except (IOError, EOFError) as e:  # invalid xz file
             fileobj.seek(0)
             fileobj_new.close()
+            # raise
         else:
             fileobj_new.seek(0)
             fileobj = fileobj_new
