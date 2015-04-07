@@ -1057,6 +1057,182 @@ PyWcsprm_is_unity(
   return PyBool_FromLong(self->x.lin.unity);
 }
 
+#ifdef HAVE_WCSLIB_VERSION
+static PyObject*
+PyWcsprm_linwarp(
+    PyWcsprm* self,
+    PyObject* args,
+    PyObject* kwds) {
+
+  PyObject *pixblc_obj = NULL;
+  PyArrayObject *pixblc_arr = NULL;
+  double *pixblc = NULL;
+  PyObject *pixtrc_obj = NULL;
+  PyArrayObject *pixtrc_arr = NULL;
+  double *pixtrc = NULL;
+  PyObject *pixsamp_obj = NULL;
+  PyArrayObject *pixsamp_arr = NULL;
+  double *pixsamp = NULL;
+  int nsamp;
+  PyArrayObject *maxdis_arr = NULL;
+  double *maxdis;
+  double maxtot;
+  PyArrayObject *avgdis_arr = NULL;
+  double *avgdis;
+  double avgtot;
+  PyArrayObject *rmsdis_arr = NULL;
+  double *rmsdis;
+  double rmstot;
+  npy_intp naxis;
+  PyObject *result = NULL;
+
+  int status = -1;
+
+  const char* keywords[] = {
+      "pixblc", "pixtrc", "pixsamp", NULL };
+
+  if (!PyArg_ParseTupleAndKeywords(
+        args, kwds, "|OOO:linwarp", (char **)keywords,
+        &pixblc_obj, &pixtrc_obj, &pixsamp_obj)) {
+    return NULL;
+  }
+
+  if (pixblc_obj != NULL) {
+    pixblc_arr = (PyArrayObject*)PyArray_ContiguousFromAny
+      (pixblc_obj, PyArray_DOUBLE, 1, 1);
+    if (pixblc_arr == NULL) {
+      PyErr_SetString(
+          PyExc_TypeError,
+          "Argument 1 (pixblc) must be a 1-dimensional array");
+      goto exit;
+    }
+
+    if ((int)PyArray_DIM(pixblc_arr, 0) != self->x.naxis) {
+      PyErr_Format(
+          PyExc_TypeError,
+          "Argument 1 (pixblc) must be the same length as the number "
+          "of axes (%d)",
+          self->x.naxis);
+      goto exit;
+    }
+
+    pixblc = (double *)PyArray_DATA(pixblc_arr);
+  }
+
+  if (pixtrc_obj != NULL) {
+    pixtrc_arr = (PyArrayObject*)PyArray_ContiguousFromAny
+      (pixtrc_obj, PyArray_DOUBLE, 1, 1);
+    if (pixtrc_arr == NULL) {
+      PyErr_SetString(
+          PyExc_TypeError,
+          "Argument 2 (pixtrc) must be a 1-dimensional array");
+      goto exit;
+    }
+
+    if ((int)PyArray_DIM(pixtrc_arr, 0) != self->x.naxis) {
+      PyErr_Format(
+          PyExc_TypeError,
+          "Argument 2 (pixtrc) must be the same length as the number "
+          "of axes (%d)",
+          self->x.naxis);
+      goto exit;
+    }
+
+    pixtrc = (double *)PyArray_DATA(pixtrc_arr);
+  }
+
+  if (pixsamp_obj != NULL) {
+    pixsamp_arr = (PyArrayObject*)PyArray_ContiguousFromAny
+      (pixsamp_obj, PyArray_DOUBLE, 1, 1);
+    if (pixsamp_arr == NULL) {
+      PyErr_SetString(
+          PyExc_TypeError,
+          "Argument 3 (pixsamp) must be a 1-dimensional array");
+      goto exit;
+    }
+
+    if ((int)PyArray_DIM(pixsamp_arr, 0) != self->x.naxis) {
+      PyErr_Format(
+          PyExc_TypeError,
+          "Argument 3 (pixsamp) must be the same length as the number "
+          "of axes (%d)",
+          self->x.naxis);
+      goto exit;
+    }
+
+    pixsamp = (double *)PyArray_DATA(pixsamp_arr);
+  }
+
+  naxis = (npy_intp)self->x.naxis;
+
+  maxdis_arr = (PyArrayObject*)PyArray_SimpleNew(
+      1, &naxis, PyArray_DOUBLE);
+  if (maxdis_arr == NULL) {
+    goto exit;
+  }
+  maxdis = (double *)PyArray_DATA(maxdis_arr);
+
+  avgdis_arr = (PyArrayObject*)PyArray_SimpleNew(
+      1, &naxis, PyArray_DOUBLE);
+  if (avgdis_arr == NULL) {
+    goto exit;
+  }
+  avgdis = (double *)PyArray_DATA(avgdis_arr);
+
+  rmsdis_arr = (PyArrayObject*)PyArray_SimpleNew(
+      1, &naxis, PyArray_DOUBLE);
+  if (rmsdis_arr == NULL) {
+    goto exit;
+  }
+  rmsdis = (double *)PyArray_DATA(rmsdis_arr);
+
+  if (PyWcsprm_cset(self, 1)) {
+    goto exit;
+  }
+
+  Py_BEGIN_ALLOW_THREADS
+  wcsprm_python2c(&self->x);
+  status = linwarp(&self->x.lin, pixblc, pixtrc, pixsamp,
+                   &nsamp, maxdis, &maxtot, avgdis, &avgtot,
+                   rmsdis, &rmstot);
+  wcsprm_c2python(&self->x);
+  Py_END_ALLOW_THREADS
+
+  if (status == 0) {
+    result = Py_BuildValue(
+        "{s:i, s:O, s:d, s:O, s:d, s:O, s:d}",
+        "nsamp", nsamp,
+        "maxdis", (PyObject *)maxdis_arr,
+        "maxtot", maxtot,
+        "avgdis", (PyObject *)avgdis_arr,
+        "avgtot", avgtot,
+        "rmsdis", (PyObject *)rmsdis_arr,
+        "rmstot", rmstot);
+  }
+
+ exit:
+  Py_XDECREF(pixblc_arr);
+  Py_XDECREF(pixtrc_arr);
+  Py_XDECREF(pixsamp_arr);
+  Py_XDECREF(maxdis_arr);
+  Py_XDECREF(avgdis_arr);
+  Py_XDECREF(rmsdis_arr);
+
+  if (status == 0) {
+    return result;
+  } else {
+    Py_XDECREF(result);
+    if (status == -1) {
+      /* Exception already set */
+      return NULL;
+    } else {
+      wcserr_to_python_exc(self->x.lin.err);
+      return NULL;
+    }
+  }
+}
+#endif
+
 /*@null@*/ static PyObject*
 PyWcsprm_mix(
     PyWcsprm* self,
@@ -3361,6 +3537,9 @@ static PyMethodDef PyWcsprm_methods[] = {
   {"has_pc", (PyCFunction)PyWcsprm_has_pci_ja, METH_NOARGS, doc_has_pc},
   {"has_pci_ja", (PyCFunction)PyWcsprm_has_pci_ja, METH_NOARGS, doc_has_pci_ja},
   {"is_unity", (PyCFunction)PyWcsprm_is_unity, METH_NOARGS, doc_is_unity},
+#ifdef HAVE_WCSLIB_VERSION
+  {"linwarp", (PyCFunction)PyWcsprm_linwarp, METH_VARARGS|METH_KEYWORDS, doc_linwarp},
+#endif
   {"mix", (PyCFunction)PyWcsprm_mix, METH_VARARGS|METH_KEYWORDS, doc_mix},
   {"p2s", (PyCFunction)PyWcsprm_p2s, METH_VARARGS|METH_KEYWORDS, doc_p2s},
   {"print_contents", (PyCFunction)PyWcsprm_print_contents, METH_NOARGS, doc_print_contents},
