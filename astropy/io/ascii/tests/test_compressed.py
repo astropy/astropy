@@ -43,7 +43,7 @@ def test_bzip2(filename):
     t_uncomp = read(os.path.join(ROOT, filename.replace('.bz2', '')))
     assert t_comp.dtype.names == t_uncomp.dtype.names
     assert np.all(t_comp.as_array() == t_uncomp.as_array())
-    
+
 
 @pytest.mark.xfail('not HAS_XZ')
 @pytest.mark.parametrize('filename', ['t/short.rdb.xz', 't/ipac.dat.xz'])
@@ -52,4 +52,3 @@ def test_xz(filename):
     t_uncomp = read(os.path.join(ROOT, filename.replace('.xz', '')))
     assert t_comp.dtype.names == t_uncomp.dtype.names
     assert np.all(t_comp.as_array() == t_uncomp.as_array())
-    

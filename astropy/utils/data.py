@@ -233,7 +233,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         try:
             import bz2
         except ImportError:
-            fileobj.close()
+            for fd in close_fds:
+                fd.close()
             raise ValueError(
                 ".bz2 format files are not supported since the Python "
                 "interpreter does not include the bz2 module")
@@ -274,7 +275,8 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 fileobj_new = LZMAFile(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really xz
         except ImportError:
-            fileobj.close()
+            for fd in close_fds:
+                fd.close()
             raise ValueError(
                 ".xz format files are not supported since the Python "
                 "interpreter does not include the lzma module. "
