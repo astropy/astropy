@@ -238,6 +238,8 @@ class SAMPClient(object):
                 if read_ready:
                     self.client.handle_request()
 
+        self.client.server_close()
+
     def _ping(self, private_key, sender_id, msg_id, msg_mtype, msg_params,
               message):
 

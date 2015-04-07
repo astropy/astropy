@@ -19,47 +19,52 @@ from .standard_profile import ThreadingXMLRPCServer
 __all__ = []
 
 
+from ...extern.six.moves.http_client import HTTPConnection, HTTPS_PORT
+
+
+class HTTPSConnection(HTTPConnection):
+    """
+    This class allows communication via SSL.
+    """
+
+    default_port = HTTPS_PORT
+
+    def __init__(self, host, port=None, key_file=None, cert_file=None,
+                 cert_reqs=ssl.CERT_NONE, ca_certs=None,
+                 ssl_version=None):
+
+        HTTPConnection.__init__(self, host, port)
+
+        self.key_file = key_file
+        self.cert_file = cert_file
+        self.cert_reqs = cert_reqs
+        self.ca_certs = ca_certs
+        self.ssl_version = ssl_version
+
+    def connect(self):
+        "Connect to a host on a given (SSL) port."
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((self.host, self.port))
+        # We have to explicitly not pass the ssl_version to
+        # `ssl.wrap_socket` if it's None.
+        kwargs = {
+            'server_side': False,
+            'certfile': self.cert_file,
+            'keyfile': self.key_file,
+            'cert_reqs': self.cert_reqs,
+            'ca_certs': self.ca_certs,
+        }
+        if self.ssl_version is not None:
+            kwargs['ssl_version'] = self.ssl_version
+        else:
+            kwargs['ssl_version'] = ssl.PROTOCOL_TLSv1
+        sslconn = ssl.wrap_socket(sock, **kwargs)
+        self.sock = sslconn
+
+
 if six.PY2:
-
-    from ...extern.six.moves.http_client import HTTPConnection, HTTP, HTTPS_PORT
-
-    class HTTPSConnection(HTTPConnection):
-        """
-        This class allows communication via SSL.
-        """
-
-        default_port = HTTPS_PORT
-
-        def __init__(self, host, port=None, key_file=None, cert_file=None,
-                     cert_reqs=ssl.CERT_NONE, ca_certs=None,
-                     ssl_version=None, strict=None):
-
-            HTTPConnection.__init__(self, host, port, strict)
-
-            self.key_file = key_file
-            self.cert_file = cert_file
-            self.cert_reqs = cert_reqs
-            self.ca_certs = ca_certs
-            self.ssl_version = ssl_version
-
-        def connect(self):
-            "Connect to a host on a given (SSL) port."
-
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((self.host, self.port))
-            # We have to explicitly not pass the ssl_version to
-            # `ssl.wrap_socket` if it's None.
-            kwargs = {
-                'server_size': False,
-                'certfile': self.cert_file,
-                'keyfile': self.key_file,
-                'cert_reqs': self.cert_reqs,
-                'ca_certs': self.ca_certs,
-            }
-            if self.ssl_version is not None:
-                kwargs['ssl_version'] = self.ssl_version
-            sslconn = ssl.wrap_socket(sock, **args)
-            self.sock = sslconn
+    from ...extern.six.moves.http_client import HTTP
 
     class HTTPS(HTTP):
         """
@@ -80,7 +85,7 @@ if six.PY2:
 
             self._setup(self._connection_class(host, port, key_file,
                                                cert_file, cert_reqs,
-                                               ca_certs, ssl_version, None))
+                                               ca_certs, ssl_version))
 
             # we never actually use these for anything, but we keep them
             # here for compatibility with post-1.5.2 CVS.
@@ -90,10 +95,6 @@ if six.PY2:
         def getresponse(self, buffering=False):
             "Get the response from the server."
             return self._conn.getresponse(buffering)
-
-else:
-
-    from ...extern.six.moves.http_client import HTTPSConnection
 
 
 class SafeTransport(xmlrpc.Transport):
@@ -168,5 +169,33 @@ class SecureXMLRPCServer(ThreadingXMLRPCServer):
         }
         if self.ssl_version is not None:
             kwargs['ssl_version'] = self.ssl_version
+        else:
+            kwargs['ssl_version'] = ssl.PROTOCOL_TLSv1
         sslconn = ssl.wrap_socket(sock, **kwargs)
         return sslconn, addr
+
+
+def get_ssl_version_name(ssl_version):
+    if ssl_version is None:
+        # create_default_context added after the OpenSSL bugfix in
+        # Python 2.7.9 etc.  It's the best way to get the default SSL
+        # protocol from Python ... otherwise, we just assume it's the
+        # old default of PROTOCOL_SSLv23.
+        if hasattr(ssl, 'create_default_context'):
+            context = ssl.create_default_context()
+            ssl_version = context.protocol
+        else:
+            ssl_version = ssl.PROTOCOL_TLSv1
+
+    # get_protocol_name is an undocumented method
+    if hasattr(ssl, 'get_protocol_name'):
+        return ssl.get_protocol_name(ssl_version)
+    else:
+        # Not all versions of Python support all protocols,
+        # so we have to only accept those that are present.
+        for protocol in ['SSLv2', 'SSLv23', 'SSLv3', 'TLSv1', 'TLSv1_1',
+                         'TLSv1_2']:
+            value = getattr(ssl, 'PROTOCOL_' + protocol, None)
+            if ssl_version == value:
+                return protocol
+        return '<unknown>'

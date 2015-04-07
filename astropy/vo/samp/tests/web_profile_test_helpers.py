@@ -173,6 +173,8 @@ class SAMPWebClient(SAMPClient):
                         self.receive_response(self._private_key,
                                               *result['samp.params'])
 
+        self.hub.server_close()
+
     def register(self):
         """
         Register the client to the SAMP Hub.

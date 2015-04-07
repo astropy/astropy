@@ -148,6 +148,9 @@ class SAMPHubProxy(object):
         self._connected = False
         self.lockfile = {}
 
+    def server_close(self):
+        self.proxy.server_close()
+
     @property
     def _samp_hub(self):
         """

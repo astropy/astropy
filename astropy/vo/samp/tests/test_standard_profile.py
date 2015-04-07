@@ -252,7 +252,6 @@ class TestStandardProfile(object):
 # https://github.com/astropy/astropy/issues/2126
 # https://github.com/astropy/astropy/issues/2321
 
-@pytest.mark.xfail
 class TestStandardProfileHTTPSHub(TestStandardProfile):
 
     conf = 'https_hub'
@@ -266,7 +265,6 @@ class TestStandardProfileHTTPSHub(TestStandardProfile):
                }
 
 
-@pytest.mark.xfail
 class TestStandardProfileHTTPSHubClient(TestStandardProfile):
 
     conf = 'https_hub_client'
