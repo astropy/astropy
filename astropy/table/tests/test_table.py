@@ -1386,3 +1386,14 @@ def test_nested_iteration():
         for r2 in t:
             out.append((r1['a'], r2['a']))
     assert out == [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+
+def test_table_init_from_degenerate_arrays(table_types):
+    t = table_types.Table(np.array([]))
+    assert len(t.columns) == 0
+
+    with pytest.raises(ValueError):
+        t = table_types.Table(np.array(0))
+
+    t = table_types.Table(np.array([1, 2, 3]))
+    assert len(t.columns) == 3

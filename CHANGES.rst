@@ -334,6 +334,13 @@ Bug Fixes
 
   - Ensure ``QTable`` can be pickled [#3590]
 
+  - Some corner cases when instantiating an ``astropy.table.Table``
+    with a Numpy array are handled [#3637]. Notably:
+
+    - a zero-length array is the same as passing ``None``
+    - a scalar raises a ``ValueError``
+    - a one-dimensional array is treated as a single row of a table.
+
 - ``astropy.time``
 
   - Ensure a ``Column`` without units is treated as an ``array``, not as an 
