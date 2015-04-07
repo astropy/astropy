@@ -105,6 +105,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed handling of BINTABLE with TDIMn of size 1. [#3580]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
