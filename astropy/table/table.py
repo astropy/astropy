@@ -247,6 +247,11 @@ class Table(object):
 
         default_names = None
 
+        if (isinstance(data, np.ndarray) and
+                data.shape == (0,) and
+                not data.dtype.names):
+            data = None
+
         if isinstance(data, self.Row):
             data = data._table[data._index:data._index + 1]
 
@@ -264,6 +269,10 @@ class Table(object):
                 default_names = data.dtype.names
             else:
                 init_func = self._init_from_ndarray  # _homog
+                if data.shape == ():
+                    raise ValueError('Can not initialize a Table with a scalar')
+                elif len(data.shape) == 1:
+                    data = data[np.newaxis, :]
                 n_cols = data.shape[1]
 
         elif isinstance(data, dict):
