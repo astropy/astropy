@@ -550,7 +550,7 @@ class RedshiftScaleFactor(Fittable1DModel):
     -----
     Model formula:
 
-        .. math:: \\lambda_{obs} = (1 + z) \\lambda_{rest}
+        .. math:: f(x) = x (1 + z)
     """
 
     z = Parameter(description='redshift', default=0)
