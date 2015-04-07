@@ -292,28 +292,24 @@ def test_data_noastropy_fallback(monkeypatch):
     assert not os.path.isdir(lockdir), 'Cache dir lock was not released!'
 
 
-@pytest.mark.parametrize(('filename'), ['unicode.txt', 'unicode.txt.gz', 'unicode.txt.bz2', 'unicode.txt.xz'])
+@pytest.mark.parametrize(('filename'), [
+    'unicode.txt',
+    'unicode.txt.gz',
+    pytest.mark.xfail(not HAS_BZ2, reason='no bz2 support')('unicode.txt.bz2'),
+    pytest.mark.xfail(not HAS_XZ, reason='no lzma support')('unicode.txt.xz') ])
 def test_read_unicode(filename):
     from ..data import get_pkg_data_contents
 
-    try:
-        contents = get_pkg_data_contents(os.path.join('data', filename), encoding='utf-8')
-        assert isinstance(contents, six.text_type)
-        contents = contents.splitlines()[1]
-        assert contents == "האסטרונומי פייתון"
+    contents = get_pkg_data_contents(os.path.join('data', filename), encoding='utf-8')
+    assert isinstance(contents, six.text_type)
+    contents = contents.splitlines()[1]
+    assert contents == "האסטרונומי פייתון"
 
-        contents = get_pkg_data_contents(os.path.join('data', filename), encoding='binary')
-        assert isinstance(contents, bytes)
-        x = contents.splitlines()[1]
-        assert x == b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
+    contents = get_pkg_data_contents(os.path.join('data', filename), encoding='binary')
+    assert isinstance(contents, bytes)
+    x = contents.splitlines()[1]
+    assert x == b"\xff\xd7\x94\xd7\x90\xd7\xa1\xd7\x98\xd7\xa8\xd7\x95\xd7\xa0\xd7\x95\xd7\x9e\xd7\x99 \xd7\xa4\xd7\x99\xd7\x99\xd7\xaa\xd7\x95\xd7\x9f"[1:]
 
-    except ValueError:
-        if not HAS_BZ2 and 'bz2' in filename:
-            pass
-        elif not HAS_XZ and 'xz' in filename:
-            pass
-        else:
-            raise
 
 def test_compressed_stream():
     import base64
