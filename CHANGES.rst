@@ -121,11 +121,17 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Ensure a ``Column`` without units is treated as an ``array``, not as an
+    dimensionless ``Quantity``. [#3648]
+
 - ``astropy.units``
 
 - ``astropy.utils``
 
 - ``astropy.vo``
+
+  - Using HTTPS/SSL for communication between SAMP hubs now works
+    correctly on all supported versions of Python [#3613]
 
 - ``astropy.wcs``
 
