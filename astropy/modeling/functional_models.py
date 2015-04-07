@@ -17,9 +17,9 @@ from .utils import get_inputs_and_params
 __all__ = ['AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
            'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
            'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
-           'MexicanHat1D', 'MexicanHat2D', 'Redshift', 'Scale', 'Sersic1D',
-           'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D',
-           'Ring2D', 'custom_model_1d', 'Voigt1D']
+           'MexicanHat1D', 'MexicanHat2D', 'RedshiftScaleFactor', 'Scale',
+           'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D',
+           'TrapezoidDisk2D', 'Ring2D', 'custom_model_1d', 'Voigt1D']
 
 
 class Gaussian1D(Fittable1DModel):
@@ -537,40 +537,40 @@ class Scale(Model):
         return factor * x
 
 
-class Redshift(Fittable1DModel):
+class RedshiftScaleFactor(Fittable1DModel):
     """
-    One dimensional redshift model.
+    One dimensional redshift scale factor model.
 
     Parameters
     ----------
-    z : float or a list of floats
-        Redshift value(s).
+    z : float
+        Redshift value.
 
     Notes
     -----
     Model formula:
 
         .. math:: \\lambda_{obs} = (1 + z) \\lambda_{rest}
-
     """
 
     z = Parameter(description='redshift', default=0)
 
     @staticmethod
     def evaluate(x, z):
-        """One dimensional Redshift model function"""
+        """One dimensional RedshiftScaleFactor model function"""
 
         return (1 + z) * x
 
     @staticmethod
     def fit_deriv(x, z):
-        """One dimensional Redshift model derivative"""
+        """One dimensional RedshiftScaleFactor model derivative"""
+
         d_z = x
         return [d_z]
 
     @property
     def inverse(self):
-        """Inverse Redshift model"""
+        """Inverse RedshiftScaleFactor model"""
 
         inv = self.copy()
         inv.z = 1.0 / (1.0 + self.z) - 1.0

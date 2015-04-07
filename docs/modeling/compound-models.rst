@@ -403,9 +403,9 @@ example, to create the following compound model:
     :include-source:
 
     import numpy as np
-    from astropy.modeling.models import Redshift, Gaussian1D
+    from astropy.modeling.models import RedshiftScaleFactor, Gaussian1D
 
-    class RedshiftedGaussian(Redshift | Gaussian1D(1, 0.75, 0.1)):
+    class RedshiftedGaussian(RedshiftScaleFactor | Gaussian1D(1, 0.75, 0.1)):
         """Evaluates a Gaussian with optional redshift applied to the input."""
 
     x = np.linspace(0, 1.2, 100)
@@ -761,8 +761,8 @@ belongs to.  For example::
 For consistency's sake, this scheme is followed even if not all of the
 components have overlapping parameter names::
 
-    >>> from astropy.modeling.models import Redshift
-    >>> (Redshift | (Gaussian1D + Gaussian1D)).param_names
+    >>> from astropy.modeling.models import RedshiftScaleFactor
+    >>> (RedshiftScaleFactor | (Gaussian1D + Gaussian1D)).param_names
     ('z_0', 'amplitude_1', 'mean_1', 'stddev_1', 'amplitude_2', 'mean_2',
     'stddev_2')
 
