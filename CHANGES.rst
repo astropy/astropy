@@ -25,7 +25,7 @@ New Features
   - Automatically use ``guess=False`` when reading if the file ``format`` is
     provided and the format parameters are uniquely specified.  This update
     also removes duplicate format guesses to improve performance. [#3418]
-    
+
   - Calls to ascii.read() for fixed-width tables may now omit one of the keyword
     arguments ``col_starts`` or ``col_ends``. Columns will be assumed to begin and
     end immediately adjacent to each other. [#3657]
@@ -343,7 +343,7 @@ Bug Fixes
 
 - ``astropy.time``
 
-  - Ensure a ``Column`` without units is treated as an ``array``, not as an 
+  - Ensure a ``Column`` without units is treated as an ``array``, not as an
     dimensionless ``Quantity``. [#3648]
 
 - ``astropy.units``
@@ -359,6 +359,9 @@ Bug Fixes
 - ``astropy.utils``
 
 - ``astropy.vo``
+
+  - Using HTTPS/SSL for communication between SAMP hubs now works
+    correctly on all supported versions of Python [#3613]
 
 - ``astropy.wcs``
 
