@@ -16,12 +16,12 @@ from ..utils import deprecated
 from ..extern import six
 
 __all__ = sorted([
-    'AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D',
-    'Box2D', 'Const1D', 'Const2D', 'Ellipse2D', 'Disk2D',
-    'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D',
-    'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Redshift', 'Shift',
-    'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D',
-    'custom_model_1d'
+    'AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D', 'Box2D', 'Const1D',
+    'Const2D', 'Ellipse2D', 'Disk2D', 'Gaussian1D',
+    'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D', 'Lorentz1D',
+    'MexicanHat1D', 'MexicanHat2D', 'Scale', 'RedshiftWavelength',
+    'RedshiftSpectrum', 'Shift', 'Sine1D', 'Trapezoid1D',
+    'TrapezoidDisk2D', 'Ring2D', 'custom_model_1d'
 ])
 
 
@@ -400,13 +400,15 @@ class Scale(Model):
         return factor * x
 
 
-class Redshift(Fittable1DModel):
+class RedshiftWavelength(Fittable1DModel):
     """
     One dimensional redshift model.
 
+    Redshifts a wavelength array from rest (z=0) to the input redshift.
+
     Parameters
     ----------
-    z : float or a list of floats
+    z : int or float
         Redshift value(s).
 
     Notes
@@ -414,20 +416,20 @@ class Redshift(Fittable1DModel):
     Model formula:
 
         .. math:: \\lambda_{obs} = (1 + z) \\lambda_{rest}
-
     """
 
     z = Parameter(description='redshift', default=0)
 
     @staticmethod
     def evaluate(x, z):
-        """One dimensional Redshift model function"""
+        """One dimensional Redshift model function."""
 
         return (1 + z) * x
 
     @staticmethod
     def fit_deriv(x, z):
-        """One dimensional Redshift model derivative"""
+        """One dimensional Redshift model derivative."""
+
         d_z = x
         return [d_z]
 
@@ -438,6 +440,41 @@ class Redshift(Fittable1DModel):
         inv = self.copy()
         inv.z = 1.0 / (1.0 + self.z) - 1.0
         return inv
+
+
+class RedshiftSpectrum(Model):
+    """
+    One dimensional redshift model.
+
+    Parameters
+    ----------
+    z : int or float
+        Redshift value of the output spectrum.
+
+    z_in : int or float
+        Redshift value of the input spectrum.
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+        \\lambda_{out} = \\frac{(1 + z)}{(1 + z_{in})} \\lambda_{in}
+
+        F_{out} = \\frac{(1 + z_{in})}{(1 + z)} F_{in}
+    """
+
+    inputs = ('wavelength', 'flux')
+    outputs = ('redshifted_wavelength', 'redshifted_flux')
+
+    z = Parameter(description='Redshift of output spectrum', default=0)
+    z_in = Parameter(description='Redshift of input spectrum', default=0)
+
+    @staticmethod
+    def evaluate(wavelength, flux, z, z_in):
+        """RedshiftSpectrum model function."""
+        factor = (1. + z) / (1. + z_in)
+        return (wavelength * factor), (flux / factor)
 
 
 class Sine1D(Fittable1DModel):

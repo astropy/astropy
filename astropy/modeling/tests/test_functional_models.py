@@ -87,18 +87,18 @@ def test_Gaussian2DRotation():
     assert_allclose(value1, value2)
 
 
-def test_Redshift():
+def test_RedshiftWavelength():
     """Like ``test_ScaleModel()``."""
 
     # Scale by a scalar
-    m = models.Redshift(0.4)
+    m = models.RedshiftWavelength(0.4)
     assert m(0) == 0
     assert_array_equal(m([1, 2]), [1.4, 2.8])
 
     assert_allclose(m.inverse(m([1, 2])), [1, 2])
 
     # Scale by a list
-    m = models.Redshift([-0.5, 0, 0.5], model_set_axis=0)
+    m = models.RedshiftWavelength([-0.5, 0, 0.5], model_set_axis=0)
     assert_array_equal(m(0), 0)
     assert_array_equal(m([1, 2], model_set_axis=False),
                        [[0.5, 1], [1, 2], [1.5, 3]])
