@@ -308,6 +308,7 @@ Bug Fixes
   - Fixes an issue with the ``FITS_rec`` interface to FITS table data, where a
     ``FITS_rec`` created by copying an existing FITS table but adding new rows
     could not be sliced or masked correctly.  [#3641]
+  - Fixed handling of BINTABLE with TDIMn of size 1. [#3580]
 
 - ``astropy.io.misc``
 
