@@ -986,11 +986,11 @@ struct module_state {
   }
 
 #ifdef HAVE_WCSLIB_VERSION
-  if (PyModule_AddStringConstant(m, "WCSLIB_VERSION", wcslib_version(NULL))) {
+  if (PyModule_AddStringConstant(m, "__version__", wcslib_version(NULL))) {
     INITERROR;
   }
 #else
-  if (PyModule_AddStringConstant(m, "WCSLIB_VERSION", "4.x")) {
+  if (PyModule_AddStringConstant(m, "__version__", "4.x")) {
     INITERROR;
   }
 #endif
