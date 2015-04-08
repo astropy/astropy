@@ -8,13 +8,13 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from ..compat import NDDataArray
-from ..nduncertainty import (StdDevUncertainty,
-                             IncompatibleUncertaintiesException,
-                             NDUncertainty)
-from ...tests.helper import pytest
-from ... import units as u
-from ...utils import NumpyRNGContext
+from ...compat import NDDataArray
+from ...nduncertainty import (StdDevUncertainty,
+                              IncompatibleUncertaintiesException,
+                              NDUncertainty)
+from ....tests.helper import pytest
+from .... import units as u
+from ....utils import NumpyRNGContext
 
 
 class FakeUncertainty(NDUncertainty):
