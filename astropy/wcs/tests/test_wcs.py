@@ -394,7 +394,7 @@ def test_validate():
     with catch_warnings():
         results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
         results_txt = repr(results)
-        if wcs._wcs.WCSLIB_VERSION[0] == '5':
+        if wcs._wcs.__version__[0] == '5':
             filename = 'data/validate.5.0.txt'
         else:
             filename = 'data/validate.txt'
