@@ -3,13 +3,26 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
+from collections import OrderedDict
+from astropy.utils.compat.funcsigs import Parameter, Signature
 
 
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
-               cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
+def _make_sigma_clip_signature():
+    _sigma_clip_keywords = OrderedDict([('sigma', 3.), ('sigma_lower', None),
+                                        ('sigma_upper', None), ('iters', 1),
+                                        ('cenfunc', np.ma.median),
+                                        ('stdfunc', np.std), ('axis', None),
+                                        ('copy', True)])
+    params = ([Parameter('data', Parameter.POSITIONAL_ONLY)] +
+              [Parameter(name, Parameter.KEYWORD_ONLY, default=default)
+               for name, default in _sigma_clip_keywords.items()])
+    return Signature(params)
+
+
+def sigma_clip(*args, **kwargs):
     """Perform sigma-clipping on the provided data.
 
     This performs the sigma clipping algorithm - i.e. the data will be iterated
@@ -161,6 +174,9 @@ def sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
                                                        std * sigma_upper).mask
 
     return filtered_data
+
+
+sigma_clip.__signature__ = _make_sigma_clip_signature()
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
