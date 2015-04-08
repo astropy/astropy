@@ -368,6 +368,15 @@ def test_to_fits():
     assert header_string == wfits[0].header[-8:]
 
 
+def test_to_header_warning():
+    fits_name = get_pkg_data_filename('data/sip.fits')
+    x = wcs.WCS(fits_name)
+    with catch_warnings() as w:
+        x.to_header()
+    assert len(w) == 1
+    assert 'A_ORDER' in str(w[0])
+
+
 @raises(wcs.InvalidTransformError)
 def test_find_all_wcs_crash():
     """

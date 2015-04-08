@@ -366,6 +366,10 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+  - When no ``relax`` argument is passed to ``WCS.to_header()`` and
+    the result omits non-standard WCS keywords, a warning is
+    emitted. [#3652]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

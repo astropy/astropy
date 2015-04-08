@@ -2296,12 +2296,11 @@ naxis kwarg.
 
         return hdulist
 
-    def to_header(self, relax=False, key=None):
-        """
-        Generate an `astropy.io.fits.Header` object with the basic WCS and SIP
-        information stored in this object.  This should be logically
-        identical to the input FITS file, but it will be normalized in
-        a number of ways.
+    def to_header(self, relax=None, key=None):
+        """Generate an `astropy.io.fits.Header` object with the basic WCS
+        and SIP information stored in this object.  This should be
+        logically identical to the input FITS file, but it will be
+        normalized in a number of ways.
 
         .. warning::
 
@@ -2323,6 +2322,12 @@ naxis kwarg.
 
             - `int`: a bit field selecting specific extensions to
               write.  See :ref:`relaxwrite` for details.
+
+            If the ``relax`` keyword argument is not given and any
+            keywords were omitted from the output, an
+            `~astropy.utils.exceptions.AstropyWarning` is displayed.
+            To override this, explicitly pass a value to ``relax``.
+
         key : str
             The name of a particular WCS transform to use.  This may be
             either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
@@ -2364,8 +2369,12 @@ naxis kwarg.
 
           8. Keyword order may be changed.
 
-
         """
+        display_warning = False
+        if relax is None:
+            display_warning = True
+            relax = False
+
         if key is not None:
             self.wcs.alt = key
 
@@ -2385,9 +2394,23 @@ naxis kwarg.
             for key, val in self._write_sip_kw().items():
                 header[key] = val
 
+        if display_warning:
+            full_header = self.to_header(relax=True, key=key)
+            missing_keys = []
+            for key, val in full_header.items():
+                if key not in header:
+                    missing_keys.append(key)
+
+            if len(missing_keys):
+                warnings.warn(
+                    "Some non-standard WCS keywords were excluded: {0} "
+                    "Use the ``relax`` kwarg to control this.".format(
+                        ', '.join(missing_keys)),
+                    AstropyWarning)
+
         return header
 
-    def to_header_string(self, relax=False):
+    def to_header_string(self, relax=None):
         """
         Identical to `to_header`, but returns a string containing the
         header cards.
