@@ -55,7 +55,7 @@ def sigma_clip(*args, **kwargs):
     cenfunc : callable, optional
         The technique to compute the center for the clipping. Must be a
         callable that takes in a masked array and outputs the central value.
-        Defaults to the median (numpy.median).
+        Defaults to the median (`numpy.ma.median`).
     stdfunc : callable, optional
         The technique to compute the standard deviation about the center. Must
         be a callable that takes in a masked array and outputs a width
