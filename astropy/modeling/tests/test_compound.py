@@ -789,3 +789,32 @@ def test_inherit_constraints(model):
     assert model.mean_1.fixed is True
     assert model[1].mean.fixed is True
     assert model[1].fixed['mean'] is True
+
+
+def test_compound_custom_inverse():
+    """
+    Test that a compound model with a custom inverse has that inverse applied
+    when the inverse of another model, of which it is a component, is computed.
+    Regression test for https://github.com/astropy/astropy/issues/3542
+    """
+
+    poly = Polynomial1D(1, c0=1, c1=2)
+    scale = Scale(1)
+    shift = Shift(1)
+
+    model1 = poly | scale
+    model1.inverse = poly
+
+    # model1 now has a custom inverse (the polynomial itself, ignoring the
+    # trivial scale factor)
+    model2 = shift | model1
+
+    assert_allclose(model2.inverse(1), (poly | shift.inverse)(1))
+
+    # Make sure an inverse is not allowed if the models were combined with the
+    # wrong operator, or if one of the models doesn't have an inverse defined
+    with pytest.raises(NotImplementedError):
+        (shift + model1).inverse
+
+    with pytest.raises(NotImplementedError):
+        (model1 & poly).inverse
