@@ -3,6 +3,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
+from copy import deepcopy
 from collections import OrderedDict
 from astropy.utils.compat.funcsigs import Parameter, Signature
 
@@ -10,12 +11,17 @@ from astropy.utils.compat.funcsigs import Parameter, Signature
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def _make_sigma_clip_signature():
-    _sigma_clip_keywords = OrderedDict([('sigma', 3.), ('sigma_lower', None),
-                                        ('sigma_upper', None), ('iters', 1),
-                                        ('cenfunc', np.ma.median),
-                                        ('stdfunc', np.std), ('axis', None),
-                                        ('copy', True)])
+_sigma_clip_keywords = OrderedDict([('sigma', 3.), ('sigma_lower', None),
+                                    ('sigma_upper', None), ('iters', 1),
+                                    ('cenfunc', np.ma.median),
+                                    ('stdfunc', np.std), ('axis', None),
+                                    ('copy', True)])
+_sigma_clip_keywords_old = deepcopy(_sigma_clip_keywords)
+_sigma_clip_keywords_old['sig'] = 3.
+_sigma_clip_keywords_old['varfunc'] = np.var
+
+
+def _make_sigma_clip_signature(_sigma_clip_keywords):
     params = ([Parameter('data', Parameter.POSITIONAL_ONLY)] +
               [Parameter(name, Parameter.KEYWORD_ONLY, default=default)
                for name, default in _sigma_clip_keywords.items()])
@@ -139,6 +145,19 @@ def sigma_clip(*args, **kwargs):
     is higher.
     """
 
+    signature = _make_sigma_clip_signature(_sigma_clip_keywords_old)
+    bound_args = signature.bind(*args, **kwargs)
+    for name, value in bound_args.arguments.items():
+        print(name, value)
+
+    for param in signature.parameters.values():
+        if (param.name not in bound_args.arguments and
+            param.default is not param.empty):
+                bound_args.arguments[param.name] = param.default
+
+    for name, value in bound_args.arguments.items():
+        print(name, value)
+
     if sigma_lower is None:
         sigma_lower = sigma
     if sigma_upper is None:
@@ -176,7 +195,7 @@ def sigma_clip(*args, **kwargs):
     return filtered_data
 
 
-sigma_clip.__signature__ = _make_sigma_clip_signature()
+sigma_clip.__signature__ = _make_sigma_clip_signature(_sigma_clip_keywords)
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
