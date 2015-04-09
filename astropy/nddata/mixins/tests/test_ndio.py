@@ -1,8 +1,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..nddata import NDData
-from ..io import NDIOMixin
+from ...nddata import NDData
+from ...mixins.ndio import NDIOMixin
 
 
 # Define minimal class that uses the I/O mixin
