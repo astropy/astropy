@@ -140,6 +140,29 @@ def test_extract_array_easy(mode):
     assert np.all(extracted_array == small_test_array)
 
 
+def test_extract_array_return_pos():
+    '''Check that the return position is calculated correctly.
+
+    The result will differ by mode. All test here are done in 1d because it's
+    easier to construct correct test cases.
+    '''
+    large_test_array = np.arange(5)
+    for i in np.arange(-1, 6):
+        extracted, new_pos = extract_array(large_test_array, 3, i,
+                                           mode='partial', return_position=True)
+        assert new_pos == (1, )
+    # Now check an array with an even number
+    for i, expected in zip([1.49, 1.51, 3], [1.49, 0.51, 1]):
+        extracted, new_pos = extract_array(large_test_array, (2,), (i,),
+                                           mode='strict', return_position=True)
+        assert new_pos == (expected, )
+    # For mode='trim' the answer actually depends
+    for i, expected in zip(np.arange(-1, 6), (-1, 0, 1, 1, 1, 1, 1)):
+        extracted, new_pos = extract_array(large_test_array, (3,), (i,),
+                                           mode='trim', return_position=True)
+        assert new_pos == (expected, )
+
+
 def test_add_array_odd_shape():
     """
     Test add_array utility function.
