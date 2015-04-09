@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
-           'overlap_slices']
+           'overlap_slices', 'block_reduce']
 
 
 def overlap_slices(large_array_shape, small_array_shape, position):
@@ -194,3 +194,55 @@ def subpixel_indices(position, subsampling):
     # Get decimal points
     fractions = np.modf(np.asanyarray(position) + 0.5)[0]
     return np.floor(fractions * subsampling)
+
+
+def block_reduce(data, block_size, func=np.sum):
+    """
+    Downsample data by applying a function to local blocks.
+
+    If ``data`` is not perfectly divisible by ``block_size`` along a
+    given axis then the data will be trimmed (from the end) along that
+    axis.
+
+    Parameters
+    ----------
+    data : array_like
+        The data to be resampled.
+
+    block_size : array_like (int)
+        An array containing the integer downsampling factor along each
+        axis.  ``block_size`` must have the same length as
+        ``data.shape``.
+
+    function : callable
+        The method to use to downsample the data.  Must be a callable
+        that takes in a `~numpy.ndarray` along with an ``axis`` keyword,
+        which defines the axis along which the function is applied.  The
+        default is `~numpy.sum`, which provides block summation (and
+        conserves the data sum).
+
+    Returns
+    -------
+    output : array-like
+        The resampled data.
+    """
+
+    from skimage.measure import block_reduce
+
+    data = np.asanyarray(data)
+    if len(block_size) != data.ndim:
+        raise ValueError('`block_size` must have the same length as '
+                         '`data.shape`')
+
+    block_size = np.array([int(i) for i in block_size])
+    size_resampled = np.array(data.shape) // block_size
+    size_init = size_resampled * block_size
+
+    # trim data if necessary
+    for i in range(data.ndim):
+        if data.shape[i] != size_init[i]:
+            data = data.swapaxes(0, i)
+            data = data[:size_init[i]]
+            data = data.swapaxes(0, i)
+
+    return block_reduce(data, tuple(block_size), func=func)
