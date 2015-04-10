@@ -387,6 +387,11 @@ Other Changes and Additions
   - The number of retries for connections in ``astropy.vo.samp`` can now be
     configured by a ``n_retries`` configuration option. [#3612]
 
+- Testing
+
+  - Running ``astropy.test()`` from within the IPython prompt has been
+    provisionally re-enabled. [#3184]
+
 
 1.0.1 (2015-03-06)
 ------------------
