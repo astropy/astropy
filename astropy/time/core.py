@@ -21,6 +21,7 @@ import numpy as np
 from .. import units as u
 from .. import _erfa as erfa
 from ..units import UnitConversionError
+from ..utils.compat.numpycompat import NUMPY_LT_1_7
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import InfoDescriptor, DataInfo, data_info_factory
@@ -879,6 +880,142 @@ class Time(object):
         obviously, no output array can be given.
         """
         return self._replicate('take', indices, axis=axis, mode=mode)
+
+    def _advanced_index(self, indices, axis=None, keepdims=False):
+        """Turn argmin, argmax output into an advanced index.
+
+        Argmin, argmax output contains indices along a given axis in an array
+        shaped like the other dimensions.  To use this to get values at the
+        correct location, a list is constructed in which the other axes are
+        indexed sequentially.  For ``keepdims`` is ``True``, the net result is
+        the same as constructing an index grid with ``np.ogrid`` and then
+        replacing the ``axis`` item with ``indices`` with its shaped expanded
+        at ``axis``. For ``keepdims`` is ``False``, the result is the same but
+        with the ``axis`` dimension removed from all list entries.
+
+        For ``axis`` is ``None``, this calls :func:`~numpy.unravel_index`.
+
+        Parameters
+        ----------
+        indices : array
+            Output of argmin or argmax.
+        axis : int or None
+            axis along which argmin or argmax was used.
+        keepdims : bool
+            Whether to contruct indices that keep or remove the axis along
+            which argmin or argmax was used.  Default: ``False``.
+
+        Returns
+        -------
+        advanced_index : list of arrays
+            Suitable for use as an advanced index.
+        """
+        if axis is None:
+            return np.unravel_index(indices, self.shape)
+
+        ndim = self.ndim
+        if axis < 0:
+            axis = axis + ndim
+
+        if keepdims and indices.ndim < self.ndim:
+            indices = np.expand_dims(indices, axis)
+        return [(indices if i == axis else np.arange(s).reshape(
+            (1,)*(i if keepdims or i < axis else i-1) + (s,) +
+            (1,)*(ndim-i-(1 if keepdims or i > axis else 2))))
+                for i, s in enumerate(self.shape)]
+
+    def argmin(self, axis=None, out=None):
+        """Return indices of the minimum values along the given axis.
+
+        This is similar to :meth:`~numpy.ndarray.argmin`, but adapted to ensure
+        that the full precision given by the two doubles ``jd1`` and ``jd2``
+        is used.  See :func:`~numpy.argmin` for detailed documentation.
+        """
+        jd = self.jd1 + self.jd2
+        if NUMPY_LT_1_7:
+            guess = jd.min(axis)
+            if axis is not None:
+                guess = np.expand_dims(guess, axis)
+        else:
+            guess = jd.min(axis, keepdims=True)
+
+        dt = (self.jd1 - guess) + self.jd2
+        return dt.argmin(axis, out)
+
+    def argmax(self, axis=None, out=None):
+        """Return indices of the maximum values along the given axis.
+
+        This is similar to :meth:`~numpy.ndarray.argmax`, but adapted to ensure
+        that the full precision given by the two doubles ``jd1`` and ``jd2``
+        is used.  See :func:`~numpy.argmax` for detailed documentation.
+        """
+        jd = self.jd1 + self.jd2
+        if NUMPY_LT_1_7:
+            guess = jd.max(axis)
+            if axis is not None:
+                guess = np.expand_dims(guess, axis)
+        else:
+            guess = jd.max(axis, keepdims=True)
+
+        dt = (self.jd1 - guess) + self.jd2
+        return dt.argmax(axis, out)
+
+    def argsort(self, axis=-1):
+        """Returns the indices that would sort the time array.
+
+        This is similar to :meth:`~numpy.ndarray.argsort`, but adapted to ensure
+        that the full precision given by the two doubles ``jd1`` and ``jd2``
+        is used, and that corresponding attributes are copied.  Internally,
+        it uses :func:`~numpy.lexsort`, and hence no sort method can be chosen.
+        """
+        if axis is None:
+            return np.lexsort((self._time.jd2.ravel(), self._time.jd1.ravel()))
+        else:
+            return np.lexsort(keys=(self._time.jd2, self._time.jd1), axis=axis)
+
+    def min(self, axis=None, keepdims=False):
+        """Minimum along a given axis.
+
+        This is similar to :meth:`~numpy.ndarray.min`, but adapted to ensure
+        that the full precision given by the two doubles ``jd1`` and ``jd2``
+        is used, and that corresponding attributes are copied.
+        """
+        return self[self._advanced_index(self.argmin(axis), axis, keepdims)]
+
+    def max(self, axis=None, keepdims=False):
+        """Maximum along a given axis.
+
+        This is similar to :meth:`~numpy.ndarray.max`, but adapted to ensure
+        that the full precision given by the two doubles ``jd1`` and ``jd2``
+        is used, and that corresponding attributes are copied.
+        """
+        return self[self._advanced_index(self.argmax(axis), axis, keepdims)]
+
+    def ptp(self, axis=None, keepdims=False):
+        """Peak to peak (maximum - minimum) along a given axis.
+
+        This is similar to :meth:`~numpy.ndarray.ptp`, but adapted to ensure
+        that the full precision given by the two doubles ``jd1`` and ``jd2``
+        is used.
+        """
+        return self.max(axis, keepdims) - self.min(axis, keepdims)
+
+    def sort(self, axis=-1):
+        """Return a copy sorted along the specified axis.
+
+        This is similar to :meth:`~numpy.ndarray.sort`, but internally uses
+        indexing with :func:`~numpy.lexsort` to ensure that the full precision
+        given by the two doubles ``jd1`` and ``jd2`` is kept, and that
+        corresponding attributes are properly sorted and copied as well.
+
+        Parameters
+        ----------
+        axis : int or None
+            Axis to be sorted.  If ``None``, the flattened array is sorted.
+            By default, sort over the last axis.
+        """
+        return self[self._advanced_index(self.argsort(axis), axis,
+                                         keepdims=True)]
 
     def __getattr__(self, attr):
         """

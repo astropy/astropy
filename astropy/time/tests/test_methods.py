@@ -242,3 +242,69 @@ class TestManipulation():
         assert t2_take2.shape == (2,)
         assert np.all(t2_take2.jd1 == self.t2.jd1.take((5, 15)))
         assert t2_take2.location.shape == t2_take2.shape
+
+
+class TestArithmetic():
+    """Arithmetic on Time objects, using both doubles."""
+
+    def setup(self):
+        mjd = np.arange(50000, 50010)
+        frac = np.array([0.1, 0.1+1.e-15, 0.1-1.e-15, 0.9+2.e-16, 0.9])
+        self.t0 = Time(mjd.reshape(2, 5, 1), frac, format='mjd', scale='utc')
+
+    def test_argmin(self):
+        assert self.t0.argmin() == 2
+        assert np.all(self.t0.argmin(axis=0) == 0)
+        assert np.all(self.t0.argmin(axis=1) == 0)
+        assert np.all(self.t0.argmin(axis=2) == 2)
+
+    def test_argmax(self):
+        assert self.t0.argmax() == self.t0.size - 2
+        assert np.all(self.t0.argmax(axis=0) == 1)
+        assert np.all(self.t0.argmax(axis=1) == 4)
+        assert np.all(self.t0.argmax(axis=2) == 3)
+
+    def test_argsort(self):
+        assert np.all(self.t0.argsort() == np.array([2, 0, 1, 4, 3]))
+        assert np.all(self.t0.argsort(axis=0) == np.arange(2).reshape(2, 1, 1))
+        assert np.all(self.t0.argsort(axis=1) == np.arange(5).reshape(5, 1))
+        assert np.all(self.t0.argsort(axis=2) == np.array([2, 0, 1, 4, 3]))
+        assert np.all(self.t0.argsort(axis=None) ==
+                      np.arange(50).reshape(-1, 5)[:, (2, 0, 1, 4, 3)].ravel())
+
+    def test_min(self):
+        assert self.t0.min() == self.t0[0, 0, 2]
+        assert np.all(self.t0.min(0) == self.t0[0])
+        assert np.all(self.t0.min(1) == self.t0[:, 0])
+        assert np.all(self.t0.min(2) == self.t0[:, :, 2])
+        assert self.t0.min(0).shape == (5, 5)
+        assert self.t0.min(0, keepdims=True).shape == (1, 5, 5)
+        assert self.t0.min(1).shape == (2, 5)
+        assert self.t0.min(1, keepdims=True).shape == (2, 1, 5)
+        assert self.t0.min(2).shape == (2, 5)
+        assert self.t0.min(2, keepdims=True).shape == (2, 5, 1)
+
+    def test_max(self):
+        assert self.t0.max() == self.t0[-1, -1, -2]
+        assert np.all(self.t0.max(0) == self.t0[1])
+        assert np.all(self.t0.max(1) == self.t0[:, 4])
+        assert np.all(self.t0.max(2) == self.t0[:, :, 3])
+        assert self.t0.max(0).shape == (5, 5)
+        assert self.t0.max(0, keepdims=True).shape == (1, 5, 5)
+
+    def test_ptp(self):
+        assert self.t0.ptp() == self.t0.max() - self.t0.min()
+        assert np.all(self.t0.ptp(0) == self.t0.max(0) - self.t0.min(0))
+        assert self.t0.ptp(0).shape == (5, 5)
+        assert self.t0.ptp(0, keepdims=True).shape == (1, 5, 5)
+
+    def test_sort(self):
+        assert np.all(self.t0.sort() == self.t0[:, :, (2, 0, 1, 4, 3)])
+        assert np.all(self.t0.sort(0) == self.t0)
+        assert np.all(self.t0.sort(1) == self.t0)
+        assert np.all(self.t0.sort(2) == self.t0[:, :, (2, 0, 1, 4, 3)])
+        assert np.all(self.t0.sort(None) ==
+                      self.t0[:, :, (2, 0, 1, 4, 3)].ravel())
+        # Bit superfluous, but good to check.
+        assert np.all(self.t0.sort(-1)[:, :, 0] == self.t0.min(-1))
+        assert np.all(self.t0.sort(-1)[:, :, -1] == self.t0.max(-1))
