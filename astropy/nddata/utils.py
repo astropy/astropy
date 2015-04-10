@@ -209,10 +209,10 @@ def block_reduce(data, block_size, func=np.sum):
     data : array_like
         The data to be resampled.
 
-    block_size : array_like (int)
-        An array containing the integer downsampling factor along each
-        axis.  ``block_size`` must have the same length as
-        ``data.shape``.
+    block_size : int or array_like (int)
+        The integer block size along each axis.  If ``block_size`` is a
+        scalar and ``data`` has more than one dimension, then
+        ``block_size`` will be used for for every axis.
 
     function : callable
         The method to use to downsample the data.  Must be a callable
@@ -230,9 +230,14 @@ def block_reduce(data, block_size, func=np.sum):
     from skimage.measure import block_reduce
 
     data = np.asanyarray(data)
+
+    block_size = np.atleast_1d(block_size)
+    if data.ndim > 1 and len(block_size) == 1:
+        block_size = np.repeat(block_size, data.ndim)
+
     if len(block_size) != data.ndim:
-        raise ValueError('`block_size` must have the same length as '
-                         '`data.shape`')
+        raise ValueError('`block_size` must be a scalar or have the same '
+                         'length as `data.shape`')
 
     block_size = np.array([int(i) for i in block_size])
     size_resampled = np.array(data.shape) // block_size
@@ -254,11 +259,13 @@ def block_replicate(data, block_size, conserve_sum=True):
 
     Parameters
     ----------
-    data : array_like (1D, 2D, or 3D)
+    data : array_like
         The data to be block replicated.
 
-    block_size : array_like (int)
-        The integer block size (upsampling factor) along each axis.
+    block_size : int or array_like (int)
+        The integer block size along each axis.  If ``block_size`` is a
+        scalar and ``data`` has more than one dimension, then
+        ``block_size`` will be used for for every axis.
 
     conserve_sum : bool
         If `True` (the default) then the sum of the output
@@ -290,9 +297,12 @@ def block_replicate(data, block_size, conserve_sum=True):
     data = np.asanyarray(data)
 
     block_size = np.atleast_1d(block_size)
+    if data.ndim > 1 and len(block_size) == 1:
+        block_size = np.repeat(block_size, data.ndim)
+
     if len(block_size) != data.ndim:
-        raise ValueError('`block_size` must have the same length as '
-                         '`data.shape`')
+        raise ValueError('`block_size` must be a scalar or have the same '
+                         'length as `data.shape`')
 
     for i in range(data.ndim):
         data = np.repeat(data, block_size[i], axis=i)
