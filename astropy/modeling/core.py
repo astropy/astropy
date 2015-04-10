@@ -745,8 +745,8 @@ class Model(object):
     @property
     def inverse(self):
         """
-        Returns a new `Model` instance which performs the inverse
-        transform, if an analytic inverse is defined for this model.
+        Returns a new `~astropy.modeling.Model` instance which performs the
+        inverse transform, if an analytic inverse is defined for this model.
 
         Even on models that don't have an inverse defined, this property can be
         set with a manually-defined inverse, such a pre-computed or
@@ -754,10 +754,11 @@ class Model(object):
         `~astropy.modeling.polynomial.PolynomialModel`, but not by
         requirement).
 
-        Note to authors of `Model` subclasses:  To define an inverse for a
-        model simply override this property to return the appropriate model
-        representing the inverse.  The machinery that will make the inverse
-        manually-overridable is added automatically by the base class.
+        Note to authors of `~astropy.modeling.Model` subclasses:  To define an
+        inverse for a model simply override this property to return the
+        appropriate model representing the inverse.  The machinery that will
+        make the inverse manually-overridable is added automatically by the
+        base class.
         """
 
         raise NotImplementedError("An analytical inverse transform has not "
