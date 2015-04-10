@@ -324,6 +324,6 @@ def block_replicate(data, block_size, conserve_sum=True):
         data = np.repeat(data, block_size[i], axis=i)
 
     if conserve_sum:
-        data /= float(np.prod(block_size))
+        data = data / float(np.prod(block_size))
 
     return data
