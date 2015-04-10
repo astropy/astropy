@@ -100,29 +100,6 @@ def test_parameter_operators():
     assert abs(par) == abs(num)
 
 
-def test_parameter_name_attribute_mismatch():
-    """
-    It should not be possible to define Parameters on a model with different
-    names from the attributes they are assigned to.
-    """
-
-    def make_bad_class():
-        class BadModel(Model):
-            foo = Parameter('bar')
-
-            def __call__(self): pass
-
-    def make_good_class():
-        class GoodModel(Model):
-            # This is redundant but okay
-            foo = Parameter('foo')
-
-            def __call__(self): pass
-
-    make_good_class()
-    pytest.raises(ModelDefinitionError, make_bad_class)
-
-
 class TestParameters(object):
 
     def setup_class(self):

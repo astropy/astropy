@@ -34,9 +34,10 @@ from ..extern import six
 from ..extern.six.moves import copyreg
 from ..table import Table
 from ..utils import (deprecated, sharedmethod, find_current_module,
-                     InheritDocstrings)
+                     InheritDocstrings, OrderedDescriptorContainer)
 from ..utils.codegen import make_function_with_signature
 from ..utils.compat import ignored
+from ..utils.compat.odict import OrderedDict
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
@@ -72,7 +73,7 @@ def _model_oper(oper, **kwargs):
             left, right, **kwargs)
 
 
-class _ModelMeta(InheritDocstrings, abc.ABCMeta):
+class _ModelMeta(OrderedDescriptorContainer, InheritDocstrings, abc.ABCMeta):
     """
     Metaclass for Model.
 
@@ -98,23 +99,37 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     creating them.
     """
 
+    # Default empty dict for _parameters_, which will be empty on model
+    # classes that don't have any Parameters
+    _parameters_ = OrderedDict()
+
     def __new__(mcls, name, bases, members):
         # See the docstring for _is_dynamic above
         if '_is_dynamic' not in members:
             members['_is_dynamic'] = mcls._is_dynamic
 
-        parameters = mcls._handle_parameters(name, members)
-        mcls._create_inverse_property(members)
-        mcls._handle_backwards_compat(name, members)
+        return super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
-        cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
+    def __init__(cls, name, bases, members):
+        # Make sure OrderedDescriptorContainer gets to run before doing
+        # anything else
+        super(_ModelMeta, cls).__init__(name, bases, members)
 
-        mcls._handle_special_methods(members, cls, parameters)
+        if cls._parameters_:
+            if hasattr(cls, '_param_names'):
+                # Slight kludge to support compound models, where
+                # cls.param_names is a property; could be improved with a
+                # little refactoring but fine for now
+                cls._param_names = tuple(cls._parameters_)
+            else:
+                cls.param_names = tuple(cls._parameters_)
+
+        cls._create_inverse_property(members)
+        cls._handle_backwards_compat(name, members)
+        cls._handle_special_methods(members)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
-            mcls.registry.add(cls)
-
-        return cls
+            cls.registry.add(cls)
 
     def __repr__(cls):
         """
@@ -228,58 +243,8 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
         return new_cls
 
-    @classmethod
-    def _handle_parameters(mcls, name, members):
-        # Handle parameters
-        param_names = members.get('param_names', ())
-        parameters = {}
-        for key, value in members.items():
-            if not isinstance(value, Parameter):
-                continue
-            if not value.name:
-                # Name not explicitly given in the constructor; add the name
-                # automatically via the attribute name
-                value._name = key
-                value._attr = '_' + key
-            if value.name != key:
-                raise ModelDefinitionError(
-                    "Parameters must be defined with the same name as the "
-                    "class attribute they are assigned to.  Parameters may "
-                    "take their name from the class attribute automatically "
-                    "if the name argument is not given when initializing "
-                    "them.")
-            parameters[value.name] = value
-
-        # If no parameters were defined get out early--this is especially
-        # important for PolynomialModels which take a different approach to
-        # parameters, since they can have a variable number of them
-        if parameters:
-            mcls._check_parameters(name, members, param_names, parameters)
-
-        return parameters
-
-    @staticmethod
-    def _check_parameters(name, members, param_names, parameters):
-        # If param_names was declared explicitly we use only the parameters
-        # listed manually in param_names, but still check that all listed
-        # parameters were declared
-        if param_names and isiterable(param_names):
-            for param_name in param_names:
-                if param_name not in parameters:
-                    raise RuntimeError(
-                        "Parameter {0!r} listed in {1}.param_names was not "
-                        "declared in the class body.".format(param_name, name))
-        else:
-            param_names = tuple(param.name for param in
-                                sorted(parameters.values(),
-                                       key=lambda p: p._order))
-            members['param_names'] = param_names
-            members['_param_orders'] = \
-                    dict((name, idx) for idx, name in enumerate(param_names))
-
-    @staticmethod
-    def _create_inverse_property(members):
-        inverse = members.get('inverse', None)
+    def _create_inverse_property(cls, members):
+        inverse = members.get('inverse')
         if inverse is None:
             return
 
@@ -306,11 +271,9 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
             self._custom_inverse = value
 
-        members['inverse'] = property(wrapped_fget, fset,
-                                      doc=inverse.__doc__)
+        cls.inverse = property(wrapped_fget, fset, doc=inverse.__doc__)
 
-    @classmethod
-    def _handle_backwards_compat(mcls, name, members):
+    def _handle_backwards_compat(cls, name, members):
         # Backwards compatibility check for 'eval' -> 'evaluate'
         # TODO: Remove sometime after Astropy 1.0 release.
         if 'eval' in members and 'evaluate' not in members:
@@ -319,7 +282,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                 "FittableModel is deprecated; please rename this method to "
                 "'evaluate'.  Otherwise its semantics remain the same.",
                 AstropyDeprecationWarning)
-            members['evaluate'] = members['eval']
+            cls.evaluate = members['eval']
         elif ('evaluate' in members and callable(members['evaluate']) and
                 not getattr(members['evaluate'], '__isabstractmethod__',
                             False)):
@@ -328,10 +291,9 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             # abstractmethod as well
             alt = '.'.join((name, 'evaluate'))
             deprecate = deprecated('1.0', alternative=alt, name='eval')
-            members['eval'] = deprecate(members['evaluate'])
+            cls.eval = deprecate(members['evaluate'])
 
-    @classmethod
-    def _handle_special_methods(mcls, members, cls, parameters):
+    def _handle_special_methods(cls, members):
         # Handle init creation from inputs
         def update_wrapper(wrapper, cls):
             # Set up the new __call__'s metadata attributes as though it were
@@ -362,14 +324,14 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             cls.__call__ = new_call
 
         if ('__init__' not in members and not inspect.isabstract(cls) and
-                parameters):
+                cls._parameters_):
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional
             # arguments
             if all(p.default is not None
-                   for p in six.itervalues(parameters)):
+                   for p in six.itervalues(cls._parameters_)):
                 args = ('self',)
-                kwargs = [(name, parameters[name].default)
+                kwargs = [(name, cls._parameters_[name].default)
                           for name in cls.param_names]
             else:
                 args = ('self',) + cls.param_names
