@@ -22,7 +22,7 @@ from ..utils.compat.misc import override__dir__
 from ..extern import six
 from ..utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from .. import units as u
-from ..utils import OrderedDict
+from ..utils import OrderedDict, OrderedDescriptor, OrderedDescriptorContainer
 from .transformations import TransformGraph
 from .representation import (BaseRepresentation, CartesianRepresentation,
                              SphericalRepresentation,
@@ -58,7 +58,7 @@ def _get_repr_cls(value):
     return value
 
 
-class FrameMeta(type):
+class FrameMeta(OrderedDescriptorContainer):
     def __new__(mcls, name, bases, members):
         if 'default_representation' in members:
             default_repr = members.pop('default_representation')
@@ -123,7 +123,7 @@ class FrameMeta(type):
         members[attr] = property(getter)
 
 
-class FrameAttribute(object):
+class FrameAttribute(OrderedDescriptor):
     """A non-mutable data descriptor to hold a frame attribute.
 
     This class must be used to define frame attributes (e.g. ``equinox`` or
@@ -158,20 +158,14 @@ class FrameAttribute(object):
         ``default is None`` and no value was supplied during initialization.
     """
 
-    _nextid = 1
-    """
-    Used to ascribe some ordering to FrameAttribute instances so that the
-    order they were assigned in a class body can be determined.
-    """
+    _class_attribute_ = 'frame_attributes'
+    _name_attribute_ = 'name'
+    name = '<unbound>'
 
     def __init__(self, default=None, secondary_attribute=''):
         self.default = default
         self.secondary_attribute = secondary_attribute
-
-        # Use FrameAttribute._nextid explicitly so that subclasses of
-        # FrameAttribute use the same counter
-        self._order = FrameAttribute._nextid
-        FrameAttribute._nextid += 1
+        super(FrameAttribute, self).__init__()
 
     def convert_input(self, value):
         """
@@ -207,25 +201,6 @@ class FrameAttribute(object):
         return value, False
 
     def __get__(self, instance, frame_cls=None):
-        if not hasattr(self, 'name'):
-            # Find attribute name of self by finding this object in the frame
-            # class which is requesting this attribute or any of its
-            # superclasses.
-            for mro_cls in frame_cls.__mro__:
-                for name, val in mro_cls.__dict__.items():
-                    if val is self:
-                        self.name = name
-                        break
-                if hasattr(self, 'name'):  # Can't nicely break out of two loops
-                    break
-            else:
-                # Cannot think of a way to actually raise this exception.  This
-                # instance containing this code must be in the class dict in
-                # order to get excecuted by attribute access.  But leave this
-                # here just in case...
-                raise AttributeError(
-                        'Unexpected inability to locate descriptor')
-
         out = None
 
         if instance is not None:
@@ -470,6 +445,11 @@ class BaseCoordinateFrame(object):
     # specifies special names/units for representation attributes
     frame_specific_representation_info = {}
 
+    _inherit_descriptors_ = (FrameAttribute,)
+
+    frame_attributes = OrderedDict()
+    # Default empty frame_attributes dict
+
     # This __new__ provides for backward-compatibility with pre-0.4 API.
     # TODO: remove in 1.0
     def __new__(cls, *args, **kwargs):
@@ -643,20 +623,8 @@ class BaseCoordinateFrame(object):
 
     @classmethod
     def get_frame_attr_names(cls):
-        seen = set()
-        attributes = []
-        for mro_cls in cls.__mro__:
-            for name, val in mro_cls.__dict__.items():
-                if isinstance(val, FrameAttribute) and name not in seen:
-                    seen.add(name)
-                    # Add the sort order, name, and actual value of the frame
-                    # attribute in question
-                    attributes.append((val._order, name,
-                                       getattr(mro_cls, name)))
-
-        # Sort by the frame attribute order
-        attributes.sort(key=lambda a: a[0])
-        return OrderedDict((a[1], a[2]) for a in attributes)
+        return OrderedDict((name, getattr(cls, name))
+                           for name in cls.frame_attributes)
 
     @property
     def representation(self):
@@ -1062,10 +1030,10 @@ class BaseCoordinateFrame(object):
         return val
 
     def __setattr__(self, attr, value):
-        repr_attr_names = []
+        repr_attr_names = set()
         if hasattr(self, 'representation_info'):
             for representation_attr in self.representation_info.values():
-                repr_attr_names.extend(representation_attr['names'])
+                repr_attr_names.update(representation_attr['names'])
         if attr in repr_attr_names:
             raise AttributeError(
                 'Cannot set any frame attribute {0}'.format(attr))
@@ -1181,17 +1149,16 @@ class GenericFrame(BaseCoordinateFrame):
         A dictionary of attributes to be used as the frame attributes for this
         frame.
     """
+
     name = None  # it's not a "real" frame so it doesn't have a name
 
     def __init__(self, frame_attrs):
-        super(GenericFrame, self).__setattr__('_frame_attr_names', frame_attrs)
+        self.frame_attributes = OrderedDict()
+        for name, default in frame_attrs.items():
+            self.frame_attributes[name] = FrameAttribute(default)
+            setattr(self, '_' + name, default)
+
         super(GenericFrame, self).__init__(None)
-
-        for attrnm, attrval in frame_attrs.items():
-            setattr(self, '_' + attrnm, attrval)
-
-    def get_frame_attr_names(self):
-        return self._frame_attr_names
 
     def __getattr__(self, name):
         if '_' + name in self.__dict__:
@@ -1200,7 +1167,7 @@ class GenericFrame(BaseCoordinateFrame):
             raise AttributeError('no {0}'.format(name))
 
     def __setattr__(self, name, value):
-        if name in self._frame_attr_names:
+        if name in self.get_frame_attr_names():
             raise AttributeError("can't set frame attribute '{0}'".format(name))
         else:
             super(GenericFrame, self).__setattr__(name, value)
