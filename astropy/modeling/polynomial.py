@@ -13,7 +13,7 @@ from .core import FittableModel, Model
 from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb, check_broadcast
-from ..utils import lazyproperty, indent
+from ..utils import indent
 
 
 __all__ = [
@@ -40,7 +40,7 @@ class PolynomialBase(FittableModel):
     linear = True
     col_fit_deriv = False
 
-    @lazyproperty
+    @property
     def param_names(self):
         """Coefficient names generated based on the model's polynomial degree
         and number of dimensions.
