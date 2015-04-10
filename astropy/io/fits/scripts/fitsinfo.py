@@ -1,4 +1,20 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""
+``fitsinfo`` is a command-line script based on astropy.io.fits for
+printing a summary of the HDUs in one or more FITS files(s) to the
+standard output.
+
+Example usage of ``fitsinfo``:
+
+1. Print a summary of the HDUs in a FITS file::
+
+    $ fitsinfo filename.fits
+
+2. Print a summary of HDUs of all the FITS files in the current directory::
+
+    $ fitsinfo *.fits
+"""
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import argparse
