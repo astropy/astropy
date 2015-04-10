@@ -10,6 +10,14 @@ Example usage of ``fitsinfo``:
 
     $ fitsinfo filename.fits
 
+    Filename: filename.fits
+    No.    Name         Type      Cards   Dimensions   Format
+    0    PRIMARY     PrimaryHDU     138   ()
+    1    SCI         ImageHDU        61   (800, 800)   int16
+    2    SCI         ImageHDU        61   (800, 800)   int16
+    3    SCI         ImageHDU        61   (800, 800)   int16
+    4    SCI         ImageHDU        61   (800, 800)   int16
+
 2. Print a summary of HDUs of all the FITS files in the current directory::
 
     $ fitsinfo *.fits
