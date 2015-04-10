@@ -4,8 +4,9 @@ This module includes helper functions for array operations.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
 import numpy as np
+from .decorators import support_nddata
+
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'overlap_slices', 'block_reduce', 'block_replicate']
@@ -196,6 +197,7 @@ def subpixel_indices(position, subsampling):
     return np.floor(fractions * subsampling)
 
 
+@support_nddata
 def block_reduce(data, block_size, func=np.sum):
     """
     Downsample a data array by applying a function to local blocks.
@@ -253,6 +255,7 @@ def block_reduce(data, block_size, func=np.sum):
     return block_reduce(data, tuple(block_size), func=func)
 
 
+@support_nddata
 def block_replicate(data, block_size, conserve_sum=True):
     """
     Upsample a data array by block replication.
