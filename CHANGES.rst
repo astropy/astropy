@@ -322,6 +322,9 @@ Bug fixes
 
 - ``astropy.io.fits``
 
+  - Included a new command-line script called ``fitsinfo`` to display
+    a summary of the HDUs in one or more FITS files. [#3677]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
