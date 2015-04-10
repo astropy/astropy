@@ -56,7 +56,7 @@ Starting a new package
    files, but do not go inside it - instead, create another empty repository
    into which we will copy the required files::
 
-    git clone http://github.com/astropy/package-template.git template
+    git clone https://github.com/astropy/package-template.git template
     mkdir <packagename>
     cd <packagename>
     git init
@@ -65,7 +65,7 @@ Starting a new package
    package, and we recommend adding this as a sub-module so as to easily be
    able to bundle it in releases of affiliated packages::
 
-    git submodule add http://github.com/astropy/astropy-helpers.git astropy_helpers
+    git submodule add https://github.com/astropy/astropy-helpers.git astropy_helpers
 
 #. Copy over the following files from the package template (these define the
    bare minimum of what is needed) and add them to the repository::
