@@ -216,7 +216,7 @@ def block_reduce(data, block_size, func=np.sum):
         scalar and ``data`` has more than one dimension, then
         ``block_size`` will be used for for every axis.
 
-    function : callable
+    func : callable
         The method to use to downsample the data.  Must be a callable
         that takes in a `~numpy.ndarray` along with an ``axis`` keyword,
         which defines the axis along which the function is applied.  The
@@ -227,6 +227,19 @@ def block_reduce(data, block_size, func=np.sum):
     -------
     output : array-like
         The resampled data.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from astropy.nddata.utils import block_reduce
+    >>> data = np.arange(16).reshape(4, 4)
+    >>> block_reduce(data, 2)
+    array([[10, 18],
+           [42, 50]])
+
+    >>> block_reduce(data, 2, func=np.mean)
+    array([[  2.5,   4.5],
+           [ 10.5,  12.5]])
     """
 
     from skimage.measure import block_reduce
@@ -282,7 +295,7 @@ def block_replicate(data, block_size, conserve_sum=True):
     Examples
     --------
     >>> import numpy as np
-    >>> from imutils import block_replicate
+    >>> from astropy.nddata.utils import block_replicate
     >>> data = np.array([[0., 1.], [2., 3.]])
     >>> block_replicate(data, 2)
     array([[ 0.  ,  0.  ,  0.25,  0.25],
