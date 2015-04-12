@@ -112,8 +112,9 @@ class TestRunner(object):
         except NameError:
             pass
         else:
-            raise RuntimeError(
-                "Running astropy tests inside of IPython is not supported.")
+            if self.base_path == 'astropy':
+                raise RuntimeError(
+                    "Running astropy tests inside of IPython is not supported.")
 
         if coverage:
             warnings.warn(
