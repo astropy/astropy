@@ -131,6 +131,8 @@ New Features
 
   - Add support for shape manipulation (reshape, ravel, etc.). [#3224]
 
+  - Add argmin, argmax, argsort, min, max, ptp, sort methods. [#3581]
+
 - ``astropy.units``
 
   - Added furlong to imperial units. [#3529]
