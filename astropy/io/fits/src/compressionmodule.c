@@ -598,6 +598,7 @@ void configure_compression(fitsfile* fileptr, PyObject* header) {
         znaxis = MAX_COMPRESS_DIM;
     }
 
+    Fptr->tilerow = NULL;
     Fptr->maxtilelen = 1;
     for (idx = 1; idx <= znaxis; idx++) {
         snprintf(keyword, 9, "ZNAXIS%u", idx);
@@ -859,6 +860,7 @@ void open_from_hdu(fitsfile** fileptr, void** buf, size_t* bufsize,
     Fptr = (*fileptr)->Fptr;
 
     // Now we have some fun munging some of the elements in the fitsfile struct
+    Fptr->writemode = READONLY;
     Fptr->open_count = 1;
     Fptr->hdutype = BINARY_TBL;  /* This is a binary table HDU */
     Fptr->lasthdu = 1;
@@ -1026,7 +1028,7 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     long arrsize;
     unsigned int idx;
 
-    fitsfile* fileptr;
+    fitsfile* fileptr = NULL;
     int anynul = 0;
     int status = 0;
 
