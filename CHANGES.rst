@@ -288,6 +288,9 @@ Bug Fixes
 - ``astropy.io.fits``
 
   - Fixed handling of BINTABLE with TDIMn of size 1. [#3580]
+  - Fixed a severe memory leak that occurred when reading tile compressed
+    images. [#3680]
+
   - Fixed bug where column data could be unintentionally byte-swapped when
     copying data from an existing FITS file to a new FITS table with a
     TDIMn keyword for that column. [#3561]
