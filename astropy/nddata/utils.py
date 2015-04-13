@@ -57,13 +57,14 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
 
     Parameters
     ----------
-    large_array_shape : tuple or number
-        Shape of the large array (for 1D arrays, this can be an int or float).
-    small_array_shape : tuple or number
-        Shape of the small array (for 1D arrays, this can be an int or float).
-    position : tuple of integers or int
+    large_array_shape : tuple or int
+        Shape of the large array (for 1D arrays, this can be an int).
+    small_array_shape : tuple or int
+        Shape of the small array (for 1D arrays, this can be an int).
+    position : tuple of numbers or number
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
+        Integer positions are at the pixel centers.
         For a coordinate with an even number of elements, the position is
         rounded up, e.g. extracting two elements with a center of ``1`` will
         give positions ``[0, 1]``.
@@ -133,8 +134,8 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
     return slices_large, slices_small
 
 
-def extract_array(array_large, shape, position, mode='partial', fill_value=np.nan,
-                  return_position=False):
+def extract_array(array_large, shape, position, mode='partial',
+                  fill_value=np.nan, return_position=False):
     """
     Extract smaller array of given shape and position out of a larger array.
 
@@ -142,29 +143,32 @@ def extract_array(array_large, shape, position, mode='partial', fill_value=np.na
     ----------
     array_large : `~numpy.ndarray`
         Array to extract another array from.
-    shape : tuple
-        Shape of the extracted array.
-    position : tuple
+    shape : tuple or int
+        Shape of the extracted array (for 1D arrays, this can be an int).
+    position : tuple of numbers or number
         Position of the small array's center, with respect to the large array.
         Coordinates should be in the same order as the array shape.
+        Integer positions are at the pixel centers. (For 1D arrays, this can be
+        a number.)
     mode : ['partial', 'trim', 'strict']
-        In "partial" and "trim" mode, a partial overlap of the small and the large
-        array is sufficient. In the "strict" mode, the small array has to be
-        fully contained in the large array, otherwise an
-        `~astropy.nddata.utils.PartialOverlapError` is raised. In all modes,
-        non-overlapping arrays will raise a `~astropy.nddata.utils.NoOverlapError`.
-        In "partial" mode, positions in the extracted array, that do not overlap
-        with the original array, will be filled with ``fill_value``. In "trim" mode
-        only the overlapping elements are returned, thus the resulting array may
-        be smaller than requested.
+        In "partial" and "trim" mode, a partial overlap of the small
+        and the large array is sufficient. In the "strict" mode, the
+        small array has to be fully contained in the large array,
+        otherwise an `~astropy.nddata.utils.PartialOverlapError` is
+        raised. In all modes, non-overlapping arrays will raise a
+        `~astropy.nddata.utils.NoOverlapError`.  In "partial" mode,
+        positions in the extracted array, that do not overlap with the
+        original array, will be filled with ``fill_value``. In "trim"
+        mode only the overlapping elements are returned, thus the
+        resulting array may be smaller than requested.
 
     fill_value : object of type array_large.dtype
-        In "partial" mode ``fill_value`` set the values in the extracted array that
-        do not overlap with ``large_array``.
+        In "partial" mode ``fill_value`` set the values in the
+        extracted array that do not overlap with ``large_array``.
 
     return_position : boolean
-        If true, return the coordinates of ``position`` in the coordinate system
-        of the returned array.
+        If true, return the coordinates of ``position`` in the coordinate
+        system of the returned array.
 
     Returns
     -------
@@ -172,11 +176,13 @@ def extract_array(array_large, shape, position, mode='partial', fill_value=np.na
         The extracted array.
 
     new_position : tuple
-        If ``return_position`` is true, this tuple will contain the coordinates
-        of the input ``position`` in the coordinate system of ``array_small``. Note 
-        that for partially overlapping arrays, ``new_position`` might actually be 
-        outside of the ``array_small``; ``array_small[new_position]`` might give 
-        wrong results if any element in ``new_position`` is negative.
+        If ``return_position`` is true, this tuple
+        will contain the coordinates of the input ``position`` in the
+        coordinate system of ``array_small``. Note that for partially
+        overlapping arrays, ``new_position`` might actually be outside
+        of the ``array_small``; ``array_small[new_position]`` might
+        give wrong results if any element in ``new_position`` is
+        negative.
 
     Examples
     --------
