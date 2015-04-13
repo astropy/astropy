@@ -689,3 +689,26 @@ def pytest_unconfigure():
     # turn_off_internet previously called)
     # this is harmless / does nothing if socket connections were never disabled
     turn_on_internet()
+
+
+def pytest_terminal_summary(terminalreporter):
+    """Output a warning to IPython users in case any tests failed."""
+
+    try:
+        get_ipython()
+    except NameError:
+        return
+
+    if not terminalreporter.stats.get('failed'):
+        # Only issue the warning when there are actually failures
+        return
+
+    terminalreporter.ensure_newline()
+    terminalreporter.write_line(
+        'Some tests are known to fail when run from the IPython prompt; '
+        'especially, but not limited to tests involving logging and warning '
+        'handling.  Unless you are certain as to the cause of the failure, '
+        'please check that the failure occurs outside IPython as well.  See '
+        'http://docs.astropy.org/en/stable/known_issues.html#failing-logging-'
+        'tests-when-running-the-tests-in-ipython for more information.',
+        yellow=True, bold=True)
