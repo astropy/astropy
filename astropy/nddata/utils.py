@@ -233,11 +233,11 @@ def block_reduce(data, block_size, func=np.sum):
     >>> import numpy as np
     >>> from astropy.nddata.utils import block_reduce
     >>> data = np.arange(16).reshape(4, 4)
-    >>> block_reduce(data, 2)
+    >>> block_reduce(data, 2)    # doctest: +SKIP
     array([[10, 18],
            [42, 50]])
 
-    >>> block_reduce(data, 2, func=np.mean)
+    >>> block_reduce(data, 2, func=np.mean)    # doctest: +SKIP
     array([[  2.5,   4.5],
            [ 10.5,  12.5]])
     """
