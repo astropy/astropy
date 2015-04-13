@@ -8,6 +8,14 @@ from ...tests.helper import pytest
 from ..utils import (extract_array, add_array, subpixel_indices,
                      block_reduce, block_replicate)
 
+
+try:
+    import skimage
+    HAS_SKIMAGE = True
+except ImportError:
+    HAS_SKIMAGE = False
+
+
 test_positions = [(10.52, 3.12), (5.62, 12.97), (31.33, 31.77),
                   (0.46, 0.94), (20.45, 12.12), (42.24, 24.42)]
 
@@ -76,6 +84,7 @@ def test_subpixel_indices(position, subpixel_index):
     assert np.all(subpixel_indices(position, subsampling) == subpixel_index)
 
 
+@pytest.mark.skipif('not HAS_SKIMAGE')
 class TestBlockReduce(object):
     def test_1d(self):
         """Test 1D array."""
@@ -134,6 +143,7 @@ class TestBlockReduce(object):
             block_reduce(data, (2, 2, 2))
 
 
+@pytest.mark.skipif('not HAS_SKIMAGE')
 class TestBlockReplicate(object):
     def test_1d(self):
         """Test 1D array."""
