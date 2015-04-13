@@ -671,8 +671,13 @@ class OrderedDescriptorContainer(type):
     ...             raise AttributeError(self.name)
     ...
     ...     def __repr__(self):
+    ...         if isinstance(self.type, tuple) and len(self.type) > 1:
+    ...             typestr = '({0})'.format(
+    ...                 ', '.join(t.__name__ for t in self.type))
+    ...         else:
+    ...             typestr = self.type.__name__
     ...         return '<{0}(name={1}, type={2})>'.format(
-    ...             self.__class__.__name__, self.name, self.type)
+    ...                 self.__class__.__name__, self.name, typestr)
     ...
 
     Now let's create an example class that uses this ``TypedAttribute``::
@@ -690,19 +695,18 @@ class OrderedDescriptorContainer(type):
         1.0
         >>> p1.y
         2.0
-        >>> p2 = Point2D('a', 'b')
+        >>> p2 = Point2D('a', 'b')  # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
             ...
-        ValueError: Point2D.x must be of type (<class 'float'>, <class 'int'>)
+        ValueError: Point2D.x must be of type (float, int>)
 
     We see that ``TypedAttribute`` works more or less as advertised, but
     there's nothing special about that.  Let's see what
     `OrderedDescriptorContainer` did for us::
 
         >>> Point2D.typed_attributes
-        OrderedDict([('x', <TypedAttribute(name=x, type=(<class 'float'>, <class
-        'int'>))>), ('y', <TypedAttribute(name=y, type=(<class 'float'>, <class
-        'int'>))>)])
+        OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>),
+        ('y', <TypedAttribute(name=y, type=(float, int))>)])
 
     If we create a subclass, it does *not* by default add inherited descriptors
     to ``typed_attributes``::
@@ -711,8 +715,7 @@ class OrderedDescriptorContainer(type):
         ...     z = TypedAttribute((float, int))
         ...
         >>> Point3D.typed_attributes
-        OrderedDict([('z', <TypedAttribute(name=z, type=(<class 'float'>,
-        <class 'int'>))>)])
+        OrderedDict([('z', <TypedAttribute(name=z, type=(float, int))>)])
 
     However, if we specify ``_inherit_descriptors_`` from ``Point2D`` then
     it will do so::
@@ -722,10 +725,9 @@ class OrderedDescriptorContainer(type):
         ...     z = TypedAttribute((float, int))
         ...
         >>> Point3D.typed_attributes
-        OrderedDict([('x', <TypedAttribute(name=x, type=(<class 'float'>, <class
-        'int'>))>), ('y', <TypedAttribute(name=y, type=(<class 'float'>, <class
-        'int'>))>), ('z', <TypedAttribute(name=z, type=(<class 'float'>, <class
-        'int'>))>)])
+        OrderedDict([('x', <TypedAttribute(name=x, type=(float, int))>),
+        ('y', <TypedAttribute(name=y, type=(float, int))>),
+        ('z', <TypedAttribute(name=z, type=(float, int))>)])
 
     .. note::
 
