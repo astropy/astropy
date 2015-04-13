@@ -403,23 +403,6 @@ int get_header_longlong(PyObject* header, char* keyword, long long* val,
 }
 
 
-void* compression_realloc(void* ptr, size_t size) {
-    // This realloc()-like function actually just mallocs the requested
-    // size and copies from the original memory address into the new one, and
-    // returns the newly malloc'd address.
-    // This is generally less efficient than an actual realloc(), but the
-    // problem with using realloc in this case is that when it succeeds it will
-    // free() the original memory, which may still be in use by the ndarray
-    // using that memory as its data buffer.  This seems like the least hacky
-    // way around that for now.
-    // I'm open to other ideas though.
-    void* tmp;
-    tmp = malloc(size);
-    memcpy(tmp, ptr, size);
-    return tmp;
-}
-
-
 void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
                           tcolumn** columns) {
     // Creates the array of tcolumn structures from the table column keywords
