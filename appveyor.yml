@@ -41,7 +41,7 @@ install:
     - "python --version"
 
     # Install specified version of numpy and dependencies
-    - "conda install -q --yes numpy=%NUMPY_VERSION% pytest Cython scipy h5py beautiful-soup jinja2 pyyaml"
+    - "conda install -q --yes numpy=%NUMPY_VERSION% pytest Cython scipy h5py beautiful-soup jinja2 pyyaml scikit-image"
 
 # Not a .NET project, we build SunPy in the install step instead
 build: false
