@@ -441,7 +441,10 @@ void tcolumns_from_header(fitsfile* fileptr, PyObject* header,
 
     get_header_int(header, "TFIELDS", &tfields, 0);
 
-    *columns = column = PyMem_New(tcolumn, (size_t) tfields);
+    // This used to use PyMem_New, but don't do that; CFITSIO will later
+    // free() this object when the file is closed, so just use malloc here
+    // *columns = column = PyMem_New(tcolumn, (size_t) tfields);
+    *columns = column = calloc((size_t) tfields, sizeof(tcolumn));
     if (column == NULL) {
         return;
     }
@@ -1080,10 +1083,15 @@ PyObject* compression_decompress_hdu(PyObject* self, PyObject* args)
     }
 
 fail:
+    // CFITSIO will free this object in the ffchdu function by way of
+    // fits_close_file; we need to let CFITSIO handle this so that it also
+    // cleans up the compressed tile cache
+    /*
     if (columns != NULL) {
         PyMem_Free(columns);
         fileptr->Fptr->tableptr = NULL;
     }
+    */
 
     if (fileptr != NULL) {
         status = 1;// Disable header-related errors
