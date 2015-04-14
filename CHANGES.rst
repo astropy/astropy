@@ -183,7 +183,6 @@ Bug fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 1.0.2 (unreleased)
 ------------------
 

@@ -33,6 +33,35 @@ def test_sun():
     gcrs2 = get_sun(Time([northern_summer_solstice, equinox_2, northern_winter_solstice]))
     assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)
 
+def test_sun_02():
+    """
+    Test that `astropy.coordinates.get_sun` produces similar values to `skyfield <https://github.com/brandon-rhodes/python-skyfield>`_ (de421).
+
+    Commands to produce skyfield values:
+
+    from skyfield.api import sun, earth
+    from skyfield.units import Angle
+
+    apparent_gcrs = earth(utc=(2010,6,21)).observe(sun).apparent().radec()
+
+    skyf_ra_apparent = Angle(apparent_gcrs[0]).degrees
+    skyf_dec_apparent = Angle(apparent_gcrs[1]).degrees
+    skyf_dist_apparent = apparent_gcrs[2].AU
+    """
+    from ..funcs import get_sun
+    from numpy.testing import assert_allclose
+
+    test_time = Time('2010-6-21')
+    test_gcrs = get_sun(test_time)
+    
+    skyf_ra_apparent = 89.338458132829359
+    skyf_dec_apparent = 23.436389712068134 
+    skyf_dist_apparent = 1.016198586488303
+
+    assert_allclose(test_gcrs.ra.deg, skyf_ra_apparent, atol=0.01, err_msg='get_sun and Skyfield RAs not within 1%')
+    assert_allclose(test_gcrs.dec.deg, skyf_dec_apparent, atol=0.001, err_msg='get_sun and Skyfield Decs not within 0.1%')
+    assert_allclose(test_gcrs.distance.AU, skyf_dist_apparent, atol=0.001, err_msg='get_sun and Skyfield distances not within 0.1%')
+
 def test_concatenate():
     from .. import FK5, SkyCoord
     from ..funcs import concatenate
