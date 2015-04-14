@@ -1251,7 +1251,7 @@ class SAMPHubServer(object):
     def _retry_method(self, recipient_private_key, recipient_public_id, samp_method_name, arg_params):
         """
         This method is used to retry a SAMP call several times.
-        
+
         Parameters
         ----------
         recipient_private_key
