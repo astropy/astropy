@@ -2125,8 +2125,7 @@ det2im : A pair of `~astropy.wcs.DistortionLookupTable` objects, or
 Wcsprm = """
 Wcsprm(header=None, key=' ', relax=False, naxis=2, keysel=0, colsel=None)
 
-`~astropy.wcs.Wcsprm` is a direct wrapper around `wcslib`_.  It
-provides access to the core WCS transformations that it supports.
+`~astropy.wcs.Wcsprm` performs the core WCS transformations.
 
 .. note::
     The members of this object correspond roughly to the key/value
