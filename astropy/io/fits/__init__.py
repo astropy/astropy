@@ -28,7 +28,8 @@ class Conf(_config.ConfigNamespace):
     enable_record_valued_keyword_cards = _config.ConfigItem(
         True,
         'If True, enable support for record-valued keywords as described by '
-        'FITS WCS Paper IV. Otherwise they are treated as normal keywords.',
+        'FITS WCS distortion paper. Otherwise they are treated as normal '
+        'keywords.',
         aliases=['astropy.io.fits.enabled_record_valued_keyword_cards'])
     extension_name_case_sensitive = _config.ConfigItem(
         False,
