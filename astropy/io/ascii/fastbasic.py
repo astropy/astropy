@@ -78,6 +78,8 @@ class FastBasic(object):
         elif 'data_Splitter' in self.kwargs or 'header_Splitter' in self.kwargs:
             raise core.ParameterError("The C reader does not use a Splitter class")
 
+        self.strict_names = self.kwargs.pop('strict_names', False)
+
         self.engine = cparser.CParser(table, self.strip_whitespace_lines,
                                       self.strip_whitespace_fields,
                                       delimiter=self.delimiter,
@@ -107,7 +109,7 @@ class FastBasic(object):
             # Impose strict requirements on column names (normally used in guessing)
             bads = [" ", ",", "|", "\t", "'", '"']
             for name in self.engine.get_names():
-                if (_is_number(name) or
+                if (core._is_number(name) or
                     len(name) == 0 or
                     name[0] in bads or
                     name[-1] in bads):
@@ -115,7 +117,7 @@ class FastBasic(object):
                                      .format(name))
         # When guessing require at least two columns
         if self.guessing and len(self.engine.get_names()) <= 1:
-            raise ValueError
+            raise ValueError('Strict name guessing requires at least two columns')
 
     def write(self, table, output):
         """
