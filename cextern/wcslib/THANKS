@@ -23,6 +23,7 @@ Michael Droettboom (STScI)
 Rick Ebert (IPAC/NASA)
 Ken Ebisawa (GSFC/NASA)
 Sébastien Fabbro (Gentoo linux maintainer)
+Octavi Fors (U. North Carolina)
 Bob Garwood (NRAO)
 Brian Glendenning (NRAO)
 Eric Greisen (NRAO)
@@ -45,6 +46,7 @@ Lars Kristian Lundin (ESO)
 Robert Lupton (Princeton U.)
 Craig Markwardt (GSFC/NASA)
 Malte Marquarding (ATNF/CSIRO)
+Jean-Baptiste Marquette (IAP)
 Tom Marsh (U. Warwick)
 Sean Mattingly (IPAC/NASA)
 Dave McConnell (ATNF/CSIRO)
@@ -83,4 +85,4 @@ Daren Scot Wilson (NRAO)
 Tony Wong (ATNF/CSIRO)
 
 
-$Id: THANKS,v 4.25 2014/12/14 14:29:38 mcalabre Exp $
+$Id: THANKS,v 5.2 2015/04/15 12:35:09 mcalabre Exp $
