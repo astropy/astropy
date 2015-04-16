@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 .. _wcslib: http://www.atnf.csiro.au/~mcalabre/WCS/
-.. _FITS WCS standard: http://www.atnf.csiro.au/people/mcalabre/WCS/index.html
+.. _FITS WCS standard: http://fits.gsfc.nasa.gov/fits_wcs.html
 .. _distortion paper: http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
 .. _SIP: http://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
 
