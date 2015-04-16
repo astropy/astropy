@@ -1,271 +1,13 @@
-1.1 (unreleased)
-----------------
-
-New Features
-^^^^^^^^^^^^
-
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-  - Add Planck 2015 cosmology [#3476]
-
-- ``astropy.io.ascii``
-
-  - Automatically use ``guess=False`` when reading if the file ``format`` is
-    provided and the format parameters are uniquely specified.  This update
-    also removes duplicate format guesses to improve performance. [#3418]
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.votable``
-
-- ``astropy.logger.py``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-  - ``add_column()`` and ``add_columns()`` now have ``rename_duplicate``
-    option to rename new column(s) rather than raise exception when its name
-    already exists. [#3592]
-
-- ``astropy.tests``
-
-- ``astropy.time``
-
-  - Add support for FITS standard time strings. [#3547]
-
-- ``astropy.units``
-
-  - Added furlong to imperial units. [#3529]
-
-- ``astropy.utils``
-
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API changes
-^^^^^^^^^^^
-
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.votable``
-
-- ``astropy.logger.py``
-
-- ``astropy.modeling``
-
-  - Renamed the parameters of ``RotateNative2Celestial`` and
-    ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
-    ``lon``, ``lat`` and ``lon_pole``. [#3578]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.tests``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Bug fixes
-^^^^^^^^^
-
-- ``astropy.analytic_functions``
-
-- ``astropy.config``
-
-- ``astropy.conftest.py``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-  - Fix a segfault in the fast C parser when one of the column headers
-    is empty [#3545].
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.votable``
-
-- ``astropy.logger.py``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.tests``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.visualization``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-Other Changes and Additions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
 1.0.2 (unreleased)
 ------------------
 
 New Features
 ^^^^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - Added support for polynomials with degree 0 or degree greater than 15.
     [#3574, 3589]
-
-  - Added workaround to support inverses on compound models when one of the
-    sub-models is itself a compound model with a manually-assigned custom
-    inverse. [#3542]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
 
 Bug Fixes
 ^^^^^^^^^
@@ -274,16 +16,6 @@ Bug Fixes
 
   - The pre-astropy-0.4 configuration API has been fixed. It was
     inadvertently broken in 1.0.1. [#3627]
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
@@ -306,10 +38,6 @@ Bug Fixes
     ``FITS_rec`` created by copying an existing FITS table but adding new rows
     could not be sliced or masked correctly.  [#3641]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
 - ``astropy.io.votable``
 
   - Loading a ``TABLE`` element without any ``DATA`` now correctly
@@ -317,15 +45,15 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Added workaround to support inverses on compound models when one of the
+    sub-models is itself a compound model with a manually-assigned custom
+    inverse. [#3542]
+
   - Fixed instantiation of polynomial models with constraints for parameters
     (constraints could still be assigned after instantiation, but not during).
     [#3606]
 
   - Fixed fitting of 2D polynomial models with the ``LeVMarLSQFitter``. [#3606]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -353,8 +81,6 @@ Bug Fixes
     ``\overset{\circ}{A}`` to ``\mathring{A}``, which should have
     better support across regular LaTeX, MathJax and matplotlib (as of
     version 1.5) [#3617]
-
-- ``astropy.utils``
 
 - ``astropy.vo``
 
