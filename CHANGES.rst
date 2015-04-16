@@ -134,6 +134,28 @@ New Features
 - ``astropy.wcs``
 
   - Enhanced text representation of ``WCS`` objects. [#3604]
+  - The included version of wcslib has been upgraded to 5.2.  The
+    minimum required version of wcslib remains 4.24.  The changes
+    relevant to astropy are:
+
+    - ``astropy.wcs.WCS`` now recognises the ``TPV`` projection
+      proposed in an early draft of WCS Paper II, and translates it
+      into a distortion - by request of Octavi Fors.  Additionally, it
+      recognises ``TPU`` as equivalent to ``TPV`` but using a prior
+      distortion (coming before the linear transformation matrix)
+      rather than sequent (coming after it).
+
+    - Added relaxation flags to allow ``PC0i_0ja``, ``PV0j_0ma``, and
+      ``PS0j_0ma`` (i.e. with leading zeroes on the index).
+
+    - Tidied up error reporting, particularly relating to translating
+      status returns from lower-level functions.
+
+    - Changed output formatting of floating point values in
+      ``to_header``.
+
+    - New method ``astropy.wcs.Wcsprm.linwarp`` to compute statistics
+      of the distortion functions over a specified domain.
 
 .. _astroML: http://astroML.org
 
