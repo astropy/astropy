@@ -192,93 +192,10 @@ Other Changes and Additions
 New Features
 ^^^^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
 
   - Added support for polynomials with degree 0 or degree greater than 15.
     [#3574, 3589]
-
-  - Added workaround to support inverses on compound models when one of the
-    sub-models is itself a compound model with a manually-assigned custom
-    inverse. [#3542]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
 
 Bug Fixes
 ^^^^^^^^^
@@ -287,16 +204,6 @@ Bug Fixes
 
   - The pre-astropy-0.4 configuration API has been fixed. It was
     inadvertently broken in 1.0.1. [#3627]
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
 
 - ``astropy.io.fits``
 
@@ -319,10 +226,6 @@ Bug Fixes
     could not be sliced or masked correctly.  [#3641]
   - Fixed handling of BINTABLE with TDIMn of size 1. [#3580]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
 - ``astropy.io.votable``
 
   - Loading a ``TABLE`` element without any ``DATA`` now correctly
@@ -330,15 +233,15 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Added workaround to support inverses on compound models when one of the
+    sub-models is itself a compound model with a manually-assigned custom
+    inverse. [#3542]
+
   - Fixed instantiation of polynomial models with constraints for parameters
     (constraints could still be assigned after instantiation, but not during).
     [#3606]
 
   - Fixed fitting of 2D polynomial models with the ``LeVMarLSQFitter``. [#3606]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
 
 - ``astropy.table``
 
@@ -365,8 +268,6 @@ Bug Fixes
     ``\overset{\circ}{A}`` to ``\mathring{A}``, which should have
     better support across regular LaTeX, MathJax and matplotlib (as of
     version 1.5) [#3617]
-
-- ``astropy.utils``
 
 - ``astropy.vo``
 
