@@ -35,9 +35,9 @@ Does the following:
 
     - SIP distortion correction (optionally)
 
-    - Paper IV distortion correction (optionally)
+    - FITS WCS distortion correction (optionally)
 
-    - wcslib WCS transformation
+    - wcslib "core" WCS transformation
 
 The first three (the distortion corrections) are done in parallel.
 
@@ -585,7 +585,7 @@ The dimensions of the tabular array
 DistortionLookupTable = """
 DistortionLookupTable(*table*, *crpix*, *crval*, *cdelt*)
 
-Represents a single lookup table for a `Paper IV`_ distortion
+Represents a single lookup table for a `distortion paper`_
 transformation.
 
 Parameters
@@ -1317,8 +1317,8 @@ astropy.wcs.Wcsprm.lat, astropy.wcs.Wcsprm.lng
 p4_pix2foc = """
 p4_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 
-Convert pixel coordinates to focal plane coordinates using `Paper IV`_
-lookup-table distortion correction.
+Convert pixel coordinates to focal plane coordinates using `distortion
+paper`_ lookup-table correction.
 
 Parameters
 ----------
@@ -1385,7 +1385,7 @@ astropy.wcs.Wcsprm.theta0
 pix2foc = """
 pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 
-Perform both `SIP`_ polynomial and `Paper IV`_ lookup-table distortion
+Perform both `SIP`_ polynomial and `distortion paper`_ lookup-table
 correction in parallel.
 
 Parameters
@@ -2104,7 +2104,7 @@ Wcs = """
 Wcs(*sip, cpdis, wcsprm, det2im*)
 
 Wcs objects amalgamate basic WCS (as provided by `wcslib`_), with
-`SIP`_ and `Paper IV`_ distortion operations.
+`SIP`_ and `distortion paper`_ operations.
 
 To perform all distortion corrections and WCS transformation, use
 ``all_pix2world``.
@@ -2125,8 +2125,7 @@ det2im : A pair of `~astropy.wcs.DistortionLookupTable` objects, or
 Wcsprm = """
 Wcsprm(header=None, key=' ', relax=False, naxis=2, keysel=0, colsel=None)
 
-`~astropy.wcs.Wcsprm` is a direct wrapper around `wcslib`_.  It
-provides access to the core WCS transformations that it supports.
+`~astropy.wcs.Wcsprm` performs the core WCS transformations.
 
 .. note::
     The members of this object correspond roughly to the key/value

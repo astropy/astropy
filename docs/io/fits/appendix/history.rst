@@ -748,7 +748,7 @@ Bug Fixes
 - Fixed a crash when generating diff reports from diffs using the
   ``ignore_comments`` options. (#181)
 
-- Fixed some bugs with WCS Paper IV record-valued keyword cards:
+- Fixed some bugs with FITS WCS distortion paper record-valued keyword cards:
 
   - Cards that looked kind of like RVKCs but were not intended to be were
     over-permissively treated as such--commentary keywords like COMMENT and
@@ -2384,7 +2384,7 @@ The following enhancements were made:
     an underlying file object on which the function will be performed.
 
 - Added support for record-valued keyword cards as introduced in the "FITS WCS
-  Paper IV proposal for representing a more general distortion model".
+  proposal for representing a more general distortion model".
 
   - Record-valued keyword cards are string-valued cards where the string is
     interpreted as a definition giving a record field name, and its floating

@@ -6,9 +6,9 @@ World Coordinate System (`astropy.wcs`)
 ***************************************
 
 .. _wcslib: http://www.atnf.csiro.au/~mcalabre/WCS/
-.. _Paper IV: http://www.atnf.csiro.au/people/mcalabre/WCS/index.html
+.. _FITS WCS standard: http://fits.gsfc.nasa.gov/fits_wcs.html
+.. _distortion paper: http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
 .. _SIP: http://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
-.. _ds9: http://hea-www.harvard.edu/RD/ds9/
 
 Introduction
 ============
@@ -16,11 +16,19 @@ Introduction
 `astropy.wcs` contains utilities for managing World Coordinate System
 (WCS) transformations in FITS files.  These transformations map the
 pixel locations in an image to their real-world units, such as their
-position on the sky sphere.
+position on the sky sphere.  These transformations can work both
+forward (from pixel to sky) and backward (from sky to pixel).
 
-It is at its base a wrapper around Mark Calabretta's `wcslib`_, but
-also adds support for the Simple Imaging Polynomial (`SIP`_)
-convention and table lookup distortions as defined in WCS `Paper IV`_.
+It performs three separate classes of WCS transformations:
+
+- Core WCS, as defined in the `FITS WCS standard`_, based on Mark
+  Calabretta's `wcslib`_.
+
+- Simple Imaging Polynomial (`SIP`_) convention.
+
+- table lookup distortions as defined in the FITS WCS `distortion
+  paper`_.
+
 Each of these transformations can be used independently or together in
 a standard pipeline.
 
@@ -32,7 +40,8 @@ The basic workflow is as follows:
     1. ``from astropy import wcs``
 
     2. Call the `~astropy.wcs.WCS` constructor with an
-       `astropy.io.fits` header and/or hdulist object.
+       `astropy.io.fits` `~astropy.io.fits.Header` and/or
+       `~astropy.io.fits.HDUList` object.
 
     3. Optionally, if the FITS file uses any deprecated or
        non-standard features, you may need to call one of the
@@ -41,14 +50,16 @@ The basic workflow is as follows:
     4. Use one of the following transformation methods:
 
        - `~astropy.wcs.wcs.WCS.all_pix2world`: Perform all three
-         transformations from pixel to world coordinates.
+         transformations (core WCS, SIP and table lookup distortions)
+         from pixel to world coordinates.
 
        - `~astropy.wcs.wcs.WCS.wcs_pix2world`: Perform just the core
          WCS transformation from pixel to world coordinates.
 
        - `~astropy.wcs.wcs.WCS.all_world2pix`: Perform all three
-         transformations from world to pixel coordinates, using an
-         iterative method if necessary.
+         transformations (core WCS, SIP and table lookup distortions)
+         from world to pixel coordinates, using an iterative method if
+         necessary.
 
        - `~astropy.wcs.wcs.WCS.wcs_world2pix`: Perform just the core
          WCS transformation from world to pixel coordinates.
@@ -63,7 +74,7 @@ The basic workflow is as follows:
 
        - `~astropy.wcs.wcs.WCS.p4_pix2foc`: Convert from pixel to
          focal plane coordinates using the table lookup distortion
-         method described in `Paper IV`_.
+         method described in the FITS WCS `distortion paper`_.
 
        - `~astropy.wcs.wcs.WCS.det2im`: Convert from detector
          coordinates to image coordinates.  Commonly used for narrow
@@ -98,6 +109,14 @@ saves those settings to a new FITS header.
 
 .. literalinclude:: examples/programmatic.py
    :language: python
+
+.. note::
+    The members of the WCS object correspond roughly to the key/value
+    pairs in the FITS header.  However, they are adjusted and
+    normalized in a number of ways that make performing the WCS
+    transformation easier.  Therefore, they can not be relied upon to
+    get the original values in the header.  To build up a FITS header
+    directly and specifically, use `astropy.io.fits.Header` directly.
 
 .. _wcslint:
 
@@ -137,10 +156,10 @@ Supported projections
 =====================
 
 As `astropy.wcs` is based on `wcslib`_, it supports the standard
-projections defined in the WCS papers.  These projection codes are
-specified in the second part of the ``CUNITn`` keywords (accessible
-through `Wcsprm.cunit <astropy.wcs.Wcsprm.cunit>`), for example,
-``RA-TAN-SIP``.  The supported projection codes are:
+projections defined in the `FITS WCS standard`_.  These projection
+codes are specified in the second part of the ``CTYPEn`` keywords
+(accessible through `Wcsprm.ctype <astropy.wcs.Wcsprm.ctype>`), for
+example, ``RA---TAN-SIP``.  The supported projection codes are:
 
 - ``AZP``: zenithal/azimuthal perspective
 - ``SZP``: slant zenithal perspective
@@ -203,8 +222,6 @@ Other information
    relax
    history
 
-
-
 See Also
 ========
 
@@ -220,5 +237,5 @@ Reference/API
 Acknowledgments and Licenses
 ============================
 
-wcslib is licenced under the `GNU Lesser General Public License
+`wcslib`_ is licenced under the `GNU Lesser General Public License
 <http://www.gnu.org/licenses/lgpl.html>`_.
