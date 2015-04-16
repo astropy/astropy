@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.2 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: sph.c,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: sph.c,v 5.2 2015/04/15 12:35:07 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -47,7 +47,7 @@ int sphx2s(
   double lat[])
 
 {
-  int mphi, mtheta, rowlen, rowoff;
+  int jphi, mphi, mtheta, rowlen, rowoff;
   double cosphi, costhe, costhe3, costhe4, dlng, dphi, sinphi, sinthe,
          sinthe3, sinthe4, x, y, z;
   register int iphi, itheta;
@@ -69,12 +69,13 @@ int sphx2s(
     if (eul[1] == 0.0) {
       dlng = fmod(eul[0] + 180.0 - eul[2], 360.0);
 
-      lngp = lng;
-      latp = lat;
-      phip   = phi;
+      jphi   = 0;
       thetap = theta;
-      for (itheta = 0; itheta < ntheta; itheta++) {
-        for (iphi = 0; iphi < mphi; iphi++) {
+      lngp   = lng;
+      latp   = lat;
+      for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+        phip = phi + jphi%nphi;
+        for (iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
           *lngp = *phip + dlng;
           *latp = *thetap;
 
@@ -93,20 +94,19 @@ int sphx2s(
 
           lngp   += sll;
           latp   += sll;
-          phip   += spt;
-          thetap += spt;
         }
       }
 
     } else {
       dlng = fmod(eul[0] + eul[2], 360.0);
 
-      lngp = lng;
-      latp = lat;
-      phip   = phi;
+      jphi   = 0;
       thetap = theta;
-      for (itheta = 0; itheta < ntheta; itheta++) {
-        for (iphi = 0; iphi < mphi; iphi++) {
+      lngp   = lng;
+      latp   = lat;
+      for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+        phip = phi + jphi%nphi;
+        for (iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
           *lngp = dlng - *phip;
           *latp = -(*thetap);
 
@@ -125,8 +125,6 @@ int sphx2s(
 
           lngp   += sll;
           latp   += sll;
-          phip   += spt;
-          thetap += spt;
         }
       }
     }
@@ -232,7 +230,7 @@ int sphs2x(
   double theta[])
 
 {
-  int mlat, mlng, rowlen, rowoff;
+  int jlng, mlat, mlng, rowlen, rowoff;
   double coslat, coslat3, coslat4, coslng, dlng, dphi, sinlat, sinlat3,
          sinlat4, sinlng, x, y, z;
   register int ilat, ilng;
@@ -254,12 +252,13 @@ int sphs2x(
     if (eul[1] == 0.0) {
       dphi = fmod(eul[2] - 180.0 - eul[0], 360.0);
 
-      lngp = lng;
-      latp = lat;
+      jlng   = 0;
+      latp   = lat;
       phip   = phi;
       thetap = theta;
-      for (ilat = 0; ilat < nlat; ilat++) {
-        for (ilng = 0; ilng < mlng; ilng++) {
+      for (ilat = 0; ilat < nlat; ilat++, latp += sll) {
+        lngp = lng + jlng%nlng;
+        for (ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
           *phip = fmod(*lngp + dphi, 360.0);
           *thetap = *latp;
 
@@ -272,20 +271,19 @@ int sphs2x(
 
           phip   += spt;
           thetap += spt;
-          lngp   += sll;
-          latp   += sll;
         }
       }
 
     } else {
       dphi = fmod(eul[2] + eul[0], 360.0);
 
-      lngp = lng;
-      latp = lat;
+      jlng   = 0;
+      latp   = lat;
       phip   = phi;
       thetap = theta;
-      for (ilat = 0; ilat < nlat; ilat++) {
-        for (ilng = 0; ilng < mlng; ilng++) {
+      for (ilat = 0; ilat < nlat; ilat++, latp += sll) {
+        lngp = lng + jlng%nlng;
+        for (ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
           *phip = fmod(dphi - *lngp, 360.0);
           *thetap = -(*latp);
 
@@ -298,8 +296,6 @@ int sphs2x(
 
           phip   += spt;
           thetap += spt;
-          lngp   += sll;
-          latp   += sll;
         }
       }
     }
