@@ -51,7 +51,7 @@ Other Tips
 ----------
 
 - When contributing trivial documentation fixes (i.e. fixes to typos, spelling,
-  grammar) that do contain any special markup and are not associated with code
+  grammar) that do not contain any special markup and are not associated with code
   changes, include the string "[skip ci]" at the end of your commit message.
   For example:
 
