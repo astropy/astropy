@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.2 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: prj.h,v 5.2 2015/04/15 12:35:07 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.25 - C routines that implement the spherical map projections
+* WCSLIB 5.2 - C routines that implement the spherical map projections
 * recognized by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -486,6 +486,9 @@
 *     to suit each projection.  bounds is set to 7 by prjini() by default
 *     which enables all checks.  Zero it to disable all checking.
 *
+*     It is not necessary to reset the prjprm struct (via prjset() or
+*     ???set()) when prjprm::bounds is changed.
+*
 * The remaining members of the prjprm struct are maintained by the setup
 * routines and must not be modified elsewhere:
 *
@@ -557,7 +560,7 @@
 *     (phi_0,theta_0).
 *
 *   struct wcserr *err
-*     (Returned) If enabled, when an error status is returned this struct
+*     (Returned) If enabled, when an error status is returned, this struct
 *     contains detailed information about the error, see wcserr_enable().
 *
 *   void *padding
@@ -575,7 +578,7 @@
 *     projections).
 *
 *   int (*prjx2s)(PRJX2S_ARGS)
-*     (Returned) Pointer to the projection ...
+*     (Returned) Pointer to the spherical projection ...
 *   int (*prjs2x)(PRJ_ARGS)
 *     (Returned) ... and deprojection routines.
 *
@@ -588,8 +591,6 @@
 
 #ifndef WCSLIB_PROJ
 #define WCSLIB_PROJ
-
-#include "wcserr.h"
 
 #ifdef __cplusplus
 extern "C" {

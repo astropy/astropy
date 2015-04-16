@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.2 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: spc.c,v 5.2 2015/04/15 12:35:07 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -68,6 +68,17 @@ const char *spc_errmsg[] = {
   "One or more of x coordinates were invalid",
   "One or more of the spec coordinates were invalid"};
 
+/* Map error returns for lower-level routines.  SPXERR_BAD_INSPEC_COORD */
+/* maps to either SPCERR_BAD_X or SPCERR_BAD_SPEC depending on context. */
+const int spc_spxerr[] = {
+
+  SPCERR_SUCCESS,		/*  0: SPXERR_SUCCESS          */
+  SPCERR_NULL_POINTER,		/*  1: SPXERR_NULL_POINTER     */
+  SPCERR_BAD_SPEC_PARAMS,	/*  2: SPXERR_BAD_SPEC_PARAMS  */
+  SPCERR_BAD_SPEC_PARAMS	/*  3: SPXERR_BAD_SPEC_VAR     */
+				/*  4: SPXERR_BAD_INSPEC_COORD */
+};
+
 /* Convenience macro for invoking wcserr_set(). */
 #define SPC_ERRMSG(status) WCSERR_SET(status), spc_errmsg[status]
 
@@ -112,7 +123,7 @@ int spcini(struct spcprm *spc)
   spc->spxS2P = 0x0;
   spc->spxP2X = 0x0;
 
-  return SPCERR_SUCCESS;
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -127,7 +138,7 @@ int spcfree(struct spcprm *spc)
     spc->err = 0x0;
   }
 
-  return SPCERR_SUCCESS;
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -146,7 +157,7 @@ int spcprt(const struct spcprm *spc)
   if (undefined(spc->crval)) {
     wcsprintf("      crval: UNDEFINED\n");
   } else {
-    wcsprintf("      crval: %- 11.4g\n", spc->crval);
+    wcsprintf("      crval: %#- 11.5g\n", spc->crval);
   }
   wcsprintf("    restfrq: %f\n", spc->restfrq);
   wcsprintf("    restwav: %f\n", spc->restwav);
@@ -157,7 +168,7 @@ int spcprt(const struct spcprm *spc)
       if (undefined(spc->pv[i])) {
         wcsprintf("  UNDEFINED   ");
       } else {
-        wcsprintf("  %- 11.4g", spc->pv[i]);
+        wcsprintf("  %#- 11.5g", spc->pv[i]);
       }
     }
     wcsprintf("\n            ");
@@ -165,7 +176,7 @@ int spcprt(const struct spcprm *spc)
       if (undefined(spc->pv[i])) {
         wcsprintf("  UNDEFINED   ");
       } else {
-        wcsprintf("  %- 11.4g", spc->pv[i]);
+        wcsprintf("  %#- 11.5g", spc->pv[i]);
       }
     }
     wcsprintf("\n");
@@ -176,12 +187,12 @@ int spcprt(const struct spcprm *spc)
 
   wcsprintf("          w:");
   for (i = 0; i < 3; i++) {
-    wcsprintf("  %- 11.4g", spc->w[i]);
+    wcsprintf("  %#- 11.5g", spc->w[i]);
   }
   if (spc->isGrism) {
     wcsprintf("\n            ");
     for (i = 3; i < 6; i++) {
-      wcsprintf("  %- 11.4g", spc->w[i]);
+      wcsprintf("  %#- 11.5g", spc->w[i]);
     }
     wcsprintf("\n");
   } else {
@@ -204,7 +215,7 @@ int spcprt(const struct spcprm *spc)
   wcsprintf("     spxP2X: %s\n",
     wcsutil_fptr2str((int (*)(void))spc->spxP2X, hext));
 
-  return SPCERR_SUCCESS;
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -493,7 +504,7 @@ int spcset(struct spcprm *spc)
     spc->w[5] = 1.0 / t;
   }
 
-  return SPCERR_SUCCESS;
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -510,7 +521,7 @@ int spcx2s(
 {
   static const char *function = "spcx2s";
 
-  int statP2S, status = SPCERR_SUCCESS, statX2P;
+  int statP2S, status = 0, statX2P;
   double beta;
   register int ix;
   register int *statp;
@@ -555,7 +566,7 @@ int spcx2s(
         return wcserr_set(WCSERR_SET(SPCERR_BAD_SPEC_PARAMS),
           "Invalid spectral parameters: Frequency or wavelength is 0");
       } else {
-        return wcserr_set(SPC_ERRMSG(statX2P));
+        return wcserr_set(SPC_ERRMSG(spc_spxerr[statX2P]));
       }
     }
   }
@@ -571,7 +582,7 @@ int spcx2s(
         return wcserr_set(WCSERR_SET(SPCERR_BAD_SPEC_PARAMS),
           "Invalid spectral parameters: Frequency or wavelength is 0");
       } else {
-        return wcserr_set(SPC_ERRMSG(statP2S));
+        return wcserr_set(SPC_ERRMSG(spc_spxerr[statP2S]));
       }
     }
   }
@@ -596,7 +607,7 @@ int spcs2x(
 {
   static const char *function = "spcs2x";
 
-  int statP2X, status = SPCERR_SUCCESS, statS2P;
+  int statP2X, status = 0, statS2P;
   double beta, s;
   register int ispec;
   register int *statp;
@@ -622,7 +633,7 @@ int spcs2x(
         return wcserr_set(WCSERR_SET(SPCERR_BAD_SPEC_PARAMS),
           "Invalid spectral parameters: Frequency or wavelength is 0");
       } else {
-        return wcserr_set(SPC_ERRMSG(statS2P));
+        return wcserr_set(SPC_ERRMSG(spc_spxerr[statS2P]));
       }
     }
 
@@ -648,7 +659,7 @@ int spcs2x(
         return wcserr_set(WCSERR_SET(SPCERR_BAD_SPEC_PARAMS),
           "Invalid spectral parameters: Frequency or wavelength is 0");
       } else {
-        return wcserr_set(SPC_ERRMSG(statP2X));
+        return wcserr_set(SPC_ERRMSG(spc_spxerr[statP2X]));
       }
     }
   }
@@ -864,7 +875,7 @@ int spctype(
   if (restreq) *restreq = restreq_t;
 
 
-  return SPCERR_SUCCESS;
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -914,7 +925,7 @@ int spcspxe(
     return status;
   }
 
-  if (strstr("LT", xtype)) {
+  if (strchr("LT", (int)(*xtype))) {
     /* Can't handle logarithmic or tabular coordinates. */
     return wcserr_set(WCSERR_SET(SPCERR_BAD_SPEC_PARAMS),
       "Can't handle logarithmic or tabular coordinates");
@@ -930,10 +941,11 @@ int spcspxe(
   strcpy(type, stype);
   spx.err = (err ? *err : 0x0);
   if ((status = specx(type, crvalS, restfrq, restwav, &spx))) {
-    status = SPCERR_BAD_SPEC_PARAMS;
+    status = spc_spxerr[status];
     if (err) {
-      *err = spx.err;
-      (*err)->status = status;
+      if ((*err = spx.err)) {
+        (*err)->status = status;
+      }
     } else {
       free(spx.err);
     }
@@ -1037,7 +1049,7 @@ int spcspxe(
 
   *dXdS = dXdP * dPdS;
 
-  return SPCERR_SUCCESS;
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1086,7 +1098,7 @@ int spcxpse(
     return status;
   }
 
-  if (strstr("LT", xtype)) {
+  if (strchr("LT", (int)(*xtype))) {
     /* Can't handle logarithmic or tabular coordinates. */
     return wcserr_set(WCSERR_SET(SPCERR_BAD_SPEC_PARAMS),
       "Can't handle logarithmic or tabular coordinates");
@@ -1111,10 +1123,11 @@ int spcxpse(
 
   spx.err = (err ? *err : 0x0);
   if (specx(type, crvalX, restfrq, restwav, &spx)) {
-    status = SPCERR_BAD_SPEC_PARAMS;
+    status = spc_spxerr[status];
     if (err) {
-      *err = spx.err;
-      (*err)->status = status;
+      if ((*err = spx.err)) {
+        (*err)->status = status;
+      }
     } else {
       free(spx.err);
     }
@@ -1213,7 +1226,7 @@ int spcxpse(
 
   *dSdX = dSdP * dPdX;
 
-  return SPCERR_SUCCESS;
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1309,7 +1322,7 @@ int spctrne(
 
   *cdeltS2 = dS2dX * dXdS1 * cdeltS1;
 
-  return SPCERR_SUCCESS;
+  return 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1351,14 +1364,14 @@ int spcaips(
       }
 
       *fcode = '\0';
-      status = SPCERR_SUCCESS;
+      status = 0;
     }
 
     /* VELREF takes precedence if present. */
     ivf = velref%256;
     if (0 < ivf && ivf <= 7) {
       strcpy(specsys, frames[ivf-1]);
-      status = SPCERR_SUCCESS;
+      status = 0;
     } else if (ivf) {
       status = SPCERR_BAD_SPEC_PARAMS;
     }
@@ -1380,7 +1393,7 @@ int spcaips(
       /* Uniform in frequency but expressed as an optical velocity (strictly
          we should also have found an AIPS-convention Doppler frame). */
       strcpy(ctype, "VOPT-F2W");
-      if (status < 0) status = SPCERR_SUCCESS;
+      if (status < 0) status = 0;
     }
   }
 
