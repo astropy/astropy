@@ -9,7 +9,7 @@ parts of the transformation:
    - `~astropy.wcs.Sip`: Handles polynomial distortion as defined in the
      `SIP`_ convention.
 
-   - `~astropy.wcs.DistortionLookupTable`: Handles `Paper IV`_ distortion
+   - `~astropy.wcs.DistortionLookupTable`: Handles `distortion paper`_
      lookup tables.
 
 Additionally, the class `WCS` aggregates all of these transformations
@@ -21,7 +21,7 @@ together in a pipeline:
    - `SIP`_ distortion correction (by an underlying `~astropy.wcs.Sip`
      object)
 
-   - `Paper IV`_ table-lookup distortion correction (by a pair of
+   - `distortion paper`_ table-lookup correction (by a pair of
      `~astropy.wcs.DistortionLookupTable` objects).
 
    - `wcslib`_ WCS transformation (by a `~astropy.wcs.Wcsprm` object)
@@ -194,10 +194,9 @@ class FITSFixedWarning(AstropyWarning):
 
 
 class WCS(WCSBase):
-    """
-    WCS objects perform standard WCS transformations, and correct for
-    `SIP`_ and `Paper IV`_ table-lookup distortions, based on the WCS
-    keywords and supplementary data read from a FITS file.
+    """WCS objects perform standard WCS transformations, and correct for
+    `SIP`_ and `distortion paper`_ table-lookup transformations, based
+    on the WCS keywords and supplementary data read from a FITS file.
 
     Parameters
     ----------
@@ -206,8 +205,8 @@ class WCS(WCSBase):
         initialized to default values.
 
     fobj : An astropy.io.fits file (hdulist) object, optional
-        It is needed when header keywords point to a `Paper IV`_
-        Lookup table distortion stored in a different extension.
+        It is needed when header keywords point to a `distortion
+        paper`_ lookup table stored in a different extension.
 
     key : str, optional
         The name of a particular WCS transform to use.  This may be
@@ -296,14 +295,15 @@ class WCS(WCSBase):
     Notes
     -----
 
-    1. astropy.wcs supports arbitrary *n* dimensions for the core WCS (the
-       transformations handled by WCSLIB).  However, the Paper IV lookup
-       table and SIP distortions must be two dimensional.  Therefore, if you
-       try to create a WCS object where the core WCS has a different number
-       of dimensions than 2 and that object also contains a Paper IV lookup
-       table or SIP distortion, a `~.exceptions.ValueError` exception will
-       be raised.  To avoid this, consider using the *naxis* kwarg to select
-       two dimensions from the core WCS.
+    1. astropy.wcs supports arbitrary *n* dimensions for the core WCS
+       (the transformations handled by WCSLIB).  However, the
+       `distortion paper`_ lookup table and `SIP`_ distortions must be
+       two dimensional.  Therefore, if you try to create a WCS object
+       where the core WCS has a different number of dimensions than 2
+       and that object also contains a `distortion paper`_ lookup
+       table or `SIP`_ distortion, a `~.exceptions.ValueError`
+       exception will be raised.  To avoid this, consider using the
+       *naxis* kwarg to select two dimensions from the core WCS.
 
     2. The number of coordinate axes in the transformation is not
        determined directly from the ``NAXIS`` keyword but instead from
@@ -333,6 +333,7 @@ class WCS(WCSBase):
        construction, so any invalid keywords or transformations will
        be raised by the constructor, not when subsequently calling a
        transformation method.
+
     """
 
     def __init__(self, header=None, fobj=None, key=' ', minerr=0.0,
@@ -423,11 +424,11 @@ class WCS(WCSBase):
                 (det2im[0] or det2im[1] or cpdis[0] or cpdis[1] or sip)):
                 raise ValueError(
                     """
-Paper IV lookup tables and SIP distortions only work in 2 dimensions.
-However, WCSLIB has detected {0} dimensions in the core WCS keywords.
-To use core WCS in conjunction with Paper IV lookup tables or SIP
-distortion, you must select or reduce these to 2 dimensions using the
-naxis kwarg.
+FITS WCS distortion paper lookup tables and SIP distortions only work
+in 2 dimensions.  However, WCSLIB has detected {0} dimensions in the
+core WCS keywords.  To use core WCS in conjunction with FITS WCS
+distortion paper lookup tables or SIP distortion, you must select or
+reduce these to 2 dimensions using the naxis kwarg.
 """.format(wcsprm.naxis))
 
             header_naxis = header.get('NAXIS', None)
@@ -660,8 +661,8 @@ naxis kwarg.
 
     def _read_det2im_kw(self, header, fobj, err=0.0):
         """
-        Create a `Paper IV`_ type lookup table for detector to image
-        plane correction.
+        Create a `distortion paper`_ type lookup table for detector to
+        image plane correction.
         """
         if fobj is None:
             return (None, None)
@@ -750,7 +751,7 @@ naxis kwarg.
 
     def _write_det2im(self, hdulist):
         """
-        Writes a Paper IV type lookup table to the given
+        Writes a `distortion paper`_ type lookup table to the given
         `astropy.io.fits.HDUList`.
         """
 
@@ -797,12 +798,12 @@ naxis kwarg.
 
     def _read_distortion_kw(self, header, fobj, dist='CPDIS', err=0.0):
         """
-        Reads `Paper IV`_ table-lookup distortion keywords and data,
-        and returns a 2-tuple of `~astropy.wcs.DistortionLookupTable`
+        Reads `distortion paper`_ table-lookup keywords and data, and
+        returns a 2-tuple of `~astropy.wcs.DistortionLookupTable`
         objects.
 
-        If no `Paper IV`_ distortion keywords are found, ``(None,
-        None)`` is returned.
+        If no `distortion paper`_ keywords are found, ``(None, None)``
+        is returned.
         """
         if isinstance(header, (six.text_type, six.binary_type)):
             return (None, None)
@@ -855,7 +856,7 @@ naxis kwarg.
 
     def _write_distortion_kw(self, hdulist, dist='CPDIS'):
         """
-        Write out Paper IV distortion keywords to the given
+        Write out `distortion paper`_ keywords to the given
         `fits.HDUList`.
         """
         if self.cpdis1 is None and self.cpdis2 is None:
@@ -1154,9 +1155,9 @@ naxis kwarg.
 
             - `SIP`_ distortion correction (optionally)
 
-            - `Paper IV`_ table-lookup distortion correction (optionally)
+            - `distortion paper`_ table-lookup correction (optionally)
 
-            - `wcslib`_ WCS transformation
+            - `wcslib`_ "core" WCS transformation
 
         Parameters
         ----------
@@ -1220,7 +1221,7 @@ naxis kwarg.
         Transforms pixel coordinates to world coordinates by doing
         only the basic `wcslib`_ transformation.
 
-        No `SIP`_ or `Paper IV`_ table lookup distortion correction is
+        No `SIP`_ or `distortion paper`_ table lookup correction is
         applied.  To perform distortion correction, see
         `~astropy.wcs.WCS.all_pix2world`,
         `~astropy.wcs.WCS.sip_pix2foc`, `~astropy.wcs.WCS.p4_pix2foc`,
@@ -2032,8 +2033,8 @@ naxis kwarg.
             'input', *args, **kwargs)
     wcs_world2pix.__doc__ = """
         Transforms world coordinates to pixel coordinates, using only
-        the basic `wcslib`_ WCS transformation.  No `SIP`_ or `Paper
-        IV`_ table lookup distortion is applied.
+        the basic `wcslib`_ WCS transformation.  No `SIP`_ or
+        `distortion paper`_ table lookup transformation is applied.
 
         Parameters
         ----------
@@ -2091,8 +2092,8 @@ naxis kwarg.
         return self._array_converter(self._pix2foc, None, *args)
     pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using the
-        `SIP`_ polynomial distortion convention and `Paper IV`_
-        table-lookup distortion correction.
+        `SIP`_ polynomial distortion convention and `distortion
+        paper`_ table-lookup correction.
 
         The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
@@ -2121,7 +2122,7 @@ naxis kwarg.
         return self._array_converter(self._p4_pix2foc, None, *args)
     p4_pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using
-        `Paper IV`_ table-lookup distortion correction.
+        `distortion paper`_ table-lookup correction.
 
         The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
@@ -2150,7 +2151,7 @@ naxis kwarg.
         return self._array_converter(self._det2im, None, *args)
     det2im.__doc__ = """
         Convert detector coordinates to image plane coordinates using
-        `Paper IV`_ table-lookup distortion correction.
+        `distortion paper`_ table-lookup correction.
 
         The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
@@ -2190,10 +2191,10 @@ naxis kwarg.
 
         The output is in pixel coordinates, relative to ``CRPIX``.
 
-        `Paper IV`_ table lookup distortion correction is not applied,
-        even if that information existed in the FITS file that
-        initialized this :class:`~astropy.wcs.WCS` object.  To correct
-        for that, use `~astropy.wcs.WCS.pix2foc` or
+        FITS WCS `distortion paper`_ table lookup correction is not
+        applied, even if that information existed in the FITS file
+        that initialized this :class:`~astropy.wcs.WCS` object.  To
+        correct for that, use `~astropy.wcs.WCS.pix2foc` or
         `~astropy.wcs.WCS.p4_pix2foc`.
 
         Parameters
@@ -2229,9 +2230,9 @@ naxis kwarg.
         Convert focal plane coordinates to pixel coordinates using the
         `SIP`_ polynomial distortion convention.
 
-        `Paper IV`_ table lookup distortion correction is not applied,
-        even if that information existed in the FITS file that
-        initialized this `~astropy.wcs.WCS` object.
+        FITS WCS `distortion paper`_ table lookup distortion
+        correction is not applied, even if that information existed in
+        the FITS file that initialized this `~astropy.wcs.WCS` object.
 
         Parameters
         ----------
@@ -2305,10 +2306,10 @@ naxis kwarg.
 
         .. warning::
 
-          This function does not write out Paper IV distortion
-          information, since that requires multiple FITS header data
-          units.  To get a full representation of everything in this
-          object, use `to_fits`.
+          This function does not write out FITS WCS `distortion
+          paper`_ information, since that requires multiple FITS
+          header data units.  To get a full representation of
+          everything in this object, use `to_fits`.
 
         Parameters
         ----------

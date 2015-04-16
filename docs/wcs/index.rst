@@ -6,8 +6,8 @@ World Coordinate System (`astropy.wcs`)
 ***************************************
 
 .. _wcslib: http://www.atnf.csiro.au/~mcalabre/WCS/
-.. _WCS papers: http://www.atnf.csiro.au/people/mcalabre/WCS/index.html
-.. _Paper IV: http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
+.. _FITS WCS standard: http://www.atnf.csiro.au/people/mcalabre/WCS/index.html
+.. _distortion paper: http://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
 .. _SIP: http://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
 
 Introduction
@@ -21,10 +21,13 @@ forward (from pixel to sky) and backward (from sky to pixel).
 
 It performs three separate classes of WCS transformations:
 
-- Core WCS, as defined in the `WCS papers`_, based on Mark
+- Core WCS, as defined in the `FITS WCS standard`_, based on Mark
   Calabretta's `wcslib`_.
+
 - Simple Imaging Polynomial (`SIP`_) convention.
-- table lookup distortions as defined in WCS `Paper IV`_.
+
+- table lookup distortions as defined in the FITS WCS `distortion
+  paper`_.
 
 Each of these transformations can be used independently or together in
 a standard pipeline.
@@ -71,7 +74,7 @@ The basic workflow is as follows:
 
        - `~astropy.wcs.wcs.WCS.p4_pix2foc`: Convert from pixel to
          focal plane coordinates using the table lookup distortion
-         method described in `Paper IV`_.
+         method described in the FITS WCS `distortion paper`_.
 
        - `~astropy.wcs.wcs.WCS.det2im`: Convert from detector
          coordinates to image coordinates.  Commonly used for narrow
@@ -153,10 +156,10 @@ Supported projections
 =====================
 
 As `astropy.wcs` is based on `wcslib`_, it supports the standard
-projections defined in the WCS papers.  These projection codes are
-specified in the second part of the ``CTYPEn`` keywords (accessible
-through `Wcsprm.ctype <astropy.wcs.Wcsprm.ctype>`), for example,
-``RA-TAN-SIP``.  The supported projection codes are:
+projections defined in the `FITS WCS standard`_.  These projection
+codes are specified in the second part of the ``CTYPEn`` keywords
+(accessible through `Wcsprm.ctype <astropy.wcs.Wcsprm.ctype>`), for
+example, ``RA---TAN-SIP``.  The supported projection codes are:
 
 - ``AZP``: zenithal/azimuthal perspective
 - ``SZP``: slant zenithal perspective

@@ -4095,7 +4095,7 @@ Bug Fixes
   - Fixed a crash when generating diff reports from diffs using the
     ``ignore_comments`` options. Corresponds to PyFITS ticket 181.
 
-  - Fixed some bugs with WCS Paper IV record-valued keyword cards:
+  - Fixed some bugs with WCS distortion paper record-valued keyword cards:
 
     - Cards that looked kind of like RVKCs but were not intended to be were
       over-permissively treated as such--commentary keywords like COMMENT and
