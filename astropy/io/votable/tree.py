@@ -473,6 +473,11 @@ class SimpleElement(Element):
     def __init__(self):
         Element.__init__(self)
 
+    def __repr__(self):
+        buff = io.StringIO()
+        SimpleElement.to_xml(self, XMLWriter(buff))
+        return buff.getvalue().strip()
+
     def parse(self, iterator, config):
         for start, tag, data, pos in iterator:
             if start and tag != self._element_name:
@@ -835,6 +840,11 @@ class Values(Element, _IDProperty):
         self._options      = []
 
         warn_unknown_attrs('VALUES', six.iterkeys(extras), config, pos)
+
+    def __repr__(self):
+        buff = io.StringIO()
+        self.to_xml(XMLWriter(buff))
+        return buff.getvalue().strip()
 
     @property
     def null(self):
@@ -1883,6 +1893,9 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
             (FieldRef, ParamRef, Group, Param))
 
         warn_unknown_attrs('GROUP', six.iterkeys(extra), config, pos)
+
+    def __repr__(self):
+        return '<GROUP>... {0} entries ...</GROUP>'.format(len(self._entries))
 
     @property
     def ref(self):
@@ -3000,6 +3013,13 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
         warn_unknown_attrs('RESOURCE', six.iterkeys(kwargs), config, pos)
 
+    def __repr__(self):
+        buff = io.StringIO()
+        XMLWriter(buff).element(
+            self._element_name,
+            attrib=w.object_attrs(self, self._attr_list))
+        return buff.getvalue().strip()
+
     @property
     def type(self):
         """
@@ -3229,6 +3249,10 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         version = str(version)
         assert version in ("1.0", "1.1", "1.2")
         self._version            = version
+
+    def __repr__(self):
+        n_tables = len(list(self.iter_tables()))
+        return '<VOTABLE>... {0} tables ...</VOTABLE>'.format(n_tables)
 
     @property
     def version(self):
