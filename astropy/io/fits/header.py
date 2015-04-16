@@ -832,7 +832,7 @@ class Header(object):
             It should be noted that ``header.set(keyword, value)`` and
             ``header.set(keyword, value, comment)`` are equivalent to
             ``header[keyword] = value`` and
-            ``header[keyword] = (value, comment)`` respectfully.
+            ``header[keyword] = (value, comment)`` respectvely.
 
             New keywords can also be inserted relative to existing keywords
             using, for example::
