@@ -1,6 +1,6 @@
 If you use Astropy for work/research presented in a publication (whether
-directly, or as a dependency to another package), please include the following
-acknowledgment:
+directly, or as a dependency to another package), we recommend and encourage 
+(but do not explicitly require) the following acknowledgment:
 
   This research made use of Astropy, a community-developed core Python package
   for Astronomy (Astropy Collaboration, 2013).
