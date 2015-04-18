@@ -296,6 +296,19 @@ def _rebuild_extensions():
                       'with error code {0}: try rerunning this command '
                       'manually to check what the error was.'.format(
                           sp.returncode))
+# Set the bibtex entry to the article referenced in CITATION
+def _get_bibtex():
+    import os
+    import re
+    if os.path.exists('CITATION'):
+        with open('CITATION', 'r') as citation:
+            refcontents = re.findall(r'\{[^()]*\}', citation.read())[0]
+            bibtexreference = "@ARTICLE{0}".format(refcontents)
+        return bibtexreference
+    else:
+        return ''
+
+__bibtex__ = _get_bibtex()
 
 
 import logging
