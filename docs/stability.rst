@@ -8,33 +8,44 @@ sub-packages. This document summarizes the current status of the Astropy
 sub-packages, so that users understand where they might expect changes in
 future, and which sub-packages they can safely use for production code.
 
-.. |planned| image:: _static/planned.png
-
-.. |dev| image:: _static/dev.png
-
-.. |stable| image:: _static/stable.png
-
-.. |mature| image:: _static/mature.png
-
 The classification is as follows:
 
 .. raw:: html
 
+    <style>
+         .planned:before {
+              color: #cbcbcb;
+              content: "⬤";
+         }
+         .dev:before {
+              color: #ffad00;
+              content: "⬤";
+         }
+         .stable:before {
+              color: #4e72c3;
+              content: "⬤";
+         }
+         .mature:before {
+              color: #03a913;
+              content: "⬤";
+         }
+    </style>
+
     <table align='center'>
       <tr>
-        <td align='center'><img src='_images/planned.png'></td>
+        <td align='center'><span class="planned"></span></td>
         <td>Planned</td>
       </tr>
       <tr>
-        <td align='center'><img src='_images/dev.png'></td>
+        <td align='center'><span class="dev"></span></td>
         <td>Actively developed, be prepared for possible significant changes.</td>
       </tr>
       <tr>
-        <td align='center'><img src='_images/stable.png'></td>
+        <td align='center'><span class="stable"></span></td>
         <td>Reasonably stable, any significant changes/additions will generally include backwards-compatiblity.</td>
       </tr>
       <tr>
-        <td align='center'><img src='_images/mature.png'></td>
+        <td align='center'><span class="mature"></span></td>
         <td>Mature.  Additions/improvements possible, but no major changes planned. </td>
       </tr>
     </table>
@@ -42,13 +53,6 @@ The classification is as follows:
 The current planned and existing sub-packages are:
 
 .. raw:: html
-
-    <style>
-    .stability img {
-        max-width: none;
-        margin: 0px;
-    }
-    </style>
 
     <table border="1" class="docutils stability" align='center'>
         <tr>
@@ -67,7 +71,7 @@ The current planned and existing sub-packages are:
                 astropy.analytic_functions
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/dev.png">
+                <span class="dev"></span>
             </td>
             <td>
                 New in v1.0.
@@ -78,7 +82,7 @@ The current planned and existing sub-packages are:
                 astropy.constants
             </td>
             <td align='center'>
-                <img alt="stable" src="_images/stable.png">
+                <span class="stable"></span>
             </td>
             <td>
                 Constants were changed to <tt class="docutils literal"><span class="pre">Quantity</span></tt> objects in v0.2. Since then on, the package has been stable, with occasional additions of new constants.
@@ -89,7 +93,7 @@ The current planned and existing sub-packages are:
                 astropy.convolution
             </td>
             <td align='center'>
-                <img alt="stable" src="_images/stable.png">
+                <span class="stable"></span>
             </td>
             <td>
                 New top-level package in v0.3 (was previously part of
@@ -102,7 +106,7 @@ The current planned and existing sub-packages are:
                 astropy.coordinates
             </td>
             <td align='center'>
-                <img alt="stable" src="_images/stable.png">
+                <span class="stable"></span>
             </td>
             <td>
                 New in v0.2, major changes in v0.4.  Subsequent versions should
@@ -114,7 +118,7 @@ The current planned and existing sub-packages are:
                 astropy.cosmology
             </td>
             <td align='center'>
-                <img alt="stable" src="_images/stable.png">
+                <span class="stable"></span>
             </td>
             <td>
                 Incremental improvements since v0.1, but mostly stable API.
@@ -126,7 +130,7 @@ The current planned and existing sub-packages are:
                 astropy.io.ascii
             </td>
             <td align='center'>
-                <img alt="mature" src="_images/mature.png">
+                <span class="mature"></span>
             </td>
             <td>
                 Originally developed as <tt class="docutils literal"><span class="pre">asciitable</span></tt>, and has maintained a stable API.
@@ -137,7 +141,7 @@ The current planned and existing sub-packages are:
                 astropy.io.fits
             </td>
             <td align='center'>
-                <img alt="mature" src="_images/mature.png">
+                <span class="mature"></span>
             </td>
             <td>
                 Originally developed as <tt class="docutils literal"><span class="pre">pyfits</span></tt>, and retains an API consistent with the standalone version.
@@ -159,7 +163,7 @@ The current planned and existing sub-packages are:
                 astropy.io.votable
             </td>
             <td align='center'>
-                <img alt="mature" src="_images/mature.png">
+                <span class="mature"></span>
             </td>
             <td>
                 Originally developed as <tt class="docutils literal"><span class="pre">vo.table</span></tt>, and has a stable API.
@@ -170,7 +174,7 @@ The current planned and existing sub-packages are:
                 astropy.modeling
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/dev.png">
+                <span class="dev"></span>
             </td>
             <td>
                 New in v0.3.  Major changes in v1.0, signficant additions planned.  Backwards-compatibility likely to be maintained, but not guaranteed.
@@ -181,7 +185,7 @@ The current planned and existing sub-packages are:
                 astropy.nddata
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/dev.png">
+                <span class="dev"></span>
             </td>
             <td>
                 Significantly revised in v1.0 to implement <a href="https://github.com/astropy/astropy-APEs/blob/master/APE7.rst">APE 7</a>. Major changes in the API are not anticipated, broader use may reveal flaws that require API changes.
@@ -192,7 +196,7 @@ The current planned and existing sub-packages are:
                 astropy.photometry
             </td>
             <td align='center'>
-                <img alt="planned" src="_images/planned.png">
+                <span class="planned"></span>
             </td>
             <td>
                 &nbsp;
@@ -203,7 +207,7 @@ The current planned and existing sub-packages are:
                 astropy.stats
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/dev.png">
+                <span class="dev"></span>
             </td>
             <td>
                 Likely to maintain backwards-compatibility, but functionality continually being expanded, so significant additions likely in the future.
@@ -214,7 +218,7 @@ The current planned and existing sub-packages are:
                 astropy.table
             </td>
             <td align='center'>
-                <img alt="stable" src="_images/stable.png">
+                <span class="stable"></span>
             </td>
             <td>
                 Incremental improvements since v0.1, but mostly stable API.
@@ -225,7 +229,7 @@ The current planned and existing sub-packages are:
                 astropy.time
             </td>
             <td align='center'>
-                <img alt="mature" src="_images/mature.png">
+                <span class="mature"></span>
             </td>
             <td>
                 Incremental improvements since v0.1, API likely to remain stable
@@ -237,7 +241,7 @@ The current planned and existing sub-packages are:
                 astropy.units
             </td>
             <td align='center'>
-                <img alt="stable" src="_images/stable.png">
+                <span class="stable"></span>
             </td>
             <td>
                 New in v0.2. Adapted from <tt class="docutils literal"><span class="pre">pnbody</span></tt> and integrated into Astropy. Current functionality stable with intent to maintain backwards compatibility. Significant new functionality is likely to be added in future versions.
@@ -248,7 +252,7 @@ The current planned and existing sub-packages are:
                 astropy.utils
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/dev.png">
+                <span class="dev"></span>
             </td>
             <td>
                 Contains mostly utilities destined for internal use with other parts of Astropy.  Existing functionality generally stable, but reglar additions and occasional changes.
@@ -259,7 +263,7 @@ The current planned and existing sub-packages are:
                 astropy.visualization
             </td>
             <td align='center'>
-                <img alt="dev" src="_images/dev.png">
+                <span class="dev"></span>
             </td>
             <td>
                 New in v1.0, and in development.
@@ -270,7 +274,7 @@ The current planned and existing sub-packages are:
                 astropy.vo
             </td>
             <td align='center'>
-                <img alt="stable" src="_images/stable.png">
+                <span class="stable"></span>
             </td>
             <td>
                 Virtual Observatory service access and validation. Currently, only Simple Cone Search and SAMP are supported.
@@ -281,11 +285,10 @@ The current planned and existing sub-packages are:
                 astropy.wcs
             </td>
             <td align='center'>
-                <img alt="stable" src="_images/stable.png">
+                <span class="stable"></span>
             </td>
             <td>
                 Originally developed as <tt class="docutils literal"><span class="pre">pywcs</span></tt>, and has a stable API for now. However, there are plans to generalize the WCS interface to accommodate non-FITS WCS transformations, and this may lead to small changes in the user interface.
             </td>
         </tr>
     </table>
-

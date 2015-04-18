@@ -913,7 +913,7 @@ class Model(object):
         # Pop any constraints off the keyword arguments
         for constraint in self.parameter_constraints:
             values = kwargs.pop(constraint, {})
-            self._constraints[constraint] = values
+            self._constraints[constraint] = values.copy()
 
             # Update with default parameter constraints
             for param_name in self.param_names:
@@ -1660,7 +1660,18 @@ class _CompoundModelMeta(_ModelMeta):
             # Both models used in the operator were already instantiated models,
             # not model *classes*.  As such it's not particularly useful to return
             # the class itself, but to instead produce a new instance:
-            return new_cls()
+            instance = new_cls()
+
+            # Workaround for https://github.com/astropy/astropy/issues/3542
+            # TODO: Any effort to restructure the tree-like data structure for
+            # compound models should try to obviate this workaround--if
+            # intermediate compound models are stored in the tree as well then
+            # we can immediately check for custom inverses on sub-models when
+            # computing the inverse
+            instance._custom_inverse = mcls._make_custom_inverse(
+                    operator, left, right)
+
+            return instance
 
         # Otherwise return the new uninstantiated class itself
         return new_cls
@@ -1674,6 +1685,48 @@ class _CompoundModelMeta(_ModelMeta):
         # TODO: Remove this at the same time as removing
         # _ModelMeta._handle_backwards_compat
         return
+
+    @classmethod
+    def _make_custom_inverse(mcls, operator, left, right):
+        """
+        Generates an inverse `Model` for this `_CompoundModel` when either
+        model in the operation has a *custom inverse* that was manually
+        assigned by the user.
+
+        If either model has a custom inverse, and in particular if another
+        `_CompoundModel` has a custom inverse, then none of that model's
+        sub-models should be considered at all when computing the inverse.
+        So in that case we just compute the inverse ahead of time and set
+        it as the new compound model's custom inverse.
+
+        Note, this use case only applies when combining model instances,
+        since model classes don't currently have a notion of a "custom
+        inverse" (though it could probably be supported by overriding the
+        class's inverse property).
+
+        TODO: Consider fixing things so the aforementioned class-based case
+        works as well.  However, for the present purposes this is good enough.
+        """
+
+        if not (operator in ('&', '|') and
+                (left._custom_inverse or right._custom_inverse)):
+            # These are the only operators that support an inverse right now
+            return None
+
+        try:
+            left_inv = left.inverse
+            right_inv = right.inverse
+        except NotImplementedError:
+            # If either inverse is undefined then just return False; this
+            # means the normal _CompoundModel.inverse routine will fail
+            # naturally anyways, since it requires all sub-models to have
+            # an inverse defined
+            return None
+
+        if operator == '&':
+            return left_inv & right_inv
+        else:
+            return right_inv | left_inv
 
     # TODO: Perhaps, just perhaps, the post-order (or ???-order) ordering of
     # leaf nodes is something the ExpressionTree class itself could just know

@@ -30,7 +30,8 @@ from .constants import SSL_SUPPORT
 
 if SSL_SUPPORT:
     import ssl
-    from .ssl_utils import SafeTransport, SecureXMLRPCServer
+    from .ssl_utils import (SafeTransport, SecureXMLRPCServer,
+                            get_ssl_version_name)
 
 __all__ = ['SAMPHubServer', 'WebProfileDialog']
 
@@ -507,8 +508,8 @@ class SAMPHubServer(object):
             params['hub.ssl.certificate'] = cert_reqs_types[self._cert_reqs]
 
             # SSL protocol version
-            ssl_protocol_types = ["SSLv2", "SSLv3", "SSLv23", "TLSv1"]
-            params['hub.ssl.protocol'] = ssl_protocol_types[self._ssl_version]
+            params['hub.ssl.protocol'] = get_ssl_version_name(
+                self._ssl_version)
 
         return params
 
@@ -619,6 +620,8 @@ class SAMPHubServer(object):
                 else:
                     if read_ready:
                         self._web_profile_server.handle_request()
+
+        self._server.server_close()
 
     def _notify_shutdown(self):
         msubs = SAMPHubServer.get_mtype_subtypes("samp.hub.event.shutdown")
@@ -1050,50 +1053,16 @@ class SAMPHubServer(object):
                          recipient_public_id))
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+            arg_params = (sender_public_id, message)
+            samp_method_name = "receiveNotification"
 
-            if recipient_private_key is None:
-                raise SAMPHubError("Invalid client ID")
-
-            for attempt in range(10):
-
-                if not self._is_running:
-                    time.sleep(0.01)
-                    continue
-
-                try:
-
-                    if (self._web_profile and
-                        recipient_private_key in self._web_profile_callbacks):
-
-                        # Web Profile
-                        callback = {"samp.methodName": "receiveNotification",
-                                    "samp.params": [sender_public_id, message]}
-                        self._web_profile_callbacks[recipient_private_key].put(callback)
-
-                    else:
-
-                        # Standard Profile
-                        hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                        hub.samp.client.receiveNotification(recipient_private_key,
-                                                            sender_public_id,
-                                                            message)
-
-                except xmlrpc.Fault as exc:
-                    log.debug("%s XML-RPC endpoint error (attempt %d): %s"
-                              % (recipient_public_id, attempt + 1,
-                                 exc.faultString))
-                    time.sleep(0.01)
-                else:
-                    return
-
-            # If we are here, then the above attempts failed
-            raise SAMPHubError("notification failed after 10 attempts")
+            self._retry_method(recipient_private_key, recipient_public_id, samp_method_name, arg_params)
 
         except Exception as exc:
             warnings.warn("%s notification from client %s to client %s failed [%s]"
                           % (message["samp.mtype"], sender_public_id,
                              recipient_public_id, exc),
-                          SAMPWarning)
+                              SAMPWarning)
 
     def _notify_all(self, private_key, message):
         self._update_last_activity_time(private_key)
@@ -1156,44 +1125,10 @@ class SAMPHubServer(object):
                          recipient_public_id, message["samp.mtype"]))
 
             recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+            arg_params = (sender_public_id, msg_id, message)
+            samp_methodName = "receiveCall"
 
-            if recipient_private_key is None:
-                raise SAMPHubError("Invalid client ID")
-
-            for attempt in range(10):
-
-                if not self._is_running:
-                    time.sleep(0.01)
-                    continue
-
-                try:
-
-                    if (self._web_profile and
-                        recipient_private_key in self._web_profile_callbacks):
-
-                        # Web Profile
-                        callback = {"samp.methodName": "receiveCall",
-                                    "samp.params": [sender_public_id, msg_id, message]}
-                        self._web_profile_callbacks[recipient_private_key].put(callback)
-
-                    else:
-
-                        # Standard Profile
-                        hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                        hub.samp.client.receiveCall(recipient_private_key,
-                                                    sender_public_id, msg_id,
-                                                    message)
-
-                except xmlrpc.Fault as exc:
-                    log.debug("%s XML-RPC endpoint error (attempt %d): %s"
-                              % (recipient_public_id, attempt + 1,
-                                 exc.faultString))
-                    time.sleep(0.01)
-                else:
-                    return
-
-            # If we are here, then the above attempts failed
-            raise SAMPHubError("call failed after 10 attempts")
+            self._retry_method(recipient_private_key, recipient_public_id, samp_methodName, arg_params)
 
         except Exception as exc:
             warnings.warn("%s call %s from client %s to client %s failed [%s,%s]"
@@ -1302,53 +1237,72 @@ class SAMPHubServer(object):
             else:
 
                 recipient_private_key = self._public_id_to_private_key(recipient_public_id)
+                arg_params = (responder_public_id, recipient_msg_tag, response)
+                samp_method_name = "receiveResponse"
 
-                if recipient_private_key is None:
-                    raise SAMPHubError("Invalid client ID")
-
-                for attempt in range(10):
-
-                    if not self._is_running:
-                        time.sleep(0.01)
-                        continue
-
-                    try:
-
-                        if (self._web_profile and
-                            recipient_private_key in self._web_profile_callbacks):
-
-                            # Web Profile
-                            callback = {"samp.methodName": "receiveResponse",
-                                        "samp.params": [responder_public_id,
-                                                        recipient_msg_tag,
-                                                        response]}
-                            self._web_profile_callbacks[recipient_private_key].put(callback)
-
-                        else:
-
-                            # Standard Profile
-                            hub = self._xmlrpc_endpoints[recipient_public_id][1]
-                            hub.samp.client.receiveResponse(recipient_private_key,
-                                                            responder_public_id,
-                                                            recipient_msg_tag,
-                                                            response)
-
-                    except xmlrpc.Fault as exc:
-                        log.debug("%s XML-RPC endpoint error (attempt %d): %s"
-                                  % (recipient_public_id, attempt + 1,
-                                     exc.faultString))
-                        time.sleep(0.01)
-                    else:
-                        return
-
-                # If we are here, then the above attempts failed
-                raise SAMPHubError("reply failed after 10 attempts")
+                self._retry_method(recipient_private_key, recipient_public_id, samp_method_name, arg_params)
 
         except Exception as exc:
             warnings.warn("%s reply from client %s to client %s failed [%s]"
                           % (recipient_msg_tag, responder_public_id,
                              recipient_public_id, exc),
                           SAMPWarning)
+
+    def _retry_method(self, recipient_private_key, recipient_public_id, samp_method_name, arg_params):
+        """
+        This method is used to retry a SAMP call several times.
+        
+        Parameters
+        ----------
+        recipient_private_key
+            The private key of the receiver of the call
+        recipient_public_key
+            The public key of the receiver of the call
+        samp_method_name : str
+            The name of the SAMP method to call
+        arg_params : tuple
+            Any additonal arguments to be passed to the SAMP method
+        """
+
+        if recipient_private_key is None:
+            raise SAMPHubError("Invalid client ID")
+
+        from . import conf
+
+        for attempt in range(conf.n_retries):
+
+            if not self._is_running:
+                time.sleep(0.01)
+                continue
+
+            try:
+
+                if (self._web_profile and
+                    recipient_private_key in self._web_profile_callbacks):
+
+                    # Web Profile
+                    callback = {"samp.methodName": samp_method_name,
+                                "samp.params": arg_params}
+                    self._web_profile_callbacks[recipient_private_key].put(callback)
+
+                else:
+
+                    # Standard Profile
+                    hub = self._xmlrpc_endpoints[recipient_public_id][1]
+                    getattr(hub.samp.client, samp_method_name)(recipient_private_key, *arg_params)
+
+            except xmlrpc.Fault as exc:
+                log.debug("%s XML-RPC endpoint error (attempt %d): %s"
+                          % (recipient_public_id, attempt + 1,
+                             exc.faultString))
+                time.sleep(0.01)
+            else:
+                return
+
+        # If we are here, then the above attempts failed
+        error_message = method_name + " failed after " + tries + " attempts"
+        raise SAMPHubError(error_message)
+
 
     def _public_id_to_private_key(self, public_id):
 

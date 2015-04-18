@@ -59,7 +59,7 @@ get_distortion_offset(
     const double * const img /* [NAXES] */);
 
 /**
-Perform just the distortion table part of Paper IV.
+Perform just the distortion table part of the FITS WCS distortion paper.
 
 @param naxes
 
@@ -82,8 +82,8 @@ p4_pix2foc(
     double *foc /* [NAXES][nelem] */);
 
 /**
-Perform just the distortion table part of Paper IV, by adding
-distortion to the values already in place in foc.
+Perform just the distortion table part of the FITS WCS distortion paper, by
+adding distortion to the values already in place in foc.
 
 @param naxes
 

@@ -247,6 +247,11 @@ class Table(object):
 
         default_names = None
 
+        if (isinstance(data, np.ndarray) and
+                data.shape == (0,) and
+                not data.dtype.names):
+            data = None
+
         if isinstance(data, self.Row):
             data = data._table[data._index:data._index + 1]
 
@@ -264,6 +269,10 @@ class Table(object):
                 default_names = data.dtype.names
             else:
                 init_func = self._init_from_ndarray  # _homog
+                if data.shape == ():
+                    raise ValueError('Can not initialize a Table with a scalar')
+                elif len(data.shape) == 1:
+                    data = data[np.newaxis, :]
                 n_cols = data.shape[1]
 
         elif isinstance(data, dict):
@@ -635,7 +644,7 @@ class Table(object):
         return is_mixin
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
-               show_unit=None, show_dtype=False):
+               show_unit=None, show_dtype=False, align='right'):
         """Print a formatted string representation of the table.
 
         If no value of ``max_lines`` is supplied then the height of the
@@ -666,14 +675,18 @@ class Table(object):
 
         show_dtype : bool
             Include a header row for column dtypes (default=True)
+
+        align : str
+            Left/right alignment of a column. Default is 'right'.
         """
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
-                                                    show_dtype=show_dtype)
+                                                    show_dtype=show_dtype, align=align)
         if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))
 
         n_header = outs['n_header']
+
         for i, line in enumerate(lines):
             if i < n_header:
                 color_print(line, 'red')
@@ -740,7 +753,8 @@ class Table(object):
                 webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
-                show_unit=None, show_dtype=False, html=False, tableid=None):
+                show_unit=None, show_dtype=False, html=False, tableid=None,
+                align='right'):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -781,16 +795,20 @@ class Table(object):
             "table{id}", where id is the unique integer id of the table object,
             id(self)
 
+        align : str
+            Left/right alignment of a column. Default is 'right'.
+
         Returns
         -------
         lines : list
             Formatted table as a list of strings
 
         """
+
         lines, outs = self.formatter._pformat_table(self, max_lines, max_width,
                                                     show_name=show_name, show_unit=show_unit,
                                                     show_dtype=show_dtype, html=html,
-                                                    tableid=tableid)
+                                                    tableid=tableid, align=align)
 
         if outs['show_length']:
             lines.append('Length = {0} rows'.format(len(self)))

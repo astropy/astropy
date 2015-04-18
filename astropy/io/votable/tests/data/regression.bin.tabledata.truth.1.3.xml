@@ -258,7 +258,7 @@
      </TR>
     </TABLEDATA>
    </DATA>
-   <INFO ID="Error" name="Error" value="One might expect to find some INFO here, too..."/>
+   <INFO ID="ErrorInfo" name="Error" value="One might expect to find some INFO here, too..."/>
   </TABLE>
   <RESOURCE type="results">
    <TABLE nrows="1" ref="main_table">

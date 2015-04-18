@@ -12,12 +12,13 @@ from functools import reduce
 import numpy as np
 from numpy import char as chararray
 
-from .card import Card
-from .util import pairwise, _is_int, _convert_array, encode_ascii, cmp
+from .card import Card, CARD_LENGTH
+from .util import (pairwise, _is_int, _convert_array, encode_ascii, cmp,
+                   NotifierMixin)
 from .verify import VerifyError, VerifyWarning
 
 from ...extern.six import string_types, iteritems
-from ...utils import lazyproperty, isiterable, indent
+from ...utils import lazyproperty, isiterable, indent, OrderedDict
 from ...utils.compat import ignored
 
 
@@ -84,6 +85,19 @@ KEYWORD_ATTRIBUTES = ['name', 'format', 'unit', 'null', 'bscale', 'bzero',
                       'disp', 'start', 'dim']
 """This is a list of the attributes that can be set on `Column` objects."""
 
+
+KEYWORD_TO_ATTRIBUTE = \
+    OrderedDict((keyword, attr)
+                for keyword, attr in zip(KEYWORD_NAMES, KEYWORD_ATTRIBUTES))
+
+
+ATTRIBUTE_TO_KEYWORD = \
+    OrderedDict((value, key)
+                for key, value in KEYWORD_TO_ATTRIBUTE.items())
+
+
+# TODO: Define a list of default comments to associate with each table keyword
+
 # TFORMn regular expression
 TFORMAT_RE = re.compile(r'(?P<repeat>^[0-9]*)(?P<format>[LXBIJKAEDCMPQ])'
                         r'(?P<option>[!-~]*)', re.I)
@@ -95,6 +109,12 @@ TFORMAT_ASCII_RE = re.compile(r'(?:(?P<format>[AIJ])(?P<width>[0-9]+)?)|'
                               r'(?:(?P<formatf>[FED])'
                               r'(?:(?P<widthf>[0-9]+)\.'
                               r'(?P<precision>[0-9]+))?)')
+
+TTYPE_RE = re.compile(r'[0-9a-zA-Z_]+')
+"""
+Regular exprssion for valid table column names.  See FITS Standard v3.0 section
+7.2.2.
+"""
 
 # table definition keyword regular expression
 TDEF_RE = re.compile(r'(?P<label>^T[A-Z]*)(?P<num>[1-9][0-9 ]*$)')
@@ -149,6 +169,14 @@ class _BaseColumnFormat(str):
 
     def __hash__(self):
         return hash(self.canonical)
+
+    @lazyproperty
+    def dtype(self):
+        """
+        The Numpy dtype object created from the format's associated recformat.
+        """
+
+        return np.dtype(self.recformat)
 
     @classmethod
     def from_column_format(cls, format):
@@ -350,7 +378,78 @@ class _FormatQ(_FormatP):
     _descriptor_format = '2i8'
 
 
-class Column(object):
+class ColumnAttribute(object):
+    """
+    Descriptor for attributes of `Column` that are associated with keywords
+    in the FITS header and describe properties of the column as specified in
+    the FITS standard.
+
+    Each `ColumnAttribute` may have a ``validator`` method defined on it.
+    This validates values set on this attribute to ensure that they meet the
+    FITS standard.  Invalid values will raise a warning and will not be used in
+    formatting the column.  The validator should take two arguments--the
+    `Column` it is being assigned to, and the new value for the attribute, and
+    it must raise an `AssertionError` if the value is invalid.
+
+    The `ColumnAttribute` itself is a decorator that can be used to define the
+    ``validator`` for each column attribute.  For example::
+
+        @ColumnAttribute('TTYPE')
+        def name(col, name):
+            assert isinstance(name, str)
+
+    The actual object returned by this decorator is the `ColumnAttribute`
+    instance though, not the ``name`` function.  As such ``name`` is not a
+    method of the class it is defined in.
+
+    The setter for `ColumnAttribute` also updates the header of any table
+    HDU this column is attached to in order to reflect the change.  The
+    ``validator`` should ensure that the value is valid for inclusion in a FITS
+    header.
+    """
+
+    def __init__(self, keyword):
+        self._keyword = keyword
+        self._validator = None
+
+        # The name of the attribute associated with this keyword is currently
+        # determined from the KEYWORD_NAMES/ATTRIBUTES lists.  This could be
+        # make more flexible in the future, for example, to support custom
+        # column attributes.
+        self._attr = KEYWORD_TO_ATTRIBUTE[self._keyword]
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        else:
+            return getattr(obj, '_' + self._attr)
+
+    def __set__(self, obj, value):
+        if self._validator is not None:
+            self._validator(obj, value)
+
+        old_value = getattr(obj, '_' + self._attr, None)
+        setattr(obj, '_' + self._attr, value)
+        obj._notify('column_attribute_changed', obj, self._attr, old_value,
+                    value)
+
+    def __call__(self, func):
+        """
+        Set the validator for this column attribute.
+
+        Returns ``self`` so that this can be used as a decorator, as described
+        in the docs for this class.
+        """
+
+        self._validator = func
+
+        return self
+
+    def __repr__(self):
+        return "{0}('{1}')".format(self.__class__.__name__, self._keyword)
+
+
+class Column(NotifierMixin):
     """
     Class which contains the definition of one column, e.g.  ``ttype``,
     ``tform``, etc. and the array containing values for the column.
@@ -368,7 +467,7 @@ class Column(object):
         name : str, optional
             column name, corresponding to ``TTYPE`` keyword
 
-        format : str, optional
+        format : str
             column format, corresponding to ``TFORM`` keyword
 
         unit : str, optional
@@ -432,7 +531,6 @@ class Column(object):
 
             raise VerifyError('\n'.join(msg))
 
-
         for attr in KEYWORD_ATTRIBUTES:
             setattr(self, attr, valid_kwargs.get(attr))
 
@@ -446,17 +544,6 @@ class Column(object):
         # *only* the tuple form is stored in self._dims.
         self._dims = self.dim
         self.dim = dim
-
-        # Zero-length formats are legal in the FITS format, but since they
-        # are not supported by numpy we mark columns that use them as
-        # "phantom" columns, that are not considered when reading the data
-        # as a record array.
-        if self.format[0] == '0' or \
-           (self.format[-1] == '0' and self.format[-2].isalpha()):
-            self._phantom = True
-            array = None
-        else:
-            self._phantom = False
 
         # Awful hack to use for now to keep track of whether the column holds
         # pseudo-unsigned int data
@@ -524,9 +611,49 @@ class Column(object):
 
         return hash((self.name.lower(), self.format))
 
+    @ColumnAttribute('TTYPE')
+    def name(col, name):
+        if name is None:
+            # Allow None to indicate deleting the name, or to just indicate an
+            # unspecified name (when creating a new Column).
+            return
+
+        # Check that the name meets the recommended standard--other column
+        # names are *allowed*, but will be discouraged
+        if isinstance(name, string_types) and not TTYPE_RE.match(name):
+            warnings.warn(
+                'It is strongly recommended that column names contain only '
+                'upper and lower-case ASCII letters, digits, or underscores '
+                'for maximum compatibility with other software '
+                '(got {0!r}).'.format(name), VerifyWarning)
+
+        # This ensures that the new name can fit into a single FITS card
+        # without any special extension like CONTINUE cards or the like.
+        assert (isinstance(name, string_types) and
+                len(str(Card('TTYPE', name))) == CARD_LENGTH), \
+                    ('Column name must be a string able to fit in a single '
+                     'FITS card--typically this means a maximum of 68 '
+                     'characters, though it may be fewer if the string '
+                     'contains special characters like quotes.')
+
+    format = ColumnAttribute('TFORM')
+    unit = ColumnAttribute('TUNIT')
+    null = ColumnAttribute('TNULL')
+    bscale = ColumnAttribute('TSCAL')
+    bzero = ColumnAttribute('TZERO')
+    disp = ColumnAttribute('TDISP')
+    start = ColumnAttribute('TBCOL')
+    dim = ColumnAttribute('TDIM')
+
+    @lazyproperty
+    def ascii(self):
+        """Whether this `Column` represents an column in an ASCII table."""
+
+        return isinstance(self.format, _AsciiColumnFormat)
+
     @lazyproperty
     def dtype(self):
-        return np.dtype(_convert_format(self.format))
+        return self.format.dtype
 
     def copy(self):
         """
@@ -868,7 +995,7 @@ class Column(object):
                 return _convert_array(array, dtype)
 
 
-class ColDefs(object):
+class ColDefs(NotifierMixin):
     """
     Column definitions class.
 
@@ -959,6 +1086,10 @@ class ColDefs(object):
             raise TypeError('Input to ColDefs must be a table HDU, a list '
                             'of Columns, or a record/field array.')
 
+        # Listen for changes on all columns
+        for col in self.columns:
+            col._add_listener(self)
+
     def _init_from_coldefs(self, coldefs):
         """Initialize from an existing ColDefs object (just copy the
         columns and convert their formats if necessary).
@@ -1010,8 +1141,6 @@ class ColDefs(object):
     def _init_from_table(self, table):
         hdr = table._header
         nfields = hdr['TFIELDS']
-        self._width = hdr['NAXIS1']
-        self._shape = hdr['NAXIS2']
 
         # go through header keywords to pick out column definition keywords
         # definition dictionaries for each field
@@ -1025,8 +1154,7 @@ class ColDefs(object):
             if keyword in KEYWORD_NAMES:
                 col = int(key.group('num'))
                 if col <= nfields and col > 0:
-                    idx = KEYWORD_NAMES.index(keyword)
-                    attr = KEYWORD_ATTRIBUTES[idx]
+                    attr = KEYWORD_TO_ATTRIBUTE[keyword]
                     if attr == 'format':
                         # Go ahead and convert the format value to the
                         # appropriate ColumnFormat container now
@@ -1054,7 +1182,11 @@ class ColDefs(object):
 
         # now build the columns
         self.columns = [Column(**attrs) for attrs in col_keywords]
-        self._listener = weakref.proxy(table)
+
+        # Add the table HDU is a listener to changes to the columns
+        # (either changes to individual columns, or changes to the set of
+        # columns (add/remove/etc.))
+        self._add_listener(table)
 
     def __copy__(self):
         return self.__class__(self)
@@ -1132,12 +1264,9 @@ class ColDefs(object):
 
     @lazyproperty
     def dtype(self):
-        recformats = [f for idx, f in enumerate(self._recformats)
-                      if not self[idx]._phantom]
-        formats = ','.join(recformats)
-        names = [n for idx, n in enumerate(self.names)
-                 if not self[idx]._phantom]
-        return np.rec.format_parser(formats, names, None).dtype
+        dtypes = [f.dtype for idx, f in enumerate(self.formats)]
+        names = [n for idx, n in enumerate(self.names)]
+        return np.dtype(list(zip(names, dtypes)))
 
     @lazyproperty
     def _arrays(self):
@@ -1154,6 +1283,9 @@ class ColDefs(object):
         return [col._dims for col in self.columns]
 
     def __getitem__(self, key):
+        if isinstance(key, string_types):
+            key = _get_index(self.names, key)
+
         x = self.columns[key]
         if _is_int(key):
             return x
@@ -1200,14 +1332,25 @@ class ColDefs(object):
         tmp = [self[i] for i in indx]
         return ColDefs(tmp)
 
-    def _update_listener(self):
-        if hasattr(self, '_listener'):
-            try:
-                if self._listener._data_loaded:
-                    del self._listener.data
-                self._listener.columns = self
-            except ReferenceError:
-                del self._listener
+    def _update_column_attribute_changed(self, column, attr, old_value,
+                                         new_value):
+        """
+        Handle column attribute changed notifications from columns that are
+        members of this `ColDefs`.
+
+        `ColDefs` itself does not currently do anything with this, and just
+        bubbles the notification up to any listening table HDUs that may need
+        to update their headers, etc.  However, this also informs the table of
+        the numerical index of the column that changed.
+        """
+
+        idx = 0
+        for idx, col in enumerate(self.columns):
+            if col is column:
+                break
+
+        self._notify('column_attribute_changed', column, idx, attr, old_value,
+                     new_value)
 
     def add_col(self, column):
         """
@@ -1215,10 +1358,6 @@ class ColDefs(object):
         """
 
         assert isinstance(column, Column)
-
-        for cname in KEYWORD_ATTRIBUTES:
-            attr = getattr(self, cname + 's')
-            attr.append(getattr(column, cname))
 
         self._arrays.append(column.array)
         # Obliterate caches of certain things
@@ -1228,9 +1367,12 @@ class ColDefs(object):
 
         self.columns.append(column)
 
+        # Listen for changes on the new column
+        column._add_listener(self)
+
         # If this ColDefs is being tracked by a Table, inform the
         # table that its data is now invalid.
-        self._update_listener()
+        self._notify('column_added', self, column)
         return self
 
     def del_col(self, col_name):
@@ -1242,10 +1384,7 @@ class ColDefs(object):
         """
 
         indx = _get_index(self.names, col_name)
-
-        for cname in KEYWORD_ATTRIBUTES:
-            attr = getattr(self, cname + 's')
-            del attr[indx]
+        col = self.columns[indx]
 
         del self._arrays[indx]
         # Obliterate caches of certain things
@@ -1255,9 +1394,13 @@ class ColDefs(object):
 
         del self.columns[indx]
 
-        # If this ColDefs is being tracked by a Table, inform the
-        # table that its data is now invalid.
-        self._update_listener()
+        col._remove_listener(self)
+
+        # If this ColDefs is being tracked by a table HDU, inform the HDU (or
+        # any other listeners) that the column has been removed
+        # Just send a reference to self, and the index of the column that was
+        # removed
+        self._notify('column_removed', self, indx)
         return self
 
     def change_attrib(self, col_name, attrib, new_value):
@@ -1276,12 +1419,7 @@ class ColDefs(object):
             The new value for the attribute
         """
 
-        indx = _get_index(self.names, col_name)
-        getattr(self, attrib + 's')[indx] = new_value
-
-        # If this ColDefs is being tracked by a Table, inform the
-        # table that its data is now invalid.
-        self._update_listener()
+        setattr(self[col_name], attrib, new_value)
 
     def change_name(self, col_name, new_name):
         """
@@ -1301,10 +1439,6 @@ class ColDefs(object):
         else:
             self.change_attrib(col_name, 'name', new_name)
 
-        # If this ColDefs is being tracked by a Table, inform the
-        # table that its data is now invalid.
-        self._update_listener()
-
     def change_unit(self, col_name, new_unit):
         """
         Change a `Column`'s unit.
@@ -1319,10 +1453,6 @@ class ColDefs(object):
         """
 
         self.change_attrib(col_name, 'unit', new_unit)
-
-        # If this ColDefs is being tracked by a Table, inform the
-        # table that its data is now invalid.
-        self._update_listener()
 
     def info(self, attrib='all', output=None):
         """
@@ -1456,6 +1586,9 @@ class _AsciiColDefs(ColDefs):
         self._width = end_col
 
 
+# Utilities
+
+
 class _VLF(np.ndarray):
     """Variable length field object."""
 
@@ -1509,9 +1642,9 @@ class _VLF(np.ndarray):
 
 def _get_index(names, key):
     """
-    Get the index of the `key` in the `names` list.
+    Get the index of the ``key`` in the ``names`` list.
 
-    The `key` can be an integer or string.  If integer, it is the index
+    The ``key`` can be an integer or string.  If integer, it is the index
     in the list.  If string,
 
         a. Field (column) names are case sensitive: you can have two

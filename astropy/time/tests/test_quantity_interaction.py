@@ -6,6 +6,7 @@ import numpy as np
 from ...tests.helper import pytest
 from .. import Time, TimeDelta, OperandTypeError
 from ... import units as u
+from ...table import Column
 
 allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
@@ -52,6 +53,20 @@ class TestTimeQuantity():
 
         with pytest.raises(u.UnitsError):
             Time(2450000.*u.dimensionless_unscaled, format='jd', scale='utc')
+
+    def test_column_with_and_without_units(self):
+        """Ensure a Column without a unit is treated as an array [#3648]"""
+        a = np.arange(50000., 50010.)
+        ta = Time(a, format='mjd')
+        c1 = Column(np.arange(50000., 50010.), name='mjd')
+        tc1 = Time(c1, format='mjd')
+        assert np.all(ta == tc1)
+        c2 = Column(np.arange(50000., 50010.), name='mjd', unit='day')
+        tc2 = Time(c2, format='mjd')
+        assert np.all(ta == tc2)
+        c3 = Column(np.arange(50000., 50010.), name='mjd', unit='m')
+        with pytest.raises(u.UnitsError):
+            Time(c3, format='mjd')
 
     def test_no_quantity_input_allowed(self):
         """Time formats that are not allowed to take Quantity input."""

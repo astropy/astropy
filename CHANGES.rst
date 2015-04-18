@@ -26,11 +26,21 @@ New Features
     provided and the format parameters are uniquely specified.  This update
     also removes duplicate format guesses to improve performance. [#3418]
 
+  - Calls to ascii.read() for fixed-width tables may now omit one of the keyword
+    arguments ``col_starts`` or ``col_ends``. Columns will be assumed to begin and
+    end immediately adjacent to each other. [#3657]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
+
+  - A new method was added to ``astropy.io.votable.VOTable``,
+    ``get_info_by_id`` to conveniently find an ``INFO`` element by its
+    ``ID`` attribute. [#3633]
+  - Instances in the votable tree now have better ``__repr__``
+    methods. [#3639]
 
 - ``astropy.logger.py``
 
@@ -51,7 +61,7 @@ New Features
 - ``astropy.time``
 
   - Add support for FITS standard time strings. [#3547]
-  
+
 - ``astropy.units``
 
   - Added furlong to imperial units. [#3529]
@@ -93,8 +103,8 @@ API changes
 
 - ``astropy.modeling``
 
-  - Renamed the parameters of ``RotateNative2Celestial`` and 
-    ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to 
+  - Renamed the parameters of ``RotateNative2Celestial`` and
+    ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
     ``lon``, ``lat`` and ``lon_pole``. [#3578]
 
 - ``astropy.nddata``
@@ -116,6 +126,9 @@ API changes
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - If NAXIS1 or NAXIS2 is not passed with the header object to
+    WCS.calc_footprint, a ValueError is raised. [#3557]
 
 Bug fixes
 ^^^^^^^^^
@@ -172,8 +185,10 @@ Bug fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+- Nothing yet.
 
-1.0.2 (unreleased)
+
+1.0.3 (unreleased)
 ------------------
 
 New Features
@@ -291,19 +306,9 @@ Bug Fixes
 
 - ``astropy.table``
 
-  - Ensure ``QTable`` can be pickled [#3590]
-
 - ``astropy.time``
 
 - ``astropy.units``
-
-  - Ensure equivalencies that do more than just scale a ``Quantity`` are
-    properly handled also in ``ufunc`` evaluations. [#2496, #3586]
-
-  - The LaTeX representation of the Angstrom unit has changed from
-    ``\overset{\circ}{A}`` to ``\mathring{A}``, which should have
-    better support across regular LaTeX, MathJax and matplotlib (as of
-    version 1.5) [#3617]
 
 - ``astropy.utils``
 
@@ -315,10 +320,119 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+
+
+1.0.2 (2015-04-16)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.modeling``
+
+  - Added support for polynomials with degree 0 or degree greater than 15.
+    [#3574, 3589]
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.config``
+
+  - The pre-astropy-0.4 configuration API has been fixed. It was
+    inadvertently broken in 1.0.1. [#3627]
+
+- ``astropy.io.fits``
+
+  - Fixed a severe memory leak that occurred when reading tile compressed
+    images. [#3680]
+
+  - Fixed bug where column data could be unintentionally byte-swapped when
+    copying data from an existing FITS file to a new FITS table with a
+    TDIMn keyword for that column. [#3561]
+
+  - The ``ColDefs.change_attrib``, ``ColDefs.change_name``, and
+    ``ColDefs.change_unit`` methods now work as advertised.  It is also
+    possible (and preferable) to update attributes directly on ``Column``
+    objects (for example setting ``column.name``), and the change will be
+    accurately reflected in any associated table data and its FITS header.
+    [#3283, #1539, #2618]
+
+  - Fixes an issue with the ``FITS_rec`` interface to FITS table data, where a
+    ``FITS_rec`` created by copying an existing FITS table but adding new rows
+    could not be sliced or masked correctly.  [#3641]
+  - Fixed handling of BINTABLE with TDIMn of size 1. [#3580]
+
+- ``astropy.io.votable``
+
+  - Loading a ``TABLE`` element without any ``DATA`` now correctly
+    creates a 0-row array. [#3636]
+
+- ``astropy.modeling``
+
+  - Added workaround to support inverses on compound models when one of the
+    sub-models is itself a compound model with a manually-assigned custom
+    inverse. [#3542]
+
+  - Fixed instantiation of polynomial models with constraints for parameters
+    (constraints could still be assigned after instantiation, but not during).
+    [#3606]
+
+  - Fixed fitting of 2D polynomial models with the ``LeVMarLSQFitter``. [#3606]
+
+- ``astropy.table``
+
+  - Ensure ``QTable`` can be pickled [#3590]
+
+  - Some corner cases when instantiating an ``astropy.table.Table``
+    with a Numpy array are handled [#3637]. Notably:
+
+    - a zero-length array is the same as passing ``None``
+    - a scalar raises a ``ValueError``
+    - a one-dimensional array is treated as a single row of a table.
+
+- ``astropy.time``
+
+  - Ensure a ``Column`` without units is treated as an ``array``, not as an
+    dimensionless ``Quantity``. [#3648]
+
+- ``astropy.units``
+
+  - Ensure equivalencies that do more than just scale a ``Quantity`` are
+    properly handled also in ``ufunc`` evaluations. [#2496, #3586]
+
+  - The LaTeX representation of the Angstrom unit has changed from
+    ``\overset{\circ}{A}`` to ``\mathring{A}``, which should have
+    better support across regular LaTeX, MathJax and matplotlib (as of
+    version 1.5) [#3617]
+
+- ``astropy.vo``
+
+  - Using HTTPS/SSL for communication between SAMP hubs now works
+    correctly on all supported versions of Python [#3613]
+
+- ``astropy.wcs``
+
+  - When no ``relax`` argument is passed to ``WCS.to_header()`` and
+    the result omits non-standard WCS keywords, a warning is
+    emitted. [#3652]
+
+Other Changes and Additions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 - ``astropy.units``
 
   - Clarified imperial mass measurements and added pound force (lbf),
     kilopound (kip), and pound per square inch (psi). [#3409]
+
+- ``astropy.vo``
+
+  - The number of retries for connections in ``astropy.vo.samp`` can now be
+    configured by a ``n_retries`` configuration option. [#3612]
+
+- Testing
+
+  - Running ``astropy.test()`` from within the IPython prompt has been
+    provisionally re-enabled. [#3184]
 
 
 1.0.1 (2015-03-06)
@@ -567,6 +681,8 @@ New Features
 - ``astropy.tests``
 
   - Added a new Quantity-aware ``assert_quantity_allclose``. [#3273]
+  - Added column alignment formatting for better pprint viewing
+    experience. [#3037]
 
 - ``astropy.time``
 
@@ -4035,7 +4151,7 @@ Bug Fixes
   - Fixed a crash when generating diff reports from diffs using the
     ``ignore_comments`` options. Corresponds to PyFITS ticket 181.
 
-  - Fixed some bugs with WCS Paper IV record-valued keyword cards:
+  - Fixed some bugs with WCS distortion paper record-valued keyword cards:
 
     - Cards that looked kind of like RVKCs but were not intended to be were
       over-permissively treated as such--commentary keywords like COMMENT and

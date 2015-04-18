@@ -5,7 +5,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from numpy import testing as npt
 
 from ... import units as u
 from ..distances import Distance
@@ -14,7 +13,8 @@ from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, \
                              Galactocentric, CIRS, GCRS, AltAz, ITRS
 from .. import representation as r
 from ..baseframe import frame_transform_graph
-from ...tests.helper import pytest
+from ...tests.helper import (pytest, quantity_allclose as allclose,
+                             assert_quantity_allclose as assert_allclose)
 from .utils import randomly_sample_sphere
 from ...time import Time
 
@@ -39,8 +39,8 @@ def test_transform_classes():
 
     c1 = TestCoo1(ra=1*u.radian, dec=0.5*u.radian)
     c2 = c1.transform_to(TestCoo2)
-    npt.assert_allclose(c2.ra.radian, 1)
-    npt.assert_allclose(c2.dec.radian, 0.5)
+    assert_allclose(c2.ra.radian, 1)
+    assert_allclose(c2.dec.radian, 0.5)
 
 
     def matfunc(coo, fr):
@@ -53,8 +53,8 @@ def test_transform_classes():
     c3 = TestCoo1(ra=1*u.deg, dec=2*u.deg)
     c4 = c3.transform_to(TestCoo2)
 
-    npt.assert_allclose(c4.ra.degree, 1)
-    npt.assert_allclose(c4.ra.degree, 1)
+    assert_allclose(c4.ra.degree, 1)
+    assert_allclose(c4.ra.degree, 1)
 
     # be sure to unregister the second one - no need for trans1 because it
     # already got unregistered when trans2 was created.
@@ -72,8 +72,8 @@ def test_transform_decos():
         return TestCoo2(ra=coo1.ra, dec=coo1.dec * 2)
 
     c2 = c1.transform_to(TestCoo2)
-    npt.assert_allclose(c2.ra.degree, 1)
-    npt.assert_allclose(c2.dec.degree, 4)
+    assert_allclose(c2.ra.degree, 1)
+    assert_allclose(c2.dec.degree, 4)
 
     c3 = TestCoo1(r.CartesianRepresentation(x=1*u.pc, y=1*u.pc, z=2*u.pc))
 
@@ -85,9 +85,9 @@ def test_transform_decos():
 
     c4 = c3.transform_to(TestCoo2)
 
-    npt.assert_allclose(c4.cartesian.x.value, 2)
-    npt.assert_allclose(c4.cartesian.y.value, 1)
-    npt.assert_allclose(c4.cartesian.z.value, 2)
+    assert_allclose(c4.cartesian.x, 2*u.pc)
+    assert_allclose(c4.cartesian.y, 1*u.pc)
+    assert_allclose(c4.cartesian.z, 2*u.pc)
 
 
 def test_shortest_path():
@@ -138,29 +138,28 @@ def test_sphere_cart():
     """
     Tests the spherical <-> cartesian transform functions
     """
-    from numpy.testing.utils import assert_allclose
     from ...utils import NumpyRNGContext
     from .. import spherical_to_cartesian, cartesian_to_spherical
 
     x, y, z = spherical_to_cartesian(1, 0, 0)
-    npt.assert_allclose(x, 1)
-    npt.assert_allclose(y, 0)
-    npt.assert_allclose(z, 0)
+    assert_allclose(x, 1)
+    assert_allclose(y, 0)
+    assert_allclose(z, 0)
 
     x, y, z = spherical_to_cartesian(0, 1, 1)
-    npt.assert_allclose(x, 0)
-    npt.assert_allclose(y, 0)
-    npt.assert_allclose(z, 0)
+    assert_allclose(x, 0)
+    assert_allclose(y, 0)
+    assert_allclose(z, 0)
 
     x, y, z = spherical_to_cartesian(5, 0, np.arcsin(4. / 5.))
-    npt.assert_allclose(x, 3)
-    npt.assert_allclose(y, 4)
-    npt.assert_allclose(z, 0)
+    assert_allclose(x, 3)
+    assert_allclose(y, 4)
+    assert_allclose(z, 0)
 
     r, lat, lon = cartesian_to_spherical(0, 1, 0)
-    npt.assert_allclose(r, 1)
-    npt.assert_allclose(lat, 0)
-    npt.assert_allclose(lon, np.pi / 2)
+    assert_allclose(r, 1)
+    assert_allclose(lat, 0 * u.deg)
+    assert_allclose(lon, np.pi / 2 * u.rad)
 
     #test round-tripping
     with NumpyRNGContext(13579):
@@ -297,17 +296,17 @@ def test_galactocentric():
 
     g_xyz = icrs_coord.transform_to(Galactic).cartesian.xyz
     gc_xyz = icrs_coord.transform_to(Galactocentric(z_sun=0*u.kpc)).cartesian.xyz
-    diff = np.array(np.abs(g_xyz - gc_xyz))
+    diff = np.abs(g_xyz - gc_xyz)
 
-    assert np.allclose(diff[0], 8.3, atol=1E-5)
-    assert np.allclose(diff[1:], 0, atol=1E-5)
+    assert allclose(diff[0], 8.3*u.kpc, atol=1E-5*u.kpc)
+    assert allclose(diff[1:], 0*u.kpc, atol=1E-5*u.kpc)
 
     # generate some test coordinates
     g = Galactic(l=[0,0,45,315]*u.deg, b=[-45,45,0,0]*u.deg,
                  distance=[np.sqrt(2)]*4*u.kpc)
     xyz = g.transform_to(Galactocentric(galcen_distance=1.*u.kpc, z_sun=0.*u.pc)).cartesian.xyz
     true_xyz = np.array([[0,0,-1.],[0,0,1],[0,1,0],[0,-1,0]]).T*u.kpc
-    assert np.allclose(xyz.to(u.kpc).value, true_xyz.to(u.kpc).value, atol=1E-5)
+    assert allclose(xyz.to(u.kpc), true_xyz.to(u.kpc), atol=1E-5*u.kpc)
 
     # check that ND arrays work
 
@@ -322,7 +321,7 @@ def test_galactocentric():
     g1t = g1.transform_to(Galactic)
     g2t = g2.transform_to(Galactic)
 
-    np.testing.assert_almost_equal(g1t.cartesian.xyz.value, g2t.cartesian.xyz.value[:,:,0,0])
+    assert_allclose(g1t.cartesian.xyz, g2t.cartesian.xyz[:,:,0,0])
 
     # from Galactic to Galactocentric
     l = np.linspace(15, 30., 100) * u.deg
@@ -352,34 +351,34 @@ def test_icrs_cirs():
     cirsnod = inod.transform_to(cframe1)  #uses the default time
     #first do a round-tripping test
     inod2 = cirsnod.transform_to(ICRS)
-    npt.assert_allclose(inod.ra, inod2.ra)
-    npt.assert_allclose(inod.dec, inod2.dec)
+    assert_allclose(inod.ra, inod2.ra)
+    assert_allclose(inod.dec, inod2.dec)
 
     #now check that a different time yields different answers
     cframe2 = CIRS(obstime=Time('J2005', scale='utc'))
     cirsnod2 = inod.transform_to(cframe2)
-    assert not np.allclose(cirsnod.ra, cirsnod2.ra, rtol=1e-8)
-    assert not np.allclose(cirsnod.dec, cirsnod2.dec, rtol=1e-8)
+    assert not allclose(cirsnod.ra, cirsnod2.ra, rtol=1e-8)
+    assert not allclose(cirsnod.dec, cirsnod2.dec, rtol=1e-8)
 
     # parallax effects should be included, so with and w/o distance should be different
     cirswd = iwd.transform_to(cframe1)
-    assert not np.allclose(cirswd.ra, cirsnod.ra, rtol=1e-8)
-    assert not np.allclose(cirswd.dec, cirsnod.dec, rtol=1e-8)
+    assert not allclose(cirswd.ra, cirsnod.ra, rtol=1e-8)
+    assert not allclose(cirswd.dec, cirsnod.dec, rtol=1e-8)
     # and the distance should transform at least somehow
-    assert not np.allclose(cirswd.distance, iwd.distance, rtol=1e-8)
+    assert not allclose(cirswd.distance, iwd.distance, rtol=1e-8)
 
     #now check that the cirs self-transform works as expected
     cirsnod3 = cirsnod.transform_to(cframe1)  # should be a no-op
-    npt.assert_allclose(cirsnod.ra, cirsnod3.ra)
-    npt.assert_allclose(cirsnod.dec, cirsnod3.dec)
+    assert_allclose(cirsnod.ra, cirsnod3.ra)
+    assert_allclose(cirsnod.dec, cirsnod3.dec)
 
     cirsnod4 = cirsnod.transform_to(cframe2)  # should be different
-    assert not np.allclose(cirsnod4.ra, cirsnod.ra, rtol=1e-8)
-    assert not np.allclose(cirsnod4.dec, cirsnod.dec, rtol=1e-8)
+    assert not allclose(cirsnod4.ra, cirsnod.ra, rtol=1e-8)
+    assert not allclose(cirsnod4.dec, cirsnod.dec, rtol=1e-8)
 
     cirsnod5 = cirsnod4.transform_to(cframe1)  # should be back to the same
-    npt.assert_allclose(cirsnod.ra, cirsnod5.ra)
-    npt.assert_allclose(cirsnod.dec, cirsnod5.dec)
+    assert_allclose(cirsnod.ra, cirsnod5.ra)
+    assert_allclose(cirsnod.dec, cirsnod5.dec)
 
 
 def test_icrs_gcrs():
@@ -394,44 +393,45 @@ def test_icrs_gcrs():
     gcrsnod = inod.transform_to(gframe1)  #uses the default time
     #first do a round-tripping test
     inod2 = gcrsnod.transform_to(ICRS)
-    npt.assert_allclose(inod.ra, inod2.ra)
-    npt.assert_allclose(inod.dec, inod2.dec)
+    assert_allclose(inod.ra, inod2.ra)
+    assert_allclose(inod.dec, inod2.dec)
 
     #now check that a different time yields different answers
     gframe2 = GCRS(obstime=Time('J2005', scale='utc'))
     gcrsnod2 = inod.transform_to(gframe2)
-    assert not np.allclose(gcrsnod.ra, gcrsnod2.ra, rtol=1e-8, atol=1e-10)
-    assert not np.allclose(gcrsnod.dec, gcrsnod2.dec, rtol=1e-8, atol=1e-10)
+    assert not allclose(gcrsnod.ra, gcrsnod2.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert not allclose(gcrsnod.dec, gcrsnod2.dec, rtol=1e-8, atol=1e-10*u.deg)
 
     # parallax effects should be included, so with and w/o distance should be different
     gcrswd = iwd.transform_to(gframe1)
-    assert not np.allclose(gcrswd.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10)
-    assert not np.allclose(gcrswd.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10)
+    assert not allclose(gcrswd.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert not allclose(gcrswd.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10*u.deg)
     # and the distance should transform at least somehow
-    assert not np.allclose(gcrswd.distance, iwd.distance, rtol=1e-8, atol=1e-10)
+    assert not allclose(gcrswd.distance, iwd.distance, rtol=1e-8,
+                        atol=1e-10*u.pc)
 
     #now check that the cirs self-transform works as expected
     gcrsnod3 = gcrsnod.transform_to(gframe1)  # should be a no-op
-    npt.assert_allclose(gcrsnod.ra, gcrsnod3.ra)
-    npt.assert_allclose(gcrsnod.dec, gcrsnod3.dec)
+    assert_allclose(gcrsnod.ra, gcrsnod3.ra)
+    assert_allclose(gcrsnod.dec, gcrsnod3.dec)
 
     gcrsnod4 = gcrsnod.transform_to(gframe2)  # should be different
-    assert not np.allclose(gcrsnod4.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10)
-    assert not np.allclose(gcrsnod4.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10)
+    assert not allclose(gcrsnod4.ra, gcrsnod.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert not allclose(gcrsnod4.dec, gcrsnod.dec, rtol=1e-8, atol=1e-10*u.deg)
 
     gcrsnod5 = gcrsnod4.transform_to(gframe1)  # should be back to the same
-    npt.assert_allclose(gcrsnod.ra, gcrsnod5.ra, rtol=1e-8, atol=1e-10)
-    npt.assert_allclose(gcrsnod.dec, gcrsnod5.dec, rtol=1e-8, atol=1e-10)
+    assert_allclose(gcrsnod.ra, gcrsnod5.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert_allclose(gcrsnod.dec, gcrsnod5.dec, rtol=1e-8, atol=1e-10*u.deg)
 
     #also make sure that a GCRS with a different geoloc/geovel gets a different answer
     # roughly a moon-like frame
     gframe3 = GCRS(obsgeoloc=[385000., 0, 0]*u.km, obsgeovel=[1, 0, 0]*u.km/u.s)
     gcrsnod6 = inod.transform_to(gframe3)  # should be different
-    assert not np.allclose(gcrsnod.ra, gcrsnod6.ra, rtol=1e-8, atol=1e-10)
-    assert not np.allclose(gcrsnod.dec, gcrsnod6.dec, rtol=1e-8, atol=1e-10)
+    assert not allclose(gcrsnod.ra, gcrsnod6.ra, rtol=1e-8, atol=1e-10*u.deg)
+    assert not allclose(gcrsnod.dec, gcrsnod6.dec, rtol=1e-8, atol=1e-10*u.deg)
     inodviag3 = gcrsnod6.transform_to(ICRS)  # and now back to the original
-    npt.assert_allclose(inod.ra, inodviag3.ra)
-    npt.assert_allclose(inod.dec, inodviag3.dec)
+    assert_allclose(inod.ra, inodviag3.ra)
+    assert_allclose(inod.dec, inodviag3.dec)
 
 
 def test_cirs_to_altaz():
@@ -453,10 +453,10 @@ def test_cirs_to_altaz():
     cirs3 = cirscart.transform_to(altazframe).transform_to(cirs)
 
     #check round-tripping
-    npt.assert_allclose(cirs.ra.deg, cirs2.ra.deg)
-    npt.assert_allclose(cirs.dec.deg, cirs2.dec.deg)
-    npt.assert_allclose(cirs.ra.deg, cirs3.ra.deg)
-    npt.assert_allclose(cirs.dec.deg, cirs3.dec.deg)
+    assert_allclose(cirs.ra, cirs2.ra)
+    assert_allclose(cirs.dec, cirs2.dec)
+    assert_allclose(cirs.ra, cirs3.ra)
+    assert_allclose(cirs.dec, cirs3.dec)
 
 
 def test_gcrs_itrs():
@@ -470,17 +470,17 @@ def test_gcrs_itrs():
     gcrs2 = gcrs.transform_to(ITRS).transform_to(gcrs)
     gcrs6_2 = gcrs6.transform_to(ITRS).transform_to(gcrs)
 
-    npt.assert_allclose(gcrs.ra.deg, gcrs2.ra.deg)
-    npt.assert_allclose(gcrs.dec.deg, gcrs2.dec.deg)
-    assert not np.allclose(gcrs.ra.deg, gcrs6_2.ra.deg)
-    assert not np.allclose(gcrs.dec.deg, gcrs6_2.dec.deg)
+    assert_allclose(gcrs.ra, gcrs2.ra)
+    assert_allclose(gcrs.dec, gcrs2.dec)
+    assert not allclose(gcrs.ra, gcrs6_2.ra)
+    assert not allclose(gcrs.dec, gcrs6_2.dec)
 
     #also try with the cartesian representation
     gcrsc = gcrs.realize_frame(gcrs.data)
     gcrsc.representation = r.CartesianRepresentation
     gcrsc2 = gcrsc.transform_to(ITRS).transform_to(gcrsc)
-    npt.assert_allclose(gcrsc.spherical.lon.deg, gcrsc2.ra.deg)
-    npt.assert_allclose(gcrsc.spherical.lat.deg, gcrsc2.dec.deg)
+    assert_allclose(gcrsc.spherical.lon.deg, gcrsc2.ra.deg)
+    assert_allclose(gcrsc.spherical.lat, gcrsc2.dec)
 
 
 def test_cirs_itrs():
@@ -495,10 +495,10 @@ def test_cirs_itrs():
     cirs6_2 = cirs6.transform_to(ITRS).transform_to(cirs) # different obstime
 
     #just check round-tripping
-    npt.assert_allclose(cirs.ra.deg, cirs2.ra.deg)
-    npt.assert_allclose(cirs.dec.deg, cirs2.dec.deg)
-    assert not np.allclose(cirs.ra.deg, cirs6_2.ra.deg)
-    assert not np.allclose(cirs.dec.deg, cirs6_2.dec.deg)
+    assert_allclose(cirs.ra, cirs2.ra)
+    assert_allclose(cirs.dec, cirs2.dec)
+    assert not allclose(cirs.ra, cirs6_2.ra)
+    assert not allclose(cirs.dec, cirs6_2.dec)
 
 
 def test_gcrs_cirs():
@@ -513,19 +513,19 @@ def test_gcrs_cirs():
     gcrs2 = gcrs.transform_to(CIRS).transform_to(gcrs)
     gcrs6_2 = gcrs6.transform_to(CIRS).transform_to(gcrs)
 
-    npt.assert_allclose(gcrs.ra.deg, gcrs2.ra.deg)
-    npt.assert_allclose(gcrs.dec.deg, gcrs2.dec.deg)
-    assert not np.allclose(gcrs.ra.deg, gcrs6_2.ra.deg)
-    assert not np.allclose(gcrs.dec.deg, gcrs6_2.dec.deg)
+    assert_allclose(gcrs.ra, gcrs2.ra)
+    assert_allclose(gcrs.dec, gcrs2.dec)
+    assert not allclose(gcrs.ra, gcrs6_2.ra)
+    assert not allclose(gcrs.dec, gcrs6_2.dec)
 
     #now try explicit intermediate pathways and ensure they're all consistent
     gcrs3 = gcrs.transform_to(ITRS).transform_to(CIRS).transform_to(ITRS).transform_to(gcrs)
-    npt.assert_allclose(gcrs.ra.deg, gcrs3.ra.deg)
-    npt.assert_allclose(gcrs.dec.deg, gcrs3.dec.deg)
+    assert_allclose(gcrs.ra, gcrs3.ra)
+    assert_allclose(gcrs.dec, gcrs3.dec)
 
     gcrs4 = gcrs.transform_to(ICRS).transform_to(CIRS).transform_to(ICRS).transform_to(gcrs)
-    npt.assert_allclose(gcrs.ra.deg, gcrs4.ra.deg)
-    npt.assert_allclose(gcrs.dec.deg, gcrs4.dec.deg)
+    assert_allclose(gcrs.ra, gcrs4.ra)
+    assert_allclose(gcrs.dec, gcrs4.dec)
 
 
 def test_gcrs_altaz():
@@ -549,7 +549,7 @@ def test_gcrs_altaz():
     aa3 = gcrs.transform_to(ITRS).transform_to(CIRS).transform_to(aaframe)
 
     # make sure they're all consistent
-    npt.assert_allclose(aa1.alt.deg, aa2.alt.deg)
-    npt.assert_allclose(aa1.az.deg, aa2.az.deg)
-    npt.assert_allclose(aa1.alt.deg, aa3.alt.deg)
-    npt.assert_allclose(aa1.az.deg, aa3.az.deg)
+    assert_allclose(aa1.alt, aa2.alt)
+    assert_allclose(aa1.az, aa2.az)
+    assert_allclose(aa1.alt, aa3.alt)
+    assert_allclose(aa1.az, aa3.az)

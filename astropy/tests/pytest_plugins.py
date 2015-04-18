@@ -462,17 +462,31 @@ PYTEST_HEADER_MODULES = OrderedDict([('Numpy', 'numpy'),
                                      ('Matplotlib', 'matplotlib'),
                                      ('h5py', 'h5py')])
 
+# This always returns with Astropy's version
+from .. import __version__
+
+TESTED_VERSIONS = OrderedDict([('Astropy', __version__)])
+
 
 def pytest_report_header(config):
-    from .. import __version__
 
     stdoutencoding = getattr(sys.stdout, 'encoding') or 'ascii'
 
-    s = "\nRunning tests with Astropy version {0}.\n".format(__version__)
     if six.PY2:
         args = [x.decode('utf-8') for x in config.args]
     elif six.PY3:
         args = config.args
+
+    # TESTED_VERSIONS can contain the affiliated package version, too
+    if len(TESTED_VERSIONS) > 1:
+        for pkg, version in TESTED_VERSIONS.items():
+            if pkg != 'Astropy':
+                s = "\nRunning tests with {0} version {1}.\n".format(
+                    pkg, version)
+    else:
+        s = "\nRunning tests with Astropy version {0}.\n".format(
+            TESTED_VERSIONS['Astropy'])
+
     s += "Running tests in {0}.\n\n".format(" ".join(args))
 
     from platform import platform
@@ -675,3 +689,26 @@ def pytest_unconfigure():
     # turn_off_internet previously called)
     # this is harmless / does nothing if socket connections were never disabled
     turn_on_internet()
+
+
+def pytest_terminal_summary(terminalreporter):
+    """Output a warning to IPython users in case any tests failed."""
+
+    try:
+        get_ipython()
+    except NameError:
+        return
+
+    if not terminalreporter.stats.get('failed'):
+        # Only issue the warning when there are actually failures
+        return
+
+    terminalreporter.ensure_newline()
+    terminalreporter.write_line(
+        'Some tests are known to fail when run from the IPython prompt; '
+        'especially, but not limited to tests involving logging and warning '
+        'handling.  Unless you are certain as to the cause of the failure, '
+        'please check that the failure occurs outside IPython as well.  See '
+        'http://docs.astropy.org/en/stable/known_issues.html#failing-logging-'
+        'tests-when-running-the-tests-in-ipython for more information.',
+        yellow=True, bold=True)

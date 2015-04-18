@@ -473,6 +473,11 @@ class SimpleElement(Element):
     def __init__(self):
         Element.__init__(self)
 
+    def __repr__(self):
+        buff = io.StringIO()
+        SimpleElement.to_xml(self, XMLWriter(buff))
+        return buff.getvalue().strip()
+
     def parse(self, iterator, config):
         for start, tag, data, pos in iterator:
             if start and tag != self._element_name:
@@ -835,6 +840,11 @@ class Values(Element, _IDProperty):
         self._options      = []
 
         warn_unknown_attrs('VALUES', six.iterkeys(extras), config, pos)
+
+    def __repr__(self):
+        buff = io.StringIO()
+        self.to_xml(XMLWriter(buff))
+        return buff.getvalue().strip()
 
     @property
     def null(self):
@@ -1884,6 +1894,9 @@ class Group(Element, _IDProperty, _NameProperty, _UtypeProperty,
 
         warn_unknown_attrs('GROUP', six.iterkeys(extra), config, pos)
 
+    def __repr__(self):
+        return '<GROUP>... {0} entries ...</GROUP>'.format(len(self._entries))
+
     @property
     def ref(self):
         """
@@ -2341,6 +2354,9 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
                     elif tag == 'TABLE':
                         # For error checking purposes
                         Field.uniqify_names(self.fields)
+                        # We still need to create arrays, even if the file
+                        # contains no DATA section
+                        self.create_arrays(nrows=0, config=config)
                         return self
 
         self.create_arrays(nrows=self._nrows, config=config)
@@ -2960,6 +2976,10 @@ class Table(Element, _IDProperty, _NameProperty, _UcdProperty,
         iterator emitting all matches.
         """)
 
+    def iter_info(self):
+        for info in self.infos:
+            yield info
+
 
 class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
                _DescriptionProperty):
@@ -2992,6 +3012,13 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
         self._resources          = HomogeneousList(Resource)
 
         warn_unknown_attrs('RESOURCE', six.iterkeys(kwargs), config, pos)
+
+    def __repr__(self):
+        buff = io.StringIO()
+        XMLWriter(buff).element(
+            self._element_name,
+            attrib=w.object_attrs(self, self._attr_list))
+        return buff.getvalue().strip()
 
     @property
     def type(self):
@@ -3177,6 +3204,20 @@ class Resource(Element, _IDProperty, _NameProperty, _UtypeProperty,
             for coosys in resource.iter_coosys():
                 yield coosys
 
+    def iter_info(self):
+        """
+        Recursively iterates over all the INFO_ elements in the
+        resource and nested resources.
+        """
+        for info in self.infos:
+            yield info
+        for table in self.tables:
+            for info in table.iter_info():
+                yield info
+        for resource in self.resources:
+            for info in resource.iter_info():
+                yield info
+
 
 class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     """
@@ -3208,6 +3249,10 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         version = str(version)
         assert version in ("1.0", "1.1", "1.2")
         self._version            = version
+
+    def __repr__(self):
+        n_tables = len(list(self.iter_tables()))
+        return '<VOTABLE>... {0} tables ...</VOTABLE>'.format(n_tables)
 
     @property
     def version(self):
@@ -3564,6 +3609,21 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
     get_coosys_by_id = _lookup_by_attr_factory(
         'ID', True, 'iter_coosys', 'COOSYS',
         """Looks up a COOSYS_ element by the given ID.""")
+
+    def iter_info(self):
+        """
+        Recursively iterate over all INFO_ elements in the VOTABLE_
+        file.
+        """
+        for info in self.infos:
+            yield info
+        for resource in self.resources:
+            for info in resource.iter_info():
+                yield info
+
+    get_info_by_id = _lookup_by_attr_factory(
+        'ID', True, 'iter_info', 'INFO',
+        """Looks up a INFO element by the given ID.""")
 
     def set_all_tables_format(self, format):
         """

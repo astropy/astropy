@@ -39,7 +39,28 @@ include the following:
 - **Changelog entry**: whether you are fixing a bug or adding new
   functionality, you should add an entry to the ``CHANGES.rst`` file that
   includes if possible the issue number (if you are opening a pull request you
-  may not know this yet, but you can add it once the pull request is open). The
-  only time that you do not need to include a changelog entry is for changes
-  that fix bugs introduced in the developer version and which are not present
-  in the stable versions.
+  may not know this yet, but you can add it once the pull request is open). You
+  do not need to include a changelog entry for fixes to bugs introduced in the
+  developer version and which are not present in the stable releases.  In
+  general you do not need to include a changelog entry for minor documentation
+  or test updates.  Only user-visible changes (new features/API changes, fixed
+  issues) need to be mentioned.  If in doubt ask the core maintainer reviewing
+  your changes.
+
+Other Tips
+----------
+
+- When contributing trivial documentation fixes (i.e. fixes to typos, spelling,
+  grammar) that do not contain any special markup and are not associated with code
+  changes, include the string "[skip ci]" at the end of your commit message.
+  For example:
+
+      $ git commit -m "Fixed typo [skip ci]"
+
+  This will prevent automated tests for running against your change, freeing
+  up resources for testing non-trivial changes.
+
+  - If you already made the commit without including this string, you can edit
+    your existing commit message by running:
+
+        $ git commit --amend

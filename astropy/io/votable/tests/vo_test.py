@@ -611,6 +611,21 @@ class TestParse:
         assert fields[0].name == "int"
         assert fields[0].values.min == -1000
 
+    def test_get_info_by_id(self):
+        info = self.votable.get_info_by_id('QUERY_STATUS')
+        assert info.value == 'OK'
+
+        if self.votable.version != '1.1':
+            info = self.votable.get_info_by_id("ErrorInfo")
+            assert info.value == "One might expect to find some INFO here, too..."
+
+    def test_repr(self):
+        assert '3 tables' in repr(self.votable)
+        assert repr(list(self.votable.iter_fields_and_params())[0]) == \
+            '<PARAM ID="awesome" arraysize="*" datatype="float" name="INPUT" unit="deg" value="[0.0 0.0]"/>'
+        # Smoke test
+        repr(list(self.votable.iter_groups()))
+
 
 class TestThroughTableData(TestParse):
     def setup_class(self):

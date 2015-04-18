@@ -370,6 +370,19 @@ class TestFormat():
         with pytest.raises(ValueError):
             str(t['a'])
 
+    def test_column_alignment(self, table_type):
+        t = table_type([[1], [2], [3], [4]],
+                       names=('long title a', 'long title b',
+                              'long title c', 'long title d'))
+        t['long title a'].format = '<'
+        t['long title b'].format = '^'
+        t['long title c'].format = '>'
+        t['long title d'].format = '0='
+        assert str(t['long title a']) == 'long title a\n------------\n1           '
+        assert str(t['long title b']) == 'long title b\n------------\n     2      '
+        assert str(t['long title c']) == 'long title c\n------------\n           3'
+        assert str(t['long title d']) == 'long title d\n------------\n000000000004'
+
 
 class TestFormatWithMaskedElements():
 

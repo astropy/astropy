@@ -51,5 +51,6 @@ wish to *squelch* deprecation warnings, you can start Python with
 also an Astropy-specific `~astropy.utils.exceptions.AstropyDeprecationWarning`
 which can be used to disable deprecation warnings from Astropy only.
 
-See http://docs.python.org/using/cmdline.html#cmdoption-unittest-discover-W for
-more information on the -W argument.
+See `the CPython documentation
+<http://docs.python.org/2/using/cmdline.html#cmdoption-W>`__ for more
+information on the -W argument.
