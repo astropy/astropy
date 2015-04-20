@@ -41,9 +41,7 @@ def fitsinfo(filename):
     """
 
     try:
-        hdulist = fits.open(filename)
-        hdulist.info()
-        hdulist.close()
+        fits.info(filename)
     except IOError as e:
         log.error(str(e))
     return
