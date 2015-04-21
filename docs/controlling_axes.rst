@@ -1,5 +1,5 @@
 ==================
-Changing Axis Unit
+Controlling Axes
 ==================
 
 WCSAxes also allows users to change the units of the axes of an image. In the
