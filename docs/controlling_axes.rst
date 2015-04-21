@@ -43,3 +43,14 @@ angles, refer to :ref:`tick_label_format`.
 
 Changing Axis Directions
 ========================
+
+Sometimes astronomy FITS files don't follow the convention of having the longitude increase to the left,
+so we want to flip an axis so that it goes in the opposite direction. To do this on our example image:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    ax.set_xlim(ax.get_xlim()[-1],ax.get_xlim()[0])
+
