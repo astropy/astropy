@@ -41,5 +41,5 @@ can change the unit to an equivalent one by:
 This feature is only for non-angular coordinate axes. To change the format of
 angles, refer to :ref:`tick_label_format`.
 
-Flipping axis direction
-=======================
+Changing Axis Directions
+========================
