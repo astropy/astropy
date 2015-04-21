@@ -47,6 +47,11 @@ Note that any additional arguments passed to
 as ``slices`` or ``frame_class``, will be passed on to the
 :class:`~wcsaxes.WCSAxes` class.
 
+.. _initialize_alternative:
+
+Alternative
+===========
+
 As an alternative to the above methods of initializing
 :class:`~wcsaxes.WCSAxes`, you can also instantiate :class:`~wcsaxes.WCSAxes`
 directly and add it to the figure::
