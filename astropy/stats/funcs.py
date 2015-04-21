@@ -19,7 +19,8 @@ from ..extern.six.moves import xrange
 __all__ = ['binom_conf_interval', 'binned_binom_proportion',
            'median_absolute_deviation', 'biweight_location',
            'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap',
-           'mad_std', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm']
+           'mad_std', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
+           'bayesian_information_criterion','akaike_information_criterion']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
@@ -790,3 +791,131 @@ def mad_std(data):
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
     return median_absolute_deviation(data) * 1.482602218505602
+    
+def akaike_information_criterion(ln_likelihood, num_params, num_samples, use_AICc=True):
+    """
+    Calculate the `Akaike Information Criterion (AIC)
+    <https://en.wikipedia.org/wiki/Akaike_information_criterion>`_.
+
+    The AIC is a penalized likelihood useful for model comparison and preventing 
+    overfitting. It is given by:
+
+    .. math::
+
+        \textrm{AIC} = 2k - 2 \\ln(L)
+    
+    and the AICc, which corrects for finite sample size is
+    
+    .. math::
+
+        \textrm{AICc} = 2k + \\frac{2k(k + 1)}{n - k - 1} - 2 \\ln(L)
+
+    where :math:`n` is the number of data samples, :math:`k` is the number of fitted
+    parameters, and :math:`L` is the likelihood.
+
+    Parameters
+    ----------
+    ln_likelihood : float or array-like
+        natural log likelihood or array of log likelihoods.
+    num_params : int or array-like
+        number of parameters per model
+    num_samples: int
+        number of data points or samples
+    use_AICc: Boolean
+        Use AICc or not. In general, it is better to use the AICc
+    
+    Returns
+    -------
+    result : float or array-like
+        Returns the AIC or AICc for each set of ln_likelihood, num_params, and num_samples.
+
+    Examples
+    --------
+    Let's say you try fitting a collection of data with multiple models. One model
+    has a ln likelihood of -10, and has 2 fitted parameters. Another model has a 
+    ln likelihood of -5, and has 3 fitted parameters. You have 20 data points. 
+    Does the increase in likelihood justify adding another parameter to the model?
+    
+    >>> num_samples = 20
+    >>> num_params = np.array([2,3])
+    >>> ln_likelihood = np.array([-10,-5])
+    >>> aicc = akaike_information_criterion(ln_likelihood, num_params, num_samples, True)
+    >>> print(aicc)
+    [ 24.70588235,  17.5]
+    
+    Note that when doing model selection using the AIC, the lowest AIC is the 
+    preferred model. So, the second model, with more parameters, is the preferred model.
+    The relative probability of the kth model is :math:`\\exp(AIC_{min} - AIC_k)`.
+    
+    Also, the choice of which information criterion to use is up to the user. 
+    For a brief discussion of comparing the AIC to the BIC in an astronomical context,
+    see `Section 3.3 of Kuhn et al. 
+    <http://adsabs.harvard.edu/abs/2014ApJ...787..107K>`_.
+    In general, AIC seems preferred over BIC in most astronomy contexts.
+    """
+    aic = 2*num_params - 2*ln_likelihood
+    if not use_AICc:
+        return aic
+    assert num_samples - num_params - 1 > 0
+    aicc = aic + 2*num_params*(num_params + 1)/(num_samples - num_params - 1)
+    return aicc
+    
+def bayesian_information_criterion(ln_likelihood, num_params, num_samples):
+    """
+    Calculate the `Bayesian Information Criterion (BIC)
+    <https://en.wikipedia.org/wiki/Bayesian_information_criterion>`_.
+
+    The BIC is a penalized likelihood useful for model comparison and preventing 
+    overfitting. It is given by:
+
+    .. math::
+
+        \textrm{BIC} = k \\ln(n) - 2 \\ln(L)
+
+    where :math:`n` is the number of data samples, :math:`k` is the number of fitted
+    parameters, and :math:`L` is the likelihood.
+
+    Parameters
+    ----------
+    ln_likelihood : float or array-like
+        natural log likelihood or array of log likelihoods.
+    num_params : int or array-like
+        number of parameters per model
+    num_samples: int
+        number of data points or samples
+
+    Returns
+    -------
+    result : float or array-like
+        Returns the BIC for each set of ln_likelihood, num_params, and num_samples.
+
+    Examples
+    --------
+    Let's say you try fitting a collection of data with multiple models. One model
+    has a ln likelihood of -10, and has 2 fitted parameters. Another model has a 
+    ln likelihood of -5, and has 3 fitted parameters. You have 20 data points. 
+    Does the increase in likelihood justify adding another parameter to the model?
+    
+    >>> num_samples = 20
+    >>> num_params = np.array([2,3])
+    >>> ln_likelihood = np.array([-10,-5])
+    >>> bic = bayesian_information_criterion(ln_likelihood, num_params, num_samples)
+    >>> print(bic)
+    [ 25.99146455  18.98719682]
+    
+    Note that when doing model selection using the BIC, the lowest BIC is the 
+    preferred model. So, the second model, with more parameters, is the preferred model.
+    The :math:`\\Delta \\textrm{BIC} \\approx 7`, which is "strong" Bayesian evidence
+    for the second model. See discussion in `Bayesian Information Criterion (BIC)
+    <https://en.wikipedia.org/wiki/Bayesian_information_criterion>`_ for discussion
+    of :math:`\\Delta \\textrm{BIC}`.
+    
+    Also, the choice of which information criterion to use is up to the user. 
+    For a brief discussion of comparing the AIC to the BIC in an astronomical context,
+    see `Section 3.3 of Kuhn et al. 
+    <http://adsabs.harvard.edu/abs/2014ApJ...787..107K>`_.
+    In general, AIC seems preferred over BIC in most astronomy contexts.
+    """    
+    bic = num_params*np.log(num_samples) - 2*ln_likelihood
+    return bic
+    
