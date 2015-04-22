@@ -256,3 +256,35 @@ def test_gaussian_sigma_to_fwhm():
 def test_gaussian_sigma_to_fwhm_to_sigma():
     assert_allclose(funcs.gaussian_fwhm_to_sigma *
                     funcs.gaussian_sigma_to_fwhm, 1.0)
+
+def test_akaike_information_criterion():
+    #testing with arrays
+    aicc = funcs.akaike_information_criterion(np.array([-10,-5]), np.array([2,3]), 20, True)
+    assert_allclose(aicc, np.array([ 24.70588235, 17.5]))
+    
+    #testing with single float
+    aicc = funcs.akaike_information_criterion(-10,2, 20, True)
+    assert_allclose(aicc, 24.70588235)
+    
+    #test regular aic
+    aicc = funcs.akaike_information_criterion(np.array([-10,-5]), np.array([2,3]), 20, False)
+    assert_allclose(aicc, np.array([24, 16]))
+    aicc = funcs.akaike_information_criterion(-10, 2, 20, False)
+    assert_allclose(aicc, 24)
+    
+    #make sure AssertionError in AICc if num_samples - num_params - 1 <= 0
+    with pytest.raises(AssertionError):
+        aicc = funcs.akaike_information_criterion(-10, 30, 31, True)
+    with pytest.raises(AssertionError):
+        aicc = funcs.akaike_information_criterion(-10, 40, 31, True)
+    with pytest.raises(AssertionError):
+        aicc = funcs.akaike_information_criterion(np.array([-10,-5]), np.array([2,30]), 20, True)
+
+def test_bayesian_information_criterion():
+    #testing with arrays
+    bic = funcs.bayesian_information_criterion(np.array([-10,-5]), np.array([2,3]), 20)
+    assert_allclose(bic, np.array([ 25.99146455, 18.98719682]))
+    
+    #testing with single float
+    bic = funcs.bayesian_information_criterion(-10,2, 20)
+    assert_allclose(bic, 25.99146455)

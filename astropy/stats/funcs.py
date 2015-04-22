@@ -822,7 +822,7 @@ def akaike_information_criterion(ln_likelihood, num_params, num_samples, use_AIC
     num_samples: int
         number of data points or samples
     use_AICc: Boolean
-        Use AICc or not. In general, it is better to use the AICc
+        Use AICc or not. In general, it is better to use the AICc.
     
     Returns
     -------
@@ -835,15 +835,17 @@ def akaike_information_criterion(ln_likelihood, num_params, num_samples, use_AIC
     has a ln likelihood of -10, and has 2 fitted parameters. Another model has a 
     ln likelihood of -5, and has 3 fitted parameters. You have 20 data points. 
     Does the increase in likelihood justify adding another parameter to the model?
+    The AIC doesn't take into account finite number of data points; the AICc does this
+    and is thus preferable to use (and is set as the default).
     
     >>> num_samples = 20
     >>> num_params = np.array([2,3])
     >>> ln_likelihood = np.array([-10,-5])
     >>> aicc = akaike_information_criterion(ln_likelihood, num_params, num_samples, True)
     >>> print(aicc)
-    [ 24.70588235,  17.5]
+    [ 24.70588235  17.5       ]
     
-    Note that when doing model selection using the AIC, the lowest AIC is the 
+    Note that when doing model selection using the AIC (or AICc), the lowest AIC is the 
     preferred model. So, the second model, with more parameters, is the preferred model.
     The relative probability of the kth model is :math:`\\exp(AIC_{min} - AIC_k)`.
     
@@ -856,7 +858,7 @@ def akaike_information_criterion(ln_likelihood, num_params, num_samples, use_AIC
     aic = 2*num_params - 2*ln_likelihood
     if not use_AICc:
         return aic
-    assert num_samples - num_params - 1 > 0
+    assert np.all(num_samples - num_params - 1 > 0)
     aicc = aic + 2*num_params*(num_params + 1)/(num_samples - num_params - 1)
     return aicc
     
