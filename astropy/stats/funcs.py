@@ -19,7 +19,8 @@ from ..extern.six.moves import xrange
 __all__ = ['binom_conf_interval', 'binned_binom_proportion',
            'median_absolute_deviation', 'biweight_location',
            'biweight_midvariance', 'signal_to_noise_oir_ccd', 'bootstrap',
-           'mad_std', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm']
+           'mad_std', 'gaussian_fwhm_to_sigma', 'gaussian_sigma_to_fwhm',
+           'sigma_to_logp', 'logp_to_sigma']
 
 __doctest_skip__ = ['binned_binom_proportion']
 __doctest_requires__ = {'binom_conf_interval': ['scipy.special']}
@@ -790,3 +791,80 @@ def mad_std(data):
 
     # NOTE: 1. / scipy.stats.norm.ppf(0.75) = 1.482602218505602
     return median_absolute_deviation(data) * 1.482602218505602
+
+
+# TODO Note scipy dependency
+def sigma_to_logp(sigma, two_sided=True):
+    """Convert number-of-sigma to log-probability
+
+    Detection probabilities are often naturally expressed as a
+    false positive probability. On the other hand, astronomers
+    are used to thinking of small probabilities in terms of
+    how many standard deviations out on a normal distribution
+    they are. This function converts between these two
+    representations in a way that works even for probabilities
+    too small to represent in floating point (this happens at
+    about 40-sigma for double precision).
+
+    Parameters
+    ----------
+    sigma : array-like
+        The number of sigma
+    two_sided : boolean
+        If True (the default) use a two-tailed probability (probability
+        of the value being larger than sigma in absolute value)
+
+    Returns
+    -------
+    logp : array-like
+        The (natural) logarithm of the corresponding probability
+
+    Examples
+    --------
+    >>> np.exp(sigma_to_logp(3))
+    0.0026997960632601926
+    """
+    import scipy.special
+    s = sigma/np.sqrt(2)
+    return -s**2+np.log(scipy.special.erfcx(s))+(0 if two_sided else -np.log(2))
+
+# TODO Note scipy dependency
+def logp_to_sigma(logp, two_sided=True):
+    """Convert log-probability to number-of-sigma
+
+        Detection probabilities are often naturally expressed as a
+    false positive probability. On the other hand, astronomers
+    are used to thinking of small probabilities in terms of
+    how many standard deviations out on a normal distribution
+    they are. This function converts between these two
+    representations in a way that works even for probabilities
+    too small to represent in floating point (this happens at
+    about 40-sigma for double precision).
+
+    Parameters
+    ----------
+    logp : number
+        The (natural) logarithm of the corresponding probability
+    two_sided : boolean
+        If True (the default) use a two-tailed probability (probability
+        of the value being larger than sigma in absolute value)
+
+    Returns
+    -------
+    sigma : number
+        The number of sigma
+
+    Examples
+    --------
+    >>> logp_to_sigma(np.log(0.05))
+    1.9599639845400545
+    """
+    import scipy.special
+    import scipy.optimize
+    if logp>0:
+        raise ValueError("probabilities must be <= 1 but logp was %g" % logp)
+    if not two_sided:
+        logp = logp + np.log(2)
+    s = scipy.optimize.brentq(lambda s: -s**2+np.log(scipy.special.erfcx(s))-logp,
+                              0, np.sqrt(-logp))
+    return s*np.sqrt(2)
