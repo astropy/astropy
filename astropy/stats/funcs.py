@@ -825,6 +825,7 @@ def sigma_to_logp(sigma, two_sided=True):
     --------
     >>> np.exp(sigma_to_logp(3))
     0.0026997960632601926
+    
     """
     import scipy.special
     s = sigma/np.sqrt(2)
@@ -834,7 +835,7 @@ def sigma_to_logp(sigma, two_sided=True):
 def logp_to_sigma(logp, two_sided=True):
     """Convert log-probability to number-of-sigma
 
-        Detection probabilities are often naturally expressed as a
+    Detection probabilities are often naturally expressed as a
     false positive probability. On the other hand, astronomers
     are used to thinking of small probabilities in terms of
     how many standard deviations out on a normal distribution
@@ -845,7 +846,7 @@ def logp_to_sigma(logp, two_sided=True):
 
     Parameters
     ----------
-    logp : number
+    logp : float
         The (natural) logarithm of the corresponding probability
     two_sided : boolean
         If True (the default) use a two-tailed probability (probability
@@ -853,13 +854,14 @@ def logp_to_sigma(logp, two_sided=True):
 
     Returns
     -------
-    sigma : number
+    sigma : float
         The number of sigma
 
     Examples
     --------
     >>> logp_to_sigma(np.log(0.05))
     1.9599639845400545
+    
     """
     import scipy.special
     import scipy.optimize
