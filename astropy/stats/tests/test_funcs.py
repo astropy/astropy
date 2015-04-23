@@ -256,3 +256,38 @@ def test_gaussian_sigma_to_fwhm():
 def test_gaussian_sigma_to_fwhm_to_sigma():
     assert_allclose(funcs.gaussian_fwhm_to_sigma *
                     funcs.gaussian_sigma_to_fwhm, 1.0)
+
+
+def test_poisson_conf_interval_rootn():
+    assert_allclose(funcs.poisson_conf_interval(16, interval='root-n'),
+                    (12, 20))
+
+def test_poisson_conf_large_pearson():
+    n = 100
+    assert_allclose(funcs.poisson_conf_interval(n, interval='root-n'),
+                    funcs.poisson_conf_interval(n, interval='pearson'),
+                    rtol=2e-2)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_large_frequentist_confidence():
+    n = 100
+    assert_allclose(funcs.poisson_conf_interval(n, interval='root-n'),
+                    funcs.poisson_conf_interval(n,
+                        interval='frequentist-confidence'),
+                    rtol=2e-2)
+
+def test_poisson_conf_array_rootn0():
+    n = 7*np.ones((3,4,5))
+    assert_allclose(funcs.poisson_conf_interval(n, interval='root-n-0'),
+                    funcs.poisson_conf_interval(n[0,0,0], interval='root-n-0')[:,None,None,None]*np.ones_like(n))
+
+    n[1,2,3] = 0
+    assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='root-n-0')))
+
+def test_poisson_conf_array_fc():
+    n = 7*np.ones((3,4,5))
+    assert_allclose(funcs.poisson_conf_interval(n, interval='frequentist-confidence'),
+                    funcs.poisson_conf_interval(n[0,0,0], interval='frequentist-confidence')[:,None,None,None]*np.ones_like(n))
+
+    n[1,2,3] = 0
+    assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='frequentist-confidence')))
