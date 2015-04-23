@@ -13,7 +13,7 @@ from ..extern import six
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
-           'StdDevUncertainty']
+           'StdDevUncertainty', 'uncertainty_type_dict']
 
 
 class IncompatibleUncertaintiesException(Exception):
@@ -181,12 +181,11 @@ class StdDevUncertainty(NDUncertainty):
     """
     A class for standard deviation uncertainties
     """
-
+    uncertainty_type = 'std'
     support_correlated = False
 
     def __init__(self, array=None, copy=True):
         self._unit = None
-        self.uncertainty_type = 'std'
         if array is None:
             self.array = None
         elif isinstance(array, StdDevUncertainty):
@@ -398,5 +397,5 @@ class StdDevUncertainty(NDUncertainty):
 
         return result_uncertainty
 
-uncertainty_type_dict = [item.uncertainty_type
-                         for item in NDUncertainty.__subclasses__()]
+uncertainty_type_dict = {item.uncertainty_type:item
+                         for item in NDUncertainty.__subclasses__()}
