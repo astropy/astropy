@@ -390,7 +390,6 @@ class StdDevUncertainty(NDUncertainty):
         if other_nddata.uncertainty.array is None:
             raise ValueError("standard deviation values are not set "
                              "in other_nddata")
-
         result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = \
             (np.sqrt((self.array/self.parent_nddata.data)**2
@@ -398,3 +397,6 @@ class StdDevUncertainty(NDUncertainty):
              result_data)
 
         return result_uncertainty
+
+uncertainty_type_dict = [item.uncertainty_type
+                         for item in NDUncertainty.__subclasses__()]
