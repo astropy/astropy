@@ -156,6 +156,26 @@ class NDUncertainty(object):
             The resulting uncertainty
         """
 
+class UnknownUncertainty(NDUncertainty):
+    """
+    A class for unknown uncertainties
+
+    Parameters
+    ----------
+
+    array: ~np.ndarray
+    """
+
+    uncertainty_type = 'unknown'
+
+    def __init__(self, array, copy=True):
+        self.array = array
+
+    def _unknown_propagate(self, other_nddata, result_data):
+        raise IncompatibleUncertaintiesException('Unknown uncertainties do not '
+                                                 'propagate')
+
+
 
 class StdDevUncertainty(NDUncertainty):
     """
