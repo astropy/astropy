@@ -3,6 +3,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import itertools
+
 import numpy as np
 
 from numpy.random import randn, normal
@@ -256,3 +258,88 @@ def test_gaussian_sigma_to_fwhm():
 def test_gaussian_sigma_to_fwhm_to_sigma():
     assert_allclose(funcs.gaussian_fwhm_to_sigma *
                     funcs.gaussian_sigma_to_fwhm, 1.0)
+
+
+
+@pytest.mark.parametrize('N',[10,100,1000,10000])
+def test_uniform(N):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper(np.random.random(N))>0.01
+
+@pytest.mark.parametrize('N,M',[(100,100),
+                                (20,100),
+                                (100,20),
+                                (10,20),
+                                (5,5),
+                                (1000,100)])
+def test_kuiper_two_uniform(N,M):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper_two(np.random.random(N),
+                                np.random.random(M))[1]>0.01
+
+@pytest.mark.parametrize('N,M',[(100,100),
+                                (20,100),
+                                (100,20),
+                                (10,20),
+                                (5,5),
+                                (1000,100)])
+def test_kuiper_two_nonuniform(N,M):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper_two(np.random.random(N)**2,
+                                np.random.random(M)**2)[1]>0.01
+
+def test_detect_kuiper_two_different():
+    with NumpyRNGContext(12345):
+        D, f = funcs.kuiper_two(np.random.random(500)*0.5,
+                                np.random.random(500))
+        assert f<0.01
+
+@pytest.mark.parametrize('N,M',[(100,100),
+                                (20,100),
+                                (100,20),
+                                (10,20),
+                                (5,5),
+                                (1000,100)])
+def check_fpp_kuiper_two(N,M):
+    with NumpyRNGContext(12345):
+        R = 100
+        fpp = 0.05
+        fps = 0
+        for i in range(R):
+            D, f = funcs.kuiper_two(np.random.random(N),np.random.random(M))
+            if f<fpp:
+                fps += 1
+        assert scipy.stats.binom(R,fpp).sf(fps-1)>0.005
+        assert scipy.stats.binom(R,fpp).cdf(fps-1)>0.005
+
+
+def test_histogram():
+    with NumpyRNGContext(1234):
+        a, b = 0.3, 3.14
+        s = np.random.uniform(a,b,10000) % 1
+    
+        b, w = funcs.fold_intervals([(a,b,1./(b-a))])
+
+        h = funcs.histogram_intervals(16,b,w)
+        nn, bb = np.histogram(s, bins=len(h), range=(0,1))
+
+        uu = np.sqrt(nn)
+        nn, uu = len(h)*nn/h/len(s), len(h)*uu/h/len(s)
+
+        c2 = np.sum(((nn-1)/uu)**2)
+    
+        assert scipy.stats.chi2(len(h)).cdf(c2)>0.01
+        assert scipy.stats.chi2(len(h)).sf(c2)>0.01
+
+
+@pytest.mark.parametrize("ii,rr",[ 
+            ( (4,(0,1),(1,)), (1,1,1,1) ),
+            ( (2,(0,1),(1,)), (1,1) ),
+            ( (4,(0,0.5,1),(1,1)), (1,1,1,1) ),
+            ( (4,(0,0.5,1),(1,2)), (1,1,2,2) ),
+            ( (3,(0,0.5,1),(1,2)), (1,1.5,2) ),
+            ])
+def test_histogram_intervals_known(ii, rr):
+    with NumpyRNGContext(1234):
+        assert_allclose(funcs.histogram_intervals(*ii),rr)
+
