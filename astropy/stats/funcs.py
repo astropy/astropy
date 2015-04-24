@@ -814,7 +814,8 @@ def sigma_to_logp(sigma, two_sided=True):
         The number of sigma
     two_sided : boolean
         If True (the default) use a two-tailed probability (probability
-        of the value being larger than sigma in absolute value)
+        of the value being larger than sigma in absolute value); if
+        False use a one-sided probability
 
     Returns
     -------
@@ -829,7 +830,17 @@ def sigma_to_logp(sigma, two_sided=True):
     """
     import scipy.special
     s = sigma/np.sqrt(2)
-    return -s**2+np.log(scipy.special.erfcx(s))+(0 if two_sided else -np.log(2))
+    r = -s**2+np.log(scipy.special.erfcx(s))+(0 if two_sided else -np.log(2))
+    if two_sided:
+        if np.any(s<0):
+            raise ValueError("two-sided tail probability doesn't make sense for negative sigmas: %s" % s)
+    else:
+        if np.isscalar(s):
+            if s<0:
+                return np.log(scipy.stats.norm.sf(np.sqrt(2)*s))
+        else:
+            r[s<0] = np.log(scipy.stats.norm.sf(np.sqrt(2)*s[s<0]))
+    return r
 
 # TODO Note scipy dependency
 def logp_to_sigma(logp, two_sided=True):
@@ -850,7 +861,8 @@ def logp_to_sigma(logp, two_sided=True):
         The (natural) logarithm of the corresponding probability
     two_sided : boolean
         If True (the default) use a two-tailed probability (probability
-        of the value being larger than sigma in absolute value)
+        of the value being larger than sigma in absolute value); if
+        False use a one-sided probability
 
     Returns
     -------
@@ -867,8 +879,9 @@ def logp_to_sigma(logp, two_sided=True):
     import scipy.optimize
     if logp>0:
         raise ValueError("probabilities must be <= 1 but logp was %g" % logp)
-    if not two_sided:
-        logp = logp + np.log(2)
-    s = scipy.optimize.brentq(lambda s: -s**2+np.log(scipy.special.erfcx(s))-logp,
-                              0, np.sqrt(-logp))
-    return s*np.sqrt(2)
+    if not two_sided and logp>np.log(0.5): # sigma will be negative
+        return -logp_to_sigma(np.log(1-np.exp(logp)),two_sided=two_sided)
+    s = scipy.optimize.brentq(
+        lambda s: sigma_to_logp(s, two_sided=two_sided)-logp,
+        0, 2*np.sqrt(-logp))
+    return s
