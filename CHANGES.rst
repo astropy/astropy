@@ -25,7 +25,6 @@ New Features
   - Automatically use ``guess=False`` when reading if the file ``format`` is
     provided and the format parameters are uniquely specified.  This update
     also removes duplicate format guesses to improve performance. [#3418]
-- ``astropy.table``
 
   - Calls to ascii.read() for fixed-width tables may now omit one of the keyword
     arguments ``col_starts`` or ``col_ends``. Columns will be assumed to begin and
@@ -58,6 +57,9 @@ New Features
   - ``add_column()`` and ``add_columns()`` now have ``rename_duplicate``
     option to rename new column(s) rather than raise exception when its name
     already exists. [#3592]
+
+  - Added ``Table.to_pandas`` and ``Table.from_pandas`` for converting to/from
+    pandas dataframes. [#3504]
 
 - ``astropy.tests``
 
@@ -189,11 +191,6 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing yet.
-
-1.0.1 (unreleased)
-------------------
-  - Added ``Table.to_pandas`` and ``Table.from_pandas`` for converting to/from
-    pandas dataframes.
 
 1.0.3 (unreleased)
 ------------------
