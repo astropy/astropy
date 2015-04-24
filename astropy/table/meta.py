@@ -1,7 +1,11 @@
+import copy
+
 from ..utils import OrderedDict
 from ..extern import six
 from .column import col_getattr
 
+
+__all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
 
 class ColumnOrderList(list):
     """
@@ -152,7 +156,7 @@ def _repr_column_dict(dumper, data):
     return dumper.represent_mapping(u'tag:yaml.org,2002:map', data)
 
 
-def get_col_attributes(col):
+def _get_col_attributes(col):
     """
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
@@ -179,14 +183,54 @@ def get_col_attributes(col):
     return attrs
 
 
-def get_meta_as_yaml(table_meta, cols, header=None):
+def get_yaml_from_table(table):
+    """
+    Return lines with a YAML representation of header content from the ``table``.
+
+    Parameters
+    ----------
+    table : `~astropy.table.Table` object
+        Table for which header content is output
+
+    Returns
+    -------
+    lines : list
+        List of text lines with YAML header content
+    """
+
+    header = {'cols': list(six.itervalues(table.columns))}
+    if table.meta:
+        header['meta'] = table.meta
+
+    return get_yaml_from_header(header)
+
+
+def get_yaml_from_header(header):
+    """
+    Return lines with a YAML representation of header content from a Table.
+
+    The ``header`` dict must contain these keys:
+
+    - 'cols' : list of table column objects (required)
+    - 'meta' : table 'meta' attribute (optonal)
+
+    Other keys included in ``header`` will be serialized in the output YAML
+    representation.
+
+    Parameters
+    ----------
+    header : dict
+        Table header content
+
+    Returns
+    -------
+    lines : list
+        List of text lines with YAML header content
+    """
     try:
         import yaml
     except ImportError:
         raise ImportError('`import yaml` failed, PyYAML package is required for ECSV format')
-
-    if header is None:
-        header = {}
 
     class TableDumper(yaml.Dumper):
         """
@@ -234,18 +278,40 @@ def get_meta_as_yaml(table_meta, cols, header=None):
     TableDumper.add_representer(OrderedDict, _repr_odict)
     TableDumper.add_representer(ColumnDict, _repr_column_dict)
 
-    if table_meta:
-        header['meta'] = table_meta
-    header['datatype'] = [get_col_attributes(col) for col in cols]
+    header = copy.copy(header)  # Don't overwrite original
+    header['datatype'] = [_get_col_attributes(col) for col in header['cols']]
+    del header['cols']
 
-    out = yaml.dump(header, Dumper=TableDumper)
-    return out
+    lines = yaml.dump(header, Dumper=TableDumper).splitlines()
+    return lines
+
 
 class YamlParseError(Exception):
     pass
 
 
 def get_header_from_yaml(lines):
+    """
+    Get a header dict from input ``lines`` which should be valid YAML in the
+    ECSV meta format.  This input will typically be created by
+    get_yaml_from_header.  The output is a dictionary which describes all the
+    table and column meta.
+
+    The get_cols() method in the io/ascii/ecsv.py file should be used as a
+    guide to using the information when constructing a table using this
+    header dict information.
+
+    Parameters
+    ----------
+    lines : list
+        List of text lines with YAML header content
+
+    Returns
+    -------
+    header : dict
+        Dictionary describing table and column meta
+    """
+
     import textwrap
     try:
         import yaml

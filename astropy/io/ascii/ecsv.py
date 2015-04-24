@@ -57,18 +57,20 @@ class EcsvHeader(basic.BasicHeader):
                                  .format(col_getattr(col, 'name')))
 
         # Now assemble the header dict that will be serialized by the YAML dumper
-        header = {}
+        header = {'cols': self.cols}
+
+        if self.table_meta:
+            header['meta'] = self.table_meta
 
         # Set the delimiter only for the non-default option(s)
         if self.splitter.delimiter != ' ':
             header['delimiter'] = self.splitter.delimiter
 
-        header_yaml = meta.get_meta_as_yaml(self.table_meta, self.cols, header)
+        header_yaml_lines = (['%ECSV {0}'.format(ECSV_VERSION),
+                              '---']
+                             + meta.get_yaml_from_header(header))
 
-        outs = ['%ECSV {0}'.format(ECSV_VERSION), '---']
-        outs.extend(header_yaml.splitlines())
-
-        lines.extend([self.write_comment + line for line in outs])
+        lines.extend([self.write_comment + line for line in header_yaml_lines])
         lines.append(self.splitter.join([col_getattr(x, 'name') for x in self.cols]))
 
     def write_comments(self, lines, meta):
