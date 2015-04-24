@@ -240,3 +240,31 @@ def get_meta_as_yaml(table_meta, cols, header=None):
 
     out = yaml.dump(header, Dumper=TableDumper)
     return out
+
+class YamlParseError(Exception):
+    pass
+
+
+def get_header_from_yaml(lines):
+    import textwrap
+    try:
+        import yaml
+    except ImportError:
+        raise ImportError('`import yaml` failed, PyYAML package is required for ECSV format')
+
+    class TableLoader(yaml.SafeLoader):
+        """
+        Custom Loader that constructs OrderedDict from an !!omap object.
+        This does nothing but provide a namespace for adding the
+        custom odict constructor.
+        """
+
+    TableLoader.add_constructor(u'tag:yaml.org,2002:omap', _construct_odict)
+    # Now actually load the YAML data structure into `meta`
+    header_yaml = textwrap.dedent('\n'.join(lines))
+    try:
+        header = yaml.load(header_yaml, Loader=TableLoader)
+    except Exception as err:
+        raise YamlParseError(str(err))
+
+    return header

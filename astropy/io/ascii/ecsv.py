@@ -95,21 +95,6 @@ class EcsvHeader(basic.BasicHeader):
             List of table lines
 
         """
-        import textwrap
-        try:
-            import yaml
-        except ImportError:
-            raise ImportError('`import yaml` failed, PyYAML package is required for ECSV format')
-
-        class TableLoader(yaml.SafeLoader):
-            """
-            Custom Loader that constructs OrderedDict from an !!omap object.
-            This does nothing but provide a namespace for adding the
-            custom odict constructor.
-            """
-
-        TableLoader.add_constructor(u'tag:yaml.org,2002:omap', meta._construct_odict)
-
         # Extract non-blank comment (header) lines with comment character stripped
         lines = list(self.process_lines(lines))
 
@@ -130,12 +115,10 @@ class EcsvHeader(basic.BasicHeader):
             raise core.InconsistentTableError(no_header_msg)
         # ecsv_version could be constructed here, but it is not currently used.
 
-        # Now actually load the YAML data structure into `meta`
-        header_yaml = textwrap.dedent('\n'.join(lines))
         try:
-            header = yaml.load(header_yaml, Loader=TableLoader)
-        except:
-            raise core.InconsistentTableError('unable to parse yaml in header')
+            header = meta.get_header_from_yaml(lines)
+        except meta.YamlParseError:
+            raise core.InconsistentTableError('unable to parse yaml in meta header')
 
         if 'meta' in header:
             self.table_meta = header['meta']
