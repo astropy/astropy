@@ -34,8 +34,9 @@ initial columns.  This is useful for building tables dynamically if the initial
 size, columns, or data are not known.
 
 .. Note::
-   Adding columns or rows requires making a new copy of the entire
-   table table each time, so in the case of large tables this may be slow.
+   Adding rows requires making a new copy of the entire
+   table each time, so in the case of large tables this may be slow. 
+   On the other hand, adding columns is quite fast.
 
 ::
 
