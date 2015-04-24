@@ -1431,10 +1431,10 @@ class TestPandas(object):
         for column in t.columns:
             if column == 'u':
                 assert np.all(t['u'] == np.array(['a','b','c']))
-                assert d[column].dtype == np.dtype("O")
+                assert d[column].dtype == np.dtype("O")  # not ideal
             elif column == 's':
                 assert np.all(t['s'] == np.array([b'a',b'b',b'c']))
-                assert d[column].dtype == np.dtype("S1")
+                assert d[column].dtype == np.dtype("O")  # not ideal
             else:
                 # We should be able to compare exact values here
                 assert np.all(t[column] == d[column])
