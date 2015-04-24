@@ -284,6 +284,7 @@ def test_poisson_conf_array_rootn0():
     n[1,2,3] = 0
     assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='root-n-0')))
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_poisson_conf_array_fc():
     n = 7*np.ones((3,4,5))
     assert_allclose(funcs.poisson_conf_interval(n, interval='frequentist-confidence'),
