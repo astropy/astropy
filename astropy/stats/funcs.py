@@ -447,7 +447,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
 
 
 def poisson_conf_interval(n, interval='root-n'):
-    """Poisson parameter confidence interval given observed counts
+    r"""Poisson parameter confidence interval given observed counts
     
     Parameters
     ----------
@@ -469,46 +469,47 @@ def poisson_conf_interval(n, interval='root-n'):
     The "right" confidence interval to use for Poisson data is a
     matter of debate. The CDF working group [recommends][pois_eb]
     using root-n throughout, largely in the interest of
-    comprehensibility but discusses other possibilities. The ATLAS
+    comprehensibility, but discusses other possibilities. The ATLAS
     group also [discusses][ErrorBars] several possibilities but
     concludes that no single representation is suitable for all cases.
     The suggestion has also been [floated][ac12] that error bars should be
     attached to theoretical predictions instead of observed data,
-    which this function will not help with.
+    which this function will not help with (but it's easy; then you
+    realy should use the square root of the theoretical prediction).
 
     The intervals implemented here are:
 
-    **1. ``root-n``** This is a very widely used standard rule derived
+    **1. 'root-n'** This is a very widely used standard rule derived
     from the maximum-likelihood estimator for the mean of the Poisson
     process. While it produces questionable results for small n and
     outright wrong results for n=0, it is standard enough that people are
     (supposedly) used to interpreting these wonky values. The interval is
 
-    ..math:
+    .. math::
 
         CI = (n-\sqrt{n}, n+\sqrt{n})
 
-    **2. ``root-n-0``** This is identical to the above except that where
+    **2. 'root-n-0'** This is identical to the above except that where
     n is zero the interval returned is (0,1).
         
-    **2. ``pearson``** This is an only-slightly-more-complicated rule
+    **2. 'pearson'** This is an only-slightly-more-complicated rule
     based on Pearson's chi-squared rule. It also has the nice feature that
     if your theory curve touches an endpoint of the interval, then your
     data point is indeed one sigma away. The interval is
 
-    ..math:
+    .. math::
 
         CI = (n+0.5-\sqrt{n+0.25}, n+0.5+\sqrt{n+0.25})
 
-    **3. ``frequentist-confidence``** These are frequentist central
+    **3. 'frequentist-confidence'** These are frequentist central
     confidence intervals:
 
-    ..math:
+    .. math::
 
         CI = (0.5 F_{\chi^2}^{-1}(\alpha;2n),
               0.5 F_{\chi^2}^{-1}(1-\alpha;2(n+1)))
 
-    where :math:F_{\chi^2}^{-1} is the quantile of the chi-square
+    where :math:`F_{\chi^2}^{-1}` is the quantile of the chi-square
     distribution with the indicated number of degrees of freedom and
     :math:\alpha is the one-tailed one-sigma probability of the normal
     distribution. See [Maxwell 2011][maxw11] for further details.
