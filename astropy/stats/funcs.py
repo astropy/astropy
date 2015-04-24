@@ -23,9 +23,9 @@ __all__ = ['binom_conf_interval', 'binned_binom_proportion',
            'sigma_to_logp', 'logp_to_sigma']
 
 __doctest_skip__ = ['binned_binom_proportion']
-__doctest_requires__ = {'binom_conf_interval': ['scipy.special'],
-                        'sigma_to_logp': ['scipy.special'],
-                        'logp_to_sigma': ['scipy.special','scipy.optimize']}
+__doctest_requires__ = {'binom_conf_interval': ['scipy.special'],}
+#                        'sigma_to_logp': ['scipy.special'],
+#                        'logp_to_sigma': ['scipy.special','scipy.optimize']}
 
 
 gaussian_sigma_to_fwhm = 2.0 * np.sqrt(2.0 * np.log(2.0))
@@ -826,6 +826,9 @@ def sigma_to_logp(sigma, two_sided=True):
     --------
     >>> np.exp(sigma_to_logp(3))
     0.0026997960632601926
+
+    >>> sigma_to_logp(50)/np.log(10)
+    -544.66530586633246
     
     """
     import scipy.special
@@ -873,6 +876,9 @@ def logp_to_sigma(logp, two_sided=True):
     --------
     >>> logp_to_sigma(np.log(0.05))
     1.9599639845400545
+    
+    >>> logp_to_sigma(-500*np.log(10))
+    47.89983732050132
     
     """
     import scipy.special

@@ -269,6 +269,11 @@ def test_logp_to_sigma_small():
                     scipy.stats.norm.isf(0.5*np.exp(-5)))
 
 @pytest.mark.skipif('not HAS_SCIPY')
+def test_logp_to_sigma_verysmall():
+    assert_allclose(funcs.logp_to_sigma(-0.01),
+                    scipy.stats.norm.isf(0.5*np.exp(-0.01)))
+
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_sigma_to_logp_small_one_sided():
     assert_allclose(funcs.sigma_to_logp(5, two_sided=False),
                     np.log(scipy.stats.norm.sf(5)))
