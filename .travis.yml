@@ -19,6 +19,10 @@ env:
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
 
 matrix:
+
+    # Don't wait for allowed failures
+    fast_finish: true
+
     include:
 
         # Try MacOS X
@@ -57,9 +61,16 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.6 SETUP_CMD='test'
 
+        # Try developer version of Numpy
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+
         # Do a PEP8 test
         - os: linux
           env: PYTHON_VERSION=2.7 MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
+
+    allow_failures:
+      - env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
 
 install:
     - source .continuous-integration/travis/setup_environment_$TRAVIS_OS_NAME.sh
