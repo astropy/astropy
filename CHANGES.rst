@@ -48,6 +48,9 @@ New Features
 
 - ``astropy.nddata``
 
+  - extract array now offers different options to deal with array boundaries
+    [#3333]
+
 - ``astropy.stats``
 
 - ``astropy.table``
