@@ -48,6 +48,8 @@ New Features
 
 - ``astropy.nddata``
 
+  - Added ``block_reduce`` and ``block_replicate`` functions. [#3453]
+
 - ``astropy.stats``
 
 - ``astropy.table``
