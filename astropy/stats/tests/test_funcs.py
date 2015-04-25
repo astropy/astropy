@@ -261,11 +261,13 @@ def test_gaussian_sigma_to_fwhm_to_sigma():
 
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('N',[10,100,1000,10000])
 def test_uniform(N):
     with NumpyRNGContext(12345):
-        assert funcs.kuiper(np.random.random(N))>0.01
+        assert funcs.kuiper(np.random.random(N))[1]>0.01
 
+@pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('N,M',[(100,100),
                                 (20,100),
                                 (100,20),
@@ -277,6 +279,7 @@ def test_kuiper_two_uniform(N,M):
         assert funcs.kuiper_two(np.random.random(N),
                                 np.random.random(M))[1]>0.01
 
+@pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('N,M',[(100,100),
                                 (20,100),
                                 (100,20),
@@ -294,13 +297,14 @@ def test_detect_kuiper_two_different():
                                 np.random.random(500))
         assert f<0.01
 
+@pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize('N,M',[(100,100),
                                 (20,100),
                                 (100,20),
                                 (10,20),
                                 (5,5),
                                 (1000,100)])
-def check_fpp_kuiper_two(N,M):
+def test_fpp_kuiper_two(N,M):
     with NumpyRNGContext(12345):
         R = 100
         fpp = 0.05
@@ -313,6 +317,7 @@ def check_fpp_kuiper_two(N,M):
         assert scipy.stats.binom(R,fpp).cdf(fps-1)>0.005
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_histogram():
     with NumpyRNGContext(1234):
         a, b = 0.3, 3.14
@@ -332,6 +337,7 @@ def test_histogram():
         assert scipy.stats.chi2(len(h)).sf(c2)>0.01
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
 @pytest.mark.parametrize("ii,rr",[ 
             ( (4,(0,1),(1,)), (1,1,1,1) ),
             ( (2,(0,1),(1,)), (1,1) ),
