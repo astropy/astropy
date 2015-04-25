@@ -1412,8 +1412,6 @@ class TestPandas(object):
 
     def test_simple(self):
 
-        from pandas import DataFrame
-
         t = table.Table()
 
         for endian in ['<', '>']:
@@ -1431,10 +1429,10 @@ class TestPandas(object):
         for column in t.columns:
             if column == 'u':
                 assert np.all(t['u'] == np.array(['a','b','c']))
-                assert d[column].dtype == np.dtype("O")  # not ideal
+                assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
             elif column == 's':
                 assert np.all(t['s'] == np.array([b'a',b'b',b'c']))
-                assert d[column].dtype == np.dtype("O")  # not ideal
+                assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
             else:
                 # We should be able to compare exact values here
                 assert np.all(t[column] == d[column])
@@ -1447,35 +1445,30 @@ class TestPandas(object):
                 assert np.all(t[column] == t2[column])
             else:
                 assert_allclose(t[column], t2[column])
-                assert t[column].dtype == t2[column].dtype
+            assert t[column].dtype == t2[column].dtype
 
     def test_2d(self):
-
-        from pandas import DataFrame
 
         t = table.Table()
         t['a'] = [1,2,3]
         t['b'] = np.ones((3,2))
 
         with pytest.raises(ValueError) as exc:
-            d = t.to_pandas()
+            t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with multi-dimensional columns to a pandas DataFrame"
 
     def test_mixin(self):
 
-        from pandas import DataFrame
         from ...coordinates import SkyCoord
 
         t = table.Table()
         t['c'] = SkyCoord([1,2,3], [4,5,6], unit='deg')
 
         with pytest.raises(ValueError) as exc:
-            d = t.to_pandas()
+            t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with mixin columns to a pandas DataFrame"
 
     def test_masking(self):
-
-        from pandas import DataFrame
 
         t = table.Table(masked=True)
 
@@ -1488,6 +1481,9 @@ class TestPandas(object):
         t['u'] = ['a','b','c']
         t['u'].mask = [False, True, False]
 
+        t['s'] = [b'a', b'b', b'c']
+        t['s'].mask = [False, True, False]
+
         d = t.to_pandas()
 
         t2 = table.Table.from_pandas(d)
@@ -1495,3 +1491,8 @@ class TestPandas(object):
         for name, column in t.columns.items():
             assert np.all(column.data == t2[name].data)
             assert np.all(column.mask == t2[name].mask)
+            # Masked integer type comes back as float.  Nothing we can do about this.
+            if column.dtype.kind == 'i':
+                assert t2[name].dtype.kind == 'f'
+            else:
+                assert column.dtype == t2[name].dtype

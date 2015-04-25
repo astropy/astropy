@@ -35,13 +35,13 @@ It is also possible to create a table from a `DataFrame`_::
     >>> t2 = Table.from_pandas(df)
     >>> t2
     <Table masked=False length=4>
-      a     b   
-    int64 object
-    ----- ------
-        1      a
-        2      b
-        3      c
-        4      d
+      a      b
+    int64 string8
+    ----- -------
+        1       a
+        2       b
+        3       c
+        4       d
         
 The conversions to/from pandas are subject to the following caveats:
 

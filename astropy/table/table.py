@@ -2145,8 +2145,25 @@ class Table(object):
 
         for name in dataframe.columns:
             column = dataframe[name]
-            data = np.array(column)
             mask = np.array(column.isnull())
+            data = np.array(column)
+
+            if data.dtype.kind == 'O':
+                # If all elements of an object array are string-like or np.nan
+                # then coerce back to a native numpy str/unicode array.
+                string_types = six.string_types
+                if six.PY3:
+                    string_types += (bytes,)
+                nan = np.nan
+                if all(isinstance(x, string_types) or x is nan for x in data):
+                    # Force any missing (null) values to b''.  Numpy will
+                    # upcast to str/unicode as needed.
+                    data[mask] = b''
+
+                    # When the numpy object array is represented as a list then
+                    # numpy initializes to the correct string or unicode type.
+                    data = np.array([x for x in data])
+
             if np.any(mask):
                 out[name] = MaskedColumn(data=data, name=name, mask=mask)
             else:
