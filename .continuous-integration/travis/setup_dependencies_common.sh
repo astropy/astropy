@@ -30,7 +30,7 @@ $CONDA_INSTALL pytest Cython jinja2 psutil
 # OPTIONAL DEPENDENCIES
 if $OPTIONAL_DEPS
 then
-  $CONDA_INSTALL scipy h5py matplotlib pyyaml scikit-image
+  $CONDA_INSTALL scipy h5py matplotlib pyyaml scikit-image pandas
   pip install beautifulsoup4
 fi
 

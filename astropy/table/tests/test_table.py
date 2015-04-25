@@ -7,12 +7,20 @@ import copy
 import gc
 
 import numpy as np
+from numpy.testing import assert_allclose
 
 from ...extern import six
 from ...tests.helper import pytest, assert_follows_unicode_guidelines
 from ... import table
 from ... import units as u
 from .conftest import MaskedTable
+
+try:
+    import pandas
+except ImportError:
+    HAS_PANDAS = False
+else:
+    HAS_PANDAS = True
 
 
 class SetupData(object):
@@ -1397,3 +1405,94 @@ def test_table_init_from_degenerate_arrays(table_types):
 
     t = table_types.Table(np.array([1, 2, 3]))
     assert len(t.columns) == 3
+
+
+@pytest.mark.skipif('not HAS_PANDAS')
+class TestPandas(object):
+
+    def test_simple(self):
+
+        t = table.Table()
+
+        for endian in ['<', '>']:
+            for kind in ['f', 'i']:
+                for byte in ['2','4','8']:
+                    dtype = np.dtype(endian + kind + byte)
+                    x = np.array([1,2,3], dtype=dtype)
+                    t[endian + kind + byte] = x
+
+        t['u'] = ['a','b','c']
+        t['s'] = [b'a', b'b', b'c']
+
+        d = t.to_pandas()
+
+        for column in t.columns:
+            if column == 'u':
+                assert np.all(t['u'] == np.array(['a','b','c']))
+                assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
+            elif column == 's':
+                assert np.all(t['s'] == np.array([b'a',b'b',b'c']))
+                assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
+            else:
+                # We should be able to compare exact values here
+                assert np.all(t[column] == d[column])
+                assert d[column].dtype == t[column].dtype
+
+        t2 = table.Table.from_pandas(d)
+
+        for column in t.columns:
+            if column in ('u', 's'):
+                assert np.all(t[column] == t2[column])
+            else:
+                assert_allclose(t[column], t2[column])
+            assert t[column].dtype == t2[column].dtype
+
+    def test_2d(self):
+
+        t = table.Table()
+        t['a'] = [1,2,3]
+        t['b'] = np.ones((3,2))
+
+        with pytest.raises(ValueError) as exc:
+            t.to_pandas()
+        assert exc.value.args[0] == "Cannot convert a table with multi-dimensional columns to a pandas DataFrame"
+
+    def test_mixin(self):
+
+        from ...coordinates import SkyCoord
+
+        t = table.Table()
+        t['c'] = SkyCoord([1,2,3], [4,5,6], unit='deg')
+
+        with pytest.raises(ValueError) as exc:
+            t.to_pandas()
+        assert exc.value.args[0] == "Cannot convert a table with mixin columns to a pandas DataFrame"
+
+    def test_masking(self):
+
+        t = table.Table(masked=True)
+
+        t['a'] = [1, 2, 3]
+        t['a'].mask = [True, False, True]
+
+        t['b'] = [1., 2., 3.]
+        t['b'].mask = [False, False, True]
+
+        t['u'] = ['a','b','c']
+        t['u'].mask = [False, True, False]
+
+        t['s'] = [b'a', b'b', b'c']
+        t['s'].mask = [False, True, False]
+
+        d = t.to_pandas()
+
+        t2 = table.Table.from_pandas(d)
+
+        for name, column in t.columns.items():
+            assert np.all(column.data == t2[name].data)
+            assert np.all(column.mask == t2[name].mask)
+            # Masked integer type comes back as float.  Nothing we can do about this.
+            if column.dtype.kind == 'i':
+                assert t2[name].dtype.kind == 'f'
+            else:
+                assert column.dtype == t2[name].dtype

@@ -47,6 +47,7 @@ py:class xmlrpc.client.Fault
 py:class xmlrpc.client.Error
 py:obj distutils.version.LooseVersion
 py:obj pkg_resources.parse_version
+py:class pandas.DataFrame
 
 
 # Pending on python docs links issue #11975

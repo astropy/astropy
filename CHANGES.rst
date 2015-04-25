@@ -58,6 +58,9 @@ New Features
     option to rename new column(s) rather than raise exception when its name
     already exists. [#3592]
 
+  - Added ``Table.to_pandas`` and ``Table.from_pandas`` for converting to/from
+    pandas dataframes. [#3504]
+
 - ``astropy.tests``
 
 - ``astropy.time``
@@ -188,7 +191,6 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing yet.
-
 
 1.0.3 (unreleased)
 ------------------

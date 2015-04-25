@@ -283,6 +283,7 @@ I/O with tables
    :maxdepth: 2
 
    io.rst
+   pandas.rst
 
 Mixin columns
 ----------------
