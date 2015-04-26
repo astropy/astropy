@@ -208,6 +208,12 @@ def doppler_radio(rest):
     <Quantity -31.209092088877583 km / s>
     """
 
+    try:
+        rest.to(u.GHz, u.spectral())
+    except Exception as ex:
+        raise u.UnitsError("The 'rest' value must be a spectral equivalent "
+                           "(frequency, wavelength, or energy).")
+
     ckms = _si.c.to('km/s').value
 
     def to_vel_freq(x):
@@ -272,6 +278,12 @@ def doppler_optical(rest):
     >>> optical_velocity  # doctest: +FLOAT_CMP
     <Quantity -31.20584348799674 km / s>
     """
+
+    try:
+        rest.to(u.GHz, u.spectral())
+    except Exception as ex:
+        raise u.UnitsError("The 'rest' value must be a spectral equivalent "
+                           "(frequency, wavelength, or energy).")
 
     ckms = _si.c.to('km/s').value
 
@@ -345,6 +357,12 @@ def doppler_relativistic(rest):
     >>> relativistic_wavelength  # doctest: +FLOAT_CMP
     <Quantity 2.6116243681798923 mm>
     """
+
+    try:
+        rest.to(u.GHz, u.spectral())
+    except Exception as ex:
+        raise u.UnitsError("The 'rest' value must be a spectral equivalent "
+                           "(frequency, wavelength, or energy).")
 
     ckms = _si.c.to('km/s').value
 
