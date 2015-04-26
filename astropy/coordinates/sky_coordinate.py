@@ -177,8 +177,8 @@ class SkyCoord(object):
         Mixin column information (attributes)
         """
         if not hasattr(self, '_info'):
-            from ..table import ColumnAttributes
-            self._info = ColumnAttributes()
+            from ..table import ColumnInfo
+            self._info = ColumnInfo()
         return self._info
 
     @property

@@ -46,7 +46,7 @@ _comparison_functions = set(
 
 COLUMN_ATTRS = set(['name', 'unit', 'dtype', 'format', 'description', 'meta', 'parent_table'])
 
-class ColumnAttributes(object):
+class ColumnInfo(object):
     cols_from_parent = set()
 
     def __init__(self, parent_col=None):
@@ -61,7 +61,7 @@ class ColumnAttributes(object):
         try:
             value = self._attrs[attr]
         except KeyError:
-            super(ColumnAttributes, self).__getattr__(attr)  # Generate AttributeError
+            super(ColumnInfo, self).__getattr__(attr)  # Generate AttributeError
 
         # Weak ref for parent table
         if attr == 'parent_table' and callable(value):
@@ -79,7 +79,7 @@ class ColumnAttributes(object):
             return
 
         if attr.startswith('_'):
-            super(ColumnAttributes, self).__setattr__(attr, value)
+            super(ColumnInfo, self).__setattr__(attr, value)
             return
 
         if attr not in COLUMN_ATTRS:
@@ -127,7 +127,7 @@ def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
 
     if not hasattr(newcol, 'info'):
         info_attr = '_info' if hasattr(col.__class__, 'info') else 'info'
-        setattr(newcol, info_attr, ColumnAttributes())
+        setattr(newcol, info_attr, ColumnInfo())
 
     attrs = COLUMN_ATTRS - set(exclude_attrs) - newcol.info.cols_from_parent
     for attr in attrs:
@@ -169,7 +169,7 @@ def add_column_info(col):
     Add mixin column information to ``col``.
     """
     if not hasattr(col, 'info'):
-        col.info = ColumnAttributes()
+        col.info = ColumnInfo()
 
 
 class FalseArray(np.ndarray):

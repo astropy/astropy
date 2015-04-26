@@ -611,9 +611,9 @@ class Quantity(np.ndarray):
     def info(self):
         if not hasattr(self, '_info'):
             from ..table import column
-            class ColumnAttributes(column.ColumnAttributes):
+            class ColumnInfo(column.ColumnInfo):
                 cols_from_parent = set(['dtype', 'unit'])
-            self._info = ColumnAttributes(self)
+            self._info = ColumnInfo(self)
         return self._info
 
     @property

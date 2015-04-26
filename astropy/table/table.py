@@ -22,7 +22,7 @@ from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
                      col_getattr, col_setattr, col_copy, _col_update_attrs_from,
-                     ColumnAttributes)
+                     ColumnInfo)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 
@@ -60,7 +60,7 @@ def is_mixin_class(obj):
     obj : object
         Object being queried for mixin compatibility
     """
-    return hasattr(obj, 'info') and isinstance(obj.info, ColumnAttributes)
+    return hasattr(obj, 'info') and isinstance(obj.info, ColumnInfo)
 
 
 class TableColumns(OrderedDict):
