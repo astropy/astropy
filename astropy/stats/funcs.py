@@ -856,7 +856,8 @@ def logp_to_sigma(logp, two_sided=True):
     they are. This function converts between these two
     representations in a way that works even for probabilities
     too small to represent in floating point (this happens at
-    about 40-sigma for double precision).
+    about 40-sigma for double precision). Both one- and two-tailed
+    versions are available.
 
     Parameters
     ----------
