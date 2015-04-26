@@ -210,7 +210,7 @@ def doppler_radio(rest):
 
     try:
         rest.to(u.GHz, u.spectral())
-    except Exception as ex:
+    except (AttributeError,u.UnitsError) as ex:
         raise u.UnitsError("The 'rest' value must be a spectral equivalent "
                            "(frequency, wavelength, or energy).")
 
@@ -281,7 +281,7 @@ def doppler_optical(rest):
 
     try:
         rest.to(u.GHz, u.spectral())
-    except Exception as ex:
+    except (AttributeError,u.UnitsError) as ex:
         raise u.UnitsError("The 'rest' value must be a spectral equivalent "
                            "(frequency, wavelength, or energy).")
 
@@ -360,7 +360,7 @@ def doppler_relativistic(rest):
 
     try:
         rest.to(u.GHz, u.spectral())
-    except Exception as ex:
+    except (AttributeError,u.UnitsError) as ex:
         raise u.UnitsError("The 'rest' value must be a spectral equivalent "
                            "(frequency, wavelength, or energy).")
 
