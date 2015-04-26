@@ -134,6 +134,13 @@ def test_30kms(function, value):
     np.testing.assert_almost_equal(shifted.value, value, decimal=7)
 
 
+bad_values = (5, 5*u.Jy, None)
+@pytest.mark.parametrize(('function', 'value'),
+                         list(zip(functions, bad_values)))
+def test_30kms(function, value):
+    with pytest.raises(u.UnitsError):
+        function(value)
+
 def test_massenergy():
     # The relative tolerance of these tests is set by the uncertainties
     # in the charge of the electron, which is known to about

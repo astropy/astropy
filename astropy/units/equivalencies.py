@@ -13,6 +13,7 @@ from . import cgs
 from . import astrophys
 from .function import units as function_units
 from . import dimensionless_unscaled
+from .core import UnitsError
 
 
 __all__ = ['parallax', 'spectral', 'spectral_density', 'doppler_radio',
@@ -209,10 +210,10 @@ def doppler_radio(rest):
     """
 
     try:
-        rest.to(u.GHz, u.spectral())
-    except (AttributeError,u.UnitsError) as ex:
-        raise u.UnitsError("The 'rest' value must be a spectral equivalent "
-                           "(frequency, wavelength, or energy).")
+        rest.to(si.Hz, spectral())
+    except (AttributeError,UnitsError) as ex:
+        raise UnitsError("The 'rest' value must be a spectral equivalent "
+                         "(frequency, wavelength, or energy).")
 
     ckms = _si.c.to('km/s').value
 
@@ -280,10 +281,10 @@ def doppler_optical(rest):
     """
 
     try:
-        rest.to(u.GHz, u.spectral())
-    except (AttributeError,u.UnitsError) as ex:
-        raise u.UnitsError("The 'rest' value must be a spectral equivalent "
-                           "(frequency, wavelength, or energy).")
+        rest.to(si.Hz, spectral())
+    except (AttributeError,UnitsError) as ex:
+        raise UnitsError("The 'rest' value must be a spectral equivalent "
+                         "(frequency, wavelength, or energy).")
 
     ckms = _si.c.to('km/s').value
 
@@ -359,10 +360,10 @@ def doppler_relativistic(rest):
     """
 
     try:
-        rest.to(u.GHz, u.spectral())
-    except (AttributeError,u.UnitsError) as ex:
-        raise u.UnitsError("The 'rest' value must be a spectral equivalent "
-                           "(frequency, wavelength, or energy).")
+        rest.to(si.Hz, spectral())
+    except (AttributeError,UnitsError) as ex:
+        raise UnitsError("The 'rest' value must be a spectral equivalent "
+                         "(frequency, wavelength, or energy).")
 
     ckms = _si.c.to('km/s').value
 
