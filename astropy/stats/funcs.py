@@ -799,9 +799,9 @@ def kuiper_FPP(D,N):
     """Compute the false positive probability for the Kuiper statistic.
 
     Uses the set of four formulas described in Paltani 2004; they report 
-    the resulting function never underestimates the false positive probability 
-    but can be a bit high in the N=40..50 range. (They quote a factor 1.5 at 
-    the 1e-7 level.
+    the resulting function never underestimates the false positive
+    probability but can be a bit high in the N=40..50 range.
+    (They quote a factor 1.5 at the 1e-7 level.)
 
     Parameters
     ----------
@@ -817,9 +817,10 @@ def kuiper_FPP(D,N):
 
     Reference
     ---------
-    Paltani, S., "Searching for periods in X-ray observations using 
-    Kuiper's test. Application to the ROSAT PSPC archive", Astronomy and
-    Astrophysics, v.240, p.789-790, 2004.
+
+    .. [1] Paltani, S., "Searching for periods in X-ray observations using 
+           Kuiper's test. Application to the ROSAT PSPC archive",
+           Astronomy and Astrophysics, v.240, p.789-790, 2004.
 
     """
     from scipy.misc import factorial, comb
@@ -868,8 +869,12 @@ def kuiper(data, cdf=lambda x: x, args=()):
     """Compute the Kuiper statistic.
     
     Use the Kuiper statistic version of the Kolmogorov-Smirnov test to 
-    find the probability that something like data was drawn from the 
-    distribution whose CDF is given as cdf.
+    find the probability that a sample like ``data`` was drawn from the 
+    distribution whose CDF is given as ``cdf``.
+
+    .. warning::
+        This will not work correctly for distributions that are actually
+        discrete (Poisson, for example).
     
     Parameters
     ----------
@@ -878,6 +883,7 @@ def kuiper(data, cdf=lambda x: x, args=()):
     cdf : callable
         A callable to evaluate the CDF of the distribution being tested
         against. Will be called with a vector of all values at once.
+        The default is a uniform distribution.
     args : list-like, optional
         Additional arguments to be supplied to cdf.
 
@@ -901,8 +907,9 @@ def kuiper(data, cdf=lambda x: x, args=()):
     probability that a value as large as D would occur if data was 
     drawn from cdf.
 
-    Warning: The fpp is calculated only approximately, and it can be 
-    as much as 1.5 times the true value.
+    .. warning::
+        The fpp is calculated only approximately, and it can be 
+        as much as 1.5 times the true value.
 
     Stephens 1970 claims this is more effective than the KS at detecting 
     changes in the variance of a distribution; the KS is (he claims) more 
@@ -912,9 +919,17 @@ def kuiper(data, cdf=lambda x: x, args=()):
     it will be necessary to do Monte Carlo simulations to interpret D. 
     D should normally be independent of the shape of CDF.
 
+    Reference
+    ---------
+
+    .. [1] Stephens, M. A., "Use of the Kolmogorov-Smirnov, Cramer-Von Mises
+           and Related Statistics Without Extensive Tables", Journal of the
+           Royal Statistical Society. Series B (Methodological), Vol. 32,
+           No. 1. (1970), pp. 115-122.
+
+    
     """
 
-    # FIXME: doesn't work for distributions that are actually discrete (for example Poisson).
     data = np.sort(data)
     cdfv = cdf(data,*args)
     N = len(data)
@@ -941,9 +956,8 @@ def kuiper_two(data1, data2):
         The probability of obtaining two samples this different from
         the same distribution.
 
-    Notes
-    -----
-    Warning: the fpp is quite approximate, especially for small samples.
+    .. warning::
+        The fpp is quite approximate, especially for small samples.
 
     """
     data1, data2 = np.sort(data1), np.sort(data2)
@@ -960,7 +974,7 @@ def kuiper_two(data1, data2):
     return D, kuiper_FPP(D, Ne)
 
 
-
+
 def fold_intervals(intervals):
     """Fold the weighted intervals to the interval (0,1).
 
@@ -968,7 +982,10 @@ def fold_intervals(intervals):
     intervals covering (0,1). Each output interval has a weight equal
     to the sum of the wis of all the intervals that include it. All intervals
     are interpreted modulo 1, and weights are accumulated counting 
-    multiplicity.
+    multiplicity. This is appropriate, for example, if you have one or more
+    blocks of observation and you want to determine how much observation
+    time was spent on different parts of a system's orbit (the blocks
+    should be converted to units of the orbital period first).
 
     Parameters
     ----------
@@ -1042,11 +1059,7 @@ def cdf_from_intervals(breaks, totals):
     b = breaks.copy()
     c = np.concatenate(((0,), np.cumsum(totals*np.diff(b))))
     c /= c[-1]
-    def cdf(x):
-        ix = np.searchsorted(b[:-1],x)
-        l, r = b[ix-1], b[ix] 
-        return ((r-x)*c[ix-1]+(x-l)*c[ix])/(r-l)
-    return cdf
+    return lambda x: np.interp(x, b, c, 0, 1)
 
 def interval_overlap_length(i1,i2):
     """Compute the length of overlap of two intervals.

@@ -291,6 +291,7 @@ def test_kuiper_two_nonuniform(N,M):
         assert funcs.kuiper_two(np.random.random(N)**2,
                                 np.random.random(M)**2)[1]>0.01
 
+@pytest.mark.skipif('not HAS_SCIPY')
 def test_detect_kuiper_two_different():
     with NumpyRNGContext(12345):
         D, f = funcs.kuiper_two(np.random.random(500)*0.5,
@@ -349,3 +350,24 @@ def test_histogram_intervals_known(ii, rr):
     with NumpyRNGContext(1234):
         assert_allclose(funcs.histogram_intervals(*ii),rr)
 
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,m,p',[(100,10000,0.01),
+                                  (300,10000,0.001),
+                                  (10,10000,0.001),
+                                  ])
+def test_uniform_binomial(N,m,p):
+    """Check that the false positive probability is right
+
+    In particular, run m trials with N uniformly-distributed photons
+    and check that the number of false positives is consistent with
+    a binomial distribution. The more trials, the tighter the bounds
+    but the longer the runtime.
+    
+    """
+    with NumpyRNGContext(1234):
+        fpps = [funcs.kuiper(np.random.random(N))[1]
+                for i in range(m)]
+        assert (scipy.stats.binom(n=m,p=p).ppf(0.01)
+                <len([fpp for fpp in fpps if fpp<p])
+                <scipy.stats.binom(n=m,p=p).ppf(0.99))
