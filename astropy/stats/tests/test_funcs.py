@@ -292,3 +292,24 @@ def test_poisson_conf_array_fc():
 
     n[1,2,3] = 0
     assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='frequentist-confidence')))
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_frequentist_confidence_gehrels():
+    """Test intervals against those published in Gehrels 1986"""
+    nlh = np.array([(0, 0, 1.841),
+                    (1, 0.173, 3.300),
+                    (2, 0.708, 4.638),
+                    (3, 1.367, 5.918),
+                    (4, 2.086, 7.163),
+                    (5, 2.840, 8.382),
+                    (6, 3.620, 9.584),
+                    (7, 4.419, 10.77),
+                    (8, 5.232, 11.95),
+                    (9, 6.057, 13.11),
+                    (10, 6.891, 14.27),
+                    ])
+    assert_allclose(funcs.poisson_conf_interval(nlh[:,0],
+                        interval='frequentist-confidence'),
+                    nlh[:,1:].T,
+                    rtol=0.001, atol=0.001)
