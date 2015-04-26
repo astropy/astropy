@@ -14,6 +14,7 @@ import numpy as np
 
 from .table import Table, Column, col_setattr, col_getattr
 from ..extern.six.moves import zip, range
+from ..utils.column_info import ColumnInfo
 
 class TimingTables(object):
     """
@@ -164,7 +165,6 @@ class ArrayWrapper(object):
         Mixin column information (attributes)
         """
         if not hasattr(self, '_info'):
-            from ..table import ColumnInfo
             self._info = ColumnInfo()
         return self._info
 

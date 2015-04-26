@@ -24,6 +24,7 @@ from ..utils import lazyproperty
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
+from ..utils.column_info import ColumnInfo
 from .utils import validate_power
 from .. import config as _config
 
@@ -49,6 +50,10 @@ class Conf(_config.ConfigNamespace):
         'negative number means that the value will instead be whatever numpy '
         'gets from get_printoptions.')
 conf = Conf()
+
+
+class QuantityColumnInfo(ColumnInfo):
+    cols_from_parent = set(['dtype', 'unit'])
 
 
 def _can_have_arbitrary_unit(value):
@@ -610,10 +615,7 @@ class Quantity(np.ndarray):
     @property
     def info(self):
         if not hasattr(self, '_info'):
-            from ..table import column
-            class ColumnInfo(column.ColumnInfo):
-                cols_from_parent = set(['dtype', 'unit'])
-            self._info = ColumnInfo(self)
+            self._info = QuantityColumnInfo(self)
         return self._info
 
     @property

@@ -23,6 +23,7 @@ from .. import _erfa as erfa
 from ..units import UnitConversionError
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
+from ..utils.column_info import ColumnInfo
 from ..extern import six
 
 
@@ -318,7 +319,6 @@ class Time(object):
         Mixin column information (attributes)
         """
         if not hasattr(self, '_info'):
-            from ..table import ColumnInfo
             self._info = ColumnInfo()
         return self._info
 
