@@ -313,6 +313,16 @@ class Time(object):
         return cls(val=dtnow, format='datetime', scale='utc')
 
     @property
+    def info(self):
+        """
+        Mixin column information (attributes)
+        """
+        if not hasattr(self, '_info'):
+            from ..table import ColumnAttributes
+            self._info = ColumnAttributes()
+        return self._info
+
+    @property
     def format(self):
         """Get time format"""
         return self._format

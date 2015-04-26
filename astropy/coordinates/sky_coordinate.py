@@ -172,6 +172,16 @@ class SkyCoord(object):
             raise ValueError('Cannot create a SkyCoord without data')
 
     @property
+    def info(self):
+        """
+        Mixin column information (attributes)
+        """
+        if not hasattr(self, '_info'):
+            from ..table import ColumnAttributes
+            self._info = ColumnAttributes()
+        return self._info
+
+    @property
     def frame(self):
         return self._sky_coord_frame
 

@@ -160,7 +160,7 @@ def mixin_cols(request):
     cols = OrderedDict()
     mixin_cols = deepcopy(MIXIN_COLS)
     if HAS_PANDAS:
-        mixin_cols['pandas']._astropy_column_attrs = None
+        table.add_column_info(mixin_cols['pandas'])
     cols['i'] = table.Column([0, 1, 2, 3], name='i')
     cols['a'] = table.Column(['a', 'b', 'b', 'c'], name='a')
     cols['b'] = table.Column(['b', 'c', 'a', 'd'], name='b')

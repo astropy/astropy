@@ -141,8 +141,6 @@ class ArrayWrapper(object):
     """
     Minimal mixin using a simple wrapper around a numpy array
     """
-    _astropy_column_attrs = None
-
     def __init__(self, data):
         self.data = np.array(data)
         col_setattr(self, 'dtype', self.data.dtype)
@@ -159,6 +157,16 @@ class ArrayWrapper(object):
 
     def __len__(self):
         return len(self.data)
+
+    @property
+    def info(self):
+        """
+        Mixin column information (attributes)
+        """
+        if not hasattr(self, '_info'):
+            from ..table import ColumnAttributes
+            self._info = ColumnAttributes()
+        return self._info
 
     @property
     def shape(self):

@@ -21,7 +21,8 @@ from ..utils.metadata import MetaData
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
-                     col_getattr, col_setattr, col_copy, _col_update_attrs_from)
+                     col_getattr, col_setattr, col_copy, _col_update_attrs_from,
+                     ColumnAttributes)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 
@@ -59,7 +60,7 @@ def is_mixin_class(obj):
     obj : object
         Object being queried for mixin compatibility
     """
-    return hasattr(obj, '_astropy_column_attrs')
+    return hasattr(obj, 'info') and isinstance(obj.info, ColumnAttributes)
 
 
 class TableColumns(OrderedDict):

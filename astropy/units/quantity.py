@@ -608,6 +608,15 @@ class Quantity(np.ndarray):
         return self._new_view(new_val, unit)
 
     @property
+    def info(self):
+        if not hasattr(self, '_info'):
+            from ..table import column
+            class ColumnAttributes(column.ColumnAttributes):
+                cols_from_parent = set(['dtype', 'unit'])
+            self._info = ColumnAttributes(self)
+        return self._info
+
+    @property
     def value(self):
         """ The numerical value of this quantity. """
         value = self.view(np.ndarray)
