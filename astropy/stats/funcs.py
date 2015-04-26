@@ -446,7 +446,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
     return bin_ctr, bin_halfwidth, p, perr
 
 
-def poisson_conf_interval(n, interval='root-n'):
+def poisson_conf_interval(n, interval='root-n', sigma=1):
     r"""Poisson parameter confidence interval given observed counts
     
     Parameters
@@ -456,6 +456,10 @@ def poisson_conf_interval(n, interval='root-n'):
     interval : {'root-n','root-n-0','pearson','frequentist-confidence'}, optional
         Formula used for confidence interval. See notes for details.
         Default is ``'root-n'``.
+    sigma : float
+        Number of sigma for confidence interval; only supported for
+        'frequentist-confidence' mode.
+    
 
     Returns
     -------
@@ -578,9 +582,13 @@ def poisson_conf_interval(n, interval='root-n'):
     """
 
     if interval == 'root-n':
+        if sigma!=1:
+            raise ValueError("Only sigma=1 supported for interval %s",interval)
         return np.array([n-np.sqrt(n),
                          n+np.sqrt(n)])
     elif interval == 'root-n-0':
+        if sigma!=1:
+            raise ValueError("Only sigma=1 supported for interval %s",interval)
         r = np.array([n-np.sqrt(n),
                          n+np.sqrt(n)])
         if np.isscalar(n):
@@ -590,11 +598,13 @@ def poisson_conf_interval(n, interval='root-n'):
             r[1,n==0] = 1
         return r
     elif interval == 'pearson':
+        if sigma!=1:
+            raise ValueError("Only sigma=1 supported for interval %s",interval)
         return np.array([n+0.5-np.sqrt(n+0.25),
                          n+0.5+np.sqrt(n+0.25)])
     elif interval == 'frequentist-confidence':
         import scipy.stats
-        alpha = scipy.stats.norm.sf(1)
+        alpha = scipy.stats.norm.sf(sigma)
         r = np.array([0.5*scipy.stats.chi2(2*n).ppf(alpha),
                       0.5*scipy.stats.chi2(2*n+2).isf(alpha)])
         if np.isscalar(n):

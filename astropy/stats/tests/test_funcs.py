@@ -313,3 +313,50 @@ def test_poisson_conf_frequentist_confidence_gehrels():
                         interval='frequentist-confidence'),
                     nlh[:,1:].T,
                     rtol=0.001, atol=0.001)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_frequentist_confidence_gehrels_2sigma():
+    """Test intervals against those published in Gehrels 1986
+
+    Note: I think there's a typo (transposition of digits) in Gehrels 1986,
+    specifically for the two-sigma lower limit for 3 events; they claim
+    0.569 but this function returns 0.59623...
+    
+    """
+    nlh = np.array([(0, 2, 0, 3.783),
+                    (1, 2, 2.30e-2, 5.683),
+                    (2, 2, 0.230, 7.348),
+                    (3, 2, 0.596, 8.902),
+                    (4, 2, 1.058, 10.39),
+                    (5, 2, 1.583, 11.82),
+                    (6, 2, 2.153, 13.22),
+                    (7, 2, 2.758, 14.59),
+                    (8, 2, 3.391, 15.94),
+                    (9, 2, 4.046, 17.27),
+                    (10, 2, 4.719, 18.58)])
+    assert_allclose(funcs.poisson_conf_interval(nlh[:,0],
+                        sigma=2,
+                        interval='frequentist-confidence').T,
+                    nlh[:,2:],
+                    rtol=0.01)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_frequentist_confidence_gehrels_3sigma():
+    """Test intervals against those published in Gehrels 1986"""
+    nlh = np.array([(0, 3, 0, 6.608),
+                    (1, 3, 1.35e-3, 8.900),
+                    (2, 3, 5.29e-2, 10.87),
+                    (3, 3, 0.212, 12.68),
+                    (4, 3, 0.465, 14.39),
+                    (5, 3, 0.792, 16.03),
+                    (6, 3, 1.175, 17.62),
+                    (7, 3, 1.603, 19.17),
+                    (8, 3, 2.068, 20.69),
+                    (9, 3, 2.563, 22.18),
+                    (10, 3, 3.084, 23.64),
+                    ])
+    assert_allclose(funcs.poisson_conf_interval(nlh[:,0],
+                        sigma=3,
+                        interval='frequentist-confidence').T,
+                    nlh[:,2:],
+                    rtol=0.01, verbose=True)
