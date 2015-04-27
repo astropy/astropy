@@ -129,7 +129,8 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- Added a new ``astropy.__bibtex__`` attribute which gives a citation
+  for Astropy in bibtex format. [#3697]
 
 
 1.0.2 (2015-04-16)
