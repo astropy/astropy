@@ -128,6 +128,18 @@ def test_Ellipse2D():
     assert e1(*point1) == e2(*point2)
 
 
+def test_Ellipse2D_circular():
+    """Test that circular Ellipse2D agrees with Disk2D [3736]."""
+    amplitude = 7.5
+    radius = 10
+    size = (radius * 2) + 1
+    y, x = np.mgrid[0:size, 0:size]
+    ellipse = models.Ellipse2D(amplitude, radius, radius, radius, radius,
+                               theta=0)(x, y)
+    disk = models.Disk2D(amplitude, radius, radius, radius)(x, y)
+    assert np.all(ellipse == disk)
+
+
 def test_Scale_inverse():
     m = models.Scale(1.2345)
     assert_allclose(m.inverse(m(6.789)), 6.789)
