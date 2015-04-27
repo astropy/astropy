@@ -46,7 +46,7 @@ def _offset(a):
         return 0.
 
 
-+def overlap_slices(large_array_shape, small_array_shape, position, mode='partial'):
+def overlap_slices(large_array_shape, small_array_shape, position, mode='partial'):
     """
     Get slices for the overlapping part of a small and a large array.
 
