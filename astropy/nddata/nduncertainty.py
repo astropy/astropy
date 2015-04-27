@@ -13,7 +13,7 @@ from ..extern import six
 
 __all__ = ['MissingDataAssociationException',
            'IncompatibleUncertaintiesException', 'NDUncertainty',
-           'StdDevUncertainty', 'uncertainty_type_dict']
+           'StdDevUncertainty']
 
 
 class IncompatibleUncertaintiesException(Exception):
