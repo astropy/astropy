@@ -744,7 +744,7 @@ class Ellipse2D(Fittable2DModel):
         sint = np.sin(theta)
         numerator1 = (xx * cost) + (yy * sint)
         numerator2 = -(xx * sint) + (yy * cost)
-        in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) < 1.)
+        in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) <= 1.)
         return np.select([in_ellipse], [amplitude])
 
 
