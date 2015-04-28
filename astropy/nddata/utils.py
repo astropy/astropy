@@ -147,8 +147,8 @@ def extract_array(array_large, shape, position, mode='partial',
     shape : tuple or int
         Shape of the extracted array (for 1D arrays, this can be an int).
     position : tuple of numbers or number
-         Position of the small array's center, with respect to the large array.
-         Coordinates should be in the same order as the array shape.
+        Position of the small array's center, with respect to the large array.
+        Coordinates should be in the same order as the array shape.
         Integer positions are at the pixel centers. (For 1D arrays, this can be
         a number.)
     mode : ['partial', 'trim', 'strict']
