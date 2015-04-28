@@ -161,14 +161,20 @@ Starting a new package
    following files into a new directory called ``docs``::
 
     mkdir docs
+    cp -r ../template/docs/_templates docs/
     cp ../template/docs/Makefile docs/
     cp ../template/docs/conf.py docs/
     cp ../template/docs/make.bat docs/
     touch docs/index.rst  # creates empty page
-    git add docs/Makefile docs/conf.py docs/make.bat docs/index.rst
+    git add docs/_templates docs/Makefile docs/conf.py docs/make.bat docs/index.rst
 
    you can later start adding content to ``index.rst`` and other documentation
    files.
+
+#. Add a ``README.md`` file to your repository, describing what the package
+   does, and for example how to install it and any required dependencies::
+
+    git add README.md
 
 #. Finally, if you plan on using Travis for continuous integration, copy over
    the ``.travis.yml`` file and edit it::
