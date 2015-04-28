@@ -118,11 +118,10 @@ def sigma_clip(data, sig=3.0, iters=1, cenfunc=np.ma.median, varfunc=np.var,
 
     """
 
+    axis_arg = dict()
+
     if axis is not None:
-        cenfunc_in = cenfunc
-        varfunc_in = varfunc
-        cenfunc = lambda d: np.expand_dims(cenfunc_in(d, axis=axis), axis=axis)
-        varfunc = lambda d: np.expand_dims(varfunc_in(d, axis=axis), axis=axis)
+        axis_arg['axis'] = axis
 
     filtered_data = np.ma.array(data, copy=copy)
 
@@ -132,12 +131,12 @@ def sigma_clip(data, sig=3.0, iters=1, cenfunc=np.ma.median, varfunc=np.var,
         while filtered_data.count() != lastrej:
             i += 1
             lastrej = filtered_data.count()
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            do = filtered_data - cenfunc(filtered_data, **axis_arg)
+            filtered_data.mask |= do * do > varfunc(filtered_data, **axis_arg) * sig ** 2
     else:
         for i in range(iters):
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            do = filtered_data - cenfunc(filtered_data, **axis_arg)
+            filtered_data.mask |= do * do > varfunc(filtered_data, **axis_arg) * sig ** 2
 
     return filtered_data
 
