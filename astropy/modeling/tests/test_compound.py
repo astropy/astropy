@@ -16,8 +16,8 @@ from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                       Gaussian2D, Polynomial1D, Polynomial2D,
-                      AffineTransformation2D,
-                      Identity, Mapping)
+                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D, 
+                      AffineTransformation2D, Identity, Mapping)
 
 
 @pytest.mark.parametrize(('expr', 'result'),
@@ -818,3 +818,19 @@ def test_compound_custom_inverse():
 
     with pytest.raises(NotImplementedError):
         (model1 & poly).inverse
+
+
+@pytest.mark.parametrize('poly', [Chebyshev2D(1, 2), Polynomial2D(2), Legendre2D(1, 2),
+                                  Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
+def test_compound_with_polynomials(poly):
+    """
+    Tests that polynomials are scaled when used in compound models.
+    Issue #3699
+    """
+    poly.parameters = [1, 2, 3, 4, 1, 2]
+    shift = Shift(3)
+    model = poly | shift
+    x, y = np.mgrid[:20, :37]
+    result_compound = model(x, y)
+    result = shift(poly(x, y))
+    assert_allclose(result, result_compound)
