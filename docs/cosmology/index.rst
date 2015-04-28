@@ -42,7 +42,8 @@ available methods. To do this, after importing the cosmology as in the
 above example, type ``cosmo.`` at the IPython prompt and then press
 the tab key.
 
-All of these methods also accept an array of redshifts as input:
+All of these methods also accept an arbitrarily shaped array of
+redshifts as input:
 
 .. doctest-requires:: scipy
 
@@ -50,7 +51,7 @@ All of these methods also accept an array of redshifts as input:
   >>> cosmo.comoving_distance([0.5, 1.0, 1.5])  # doctest: +FLOAT_CMP
   <Quantity [ 1916.0694236 , 3363.07064333, 4451.74756242] Mpc>
 
-You can create your own arbitrary cosmology using one of the Cosmology
+You can create your own FLRW-like cosmology using one of the Cosmology
 classes::
 
   >>> from astropy.cosmology import FlatLambdaCDM
@@ -58,6 +59,10 @@ classes::
   >>> cosmo
   FlatLambdaCDM(H0=70 km / (Mpc s), Om0=0.3, Tcmb0=2.725 K,
                 Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
+
+Note the presence of additional cosmological parameters (e.g., ``Neff``,
+the number of effective neutrino species) with default values; these
+can also be specified explicitly in the call to the constructor.
 
 The cosmology subpackage makes use of `~astropy.units`, so in many
 cases returns values with units attached.  Consult the documentation
@@ -82,7 +87,7 @@ you must specify a dark energy model by using one of its subclasses
 instead, such as `~astropy.cosmology.FlatLambdaCDM`.
 
 You can create a new `~astropy.cosmology.FlatLambdaCDM` object with
-arguments giving the Hubble parameter and omega matter (both at z=0)::
+arguments giving the Hubble parameter and Omega matter (both at z=0)::
 
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
@@ -180,7 +185,8 @@ used to describe the cosmology::
   >>> cosmo = FlatwCDM(name='SNLS3+WMAP7', H0=71.58, Om0=0.262, w0=-1.016)
   >>> cosmo
   FlatwCDM(name="SNLS3+WMAP7", H0=71.6 km / (Mpc s), Om0=0.262,
-           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV, Ob0=None)
+           w0=-1.02, Tcmb0=2.725 K, Neff=3.04, m_nu=[ 0.  0.  0.] eV,
+	   Ob0=None)
 
 This is also an example with a different model for dark energy, a flat
 Universe with a constant dark energy equation of state, but not

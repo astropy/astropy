@@ -126,12 +126,12 @@ class FLRW(Cosmology):
         Neff. Usually this means you must provide three neutrino masses unless
         you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None
         Omega baryons: density of baryonic matter in units of the critical
         density at z=0.
+
+    name : str
+        Optional name for this cosmological object.
 
     Notes
     -----
@@ -140,7 +140,7 @@ class FLRW(Cosmology):
     read only.
     """
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         # all densities are in units of the critical density
         self._Om0 = float(Om0)
@@ -1558,6 +1558,10 @@ class LambdaCDM(FLRW):
         Neff. Usually this means you must provide three neutrino masses unless
         you are considering something like a sterile neutrino.
 
+    Ob0 : float or None
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
+
     name : str
         Optional name for this cosmological object.
 
@@ -1573,7 +1577,7 @@ class LambdaCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, Tcmb0=2.725, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
@@ -1754,6 +1758,10 @@ class FlatLambdaCDM(LambdaCDM):
         Neff. Usually this means you must provide three neutrino masses unless
         you are considering something like a sterile neutrino.
 
+    Ob0 : float or None
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
+
     name : str
         Optional name for this cosmological object.
 
@@ -1769,7 +1777,7 @@ class FlatLambdaCDM(LambdaCDM):
     """
 
     def __init__(self, H0, Om0, Tcmb0=2.725, Neff=3.04,
-                 m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         LambdaCDM.__init__(self, H0, Om0, 0.0, Tcmb0, Neff, m_nu, name=name,
                            Ob0=Ob0)
@@ -1918,12 +1926,12 @@ class wCDM(FLRW):
         Neff. Usually this means you must provide three neutrino masses unless
         you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None
         Omega baryons: density of baryonic matter in units of the critical
         density at z=0.
+
+    name : str
+        Optional name for this cosmological object.
 
     Examples
     --------
@@ -1937,7 +1945,7 @@ class wCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=None)
@@ -2141,12 +2149,12 @@ class FlatwCDM(wCDM):
         Neff. Usually this means you must provide three neutrino masses unless
         you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None
         Omega baryons: density of baryonic matter in units of the critical
         density at z=0.
+
+    name : str
+        Optional name for this cosmological object.
 
     Examples
     --------
@@ -2160,7 +2168,7 @@ class FlatwCDM(wCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         wCDM.__init__(self, H0, Om0, 0.0, w0, Tcmb0, Neff, m_nu,
                       name=name, Ob0=Ob0)
@@ -2317,12 +2325,12 @@ class w0waCDM(FLRW):
         Neff. Usually this means you must provide three neutrino masses unless
         you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
     Ob0 : float
         Omega baryons: density of baryonic matter in units of the critical
         density at z=0.
+
+    name : str
+        Optional name for this cosmological object.
 
     Examples
     --------
@@ -2336,7 +2344,7 @@ class w0waCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
@@ -2504,12 +2512,12 @@ class Flatw0waCDM(w0waCDM):
         Neff. Usually this means you must provide three neutrino masses unless
         you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None
         Omega baryons: density of baryonic matter in units of the critical
         density at z=0.
+
+    name : str
+        Optional name for this cosmological object.
 
     Examples
     --------
@@ -2523,7 +2531,7 @@ class Flatw0waCDM(w0waCDM):
     """
 
     def __init__(self, H0, Om0, w0=-1., wa=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None, name=None):
 
         w0waCDM.__init__(self, H0, Om0, 0.0, w0=w0, wa=wa, Tcmb0=Tcmb0,
                          Neff=Neff, m_nu=m_nu, name=name, Ob0=Ob0)
@@ -2629,12 +2637,12 @@ class wpwaCDM(FLRW):
         Neff. Usually this means you must provide three neutrino masses unless
         you are considering something like a sterile neutrino.
 
-    name : str
-        Optional name for this cosmological object.
-
-    Ob0 : float
+    Ob0 : float or None
         Omega baryons: density of baryonic matter in units of the critical
         density at z=0.
+
+    name : str
+        Optional name for this cosmological object.
 
     Examples
     --------
@@ -2649,7 +2657,7 @@ class wpwaCDM(FLRW):
 
     def __init__(self, H0, Om0, Ode0, wp=-1., wa=0., zp=0,
                  Tcmb0=2.725, Neff=3.04, m_nu=u.Quantity(0.0, u.eV),
-                 name=None, Ob0=None):
+                 Ob0=None, name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
@@ -2826,19 +2834,19 @@ class w0wzCDM(FLRW):
 
     m_nu : float or ndarray or `~astropy.units.Quantity`
         Mass of each neutrino species, in eV. If this is a float or scalar
-        Quantity, then all neutrino species are assumed to have that mass. If a
-        ndarray or array Quantity, then these are the values of the mass of
+        Quantity, then all neutrino species are assumed to have that mass. If
+        a ndarray or array Quantity, then these are the values of the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Usually this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
+
+    Ob0 : float or None
+        Omega baryons: density of baryonic matter in units of the critical
+        density at z=0.
 
     name : str
         Optional name for this cosmological object.
-
-    Ob0 : float
-        Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
 
     Examples
     --------
@@ -2852,7 +2860,8 @@ class w0wzCDM(FLRW):
     """
 
     def __init__(self, H0, Om0, Ode0, w0=-1., wz=0., Tcmb0=2.725,
-                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
+                 Neff=3.04, m_nu=u.Quantity(0.0, u.eV), Ob0=None,
+                 name=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
