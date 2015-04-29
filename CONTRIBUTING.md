@@ -89,7 +89,7 @@ A pull request for a new feature will be reviewed to see if it meets the followi
   * Are the sources for the tests documented?
 
 **Documentation**
-  * Are the [documentation guidelines}(http://docs.astropy.org/en/latest/development/docguide.html) followed? 
+  * Are the [documentation guidelines](http://docs.astropy.org/en/latest/development/docguide.html) followed? 
   * Is there a [docstring](http://docs.astropy.org/en/latest/development/docrules.html) in the function describing:
     * What the code does?
     * The format of the inputs to the function?
