@@ -2123,6 +2123,9 @@ class Table(object):
             else:
                 out[name] = column
 
+            if out[name].dtype.byteorder not in ('=', '|'):
+                out[name] = out[name].byteswap().newbyteorder()
+
         return DataFrame(out)
 
     @classmethod
