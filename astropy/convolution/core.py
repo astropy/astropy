@@ -45,10 +45,6 @@ class Kernel(object):
 
     def __init__(self, array):
         self._array = array
-        if self._array.sum() == 0:
-            self._normalization = np.inf
-        else:
-            self._normalization = 1. / self._array.sum()
 
     @property
     def truncation(self):
@@ -91,7 +87,7 @@ class Kernel(object):
     @property
     def normalization(self):
         """
-        Kernel normalization factor
+        Kernel normalization factor.
         """
         return self._normalization
 
@@ -108,18 +104,24 @@ class Kernel(object):
                 * 'peak'
                     Kernel normalized such that its peak = 1.
         """
-        # There are kernel that sum to zero and
-        # the user should be warned in this case
+
+        # Warn the user for kernels that sum to zero
         if np.isinf(self._normalization):
             warnings.warn('Kernel cannot be normalized because the '
                           'normalization factor is infinite.',
                           AstropyUserWarning)
             return
+
         if np.abs(self._normalization) > MAX_NORMALIZATION:
-            warnings.warn("Normalization factor of kernel is "
-                          "exceptionally large > {0}.".format(MAX_NORMALIZATION),
+            warnings.warn('Normalization factor of kernel is exceptionally '
+                          'large, > {0}.'.format(MAX_NORMALIZATION),
                           AstropyUserWarning)
+
         if mode == 'integral':
+            if self._array.sum() == 0:
+                self._normalization = np.inf
+            else:
+                self._normalization = 1. / self._array.sum()
             self._array *= self._normalization
         if mode == 'peak':
             np.divide(self._array, self._array.max(), self.array)
