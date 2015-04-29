@@ -68,50 +68,51 @@ Other Tips
 Checklist for Contributed Code
 ------------------------------
 
-A pull request for a new feature will only be accepted after it passes these
-checks:
+A pull request for a new feature will be reviewed to see if it meets
+the following requirements.  
 
-- Code Quality
-* Is the code compatible with Python 2.6, 2.7, as well as 3.
-* Are there dependancies other than the Astropy core, the Python Standard 
-  Library, and NumPy 1.6.0 or later.
-* Is the package importable even if the C-extensions are not built?
-* Are additional dependancies handled appropriately?
-** Functions that require additional dependancies should raise an `ImportError`
-   if they are not present.
-* Are the [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html) followed?
+** Code Quality **
+  * Is the code compatible with Python 2.6, 2.7, as well as 3.
+  * Are there dependancies other than the Astropy core, the Python Standard 
+    Library, and NumPy 1.6.0 or later.
+  * Is the package importable even if the C-extensions are not built?
+  * Are additional dependancies handled appropriately?
+    * Functions that require additional dependancies should raise an `ImportError`
+      if they are not present.
+  * Are the [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html)
+    followed?
 
-- Testing
-* Are the [testing guidelines](http://docs.astropy.org/en/latest/development/testguide.html) followed?
-* Are the inputs to the functions sufficiently tested?
-* Are their tests for any exceptions raised?
-* Are there tests for the expected performance?
-* Are the sources for the tests documented?
+** Testing **
+  * Are the [testing guidelines](http://docs.astropy.org/en/latest/development/testguide.html)    
+    followed?
+  * Are the inputs to the functions sufficiently tested?
+  * Are their tests for any exceptions raised?
+  * Are there tests for the expected performance?
+  * Are the sources for the tests documented?
 
-- Documentation
-* Are the [documentation guidelines}(http://docs.astropy.org/en/latest/development/docguide.html) followed? 
-* Is there a [docstring](http://docs.astropy.org/en/latest/development/docrules.html) in the function describing:
-** What the code does?
-** The format of the inputs to the function?
-** The format of the outpus of the function?
-** References to the original algorithms?
-** Any errors which are raised?
-** An example of running the code?
-* Is there any information needed to be added to the docs to describe the 
-  function?
+** Documentation **
+  * Are the [documentation guidelines}(http://docs.astropy.org/en/latest/development/docguide.html) followed? 
+  * Is there a [docstring](http://docs.astropy.org/en/latest/development/docrules.html) in the function describing:
+    * What the code does?
+    * The format of the inputs to the function?
+    * The format of the outpus of the function?
+    * References to the original algorithms?
+    * Any errors which are raised?
+    * An example of running the code?
+  * Is there any information needed to be added to the docs to describe the function?
 
 
-- License 
-* Is the astropy license included at the top of the file?
-* Are there any conflicts with this code and existing codes? 
+** License **
+  * Is the astropy license included at the top of the file?
+  * Are there any conflicts with this code and existing codes? 
 
-- Scientific Quality
-* Is the submission relevant to astronomy? 
-* Are references included to the origin source for the algorithm?
-* Does the code perform as expected?
-* Has the code been tested against previously existing implimentations?
+** Scientific Quality **
+  * Is the submission relevant to astronomy? 
+  * Are references included to the origin source for the algorithm?
+  * Does the code perform as expected?
+  * Has the code been tested against previously existing implimentations?
 
-- astropy 
-* Do all tests pass?
-* Has an entry been added into the changelog?
-* Can you checkout the pull request and repeat the examples and tests?
+** astropy requirements **
+  * Do all tests pass?
+  * Has an entry been added into the changelog?
+  * Can you checkout the pull request and repeat the examples and tests?
