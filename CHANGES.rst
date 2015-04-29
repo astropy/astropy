@@ -82,6 +82,8 @@ New Features
 
 - ``astropy.wcs``
 
+  - Enhanced text representation of ``WCS`` objects. [#3604]
+
 API changes
 ^^^^^^^^^^^
 
