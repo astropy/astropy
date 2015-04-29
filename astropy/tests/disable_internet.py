@@ -27,22 +27,40 @@ _orig_opener = None
 # it is returned by getaddrinfo when that function is given localhost
 
 def check_internet_off(original_function):
+    """
+    Wraps ``original_function``, which in most cases is assumed
+    to be a `socket.socket` method, to raise an `IOError` for any operations
+    on non-local AF_INET sockets.
+    """
+
     def new_function(*args, **kwargs):
+        if isinstance(args[0], socket.socket):
+            if not args[0].family in (socket.AF_INET, socket.AF_INET6):
+                # Should be fine in all but some very obscure cases
+                # More to the point, we don't want to affect AF_UNIX
+                # sockets.
+                return original_function(*args, **kwargs)
+            host = args[1][0]
+            addr_arg = 1
+            valid_hosts = ('localhost', '127.0.0.1', '::1')
+        else:
+            # The only other function this is used to wrap currently is
+            # socket.create_connection, which should be passed a 2-tuple, but
+            # we'll check just in case
+            if not (isinstance(args[0], tuple) and len(args[0]) == 2):
+                return original_function(*args, **kwargs)
+
+            host = args[0][0]
+            addr_arg = 0
+            valid_hosts = ('localhost', '127.0.0.1')
+
         hostname = socket.gethostname()
         fqdn = socket.getfqdn()
 
-        if isinstance(args[0], socket.socket):
-            host = args[1][0]
-            valid_hosts = ('localhost', '127.0.0.1', '::1')
-            if host in (hostname, fqdn):
-                host = 'localhost'
-                args = (args[0], (host, args[1][1])) + args[2:]
-        else:
-            host = args[0][0]
-            valid_hosts = ('localhost', '127.0.0.1')
-            if host in (hostname, fqdn):
-                host = 'localhost'
-                args = ((host, args[0][1]),) + args[1:]
+        if host in (hostname, fqdn):
+            host = 'localhost'
+            new_addr = (host, args[addr_arg][1])
+            args = args[:addr_arg] + (new_addr,) + args[addr_arg + 1:]
 
         if any([h in host for h in valid_hosts]):
             return original_function(*args, **kwargs)
