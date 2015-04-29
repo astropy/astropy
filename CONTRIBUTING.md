@@ -71,7 +71,7 @@ Checklist for Contributed Code
 A pull request for a new feature will be reviewed to see if it meets
 the following requirements.  
 
-** Code Quality **
+**Code Quality**
   * Is the code compatible with Python 2.6, 2.7, as well as 3.
   * Are there dependancies other than the Astropy core, the Python Standard 
     Library, and NumPy 1.6.0 or later.
@@ -82,7 +82,7 @@ the following requirements.
   * Are the [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html)
     followed?
 
-** Testing **
+**Testing**
   * Are the [testing guidelines](http://docs.astropy.org/en/latest/development/testguide.html)    
     followed?
   * Are the inputs to the functions sufficiently tested?
@@ -90,7 +90,7 @@ the following requirements.
   * Are there tests for the expected performance?
   * Are the sources for the tests documented?
 
-** Documentation **
+**Documentation**
   * Are the [documentation guidelines}(http://docs.astropy.org/en/latest/development/docguide.html) followed? 
   * Is there a [docstring](http://docs.astropy.org/en/latest/development/docrules.html) in the function describing:
     * What the code does?
@@ -102,17 +102,17 @@ the following requirements.
   * Is there any information needed to be added to the docs to describe the function?
 
 
-** License **
+**License**
   * Is the astropy license included at the top of the file?
   * Are there any conflicts with this code and existing codes? 
 
-** Scientific Quality **
+**Scientific Quality**
   * Is the submission relevant to astronomy? 
   * Are references included to the origin source for the algorithm?
   * Does the code perform as expected?
   * Has the code been tested against previously existing implimentations?
 
-** astropy requirements **
+**astropy requirements**
   * Do all tests pass?
   * Has an entry been added into the changelog?
   * Can you checkout the pull request and repeat the examples and tests?
