@@ -70,16 +70,22 @@ Checklist for Contributed Code
 
 A pull request for a new feature will be reviewed to see if it meets the following requirements.  For any pull request, an astropy maintainer can help to make sure that the pull request meets the requirements for inclusion in the package.  
 
+**Scientific Quality**
+  * Is the submission relevant to astronomy? 
+  * Are references included to the origin source for the algorithm?
+  * Does the code perform as expected?
+  * Has the code been tested against previously existing implimentations?
+
 **Code Quality**
   * Are the [coding guidelines](http://docs.astropy.org/en/latest/development/codeguide.html)
     followed?
-  * Is the code compatible with Python 2.6, 2.7, as well as 3.
+  * Is the code compatible with Python 2.6, 2.7, as well as 3?
   * Are there dependancies other than the Astropy core, the Python Standard 
-    Library, and NumPy 1.6.0 or later.
+    Library, and NumPy 1.6.0 or later?
     * Is the package importable even if the C-extensions are not built?
     * Are additional dependancies handled appropriately?
-    * Functions that require additional dependancies should raise an `ImportError`
-        if they are not present.
+    * Do functions that require additional dependancies  raise an `ImportError`
+        if they are not present?
   
 **Testing**
   * Are the [testing guidelines](http://docs.astropy.org/en/latest/development/testguide.html) followed?
@@ -87,6 +93,8 @@ A pull request for a new feature will be reviewed to see if it meets the followi
   * Are their tests for any exceptions raised?
   * Are there tests for the expected performance?
   * Are the sources for the tests documented?
+  * Have tests that require an [optional dependancy marked](http://docs.astropy.org/en/latest/development/testguide.html#tests-requiring-optional-dependencies) as such?
+  * Does python setup.py test run without failures?
 
 **Documentation**
   * Are the [documentation guidelines](http://docs.astropy.org/en/latest/development/docguide.html) followed? 
@@ -103,12 +111,6 @@ A pull request for a new feature will be reviewed to see if it meets the followi
 **License**
   * Is the astropy license included at the top of the file?
   * Are there any conflicts with this code and existing codes? 
-
-**Scientific Quality**
-  * Is the submission relevant to astronomy? 
-  * Are references included to the origin source for the algorithm?
-  * Does the code perform as expected?
-  * Has the code been tested against previously existing implimentations?
 
 **astropy requirements**
   * Do all the tests pass on the travis build?
