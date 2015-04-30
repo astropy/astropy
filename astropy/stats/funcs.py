@@ -832,17 +832,16 @@ def sigma_to_logp(sigma, two_sided=True):
     
     """
     import scipy.special
-    s = sigma/np.sqrt(2)
-    r = -s**2+np.log(scipy.special.erfcx(s))+(0 if two_sided else -np.log(2))
+    r = scipy.special.log_ndtr(-sigma)+(np.log(2) if two_sided else 0)
     if two_sided:
-        if np.any(s<0):
-            raise ValueError("two-sided tail probability doesn't make sense for negative sigmas: %s" % s)
+        if np.any(sigma<0):
+            raise ValueError("two-sided tail probability doesn't make sense for negative sigmas: %s" % sigma)
     else:
-        if np.isscalar(s):
-            if s<0:
-                return np.log(scipy.stats.norm.sf(np.sqrt(2)*s))
+        if np.isscalar(sigma):
+            if sigma<0:
+                return np.log(scipy.stats.norm.sf(sigma))
         else:
-            r[s<0] = np.log(scipy.stats.norm.sf(np.sqrt(2)*s[s<0]))
+            r[sigma<0] = np.log(scipy.stats.norm.sf(sigma[sigma<0]))
     return r
 
 # TODO Note scipy dependency
