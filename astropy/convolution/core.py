@@ -93,29 +93,17 @@ class Kernel(object):
 
     def normalize(self, mode='integral'):
         """
-        Force normalization of filter kernel.
+        Normalize the filter kernel.
 
         Parameters
         ----------
         mode : {'integral', 'peak'}
             One of the following modes:
                 * 'integral' (default)
-                    Kernel normalized such that its integral = 1.
+                    Kernel is normalized such that its integral = 1.
                 * 'peak'
-                    Kernel normalized such that its peak = 1.
+                    Kernel is normalized such that its peak = 1.
         """
-
-        # Warn the user for kernels that sum to zero
-        if np.isinf(self._normalization):
-            warnings.warn('Kernel cannot be normalized because the '
-                          'normalization factor is infinite.',
-                          AstropyUserWarning)
-            return
-
-        if np.abs(self._normalization) > MAX_NORMALIZATION:
-            warnings.warn('Normalization factor of kernel is exceptionally '
-                          'large, > {0}.'.format(MAX_NORMALIZATION),
-                          AstropyUserWarning)
 
         if mode == 'integral':
             if self._array.sum() == 0:
@@ -128,6 +116,18 @@ class Kernel(object):
             self._normalization = 1. / self._array.sum()
         else:
             raise ValueError("invalid mode, must be 'integral' or 'peak'")
+
+        # Warn the user for kernels that sum to zero
+        if np.isinf(self._normalization):
+            warnings.warn('Kernel cannot be normalized because the '
+                          'normalization factor is infinite.',
+                          AstropyUserWarning)
+            return
+
+        if np.abs(self._normalization) > MAX_NORMALIZATION:
+            warnings.warn('Normalization factor of kernel is exceptionally '
+                          'large, > {0}.'.format(MAX_NORMALIZATION),
+                          AstropyUserWarning)
 
     @property
     def shape(self):
