@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import itertools
 
 import numpy as np
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_allclose
 
 from ...tests.helper import pytest
 from ..convolve import convolve, convolve_fft
@@ -421,4 +421,17 @@ class TestKernels(object):
         assert np.all([_ % 2 != 0 for _ in kernel_2D.shape])
         assert kernel_2D.array.sum() == 1.
 
+    def test_kernel_normalization(self):
+        """
+        Test that repeated normalizations do not change the kernel [#3747].
+        """
 
+        kernel = CustomKernel(np.ones(5))
+        kernel.normalize()
+        data = np.copy(kernel.array)
+
+        kernel.normalize()
+        assert_allclose(data, kernel.array)
+
+        kernel.normalize()
+        assert_allclose(data, kernel.array)
