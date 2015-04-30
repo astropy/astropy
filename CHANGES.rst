@@ -288,6 +288,8 @@ Bug Fixes
 
 - ``astropy.convolution``
 
+  - Fix issue with repeated normalizations of ``Kernels``. [#3747]
+
 - ``astropy.coordinates``
 
 - ``astropy.cosmology``
