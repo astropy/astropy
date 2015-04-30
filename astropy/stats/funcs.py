@@ -584,37 +584,36 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     if interval == 'root-n':
         if sigma!=1:
             raise ValueError("Only sigma=1 supported for interval %s",interval)
-        return np.array([n-np.sqrt(n),
-                         n+np.sqrt(n)])
+        conf_interval = np.array([n-np.sqrt(n),
+                                  n+np.sqrt(n)])
     elif interval == 'root-n-0':
         if sigma!=1:
             raise ValueError("Only sigma=1 supported for interval %s",interval)
-        r = np.array([n-np.sqrt(n),
-                         n+np.sqrt(n)])
+        conf_interval = np.array([n-np.sqrt(n),
+                                  n+np.sqrt(n)])
         if np.isscalar(n):
             if n==0:
-                r[1] = 1
+                conf_interval[1] = 1
         else:
-            r[1,n==0] = 1
-        return r
+            conf_interval[1,n==0] = 1
     elif interval == 'pearson':
         if sigma!=1:
             raise ValueError("Only sigma=1 supported for interval %s",interval)
-        return np.array([n+0.5-np.sqrt(n+0.25),
-                         n+0.5+np.sqrt(n+0.25)])
+        conf_interval = np.array([n+0.5-np.sqrt(n+0.25),
+                                  n+0.5+np.sqrt(n+0.25)])
     elif interval == 'frequentist-confidence':
         import scipy.stats
         alpha = scipy.stats.norm.sf(sigma)
-        r = np.array([0.5*scipy.stats.chi2(2*n).ppf(alpha),
-                      0.5*scipy.stats.chi2(2*n+2).isf(alpha)])
+        conf_interval = np.array([0.5*scipy.stats.chi2(2*n).ppf(alpha),
+                                  0.5*scipy.stats.chi2(2*n+2).isf(alpha)])
         if np.isscalar(n):
             if n==0:
-                r[0] = 0
+                conf_interval[0] = 0
         else:
-            r[0,n==0] = 0
-        return r
+            conf_interval[0,n==0] = 0
     else:
         raise ValueError("Invalid method for Poisson confidence intervals: %s" % interval)
+    return conf_interval
 
 def median_absolute_deviation(a, axis=None):
     """Compute the median absolute deviation.
