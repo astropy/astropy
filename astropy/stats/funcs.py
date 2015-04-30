@@ -479,7 +479,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     The suggestion has also been [floated][ac12] that error bars should be
     attached to theoretical predictions instead of observed data,
     which this function will not help with (but it's easy; then you
-    realy should use the square root of the theoretical prediction).
+    really should use the square root of the theoretical prediction).
 
     The intervals implemented here are:
 
