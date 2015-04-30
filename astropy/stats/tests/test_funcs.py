@@ -262,18 +262,15 @@ def test_poisson_conf_interval_rootn():
     assert_allclose(funcs.poisson_conf_interval(16, interval='root-n'),
                     (12, 20))
 
-def test_poisson_conf_large_pearson():
-    n = 100
-    assert_allclose(funcs.poisson_conf_interval(n, interval='root-n'),
-                    funcs.poisson_conf_interval(n, interval='pearson'),
-                    rtol=2e-2)
-
 @pytest.mark.skipif('not HAS_SCIPY')
-def test_poisson_conf_large_frequentist_confidence():
+@pytest.mark.parametrize('interval',['root-n-0',
+                                      'pearson',
+                                      'sherpagehrels',
+                                      'frequentist-confidence'])
+def test_poisson_conf_large(interval):
     n = 100
     assert_allclose(funcs.poisson_conf_interval(n, interval='root-n'),
-                    funcs.poisson_conf_interval(n,
-                        interval='frequentist-confidence'),
+                    funcs.poisson_conf_interval(n, interval=interval),
                     rtol=2e-2)
 
 def test_poisson_conf_array_rootn0():
@@ -360,3 +357,13 @@ def test_poisson_conf_frequentist_confidence_gehrels_3sigma():
                         interval='frequentist-confidence').T,
                     nlh[:,2:],
                     rtol=0.01, verbose=True)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('n', [0,1,2,3,10,20,100])
+def test_poisson_conf_gehrels86(n):
+    assert_allclose(
+        funcs.poisson_conf_interval(
+            n, interval='sherpagehrels')[1],
+        funcs.poisson_conf_interval(
+            n, interval='frequentist-confidence')[1],
+        rtol = 0.02)

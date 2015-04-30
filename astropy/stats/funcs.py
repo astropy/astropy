@@ -453,12 +453,12 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     ----------
     n : int or numpy.ndarray
         Number of counts (0 <= ``n``).
-    interval : {'root-n','root-n-0','pearson','frequentist-confidence'}, optional
+    interval : {'root-n','root-n-0','pearson','sherpagehrels','frequentist-confidence'}, optional
         Formula used for confidence interval. See notes for details.
         Default is ``'root-n'``.
     sigma : float
         Number of sigma for confidence interval; only supported for
-        'frequentist-confidence' mode.
+        the 'frequentist-confidence' mode.
     
 
     Returns
@@ -496,7 +496,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     **2. 'root-n-0'** This is identical to the above except that where
     n is zero the interval returned is (0,1).
         
-    **2. 'pearson'** This is an only-slightly-more-complicated rule
+    **3. 'pearson'** This is an only-slightly-more-complicated rule
     based on Pearson's chi-squared rule. It also has the nice feature that
     if your theory curve touches an endpoint of the interval, then your
     data point is indeed one sigma away. The interval is
@@ -505,7 +505,18 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
 
         CI = (n+0.5-\sqrt{n+0.25}, n+0.5+\sqrt{n+0.25})
 
-    **3. 'frequentist-confidence'** These are frequentist central
+    **4. 'sherpagehrels'** This rule is used by default in the fitting
+    package 'sherpa'. The documentation claims it is based on a numerical
+    approximation published in [Gehrels 1986][gehrels86] but it does not
+    actually appear there. It is symmetrical, and while the upper limits
+    are within about 1% of those given by 'frequentist-confidence', the
+    lower limits can be badly wrong. The interval is
+
+    .. math::
+
+        CI = (n-1-\sqrt{n+0.75}, n+1+\sqrt{n+0.75})
+
+    **5. 'frequentist-confidence'** These are frequentist central
     confidence intervals:
 
     .. math::
@@ -515,8 +526,9 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
 
     where :math:`F_{\chi^2}^{-1}` is the quantile of the chi-square
     distribution with the indicated number of degrees of freedom and
-    :math:\alpha is the one-tailed one-sigma probability of the normal
-    distribution. See [Maxwell 2011][maxw11] for further details.
+    :math:\alpha is the one-tailed probability of the normal
+    distribution (at the point given by the parameter 'sigma'). See
+    [Maxwell 2011][maxw11] for further details.
 
     Examples
     --------
@@ -578,17 +590,18 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     [ErrorBars]: http://www.pp.rhul.ac.uk/~cowan/atlas/ErrorBars.pdf
     [ac12]: http://adsabs.harvard.edu/abs/2012EPJP..127...24A
     [maxw11]: http://adsabs.harvard.edu/abs/2011arXiv1102.0822M
+    [gehrels86]: http://adsabs.harvard.edu/abs/1986ApJ...303..336G
     
     """
 
     if interval == 'root-n':
         if sigma!=1:
-            raise ValueError("Only sigma=1 supported for interval %s",interval)
+            raise ValueError("Only sigma=1 supported for interval %s" % interval)
         conf_interval = np.array([n-np.sqrt(n),
                                   n+np.sqrt(n)])
     elif interval == 'root-n-0':
         if sigma!=1:
-            raise ValueError("Only sigma=1 supported for interval %s",interval)
+            raise ValueError("Only sigma=1 supported for interval %s" % interval)
         conf_interval = np.array([n-np.sqrt(n),
                                   n+np.sqrt(n)])
         if np.isscalar(n):
@@ -598,9 +611,14 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
             conf_interval[1,n==0] = 1
     elif interval == 'pearson':
         if sigma!=1:
-            raise ValueError("Only sigma=1 supported for interval %s",interval)
+            raise ValueError("Only sigma=1 supported for interval %s" % interval)
         conf_interval = np.array([n+0.5-np.sqrt(n+0.25),
                                   n+0.5+np.sqrt(n+0.25)])
+    elif interval == 'sherpagehrels':
+        if sigma!=1:
+            raise ValueError("Only sigma=1 supported for interval %s" % interval)
+        conf_interval = np.array([n-1-np.sqrt(n+0.75),
+                                  n+1+np.sqrt(n+0.75)])
     elif interval == 'frequentist-confidence':
         import scipy.stats
         alpha = scipy.stats.norm.sf(sigma)
