@@ -6,6 +6,8 @@ import numpy as np
 from copy import deepcopy
 from collections import OrderedDict
 from astropy.utils.compat.funcsigs import Parameter, Signature
+import warnings
+from ..utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
@@ -26,19 +28,24 @@ def _make_sigma_clip_signature(_sigma_clip_keywords):
     return Signature(params)
 
 
-def sigma_clip(*args, **kwargs):
-    signature = _make_sigma_clip_signature(_sigma_clip_keywords)
-    bound_args = signature.bind(*args, **kwargs)
-    for name, value in bound_args.arguments.items():
-        print(name, value)
+def sigma_clip(data, **kwargs):
+    # temporary function to handle deprecated and removed keywords
+    if 'sig' in kwargs:
+        warnings.warn('The "sig" keyword is now deprecated, use the '
+                      '"sigma" keyword instead.', AstropyDeprecationWarning)
 
-    for param in signature.parameters.values():
-        if (param.name not in bound_args.arguments and
-            param.default is not param.empty):
-                bound_args.arguments[param.name] = param.default
+        if 'sigma' not in kwargs:
+            kwargs['sigma'] = kwargs['sig']
+        else:
+            warnings.warn('Both the "sig" and "sigma" keywords were set. '
+                          'Using the value of "sigma".', AstropyUserWarning)
+        del kwargs['sig']
 
-    for name, value in bound_args.arguments.items():
-        print(name, value)
+    if 'varfunc' in kwargs:
+        raise SyntaxError('The "varfunc" keyword is no longer supported. '
+                          'Please use the "stdfunc" keyword instead.')
+
+    return _sigma_clip(data, **kwargs)
 
 
 def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
@@ -57,16 +64,16 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
     Parameters
     ----------
     data : array-like
-        The data to be sigma-clipped (any shape).
+        The data to be sigma clipped.
     sigma : float, optional
         The number of standard deviations to use for both the lower and
         upper clipping limit. These limits are overridden by
         ``sigma_lower`` and ``sigma_upper``, if input.
-    sigma_lower : float, optional
+    sigma_lower : float or `None`, optional
         The number of standard deviations to use as the lower bound for
         the clipping limit. If `None` then the value of ``sigma`` is
         used.
-    sigma_upper : float, optional
+    sigma_upper : float or `None`, optional
         The number of standard deviations to use as the upper bound for
         the clipping limit. If `None` then the value of ``sigma`` is
         used.
@@ -84,12 +91,12 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
         outputs a width estimator. Masked (rejected) pixels are those
         where::
 
-             deviation < (-``sigma_lower`` * ``stdfunc``(deviation))
-             deviation > (``sigma_upper`` * ``stdfunc``(deviation))
+             deviation < (-sigma_lower * stdfunc(deviation))
+             deviation > (sigma_upper * stdfunc(deviation))
 
         where::
 
-            deviation = ``data`` - ``cenfunc``(``data`` [,``axis``=int])
+            deviation = data - cenfunc(data [,axis=int])
 
         Defaults to the standard deviation (`numpy.std`).
     axis : int or `None`, optional
@@ -99,9 +106,9 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
         (like the numpy functions).  If `None`, clip over all axes.
         Defaults to `None`.
     copy : bool, optional
-        If `True`, the data array will be copied.  If `False`, the
-        masked array data will contain the same array as ``data``.
-        Defaults to `True`.
+        If `True`, the ``data`` array will be copied.  If `False`, the
+        returned masked array data will contain the same array as
+        ``data``.  Defaults to `True`.
 
     Returns
     -------
@@ -121,7 +128,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
            deviation > (sigma_upper * stdfunc(deviation))
 
         It will iterate a given number of times, or until no further
-        points are rejected.
+        data are rejected.
 
      2. Most numpy functions deal well with masked arrays, but if one
         would like to have an array with just the good (or bad) values, one
@@ -138,17 +145,17 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
     --------
 
     This example generates random variates from a Gaussian distribution
-    and return a masked array in which all points that are more than 2
-    *sample* standard deviation from the median are masked::
+    and returns a masked array in which all points that are more than 2
+    sample standard deviations from the median are masked::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
         >>> filtered_data = sigma_clip(randvar, sigma=2, iters=1)
 
-    This example will sigma clip on a similar distribution, but uses 3
-    sigma relative to the sample *mean*, will clip until converged, and
-    does not copy the data::
+    This example sigma clips on a similar distribution, but uses 3 sigma
+    relative to the sample *mean*, clips until convergence, and does not
+    copy the data::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
@@ -157,8 +164,8 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
         >>> filtered_data = sigma_clip(randvar, sigma=3, iters=None,
         ...                            cenfunc=mean, copy=False)
 
-    This example will sigma clip along one axis on a similar
-    distribution with bad points inserted::
+    This example sigma clips along one axis on a similar distribution
+    (with bad points inserted)::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import normal
