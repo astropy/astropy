@@ -17,6 +17,7 @@ from ..kernels import (
 
 from ..utils import KernelSizeError
 from ...modeling.models import Box2D, Gaussian1D, Gaussian2D
+from ...utils.exceptions import AstropyWarning, AstropyUserWarning
 
 try:
     from scipy.ndimage import filters
@@ -435,3 +436,30 @@ class TestKernels(object):
 
         kernel.normalize()
         assert_allclose(data, kernel.array)
+
+    def test_kernel_normalization_mode(self):
+        """
+        Test that an error is raised if mode is invalid.
+        """
+        with pytest.raises(ValueError):
+            kernel = CustomKernel(np.ones(3))
+            kernel.normalize(mode='invalid')
+
+    def test_kernel_normalization_inf(self, recwarn):
+        """
+        Test that a warning is issued when normalizing a zero-sum kernel.
+        """
+        kernel = CustomKernel(np.array([-1, 0, 1]))
+        kernel.normalize()
+        w = recwarn.pop(AstropyUserWarning)
+        assert issubclass(w.category, AstropyWarning)
+
+    def test_kernel_normalization_large(self, recwarn):
+        """
+        Test that a warning is issued when the inverse normalization factor
+        is large.
+        """
+        kernel = CustomKernel(np.ones(3) * 1.e-3)
+        kernel.normalize()
+        w = recwarn.pop(AstropyUserWarning)
+        assert issubclass(w.category, AstropyWarning)
