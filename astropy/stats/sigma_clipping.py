@@ -3,28 +3,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
-from collections import OrderedDict
-from astropy.utils.compat.funcsigs import Parameter, Signature
 import warnings
 from ..utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
-
-
-_sigma_clip_keywords = OrderedDict([('sigma', 3.), ('sigma_lower', None),
-                                    ('sigma_upper', None), ('iters', 1),
-                                    ('cenfunc', np.ma.median),
-                                    ('stdfunc', np.std), ('axis', None),
-                                    ('copy', True), ('sig', 3),
-                                    ('varfunc', np.var)])
-
-
-def _make_sigma_clip_signature(_sigma_clip_keywords):
-    params = ([Parameter('data', Parameter.POSITIONAL_ONLY)] +
-              [Parameter(name, Parameter.KEYWORD_ONLY, default=default)
-               for name, default in _sigma_clip_keywords.items()])
-    return Signature(params)
 
 
 def sigma_clip(data, **kwargs):
