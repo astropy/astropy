@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.2 - an implementation of the FITS WCS standard.
+  WCSLIB 5.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 5.2 2015/04/15 12:35:07 mcalabre Exp $
+  $Id: wcspih.l,v 5.4.1.1 2015/04/21 14:44:28 mcalabre Exp mcalabre $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -77,6 +77,8 @@ Z1	[0-9]
 Z2	[0-9]{2}
 Z3	[0-9]{3}
 Z4	[0-9]{4}
+Z5	[0-9]{5}
+Z6	[0-9]{6}
 
 I1	[1-9]
 I2	[1-9][0-9]
@@ -90,15 +92,18 @@ ALT	[ A-Z]
 INTEGER	[+-]?[0-9]+
 FLOAT	[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eEdD][+-]?[0-9]+)?
 STRING	'([^']|'')*'
+RECORD	'[^']*'
+FIELD	[a-zA-Z_][a-zA-Z_0-9.]*
 
 /* Inline comment syntax. */
 INLINE " "*(\/.*)?
 
 /* Exclusive start states. */
-%x CROTAi PROJPn
-%x CCCCCia CCi_ja CCi_ma CCCCCCCa CCCCCCCC
+%x CROTAi PROJPn SIP2 SIP3
+%x CCCCCia CCia CCi_ja CCi_ma CCCCCCCa CCCCCCCC
 %x VALUE
 %x INTEGER_VAL FLOAT_VAL STRING_VAL
+%x RECORD_VAL RECFIELD RECCOLON RECVALUE RECEND
 %x COMMENT
 %x DISCARD ERROR FLUSH
 
@@ -109,15 +114,18 @@ INLINE " "*(\/.*)?
 #include <stdlib.h>
 #include <string.h>
 
-#include "wcs.h"
-#include "wcshdr.h"
 #include "wcsmath.h"
 #include "wcsprintf.h"
 #include "wcsutil.h"
 
+#include "dis.h"
+#include "wcs.h"
+#include "wcshdr.h"
+
 #define INTEGER 0
 #define FLOAT   1
 #define STRING  2
+#define RECORD  3
 
 #define YY_DECL int wcspih(char *header, int nkeyrec, int relax, int ctrl, \
                            int *nreject, int *nwcs, struct wcsprm **wcs)
@@ -139,10 +147,12 @@ INLINE " "*(\/.*)?
 char *wcspih_hdr;
 int  wcspih_nkeyrec;
 
-int wcspih_final(int alts[], int *nwcs, struct wcsprm **wcs);
-int wcspih_inits(int naxis, int alts[], int npv[], int nps[], int *nwcs,
+int wcspih_final(int alts[], int ndp[], int ndq[], int *nwcs,
         struct wcsprm **wcs);
-void wcspih_naxes(int naxis, int i, int j, char a, int alts[], int *npptr);
+int wcspih_inits(int naxis, int alts[], int dpq[], int npv[], int nps[],
+        int ndp[], int ndq[], int dosip, int *nwcs, struct wcsprm **wcs);
+void wcspih_naxes(int naxis, int i, int j, char a, int distype, int alts[],
+        int dpq[], int *npptr);
 
 int wcspih_epoch(double *wptr, double epoch);
 int wcspih_vsource(double *wptr, double vsource);
@@ -156,15 +166,17 @@ jmp_buf wcspih_abort_jmp_env;
 %%
 	/* Keyword indices, as used in the WCS papers, e.g. PCi_ja, PVi_ma. */
 	char a;
-	int  i, j, m;
+	int  i, j, m, p, q;
 	
 	char *cptr, *errmsg, errtxt[80], *hptr, *keep, *keyname, *keyrec,
-	     strtmp[80];
-	int  altlin, alts[27], gotone, ialt, inttmp, ipass, ipx, ix, jx,
-	     naxis, nother, *npptr, nps[27], npass, npv[27], nvalid, status,
-	     valtype, voff;
+	     keyword[16], strtmp[80];
+	int  altlin, alts[27], distype, dosip, dpq[27], gotone, ialt, inttmp,
+	     ipass, ipx, ix, jx, naxis, ndp[27], ndq[27], nother, *npptr,
+	     nps[27], npass, npv[27], nvalid, rectype, sip, status, valtype,
+	     voff;
 	double dbltmp;
 	void *vptr, *wptr;
+	struct disprm *disp, distem;
 	struct wcsprm *wcsp, wcstem;
 	int (*special)(double *, double);
 	int yylex_destroy(void);
@@ -172,8 +184,11 @@ jmp_buf wcspih_abort_jmp_env;
 	naxis = 0;
 	for (ialt = 0; ialt < 27; ialt++) {
 	  alts[ialt] = 0;
-	  npv[ialt] = 0;
-	  nps[ialt] = 0;
+	  dpq[ialt]  = 0;
+	  npv[ialt]  = 0;
+	  nps[ialt]  = 0;
+	  ndp[ialt]  = 0;
+	  ndq[ialt]  = 0;
 	}
 	
 	/* Parameters used to implement YY_INPUT. */
@@ -200,12 +215,15 @@ jmp_buf wcspih_abort_jmp_env;
 	
 	/* For decoding the keyvalue. */
 	valtype = -1;
+	distype =  0;
 	vptr    = 0x0;
 	
 	/* For keywords that require special handling. */
 	altlin  = 0;
 	npptr   = 0x0;
 	special = 0x0;
+	sip     = 0;
+	dosip   = 0;
 	
 	/* The data structures produced. */
 	*nwcs = 0;
@@ -377,7 +395,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^PV	{
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.pv);
-	  npptr = npv;
+	  npptr   = npv;
 	
 	  keyname = "PVi_ma";
 	  BEGIN(CCi_ma);
@@ -386,7 +404,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^PROJP	{
 	  valtype = FLOAT;
 	  vptr    = &(wcstem.pv);
-	  npptr = npv;
+	  npptr   = npv;
 	
 	  keyname = "PROJPn";
 	  BEGIN(PROJPn);
@@ -395,7 +413,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^PS	{
 	  valtype = STRING;
 	  vptr    = &(wcstem.ps);
-	  npptr = nps;
+	  npptr   = nps;
 	
 	  keyname = "PSi_ma";
 	  BEGIN(CCi_ma);
@@ -655,6 +673,185 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCCCa);
 	}
 
+^CPDIS  {
+	  valtype = STRING;
+	  distype = 1;
+	  vptr    = &(distem.dtype);
+	
+	  keyname = "CPDISja";
+	  BEGIN(CCCCCia);
+	}
+
+^CQDIS {
+	  valtype = STRING;
+	  distype = 2;
+	  vptr    = &(distem.dtype);
+	
+	  keyname = "CQDISia";
+	  BEGIN(CCCCCia);
+	}
+
+^DP {
+	  valtype = RECORD;
+	  distype = 1;
+	  vptr    = &(distem.dp);
+	  npptr   = ndp;
+	
+	  keyname = "DPja";
+	  BEGIN(CCia);
+	}
+
+^DQ {
+	  valtype = RECORD;
+	  distype = 2;
+	  vptr    = &(distem.dp);
+	  npptr   = ndq;
+	
+	  keyname = "DQia";
+	  BEGIN(CCia);
+	}
+
+^CPERRja {
+	  valtype = FLOAT;
+	  distype = 1;
+	  vptr    = &(distem.maxdis);
+	
+	  keyname = "CPERRja";
+	  BEGIN(CCCCCia);
+	}
+
+^CQERRia {
+	  valtype = FLOAT;
+	  distype = 2;
+	  vptr    = &(distem.maxdis);
+	
+	  keyname = "CQERRia";
+	  BEGIN(CCCCCia);
+	}
+
+^DVERRa {
+	  valtype = FLOAT;
+	  distype = 1;
+	  vptr    = &(distem.totdis);
+	
+	  keyname = "CVERRa";
+	  BEGIN(CCCCCCCa);
+	}
+
+^A_ORDER" " {
+	  /* SIP: axis 1 polynomial degree (not stored). */
+	  valtype = INTEGER;
+	  distype = 1;
+	  vptr    = 0x0;
+	
+	  i = 1;
+	  a = ' ';
+	
+	  keyname = "A_ORDER";
+	  BEGIN(VALUE);
+	}
+
+^B_ORDER" " {
+	  /* SIP: axis 2 polynomial degree (not stored). */
+	  valtype = INTEGER;
+	  distype = 1;
+	  vptr    = 0x0;
+	
+	  i = 2;
+	  a = ' ';
+	
+	  keyname = "B_ORDER";
+	  BEGIN(VALUE);
+	}
+
+^AP_ORDER {
+	  /* SIP: axis 1 inverse polynomial degree (not stored). */
+	  valtype = INTEGER;
+	  distype = 1;
+	  vptr    = 0x0;
+	
+	  i = 1;
+	  a = ' ';
+	
+	  keyname = "AP_ORDER";
+	  BEGIN(VALUE);
+	}
+
+^BP_ORDER {
+	  /* SIP: axis 2 inverse polynomial degree (not stored). */
+	  valtype = INTEGER;
+	  distype = 1;
+	  vptr    = 0x0;
+	
+	  i = 2;
+	  a = ' ';
+	
+	  keyname = "BP_ORDER";
+	  BEGIN(VALUE);
+	}
+
+^A_DMAX"  " {
+	  /* SIP: axis 1 maximum distortion. */
+	  valtype = FLOAT;
+	  distype = 1;
+	  vptr    = &(distem.maxdis);
+	
+	  i = 1;
+	  a = ' ';
+	
+	  keyname = "A_DMAX";
+	  BEGIN(VALUE);
+	}
+
+^B_DMAX"  " {
+	  /* SIP: axis 2 maximum distortion. */
+	  valtype = FLOAT;
+	  distype = 1;
+	  vptr    = &(distem.maxdis);
+	
+	  i = 2;
+	  a = ' ';
+	
+	  keyname = "B_DMAX";
+	  BEGIN(VALUE);
+	}
+
+^A_ {
+	  /* SIP: axis 1 polynomial coefficient. */
+	  i = 1;
+	  sip = 2;
+
+	  keyname = "A_p_q";
+	  BEGIN(SIP2);
+	}
+
+^B_ {
+	  /* SIP: axis 2 polynomial coefficient. */
+	  i = 2;
+	  sip = 2;
+
+	  keyname = "B_p_q";
+	  BEGIN(SIP2);
+	}
+
+^AP_ {
+	  /* SIP: axis 1 inverse polynomial coefficient. */
+	  i = 1;
+	  sip = 3;
+
+	  keyname = "AP_p_q";
+	  BEGIN(SIP3);
+	}
+
+^BP_ {
+	  /* SIP: axis 2 inverse polynomial coefficient. */
+	  i = 2;
+	  sip = 3;
+
+	  keyname = "BP_p_q";
+	  BEGIN(SIP3);
+	}
+
 ^END" "{77} {
 	  if (wcspih_nkeyrec) {
 	    wcspih_nkeyrec = 0;
@@ -669,14 +866,21 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(DISCARD);
 	}
 
+<CCia>{I1}{ALT}"    " |
+<CCia>{I2}{ALT}"   "  |
 <CCCCCia>{I1}{ALT}" " |
 <CCCCCia>{I2}{ALT} {
 	  sscanf(yytext, "%d%c", &i, &a);
 	  BEGIN(VALUE);
 	}
 
-<CCCCCia>0{I1}{ALT} |
-<CCCCCia>00{I1} {
+<CCia>0{I1}{ALT}"   "    |
+<CCia>0{Z1}{I1}{ALT}"  " |
+<CCia>0{Z2}{I1}{ALT}" "  |
+<CCia>0{Z3}{I1}{ALT}     |
+<CCia>0{Z4}{I1}          |
+<CCCCCia>0{I1}{ALT}      |
+<CCCCCia>0{Z1}{I1} {
 	  if (relax & WCSHDR_reject) {
 	    /* Violates the basic FITS standard. */
 	    errmsg = "indices in parameterized keywords must not have "
@@ -689,8 +893,14 @@ jmp_buf wcspih_abort_jmp_env;
 	  }
 	}
 
-<CCCCCia>0{ALT}" " |
-<CCCCCia>00{ALT} |
+<CCia>{Z1}{ALT}"    " |
+<CCia>{Z2}{ALT}"   "  |
+<CCia>{Z3}{ALT}"  "   |
+<CCia>{Z4}{ALT}" "    |
+<CCia>{Z5}{ALT}       |
+<CCia>{Z6}            |
+<CCCCCia>{Z1}{ALT}" " |
+<CCCCCia>{Z2}{ALT}    |
 <CCCCCia>{Z3} {
 	  /* Anything that has fallen through to this point must contain */
 	  /* an invalid axis number. */
@@ -790,7 +1000,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(ERROR);
 	}
 
-<CCi_ja>{Z1}{6} {
+<CCi_ja>{Z2}{I1}{Z2}{I1} {
 	  /* This covers the defunct forms CD00i00j and PC00i00j. */
 	  if (((altlin == 1) && (relax & WCSHDR_PC00i00j)) ||
 	      ((altlin == 2) && (relax & WCSHDR_CD00i00j))) {
@@ -982,6 +1192,26 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(DISCARD);
 	}
 
+<SIP2>{Z1}_{Z1}"   " |
+<SIP3>{Z1}_{Z1}"  " {
+	  /* SIP keywords. */
+	  valtype = FLOAT;
+	  distype = 1;
+	  vptr    = &(distem.dp);
+	  npptr   = ndp;
+	
+	  a = ' ';
+	  dosip = 1;
+	
+	  sscanf(yytext, "%d_%d", &p, &q);
+	  BEGIN(VALUE);
+	}
+
+<SIP2>. |
+<SIP3>. {
+	  BEGIN(DISCARD);
+	}
+
 <VALUE>=" "+ {
 	  /* Do checks on i, j & m. */
 	  if (99 < i || 99 < j || 99 < m) {
@@ -1005,6 +1235,8 @@ jmp_buf wcspih_abort_jmp_env;
 	      BEGIN(FLOAT_VAL);
 	    } else if (valtype == STRING) {
 	      BEGIN(STRING_VAL);
+	    } else if (valtype == RECORD) {
+	      BEGIN(RECORD_VAL);
 	    } else {
 	      errmsg = errtxt;
 	      sprintf(errmsg, "internal parser ERROR, bad data type: %d",
@@ -1087,10 +1319,66 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(ERROR);
 	}
 
+<RECORD_VAL>{RECORD} {
+	  if (ipass == 1) {
+	    BEGIN(COMMENT);
+	
+	  } else {
+	    yyless(1);
+	
+	    BEGIN(RECFIELD);
+	  }
+	}
+
+<RECORD_VAL>. {
+	  errmsg = "a record was expected";
+	  BEGIN(ERROR);
+	}
+
+<RECFIELD>{FIELD} {
+	  strcpy(strtmp, yytext);
+	  BEGIN(RECCOLON);
+	}
+
+<RECFIELD>. {
+	  errmsg = "invalid record field";
+	  BEGIN(ERROR);
+	}
+
+<RECCOLON>:" "+ {
+	  BEGIN(RECVALUE);
+	}
+
+<RECCOLON>. {
+	  errmsg = "invalid record syntax";
+	  BEGIN(ERROR);
+	}
+
+<RECVALUE>{INTEGER} {
+	  rectype = 0;
+	  sscanf(yytext, "%d", &inttmp);
+	  BEGIN(RECEND);
+	}
+
+<RECVALUE>{FLOAT} {
+	  rectype = 1;
+	  wcsutil_str2double(yytext, "%lf", &dbltmp);
+	  BEGIN(RECEND);
+	}
+
+<RECVALUE>. {
+	  errmsg = "invalid record value";
+	  BEGIN(ERROR);
+	}
+
+<RECEND>' {
+	  BEGIN(COMMENT);
+	}
+
 <COMMENT>{INLINE}$ {
 	  if (ipass == 1) {
 	    /* Do first-pass bookkeeping. */
-	    wcspih_naxes(naxis, i, j, a, alts, npptr);
+	    wcspih_naxes(naxis, i, j, a, distype, alts, dpq, npptr);
 	    BEGIN(FLUSH);
 	
 	  } else if (*wcs) {
@@ -1107,10 +1395,36 @@ jmp_buf wcspih_abort_jmp_env;
 	
 	      if (vptr) {
 	        wcsp = *wcs + ialt;
-	        voff = (char *)vptr - (char *)(&wcstem);
-	        wptr = (void *)((char *)wcsp + voff);
+	        if (distype == 0) {
+	          voff = (char *)vptr - (char *)(&wcstem);
+	          wptr = (void *)((char *)wcsp + voff);
 	
-	        if (valtype == INTEGER) {
+	        } else {
+	          voff = (char *)vptr - (char *)(&distem);
+	          if (distype & 1) {
+	            /* Prior distortion. */
+	            disp = wcsp->lin.dispre;
+	          } else {
+	            /* Sequent distortion. */
+	            disp = wcsp->lin.disseq;
+	          }
+	          wptr = (void *)((char *)disp + voff);
+	        }
+	
+	        if (sip) {
+	          /* Translate a SIP keyword into DPja. */
+	          ipx = (disp->ndp)++;
+	
+	          /* SIP doesn't have alternates. */
+	          sprintf(keyword, "DP%d", i);
+	          sprintf(strtmp, "SIP.%s.%d_%d", (sip==2)?"FWD":"REV", p, q);
+	          if (valtype == INTEGER) {
+	            dpfill(disp->dp+ipx, keyword, strtmp, i, 0, inttmp, 0.0);
+	          } else {
+	            dpfill(disp->dp+ipx, keyword, strtmp, i, 1, 0, dbltmp);
+	          }
+	
+	        } else if (valtype == INTEGER) {
 	          *((int *)wptr) = inttmp;
 	
 	        } else if (valtype == FLOAT) {
@@ -1159,6 +1473,13 @@ jmp_buf wcspih_abort_jmp_env;
 	
 	          cptr = (char *)wptr;
 	          strcpy(cptr, strtmp);
+	
+	        } else if (valtype == RECORD) {
+	          ipx = (disp->ndp)++;
+	
+	          sprintf(keyword, "%.2s%d%c", keyname, i, a);
+	          dpfill(disp->dp+ipx, keyword, strtmp, i, rectype, inttmp,
+	                 dbltmp);
 	        }
 	      }
 	
@@ -1259,6 +1580,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  altlin  = 0;
 	  npptr   = 0x0;
 	  special = 0x0;
+	  sip     = 0;
 	
 	  BEGIN(INITIAL);
 	}
@@ -1266,7 +1588,8 @@ jmp_buf wcspih_abort_jmp_env;
 <<EOF>>	 {
 	  /* End-of-input. */
 	  if (ipass == 1) {
-	    if ((status = wcspih_inits(naxis, alts, npv, nps, nwcs, wcs)) ||
+	    if ((status = wcspih_inits(naxis, alts, dpq, npv, nps, ndp, ndq,
+	                               dosip, nwcs, wcs)) ||
 	        (*nwcs == 0 && ctrl == 0)) {
 	      yylex_destroy();
 	      return status;
@@ -1295,11 +1618,13 @@ jmp_buf wcspih_abort_jmp_env;
 	    a = ' ';
 	
 	    valtype = -1;
+	    distype =  0;
 	    vptr    = 0x0;
 	
 	    altlin  = 0;
 	    npptr   = 0x0;
 	    special = 0x0;
+	    sip     = 0;
 	
 	    yyrestart(yyin);
 	
@@ -1321,7 +1646,7 @@ jmp_buf wcspih_abort_jmp_env;
 	        "keyrecords.\n", nother, (nother==1)?"":"s");
 	    }
 	
-	    return wcspih_final(alts, nwcs, wcs);
+	    return wcspih_final(alts, ndp, ndq, nwcs, wcs);
 	  }
 	}
 
@@ -1329,11 +1654,19 @@ jmp_buf wcspih_abort_jmp_env;
 
 /*----------------------------------------------------------------------------
 * Determine the number of coordinate representations (up to 27) and the
-* number of coordinate axes in each, and count the number of PVi_ma and
-* PSi_ma keywords in each representation.
+* number of coordinate axes in each, which distortions are present, and the
+* number of PVi_ma, PSi_ma, DPja, and DQia keywords in each representation.
 *---------------------------------------------------------------------------*/
 
-void wcspih_naxes(int naxis, int i, int j, char a, int alts[], int *npptr)
+void wcspih_naxes(
+  int naxis,
+  int i,
+  int j,
+  char a,
+  int distype, 
+  int alts[],
+  int dpq[],
+  int *npptr)
 
 {
   /* On the first pass alts[] is used to determine the number of axes */
@@ -1364,6 +1697,10 @@ void wcspih_naxes(int naxis, int i, int j, char a, int alts[], int *npptr)
     *ip = j;
   }
 
+  /* Type of distortions present. */
+  dpq[ialt] |= distype;
+
+  /* Count PVi_ma, PSi_ma, DPja, or DQia keywords. */
   if (npptr) {
     npptr[ialt]++;
   }
@@ -1378,14 +1715,19 @@ void wcspih_naxes(int naxis, int i, int j, char a, int alts[], int *npptr)
 int wcspih_inits(
   int naxis,
   int alts[],
+  int dpq[],
   int npv[],
   int nps[],
+  int ndp[],
+  int ndq[],
+  int dosip,
   int *nwcs,
   struct wcsprm **wcs)
 
 {
-  int ialt, defaults, npsmax, npvmax, status = 0;
+  int ialt, defaults, ndis, ndpmax, npsmax, npvmax, status = 0;
   struct wcsprm *wcsp;
+  struct disprm *dis;
 
   /* Find the number of coordinate descriptions. */
   *nwcs = 0;
@@ -1396,19 +1738,26 @@ int wcspih_inits(
   if ((defaults = !(*nwcs) && naxis)) {
     /* NAXIS is non-zero but there were no WCS keywords with an alternate
        version code; create a default WCS with blank alternate version. */
-    wcspih_naxes(naxis, 0, 0, ' ', alts, 0x0);
+    wcspih_naxes(naxis, 0, 0, ' ', 0, alts, dpq, 0x0);
     *nwcs = 1;
   }
 
   if (*nwcs) {
     /* Allocate memory for the required number of wcsprm structs. */
-    if (!(*wcs = calloc(*nwcs, sizeof(struct wcsprm)))) {
+    if ((*wcs = calloc(*nwcs, sizeof(struct wcsprm))) == 0x0) {
       return 2;
     }
 
-    /* Record the current values of NPVMAX and NPSMAX. */
+    /* Record the current values of NPVMAX, NPSMAX, and NDPMAX. */
     npvmax = wcsnpv(-1);
     npsmax = wcsnps(-1);
+    ndpmax = disndp(-1);
+
+    ndis = 0;
+    if (dosip) {
+      /* DPja.NAXES to be added for SIP (see below). */
+      ndp[0] += 2;
+    }
 
     /* Initialize each wcsprm struct. */
     wcsp = *wcs;
@@ -1433,6 +1782,31 @@ int wcspih_inits(
           strcpy(wcsp->wcsname, "DEFAULTS");
         }
 
+        /* Any distortions present? */
+        if (dpq[ialt] & 1) {
+          if ((dis = calloc(1, sizeof(struct disprm))) == 0x0) {
+            return 2;
+          }
+
+          /* Attach it to linprm.  Also inits it. */
+          ndis++;
+          disndp(ndp[ialt]);
+          dis->flag = -1;
+          lindis(1, &(wcsp->lin), dis);
+        }
+
+        if (dpq[ialt] & 2) {
+          if ((dis = calloc(1, sizeof(struct disprm))) == 0x0) {
+            return 2;
+          }
+
+          /* Attach it to linprm.  Also inits it. */
+          ndis++;
+          disndp(ndq[ialt]);
+          dis->flag = -1;
+          lindis(2, &(wcsp->lin), dis);
+        }
+
         /* On the second pass alts[] indexes the array of wcsprm structs. */
         alts[ialt] = (*nwcs)++;
 
@@ -1444,9 +1818,22 @@ int wcspih_inits(
       }
     }
 
-    /* Restore the original values of NPVMAX and NPSMAX. */
+    /* Restore the original values of NPVMAX, NPSMAX, and NDPMAX. */
     wcsnpv(npvmax);
     wcsnps(npsmax);
+    if (ndis) disndp(ndpmax);
+
+
+    /* SIP distortion? */
+    if (dosip) {
+      strcpy((*wcs)->lin.dispre->dtype[0], "SIP");
+      strcpy((*wcs)->lin.dispre->dtype[1], "SIP");
+
+      /* SIP doesn't have alternates, nor axis mapping. */
+      (*wcs)->lin.dispre->ndp = 2;
+      dpfill((*wcs)->lin.dispre->dp,   "DP1", "NAXES",  0, 0, 2, 0.0);
+      dpfill((*wcs)->lin.dispre->dp+1, "DP2", "NAXES",  0, 0, 2, 0.0);
+    }
   }
 
   return status;
@@ -1495,6 +1882,8 @@ int wcspih_vsource(double *zsource, double vsource)
 
 int wcspih_final(
   int alts[],
+  int ndp[],
+  int ndq[],
   int *nwcs,
   struct wcsprm **wcs)
 
@@ -1506,6 +1895,12 @@ int wcspih_final(
     if ((status = wcstab(*wcs+ialt))) {
        wcsvfree(nwcs, wcs);
        return status;
+    }
+
+    if (ndp[ialt] && ndq[ialt]) {
+      /* Prior and sequent distortions co-exist in this representation;
+         ensure the latter gets DVERRa. */
+      (*wcs+ialt)->lin.disseq->totdis = (*wcs+ialt)->lin.dispre->totdis;
     }
   }
 

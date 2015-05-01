@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.2 - an implementation of the FITS WCS standard.
+  WCSLIB 5.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,20 +22,22 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsprintf.h,v 5.2 2015/04/15 12:35:07 mcalabre Exp $
+  $Id: wcsprintf.h,v 5.4.1.2 2015/04/23 11:03:11 mcalabre Exp mcalabre $
 *=============================================================================
 *
-* WCSLIB 5.2 - C routines that implement the FITS World Coordinate System
-* (WCS) standard.
+* WCSLIB 5.4 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
+*
 *
 * Summary of the wcsprintf routines
 * ---------------------------------
-* These routines allow diagnostic output from celprt(), linprt(), prjprt(),
-* spcprt(), tabprt(), wcsprt(), and wcserr_prt() to be redirected to a file or
-* captured in a string buffer.  Those routines all use wcsprintf() for output.
-* Likewise wcsfprintf() is used by wcsbth() and wcspih().  Both functions may
-* be used by application programmers to have other output go to the same
-* place.
+* Routines in this suite allow diagnostic output from celprt(), linprt(),
+* prjprt(), spcprt(), tabprt(), wcsprt(), and wcserr_prt() to be redirected to
+* a file or captured in a string buffer.  Those routines all use wcsprintf()
+* for output.  Likewise wcsfprintf() is used by wcsbth() and wcspih().  Both
+* functions may be used by application programmers to have other output go to
+* the same place.
 *
 *
 * wcsprintf() - Print function used by WCSLIB diagnostic routines

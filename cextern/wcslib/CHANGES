@@ -1,3 +1,79 @@
+WCSLIB version 5.4.1 (2015/05/01)
+---------------------------------
+
+* C library
+
+  - Added a fairly lengthy section to the dis.h prologue describing
+    the Paper IV keywords and the distortion functions currently
+    implemented.
+
+* User manual
+
+  - Added a new section on WCSLIB version numbers.
+
+
+WCSLIB version 5.4 (2015/04/21)
+-------------------------------
+
+* C library
+
+  - Further work on distortions: wcspih() now parses Paper IV distortion
+    keywords (CPDISja, CQDISia, DPja, DQia, etc.), thus handling record-
+    valued keywords.  SIP keywords are also parsed and translated into
+    Paper IV keywords.
+
+  - TPV, SIP, and whereever possible, the general Polynomial distortion
+    function of Paper IV are now implemented by the Template Polynomial
+    Distortion (TPD), that being a superset of TPV and SIP.  TPD, which
+    can also handle 1D distortions and be used for inversions, is also
+    supported as a separate distortion type defined by Paper IV
+    keywords.  TPD efficiently handles 1D distortions and distortions
+    without radial terms.
+
+  - Specialized inverse distortions, such as defined by SIP, are
+    implemented by TPD and recognized by disx2p(), which uses them to
+    compute the initial approximation of its more precise iterative
+    solution.
+
+  - Generalized tdis1.c so that it can do closure tests for SIP headers,
+    and added a SIP test header.
+
+
+WCSLIB version 5.3.1 (2015/04/21)
+---------------------------------
+
+* C library
+
+  - Bug fix in test program tdis1.c.
+
+
+WCSLIB version 5.3 (2015/04/21)
+-------------------------------
+
+First public release of WCSLIB 5.x with distortions capability.
+
+* C library
+
+  - Changed disprm::dtype from char[16] to char[72] for reasons relating
+    to header parsing.
+
+  - More armour plating for disset() and friends.  They also use new
+    utility functions wcsutil_dpkey_int() and wcsutil_dpkey_double() to
+    extract numeric values from a dpkey struct.  This ensures their
+    independence of the data type, the appropriate reporting of dpkey
+    values by disprt(), and (eventually) the appropriate writing of DPja
+    and DQia keyvalues by wcshdo().
+
+  - Augmented the usage comments for dpfill() to explain how numeric
+    values in a dpkey struct are handled.
+
+* Utilities
+
+  - wcsware now uses wcserr to provide a backtrace on errors.  Also
+    fixed a couple of minor annoyances relating to alternate
+    representations.
+
+
 WCSLIB version 5.2 beta release (2015/04/15)
 --------------------------------------------
 
@@ -17,7 +93,7 @@ WCSLIB version 5.2 beta release (2015/04/15)
     disparms() has been removed.  It was no longer needed as
     disprm::parms[][] is now a "returned" member of the struct.
 
-  - Implementation of the general polynomial distortion function defined
+  - Implementation of the general Polynomial distortion function defined
     in Sect. 3.1 of WCS Paper IV.  The polynomial is defined in terms of
     Paper IV keywords.
 
@@ -75,9 +151,6 @@ WCSLIB version 5.0 beta release (2015/04/05)
     equivalent to "TPV" but using a prior distortion (coming before the
     linear transformation matrix) rather than sequent (coming after it).
 
-  - Added a "lint" function to wcsware to check a FITS header for
-    conformance to the WCS standard.  New test program twcslint.
-
   - In wcspih() and wcsbth(), added relaxation flags to allow PC0i_0ja,
     PV0j_0ma, and PS0j_0ma (i.e. with leading zeroes on the index).
 
@@ -112,6 +185,11 @@ WCSLIB version 5.0 beta release (2015/04/05)
     spcperr_(), and tabperr_() as convenient wrappers on wcserr_prt().
 
   - Wrapper for wcslib_version().
+
+* Utilities
+
+  - Added a "lint" function to wcsware to check a FITS header for
+    conformance to the WCS standard.  New test program twcslint.
 
 * PGSBOX
 
@@ -2302,4 +2380,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 5.2 2015/04/15 12:35:09 mcalabre Exp $
+$Id: CHANGES,v 5.4.1.2 2015/05/01 08:23:47 mcalabre Exp mcalabre $

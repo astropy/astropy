@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 5.2 2015/04/15 12:35:09 mcalabre Exp $
+# $Id: configure.ac,v 5.4.1.2 2015/05/01 08:23:03 mcalabre Exp mcalabre $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB], [5.2], [mark@calabretta.id.au], [wcslib-5.2])
+AC_INIT([WCSLIB], [5.4.1], [mark@calabretta.id.au], [wcslib-5.4.1])
 AC_PREREQ([2.53])
-AC_REVISION([$Revision: 5.2 $])
+AC_REVISION([$Revision: 5.4.1.2 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 

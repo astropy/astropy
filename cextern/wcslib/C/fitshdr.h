@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.2 - an implementation of the FITS WCS standard.
+  WCSLIB 5.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,24 +22,25 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.h,v 5.2 2015/04/15 12:35:07 mcalabre Exp $
+  $Id: fitshdr.h,v 5.4.1.2 2015/04/23 11:03:11 mcalabre Exp mcalabre $
 *=============================================================================
 *
-* The Flexible Image Transport System (FITS), a data format widely used in
-* astronomy for data interchange and archive, is described in
-*
-*   "Definition of the Flexible Image Transport System (FITS), version 3.0",
-*   Pence, W.D., Chiappetti, L., Page, C.G., Shaw, R.A., & Stobie, E. 2010,
-*   A&A, 524, A42 - http://dx.doi.org/10.1051/0004-6361/201015362
-*
-* See also http://fits.gsfc.nasa.gov
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.4 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the fitshdr routines
 * -------------------------------
+* The Flexible Image Transport System (FITS), is a data format widely used in
+* astronomy for data interchange and archive.  It is described in
+*
+=   "Definition of the Flexible Image Transport System (FITS), version 3.0",
+=   Pence, W.D., Chiappetti, L., Page, C.G., Shaw, R.A., & Stobie, E. 2010,
+=   A&A, 524, A42 - http://dx.doi.org/10.1051/0004-6361/201015362
+*
+* See also http://fits.gsfc.nasa.gov
+*
 * fitshdr() is a generic FITS header parser provided to handle keyrecords that
 * are ignored by the WCS header parsers, wcspih() and wcsbth().  Typically the
 * latter may be set to remove WCS keyrecords from a header leaving fitshdr()

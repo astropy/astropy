@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 5.2 2015/04/15 12:35:09 mcalabre Exp $
+# $Id: flavours,v 5.4.1.1 2015/04/21 14:44:31 mcalabre Exp mcalabre $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.

@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.2 - an implementation of the FITS WCS standard.
+  WCSLIB 5.4 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,30 +22,171 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 5.2 2015/04/15 12:35:07 mcalabre Exp $
+  $Id: dis.h,v 5.4.1.2 2015/04/23 11:03:11 mcalabre Exp mcalabre $
 *=============================================================================
 *
-* WCSLIB 5.2 - experimental C routines that implement proposed extensions to
-* the FITS World Coordinate System (WCS) standard.  Refer to
-*
-*   "Representations of distortions in FITS world coordinate systems",
-*   Calabretta, M.R. et al. (Paper IV), draft dated 2004/04/22 available from
-*   http://www.atnf.csiro.au/people/Mark.Calabretta
-*
-* The distortion function component of the TPV "projection" is also supported.
-* The TPV projection, originally proposed in a draft of WCS Paper II, consists
-* of a TAN projection with sequent polynomial distortion, the coefficients of
-* which are encoded in PVi_ma keyrecords.  Full details may be found at the
-* registry of FITS conventions:
-*
-*   http://fits.gsfc.nasa.gov/registry/tpvwcs/tpv.html
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.4 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the dis routines
 * ---------------------------
+* Routines in this suite implement extensions to the FITS World Coordinate
+* System (WCS) standard proposed by
+*
+=   "Representations of distortions in FITS world coordinate systems",
+=   Calabretta, M.R. et al. (WCS Paper IV, draft dated 2004/04/22),
+=   available from http://www.atnf.csiro.au/people/Mark.Calabretta
+*
+* In brief, a distortion function may occupy one of two positions in the WCS
+* algorithm chain.  Prior distortions precede the linear transformation
+* matrix, whether it be PCi_ja or CDi_ja, and sequent distortions follow it.
+* Paper IV defines FITS keywords used to specify parameters for predefined
+* distortion functions.  The following are used for prior distortions:
+*
+=   CPDISja   ...(string-valued, identifies the distortion function)
+=   DPja      ...(record-valued, parameters)
+=   CPERRja   ...(floating-valued, maximum value)
+*
+* Their counterparts for sequent distortions are CQDISia, DQia, and CQERRia.
+* An additional floating-valued keyword, DVERRa, records the maximum value of
+* the combined distortions.
+*
+* DPja and DQia are "record-valued".  Syntactically, the keyvalues are
+* standard FITS strings, but they are to be interpreted in a special way.
+* The general form is
+*
+=   DPja = '<field-specifier>: <float>'
+*
+* where the field-specifier consists of a sequence of fields separated by
+* periods, and the ': ' between the field-specifier and the floating-point
+* value is part of the record syntax.  For example:
+*
+=   DP1 = 'AXIS.1: 1'
+*
+* Certain field-specifiers are defined for all distortion functions, while
+* others are defined only for particular distortions.  Refer to Paper IV for
+* further details.  wcspih() parses all distortion keywords and loads them
+* into a disprm struct for analysis by disset() which knows (or possibly does
+* not know) how to interpret them.  Of the Paper IV distortion functions, only
+* the general Polynomial distortion is currently implemented here.
+*
+* The TPV "projection":
+* ---------------------
+* The distortion function component of the TPV celestial "projection" is also
+* supported.  The TPV projection, originally proposed in a draft of WCS Paper
+* II, consists of a TAN projection with sequent polynomial distortion, the
+* coefficients of which are encoded in PVi_ma keyrecords.  Full details may be
+* found at the registry of FITS conventions:
+*
+=   http://fits.gsfc.nasa.gov/registry/tpvwcs/tpv.html
+*
+* Internally, wcsset() changes TPV to a TAN projection, translates the PVi_ma
+* keywords to DQia and loads them into a disprm struct.  These DQia keyrecords
+* have the form
+*
+=   DQia = 'TPV.m: <value>'
+*
+* where i, a, m, and the value for each DQia match each PVi_ma.  Consequently,
+* WCSLIB would handle a FITS header containing these keywords, along with
+* CQDISja = 'TPV' and a few other required keywords.
+*
+* Simple Imaging Polynomial (SIP):
+* --------------------------------
+* These routines also support the Simple Imaging Polynomial (SIP), which arose
+* as an application of an early draft of Paper IV.  It is described in detail
+* in
+*
+=   http://fits.gsfc.nasa.gov/registry/sip.html
+*
+* SIP, which is defined only as a prior distortion for 2D celestial images,
+* has the interesting feature that it records an approximation to the inverse
+* polynomial distortion function.  This is used by disx2p() to provide an
+* initial estimate for its more precise iterative inversion.  The
+* special-purpose keywords used by SIP are parsed and translated by wcspih()
+* as follows:
+*
+=    A_p_q = <value>   ->   DP1 = 'SIP.FWD.p_q: <value>'
+=   AP_p_q = <value>   ->   DP1 = 'SIP.REV.p_q: <value>'
+=    B_p_q = <value>   ->   DP2 = 'SIP.FWD.p_q: <value>'
+=   BP_p_q = <value>   ->   DP2 = 'SIP.REV.p_q: <value>'
+=   A_DMAX = <value>   ->   DPERR1 = <value>
+=   B_DMAX = <value>   ->   DPERR2 = <value>
+*
+* SIP's A_ORDER and B_ORDER keywords are not used.  WCSLIB would recognise a
+* FITS header containing the above keywords, along with CPDISja = 'SIP' and a
+* few other required keywords.
+*
+* Template Polynomial Distortion (TPD):
+* -------------------------------------
+* The "Template Polynomial Distortion" (TPD) is a superset of the TPV and SIP
+* polynomial distortions that also supports 1D usage and inversions.  Like TPV
+* and SIP, the form of the polynomial is fixed (the "template") and only the
+* coefficients for the required terms are set non-zero.  TPD generalizes TPV
+* in going to 9th degree, and SIP by accomodating TPV's linear and radial
+* terms.  Within WCSLIB, both TPV and SIP are implemented as special cases of
+* TPD.  Indeed, TPD was developed precisely for that purpose.  Moreover, the
+* general Polynomial distortion is translated and implemented internally as
+* TPD whenever possible.
+*
+* However, WCSLIB also recognizes 'TPD' as a distortion function in its own
+* right (i.e. a recognized value of CPDISja or CQDISia), for use as both prior
+* and sequent distortions.  Its DPja and DQia keyrecords have the form
+*
+=   DPja = 'TPD.FWD.m: <value>'
+=   DPja = 'TPD.REV.m: <value>'
+*
+* for the forward and reverse distortion functions.
+*
+* In typical applications, TPD is considerably faster than the general
+* Polynomial distortion, though nowhere near as powerful.  As TPD has a finite
+* and not too large number of possible terms (60), the coefficients for each
+* can be stored (by disset()) in a fixed location in the disprm::dparm[]
+* array.  A large part of the speedup then arises from evaluating the
+* polynomial using Horner's scheme.
+*
+* Separate implementations for polynomials of each degree, and conditionals
+* for 1D polynomials and 2D polynomials with and without the radial variable,
+* ensure that unused terms mostly do not impose a significant computational
+* overhead.
+*
+* The TPD terms are as follows
+*
+=   0: 1     4: xx      12: xxxx      24: xxxxxx      40: xxxxxxxx
+=            5: xy      13: xxxy      25: xxxxxy      41: xxxxxxxy
+=   1: x     6: yy      14: xxyy      26: xxxxyy      42: xxxxxxyy
+=   2: y                15: xyyy      27: xxxyyy      43: xxxxxyyy
+=   3: r     7: xxx     16: yyyy      28: xxyyyy      44: xxxxyyyy
+=            8: xxy                   29: xyyyyy      45: xxxyyyyy
+=            9: xyy     17: xxxxx     30: yyyyyy      46: xxyyyyyy
+=           10: yyy     18: xxxxy                     47: xyyyyyyy
+=           11: rrr     19: xxxyy     31: xxxxxxx     48: yyyyyyyy
+=                       20: xxyyy     32: xxxxxxy
+=                       21: xyyyy     33: xxxxxyy     49: xxxxxxxxx
+=                       22: yyyyy     34: xxxxyyy     50: xxxxxxxxy
+=                       23: rrrrr     35: xxxyyyy     51: xxxxxxxyy
+=                                     36: xxyyyyy     52: xxxxxxyyy
+=                                     37: xyyyyyy     53: xxxxxyyyy
+=                                     38: yyyyyyy     54: xxxxyyyyy
+=                                     39: rrrrrrr     55: xxxyyyyyy
+=                                                     56: xxyyyyyyy
+=                                                     57: xyyyyyyyy
+=                                                     58: yyyyyyyyy
+=                                                     59: rrrrrrrrr
+*
+* where r = sqrt(xx + yy).  Note that even powers of r are excluded since they
+* can be accomodated by powers of (xx + yy).
+*
+* TPV uses all terms up to 39.  The m in its PVi_ma keywords translates
+* directly to the TPD coefficient number.
+*
+* SIP uses all terms except for 0, 3, 11, 23, 39, and 59, with terms 1 and 2
+* only used for the inverse.  Its A_p_q, etc. keywords must be translated
+* using a map.
+*
+* Summary of the dis routines:
+* ----------------------------
 * These routines apply the distortion functions defined by the extension to
 * the FITS WCS standard proposed in Paper IV.  They are based on the disprm
 * struct which contains all information needed for the computations.  The
@@ -62,13 +203,14 @@
 * explicitly - refer to the explanation of disprm::flag.
 *
 * disp2x() and disx2p() implement the WCS distortion functions, disp2x() using
-* separate functions, such as dispoly() and tpv7(), to do the computation.
+* separate functions, such as dispoly() and tpd7(), to do the computation.
 *
 * An auxiliary routine, diswarp(), computes various measures of the distortion
 * over a specified range of coordinates.
 *
-* PLEASE NOTE: Distortions are not currently handled by wcspih(), wcsbth(),
-*              wcssub(), wcscompare(), or wcshdo().
+* PLEASE NOTE:
+* Distortions are not currently handled by wcsbth(), wcssub(), wcscompare(),
+* or wcshdo().
 *
 *
 * disndp() - Memory allocation for DPja and DQia
@@ -91,9 +233,21 @@
 * dpfill() is a utility routine to aid in filling the contents of the dpkey
 * struct.  No checks are done on the validity of the inputs.
 *
+* WCS Paper IV specifies the syntax of a record-valued keyword as
+*
+=   keyword = '<field-specifier>: <float>'
+*
+* However, some DPja and DQia record values, such as those of DPja.NAXES and
+* DPja.AXIS.j, are intrinsically integer-valued.  While FITS header parsers
+* are not expected to know in advance which of DPja and DQia are integral and
+* which are floating point, if the record's value parses as an integer (i.e.
+* without decimal point or exponent), then preferably enter it into the dpkey
+* struct as an integer.  Either way, it doesn't matter as disset() accepts
+* either data type for all record values.
+*
 * Given and returned:
 *   dp        struct dpkey*
-*                       Store for DPja and DQia keyrecords.
+*                       Store for DPja and DQia keyvalues.
 *
 * Given:
 *   keyword   const char *
@@ -113,10 +267,10 @@
 *                       preset.
 *
 *   type      int       Data type of the record's value
-*                         1: Integer,
-*                         2: Floating point.
+*                         0: Integer,
+*                         1: Floating point.
 *
-*   ival      int       For type == 1, the integer value of the record.
+*   ival      int       For type == 0, the integer value of the record.
 *
 *   fval      double    For type == 1, the floating point value of the record.
 *
@@ -313,6 +467,9 @@
 * assuming that the distortion functions are separable to first order.
 * Furthermore, a is assumed to be small, and b close to unity.
 *
+* If disprm::disx2p() is defined, then disx2p() uses it to provide an initial
+* estimate for its more precise iterative inversion.
+*
 * Given and returned:
 *   dis       struct disprm*
 *                       Distortion function parameters.
@@ -466,8 +623,8 @@
 *     be the case) then it will set naxis from the value passed to it as a
 *     function argument.  The user should not subsequently modify it.
 *
-*   char (*dtype)[16]
-*     (Given) Pointer to the first element of an array of char[16] containing
+*   char (*dtype)[72]
+*     (Given) Pointer to the first element of an array of char[72] containing
 *     the name of the distortion function for each axis.
 *
 *   int ndp
@@ -484,8 +641,10 @@
 *     dpkey structs.
 *
 *     As a FITS header parser encounters each DPja or DQia keyword it should
-*     load it into a dpkey struct in the array and increment ndp.  disset()
-*     interprets these as required.
+*     load it into a dpkey struct in the array and increment ndp.  However,
+*     note that a single disprm struct must hold only DPja or DQia keyvalues,
+*     not both.  disset() interprets them as required by the particular
+*     distortion function.
 *
 *   double *maxdis
 *     (Given) Pointer to the first element of an array of double specifying
@@ -572,7 +731,7 @@
 *     (For internal use only.)
 *   int m_naxis
 *     (For internal use only.)
-*   char (*m_dtype)[16]
+*   char (*m_dtype)[72]
 *     (For internal use only.)
 *   double **m_dp
 *     (For internal use only.)
@@ -580,10 +739,11 @@
 *     (For internal use only.)
 *
 *
-* dpkey struct - Store for DPja and DQia keyrecords
-* -------------------------------------------------
-* The dpkey struct is used to pass the parsed contents of DPja and DQia
-* keyrecords to disset() via the disprm struct.
+* dpkey struct - Store for DPja and DQia keyvalues
+* ------------------------------------------------
+* The dpkey struct is used to pass the parsed contents of DPja or DQia
+* keyrecords to disset() via the disprm struct.  A disprm struct must hold
+* only DPja or DQia keyvalues, not both.
 *
 * All members of this struct are to be set by the user.
 *
@@ -639,13 +799,13 @@ enum dis_errmsg_enum {
   DISERR_DEDISTORT    = 5	/* De-distortion error. */
 };
 
-/* For use in declaring distortion function prototypes. */
-#define DISP2X_ARGS const int iparm[], const double dparm[], int ncrd, \
-const double rawcrd[], double *discrd
+/* For use in declaring distortion function prototypes (= DISX2P_ARGS). */
+#define DISP2X_ARGS int inverse, const int iparm[], const double dparm[], \
+int ncrd, const double rawcrd[], double *discrd
 
-/* For use in declaring de-distortion function prototypes. */
-#define DISX2P_ARGS const int iparm[], const double dparm[], int ncrd, \
-const double discrd[], double rawcrd[]
+/* For use in declaring de-distortion function prototypes (= DISP2X_ARGS). */
+#define DISX2P_ARGS int inverse, const int iparm[], const double dparm[], \
+int ncrd, const double discrd[], double *rawcrd
 
 
 /* Struct used for storing DPja and DQia keyvalues. */
@@ -672,10 +832,10 @@ struct disprm {
   /*------------------------------------------------------------------------*/
   int naxis;			/* The number of pixel coordinate elements, */
 				/* given by NAXIS.                          */
-  char   (*dtype)[16];		/* For each axis, the distortion type.      */
+  char   (*dtype)[72];		/* For each axis, the distortion type.      */
   int    ndp;			/* Number of DPja or DQia keywords, and the */
   int    ndpmax;		/* number for which space was allocated.    */
-  struct dpkey *dp;		/* DPja and DQia keyvalues.                 */
+  struct dpkey *dp;		/* DPja or DQia keyvalues (not both).       */
   double *maxdis;		/* For each axis, the maximum distortion.   */
   double totdis;		/* The maximum combined distortion.         */
 
@@ -706,7 +866,7 @@ struct disprm {
   double *tmpmem;
 
   int    m_flag, m_naxis;	/* The remainder are for memory management. */
-  char   (*m_dtype)[16];
+  char   (*m_dtype)[72];
   struct dpkey *m_dp;
   double *m_maxdis;
 };
@@ -743,16 +903,22 @@ int diswarp(struct disprm *dis, const double pixblc[], const double pixtrc[],
 
 /* Specialist distortion functions (internal use only). */
 int polyset(int j, struct disprm *dis);
+int pol2tpd(int j, struct disprm *dis);
 int dispoly(DISP2X_ARGS);
 
 int tpvset(int j, struct disprm *dis);
-int tpv1(DISP2X_ARGS);
-int tpv2(DISP2X_ARGS);
-int tpv3(DISP2X_ARGS);
-int tpv4(DISP2X_ARGS);
-int tpv5(DISP2X_ARGS);
-int tpv6(DISP2X_ARGS);
-int tpv7(DISP2X_ARGS);
+int sipset(int j, struct disprm *dis);
+
+int tpdset(int j, struct disprm *dis);
+int tpd1(DISP2X_ARGS);
+int tpd2(DISP2X_ARGS);
+int tpd3(DISP2X_ARGS);
+int tpd4(DISP2X_ARGS);
+int tpd5(DISP2X_ARGS);
+int tpd6(DISP2X_ARGS);
+int tpd7(DISP2X_ARGS);
+int tpd8(DISP2X_ARGS);
+int tpd9(DISP2X_ARGS);
 
 #ifdef __cplusplus
 }
