@@ -370,8 +370,8 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_1D(kernel.array, -value.array)
         if operation == "mul":
-            raise Exception("Kernel operation not supported. Maybe you want to"
-                             "use convolve(kernel1, kernel2) instead.")
+            raise Exception("Kernel operation not supported. Maybe you want "
+                            "to use convolve(kernel1, kernel2) instead.")
         new_kernel = Kernel1D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
         new_kernel._is_bool = kernel._is_bool or value._is_bool
@@ -383,8 +383,8 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_2D(kernel.array, -value.array)
         if operation == "mul":
-            raise Exception("Kernel operation not supported. Maybe you want to"
-                            "use convolve(kernel1, kernel2) instead.")
+            raise Exception("Kernel operation not supported. Maybe you want "
+                            "to use convolve(kernel1, kernel2) instead.")
         new_kernel = Kernel2D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
         new_kernel._is_bool = kernel._is_bool or value._is_bool

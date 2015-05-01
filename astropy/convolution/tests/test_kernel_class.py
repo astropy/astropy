@@ -212,6 +212,31 @@ class TestKernels(object):
         gauss_new = gauss * number
         assert type(gauss_new) == Gaussian1DKernel
 
+    def test_multiply_kernel1d(self):
+        """Test that multipling two 1D kernels raises an exception."""
+        gauss = Gaussian1DKernel(3)
+        with pytest.raises(Exception):
+            gauss * gauss
+
+    def test_multiply_kernel2d(self):
+        """Test that multipling two 2D kernels raises an exception."""
+        gauss = Gaussian2DKernel(3)
+        with pytest.raises(Exception):
+            gauss * gauss
+
+    def test_multiply_kernel1d_kernel2d(self):
+        """
+        Test that multipling a 1D kernel with a 2D kernel raises an
+        exception.
+        """
+        with pytest.raises(Exception):
+            Gaussian1DKernel(3) * Gaussian2DKernel(3)
+
+    def test_add_kernel_scalar(self):
+        """Test that adding a scalar to a kernel raises an exception."""
+        with pytest.raises(Exception):
+            Gaussian1DKernel(3) + 1
+
     def test_model_1D_kernel(self):
         """
         Check Model1DKernel against Gaussian1Dkernel
