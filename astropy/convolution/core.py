@@ -320,7 +320,7 @@ class Kernel2D(Kernel):
 
             if y_size is None:
                 y_size = x_size
-            elif x_size != int(x_size):
+            elif y_size != int(y_size):
                 raise TypeError("y_size should be an integer")
 
             # Set ranges where to evaluate the model
