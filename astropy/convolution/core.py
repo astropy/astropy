@@ -249,6 +249,8 @@ class Kernel1D(Kernel):
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
         # Initialize from model
         if array is None:
+            if self._model is None:
+                raise TypeError("Must specify either array or model.")
 
             if x_size is None:
                 x_size = self._default_size
@@ -267,8 +269,7 @@ class Kernel1D(Kernel):
         # Initialize from array
         elif array is not None:
             self._model = None
-        else:
-            raise TypeError("Must specify either array or model.")
+
         super(Kernel1D, self).__init__(array)
 
 
@@ -309,6 +310,8 @@ class Kernel2D(Kernel):
 
         # Initialize from model
         if array is None:
+            if self._model is None:
+                raise TypeError("Must specify either array or model.")
 
             if x_size is None:
                 x_size = self._default_size
@@ -337,8 +340,6 @@ class Kernel2D(Kernel):
         # Initialize from array
         elif array is not None:
             self._model = None
-        else:
-            raise TypeError("Must specify either array or model.")
 
         super(Kernel2D, self).__init__(array)
 
