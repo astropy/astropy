@@ -9,7 +9,7 @@ import numpy as np
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
+def sigma_clip(data, sigma=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
                axis=None, copy=True):
     """Perform sigma-clipping on the provided data.
 
@@ -26,7 +26,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
     ----------
     data : array-like
         The data to be sigma-clipped (any shape).
-    sig : float
+    sigma : float
         The number of standard deviations (*not* variances) to use as the
         clipping limit.
     iters : int or `None`
@@ -42,7 +42,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
         be a callable that takes in a masked array and outputs a width
         estimator::
 
-             deviation**2 > sig**2 * varfunc(deviation)
+             deviation**2 > sigma**2 * varfunc(deviation)
 
         Defaults to the variance (numpy.var).
 
@@ -69,7 +69,7 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
 
         and then setting a mask for points outside the range::
 
-            data.mask = deviation**2 > sig**2 * varfunc(deviation)
+            data.mask = deviation**2 > sigma**2 * varfunc(deviation)
 
         It will iterate a given number of times, or until no further points are
         rejected.
@@ -111,13 +111,12 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
         >>> from numpy.random import normal
         >>> from numpy import arange, diag, ones
         >>> data = arange(5)+normal(0.,0.05,(5,5))+diag(ones(5))
-        >>> filtered_data = sigma_clip(data, axis=0, sig=2.3)
+        >>> filtered_data = sigma_clip(data, axis=0, sigma=2.3)
 
     Note that along the other axis, no points would be masked, as the variance
     is higher.
 
     """
-
     if axis is not None:
         cenfunc_in = cenfunc
         varfunc_in = varfunc
@@ -133,11 +132,11 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
             i += 1
             lastrej = filtered_data.count()
             do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            filtered_data.mask |= do * do > varfunc(filtered_data) * sigma ** 2
     else:
         for i in range(iters):
             do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            filtered_data.mask |= do * do > varfunc(filtered_data) * sigma ** 2
 
     return filtered_data
 
@@ -184,6 +183,6 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
         data = np.ma.MaskedArray(data, mask)
     if mask_val is not None:
         data = np.ma.masked_values(data, mask_val)
-    data_clip = sigma_clip(data, sig=sigma, iters=iters)
+    data_clip = sigma_clip(data, sigma=sigma, iters=iters)
     goodvals = data_clip.data[~data_clip.mask]
     return np.mean(goodvals), np.median(goodvals), np.std(goodvals)
