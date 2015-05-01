@@ -29,7 +29,7 @@ def test_sigma_clip():
         # Amazing, I've got the same combination on my luggage!
         randvar = randn(10000)
 
-        filtered_data = sigma_clip(randvar, 1, iters=2)
+        filtered_data = sigma_clip(randvar, sigma=1, iters=2)
 
         assert sum(filtered_data.mask) > 0
         assert sum(~filtered_data.mask) < randvar.size
@@ -37,21 +37,22 @@ def test_sigma_clip():
         # this is actually a silly thing to do, because it uses the
         # standard deviation as the variance, but it tests to make sure
         # these arguments are actually doing something
-        filtered_data2 = sigma_clip(randvar, 1, iters=2, stdfunc=np.var)
+        filtered_data2 = sigma_clip(randvar, sigma=1, iters=2, stdfunc=np.var)
         assert not np.all(filtered_data.mask == filtered_data2.mask)
 
-        filtered_data3 = sigma_clip(randvar, 1, iters=2, cenfunc=np.mean)
+        filtered_data3 = sigma_clip(randvar, sigma=1, iters=2,
+                                    cenfunc=np.mean)
         assert not np.all(filtered_data.mask == filtered_data3.mask)
 
         # make sure the iters=None method works at all.
-        filtered_data = sigma_clip(randvar, 3, iters=None)
+        filtered_data = sigma_clip(randvar, sigma=3, iters=None)
 
         # test copying
         assert filtered_data.data[0] == randvar[0]
         filtered_data.data[0] += 1.
         assert filtered_data.data[0] != randvar[0]
 
-        filtered_data = sigma_clip(randvar, 3, iters=None, copy=False)
+        filtered_data = sigma_clip(randvar, sigma=3, iters=None, copy=False)
         assert filtered_data.data[0] == randvar[0]
         filtered_data.data[0] += 1.
         assert filtered_data.data[0] == randvar[0]
@@ -74,7 +75,7 @@ def test_compare_to_scipy_sigmaclip():
 
         randvar = randn(10000)
 
-        astropyres = sigma_clip(randvar, 3, iters=None, cenfunc=np.mean)
+        astropyres = sigma_clip(randvar, sigma=3, iters=None, cenfunc=np.mean)
         scipyres = stats.sigmaclip(randvar, 3, 3)[0]
 
         assert astropyres.count() == len(scipyres)
