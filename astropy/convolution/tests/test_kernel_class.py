@@ -495,7 +495,7 @@ class TestKernels(object):
         an integer.
         """
         with pytest.raises(TypeError):
-            Kernel1D(x_size=1.2)
+            Gaussian1DKernel(3, x_size=1.2)
 
     def test_kernel2d_int_xsize(self):
         """
@@ -503,7 +503,7 @@ class TestKernels(object):
         an integer.
         """
         with pytest.raises(TypeError):
-            Kernel2D(x_size=1.2)
+            Gaussian2DKernel(3, x_size=1.2)
 
     def test_kernel2d_int_ysize(self):
         """
@@ -511,7 +511,7 @@ class TestKernels(object):
         an integer.
         """
         with pytest.raises(TypeError):
-            Kernel2D(x_size=5, y_size=1.2)
+            Gaussian2DKernel(3, x_size=5, y_size=1.2)
 
     def test_kernel1d_initialization(self):
         """
