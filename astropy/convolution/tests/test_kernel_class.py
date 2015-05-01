@@ -487,3 +487,19 @@ class TestKernels(object):
         """
         with pytest.raises(TypeError):
             Kernel2D(x_size=5, y_size=1.2)
+
+    def test_kernel1d_initialization(self):
+        """
+        Test that an error is raised if an array or model is not
+        specified for ``Kernel1D``.
+        """
+        with pytest.raises(TypeError):
+            Kernel1D()
+
+    def test_kernel2d_initialization(self):
+        """
+        Test that an error is raised if an array or model is not
+        specified for ``Kernel2D``.
+        """
+        with pytest.raises(TypeError):
+            Kernel2D()
