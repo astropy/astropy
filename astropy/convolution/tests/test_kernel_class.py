@@ -13,7 +13,7 @@ from ..kernels import (
     Gaussian1DKernel, Gaussian2DKernel, Box1DKernel, Box2DKernel,
     Trapezoid1DKernel, TrapezoidDisk2DKernel, MexicanHat1DKernel,
     Tophat2DKernel, MexicanHat2DKernel, AiryDisk2DKernel, Ring2DKernel,
-    CustomKernel, Model1DKernel, Model2DKernel)
+    CustomKernel, Model1DKernel, Model2DKernel, Kernel1D, Kernel2D)
 
 from ..utils import KernelSizeError
 from ...modeling.models import Box2D, Gaussian1D, Gaussian2D
@@ -463,3 +463,27 @@ class TestKernels(object):
         kernel.normalize()
         w = recwarn.pop(AstropyUserWarning)
         assert issubclass(w.category, AstropyWarning)
+
+    def test_kernel1d_int_size(self):
+        """
+        Test that an error is raised if ``Kernel1D`` ``x_size`` is not
+        an integer.
+        """
+        with pytest.raises(TypeError):
+            Kernel1D(x_size=1.2)
+
+    def test_kernel2d_int_xsize(self):
+        """
+        Test that an error is raised if ``Kernel2D`` ``x_size`` is not
+        an integer.
+        """
+        with pytest.raises(TypeError):
+            Kernel2D(x_size=1.2)
+
+    def test_kernel2d_int_ysize(self):
+        """
+        Test that an error is raised if ``Kernel2D`` ``y_size`` is not
+        an integer.
+        """
+        with pytest.raises(TypeError):
+            Kernel2D(x_size=5, y_size=1.2)
