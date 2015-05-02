@@ -123,13 +123,13 @@ def spherical_to_cartesian(r, lat, lon):
 
 def get_sun(time):
     """
-    Determines the location of the sun at a given time, in
-    geocentric coordinates.
+    Determines the location of the sun at a given time (or times, if the input
+    is an array `~astropy.time.Time` object), in geocentric coordinates.
 
     Parameters
     ----------
-    table : `~astropy.time.Time`
-        The time at which to compute the location of the sun.
+    time : `~astropy.time.Time`
+        The time(s) at which to compute the location of the sun.
 
     Returns
     -------
@@ -152,7 +152,8 @@ def get_sun(time):
     y = -earth_pv_helio[..., 0, 1] * u.AU
     z = -earth_pv_helio[..., 0, 2] * u.AU
     cartrep = CartesianRepresentation(x=x, y=y, z=z)
-    return SkyCoord(cartrep, frame=GCRS)
+    return SkyCoord(cartrep, frame=GCRS(obstime=time))
+
 
 
 def concatenate(coords):
