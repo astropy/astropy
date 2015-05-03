@@ -45,23 +45,6 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
-def col_setattr(col, attr, value):
-    """
-    Set one of the column attributes.
-    """
-    setattr(col.info, attr, value)
-
-def col_getattr(col, attr, default=None):
-    """
-    Get one of the column attributes
-
-    Warning: this function is subject to change or removal.
-    """
-    value = getattr(col.info, attr)
-    if value is None:
-        value = default
-    return value
-
 def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
     """
     Update _astropy_column_attrs from mixin `col` to `newcol`.  Does nothing
@@ -88,7 +71,7 @@ def col_iter_str_vals(col):
 
     Warning: this function is subject to change or removal.
     """
-    parent_table = col_getattr(col, 'parent_table')
+    parent_table = col.info.parent_table
     formatter = FORMATTER if parent_table is None else parent_table.formatter
     _pformat_col_iter = formatter._pformat_col_iter
     for str_val in _pformat_col_iter(col, -1, False, False, {}):
@@ -171,11 +154,11 @@ class BaseColumn(np.ndarray):
             else:
                 self_data = np.array(data.to(unit), dtype=dtype, copy=copy)
             if description is None:
-                description = col_getattr(data, 'description')
+                description = data.info.description
             if format is None:
-                format = col_getattr(data, 'format')
+                format = data.info.format
             if meta is None:
-                meta = deepcopy(col_getattr(data, 'meta'))
+                meta = deepcopy(data.info.meta)
 
         else:
             self_data = np.array(data, dtype=dtype, copy=copy)

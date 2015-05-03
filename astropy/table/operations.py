@@ -20,7 +20,7 @@ import numpy as np
 from numpy import ma
 
 from ..utils import OrderedDict, metadata
-from .column import col_getattr, col_setattr, _col_update_attrs_from
+from .column import _col_update_attrs_from
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -44,14 +44,13 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
     for out_col in six.itervalues(out.columns):
         for idx_table, table in enumerate(tables):
             left_col = out_col
-            right_name = col_name_map[col_getattr(out_col, 'name')][idx_table]
+            right_name = col_name_map[out_col.info.name][idx_table]
 
             if right_name:
                 right_col = table[right_name]
-                col_setattr(out_col, 'meta',
-                            metadata.merge(col_getattr(left_col, 'meta', {}),
-                                           col_getattr(right_col, 'meta', {}),
-                                           metadata_conflicts=metadata_conflicts))
+                out_col.info.meta = metadata.merge(left_col.info.meta or {},
+                                                   right_col.info.meta or {},
+                                                   metadata_conflicts=metadata_conflicts)
                 for attr in attrs:
 
                     # Pick the metadata item that is not None, or they are both
@@ -73,13 +72,13 @@ def _merge_col_meta(out, tables, col_name_map, idx_left=0, idx_right=1,
                         if metadata_conflicts == 'warn':
                             warnings.warn("In merged column '{0}' the '{1}' attribute does not match "
                                           "({2} != {3}).  Using {3} for merged output"
-                                          .format(col_getattr(out_col, 'name'), attr,
+                                          .format(out_col.info.name, attr,
                                                   left_attr, right_attr),
                                           metadata.MergeConflictWarning)
                         elif metadata_conflicts == 'error':
                             raise metadata.MergeConflictError(
                                 'In merged column {0!r} the {1!r} attribute does not match '
-                                '({2} != {3})'.format(col_getattr(out_col, 'name'), attr,
+                                '({2} != {3})'.format(out_col.info.name, attr,
                                                       left_attr, right_attr))
                         elif metadata_conflicts != 'silent':
                             raise ValueError('metadata_conflicts argument must be one of "silent",'
