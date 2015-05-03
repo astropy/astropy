@@ -1,3 +1,4 @@
+import textwrap
 import copy
 
 from ..utils import OrderedDict
@@ -312,7 +313,6 @@ def get_header_from_yaml(lines):
         Dictionary describing table and column meta
     """
 
-    import textwrap
     try:
         import yaml
     except ImportError:
