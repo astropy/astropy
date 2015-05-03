@@ -14,7 +14,6 @@ import re
 
 from ...extern import six
 from . import core
-from ...table.column import col_getattr
 
 latexdicts = {'AA':  {'tabletype': 'table',
                       'header_start': r'\hline \hline', 'header_end': r'\hline',
@@ -129,7 +128,7 @@ class LatexHeader(core.BaseHeader):
             lines.append(r'\caption{' + self.latex['caption'] + '}')
         lines.append(self.header_start + r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
-        col_units = [col_getattr(col, 'unit') for col in self.cols]
+        col_units = [col.info.unit for col in self.cols]
         lines.append(self.splitter.join(self.colnames))
         units = dict((name, unit.to_string(format='latex_inline'))
                      for name, unit in zip(self.colnames, col_units) if unit)
@@ -356,7 +355,7 @@ class AASTexHeader(LatexHeader):
         if 'caption' in self.latex:
             lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
         tablehead = ' & '.join([r'\colhead{' + name + '}' for name in self.colnames])
-        col_units = [col_getattr(col, 'unit') for col in self.cols]
+        col_units = [col.info.unit for col in self.cols]
         units = dict((name, unit.to_string(format='latex_inline'))
                      for name, unit in zip(self.colnames, col_units) if unit)
         if 'units' in self.latex:

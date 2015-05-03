@@ -24,7 +24,6 @@ from . import basic
 from ...utils import OrderedDict
 from ...utils.exceptions import AstropyUserWarning
 from ...table.pprint import _format_funcs, _auto_format_func
-from ...table.column import col_getattr
 
 
 class IpacFormatErrorDBMS(Exception):
@@ -260,9 +259,9 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
         unitlist = []
         nullist = []
         for col in self.cols:
-            col_dtype = col_getattr(col, 'dtype')
-            col_unit = col_getattr(col, 'unit')
-            col_format = col_getattr(col, 'format')
+            col_dtype = col.info.dtype
+            col_unit = col.info.unit
+            col_format = col.info.format
 
             if col_dtype.kind in ['i', 'u']:
                 dtypelist.append('long')

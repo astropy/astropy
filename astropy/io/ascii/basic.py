@@ -14,7 +14,6 @@ from __future__ import absolute_import, division, print_function
 import re
 
 from . import core
-from ...table.column import col_getattr
 
 class BasicHeader(core.BaseHeader):
     '''Basic table Header Reader
@@ -321,7 +320,7 @@ class RdbHeader(TabHeader):
         rdb_types = []
         for col in self.cols:
             # Check if dtype.kind is string or unicode.  See help(np.core.numerictypes)
-            rdb_type = 'S' if col_getattr(col, 'dtype').kind in ('S', 'U') else 'N'
+            rdb_type = 'S' if col.info.dtype.kind in ('S', 'U') else 'N'
             rdb_types.append(rdb_type)
 
         lines.append(self.splitter.join(rdb_types))
