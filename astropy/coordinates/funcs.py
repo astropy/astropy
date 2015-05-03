@@ -148,9 +148,20 @@ def get_sun(time):
 
     """
     earth_pv_helio, earth_pv_bary = erfa.epv00(time.jd1, time.jd2)
-    x = -earth_pv_helio[..., 0, 0] * u.AU
-    y = -earth_pv_helio[..., 0, 1] * u.AU
-    z = -earth_pv_helio[..., 0, 2] * u.AU
+
+    # We have to manually do abberation because we're outputting directly into
+    # GCRS
+    earth_p = earth_pv_helio[..., 0, :]
+    earth_v = earth_pv_helio[..., 1, :]
+
+    dsun = np.sqrt(np.sum(earth_p**2, axis=-1))
+    invlorentz = (1-np.sum(earth_v**2, axis=-1))**-0.5
+    properdir = erfa.ab(earth_p/dsun.reshape(-1, 1), earth_v, dsun, invlorentz)
+
+    x = -dsun*properdir[..., 0] * u.AU
+    y = -dsun*properdir[..., 1] * u.AU
+    z = -dsun*properdir[..., 2] * u.AU
+
     cartrep = CartesianRepresentation(x=x, y=y, z=z)
     return SkyCoord(cartrep, frame=GCRS(obstime=time))
 
