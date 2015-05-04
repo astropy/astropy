@@ -246,7 +246,7 @@ class Parameter(object):
                 # tied constraints
                 args += ', {0}={1}'.format(cons, val)
 
-        return "Parameter({0})".format(args)
+        return "{0}({1})".format(self.__class__.__name__, args)
 
     @property
     def name(self):
