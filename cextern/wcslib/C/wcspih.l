@@ -908,6 +908,11 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(ERROR);
 	}
 
+<CCia>. {
+	  /* Let it go. */
+	  BEGIN(DISCARD);
+	}
+
 <CCCCCia>. {
 	  if (relax & WCSHDR_reject) {
 	    /* Looks too much like a FITS WCS keyword not to flag it. */
@@ -1574,6 +1579,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  keyrec += 80;
 	
 	  valtype = -1;
+	  distype =  0;
 	  vptr    = 0x0;
 	  keep    = 0x0;
 	

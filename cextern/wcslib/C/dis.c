@@ -2171,7 +2171,7 @@ int sipset(int j, struct disprm *dis)
   /* Note also that SIP has no axis mapping, i.e. jhat = j always.         */
   m = j + 1;
   dis->dparm[j][m] += 1.0;
-  if (degree[1]) {
+  if (degree[1] > 0) {
     dis->dparm[j][ncoeff[0]+m] += 1.0;
   }
 
