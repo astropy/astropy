@@ -190,6 +190,11 @@ example, ``RA---TAN-SIP``.  The supported projection codes are:
 - ``HPX``: HEALPix
 - ``XPH``: HEALPix polar, aka "butterfly"
 
+And, if built with wcslib 5.0 or later:
+
+- ``TPV``: Polynomial distortion
+- ``TUV``: Polynomial distortion
+
 Subsetting and Pixel Scales
 ===========================
 

@@ -1,6 +1,91 @@
 Platforms on which the installation procedures and test suite were exercised
 
 
+WCSLIB version 5.4 (2015/04/21)
+-------------------------------
+
+* Dell Latitude D620 (Intel Centrino T2300, 2 processors, i686)
+  Debian linux 7.8 (wheezy)
+  uname -r (kernel version): 3.2.0-4-686-pae
+  gcc --version: gcc (Debian 4.7.2-5) 4.7.2
+  gfortran --version: GNU Fortran (Debian 4.7.2-5) 4.7.2
+
+
+WCSLIB version 5.3 (2015/04/21)
+-------------------------------
+
+* Dell Latitude D620 (Intel Centrino T2300, 2 processors, i686)
+  Debian linux 7.8 (wheezy)
+  uname -r (kernel version): 3.2.0-4-686-pae
+  gcc --version: gcc (Debian 4.7.2-5) 4.7.2
+  gfortran --version: GNU Fortran (Debian 4.7.2-5) 4.7.2
+
+
+WCSLIB version 5.2 beta release (2015/04/15)
+--------------------------------------------
+
+* Dell Latitude D620 (Intel Centrino T2300, 2 processors, i686)
+  Debian linux 7.8 (wheezy)
+  uname -r (kernel version): 3.2.0-4-686-pae
+  gcc --version: gcc (Debian 4.7.2-5) 4.7.2
+  gfortran --version: GNU Fortran (Debian 4.7.2-5) 4.7.2
+
+* Dell PowerEdge R710 (Intel Xeon E5530, 8 processors, amd64)
+  Debian linux 7.8 (wheezy)
+  uname -r (kernel version): 3.2.0-4-amd64
+  gcc --version: gcc (Debian 4.7.2-5) 4.7.2
+  gfortran --version: GNU Fortran (Debian 4.7.2-5) 4.7.2
+  (Non-graphical tests only.)
+
+* Mac Mini (Intel Core i7, 4 cores, x86_64)
+  MacOSX 10.9.5 (13F1066)
+  uname -r (kernel version): Darwin 13.4.0
+  gcc --version: gcc (GCC) 4.8.3
+  gfortran --version: GNU Fortran (GCC) 4.8.3
+  (Non-graphical tests only.)
+
+
+WCSLIB version 5.1 beta release (2015/04/07)
+--------------------------------------------
+
+* Dell Latitude D620 (Intel Centrino T2300, 2 processors, i686)
+  Debian linux 7.8 (wheezy)
+  uname -r (kernel version): 3.2.0-4-686-pae
+  gcc --version: gcc (Debian 4.7.2-5) 4.7.2
+  gfortran --version: GNU Fortran (Debian 4.7.2-5) 4.7.2
+
+
+WCSLIB version 5.0 beta release (2015/04/05)
+--------------------------------------------
+
+* Dell Latitude D620 (Intel Centrino T2300, 2 processors, i686)
+  Debian linux 7.8 (wheezy)
+  uname -r (kernel version): 3.2.0-4-686-pae
+  gcc --version: gcc (Debian 4.7.2-5) 4.7.2
+  gfortran --version: GNU Fortran (Debian 4.7.2-5) 4.7.2
+
+* Dell PowerEdge R710 (Intel Xeon E5530, 8 processors, amd64)
+  Debian linux 7.8 (wheezy)
+  uname -r (kernel version): 3.2.0-4-amd64
+  gcc --version: gcc (Debian 4.7.2-5) 4.7.2
+  gfortran --version: GNU Fortran (Debian 4.7.2-5) 4.7.2
+  (Non-graphical tests only.)
+
+* Dell PowerEdge R820 (Intel Xeon E5-4620, 32 processors, amd64)
+  Debian linux 6.0.10 (squeeze)
+  uname -r (kernel version): 3.2.0-0.bpo.4-amd64
+  gcc --version: gcc (Debian 4.4.5-8) 4.4.5
+  gfortran --version: GNU Fortran (Debian 4.4.5-8) 4.4.5
+  (Non-graphical tests only.)
+
+* Mac Mini (Intel Core i7, 4 cores, x86_64)
+  MacOSX 10.9.5 (13F1066)
+  uname -r (kernel version): Darwin 13.4.0
+  gcc --version: gcc (GCC) 4.8.3
+  gfortran --version: GNU Fortran (GCC) 4.8.3
+  (Non-graphical tests only.)
+
+
 WCSLIB version 4.23 (2014/05/11)
 --------------------------------
 
@@ -145,7 +230,7 @@ WCSLIB version 4.8 (2011/08/15)
   gfortran --version: GNU Fortran (Debian 4.3.2-1.1) 4.3.2
 
 
-* Marvell SheevaPlug (Feroceon 88FR131 rev 1 ARM v5L), Debian linux 6.0 
+* Marvell SheevaPlug (Feroceon 88FR131 rev 1 ARM v5L), Debian linux 6.0
   (squeeze)
   uname -r (kernel version): 2.6.32-5-kirkwood
   gcc --version: gcc (Debian 4.4.5-8) 4.4.5
@@ -313,4 +398,4 @@ WCSLIB version 4.4 (2009/08/06)
           2004/04/23
 
 ------------------------------------------------------------------------------
-$Id: VALIDATION,v 4.25 2014/12/14 14:29:38 mcalabre Exp $
+$Id: VALIDATION,v 5.4.1.1 2015/04/21 14:44:31 mcalabre Exp mcalabre $

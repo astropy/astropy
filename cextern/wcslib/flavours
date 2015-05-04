@@ -12,7 +12,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 4.25 2014/12/14 14:29:38 mcalabre Exp $
+# $Id: flavours,v 5.4.1.1 2015/04/21 14:44:31 mcalabre Exp mcalabre $
 #-----------------------------------------------------------------------------
 
 # The list of FLAVOURs can be set on the command line.
@@ -47,13 +47,15 @@ endif
 
 
 # Linux with gcc/gfortran (also works for Darwin).
+# Reminder: add -fsanitize-address with gcc 4.8.
 ifeq "$(FLAVOUR)" "Linux"
   F := $(FLAVOUR)
   export CC       := gcc -std=c89 -pedantic
   export CPPFLAGS := $(FEATURES)
   export CFLAGS   := -g -O0 -Wall -Wpadded -Wno-long-long
+  export F77      := gfortran
   export FFLAGS   := -g -O0 -fimplicit-none -Wall -I.
-         VALGRIND := valgrind -v --leak-check=yes
+         VALGRIND := valgrind -v --leak-check=yes --track-origins=yes
 endif
 
 ifeq "$(FLAVOUR)" "Linuxp"

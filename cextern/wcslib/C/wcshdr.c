@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: wcshdr.c,v 5.4.1.1 2015/04/21 14:44:28 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -30,8 +30,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "wcsutil.h"
+#include "wcserr.h"
 #include "wcsmath.h"
+#include "wcsutil.h"
 #include "wcshdr.h"
 #include "tab.h"
 #include "wcs.h"
@@ -46,6 +47,16 @@ const char *wcshdr_errmsg[] = {
   "Invalid column selection",
   "Fatal error returned by Flex parser",
   "Invalid tabular parameters"};
+
+/* Map error returns for lower-level routines. */
+const int wcshdr_taberr[] = {
+  WCSHDRERR_SUCCESS,		/*  0: TABERR_SUCCESS         */
+  WCSHDRERR_NULL_POINTER,	/*  1: TABERR_NULL_POINTER    */
+  WCSHDRERR_MEMORY,		/*  2: TABERR_MEMORY          */
+  WCSHDRERR_BAD_TABULAR_PARAMS	/*  3: TABERR_BAD_PARAMS      */
+				/*  4: TABERR_BAD_X           */
+				/*  5: TABERR_BAD_WORLD       */
+};
 
 /* Convenience macro for invoking wcserr_set(). */
 #define WCSHDR_ERRMSG(status) WCSERR_SET(status), wcshdr_errmsg[status]
@@ -226,8 +237,7 @@ int wcstab(struct wcsprm *wcs)
 
   for (itab = 0; itab < wcs->ntab; itab++) {
     if ((status = tabini(1, wcs->tab[itab].M, 0, wcs->tab + itab))) {
-      if (status == 3) status = 5;
-      wcserr_set(WCSHDR_ERRMSG(status));
+      status = wcserr_set(WCSHDR_ERRMSG(wcshdr_taberr[status]));
       goto cleanup;
     }
   }
@@ -687,7 +697,6 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   for (k = 0; k < wcs->nps; k++) {
     sprintf(keyvalue, "'%s'", (wcs->ps[k]).value);
-
     wcshdo_util(relax, "PS", "S", WCSHDO_PVn_ma, "PS", wcs->ps[k].i, -1,
       wcs->ps[k].m, alt, colnum, colax, keyvalue,
       "Coordinate transformation parameter",
@@ -1047,22 +1056,40 @@ void wcshdo_util(
     }
   }
 
-  /* Double-up single-quotes in the keyvalue. */
-  hptr = keyvalue + 1;
-  while (*hptr) {
-    if (*hptr == '\'') {
-      kptr = hptr++;
-      if (*hptr) {
-        ch0 = *kptr;
-        while (*kptr) {
-          ch1 = *(++kptr);
-          *kptr = ch0;
-          ch0 = ch1;
+  /* Double-up single-quotes in string keyvalues. */
+  if (*keyvalue == '\'') {
+    hptr = keyvalue + 1;
+    while (*hptr) {
+      if (*hptr == '\'') {
+        kptr = hptr++;
+        if (*hptr) {
+          ch0 = *kptr;
+          while (*kptr) {
+            ch1 = *(++kptr);
+            *kptr = ch0;
+            ch0 = ch1;
+          }
+        } else {
+          break;
         }
       }
+
+      hptr++;
     }
 
-    hptr++;
+    /* Check length. */
+    if (strlen(keyvalue) > 70) {
+      /* Truncate. */
+      keyvalue[69] = '\'';
+      keyvalue[70] = '\0';
+    }
+
+  } else {
+    /* Check length. */
+    if (strlen(keyvalue) > 70) {
+      /* Truncate. */
+      keyvalue[70] = '\0';
+    }
   }
 
   if ((nv = strlen(keyvalue) > 20)) {

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.4 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,29 +22,30 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: log.h,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: log.h,v 5.4.1.2 2015/04/23 11:03:11 mcalabre Exp mcalabre $
 *=============================================================================
 *
-* WCSLIB 4.25 - C routines that implement logarithmic coordinate systems as
-* defined by the FITS World Coordinate System (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of spectral coordinates in FITS",
-*   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
-*   2006, A&A, 446, 747 (Paper III)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.4 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the log routines
 * ---------------------------
-* These routines implement the part of the FITS WCS standard that deals with
-* logarithmic coordinates.  They define methods to be used for computing
-* logarithmic world coordinates from intermediate world coordinates (a linear
-* transformation of image pixel coordinates), and vice versa.
+* Routines in this suite implement the part of the FITS World Coordinate
+* System (WCS) standard that deals with logarithmic coordinates, as described
+* in
+*
+*   "Representations of world coordinates in FITS",
+*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+*
+*   "Representations of spectral coordinates in FITS",
+*   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
+*   2006, A&A, 446, 747 (WCS Paper III)
+*
+* These routines define methods to be used for computing logarithmic world
+* coordinates from intermediate world coordinates (a linear transformation of
+* image pixel coordinates), and vice versa.
 *
 * logx2s() and logs2x() implement the WCS logarithmic coordinate
 * transformations.
