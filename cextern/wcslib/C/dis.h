@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.2 - an implementation of the FITS WCS standard.
+  WCSLIB 5.3 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 5.2 2015/04/15 12:35:07 mcalabre Exp $
+  $Id: dis.h,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.2 - experimental C routines that implement proposed extensions to
+* WCSLIB 5.3 - experimental C routines that implement proposed extensions to
 * the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of distortions in FITS world coordinate systems",
@@ -91,9 +91,21 @@
 * dpfill() is a utility routine to aid in filling the contents of the dpkey
 * struct.  No checks are done on the validity of the inputs.
 *
+* WCS Paper IV specifies the syntax of a record-valued keyword as
+*
+=   keyword = '<field-specifier>: <float>'
+* 
+* However, some DPja and DQia record values, such as those of DPja.NAXES and
+* DPja.AXIS.j, are intrinsically integer-valued.  While FITS header parsers
+* are not expected to know in advance which of DPja and DQia are integral and
+* which are floating point, if the record's value parses as an integer (i.e.
+* without decimal point or exponent), then preferably enter it into the dpkey
+* struct as an integer.  Either way, it doesn't matter as disset() accepts
+* either data type for all record values.
+*
 * Given and returned:
 *   dp        struct dpkey*
-*                       Store for DPja and DQia keyrecords.
+*                       Store for DPja and DQia keyvalues.
 *
 * Given:
 *   keyword   const char *
@@ -113,10 +125,10 @@
 *                       preset.
 *
 *   type      int       Data type of the record's value
-*                         1: Integer,
-*                         2: Floating point.
+*                         0: Integer,
+*                         1: Floating point.
 *
-*   ival      int       For type == 1, the integer value of the record.
+*   ival      int       For type == 0, the integer value of the record.
 *
 *   fval      double    For type == 1, the floating point value of the record.
 *
@@ -466,8 +478,8 @@
 *     be the case) then it will set naxis from the value passed to it as a
 *     function argument.  The user should not subsequently modify it.
 *
-*   char (*dtype)[16]
-*     (Given) Pointer to the first element of an array of char[16] containing
+*   char (*dtype)[72]
+*     (Given) Pointer to the first element of an array of char[72] containing
 *     the name of the distortion function for each axis.
 *
 *   int ndp
@@ -484,8 +496,10 @@
 *     dpkey structs.
 *
 *     As a FITS header parser encounters each DPja or DQia keyword it should
-*     load it into a dpkey struct in the array and increment ndp.  disset()
-*     interprets these as required.
+*     load it into a dpkey struct in the array and increment ndp.  However,
+*     note that a single disprm struct must hold only DPja or DQia keyvalues,
+*     not both.  disset() interprets them as required by the particular
+*     distortion function.
 *
 *   double *maxdis
 *     (Given) Pointer to the first element of an array of double specifying
@@ -572,7 +586,7 @@
 *     (For internal use only.)
 *   int m_naxis
 *     (For internal use only.)
-*   char (*m_dtype)[16]
+*   char (*m_dtype)[72]
 *     (For internal use only.)
 *   double **m_dp
 *     (For internal use only.)
@@ -580,10 +594,11 @@
 *     (For internal use only.)
 *
 *
-* dpkey struct - Store for DPja and DQia keyrecords
-* -------------------------------------------------
-* The dpkey struct is used to pass the parsed contents of DPja and DQia
-* keyrecords to disset() via the disprm struct.
+* dpkey struct - Store for DPja and DQia keyvalues
+* ------------------------------------------------
+* The dpkey struct is used to pass the parsed contents of DPja or DQia
+* keyrecords to disset() via the disprm struct.  A disprm struct must hold
+* only DPja or DQia keyvalues, not both.
 *
 * All members of this struct are to be set by the user.
 *
@@ -639,13 +654,13 @@ enum dis_errmsg_enum {
   DISERR_DEDISTORT    = 5	/* De-distortion error. */
 };
 
-/* For use in declaring distortion function prototypes. */
-#define DISP2X_ARGS const int iparm[], const double dparm[], int ncrd, \
-const double rawcrd[], double *discrd
+/* For use in declaring distortion function prototypes (= DISX2P_ARGS). */
+#define DISP2X_ARGS const int iparm[], const double dparm[], \
+int ncrd, const double rawcrd[], double *discrd
 
-/* For use in declaring de-distortion function prototypes. */
-#define DISX2P_ARGS const int iparm[], const double dparm[], int ncrd, \
-const double discrd[], double rawcrd[]
+/* For use in declaring de-distortion function prototypes (= DISP2X_ARGS). */
+#define DISX2P_ARGS const int iparm[], const double dparm[], \
+int ncrd, const double discrd[], double *rawcrd
 
 
 /* Struct used for storing DPja and DQia keyvalues. */
@@ -672,10 +687,10 @@ struct disprm {
   /*------------------------------------------------------------------------*/
   int naxis;			/* The number of pixel coordinate elements, */
 				/* given by NAXIS.                          */
-  char   (*dtype)[16];		/* For each axis, the distortion type.      */
+  char   (*dtype)[72];		/* For each axis, the distortion type.      */
   int    ndp;			/* Number of DPja or DQia keywords, and the */
   int    ndpmax;		/* number for which space was allocated.    */
-  struct dpkey *dp;		/* DPja and DQia keyvalues.                 */
+  struct dpkey *dp;		/* DPja or DQia keyvalues (not both).       */
   double *maxdis;		/* For each axis, the maximum distortion.   */
   double totdis;		/* The maximum combined distortion.         */
 
@@ -706,7 +721,7 @@ struct disprm {
   double *tmpmem;
 
   int    m_flag, m_naxis;	/* The remainder are for memory management. */
-  char   (*m_dtype)[16];
+  char   (*m_dtype)[72];
   struct dpkey *m_dp;
   double *m_maxdis;
 };
@@ -746,6 +761,7 @@ int polyset(int j, struct disprm *dis);
 int dispoly(DISP2X_ARGS);
 
 int tpvset(int j, struct disprm *dis);
+
 int tpv1(DISP2X_ARGS);
 int tpv2(DISP2X_ARGS);
 int tpv3(DISP2X_ARGS);

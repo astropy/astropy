@@ -1,17 +1,26 @@
 ------------------------------------------------------------------------------
-WCSLIB 5.2 and PGSBOX 5.2 INSTALLATION
+WCSLIB 5.3 and PGSBOX 5.3 INSTALLATION
 --------------------------------------
 
 WCSLIB requires an ANSI C compiler with standard ANSI C environment, that is,
 a standard C library and header files as defined in Appendix B of Kernigan &
 Ritchie, 2nd ed.
 
+If you are running a typical Linux distro and have installed WCSLIB before,
+then all you should need to do is
+
+  tar pxvf wcslib-5.3.tar.bz2
+  cd wcslib-5.3
+  make install
+
+Otherwise, read on.
+
 Installation of WCSLIB is handled by GNU autoconf; GNU make (referred to here
 as 'gmake') must be used.  The WCSLIB distribution also includes PGSBOX (refer
-to the README file), to unpack it type
+to the README file).  To unpack the tar file, type
 
-  zcat wcslib-5.2.tar.gz | tar pvxf -
-  cd wcslib-5.2
+  bzcat wcslib-5.3.tar.bz2 | tar pvxf -
+  cd wcslib-5.3
 
 then if you do not need to specify any configuration options, simply run
 
@@ -24,11 +33,11 @@ which includes both the C library and Fortran wrappers, and also libpgsbox.a.
 (WARNING: The build may fail with gmake 3.79, upgrade to 3.79.1 or later.)
 
 configure tries to determine the location of the PGPLOT and CFITSIO libraries
-required by some programs in the test suite.  If it fails to find them you
-can, if you wish, tailor the few variables found at the start of "makedefs".
-Of course you do not need to exercise the test suite in order to build and
-install the library - if configure fails to find anything required for that it
-will issue an explicit error message.
+required by some utilities (wcsware, wcsgrid) and programs in the test suite.
+If it fails to find them you can, if you wish, tailor the few variables found
+at the start of "makedefs".  Of course you do not need to exercise the test
+suite in order to build and install the library - if configure fails to find
+anything required for that it will issue an explicit error message.
 
 To build and exercise the test suite use
 
@@ -93,7 +102,7 @@ The INSTALL file provided with GNU autoconf 2.53 is appended without change.
 
 Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 http://www.atnf.csiro.au/people/Mark.Calabretta
-$Id: INSTALL,v 5.2 2015/04/15 12:35:09 mcalabre Exp $
+$Id: INSTALL,v 5.3 2015/04/21 02:50:53 mcalabre Exp $
 
 ==============================================================================
 

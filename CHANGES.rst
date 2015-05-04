@@ -134,7 +134,7 @@ New Features
 - ``astropy.wcs``
 
   - Enhanced text representation of ``WCS`` objects. [#3604]
-  - The included version of wcslib has been upgraded to 5.2.  The
+  - The included version of wcslib has been upgraded to 5.3.  The
     minimum required version of wcslib remains 4.24.  The changes
     relevant to astropy are:
 

@@ -1,3 +1,30 @@
+WCSLIB version 5.3 (2015/04/21)
+-------------------------------
+
+First public release of WCSLIB 5.x with distortions capability.
+
+* C library
+
+  - Changed disprm::dtype from char[16] to char[72] for reasons relating
+    to header parsing.
+
+  - More armour plating for disset() and friends.  They also use new
+    utility functions wcsutil_dpkey_int() and wcsutil_dpkey_double() to
+    extract numeric values from a dpkey struct.  This ensures their
+    independence of the data type, the appropriate reporting of dpkey
+    values by disprt(), and (eventually) the appropriate writing of DPja
+    and DQia keyvalues by wcshdo().
+
+  - Augmented the usage comments for dpfill() to explain how numeric
+    values in a dpkey struct are handled.
+
+* Utilities
+
+  - wcsware now uses wcserr to provide a backtrace on errors.  Also
+    fixed a couple of minor annoyances relating to alternate
+    representations.
+
+
 WCSLIB version 5.2 beta release (2015/04/15)
 --------------------------------------------
 
@@ -75,9 +102,6 @@ WCSLIB version 5.0 beta release (2015/04/05)
     equivalent to "TPV" but using a prior distortion (coming before the
     linear transformation matrix) rather than sequent (coming after it).
 
-  - Added a "lint" function to wcsware to check a FITS header for
-    conformance to the WCS standard.  New test program twcslint.
-
   - In wcspih() and wcsbth(), added relaxation flags to allow PC0i_0ja,
     PV0j_0ma, and PS0j_0ma (i.e. with leading zeroes on the index).
 
@@ -112,6 +136,11 @@ WCSLIB version 5.0 beta release (2015/04/05)
     spcperr_(), and tabperr_() as convenient wrappers on wcserr_prt().
 
   - Wrapper for wcslib_version().
+
+* Utilities
+
+  - Added a "lint" function to wcsware to check a FITS header for
+    conformance to the WCS standard.  New test program twcslint.
 
 * PGSBOX
 
@@ -2302,4 +2331,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 5.2 2015/04/15 12:35:09 mcalabre Exp $
+$Id: CHANGES,v 5.3 2015/04/21 02:50:53 mcalabre Exp $

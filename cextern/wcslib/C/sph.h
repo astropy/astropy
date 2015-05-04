@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.2 - an implementation of the FITS WCS standard.
+  WCSLIB 5.3 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: sph.h,v 5.2 2015/04/15 12:35:07 mcalabre Exp $
+  $Id: sph.h,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.2 - C routines that implement the spherical coordinate
+* WCSLIB 5.3 - C routines that implement the spherical coordinate
 * transformations used by the FITS World Coordinate System (WCS) standard.
 * Refer to
 *
