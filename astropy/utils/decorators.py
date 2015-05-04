@@ -333,14 +333,16 @@ class lazyproperty(object):
         self._key = self._fget.__name__
 
     def __get__(self, obj, owner=None):
-        if obj is None:
-            return self
         try:
             return obj.__dict__[self._key]
         except KeyError:
             val = self._fget(obj)
             obj.__dict__[self._key] = val
             return val
+        except AttributeError:
+            if obj is None:
+                return self
+            raise
 
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
