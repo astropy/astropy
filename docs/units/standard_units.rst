@@ -125,6 +125,7 @@ For example, to enable Imperial units, simply do::
       m            | irreducible     | meter            ,
       mi           | 1609.34 m       | mile             ,
       micron       | 1e-06 m         |                  ,
+      mil          | 2.54e-05 m      | thou             ,
       nmi          | 1852 m          | nauticalmile, NM ,
       pc           | 3.08568e+16 m   | parsec           ,
       solRad       | 6.95508e+08 m   | R_sun            ,
