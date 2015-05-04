@@ -50,8 +50,8 @@ New Features
 
   - Added ``block_reduce`` and ``block_replicate`` functions. [#3453]
 
-  - extract array now offers different options to deal with array boundaries
-    [#3727]
+  - ``extract_array`` now offers different options to deal with array
+    boundaries [#3727]
 
 - ``astropy.stats``
 
