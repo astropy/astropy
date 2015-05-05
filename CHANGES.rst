@@ -110,6 +110,9 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Fixed the ``Ellipse2D`` model to be consistent with ``Disk2D`` in
+    how pixels are included. [#3736]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
