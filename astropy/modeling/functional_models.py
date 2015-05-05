@@ -720,7 +720,7 @@ class Ellipse2D(Fittable2DModel):
                       theta=theta.radian)
         y, x = np.mgrid[0:50, 0:50]
         fig, ax = plt.subplots(1, 1)
-        ax.imshow(e(x, y), origin='lower', cmap='Greys_r')
+        ax.imshow(e(x, y), origin='lower', interpolation='none', cmap='Greys_r')
         e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, theta.degree,
                               edgecolor='red', facecolor='none')
         ax.add_patch(e2)
@@ -744,7 +744,7 @@ class Ellipse2D(Fittable2DModel):
         sint = np.sin(theta)
         numerator1 = (xx * cost) + (yy * sint)
         numerator2 = -(xx * sint) + (yy * cost)
-        in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) < 1.)
+        in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) <= 1.)
         return np.select([in_ellipse], [amplitude])
 
 
