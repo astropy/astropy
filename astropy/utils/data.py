@@ -944,10 +944,17 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     try:
         if cache:
-            # We don't need to acquire the lock here, since we are only reading
-            with _open_shelve(urlmapfn, True) as url2hash:
-                if url_key in url2hash:
-                    return url2hash[url_key]
+            try:
+                # We don't need to acquire the lock here, since we are only
+                # reading
+                with _open_shelve(urlmapfn, True) as url2hash:
+                    if url_key in url2hash:
+                        return url2hash[url_key]
+            except (ImportError, IOError):
+                # Loading the cache may fail if it's in a different database
+                # format (ImportError) or some other sort of IOError.
+                # In that case, delete the cache file and move on.
+                clear_download_cache()
 
         with contextlib.closing(urllib.request.urlopen(
                 remote_url, timeout=timeout)) as remote:
