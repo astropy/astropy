@@ -135,7 +135,7 @@ def sigma_clip(data, sig=3.0, iters=1, cenfunc=np.ma.median, varfunc=np.var,
             standard_deviations = np.sqrt(varfunc(filtered_data, **kwargs)) * sig
             min_value = max_value - standard_deviations
             max_value += standard_deviations
-            if axis > 1:
+            if axis > 0:
                 min_value = np.expand_dims(min_value, axis=axis)
                 max_value = np.expand_dims(max_value, axis=axis)
             filtered_data.mask |= filtered_data > max_value
@@ -146,7 +146,7 @@ def sigma_clip(data, sig=3.0, iters=1, cenfunc=np.ma.median, varfunc=np.var,
             standard_deviations = np.sqrt(varfunc(filtered_data, **kwargs)) * sig
             min_value = max_value - standard_deviations
             max_value += standard_deviations
-            if axis > 1:
+            if axis > 0:
                 min_value = np.expand_dims(min_value, axis=axis)
                 max_value = np.expand_dims(max_value, axis=axis)
             filtered_data.mask |= filtered_data > max_value
