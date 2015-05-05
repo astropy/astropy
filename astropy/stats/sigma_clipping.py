@@ -131,12 +131,20 @@ def sigma_clip(data, sig=3.0, iters=1, cenfunc=np.ma.median, varfunc=np.var,
         while filtered_data.count() != lastrej:
             i += 1
             lastrej = filtered_data.count()
-            do = filtered_data - cenfunc(filtered_data, **axis_arg)
-            filtered_data.mask |= do * do > varfunc(filtered_data, **axis_arg) * sig ** 2
+            max_value = cenfunc(filtered_data, **axis_arg)
+            standard_deviations = np.sqrt(varfunc(filtered_data, **axis_arg)) * sig
+            min_value = max_value - standard_deviations
+            max_value += standard_deviations
+            filtered_data.mask |= filtered_data > max_value
+            filtered_data.mask |= filtered_data < min_value
     else:
         for i in range(iters):
-            do = filtered_data - cenfunc(filtered_data, **axis_arg)
-            filtered_data.mask |= do * do > varfunc(filtered_data, **axis_arg) * sig ** 2
+            max_value = cenfunc(filtered_data, **axis_arg)
+            standard_deviations = np.sqrt(varfunc(filtered_data, **axis_arg)) * sig
+            min_value = max_value - standard_deviations
+            max_value += standard_deviations
+            filtered_data.mask |= filtered_data > max_value
+            filtered_data.mask |= filtered_data < min_value
 
     return filtered_data
 
