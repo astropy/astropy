@@ -317,6 +317,12 @@ Bug Fixes
 
 - ``astropy.table``
 
+- ``astropy.testing``
+
+  - The Astropy py.test plugins that disable unintential internet access
+    in tests were also blocking use of local UNIX sockets in tests, which
+    prevented testing some multiprocessing code--fixed. [#3713]
+
 - ``astropy.time``
 
 - ``astropy.units``
