@@ -16,7 +16,7 @@ from ... import _erfa as erfa
 
 from .icrs import ICRS
 from .gcrs import GCRS
-from .ecliptic import GeocentricEcliptic, HeliocentricEcliptic
+from .ecliptic import GeocentricEcliptic, BarycentricEcliptic
 from .utils import cartrepr_from_matmul
 
 
@@ -56,7 +56,7 @@ def geoecliptic_to_gcrs(from_coo, to_frame):
 
 
 
-@frame_transform_graph.transform(DynamicMatrixTransform, ICRS, HeliocentricEcliptic)
+@frame_transform_graph.transform(DynamicMatrixTransform, ICRS, BarycentricEcliptic)
 def icrs_to_helioecliptic(from_coo, to_frame):
     rnpb = erfa.pnm06a(to_frame.equinox.jd1, to_frame.equinox.jd2)
 
@@ -64,6 +64,6 @@ def icrs_to_helioecliptic(from_coo, to_frame):
     return np.dot(rotation_matrix(obl, 'x'), rnpb)
 
 
-@frame_transform_graph.transform(DynamicMatrixTransform, HeliocentricEcliptic, ICRS)
+@frame_transform_graph.transform(DynamicMatrixTransform, BarycentricEcliptic, ICRS)
 def helioecliptic_to_icrs(from_coo, to_frame):
     return icrs_to_helioecliptic(to_frame, from_coo).T

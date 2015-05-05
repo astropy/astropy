@@ -54,13 +54,13 @@ class GeocentricEcliptic(BaseCoordinateFrame):
     equinox = TimeFrameAttribute(default=EQUINOX_J2000)
 
 
-class HeliocentricEcliptic(BaseCoordinateFrame):
+class BarycentricEcliptic(BaseCoordinateFrame):
     """
-    Heliocentric (or barycentric) ecliptic coordinates.  These origin of the
-    coordinates are the barycenter of the solar system, with the x axis pointing
-    in the direction of the *true* (not mean) equinox as at the time specified
-    by the ``equinox`` attribute (as seen from Earth), and the xy-plane in the
-    plane of the ecliptic for that date.
+    Barycentric ecliptic coordinates.  These origin of the coordinates are the
+    barycenter of the solar system, with the x axis pointing in the direction of
+    the *true* (not mean) equinox as at the time specified by the ``equinox``
+    attribute (as seen from Earth), and the xy-plane in the plane of the
+    ecliptic for that date.
 
     This frame has one frame attribute:
 
