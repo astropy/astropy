@@ -70,9 +70,9 @@ procedure is that ensures a consistent release process each time.
     running a csh variant make sure to run ``rehash`` afterwards too)::
 
         $ pip install zest.releaser==3.49 --upgrade --force
-        
+
     .. note::
-    
+
         zest.releaser > 3.49 has a still open issue that prevents our release
         code from correctly updating the ``VERSION`` variable in our ``setup.py``;
         see `zestsoftware/zest.releaser#62 <https://github.com/zestsoftware/zest.releaser/pull/62>`_.
@@ -133,7 +133,7 @@ procedure is that ensures a consistent release process each time.
      the sdist command, which is necessary for the upload command to know
      which distribution to upload::
 
-         $ python setup.py sdist upload
+         $ python setup.py sdist upload --sign
 
  20. Go to https://pypi.python.org/pypi?:action=pkg_edit&name=astropy
      and ensure that only the most recent releases in each actively maintained
@@ -148,7 +148,7 @@ procedure is that ensures a consistent release process each time.
 
          $ git checkout stable
          $ git reset --hard v0.1
-         $ got push origin stable --force
+         $ git push origin stable --force
 
  22. Update Readthedocs so that it builds docs for the corresponding github tag.
      Also verify that the ``stable`` Readthedocs version builds correctly for
