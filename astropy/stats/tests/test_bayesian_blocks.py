@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from  numpy.testing import assert_allclose, assert_
+from  numpy.testing import assert_allclose, assert_, assert_raises
 from .. import bayesian_blocks
 
 

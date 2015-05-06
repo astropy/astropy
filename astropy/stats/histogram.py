@@ -65,8 +65,8 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
         # TODO: if weights is specified, we need to modify things.
         #       e.g. we could use point measures fitness for Bayesian blocks
         if weights is not None:
-            raise ValueError("weights are not yet supported "
-                             "for the enhanced histogram")
+            raise NotImplementedError("weights are not yet supported "
+                                      "for the enhanced histogram")
 
         # if range is specified, we need to truncate the data for
         # the bin-finding routines
