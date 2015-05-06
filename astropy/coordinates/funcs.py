@@ -226,15 +226,13 @@ def get_constellation(coord, short=False):
 
     constel_coord = coord.transform_to(_constellation_frame)
     if constel_coord.isscalar:
-        constel_coord = [constel_coord]
+        constel_coord = SkyCoord([constel_coord])
         scalar = True
     else:
         scalar = False
 
     names = []
-    for coo in constel_coord:
-        rah = coo.ra.hour
-        decd = coo.dec.deg
+    for rah, decd in zip(constel_coord.ra.hour, constel_coord.dec.deg):
         for row in ctable:
             if row['ral'] < rah < row['rau'] and decd > row['decl']:
                 if short:
@@ -243,7 +241,7 @@ def get_constellation(coord, short=False):
                     names.append(cnames_short_to_long[row['name']])
                 break
         else:
-            raise ValueError('Could not find constellation for coordinate "{0}"!'.format(coo))
+            raise ValueError('Could not find constellation for coordinate at ra={0}, dec={1}'.format(rah, decd))
 
     if scalar:
         return names[0]
