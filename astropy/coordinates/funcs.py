@@ -180,9 +180,10 @@ def concatenate(coords):
         raise TypeError('The argument to concatenate must be iterable')
     return SkyCoord(coords)
 
+
+# global variables that cache repeatedly-needed info for get_constellation
 _constellation_frame = FK5(equinox='B1875')
 _constellation_data = {}
-
 def get_constellation(coord, short=False):
     """
     Determines the constellation(s) of the coordinates this `SkyCoord`
@@ -210,6 +211,7 @@ def get_constellation(coord, short=False):
     modern constellations, as tabulated by
     `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
     """
+    # read the data files and cache them if they haven't been already
     if not _constellation_data:
         cdata = data.get_pkg_data_contents('data/constellation_data_roman87.dat')
         ctable = ascii.read(cdata, names=['ral', 'rau', 'decl', 'name'])
@@ -217,33 +219,42 @@ def get_constellation(coord, short=False):
         cnames_short_to_long = dict([(l[:3], l[4:])
                                      for l in cnames.split('\n')
                                      if not l.startswith('#')])
+        cnames_long = np.array([cnames_short_to_long[nm] for nm in ctable['name']])
 
         _constellation_data['ctable'] = ctable
-        _constellation_data['cnames_short_to_long'] = cnames_short_to_long
+        _constellation_data['cnames_long'] = cnames_long
     else:
         ctable = _constellation_data['ctable']
-        cnames_short_to_long = _constellation_data['cnames_short_to_long']
+        cnames_long = _constellation_data['cnames_long']
 
     constel_coord = coord.transform_to(_constellation_frame)
     if constel_coord.isscalar:
-        constel_coord = SkyCoord([constel_coord])
+        rah = constel_coord.ra.ravel().hour
+        decd = constel_coord.dec.ravel().deg
         scalar = True
     else:
+        rah = constel_coord.ra.hour
+        decd = constel_coord.dec.deg
         scalar = False
 
-    names = []
-    for rah, decd in zip(constel_coord.ra.hour, constel_coord.dec.deg):
-        for row in ctable:
-            if row['ral'] < rah < row['rau'] and decd > row['decl']:
-                if short:
-                    names.append(row['name'])
-                else:
-                    names.append(cnames_short_to_long[row['name']])
-                break
-        else:
-            raise ValueError('Could not find constellation for coordinate at ra={0}, dec={1}'.format(rah, decd))
+    constellidx = -np.ones(len(rah), dtype=int)
+
+    notided = constellidx == -1  # should be all
+    for i, row in enumerate(ctable):
+        msk = (row['ral'] < rah) & (rah < row['rau']) & (decd > row['decl'])
+        constellidx[notided & msk] = i
+        notided = constellidx == -1
+        if np.sum(notided) == 0:
+            break
+    else:
+        raise ValueError('Could not find constellation for coordinates {0}'.format(constel_coord[notided]))
+
+    if short:
+        names = ctable['name'][constellidx]
+    else:
+        names = cnames_long[constellidx]
 
     if scalar:
         return names[0]
     else:
-        return np.array(names)
+        return names
