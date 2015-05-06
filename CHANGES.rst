@@ -16,6 +16,13 @@ New Features
 
 - ``astropy.coordinates``
 
+  - Added ``get_constellation`` function and ``SkyCoord.get_constellation``
+    convenience method to determine the constellation that a coordinate
+    is in. [#3758]
+
+  - Added ``PrecessedGeocentric`` frame, which is based on GCRS, but precessed
+    to a specific requested mean equinox. [#3758]
+
 - ``astropy.cosmology``
 
   - Add Planck 2015 cosmology [#3476]
