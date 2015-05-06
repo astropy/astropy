@@ -200,6 +200,13 @@ def get_constellation(coord, short=False):
         If ``coords`` contains a scalar coordinate, returns the name of the
         constellation.  If it is an array `SkyCoord`, it returns an array of
         names.
+
+    Notes
+    -----
+    To determine which constellation a point on the sky is in, this first
+    precesses to B1875, and then uses the Delporte boundaries of the 88
+    modern constellations, as tabulated by
+    `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
     """
     if not _constellation_data:
         cdata = data.get_pkg_data_contents('data/constellation_data_roman87.dat')
