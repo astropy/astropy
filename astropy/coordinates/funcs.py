@@ -240,9 +240,10 @@ def get_constellation(coord, short=False):
                 else:
                     names.append(cnames_short_to_long[row['name']])
                 break
+        else:
+            raise ValueError('Could not find constellation for coordinate "{0}"!'.format(coo))
 
     if scalar:
         return names[0]
     else:
         return names
-
