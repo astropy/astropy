@@ -57,7 +57,7 @@ def test_constellations():
     from .. import ICRS, FK5
     from ..funcs import get_constellation
 
-    inuma = ICRS(9*u.deg, 65*u.deg)
+    inuma = ICRS(9*u.hour, 65*u.deg)
     assert get_constellation(inuma) == 'Ursa Major'
     assert get_constellation(inuma, short=True) == 'UMa'
 
@@ -66,5 +66,5 @@ def test_constellations():
     decs = [65, -20, 9.12, -19.9, 22, -12.1234, -40, -81.1234]
     shortnames = ['UMa', 'Aqr', 'Ori', 'Hya', 'Com', 'Lib', 'CrA', 'Men']
 
-    testcoos = FK5(ras*u.hour, decs=decs*u.deg, equniox='B1950')
+    testcoos = FK5(ras*u.hour, decs*u.deg, equinox='B1950')
     npt.assert_equal(get_constellation(testcoos, short=True), shortnames)

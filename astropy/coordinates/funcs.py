@@ -227,7 +227,7 @@ def get_constellation(coord, short=False):
         rah = coo.ra.hour
         decd = coo.dec.deg
         for row in ctable:
-            if row['ral'] < rah < row['rau'] and decd < row['decl']:
+            if row['ral'] < rah < row['rau'] and decd > row['decl']:
                 if short:
                     names.append(row['name'])
                 else:
