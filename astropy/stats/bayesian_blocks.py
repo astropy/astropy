@@ -280,9 +280,14 @@ class FitnessFunc(object):
     """Base class for fitness functions
 
     Each fitness function class has the following:
-    - fitness(...) : compute fitness function.
-       Arguments accepted by fitness must be among [T_k, N_k, a_k, b_k, c_k]
-    - prior(N, Ntot) : compute prior on N given a total number of points Ntot
+
+    fitness(...)
+      compute fitness function.
+      Arguments accepted by fitness must be among [T_k, N_k, a_k, b_k, c_k]
+
+    prior(N, Ntot)
+      compute prior on N given a total number of points Ntot
+
     """
     def __init__(self, p0=0.05, gamma=None):
         self.p0 = p0
