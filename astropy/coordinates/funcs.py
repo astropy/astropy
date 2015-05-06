@@ -12,7 +12,12 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from .. import units as u
-from ..utils import isiterable
+from .. import _erfa as erfa
+from ..io import ascii
+from ..utils import isiterable, data
+from .sky_coordinate import SkyCoord
+from .builtin_frames import GCRS, FK5
+from .representation import SphericalRepresentation, CartesianRepresentation
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
            'concatenate', 'get_constellation']
@@ -53,8 +58,6 @@ def cartesian_to_spherical(x, y, z):
     lon : `~astropy.units.Quantity`
         The longitude in radians
     """
-    from .representation import SphericalRepresentation, CartesianRepresentation
-
     if not hasattr(x, 'unit'):
         x = x * u.dimensionless_unscaled
     if not hasattr(y, 'unit'):
@@ -103,8 +106,6 @@ def spherical_to_cartesian(r, lat, lon):
 
 
     """
-    from .representation import SphericalRepresentation, CartesianRepresentation
-
     if not hasattr(r, 'unit'):
         r = r * u.dimensionless_unscaled
     if not hasattr(lat, 'unit'):
@@ -144,11 +145,6 @@ def get_sun(time):
     250 km over the 1000-3000.
 
     """
-    from .. import _erfa as erfa
-    from .representation import CartesianRepresentation
-    from .sky_coordinate import SkyCoord
-    from .builtin_frames import GCRS
-
     earth_pv_helio, earth_pv_bary = erfa.epv00(time.jd1, time.jd2)
     x = -earth_pv_helio[..., 0, 0] * u.AU
     y = -earth_pv_helio[..., 0, 1] * u.AU
@@ -178,12 +174,12 @@ def concatenate(coords):
         A single sky coordinate with its data set to the concatenation of all
         the elements in ``coords``
     """
-    from .sky_coordinate import SkyCoord
-
     if getattr(coords, 'isscalar', False) or not isiterable(coords):
         raise TypeError('The argument to concatenate must be iterable')
     return SkyCoord(coords)
 
+_constellation_frame = FK5(equinox='B1875')
+_constellation_data = {}
 
 def get_constellation(coord, short=False):
     """
@@ -205,4 +201,41 @@ def get_constellation(coord, short=False):
         constellation.  If it is an array `SkyCoord`, it returns an array of
         names.
     """
-    raise NotImplementedError
+    if not _constellation_data:
+        cdata = data.get_pkg_data_contents('data/constellation_data_roman87.dat')
+        ctable = ascii.read(cdata, names=['ral', 'rau', 'decl', 'name'])
+        cnames = data.get_pkg_data_contents('data/constellation_names.dat')
+        cnames_short_to_long = dict([(l[:3], l[4:])
+                                     for l in cnames.split('\n')
+                                     if not l.startswith('#')])
+
+        _constellation_data['ctable'] = ctable
+        _constellation_data['cnames_short_to_long'] = cnames_short_to_long
+    else:
+        ctable = _constellation_data['ctable']
+        cnames_short_to_long = _constellation_data['cnames_short_to_long']
+
+    constel_coord = coord.transform_to(_constellation_frame)
+    if constel_coord.isscalar:
+        constel_coord = [constel_coord]
+        scalar = True
+    else:
+        scalar = False
+
+    names = []
+    for coo in constel_coord:
+        rah = coo.ra.hour
+        decd = coo.dec.deg
+        for row in ctable:
+            if row['ral'] < rah < row['rau'] and decd < row['decl']:
+                if short:
+                    names.append(row['name'])
+                else:
+                    names.append(cnames_short_to_long[row['name']])
+                break
+
+    if scalar:
+        return names[0]
+    else:
+        return names
+
