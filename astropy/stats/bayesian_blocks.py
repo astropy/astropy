@@ -224,7 +224,7 @@ def bayesian_blocks(t, x=None, sigma=None,
     >>> dt = 0.01
     >>> t = dt * np.arange(1000)
     >>> x = np.zeros(len(t))
-    >>> x[np.random.randint(0, len(t), len(t) / 10)] = 1
+    >>> x[np.random.randint(0, len(t), len(t) // 10)] = 1
     >>> bins = bayesian_blocks(t, fitness='regular_events', dt=dt, gamma=0.9)
 
     Measured point data with errors:
@@ -233,7 +233,7 @@ def bayesian_blocks(t, x=None, sigma=None,
     >>> x = np.exp(-0.5 * (t - 50) ** 2)
     >>> sigma = 0.1
     >>> x_obs = np.random.normal(x, sigma)
-    >>> bins = bayesian_blocks(t, fitness='measures')
+    >>> bins = bayesian_blocks(t, x_obs, fitness='measures')
 
     References
     ----------
@@ -317,11 +317,11 @@ def bayesian_blocks(t, x=None, sigma=None,
 
     # compute values needed for computation, below
     if 'a_k' in fitfunc.args:
-        ak_raw = np.ones_like(x) / sigma / sigma
+        ak_raw = np.ones_like(x) / sigma ** 2
     if 'b_k' in fitfunc.args:
-        bk_raw = x / sigma / sigma
+        bk_raw = x / sigma ** 2
     if 'c_k' in fitfunc.args:
-        ck_raw = x * x / sigma / sigma
+        ck_raw = x * x / sigma ** 2
 
     # create length-(N + 1) array of cell edges
     edges = np.concatenate([t[:1],
