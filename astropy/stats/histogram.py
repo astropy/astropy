@@ -11,8 +11,6 @@ from ..extern import six
 
 import numpy as np
 from . import bayesian_blocks
-from scipy.special import gammaln
-from scipy import optimize
 
 __all__ = ['histogram', 'scotts_bin_width', 'freedman_bin_width',
            'knuth_bin_width']
@@ -239,6 +237,9 @@ def knuth_bin_width(data, return_bins=False, disp=True):
     bayesian_blocks
     histogram
     """
+    # import here because of optional scipy dependency
+    from scipy import optimize
+
     knuthF = _KnuthF(data)
     dx0, bins0 = freedman_bin_width(data, True)
     M0 = len(bins0) - 1
@@ -305,6 +306,10 @@ class _KnuthF(object):
             evaluation of the negative Knuth likelihood function:
             smaller values indicate a better fit.
         """
+        # import here because of optional scipy dependency
+        # note that scipy is imported in __init__(), so import shouldn't cause
+        # a problem.
+        from scipy.special import gammaln
         M = int(M)
 
         if M <= 0:
