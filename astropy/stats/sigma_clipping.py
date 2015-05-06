@@ -132,25 +132,25 @@ def sigma_clip(data, sig=3.0, iters=1, cenfunc=np.ma.median, varfunc=np.var,
             i += 1
             lastrej = filtered_data.count()
             max_value = cenfunc(filtered_data, **kwargs)
-            standard_deviations = np.sqrt(varfunc(filtered_data, **kwargs)) * sig
+            standard_deviations = np.sqrt(varfunc(filtered_data, **kwargs))
+            standard_deviations *= sig
             min_value = max_value - standard_deviations
             max_value += standard_deviations
-            if axis is not None:
-                if axis > 0:
-                    min_value = np.expand_dims(min_value, axis=axis)
-                    max_value = np.expand_dims(max_value, axis=axis)
+            if axis > 0:
+                min_value = np.expand_dims(min_value, axis=axis)
+                max_value = np.expand_dims(max_value, axis=axis)
             filtered_data.mask |= filtered_data > max_value
             filtered_data.mask |= filtered_data < min_value
     else:
         for i in range(iters):
             max_value = cenfunc(filtered_data, **kwargs)
-            standard_deviations = np.sqrt(varfunc(filtered_data, **kwargs)) * sig
+            standard_deviations = np.sqrt(varfunc(filtered_data, **kwargs))
+            standard_deviations *= sig
             min_value = max_value - standard_deviations
             max_value += standard_deviations
-            if axis is not None:    
-                if axis > 0:
-                    min_value = np.expand_dims(min_value, axis=axis)
-                    max_value = np.expand_dims(max_value, axis=axis)
+            if axis > 0:
+                min_value = np.expand_dims(min_value, axis=axis)
+                max_value = np.expand_dims(max_value, axis=axis)
             filtered_data.mask |= filtered_data > max_value
             filtered_data.mask |= filtered_data < min_value
 
