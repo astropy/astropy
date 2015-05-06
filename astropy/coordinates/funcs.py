@@ -11,6 +11,8 @@ interfaces.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import numpy as np
+
 from .. import units as u
 from .. import _erfa as erfa
 from ..io import ascii
@@ -211,7 +213,7 @@ def get_constellation(coord, short=False):
     if not _constellation_data:
         cdata = data.get_pkg_data_contents('data/constellation_data_roman87.dat')
         ctable = ascii.read(cdata, names=['ral', 'rau', 'decl', 'name'])
-        cnames = data.get_pkg_data_contents('data/constellation_names.dat')
+        cnames = data.get_pkg_data_contents('data/constellation_names.dat', encoding='UTF8')
         cnames_short_to_long = dict([(l[:3], l[4:])
                                      for l in cnames.split('\n')
                                      if not l.startswith('#')])
@@ -246,4 +248,4 @@ def get_constellation(coord, short=False):
     if scalar:
         return names[0]
     else:
-        return names
+        return np.array(names)
