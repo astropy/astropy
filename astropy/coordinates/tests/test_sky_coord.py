@@ -1113,3 +1113,15 @@ def test_equiv_skycoord():
     assert scf2.is_equivalent_frame(FK5(equinox='J2005'))
     assert not scf3.is_equivalent_frame(scf1)
     assert not scf3.is_equivalent_frame(FK5(equinox='J2005'))
+
+
+def test_constellations():
+    # the actual test for accuracy is in test_funcs - this is just meant to make
+    # sure we get sensible answers
+    sc = SkyCoord(135*u.deg, 65*u.deg)
+    assert sc.get_constellation() == 'Ursa Major'
+    assert sc.get_constellation(short=True) == 'UMa'
+
+    scs = SkyCoord([135]*2*u.deg, [65]*2*u.deg)
+    npt.assert_equal(scs.get_constellation(), ['Ursa Major']*2)
+    npt.assert_equal(scs.get_constellation(short=True), ['UMa']*2)
