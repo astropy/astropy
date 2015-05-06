@@ -66,5 +66,5 @@ def test_constellations():
     decs = [65, -20, 9.12, -19.9, 22, -12.1234, -40, -81.1234]
     shortnames = ['UMa', 'Aqr', 'Ori', 'Hya', 'Com', 'Lib', 'CrA', 'Men']
 
-    testcoos = FK5(ras*u.hour, decs=decs*u.deg, equniox='J1950')
+    testcoos = FK5(ras*u.hour, decs=decs*u.deg, equniox='B1950')
     npt.assert_equal(get_constellation(testcoos, short=True), shortnames)

@@ -185,24 +185,24 @@ def concatenate(coords):
     return SkyCoord(coords)
 
 
-    def get_constellation(coord, short=False):
-        """
-        Determines the constellation(s) of the coordinates this `SkyCoord`
-        contains.
+def get_constellation(coord, short=False):
+    """
+    Determines the constellation(s) of the coordinates this `SkyCoord`
+    contains.
 
-        Parameters
-        ----------
-        coords : coordinate object
-            The object to determine the constellation
-        short : bool
-            If True, the returned names are the IAU-sanctioned abbreviated
-            names.  Otherwise, full names for the constellations are used.
+    Parameters
+    ----------
+    coords : coordinate object
+        The object to determine the constellation
+    short : bool
+        If True, the returned names are the IAU-sanctioned abbreviated
+        names.  Otherwise, full names for the constellations are used.
 
-        Returns
-        -------
-        constellation : str or string array
-            If ``coords`` contains a scalar coordinate, returns the name of the
-            constellation.  If it is an array `SkyCoord`, it returns an array of
-            names.
-        """
-        raise NotImplementedError
+    Returns
+    -------
+    constellation : str or string array
+        If ``coords`` contains a scalar coordinate, returns the name of the
+        constellation.  If it is an array `SkyCoord`, it returns an array of
+        names.
+    """
+    raise NotImplementedError
