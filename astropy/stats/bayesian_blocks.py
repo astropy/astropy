@@ -141,7 +141,7 @@ def bayesian_blocks(t, x=None, sigma=None,
             raise ValueError("x must be integer counts for fitness='events'")
         fitfunc = Events(**kwargs)
     elif fitness == 'regular_events':
-        if x is not None and np.all((x == 1) or (x == 0)):
+        if x is not None and np.all((x == 1) | (x == 0)):
             raise ValueError("x must be 0 or 1 for fitness='regular_events'")
         fitfunc = RegularEvents(**kwargs)
     elif fitness == 'measures':
