@@ -18,7 +18,7 @@ from .. import _erfa as erfa
 from ..io import ascii
 from ..utils import isiterable, data
 from .sky_coordinate import SkyCoord
-from .builtin_frames import GCRS, FK5
+from .builtin_frames import GCRS, PrecessedGeocentric
 from .representation import SphericalRepresentation, CartesianRepresentation
 
 __all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
@@ -181,8 +181,7 @@ def concatenate(coords):
     return SkyCoord(coords)
 
 
-# global variables that cache repeatedly-needed info for get_constellation
-_constellation_frame = FK5(equinox='B1875')
+# global dictionary that caches repeatedly-needed info for get_constellation
 _constellation_data = {}
 def get_constellation(coord, short=False):
     """
@@ -192,7 +191,7 @@ def get_constellation(coord, short=False):
     Parameters
     ----------
     coords : coordinate object
-        The object to determine the constellation
+        The object to determine the constellation of.
     short : bool
         If True, the returned names are the IAU-sanctioned abbreviated
         names.  Otherwise, full names for the constellations are used.
@@ -206,9 +205,9 @@ def get_constellation(coord, short=False):
 
     Notes
     -----
-    To determine which constellation a point on the sky is in, this first
-    precesses to B1875, and then uses the Delporte boundaries of the 88
-    modern constellations, as tabulated by
+    To determine which constellation a point on the sky is in, this precesses
+    to B1875, and then uses the Delporte boundaries of the 88 modern
+    constellations, as tabulated by
     `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
     """
     # read the data files and cache them if they haven't been already
@@ -227,7 +226,10 @@ def get_constellation(coord, short=False):
         ctable = _constellation_data['ctable']
         cnames_long = _constellation_data['cnames_long']
 
-    constel_coord = coord.transform_to(_constellation_frame)
+    # if it is geocentric, we reproduce the frame but with the 1875 equinox,
+    # which is where the constellations are defined
+    constel_coord = coord.transform_to(PrecessedGeocentric(equinox='B1875'))
+
     if constel_coord.isscalar:
         rah = constel_coord.ra.ravel().hour
         decd = constel_coord.dec.ravel().deg

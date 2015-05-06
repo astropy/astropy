@@ -15,7 +15,7 @@ from ..transformations import FunctionTransform
 from ..representation import CartesianRepresentation
 from ... import _erfa as erfa
 
-from .gcrs import GCRS
+from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
 from .utils import get_polar_motion
@@ -48,6 +48,10 @@ def cirs_to_itrs_mat(time):
     #c2tcio expects a GCRS->CIRS matrix, but we just set that to an I-matrix
     #because we're already in CIRS
     return erfa.c2tcio(np.eye(3), era, pmmat)
+
+def gcrs_precession_mat(equinox):
+    gamb, phib, psib, epsa = erfa.pfw06(equinox.jd1, equinox.jd2)
+    return erfa.fw2m(gamb, phib, psib, epsa)
 
 
 def cartrepr_from_matmul(pmat, coo, transpose=False):
@@ -120,9 +124,33 @@ def itrs_to_itrs(from_coo, to_frame):
     # goes back to ICRS
     return from_coo.transform_to(CIRS).transform_to(to_frame)
 
-
-
 #TODO: implement GCRS<->CIRS if there's call for it.  The thing that's awkward
 #is that they both have obstimes, so an extra set of transformations are necessary.
 #so unless there's a specific need for that, better to just have it go through te above
 #two steps anyway
+
+
+@frame_transform_graph.transform(FunctionTransform, GCRS, PrecessedGeocentric)
+def gcrs_to_precessedgeo(from_coo, to_frame):
+    # first get us to GCRS with the right attributes (might be a no-op)
+    gcrs_coo = from_coo.transform_to(GCRS(obstime=to_frame.obstime,
+                                          obsgeoloc=to_frame.obsgeoloc,
+                                          obsgeovel=to_frame.obsgeovel))
+
+    # now precess to the requested equinox
+    pmat = gcrs_precession_mat(to_frame.equinox)
+    crepr = cartrepr_from_matmul(pmat, gcrs_coo)
+    return to_frame.realize_frame(crepr)
+
+
+@frame_transform_graph.transform(FunctionTransform, PrecessedGeocentric, GCRS)
+def recessedgeo_to_gcrs(from_coo, to_frame):
+    # first un-precess
+    pmat = gcrs_precession_mat(from_coo.equinox)
+    crepr = cartrepr_from_matmul(pmat, from_coo, transpose=True)
+    gcrs_coo = GCRS(crepr, obstime=to_frame.obstime,
+                           obsgeoloc=to_frame.obsgeoloc,
+                           obsgeovel=to_frame.obsgeovel)
+
+    # then move to the GCRS that's actually desired
+    return gcrs_coo.transform_to(to_frame)
