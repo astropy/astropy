@@ -561,7 +561,7 @@ class BaseCoordinateFrame(object):
                     del repr_kwargs['distance']
                 if (issubclass(self.representation, SphericalRepresentation) and
                         'distance' not in repr_kwargs):
-                    representation_data = UnitSphericalRepresentation(**repr_kwargs)
+                    representation_data = self.representation._unitrep(**repr_kwargs)
                 else:
                     representation_data = self.representation(**repr_kwargs)
 
@@ -709,7 +709,6 @@ class BaseCoordinateFrame(object):
             if repr_unit:
                 out[repr_name] = repr_unit
         return out
-
 
     def realize_frame(self, representation):
         """
