@@ -134,9 +134,13 @@ New Features
 - ``astropy.wcs``
 
   - Enhanced text representation of ``WCS`` objects. [#3604]
+
   - The included version of wcslib has been upgraded to 5.3.  The
-    minimum required version of wcslib remains 4.24.  The changes
-    relevant to astropy are:
+    minimum required version of wcslib remains 4.24.  wcslib 5.4 is
+    not supported, since it now supports SIP directly, this results in
+    the SIP transformation being doubly-applied.
+
+    The wcslib changes relevant to astropy are:
 
     - ``astropy.wcs.WCS`` now recognises the ``TPV`` projection
       proposed in an early draft of WCS Paper II, and translates it
