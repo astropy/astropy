@@ -22,7 +22,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     This is a histogram function that enables the use of more sophisticated
     algorithms for determining bins.  Aside from the ``bins`` argument allowing
     a string specified how bins are computed, the parameters are the same
-    as numpy.histogram().
+    as ``numpy.histogram()``.
 
     Parameters
     ----------
@@ -196,7 +196,10 @@ def freedman_bin_width(data, return_bins=False):
 
 
 def knuth_bin_width(data, return_bins=False, disp=True):
-    r"""Return the optimal histogram bin width using Knuth's rule [1]_
+    r"""Return the optimal histogram bin width using Knuth's rule.
+
+    Knuth's rule [1]_ is a fixed-width, Bayesian approach to determining
+    the optimal bin width of a histogram.
 
     Parameters
     ----------
