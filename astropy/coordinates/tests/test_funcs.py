@@ -54,7 +54,7 @@ def test_concatenate():
 
 
 def test_constellations():
-    from .. import ICRS, FK5
+    from .. import ICRS, FK5, SkyCoord
     from ..funcs import get_constellation
 
     inuma = ICRS(9*u.hour, 65*u.deg)
@@ -68,3 +68,8 @@ def test_constellations():
 
     testcoos = FK5(ras*u.hour, decs*u.deg, equinox='B1950')
     npt.assert_equal(get_constellation(testcoos, short=True), shortnames)
+
+    # test on a SkyCoord, *and* test Boötes, which is special in that it has a
+    # non-ASCII charater
+    bootest = SkyCoord(15*u.hour, 30*u.deg, frame='icrs')
+    assert get_constellation(bootest) == u'Boötes'
