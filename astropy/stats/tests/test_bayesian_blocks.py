@@ -89,7 +89,7 @@ def test_errors():
 
     # x must be binary for regular events
     with pytest.raises(ValueError):
-        bayesian_blocks(t, fitness='regular_events', x=10 * t)
+        bayesian_blocks(t, fitness='regular_events', x=10 * t, dt=1)
     
     # x must be specified for measures
     with pytest.raises(ValueError):

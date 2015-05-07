@@ -128,152 +128,19 @@ def bayesian_blocks(t, x=None, sigma=None,
     --------
     astropy.stats.histogram : compute a histogram using bayesian blocks
     """
-    # validate array input
-    t = np.asarray(t, dtype=float)
-    if x is not None:
-        x = np.asarray(x)
-    if sigma is not None:
-        sigma = np.asarray(sigma)
+    FITNESS_DICT = {'events': Events,
+                    'regular_events': RegularEvents,
+                    'measures': PointMeasures}
+    fitness = FITNESS_DICT.get(fitness, fitness)
 
-    # verify the fitness function
-    if fitness == 'events':
-        if x is not None and np.any(x % 1 > 0):
-            raise ValueError("x must be integer counts for fitness='events'")
-        fitfunc = Events(**kwargs)
-    elif fitness == 'regular_events':
-        if x is not None and not np.all((x == 1) | (x == 0)):
-            raise ValueError("x must be 0 or 1 for fitness='regular_events'")
-        fitfunc = RegularEvents(**kwargs)
-    elif fitness == 'measures':
-        if x is None:
-            raise ValueError("x must be specified for fitness='measures'")
-        fitfunc = PointMeasures(**kwargs)
-    elif type(fitness) is type and issubclass(fitness, FitnessFunc):
+    if type(fitness) is type and issubclass(fitness, FitnessFunc):
         fitfunc = fitness(**kwargs)
     elif isinstance(fitness, FitnessFunc):
         fitfunc = fitness
     else:
-        # duck-typed fitness function
-        for attr in ['args', 'fitness', 'prior']:
-            if not hasattr(fitness, attr):
-                raise ValueError("fitness not understood")
-        fitfunc = fitness
+        raise ValueError("fitness parameter not understood")
 
-    # find unique values of t
-    t = np.array(t, dtype=float)
-    assert t.ndim == 1
-    unq_t, unq_ind, unq_inv = np.unique(t, return_index=True,
-                                        return_inverse=True)
-
-    # if x is not specified, x will be counts at each time
-    if x is None:
-        if sigma is not None:
-            raise ValueError("If sigma is specified, x must be specified")
-        else:
-            sigma = 1
-
-        if len(unq_t) == len(t):
-            x = np.ones_like(t)
-        else:
-            x = np.bincount(unq_inv)
-
-        t = unq_t
-
-    # if x is specified, then we need to simultaneously sort t and x
-    else:
-        x = np.asarray(x)
-
-        if len(t) != len(x):
-            raise ValueError("Size of t and x does not match")
-
-        if len(unq_t) != len(t):
-            raise ValueError("Repeated values in t not supported when "
-                             "x is specified")
-        t = unq_t
-        x = x[unq_ind]
-
-    # verify the given sigma value
-    N = t.size
-    if sigma is not None:
-        sigma = np.asarray(sigma)
-        if sigma.shape not in [(), (1,), (N,)]:
-            raise ValueError('sigma does not match the shape of x')
-    else:
-        sigma = 1
-
-    # validate the input
-    fitfunc.validate_input(t, x, sigma)
-
-    # compute values needed for computation, below
-    if 'a_k' in fitfunc.args:
-        ak_raw = np.ones_like(x) / sigma ** 2
-    if 'b_k' in fitfunc.args:
-        bk_raw = x / sigma ** 2
-    if 'c_k' in fitfunc.args:
-        ck_raw = x * x / sigma ** 2
-
-    # create length-(N + 1) array of cell edges
-    edges = np.concatenate([t[:1],
-                            0.5 * (t[1:] + t[:-1]),
-                            t[-1:]])
-    block_length = t[-1] - edges
-
-    # arrays to store the best configuration
-    best = np.zeros(N, dtype=float)
-    last = np.zeros(N, dtype=int)
-
-    #-----------------------------------------------------------------
-    # Start with first data cell; add one cell at each iteration
-    #-----------------------------------------------------------------
-    for R in range(N):
-        # Compute fit_vec : fitness of putative last block (end at R)
-        kwds = {}
-
-        # T_k: width/duration of each block
-        if 'T_k' in fitfunc.args:
-            kwds['T_k'] = block_length[:R + 1] - block_length[R + 1]
-
-        # N_k: number of elements in each block
-        if 'N_k' in fitfunc.args:
-            kwds['N_k'] = np.cumsum(x[:R + 1][::-1])[::-1]
-
-        # a_k: eq. 31
-        if 'a_k' in fitfunc.args:
-            kwds['a_k'] = 0.5 * np.cumsum(ak_raw[:R + 1][::-1])[::-1]
-
-        # b_k: eq. 32
-        if 'b_k' in fitfunc.args:
-            kwds['b_k'] = - np.cumsum(bk_raw[:R + 1][::-1])[::-1]
-
-        # c_k: eq. 33
-        if 'c_k' in fitfunc.args:
-            kwds['c_k'] = 0.5 * np.cumsum(ck_raw[:R + 1][::-1])[::-1]
-
-        # evaluate fitness function
-        fit_vec = fitfunc.fitness(**kwds)
-
-        A_R = fit_vec - fitfunc.prior(R + 1, N)
-        A_R[1:] += best[:R]
-
-        i_max = np.argmax(A_R)
-        last[R] = i_max
-        best[R] = A_R[i_max]
-
-    #-----------------------------------------------------------------
-    # Now find changepoints by iteratively peeling off the last block
-    #-----------------------------------------------------------------
-    change_points = np.zeros(N, dtype=int)
-    i_cp = N
-    ind = N
-    while True:
-        i_cp -= 1
-        change_points[i_cp] = ind
-        if ind == 0:
-            break
-        ind = last[ind - 1]
-    change_points = change_points[i_cp:]
-
-    return edges[change_points]
+    return fitfunc.fit(t, x, sigma)
 
 
 class FitnessFunc(object):
@@ -293,11 +160,76 @@ class FitnessFunc(object):
         self.p0 = p0
         self.gamma = gamma
 
-    def validate_input(self, t, x, sigma):
-        """Check that input is valid"""
-        pass
+    def validate_input(self, t, x=None, sigma=None):
+        """Validate inputs to the model.
 
-    def fitness(**kwargs):
+        Parameters
+        ----------
+        t : array_like
+            times of observations
+        x : array_like (optional)
+            values observed at each time
+        sigma : float or array_like (optional)
+            errors in values x
+
+        Returns
+        -------
+        t, x, sigma : array_like, float or None
+            validated and perhaps modified versions of inputs
+        """
+        # validate array input
+        t = np.asarray(t, dtype=float)
+        if x is not None:
+            x = np.asarray(x)
+        if sigma is not None:
+            sigma = np.asarray(sigma)
+
+        # find unique values of t
+        t = np.array(t)
+        if t.ndim != 1:
+            raise ValueError("t must be a one-dimensional array")
+        unq_t, unq_ind, unq_inv = np.unique(t, return_index=True,
+                                            return_inverse=True)
+
+        # if x is not specified, x will be counts at each time
+        if x is None:
+            if sigma is not None:
+                raise ValueError("If sigma is specified, x must be specified")
+            else:
+                sigma = 1
+
+            if len(unq_t) == len(t):
+                x = np.ones_like(t)
+            else:
+                x = np.bincount(unq_inv)
+
+            t = unq_t
+
+        # if x is specified, then we need to simultaneously sort t and x
+        else:
+            # TODO: allow broadcasted x?
+            x = np.asarray(x)
+            if x.shape not in [(), (1,), (t.size,)]:
+                raise ValueError("x does not match shape of t")
+            x += np.zeros_like(t)
+
+            if len(unq_t) != len(t):
+                raise ValueError("Repeated values in t not supported when "
+                                 "x is specified")
+            t = unq_t
+            x = x[unq_ind]
+
+        # verify the given sigma value
+        if sigma is None:
+            sigma = 1
+        else:
+            sigma = np.asarray(sigma)
+            if sigma.shape not in [(), (1,), (t.size,)]:
+                raise ValueError('sigma does not match the shape of x')
+
+        return t, x, sigma
+
+    def fitness(self, **kwargs):
         raise NotImplementedError()
 
     def prior(self, N, Ntot):
@@ -329,22 +261,119 @@ class FitnessFunc(object):
         except AttributeError:
             return self.fitness.__code__.co_varnames[1:]
 
+    def fit(self, t, x=None, sigma=None):
+        """Fit the Bayesian Blocks model given the specified fitness function.
+
+        Parameters
+        ----------
+        t : array_like
+            data times (one dimensional, length N)
+        x : array_like (optional)
+            data values
+        sigma : array_like or float (optional)
+            data errors
+
+        Returns
+        -------
+        edges : ndarray
+            array containing the (M+1) edges defining the M optimal bins
+        """
+        t, x, sigma = self.validate_input(t, x, sigma)
+
+        # compute values needed for computation, below
+        if 'a_k' in self.args:
+            ak_raw = np.ones_like(x) / sigma ** 2
+        if 'b_k' in self.args:
+            bk_raw = x / sigma ** 2
+        if 'c_k' in self.args:
+            ck_raw = x * x / sigma ** 2
+
+        # create length-(N + 1) array of cell edges
+        edges = np.concatenate([t[:1],
+                                0.5 * (t[1:] + t[:-1]),
+                                t[-1:]])
+        block_length = t[-1] - edges
+
+        # arrays to store the best configuration
+        N = len(t)
+        best = np.zeros(N, dtype=float)
+        last = np.zeros(N, dtype=int)
+
+        #-----------------------------------------------------------------
+        # Start with first data cell; add one cell at each iteration
+        #-----------------------------------------------------------------
+        for R in range(N):
+            # Compute fit_vec : fitness of putative last block (end at R)
+            kwds = {}
+
+            # T_k: width/duration of each block
+            if 'T_k' in self.args:
+                kwds['T_k'] = block_length[:R + 1] - block_length[R + 1]
+
+            # N_k: number of elements in each block
+            if 'N_k' in self.args:
+                kwds['N_k'] = np.cumsum(x[:R + 1][::-1])[::-1]
+
+            # a_k: eq. 31
+            if 'a_k' in self.args:
+                kwds['a_k'] = 0.5 * np.cumsum(ak_raw[:R + 1][::-1])[::-1]
+
+            # b_k: eq. 32
+            if 'b_k' in self.args:
+                kwds['b_k'] = - np.cumsum(bk_raw[:R + 1][::-1])[::-1]
+
+            # c_k: eq. 33
+            if 'c_k' in self.args:
+                kwds['c_k'] = 0.5 * np.cumsum(ck_raw[:R + 1][::-1])[::-1]
+
+            # evaluate fitness function
+            fit_vec = self.fitness(**kwds)
+
+            A_R = fit_vec - self.prior(R + 1, N)
+            A_R[1:] += best[:R]
+
+            i_max = np.argmax(A_R)
+            last[R] = i_max
+            best[R] = A_R[i_max]
+
+        #-----------------------------------------------------------------
+        # Now find changepoints by iteratively peeling off the last block
+        #-----------------------------------------------------------------
+        change_points = np.zeros(N, dtype=int)
+        i_cp = N
+        ind = N
+        while True:
+            i_cp -= 1
+            change_points[i_cp] = ind
+            if ind == 0:
+                break
+            ind = last[ind - 1]
+        change_points = change_points[i_cp:]
+
+        return edges[change_points]
+
 
 class Events(FitnessFunc):
     """Fitness for binned or unbinned events
 
     Parameters
     ----------
-    p0 : float
+    p0 : float (optional)
         False alarm probability, used to compute the prior on N
         (see eq. 21 of Scargle 2012).  Default prior is for p0 = 0.
-    gamma : float or None
+    gamma : float (optional)
         If specified, then use this gamma to compute the general prior form,
         p ~ gamma^N.  If gamma is specified, p0 is ignored.
     """
     def fitness(self, N_k, T_k):
         # eq. 19 from Scargle 2012
         return N_k * (np.log(N_k) - np.log(T_k))
+
+    def validate_input(self, t, x, sigma):
+        t, x, sigma = super(Events, self).validate_input(t, x, sigma)
+        if x is not None and np.any(x % 1 > 0):
+            raise ValueError("x must be integer counts for fitness='events'")
+        return t, x, sigma
 
     def prior(self, N, Ntot):
         if self.gamma is not None:
@@ -365,8 +394,12 @@ class RegularEvents(FitnessFunc):
     ----------
     dt : float
         tick rate for data
-    gamma : float
-        specifies the prior on the number of bins: p ~ gamma^N
+    p0 : float (optional)
+        False alarm probability, used to compute the prior on N
+        (see eq. 21 of Scargle 2012).  Default prior is for p0 = 0.
+    gamma : float (optional)
+        If specified, then use this gamma to compute the general prior form,
+        p ~ gamma^N.  If gamma is specified, p0 is ignored.
     """
     def __init__(self, dt, p0=0.05, gamma=None):
         self.dt = dt
@@ -374,9 +407,10 @@ class RegularEvents(FitnessFunc):
         self.gamma = gamma
 
     def validate_input(self, t, x, sigma):
-        unique_x = np.unique(x)
-        if list(unique_x) not in ([0], [1], [0, 1]):
+        t, x, sigma = super(RegularEvents, self).validate_input(t, x, sigma)
+        if not np.all((x == 0) | (x == 1)):
             raise ValueError("Regular events must have only 0 and 1 in x")
+        return t, x, sigma
 
     def fitness(self, T_k, N_k):
         # Eq. 75 of Scargle 2012
@@ -401,10 +435,17 @@ class PointMeasures(FitnessFunc):
 
     Parameters
     ----------
-    gamma : float
-        specifies the prior on the number of bins: p ~ gamma^N
-        if gamma is not specified, then a prior based on simulations
-        will be used (see sec 3.3 of Scargle 2012)
+    p0 : float (optional)
+        False alarm probability, used to compute the prior on N
+        (see eq. 21 of Scargle 2012).  Default prior is for p0 = 0.
+    gamma : float (optional)
+        If specified, then use this gamma to compute the general prior form,
+        p ~ gamma^N.  If gamma is specified, p0 is ignored.
+
+    Notes
+    -----
+    if neither p0 nor gamma is specified, the prior will be computed using
+    the empirical form given in section 3.3 of Scargle (2012).
     """
     def __init__(self, p0=None, gamma=None):
         self.p0 = p0
@@ -413,6 +454,11 @@ class PointMeasures(FitnessFunc):
     def fitness(self, a_k, b_k):
         # eq. 41 from Scargle 2012
         return (b_k * b_k) / (4 * a_k)
+
+    def validate_input(self, t, x, sigma):
+        if x is None:
+            raise ValueError("x must be specified for point measures")
+        return super(PointMeasures, self).validate_input(t, x, sigma)
 
     def prior(self, N, Ntot):
         if self.gamma is not None:
