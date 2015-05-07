@@ -31,11 +31,11 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
 
     bins : int or list or str (optional)
         If bins is a string, then it must be one of:
-        'adaptive' : use bayesian blocks for dynamic bin widths
-        'blocks' : same as 'adaptive'
-        'knuth' : use Knuth's rule to determine bins
-        'scotts' : use Scott's rule to determine bins
-        'freedman' : use the Freedman-Diaconis rule to determine bins
+        - 'adaptive' : use bayesian blocks for dynamic bin widths
+        - 'blocks' : same as 'adaptive'
+        - 'knuth' : use Knuth's rule to determine bins
+        - 'scotts' : use Scott's rule to determine bins
+        - 'freedman' : use the Freedman-Diaconis rule to determine bins
 
     range : tuple or None (optional)
         the minimum and maximum range for the histogram.  If not specified,
