@@ -225,18 +225,17 @@ def get_constellation(coord, short_name=False):
         ctable = _constellation_data['ctable']
         cnames_long = _constellation_data['cnames_long']
 
+    isscalar = coord.isscalar
+
     # if it is geocentric, we reproduce the frame but with the 1875 equinox,
     # which is where the constellations are defined
     constel_coord = coord.transform_to(PrecessedGeocentric(equinox='B1875'))
-
-    if constel_coord.isscalar:
+    if isscalar:
         rah = constel_coord.ra.ravel().hour
         decd = constel_coord.dec.ravel().deg
-        scalar = True
     else:
         rah = constel_coord.ra.hour
         decd = constel_coord.dec.deg
-        scalar = False
 
     constellidx = -np.ones(len(rah), dtype=int)
 
@@ -255,7 +254,7 @@ def get_constellation(coord, short_name=False):
     else:
         names = cnames_long[constellidx]
 
-    if scalar:
+    if isscalar:
         return names[0]
     else:
         return names
