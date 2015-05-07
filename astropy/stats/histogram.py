@@ -82,7 +82,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
             da, bins = scotts_bin_width(a, True)
         elif bins == 'freedman':
             da, bins = freedman_bin_width(a, True)
-        elif isinstance(bins, str):
+        else:
             raise ValueError("unrecognized bin code: '%s'" % bins)
 
     # Now we call numpy's histogram with the resulting bin edges

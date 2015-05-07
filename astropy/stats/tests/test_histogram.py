@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from numpy.testing import assert_allclose, assert_, assert_raises
+from numpy.testing import assert_allclose
 
 from ...tests.helper import pytest
 from .. import histogram, scotts_bin_width, freedman_bin_width, knuth_bin_width
@@ -27,7 +27,8 @@ def test_scotts_bin_width(N=10000, rseed=0):
     delta, bins = scotts_bin_width(X, return_bins=True)
     assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
 
-    assert_raises(ValueError, scotts_bin_width, X.reshape(2, -1))
+    with pytest.raises(ValueError):
+        delta = scotts_bin_width(np.random.rand(2, 10))
 
 
 def test_freedman_bin_width(N=10000, rseed=0):
@@ -41,7 +42,8 @@ def test_freedman_bin_width(N=10000, rseed=0):
     delta, bins = freedman_bin_width(X, return_bins=True)
     assert_allclose(delta, 2 * (v75 - v25) / N ** (1 / 3))
 
-    assert_raises(ValueError, freedman_bin_width, X.reshape(2, -1))
+    with pytest.raises(ValueError):
+        delta = freedman_bin_width(np.random.rand(2, 10))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -55,7 +57,8 @@ def test_knuth_bin_width(N=10000, rseed=0):
     dx2 = knuth_bin_width(X)
     assert dx == dx2
 
-    assert_raises(ValueError, knuth_bin_width, X.reshape(2, -1))
+    with pytest.raises(ValueError):
+        delta = knuth_bin_width(np.random.rand(2, 10))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -63,8 +66,8 @@ def test_knuth_histogram(N=1000, rseed=0):
     np.random.seed(rseed)
     x = np.random.normal(0, 1, N)
     counts, bins = histogram(x, 'knuth')
-    assert_(counts.sum() == len(x))
-    assert_(len(counts) == len(bins) - 1)
+    assert (counts.sum() == len(x))
+    assert (len(counts) == len(bins) - 1)
 
 
 def test_histogram(N=1000, rseed=0):
@@ -74,8 +77,8 @@ def test_histogram(N=1000, rseed=0):
     for bins in [30, np.linspace(-5, 5, 31),
                  'scotts', 'freedman', 'blocks', 'adaptive']:
         counts, bins = histogram(x, bins)
-        assert_(counts.sum() == len(x))
-        assert_(len(counts) == len(bins) - 1)
+        assert (counts.sum() == len(x))
+        assert (len(counts) == len(bins) - 1)
 
 
 def test_histogram_range(N=1000, rseed=0):
@@ -94,9 +97,11 @@ def test_histogram_badargs(N=1000, rseed=0):
 
     # weights is not supported
     for bins in ['scotts', 'freedman', 'blocks', 'adaptive']:
-        assert_raises(NotImplementedError, histogram, x, bins, weights=x)
+        with pytest.raises(NotImplementedError):
+            histogram(x, bins, weights=x)
 
     # bad bins arg gives ValueError
-    assert_raises(ValueError, histogram, x, 'blahblah')
+    with pytest.raises(ValueError):
+        histogram(x, bins='bad_argument')
 
     

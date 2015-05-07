@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from  numpy.testing import assert_allclose, assert_, assert_raises
+from  numpy.testing import assert_allclose
 from .. import bayesian_blocks
 
 
@@ -15,7 +15,7 @@ def test_single_change_point():
 
     bins = bayesian_blocks(x)
 
-    assert_(len(bins) == 3)
+    assert (len(bins) == 3)
     assert_allclose(bins[1], 1, rtol=0.02)
 
 
@@ -65,5 +65,5 @@ def test_regular_events():
 
     bins = bayesian_blocks(t, fitness='regular_events', dt=dt)
 
-    assert_(len(bins) == 3)
+    assert (len(bins) == 3)
     assert_allclose(bins[1], 5, rtol=0.05)
