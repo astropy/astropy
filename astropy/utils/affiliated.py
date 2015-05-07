@@ -97,8 +97,8 @@ def main(args=None):
     regjson = get_affiliated_json(args.url)
 
     if args.subparser_name == 'list':
-        names = get_names(regjson=regjson)
-        print(names)
+        for name in get_names(regjson=regjson):
+            print(name)
     elif args.subparser_name == 'install':
         if 'Anaconda' in sys.version or 'Continuum Analytics' in sys.version:
             conda_install(args.pkgname, regjson=regjson)
