@@ -13,11 +13,11 @@ def hist(x, bins=10, ax=None, **kwargs):
     """Enhanced histogram function
 
     This is a histogram function that enables the use of more sophisticated
-    algorithms for determining bins.  Aside from the `bins` argument allowing
+    algorithms for determining bins.  Aside from the ``bins`` argument allowing
     a string specified how bins are computed, the parameters are the same
     as pylab.hist().
 
-    This function was ported from astroML.
+    This function was ported from astroML: http://astroML.org/
 
     Parameters
     ----------
@@ -37,7 +37,7 @@ def hist(x, bins=10, ax=None, **kwargs):
         then the current active axes will be used.
 
     **kwargs :
-        other keyword arguments are described in pylab.hist().
+        other keyword arguments are described in ``plt.hist()``.
 
     Notes
     -----
@@ -45,19 +45,16 @@ def hist(x, bins=10, ax=None, **kwargs):
 
     See Also
     --------
-    plt.hist
-    np.histogram
     astropy.stats.histogram
     """
-    # optional dependency; only import if needed.
-    import matplotlib.pyplot as plt
-    
     # arguments of np.histogram should be passed to astropy.stats.histogram
     arglist = inspect.getargspec(np.histogram)[0][1:]
     np_hist_kwds = dict((key, kwargs[key]) for key in arglist if key in kwargs)
     hist, bins = histogram(x, bins, **np_hist_kwds)
 
     if ax is None:
+        # optional dependency; only import if strictly needed.
+        import matplotlib.pyplot as plt
         ax = plt.gca()
 
     return ax.hist(x, bins, **kwargs)
