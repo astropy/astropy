@@ -2601,13 +2601,7 @@ The following enhancements were made:
       >>> del cl[0]
       >>> print cl['DP1.AXIS.1']
       Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "NP_pyfits.py", line 977, in __getitem__
-        return self.ascard[key].value
-      File "NP_pyfits.py", line 1258, in __getitem__
-        _key = self.index_of(key)
-      File "NP_pyfits.py", line 1403, in index_of
-        raise KeyError, 'Keyword %s not found.' % `key`
+      ...
       KeyError: "Keyword 'DP1.AXIS.1' not found."
       >>> hdr['DP1.AXIS.1']
       4.0

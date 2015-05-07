@@ -255,14 +255,10 @@ or greater they have run into the following crash when trying to create a
 
     >>> datetime = Time('2012-03-01T13:08:00', scale='utc')
     Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/usr/lib/python2.7/site-packages/astropy/time/core.py", line 198, in __init__
-        self._init_from_vals(val, val2, format, scale, copy)
-      File "/usr/lib/python2.7/site-packages/astropy/time/core.py", line 240, in _init_from_vals
-        self._time = self._get_time_fmt(val, val2, format, scale)
-      File "/usr/lib/python2.7/site-packages/astropy/time/core.py", line 278, in _get_time_fmt
-        raise ValueError('Input values did not match {0}'.format(err_msg))
-    ValueError: Input values did not match any of the formats where the format keyword is optional [u'astropy_time', u'datetime', u'jyear_str', u'iso', u'isot', u'yday', u'byear_str']
+    ...
+    ValueError: Input values did not match any of the formats where
+    the format keyword is optional [u'astropy_time', u'datetime',
+    u'jyear_str', u'iso', u'isot', u'yday', u'byear_str']
 
 This problem can occur when there is a version mismatch between the compiled
 ERFA library (this is included as part of Astropy in most distributions), and
