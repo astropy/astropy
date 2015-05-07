@@ -183,7 +183,7 @@ def concatenate(coords):
 
 # global dictionary that caches repeatedly-needed info for get_constellation
 _constellation_data = {}
-def get_constellation(coord, short_name=False):
+def get_constellation(coord, short_name=False, constellation_list='iau'):
     """
     Determines the constellation(s) a given coordinate object contains.
 
@@ -194,6 +194,9 @@ def get_constellation(coord, short_name=False):
     short_name : bool
         If True, the returned names are the IAU-sanctioned abbreviated
         names.  Otherwise, full names for the constellations are used.
+    constellation_list : str
+        The set of constellations to use.  Currently only ``'iau'`` is
+        supported, meaning the 88 "modern" constellations endorsed by the IAU.
 
     Returns
     -------
@@ -209,6 +212,9 @@ def get_constellation(coord, short_name=False):
     constellations, as tabulated by
     `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
     """
+    if constellation_list != 'iau':
+        raise ValueError("only 'iau' us currently supported for constellation_list")
+
     # read the data files and cache them if they haven't been already
     if not _constellation_data:
         cdata = data.get_pkg_data_contents('data/constellation_data_roman87.dat')
