@@ -185,8 +185,7 @@ def concatenate(coords):
 _constellation_data = {}
 def get_constellation(coord, short_name=False):
     """
-    Determines the constellation(s) of the coordinates this `SkyCoord`
-    contains.
+    Determines the constellation(s) a given coordinate object contains.
 
     Parameters
     ----------
@@ -200,8 +199,8 @@ def get_constellation(coord, short_name=False):
     -------
     constellation : str or string array
         If ``coords`` contains a scalar coordinate, returns the name of the
-        constellation.  If it is an array `SkyCoord`, it returns an array of
-        names.
+        constellation.  If it is an array coordinate object, it returns an array
+        of names.
 
     Notes
     -----
