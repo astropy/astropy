@@ -100,6 +100,8 @@ New Features
 
   - Initializing a ``Table`` with ``Column`` objects no longer requires
     that the column ``name`` attribute be defined. [#3781]
+  - Table columns may now have a structured (recarray) dtype.  For
+    example, a column could be an (integer, string) pair. [#3759]
 
 - ``astropy.tests``
 
