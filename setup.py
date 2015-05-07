@@ -79,6 +79,7 @@ entry_points['console_scripts'] = [
     'samp_hub = astropy.vo.samp.hub_script:hub_script',
     'volint = astropy.io.votable.volint:main',
     'wcslint = astropy.wcs.wcslint:main',
+    'apy-affiliated = astropy.utils.affiliated:main'
 ]
 
 setup_requires = ['numpy>=' + astropy.__minimum_numpy_version__]
