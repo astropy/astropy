@@ -503,7 +503,7 @@ def assert_follows_unicode_guidelines(
         x, roundtrip=None):
     """
     Test that an object follows our Unicode policy.  See
-    "Unicode Policy" in the coding guidelines.
+    "Unicode guidelines" in the coding guidelines.
 
     Parameters
     ----------
