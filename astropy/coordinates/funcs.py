@@ -183,7 +183,7 @@ def concatenate(coords):
 
 # global dictionary that caches repeatedly-needed info for get_constellation
 _constellation_data = {}
-def get_constellation(coord, short=False):
+def get_constellation(coord, short_name=False):
     """
     Determines the constellation(s) of the coordinates this `SkyCoord`
     contains.
@@ -192,7 +192,7 @@ def get_constellation(coord, short=False):
     ----------
     coords : coordinate object
         The object to determine the constellation of.
-    short : bool
+    short_name : bool
         If True, the returned names are the IAU-sanctioned abbreviated
         names.  Otherwise, full names for the constellations are used.
 
@@ -251,7 +251,7 @@ def get_constellation(coord, short=False):
     else:
         raise ValueError('Could not find constellation for coordinates {0}'.format(constel_coord[notided]))
 
-    if short:
+    if short_name:
         names = ctable['name'][constellidx]
     else:
         names = cnames_long[constellidx]

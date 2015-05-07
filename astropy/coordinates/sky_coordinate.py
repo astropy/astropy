@@ -924,14 +924,14 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
-    def get_constellation(self, short=False):
+    def get_constellation(self, short_name=False):
         """
         Determines the constellation(s) of the coordinates this `SkyCoord`
         contains.
 
         Parameters
         ----------
-        short : bool
+        short_name : bool
             If True, the returned names are the IAU-sanctioned abbreviated
             names.  Otherwise, full names for the constellations are used.
 
@@ -955,7 +955,7 @@ class SkyCoord(object):
         """
         from .funcs import get_constellation
 
-        return get_constellation(self, short)
+        return get_constellation(self, short_name)
 
     # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
