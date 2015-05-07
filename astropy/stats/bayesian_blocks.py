@@ -52,7 +52,7 @@ def bayesian_blocks(t, x=None, sigma=None,
     """Bayesian Blocks Implementation
 
     This is a flexible implementation of the Bayesian Blocks algorithm
-    described in Scargle 2012 [1]_
+    described in Scargle 2012 [1]_.
 
     Parameters
     ----------
@@ -122,7 +122,7 @@ def bayesian_blocks(t, x=None, sigma=None,
     References
     ----------
     .. [1] Scargle, J et al. (2012)
-           http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
+       http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
 
     See Also
     --------

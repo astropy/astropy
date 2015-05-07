@@ -20,7 +20,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     """Enhanced histogram function
 
     This is a histogram function that enables the use of more sophisticated
-    algorithms for determining bins.  Aside from the `bins` argument allowing
+    algorithms for determining bins.  Aside from the ``bins`` argument allowing
     a string specified how bins are computed, the parameters are the same
     as numpy.histogram().
 
@@ -49,7 +49,7 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     Returns
     -------
     hist : array
-        The values of the histogram. See `normed` and `weights` for a
+        The values of the histogram. See ``normed`` and ``weights`` for a
         description of the possible semantics.
     bin_edges : array of dtype float
         Return the bin edges ``(length(hist)+1)``.
@@ -104,7 +104,7 @@ def scotts_bin_width(data, return_bins=False):
     width : float
         optimal bin width using Scott's rule
     bins : ndarray
-        bin edges: returned if `return_bins` is True
+        bin edges: returned if ``return_bins`` is True
 
     Notes
     -----
@@ -156,7 +156,7 @@ def freedman_bin_width(data, return_bins=False):
     width : float
         optimal bin width using Scott's rule
     bins : ndarray
-        bin edges: returned if `return_bins` is True
+        bin edges: returned if ``return_bins`` is True
 
     Notes
     -----
@@ -210,7 +210,7 @@ def knuth_bin_width(data, return_bins=False, disp=True):
     dx : float
         optimal bin width. Bins are measured starting at the first data point.
     bins : ndarray
-        bin edges: returned if `return_bins` is True
+        bin edges: returned if ``return_bins`` is True
 
     Notes
     -----
@@ -228,7 +228,7 @@ def knuth_bin_width(data, return_bins=False, disp=True):
     References
     ----------
     .. [1] Knuth, K.H. "Optimal Data-Based Binning for Histograms".
-           arXiv:0605197, 2006
+       arXiv:0605197, 2006
 
     See Also
     --------
