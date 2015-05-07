@@ -28,7 +28,7 @@ the :func:`bayesian_blocks` routine.
 One common application of the Bayesian Blocks algorithm is the determination
 of optimal adaptive-width histogram bins. This uses the same fitness function
 as for irregularly-spaced time series events. The easiest interface for
-creating Bayesian Blocks histograms is the :func:``astropy.stats.histogram``
+creating Bayesian Blocks histograms is the :func:`astropy.stats.histogram`
 function.
 
 References
@@ -67,16 +67,16 @@ def bayesian_blocks(t, x=None, sigma=None,
         If a string, the following options are supported:
 
         - 'events' : binned or unbinned event data
-            extra arguments are `p0`, which gives the false alarm probability
-            to compute the prior, or `gamma` which gives the slope of the
+            extra arguments are ``p0``, which gives the false alarm probability
+            to compute the prior, or ``gamma`` which gives the slope of the
             prior on the number of bins.
         - 'regular_events' : non-overlapping events measured at multiples
-            of a fundamental tick rate, `dt`, which must be specified as an
-            additional argument.  The prior can be specified through `gamma`,
+            of a fundamental tick rate, ``dt``, which must be specified as an
+            additional argument.  The prior can be specified through ``gamma``,
             which gives the slope of the prior on the number of bins.
         - 'measures' : fitness for a measured sequence with Gaussian errors
-            The prior can be specified using `gamma`, which gives the slope
-            of the prior on the number of bins.  If `gamma` is not specified,
+            The prior can be specified using ``gamma``, which gives the slope
+            of the prior on the number of bins.  If ``gamma`` is not specified,
             then a simulation-derived prior will be used.
 
         Alternatively, the fitness parameter can be an instance of FitnessFunc
@@ -121,7 +121,7 @@ def bayesian_blocks(t, x=None, sigma=None,
 
     References
     ----------
-    .. [1] Scargle, J `et al.` (2012)
+    .. [1] Scargle, J et al. (2012)
            http://adsabs.harvard.edu/abs/2012arXiv1207.5578S
 
     See Also
