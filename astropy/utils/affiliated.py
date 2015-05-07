@@ -30,35 +30,39 @@ def get_names(regjson=None):
     return [pkg['name'] for pkg in regjson['packages']]
 
 
-def pip_install(pkgname, regjson=None):
+def _do_install(installcmd, pkgname, regjson):
     if regjson is None:
         regjson = get_affiliated_json()
 
-    for pkg in regjson['packages']:
-        if pkg['name'] == pkgname:
-            pypiname = pkg['pypi_name']
-            break
-    else:
-        print('Could not find affiliated package "{0}"'.format(pkgname))
-        sys.exit(1)
+    if pkgname == 'all':
+        for pkg in regjson['packages']:
+            print("Installing affiliated package "+pkg['name'])
 
-    sys.exit(os.system('pip install {0}'.format(pypiname)))
+            retcode = os.system('{0} {1}'.format(installcmd, pkg['pypi_name']))
+            if retcode != 0:
+                print("Failed on installing affiliated package "+pkg['name'])
+                return retcode
+        return 0
+    else:
+        for pkg in regjson['packages']:
+            if pkg['name'] == pkgname:
+                pypiname = pkg['pypi_name']
+                break
+        else:
+            print('Could not find affiliated package "{0}"'.format(pkgname))
+            sys.exit(1)
+
+        return os.system('{0} {1}'.format(installcmd, pypiname))
+
+
+def pip_install(pkgname, regjson=None):
+    sys.exit(_do_install('pip install', pkgname, regjson))
 
 
 def conda_install(pkgname, regjson=None):
-    if regjson is None:
-        regjson = get_affiliated_json()
+    # implicitly this assumes pypi names=conda names... but usually true?
+    sys.exit(_do_install('conda install', pkgname, regjson))
 
-    for pkg in regjson['packages']:
-        if pkg['name'] == pkgname:
-            pypiname = pkg['pypi_name']
-            break
-    else:
-        print('Could not find affiliated package "{0}"'.format(pkgname))
-        sys.exit(1)
-
-    # just a guess right now that pypi names=conda names... but usually true?
-    sys.exit(os.system('conda install {0}'.format(pypiname)))
 
 def main(args=None):
     from .compat import argparse
@@ -74,13 +78,19 @@ def main(args=None):
     parser_list = subparsers.add_parser('list')
 
     parser_install = subparsers.add_parser('install')
-    parser_install.add_argument('pkgname')
+    parser_install.add_argument('pkgname', help='The affiliated package to '
+                                                'install or "all" to install '
+                                                'all affiliated packages')
 
     parser_cinstall = subparsers.add_parser('condainstall')
-    parser_cinstall.add_argument('pkgname')
+    parser_cinstall.add_argument('pkgname', help='The affiliated package to '
+                                                 'install or "all" to install '
+                                                 'all affiliated packages')
 
     parser_pinstall = subparsers.add_parser('pipinstall')
-    parser_pinstall.add_argument('pkgname')
+    parser_pinstall.add_argument('pkgname', help='The affiliated package to '
+                                                 'install or "all" to install '
+                                                 'all affiliated packages')
 
     args = parser.parse_args(args)
 
