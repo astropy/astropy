@@ -970,6 +970,8 @@ class MaskedColumn(Column, ma.MaskedArray):
         # with MaskedArray.
         self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
                                unit=unit, format=format, description=description, meta=meta, copy=copy)
+        if self_data.dtype.names and mask is None:
+            mask = np.ma.nomask
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
