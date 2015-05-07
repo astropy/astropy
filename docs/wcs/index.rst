@@ -202,7 +202,7 @@ example, ``RA---TAN-SIP``.  The supported projection codes are:
 And, if built with wcslib 5.0 or later:
 
 - ``TPV``: Polynomial distortion
-- ``TUV``: Polynomial distortion
+- ``TPU``: Polynomial distortion
 
 Subsetting and Pixel Scales
 ===========================
