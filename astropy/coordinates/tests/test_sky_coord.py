@@ -1121,16 +1121,16 @@ def test_constellations():
     # sure we get sensible answers
     sc = SkyCoord(135*u.deg, 65*u.deg)
     assert sc.get_constellation() == 'Ursa Major'
-    assert sc.get_constellation(short=True) == 'UMa'
+    assert sc.get_constellation(short_name=True) == 'UMa'
 
     scs = SkyCoord([135]*2*u.deg, [65]*2*u.deg)
     npt.assert_equal(scs.get_constellation(), ['Ursa Major']*2)
-    npt.assert_equal(scs.get_constellation(short=True), ['UMa']*2)
+    npt.assert_equal(scs.get_constellation(short_name=True), ['UMa']*2)
 
 
 @remote_data
 def test_constellations_with_nameresolve():
-    assert SkyCoord.from_name('And I').get_constellation(short=True) == 'And'
+    assert SkyCoord.from_name('And I').get_constellation(short_name=True) == 'And'
 
     #you'd think "And ..." should be in andromeda.  But you'd be wrong.
     assert SkyCoord.from_name('And VI').get_constellation() == 'Pegasus'
@@ -1141,6 +1141,6 @@ def test_constellations_with_nameresolve():
     #ok maybe not
 
     #ok, but at least some of the others do make sense...
-    assert SkyCoord.from_name('Coma Cluster').get_constellation(short=True) == 'Com'
+    assert SkyCoord.from_name('Coma Cluster').get_constellation(short_name=True) == 'Com'
     assert SkyCoord.from_name('UMa II').get_constellation() == 'Ursa Major'
     assert SkyCoord.from_name('Triangulum Galaxy').get_constellation() == 'Triangulum'

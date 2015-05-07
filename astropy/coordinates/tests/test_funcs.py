@@ -59,7 +59,7 @@ def test_constellations():
 
     inuma = ICRS(9*u.hour, 65*u.deg)
     assert get_constellation(inuma) == 'Ursa Major'
-    assert get_constellation(inuma, short=True) == 'UMa'
+    assert get_constellation(inuma, short_name=True) == 'UMa'
 
     # these are taken from the ReadMe for Roman 1987
     ras = [9, 23.5, 5.12, 9.4555, 12.8888, 15.6687, 19, 6.2222]
@@ -67,7 +67,7 @@ def test_constellations():
     shortnames = ['UMa', 'Aqr', 'Ori', 'Hya', 'Com', 'Lib', 'CrA', 'Men']
 
     testcoos = FK5(ras*u.hour, decs*u.deg, equinox='B1950')
-    npt.assert_equal(get_constellation(testcoos, short=True), shortnames)
+    npt.assert_equal(get_constellation(testcoos, short_name=True), shortnames)
 
     # test on a SkyCoord, *and* test Boötes, which is special in that it has a
     # non-ASCII charater
