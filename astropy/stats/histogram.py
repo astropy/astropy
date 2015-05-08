@@ -288,6 +288,14 @@ class _KnuthF(object):
         self.data.sort()
         self.n = self.data.size
 
+        # import here rather than globally: scipy is an optional dependency.
+        # Note that scipy is imported in the function which calls this,
+        # so there shouldn't be any issue importing here.
+        from scipy import special
+
+        # create a reference to gammaln to use in self.eval()
+        self.gammaln = special.gammaln
+
     def bins(self, M):
         """Return the bin edges given a width dx"""
         return np.linspace(self.data[0], self.data[-1], int(M) + 1)
@@ -309,10 +317,6 @@ class _KnuthF(object):
             evaluation of the negative Knuth likelihood function:
             smaller values indicate a better fit.
         """
-        # import here because of optional scipy dependency
-        # note that scipy is imported in __init__(), so import shouldn't cause
-        # a problem.
-        from scipy.special import gammaln
         M = int(M)
 
         if M <= 0:
@@ -322,7 +326,7 @@ class _KnuthF(object):
         nk, bins = np.histogram(self.data, bins)
 
         return -(self.n * np.log(M)
-                 + gammaln(0.5 * M)
-                 - M * gammaln(0.5)
-                 - gammaln(self.n + 0.5 * M)
-                 + np.sum(gammaln(nk + 0.5)))
+                 + self.gammaln(0.5 * M)
+                 - M * self.gammaln(0.5)
+                 - self.gammaln(self.n + 0.5 * M)
+                 + np.sum(self.gammaln(nk + 0.5)))
