@@ -429,8 +429,7 @@ def _get_guess_kwargs_list(read_kwargs):
                               dict(Reader=sextractor.SExtractor),
                               dict(Reader=ipac.Ipac),
                               dict(Reader=latex.Latex),
-                              dict(Reader=latex.AASTex),
-                              dict(Reader=html.HTML)
+                              dict(Reader=latex.AASTex)
                               ])
 
     # Cycle through the basic-style readers using all combinations of delimiter
