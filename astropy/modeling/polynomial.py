@@ -701,7 +701,7 @@ class Polynomial2D(PolynomialModel):
         Multivariate Horner's scheme
 
         Parameters
-        --------------
+        ----------
         x, y : array
         coeff : array of coefficients in inverse lexical order
         """
