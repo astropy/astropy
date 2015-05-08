@@ -10,10 +10,10 @@ from  numpy.testing import assert_allclose
 from .. import bayesian_blocks, Events, RegularEvents, PointMeasures
 
 
-def test_single_change_point():
-    np.random.seed(0)
-    x = np.concatenate([np.random.random(100),
-                        1 + np.random.random(200)])
+def test_single_change_point(rseed=0):
+    rng = np.random.RandomState(rseed)
+    x = np.concatenate([rng.rand(100),
+                        1 + rng.rand(200)])
 
     bins = bayesian_blocks(x)
 
@@ -21,8 +21,9 @@ def test_single_change_point():
     assert_allclose(bins[1], 1, rtol=0.02)
 
 
-def test_duplicate_events():
-    t = np.random.random(100)
+def test_duplicate_events(rseed=0):
+    rng = np.random.RandomState(rseed)
+    t = rng.rand(100)
     t[80:] = t[:20]
 
     x = np.ones_like(t)
@@ -34,12 +35,12 @@ def test_duplicate_events():
     assert_allclose(bins1, bins2)
 
 
-def test_measures_fitness_homoscedastic():
-    np.random.seed(0)
+def test_measures_fitness_homoscedastic(rseed=0):
+    rng = np.random.RandomState(rseed)
     t = np.linspace(0, 1, 11)
     x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01 ** 2)
     sigma = 0.05
-    x = np.random.normal(x, sigma)
+    x = x + sigma * rng.randn(len(x))
 
     bins = bayesian_blocks(t, x, sigma, fitness='measures')
 
@@ -47,11 +48,11 @@ def test_measures_fitness_homoscedastic():
 
 
 def test_measures_fitness_heteroscedastic():
-    np.random.seed(1)
+    rng = np.random.RandomState(1)
     t = np.linspace(0, 1, 11)
     x = np.exp(-0.5 * (t - 0.5) ** 2 / 0.01 ** 2)
-    sigma = 0.02 + 0.02 * np.random.random(len(x))
-    x = np.random.normal(x, sigma)
+    sigma = 0.02 + 0.02 * rng.rand(len(x))
+    x = x + sigma * rng.randn(len(x))
 
     bins = bayesian_blocks(t, x, sigma, fitness='measures')
 
@@ -59,10 +60,10 @@ def test_measures_fitness_heteroscedastic():
 
 
 def test_regular_events():
-    np.random.seed(0)
+    rng = np.random.RandomState(0)
     dt = 0.01
-    steps = np.concatenate([np.unique(np.random.randint(0, 500, 100)),
-                            np.unique(np.random.randint(500, 1000, 200))])
+    steps = np.concatenate([np.unique(rng.randint(0, 500, 100)),
+                            np.unique(rng.randint(500, 1000, 200))])
     t = dt * steps
 
     # string fitness

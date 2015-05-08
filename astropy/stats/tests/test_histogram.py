@@ -18,8 +18,8 @@ else:
 
 
 def test_scotts_bin_width(N=10000, rseed=0):
-    np.random.seed(rseed)
-    X = np.random.normal(size=N)
+    rng = np.random.RandomState(rseed)
+    X = rng.randn(N)
 
     delta = scotts_bin_width(X)
     assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
@@ -28,12 +28,13 @@ def test_scotts_bin_width(N=10000, rseed=0):
     assert_allclose(delta,  3.5 * np.std(X) / N ** (1 / 3))
 
     with pytest.raises(ValueError):
-        delta = scotts_bin_width(np.random.rand(2, 10))
+        delta = scotts_bin_width(rng.rand(2, 10))
 
 
 def test_freedman_bin_width(N=10000, rseed=0):
-    np.random.seed(rseed)
-    X = np.random.normal(size=N)
+    rng = np.random.RandomState(rseed)
+    X = rng.randn(N)
+
     v25, v75 = np.percentile(X, [25, 75])
 
     delta = freedman_bin_width(X)
@@ -43,13 +44,13 @@ def test_freedman_bin_width(N=10000, rseed=0):
     assert_allclose(delta, 2 * (v75 - v25) / N ** (1 / 3))
 
     with pytest.raises(ValueError):
-        delta = freedman_bin_width(np.random.rand(2, 10))
+        delta = freedman_bin_width(rng.rand(2, 10))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_knuth_bin_width(N=10000, rseed=0):
-    np.random.seed(0)
-    X = np.random.normal(size=N)
+    rng = np.random.RandomState(rseed)
+    X = rng.randn(N)
 
     dx, bins = knuth_bin_width(X, return_bins=True)
     assert_allclose(len(bins), 59)
@@ -58,21 +59,21 @@ def test_knuth_bin_width(N=10000, rseed=0):
     assert dx == dx2
 
     with pytest.raises(ValueError):
-        delta = knuth_bin_width(np.random.rand(2, 10))
+        delta = knuth_bin_width(rng.rand(2, 10))
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_knuth_histogram(N=1000, rseed=0):
-    np.random.seed(rseed)
-    x = np.random.normal(0, 1, N)
+    rng = np.random.RandomState(rseed)
+    x = rng.randn(N)
     counts, bins = histogram(x, 'knuth')
     assert (counts.sum() == len(x))
     assert (len(counts) == len(bins) - 1)
 
 
 def test_histogram(N=1000, rseed=0):
-    np.random.seed(0)
-    x = np.random.normal(0, 1, N)
+    rng = np.random.RandomState(rseed)
+    x = rng.randn(N)
 
     for bins in [30, np.linspace(-5, 5, 31),
                  'scotts', 'freedman', 'blocks', 'adaptive']:
@@ -82,18 +83,18 @@ def test_histogram(N=1000, rseed=0):
 
 
 def test_histogram_range(N=1000, rseed=0):
-    np.random.seed(rseed)
-    x = np.random.normal(0, 1, N)
-    rng = (0.1, 0.8)
+    rng = np.random.RandomState(rseed)
+    x = rng.randn(N)
+    range = (0.1, 0.8)
     
     for bins in ['scotts', 'freedman', 'blocks', 'adaptive']:
         print(bins)
-        counts, bins = histogram(x, bins, range=rng)
+        counts, bins = histogram(x, bins, range=range)
         
 
 def test_histogram_badargs(N=1000, rseed=0):
-    np.random.seed(rseed)
-    x = np.random.normal(0, 1, N)
+    rng = np.random.RandomState(rseed)
+    x = rng.randn(N)
 
     # weights is not supported
     for bins in ['scotts', 'freedman', 'blocks', 'adaptive']:
