@@ -8,7 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 import numpy as np
 
-__all__ = ['leastsquare']
+__all__ = ['leastsquare', 'cash']
 
 
 def leastsquare(measured_vals, updated_model, weights, x, y=None):
@@ -42,3 +42,39 @@ def leastsquare(measured_vals, updated_model, weights, x, y=None):
         return np.sum((model_vals - measured_vals) ** 2)
     else:
         return np.sum((weights * (model_vals - measured_vals)) ** 2)
+
+
+# import numpy as np
+# from scipy import optimize
+# from astropy.modeling.fitting import Fitter
+
+# TODO: This is currently needed to avoid an error in the contructor
+#from astropy.modeling.fitting import constraintsdef
+#constraintsdef['CashFitter'] = ['fixed']
+
+def cash(D, model, *args):#M):
+    """Cash Poisson likelihood statistic.
+    
+    Parameters
+    ----------
+    D : array-like
+        "data", i.e. observed counts per bin
+    M : array-like
+        "model", i.e. expected counts per bin
+    
+    Returns
+    -------
+    cash : array
+        Cash statistic value per bin
+    """
+    D = np.asanyarray(D, dtype=np.float64)
+    #M = np.asanyarray(M, dtype=np.float64)
+    #print('statargs', args[:5])
+    weights = args[0]
+    print('statargs', len(args), weights)
+    M = model(*args[1:])
+    stat = 2 * (M - D * np.log(M))
+    stat = np.where(M > 0, stat, 0)
+
+    return stat.sum()
+
