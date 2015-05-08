@@ -1010,6 +1010,7 @@ int wcssub(
     }
   }
 
+  lincpy(0, &wcssrc->lin, &wcsdst->lin);
 
 cleanup:
   if (itmp) free(itmp);
