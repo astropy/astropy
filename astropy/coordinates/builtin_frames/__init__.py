@@ -30,7 +30,7 @@ from .fk4 import FK4, FK4NoETerms
 from .galactic import Galactic
 from .galactocentric import Galactocentric
 from .altaz import AltAz
-from .gcrs import GCRS
+from .gcrs import GCRS, PrecessedGeocentric
 from .cirs import CIRS
 from .itrs import ITRS
 
@@ -44,7 +44,7 @@ from . import intermediate_rotation_transforms
 
 # we define an __all__ because otherwise the transformation modules get included
 __all__ = ['ICRS', 'FK5', 'FK4', 'FK4NoETerms', 'Galactic', 'Galactocentric',
-           'AltAz', 'GCRS', 'CIRS', 'ITRS']
+           'AltAz', 'GCRS', 'CIRS', 'ITRS', 'PrecessedGeocentric']
 
 def _make_transform_graph_docs():
     """

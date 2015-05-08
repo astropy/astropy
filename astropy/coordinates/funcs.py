@@ -11,10 +11,18 @@ interfaces.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from .. import units as u
-from ..utils import isiterable
+import numpy as np
 
-__all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun', 'concatenate']
+from .. import units as u
+from .. import _erfa as erfa
+from ..io import ascii
+from ..utils import isiterable, data
+from .sky_coordinate import SkyCoord
+from .builtin_frames import GCRS, PrecessedGeocentric
+from .representation import SphericalRepresentation, CartesianRepresentation
+
+__all__ = ['cartesian_to_spherical', 'spherical_to_cartesian', 'get_sun',
+           'concatenate', 'get_constellation']
 
 
 def cartesian_to_spherical(x, y, z):
@@ -52,8 +60,6 @@ def cartesian_to_spherical(x, y, z):
     lon : `~astropy.units.Quantity`
         The longitude in radians
     """
-    from .representation import SphericalRepresentation, CartesianRepresentation
-
     if not hasattr(x, 'unit'):
         x = x * u.dimensionless_unscaled
     if not hasattr(y, 'unit'):
@@ -102,8 +108,6 @@ def spherical_to_cartesian(r, lat, lon):
 
 
     """
-    from .representation import SphericalRepresentation, CartesianRepresentation
-
     if not hasattr(r, 'unit'):
         r = r * u.dimensionless_unscaled
     if not hasattr(lat, 'unit'):
@@ -143,17 +147,13 @@ def get_sun(time):
     250 km over the 1000-3000.
 
     """
-    from .. import _erfa as erfa
-    from .representation import CartesianRepresentation
-    from .sky_coordinate import SkyCoord
-    from .builtin_frames import GCRS
-
     earth_pv_helio, earth_pv_bary = erfa.epv00(time.jd1, time.jd2)
     x = -earth_pv_helio[..., 0, 0] * u.AU
     y = -earth_pv_helio[..., 0, 1] * u.AU
     z = -earth_pv_helio[..., 0, 2] * u.AU
     cartrep = CartesianRepresentation(x=x, y=y, z=z)
     return SkyCoord(cartrep, frame=GCRS)
+
 
 def concatenate(coords):
     """
@@ -176,8 +176,91 @@ def concatenate(coords):
         A single sky coordinate with its data set to the concatenation of all
         the elements in ``coords``
     """
-    from .sky_coordinate import SkyCoord
-
     if getattr(coords, 'isscalar', False) or not isiterable(coords):
         raise TypeError('The argument to concatenate must be iterable')
     return SkyCoord(coords)
+
+
+# global dictionary that caches repeatedly-needed info for get_constellation
+_constellation_data = {}
+def get_constellation(coord, short_name=False, constellation_list='iau'):
+    """
+    Determines the constellation(s) a given coordinate object contains.
+
+    Parameters
+    ----------
+    coords : coordinate object
+        The object to determine the constellation of.
+    short_name : bool
+        If True, the returned names are the IAU-sanctioned abbreviated
+        names.  Otherwise, full names for the constellations are used.
+    constellation_list : str
+        The set of constellations to use.  Currently only ``'iau'`` is
+        supported, meaning the 88 "modern" constellations endorsed by the IAU.
+
+    Returns
+    -------
+    constellation : str or string array
+        If ``coords`` contains a scalar coordinate, returns the name of the
+        constellation.  If it is an array coordinate object, it returns an array
+        of names.
+
+    Notes
+    -----
+    To determine which constellation a point on the sky is in, this precesses
+    to B1875, and then uses the Delporte boundaries of the 88 modern
+    constellations, as tabulated by
+    `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
+    """
+    if constellation_list != 'iau':
+        raise ValueError("only 'iau' us currently supported for constellation_list")
+
+    # read the data files and cache them if they haven't been already
+    if not _constellation_data:
+        cdata = data.get_pkg_data_contents('data/constellation_data_roman87.dat')
+        ctable = ascii.read(cdata, names=['ral', 'rau', 'decl', 'name'])
+        cnames = data.get_pkg_data_contents('data/constellation_names.dat', encoding='UTF8')
+        cnames_short_to_long = dict([(l[:3], l[4:])
+                                     for l in cnames.split('\n')
+                                     if not l.startswith('#')])
+        cnames_long = np.array([cnames_short_to_long[nm] for nm in ctable['name']])
+
+        _constellation_data['ctable'] = ctable
+        _constellation_data['cnames_long'] = cnames_long
+    else:
+        ctable = _constellation_data['ctable']
+        cnames_long = _constellation_data['cnames_long']
+
+    isscalar = coord.isscalar
+
+    # if it is geocentric, we reproduce the frame but with the 1875 equinox,
+    # which is where the constellations are defined
+    constel_coord = coord.transform_to(PrecessedGeocentric(equinox='B1875'))
+    if isscalar:
+        rah = constel_coord.ra.ravel().hour
+        decd = constel_coord.dec.ravel().deg
+    else:
+        rah = constel_coord.ra.hour
+        decd = constel_coord.dec.deg
+
+    constellidx = -np.ones(len(rah), dtype=int)
+
+    notided = constellidx == -1  # should be all
+    for i, row in enumerate(ctable):
+        msk = (row['ral'] < rah) & (rah < row['rau']) & (decd > row['decl'])
+        constellidx[notided & msk] = i
+        notided = constellidx == -1
+        if np.sum(notided) == 0:
+            break
+    else:
+        raise ValueError('Could not find constellation for coordinates {0}'.format(constel_coord[notided]))
+
+    if short_name:
+        names = ctable['name'][constellidx]
+    else:
+        names = cnames_long[constellidx]
+
+    if isscalar:
+        return names[0]
+    else:
+        return names

@@ -9,8 +9,10 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
+from numpy import testing as npt
 
 from ...tests.helper import pytest
+from ...extern import six
 
 from ... import units as u
 from ...time import Time
@@ -33,6 +35,7 @@ def test_sun():
     gcrs2 = get_sun(Time([northern_summer_solstice, equinox_2, northern_winter_solstice]))
     assert np.all(np.abs(gcrs2.dec - [23.5, 0, -23.5]*u.deg) < 1*u.deg)
 
+
 def test_concatenate():
     from .. import FK5, SkyCoord
     from ..funcs import concatenate
@@ -49,3 +52,30 @@ def test_concatenate():
 
     with pytest.raises(TypeError):
         concatenate(1*u.deg)
+
+
+def test_constellations():
+    from .. import ICRS, FK5, SkyCoord
+    from ..funcs import get_constellation
+
+    inuma = ICRS(9*u.hour, 65*u.deg)
+    res = get_constellation(inuma)
+    res_short = get_constellation(inuma, short_name=True)
+    assert res == 'Ursa Major'
+    assert res_short == 'UMa'
+    assert isinstance(res, six.string_types) or getattr(res, 'shape', None) == tuple()
+
+    # these are taken from the ReadMe for Roman 1987
+    ras = [9, 23.5, 5.12, 9.4555, 12.8888, 15.6687, 19, 6.2222]
+    decs = [65, -20, 9.12, -19.9, 22, -12.1234, -40, -81.1234]
+    shortnames = ['UMa', 'Aqr', 'Ori', 'Hya', 'Com', 'Lib', 'CrA', 'Men']
+
+    testcoos = FK5(ras*u.hour, decs*u.deg, equinox='B1950')
+    npt.assert_equal(get_constellation(testcoos, short_name=True), shortnames)
+
+    # test on a SkyCoord, *and* test Boötes, which is special in that it has a
+    # non-ASCII charater
+    bootest = SkyCoord(15*u.hour, 30*u.deg, frame='icrs')
+    boores = get_constellation(bootest)
+    assert boores == u'Boötes'
+    assert isinstance(boores, six.string_types) or getattr(boores, 'shape', None) == tuple()

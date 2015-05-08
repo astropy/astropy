@@ -10,7 +10,8 @@ from ... import units as u
 from ..distances import Distance
 from .. import transformations as t
 from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, \
-                             Galactocentric, CIRS, GCRS, AltAz, ITRS
+                             Galactocentric, CIRS, GCRS, AltAz, ITRS, \
+                             PrecessedGeocentric
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import (pytest, quantity_allclose as allclose,
@@ -553,3 +554,28 @@ def test_gcrs_altaz():
     assert_allclose(aa1.az, aa2.az)
     assert_allclose(aa1.alt, aa3.alt)
     assert_allclose(aa1.az, aa3.az)
+
+
+def test_precessed_geocentric():
+    assert PrecessedGeocentric().equinox.jd == Time('J2000', scale='utc').jd
+
+    gcrs_coo = GCRS(180*u.deg, 2*u.deg, distance=10000*u.km)
+    pgeo_coo = gcrs_coo.transform_to(PrecessedGeocentric)
+    assert np.abs(gcrs_coo.ra - pgeo_coo.ra) > 10*u.marcsec
+    assert np.abs(gcrs_coo.dec - pgeo_coo.dec) > 10*u.marcsec
+    assert_allclose(gcrs_coo.distance, pgeo_coo.distance)
+
+    gcrs_roundtrip = pgeo_coo.transform_to(GCRS)
+    assert_allclose(gcrs_coo.ra, gcrs_roundtrip.ra)
+    assert_allclose(gcrs_coo.dec, gcrs_roundtrip.dec)
+    assert_allclose(gcrs_coo.distance, gcrs_roundtrip.distance)
+
+    pgeo_coo2 = gcrs_coo.transform_to(PrecessedGeocentric(equinox='B1850'))
+    assert np.abs(gcrs_coo.ra - pgeo_coo2.ra) > 1.5*u.deg
+    assert np.abs(gcrs_coo.dec - pgeo_coo2.dec) > 0.5*u.deg
+    assert_allclose(gcrs_coo.distance, pgeo_coo2.distance)
+
+    gcrs2_roundtrip = pgeo_coo2.transform_to(GCRS)
+    assert_allclose(gcrs_coo.ra, gcrs2_roundtrip.ra)
+    assert_allclose(gcrs_coo.dec, gcrs2_roundtrip.dec)
+    assert_allclose(gcrs_coo.distance, gcrs2_roundtrip.distance)

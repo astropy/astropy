@@ -20,6 +20,9 @@ class FK4(BaseCoordinateFrame):
     """
     A coordinate or frame in the FK4 system.
 
+    Note that this is a barycentric version of FK4 - that is, the origin for
+    this frame is the Solar System Barycenter, *not* the Earth geocenter.
+
     Parameters
     ----------
     representation : `BaseRepresentation` or None

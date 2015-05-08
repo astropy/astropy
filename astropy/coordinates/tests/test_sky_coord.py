@@ -15,7 +15,8 @@ import numpy as np
 import numpy.testing as npt
 
 from ... import units as u
-from ...tests.helper import (pytest, catch_warnings, quantity_allclose,
+from ...tests.helper import (pytest, remote_data, catch_warnings,
+                             quantity_allclose,
                              assert_quantity_allclose as assert_allclose)
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
@@ -1113,3 +1114,33 @@ def test_equiv_skycoord():
     assert scf2.is_equivalent_frame(FK5(equinox='J2005'))
     assert not scf3.is_equivalent_frame(scf1)
     assert not scf3.is_equivalent_frame(FK5(equinox='J2005'))
+
+
+def test_constellations():
+    # the actual test for accuracy is in test_funcs - this is just meant to make
+    # sure we get sensible answers
+    sc = SkyCoord(135*u.deg, 65*u.deg)
+    assert sc.get_constellation() == 'Ursa Major'
+    assert sc.get_constellation(short_name=True) == 'UMa'
+
+    scs = SkyCoord([135]*2*u.deg, [65]*2*u.deg)
+    npt.assert_equal(scs.get_constellation(), ['Ursa Major']*2)
+    npt.assert_equal(scs.get_constellation(short_name=True), ['UMa']*2)
+
+
+@remote_data
+def test_constellations_with_nameresolve():
+    assert SkyCoord.from_name('And I').get_constellation(short_name=True) == 'And'
+
+    #you'd think "And ..." should be in andromeda.  But you'd be wrong.
+    assert SkyCoord.from_name('And VI').get_constellation() == 'Pegasus'
+
+    #maybe it's because And VI isn't really a galaxy?
+    assert SkyCoord.from_name('And XXII').get_constellation() == 'Pisces'
+    assert SkyCoord.from_name('And XXX').get_constellation() == 'Cassiopeia'
+    #ok maybe not
+
+    #ok, but at least some of the others do make sense...
+    assert SkyCoord.from_name('Coma Cluster').get_constellation(short_name=True) == 'Com'
+    assert SkyCoord.from_name('UMa II').get_constellation() == 'Ursa Major'
+    assert SkyCoord.from_name('Triangulum Galaxy').get_constellation() == 'Triangulum'

@@ -924,6 +924,42 @@ class SkyCoord(object):
 
         return angle_utilities.position_angle(slon, slat, olon, olat)
 
+    def get_constellation(self, short_name=False, constellation_list='iau'):
+        """
+        Determines the constellation(s) of the coordinates this `SkyCoord`
+        contains.
+
+        Parameters
+        ----------
+        short_name : bool
+            If True, the returned names are the IAU-sanctioned abbreviated
+            names.  Otherwise, full names for the constellations are used.
+        constellation_list : str
+            The set of constellations to use.  Currently only ``'iau'`` is
+            supported, meaning the 88 "modern" constellations endorsed by the IAU.
+
+        Returns
+        -------
+        constellation : str or string array
+            If this is a scalar coordinate, returns the name of the
+            constellation.  If it is an array `SkyCoord`, it returns an array of
+            names.
+
+        Notes
+        -----
+        To determine which constellation a point on the sky is in, this first
+        precesses to B1875, and then uses the Delporte boundaries of the 88
+        modern constellations, as tabulated by
+        `Roman 1987 <http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/42>`_.
+
+        See Also
+        --------
+        astropy.coordinates.get_constellation
+        """
+        from .funcs import get_constellation
+
+        return get_constellation(self, short_name, constellation_list)
+
     # WCS pixel to/from sky conversions
     def to_pixel(self, wcs, origin=0, mode='all'):
         """
@@ -947,7 +983,6 @@ class SkyCoord(object):
 
         See Also
         --------
-        from_pixel : to do the inverse operation
         astropy.wcs.utils.skycoord_to_pixel : the implementation of this method
         """
         return skycoord_to_pixel(self, wcs=wcs, origin=origin, mode=mode)
