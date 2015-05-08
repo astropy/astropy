@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 5.3
+# GNU makefile for building WCSLIB 5.5
 #
 # Summary of the main targets
 # ---------------------------
@@ -32,7 +32,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 5.3 2015/04/21 02:50:53 mcalabre Exp $
+# $Id: GNUmakefile,v 5.5 2015/05/05 13:16:33 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include makedefs

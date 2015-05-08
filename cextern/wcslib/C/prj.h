@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.3 - an implementation of the FITS WCS standard.
+  WCSLIB 5.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,29 +22,35 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
+  $Id: prj.h,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.3 - C routines that implement the spherical map projections
-* recognized by the FITS World Coordinate System (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of celestial coordinates in FITS",
-*   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (Paper II)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.5 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the prj routines
 * ---------------------------
-* These routines implement the spherical map projections defined by the FITS
-* WCS standard.  They are based on the prjprm struct which contains all
-* information needed for the computations.  The struct contains some members
-* that must be set by the user, and others that are maintained by these
-* routines, somewhat like a C++ class but with no encapsulation.
+* Routines in this suite  implement the spherical map projections defined by
+* the FITS World Coordinate System (WCS) standard, as described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of celestial coordinates in FITS",
+=   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (WCS Paper II)
+=
+=   "Mapping on the HEALPix grid",
+=   Calabretta, M.R., & Roukema, B.F. 2007, MNRAS, 381, 865 (WCS Paper V)
+=
+=   "Representing the 'Butterfly' Projection in FITS -- Projection Code XPH",
+=   Calabretta, M.R., & Lowe, S.R. 2013, PASA, 30, e050 (WCS Paper VI)
+*
+* These routines are based on the prjprm struct which contains all information
+* needed for the computations.  The struct contains some members that must be
+* set by the user, and others that are maintained by these routines, somewhat
+* like a C++ class but with no encapsulation.
 *
 * Routine prjini() is provided to initialize the prjprm struct with default
 * values, prjfree() reclaims any memory that may have been allocated to store

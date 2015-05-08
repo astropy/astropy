@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 5.3 and its test suite.
+# GNU makefile for building WCSLIB 5.5 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
+# $Id: GNUmakefile,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include ../makedefs
@@ -289,7 +289,7 @@ cleaner : clean
 	-  $(RM) $(TEST_P) tpih2 twcstab twcshdr twcslint
 	-  $(RM) tofits
 	-  $(RM) bth.fits fitshdr.fits pih.fits wcslint.fits wcstab.fits
-	-  $(RM) TPV3.fits TPV5.fits TPV7.fits
+	-  $(RM) TPV3.fits TPV5.fits TPV7.fits SIP.fits
 	-  $(RM) t*_cfitsio test_results
 
 cleanest distclean realclean : cleaner
@@ -418,8 +418,8 @@ tdis1   : cel.h dis.h lin.h prj.h spc.h spx.h wcs.h wcserr.h wcshdr.h \
 tlog    : log.h
 tpih1 tpih1_cfitsio : cel.h lin.h prj.h spc.h spx.h wcs.h wcsconfig.h \
                       wcsconfig_tests.h wcserr.h wcsfix.h wcshdr.h wcsprintf.h
-tpih2 tpih2_cfitsio : cel.h cpgsbox.h lin.h prj.h spc.h spx.h wcs.h \
-                      wcsconfig.h wcsconfig_tests.h wcshdr.h
+tpih2 tpih2_cfitsio : cel.h lin.h prj.h spc.h spx.h wcs.h wcsconfig.h \
+                      wcsconfig_tests.h wcshdr.h
 tprj1   : prj.h wcsconfig.h wcstrig.h
 tprj2   : prj.h
 tspc    : spc.h spx.h wcsconfig.h wcstrig.h

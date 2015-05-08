@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------
-WCSLIB 5.3 and PGSBOX 5.3 INSTALLATION
+WCSLIB 5.5 and PGSBOX 5.5 INSTALLATION
 --------------------------------------
 
 WCSLIB requires an ANSI C compiler with standard ANSI C environment, that is,
@@ -9,8 +9,8 @@ Ritchie, 2nd ed.
 If you are running a typical Linux distro and have installed WCSLIB before,
 then all you should need to do is
 
-  tar pxvf wcslib-5.3.tar.bz2
-  cd wcslib-5.3
+  tar pxvf wcslib-5.5.tar.bz2
+  cd wcslib-5.5
   make install
 
 Otherwise, read on.
@@ -19,8 +19,8 @@ Installation of WCSLIB is handled by GNU autoconf; GNU make (referred to here
 as 'gmake') must be used.  The WCSLIB distribution also includes PGSBOX (refer
 to the README file).  To unpack the tar file, type
 
-  bzcat wcslib-5.3.tar.bz2 | tar pvxf -
-  cd wcslib-5.3
+  bzcat wcslib-5.5.tar.bz2 | tar pvxf -
+  cd wcslib-5.5
 
 then if you do not need to specify any configuration options, simply run
 
@@ -102,7 +102,7 @@ The INSTALL file provided with GNU autoconf 2.53 is appended without change.
 
 Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 http://www.atnf.csiro.au/people/Mark.Calabretta
-$Id: INSTALL,v 5.3 2015/04/21 02:50:53 mcalabre Exp $
+$Id: INSTALL,v 5.5 2015/05/05 13:16:33 mcalabre Exp $
 
 ==============================================================================
 

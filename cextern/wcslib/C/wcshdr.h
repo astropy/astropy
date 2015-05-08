@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.3 - an implementation of the FITS WCS standard.
+  WCSLIB 5.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,31 +22,35 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.h,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
+  $Id: wcshdr.h,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.3 - C routines that implement the FITS World Coordinate System
-* (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of celestial coordinates in FITS",
-*   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (Paper II)
-*
-*   "Representations of spectral coordinates in FITS",
-*   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
-*   2006, A&A, 446, 747 (Paper III)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.5 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the wcshdr routines
 * ------------------------------
 * Routines in this suite are aimed at extracting WCS information from a FITS
-* file.  They provide the high-level interface between the FITS file and the
-* WCS coordinate transformation routines.
+* file.  The information is encoded via keywords defined in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of celestial coordinates in FITS",
+=   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (WCS Paper II)
+=
+=   "Representations of spectral coordinates in FITS",
+=   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
+=   2006, A&A, 446, 747 (WCS Paper III)
+=
+=   "Representations of distortions in FITS world coordinate systems",
+=   Calabretta, M.R. et al. (WCS Paper IV, draft dated 2004/04/22),
+=   available from http://www.atnf.csiro.au/people/Mark.Calabretta
+*
+* These routines provide the high-level interface between the FITS file and
+* the WCS coordinate transformation routines.
 *
 * Additionally, function wcshdo() is provided to write out the contents of a
 * wcsprm struct as a FITS header.

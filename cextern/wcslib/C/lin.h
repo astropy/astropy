@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.3 - an implementation of the FITS WCS standard.
+  WCSLIB 5.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,26 +22,26 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
+  $Id: lin.h,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.3 - C routines that implement the FITS World Coordinate System
-* (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.5 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the lin routines
 * ---------------------------
-* These routines apply the linear transformation defined by the FITS WCS
-* standard.  They are based on the linprm struct which contains all
-* information needed for the computations.  The struct contains some members
-* that must be set by the user, and others that are maintained by these
-* routines, somewhat like a C++ class but with no encapsulation.
+* Routines in this suite apply the linear transformation defined by the FITS
+* World Coordinate System (WCS) standard, as described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+*
+* These routines are based on the linprm struct which contains all information
+* needed for the computations.  The struct contains some members that must be
+* set by the user, and others that are maintained by these routines, somewhat
+* like a C++ class but with no encapsulation.
 *
 * Four routines, linini(), lindis(), lincpy(), and linfree() are provided to
 * manage the linprm struct, and another, linprt(), prints its contents.

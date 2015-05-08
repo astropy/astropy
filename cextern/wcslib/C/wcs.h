@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.3 - an implementation of the FITS WCS standard.
+  WCSLIB 5.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,35 +22,45 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
+  $Id: wcs.h,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.3 - C routines that implement the FITS World Coordinate System
-* (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of celestial coordinates in FITS",
-*   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (Paper II)
-*
-*   "Representations of spectral coordinates in FITS",
-*   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
-*   2006, A&A, 446, 747 (Paper III)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.5 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the wcs routines
 * ---------------------------
-* These routines implement the FITS World Coordinate System (WCS) standard
-* which defines methods to be used for computing world coordinates from image
-* pixel coordinates, and vice versa.  They are based on the wcsprm struct
-* which contains all information needed for the computations.  The struct
-* contains some members that must be set by the user, and others that are
-* maintained by these routines, somewhat like a C++ class but with no
-* encapsulation.
+* Routines in this suite implement the FITS World Coordinate System (WCS)
+* standard which defines methods to be used for computing world coordinates
+* from image pixel coordinates, and vice versa.  The standard, and proposed
+* extensions for handling distortions, are described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of celestial coordinates in FITS",
+=   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (WCS Paper II)
+=
+=   "Representations of spectral coordinates in FITS",
+=   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
+=   2006, A&A, 446, 747 (WCS Paper III)
+=
+=   "Representations of distortions in FITS world coordinate systems",
+=   Calabretta, M.R. et al. (WCS Paper IV, draft dated 2004/04/22),
+=   available from http://www.atnf.csiro.au/people/Mark.Calabretta
+=
+=   "Mapping on the HEALPix grid",
+=   Calabretta, M.R., & Roukema, B.F. 2007, MNRAS, 381, 865 (WCS Paper V)
+=
+=   "Representing the 'Butterfly' Projection in FITS -- Projection Code XPH",
+=   Calabretta, M.R., & Lowe, S.R. 2013, PASA, 30, e050 (WCS Paper VI)
+*
+* These routines are based on the wcsprm struct which contains all information
+* needed for the computations.  The struct contains some members that must be
+* set by the user, and others that are maintained by these routines, somewhat
+* like a C++ class but with no encapsulation.
 *
 * wcsnpv(), wcsnps(), wcsini(), wcssub(), and wcsfree() are provided to manage
 * the wcsprm struct and another, wcsprt(), prints its contents.  Refer to the

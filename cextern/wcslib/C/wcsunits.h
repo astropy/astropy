@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.3 - an implementation of the FITS WCS standard.
+  WCSLIB 5.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,31 +22,32 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsunits.h,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
+  $Id: wcsunits.h,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.3 - C routines that implement the FITS World Coordinate System
-* (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-* The Flexible Image Transport System (FITS), a data format widely used in
-* astronomy for data interchange and archive, is described in
-*
-*   "Definition of the Flexible Image Transport System (FITS), version 3.0",
-*   Pence, W.D., Chiappetti, L., Page, C.G., Shaw, R.A., & Stobie, E. 2010,
-*   A&A, 524, A42 - http://dx.doi.org/10.1051/0004-6361/201015362
-*
-* See also http://fits.gsfc.nasa.gov
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.5 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the wcsunits routines
 * --------------------------------
-* Routines in this suite deal with units specifications and conversions:
+* Routines in this suite deal with units specifications and conversions, as
+* described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+*
+* The Flexible Image Transport System (FITS), a data format widely used in
+* astronomy for data interchange and archive, is described in
+*
+=   "Definition of the Flexible Image Transport System (FITS), version 3.0",
+=   Pence, W.D., Chiappetti, L., Page, C.G., Shaw, R.A., & Stobie, E. 2010,
+=   A&A, 524, A42 - http://dx.doi.org/10.1051/0004-6361/201015362
+*
+* See also http://fits.gsfc.nasa.gov
+*
+* These routines perform basic units-related operations:
 *
 *   - wcsunitse(): given two unit specifications, derive the conversion from
 *     one to the other.
