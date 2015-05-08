@@ -311,8 +311,30 @@ class Time(object):
 
     @property
     def format(self):
-        """Time format"""
+        """Get time format"""
         return self._format
+
+    @format.setter
+    def format(self, format):
+        """Set time format"""
+        if format not in self.FORMATS:
+            raise ValueError('format must be one of {0}'
+                             .format(list(self.FORMATS)))
+        format_cls = self.FORMATS[format]
+
+        # If current output subformat is not in the new format then replace
+        # with default '*'
+        if hasattr(format_cls, 'subfmts'):
+            subfmt_names = [subfmt[0] for subfmt in format_cls.subfmts]
+            if self.out_subfmt not in subfmt_names:
+                self.out_subfmt = '*'
+
+        self._time = format_cls(self._time.jd1, self._time.jd2,
+                                self._time._scale, self.precision,
+                                in_subfmt=self.in_subfmt,
+                                out_subfmt=self.out_subfmt,
+                                from_jd=True)
+        self._format = format
 
     def __repr__(self):
         return ("<{0} object: scale='{1}' format='{2}' value={3}>"
@@ -624,20 +646,10 @@ class Time(object):
         # and does not create any new arrays.
 
         NewFormat = tm.FORMATS[format]
-        # If the new format class has a "scale" class attr then that scale is
-        # required and the input jd1,2 has to be converted first.
-        if hasattr(NewFormat, 'required_scale'):
-            scale = NewFormat.required_scale
-            new = getattr(tm, scale)  # self JDs converted to scale
-            tm._time = NewFormat(new._time.jd1, new._time.jd2, scale,
-                                 tm.precision,
-                                 tm.in_subfmt, tm.out_subfmt,
-                                 from_jd=True)
-        else:
-            tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
-                                 tm._time._scale, tm.precision,
-                                 tm.in_subfmt, tm.out_subfmt,
-                                 from_jd=True)
+        tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
+                             tm._time._scale, tm.precision,
+                             tm.in_subfmt, tm.out_subfmt,
+                             from_jd=True)
         tm._format = format
 
         return tm
