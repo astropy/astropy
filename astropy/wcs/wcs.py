@@ -1145,13 +1145,16 @@ reduce these to 2 dimensions using the naxis kwarg.
     all_pix2world.__doc__ = """
         Transforms pixel coordinates to world coordinates.
 
-        Performs all of the following in order:
+        Performs all of the following in series:
 
-            - Detector to image plane correction (optionally)
+            - Detector to image plane correction (if present in the
+              FITS file)
 
-            - `SIP`_ distortion correction (optionally)
+            - `SIP`_ distortion correction (if present in the FITS
+              file)
 
-            - `distortion paper`_ table-lookup correction (optionally)
+            - `distortion paper`_ table-lookup correction (if present
+              in the FITS file)
 
             - `wcslib`_ "core" WCS transformation
 
