@@ -33,7 +33,7 @@ from ...table import Table
 from ...utils.data import get_readable_fileobj
 from ...extern import six
 
-READ_TRIES = []
+_read_trace = []
 
 try:
     import yaml
@@ -189,7 +189,7 @@ def read(table, guess=None, **kwargs):
     dat : `~astropy.table.Table`
         Output table
     """
-    del READ_TRIES[:]
+    del _read_trace[:]
 
     if 'fill_values' not in kwargs:
         kwargs['fill_values'] = [('', '0')]
@@ -247,22 +247,22 @@ def read(table, guess=None, **kwargs):
             fast_reader = get_reader(**fast_kwargs)
             try:
                 dat = fast_reader.read(table)
-                READ_TRIES.append({'kwargs': fast_kwargs,
-                                   'status': 'Success with fast reader (no guessing)'})
+                _read_trace.append({'kwargs': fast_kwargs,
+                                    'status': 'Success with fast reader (no guessing)'})
             except (core.ParameterError, cparser.CParserError) as e:
                 # special testing value to avoid falling back on the slow reader
                 if fast_reader_param == 'force':
                     raise e
                 # If the fast reader doesn't work, try the slow version
                 dat = reader.read(table)
-                READ_TRIES.append({'kwargs': new_kwargs,
-                                   'status': 'Success with slow reader after failing'
-                                            ' with fast (no guessing)'})
+                _read_trace.append({'kwargs': new_kwargs,
+                                    'status': 'Success with slow reader after failing'
+                                             ' with fast (no guessing)'})
         else:
             dat = reader.read(table)
-            READ_TRIES.append({'kwargs': new_kwargs,
-                               'status': 'Success with slow reader which has no fast '
-                                         'reader analog (no guessing)'})
+            _read_trace.append({'kwargs': new_kwargs,
+                                'status': 'Success with slow reader which has no fast '
+                                          'reader analog (no guessing)'})
 
     return dat
 
@@ -353,30 +353,30 @@ def _guess(table, read_kwargs, format, fast_reader):
             reader = get_reader(**guess_kwargs)
             reader.guessing = True
             dat = reader.read(table)
-            READ_TRIES.append({'kwargs': guess_kwargs, 'status': 'Success (guessing)'})
+            _read_trace.append({'kwargs': guess_kwargs, 'status': 'Success (guessing)'})
             return dat
 
         except (core.InconsistentTableError, ValueError, TypeError, AttributeError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError) as err:
-            READ_TRIES.append({'kwargs': guess_kwargs,
-                               'status': '{0}: {1}'.format(err.__class__.__name__,
-                                                           str(err))})
+            _read_trace.append({'kwargs': guess_kwargs,
+                                'status': '{0}: {1}'.format(err.__class__.__name__,
+                                                            str(err))})
             failed_kwargs.append(guess_kwargs)
     else:
         # Failed all guesses, try the original read_kwargs without column requirements
         try:
             reader = get_reader(**read_kwargs)
             dat = reader.read(table)
-            READ_TRIES.append({'kwargs': read_kwargs,
-                               'status': 'Success with original kwargs without strict_names '
-                                         '(guessing)'})
+            _read_trace.append({'kwargs': read_kwargs,
+                                'status': 'Success with original kwargs without strict_names '
+                                          '(guessing)'})
             return dat
 
         except (core.InconsistentTableError, ValueError, ImportError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError) as err:
-            READ_TRIES.append({'kwargs': guess_kwargs,
-                               'status': '{0}: {1}'.format(err.__class__.__name__,
-                                                           str(err))})
+            _read_trace.append({'kwargs': guess_kwargs,
+                                'status': '{0}: {1}'.format(err.__class__.__name__,
+                                                            str(err))})
             failed_kwargs.append(read_kwargs)
             lines = ['\nERROR: Unable to guess table format with the guesses listed below:']
             for kwargs in failed_kwargs:
@@ -587,3 +587,20 @@ def write(table, output=None,  format=None, Writer=None, fast_writer=True, **kwa
     else:
         output.write(outstr)
         output.write(os.linesep)
+
+def get_read_trace():
+    """
+    Return a traceback of the attempted read formats for the last call to
+    `~astropy.io.ascii.read` where guessing was enabled.  This is primarily for
+    debugging.
+
+    The return value is a list of dicts, where each dict includes the keyword
+    args ``kwargs`` used in the read call and the returned ``status``.
+
+    Returns
+    -------
+    trace : list of dicts
+       Ordered list of format guesses and status
+    """
+
+    return copy.deepcopy(_read_trace)

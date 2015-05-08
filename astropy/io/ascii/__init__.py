@@ -40,6 +40,6 @@ from .sextractor import SExtractor
 from .fixedwidth import (FixedWidth, FixedWidthNoHeader,
                          FixedWidthTwoLine, FixedWidthSplitter,
                          FixedWidthHeader, FixedWidthData)
-from .ui import (set_guess, get_reader, read, get_writer, write, READ_TRIES)
+from .ui import (set_guess, get_reader, read, get_writer, write, get_read_trace)
 
 from . import connect
