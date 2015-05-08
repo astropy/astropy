@@ -12,11 +12,14 @@ except ImportError:
 else:
     HAS_PLT = True
 
+from ...tests.helper import pytest
+
 import numpy as np
 from .. import hist
 from ...stats import histogram
 
 
+@pytest.mark.skipif('not HAS_PLT')
 def test_hist_basic(rseed=0):
     rng = np.random.RandomState(rseed)
     x = rng.randn(100)
@@ -29,6 +32,7 @@ def test_hist_basic(rseed=0):
         assert_allclose(bins1, bins2)
 
 
+@pytest.mark.skipif('not HAS_PLT')
 def test_hist_specify_ax(rseed=0):
     rng = np.random.RandomState(rseed)
     x = rng.randn(100)
@@ -41,6 +45,7 @@ def test_hist_specify_ax(rseed=0):
     assert patches2[0].axes is ax[1]
 
 
+@pytest.mark.skipif('not HAS_PLT')
 def test_hist_autobin(rseed=0):
     rng = np.random.RandomState(rseed)
     x = rng.randn(100)
