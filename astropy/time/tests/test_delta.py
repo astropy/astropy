@@ -230,6 +230,18 @@ class TestTimeDelta():
             assert not hasattr(t3, '_delta_tdb_tt')
             assert not hasattr(t3, '_delta_ut1_utc')
 
+    def test_set_format(self):
+        """
+        Test basics of setting format attribute.
+        """
+        dt = TimeDelta(86400.0, format='sec')
+        assert dt.value == 86400.0
+        assert dt.format == 'sec'
+
+        dt.format = 'jd'
+        assert dt.value == 1.0
+        assert dt.format == 'jd'
+
 
 class TestTimeDeltaScales():
     """Test scale conversion for Time Delta.
