@@ -898,3 +898,50 @@ def test_subfmts_regex():
     t = Time('+02000-02-03', format='longyear')
     assert t.value == '+02000-02-03'
     assert t.jd == Time('2000-02-03').jd
+
+def test_set_format_basic():
+    """
+    Test basics of setting format attribute.
+    """
+    for format, value in (('jd', 2451577.5),
+                          ('mjd', 51577.0),
+                          ('cxcsec', 65923200.0),
+                          ('datetime', datetime(2000, 2, 3, 0, 0)),
+                          ('iso', '2000-02-03 00:00:00.000')):
+        t = Time('+02000-02-03', format='fits')
+        t0 = t.replicate()
+        t.format = format
+        assert t.value == value
+        # Internal jd1 and jd2 are preserved
+        assert t._time.jd1 is t0._time.jd1
+        assert t._time.jd2 is t0._time.jd2
+
+def test_set_format_shares_subfmt():
+    """
+    Set format and round trip through a format that shares out_subfmt
+    """
+    t = Time('+02000-02-03', format='fits', out_subfmt='date_hms', precision=5)
+    tc = t.copy()
+
+    t.format = 'isot'
+    assert t.precision == 5
+    assert t.out_subfmt == 'date_hms'
+    assert t.value == '2000-02-03T00:00:00.00000'
+
+    t.format = 'fits'
+    assert t.value == tc.value
+    assert t.precision == 5
+
+def test_set_format_does_not_share_subfmt():
+    """
+    Set format and round trip through a format that does not share out_subfmt
+    """
+    t = Time('+02000-02-03', format='fits', out_subfmt='longdate')
+
+    t.format = 'isot'
+    assert t.out_subfmt == '*'  # longdate_hms not there, goes to default
+    assert t.value == '2000-02-03T00:00:00.000'
+
+    t.format = 'fits'
+    assert t.out_subfmt == '*'
+    assert t.value == '2000-02-03T00:00:00.000(UTC)'  # date_hms

@@ -67,6 +67,14 @@ formats by requesting the corresponding |Time| attributes::
   >>> t.mjd
   array([ 51179.00000143,  55197.        ])
 
+The default representation can be changed by setting the `format` attribute::
+
+  >>> t.format = 'fits'
+  >>> t
+  <Time object: scale='utc' format='fits' value=['1999-01-01T00:00:00.123(UTC)'
+                                                 '2010-01-01T00:00:00.000(UTC)']>
+  >>> t.format = 'isot'
+
 We can also convert to a different time scale, for instance from UTC to
 TT.  This uses the same attribute mechanism as above but now returns a new
 |Time| object::
@@ -168,6 +176,31 @@ yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:0
    such as ``UT(NIST)`` is stored only as long as the time scale is not changed.
 .. [#] `Rots et al. 2015, A&A 574:A36 <http://adsabs.harvard.edu/abs/2015A%26A...574A..36R>`_
 	  
+Changing format
+"""""""""""""""
+
+The default representation can be changed by setting the ``format`` attribute in place::
+
+  >>> t = Time('2000-01-02')
+  >>> t.format = 'jd'
+  >>> t
+  <Time object: scale='utc' format='jd' value=2451545.5>
+
+Be aware that when changing format, the current output subformat (see section below)
+may not exist in the new format.  In this case the subformat will not be
+preserved::
+
+  >>> t = Time('2000-01-02', format='fits', out_subfmt='longdate')
+  >>> t.value
+  '+02000-01-02(UTC)'
+  >>> t.format = 'iso'
+  >>> t.out_subfmt
+  u'*'
+  >>> t.format = 'fits'
+  >>> t.value
+  '2000-01-02T00:00:00.000(UTC)'
+
+
 Subformat
 """""""""
 
