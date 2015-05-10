@@ -69,6 +69,8 @@ API Changes
 
 - ``astropy.modeling``
 
+  - Polynomials are now scaled when used in a compound model. [#3702]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
