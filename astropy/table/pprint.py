@@ -370,10 +370,7 @@ class TableFormatter(object):
         if show_dtype:
             i_centers.append(n_header)
             n_header += 1
-            try:
-                dtype = col.dtype.name
-            except AttributeError:
-                dtype = 'object'
+            dtype = pprint_dtype(col)
             yield six.text_type(dtype)
         if show_unit or show_name or show_dtype:
             i_dashes = n_header
@@ -669,3 +666,17 @@ class TableFormatter(object):
             if i0 >= len(tabcol) - delta_lines:
                 i0 = len(tabcol) - delta_lines
             print("\n")
+
+
+def pprint_dtype(col):
+    def _numpy_dtype_to_str(dtype):
+        if dtype.fields:
+            return str('({0})').format(str(', ').join(
+                _numpy_dtype_to_str(np.dtype(x[1])) for x in dtype.descr))
+        else:
+            return dtype.name
+
+    if hasattr(col, 'dtype'):
+        return _numpy_dtype_to_str(col.dtype)
+    else:
+        return str('object')

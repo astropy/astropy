@@ -779,7 +779,7 @@ class Column(BaseColumn):
         unit = None if self.unit is None else str(self.unit)
         shape = None if self.ndim <= 1 else self.shape[1:]
         for attr, val in (('name', self.name),
-                          ('dtype', self.dtype.name),
+                          ('dtype', pprint.pprint_dtype(self)),
                           ('shape', shape),
                           ('unit', unit),
                           ('format', self.format),
