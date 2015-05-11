@@ -1060,10 +1060,11 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
+        inv_e = self.inv_efunc
         if not isiterable(z):
-            return self._hubble_distance * quad(self.inv_efunc, 0, z)[0]
+            return self._hubble_distance * quad(inv_e, 0, z)[0]
 
-        f = np.vectorize(lambda red: quad(self.inv_efunc, 0, red)[0])
+        f = np.vectorize(lambda red: quad(inv_e, 0, red)[0])
         return self._hubble_distance * f(z)
 
     def comoving_transverse_distance(self, z):
@@ -1665,7 +1666,7 @@ class FlatLambdaCDM(LambdaCDM):
         return np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
 
     def inv_efunc(self, z):
-        r"""Function used to calculate :math:`\frac{1}{H_z}`.
+        """Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
@@ -1690,8 +1691,61 @@ class FlatLambdaCDM(LambdaCDM):
         else:
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
-
         return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
+
+    # These are internal versions added for efficiency that
+    # avoid argument checks, etc.  They should only be called
+    # by internal routines
+    def _inv_efunc_norel(self, z, Om0, Ode0):
+        return 1.0 / ((1. + z) ** 3 * Om0 + Ode0)**0.5
+
+    def _inv_efunc_nomnu(self, z, Om0, Ode0, Or0):
+        opz = 1.0 + z
+        return 1.0 / (opz ** 3 * (opz * Or0 + Om0) + Ode0)**0.5
+
+    def _inv_efunc(self, z, Om0, Ode0, Ogamma0, nufunc):
+        Or0 = Ogamma0 * (1. + nufunc(z))
+        opz = 1.0 + z
+        return 1.0 / (opz ** 3 * (opz * Or0 + Om0) + Ode0)**0.5
+        
+    def comoving_distance(self, z):
+        """ Comoving line-of-sight distance in Mpc at a given
+        redshift.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          Comoving distance in Mpc to each input redshift.
+        """
+        
+        # This is overloaded from FLRW for speed.  Yes, it's
+        # very, very ugly.
+        from scipy.integrate import quad
+        if self._Tcmb0.value == 0:
+            inv_e = self._inv_efunc_norel
+            args = (self._Om0, self._Ode0)
+        elif not self._massivenu:
+            inv_e = self._inv_efunc_nomnu
+            args = (self._Om0, self._Ode0, self._Ogamma0 + self._Onu0)
+        else:
+            inv_e = self._inv_efunc
+            args = (self._Om0, self._Ode0, self._Ogamma0,
+                    self.nu_relative_density)
+            
+        if not isiterable(z):
+            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
+
+        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
+        return self._hubble_distance * f(z)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
