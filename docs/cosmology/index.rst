@@ -313,6 +313,10 @@ and that the Planck13 and Planck15 cosmologies includes a single
 species of neutrinos with non-zero mass (which is not included in
 :math:`\Omega_{m0}`).
 
+Adding massive neutrinos has significant performance implications.
+In particular, the computation of distance measures and lookback times
+are factors of ten slower than in the massless neutrino case.
+
 The contribution of photons and neutrinos to the total mass-energy density
 can be found as a function of redshift::
 

@@ -884,12 +884,9 @@ class FLRW(Cosmology):
         Eqn 30 from Hogg 1999.
         """
 
-        if isiterable(z):
-            zp1 = 1.0 + np.asarray(z)
-        else:
-            zp1 = 1. + z
-
-        return 1.0 / (zp1 * self.efunc(z))
+        # Note this is only called by quad, so we don't need
+        # to worry about it being iterable
+        return 1.0 / ((1.0 + z) * self.efunc(z))
 
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
@@ -909,11 +906,9 @@ class FLRW(Cosmology):
         See Hogg 1999 section 11.
         """
 
-        if isiterable(z):
-            zp1 = 1.0 + np.asarray(z)
-        else:
-            zp1 = 1. + z
-        return zp1 ** 2 / self.efunc(z)
+        # Also only called by quad, doesn't need to
+        # handle iterables
+        return (1.0 + z) ** 2 * self.inv_efunc(z)
 
     def H(self, z):
         """ Hubble parameter (km/s/Mpc) at redshift ``z``.
@@ -1581,6 +1576,64 @@ class LambdaCDM(FLRW):
 
         return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)
 
+    # The stuff below here for this class is -not- something
+    # you need to overload for your own classes.  It is done
+    # purely for efficiency reasons, and results in a 10x speedup
+    # in distance calculations.
+    @staticmethod
+    def _inv_efunc_norel(z, Om0, Ode0, Ok0):
+        opz = 1.0 + z
+        return 1.0 / (opz ** 2 * (opz * Om0 + Ok0) + Ode0)**0.5
+
+    @staticmethod
+    def _inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0):
+        opz = 1.0 + z
+        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 + Ode0)**0.5
+
+    @staticmethod
+    def _inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc):
+        Or0 = Ogamma0 * (1. + nufunc(z))
+        opz = 1.0 + z
+        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 + Ode0)**0.5
+
+    def comoving_distance(self, z):
+        """ Comoving line-of-sight distance in Mpc at a given
+        redshift.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          Comoving distance in Mpc to each input redshift.
+        """
+
+        from scipy.integrate import quad
+        if self._Tcmb0.value == 0:
+            inv_e = self._inv_efunc_norel
+            args = (self._Om0, self._Ode0, self._Ok0)
+        elif not self._massivenu:
+            inv_e = self._inv_efunc_nomnu
+            args = (self._Om0, self._Ode0, self._Ok0,
+                    self._Ogamma0 + self._Onu0)
+        else:
+            inv_e = self._inv_efunc
+            args = (self._Om0, self._Ode0, self._Ok0, self._Ogamma0,
+                    self.nu_relative_density)
+
+        if not isiterable(z):
+            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
+
+        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
+        return self._hubble_distance * f(z)
+
 
 class FlatLambdaCDM(LambdaCDM):
     """FLRW cosmology with a cosmological constant and no curvature.
@@ -1693,21 +1746,32 @@ class FlatLambdaCDM(LambdaCDM):
         zp1 = 1.0 + z
         return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
 
-    # These are internal versions added for efficiency that
-    # avoid argument checks, etc.  They should only be called
-    # by internal routines
-    def _inv_efunc_norel(self, z, Om0, Ode0):
+    def __repr__(self):
+        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
+                 "Neff={4:.3g}, m_nu={5}, Ob0={6:s})"
+        return retstr.format(self._namelead(), self._H0, self._Om0,
+                             self._Tcmb0, self._Neff, self.m_nu,
+                             _float_or_none(self._Ob0))
+
+    # The stuff below here for this class is -not- something
+    # you need to overload for your own classes.  It is done
+    # purely for efficiency reasons, and results in a 10x speedup
+    # in distance calculations.
+    @staticmethod
+    def _inv_efunc_norel(z, Om0, Ode0):
         return 1.0 / ((1. + z) ** 3 * Om0 + Ode0)**0.5
 
-    def _inv_efunc_nomnu(self, z, Om0, Ode0, Or0):
+    @staticmethod
+    def _inv_efunc_nomnu(z, Om0, Ode0, Or0):
         opz = 1.0 + z
         return 1.0 / (opz ** 3 * (opz * Or0 + Om0) + Ode0)**0.5
 
-    def _inv_efunc(self, z, Om0, Ode0, Ogamma0, nufunc):
+    @staticmethod
+    def _inv_efunc(z, Om0, Ode0, Ogamma0, nufunc):
         Or0 = Ogamma0 * (1. + nufunc(z))
         opz = 1.0 + z
         return 1.0 / (opz ** 3 * (opz * Or0 + Om0) + Ode0)**0.5
-        
+
     def comoving_distance(self, z):
         """ Comoving line-of-sight distance in Mpc at a given
         redshift.
@@ -1726,9 +1790,7 @@ class FlatLambdaCDM(LambdaCDM):
         d : ndarray, or float if input scalar
           Comoving distance in Mpc to each input redshift.
         """
-        
-        # This is overloaded from FLRW for speed.  Yes, it's
-        # very, very ugly.
+
         from scipy.integrate import quad
         if self._Tcmb0.value == 0:
             inv_e = self._inv_efunc_norel
@@ -1740,19 +1802,12 @@ class FlatLambdaCDM(LambdaCDM):
             inv_e = self._inv_efunc
             args = (self._Om0, self._Ode0, self._Ogamma0,
                     self.nu_relative_density)
-            
+
         if not isiterable(z):
             return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
 
         f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
         return self._hubble_distance * f(z)
-
-    def __repr__(self):
-        retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
-                 "Neff={4:.3g}, m_nu={5}, Ob0={6:s})"
-        return retstr.format(self._namelead(), self._H0, self._Om0,
-                             self._Tcmb0, self._Neff, self.m_nu,
-                             _float_or_none(self._Ob0))
 
 
 class wCDM(FLRW):
@@ -1942,6 +1997,67 @@ class wCDM(FLRW):
                              self._Ode0, self._w0, self._Tcmb0, self._Neff,
                              self.m_nu, _float_or_none(self._Ob0))
 
+    # The stuff below here for this class is -not- something
+    # you need to overload for your own classes.  It is done
+    # purely for efficiency reasons, and results in a 10x speedup
+    # in distance calculations.
+    @staticmethod
+    def _inv_efunc_norel(z, Om0, Ode0, Ok0, w0):
+        opz = 1.0 + z
+        return 1.0 / (opz ** 2 * (opz * Om0 + Ok0) +
+                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
+
+    @staticmethod
+    def _inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, w0):
+        opz = 1.0 + z
+        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
+
+    @staticmethod
+    def _inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, w0):
+        Or0 = Ogamma0 * (1. + nufunc(z))
+        opz = 1.0 + z
+        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
+
+    def comoving_distance(self, z):
+        """ Comoving line-of-sight distance in Mpc at a given
+        redshift.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          Comoving distance in Mpc to each input redshift.
+        """
+
+        from scipy.integrate import quad
+        if self._Tcmb0.value == 0:
+            inv_e = self._inv_efunc_norel
+            args = (self._Om0, self._Ode0, self._Ok0, self._w0)
+        elif not self._massivenu:
+            inv_e = self._inv_efunc_nomnu
+            args = (self._Om0, self._Ode0, self._Ok0,
+                    self._Ogamma0 + self._Onu0, self._w0)
+        else:
+            inv_e = self._inv_efunc
+            args = (self._Om0, self._Ode0, self._Ok0, self._Ogamma0,
+                    self.nu_relative_density, self._w0)
+
+        if not isiterable(z):
+            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
+
+        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
+        return self._hubble_distance * f(z)
+
 
 class FlatwCDM(wCDM):
     """FLRW cosmology with a constant dark energy equation of state
@@ -2056,7 +2172,7 @@ class FlatwCDM(wCDM):
 
         if isiterable(z):
             z = np.asarray(z)
-        Om0, Ode0, Ok0, w0 = self._Om0, self._Ode0, self._Ok0, self._w0
+        Om0, Ode0, w0 = self._Om0, self._Ode0, self._w0
         if self._massivenu:
             Or = self._Ogamma0 * (1. + self.nu_relative_density(z))
         else:
@@ -2072,6 +2188,66 @@ class FlatwCDM(wCDM):
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
+
+    # The stuff below here for this class is -not- something
+    # you need to overload for your own classes.  It is done
+    # purely for efficiency reasons, and results in a 10x speedup
+    # in distance calculations.
+    @staticmethod
+    def _inv_efunc_norel(z, Om0, Ode0, w0):
+        opz = 1.0 + z
+        return 1.0 / (opz ** 3 * Om0 + Ode0 * opz**(3. * (1.0 + w0)))**0.5
+
+    @staticmethod
+    def _inv_efunc_nomnu(z, Om0, Ode0, Or0, w0):
+        opz = 1.0 + z
+        return 1.0 / (opz ** 3 * (opz * Or0 + Om0, w0) +
+                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
+
+    @staticmethod
+    def _inv_efunc(z, Om0, Ode0, Ogamma0, nufunc, w0):
+        Or0 = Ogamma0 * (1. + nufunc(z))
+        opz = 1.0 + z
+        return 1.0 / (opz ** 3 * (opz * Or0 + Om0) +
+                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
+
+    def comoving_distance(self, z):
+        """ Comoving line-of-sight distance in Mpc at a given
+        redshift.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          Comoving distance in Mpc to each input redshift.
+        """
+
+        from scipy.integrate import quad
+        if self._Tcmb0.value == 0:
+            inv_e = self._inv_efunc_norel
+            args = (self._Om0, self._Ode0, self._w0)
+        elif not self._massivenu:
+            inv_e = self._inv_efunc_nomnu
+            args = (self._Om0, self._Ode0, self._Ogamma0 + self._Onu0,
+                    self._w0)
+        else:
+            inv_e = self._inv_efunc
+            args = (self._Om0, self._Ode0, self._Ogamma0,
+                    self.nu_relative_density, self._w0)
+
+        if not isiterable(z):
+            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
+
+        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
+        return self._hubble_distance * f(z)
 
 
 class w0waCDM(FLRW):
@@ -2219,9 +2395,75 @@ class w0waCDM(FLRW):
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
 
+    # The stuff below here for this class is -not- something
+    # you need to overload for your own classes.  It is done
+    # purely for efficiency reasons, and results in a 10x speedup
+    # in distance calculations.
+    # Note we unwrap de_energy_scale internally here
+    @staticmethod
+    def _inv_efunc_norel(z, Om0, Ode0, Ok0, w0, wa):
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
+        return 1.0 / (opz ** 2 * (opz * Om0 + Ok0) +
+                      Ode0 * Odescl)**0.5
+
+    @staticmethod
+    def _inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, w0, wa):
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
+        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                      Ode0 * Odescl)**0.5
+
+    @staticmethod
+    def _inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, w0, wa):
+        Or0 = Ogamma0 * (1. + nufunc(z))
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
+        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                      Ode0 * Odescl)**0.5
+
+    def comoving_distance(self, z):
+        """ Comoving line-of-sight distance in Mpc at a given
+        redshift.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          Comoving distance in Mpc to each input redshift.
+        """
+
+        from scipy.integrate import quad
+        if self._Tcmb0.value == 0:
+            inv_e = self._inv_efunc_norel
+            args = (self._Om0, self._Ode0, self._Ok0, self._w0, self._wa)
+        elif not self._massivenu:
+            inv_e = self._inv_efunc_nomnu
+            args = (self._Om0, self._Ode0, self._Ok0,
+                    self._Ogamma0 + self._Onu0, self._w0, self._wa)
+        else:
+            inv_e = self._inv_efunc
+            args = (self._Om0, self._Ode0, self._Ok0, self._Ogamma0,
+                    self.nu_relative_density, self._w0, self._wa)
+
+        if not isiterable(z):
+            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
+
+        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
+        return self._hubble_distance * f(z)
+
 
 class Flatw0waCDM(w0waCDM):
-    """FLRW cosmology with a CPL dark energy equation of state and no curvature.
+    """FLRW cosmology with a CPL dark energy equation of state and no
+    curvature.
 
     The equation for the dark energy equation of state uses the
     CPL form as described in Chevallier & Polarski Int. J. Mod. Phys.
@@ -2296,6 +2538,68 @@ class Flatw0waCDM(w0waCDM):
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
+
+    # The stuff below here for this class is -not- something
+    # you need to overload for your own classes.  It is done
+    # purely for efficiency reasons, and results in a 10x speedup
+    # in distance calculations.
+    # Note we unwrap de_energy_scale internally here
+    @staticmethod
+    def _inv_efunc_norel(z, Om0, Ode0, w0, wa):
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
+        return 1.0 / (Om0 * opz**3 + Ode0 * Odescl)**0.5
+
+    @staticmethod
+    def _inv_efunc_nomnu(z, Om0, Ode0, Or0, w0, wa):
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
+        return 1.0 / ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**0.5
+
+    @staticmethod
+    def _inv_efunc(z, Om0, Ode0, Ogamma0, nufunc, w0, wa):
+        Or0 = Ogamma0 * (1. + nufunc(z))
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
+        return 1.0 / ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**0.5
+
+    def comoving_distance(self, z):
+        """ Comoving line-of-sight distance in Mpc at a given
+        redshift.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          Comoving distance in Mpc to each input redshift.
+        """
+
+        from scipy.integrate import quad
+        if self._Tcmb0.value == 0:
+            inv_e = self._inv_efunc_norel
+            args = (self._Om0, self._Ode0, self._w0, self._wa)
+        elif not self._massivenu:
+            inv_e = self._inv_efunc_nomnu
+            args = (self._Om0, self._Ode0, self._Ogamma0 + self._Onu0,
+                    self._w0, self._wa)
+        else:
+            inv_e = self._inv_efunc
+            args = (self._Om0, self._Ode0, self._Ogamma0,
+                    self.nu_relative_density, self._w0, self._wa)
+
+        if not isiterable(z):
+            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
+
+        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
+        return self._hubble_distance * f(z)
 
 
 class wpwaCDM(FLRW):
@@ -2462,6 +2766,74 @@ class wpwaCDM(FLRW):
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
 
+    # The stuff below here for this class is -not- something
+    # you need to overload for your own classes.  It is done
+    # purely for efficiency reasons, and results in a 10x speedup
+    # in distance calculations.
+    # Note we unwrap de_energy_scale internally here
+    @staticmethod
+    def _inv_efunc_norel(z, Om0, Ode0, Ok0, wp, apiv, wa):
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1. + wp + apiv * wa)) * exp(-3. * wa * z / opz)
+        return 1.0 / (opz ** 2 * (opz * Om0 + Ok0) +
+                      Ode0 * Odescl)**0.5
+
+    @staticmethod
+    def _inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, wp, apiv, wa):
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1. + wp + apiv * wa)) * exp(-3. * wa * z / opz)
+        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                      Ode0 * Odescl)**0.5
+
+    @staticmethod
+    def _inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, wp, apiv, wa):
+        Or0 = Ogamma0 * (1. + nufunc(z))
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1. + wp + apiv * wa)) * exp(-3. * wa * z / opz)
+        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                      Ode0 * Odescl)**0.5
+
+    def comoving_distance(self, z):
+        """ Comoving line-of-sight distance in Mpc at a given
+        redshift.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          Comoving distance in Mpc to each input redshift.
+        """
+
+        from scipy.integrate import quad
+        if self._Tcmb0.value == 0:
+            inv_e = self._inv_efunc_norel
+            args = (self._Om0, self._Ode0, self._Ok0,
+                    self._wp, 1. / (1. + self._zp), self._wa)
+        elif not self._massivenu:
+            inv_e = self._inv_efunc_nomnu
+            args = (self._Om0, self._Ode0, self._Ok0,
+                    self._Ogamma0 + self._Onu0,
+                    self._wp, 1. / (1. + self._zp), self._wa)
+        else:
+            inv_e = self._inv_efunc
+            args = (self._Om0, self._Ode0, self._Ok0,
+                    self._Ogamma0, self.nu_relative_density,
+                    self._wp, 1. / (1. + self._zp), self._wa)
+
+        if not isiterable(z):
+            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
+
+        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
+        return self._hubble_distance * f(z)
+
 
 class w0wzCDM(FLRW):
     """FLRW cosmology with a variable dark energy equation of state
@@ -2608,6 +2980,69 @@ class w0wzCDM(FLRW):
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._wz, self._Tcmb0,
                              self._Neff, self.m_nu, _float_or_none(self._Ob0))
+
+    # The stuff below here for this class is -not- something
+    # you need to overload for your own classes.  It is done
+    # purely for efficiency reasons, and results in a 10x speedup
+    # in distance calculations.
+    # Note we unwrap de_energy_scale internally here
+    @staticmethod
+    def _inv_efunc_norel(z, Om0, Ode0, w0, wz):
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
+        return 1.0 / (Om0 * opz**3 + Ode0 * Odescl)**0.5
+
+    @staticmethod
+    def _inv_efunc_nomnu(z, Om0, Ode0, Or0, w0, wz):
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
+        return 1.0 / ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**0.5
+
+    @staticmethod
+    def _inv_efunc(z, Om0, Ode0, Ogamma0, nufunc, w0, wz):
+        Or0 = Ogamma0 * (1. + nufunc(z))
+        opz = 1.0 + z
+        Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
+        return 1.0 / ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**0.5
+
+    def comoving_distance(self, z):
+        """ Comoving line-of-sight distance in Mpc at a given
+        redshift.
+
+        The comoving distance along the line-of-sight between two
+        objects remains constant with time for objects in the Hubble
+        flow.
+
+        Parameters
+        ----------
+        z : array-like
+          Input redshifts.  Must be 1D or scalar.
+
+        Returns
+        -------
+        d : ndarray, or float if input scalar
+          Comoving distance in Mpc to each input redshift.
+        """
+
+        from scipy.integrate import quad
+        if self._Tcmb0.value == 0:
+            inv_e = self._inv_efunc_norel
+            args = (self._Om0, self._Ode0, self._w0, self._wz)
+        elif not self._massivenu:
+            inv_e = self._inv_efunc_nomnu
+            args = (self._Om0, self._Ode0, self._Ogamma0 + self._Onu0,
+                    self._w0, self._wz)
+        else:
+            inv_e = self._inv_efunc
+            args = (self._Om0, self._Ode0, self._Ogamma0,
+                    self.nu_relative_density, self._w0, self._wz)
+
+        if not isiterable(z):
+            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
+
+        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
+        return self._hubble_distance * f(z)
+
 
 def _float_or_none(x, digits=3):
     """ Helper function to format a variable that can be a float or None"""
