@@ -20,6 +20,7 @@ class SetupData(object):
         self.d_mask = np.array([False, True, False])
         self.d = MaskedColumn(name='d', data=[7, 8, 7], mask=self.d_mask)
         self.e = MaskedColumn(name='e', data=[(7, 'a'), (8, 'b'), (7, 'c')],
+                              dtype=b'<i4, |S1',
                               mask=[[False, True], [True, False], [False, False]])
         self.t = Table([self.a, self.b], masked=True)
         self.ca = Column(name='ca', data=[1, 2, 3])
