@@ -315,7 +315,9 @@ species of neutrinos with non-zero mass (which is not included in
 
 Adding massive neutrinos has significant performance implications.
 In particular, the computation of distance measures and lookback times
-are factors of ten slower than in the massless neutrino case.
+are factors of ten slower than in the massless neutrino case.  Therefore,
+if you need to compute a lot of distances in such a cosmology, it is
+particularly useful to calculate them on a grid and use interpolation.
 
 The contribution of photons and neutrinos to the total mass-energy density
 can be found as a function of redshift::
