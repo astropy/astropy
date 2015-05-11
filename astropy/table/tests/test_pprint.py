@@ -545,7 +545,13 @@ def test_pprint_recarray_col():
     col = table.Column(
         [(1, ('a', 42.))],
         dtype=[(str('f0'), str('i4')), (str('f1'), [(str('f2'), str('S1')), (str('f3'), str('f8'))])])
-    assert "dtype='(int32, (string8, float64))'" in repr(col)
+    if PY3:
+        assert "dtype='(int32, (bytes8, float64))'" in repr(col)
+    else:
+        assert "dtype='(int32, (string8, float64))'" in repr(col)
 
     t = table.Table([col, table.Column([1])], names=['a', 'b'])
-    assert "(int32, (string8, float64)) int64" in repr(t)
+    if PY3:
+        assert "(int32, (bytes8, float64)) int64" in repr(t)
+    else:
+        assert "(int32, (string8, float64)) int64" in repr(t)

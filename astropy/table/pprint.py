@@ -258,7 +258,7 @@ class TableFormatter(object):
             col_strs.insert(0, '<table>')
             col_strs.append('</table>')
 
-        # Now bring all the column string values to the same fixed width        
+        # Now bring all the column string values to the same fixed width
         else:
             col_width = max(len(x) for x in col_strs) if col_strs else 1
 
@@ -307,12 +307,11 @@ class TableFormatter(object):
                         justify = (lambda col_str, col_width:
                                    getattr(col_str, 'rjust')(col_width))
                 col_strs[i] = justify(col_str, col_width)
-                
+
         if outs['show_length']:
             col_strs.append('Length = {0} rows'.format(len(col)))
 
         return col_strs, outs
-
 
     def _pformat_col_iter(self, col, max_lines, show_name, show_unit, outs,
                           show_dtype=False, show_length=None):
