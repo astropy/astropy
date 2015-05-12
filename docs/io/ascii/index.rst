@@ -36,7 +36,7 @@ be easily accommodated.
 
     It is also possible to use the functionality from
     :mod:`astropy.io.ascii` through a higher-level interface in the
-    :mod:`astropy.table` package. See :ref:`table_io` for more details.
+    :ref:`Data Tables <astropy-table>` package. See :ref:`table_io` for more details.
 
 Getting Started
 ===============
@@ -62,11 +62,13 @@ This table can be read with the following::
     877     0.22 4378 3892   Source 82
 
 The first argument to the |read| function can be the name of a file, a string
-representation of a table, or a list of table lines.  By default |read| will
-try to `guess the table format <#guess-table-format>`_ by trying all the
-`supported formats`_.  If this does not work (for unusually formatted tables) then
-one needs give astropy.io.ascii additional hints about the format, for
-example::
+representation of a table, or a list of table lines.  The return value
+(``data`` in this case) is a :ref:`Table <astropy-table>` object.
+
+By default |read| will try to `guess the table format <#guess-table-format>`_
+by trying all the `supported formats`_.  If this does not work (for unusually
+formatted tables) then one needs give astropy.io.ascii additional hints about
+the format, for example::
 
    >>> lines = ['objID                   & osrcid            & xsrcid       ',
    ...          '----------------------- & ----------------- & -------------',
