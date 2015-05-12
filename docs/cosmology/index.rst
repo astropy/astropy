@@ -169,10 +169,9 @@ being specified will raise a ``ValueError``:
   >>> cosmo = FlatLambdaCDM(H0=70, Om0=0.3)
   >>> cosmo.Odm(1)
   Traceback (most recent call last):
-      cosmo.Odm(1)
-    File "astropy/cosmology/core.py", line 539, in Odm
-      raise ValueError("Baryonic density not set for this cosmology, "
-  ValueError: Baryonic density not set for this cosmology, unclear meaning of dark matter density
+  ...
+  ValueError: Baryonic density not set for this cosmology, unclear
+  meaning of dark matter density
 
 Cosmological instances have an optional ``name`` attribute which can be
 used to describe the cosmology::

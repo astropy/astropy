@@ -499,13 +499,15 @@ literal and repeat all slashes, e.g. ``"\\usepackage{foo}"``.
 The following shows the problem on Python 2::
 
     >>> ur'\u'
-      File "<stdin>", line 1
+    Traceback (most recent call last):
+    ...
     SyntaxError: (unicode error) 'rawunicodeescape' codec can't decode bytes in
     position 0-1: truncated \uXXXX
     >>> ur'\\u'
     u'\\\\u'
     >>> u'\u'
-      File "<stdin>", line 1
+    Traceback (most recent call last):
+    ...
     SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in
     position 0-1: truncated \uXXXX escape
     >>> u'\\u'
