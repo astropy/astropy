@@ -231,7 +231,7 @@ def test_clone():
     assert allclose(newclone.Om(z), cmp.Om(z))
     assert allclose(newclone.H(z), cmp.H(z))
     assert allclose(newclone.luminosity_distance(z),
-                             cmp.luminosity_distance(z))
+                    cmp.luminosity_distance(z))
 
     # Now try changing multiple things
     newclone = cosmo.clone(name="New name", H0=65 * u.km / u.s / u.Mpc,
@@ -365,15 +365,15 @@ def test_flat_z1():
 
     # The order of values below is Wright, Kempner, iCosmos'
     assert allclose(cosmo.comoving_distance(z),
-                             [3364.5, 3364.8, 3364.7988] * u.Mpc, rtol=1e-4)
+                    [3364.5, 3364.8, 3364.7988] * u.Mpc, rtol=1e-4)
     assert allclose(cosmo.angular_diameter_distance(z),
-                             [1682.3, 1682.4, 1682.3994] * u.Mpc, rtol=1e-4)
+                    [1682.3, 1682.4, 1682.3994] * u.Mpc, rtol=1e-4)
     assert allclose(cosmo.luminosity_distance(z),
-                             [6729.2, 6729.6, 6729.5976] * u.Mpc, rtol=1e-4)
+                    [6729.2, 6729.6, 6729.5976] * u.Mpc, rtol=1e-4)
     assert allclose(cosmo.lookback_time(z),
-                             [7.841, 7.84178, 7.843] * u.Gyr, rtol=1e-3)
+                    [7.841, 7.84178, 7.843] * u.Gyr, rtol=1e-3)
     assert allclose(cosmo.lookback_distance(z),
-                             [2404.0, 2404.24, 2404.4] * u.Mpc, rtol=1e-3)
+                    [2404.0, 2404.24, 2404.4] * u.Mpc, rtol=1e-3)
 
 
 def test_zeroing():
@@ -979,9 +979,21 @@ def test_age():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert allclose(tcos.hubble_time, 13.889094057856937 * u.Gyr)
+    assert allclose(tcos.age(4), 1.5823603508870991 * u.Gyr)
     assert allclose(tcos.age([1., 5.]),
                              [5.97113193, 1.20553129] * u.Gyr)
     assert allclose(tcos.age([1, 5]), [5.97113193, 1.20553129] * u.Gyr)
+
+    # Add relativistic species
+    tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0)
+    assert allclose(tcos.age(4), 1.5773003779230699 * u.Gyr)
+    assert allclose(tcos.age([1, 5]), [5.96344942, 1.20093077] * u.Gyr)
+
+    # And massive neutrinos
+    tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0,
+                              m_nu = 0.1 * u.eV)
+    assert allclose(tcos.age(4), 1.5546485439853412 * u.Gyr)
+    assert allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1098,6 +1110,72 @@ def test_massivenu_basic():
     assert len(mnu) == 3
     assert mnu.unit == u.eV
     assert allclose(mnu, [0.1, 0.1, 0.1] * u.eV)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_distances():
+    # Test distance calculations for various special case
+    #  scenarios (no rel, normal, massive neutrinos)
+    # These do not come from external codes -- they are just internal
+    #  checks to make sure nothing changes
+
+    z = np.array([1.0, 2.0, 3.0, 4.0])
+
+    # The pattern here is: no relativistic species, the relativistic
+    # species with massless neutrinos, then massive neutrinos
+    cos = core.LambdaCDM(75.0, 0.25, 0.5, Tcmb0=0.0)
+    assert allclose(cos.comoving_distance(z),
+                    [2953.93001902, 4616.7134253, 5685.07765971,
+                     6440.80611897] * u.Mpc, rtol=1e-4)
+    cos = core.LambdaCDM(75.0, 0.25, 0.6, Tcmb0=3.0, Neff=3,
+                         m_nu=u.Quantity(0.0, u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [3037.12620424, 4776.86236327, 5889.55164479,
+                     6671.85418235] * u.Mpc, rtol=1e-4)
+    cos = core.LambdaCDM(75.0, 0.3, 0.4, Tcmb0=3.0, Neff=3,
+                         m_nu=u.Quantity(10.0, u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2471.80626824, 3567.1902565 , 4207.15995626,
+                     4638.20476018] * u.Mpc, rtol=1e-4)
+    # Flat
+    cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=0.0)
+    assert allclose(cos.comoving_distance(z),
+                    [3180.83488552, 5060.82054204, 6253.6721173,
+                     7083.5374303] * u.Mpc, rtol=1e-4)
+    cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3,
+                              m_nu=u.Quantity(0.0, u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [3180.42662867, 5059.60529655, 6251.62766102,
+                     7080.71698117] * u.Mpc, rtol=1e-4)
+    cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3,
+                              m_nu=u.Quantity(10.0, u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2337.54183142, 3371.91131264, 3988.40711188,
+                     4409.09346922] * u.Mpc, rtol=1e-4)
+    # Add w
+    cos = core.FlatwCDM(75.0, 0.25, w0=-0.9, Tcmb0=3.0, Neff=3,
+                    m_nu=u.Quantity(10.0, u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2337.76035371, 3372.1971387 , 3988.71362289,
+                     4409.40817174] * u.Mpc, rtol=1e-4)
+    # Non-flat w
+    cos = core.wCDM(75.0, 0.25, 0.4, w0=-0.9, Tcmb0=3.0, Neff=3,
+                    m_nu=u.Quantity(10.0, u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2473.32522734, 3581.54519631, 4232.41674426,
+                     4671.83818117] * u.Mpc, rtol=1e-4)
+    # w0wa
+    cos = core.w0waCDM(75.0, 0.25, 0.5, w0=-0.9, wa=0.1, Tcmb0=3.0, Neff=3,
+                       m_nu=u.Quantity(10.0, u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2507.18336722, 3633.33231695, 4292.44746919,
+                     4736.35404638] * u.Mpc, rtol=1e-4)
+    # Flatw0wa
+    cos = core.Flatw0waCDM(75.0, 0.25, w0=-0.95, wa=0.15, Tcmb0=3.0, Neff=3,
+                           m_nu=u.Quantity(10.0, u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2337.70072701, 3372.13719963, 3988.6571093,
+                     4409.35399673] * u.Mpc, rtol=1e-4)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')

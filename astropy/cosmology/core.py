@@ -252,6 +252,11 @@ class FLRW(Cosmology):
         # Compute curvature density
         self._Ok0 = 1.0 - self._Om0 - self._Ode0 - self._Ogamma0 - self._Onu0
 
+        # Subclasses should override this reference if they provide
+        #  more efficient scalar versions of inv_efunc.
+        self._scalar_inv_efunc = self.inv_efunc
+        self._scalar_inv_efunc_args = ()
+
     def _namelead(self):
         """ Helper function for constructing __repr__"""
         if self.name is None:
@@ -863,20 +868,20 @@ class FLRW(Cosmology):
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
-                             Ode0 * self.de_density_scale(z))
+        return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
+                Ode0 * self.de_density_scale(z))**(-0.5)
 
     def _tfunc(self, z):
         """ Integrand of the lookback time.
 
         Parameters
         ----------
-        z : array-like
-          Input redshifts.
+        z : float
+          Input redshift.
 
         Returns
         -------
-        I : ndarray, or float if input scalar
+        I : float
           The integrand for the lookback time
 
         References
@@ -886,19 +891,20 @@ class FLRW(Cosmology):
 
         # Note this is only called by quad, so we don't need
         # to worry about it being iterable
-        return 1.0 / ((1.0 + z) * self.efunc(z))
+        args = self._scalar_inv_efunc_args
+        return self._scalar_inv_efunc(z, *args) / (1.0 + z)
 
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
 
         Parameters
         ----------
-        z : array-like
-          Input redshifts.
+        z : float
+          Input redshift.
 
         Returns
         -------
-        X : ndarray, or float if input scalar
+        X : float
           The integrand for the absorption distance
 
         References
@@ -906,9 +912,10 @@ class FLRW(Cosmology):
         See Hogg 1999 section 11.
         """
 
-        # Also only called by quad, doesn't need to
+        # Only ever called by quad, doesn't need to
         # handle iterables
-        return (1.0 + z) ** 2 * self.inv_efunc(z)
+        args = self._scalar_inv_efunc_args
+        return (1.0 + z) ** 2 * self._scalar_inv_efunc(z, *args)
 
     def H(self, z):
         """ Hubble parameter (km/s/Mpc) at redshift ``z``.
@@ -969,11 +976,8 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        if not isiterable(z):
-            return self._hubble_time * quad(self._tfunc, 0, z)[0]
-
-        f = np.vectorize(lambda red: quad(self._tfunc, 0, red)[0])
-        return self._hubble_time * f(z)
+        f = lambda red: quad(self._tfunc, 0, red)[0]
+        return self._hubble_time * vectorize_if_needed(f, z)
 
     def lookback_distance(self, z):
         """
@@ -1013,11 +1017,8 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        if not isiterable(z):
-            return self._hubble_time * quad(self._tfunc, z, np.inf)[0]
-
-        f = np.vectorize(lambda red: quad(self._tfunc, red, np.inf)[0])
-        return self._hubble_time * f(z)
+        f = lambda red: quad(self._tfunc, red, np.inf)[0]
+        return self._hubble_time * vectorize_if_needed(f, z)
 
     def critical_density(self, z):
         """ Critical density in grams per cubic cm at redshift ``z``.
@@ -1055,12 +1056,9 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        inv_e = self.inv_efunc
-        if not isiterable(z):
-            return self._hubble_distance * quad(inv_e, 0, z)[0]
-
-        f = np.vectorize(lambda red: quad(inv_e, 0, red)[0])
-        return self._hubble_distance * f(z)
+        f = lambda red: quad(self._scalar_inv_efunc, 0, red,
+                             args=self._scalar_inv_efunc_args)[0]
+        return self._hubble_distance * vectorize_if_needed(f, z)
 
     def comoving_transverse_distance(self, z):
         """ Comoving transverse distance in Mpc at a given redshift.
@@ -1243,11 +1241,8 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        if not isiterable(z):
-            return quad(self._xfunc, 0, z)[0]
-
-        f = np.vectorize(lambda red: quad(self._xfunc, 0, red)[0])
-        return f(z)
+        f = lambda red: quad(self._xfunc, 0, red)[0]
+        return vectorize_if_needed(f, z)
 
     def distmod(self, z):
         """ Distance modulus at redshift ``z``.
@@ -1463,6 +1458,20 @@ class LambdaCDM(FLRW):
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
 
+        # Now, special optional fast scalar versions of integrands
+        if self._Tcmb0.value == 0:
+            self._scalar_inv_efunc = self._inv_efunc_norel
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0)
+        elif not self._massivenu:
+            self._scalar_inv_efunc = self._inv_efunc_nomnu
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0)
+        else:
+            self._scalar_inv_efunc = self._inv_efunc
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0,
+                                           self.nu_relative_density)
+
     def w(self, z):
         """Returns dark energy equation of state at redshift ``z``.
 
@@ -1574,65 +1583,26 @@ class LambdaCDM(FLRW):
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)
+        return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)**(-0.5)
 
     # The stuff below here for this class is -not- something
     # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons, and results in a 10x speedup
-    # in distance calculations.
+    # purely for efficiency reasons.
     @staticmethod
     def _inv_efunc_norel(z, Om0, Ode0, Ok0):
         opz = 1.0 + z
-        return 1.0 / (opz ** 2 * (opz * Om0 + Ok0) + Ode0)**0.5
+        return (opz ** 2 * (opz * Om0 + Ok0) + Ode0)**(-0.5)
 
     @staticmethod
     def _inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0):
         opz = 1.0 + z
-        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 + Ode0)**0.5
+        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 + Ode0)**(-0.5)
 
     @staticmethod
     def _inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc):
         Or0 = Ogamma0 * (1. + nufunc(z))
         opz = 1.0 + z
-        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 + Ode0)**0.5
-
-    def comoving_distance(self, z):
-        """ Comoving line-of-sight distance in Mpc at a given
-        redshift.
-
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
-
-        Parameters
-        ----------
-        z : array-like
-          Input redshifts.  Must be 1D or scalar.
-
-        Returns
-        -------
-        d : ndarray, or float if input scalar
-          Comoving distance in Mpc to each input redshift.
-        """
-
-        from scipy.integrate import quad
-        if self._Tcmb0.value == 0:
-            inv_e = self._inv_efunc_norel
-            args = (self._Om0, self._Ode0, self._Ok0)
-        elif not self._massivenu:
-            inv_e = self._inv_efunc_nomnu
-            args = (self._Om0, self._Ode0, self._Ok0,
-                    self._Ogamma0 + self._Onu0)
-        else:
-            inv_e = self._inv_efunc
-            args = (self._Om0, self._Ode0, self._Ok0, self._Ogamma0,
-                    self.nu_relative_density)
-
-        if not isiterable(z):
-            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
-
-        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
-        return self._hubble_distance * f(z)
+        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 + Ode0)**(-0.5)
 
 
 class FlatLambdaCDM(LambdaCDM):
@@ -1685,6 +1655,20 @@ class FlatLambdaCDM(LambdaCDM):
         # Do some twiddling after the fact to get flatness
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
+
+        # Now, special optional fast scalar versions of integrands
+        if self._Tcmb0.value == 0:
+            self._scalar_inv_efunc = self._inv_efunc_norel
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0)
+        elif not self._massivenu:
+            self._scalar_inv_efunc = self._inv_efunc_nomnu
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0 + self._Onu0)
+        else:
+            self._scalar_inv_efunc = self._inv_efunc
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0,
+                                           self.nu_relative_density)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1744,7 +1728,7 @@ class FlatLambdaCDM(LambdaCDM):
         else:
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
-        return 1.0 / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
+        return (zp1 ** 3 * (Or * zp1 + Om0) + Ode0)**(-0.5)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Tcmb0={3:.4g}, "\
@@ -1759,55 +1743,18 @@ class FlatLambdaCDM(LambdaCDM):
     # in distance calculations.
     @staticmethod
     def _inv_efunc_norel(z, Om0, Ode0):
-        return 1.0 / ((1. + z) ** 3 * Om0 + Ode0)**0.5
+        return ((1. + z) ** 3 * Om0 + Ode0)**(-0.5)
 
     @staticmethod
     def _inv_efunc_nomnu(z, Om0, Ode0, Or0):
         opz = 1.0 + z
-        return 1.0 / (opz ** 3 * (opz * Or0 + Om0) + Ode0)**0.5
+        return (opz ** 3 * (opz * Or0 + Om0) + Ode0)**(-0.5)
 
     @staticmethod
     def _inv_efunc(z, Om0, Ode0, Ogamma0, nufunc):
         Or0 = Ogamma0 * (1. + nufunc(z))
         opz = 1.0 + z
-        return 1.0 / (opz ** 3 * (opz * Or0 + Om0) + Ode0)**0.5
-
-    def comoving_distance(self, z):
-        """ Comoving line-of-sight distance in Mpc at a given
-        redshift.
-
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
-
-        Parameters
-        ----------
-        z : array-like
-          Input redshifts.  Must be 1D or scalar.
-
-        Returns
-        -------
-        d : ndarray, or float if input scalar
-          Comoving distance in Mpc to each input redshift.
-        """
-
-        from scipy.integrate import quad
-        if self._Tcmb0.value == 0:
-            inv_e = self._inv_efunc_norel
-            args = (self._Om0, self._Ode0)
-        elif not self._massivenu:
-            inv_e = self._inv_efunc_nomnu
-            args = (self._Om0, self._Ode0, self._Ogamma0 + self._Onu0)
-        else:
-            inv_e = self._inv_efunc
-            args = (self._Om0, self._Ode0, self._Ogamma0,
-                    self.nu_relative_density)
-
-        if not isiterable(z):
-            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
-
-        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
-        return self._hubble_distance * f(z)
+        return (opz ** 3 * (opz * Or0 + Om0) + Ode0)**(-0.5)
 
 
 class wCDM(FLRW):
@@ -1873,6 +1820,23 @@ class wCDM(FLRW):
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=None)
         self._w0 = float(w0)
+
+        # Now, special optional fast scalar versions of integrands
+        if self._Tcmb0.value == 0:
+            self._scalar_inv_efunc = self._inv_efunc_norel
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._w0)
+        elif not self._massivenu:
+            self._scalar_inv_efunc = self._inv_efunc_nomnu
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0)
+        else:
+            self._scalar_inv_efunc = self._inv_efunc
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0,
+                                           self.nu_relative_density,
+                                           self._w0)
 
     @property
     def w0(self):
@@ -1987,8 +1951,8 @@ class wCDM(FLRW):
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1.0 + z
 
-        return 1.0 / np.sqrt(zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
-                             Ode0 * zp1 ** (3. * (1. + w0)))
+        return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
+                Ode0 * zp1 ** (3. * (1. + w0)))**(-0.5)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, Ode0={3:.3g}, w0={4:.3g}, "\
@@ -1999,64 +1963,25 @@ class wCDM(FLRW):
 
     # The stuff below here for this class is -not- something
     # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons, and results in a 10x speedup
-    # in distance calculations.
+    # purely for efficiency reasons.
     @staticmethod
     def _inv_efunc_norel(z, Om0, Ode0, Ok0, w0):
         opz = 1.0 + z
-        return 1.0 / (opz ** 2 * (opz * Om0 + Ok0) +
-                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
+        return (opz ** 2 * (opz * Om0 + Ok0) +
+                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
 
     @staticmethod
     def _inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, w0):
         opz = 1.0 + z
-        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
+        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
 
     @staticmethod
     def _inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, w0):
         Or0 = Ogamma0 * (1. + nufunc(z))
         opz = 1.0 + z
-        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
-
-    def comoving_distance(self, z):
-        """ Comoving line-of-sight distance in Mpc at a given
-        redshift.
-
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
-
-        Parameters
-        ----------
-        z : array-like
-          Input redshifts.  Must be 1D or scalar.
-
-        Returns
-        -------
-        d : ndarray, or float if input scalar
-          Comoving distance in Mpc to each input redshift.
-        """
-
-        from scipy.integrate import quad
-        if self._Tcmb0.value == 0:
-            inv_e = self._inv_efunc_norel
-            args = (self._Om0, self._Ode0, self._Ok0, self._w0)
-        elif not self._massivenu:
-            inv_e = self._inv_efunc_nomnu
-            args = (self._Om0, self._Ode0, self._Ok0,
-                    self._Ogamma0 + self._Onu0, self._w0)
-        else:
-            inv_e = self._inv_efunc
-            args = (self._Om0, self._Ode0, self._Ok0, self._Ogamma0,
-                    self.nu_relative_density, self._w0)
-
-        if not isiterable(z):
-            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
-
-        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
-        return self._hubble_distance * f(z)
+        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
 
 
 class FlatwCDM(wCDM):
@@ -2122,6 +2047,23 @@ class FlatwCDM(wCDM):
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
+        # Now, special optional fast scalar versions of integrands
+        if self._Tcmb0.value == 0:
+            self._scalar_inv_efunc = self._inv_efunc_norel
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+                                           self._w0)
+        elif not self._massivenu:
+            self._scalar_inv_efunc = self._inv_efunc_nomnu
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0)
+        else:
+            self._scalar_inv_efunc = self._inv_efunc
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0,
+                                           self.nu_relative_density,
+                                           self._w0)
+
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
 
@@ -2179,8 +2121,8 @@ class FlatwCDM(wCDM):
             Or = self._Ogamma0 + self._Onu0
         zp1 = 1. + z
 
-        return 1. / np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) +
-                            Ode0 * zp1 ** (3. * (1. + w0)))
+        return (zp1 ** 3 * (Or * zp1 + Om0) +
+                Ode0 * zp1 ** (3. * (1. + w0)))**(-0.5)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, w0={3:.3g}, Tcmb0={4:.4g}, "\
@@ -2196,58 +2138,20 @@ class FlatwCDM(wCDM):
     @staticmethod
     def _inv_efunc_norel(z, Om0, Ode0, w0):
         opz = 1.0 + z
-        return 1.0 / (opz ** 3 * Om0 + Ode0 * opz**(3. * (1.0 + w0)))**0.5
+        return (opz ** 3 * Om0 + Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
 
     @staticmethod
     def _inv_efunc_nomnu(z, Om0, Ode0, Or0, w0):
         opz = 1.0 + z
-        return 1.0 / (opz ** 3 * (opz * Or0 + Om0, w0) +
-                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
+        return (opz ** 3 * (opz * Or0 + Om0, w0) +
+                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
 
     @staticmethod
     def _inv_efunc(z, Om0, Ode0, Ogamma0, nufunc, w0):
         Or0 = Ogamma0 * (1. + nufunc(z))
         opz = 1.0 + z
-        return 1.0 / (opz ** 3 * (opz * Or0 + Om0) +
-                      Ode0 * opz**(3. * (1.0 + w0)))**0.5
-
-    def comoving_distance(self, z):
-        """ Comoving line-of-sight distance in Mpc at a given
-        redshift.
-
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
-
-        Parameters
-        ----------
-        z : array-like
-          Input redshifts.  Must be 1D or scalar.
-
-        Returns
-        -------
-        d : ndarray, or float if input scalar
-          Comoving distance in Mpc to each input redshift.
-        """
-
-        from scipy.integrate import quad
-        if self._Tcmb0.value == 0:
-            inv_e = self._inv_efunc_norel
-            args = (self._Om0, self._Ode0, self._w0)
-        elif not self._massivenu:
-            inv_e = self._inv_efunc_nomnu
-            args = (self._Om0, self._Ode0, self._Ogamma0 + self._Onu0,
-                    self._w0)
-        else:
-            inv_e = self._inv_efunc
-            args = (self._Om0, self._Ode0, self._Ogamma0,
-                    self.nu_relative_density, self._w0)
-
-        if not isiterable(z):
-            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
-
-        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
-        return self._hubble_distance * f(z)
+        return (opz ** 3 * (opz * Or0 + Om0) +
+                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
 
 
 class w0waCDM(FLRW):
@@ -2318,6 +2222,23 @@ class w0waCDM(FLRW):
                       Ob0=Ob0)
         self._w0 = float(w0)
         self._wa = float(wa)
+
+        # Now, special optional fast scalar versions of integrands
+        if self._Tcmb0.value == 0:
+            self._scalar_inv_efunc = self._inv_efunc_norel
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._w0, self._wa)
+        elif not self._massivenu:
+            self._scalar_inv_efunc = self._inv_efunc_nomnu
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0, self._wa)
+        else:
+            self._scalar_inv_efunc = self._inv_efunc
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0,
+                                           self.nu_relative_density,
+                                           self._w0, self._wa)
 
     @property
     def w0(self):
@@ -2404,61 +2325,22 @@ class w0waCDM(FLRW):
     def _inv_efunc_norel(z, Om0, Ode0, Ok0, w0, wa):
         opz = 1.0 + z
         Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return 1.0 / (opz ** 2 * (opz * Om0 + Ok0) +
-                      Ode0 * Odescl)**0.5
+        return (opz ** 2 * (opz * Om0 + Ok0) + Ode0 * Odescl)**(-0.5)
 
     @staticmethod
     def _inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, w0, wa):
         opz = 1.0 + z
         Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                      Ode0 * Odescl)**0.5
+        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                Ode0 * Odescl)**(-0.5)
 
     @staticmethod
     def _inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, w0, wa):
         Or0 = Ogamma0 * (1. + nufunc(z))
         opz = 1.0 + z
         Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                      Ode0 * Odescl)**0.5
-
-    def comoving_distance(self, z):
-        """ Comoving line-of-sight distance in Mpc at a given
-        redshift.
-
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
-
-        Parameters
-        ----------
-        z : array-like
-          Input redshifts.  Must be 1D or scalar.
-
-        Returns
-        -------
-        d : ndarray, or float if input scalar
-          Comoving distance in Mpc to each input redshift.
-        """
-
-        from scipy.integrate import quad
-        if self._Tcmb0.value == 0:
-            inv_e = self._inv_efunc_norel
-            args = (self._Om0, self._Ode0, self._Ok0, self._w0, self._wa)
-        elif not self._massivenu:
-            inv_e = self._inv_efunc_nomnu
-            args = (self._Om0, self._Ode0, self._Ok0,
-                    self._Ogamma0 + self._Onu0, self._w0, self._wa)
-        else:
-            inv_e = self._inv_efunc
-            args = (self._Om0, self._Ode0, self._Ok0, self._Ogamma0,
-                    self.nu_relative_density, self._w0, self._wa)
-
-        if not isiterable(z):
-            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
-
-        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
-        return self._hubble_distance * f(z)
+        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                Ode0 * Odescl)**(-0.5)
 
 
 class Flatw0waCDM(w0waCDM):
@@ -2531,6 +2413,23 @@ class Flatw0waCDM(w0waCDM):
         self._w0 = float(w0)
         self._wa = float(wa)
 
+        # Now, special optional fast scalar versions of integrands
+        if self._Tcmb0.value == 0:
+            self._scalar_inv_efunc = self._inv_efunc_norel
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+                                           self._w0, self._wa)
+        elif not self._massivenu:
+            self._scalar_inv_efunc = self._inv_efunc_nomnu
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0, self._wa)
+        else:
+            self._scalar_inv_efunc = self._inv_efunc
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+                                           self._Ogamma0,
+                                           self.nu_relative_density,
+                                           self._w0, self._wa)
+
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
                  "w0={3:.3g}, Tcmb0={4:.4g}, Neff={5:.3g}, m_nu={6}, "\
@@ -2548,58 +2447,20 @@ class Flatw0waCDM(w0waCDM):
     def _inv_efunc_norel(z, Om0, Ode0, w0, wa):
         opz = 1.0 + z
         Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return 1.0 / (Om0 * opz**3 + Ode0 * Odescl)**0.5
+        return (Om0 * opz**3 + Ode0 * Odescl)**(-0.5)
 
     @staticmethod
     def _inv_efunc_nomnu(z, Om0, Ode0, Or0, w0, wa):
         opz = 1.0 + z
         Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return 1.0 / ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**0.5
+        return ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**(-0.5)
 
     @staticmethod
     def _inv_efunc(z, Om0, Ode0, Ogamma0, nufunc, w0, wa):
         Or0 = Ogamma0 * (1. + nufunc(z))
         opz = 1.0 + z
         Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return 1.0 / ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**0.5
-
-    def comoving_distance(self, z):
-        """ Comoving line-of-sight distance in Mpc at a given
-        redshift.
-
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
-
-        Parameters
-        ----------
-        z : array-like
-          Input redshifts.  Must be 1D or scalar.
-
-        Returns
-        -------
-        d : ndarray, or float if input scalar
-          Comoving distance in Mpc to each input redshift.
-        """
-
-        from scipy.integrate import quad
-        if self._Tcmb0.value == 0:
-            inv_e = self._inv_efunc_norel
-            args = (self._Om0, self._Ode0, self._w0, self._wa)
-        elif not self._massivenu:
-            inv_e = self._inv_efunc_nomnu
-            args = (self._Om0, self._Ode0, self._Ogamma0 + self._Onu0,
-                    self._w0, self._wa)
-        else:
-            inv_e = self._inv_efunc
-            args = (self._Om0, self._Ode0, self._Ogamma0,
-                    self.nu_relative_density, self._w0, self._wa)
-
-        if not isiterable(z):
-            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
-
-        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
-        return self._hubble_distance * f(z)
+        return ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**(-0.5)
 
 
 class wpwaCDM(FLRW):
@@ -2679,6 +2540,24 @@ class wpwaCDM(FLRW):
         self._wp = float(wp)
         self._wa = float(wa)
         self._zp = float(zp)
+
+        # Now, special optional fast scalar versions of integrands
+        apiv = 1.0 / (1.0 + self._zp)
+        if self._Tcmb0.value == 0:
+            self._scalar_inv_efunc = self._inv_efunc_norel
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._wp, apiv, self._wa)
+        elif not self._massivenu:
+            self._scalar_inv_efunc = self._inv_efunc_nomnu
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._wp, apiv, self._wa)
+        else:
+            self._scalar_inv_efunc = self._inv_efunc
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0,
+                                           self.nu_relative_density,
+                                           self._wp, apiv, self._wa)
 
     @property
     def wp(self):
@@ -2775,64 +2654,22 @@ class wpwaCDM(FLRW):
     def _inv_efunc_norel(z, Om0, Ode0, Ok0, wp, apiv, wa):
         opz = 1.0 + z
         Odescl = opz**(3. * (1. + wp + apiv * wa)) * exp(-3. * wa * z / opz)
-        return 1.0 / (opz ** 2 * (opz * Om0 + Ok0) +
-                      Ode0 * Odescl)**0.5
+        return (opz ** 2 * (opz * Om0 + Ok0) + Ode0 * Odescl)**(-0.5)
 
     @staticmethod
     def _inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, wp, apiv, wa):
         opz = 1.0 + z
         Odescl = opz**(3. * (1. + wp + apiv * wa)) * exp(-3. * wa * z / opz)
-        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                      Ode0 * Odescl)**0.5
+        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                Ode0 * Odescl)**(-0.5)
 
     @staticmethod
     def _inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, wp, apiv, wa):
         Or0 = Ogamma0 * (1. + nufunc(z))
         opz = 1.0 + z
         Odescl = opz**(3. * (1. + wp + apiv * wa)) * exp(-3. * wa * z / opz)
-        return 1.0 / ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                      Ode0 * Odescl)**0.5
-
-    def comoving_distance(self, z):
-        """ Comoving line-of-sight distance in Mpc at a given
-        redshift.
-
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
-
-        Parameters
-        ----------
-        z : array-like
-          Input redshifts.  Must be 1D or scalar.
-
-        Returns
-        -------
-        d : ndarray, or float if input scalar
-          Comoving distance in Mpc to each input redshift.
-        """
-
-        from scipy.integrate import quad
-        if self._Tcmb0.value == 0:
-            inv_e = self._inv_efunc_norel
-            args = (self._Om0, self._Ode0, self._Ok0,
-                    self._wp, 1. / (1. + self._zp), self._wa)
-        elif not self._massivenu:
-            inv_e = self._inv_efunc_nomnu
-            args = (self._Om0, self._Ode0, self._Ok0,
-                    self._Ogamma0 + self._Onu0,
-                    self._wp, 1. / (1. + self._zp), self._wa)
-        else:
-            inv_e = self._inv_efunc
-            args = (self._Om0, self._Ode0, self._Ok0,
-                    self._Ogamma0, self.nu_relative_density,
-                    self._wp, 1. / (1. + self._zp), self._wa)
-
-        if not isiterable(z):
-            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
-
-        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
-        return self._hubble_distance * f(z)
+        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
+                Ode0 * Odescl)**(-0.5)
 
 
 class w0wzCDM(FLRW):
@@ -2905,6 +2742,23 @@ class w0wzCDM(FLRW):
                       Ob0=Ob0)
         self._w0 = float(w0)
         self._wz = float(wz)
+
+        # Now, special optional fast scalar versions of integrands
+        if self._Tcmb0.value == 0:
+            self._scalar_inv_efunc = self._inv_efunc_norel
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._w0, self._wz)
+        elif not self._massivenu:
+            self._scalar_inv_efunc = self._inv_efunc_nomnu
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0 + self._Onu0,
+                                           self._w0, self._wz)
+        else:
+            self._scalar_inv_efunc = self._inv_efunc
+            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+                                           self._Ogamma0,
+                                           self.nu_relative_density,
+                                           self._w0, self._wz)
 
     @property
     def w0(self):
@@ -2990,58 +2844,20 @@ class w0wzCDM(FLRW):
     def _inv_efunc_norel(z, Om0, Ode0, w0, wz):
         opz = 1.0 + z
         Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
-        return 1.0 / (Om0 * opz**3 + Ode0 * Odescl)**0.5
+        return (Om0 * opz**3 + Ode0 * Odescl)**(-0.5)
 
     @staticmethod
     def _inv_efunc_nomnu(z, Om0, Ode0, Or0, w0, wz):
         opz = 1.0 + z
         Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
-        return 1.0 / ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**0.5
+        return ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**(-0.5)
 
     @staticmethod
     def _inv_efunc(z, Om0, Ode0, Ogamma0, nufunc, w0, wz):
         Or0 = Ogamma0 * (1. + nufunc(z))
         opz = 1.0 + z
         Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
-        return 1.0 / ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**0.5
-
-    def comoving_distance(self, z):
-        """ Comoving line-of-sight distance in Mpc at a given
-        redshift.
-
-        The comoving distance along the line-of-sight between two
-        objects remains constant with time for objects in the Hubble
-        flow.
-
-        Parameters
-        ----------
-        z : array-like
-          Input redshifts.  Must be 1D or scalar.
-
-        Returns
-        -------
-        d : ndarray, or float if input scalar
-          Comoving distance in Mpc to each input redshift.
-        """
-
-        from scipy.integrate import quad
-        if self._Tcmb0.value == 0:
-            inv_e = self._inv_efunc_norel
-            args = (self._Om0, self._Ode0, self._w0, self._wz)
-        elif not self._massivenu:
-            inv_e = self._inv_efunc_nomnu
-            args = (self._Om0, self._Ode0, self._Ogamma0 + self._Onu0,
-                    self._w0, self._wz)
-        else:
-            inv_e = self._inv_efunc
-            args = (self._Om0, self._Ode0, self._Ogamma0,
-                    self.nu_relative_density, self._w0, self._wz)
-
-        if not isiterable(z):
-            return self._hubble_distance * quad(inv_e, 0, z, args=args)[0]
-
-        f = np.vectorize(lambda red: quad(inv_e, 0, red, args=args)[0])
-        return self._hubble_distance * f(z)
+        return ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**(-0.5)
 
 
 def _float_or_none(x, digits=3):
@@ -3050,6 +2866,13 @@ def _float_or_none(x, digits=3):
         return str(x)
     fmtstr = "{0:.{digits}g}".format(x, digits=digits)
     return fmtstr.format(x)
+
+def vectorize_if_needed(func, x):
+    """ Helper function to vectorize functions on array inputs"""
+    if not isiterable(x):
+        return func(x)
+    else:
+        return np.vectorize(func)(x)
 
 # Pre-defined cosmologies. This loops over the parameter sets in the
 # parameters module and creates a LambdaCDM or FlatLambdaCDM instance
