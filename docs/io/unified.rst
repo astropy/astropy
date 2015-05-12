@@ -270,11 +270,7 @@ unless the table ID is specified via the ``table_id=`` argument::
 
     >>> t = Table.read('catalog.xml')
     Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/Volumes/Raptor/Library/Python/2.7/lib/python/site-packages/astropy/table/table.py", line 1559, in read
-        table = reader(*args, **kwargs)
-      File "/Volumes/Raptor/Library/Python/2.7/lib/python/site-packages/astropy/io/votable/connect.py", line 44, in read_table_votable
-        raise ValueError("Multiple tables found: table id should be set via the id= argument. The available tables are " + ', '.join(tables.keys()))
+    ...
     ValueError: Multiple tables found: table id should be set via the table_id= argument. The available tables are twomass, spitzer
 
     >>> t = Table.read('catalog.xml', table_id='twomass')

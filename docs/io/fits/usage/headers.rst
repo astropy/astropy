@@ -350,11 +350,7 @@ Examples follow::
     10
     >>> h.header['ABCDEFGHI']
     Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "astropy/io/fits/header.py", line 121, in __getitem__
-        return self._cards[self._cardindex(key)].value
-      File "astropy/io/fits/header.py", line 1106, in _cardindex
-        raise KeyError("Keyword %r not found." % keyword)
+    ...
     KeyError: "Keyword 'ABCDEFGI.' not found."
     >>> h.header
     SIMPLE = T / conforms to FITS standard
