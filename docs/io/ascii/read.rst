@@ -12,7 +12,10 @@ function::
   >>> data = ascii.read(table)  # doctest: +SKIP
 
 where ``table`` is the name of a file, a string representation of a table, or a
-list of table lines.  By default |read| will try to `guess the table format <#guess-table-format>`_
+list of table lines.  The return value (``data`` in this case) is a :ref:`Table
+<astropy-table>` object.
+
+By default |read| will try to `guess the table format <#guess-table-format>`_
 by trying all the supported formats.  If this does not work (for unusually
 formatted tables) then one needs give `astropy.io.ascii` additional hints about the
 format, for example::
