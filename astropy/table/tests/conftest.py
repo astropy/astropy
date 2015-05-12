@@ -15,6 +15,7 @@ can not be defined in a module by a different name and still be shared
 between modules.
 """
 from copy import deepcopy
+import numpy as np
 
 from ...tests.helper import pytest
 from ... import table
@@ -138,7 +139,9 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
               'time': time.Time([2000, 2001, 2002, 2003], format='jyear'),
               'skycoord': coordinates.SkyCoord(ra=[0, 1, 2, 3] * u.deg,
                                                dec=[0, 1, 2, 3] * u.deg),
-              'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3])
+              'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3]),
+              'ndarray': np.array([(7, 'a'), (8, 'b'), (9, 'c'), (9, 'c')],
+                           dtype='<i4,|S1').view(table.NdarrayMixin),
               }
 
 @pytest.fixture(params=sorted(MIXIN_COLS))

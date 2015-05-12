@@ -18,7 +18,11 @@ from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
+<<<<<<< HEAD
 from ..utils.data_info import InfoDescriptor, BaseColumnInfo, MixinInfo
+=======
+from ..utils.data_info import InfoDescriptor, DataInfo
+>>>>>>> 461e063... WIP on getting StructuredArrayMixin working
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -436,6 +440,10 @@ class Table(object):
         def_names = _auto_names(n_cols)
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
+            # Structured ndarray gets viewed as a mixin
+            if isinstance(col, np.ndarray) and len(col.dtype) > 1:
+                col = col.view(NdarrayMixin)
+
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.info.name or def_name),
                                        data=col, dtype=dtype,
@@ -875,6 +883,10 @@ class Table(object):
             # convert to a numpy array.
             if not hasattr(value, 'dtype') and not self._add_as_mixin_column(value):
                 value = np.asarray(value)
+
+            # Structured ndarray gets viewed as a mixin
+            if isinstance(value, np.ndarray) and len(value.dtype) > 1:
+                value = value.view(NdarrayMixin)
 
             # Make new column and assign the value.  If the table currently
             # has no rows (len=0) of the value is already a Column then
@@ -2211,3 +2223,26 @@ class QTable(Table):
             col = super(QTable, self)._convert_col_for_table(col)
 
         return col
+
+class NdarrayMixin(np.ndarray):
+    """
+    Minimal mixin using a simple subclass of numpy array
+    """
+    info = InfoDescriptor(DataInfo)
+
+    def __array_finalize__(self, obj):
+        import weakref
+        if obj is None:
+            return
+
+        if six.callable(super(NdarrayMixin, self).__array_finalize__):
+            super(NdarrayMixin, self).__array_finalize__(obj)
+
+        # Self was created from template (e.g. obj[slice] or (obj * 2))
+        # or viewcast e.g. obj.view(Column).  In either case we want to
+        # init Column attributes for self from obj if possible.
+        if hasattr(obj, 'info'):
+            self.info = obj.info.copy()
+            import pdb; pdb.set_trace()
+            self.info._parent_ref = weakref.ref(self)
+
