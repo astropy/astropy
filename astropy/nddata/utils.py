@@ -6,11 +6,14 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
 from .decorators import support_nddata
+from astropy.utils import lazyproperty
+from astropy.coordinates import SkyCoord
+from astropy.wcs.utils import skycoord_to_pixel
 
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'overlap_slices', 'block_reduce', 'block_replicate',
-           'NoOverlapError', 'PartialOverlapError']
+           'NoOverlapError', 'PartialOverlapError', 'Cutout']
 
 
 class NoOverlapError(ValueError):
@@ -456,3 +459,139 @@ def block_replicate(data, block_size, conserve_sum=True):
         data = data / float(np.prod(block_size))
 
     return data
+
+
+class Cutout(object):
+    def __init__(self, data, position, shape, wcs=None, mode='trim',
+                 fill_value=np.nan):
+        """
+        Create a cutout image.
+
+        Parameters
+        ----------
+        position : tuple or `~astropy.coordinates.SkyCoord`
+
+        shape : tuple
+
+        wcs : `~astropy.wcs.WCS`, optional
+
+        Returns
+        -------
+        result : `~astropy.nddata.utils.Cutout`
+            Cutout object
+        """
+
+        if isinstance(position, SkyCoord):
+            if wcs is None:
+                raise ValueError('wcs must be input if position is a '
+                                 'SkyCoord')
+
+            position= skycoord_to_pixel(position, wcs, mode='all')
+
+        if mode in ['partial', 'trim']:
+            slice_mode = 'partial'
+        elif mode == 'strict':
+            slice_mode = mode
+        else:
+            raise ValueError("Valid modes are 'partial', 'trim', and "
+                             "'strict'.")
+
+        data = np.asanyarray(data)
+        self.data, self.position_small  = extract_array(data, shape, position,
+            mode=mode, fill_value=fill_value, return_position=True)
+
+        slices_large, slices_small = overlap_slices(data.shape, shape,
+                                                    position, mode=slice_mode)
+        self.slices_large = slices_large
+        self.slices_small = slices_small
+
+        self.shape = self.data.shape
+        self.position_input = position
+        self.shape_input = shape
+
+        (self.ymin_large, self.xmin_large,
+         self.ymax_large, self.xmax_large) = self.bbox_large
+
+        (self.ymin_small, self.xmin_small,
+         self.ymax_small, self.xmax_small) = self.bbox_small
+
+    @staticmethod
+    def _calc_center(slices):
+        """
+        Calculate the center position.  The center position will be
+        fractional for even-sized arrays.  For ``mode='partial'``, the
+        central position is calculated for the valid (non-filled) cutout
+        values.
+        """
+        return (0.5 * (slices[0].start + slices[0].stop - 1),
+                0.5 * (slices[1].start + slices[1].stop - 1))
+
+    @staticmethod
+    def _calc_bbox(slices):
+        """
+        Calculate a minimal bounding box in the form ``(min_row,
+        min_col, max_row, max_col)``.  Note these are pixel locations,
+        not slice indices.  For ``mode='partial'``, the bounding box
+        indices are for the valid (non-filled) cutout values.
+        """
+        # (stop - 1) to return the max pixel location, not the slice index
+        return (slices[0].start, slices[1].start,
+                slices[0].stop - 1, slices[1].stop - 1)
+
+    @lazyproperty
+    def origin_large(self):
+        """
+        The ``(y, x)`` index of the origin pixel of the cutout with
+        respect to the large array.  For ``mode='partial'``, the origin
+        pixel is calculated for the valid (non-filled) cutout values.
+        """
+        return (self.slices_large[0].start, self.slices_large[1].start)
+
+    @lazyproperty
+    def position(self):
+        """
+        The actual central position in the large array.
+        """
+        slices = self.slices_large
+        return (slices[0].start + np.int(np.ceil(
+            (slices[0].stop - slices[0].start - 1) / 2.)),
+            (slices[1].start + np.int(np.ceil(
+                (slices[1].stop - slices[1].start - 1) / 2.))))
+
+    @lazyproperty
+    def center_large(self):
+        """
+        The central ``(y, x)`` position of the cutout array with respect
+        to the large array.  For ``mode='partial'``, the central
+        position is calculated for the valid (non-filled) cutout values.
+        """
+        return self._calc_center(self.slices_large)
+
+    @lazyproperty
+    def center_small(self):
+        """
+        The central ``(y, x)`` position of the cutout array.  For
+        ``mode='partial'``, the central position is calculated for the
+        valid (non-filled) cutout values.
+        """
+        return self._calc_center(self.slices_small)
+
+    @lazyproperty
+    def bbox_large(self):
+        """
+        The bounding box ``(ymin, xmin, ymax, xmax)`` of the minimal
+        rectangular region of the cutout array with respect to the large
+        array.  For ``mode='partial'``, the bounding box indices are for
+        the valid (non-filled) cutout values.
+        """
+        return self._calc_bbox(self.slices_large)
+
+    @lazyproperty
+    def bbox_small(self):
+        """
+        The bounding box ``(ymin, xmin, ymax, xmax)`` of the minimal
+        rectangular region of the cutout array.  For ``mode='partial'``,
+        the bounding box indices are for the valid (non-filled) cutout
+        values.
+        """
+        return self._calc_bbox(self.slices_small)
