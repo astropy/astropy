@@ -67,7 +67,7 @@ representation of a table, or a list of table lines.  The return value
 
 By default |read| will try to `guess the table format <#guess-table-format>`_
 by trying all the `supported formats`_.  If this does not work (for unusually
-formatted tables) then one needs give astropy.io.ascii additional hints about
+formatted tables) then one needs give ``astropy.io.ascii`` additional hints about
 the format, for example::
 
    >>> lines = ['objID                   & osrcid            & xsrcid       ',
