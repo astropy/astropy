@@ -59,9 +59,9 @@ def test_sigma_clip():
         # test axis
         data = np.arange(5) + np.random.normal(0., 0.05, (5, 5)) + \
             np.diag(np.ones(5))
-        filtered_data = sigma_clip(data, axis=0, sig=2.3)
+        filtered_data = sigma_clip(data, axis=0, sigma=2.3)
         assert filtered_data.count() == 20
-        filtered_data = sigma_clip(data, axis=1, sig=2.3)
+        filtered_data = sigma_clip(data, axis=1, sigma=2.3)
         assert filtered_data.count() == 25
 
 
