@@ -237,6 +237,8 @@ New Features
 
 - ``astropy.modeling``
 
+  - Fixed crash when evaluating a model that accepts no inputs. [#3772]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
