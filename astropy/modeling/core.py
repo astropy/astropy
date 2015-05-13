@@ -2273,9 +2273,9 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
             extra_outputs = model.n_outputs - model.n_inputs
             if not broadcasts:
                 # If there were no inputs then the broadcasts list is empty
-                # just add an empty tuple since there is no broadcasting of
-                # outputs and inputs necessary
-                broadcasts.append(())
+                # just add a None since there is no broadcasting of outputs and
+                # inputs necessary (see _prepare_outputs_single_model)
+                broadcasts.append(None)
             broadcasts.extend([broadcasts[0]] * extra_outputs)
 
     return inputs, (broadcasts,)
