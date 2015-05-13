@@ -423,8 +423,6 @@ Bug Fixes
     - a scalar raises a ``ValueError``
     - a one-dimensional array is treated as a single row of a table.
 
-- ``astropy.time``
-
   - Ensure a ``Column`` without units is treated as an ``array``, not as an
     dimensionless ``Quantity``. [#3648]
 
