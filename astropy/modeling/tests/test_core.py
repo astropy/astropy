@@ -53,6 +53,26 @@ def test_Model_array_parameter():
     assert_allclose(model.param_sets, [[42], [43], [44]])
 
 
+def test_inputless_model():
+    class TestModel(Model):
+        inputs = ()
+        outputs = ('y',)
+        a = Parameter()
+
+        @staticmethod
+        def evaluate(a):
+            return a
+
+    m = TestModel(1)
+    assert m.a == 1
+    assert m() == 1
+
+    # Test a model set
+    m2 = TestModel(a=[1, 2, 3], model_set_axis=0)
+    assert len(m2) == 3
+    assert np.all(m2() == [1, 2, 3])
+
+
 def test_Model_add_model():
     m = models.Gaussian1D(1,2,3)
     m.add_model(m, 'p')

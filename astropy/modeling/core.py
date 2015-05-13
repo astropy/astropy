@@ -2271,6 +2271,11 @@ def _prepare_inputs_single_model(model, params, inputs, **kwargs):
         else:
             # Extend the broadcasts list to include shapes for all outputs
             extra_outputs = model.n_outputs - model.n_inputs
+            if not broadcasts:
+                # If there were no inputs then the broadcasts list is empty
+                # just add an empty tuple since there is no broadcasting of
+                # outputs and inputs necessary
+                broadcasts.append(())
             broadcasts.extend([broadcasts[0]] * extra_outputs)
 
     return inputs, (broadcasts,)
@@ -2354,6 +2359,9 @@ def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
 
         pivots.append(pivot)
         reshaped.append(new_input)
+
+    if model.n_inputs < model.n_outputs:
+        pivots.extend([model_set_axis] * (model.n_outputs - model.n_inputs))
 
     return reshaped, (pivots,)
 
