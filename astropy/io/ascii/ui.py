@@ -509,6 +509,7 @@ def _get_guess_kwargs_list(read_kwargs):
     # FixedWidthTwoLine would also be read by Basic, so it needs to come first.
     if len(read_kwargs) > 0:
         for reader in [fixedwidth.FixedWidthTwoLine,
+                       fastbasic.FastBasic,
                        basic.Basic]:
             first_kwargs = read_kwargs.copy()
             first_kwargs.update(dict(Reader=reader))
