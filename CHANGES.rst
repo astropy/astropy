@@ -37,6 +37,9 @@ New Features
     arguments ``col_starts`` or ``col_ends``. Columns will be assumed to begin and
     end immediately adjacent to each other. [#3657]
 
+  - Add a function ``get_read_trace()`` that returns a traceback of the
+    attempted read formats for the last call to ``astropy.io.ascii.read``. [#3688]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
