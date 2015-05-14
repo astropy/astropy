@@ -309,8 +309,7 @@ Debugging
 In order to get more insight into the guessing process and possibly debug if
 something isn't working as expected, use the
 `~astropy.io.ascii.get_read_trace()` function.  This returns a traceback of the
-attempted read formats for the last call to `~astropy.io.ascii.read()` where
-guessing was enabled.
+attempted read formats for the last call to `~astropy.io.ascii.read()`.
 
 Comments and metadata
 ^^^^^^^^^^^^^^^^^^^^^
