@@ -254,8 +254,8 @@ class FLRW(Cosmology):
 
         # Subclasses should override this reference if they provide
         #  more efficient scalar versions of inv_efunc.
-        self._scalar_inv_efunc = self.inv_efunc
-        self._scalar_inv_efunc_args = ()
+        self._inv_efunc_scalar = self.inv_efunc
+        self._inv_efunc_scalar_args = ()
 
     def _namelead(self):
         """ Helper function for constructing __repr__"""
@@ -871,10 +871,8 @@ class FLRW(Cosmology):
         return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
                 Ode0 * self.de_density_scale(z))**(-0.5)
 
-    # The idea is to eventually replace _tfunc with _tfunc_scalar,
-    #  switch public use over to tfunc.  The concern is that some people
-    #  may be using _tfunc publicly, despite the fact that it starts
-    #  with an underscore.
+    # The idea is to eventually replace _tfunc with tfunc,
+    # and use _tfunc_scalar as the internal integrand.
     def _tfunc_scalar(self, z):
         """ Integrand of the lookback time.
 
@@ -893,11 +891,10 @@ class FLRW(Cosmology):
         Eqn 30 from Hogg 1999.
         """
 
-        args = self._scalar_inv_efunc_args
-        return self._scalar_inv_efunc(z, *args) / (1.0 + z)
+        args = self._inv_efunc_scalar_args
+        return self._inv_efunc_scalar(z, *args) / (1.0 + z)
 
-    @deprecated(since=1.1, alternative='tfunc',
-                message='will become scalar only')
+    @deprecated(since=1.1, alternative='tfunc')
     def _tfunc(self, z):
         """ Integrand of the lookback time.
 
@@ -967,11 +964,10 @@ class FLRW(Cosmology):
         See Hogg 1999 section 11.
         """
 
-        args = self._scalar_inv_efunc_args
-        return (1.0 + z) ** 2 * self._scalar_inv_efunc(z, *args)
+        args = self._inv_efunc_scalar_args
+        return (1.0 + z) ** 2 * self._inv_efunc_scalar(z, *args)
 
-    @deprecated(since=1.1, alternative='xfunc',
-                message='will become scalar only')
+    @deprecated(since=1.1, alternative='xfunc')
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
 
@@ -1159,8 +1155,8 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        f = lambda red: quad(self._scalar_inv_efunc, 0, red,
-                             args=self._scalar_inv_efunc_args)[0]
+        f = lambda red: quad(self._inv_efunc_scalar, 0, red,
+                             args=self._inv_efunc_scalar_args)[0]
         return self._hubble_distance * vectorize_if_needed(f, z)
 
     def comoving_transverse_distance(self, z):
@@ -1559,15 +1555,15 @@ class LambdaCDM(FLRW):
 
         # Now, special optional fast scalar versions of integrands
         if self._Tcmb0.value == 0:
-            self._scalar_inv_efunc = self._lcdm_inv_efunc_norel
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0)
+            self._inv_efunc_scalar = self._lcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0)
         elif not self._massivenu:
-            self._scalar_inv_efunc = self._lcdm_inv_efunc_nomnu
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._lcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0)
         else:
-            self._scalar_inv_efunc = self._lcdm_inv_efunc
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._lcdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
                                            self.nu_relative_density)
 
@@ -1757,15 +1753,15 @@ class FlatLambdaCDM(LambdaCDM):
 
         # Now, special optional fast scalar versions of integrands
         if self._Tcmb0.value == 0:
-            self._scalar_inv_efunc = self._flcdm_inv_efunc_norel
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0)
+            self._inv_efunc_scalar = self._flcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
         elif not self._massivenu:
-            self._scalar_inv_efunc = self._flcdm_inv_efunc_nomnu
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+            self._inv_efunc_scalar = self._flcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0 + self._Onu0)
         else:
-            self._scalar_inv_efunc = self._flcdm_inv_efunc
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+            self._inv_efunc_scalar = self._flcdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0,
                                            self.nu_relative_density)
 
@@ -1922,17 +1918,17 @@ class wCDM(FLRW):
 
         # Now, special optional fast scalar versions of integrands
         if self._Tcmb0.value == 0:
-            self._scalar_inv_efunc = self._wcdm_inv_efunc_norel
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._wcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._w0)
         elif not self._massivenu:
-            self._scalar_inv_efunc = self._wcdm_inv_efunc_nomnu
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._wcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0)
         else:
-            self._scalar_inv_efunc = self._wcdm_inv_efunc
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._wcdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
                                            self.nu_relative_density,
                                            self._w0)
@@ -2147,17 +2143,17 @@ class FlatwCDM(wCDM):
 
         # Now, special optional fast scalar versions of integrands
         if self._Tcmb0.value == 0:
-            self._scalar_inv_efunc = self._fwcdm_inv_efunc_norel
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+            self._inv_efunc_scalar = self._fwcdm_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._w0)
         elif not self._massivenu:
-            self._scalar_inv_efunc = self._fwcdm_inv_efunc_nomnu
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+            self._inv_efunc_scalar = self._fwcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0)
         else:
-            self._scalar_inv_efunc = self._fwcdm_inv_efunc
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+            self._inv_efunc_scalar = self._fwcdm_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0,
                                            self.nu_relative_density,
                                            self._w0)
@@ -2323,17 +2319,17 @@ class w0waCDM(FLRW):
 
         # Now, special optional fast scalar versions of integrands
         if self._Tcmb0.value == 0:
-            self._scalar_inv_efunc = self._w0wa_inv_efunc_norel
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._w0wa_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._w0, self._wa)
         elif not self._massivenu:
-            self._scalar_inv_efunc = self._w0wa_inv_efunc_nomnu
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._w0wa_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0, self._wa)
         else:
-            self._scalar_inv_efunc = self._w0wa_inv_efunc
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._w0wa_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
                                            self.nu_relative_density,
                                            self._w0, self._wa)
@@ -2511,17 +2507,17 @@ class Flatw0waCDM(w0waCDM):
 
         # Now, special optional fast scalar versions of integrands
         if self._Tcmb0.value == 0:
-            self._scalar_inv_efunc = self._fw0wa_inv_efunc_norel
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+            self._inv_efunc_scalar = self._fw0wa_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._w0, self._wa)
         elif not self._massivenu:
-            self._scalar_inv_efunc = self._fw0wa_inv_efunc_nomnu
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+            self._inv_efunc_scalar = self._fw0wa_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0, self._wa)
         else:
-            self._scalar_inv_efunc = self._fw0wa_inv_efunc
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0,
+            self._inv_efunc_scalar = self._fw0wa_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0,
                                            self.nu_relative_density,
                                            self._w0, self._wa)
@@ -2640,17 +2636,17 @@ class wpwaCDM(FLRW):
         # Now, special optional fast scalar versions of integrands
         apiv = 1.0 / (1.0 + self._zp)
         if self._Tcmb0.value == 0:
-            self._scalar_inv_efunc = self._wpwa_inv_efunc_norel
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._wpwa_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._wp, apiv, self._wa)
         elif not self._massivenu:
-            self._scalar_inv_efunc = self._wpwa_inv_efunc_nomnu
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._wpwa_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0,
                                            self._wp, apiv, self._wa)
         else:
-            self._scalar_inv_efunc = self._wpwa_inv_efunc
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._wpwa_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
                                            self.nu_relative_density,
                                            self._wp, apiv, self._wa)
@@ -2841,17 +2837,17 @@ class w0wzCDM(FLRW):
 
         # Now, special optional fast scalar versions of integrands
         if self._Tcmb0.value == 0:
-            self._scalar_inv_efunc = self._w0wz_inv_efunc_norel
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._w0wz_inv_efunc_norel
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._w0, self._wz)
         elif not self._massivenu:
-            self._scalar_inv_efunc = self._w0wz_inv_efunc_nomnu
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._w0wz_inv_efunc_nomnu
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0, self._wz)
         else:
-            self._scalar_inv_efunc = self._w0wz_inv_efunc
-            self._scalar_inv_efunc_args = (self._Om0, self._Ode0, self._Ok0,
+            self._inv_efunc_scalar = self._w0wz_inv_efunc
+            self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
                                            self.nu_relative_density,
                                            self._w0, self._wz)

@@ -410,10 +410,19 @@ def test_zeroing():
 # This class is to test whether the routines work correctly
 # if one only overloads w(z)
 class test_cos_sub(core.FLRW):
-
     def __init__(self):
         core.FLRW.__init__(self, 70.0, 0.27, 0.73, Tcmb0=0.0, name="test_cos")
         self._w0 = -0.9
+
+    def w(self, z):
+        return self._w0 * np.ones_like(z)
+
+# Similar, but with neutrinos
+class test_cos_subnu(core.FLRW):
+    def __init__(self):
+        core.FLRW.__init__(self, 70.0, 0.27, 0.73, Tcmb0=3.0,
+                           m_nu = 0.1 * u.eV, name="test_cos_nu")
+        self._w0 = -0.8
 
     def w(self, z):
         return self._w0 * np.ones_like(z)
@@ -445,13 +454,7 @@ def test_de_subclass():
                     [1.12934694, 1.23114444], rtol=1e-4)
 
     # Add neutrinos for efunc, inv_efunc
-    # These are not from Ned Wright's calculator, which doesn't do this
-    cosmo = core.wCDM(H0=70, Om0=0.27, Ode0=0.73, w0=-0.9, Tcmb0=3.0,
-                      m_nu = 0.1 * u.eV)
-    assert allclose(cosmo.efunc([0.5, 1.0]),
-                    [1.32127873,  1.75920792], rtol=1e-5)
-    assert allclose(cosmo.inv_efunc([0.5, 1.0]),
-                    [0.75684258,  0.56843764], rtol=1e-5)
+
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -678,6 +681,14 @@ def test_efunc_vs_invefunc():
     assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
     assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
     cosmo = core.w0wzCDM(55.0, 0.4, 0.8, w0=-1.05, wz=-0.2)
+    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+
+    # Now do non-standard subclasses
+    cosmo = test_cos_sub()
+    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    cosmo = test_cos_subnu()
     assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
     assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
 
@@ -1150,6 +1161,7 @@ def test_massivenu_basic():
     assert len(mnu) == 3
     assert mnu.unit == u.eV
     assert allclose(mnu, [0.1, 0.1, 0.1] * u.eV)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_distances():
