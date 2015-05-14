@@ -43,6 +43,7 @@ distribute-*.tar.gz
 .cache
 .tox
 .*.swp
+.*.swo
 *~
 .project
 .pydevproject
