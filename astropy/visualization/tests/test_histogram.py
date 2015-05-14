@@ -51,7 +51,7 @@ def test_hist_autobin(rseed=0):
     x = rng.randn(100)
 
     for bintype in [10, np.arange(-3, 3, 10),
-                    'knuth', 'scotts', 'freedman', 'blocks', 'adaptive']:
+                    'knuth', 'scott', 'freedman', 'blocks']:
         for range in [None, (-3, 3)]:
             n1, bins1 = histogram(x, bintype, range=range)
             n2, bins2, patches = hist(x, bintype, range=range)

@@ -1,3 +1,5 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 """
 Methods for selecting the bin width of histograms
 
@@ -12,7 +14,7 @@ from ..extern import six
 import numpy as np
 from . import bayesian_blocks
 
-__all__ = ['histogram', 'scotts_bin_width', 'freedman_bin_width',
+__all__ = ['histogram', 'scott_bin_width', 'freedman_bin_width',
            'knuth_bin_width']
 
 
@@ -31,10 +33,13 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
 
     bins : int or list or str (optional)
         If bins is a string, then it must be one of:
-        - 'adaptive' : use bayesian blocks for dynamic bin widths
-        - 'blocks' : same as 'adaptive'
+
+        - 'blocks' : use bayesian blocks for dynamic bin widths
+
         - 'knuth' : use Knuth's rule to determine bins
-        - 'scotts' : use Scott's rule to determine bins
+
+        - 'scott' : use Scott's rule to determine bins
+
         - 'freedman' : use the Freedman-Diaconis rule to determine bins
 
     range : tuple or None (optional)
@@ -70,16 +75,15 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
 
         # if range is specified, we need to truncate the data for
         # the bin-finding routines
-        if (range is not None and (bins in ['blocks', 'knuth',
-                                            'scotts', 'freedman'])):
+        if range is not None:
             a = a[(a >= range[0]) & (a <= range[1])]
 
-        if bins == 'adaptive' or bins == 'blocks':
+        if bins == 'blocks':
             bins = bayesian_blocks(a)
         elif bins == 'knuth':
             da, bins = knuth_bin_width(a, True)
-        elif bins == 'scotts':
-            da, bins = scotts_bin_width(a, True)
+        elif bins == 'scott':
+            da, bins = scott_bin_width(a, True)
         elif bins == 'freedman':
             da, bins = freedman_bin_width(a, True)
         else:
@@ -89,8 +93,12 @@ def histogram(a, bins=10, range=None, weights=None, **kwargs):
     return np.histogram(a, bins=bins, range=range, weights=weights, **kwargs)
 
 
-def scotts_bin_width(data, return_bins=False):
+def scott_bin_width(data, return_bins=False):
     r"""Return the optimal histogram bin width using Scott's rule
+
+    Scott's rule is a normal reference rule: it minimizes the integrated
+    mean squared error in the bin approximation under the assumption that the
+    data is approximately Gaussian.
 
     Parameters
     ----------
@@ -114,7 +122,12 @@ def scotts_bin_width(data, return_bins=False):
         \Delta_b = \frac{3.5\sigma}{n^{1/3}}
 
     where :math:`\sigma` is the standard deviation of the data, and
-    :math:`n` is the number of data points.
+    :math:`n` is the number of data points [1]_.
+
+    References
+    ----------
+    .. [1] Scott, David W. (1979). "On optimal and data-based histograms".
+       Biometricka 66 (3): 605-610
 
     See Also
     --------
@@ -144,6 +157,10 @@ def scotts_bin_width(data, return_bins=False):
 def freedman_bin_width(data, return_bins=False):
     r"""Return the optimal histogram bin width using the Freedman-Diaconis rule
 
+    The Freedman-Diaconis rule is a normal reference rule like Scott's
+    rule, but uses rank-based statistics for results which are more robust
+    to deviations from a normal distribution.
+
     Parameters
     ----------
     data : array-like, ndim=1
@@ -154,7 +171,7 @@ def freedman_bin_width(data, return_bins=False):
     Returns
     -------
     width : float
-        optimal bin width using Scott's rule
+        optimal bin width using the Freedman-Diaconis rule
     bins : ndarray
         bin edges: returned if ``return_bins`` is True
 
@@ -166,12 +183,18 @@ def freedman_bin_width(data, return_bins=False):
         \Delta_b = \frac{2(q_{75} - q_{25})}{n^{1/3}}
 
     where :math:`q_{N}` is the :math:`N` percent quartile of the data, and
-    :math:`n` is the number of data points.
+    :math:`n` is the number of data points [1]_.
+
+    References
+    ----------
+    .. [1] D. Freedman & P. Diaconis (1981)
+       "On the histogram as a density estimator: L2 theory".
+       Probability Theory and Related Fields 57 (4): 453-476
 
     See Also
     --------
     knuth_bin_width
-    scotts_bin_width
+    scott_bin_width
     bayesian_blocks
     histogram
     """
@@ -198,7 +221,7 @@ def freedman_bin_width(data, return_bins=False):
 def knuth_bin_width(data, return_bins=False, disp=True):
     r"""Return the optimal histogram bin width using Knuth's rule.
 
-    Knuth's rule [1]_ is a fixed-width, Bayesian approach to determining
+    Knuth's rule is a fixed-width, Bayesian approach to determining
     the optimal bin width of a histogram.
 
     Parameters
@@ -226,7 +249,8 @@ def knuth_bin_width(data, return_bins=False, disp=True):
         + \sum_{k=1}^M \log\Gamma(n_k + \frac{1}{2})
 
     where :math:`\Gamma` is the Gamma function, :math:`n` is the number of
-    data points, :math:`n_k` is the number of measurements in bin :math:`k`.
+    data points, :math:`n_k` is the number of measurements in bin :math:`k`
+    [1]_.
 
     References
     ----------
@@ -236,7 +260,7 @@ def knuth_bin_width(data, return_bins=False, disp=True):
     See Also
     --------
     freedman_bin_width
-    scotts_bin_width
+    scott_bin_width
     bayesian_blocks
     histogram
     """

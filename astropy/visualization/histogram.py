@@ -26,10 +26,13 @@ def hist(x, bins=10, ax=None, **kwargs):
 
     bins : int or list or str (optional)
         If bins is a string, then it must be one of:
-        - 'adaptive' : use bayesian blocks for dynamic bin widths
-        - 'blocks' : same as 'adaptive'
+
+        - 'blocks' : use bayesian blocks for dynamic bin widths
+
         - 'knuth' : use Knuth's rule to determine bins
+
         - 'scott' : use Scott's rule to determine bins
+
         - 'freedman' : use the Freedman-diaconis rule to determine bins
 
     ax : Axes instance (optional)
