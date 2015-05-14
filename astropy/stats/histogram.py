@@ -19,7 +19,7 @@ __all__ = ['histogram', 'scott_bin_width', 'freedman_bin_width',
 
 
 def histogram(a, bins=10, range=None, weights=None, **kwargs):
-    """Enhanced histogram function
+    """Enhanced histogram function, providing adaptive binnings
 
     This is a histogram function that enables the use of more sophisticated
     algorithms for determining bins.  Aside from the ``bins`` argument allowing

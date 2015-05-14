@@ -51,7 +51,7 @@ __all__ = ['FitnessFunc', 'Events', 'RegularEvents', 'PointMeasures',
 
 def bayesian_blocks(t, x=None, sigma=None,
                     fitness='events', **kwargs):
-    """Bayesian Blocks Implementation
+    """Compute optimal segmentation of data with Scargle's Bayesian Blocks
 
     This is a flexible implementation of the Bayesian Blocks algorithm
     described in Scargle 2012 [1]_.
@@ -147,7 +147,7 @@ def bayesian_blocks(t, x=None, sigma=None,
 
 
 class FitnessFunc(object):
-    """Base class for fitness functions
+    """Base class for bayesian blocks fitness functions
 
     Derived classes should overload the following method:
 
@@ -392,7 +392,7 @@ class FitnessFunc(object):
 
 
 class Events(FitnessFunc):
-    """Fitness for binned or unbinned events
+    """Bayesian blocks fitness for binned or unbinned events
 
     Parameters
     ----------
@@ -419,7 +419,7 @@ class Events(FitnessFunc):
 
 
 class RegularEvents(FitnessFunc):
-    """Fitness for regular events
+    """Bayesian blocks fitness for regular events
 
     This is for data which has a fundamental "tick" length, so that all
     measured values are multiples of this tick length.  In each tick, there
@@ -466,7 +466,7 @@ class RegularEvents(FitnessFunc):
 
 
 class PointMeasures(FitnessFunc):
-    """Fitness for point measures
+    """Bayesian blocks fitness for point measures
 
     Parameters
     ----------
