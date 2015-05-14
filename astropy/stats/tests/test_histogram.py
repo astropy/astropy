@@ -91,6 +91,18 @@ def test_histogram_range(N=1000, rseed=0):
         counts, bins = histogram(x, bins, range=range)
 
 
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_histogram_output_knuth():
+    rng = np.random.RandomState(0)
+    X = rng.randn(100)
+
+    counts, bins = histogram(X, bins='knuth')
+    assert_allclose(counts, [1, 6, 9, 14, 21, 22, 12, 8, 7])
+    assert_allclose(bins, [-2.55298982, -2.01712932, -1.48126883, -0.94540834,
+                           -0.40954784, 0.12631265, 0.66217314, 1.19803364,
+                           1.73389413, 2.26975462])
+
+
 def test_histogram_output():
     rng = np.random.RandomState(0)
     X = rng.randn(100)
@@ -111,12 +123,6 @@ def test_histogram_output():
     assert_allclose(bins, [-2.55298982, -1.95796338, -1.36293694, -0.7679105,
                            -0.17288406, 0.42214237, 1.01716881, 1.61219525,
                            2.20722169, 2.80224813])
-
-    counts, bins = histogram(X, bins='knuth')
-    assert_allclose(counts, [1, 6, 9, 14, 21, 22, 12, 8, 7])
-    assert_allclose(bins, [-2.55298982, -2.01712932, -1.48126883, -0.94540834,
-                           -0.40954784, 0.12631265, 0.66217314, 1.19803364,
-                           1.73389413, 2.26975462])
 
     counts, bins = histogram(X, bins='blocks')
     assert_allclose(counts, [3, 27, 41, 29])
