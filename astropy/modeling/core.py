@@ -34,6 +34,7 @@ from ..utils import indent, isinstancemethod, metadata
 from ..extern import six
 from ..extern.six.moves import copyreg
 from ..table import Table
+from ..units import Quantity
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings, OrderedDescriptorContainer)
 from ..utils.codegen import make_function_with_signature
@@ -1422,6 +1423,9 @@ class Model(object):
                 "given)".format(self.__class__.__name__, len(self.param_names),
                                 len(args)))
 
+        self._model_set_axis = model_set_axis
+        self._param_metrics = param_metrics = defaultdict(dict)
+
         for idx, arg in enumerate(args):
             if arg is None:
                 # A value of None implies using the default value, if exists
@@ -1439,7 +1443,8 @@ class Model(object):
                 value = kwargs.pop(param_name)
                 if value is None:
                     continue
-                params[param_name] = np.asanyarray(value, dtype=np.float)
+                else:
+                   params[param_name] = np.asanyarray(value, dtype=np.float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
@@ -1450,9 +1455,6 @@ class Model(object):
                 raise TypeError(
                     '{0}.__init__() got an unrecognized parameter '
                     '{1!r}'.format(self.__class__.__name__, kwarg))
-
-        self._model_set_axis = model_set_axis
-        self._param_metrics = defaultdict(dict)
 
         # Determine the number of model sets: If the model_set_axis is
         # None then there is just one parameter set; otherwise it is determined
@@ -1527,6 +1529,12 @@ class Model(object):
 
             param_metrics[name]['slice'] = param_slice
             param_metrics[name]['shape'] = param_shape
+
+            if isinstance(value, Quantity):
+                param_metrics[name]['orig_unit'] = value.unit
+            else:
+                param_metrics[name]['orig_unit'] = None
+
             total_size += param_size
 
         self._param_metrics = param_metrics
