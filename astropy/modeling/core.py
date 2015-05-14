@@ -31,6 +31,7 @@ import numpy as np
 from ..utils import indent, isiterable, isinstancemethod, metadata
 from ..extern import six
 from ..table import Table
+from ..units import Quantity
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
@@ -993,6 +994,9 @@ class Model(object):
                 "given)".format(self.__class__.__name__, len(self.param_names),
                                 len(args)))
 
+        self._model_set_axis = model_set_axis
+        self._param_metrics = param_metrics = defaultdict(dict)
+
         for idx, arg in enumerate(args):
             if arg is None:
                 # A value of None implies using the default value, if exists
@@ -1010,7 +1014,8 @@ class Model(object):
                 value = kwargs.pop(param_name)
                 if value is None:
                     continue
-                params[param_name] = np.asanyarray(value, dtype=np.float)
+                else:
+                   params[param_name] = np.asanyarray(value, dtype=np.float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
@@ -1021,9 +1026,6 @@ class Model(object):
                 raise TypeError(
                     '{0}.__init__() got an unrecognized parameter '
                     '{1!r}'.format(self.__class__.__name__, kwarg))
-
-        self._model_set_axis = model_set_axis
-        self._param_metrics = defaultdict(dict)
 
         # Determine the number of model sets: If the model_set_axis is
         # None then there is just one parameter set; otherwise it is determined
@@ -1098,6 +1100,12 @@ class Model(object):
 
             param_metrics[name]['slice'] = param_slice
             param_metrics[name]['shape'] = param_shape
+
+            if isinstance(value, Quantity):
+                param_metrics[name]['orig_unit'] = value.unit
+            else:
+                param_metrics[name]['orig_unit'] = None
+
             total_size += param_size
 
         self._param_metrics = param_metrics
@@ -1105,6 +1113,10 @@ class Model(object):
         # Now set the parameter values (this will also fill
         # self._parameters)
         for name, value in params.items():
+            # TODO: Going through setattr does a lot of things redundantly when
+            # initializing a model for the first time.  For example, it
+            # re-checks all the parameter shapes and units for consistency.  We
+            # should see if there isn't a way to refactor this
             setattr(self, name, value)
 
     def _check_param_broadcast(self, params, max_ndim):
