@@ -89,6 +89,39 @@ def test_histogram_range(N=1000, rseed=0):
     
     for bins in ['scott', 'freedman', 'blocks']:
         counts, bins = histogram(x, bins, range=range)
+
+
+def test_histogram_output():
+    rng = np.random.RandomState(0)
+    X = rng.randn(100)
+
+    counts, bins = histogram(X, bins=10)
+    assert_allclose(counts, [1, 5, 7, 13, 17, 18, 16, 11, 7, 5])
+    assert_allclose(bins, [-2.55298982, -2.07071537, -1.58844093, -1.10616648,
+                           -0.62389204, -0.1416176 , 0.34065685, 0.82293129,
+                           1.30520574, 1.78748018, 2.26975462])
+
+    counts, bins = histogram(X, bins='scott')
+    assert_allclose(counts, [2, 13, 23, 34, 16, 10, 2])
+    assert_allclose(bins, [-2.55298982, -1.79299405, -1.03299829, -0.27300252,
+                           0.48699324, 1.24698901, 2.00698477, 2.76698054])
+
+    counts, bins = histogram(X, bins='freedman')
+    assert_allclose(counts, [2, 7, 13, 20, 26, 14, 11, 5, 2])
+    assert_allclose(bins, [-2.55298982, -1.95796338, -1.36293694, -0.7679105,
+                           -0.17288406, 0.42214237, 1.01716881, 1.61219525,
+                           2.20722169, 2.80224813])
+
+    counts, bins = histogram(X, bins='knuth')
+    assert_allclose(counts, [1, 6, 9, 14, 21, 22, 12, 8, 7])
+    assert_allclose(bins, [-2.55298982, -2.01712932, -1.48126883, -0.94540834,
+                           -0.40954784, 0.12631265, 0.66217314, 1.19803364,
+                           1.73389413, 2.26975462])
+
+    counts, bins = histogram(X, bins='blocks')
+    assert_allclose(counts, [3, 27, 41, 29])
+    assert_allclose(bins, [-2.55298982, -1.7162764 , -0.42062562,
+                           0.46422235, 2.26975462])
         
 
 def test_histogram_badargs(N=1000, rseed=0):
