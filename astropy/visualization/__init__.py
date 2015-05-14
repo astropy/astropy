@@ -5,4 +5,4 @@ from .interval import *
 from .transform import *
 from .ui import *
 from .mpl_style import *
-from .histogram import *
+from .hist import *
