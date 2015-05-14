@@ -53,6 +53,41 @@ def test_Model_array_parameter():
     assert_allclose(model.param_sets, [[42], [43], [44]])
 
 
+def test_inputless_model():
+    """
+    Regression test for
+    https://github.com/astropy/astropy/pull/3772#issuecomment-101821641
+    """
+
+    class TestModel(Model):
+        inputs = ()
+        outputs = ('y',)
+        a = Parameter()
+
+        @staticmethod
+        def evaluate(a):
+            return a
+
+    m = TestModel(1)
+    assert m.a == 1
+    assert m() == 1
+
+    # Test array-like output
+    m = TestModel([1, 2, 3], model_set_axis=False)
+    assert len(m) == 1
+    assert np.all(m() == [1, 2, 3])
+
+    # Test a model set
+    m = TestModel(a=[1, 2, 3], model_set_axis=0)
+    assert len(m) == 3
+    assert np.all(m() == [1, 2, 3])
+
+    # Test a model set
+    m = TestModel(a=[[1, 2, 3], [4, 5, 6]], model_set_axis=0)
+    assert len(m) == 2
+    assert np.all(m() == [[1, 2, 3], [4, 5, 6]])
+
+
 def test_Model_add_model():
     m = models.Gaussian1D(1,2,3)
     m.add_model(m, 'p')
