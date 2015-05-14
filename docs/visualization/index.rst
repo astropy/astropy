@@ -9,9 +9,9 @@ Introduction
 
 `astropy.visualization` provides functionality that can be helpful when
 visualizing data.
-At the moment, the main functionality is image normalizing
-(including both scaling and stretching).
-Another feature included here is a plotting style for matplotlib.
+At the moment, functionalities include enhanced histograms,
+image normalizing (including both scaling and stretching),
+and custom plotting styles for matplotlib.
 
 Using `astropy.visualization`
 =============================
@@ -20,6 +20,7 @@ Using `astropy.visualization`
    :maxdepth: 2
 
    normalization.rst
+   histogram.rst
 
 
 .. _fits2bitmap:
