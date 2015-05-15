@@ -107,7 +107,7 @@ def _binary_comparison_operation(op):
         else:
             self_value = self.value
 
-        return op(self_value, val).all()
+        return np.all(op(self_value, val))
 
     return wrapper
 
