@@ -1155,3 +1155,17 @@ def test_insert():
     q2 = q.insert(1, 10 * u.m, axis=1)
     assert np.all(q2.value == [[  1,  10, 2],
                                [  3,  10, 4]])
+
+
+def test_repr_array_of_quantity():
+    """
+    Test print/repr of object arrays of Quantity objects with different
+    units.
+
+    Regression test for the issue first reported in
+    https://github.com/astropy/astropy/issues/3777
+    """
+
+    a = np.array([1 * u.m, 2 * u.s], dtype=object)
+    assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
+    assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
