@@ -573,7 +573,7 @@ class Model(object):
         """
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
-        parameters = self._param_sets(raw=True)
+        parameters = self._param_sets(raw=True, units=True)
 
         outputs = self.evaluate(*chain(inputs, parameters))
 
@@ -1188,7 +1188,7 @@ class Model(object):
                 "to the broadcasting rules.".format(param_a, shape_a,
                                                     param_b, shape_b))
 
-    def _param_sets(self, raw=False):
+    def _param_sets(self, raw=False, units=False):
         """
         Implementation of the Model.param_sets property.
 
@@ -1204,26 +1204,33 @@ class Model(object):
 
         param_metrics = self._param_metrics
         values = []
+        shapes = []
         for name in self.param_names:
+            param = getattr(self, name)
+
             if raw:
-                value = getattr(self, name)._raw_value
+                value = param._raw_value
             else:
-                value = getattr(self, name).value
+                value = param.value
 
             broadcast_shape = param_metrics[name].get('broadcast_shape')
             if broadcast_shape is not None:
                 value = value.reshape(broadcast_shape)
 
+            shapes.append(np.shape(value))
+
+            if len(self) == 1:
+                # Add a single param set axis to the parameter's value (thus
+                # converting scalars to shape (1,) array values) for
+                # consistenc
+                value = np.array([value])
+
+            if units and param.unit is not None:
+                value = Quantity(value, param.unit)
+
             values.append(value)
 
-        shapes = [np.shape(value) for value in values]
-
-        if len(self) == 1:
-            # Add a single param set axis to the parameter's value (thus
-            # converting scalars to shape (1,) array values) for consistency
-            values = [np.array([value]) for value in values]
-
-        if len(set(shapes)) != 1:
+        if len(set(shapes)) != 1 or units:
             # If the parameters are not all the same shape, converting to an
             # array is going to produce an object array
             # However the way Numpy creates object arrays is tricky in that it
@@ -1235,6 +1242,11 @@ class Model(object):
             psets = np.empty(len(values), dtype=object)
             psets[:] = values
             return psets
+
+        # TODO: Returning an array from this method may be entirely pointless
+        # for internal use--perhaps only the external param_sets method should
+        # return an array (and just for backwards compat--I would prefer to
+        # maybe deprecate that method)
 
         return np.array(values)
 
