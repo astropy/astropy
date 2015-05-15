@@ -69,7 +69,7 @@ def test_slices_overlap_wrong_mode():
     '''Call overlap_slices with non-existing mode.'''
     with pytest.raises(ValueError) as e:
         temp = overlap_slices((5,), (3,), (0,), mode='full')
-    assert "Mode can only be" in str(e.value)
+    assert "Mode can be only" in str(e.value)
 
 
 def test_extract_array_wrong_mode():

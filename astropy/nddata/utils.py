@@ -49,7 +49,8 @@ def _offset(a):
         return 0.
 
 
-def overlap_slices(large_array_shape, small_array_shape, position, mode='partial'):
+def overlap_slices(large_array_shape, small_array_shape, position,
+                   mode='partial'):
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -73,12 +74,15 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
         For a coordinate with an even number of elements, the position is
         rounded up, e.g. extracting two elements with a center of ``1`` will
         give positions ``[0, 1]``.
-    mode : ['partial', 'strict']
-        In "partial" mode, a partial overlap of the small and the large
-        array is sufficient. In the "strict" mode, the small array has to be
-        fully contained in the large array, otherwise an
-        `~astropy.nddata.utils.PartialOverlapError` is raised. In both modes,
-        non-overlapping arrays will raise a `~astropy.nddata.utils.NoOverlapError`.
+    mode : ['partial', 'trim', 'strict']
+        In ``'partial'`` mode, a partial overlap of the small and the
+        large array is sufficient.  The ``'trim'`` mode is similar to
+        the ``'partial'`` mode, but ``slices_small`` will be adjusted to
+        return only the overlapping elements.  In the ``'strict'`` mode,
+        the small array has to be fully contained in the large array,
+        otherwise an `~astropy.nddata.utils.PartialOverlapError` is
+        raised.  In all modes, non-overlapping arrays will raise a
+        `~astropy.nddata.utils.NoOverlapError`.
 
     Returns
     -------
@@ -91,8 +95,8 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
         ``small_array[slices_small]`` extracts the region that is inside the
         large array.
     """
-    if mode not in ['partial', 'strict']:
-        raise ValueError('Mode can only be "partial" or "strict".')
+    if mode not in ['partial', 'trim', 'strict']:
+        raise ValueError('Mode can be only "partial", "trim", or "strict".')
     if np.isscalar(small_array_shape):
         small_array_shape = (small_array_shape, )
     if np.isscalar(large_array_shape):
@@ -130,10 +134,16 @@ def overlap_slices(large_array_shape, small_array_shape, position, mode='partial
     slices_large = tuple(slice(max(0, edge_min), min(large_shape, edge_max))
                          for (edge_min, edge_max, large_shape) in
                          zip(edges_min, edges_max, large_array_shape))
-    slices_small = tuple(slice(max(0, -edge_min),
-                               min(large_shape - edge_min, edge_max - edge_min))
-                         for (edge_min, edge_max, large_shape) in
-                         zip(edges_min, edges_max, large_array_shape))
+    if mode == 'trim':
+        ny = slices_large[0].stop - slices_large[0].start
+        nx = slices_large[1].stop - slices_large[1].start
+        slices_small = (slice(0, ny), slice(0, nx))
+    else:
+        slices_small = tuple(slice(max(0, -edge_min),
+                                   min(large_shape - edge_min,
+                                       edge_max - edge_min))
+                             for (edge_min, edge_max, large_shape) in
+                             zip(edges_min, edges_max, large_array_shape))
 
     return slices_large, slices_small
 
@@ -211,14 +221,10 @@ def extract_array(array_large, shape, position, mode='partial',
     if np.isscalar(position):
         position = (position, )
 
-    if mode in ['partial', 'trim']:
-        slicemode = 'partial'
-    elif mode == 'strict':
-        slicemode = mode
-    else:
+    if mode not in ['partial', 'trim', 'strict']:
         raise ValueError("Valid modes are 'partial', 'trim', and 'strict'.")
     large_slices, small_slices = overlap_slices(array_large.shape,
-                                                shape, position, mode=slicemode)
+                                                shape, position, mode=mode)
     extracted_array = array_large[large_slices]
     if return_position:
         new_position = [i - s.start for i, s in zip(position, large_slices)]
@@ -488,11 +494,7 @@ class Cutout(object):
 
             position= skycoord_to_pixel(position, wcs, mode='all')
 
-        if mode in ['partial', 'trim']:
-            slice_mode = 'partial'
-        elif mode == 'strict':
-            slice_mode = mode
-        else:
+        if mode not in ['partial', 'trim', 'strict']:
             raise ValueError("Valid modes are 'partial', 'trim', and "
                              "'strict'.")
 
@@ -501,7 +503,7 @@ class Cutout(object):
             mode=mode, fill_value=fill_value, return_position=True)
 
         slices_large, slices_small = overlap_slices(data.shape, shape,
-                                                    position, mode=slice_mode)
+                                                    position, mode=mode)
         self.slices_large = slices_large
         self.slices_small = slices_small
 
@@ -550,13 +552,9 @@ class Cutout(object):
     @lazyproperty
     def position(self):
         """
-        The actual central position in the large array.
+        The central position index (rounded position) in the large array.
         """
-        slices = self.slices_large
-        return (slices[0].start + np.int(np.ceil(
-            (slices[0].stop - slices[0].start - 1) / 2.)),
-            (slices[1].start + np.int(np.ceil(
-                (slices[1].stop - slices[1].start - 1) / 2.))))
+        return _round(self.position_input[0]), _round(self.position_input[1])
 
     @lazyproperty
     def center_large(self):
