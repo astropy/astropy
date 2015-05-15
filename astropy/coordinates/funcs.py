@@ -11,6 +11,8 @@ interfaces.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import numpy as np
+
 from .. import units as u
 from ..utils import isiterable
 
@@ -119,13 +121,13 @@ def spherical_to_cartesian(r, lat, lon):
 
 def get_sun(time):
     """
-    Determines the location of the sun at a given time, in
-    geocentric coordinates.
+    Determines the location of the sun at a given time (or times, if the input
+    is an array `~astropy.time.Time` object), in geocentric coordinates.
 
     Parameters
     ----------
-    table : `~astropy.time.Time`
-        The time at which to compute the location of the sun.
+    time : `~astropy.time.Time`
+        The time(s) at which to compute the location of the sun.
 
     Returns
     -------
@@ -149,11 +151,23 @@ def get_sun(time):
     from .builtin_frames import GCRS
 
     earth_pv_helio, earth_pv_bary = erfa.epv00(time.jd1, time.jd2)
-    x = -earth_pv_helio[..., 0, 0] * u.AU
-    y = -earth_pv_helio[..., 0, 1] * u.AU
-    z = -earth_pv_helio[..., 0, 2] * u.AU
+
+    # We have to manually do abberation because we're outputting directly into
+    # GCRS
+    earth_p = earth_pv_helio[..., 0, :]
+    earth_v = earth_pv_helio[..., 1, :]
+
+    dsun = np.sqrt(np.sum(earth_p**2, axis=-1))
+    invlorentz = (1-np.sum(earth_v**2, axis=-1))**-0.5
+    properdir = erfa.ab(earth_p/dsun.reshape(-1, 1), earth_v, dsun, invlorentz)
+
+    x = -dsun*properdir[..., 0] * u.AU
+    y = -dsun*properdir[..., 1] * u.AU
+    z = -dsun*properdir[..., 2] * u.AU
+
     cartrep = CartesianRepresentation(x=x, y=y, z=z)
-    return SkyCoord(cartrep, frame=GCRS)
+    return SkyCoord(cartrep, frame=GCRS(obstime=time))
+
 
 def concatenate(coords):
     """

@@ -100,6 +100,12 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fixed ``get_sun`` to yield frames with the ``obstime`` set to what's passed into the function (previously it incorrectly always had J2000). [#3750]
+
+  - Fixed ``get_sun`` to account for aberration of light. [#3750]
+
+  - Fixed error in the GCRS->ICRS transformation that gave incorrect distances. [#3750]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
