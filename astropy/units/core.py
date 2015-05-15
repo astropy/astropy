@@ -27,8 +27,8 @@ from . import format as unit_format
 # TODO: Support functional units, e.g. log(x), ln(x)
 
 __all__ = [
-    'UnitsError', 'UnitsWarning', 'UnitBase', 'NamedUnit',
-    'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
+    'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitBase',
+    'NamedUnit', 'IrreducibleUnit', 'Unit', 'def_unit', 'CompositeUnit',
     'PrefixUnit', 'UnrecognizedUnit', 'get_current_unit_registry',
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
@@ -451,6 +451,13 @@ class UnitScaleError(UnitsError, ValueError):
     pass
 
 
+class UnitConversionError(UnitsError, ValueError):
+    """
+    Used specifically for errors related to converting between units or
+    interpreting units in terms of other units.
+    """
+
+
 # Maintain error in old location for backward compatibility
 from .format import fits as _fits
 _fits.UnitScaleError = UnitScaleError
@@ -837,7 +844,7 @@ class UnitBase(object):
         unit_str = get_err_str(orig_unit)
         other_str = get_err_str(orig_other)
 
-        raise UnitsError(
+        raise UnitConversionError(
             "{0} and {1} are not convertible".format(
                 unit_str, other_str))
 
@@ -910,7 +917,7 @@ class UnitBase(object):
                in zip(self_decomposed.bases, other_decomposed.bases))):
             return self_decomposed.scale / other_decomposed.scale
 
-        raise UnitsError(
+        raise UnitConversionError(
             "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
 
     def to(self, other, value=1.0, equivalencies=[]):
@@ -1636,7 +1643,7 @@ class IrreducibleUnit(NamedUnit):
                         return CompositeUnit(scale, [base], [1],
                                              _error_check=False)
 
-            raise UnitsError(
+            raise UnitConversionError(
                 "Unit {0} can not be decomposed into the requested "
                 "bases".format(self))
 

@@ -104,7 +104,7 @@ conversion from wavelength to frequency doesn't normally work:
     >>> (1000 * u.nm).to(u.Hz)
     Traceback (most recent call last):
       ...
-    UnitsError: 'nm' (length) and 'Hz' (frequency) are not convertible
+    UnitConversionError: 'nm' (length) and 'Hz' (frequency) are not convertible
 
 but by passing an equivalency list, in this case ``spectral()``, it does:
 

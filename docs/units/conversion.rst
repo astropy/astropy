@@ -34,7 +34,7 @@ If you attempt to convert to a incompatible unit, an exception will result:
   >>> cms.to(u.km)
   Traceback (most recent call last):
     ...
-  UnitsError: 'cm / s' (speed) and 'km' (length) are not convertible
+  UnitConversionError: 'cm / s' (speed) and 'km' (length) are not convertible
 
 You can check whether a particular conversion is possible using the
 `~astropy.units.core.UnitBase.is_equivalent` method::
