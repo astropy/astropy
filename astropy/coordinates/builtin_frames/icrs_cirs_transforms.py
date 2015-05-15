@@ -152,7 +152,7 @@ def gcrs_to_icrs(gcrs_coo, icrs_frame):
     else:
         #compute the distance as just the cartesian sum from moving to the SSB
         #we have to do this because the ERFA functions throw away distance info
-        distance = np.sum((-astrom['eb']*u.au + gcrs_coo.cartesian.xyz.T)**2, -1)**0.5
+        distance = np.sum((astrom['eb']*u.au + gcrs_coo.cartesian.xyz.T)**2, axis=-1)**0.5
         rep = SphericalRepresentation(lat=u.Quantity(icrs_dec, u.radian, copy=False),
                                       lon=u.Quantity(icrs_ra, u.radian, copy=False),
                                       distance=distance, copy=False)
