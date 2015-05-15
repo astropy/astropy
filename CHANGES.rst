@@ -254,6 +254,9 @@ New Features
 
 - ``astropy.units``
 
+  - Fixed printing of object ndarrays containing multiple Quantity
+    objects with differing / incompatible units. [#3778]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
