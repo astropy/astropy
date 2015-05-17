@@ -209,11 +209,7 @@ def doppler_radio(rest):
     <Quantity -31.209092088877583 km / s>
     """
 
-    try:
-        rest.to(si.Hz, spectral())
-    except (AttributeError,UnitsError) as ex:
-        raise UnitsError("The 'rest' value must be a spectral equivalent "
-                         "(frequency, wavelength, or energy).")
+    assert_is_spectral_unit(rest)
 
     ckms = _si.c.to('km/s').value
 
@@ -280,11 +276,7 @@ def doppler_optical(rest):
     <Quantity -31.20584348799674 km / s>
     """
 
-    try:
-        rest.to(si.Hz, spectral())
-    except (AttributeError,UnitsError) as ex:
-        raise UnitsError("The 'rest' value must be a spectral equivalent "
-                         "(frequency, wavelength, or energy).")
+    assert_is_spectral_unit(rest)
 
     ckms = _si.c.to('km/s').value
 
@@ -359,11 +351,7 @@ def doppler_relativistic(rest):
     <Quantity 2.6116243681798923 mm>
     """
 
-    try:
-        rest.to(si.Hz, spectral())
-    except (AttributeError,UnitsError) as ex:
-        raise UnitsError("The 'rest' value must be a spectral equivalent "
-                         "(frequency, wavelength, or energy).")
+    assert_is_spectral_unit(rest)
 
     ckms = _si.c.to('km/s').value
 
@@ -498,3 +486,10 @@ def temperature_energy():
     return [
         (si.K, si.eV, lambda x: x / (_si.e.value / _si.k_B),
          lambda x: x * (_si.e.value / _si.k_B))]
+
+def assert_is_spectral_unit(value):
+    try:
+        value.to(si.Hz, spectral())
+    except (AttributeError, UnitsError) as ex:
+        raise UnitsError("The 'rest' value must be a spectral equivalent "
+                         "(frequency, wavelength, or energy).")
