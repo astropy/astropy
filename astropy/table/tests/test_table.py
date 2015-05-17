@@ -272,12 +272,13 @@ class TestNewFromColumns():
             table_types.Table(cols)
 
     def test_name_none(self, table_types):
-        """Column with name=None can init a table IFF names are supplied"""
-        c = table_types.Column(data=[1, 2])
-        table_types.Table([c], names=('c',))
-        with pytest.raises(TypeError):
-            table_types.Table([c])
-
+        """Column with name=None can init a table whether or not names are supplied"""
+        c = table_types.Column(data=[1, 2], name='c')
+        d = table_types.Column(data=[3, 4])
+        t = table_types.Table([c, d], names=(None, 'd'))
+        assert t.colnames == ['c', 'd']
+        t = table_types.Table([c, d])
+        assert t.colnames == ['c', 'col1']
 
 @pytest.mark.usefixtures('table_types')
 class TestReverse():
