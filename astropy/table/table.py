@@ -446,7 +446,7 @@ class Table(object):
 
         for col, name, def_name, dtype in zip(data, names, def_names, dtype):
             if isinstance(col, (Column, MaskedColumn)):
-                col = self.ColumnClass(name=(name or col_getattr(col, 'name')),
+                col = self.ColumnClass(name=(name or col_getattr(col, 'name') or def_name),
                                        data=col, dtype=dtype,
                                        copy=copy)
             elif self._is_mixin_column(col):
