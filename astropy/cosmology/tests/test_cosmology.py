@@ -649,7 +649,12 @@ def test_tnu():
 
 
 def test_efunc_vs_invefunc():
-    # Test that efunc and inv_efunc give inverse values
+    """ Test that efunc and inv_efunc give inverse values"""
+
+    # Note that all of the subclasses here don't need
+    #  scipy because they don't need to call de_density_scale
+    # The test following this tests the case where that is needed.
+
     z0 = 0.5
     z = np.array([0.5, 1.0, 2.0, 5.0])
 
@@ -684,23 +689,21 @@ def test_efunc_vs_invefunc():
     assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
     assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
 
-    # Now do non-standard subclasses
-    cosmo = test_cos_sub()
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-    cosmo = test_cos_subnu()
-    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
-    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
-
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_efunc_vs_invefunc_flrw():
+    """ Test that efunc and inv_efunc give inverse values"""
     z0 = 0.5
     z = np.array([0.5, 1.0, 2.0, 5.0])
 
     # FLRW is abstract, so requires test_cos_sub defined earlier
-    # This requires scipy, unlike the built-ins
+    # This requires scipy, unlike the built-ins, because it
+    # calls de_density_scale, which has an integral in it
     cosmo = test_cos_sub()
+    assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
+    assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
+    # Add neutrinos
+    cosmo = test_cos_subnu()
     assert allclose(cosmo.efunc(z0), 1.0 / cosmo.inv_efunc(z0))
     assert allclose(cosmo.efunc(z), 1.0 / cosmo.inv_efunc(z))
 
