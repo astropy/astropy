@@ -74,6 +74,9 @@ New Features
   - Added ``Table.to_pandas`` and ``Table.from_pandas`` for converting to/from
     pandas dataframes. [#3504]
 
+  - Initializing a ``Table`` with ``Column`` objects no longer requires
+    that the column ``name`` attribute be defined. [#3781]
+
 - ``astropy.tests``
 
 - ``astropy.time``
