@@ -218,7 +218,7 @@ def freedman_bin_width(data, return_bins=False):
         return dx
 
 
-def knuth_bin_width(data, return_bins=False, disp=True):
+def knuth_bin_width(data, return_bins=False, quiet=True):
     r"""Return the optimal histogram bin width using Knuth's rule.
 
     Knuth's rule is a fixed-width, Bayesian approach to determining
@@ -230,6 +230,8 @@ def knuth_bin_width(data, return_bins=False, disp=True):
         observed (one-dimensional) data
     return_bins : bool (optional)
         if True, then return the bin edges
+    quiet : bool (optional)
+        if True (default) then suppress stdout output from scipy.optimize
 
     Returns
     -------
@@ -270,7 +272,7 @@ def knuth_bin_width(data, return_bins=False, disp=True):
     knuthF = _KnuthF(data)
     dx0, bins0 = freedman_bin_width(data, True)
     M0 = len(bins0) - 1
-    M = optimize.fmin(knuthF, len(bins0), disp=disp)[0]
+    M = optimize.fmin(knuthF, len(bins0), disp=not quiet)[0]
     bins = knuthF.bins(M)
     dx = bins[1] - bins[0]
 
