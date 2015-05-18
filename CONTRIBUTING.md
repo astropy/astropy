@@ -91,7 +91,7 @@ A pull request for a new feature will be reviewed to see if it meets the followi
 **Testing**
   * Are the [testing guidelines](http://docs.astropy.org/en/latest/development/testguide.html) followed?
   * Are the inputs to the functions sufficiently tested?
-  * Are their tests for any exceptions raised?
+  * Are there tests for any exceptions raised?
   * Are there tests for the expected performance?
   * Are the sources for the tests documented?
   * Have tests that require an [optional dependancy marked](http://docs.astropy.org/en/latest/development/testguide.html#tests-requiring-optional-dependencies) as such?
@@ -114,6 +114,6 @@ A pull request for a new feature will be reviewed to see if it meets the followi
   * Are there any conflicts with this code and existing codes? 
 
 **astropy requirements**
-  * Do all the tests pass on the travis build?
+  * Do all the tests pass on the Travis and AppVeyor build?
   * If applicable, has an entry been added into the changelog?
   * Can you checkout the pull request and repeat the examples and tests?
