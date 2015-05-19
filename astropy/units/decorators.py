@@ -44,7 +44,9 @@ class QuantityInput(object):
             def myfunction(myangle):
                 return myangle**2
 
-        Python 3 only::
+        Python 3 only:
+
+        .. code-block:: python3
 
             import astropy.units as u
             @u.quantity_input
