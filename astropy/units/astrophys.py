@@ -43,7 +43,7 @@ def_unit(['lyr', 'lightyear'], _si.c.value * si.yr.to(si.s) * si.m,
 ###########################################################################
 # AREAS
 
-def_unit(['barn'], 10 ** -28 * si.m ** 2, namespace=_ns, prefixes=True,
+def_unit(['barn', 'barn'], 10 ** -28 * si.m ** 2, namespace=_ns, prefixes=True,
          doc="barn: unit of area used in HEP")
 
 
