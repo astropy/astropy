@@ -515,7 +515,7 @@ class LevMarLSQFitter(object):
 
             if not model.col_fit_deriv:
                 full_deriv = np.asarray(full_deriv).T
-                residues = np.asarray(full_deriv[np.nonzero(ind)])
+                residues = np.asarray(full_deriv[np.nonzero(ind)]).T
             else:
                 residues = full_deriv[np.nonzero(ind)]
 
