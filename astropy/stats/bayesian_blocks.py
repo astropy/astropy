@@ -278,6 +278,10 @@ class FitnessFunc(object):
         """
         Empirical prior, parametrized by the false alarm probability ``p0``
         See  eq. 21 in Scargle (2012)
+
+        Note that there was an error in this equation in the original Scargle
+        paper (the "log" was missing). The following corrected form is taken
+        from http://arxiv.org/abs/1304.2818
         """
         return 4 - np.log(73.53 * self.p0 * (N ** -0.478))
 
