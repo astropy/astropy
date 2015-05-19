@@ -139,6 +139,9 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Supported full SI prefixes for the barn unit ("picobarn", "femtobarn",
+    etc.)  [#3753]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
