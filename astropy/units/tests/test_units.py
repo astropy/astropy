@@ -585,6 +585,13 @@ def test_fits_hst_unit():
     assert x == u.erg * u.s ** -1 * u.cm ** -2 * u.angstrom ** -1
 
 
+def test_barn_prefixes():
+    """Regression test for https://github.com/astropy/astropy/issues/3753"""
+
+    assert u.fbarn is u.femtobarn
+    assert u.pbarn is u.picobarn
+
+
 def test_fractional_powers():
     """See #2069"""
     m = 1e9 * u.Msun
