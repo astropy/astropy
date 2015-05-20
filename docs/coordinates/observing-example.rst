@@ -62,7 +62,7 @@ measure of telescope observing conditions::
     import warnings
     warnings.filterwarnings('ignore',module='astropy.coordinates.baseframe')
 
-    m33 = SkyCoord.from_name('M33')
+    m33 = SkyCoord(ra=23.4621*u.deg, dec=30.6599417*u.deg) # same as SkyCoord.from_name('M33'): use the explicit coordinates to allow building doc plots w/o internet
     bear_mountain = EarthLocation(lat=41.3*u.deg, lon=-74*u.deg, height=390*u.m)
     utcoffset = -4*u.hour  # Eastern Daylight Time
     midnight = Time('2012-7-13 00:00:00') - utcoffset
@@ -117,7 +117,7 @@ azimuth::
     import warnings
     warnings.filterwarnings('ignore',module='astropy.coordinates.baseframe')
 
-    m33 = SkyCoord.from_name('M33')
+    m33 = SkyCoord(ra=23.4621*u.deg, dec=30.6599417*u.deg) # same as SkyCoord.from_name('M33'): use the explicit coordinates to allow building doc plots w/o internet
     bear_mountain = EarthLocation(lat=41.3*u.deg, lon=-74*u.deg, height=390*u.m)
     utcoffset = -4*u.hour  # Eastern Daylight Time
     midnight = Time('2012-7-13 00:00:00') - utcoffset
