@@ -442,11 +442,21 @@ class _File(object):
             self._open_zipfile(self.name, mode)
         elif ext == '.bz2' or magic.startswith(BZIP2_MAGIC):
             # Handle bzip2 files
-            self._file = bz2.BZ2File(self.name, PYFITS_MODES[mode])
-            self.compression = 'bzip2'
+            if mode in ['update', 'append']:
+                raise IOError("update and append modes are not supported "
+                              "with bzip2 files")
+            # bzip2 only supports 'w' and 'r' modes
+            bzip2_mode = 'w' if mode == 'ostream' else 'r'
+            self._file = bz2.BZ2File(self.name, bzip2_mode)
         else:
             self._file = fileobj_open(self.name, PYFITS_MODES[mode])
-            # Make certain we're back at the beginning of the file
+
+        # Make certain we're back at the beginning of the file
+        # BZ2File does not support seek when the file is open for writing, but
+        # when opening a file for write, bz2.BZ2File always truncates anyway.
+        if isinstance(self._file, bz2.BZ2File) and mode == 'ostream':
+            pass
+        else:
             self._file.seek(0)
 
     def _test_mmap(self):

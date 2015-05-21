@@ -961,6 +961,8 @@ class HDUList(list, _Verify):
             # original file, and rename the tmp file to the original file.
             if self._file.compression == 'gzip':
                 new_file = gzip.GzipFile(name, mode='ab+')
+            elif self._file.compression == 'bzip2':
+                new_file = bz2.BZ2File(name, mode='w')
             else:
                 new_file = name
 
