@@ -36,7 +36,7 @@ class Kernel(object):
 
     Parameters
     ----------
-    array : ndarray
+    array : `~numpy.ndarray`
         Kernel array.
     """
     _separable = False
@@ -44,7 +44,7 @@ class Kernel(object):
     _model = None
 
     def __init__(self, array):
-        self._array = array
+        self._array = np.asanyarray(array)
         self.calculate_normalization()
 
     @property
@@ -225,7 +225,7 @@ class Kernel1D(Kernel):
         Model to be evaluated.
     x_size : odd int, optional
         Size of the kernel array. Default = 8 * width.
-    array : ndarray
+    array : `~numpy.ndarray`
         Kernel array.
     width : number
         Width of the filter kernel.
@@ -285,7 +285,7 @@ class Kernel2D(Kernel):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    array : ndarray
+    array : `~numpy.ndarray`
         Kernel array.
     mode : str, optional
         One of the following discretization modes:
