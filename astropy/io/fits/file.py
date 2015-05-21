@@ -7,6 +7,7 @@ import os
 import tempfile
 import warnings
 import zipfile
+import bz2
 
 from functools import reduce
 
@@ -70,6 +71,7 @@ MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
 
 GZIP_MAGIC = b('\x1f\x8b\x08')
 PKZIP_MAGIC = b('\x50\x4b\x03\x04')
+BZIP2_MAGIC = b('\x42\x5a')
 
 class _File(object):
     """
@@ -145,6 +147,8 @@ class _File(object):
         elif isinstance(fileobj, zipfile.ZipFile):
             # Reading from zip files is supported but not writing (yet)
             self.compression = 'zip'
+        elif isinstance(fileobj, bz2.BZ2File):
+            self.compression = 'bzip2'
 
         if (mode in ('readonly', 'copyonwrite', 'denywrite') or
                 (self.compression and mode == 'update')):
@@ -436,10 +440,14 @@ class _File(object):
         elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
             # Handle zip files
             self._open_zipfile(self.name, mode)
+        elif ext == '.bz2' or magic.startswith(BZIP2_MAGIC):
+            # Handle bzip2 files
+            self._file = bz2.BZ2File(self.name, PYFITS_MODES[mode])
+            self.compression = 'bzip2'
         else:
             self._file = fileobj_open(self.name, PYFITS_MODES[mode])
             # Make certain we're back at the beginning of the file
-        self._file.seek(0)
+            self._file.seek(0)
 
     def _test_mmap(self):
         """Tests that mmap, and specifically mmap.flush works.  This may
