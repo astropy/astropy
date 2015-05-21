@@ -369,6 +369,12 @@ Bug Fixes
   - Supported full SI prefixes for the barn unit ("picobarn", "femtobarn",
     etc.)  [#3753]
 
+  - Fix loss of precision when multiplying non-whole-numbered powers
+    of units together.  For example, before this change, ``(u.m **
+    1.5) ** Fraction(4, 5)`` resulted in an inaccurate floating-point
+    power of ``1.2000000000000002``.  After this change, the exact
+    rational number of ``Fraction(6, 5)`` is maintained. [#3790]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
