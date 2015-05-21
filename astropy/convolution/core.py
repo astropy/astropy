@@ -45,7 +45,6 @@ class Kernel(object):
 
     def __init__(self, array):
         self._array = np.asanyarray(array)
-        self.calculate_normalization()
 
     @property
     def truncation(self):
@@ -85,38 +84,6 @@ class Kernel(object):
         """
         return [axes_size // 2 for axes_size in self._array.shape]
 
-    def calculate_normalization(self, mode='integral'):
-        """
-        Calculate the kernel normalization factor.
-
-        Parameters
-        ----------
-        mode : {'integral', 'peak'}
-            One of the following modes:
-                * 'integral' (default)
-                    Kernel is normalized such that its integral = 1.
-                * 'peak'
-                    Kernel is normalized such that its peak = 1.
-        """
-
-        if mode == 'integral':
-            if self._array.sum() == 0:
-                self._normalization = np.inf
-            else:
-                self._normalization = 1. / self._array.sum()
-        elif mode == 'peak':
-            self._normalization = 1. / self._array.max()
-        else:
-            raise ValueError("invalid mode, must be 'integral' or 'peak'")
-        return self._normalization
-
-    @property
-    def normalization(self):
-        """
-        The kernel normalization factor.
-        """
-        return self._normalization
-
     def normalize(self, mode='integral'):
         """
         Normalize the filter kernel.
@@ -131,20 +98,27 @@ class Kernel(object):
                     Kernel is normalized such that its peak = 1.
         """
 
-        np.multiply(self._array, self.calculate_normalization(mode=mode),
-                    self.array)
+        if mode == 'integral':
+            normalization = self._array.sum()
+        elif mode == 'peak':
+            normalization = self._array.max()
+        else:
+            raise ValueError("invalid mode, must be 'integral' or 'peak'")
 
         # Warn the user for kernels that sum to zero
-        if np.isinf(self._normalization):
-            warnings.warn('Kernel cannot be normalized because the '
-                          'normalization factor is infinite.',
-                          AstropyUserWarning)
-            return
+        if normalization == 0:
+            warnings.warn('The kernel cannot be normalized because it '
+                          'sums to zero.', AstropyUserWarning)
+        else:
+            np.divide(self._array, normalization, self._array)
 
-        if np.abs(self._normalization) > MAX_NORMALIZATION:
-            warnings.warn('The kernel normalization factor is exceptionally '
-                          'large, > {0}.'.format(MAX_NORMALIZATION),
-                          AstropyUserWarning)
+            if (1.0 / normalization) > MAX_NORMALIZATION:
+                warnings.warn('The kernel normalization factor is '
+                              'exceptionally large,'
+                              ' > {0}.'.format(MAX_NORMALIZATION),
+                              AstropyUserWarning)
+
+        self._kernel_sum = self._array.sum()
 
     @property
     def shape(self):
@@ -395,7 +369,6 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "mul":
             new_kernel = copy.copy(kernel)
             new_kernel._array *= value
-            new_kernel._normalization /= value
         else:
             raise Exception("Kernel operation not supported.")
     else:
