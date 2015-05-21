@@ -483,4 +483,3 @@ def combine_labels(left, right):
         right = tuple(r + '1' for r in right)
 
     return left + right
-
