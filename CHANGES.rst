@@ -65,6 +65,9 @@ New Features
 
 - ``astropy.stats``
 
+  - Added ``sigma_lower`` and ``sigma_upper`` keywords to
+    ``sigma_clip`` to allow for unsymmetric clipping. [#3595]
+
 - ``astropy.table``
 
   - ``add_column()`` and ``add_columns()`` now have ``rename_duplicate``
@@ -137,6 +140,13 @@ API changes
 - ``astropy.nddata``
 
 - ``astropy.stats``
+
+  - Renamed the ``sigma_clip`` ``sig`` keyword as ``sigma``. [#3595]
+
+  - Changed the ``sigma_clip`` ``varfunc`` keyword to ``stdfunc``. [#3595]
+
+  - Renamed the ``sigma_clipped_stats`` ``mask_val`` keyword to
+    ``mask_value``. [#3595]
 
 - ``astropy.table``
 

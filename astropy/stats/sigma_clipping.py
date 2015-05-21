@@ -2,20 +2,41 @@
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
 import numpy as np
+import warnings
+from ..utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 
 __all__ = ['sigma_clip', 'sigma_clipped_stats']
 
 
-def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
-               axis=None, copy=True):
+def sigma_clip(data, **kwargs):
+    # temporary function to handle deprecated and removed keywords
+    if 'sig' in kwargs:
+        warnings.warn('The "sig" keyword is now deprecated, use the '
+                      '"sigma" keyword instead.', AstropyDeprecationWarning)
+
+        if 'sigma' not in kwargs:
+            kwargs['sigma'] = kwargs['sig']
+        else:
+            warnings.warn('Both the "sig" and "sigma" keywords were set. '
+                          'Using the value of "sigma".', AstropyUserWarning)
+        del kwargs['sig']
+
+    if 'varfunc' in kwargs:
+        raise SyntaxError('The "varfunc" keyword is no longer supported. '
+                          'Please use the "stdfunc" keyword instead.')
+
+    return _sigma_clip(data, **kwargs)
+
+
+def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
+                cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
     """Perform sigma-clipping on the provided data.
 
-    This performs the sigma clipping algorithm - i.e. the data will be iterated
-    over, each time rejecting points that are more than a specified number of
-    standard deviations discrepant.
+    The data will be iterated over, each time rejecting points that are
+    discrepant by more than a specified number of standard deviations
+    from a center value.
 
     .. note::
         `scipy.stats.sigmaclip
@@ -25,41 +46,57 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
     Parameters
     ----------
     data : array-like
-        The data to be sigma-clipped (any shape).
-    sig : float
-        The number of standard deviations (*not* variances) to use as the
-        clipping limit.
-    iters : int or `None`
-        The number of iterations to perform clipping for, or `None` to clip
-        until convergence is achieved (i.e. continue until the last
-        iteration clips nothing).
-    cenfunc : callable
-        The technique to compute the center for the clipping. Must be a
-        callable that takes in a masked array and outputs the central value.
-        Defaults to the median (numpy.median).
-    varfunc : callable
-        The technique to compute the standard deviation about the center. Must
-        be a callable that takes in a masked array and outputs a width
-        estimator::
+        The data to be sigma clipped.
+    sigma : float, optional
+        The number of standard deviations to use for both the lower and
+        upper clipping limit. These limits are overridden by
+        ``sigma_lower`` and ``sigma_upper``, if input.
+    sigma_lower : float or `None`, optional
+        The number of standard deviations to use as the lower bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used.
+    sigma_upper : float or `None`, optional
+        The number of standard deviations to use as the upper bound for
+        the clipping limit. If `None` then the value of ``sigma`` is
+        used.
+    iters : int or `None`, optional
+        The number of iterations to perform sigma clipping, or `None` to
+        clip until convergence is achieved (i.e., continue until the
+        last iteration clips nothing).
+    cenfunc : callable, optional
+        The function used to compute the center for the clipping. Must
+        be a callable that takes in a masked array and outputs the
+        central value. Defaults to the median (`numpy.ma.median`).
+    stdfunc : callable, optional
+        The function used to compute the standard deviation about the
+        center. Must be a callable that takes in a masked array and
+        outputs a width estimator. Masked (rejected) pixels are those
+        where::
 
-             deviation**2 > sig**2 * varfunc(deviation)
+             deviation < (-sigma_lower * stdfunc(deviation))
+             deviation > (sigma_upper * stdfunc(deviation))
 
-        Defaults to the variance (numpy.var).
+        where::
 
-    axis : int or `None`
-        If not `None`, clip along the given axis.  For this case, axis=int will
-        be passed on to cenfunc and varfunc, which are expected to return an
-        array with the axis dimension removed (like the numpy functions).
-        If `None`, clip over all values.  Defaults to `None`.
-    copy : bool
-        If `True`, the data array will be copied.  If `False`, the masked array
-        data will contain the same array as ``data``.  Defaults to `True`.
+            deviation = data - cenfunc(data [,axis=int])
+
+        Defaults to the standard deviation (`numpy.std`).
+    axis : int or `None`, optional
+        If not `None`, clip along the given axis.  For this case,
+        ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``, which
+        are expected to return an array with the axis dimension removed
+        (like the numpy functions).  If `None`, clip over all axes.
+        Defaults to `None`.
+    copy : bool, optional
+        If `True`, the ``data`` array will be copied.  If `False`, the
+        returned masked array data will contain the same array as
+        ``data``.  Defaults to `True`.
 
     Returns
     -------
     filtered_data : `numpy.ma.MaskedArray`
-        A masked array with the same shape as ``data`` input, where the points
-        rejected by the algorithm have been masked.
+        A masked array with the same shape as ``data`` input, where the
+        points rejected by the algorithm have been masked.
 
     Notes
     -----
@@ -69,60 +106,71 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
 
         and then setting a mask for points outside the range::
 
-            data.mask = deviation**2 > sig**2 * varfunc(deviation)
+           deviation < (-sigma_lower * stdfunc(deviation))
+           deviation > (sigma_upper * stdfunc(deviation))
 
-        It will iterate a given number of times, or until no further points are
-        rejected.
+        It will iterate a given number of times, or until no further
+        data are rejected.
 
-     2. Most numpy functions deal well with masked arrays, but if one would
-        like to have an array with just the good (or bad) values, one can use::
+     2. Most numpy functions deal well with masked arrays, but if one
+        would like to have an array with just the good (or bad) values, one
+        can use::
 
             good_only = filtered_data.data[~filtered_data.mask]
             bad_only = filtered_data.data[filtered_data.mask]
 
-        However, for multidimensional data, this flattens the array, which may
-        not be what one wants (especially is filtering was done along an axis).
+        However, for multidimensional data, this flattens the array,
+        which may not be what one wants (especially if filtering was
+        done along an axis).
 
     Examples
     --------
 
-    This will generate random variates from a Gaussian distribution and return
-    a masked array in which all points that are more than 2 *sample* standard
-    deviation from the median are masked::
+    This example generates random variates from a Gaussian distribution
+    and returns a masked array in which all points that are more than 2
+    sample standard deviations from the median are masked::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> filtered_data = sigma_clip(randvar, 2, 1)
+        >>> filtered_data = sigma_clip(randvar, sigma=2, iters=1)
 
-    This will clipping on a similar distribution, but for 3 sigma relative to
-    the sample *mean*, will clip until converged, and does not copy the data::
+    This example sigma clips on a similar distribution, but uses 3 sigma
+    relative to the sample *mean*, clips until convergence, and does not
+    copy the data::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> from numpy import mean
         >>> randvar = randn(10000)
-        >>> filtered_data = sigma_clip(randvar, 3, None, mean, copy=False)
+        >>> filtered_data = sigma_clip(randvar, sigma=3, iters=None,
+        ...                            cenfunc=mean, copy=False)
 
-    This will clip along one axis on a similar distribution with bad points
-    inserted::
+    This example sigma clips along one axis on a similar distribution
+    (with bad points inserted)::
 
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import normal
         >>> from numpy import arange, diag, ones
-        >>> data = arange(5)+normal(0.,0.05,(5,5))+diag(ones(5))
-        >>> filtered_data = sigma_clip(data, axis=0, sig=2.3)
+        >>> data = arange(5) + normal(0., 0.05, (5, 5)) + diag(ones(5))
+        >>> filtered_data = sigma_clip(data, sigma=2.3, axis=0)
 
-    Note that along the other axis, no points would be masked, as the variance
-    is higher.
-
+    Note that along the other axis, no points would be masked, as the
+    variance is higher.
     """
+
+    if sigma_lower is None:
+        sigma_lower = sigma
+    if sigma_upper is None:
+        sigma_upper = sigma
 
     if axis is not None:
         cenfunc_in = cenfunc
-        varfunc_in = varfunc
-        cenfunc = lambda d: np.expand_dims(cenfunc_in(d, axis=axis), axis=axis)
-        varfunc = lambda d: np.expand_dims(varfunc_in(d, axis=axis), axis=axis)
+        stdfunc_in = stdfunc
+        cenfunc = lambda d: np.expand_dims(cenfunc_in(d, axis=axis),
+                                           axis=axis)
+        stdfunc = lambda d: np.expand_dims(stdfunc_in(d, axis=axis),
+                                           axis=axis)
 
     filtered_data = np.ma.array(data, copy=copy)
 
@@ -132,17 +180,29 @@ def sigma_clip(data, sig=3, iters=1, cenfunc=np.ma.median, varfunc=np.var,
         while filtered_data.count() != lastrej:
             i += 1
             lastrej = filtered_data.count()
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            deviation = filtered_data - cenfunc(filtered_data)
+            std = stdfunc(filtered_data)
+            filtered_data.mask |= np.ma.masked_less(deviation,
+                                                    -std * sigma_lower).mask
+            filtered_data.mask |= np.ma.masked_greater(deviation,
+                                                       std * sigma_upper).mask
     else:
         for i in range(iters):
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            deviation = filtered_data - cenfunc(filtered_data)
+            std = stdfunc(filtered_data)
+            filtered_data.mask |= np.ma.masked_less(deviation,
+                                                    -std * sigma_lower).mask
+            filtered_data.mask |= np.ma.masked_greater(deviation,
+                                                       std * sigma_upper).mask
 
     return filtered_data
 
 
-def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
+sigma_clip.__doc__ = _sigma_clip.__doc__
+
+
+def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
+                        sigma_lower=3.0, sigma_upper=3.0, iters=None):
     """
     Calculate sigma-clipped statistics from data.
 
@@ -159,13 +219,23 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
         value indicates the corresponding element of ``data`` is masked.
         Masked pixels are excluded when computing the image statistics.
 
-    mask_val : float, optional
+    mask_value : float, optional
         An image data value (e.g., ``0.0``) that is ignored when
-        computing the image statistics.  ``mask_val`` will be masked in
-        addition to any input ``mask``.
+        computing the image statistics.  ``mask_value`` will be masked
+        in addition to any input ``mask``.
 
     sigma : float, optional
-        The number of standard deviations to use as the clipping limit.
+        The number of standard deviations to use as the lower and upper
+        clipping limit.  These limits are overridden by ``sigma_lower``
+        and ``sigma_upper``, if input.
+
+    sigma_lower : float, optional
+        The number of standard deviations to use as the lower bound for
+        the clipping limit.  If `None` then the value of ``sigma`` is used.
+
+    sigma_upper : float, optional
+        The number of standard deviations to use as the upper bound for
+        the clipping limit.  If `None` then the value of ``sigma`` is used.
 
     iters : int, optional
         The number of iterations to perform sigma clipping, or `None` to
@@ -182,8 +252,9 @@ def sigma_clipped_stats(data, mask=None, mask_val=None, sigma=3.0, iters=None):
 
     if mask is not None:
         data = np.ma.MaskedArray(data, mask)
-    if mask_val is not None:
-        data = np.ma.masked_values(data, mask_val)
-    data_clip = sigma_clip(data, sig=sigma, iters=iters)
+    if mask_value is not None:
+        data = np.ma.masked_values(data, mask_value)
+    data_clip = sigma_clip(data, sigma=sigma, sigma_lower=sigma_lower,
+                           sigma_upper=sigma_upper, iters=iters)
     goodvals = data_clip.data[~data_clip.mask]
     return np.mean(goodvals), np.median(goodvals), np.std(goodvals)
