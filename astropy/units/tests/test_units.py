@@ -660,3 +660,25 @@ def test_validate_power_detect_fraction():
     assert type(frac) == Fraction
     assert frac.numerator == 7
     assert frac.denominator == 6
+
+
+def test_complex_fractional_rounding_errors():
+    # See #3788
+
+    kappa = 0.34 * u.cm**2 / u.g
+    r_0 = 886221439924.7849 * u.cm
+    q = 1.75
+    rho_0 = 5e-10 * u.solMass / u.solRad**3
+    y = 0.5
+    beta = 0.19047619047619049
+    a = 0.47619047619047628
+    m_h = 1e6*u.solMass
+
+    t1 = 2 * c.c / (kappa * np.sqrt(np.pi))
+    t2 = 1.60835942199 / 1.60835942199
+    t3 = (r_0**-q) / (rho_0 * y * beta * (a * c.G * m_h)**0.5)
+
+    result = ((t1 * t2 * t3)**-0.8)
+
+    assert result.unit.physical_type == 'length'
+    result.to(u.solRad)

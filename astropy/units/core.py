@@ -21,7 +21,7 @@ from ..utils.decorators import lazyproperty, deprecated
 from ..utils.exceptions import AstropyWarning
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import (is_effectively_unity, sanitize_scale, validate_power,
-                    add_powers)
+                    resolve_fractions)
 from . import format as unit_format
 
 # TODO: Support functional units, e.g. log(x), ln(x)
@@ -2025,7 +2025,8 @@ class CompositeUnit(UnitBase):
                         break
 
             if unit in new_parts:
-                new_parts[unit] = add_powers(new_parts[unit], power)
+                a, b = resolve_fractions(new_parts[unit], power)
+                new_parts[unit] = a + b
             else:
                 new_parts[unit] = power
             return scale
@@ -2046,7 +2047,8 @@ class CompositeUnit(UnitBase):
                     # needed for the corner case of mag=-0.4*dex
                     scale *= cmath.exp(p * cmath.log(b._scale))
                 for b_sub, p_sub in zip(b._bases, b._powers):
-                    scale = add_unit(b_sub, p_sub * p, scale)
+                    a, b = resolve_fractions(p_sub, p)
+                    scale = add_unit(b_sub, a * b, scale)
             else:
                 scale = add_unit(b, p, scale)
 
