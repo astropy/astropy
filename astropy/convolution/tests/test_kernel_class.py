@@ -308,20 +308,22 @@ class TestKernels(object):
         Check if CustomKernel works when the input array/list
         sums to zero.
         """
-        custom = CustomKernel([-2, -1, 0, 1, 2])
+        array = [-2, -1, 0, 1, 2]
+        custom = CustomKernel(array)
+        custom.normalize()
         assert custom.truncation == 0.
-        assert custom.normalization == np.inf
+        assert custom._kernel_sum == 0.
 
     def test_custom_2D_kernel_zerosum(self):
         """
         Check if CustomKernel works when the input array/list
         sums to zero.
         """
-        custom = CustomKernel([[0, -1, 0],
-                               [-1, 4, -1],
-                               [0, -1, 0]])
+        array = [[0, -1, 0], [-1, 4, -1], [0, -1, 0]]
+        custom = CustomKernel(array)
+        custom.normalize()
         assert custom.truncation == 0.
-        assert custom.normalization == np.inf
+        assert custom._kernel_sum == 0.
 
     def test_custom_kernel_odd_error(self):
         """
@@ -407,7 +409,8 @@ class TestKernels(object):
         assert box.center == [2, 2]
 
         # Check normalization
-        assert_almost_equal(box.normalization, 1., decimal=12)
+        box.normalize()
+        assert_almost_equal(box._kernel_sum, 1., decimal=12)
 
         # Check seperability
         assert box.separable
@@ -469,15 +472,6 @@ class TestKernels(object):
         with pytest.raises(ValueError):
             kernel = CustomKernel(np.ones(3))
             kernel.normalize(mode='invalid')
-
-    def test_kernel_normalization_inf(self, recwarn):
-        """
-        Test that a warning is issued when normalizing a zero-sum kernel.
-        """
-        kernel = CustomKernel(np.array([-1, 0, 1]))
-        kernel.normalize()
-        w = recwarn.pop(AstropyUserWarning)
-        assert issubclass(w.category, AstropyWarning)
 
     def test_kernel_normalization_large(self, recwarn):
         """

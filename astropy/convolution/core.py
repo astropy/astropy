@@ -112,7 +112,7 @@ class Kernel(object):
         else:
             np.divide(self._array, normalization, self._array)
 
-            if (1.0 / normalization) > MAX_NORMALIZATION:
+            if np.abs(1.0 / normalization) > MAX_NORMALIZATION:
                 warnings.warn('The kernel normalization factor is '
                               'exceptionally large,'
                               ' > {0}.'.format(MAX_NORMALIZATION),
