@@ -215,12 +215,11 @@ def validate_power(p, support_tuples=False):
     return p
 
 
-def add_powers(a, b):
+def resolve_fractions(a, b):
     """
-    Add two powers together, where either may be a floating point
-    number or a Fraction.  If either is Fraction, they are both
-    converted to Fractions so that rational, rather than
-    floating-point, arithmetic is used.
+    If either input is a Fraction, convert the other to a Fraction.
+    This ensures that any operation involving a Fraction will use
+    rational arithmetic and preserve precision.
     """
     a_is_fraction = isinstance(a, Fraction)
     b_is_fraction = isinstance(b, Fraction)
@@ -228,4 +227,4 @@ def add_powers(a, b):
         b = Fraction(b)
     elif not a_is_fraction and b_is_fraction:
         a = Fraction(a)
-    return a + b
+    return a, b
