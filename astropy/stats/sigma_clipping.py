@@ -206,7 +206,7 @@ sigma_clip.__doc__ = _sigma_clip.__doc__
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
-                        sigma_lower=3.0, sigma_upper=3.0, iters=None):
+                        sigma_lower=None, sigma_upper=None, iters=None):
     """
     Calculate sigma-clipped statistics from data.
 
