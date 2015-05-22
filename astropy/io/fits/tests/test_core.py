@@ -628,6 +628,27 @@ class TestFileFunctions(FitsTestCase):
         with ignore_warnings():
             assert len(fits.open(self._make_bzip2_file('test0.xx'))) == 5
 
+    def test_writeto_bzip2_fileobj(self):
+        """Test writing to a bz2.BZ2File file like object"""
+        fileobj = bz2.BZ2File(self.temp('test.fits.bz2'), 'w')
+        h = fits.PrimaryHDU()
+        try:
+            h.writeto(fileobj)
+        finally:
+            fileobj.close()
+
+        with fits.open(self.temp('test.fits.bz2')) as hdul:
+            assert hdul[0].header == h.header
+
+    def test_writeto_bzip2_filename(self):
+        """Test writing to a bzip2 file by name"""
+        filename = self.temp('testname.fits.bz2')
+        h = fits.PrimaryHDU()
+        h.writeto(filename)
+
+        with fits.open(self.temp('testname.fits.bz2')) as hdul:
+            assert hdul[0].header == h.header
+
     def test_open_zipped(self):
         zf = self._make_zip_file()
 
