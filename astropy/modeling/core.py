@@ -31,7 +31,9 @@ import numpy as np
 from ..utils import indent, isiterable, isinstancemethod, metadata
 from ..extern import six
 from ..table import Table
-from ..units import Quantity, Unit, UnitConversionError
+from ..units import (Quantity, Unit, UnitConversionError,
+                     dimensionless_unscaled)
+from ..units.quantity import _can_have_arbitrary_unit
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
@@ -642,6 +644,12 @@ class Model(object):
     # model hasn't completed initialization yet
     _n_models = 1
 
+    # Flag indicating whether units should be considered when evaluating this
+    # model.  This is enabled only if all of the model's parameters have units
+    _params_using_quantities = False
+    # This serves a similar purpose, but is reset between each __call__
+    _inputs_using_quantities = False
+
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
         meta = kwargs.pop('meta', None)
@@ -670,6 +678,10 @@ class Model(object):
         Evaluate this model using the given input(s) and the parameter values
         that were specified when the model was instantiated.
         """
+
+        # The parallel to _prepare_output_units, though this one of course has
+        # no knowledge of the outputs
+        inputs = self._prepare_input_units(inputs)
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
         parameters = self._param_sets(raw=True, units=True)
@@ -1214,6 +1226,9 @@ class Model(object):
 
             if isinstance(value, Quantity):
                 param_metrics[name]['orig_unit'] = value.unit
+                # A flag, for convenience, to track whether quantities were
+                # used in instantiating this model
+                self._params_using_quantities = True
             else:
                 param_metrics[name]['orig_unit'] = None
 
@@ -1361,6 +1376,29 @@ class Model(object):
 
         return np.array(values)
 
+    def _prepare_input_units(self, inputs):
+        self._inputs_using_quantities = False
+        for input_ in inputs:
+            if isinstance(input_, Quantity):
+                self._inputs_using_quantities = True
+                break
+
+        # If any parameters or inputs are using quantities, then all should;
+        # unit-less inputs are thus treated as dimensionless
+        if self._params_using_quantities or self._inputs_using_quantities:
+            converted_inputs = []
+            for input_ in inputs:
+                if (not isinstance(input_, Quantity) and
+                        not _can_have_arbitrary_unit(input_)):
+                    # We make a special case also for 0, since 0 may
+                    # be used in many quantity calculations without
+                    # penalty so long as it is not explicitly dimensionless
+                    input_ = input_ * dimensionless_unscaled
+                converted_inputs.append(input_)
+            return converted_inputs
+        else:
+            return inputs
+
     def _prepare_output_units(self, inputs, outputs):
         """
         Checks/converts units of model evaluation outputs using any directions
@@ -1371,7 +1409,9 @@ class Model(object):
         output_units = self.output_units
         output_unit_types = self.output_unit_types
 
-        if output_units is None and output_unit_types is None:
+        if ((output_units is None and output_unit_types is None)
+                or not (self._params_using_quantities or
+                        self._inputs_using_quantities)):
             # No output units specified, so we just return whatever we got
             return outputs
 
@@ -1380,6 +1420,12 @@ class Model(object):
 
         if self.n_outputs == 1 and not isinstance(output_unit_types, tuple):
             output_unit_types = (output_unit_types,)
+
+        # Make sure all inputs have units; this is specifically to
+        # address the case of 0 (without units) being an allowed input
+        inputs = [Quantity(input_, dimensionless_unscaled)
+                  if _can_have_arbitrary_unit(input_)
+                  else input_ for input_ in inputs]
 
         def to_unit(item):
             # Go from an element in the output_units or output_unit_types
