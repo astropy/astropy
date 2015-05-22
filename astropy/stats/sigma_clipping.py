@@ -125,7 +125,6 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
 
     Examples
     --------
-
     This example generates random variates from a Gaussian distribution
     and returns a masked array in which all points that are more than 2
     sample standard deviations from the median are masked::
@@ -206,7 +205,8 @@ sigma_clip.__doc__ = _sigma_clip.__doc__
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
-                        sigma_lower=None, sigma_upper=None, iters=None):
+                        sigma_lower=None, sigma_upper=None, iters=None,
+                        cenfunc=np.ma.median, stdfunc=np.std, axis=None):
     """
     Calculate sigma-clipped statistics from data.
 
@@ -247,6 +247,33 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         last iteration clips nothing) when calculating the image
         statistics.
 
+    cenfunc : callable, optional
+        The function used to compute the center for the clipping. Must
+        be a callable that takes in a masked array and outputs the
+        central value. Defaults to the median (`numpy.ma.median`).
+
+    stdfunc : callable, optional
+        The function used to compute the standard deviation about the
+        center. Must be a callable that takes in a masked array and
+        outputs a width estimator. Masked (rejected) pixels are those
+        where::
+
+             deviation < (-sigma_lower * stdfunc(deviation))
+             deviation > (sigma_upper * stdfunc(deviation))
+
+        where::
+
+            deviation = data - cenfunc(data [,axis=int])
+
+        Defaults to the standard deviation (`numpy.std`).
+
+    axis : int or `None`, optional
+        If not `None`, clip along the given axis.  For this case,
+        ``axis`` will be passed on to ``cenfunc`` and ``stdfunc``, which
+        are expected to return an array with the axis dimension removed
+        (like the numpy functions).  If `None`, clip over all axes.
+        Defaults to `None`.
+
     Returns
     -------
     mean, median, stddev : float
@@ -259,6 +286,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     if mask_value is not None:
         data = np.ma.masked_values(data, mask_value)
     data_clip = sigma_clip(data, sigma=sigma, sigma_lower=sigma_lower,
-                           sigma_upper=sigma_upper, iters=iters)
+                           sigma_upper=sigma_upper, iters=iters,
+                           cenfunc=cenfunc, stdfunc=stdfunc, axis=axis)
     goodvals = np.ma.compressed(data_clip)
     return np.mean(goodvals), np.median(goodvals), np.std(goodvals)
