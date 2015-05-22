@@ -8,6 +8,9 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 from numpy.testing import assert_allclose
 
+
+from ..core import Fittable1DModel, ModelDefinitionError
+from ..parameters import Parameter
 from ..models import Gaussian1D
 from ... import units as u
 from ...units import UnitsError, Quantity
@@ -105,3 +108,56 @@ def test_basic_evaluate_with_quantities():
 
     # Should get the same numeric result as if we multiplied by 1000
     assert_allclose(gq(0.0005 * u.km).value, g(0.5))
+
+
+def test_output_units():
+    """
+    Test multiple allowed settings for the output_units attribute
+    on a single-output model.
+    """
+
+    class TestModelA(Fittable1DModel):
+        a = Parameter()
+        output_units = 'a'
+
+        @staticmethod
+        def evaluate(x, a):
+            # For the sake of this test, the dimensions of x
+            # shouldn't matter, and the return value should be
+            # in the dimensions of the 'a' param
+            return (x / x) * a
+
+    m = TestModelA(a=1 * u.m)
+    assert m(0).unit is m.a.unit
+    assert m(1 * u.m).unit is m.a.unit
+    assert m(27 * u.s).unit is m.a.unit
+
+    class TestModelB(Fittable1DModel):
+        a = Parameter()
+        output_units = 'x'
+
+        @staticmethod
+        def evaluate(x, a):
+            # In this cfase only the input units should matter
+            return (a / a) * x
+
+    m = TestModelB(a=1 / u.s)
+    assert m(0).unit == u.dimensionless_unscaled
+    assert m(1 * u.m).unit is u.m
+
+    class TestModelC(Fittable1DModel):
+        a = Parameter()
+        output_units = lambda a, x: a.unit * x.unit
+
+        @staticmethod
+        def evaluate(x, a):
+            # In this case the output's units are some compound
+            # involving both the input and parameter's units
+            return a * x
+
+    m = TestModelC(a=1 / u.s)
+    assert m(0).unit == (1 / u.s)
+    assert m(2).unit == (1 / u.s)
+    assert m(0 * u.dimensionless_unscaled).unit == (1 / u.s)
+    assert m(2 * u.dimensionless_unscaled).unit == (1 / u.s)
+    assert m(2 * u.m).unit == (u.m / u.s)
