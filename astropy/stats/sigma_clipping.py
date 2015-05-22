@@ -195,6 +195,10 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
             filtered_data.mask |= np.ma.masked_greater(deviation,
                                                        std * sigma_upper).mask
 
+    # prevent filtered_data.mask = False (scalar) if no values are clipped
+    if filtered_data.mask.shape == ():
+        filtered_data.mask = False   # .mask shape will now match .data shape
+
     return filtered_data
 
 
@@ -256,5 +260,5 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         data = np.ma.masked_values(data, mask_value)
     data_clip = sigma_clip(data, sigma=sigma, sigma_lower=sigma_lower,
                            sigma_upper=sigma_upper, iters=iters)
-    goodvals = data_clip.data[~data_clip.mask]
+    goodvals = np.ma.compressed(data_clip)
     return np.mean(goodvals), np.median(goodvals), np.std(goodvals)
