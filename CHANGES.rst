@@ -42,6 +42,9 @@ New Features
 
 - ``astropy.io.fits``
 
+  - Support reading and writing from bzip2 compressed files. i.e. ``.fits.bz2``
+    files.
+
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``
