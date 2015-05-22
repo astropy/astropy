@@ -97,6 +97,23 @@ because by that point you're likely to run out of physical memory anyways), but
 	out of scope, or manually call ``del hdul[0].data`` (this works so long as there are no other
 	references held to the data array).
 
+Working with compressed files
+"""""""""""""""""""""""""""""
+
+The :func:`open` function will seamlessly open FITS files that have been
+compressed with gzip, bzip2 or pkzip. Note that in this context we're talking
+about a fits file that has been compressed with one of these utilities - e.g. a 
+.fits.gz file. Files that use compressed HDUs within the FITS file are discussed
+in :ref:`Compressed Image Data <astropy-io-fits-compressedImageData>`.
+
+There are some limitations with working with compressed files. For example with Zip 
+files that contain multiple compressed files, only the first file will be accessible.
+Also bzip does not support the append or update access modes.
+
+When writing a file (e.g. with the :func:`writeto` function), compression will be
+determined based on the filename extension given, or the compression used in a 
+pre-existing file that is being written to.
+
 Working with FITS Headers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
