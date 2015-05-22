@@ -293,13 +293,17 @@ def test_clone():
 
 
 def test_xtfuncs():
-    """ Test of xfunc, tfunc"""
+    """ Test of absorption and lookback integrand"""
     cosmo = core.LambdaCDM(70, 0.3, 0.5)
     z = np.array([2.0, 3.2])
-    assert allclose(cosmo.tfunc(3), 0.052218976654969378, rtol=1e-4)
-    assert allclose(cosmo.tfunc(z), [0.10333179, 0.04644541], rtol=1e-4)
-    assert allclose(cosmo.xfunc(3), 3.3420145059180402, rtol=1e-4)
-    assert allclose(cosmo.xfunc(z), [2.7899584, 3.44104758], rtol=1e-4)
+    assert allclose(cosmo.lookback_time_integrand(3), 0.052218976654969378,
+                    rtol=1e-4)
+    assert allclose(cosmo.lookback_time_integrand(z),
+                    [0.10333179, 0.04644541], rtol=1e-4)
+    assert allclose(cosmo.abs_distance_integrand(3), 3.3420145059180402,
+                    rtol=1e-4)
+    assert allclose(cosmo.abs_distance_integrand(z),
+                    [2.7899584, 3.44104758], rtol=1e-4)
 
 
 def test_repr():

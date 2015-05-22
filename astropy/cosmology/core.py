@@ -30,6 +30,33 @@ __all__ = ["FLRW", "LambdaCDM", "FlatLambdaCDM", "wCDM", "FlatwCDM",
 
 __doctest_requires__ = {'*': ['scipy.integrate']}
 
+# Notes about speeding up integrals:
+# ---------------------------------
+#  The supplied cosmology classes use a few tricks to speed
+#  up distance and time integrals.  It is not necessary for
+#  anyone subclassing FLRW to use these tricks -- but if they
+#  do, such calculations may be a lot faster.
+# The first, more basic, idea is that, in many cases, it's a big deal to
+#  provide explicit formulae for inv_efunc rather than simply
+#  setting up de_energy_scale -- assuming there is a nice expression.
+#  As noted above, almost all of the provided classes do this, and
+#  that template can pretty much be followed directly with the appropriate
+#  formula changes.
+# The second, and more advanced, option is to also explicitly
+#  provide a scalar only version of inv_efunc.  This results in a fairly
+#  large speedup (>10x in most cases) in the distance and age integrals,
+#  because testing whether the inputs are iterable or pure scalars turns out
+#  to be rather expensive. If somebody making a new subclass wants to pursue
+#  this optimization, the key thing is to explicitly set the
+#  instance variables self._inv_efunc_scalar and self._inv_efunc_scalar_args
+#  in the constructor for the subclass, where the latter are all the
+#  arguments except z to _inv_efunc_scalar.
+#  Again, the provided classes do use this optimization, and in fact go
+#   even further and provide optimizations for no radiation, and for radiation
+#   with massless neutrinos.  Consult the subclasses for details.
+#
+#  However, the important point is that it is -not- necessary to do this.
+
 # Some conversion constants -- useful to compute them once here
 #  and reuse in the initialization rather than have every object do them
 # Note that the call to cgs is actually extremely expensive,
@@ -871,9 +898,7 @@ class FLRW(Cosmology):
         return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) +
                 Ode0 * self.de_density_scale(z))**(-0.5)
 
-    # The idea is to eventually replace _tfunc with tfunc,
-    # and use _tfunc_scalar as the internal integrand.
-    def _tfunc_scalar(self, z):
+    def _lookback_time_integrand_scalar(self, z):
         """ Integrand of the lookback time.
 
         Parameters
@@ -894,7 +919,7 @@ class FLRW(Cosmology):
         args = self._inv_efunc_scalar_args
         return self._inv_efunc_scalar(z, *args) / (1.0 + z)
 
-    @deprecated(since=1.1, alternative='tfunc')
+    @deprecated(since=1.1, alternative='lookback_time_integrand')
     def _tfunc(self, z):
         """ Integrand of the lookback time.
 
@@ -920,7 +945,7 @@ class FLRW(Cosmology):
 
         return self.inv_efunc(z) / zp1
 
-    def tfunc(self, z):
+    def lookback_time_integrand(self, z):
         """ Integrand of the lookback time.
 
         Parameters
@@ -945,8 +970,7 @@ class FLRW(Cosmology):
 
         return self.inv_efunc(z) / zp1
 
-    # Same thing for xfunc as tfunc
-    def _xfunc_scalar(self, z):
+    def _abs_distance_integrand_scalar(self, z):
         """ Integrand of the absorption distance.
 
         Parameters
@@ -967,7 +991,7 @@ class FLRW(Cosmology):
         args = self._inv_efunc_scalar_args
         return (1.0 + z) ** 2 * self._inv_efunc_scalar(z, *args)
 
-    @deprecated(since=1.1, alternative='xfunc')
+    @deprecated(since=1.1, alternative='abs_distance_integrand')
     def _xfunc(self, z):
         """ Integrand of the absorption distance.
 
@@ -992,7 +1016,7 @@ class FLRW(Cosmology):
             zp1 = 1. + z
         return zp1 ** 2 * self.inv_efunc(z)
 
-    def xfunc(self, z):
+    def abs_distance_integrand(self, z):
         """ Integrand of the absorption distance.
 
         Parameters
@@ -1075,7 +1099,7 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        f = lambda red: quad(self._tfunc_scalar, 0, red)[0]
+        f = lambda red: quad(self._lookback_time_integrand_scalar, 0, red)[0]
         return self._hubble_time * vectorize_if_needed(f, z)
 
     def lookback_distance(self, z):
@@ -1116,7 +1140,8 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        f = lambda red: quad(self._tfunc, red, np.inf)[0]
+        f = lambda red: quad(self._lookback_time_integrand_scalar,
+                             red, np.inf)[0]
         return self._hubble_time * vectorize_if_needed(f, z)
 
     def critical_density(self, z):
@@ -1336,7 +1361,7 @@ class FLRW(Cosmology):
         """
 
         from scipy.integrate import quad
-        f = lambda red: quad(self._xfunc_scalar, 0, red)[0]
+        f = lambda red: quad(self._abs_distance_integrand_scalar, 0, red)[0]
         return vectorize_if_needed(f, z)
 
     def distmod(self, z):
@@ -1553,7 +1578,8 @@ class LambdaCDM(FLRW):
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
                       Ob0=Ob0)
 
-        # Now, special optional fast scalar versions of integrands
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = self._lcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0)
@@ -1751,7 +1777,8 @@ class FlatLambdaCDM(LambdaCDM):
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
-        # Now, special optional fast scalar versions of integrands
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = self._flcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
@@ -1916,7 +1943,8 @@ class wCDM(FLRW):
                       Ob0=None)
         self._w0 = float(w0)
 
-        # Now, special optional fast scalar versions of integrands
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = self._wcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
@@ -2056,9 +2084,8 @@ class wCDM(FLRW):
                              self._Ode0, self._w0, self._Tcmb0, self._Neff,
                              self.m_nu, _float_or_none(self._Ob0))
 
-    # The stuff below here for this class is -not- something
-    # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons.
+    # Please see "Notes about speeding up integrals" for discussion
+    # about what is being done here.
     @staticmethod
     def _wcdm_inv_efunc_norel(z, Om0, Ode0, Ok0, w0):
         opz = 1.0 + z
@@ -2141,7 +2168,8 @@ class FlatwCDM(wCDM):
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
-        # Now, special optional fast scalar versions of integrands
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = self._fwcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
@@ -2225,10 +2253,8 @@ class FlatwCDM(wCDM):
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
 
-    # The stuff below here for this class is -not- something
-    # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons, and results in a 10x speedup
-    # in distance calculations.
+    # Please see "Notes about speeding up integrals" for discussion
+    # about what is being done here.
     @staticmethod
     def _fwcdm_inv_efunc_norel(z, Om0, Ode0, w0):
         opz = 1.0 + z
@@ -2317,7 +2343,8 @@ class w0waCDM(FLRW):
         self._w0 = float(w0)
         self._wa = float(wa)
 
-        # Now, special optional fast scalar versions of integrands
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = self._w0wa_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
@@ -2414,7 +2441,6 @@ class w0waCDM(FLRW):
     # you need to overload for your own classes.  It is done
     # purely for efficiency reasons, and results in a 10x speedup
     # in distance calculations.
-    # Note we unwrap de_energy_scale internally here
     @staticmethod
     def _w0wa_inv_efunc_norel(z, Om0, Ode0, Ok0, w0, wa):
         opz = 1.0 + z
@@ -2505,7 +2531,8 @@ class Flatw0waCDM(w0waCDM):
         self._Ode0 = 1.0 - self._Om0 - self._Ogamma0 - self._Onu0
         self._Ok0 = 0.0
 
-        # Now, special optional fast scalar versions of integrands
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = self._fw0wa_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
@@ -2530,11 +2557,8 @@ class Flatw0waCDM(w0waCDM):
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
 
-    # The stuff below here for this class is -not- something
-    # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons, and results in a 10x speedup
-    # in distance calculations.
-    # Note we unwrap de_energy_scale internally here
+    # Please see "Notes about speeding up integrals" for discussion
+    # about what is being done here.
     @staticmethod
     def _fw0wa_inv_efunc_norel(z, Om0, Ode0, w0, wa):
         opz = 1.0 + z
@@ -2633,7 +2657,8 @@ class wpwaCDM(FLRW):
         self._wa = float(wa)
         self._zp = float(zp)
 
-        # Now, special optional fast scalar versions of integrands
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
         apiv = 1.0 / (1.0 + self._zp)
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = self._wpwa_inv_efunc_norel
@@ -2741,7 +2766,6 @@ class wpwaCDM(FLRW):
     # you need to overload for your own classes.  It is done
     # purely for efficiency reasons, and results in a 10x speedup
     # in distance calculations.
-    # Note we unwrap de_energy_scale internally here
     @staticmethod
     def _wpwa_inv_efunc_norel(z, Om0, Ode0, Ok0, wp, apiv, wa):
         opz = 1.0 + z
@@ -2835,7 +2859,8 @@ class w0wzCDM(FLRW):
         self._w0 = float(w0)
         self._wz = float(wz)
 
-        # Now, special optional fast scalar versions of integrands
+        # Please see "Notes about speeding up integrals" for discussion
+        # about what is being done here.
         if self._Tcmb0.value == 0:
             self._inv_efunc_scalar = self._w0wz_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
@@ -2927,11 +2952,8 @@ class w0wzCDM(FLRW):
                              self._Ode0, self._w0, self._wz, self._Tcmb0,
                              self._Neff, self.m_nu, _float_or_none(self._Ob0))
 
-    # The stuff below here for this class is -not- something
-    # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons, and results in a 10x speedup
-    # in distance calculations.
-    # Note we unwrap de_energy_scale internally here
+    # Please see "Notes about speeding up integrals" for discussion
+    # about what is being done here.
     @staticmethod
     def _w0wz_inv_efunc_norel(z, Om0, Ode0, Ok0, w0, wz):
         opz = 1.0 + z
