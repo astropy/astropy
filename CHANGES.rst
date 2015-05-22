@@ -43,7 +43,7 @@ New Features
 - ``astropy.io.fits``
 
   - Support reading and writing from bzip2 compressed files. i.e. ``.fits.bz2``
-    files.
+    files. [#3789]
 
 - ``astropy.io.misc``
 
