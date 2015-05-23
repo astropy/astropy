@@ -1530,7 +1530,7 @@ def test_info(table_types):
 
     # Minimal output for a typical table
     out = six.moves.cStringIO()
-    t.info(out)
+    t.info(out=out)
     assert out.getvalue().splitlines() == ['<{0} {1}length=3>'.format(t.__class__.__name__, masked),
                                            'name  dtype ',
                                            '---- -------',
@@ -1544,7 +1544,7 @@ def test_info(table_types):
     t['a'].format = '%02d'
     t['e'] = time.Time([1,2,3], format='cxcsec')
     out = six.moves.cStringIO()
-    t.info(out)
+    t.info(out=out)
     assert out.getvalue().splitlines() == ['<{0} {1}length=3>'.format(t.__class__.__name__, masked),
                                            'name  dtype  unit format description class',
                                            '---- ------- ---- ------ ----------- -----',
