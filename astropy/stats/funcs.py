@@ -594,6 +594,9 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     
     """
 
+    if not np.isscalar(n):
+        n = np.asanyarray(n)
+
     if interval == 'root-n':
         if sigma!=1:
             raise ValueError("Only sigma=1 supported for interval %s" % interval)
