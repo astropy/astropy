@@ -832,6 +832,8 @@ def sigma_to_logp(sigma, two_sided=True):
     
     """
     import scipy.special
+    if not np.isscalar(sigma):
+        sigma = np.asanyarray(sigma)
     r = scipy.special.log_ndtr(-sigma)+(np.log(2) if two_sided else 0)
     if two_sided:
         if np.any(sigma<0):
@@ -845,6 +847,7 @@ def sigma_to_logp(sigma, two_sided=True):
     return r
 
 # TODO Note scipy dependency
+@np.vectorize
 def logp_to_sigma(logp, two_sided=True):
     """Convert log-probability to number-of-sigma
 
@@ -860,7 +863,7 @@ def logp_to_sigma(logp, two_sided=True):
 
     Parameters
     ----------
-    logp : float
+    logp : array-like
         The (natural) logarithm of the corresponding probability
     two_sided : boolean
         If True (the default) use a two-tailed probability (probability
@@ -884,7 +887,7 @@ def logp_to_sigma(logp, two_sided=True):
     import scipy.special
     import scipy.optimize
     if logp>0:
-        raise ValueError("probabilities must be <= 1 but logp was %g" % logp)
+        raise ValueError("probabilities must be <= 1 but logp was {0:g}".format(logp))
     if not two_sided and logp>np.log(0.5): # sigma will be negative
         return -logp_to_sigma(np.log(1-np.exp(logp)),two_sided=two_sided)
     s = scipy.optimize.brentq(
