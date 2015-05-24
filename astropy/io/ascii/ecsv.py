@@ -53,7 +53,7 @@ class EcsvHeader(basic.BasicHeader):
         for col in self.cols:
             if len(getattr(col, 'shape', ())) > 1:
                 raise ValueError("ECSV format does not support multidimensional column '{0}'"
-                                 .format(col_getattr(col, 'name')))
+                                 .format(col.info.name))
 
         # Now assemble the header dict that will be serialized by the YAML dumper
         header = {'cols': self.cols}
