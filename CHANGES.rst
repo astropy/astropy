@@ -31,8 +31,8 @@ New Features
     are now > 10x faster for the supplied cosmologies. [#3767]
 
   - ``FLRW._tfunc`` and ``FLRW._xfunc`` are marked as deprecated.  Users
-    should use the new public interfaces ``FLRW.tfunc`` and ``FLRW.xfunc``
-    instead. [#3767]
+    should use the new public interfaces ``FLRW.lookback_time_integrand`` 
+    and ``FLRW.abs_distance_integrand`` instead. [#3767]
 
 - ``astropy.io.ascii``
 
