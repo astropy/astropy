@@ -100,6 +100,21 @@ For all the following examples it is assumed that the table has been created as 
        9.000  10  11
       12.000  13  14
 
+
+Summary information
+"""""""""""""""""""
+
+You can get summary information about the table as follows::
+
+  >>> t.info()
+  <Table length=5>
+  name dtype   unit   format       description
+  ---- ----- -------- ------ ------------------------
+     a int32 m sec^-1  %6.3f unladen swallow velocity
+     b int32
+     c int32
+
+
 Accessing properties
 """"""""""""""""""""
 

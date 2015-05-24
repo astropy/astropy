@@ -57,9 +57,9 @@ def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
 
     if not hasattr(newcol, 'info'):
         info_attr = '_info' if hasattr(col.__class__, 'info') else 'info'
-        setattr(newcol, info_attr, ColumnInfo())
+        setattr(newcol, info_attr, ColumnInfo(newcol))
 
-    attrs = COLUMN_ATTRS - set(exclude_attrs) - newcol.info.cols_from_parent
+    attrs = COLUMN_ATTRS - set(exclude_attrs) - newcol.info._attrs_from_parent
     for attr in attrs:
         val = getattr(col.info, attr)
         if val is not None:
@@ -89,7 +89,7 @@ def col_copy(col):
     newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
     info_attr = '_info' if hasattr(col.__class__, 'info') else 'info'
     setattr(newcol, info_attr, col.info.copy())
-    getattr(newcol, info_attr)._parent_col = weakref.ref(newcol)
+    newcol.info._parent_col = weakref.ref(newcol)
 
     return newcol
 
@@ -99,7 +99,7 @@ def add_column_info(col):
     Add mixin column information to ``col``.
     """
     if not hasattr(col, 'info'):
-        col.info = ColumnInfo()
+        col.info = ColumnInfo(col)
 
 
 class FalseArray(np.ndarray):
@@ -118,7 +118,6 @@ class FalseArray(np.ndarray):
         if np.any(val):
             raise ValueError('Cannot set any element of {0} class to True'
                              .format(self.__class__.__name__))
-
 
 class BaseColumn(np.ndarray):
 
@@ -193,7 +192,12 @@ class BaseColumn(np.ndarray):
 
     @property
     def info(self):
-        return self
+        """
+        Mixin column information (attributes)
+        """
+        if not hasattr(self, '_info'):
+            self._info = ColumnInfo(self, attrs_from_parent=COLUMN_ATTRS)
+        return self._info
 
     def copy(self, order='C', data=None, copy_data=True):
         """

@@ -165,7 +165,7 @@ class ArrayWrapper(object):
         Mixin column information (attributes)
         """
         if not hasattr(self, '_info'):
-            self._info = ColumnInfo()
+            self._info = ColumnInfo(self)
         return self._info
 
     @property

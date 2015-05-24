@@ -52,10 +52,6 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-class QuantityColumnInfo(ColumnInfo):
-    cols_from_parent = set(['dtype', 'unit'])
-
-
 def _can_have_arbitrary_unit(value):
     """Test whether the items in value can have arbitrary units
 
@@ -614,8 +610,11 @@ class Quantity(np.ndarray):
 
     @property
     def info(self):
+        """
+        Mixin column information (attributes)
+        """
         if not hasattr(self, '_info'):
-            self._info = QuantityColumnInfo(self)
+            self._info = ColumnInfo(self, attrs_from_parent=['dtype', 'unit'])
         return self._info
 
     @property
