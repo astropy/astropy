@@ -147,7 +147,7 @@ class ColumnInfo(object):
 
     info_summary_stats = staticmethod(
         column_info_factory(names=['mean', 'std', 'min', 'max'],
-                            funcs=[np.mean, np.std, np.min, np.max]))
+                            funcs=[np.nanmean, np.nanstd, np.nanmin, np.nanmax]))
 
     def __call__(self, option='attributes', out=''):
         """
