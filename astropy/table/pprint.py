@@ -226,7 +226,7 @@ class TableFormatter(object):
 
         """
         if show_unit is None:
-            show_unit = getattr(col, 'unit', None) is not None
+            show_unit = col.info.unit is not None
 
         outs = {}  # Some values from _pformat_col_iter iterator that are needed here
         col_strs_iter = self._pformat_col_iter(col, max_lines, show_name=show_name,
@@ -365,7 +365,7 @@ class TableFormatter(object):
         if show_unit:
             i_centers.append(n_header)
             n_header += 1
-            yield six.text_type(getattr(col, 'unit', None) or '')
+            yield six.text_type(col.info.unit or '')
         if show_dtype:
             i_centers.append(n_header)
             n_header += 1
@@ -384,7 +384,10 @@ class TableFormatter(object):
         n_rows = len(col)
 
         col_format = col.info.format
-        format_func = _format_funcs.get(col_format, _auto_format_func)
+        if col_format is None and hasattr(col.info, 'default_format_func'):
+            format_func = col.info.default_format_func
+        else:
+            format_func = _format_funcs.get(col_format, _auto_format_func)
         if len(col) > max_lines:
             if show_length is None:
                 show_length = True
@@ -472,7 +475,7 @@ class TableFormatter(object):
         cols = []
 
         if show_unit is None:
-            show_unit = any([getattr(col, 'unit', None) for col in six.itervalues(table.columns)])
+            show_unit = any([col.info.unit for col in six.itervalues(table.columns)])
 
         # Figure out align
         if isinstance(align,str):

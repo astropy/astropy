@@ -42,6 +42,24 @@ def FRAME_ATTR_NAMES_SET():
     return out
 
 
+class SkyCoordColumnInfo(ColumnInfo):
+    def __init__(self, *args, **kwargs):
+        super(SkyCoordColumnInfo, self).__init__(*args, **kwargs)
+        self._format_cache = {}
+        if self._parent_col is not None:
+            data = self._parent_col().data
+            self.unit = ','.join(str(getattr(data, comp).unit) for comp in data.components)
+
+    def default_format_func(self, format, val):
+        data = val.data
+        cls = type(data)
+        if cls not in self._format_cache:
+            formats = ['{0.' + compname + '.value:}' for compname
+                       in data.components]
+            self._format_cache[cls] = ' '.join(formats)
+        return self._format_cache[cls].format(data)
+
+
 class SkyCoord(object):
     """High-level object providing a flexible interface for celestial coordinate
     representation, manipulation, and transformation between systems.
@@ -178,7 +196,7 @@ class SkyCoord(object):
         Mixin column information (attributes)
         """
         if not hasattr(self, '_info'):
-            self._info = ColumnInfo(self)
+            self._info = SkyCoordColumnInfo(self)
         return self._info
 
     @property

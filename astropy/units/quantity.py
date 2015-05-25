@@ -115,6 +115,16 @@ class QuantityIterator(object):
     next = __next__
 
 
+class QuantityColumnInfo(ColumnInfo):
+    _attrs_from_parent = set(['dtype', 'unit'])
+
+    def __init__(self, *args, **kwargs):
+        super(QuantityColumnInfo, self).__init__(*args, **kwargs)
+
+    def default_format_func(self, format, val):
+        return '{0.value:}'.format(val)
+
+
 @six.add_metaclass(InheritDocstrings)
 class Quantity(np.ndarray):
     """ A `~astropy.units.Quantity` represents a number with some associated unit.
@@ -614,7 +624,7 @@ class Quantity(np.ndarray):
         Mixin column information (attributes)
         """
         if not hasattr(self, '_info'):
-            self._info = ColumnInfo(self, attrs_from_parent=['dtype', 'unit'])
+            self._info = QuantityColumnInfo(self)
         return self._info
 
     @property
