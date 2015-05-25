@@ -142,8 +142,8 @@ class ColumnInfo(object):
                                    for attr in ('dtype', 'unit', 'format', 'description', 'class')]))
 
     info_summary_stats = staticmethod(
-        column_info_factory(names=['min', 'mean', 'max'],
-                            funcs=[np.min, np.mean, np.max]))
+        column_info_factory(names=['min', 'mean', 'std', 'max'],
+                            funcs=[np.min, np.mean, np.std, np.max]))
 
     def __call__(self, option='attributes', out=''):
         """
