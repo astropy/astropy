@@ -8,10 +8,11 @@ import numpy as np
 from ...extern import six
 from ... import units as u
 from ... import time
+from ...utils.column_info import column_info_factory
 
-def test_info(table_types):
+def test_info_attributes(table_types):
     """
-    Test the info() method of printing a table summary
+    Test the info() method of printing a summary of table column attributes
     """
     a = np.array([1, 2, 3], dtype='int32')
     b = np.array([1, 2, 3], dtype='float32')
@@ -23,12 +24,13 @@ def test_info(table_types):
     # Minimal output for a typical table
     out = six.moves.cStringIO()
     t.info(out=out)
-    assert out.getvalue().splitlines() == ['<{0} {1}length=3>'.format(t.__class__.__name__, masked),
-                                           'name  dtype ',
-                                           '---- -------',
-                                           '   a   int32',
-                                           '   b float32',
-                                           '   c {0}'.format(string8)]
+    exp = ['<{0} {1}length=3>'.format(t.__class__.__name__, masked),
+           'name  dtype ',
+           '---- -------',
+           '   a   int32',
+           '   b float32',
+           '   c {0}'.format(string8)]
+    assert out.getvalue().splitlines() == exp
 
     # All output fields including a mixin column
     t['d'] = [1,2,3] * u.m
@@ -37,11 +39,62 @@ def test_info(table_types):
     t['e'] = time.Time([1,2,3], format='cxcsec')
     out = six.moves.cStringIO()
     t.info(out=out)
-    assert out.getvalue().splitlines() == ['<{0} {1}length=3>'.format(t.__class__.__name__, masked),
-                                           'name  dtype  unit format description class',
-                                           '---- ------- ---- ------ ----------- -----',
-                                           '   a   int32        %02d                  ',
-                                           '   b float32                              ',
-                                           '   c {0}                              '.format(string8),
-                                           '   d float64    m        description      ',
-                                           '   e  object                          Time']
+    exp = ['<{0} {1}length=3>'.format(t.__class__.__name__, masked),
+           'name  dtype  unit format description class',
+           '---- ------- ---- ------ ----------- -----',
+           '   a   int32        %02d                  ',
+           '   b float32                              ',
+           '   c {0}                              '.format(string8),
+           '   d float64    m        description      ',
+           '   e  object                          Time']
+    assert out.getvalue().splitlines() == exp
+
+def test_info_others(table_types):
+    """
+    Test the info() method of printing a summary of table column statistics
+    """
+    a = np.array([1, 2, 1, 2], dtype='int32')
+    b = np.array([1, 2, 1, 2], dtype='float32')
+    c = np.array(['a', 'c', 'e', 'f'], dtype='|S1')
+    d = time.Time([1, 2, 1, 2], format='cxcsec')
+    t = table_types.Table([a, b, c, d], names=['a', 'b', 'c', 'd'])
+
+    # option = 'stats'
+    masked = 'masked=True ' if t.masked else ''
+    out = six.moves.cStringIO()
+    t.info('stats', out=out)
+    table_header_line = '<{0} {1}length=4>'.format(t.__class__.__name__, masked)
+    exp = [table_header_line,
+           'name min mean std max',
+           '---- --- ---- --- ---',
+           '   a   1  1.5 0.5   2',
+           '   b 1.0  1.5 0.5 2.0',
+           '   c  --   --  --  --',
+           '   d 1.0   --  -- 2.0']
+    assert out.getvalue().splitlines() == exp
+
+    # option = ['attributes', 'stats']
+    out = six.moves.cStringIO()
+    t.info(['attributes', 'stats'], out=out)
+    exp = [table_header_line,
+           'name  dtype  class min mean std max',
+           '---- ------- ----- --- ---- --- ---',
+           '   a   int32         1  1.5 0.5   2',
+           '   b float32       1.0  1.5 0.5 2.0',
+           '   c string8        --   --  --  --',
+           '   d  object  Time 1.0   --  -- 2.0']
+    assert out.getvalue().splitlines() == exp
+
+    # option = ['attributes', custom]
+    custom = column_info_factory(names=['sum', 'first'],
+                                 funcs=[np.sum, lambda col: col[0]])
+    out = six.moves.cStringIO()
+    t.info(['attributes', custom], out=out)
+    exp = [table_header_line,
+           'name  dtype  class sum first',
+           '---- ------- ----- --- -----',
+           '   a   int32         6     1',
+           '   b float32       6.0   1.0',
+           '   c string8        --     a',
+           '   d  object  Time  --   1.0']
+    assert out.getvalue().splitlines() == exp
