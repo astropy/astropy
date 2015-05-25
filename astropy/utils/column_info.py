@@ -8,6 +8,7 @@ from ..extern import six
 from ..utils import OrderedDict
 
 COLUMN_ATTRS = set(['name', 'unit', 'dtype', 'format', 'description', 'meta', 'parent_table'])
+INFO_SUMMARY_ATTRS = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
 
 
 def column_info_factory(names, funcs):
@@ -66,6 +67,9 @@ def _get_column_attribute(col, attr=None):
         val = '' if isinstance(col, BaseColumn) else col.__class__.__name__
     elif attr == 'dtype':
         val = col.info.dtype.name
+    elif attr == 'shape':
+        colshape = col.shape[1:]
+        val = colshape if colshape else ''
     else:
         val = getattr(col.info, attr)
     if val is None:
@@ -137,9 +141,9 @@ class ColumnInfo(object):
         return out
 
     info_summary_attributes = staticmethod(
-        column_info_factory(names=('dtype', 'unit', 'format', 'description', 'class'),
+        column_info_factory(names=INFO_SUMMARY_ATTRS,
                             funcs=[partial(_get_column_attribute, attr=attr)
-                                   for attr in ('dtype', 'unit', 'format', 'description', 'class')]))
+                                   for attr in INFO_SUMMARY_ATTRS]))
 
     info_summary_stats = staticmethod(
         column_info_factory(names=['min', 'mean', 'std', 'max'],
@@ -209,6 +213,15 @@ class ColumnInfo(object):
                     raise ValueError('option={0} is not an allowed information type'
                                      .format(option))
             info.update(option(col))
+
+        if hasattr(col, 'mask'):
+            n_bad = np.count_nonzero(col.mask)
+        else:
+            try:
+                n_bad = np.count_nonzero(np.isinf(col) | np.isnan(col))
+            except:
+                n_bad = 0
+        info['n_bad'] = n_bad
 
         if out is None:
             return info

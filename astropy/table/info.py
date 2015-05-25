@@ -76,10 +76,13 @@ def info(self, option='attributes', out=''):
     for col in self.columns.values():
         infos.append(col.info(option, out=None))
 
-    info = Table(infos, names=list(infos[0].keys()))
+    info = Table(infos, names=list(infos[0]))
     for name in info.colnames:
         if np.all(info[name] == ''):
             del info[name]
+
+    if np.all(info['n_bad'] == 0):
+        del info['n_bad']
 
     outlines.extend(info.pformat(max_width=-1, max_lines=-1, show_unit=False))
     out.writelines(outline + os.linesep for outline in outlines)
