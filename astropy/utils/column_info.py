@@ -2,6 +2,7 @@ import sys
 from copy import deepcopy
 import weakref
 import numpy as np
+from functools import partial
 
 from ..extern import six
 from ..utils import OrderedDict
@@ -53,6 +54,23 @@ def column_info_factory(names, funcs):
 
         return OrderedDict(zip(names, outs))
     return func
+
+
+def _get_column_attribute(col, attr=None):
+    """
+    Get a column attribute for the ``attributes`` info summary method
+    """
+    from ..table.column import BaseColumn
+
+    if attr == 'class':
+        val = '' if isinstance(col, BaseColumn) else col.__class__.__name__
+    elif attr == 'dtype':
+        val = col.info.dtype.name
+    else:
+        val = getattr(col.info, attr)
+    if val is None:
+        val = ''
+    return str(val)
 
 
 class ColumnInfo(object):
@@ -118,27 +136,10 @@ class ColumnInfo(object):
 
         return out
 
-    @staticmethod
-    def info_summary_attributes(col):
-        """
-        Info function that returns basic metadata.
-        """
-        from ..table.column import BaseColumn
-
-        attrs = ('dtype', 'unit', 'format', 'description', 'class')
-        info = OrderedDict()
-        for attr in attrs:
-            if attr == 'class':
-                val = '' if isinstance(col, BaseColumn) else col.__class__.__name__
-            elif attr == 'dtype':
-                val = col.info.dtype.name
-            else:
-                val = getattr(col.info, attr)
-            if val is None:
-                val = ''
-            info[attr] = str(val)
-
-        return info
+    info_summary_attributes = staticmethod(
+        column_info_factory(names=('dtype', 'unit', 'format', 'description', 'class'),
+                            funcs=[partial(_get_column_attribute, attr=attr)
+                                   for attr in ('dtype', 'unit', 'format', 'description', 'class')]))
 
     info_summary_stats = staticmethod(
         column_info_factory(names=['min', 'mean', 'max'],
