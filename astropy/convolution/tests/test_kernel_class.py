@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import itertools
 
 import numpy as np
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_allclose
 
 from ...tests.helper import pytest
 from ..convolve import convolve, convolve_fft
@@ -13,10 +13,11 @@ from ..kernels import (
     Gaussian1DKernel, Gaussian2DKernel, Box1DKernel, Box2DKernel,
     Trapezoid1DKernel, TrapezoidDisk2DKernel, MexicanHat1DKernel,
     Tophat2DKernel, MexicanHat2DKernel, AiryDisk2DKernel, Ring2DKernel,
-    CustomKernel, Model1DKernel, Model2DKernel)
+    CustomKernel, Model1DKernel, Model2DKernel, Kernel1D, Kernel2D)
 
 from ..utils import KernelSizeError
 from ...modeling.models import Box2D, Gaussian1D, Gaussian2D
+from ...utils.exceptions import AstropyWarning, AstropyUserWarning
 
 try:
     from scipy.ndimage import filters
@@ -211,6 +212,31 @@ class TestKernels(object):
         gauss_new = gauss * number
         assert type(gauss_new) == Gaussian1DKernel
 
+    def test_multiply_kernel1d(self):
+        """Test that multipling two 1D kernels raises an exception."""
+        gauss = Gaussian1DKernel(3)
+        with pytest.raises(Exception):
+            gauss * gauss
+
+    def test_multiply_kernel2d(self):
+        """Test that multipling two 2D kernels raises an exception."""
+        gauss = Gaussian2DKernel(3)
+        with pytest.raises(Exception):
+            gauss * gauss
+
+    def test_multiply_kernel1d_kernel2d(self):
+        """
+        Test that multipling a 1D kernel with a 2D kernel raises an
+        exception.
+        """
+        with pytest.raises(Exception):
+            Gaussian1DKernel(3) * Gaussian2DKernel(3)
+
+    def test_add_kernel_scalar(self):
+        """Test that adding a scalar to a kernel raises an exception."""
+        with pytest.raises(Exception):
+            Gaussian1DKernel(3) + 1
+
     def test_model_1D_kernel(self):
         """
         Check Model1DKernel against Gaussian1Dkernel
@@ -282,27 +308,29 @@ class TestKernels(object):
         Check if CustomKernel works when the input array/list
         sums to zero.
         """
-        custom = CustomKernel([-2, -1, 0, 1, 2])
+        array = [-2, -1, 0, 1, 2]
+        custom = CustomKernel(array)
+        custom.normalize()
         assert custom.truncation == 0.
-        assert custom.normalization == np.inf
+        assert custom._kernel_sum == 0.
 
     def test_custom_2D_kernel_zerosum(self):
         """
         Check if CustomKernel works when the input array/list
         sums to zero.
         """
-        custom = CustomKernel([[0, -1, 0],
-                               [-1, 4, -1],
-                               [0, -1, 0]])
+        array = [[0, -1, 0], [-1, 4, -1], [0, -1, 0]]
+        custom = CustomKernel(array)
+        custom.normalize()
         assert custom.truncation == 0.
-        assert custom.normalization == np.inf
+        assert custom._kernel_sum == 0.
 
     def test_custom_kernel_odd_error(self):
         """
         Check if CustomKernel raises if the array size is odd.
         """
         with pytest.raises(KernelSizeError):
-            custom = CustomKernel([1, 1, 1, 1])
+            CustomKernel([1, 1, 1, 1])
 
     def test_add_1D_kernels(self):
         """
@@ -381,7 +409,8 @@ class TestKernels(object):
         assert box.center == [2, 2]
 
         # Check normalization
-        assert_almost_equal(box.normalization, 1., decimal=12)
+        box.normalize()
+        assert_almost_equal(box._kernel_sum, 1., decimal=12)
 
         # Check seperability
         assert box.separable
@@ -421,4 +450,75 @@ class TestKernels(object):
         assert np.all([_ % 2 != 0 for _ in kernel_2D.shape])
         assert kernel_2D.array.sum() == 1.
 
+    def test_kernel_normalization(self):
+        """
+        Test that repeated normalizations do not change the kernel [#3747].
+        """
 
+        kernel = CustomKernel(np.ones(5))
+        kernel.normalize()
+        data = np.copy(kernel.array)
+
+        kernel.normalize()
+        assert_allclose(data, kernel.array)
+
+        kernel.normalize()
+        assert_allclose(data, kernel.array)
+
+    def test_kernel_normalization_mode(self):
+        """
+        Test that an error is raised if mode is invalid.
+        """
+        with pytest.raises(ValueError):
+            kernel = CustomKernel(np.ones(3))
+            kernel.normalize(mode='invalid')
+
+    def test_kernel_normalization_large(self, recwarn):
+        """
+        Test that a warning is issued when the inverse normalization factor
+        is large.
+        """
+        kernel = CustomKernel(np.ones(3) * 1.e-3)
+        kernel.normalize()
+        w = recwarn.pop(AstropyUserWarning)
+        assert issubclass(w.category, AstropyWarning)
+
+    def test_kernel1d_int_size(self):
+        """
+        Test that an error is raised if ``Kernel1D`` ``x_size`` is not
+        an integer.
+        """
+        with pytest.raises(TypeError):
+            Gaussian1DKernel(3, x_size=1.2)
+
+    def test_kernel2d_int_xsize(self):
+        """
+        Test that an error is raised if ``Kernel2D`` ``x_size`` is not
+        an integer.
+        """
+        with pytest.raises(TypeError):
+            Gaussian2DKernel(3, x_size=1.2)
+
+    def test_kernel2d_int_ysize(self):
+        """
+        Test that an error is raised if ``Kernel2D`` ``y_size`` is not
+        an integer.
+        """
+        with pytest.raises(TypeError):
+            Gaussian2DKernel(3, x_size=5, y_size=1.2)
+
+    def test_kernel1d_initialization(self):
+        """
+        Test that an error is raised if an array or model is not
+        specified for ``Kernel1D``.
+        """
+        with pytest.raises(TypeError):
+            Kernel1D()
+
+    def test_kernel2d_initialization(self):
+        """
+        Test that an error is raised if an array or model is not
+        specified for ``Kernel2D``.
+        """
+        with pytest.raises(TypeError):
+            Kernel2D()
