@@ -82,11 +82,15 @@ def col_copy(col):
     if isinstance(col, BaseColumn):
         return col.copy()
 
-    col.info.parent_table = None  # Don't copy weakref to parent table
+    parent_table = col.info.parent_table
+    col.info.parent_table = None
 
-    newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
-    newcol.info = col.info.copy()
-    newcol.info._parent_col = weakref.ref(newcol)
+    try:
+        newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
+        newcol.info = col.info.copy()
+        newcol.info._parent_col = weakref.ref(newcol)
+    finally:
+        col.info.parent_table = parent_table
 
     return newcol
 
