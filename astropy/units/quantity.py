@@ -615,14 +615,9 @@ class Quantity(np.ndarray):
             self.unit.to(unit, self.value, equivalencies=equivalencies))
         return self._new_view(new_val, unit)
 
-    @property
+    @lazyproperty
     def info(self):
-        """
-        Mixin column information (attributes)
-        """
-        if not hasattr(self, '_info'):
-            self._info = QuantityColumnInfo(self)
-        return self._info
+        return QuantityColumnInfo(self)
 
     @property
     def value(self):

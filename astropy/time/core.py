@@ -24,6 +24,7 @@ from ..units import UnitConversionError
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
 from ..utils.column_info import ColumnInfo
+from ..utils import lazyproperty
 from ..extern import six
 
 
@@ -313,14 +314,9 @@ class Time(object):
         dtnow = datetime.utcnow()
         return cls(val=dtnow, format='datetime', scale='utc')
 
-    @property
+    @lazyproperty
     def info(self):
-        """
-        Mixin column information (attributes)
-        """
-        if not hasattr(self, '_info'):
-            self._info = ColumnInfo(self)
-        return self._info
+        return ColumnInfo(self)
 
     @property
     def format(self):

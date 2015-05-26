@@ -47,8 +47,7 @@ _comparison_functions = set(
 
 def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
     """
-    Update _astropy_column_attrs from mixin `col` to `newcol`.  Does nothing
-    for BaseColumn cols
+    Copy info from mixin `col` to `newcol`.  Does nothing for BaseColumn cols.
 
     Warning: this function is subject to change or removal.
     """
@@ -56,8 +55,7 @@ def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
         return
 
     if not hasattr(newcol, 'info'):
-        info_attr = '_info' if hasattr(col.__class__, 'info') else 'info'
-        setattr(newcol, info_attr, ColumnInfo(newcol))
+        newcol.info = ColumnInfo(newcol)
 
     attrs = COLUMN_ATTRS - set(exclude_attrs) - newcol.info._attrs_from_parent
     for attr in attrs:
@@ -87,8 +85,7 @@ def col_copy(col):
     col.info.parent_table = None  # Don't copy weakref to parent table
 
     newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
-    info_attr = '_info' if hasattr(col.__class__, 'info') else 'info'
-    setattr(newcol, info_attr, col.info.copy())
+    newcol.info = col.info.copy()
     newcol.info._parent_col = weakref.ref(newcol)
 
     return newcol

@@ -14,6 +14,7 @@ from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
 from ..utils.column_info import ColumnInfo
+from ..utils import lazyproperty
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -190,14 +191,9 @@ class SkyCoord(object):
         if not self._sky_coord_frame.has_data:
             raise ValueError('Cannot create a SkyCoord without data')
 
-    @property
+    @lazyproperty
     def info(self):
-        """
-        Mixin column information (attributes)
-        """
-        if not hasattr(self, '_info'):
-            self._info = SkyCoordColumnInfo(self)
-        return self._info
+        return SkyCoordColumnInfo(self)
 
     @property
     def frame(self):
