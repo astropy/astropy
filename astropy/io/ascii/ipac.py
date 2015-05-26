@@ -273,7 +273,7 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
             if col_unit is None:
                 unitlist.append('')
             else:
-                unitlist.append(str(col.unit))
+                unitlist.append(str(col.info.unit))
             # This may be incompatible with mixin columns
             null = col.fill_values[core.masked]
             try:
