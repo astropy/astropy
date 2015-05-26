@@ -2,6 +2,7 @@
 from __future__ import division, with_statement
 
 import gzip
+import bz2
 import io
 import mmap
 import os
@@ -617,6 +618,37 @@ class TestFileFunctions(FitsTestCase):
         with fits.open(self.temp('test.fits.gz')) as hdul:
             assert hdul[0].header == h.header
 
+    def test_open_bzipped(self):
+        with ignore_warnings():
+            assert len(fits.open(self._make_bzip2_file())) == 5
+
+    def test_detect_bzipped(self):
+        """Test detection of a bzip2 file when the extension is not .bz2."""
+
+        with ignore_warnings():
+            assert len(fits.open(self._make_bzip2_file('test0.xx'))) == 5
+
+    def test_writeto_bzip2_fileobj(self):
+        """Test writing to a bz2.BZ2File file like object"""
+        fileobj = bz2.BZ2File(self.temp('test.fits.bz2'), 'w')
+        h = fits.PrimaryHDU()
+        try:
+            h.writeto(fileobj)
+        finally:
+            fileobj.close()
+
+        with fits.open(self.temp('test.fits.bz2')) as hdul:
+            assert hdul[0].header == h.header
+
+    def test_writeto_bzip2_filename(self):
+        """Test writing to a bzip2 file by name"""
+        filename = self.temp('testname.fits.bz2')
+        h = fits.PrimaryHDU()
+        h.writeto(filename)
+
+        with fits.open(self.temp('testname.fits.bz2')) as hdul:
+            assert hdul[0].header == h.header
+
     def test_open_zipped(self):
         zf = self._make_zip_file()
 
@@ -989,6 +1021,15 @@ class TestFileFunctions(FitsTestCase):
         zfile.close()
 
         return zfile.filename
+
+    def _make_bzip2_file(self, filename='test0.fits.bz2'):
+        bzfile = self.temp(filename)
+        with open(self.data('test0.fits'), 'rb') as f:
+            bz = bz2.BZ2File(bzfile, 'w')
+            bz.write(f.read())
+            bz.close()
+
+        return bzfile
 
 
 class TestStreamingFunctions(FitsTestCase):

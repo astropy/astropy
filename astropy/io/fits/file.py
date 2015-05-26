@@ -7,6 +7,7 @@ import os
 import tempfile
 import warnings
 import zipfile
+import bz2
 
 from functools import reduce
 
@@ -70,6 +71,7 @@ MEMMAP_MODES = {'readonly': 'c', 'copyonwrite': 'c', 'update': 'r+',
 
 GZIP_MAGIC = b('\x1f\x8b\x08')
 PKZIP_MAGIC = b('\x50\x4b\x03\x04')
+BZIP2_MAGIC = b('\x42\x5a')
 
 class _File(object):
     """
@@ -145,6 +147,8 @@ class _File(object):
         elif isinstance(fileobj, zipfile.ZipFile):
             # Reading from zip files is supported but not writing (yet)
             self.compression = 'zip'
+        elif isinstance(fileobj, bz2.BZ2File):
+            self.compression = 'bzip2'
 
         if (mode in ('readonly', 'copyonwrite', 'denywrite') or
                 (self.compression and mode == 'update')):
@@ -436,10 +440,24 @@ class _File(object):
         elif ext == '.zip' or magic.startswith(PKZIP_MAGIC):
             # Handle zip files
             self._open_zipfile(self.name, mode)
+        elif ext == '.bz2' or magic.startswith(BZIP2_MAGIC):
+            # Handle bzip2 files
+            if mode in ['update', 'append']:
+                raise IOError("update and append modes are not supported "
+                              "with bzip2 files")
+            # bzip2 only supports 'w' and 'r' modes
+            bzip2_mode = 'w' if mode == 'ostream' else 'r'
+            self._file = bz2.BZ2File(self.name, bzip2_mode)
         else:
             self._file = fileobj_open(self.name, PYFITS_MODES[mode])
-            # Make certain we're back at the beginning of the file
-        self._file.seek(0)
+
+        # Make certain we're back at the beginning of the file
+        # BZ2File does not support seek when the file is open for writing, but
+        # when opening a file for write, bz2.BZ2File always truncates anyway.
+        if isinstance(self._file, bz2.BZ2File) and mode == 'ostream':
+            pass
+        else:
+            self._file.seek(0)
 
     def _test_mmap(self):
         """Tests that mmap, and specifically mmap.flush works.  This may
