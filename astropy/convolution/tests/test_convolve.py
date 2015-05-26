@@ -25,12 +25,10 @@ class TestConvolve1D(object):
         """
 
         x = [1, 4, 5, 6, 5, 7, 8]
-
         y = [0.2, 0.6, 0.2]
-
-        z = convolve([1, 4, 5, 6, 5, 7, 8], [0.2, 0.6, 0.2], boundary=None)
-
-        assert_array_almost_equal_nulp(z, np.array([ 0. ,  3.6,  5. ,  5.6,  5.6,  6.8,  0. ]), 10)
+        z = convolve(x, y, boundary=None)
+        assert_array_almost_equal_nulp(z,
+            np.array([0., 3.6, 5., 5.6, 5.6, 6.8, 0.]), 10)
 
     @pytest.mark.parametrize(('dtype_array', 'dtype_kernel'), VALID_DTYPES)
     def test_dtype(self, dtype_array, dtype_kernel):

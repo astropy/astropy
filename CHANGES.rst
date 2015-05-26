@@ -98,6 +98,8 @@ Bug Fixes
 
 - ``astropy.convolution``
 
+  - Fix issue with repeated normalizations of ``Kernels``. [#3747]
+
 - ``astropy.coordinates``
 
   - Fixed ``get_sun`` to yield frames with the ``obstime`` set to what's passed into the function (previously it incorrectly always had J2000). [#3750]

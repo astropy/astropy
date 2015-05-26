@@ -11,8 +11,7 @@ from ...tests.helper import pytest
 
 from ..utils import discretize_model
 from ...modeling.functional_models import (
-    Gaussian1D, Box1D, MexicanHat1D, Trapezoid1D,
-    Gaussian2D, Box2D, MexicanHat2D)
+    Gaussian1D, Box1D, MexicanHat1D, Gaussian2D, Box2D, MexicanHat2D)
 from ...modeling.tests.example_models import models_1D, models_2D
 from ...modeling.tests.test_models import create_model
 

@@ -36,7 +36,7 @@ class Kernel(object):
 
     Parameters
     ----------
-    array : ndarray
+    array : `~numpy.ndarray`
         Kernel array.
     """
     _separable = False
@@ -44,11 +44,7 @@ class Kernel(object):
     _model = None
 
     def __init__(self, array):
-        self._array = array
-        if self._array.sum() == 0:
-            self._normalization = np.inf
-        else:
-            self._normalization = 1. / self._array.sum()
+        self._array = np.asanyarray(array)
 
     @property
     def truncation(self):
@@ -88,42 +84,41 @@ class Kernel(object):
         """
         return [axes_size // 2 for axes_size in self._array.shape]
 
-    @property
-    def normalization(self):
-        """
-        Kernel normalization factor
-        """
-        return self._normalization
-
     def normalize(self, mode='integral'):
         """
-        Force normalization of filter kernel.
+        Normalize the filter kernel.
 
         Parameters
         ----------
         mode : {'integral', 'peak'}
             One of the following modes:
                 * 'integral' (default)
-                    Kernel normalized such that its integral = 1.
+                    Kernel is normalized such that its integral = 1.
                 * 'peak'
-                    Kernel normalized such that its peak = 1.
+                    Kernel is normalized such that its peak = 1.
         """
-        # There are kernel that sum to zero and
-        # the user should be warned in this case
-        if np.isinf(self._normalization):
-            warnings.warn('Kernel cannot be normalized because the '
-                          'normalization factor is infinite.',
-                          AstropyUserWarning)
-            return
-        if np.abs(self._normalization) > MAX_NORMALIZATION:
-            warnings.warn("Normalization factor of kernel is "
-                          "exceptionally large > {0}.".format(MAX_NORMALIZATION),
-                          AstropyUserWarning)
+
         if mode == 'integral':
-            self._array *= self._normalization
-        if mode == 'peak':
-            np.divide(self._array, self._array.max(), self.array)
-            self._normalization = 1. / self._array.sum()
+            normalization = self._array.sum()
+        elif mode == 'peak':
+            normalization = self._array.max()
+        else:
+            raise ValueError("invalid mode, must be 'integral' or 'peak'")
+
+        # Warn the user for kernels that sum to zero
+        if normalization == 0:
+            warnings.warn('The kernel cannot be normalized because it '
+                          'sums to zero.', AstropyUserWarning)
+        else:
+            np.divide(self._array, normalization, self._array)
+
+            if np.abs(1.0 / normalization) > MAX_NORMALIZATION:
+                warnings.warn('The kernel normalization factor is '
+                              'exceptionally large,'
+                              ' > {0}.'.format(MAX_NORMALIZATION),
+                              AstropyUserWarning)
+
+        self._kernel_sum = self._array.sum()
 
     @property
     def shape(self):
@@ -204,7 +199,7 @@ class Kernel1D(Kernel):
         Model to be evaluated.
     x_size : odd int, optional
         Size of the kernel array. Default = 8 * width.
-    array : ndarray
+    array : `~numpy.ndarray`
         Kernel array.
     width : number
         Width of the filter kernel.
@@ -228,6 +223,8 @@ class Kernel1D(Kernel):
     def __init__(self, model=None, x_size=None, array=None, **kwargs):
         # Initialize from model
         if array is None:
+            if self._model is None:
+                raise TypeError("Must specify either array or model.")
 
             if x_size is None:
                 x_size = self._default_size
@@ -246,8 +243,7 @@ class Kernel1D(Kernel):
         # Initialize from array
         elif array is not None:
             self._model = None
-        else:
-            raise TypeError("Must specify either array or model.")
+
         super(Kernel1D, self).__init__(array)
 
 
@@ -263,7 +259,7 @@ class Kernel2D(Kernel):
         Size in x direction of the kernel array. Default = 8 * width.
     y_size : odd int, optional
         Size in y direction of the kernel array. Default = 8 * width.
-    array : ndarray
+    array : `~numpy.ndarray`
         Kernel array.
     mode : str, optional
         One of the following discretization modes:
@@ -288,6 +284,8 @@ class Kernel2D(Kernel):
 
         # Initialize from model
         if array is None:
+            if self._model is None:
+                raise TypeError("Must specify either array or model.")
 
             if x_size is None:
                 x_size = self._default_size
@@ -296,7 +294,7 @@ class Kernel2D(Kernel):
 
             if y_size is None:
                 y_size = x_size
-            elif x_size != int(x_size):
+            elif y_size != int(y_size):
                 raise TypeError("y_size should be an integer")
 
             # Set ranges where to evaluate the model
@@ -316,8 +314,6 @@ class Kernel2D(Kernel):
         # Initialize from array
         elif array is not None:
             self._model = None
-        else:
-            raise TypeError("Must specify either array or model.")
 
         super(Kernel2D, self).__init__(array)
 
@@ -348,8 +344,8 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_1D(kernel.array, -value.array)
         if operation == "mul":
-            raise Exception("Kernel operation not supported. Maybe you want to"
-                             "use convolve(kernel1, kernel2) instead.")
+            raise Exception("Kernel operation not supported. Maybe you want "
+                            "to use convolve(kernel1, kernel2) instead.")
         new_kernel = Kernel1D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
         new_kernel._is_bool = kernel._is_bool or value._is_bool
@@ -361,8 +357,8 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "sub":
             new_array = add_kernel_arrays_2D(kernel.array, -value.array)
         if operation == "mul":
-            raise Exception("Kernel operation not supported. Maybe you want to"
-                            "use convolve(kernel1, kernel2) instead.")
+            raise Exception("Kernel operation not supported. Maybe you want "
+                            "to use convolve(kernel1, kernel2) instead.")
         new_kernel = Kernel2D(array=new_array)
         new_kernel._separable = kernel._separable and value._separable
         new_kernel._is_bool = kernel._is_bool or value._is_bool
@@ -373,7 +369,6 @@ def kernel_arithmetics(kernel, value, operation):
         if operation == "mul":
             new_kernel = copy.copy(kernel)
             new_kernel._array *= value
-            new_kernel._normalization /= value
         else:
             raise Exception("Kernel operation not supported.")
     else:
