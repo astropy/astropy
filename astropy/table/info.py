@@ -57,8 +57,12 @@ def info(self, option='attributes', out=''):
     option: str, function, list of (str or function)
         Info option (default='attributes')
     out: file-like object, None
-        Output destination (default=sys.stdout).  If None then the
-        OrderedDict with information attributes is returned
+        Output destination (default=sys.stdout).  If None then a
+        Table with information attributes is returned
+
+    Returns
+    -------
+    info: `~astropy.table.Table` if out==None else None
     """
     from .table import Table
 
@@ -83,6 +87,9 @@ def info(self, option='attributes', out=''):
 
     if np.all(info['n_bad'] == 0):
         del info['n_bad']
+
+    if out is None:
+        return info
 
     outlines.extend(info.pformat(max_width=-1, max_lines=-1, show_unit=False))
     out.writelines(outline + os.linesep for outline in outlines)

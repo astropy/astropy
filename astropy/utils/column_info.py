@@ -1,3 +1,4 @@
+import os
 import sys
 from copy import deepcopy
 import weakref
@@ -228,4 +229,4 @@ class ColumnInfo(object):
 
         for key, val in info.items():
             if val != '':
-                out.write('{0} = {1}\n'.format(key, val))
+                out.write('{0} = {1}'.format(key, val) + os.linesep)
