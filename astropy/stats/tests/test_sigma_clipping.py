@@ -82,6 +82,13 @@ def test_compare_to_scipy_sigmaclip():
         assert_equal(astropyres[~astropyres.mask].data, scipyres)
 
 
+def test_sigma_clip_scalar_mask():
+    """Test that the returned mask is not a scalar."""
+    data = np.arange(5)
+    result = sigma_clip(data, sigma=100., iters=1)
+    assert result.mask.shape != ()
+
+
 def test_sigma_clipped_stats():
     """Test list data with input mask or mask_value (#3268)."""
     # test list data with mask

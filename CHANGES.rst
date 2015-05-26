@@ -68,6 +68,9 @@ New Features
   - Added ``sigma_lower`` and ``sigma_upper`` keywords to
     ``sigma_clip`` to allow for unsymmetric clipping. [#3595]
 
+  - Added ``cenfunc``, ``stdfunc``, and ``axis`` keywords to
+    ``sigma_clipped_stats``. [#3792]
+
 - ``astropy.table``
 
   - ``add_column()`` and ``add_columns()`` now have ``rename_duplicate``
