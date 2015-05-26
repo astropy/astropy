@@ -118,9 +118,6 @@ class QuantityIterator(object):
 class QuantityColumnInfo(ColumnInfo):
     _attrs_from_parent = set(['dtype', 'unit'])
 
-    def __init__(self, *args, **kwargs):
-        super(QuantityColumnInfo, self).__init__(*args, **kwargs)
-
     def default_format_func(self, format, val):
         return '{0.value:}'.format(val)
 
