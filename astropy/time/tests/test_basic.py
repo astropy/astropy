@@ -402,28 +402,28 @@ class TestBasic():
     def test_utc_leap_sec(self):
         """Time behaves properly near or in UTC leap second.  This
         uses the 2012-06-30 leap second for testing."""
+        for year in ('2012', '2015'):
+            # Start with a day without a leap second and note rollover
+            t1 = Time(year + '-06-01 23:59:60.0', scale='utc')
+            assert t1.iso == year + '-06-02 00:00:00.000'
 
-        # Start with a day without a leap second and note rollover
-        t1 = Time('2012-06-01 23:59:60.0', scale='utc')
-        assert t1.iso == '2012-06-02 00:00:00.000'
+            # Leap second is different
+            t1 = Time(year + '-06-30 23:59:59.900', scale='utc')
+            assert t1.iso == year + '-06-30 23:59:59.900'
 
-        # Leap second is different
-        t1 = Time('2012-06-30 23:59:59.900', scale='utc')
-        assert t1.iso == '2012-06-30 23:59:59.900'
+            t1 = Time(year + '-06-30 23:59:60.000', scale='utc')
+            assert t1.iso == year + '-06-30 23:59:60.000'
 
-        t1 = Time('2012-06-30 23:59:60.000', scale='utc')
-        assert t1.iso == '2012-06-30 23:59:60.000'
+            t1 = Time(year + '-06-30 23:59:60.999', scale='utc')
+            assert t1.iso == year + '-06-30 23:59:60.999'
 
-        t1 = Time('2012-06-30 23:59:60.999', scale='utc')
-        assert t1.iso == '2012-06-30 23:59:60.999'
+            t1 = Time(year + '-06-30 23:59:61.0', scale='utc')
+            assert t1.iso == year + '-07-01 00:00:00.000'
 
-        t1 = Time('2012-06-30 23:59:61.0', scale='utc')
-        assert t1.iso == '2012-07-01 00:00:00.000'
-
-        # Delta time gives 2 seconds here as expected
-        t0 = Time('2012-06-30 23:59:59', scale='utc')
-        t1 = Time('2012-07-01 00:00:00', scale='utc')
-        assert allclose_sec((t1 - t0).sec, 2.0)
+            # Delta time gives 2 seconds here as expected
+            t0 = Time(year + '-06-30 23:59:59', scale='utc')
+            t1 = Time(year + '-07-01 00:00:00', scale='utc')
+            assert allclose_sec((t1 - t0).sec, 2.0)
 
     def test_init_from_time_objects(self):
         """Initialize from one or more Time objects"""
