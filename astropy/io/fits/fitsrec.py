@@ -471,7 +471,9 @@ class FITS_rec(np.recarray):
         return data
 
     def __repr__(self):
-        return np.recarray.__repr__(self)
+        # Force use of the normal ndarray repr (rather than the new
+        # one added for recarray in Numpy 1.10) for backwards compat
+        return np.ndarray.__repr__(self)
 
     def __getitem__(self, key):
         if isinstance(key, string_types):
