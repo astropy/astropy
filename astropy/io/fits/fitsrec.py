@@ -312,8 +312,8 @@ class FITS_rec(np.recarray):
                 if arr.hdu.data is None:
                     column.array = None
                 else:
-                    column.array = np.rec.recarray.field(arr.hdu.data,
-                                                         arr.field)
+                    column.array = _get_recarray_field(arr.hdu.data,
+                                                       arr.field)
         # Reset columns._arrays (which we may want to just do away with
         # altogether
         del columns._arrays
@@ -377,7 +377,7 @@ class FITS_rec(np.recarray):
                 # value
                 continue
 
-            field = np.rec.recarray.field(data, idx)
+            field = _get_recarray_field(data, idx)
             name = column.name
             fitsformat = column.format
             recformat = fitsformat.recformat
@@ -615,7 +615,7 @@ class FITS_rec(np.recarray):
         # base could still be a FITS_rec in some cases, so take care to
         # use rec.recarray.field to avoid a potential infinite
         # recursion
-        field = np.recarray.field(base, name)
+        field = _get_recarray_field(base, name)
 
         if name not in self._converted:
             recformat = format.recformat
@@ -960,7 +960,7 @@ class FITS_rec(np.recarray):
         for indx, name in enumerate(self.dtype.names):
             column = self._coldefs[indx]
             recformat = column.format.recformat
-            field = super(FITS_rec, self).field(indx)
+            field = _get_recarray_field(self, indx)
 
             # add the location offset of the heap area for each
             # variable length column
@@ -1131,3 +1131,19 @@ class FITS_rec(np.recarray):
         # Replace exponent separator in floating point numbers
         if 'D' in format:
             output_field.replace(encode_ascii('E'), encode_ascii('D'))
+
+
+def _get_recarray_field(array, key):
+    """
+    Compatibility function for using the recarray base class's field method.
+    This incorporates the legacy functionality of returning string arrays as
+    Numeric-style chararray objects.
+    """
+
+    # Numpy >= 1.10.dev recarray no longer returns chararrays for strings
+    # This is currently needed for backwards-compatibility and for
+    # automatic truncation of trailing whitespace
+    field = np.recarray.field(array, key)
+    if field.dtype.char in ('S', 'U') and not isinstance(field, np.chararray):
+        field = field.view(np.chararray)
+    return field
