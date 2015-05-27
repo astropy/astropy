@@ -42,7 +42,7 @@ using the `~warnings.catch_warnings` context manager::
 
     >>> from warnings import catch_warnings
     >>> with catch_warnings():
-    ...     warnings.filterwarnings('ignore', AstropyUserWarning)
+    ...     warnings.filterwarnings('ignore', category=AstropyUserWarning)
     ...     fits.writeto(filename, data, clobber=True)
 
 Astropy also issues warnings when deprecated API features are used.  If you
