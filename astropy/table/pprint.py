@@ -345,13 +345,16 @@ class TableFormatter(object):
                 show_length = True
             i0 = n_print2 - (1 if show_length else 0)
             i1 = n_rows - n_print2 - max_lines % 2
+            ii = np.concatenate([np.arange(0, i0 + 1), np.arange(i1 + 1, len(col))])
         else:
-            i0 = len(col)
-            i1 = 0
+            i0 = -1
+            ii = np.arange(len(col))
 
         # Add formatted values if within bounds allowed by max_lines
-        for i in xrange(n_rows):
-            if i < i0 or i > i1:
+        for i in ii:
+            if i == i0:
+                yield '...'
+            else:
                 if multidims:
                     # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
                     # with shape (n,1,...,1) from being printed as if there was
@@ -365,8 +368,6 @@ class TableFormatter(object):
                 else:
                     col_str = format_func(col_format, col[i])
                 yield col_str
-            elif i == i0:
-                yield '...'
 
         outs['show_length'] = show_length
         outs['n_header'] = n_header

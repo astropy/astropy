@@ -36,6 +36,9 @@ New Features
 
 - ``astropy.table``
 
+  - Greatly improved the speed of printing a large table to the screen when
+    only a few rows are being displayed. [#3796]
+
 - ``astropy.time``
 
   - Add support for the 2015-Jun-30 leap second. [#3794]
