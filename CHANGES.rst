@@ -38,6 +38,8 @@ New Features
 
 - ``astropy.time``
 
+  - Add support for the 2015-Jun-30 leap second. [#3794]
+
 - ``astropy.units``
 
 - ``astropy.utils``
