@@ -1,11 +1,14 @@
+.. _astropy-visualization-hist:
+
 ***********************
 Choosing Histogram Bins
 ***********************
 
-The `astropy.visualization` module provides the
+The :mod:`astropy.visualization` module provides the
 :func:`~astropy.visualization.hist` function, which is a generalization of
 matplotlib's histogram function which allows for more flexible specification
-of histogram bins.
+of histogram bins. For computing bins without the accompanying plot, see
+:func:`astropy.stats.histogram`.
 
 As a motivation for this, consider the following two histograms, which are
 constructed from the same underlying set of 5000 points, the first with
@@ -61,7 +64,7 @@ rules due to Scott (implemented in :func:`~astropy.stats.scott_bin_width`) and
 Freedman & Diaconis (implemented in :func:`~astropy.stats.freedman_bin_width`).
 These rules proceed by assuming the data is close to normally-distributed, and
 applying a rule-of-thumb intended to minimize the difference between the
-histogram and the underlying distribution.
+histogram and the underlying distribution of data.
 
 The following figure shows the results of these two rules on the above dataset:
 
