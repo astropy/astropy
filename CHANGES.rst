@@ -73,6 +73,14 @@ New Features
 
   - Added ``cenfunc``, ``stdfunc``, and ``axis`` keywords to
     ``sigma_clipped_stats``. [#3792]
+  - Added the ``histogram`` routine, which is similar to ``np.histogram`` but
+    includes several additional options for automatic determination of optimal
+    histogram bins. Associated helper routines include ``bayesian_blocks``,
+    ``friedman_bin_width``, ``scott_bin_width``, and ``knuth_bin_width``.
+    This functionality was ported from the astroML_ library. [#3756]
+
+  - Added the ``bayesian_blocks`` routine, which implements a dynamic algorithm
+    for locating change-points in various time series. [#3756]
 
 - ``astropy.table``
 
@@ -107,11 +115,18 @@ New Features
 
 - ``astropy.visualization``
 
+  - Added the ``hist`` function, which is similar to ``plt.hist`` but
+    includes several additional options for automatic determination of optimal
+    histogram bins. This functionality was ported from the astroML_ library.
+    [#3756]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
 
   - Enhanced text representation of ``WCS`` objects. [#3604]
+
+.. _astroML: http://astroML.org
 
 API changes
 ^^^^^^^^^^^
