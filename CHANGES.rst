@@ -401,6 +401,17 @@ Other Changes and Additions
   for Astropy in bibtex format. [#3697]
 
 
+0.4.6 (unreleased)
+------------------
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.time``
+
+    - Fixed ERFA code to handle the 2015-Jun-30 leap second. [#3795]
+
+
 1.0.2 (2015-04-16)
 ------------------
 
