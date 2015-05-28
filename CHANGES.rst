@@ -400,6 +400,8 @@ Other Changes and Additions
 - Added a new ``astropy.__bibtex__`` attribute which gives a citation
   for Astropy in bibtex format. [#3697]
 
+- The Budled version of ERFA was updated to v1.2.0. [#3802]
+
 
 0.4.6 (unreleased)
 ------------------
