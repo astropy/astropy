@@ -2,9 +2,12 @@
 # quantities (http://pythonhosted.org/quantities/) package.
 
 import numpy as np
+
 from .core import (UnitsError, dimensionless_unscaled,
                    get_current_unit_registry)
+from ..utils.compat import NUMPY_LT_1_10
 from ..utils.compat.fractions import Fraction
+from .utils import validate_power
 
 
 def _d(unit):
@@ -193,12 +196,18 @@ def helper_dimensionless_to_none(f, unit):
 
 UFUNC_HELPERS[np.frexp] = helper_dimensionless_to_none
 
+
 # TWO ARGUMENT UFUNCS
+def helper_multiplication(f, unit1, unit2):
+    return [None, None], _d(unit1) * _d(unit2)
 
-UFUNC_HELPERS[np.multiply] = lambda f, unit1, unit2: (
-    [None, None], _d(unit1) * _d(unit2))
+UFUNC_HELPERS[np.multiply] = helper_multiplication
+if not NUMPY_LT_1_10:
+    UFUNC_HELPERS[np.dot] = helper_multiplication
 
-helper_division = lambda f, unit1, unit2: ([None, None], _d(unit1) / _d(unit2))
+
+def helper_division(f, unit1, unit2):
+    return [None, None], _d(unit1) / _d(unit2)
 
 UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
@@ -324,3 +333,222 @@ UFUNC_HELPERS[np.arctan2] = helper_twoarg_invtrig
 # another private function in numpy; use getattr in case it disappears
 if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
     UFUNC_HELPERS[np.core.umath._arg] = helper_twoarg_invtrig
+
+
+def can_have_arbitrary_unit(value):
+    """Test whether the items in value can have arbitrary units
+
+    Numbers whose value does not change upon a unit change, i.e.,
+    zero, infinity, or not-a-number
+
+    Parameters
+    ----------
+    value : number or array
+
+    Returns
+    -------
+    `True` if each member is either zero or not finite, `False` otherwise
+    """
+    return np.all(np.logical_or(np.equal(value, 0.), ~np.isfinite(value)))
+
+
+def converters_and_unit(function, method, *args):
+    """Determine the required converters and the unit of the ufunc result
+
+    Converters are functions required to convert to a ufunc's expected unit,
+    e.g., radian for np.sin; or to ensure units of two inputs are consistent,
+    e.g., for np.add.  In these examples, the unit of the result would be
+    dimensionless_unscaled for np.sin, and the same consistent unit for np.add.
+
+    Parameters
+    ----------
+    function : ~np.ufunc
+        Numpy universal function
+    method : str
+        Method with which the function is evaluated, e.g.,
+        '__call__', 'reduce', etc.
+    *args : Quantity or other ndarray subclass
+        Input arguments to the function
+
+    Raises
+    ------
+    TypeError : when the specified function cannot be used with Quantities
+        (e.g., np.logical_or), or when the routine does not know how to handle
+        the specified function (in which case an issue should be raised on
+        https://github.com/astropy/astropy).
+    UnitsError : when the conversion to the required (or consistent) units
+        is not possible.
+    """
+    # Check whether we even support this ufunc
+    if function in UNSUPPORTED_UFUNCS:
+        raise TypeError("Cannot use function '{0}' with quantities"
+                        .format(function.__name__))
+
+    if method == '__call__' or (method == 'outer' and function.nin == 2):
+        # Find out the units of the arguments passed to the ufunc; usually,
+        # at least one is a quantity, but for two-argument ufuncs, the second
+        # could also be a Numpy array, etc.  These are given unit=None.
+        units = [getattr(arg, 'unit', None) for arg in args]
+
+        # If the ufunc is supported, then we call a helper function (defined
+        # above) which returns a function that converts the inputs to the unit
+        # required for the ufunc, as well as the unit the output will have.
+        if function in UFUNC_HELPERS:
+            converters, result_unit = UFUNC_HELPERS[function](function, *units)
+        else:
+            raise TypeError("Unknown ufunc {0}.  Please raise issue on "
+                            "https://github.com/astropy/astropy"
+                            .format(function.__name__))
+
+        if any(converter is False for converter in converters):
+            # for two-argument ufuncs with a quantity and a non-quantity,
+            # the quantity normally needs to be dimensionless, *except*
+            # if the non-quantity can have arbitrary unit, i.e., when it
+            # is all zero, infinity or NaN.  In that case, the non-quantity
+            # can just have the unit of the quantity
+            # (this allows, e.g., `q > 0.` independent of unit)
+            maybe_arbitrary_arg = args[converters.index(False)]
+            try:
+                if can_have_arbitrary_unit(maybe_arbitrary_arg):
+                    converters = [None, None]
+                else:
+                    raise UnitsError("Can only apply '{0}' function to "
+                                     "dimensionless quantities when other "
+                                     "argument is not a quantity (unless the "
+                                     "latter is all zero/infinity/nan)"
+                                     .format(function.__name__))
+            except TypeError:
+                raise TypeError("Unsupported operand type(s) for ufunc {0}: "
+                                "'{1}' and '{2}'"
+                                .format(function.__name__,
+                                        args[0].__class__.__name__,
+                                        args[1].__class__.__name__))
+
+        # In the case of np.power, the unit itself needs to be modified by an
+        # amount that depends on one of the input values, so we need to treat
+        # this as a special case.
+        if function is np.power and result_unit is not dimensionless_unscaled:
+
+            if units[1] is None:
+                p = args[1]
+            else:
+                p = args[1].to(dimensionless_unscaled).value
+
+            result_unit = result_unit ** validate_power(p)
+
+    else:  # methods for which the unit should stay the same
+        if method == 'at':
+            unit = getattr(args[0], 'unit', None)
+            units = [unit]
+            if function.nin == 2:
+                units.append(getattr(args[2], 'unit', None))
+
+            converters, result_unit = UFUNC_HELPERS[function](function, *units)
+
+            # ensure there is no 'converter' for indices (2nd argument)
+            converters.insert(1, None)
+
+        elif (method in ('reduce', 'accumulate', 'reduceat') and
+              function.nin == 2):
+            unit = getattr(args[0], 'unit', None)
+            converters, result_unit = UFUNC_HELPERS[function](function,
+                                                              unit, unit)
+            converters = converters[:1]
+            if method == 'reduceat':
+                # add 'scale' for indices (2nd argument)
+                converters += [None]
+
+        else:
+            if method in ('reduce', 'accumulate', 'reduceat',
+                          'outer') and function.nin != 2:
+                raise ValueError("{0} only supported for binary functions"
+                                 .format(method))
+
+            raise TypeError("Unexpected ufunc method {0}.  If this should "
+                            "work, please raise an issue on"
+                            "https://github.com/astropy/astropy"
+                            .format(method))
+
+        # for all but __call__ method, scaling is not allowed
+        if unit is not None and result_unit is None:
+            raise TypeError("Cannot use '{1}' method on ufunc {0} with a "
+                            "Quantity instance as the result is not a "
+                            "Quantity.".format(function.__name__, method))
+
+        if converters[0] is not None or (unit is not None and
+                                         (not result_unit.is_equivalent(unit) or
+                                          result_unit.to(unit) != 1.)):
+            raise UnitsError("Cannot use '{1}' method on ufunc {0} with a "
+                             "Quantity instance as it would change the unit."
+                             .format(function.__name__, method))
+
+    return converters, result_unit
+
+
+def check_output(output, unit, inputs, function=None):
+    """Check that function output can be stored in the output array given.
+
+    Parameters
+    ----------
+    output : array or `~astropy.units.Quantity` or tuple
+        Array that should hold the function output (or tuple of such arrays).
+    unit : `~astropy.units.Unit` or None
+        Unit that the output will have, or ``None`` for pure numbers.
+    inputs : tuple
+        Any input arguments.  These should be castable to the output.
+    function : callable
+        The function that will be producing the output.  If given, used to
+        give a more informative error message.
+
+    Returns
+    -------
+    arrays : ``ndarray`` view of ``output`` (or tuple of such views).
+
+    Raises
+    ------
+    TypeError : If ``unit`` is inconsistent with the class of ``output``,
+                or if the ``inputs`` cannot be cast safely to ``output``.
+    """
+    if isinstance(output, tuple):
+        if len(output) > 1:
+            return tuple(check_output(out, unit, inputs, function)
+                         for out in output)
+        else:
+            output = output[0]
+
+    # ``None`` indicates no actual array is needed.  This can happen, e.g.,
+    # with np.modf(a, out=(None, b)).
+    if output is None:
+        return None
+
+    if hasattr(output, '__quantity_subclass__'):
+        # Check that we're not trying to store a plain Numpy array or a
+        # Quantity with an inconsistent unit (e.g., not angular for Angle).
+        if unit is None:
+            raise TypeError("Cannot store non-quantity output in a "
+                            "{0} instance.".format(type(output)))
+
+        if output.__quantity_subclass__(unit)[0] is not type(output):
+            raise TypeError("Cannot store output with unit '{0}' in a "
+                            "{1} instance. Use a {2} instance instead."
+                            .format(unit, type(output),
+                                    output.__quantity_subclass__(unit)[0]))
+        # Turn into ndarray, so we do not loop into array_wrap/numpy_ufunc
+        # if the output is used to store results of a function.
+        output = output.view(np.ndarray)
+    else:
+        # output is not a Quantity, so cannot attain a unit.
+        if not (unit is None or unit is dimensionless_unscaled):
+            raise TypeError("Cannot store quantity with dimension "
+                            "{0}in a non-Quantity instance."
+                            .format("" if function is None else
+                                    "resulting from {0} function "
+                                    .format(function.__name__)))
+
+    # check we can handle the dtype (e.g., that we are not int
+    # when float is required); specifically exclude None for numpy <=1.7.
+    if not np.can_cast(np.result_type(*[i for i in inputs if i is not None]),
+                       output.dtype):
+        raise TypeError("Arguments cannot be cast safely to output "
+                        "with dtype={0}".format(output.dtype))
+    return output

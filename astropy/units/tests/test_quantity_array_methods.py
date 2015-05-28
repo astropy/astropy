@@ -5,7 +5,8 @@ import numpy as np
 
 from ... import units as u
 from ...tests.helper import pytest
-from ...utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9_1
+from ...utils.compat import (NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9_1,
+                             NUMPY_LT_1_10)
 
 
 class TestQuantityArrayCopy(object):
@@ -231,7 +232,7 @@ class TestQuantityStatsFuncs(object):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         assert np.ptp(q1) == 5. * u.m
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail("NUMPY_LT_1_10")
     def test_ptp_inplace(self):
         q1 = np.array([1., 2., 4., 5., 6.]) * u.m
         qi = 1.5 * u.s
@@ -354,7 +355,7 @@ class TestQuantityStatsFuncs(object):
         assert np.all(q1.ediff1d() == np.array([1., 2., 6.]) * u.m)
         assert np.all(np.ediff1d(q1) == np.array([1., 2., 6.]) * u.m)
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail("NUMPY_LT_1_10")
     def test_dot_func(self):
 
         q1 = np.array([1., 2., 4., 10.]) * u.m
@@ -554,10 +555,19 @@ class TestArrayConversion(object):
 class TestRecArray(object):
     """Record arrays are not specifically supported, but we should not
     prevent their use unnecessarily"""
-    def test_creation(self):
-        ra = (np.array(np.arange(12.).reshape(4,3))
+    def setup(self):
+        self.ra = (np.array(np.arange(12.).reshape(4,3))
               .view(dtype=('f8,f8,f8')).squeeze())
-        qra = u.Quantity(ra, u.m)
-        assert np.all(qra[:2].value == ra[:2])
+
+    def test_creation(self):
+        qra = u.Quantity(self.ra, u.m)
+        assert np.all(qra[:2].value == self.ra[:2])
+
+    # Pending resolution of https://github.com/numpy/numpy/issues/4855
+    # have to use explicity pytest.xfail, since this causes segmentation fault
+    def test_equality(self):
+        qra = u.Quantity(self.ra, u.m)
         qra[1] = qra[2]
+        if not NUMPY_LT_1_10:
+            pytest.xfail()
         assert qra[1] == qra[2]
