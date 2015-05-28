@@ -22,12 +22,17 @@ follows::
 It is also possible to suppress warnings from within a python script.  For
 instance, the warnings issued from a single call to the
 `astropy.io.fits.writeto` function may be suppressed from within a Python
-script as follows::
+script using the `warnings.filterwarnings` function as follows::
 
      >>> import warnings
      >>> from astropy.io import fits
      >>> warnings.filterwarnings('ignore', category=UserWarning, append=True)
      >>> fits.writeto(filename, data, clobber=True)
+
+An equivalent way to insert an entry into the list of warning filter specifications
+for simple call `warnings.simplefilter`::
+
+    >>> warnings.simplefilter('ignore', UserWarning)
 
 Astropy includes its own warning class,
 `~astropy.utils.exceptions.AstropyUserWarning`, on which all warnings from
@@ -35,14 +40,14 @@ Astropy are based.  So one can also ignore warnings from Astropy (while still
 allowing through warnings from other libraries like Numpy) by using something
 like::
 
-    >>> warnings.filterwarnings('ignore', category=AstropyUserWarning)
+    >>> from astropy.utils.exceptions import AstropyUserWarning
+    >>> warnings.simplefilter('ignore', category=AstropyUserWarning)
 
 However, warning filters may also be modified just within a certain context
-using the `~warnings.catch_warnings` context manager::
+using the `warnings.catch_warnings` context manager::
 
-    >>> from warnings import catch_warnings
-    >>> with catch_warnings():
-    ...     warnings.filterwarnings('ignore', category=AstropyUserWarning)
+    >>> with warnings.catch_warnings():
+    ...     warnings.simplefilter('ignore', AstropyUserWarning)
     ...     fits.writeto(filename, data, clobber=True)
 
 Astropy also issues warnings when deprecated API features are used.  If you
