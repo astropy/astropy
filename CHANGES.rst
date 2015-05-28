@@ -93,9 +93,6 @@ New Features
   - Initializing a ``Table`` with ``Column`` objects no longer requires
     that the column ``name`` attribute be defined. [#3781]
 
-  - Greatly improved the speed of printing a large table to the screen when
-    only a few rows are being displayed. [#3796]
-
 - ``astropy.tests``
 
 - ``astropy.time``
@@ -278,6 +275,9 @@ New Features
 - ``astropy.sphinx``
 
 - ``astropy.table``
+
+  - Greatly improved the speed of printing a large table to the screen when
+    only a few rows are being displayed. [#3796]
 
 - ``astropy.time``
 
