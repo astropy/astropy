@@ -3,6 +3,15 @@
 
 - Nothing changed yet.
 
+0.4.6
+-----
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.time``
+
+  - Fixed ERFA code to handle the 2015-Jun-30 leap second. [#3795]
 
 0.4.5 (2015-02-16)
 ------------------

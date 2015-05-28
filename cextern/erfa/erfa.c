@@ -5945,7 +5945,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **     :  even if no leap seconds have been       :
 **     :  added.                                  :
 **     :                                          :
-**     :  Latest leap second:  2012 June 30       :
+**     :  Latest leap second:  2015 June 30       :
 **     :                                          :
 **     :__________________________________________:
 **
@@ -5966,6 +5966,7 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **                      -2 = bad month
 **                      -3 = bad day (Note 3)
 **                      -4 = bad fraction (Note 4)
+**                      -5 = internal error (Note 5)
 **
 **  Notes:
 **
@@ -6006,7 +6007,9 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **  5) The status value returned in the case where there are multiple
 **     errors refers to the first error detected.  For example, if the
 **     month and day are 13 and 32 respectively, status -2 (bad month)
-**     will be returned.
+**     will be returned.  The "internal error" status refers to a
+**     case that is impossible but causes some compilers to issue a
+**     warning.
 **
 **  6) In cases where a valid result is not available, zero is returned.
 **
@@ -6021,12 +6024,12 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
 **  Called:
 **     eraCal2jd    Gregorian calendar to JD
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
 /* Release year for this version of eraDat */
-   enum { IYV = 2013};
+   enum { IYV = 2015};
 
 /* Reference dates (MJD) and drift rates (s/day), pre leap seconds */
    static const double drift[][2] = {
@@ -6093,11 +6096,12 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
       { 1999,  1, 32.0       },
       { 2006,  1, 33.0       },
       { 2009,  1, 34.0       },
-      { 2012,  7, 35.0       }
+      { 2012,  7, 35.0       },
+      { 2015,  7, 36.0       }
    };
 
 /* Number of Delta(AT) changes */
-   const int NDAT = sizeof changes / sizeof changes[0];
+   enum { NDAT = (int) (sizeof changes / sizeof changes[0]) };
 
 /* Miscellaneous local variables */
    int j, i, m;
@@ -6130,8 +6134,11 @@ int eraDat(int iy, int im, int id, double fd, double *deltat )
       if (m >= (12 * changes[i].iyear + changes[i].month)) break;
    }
 
+/* Prevent underflow warnings. */
+   if (i < 0) return -5;
+
 /* Get the Delta(AT). */
-   da = changes[(i < 0) ? 0 : i].delat;
+   da = changes[i].delat;
 
 /* If pre-1972, adjust for drift. */
    if (i < NERA1) da += (djm + fd - drift[i][0]) * drift[i][1];
