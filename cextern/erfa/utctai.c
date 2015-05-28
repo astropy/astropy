@@ -58,14 +58,13 @@ int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
 **     Explanatory Supplement to the Astronomical Almanac,
 **     P. Kenneth Seidelmann (ed), University Science Books (1992)
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int big1;
    int iy, im, id, j, iyt, imt, idt;
    double u1, u2, fd, dat0, dat12, w, dat24, dlod, dleap, z1, z2, a2;
-
 
 /* Put the two parts of the UTC into big-first order. */
    big1 = ( utc1 >= utc2 );
@@ -125,7 +124,7 @@ int eraUtctai(double utc1, double utc2, double *tai1, double *tai2)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

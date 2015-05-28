@@ -104,12 +104,11 @@ void eraApcg13(double date1, double date2, eraASTROM *astrom)
 **     eraEpv00     Earth position and velocity
 **     eraApcg      astrometry parameters, ICRS-GCRS, geocenter
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double ehpv[2][3], ebpv[2][3];
-
 
 /* Earth barycentric & heliocentric position/velocity (au, au/d). */
    (void) eraEpv00(date1, date2, ehpv, ebpv);
@@ -123,7 +122,7 @@ void eraApcg13(double date1, double date2, eraASTROM *astrom)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

@@ -93,13 +93,12 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 **
 **     Stumpff, P., 1985, Astron.Astrophys. 144, 232-240.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double r, x[3], vr, ur[3], vt, ut[3], bett, betr, d, w, del,
           usr[3], ust[3], a, rad, decd, rd;
-
 
 /* Isolate the radial component of the velocity (AU/day, inertial). */
    eraPn(pv[0], &r, x);
@@ -155,7 +154,7 @@ int eraPvstar(double pv[2][3], double *ra, double *dec,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

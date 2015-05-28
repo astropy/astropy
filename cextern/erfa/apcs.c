@@ -122,7 +122,7 @@ void eraApcs(double date1, double date2, double pv[2][3],
 **     eraPn        decompose p-vector into modulus and direction
 **     eraIr        initialize r-matrix to identity
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -134,7 +134,6 @@ void eraApcs(double date1, double date2, double pv[2][3],
 
    int i;
    double dp, dv, pb[3], vb[3], ph[3], v2, w;
-
 
 /* Time since reference epoch, years (for proper motion calculation). */
    astrom->pmt = ( (date1 - ERFA_DJ00) + date2 ) / ERFA_DJY;
@@ -172,7 +171,7 @@ void eraApcs(double date1, double date2, double pv[2][3],
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

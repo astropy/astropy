@@ -71,13 +71,12 @@ void eraAtic13(double ri, double di, double date1, double date2,
 **     eraApci13    astrometry parameters, ICRS-CIRS, 2013
 **     eraAticq     quick CIRS to ICRS astrometric
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
 /* Star-independent astrometry parameters */
    eraASTROM astrom;
-
 
 /* Star-independent astrometry parameters. */
    eraApci13(date1, date2, &astrom, eo);
@@ -91,7 +90,7 @@ void eraAtic13(double ri, double di, double date1, double date2,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

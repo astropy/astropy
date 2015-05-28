@@ -66,7 +66,7 @@ void eraPr00(double date1, double date2, double *dpsipr, double *depspr)
 **     Wallace, P.T., "Software for Implementing the IAU 2000
 **     Resolutions", in IERS Workshop 5.1 (2002).
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -75,7 +75,6 @@ void eraPr00(double date1, double date2, double *dpsipr, double *depspr)
 /* Precession and obliquity corrections (radians per century) */
    static const double PRECOR = -0.29965 * ERFA_DAS2R,
                        OBLCOR = -0.02524 * ERFA_DAS2R;
-
 
 /* Interval between fundamental epoch J2000.0 and given date (JC). */
    t = ((date1 - ERFA_DJ00) + date2) / ERFA_DJC;
@@ -90,7 +89,7 @@ void eraPr00(double date1, double date2, double *dpsipr, double *depspr)
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

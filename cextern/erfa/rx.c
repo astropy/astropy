@@ -28,12 +28,11 @@ void eraRx(double phi, double r[3][3])
 **         (                               )
 **         (  0   - sin(phi)   + cos(phi)  )
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double s, c, a10, a11, a12, a20, a21, a22;
-
 
    s = sin(phi);
    c = cos(phi);
@@ -58,7 +57,7 @@ void eraRx(double phi, double r[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
