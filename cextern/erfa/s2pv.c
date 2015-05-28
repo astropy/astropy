@@ -21,12 +21,11 @@ void eraS2pv(double theta, double phi, double r,
 **  Returned:
 **     pv       double[2][3]    pv-vector
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double st, ct, sp, cp, rcp, x, y, rpd, w;
-
 
    st = sin(theta);
    ct = cos(theta);
@@ -51,7 +50,7 @@ void eraS2pv(double theta, double phi, double r,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

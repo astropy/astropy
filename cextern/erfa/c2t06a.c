@@ -72,12 +72,11 @@ void eraC2t06a(double tta, double ttb, double uta, double utb,
 **     McCarthy, D. D., Petit, G. (eds.), 2004, IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double rc2i[3][3], era, sp, rpom[3][3];
-
 
 /* Form the celestial-to-intermediate matrix for this TT. */
    eraC2i06a(tta, ttb, rc2i);
@@ -100,7 +99,7 @@ void eraC2t06a(double tta, double ttb, double uta, double utb,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

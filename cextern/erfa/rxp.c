@@ -21,13 +21,12 @@ void eraRxp(double r[3][3], double p[3], double rp[3])
 **  Called:
 **     eraCp        copy p-vector
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double w, wrp[3];
    int i, j;
-
 
 /* Matrix r * vector p. */
    for (j = 0; j < 3; j++) {
@@ -47,7 +46,7 @@ void eraRxp(double r[3][3], double p[3], double rp[3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

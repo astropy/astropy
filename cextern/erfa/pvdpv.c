@@ -25,12 +25,11 @@ void eraPvdpv(double a[2][3], double b[2][3], double adb[2])
 **  Called:
 **     eraPdp       scalar product of two p-vectors
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double adbd, addb;
-
 
 /* a . b = constant part of result. */
    adb[0] = eraPdp(a[0], b[0]);
@@ -50,7 +49,7 @@ void eraPvdpv(double a[2][3], double b[2][3], double adb[2])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

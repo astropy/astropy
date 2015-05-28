@@ -21,7 +21,7 @@ void eraSxpv(double s, double pv[2][3], double spv[2][3])
 **  Called:
 **     eraS2xpv     multiply pv-vector by two scalars
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -33,7 +33,7 @@ void eraSxpv(double s, double pv[2][3], double spv[2][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

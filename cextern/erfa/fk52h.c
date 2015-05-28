@@ -53,13 +53,12 @@ void eraFk52h(double r5, double d5,
 **
 **     F.Mignard & M.Froeschle, Astron. Astrophys. 354, 732-739 (2000).
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int i;
    double pv5[2][3], r5h[3][3], s5h[3], wxp[3], vv[3], pvh[2][3];
-
 
 /* FK5 barycentric position/velocity pv-vector (normalized). */
    eraStarpv(r5, d5, dr5, dd5, px5, rv5, pv5);
@@ -91,7 +90,7 @@ void eraFk52h(double r5, double d5,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

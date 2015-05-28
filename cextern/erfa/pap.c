@@ -37,12 +37,11 @@ double eraPap(double a[3], double b[3])
 **     eraPmp       p-vector minus p-vector
 **     eraPdp       scalar product of two p-vectors
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double am, au[3], bm, st, ct, xa, ya, za, eta[3], xi[3], a2b[3], pa;
-
 
 /* Modulus and direction of the a vector. */
    eraPn(a, &am, au);
@@ -87,7 +86,7 @@ double eraPap(double a[3], double b[3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

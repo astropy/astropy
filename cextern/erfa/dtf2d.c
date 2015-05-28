@@ -75,13 +75,12 @@ int eraDtf2d(const char *scale, int iy, int im, int id,
 **     eraDat       delta(AT) = TAI-UTC
 **     eraJd2cal    JD to Gregorian calendar
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int js, iy2, im2, id2;
    double dj, w, day, seclim, dat0, dat12, dat24, dleap, time;
-
 
 /* Today's Julian Day Number. */
    js = eraCal2jd(iy, im, id, &dj, &w);
@@ -151,7 +150,7 @@ int eraDtf2d(const char *scale, int iy, int im, int id,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
