@@ -285,7 +285,12 @@ Users can specify their own equation of state by sub-classing
 `~astropy.cosmology.FLRW`.  See the provided subclasses for
 examples. It is recommended, but not required, that all arguments to the
 constructor of a new subclass be available as properties, since the
-``clone`` method assumes this is the case.
+``clone`` method assumes this is the case.  It is also advisable
+to stick to subclassing `~astropy.cosmology.FLRW` rather than one of
+its subclasses, since some of them use internal optimizations that
+also need to be propagated to any subclasses.  Users wishing to
+use similar tricks (which can make distance calculations much faster)
+should consult the cosmology module source code for details.
 
 Photons and Neutrinos
 ---------------------
@@ -311,6 +316,12 @@ include both the kinetic energy and the rest-mass energy components,
 and that the Planck13 and Planck15 cosmologies includes a single
 species of neutrinos with non-zero mass (which is not included in
 :math:`\Omega_{m0}`).
+
+Adding massive neutrinos has significant performance implications.
+In particular, the computation of distance measures and lookback times
+are factors of ten slower than in the massless neutrino case.  Therefore,
+if you need to compute a lot of distances in such a cosmology, it is
+particularly useful to calculate them on a grid and use interpolation.
 
 The contribution of photons and neutrinos to the total mass-energy density
 can be found as a function of redshift::
