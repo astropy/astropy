@@ -89,7 +89,7 @@ install:
     # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
     # this matplotlib will *not* work with py 3.x, but our sphinx build is
     # currently 2.7, so that's fine
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then conda install --yes numpy=$NUMPY_VERSION Sphinx Pygments matplotlib; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then conda install --yes numpy=$NUMPY_VERSION Sphinx==1.2.3 Pygments matplotlib; fi
 
     # COVERAGE DEPENDENCIES
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then pip install coverage coveralls; fi
