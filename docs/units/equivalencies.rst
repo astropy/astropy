@@ -38,7 +38,7 @@ Length and angles are not normally convertible, so
   >>> (8.0 * u.arcsec).to(u.parsec)
   Traceback (most recent call last):
     ...
-  UnitsError: 'arcsec' (angle) and 'pc' (length) are not convertible
+  UnitConversionError: 'arcsec' (angle) and 'pc' (length) are not convertible
 
 However, when passing the result of
 :func:`~astropy.units.equivalencies.parallax` as the third argument to the
@@ -68,11 +68,11 @@ dimensionless).  For instance, normally the following raise exceptions::
   >>> u.degree.to('')
   Traceback (most recent call last):
     ...
-  UnitsError: 'deg' (angle) and '' (dimensionless) are not convertible
+  UnitConversionError: 'deg' (angle) and '' (dimensionless) are not convertible
   >>> (u.kg * u.m**2 * (u.cycle / u.s)**2).to(u.J)
   Traceback (most recent call last):
     ...
-  UnitsError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible
+  UnitConversionError: 'cycle2 kg m2 / s2' and 'J' (energy) are not convertible
 
 But when passing we pass the proper conversion function,
 :func:`~astropy.units.equivalencies.dimensionless_angles`, it works.

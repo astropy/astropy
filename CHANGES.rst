@@ -45,6 +45,12 @@ New Features
 
 - ``astropy.units``
 
+  - Fixed printing of object ndarrays containing multiple Quantity
+    objects with differing / incompatible units. Note: Unit conversion errors
+    now cause a ``UnitConversionError`` exception to be raised.  However, this
+    is a subclass of the ``UnitsError`` exception used previously, so existing
+    code that catches ``UnitsError`` should still work. [#3778]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
