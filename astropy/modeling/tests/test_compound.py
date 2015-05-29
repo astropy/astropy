@@ -16,7 +16,7 @@ from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                       Gaussian2D, Polynomial1D, Polynomial2D,
-                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D, 
+                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
                       AffineTransformation2D, Identity, Mapping)
 
 
