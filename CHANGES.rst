@@ -167,6 +167,9 @@ Other Changes and Additions
 - Added a new ``astropy.__bibtex__`` attribute which gives a citation
   for Astropy in bibtex format. [#3697]
 
+- The bundled version of ERFA was updated to v1.2.0 to address leapscond
+  updates. [#3802]
+
 
 0.4.6 (unreleased)
 ------------------

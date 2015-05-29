@@ -15,12 +15,11 @@ void eraS2c(double theta, double phi, double c[3])
 **  Returned:
 **     c        double[3]    direction cosines
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double cp;
-
 
    cp = cos(phi);
    c[0] = cos(theta) * cp;
@@ -33,7 +32,7 @@ void eraS2c(double theta, double phi, double c[3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

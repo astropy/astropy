@@ -152,12 +152,11 @@ void eraApco(double date1, double date2,
 **     eraApcs      astrometry parameters, ICRS-GCRS, space observer
 **     eraCr        copy r-matrix
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double sl, cl, r[3][3], pvc[2][3], pv[2][3];
-
 
 /* Longitude with adjustment for TIO locator s'. */
    astrom->along = elong + sp;
@@ -203,7 +202,7 @@ void eraApco(double date1, double date2,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

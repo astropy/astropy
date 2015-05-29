@@ -78,7 +78,7 @@ void eraLdn(int n, eraLDBODY b[], double ob[3], double sc[3],
 **     eraPn        decompose p-vector into modulus and direction
 **     eraLd        light deflection by a solar-system body
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -87,7 +87,6 @@ void eraLdn(int n, eraLDBODY b[], double ob[3], double sc[3],
 
    int i;
    double  v[3], dt, ev[3], em, e[3];
-
 
 /* Star direction prior to deflection. */
    eraCp(sc, sn);
@@ -122,7 +121,7 @@ void eraLdn(int n, eraLDBODY b[], double ob[3], double sc[3],
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

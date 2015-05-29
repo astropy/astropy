@@ -28,12 +28,11 @@ void eraRz(double psi, double r[3][3])
 **         (                                 )
 **         (       0            0         1  )
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double s, c, a00, a01, a02, a10, a11, a12;
-
 
    s = sin(psi);
    c = cos(psi);
@@ -58,7 +57,7 @@ void eraRz(double psi, double r[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

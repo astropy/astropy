@@ -93,12 +93,11 @@ void eraPn06(double date1, double date2, double dpsi, double deps,
 **
 **     Wallace, P.T. & Capitaine, N., 2006, Astron.Astrophys. 459, 981
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double gamb, phib, psib, eps, r1[3][3], r2[3][3], rt[3][3];
-
 
 /* Bias-precession Fukushima-Williams angles of J2000.0 = frame bias. */
    eraPfw06(ERFA_DJM0, ERFA_DJM00, &gamb, &phib, &psib, &eps);
@@ -135,7 +134,7 @@ void eraPn06(double date1, double date2, double dpsi, double deps,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

@@ -113,12 +113,11 @@ void eraApio(double sp, double theta,
 **     eraPvtob     position/velocity of terrestrial station
 **     eraAper      astrometry parameters: update ERA
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double sl, cl, pv[2][3];
-
 
 /* Longitude with adjustment for TIO locator s'. */
    astrom->along = elong + sp;
@@ -152,7 +151,7 @@ void eraApio(double sp, double theta,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

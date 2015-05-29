@@ -47,7 +47,7 @@ void eraC2ixys(double x, double y, double s, double rc2i[3][3])
 **     McCarthy, D. D., Petit, G. (eds.), IERS Conventions (2003),
 **     IERS Technical Note No. 32, BKG (2004)
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -56,7 +56,7 @@ void eraC2ixys(double x, double y, double s, double rc2i[3][3])
 
 /* Obtain the spherical angles E and d. */
    r2 = x*x + y*y;
-   e = (r2 != 0.0) ? atan2(y, x) : 0.0;
+   e = (r2 > 0.0) ? atan2(y, x) : 0.0;
    d = atan(sqrt(r2 / (1.0 - r2)));
 
 /* Form the matrix. */
@@ -71,7 +71,7 @@ void eraC2ixys(double x, double y, double s, double rc2i[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

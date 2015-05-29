@@ -66,12 +66,11 @@ void eraPrec76(double date01, double date02, double date11, double date12,
 **     Lieske, J.H., 1979, Astron.Astrophys. 73, 282, equations
 **     (6) & (7), p283.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double t0, t, tas2r, w;
-
 
 /* Interval between fundamental epoch J2000.0 and start date (JC). */
    t0 = ((date01 - ERFA_DJ00) + date02) / ERFA_DJC;
@@ -96,7 +95,7 @@ void eraPrec76(double date01, double date02, double date11, double date12,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
