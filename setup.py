@@ -25,7 +25,7 @@ from astropy_helpers.version_helpers import generate_version_py
 NAME = 'astropy'
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '0.4.6.dev'
+VERSION = '0.4.6'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
