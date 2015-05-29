@@ -244,36 +244,6 @@ Other Changes and Additions
 New Features
 ^^^^^^^^^^^^
 
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-  - Fixed crash when evaluating a model that accepts no inputs. [#3772]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.sphinx``
-
 - ``astropy.table``
 
   - Greatly improved the speed of printing a large table to the screen when
@@ -283,69 +253,8 @@ New Features
 
   - Add support for the 2015-Jun-30 leap second. [#3794]
 
-- ``astropy.units``
-
-  - Fixed printing of object ndarrays containing multiple Quantity
-    objects with differing / incompatible units. Note: Unit conversion errors
-    now cause a ``UnitConversionError`` exception to be raised.  However, this
-    is a subclass of the ``UnitsError`` exception used previously, so existing
-    code that catches ``UnitsError`` should still work. [#3778]
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
-
-- ``astropy.convolution``
-
-- ``astropy.coordinates``
-
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
-- ``astropy.io.fits``
-
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
-- ``astropy.modeling``
-
-  - Polynomials are now scaled when used in a compound model. [#3702]
-
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
-
-- ``astropy.time``
-
-- ``astropy.units``
-
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
-
 Bug Fixes
 ^^^^^^^^^
-
-- ``astropy.config``
-
-- ``astropy.constants``
 
 - ``astropy.convolution``
 
@@ -359,38 +268,24 @@ Bug Fixes
 
   - Fixed error in the GCRS->ICRS transformation that gave incorrect distances. [#3750]
 
-- ``astropy.cosmology``
-
-- ``astropy.io.ascii``
-
 - ``astropy.io.fits``
 
   - Fixes to support the upcoming Numpy 1.10. [#3419]
 
-- ``astropy.io.misc``
-
-- ``astropy.io.registry``
-
-- ``astropy.io.votable``
-
 - ``astropy.modeling``
+
+  - Polynomials are now scaled when used in a compound model. [#3702]
 
   - Fixed the ``Ellipse2D`` model to be consistent with ``Disk2D`` in
     how pixels are included. [#3736]
 
-- ``astropy.nddata``
-
-- ``astropy.stats``
-
-- ``astropy.table``
+  - Fixed crash when evaluating a model that accepts no inputs. [#3772]
 
 - ``astropy.testing``
 
   - The Astropy py.test plugins that disable unintential internet access
     in tests were also blocking use of local UNIX sockets in tests, which
     prevented testing some multiprocessing code--fixed. [#3713]
-
-- ``astropy.time``
 
 - ``astropy.units``
 
@@ -403,11 +298,11 @@ Bug Fixes
     power of ``1.2000000000000002``.  After this change, the exact
     rational number of ``Fraction(6, 5)`` is maintained. [#3790]
 
-- ``astropy.utils``
-
-- ``astropy.vo``
-
-- ``astropy.wcs``
+  - Fixed printing of object ndarrays containing multiple Quantity
+    objects with differing / incompatible units. Note: Unit conversion errors
+    now cause a ``UnitConversionError`` exception to be raised.  However, this
+    is a subclass of the ``UnitsError`` exception used previously, so existing
+    code that catches ``UnitsError`` should still work. [#3778]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
