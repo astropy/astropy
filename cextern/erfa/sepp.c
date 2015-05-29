@@ -30,12 +30,11 @@ double eraSepp(double a[3], double b[3])
 **     eraPm        modulus of p-vector
 **     eraPdp       scalar product of two p-vectors
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double axb[3], ss, cs, s;
-
 
 /* Sine of angle between the vectors, multiplied by the two moduli. */
    eraPxp(a, b, axb);
@@ -53,7 +52,7 @@ double eraSepp(double a[3], double b[3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

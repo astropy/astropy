@@ -106,14 +106,13 @@ int eraStarpm(double ra1, double dec1,
 **     eraPdp       scalar product of two p-vectors
 **     eraPvstar    space motion pv-vector to star catalog data
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double pv1[2][3], tl1, dt, pv[2][3], r2, rdv, v2, c2mv2, tl2,
           pv2[2][3];
    int j1, j2, j;
-
 
 /* RA,Dec etc. at the "before" epoch to space motion pv-vector. */
    j1 = eraStarpv(ra1, dec1, pmr1, pmd1, px1, rv1, pv1);
@@ -153,7 +152,7 @@ int eraStarpm(double ra1, double dec1,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

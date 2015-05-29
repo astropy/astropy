@@ -45,12 +45,11 @@ void eraNutm80(double date1, double date2, double rmatn[3][3])
 **     eraObl80     mean obliquity, IAU 1980
 **     eraNumat     form nutation matrix
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    double dpsi, deps, epsa;
-
 
 /* Nutation components and mean obliquity. */
    eraNut80(date1, date2, &dpsi, &deps);
@@ -65,7 +64,7 @@ void eraNutm80(double date1, double date2, double rmatn[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

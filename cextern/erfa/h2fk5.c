@@ -55,13 +55,12 @@ void eraH2fk5(double rh, double dh,
 **
 **     F.Mignard & M.Froeschle, Astron. Astrophys. 354, 732-739 (2000).
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
    int i;
    double pvh[2][3], r5h[3][3], s5h[3], sh[3], wxp[3], vv[3], pv5[2][3];
-
 
 /* Hipparcos barycentric position/velocity pv-vector (normalized). */
    eraStarpv(rh, dh, drh, ddh, pxh, rvh, pvh);
@@ -96,7 +95,7 @@ void eraH2fk5(double rh, double dh,
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

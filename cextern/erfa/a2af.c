@@ -51,13 +51,12 @@ void eraA2af(int ndp, double angle, char *sign, int idmsf[4])
 **     case where angle is very nearly 2pi and rounds up to 360 degrees,
 **     by testing for idmsf[0]=360 and setting idmsf[0-3] to zero.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
 /* Hours to degrees * radians to turns */
    const double F = 15.0 / ERFA_D2PI;
-
 
 /* Scale then use days to h,m,s function. */
    eraD2tf(ndp, angle*F, sign, idmsf);
@@ -68,7 +67,7 @@ void eraA2af(int ndp, double angle, char *sign, int idmsf[4])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

@@ -26,7 +26,7 @@ void eraRv2m(double w[3], double r[3][3])
 **  3) The reference frame rotates clockwise as seen looking along the
 **     rotation vector from the origin.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -43,7 +43,7 @@ void eraRv2m(double w[3], double r[3][3])
    f = 1.0 - c;
 
 /* Euler axis (direction of rotation vector), perhaps null. */
-   if (phi != 0.0) {
+   if (phi > 0.0) {
        x /= phi;
        y /= phi;
        z /= phi;
@@ -66,7 +66,7 @@ void eraRv2m(double w[3], double r[3][3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International

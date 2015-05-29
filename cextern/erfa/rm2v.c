@@ -29,7 +29,7 @@ void eraRm2v(double r[3][3], double w[3])
 **  3) The reference frame rotates clockwise as seen looking along
 **     the rotation vector from the origin.
 **
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  Derived, with permission, from the SOFA library.  See notes at end of file.
 */
 {
@@ -40,7 +40,7 @@ void eraRm2v(double r[3][3], double w[3])
    y = r[2][0] - r[0][2];
    z = r[0][1] - r[1][0];
    s2 = sqrt(x*x + y*y + z*z);
-   if (s2 != 0) {
+   if (s2 > 0) {
       c2 = r[0][0] + r[1][1] + r[2][2] - 1.0;
       phi = atan2(s2, c2);
       f =  phi / s2;
@@ -59,7 +59,7 @@ void eraRm2v(double r[3][3], double w[3])
 /*----------------------------------------------------------------------
 **  
 **  
-**  Copyright (C) 2013-2014, NumFOCUS Foundation.
+**  Copyright (C) 2013-2015, NumFOCUS Foundation.
 **  All rights reserved.
 **  
 **  This library is derived, with permission, from the International
