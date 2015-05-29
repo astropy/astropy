@@ -119,6 +119,8 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixes to support the upcoming Numpy 1.10. [#3419]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
