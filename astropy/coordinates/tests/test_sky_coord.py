@@ -586,6 +586,14 @@ def test_position_angle():
     assert cicrs.position_angle(cfk5) < 91.0 * u.deg
 
 
+def test_position_angle_directly():
+    """Regression check for #3800: position_angle should accept floats."""
+    from ..angle_utilities import position_angle
+    result = position_angle(10., 20., 10., 20.)
+    assert result.unit is u.radian
+    assert result.value == 0.
+
+
 def test_table_to_coord():
     """
     Checks "end-to-end" use of `Table` with `SkyCoord` - the `Quantity`

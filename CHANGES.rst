@@ -127,6 +127,9 @@ Bug fixes
 
 - ``astropy.coordinates``
 
+  - Ensure that ``angle_utilities.position_angle`` accepts floats, as stated
+    in the docstring. [#3800]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
