@@ -20,6 +20,7 @@ import numpy as np
 
 from .. import units as u
 from .. import _erfa as erfa
+from ..units import UnitConversionError
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
 from ..extern import six
@@ -282,6 +283,8 @@ class Time(object):
             try:
                 return FormatClass(val, val2, scale, self.precision,
                                    self.in_subfmt, self.out_subfmt)
+            except UnitConversionError:
+                raise
             except (ValueError, TypeError):
                 pass
         else:

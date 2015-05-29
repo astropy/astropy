@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from ..units import UnitsError, Unit
+from ..units import UnitsError, UnitConversionError, Unit
 from .. import log
 
 from .nddata import NDData
@@ -115,9 +115,9 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
                     try:
                         scaling = (1 * value._unit).to(self.unit)
                     except UnitsError:
-                        raise UnitsError('Cannot convert unit of uncertainty '
-                                         'to unit of '
-                                         '{0} object.'.format(class_name))
+                        raise UnitConversionError(
+                            'Cannot convert unit of uncertainty to unit of '
+                            '{0} object.'.format(class_name))
                     value.array *= scaling
                 elif not self.unit and value._unit:
                     # Raise an error if uncertainty has unit and data does not

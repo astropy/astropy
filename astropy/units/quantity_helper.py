@@ -2,7 +2,7 @@
 # quantities (http://pythonhosted.org/quantities/) package.
 
 import numpy as np
-from .core import (UnitsError, dimensionless_unscaled,
+from .core import (UnitsError, UnitConversionError, dimensionless_unscaled,
                    get_current_unit_registry)
 from ..utils.compat.fractions import Fraction
 
@@ -279,7 +279,7 @@ def get_converters_and_unit(f, *units):
             converters[changeable] = get_converter(units[changeable],
                                                    units[fixed])
         except UnitsError:
-            raise UnitsError(
+            raise UnitConversionError(
                 "Can only apply '{0}' function to quantities "
                 "with compatible dimensions"
                 .format(f.__name__))
