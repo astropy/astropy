@@ -21,7 +21,7 @@ from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       _AsciiColDefs, _FormatP, _FormatQ, _makep,
                       _parse_tformat, _scalar_to_format, _convert_format,
                       _cmp_recformats, _get_index)
-from ..fitsrec import FITS_rec
+from ..fitsrec import FITS_rec, _get_recarray_field
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
@@ -900,7 +900,7 @@ class BinTableHDU(_TableBaseHDU):
             swap_types = ('<',)
 
         for idx in range(self.data._nfields):
-            field = np.rec.recarray.field(self.data, idx)
+            field = _get_recarray_field(self.data, idx)
             if isinstance(field, chararray.chararray):
                 continue
 
