@@ -179,7 +179,7 @@ Other Changes and Additions
   updates. [#3802]
 
 
-0.4.6 (unreleased)
+0.4.6 (2015-05-29)
 ------------------
 
 Bug Fixes
