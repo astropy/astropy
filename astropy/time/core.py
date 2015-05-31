@@ -115,6 +115,18 @@ SIDEREAL_TIME_MODELS = {
         'IAU1994': {'function': erfa_time.gst94, 'scales': ('ut1',)}}}
 
 
+class TimeColumnInfo(ColumnInfo):
+    """
+    Make dtype and unit be None and be read-only.  Setting _attrs_from_parent
+    to these read-only values is needed so they don't get copied.
+    """
+    _attrs_from_parent = set(['unit'])
+
+    @property
+    def unit(self):
+        return None
+
+
 class Time(object):
     """
     Represent and manipulate times and dates for astronomy.
@@ -316,7 +328,7 @@ class Time(object):
 
     @lazyproperty
     def info(self):
-        return ColumnInfo(self)
+        return TimeColumnInfo(self)
 
     @property
     def format(self):
