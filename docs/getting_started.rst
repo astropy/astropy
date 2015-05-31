@@ -41,6 +41,10 @@ We then create a figure using Matplotlib and create the axes using the
     fig = plt.figure()
     ax = fig.add_axes([0.15, 0.1, 0.8, 0.8], projection=wcs)
 
+.. note:: If you are using Matplotlib <=1.1 then the ``projection=`` functionality
+          does not exist and one should use the alternative shown
+          in :ref:`initialize_alternative`
+
 The ``ax`` object created is an instance of the :class:`~wcsaxes.WCSAxes`
 class. For more information about the different ways of initializing axes,
 see :doc:`initializing_axes`.
