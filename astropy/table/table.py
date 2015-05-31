@@ -60,7 +60,7 @@ def is_mixin_class(obj):
     obj : object
         Object being queried for mixin compatibility
     """
-    return hasattr(obj, 'info') and isinstance(obj.info, ColumnInfo)
+    return hasattr(obj, 'info') and not isinstance(obj.info, ColumnInfo)
 
 
 class TableColumns(OrderedDict):

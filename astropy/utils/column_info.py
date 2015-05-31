@@ -78,16 +78,30 @@ def _get_column_attribute(col, attr=None):
     return str(val)
 
 
-class ColumnInfo(object):
+class DataInfo(object):
+
+    def __init__(self, info_cls):
+        self.info_cls = info_cls
+
+    def __get__(self, instance, owner_cls):
+        if 'info' not in instance.__dict__:
+            instance.__dict__['info'] = self.info_cls()
+        instance.__dict__['info']._parent_col = weakref.ref(instance)
+        return instance.__dict__['info']
+
+    def __set__(self, instance, value):
+        if isinstance(value, BaseDataInfo):
+            instance.__dict__['info'] = value
+        else:
+            raise TypeError('info must be set with a BaseDataInfo instance')
+
+
+class BaseDataInfo(object):
     _parent_col = None
     # By default the unit and dtype attributes should refer to the parent properties
     _attrs_from_parent = set()
 
-    def __init__(self, parent_col=None, attrs_from_parent=None):
-        if parent_col is not None:
-            self._parent_col = weakref.ref(parent_col)
-        if attrs_from_parent is not None:
-            self._attrs_from_parent = set(attrs_from_parent)
+    def __init__(self):
         self._attrs = dict((attr, None) for attr in COLUMN_ATTRS)
 
     def __getstate__(self):
@@ -98,7 +112,7 @@ class ColumnInfo(object):
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
-            return super(ColumnInfo, self).__getattribute__(attr)
+            return super(BaseDataInfo, self).__getattribute__(attr)
 
         if attr in self._attrs_from_parent:
             return getattr(self._parent_col(), attr)
@@ -106,7 +120,7 @@ class ColumnInfo(object):
         try:
             value = self._attrs[attr]
         except KeyError:
-            super(ColumnInfo, self).__getattribute__(attr)  # Generate AttributeError
+            super(BaseDataInfo, self).__getattribute__(attr)  # Generate AttributeError
 
         # Weak ref for parent table
         if attr == 'parent_table' and callable(value):
@@ -136,7 +150,7 @@ class ColumnInfo(object):
             return
 
         if attr.startswith('_'):
-            super(ColumnInfo, self).__setattr__(attr, value)
+            super(BaseDataInfo, self).__setattr__(attr, value)
             return
 
         if attr not in COLUMN_ATTRS:
@@ -148,7 +162,7 @@ class ColumnInfo(object):
         self._attrs[attr] = value
 
     def copy(self):
-        out = self.__class__(attrs_from_parent=self._attrs_from_parent)
+        out = self.__class__()
         for attr in COLUMN_ATTRS - self._attrs_from_parent:
             setattr(out, attr, deepcopy(getattr(self, attr)))
 

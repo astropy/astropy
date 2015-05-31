@@ -13,8 +13,7 @@ from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.column_info import ColumnInfo
-from ..utils import lazyproperty
+from ..utils.column_info import DataInfo, BaseDataInfo
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -43,7 +42,7 @@ def FRAME_ATTR_NAMES_SET():
     return out
 
 
-class SkyCoordColumnInfo(ColumnInfo):
+class SkyCoordDataInfo(BaseDataInfo):
     _attrs_from_parent = set(['unit'])
 
     @staticmethod
@@ -204,10 +203,7 @@ class SkyCoord(object):
         if not self._sky_coord_frame.has_data:
             raise ValueError('Cannot create a SkyCoord without data')
 
-    @lazyproperty
-    def info(self):
-        print('here in info routine')
-        return SkyCoordColumnInfo(self)
+    info = DataInfo(SkyCoordDataInfo)
 
     @property
     def frame(self):

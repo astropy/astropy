@@ -14,8 +14,7 @@ import numpy as np
 
 from .table import Table, Column
 from ..extern.six.moves import zip, range
-from ..utils.column_info import ColumnInfo
-from ..utils import lazyproperty
+from ..utils.column_info import DataInfo, BaseDataInfo
 
 class TimingTables(object):
     """
@@ -160,9 +159,7 @@ class ArrayWrapper(object):
     def __len__(self):
         return len(self.data)
 
-    @lazyproperty
-    def info(self):
-        return ColumnInfo(self)
+    info = DataInfo(BaseDataInfo)
 
     @property
     def shape(self):

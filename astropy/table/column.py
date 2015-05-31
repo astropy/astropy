@@ -14,7 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.column_info import COLUMN_ATTRS, ColumnInfo
+from ..utils.column_info import COLUMN_ATTRS, BaseDataInfo, DataInfo
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -55,7 +55,7 @@ def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
         return
 
     if not hasattr(newcol, 'info'):
-        newcol.info = ColumnInfo(newcol)
+        newcol.__class__.info = DataInfo(BaseDataInfo)
 
     attrs = COLUMN_ATTRS - set(exclude_attrs) - newcol.info._attrs_from_parent
     for attr in attrs:
@@ -97,10 +97,10 @@ def col_copy(col):
 
 def add_column_info(col):
     """
-    Add mixin column information to ``col``.
+    Add mixin column information to ``col`` class.
     """
     if not hasattr(col, 'info'):
-        col.info = ColumnInfo(col)
+        col.__class__.info = DataInfo(BaseDataInfo)
 
 
 class FalseArray(np.ndarray):
@@ -119,6 +119,11 @@ class FalseArray(np.ndarray):
         if np.any(val):
             raise ValueError('Cannot set any element of {0} class to True'
                              .format(self.__class__.__name__))
+
+
+class ColumnInfo(BaseDataInfo):
+    _attrs_from_parent=COLUMN_ATTRS
+
 
 class BaseColumn(np.ndarray):
 
@@ -191,14 +196,7 @@ class BaseColumn(np.ndarray):
         else:
             self._parent_table = weakref.ref(table)
 
-    @property
-    def info(self):
-        """
-        Mixin column information (attributes)
-        """
-        if not hasattr(self, '_info'):
-            self._info = ColumnInfo(self, attrs_from_parent=COLUMN_ATTRS)
-        return self._info
+    info = DataInfo(ColumnInfo)
 
     def copy(self, order='C', data=None, copy_data=True):
         """
