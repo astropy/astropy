@@ -11,7 +11,7 @@ env:
         # The following versions are the 'default' for tests, unless
         # overidden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
-        - NUMPY_VERSION=1.8
+        - NUMPY_VERSION=1.9
         - ASTROPY_VERSION=stable
         - CONDA_INSTALL='conda install -c astropy-ci-extras --yes'
         - PIP_INSTALL='pip install'
@@ -21,11 +21,9 @@ env:
 matrix:
     include:
 
-        # Do a coverage test in Python 2. This requires the latest
-        # development version of Astropy, which fixes some issues with
-        # coverage testing in affiliated packages.
+        # Do a coverage test in Python 2.
         - python: 2.7
-          env: ASTROPY_VERSION=development SETUP_CMD='test --coverage --remote-data'
+          env: SETUP_CMD='test --coverage --remote-data'
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
@@ -49,6 +47,8 @@ matrix:
           env: SETUP_CMD='test --remote-data'
 
         # Try older numpy versions
+        - python: 2.7
+          env: NUMPY_VERSION=1.8 SETUP_CMD='test --remote-data'
         - python: 2.7
           env: NUMPY_VERSION=1.7 SETUP_CMD='test --remote-data'
         - python: 2.7
@@ -104,8 +104,7 @@ install:
     # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
     # this matplotlib will *not* work with py 3.x, but our sphinx build is
     # currently 2.7, so that's fine
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION Sphinx=1.2 matplotlib; fi
-    - if [[ $SETUP_CMD == build_sphinx* ]]; then $PIP_INSTALL sphinx_rtd_theme; fi
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION Sphinx sphinx_rtd_theme matplotlib; fi
 
     # COVERAGE DEPENDENCIES
     - if [[ $SETUP_CMD == 'test --coverage --remote-data' ]]; then $PIP_INSTALL coverage coveralls; fi
