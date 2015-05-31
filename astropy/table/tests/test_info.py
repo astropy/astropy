@@ -8,7 +8,9 @@ import numpy as np
 from ...extern import six
 from ... import units as u
 from ... import time
+from ... import table
 from ...utils.column_info import column_info_factory
+from ...utils import OrderedDict
 
 STRING8 = 'string8' if six.PY2 else 'bytes8'
 
@@ -84,3 +86,43 @@ def test_info_stats(table_types):
     assert np.all(tinfo['class'] == ['', '', '', 'Time'])
     assert np.all(tinfo['sum'] == ['6', '6.0', '--', '--'])
     assert np.all(tinfo['first'] == ['1', '1.0', 'a' if six.PY2 else "b'a'", '1.0'])
+
+def test_column_info():
+    """
+    Test getting info for just a column.
+    """
+    cols = [table.Column([1.0, 2.0, np.nan], name='name',
+                         description='description', unit='m/s'),
+            table.MaskedColumn([1.0, 2.0, 3.0], name='name',
+                               description='description', unit='m/s',
+                               mask=[False, False, True])]
+    for c in cols:
+        # Test getting the full ordered dict
+        cinfo = c.info(out=None)
+        assert cinfo == OrderedDict([('name', 'name'),
+                                     ('dtype', 'float64'),
+                                     ('shape', ''),
+                                     ('unit', 'm / s'),
+                                     ('format', ''),
+                                     ('description', 'description'),
+                                     ('class', ''),
+                                     ('n_bad', 1)])
+
+        # Test the console (string) version which omits trivial values
+        out = six.moves.cStringIO()
+        c.info(out=out)
+        exp = ['name = name',
+               'dtype = float64',
+               'unit = m / s',
+               'description = description',
+               'n_bad = 1']
+        assert out.getvalue().splitlines() == exp
+
+        # Test stats info
+        cinfo = c.info('stats', out=None)
+        assert cinfo == OrderedDict([('name', 'name'),
+                                     ('mean', '1.5'),
+                                     ('std', '0.5'),
+                                     ('min', '1.0'),
+                                     ('max', '2.0'),
+                                     ('n_bad', 1)])
