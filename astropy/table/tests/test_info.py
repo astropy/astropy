@@ -65,24 +65,24 @@ def test_info_others(table_types):
     t.info('stats', out=out)
     table_header_line = '<{0} {1}length=4>'.format(t.__class__.__name__, masked)
     exp = [table_header_line,
-           'name min mean std max',
-           '---- --- ---- --- ---',
-           '   a   1  1.5 0.5   2',
-           '   b 1.0  1.5 0.5 2.0',
-           '   c  --   --  --  --',
-           '   d 1.0   --  -- 2.0']
+           'name mean std min max',
+           '---- ---- --- --- ---',
+           '   a  1.5 0.5   1   2',
+           '   b  1.5 0.5 1.0 2.0',
+           '   c   --  --  --  --',
+           '   d   --  -- 1.0 2.0']
     assert out.getvalue().splitlines() == exp
 
     # option = ['attributes', 'stats']
     out = six.moves.cStringIO()
     t.info(['attributes', 'stats'], out=out)
     exp = [table_header_line,
-           'name  dtype  class min mean std max',
-           '---- ------- ----- --- ---- --- ---',
-           '   a   int32         1  1.5 0.5   2',
-           '   b float32       1.0  1.5 0.5 2.0',
-           '   c string8        --   --  --  --',
-           '   d  object  Time 1.0   --  -- 2.0']
+           'name  dtype  class mean std min max',
+           '---- ------- ----- ---- --- --- ---',
+           '   a   int32        1.5 0.5   1   2',
+           '   b float32        1.5 0.5 1.0 2.0',
+           '   c string8         --  --  --  --',
+           '   d  object  Time   --  -- 1.0 2.0']
     assert out.getvalue().splitlines() == exp
 
     # option = ['attributes', custom]

@@ -46,11 +46,11 @@ def info(self, option='attributes', out=''):
 
     >>> t.info('stats')
     <Table length=3>
-    name min mean max
-    ---- --- ---- ---
-       a   1  2.0   3
-       b 1.0  2.0 3.0
-       c  --   --  --
+    name mean      std       min max
+    ---- ---- -------------- --- ---
+       a  2.0 0.816496580928   1   3
+       b  2.0       0.816497 1.0 3.0
+       c   --             --  --  --
 
     Parameters
     ----------
