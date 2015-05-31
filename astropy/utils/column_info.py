@@ -62,10 +62,10 @@ def _get_column_attribute(col, attr=None):
     """
     Get a column attribute for the ``attributes`` info summary method
     """
-    from ..table.column import BaseColumn
+    from ..table.column import Column, MaskedColumn
 
     if attr == 'class':
-        val = '' if isinstance(col, BaseColumn) else col.__class__.__name__
+        val = '' if type(col) in (Column, MaskedColumn) else type(col).__name__
     elif attr == 'dtype':
         val = col.info.dtype.name
     elif attr == 'shape':
@@ -252,9 +252,16 @@ class BaseDataInfo(object):
                 n_bad = 0
         info['n_bad'] = n_bad
 
+        info['length'] = len(col)
+
         if out is None:
             return info
 
         for key, val in info.items():
             if val != '':
                 out.write('{0} = {1}'.format(key, val) + os.linesep)
+
+    def __repr__(self):
+        with six.moves.cStringIO() as out:
+            self.__call__(out=out)
+            return out.getvalue()

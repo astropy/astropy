@@ -25,9 +25,12 @@ def test_info_attributes(table_types):
 
     # Minimal output for a typical table
     tinfo = t.info(out=None)
-    assert tinfo.colnames == ['name', 'dtype']
+    subcls = ['class'] if table_types.Table.__name__ == 'MyTable' else []
+    assert tinfo.colnames == ['name', 'dtype'] + subcls
     assert np.all(tinfo['name'] == ['a', 'b', 'c'])
     assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8])
+    if subcls:
+        assert np.all(tinfo['class'] == ['MyColumn'] * 3)
 
     # All output fields including a mixin column
     t['d'] = [1,2,3] * u.m
@@ -41,7 +44,8 @@ def test_info_attributes(table_types):
     assert np.all(tinfo['unit'] == ['', '', '', 'm', ''])
     assert np.all(tinfo['format'] == ['%02d', '', '', '', ''])
     assert np.all(tinfo['description'] == ['', '', '', 'description', ''])
-    assert np.all(tinfo['class'] == ['', '', '', '', 'Time'])
+    cls = 'MyColumn' if subcls else ''
+    assert np.all(tinfo['class'] == [cls, cls, cls, cls, 'Time'])
 
 def test_info_stats(table_types):
     """
@@ -83,7 +87,6 @@ def test_info_stats(table_types):
     assert tinfo.colnames == 'name dtype class sum first'.split()
     assert np.all(tinfo['name'] == ['a', 'b', 'c', 'd'])
     assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8, 'object'])
-    assert np.all(tinfo['class'] == ['', '', '', 'Time'])
     assert np.all(tinfo['sum'] == ['6', '6.0', '--', '--'])
     assert np.all(tinfo['first'] == ['1', '1.0', 'a' if six.PY2 else "b'a'", '1.0'])
 
@@ -106,7 +109,8 @@ def test_column_info():
                                      ('format', ''),
                                      ('description', 'description'),
                                      ('class', ''),
-                                     ('n_bad', 1)])
+                                     ('n_bad', 1),
+                                     ('length', 3)])
 
         # Test the console (string) version which omits trivial values
         out = six.moves.cStringIO()
@@ -115,7 +119,8 @@ def test_column_info():
                'dtype = float64',
                'unit = m / s',
                'description = description',
-               'n_bad = 1']
+               'n_bad = 1',
+               'length = 3']
         assert out.getvalue().splitlines() == exp
 
         # Test stats info
@@ -125,4 +130,22 @@ def test_column_info():
                                      ('std', '0.5'),
                                      ('min', '1.0'),
                                      ('max', '2.0'),
-                                     ('n_bad', 1)])
+                                     ('n_bad', 1),
+                                     ('length', 3)])
+
+def test_column_info_subclass():
+    class Column(table.Column):
+        """
+        Confusingly named Column on purpose, but that is legal.
+        """
+        pass
+    c = Column([1, 2])
+    cinfo = c.info(out=None)
+    assert cinfo == OrderedDict([('dtype', 'int64'),
+                                 ('shape', ''),
+                                 ('unit', ''),
+                                 ('format', ''),
+                                 ('description', ''),
+                                 ('class', 'Column'),
+                                 ('n_bad', 0),
+                                 ('length', 2)])

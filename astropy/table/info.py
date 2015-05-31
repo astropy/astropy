@@ -86,6 +86,10 @@ def info(self, option='attributes', out=''):
     if np.all(info['n_bad'] == 0):
         del info['n_bad']
 
+    # Standard attributes has 'length' but this is typically redundant
+    if 'length' in info.colnames and np.all(info['length'] == len(self)):
+        del info['length']
+
     if out is None:
         return info
 
