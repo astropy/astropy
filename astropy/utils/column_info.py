@@ -19,7 +19,7 @@ def column_info_factory(names, funcs):
 
     Examples
     --------
-    >>> from astropy.table.info import column_info_factory
+    >>> from astropy.utils.column_info import column_info_factory
     >>> from astropy.table import Column
     >>> c = Column([4., 3., 2., 1.])
     >>> mystats = column_info_factory(names=['min', 'median', 'max'],
@@ -28,6 +28,8 @@ def column_info_factory(names, funcs):
     min = 1.0
     median = 2.5
     max = 4.0
+    n_bad = 0
+    length = 4
 
     Parameters
     ----------
@@ -201,16 +203,22 @@ class BaseDataInfo(object):
         --------
 
         >>> from astropy.table import Column
-        >>> c = Column([1, 2, 3], unit='m', dtype='int32')
+        >>> c = Column([1, 2], unit='m', dtype='int32')
         >>> c.info()
-        dtype = int64
+        dtype = int32
         unit = m
+        n_bad = 0
+        length = 2
+
         >>> c.info(['attributes', 'stats'])
         dtype = int32
         unit = m
+        mean = 1.5
+        std = 0.5
         min = 1
-        mean = 2.0
-        max = 3
+        max = 2
+        n_bad = 0
+        length = 2
 
         Parameters
         ----------
