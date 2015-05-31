@@ -20,8 +20,9 @@ import numpy as np
 
 from ...tests.helper import pytest
 from ...table import Table, QTable, join, hstack, vstack
-from ... import units as u
+from ... import time
 from ... import coordinates
+from ... import units as u
 from .. import table_helpers
 from .conftest import MIXIN_COLS
 
@@ -37,9 +38,13 @@ def test_attributes(mixin_cols):
     m.info.description = 'a'
     assert m.info.description == 'a'
 
-    if not isinstance(m, u.Quantity):
+    # Cannot set unit for these classes
+    if isinstance(m, (u.Quantity, coordinates.SkyCoord, time.Time)):
+        with pytest.raises(AttributeError):
+            m.info.unit = u.m
+    else:
         m.info.unit = u.m
-    assert m.info.unit is u.m
+        assert m.info.unit is u.m
 
     m.info.format = 'a'
     assert m.info.format == 'a'
