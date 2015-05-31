@@ -71,6 +71,9 @@ def _auto_format_func(format_, val):
 
     Returns the formatted value.
     """
+    if format_ in _format_funcs:
+        return _format_funcs[format_](format_, val)
+
     if six.callable(format_):
         format_func = lambda format_, val: format_(val)
         if NUMPY_LT_1_6_1:
@@ -383,11 +386,8 @@ class TableFormatter(object):
         n_print2 = max_lines // 2
         n_rows = len(col)
 
-        col_format = col.info.format
-        if col_format is None and hasattr(col.info, 'default_format_func'):
-            format_func = col.info.default_format_func
-        else:
-            format_func = _format_funcs.get(col_format, _auto_format_func)
+        col_format = col.info.format or getattr(col.info, 'default_format', None)
+        format_func = _format_funcs.get(col_format, _auto_format_func)
         if len(col) > max_lines:
             if show_length is None:
                 show_length = True
