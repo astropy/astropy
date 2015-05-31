@@ -16,13 +16,6 @@ between modules.
 """
 from copy import deepcopy
 
-try:
-    import pandas
-except ImportError:
-    HAS_PANDAS = False
-else:
-    HAS_PANDAS = True
-
 from ...tests.helper import pytest
 from ... import table
 from ...table import table_helpers
@@ -147,8 +140,6 @@ MIXIN_COLS = {'quantity': [0, 1, 2, 3] * u.m,
                                                dec=[0, 1, 2, 3] * u.deg),
               'arraywrap': table_helpers.ArrayWrapper([0, 1, 2, 3])
               }
-if HAS_PANDAS:
-    MIXIN_COLS['pandas'] = pandas.Series([0, 1, 2, 3])
 
 @pytest.fixture(params=sorted(MIXIN_COLS))
 def mixin_cols(request):
@@ -159,8 +150,6 @@ def mixin_cols(request):
     """
     cols = OrderedDict()
     mixin_cols = deepcopy(MIXIN_COLS)
-    if HAS_PANDAS:
-        table.add_column_info(mixin_cols['pandas'])
     cols['i'] = table.Column([0, 1, 2, 3], name='i')
     cols['a'] = table.Column(['a', 'b', 'b', 'c'], name='a')
     cols['b'] = table.Column(['b', 'c', 'a', 'd'], name='b')
