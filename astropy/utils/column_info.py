@@ -100,6 +100,7 @@ class BaseDataInfo(object):
     _parent_col = None
     # By default the unit and dtype attributes should refer to the parent properties
     _attrs_from_parent = set()
+    _stats = ['mean', 'std', 'min', 'max']
 
     def __init__(self):
         self._attrs = dict((attr, None) for attr in COLUMN_ATTRS)
@@ -174,8 +175,8 @@ class BaseDataInfo(object):
                                    for attr in INFO_SUMMARY_ATTRS]))
 
     info_summary_stats = staticmethod(
-        column_info_factory(names=['mean', 'std', 'min', 'max'],
-                            funcs=[np.nanmean, np.nanstd, np.nanmin, np.nanmax]))
+        column_info_factory(names=_stats,
+                            funcs=[getattr(np, 'nan' + stat) for stat in _stats]))
 
     def __call__(self, option='attributes', out=''):
         """

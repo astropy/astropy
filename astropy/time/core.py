@@ -23,7 +23,7 @@ from .. import _erfa as erfa
 from ..units import UnitConversionError
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
-from ..utils.column_info import DataInfo, BaseDataInfo
+from ..utils.column_info import DataInfo, BaseDataInfo, column_info_factory
 from ..extern import six
 
 
@@ -114,7 +114,7 @@ SIDEREAL_TIME_MODELS = {
         'IAU1994': {'function': erfa_time.gst94, 'scales': ('ut1',)}}}
 
 
-class TimeDataInfo(BaseDataInfo):
+class TimeInfo(BaseDataInfo):
     """
     Make dtype and unit be None and be read-only.  Setting _attrs_from_parent
     to these read-only values is needed so they don't get copied.
@@ -125,6 +125,11 @@ class TimeDataInfo(BaseDataInfo):
     def unit(self):
         return None
 
+    info_summary_stats = staticmethod(
+        column_info_factory(names=BaseDataInfo._stats,
+                            funcs=[getattr(np, stat) for stat in BaseDataInfo._stats]))
+    # When Time has mean, std, min, max methods:
+    # funcs = [lambda x: getattr(x, stat)() for stat_name in BaseDataInfo._stats])
 
 class Time(object):
     """
@@ -325,7 +330,7 @@ class Time(object):
         dtnow = datetime.utcnow()
         return cls(val=dtnow, format='datetime', scale='utc')
 
-    info = DataInfo(TimeDataInfo)
+    info = DataInfo(TimeInfo)
 
     @property
     def format(self):
