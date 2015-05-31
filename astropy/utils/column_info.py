@@ -80,6 +80,7 @@ def _get_column_attribute(col, attr=None):
 
 class ColumnInfo(object):
     _parent_col = None
+    # By default the unit and dtype attributes should refer to the parent properties
     _attrs_from_parent = set()
 
     def __init__(self, parent_col=None, attrs_from_parent=None):
@@ -118,8 +119,20 @@ class ColumnInfo(object):
         return value
 
     def __setattr__(self, attr, value):
-        if attr in self._attrs_from_parent:
+        propobj = getattr(self.__class__, attr, None)
+
+        # If attribute is taken from parent properties and there is not a
+        # ColumnInfo property (getter/setter) for this attribute then set
+        # attribute directly in parent.
+        if attr in self._attrs_from_parent and not isinstance(propobj, property):
             setattr(self._parent_col(), attr, value)
+            return
+
+        # Check if there is a property setter
+        if isinstance(propobj, property):
+            if propobj.fset is None:
+                raise AttributeError("can't set attribute")
+            propobj.fset(self, value)
             return
 
         if attr.startswith('_'):
