@@ -44,21 +44,34 @@ def FRAME_ATTR_NAMES_SET():
 
 
 class SkyCoordColumnInfo(ColumnInfo):
-    def __init__(self, *args, **kwargs):
-        super(SkyCoordColumnInfo, self).__init__(*args, **kwargs)
-        self._format_cache = {}
-        if self._parent_col is not None:
-            data = self._parent_col().data
-            self.unit = ','.join(str(getattr(data, comp).unit) for comp in data.components)
+    _attrs_from_parent = set(['unit'])
 
-    def default_format_func(self, format, val):
-        data = val.data
-        cls = type(data)
-        if cls not in self._format_cache:
-            formats = ['{0.' + compname + '.value:}' for compname
-                       in data.components]
-            self._format_cache[cls] = ' '.join(formats)
-        return self._format_cache[cls].format(data)
+    @staticmethod
+    def default_format(val):
+        repr_data = val.info._repr_data
+        formats = ['{0.' + compname + '.value:}' for compname
+                   in repr_data.components]
+        return ','.join(formats).format(repr_data)
+
+    @property
+    def unit(self):
+        repr_data = self._repr_data
+        unit = ','.join(str(getattr(repr_data, comp).unit)
+                        for comp in repr_data.components)
+        return unit
+
+    @property
+    def _repr_data(self):
+        if self._parent_col is None:
+            return None
+
+        sc = self._parent_col()
+        if (issubclass(sc.representation, SphericalRepresentation) and
+                isinstance(sc.data, UnitSphericalRepresentation)):
+            repr_data = sc.represent_as(sc.data.__class__, in_frame_units=True)
+        else:
+            repr_data = sc.represent_as(sc.representation, in_frame_units=True)
+        return repr_data
 
 
 class SkyCoord(object):
@@ -193,6 +206,7 @@ class SkyCoord(object):
 
     @lazyproperty
     def info(self):
+        print('here in info routine')
         return SkyCoordColumnInfo(self)
 
     @property
