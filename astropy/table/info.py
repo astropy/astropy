@@ -34,23 +34,21 @@ def info(self, option='attributes', out=''):
     Examples
     --------
     >>> from astropy.table.table_helpers import simple_table
-    >>> t = simple_table()
+    >>> t = simple_table(size=2, kinds='if')
     >>> t['a'].unit = 'm'
     >>> t.info()
-    <Table length=3>
+    <Table length=2>
     name  dtype  unit
     ---- ------- ----
        a   int32    m
        b float32
-       c string8
 
     >>> t.info('stats')
-    <Table length=3>
-    name mean      std       min max
-    ---- ---- -------------- --- ---
-       a  2.0 0.816496580928   1   3
-       b  2.0       0.816497 1.0 3.0
-       c   --             --  --  --
+    <Table length=2>
+    name mean std min max
+    ---- ---- --- --- ---
+       a  1.5 0.5   1   2
+       b  1.5 0.5 1.0 2.0
 
     Parameters
     ----------
