@@ -30,7 +30,7 @@ information. The original FITS file can be downloaded from `here
 This is a three-dimensional dataset which you can check by looking at the
 header information by::
 
-    >>> hdu.header
+    >>> hdu.header  # doctest: +SKIP
     ...
     NAXIS = 3 /number of axes
     CTYPE1  = 'RA---SFL'           /

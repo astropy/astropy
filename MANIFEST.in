@@ -5,17 +5,18 @@ include ez_setup.py
 include ah_bootstrap.py
 include setup.cfg
 
+recursive-include *.pyx *.c *.pxd
 recursive-include docs *
 recursive-include licenses *
 recursive-include cextern *
 recursive-include scripts *
 
-prune docs/_build
 prune build
+prune docs/_build
+prune docs/api
 
 recursive-include astropy_helpers *
 exclude astropy_helpers/.git
 exclude astropy_helpers/.gitignore
 
-exclude *.pyc *.o
-prune docs/api
+global-exclude *.pyc *.o
