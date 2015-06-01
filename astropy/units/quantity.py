@@ -116,7 +116,7 @@ class QuantityIterator(object):
 
 
 class QuantityInfo(BaseInfo):
-    _attrs_from_parent = set(['dtype', 'unit'])
+    attrs_from_parent = set(['dtype', 'unit'])
 
     def default_format_func(self, format, val):
         return '{0.value:}'.format(val)

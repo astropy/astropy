@@ -14,7 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.column_info import COLUMN_ATTRS, BaseInfo, DataInfo
+from ..utils.column_info import BaseInfo, DataInfo
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -57,7 +57,7 @@ def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
     if not hasattr(newcol, 'info'):
         newcol.__class__.info = DataInfo(BaseInfo)
 
-    attrs = COLUMN_ATTRS - set(exclude_attrs) - newcol.info._attrs_from_parent
+    attrs = newcol.info.attr_names - set(exclude_attrs) - newcol.info.attrs_from_parent
     for attr in attrs:
         val = getattr(col.info, attr)
         if val is not None:
@@ -88,7 +88,7 @@ def col_copy(col):
     try:
         newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
         newcol.info = col.info.copy()
-        newcol.info._parent_col = weakref.ref(newcol)
+        newcol.info._parent_ref = weakref.ref(newcol)
     finally:
         col.info.parent_table = parent_table
 
@@ -122,7 +122,7 @@ class FalseArray(np.ndarray):
 
 
 class ColumnInfo(BaseInfo):
-    _attrs_from_parent=COLUMN_ATTRS
+    attrs_from_parent = BaseInfo.attr_names
 
 
 class BaseColumn(np.ndarray):

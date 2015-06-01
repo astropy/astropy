@@ -8,7 +8,6 @@ from functools import partial
 from ..extern import six
 from ..utils import OrderedDict
 
-COLUMN_ATTRS = set(['name', 'unit', 'dtype', 'format', 'description', 'meta', 'parent_table'])
 INFO_SUMMARY_ATTRS = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
 
 
@@ -81,14 +80,28 @@ def _get_column_attribute(col, attr=None):
 
 
 class DataInfo(object):
+    """
+    Descriptor that data classes use to add an ``info`` attribute for storing
+    data attributes in a uniform and portable way.  Note that it *must* be
+    called ``info`` so that the ``info_cls()`` object can be stored in the
+    ``instance`` using the ``info`` key.  Because owner_cls.x is a descriptor,
+    Python doesn't use __dict__['x'] normally, and the descriptor can safely
+    store stuff there.  Thanks to http://nbviewer.ipython.org/urls/
+    gist.github.com/ChrisBeaumont/5758381/raw/descriptor_writeup.ipynb for
+    this trick that works for non-hashable classes.
 
+    Parameters
+    ----------
+    info_cls : class
+        Class reference for the BaseInfo subclass that actually stores info
+    """
     def __init__(self, info_cls):
         self.info_cls = info_cls
 
     def __get__(self, instance, owner_cls):
         if 'info' not in instance.__dict__:
             instance.__dict__['info'] = self.info_cls()
-        instance.__dict__['info']._parent_col = weakref.ref(instance)
+        instance.__dict__['info']._parent_ref = weakref.ref(instance)
         return instance.__dict__['info']
 
     def __set__(self, instance, value):
@@ -99,26 +112,28 @@ class DataInfo(object):
 
 
 class BaseInfo(object):
-    _parent_col = None
-    # By default the unit and dtype attributes should refer to the parent properties
-    _attrs_from_parent = set()
+
     _stats = ['mean', 'std', 'min', 'max']
+    attrs_from_parent = set()
+    attr_names = set(['name', 'unit', 'dtype', 'format', 'description',
+                      'meta', 'parent_table'])
+    _parent_ref = None
 
     def __init__(self):
-        self._attrs = dict((attr, None) for attr in COLUMN_ATTRS)
+        self._attrs = dict((attr, None) for attr in self.attr_names)
 
     def __getstate__(self):
-        return (self._attrs, self._attrs_from_parent)
+        return self._attrs
 
     def __setstate__(self, state):
-        self._attrs, self._attrs_from_parent = state
+        self._attrs = state
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
             return super(BaseInfo, self).__getattribute__(attr)
 
-        if attr in self._attrs_from_parent:
-            return getattr(self._parent_col(), attr)
+        if attr in self.attrs_from_parent:
+            return getattr(self._parent_ref(), attr)
 
         try:
             value = self._attrs[attr]
@@ -139,25 +154,27 @@ class BaseInfo(object):
         propobj = getattr(self.__class__, attr, None)
 
         # If attribute is taken from parent properties and there is not a
-        # ColumnInfo property (getter/setter) for this attribute then set
+        # class property (getter/setter) for this attribute then set
         # attribute directly in parent.
-        if attr in self._attrs_from_parent and not isinstance(propobj, property):
-            setattr(self._parent_col(), attr, value)
+        if attr in self.attrs_from_parent and not isinstance(propobj, property):
+            setattr(self._parent_ref(), attr, value)
             return
 
-        # Check if there is a property setter
+        # Check if there is a property setter and use it if possible.
         if isinstance(propobj, property):
             if propobj.fset is None:
                 raise AttributeError("can't set attribute")
             propobj.fset(self, value)
             return
 
+        # Private attr names get directly set
         if attr.startswith('_'):
             super(BaseInfo, self).__setattr__(attr, value)
             return
 
-        if attr not in COLUMN_ATTRS:
-            raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
+        # Finally this must be an actual data attribute that this class is handling.
+        if attr not in self.attr_names:
+            raise AttributeError("attribute must be one of {0}".format(self.attr_names))
 
         if attr == 'parent_table':
             value = None if value is None else weakref.ref(value)
@@ -166,7 +183,7 @@ class BaseInfo(object):
 
     def copy(self):
         out = self.__class__()
-        for attr in COLUMN_ATTRS - self._attrs_from_parent:
+        for attr in self.attr_names - self.attrs_from_parent:
             setattr(out, attr, deepcopy(getattr(self, attr)))
 
         return out
@@ -235,7 +252,7 @@ class BaseInfo(object):
         if out == '':
             out = sys.stdout
 
-        col = self._parent_col()
+        col = self._parent_ref()
         info = OrderedDict()
         name = col.info.name
         if name is not None:

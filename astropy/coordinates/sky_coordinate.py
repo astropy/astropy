@@ -43,7 +43,7 @@ def FRAME_ATTR_NAMES_SET():
 
 
 class SkyCoordDataInfo(BaseInfo):
-    _attrs_from_parent = set(['unit'])
+    attrs_from_parent = set(['unit'])
 
     @staticmethod
     def default_format(val):
@@ -61,10 +61,10 @@ class SkyCoordDataInfo(BaseInfo):
 
     @property
     def _repr_data(self):
-        if self._parent_col is None:
+        if self._parent_ref is None:
             return None
 
-        sc = self._parent_col()
+        sc = self._parent_ref()
         if (issubclass(sc.representation, SphericalRepresentation) and
                 isinstance(sc.data, UnitSphericalRepresentation)):
             repr_data = sc.represent_as(sc.data.__class__, in_frame_units=True)

@@ -116,10 +116,10 @@ SIDEREAL_TIME_MODELS = {
 
 class TimeInfo(BaseInfo):
     """
-    Make dtype and unit be None and be read-only.  Setting _attrs_from_parent
+    Make dtype and unit be None and be read-only.  Setting attrs_from_parent
     to these read-only values is needed so they don't get copied.
     """
-    _attrs_from_parent = set(['unit'])
+    attrs_from_parent = set(['unit'])
 
     @property
     def unit(self):
