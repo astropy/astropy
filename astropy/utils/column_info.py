@@ -8,8 +8,6 @@ from functools import partial
 from ..extern import six
 from ..utils import OrderedDict
 
-INFO_SUMMARY_ATTRS = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-
 
 def column_info_factory(names, funcs):
     """
@@ -117,6 +115,7 @@ class BaseInfo(object):
     attrs_from_parent = set()
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description',
                       'meta', 'parent_table'])
+    _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
     _parent_ref = None
 
     def __init__(self):
@@ -189,9 +188,9 @@ class BaseInfo(object):
         return out
 
     info_summary_attributes = staticmethod(
-        column_info_factory(names=INFO_SUMMARY_ATTRS,
+        column_info_factory(names=_info_summary_attrs,
                             funcs=[partial(_get_column_attribute, attr=attr)
-                                   for attr in INFO_SUMMARY_ATTRS]))
+                                   for attr in _info_summary_attrs]))
 
     info_summary_stats = staticmethod(
         column_info_factory(names=_stats,
