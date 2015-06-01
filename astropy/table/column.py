@@ -14,7 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.column_info import BaseInfo, DataInfo
+from ..utils.data_info import BaseInfo, DataInfo
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -93,14 +93,6 @@ def col_copy(col):
         col.info.parent_table = parent_table
 
     return newcol
-
-
-def add_column_info(col):
-    """
-    Add mixin column information to ``col`` class.
-    """
-    if not hasattr(col, 'info'):
-        col.__class__.info = DataInfo(BaseInfo)
 
 
 class FalseArray(np.ndarray):

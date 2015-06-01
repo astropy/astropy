@@ -14,7 +14,7 @@ import numpy as np
 
 from .table import Table, Column
 from ..extern.six.moves import zip, range
-from ..utils.column_info import DataInfo, BaseInfo
+from ..utils.data_info import DataInfo, BaseInfo
 
 class TimingTables(object):
     """

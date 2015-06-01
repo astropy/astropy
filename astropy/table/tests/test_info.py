@@ -9,7 +9,7 @@ from ...extern import six
 from ... import units as u
 from ... import time
 from ... import table
-from ...utils.column_info import column_info_factory
+from ...utils.data_info import data_info_factory
 from ...utils import OrderedDict
 
 STRING8 = 'string8' if six.PY2 else 'bytes8'
@@ -80,8 +80,8 @@ def test_info_stats(table_types):
     assert np.all(tinfo['max'] == ['2', '2.0', '--', '2.0'])
 
     # option = ['attributes', custom]
-    custom = column_info_factory(names=['sum', 'first'],
-                                 funcs=[np.sum, lambda col: col[0]])
+    custom = data_info_factory(names=['sum', 'first'],
+                               funcs=[np.sum, lambda col: col[0]])
     out = six.moves.cStringIO()
     tinfo = t.info(['attributes', custom], out=None)
     assert tinfo.colnames == 'name dtype class sum first'.split()
@@ -90,7 +90,7 @@ def test_info_stats(table_types):
     assert np.all(tinfo['sum'] == ['6', '6.0', '--', '--'])
     assert np.all(tinfo['first'] == ['1', '1.0', 'a' if six.PY2 else "b'a'", '1.0'])
 
-def test_column_info():
+def test_data_info():
     """
     Test getting info for just a column.
     """
@@ -133,7 +133,7 @@ def test_column_info():
                                      ('n_bad', 1),
                                      ('length', 3)])
 
-def test_column_info_subclass():
+def test_data_info_subclass():
     class Column(table.Column):
         """
         Confusingly named Column on purpose, but that is legal.

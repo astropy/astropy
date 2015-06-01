@@ -9,18 +9,18 @@ from ..extern import six
 from ..utils import OrderedDict
 
 
-def column_info_factory(names, funcs):
+def data_info_factory(names, funcs):
     """
     Factory to create a function that can be used as an ``option``
     for outputting table or column summary information.
 
     Examples
     --------
-    >>> from astropy.utils.column_info import column_info_factory
+    >>> from astropy.utils.data_info import data_info_factory
     >>> from astropy.table import Column
     >>> c = Column([4., 3., 2., 1.])
-    >>> mystats = column_info_factory(names=['min', 'median', 'max'],
-    ...                               funcs=[np.min, np.median, np.max])
+    >>> mystats = data_info_factory(names=['min', 'median', 'max'],
+    ...                             funcs=[np.min, np.median, np.max])
     >>> c.info(option=mystats)
     min = 1.0
     median = 2.5
@@ -188,13 +188,13 @@ class BaseInfo(object):
         return out
 
     info_summary_attributes = staticmethod(
-        column_info_factory(names=_info_summary_attrs,
-                            funcs=[partial(_get_column_attribute, attr=attr)
-                                   for attr in _info_summary_attrs]))
+        data_info_factory(names=_info_summary_attrs,
+                          funcs=[partial(_get_column_attribute, attr=attr)
+                                 for attr in _info_summary_attrs]))
 
     info_summary_stats = staticmethod(
-        column_info_factory(names=_stats,
-                            funcs=[getattr(np, 'nan' + stat) for stat in _stats]))
+        data_info_factory(names=_stats,
+                          funcs=[getattr(np, 'nan' + stat) for stat in _stats]))
 
     def __call__(self, option='attributes', out=''):
         """

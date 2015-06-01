@@ -23,7 +23,7 @@ from .. import _erfa as erfa
 from ..units import UnitConversionError
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
-from ..utils.column_info import DataInfo, BaseInfo, column_info_factory
+from ..utils.data_info import DataInfo, BaseInfo, data_info_factory
 from ..extern import six
 
 
@@ -126,8 +126,8 @@ class TimeInfo(BaseInfo):
         return None
 
     info_summary_stats = staticmethod(
-        column_info_factory(names=BaseInfo._stats,
-                            funcs=[getattr(np, stat) for stat in BaseInfo._stats]))
+        data_info_factory(names=BaseInfo._stats,
+                          funcs=[getattr(np, stat) for stat in BaseInfo._stats]))
     # When Time has mean, std, min, max methods:
     # funcs = [lambda x: getattr(x, stat)() for stat_name in BaseInfo._stats])
 
