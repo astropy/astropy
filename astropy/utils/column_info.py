@@ -92,13 +92,13 @@ class DataInfo(object):
         return instance.__dict__['info']
 
     def __set__(self, instance, value):
-        if isinstance(value, BaseDataInfo):
+        if isinstance(value, BaseInfo):
             instance.__dict__['info'] = value
         else:
-            raise TypeError('info must be set with a BaseDataInfo instance')
+            raise TypeError('info must be set with a BaseInfo instance')
 
 
-class BaseDataInfo(object):
+class BaseInfo(object):
     _parent_col = None
     # By default the unit and dtype attributes should refer to the parent properties
     _attrs_from_parent = set()
@@ -115,7 +115,7 @@ class BaseDataInfo(object):
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
-            return super(BaseDataInfo, self).__getattribute__(attr)
+            return super(BaseInfo, self).__getattribute__(attr)
 
         if attr in self._attrs_from_parent:
             return getattr(self._parent_col(), attr)
@@ -123,7 +123,7 @@ class BaseDataInfo(object):
         try:
             value = self._attrs[attr]
         except KeyError:
-            super(BaseDataInfo, self).__getattribute__(attr)  # Generate AttributeError
+            super(BaseInfo, self).__getattribute__(attr)  # Generate AttributeError
 
         # Weak ref for parent table
         if attr == 'parent_table' and callable(value):
@@ -153,7 +153,7 @@ class BaseDataInfo(object):
             return
 
         if attr.startswith('_'):
-            super(BaseDataInfo, self).__setattr__(attr, value)
+            super(BaseInfo, self).__setattr__(attr, value)
             return
 
         if attr not in COLUMN_ATTRS:

@@ -13,7 +13,7 @@ from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.column_info import DataInfo, BaseDataInfo
+from ..utils.column_info import DataInfo, BaseInfo
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -42,7 +42,7 @@ def FRAME_ATTR_NAMES_SET():
     return out
 
 
-class SkyCoordDataInfo(BaseDataInfo):
+class SkyCoordDataInfo(BaseInfo):
     _attrs_from_parent = set(['unit'])
 
     @staticmethod

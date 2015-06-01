@@ -14,7 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.column_info import COLUMN_ATTRS, BaseDataInfo, DataInfo
+from ..utils.column_info import COLUMN_ATTRS, BaseInfo, DataInfo
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -55,7 +55,7 @@ def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
         return
 
     if not hasattr(newcol, 'info'):
-        newcol.__class__.info = DataInfo(BaseDataInfo)
+        newcol.__class__.info = DataInfo(BaseInfo)
 
     attrs = COLUMN_ATTRS - set(exclude_attrs) - newcol.info._attrs_from_parent
     for attr in attrs:
@@ -100,7 +100,7 @@ def add_column_info(col):
     Add mixin column information to ``col`` class.
     """
     if not hasattr(col, 'info'):
-        col.__class__.info = DataInfo(BaseDataInfo)
+        col.__class__.info = DataInfo(BaseInfo)
 
 
 class FalseArray(np.ndarray):
@@ -121,7 +121,7 @@ class FalseArray(np.ndarray):
                              .format(self.__class__.__name__))
 
 
-class ColumnInfo(BaseDataInfo):
+class ColumnInfo(BaseInfo):
     _attrs_from_parent=COLUMN_ATTRS
 
 
