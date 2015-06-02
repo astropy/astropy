@@ -1,7 +1,11 @@
 0.4 (unreleased)
 ----------------
 
-- No changes yet
+- Astropy frame instances to now be passed to ``get_transform`` and ``get_coords_overlay``. [#149]
+
+- Fixed bug that caused plotting to crash if there were no ticks on an axis.
+
+- Fix compatibility with different versions of Matplotlib. [#153]
 
 0.3 (2014-12-07)
 ----------------

@@ -30,6 +30,9 @@
 
 import numpy as np
 
+__doctest_skip__ = ['wcs_to_celestial_frame']
+
+
 def _wcs_to_celestial_frame_builtin(wcs):
 
     from astropy.coordinates import FK4, FK4NoETerms, FK5, ICRS, Galactic
