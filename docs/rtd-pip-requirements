@@ -1,5 +1,5 @@
 numpy
-matplotlib==1.4.0
+matplotlib>=1.4
 astropy-helpers
 astropy
 
