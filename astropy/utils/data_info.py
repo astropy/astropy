@@ -7,7 +7,7 @@ from functools import partial
 
 from ..extern import six
 from ..utils import OrderedDict
-
+from ..utils.compat import NUMPY_LT_1_8
 
 def data_info_factory(names, funcs):
     """
@@ -192,9 +192,11 @@ class BaseInfo(object):
                           funcs=[partial(_get_column_attribute, attr=attr)
                                  for attr in _info_summary_attrs]))
 
+    # No nan* methods in numpy < 1.8
     info_summary_stats = staticmethod(
         data_info_factory(names=_stats,
-                          funcs=[getattr(np, 'nan' + stat) for stat in _stats]))
+                          funcs=[getattr(np, ('' if NUMPY_LT_1_8 else 'nan') + stat)
+                                 for stat in _stats]))
 
     def __call__(self, option='attributes', out=''):
         """
