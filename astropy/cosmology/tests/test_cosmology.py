@@ -1303,6 +1303,30 @@ def test_distances():
                     [2676.73467639, 3940.57967585, 4686.90810278,
                      5191.54178243] * u.Mpc, rtol=1e-4)
 
+    # Now also test different numbers of massive neutrinos
+    # for FlatLambdaCDM to give the scalar nu density functions a
+    # work out
+    cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0,
+                             m_nu=u.Quantity([10.0, 0, 0], u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2777.71589173, 4186.91111666, 5046.0300719,
+                     5636.10397302] * u.Mpc, rtol=1e-4)
+    cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0,
+                             m_nu=u.Quantity([10.0, 5, 0], u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2636.48149391, 3913.14102091, 4684.59108974,
+                     5213.07557084] * u.Mpc, rtol=1e-4)
+    cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0,
+                             m_nu=u.Quantity([4.0, 5, 9], u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2563.5093049 , 3776.63362071, 4506.83448243,
+                     5006.50158829] * u.Mpc, rtol=1e-4)
+    cos = core.FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=4.2,
+                             m_nu=u.Quantity([1.0, 4.0, 5, 9], u.eV))
+    assert allclose(cos.comoving_distance(z),
+                    [2525.58017482, 3706.87633298, 4416.58398847,
+                     4901.96669755] * u.Mpc, rtol=1e-4)
+
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_massivenu_density():

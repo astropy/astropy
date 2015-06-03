@@ -777,6 +777,139 @@ class FLRW(Cosmology):
 
         return prefac * self._neff_per_nu * rel_mass
 
+    def _get_nufunc_scalar(self):
+        """ Get the scalar nu density function for integrals"""
+
+        nu_dict = {0: lambda x : 0.22710731766 * self._Neff,
+                   1: self._nu_relative_density_scalar_single,
+                   2: self._nu_relative_density_scalar_double,
+                   3: self._nu_relative_density_scalar_triple}
+        return nu_dict.get(self._nmassivenu,
+                           self._nu_relative_density_scalar)
+
+    def _nu_relative_density_scalar_single(self, z):
+        """ Neutrino density function relative to the energy density in
+        photons.
+
+        Parameters
+        ----------
+        z : scalar
+           Redshift
+
+        Returns
+        -------
+         f : float
+           The neutrino density scaling factor relative to the density
+           in photons at the specified redshift
+
+        Notes
+        -----
+        This version is specialized to scalar z and a single
+        massive neutrino flavor for performance reasons.
+        """
+
+        prefac = 0.22710731766
+        p = 1.83
+        invp = 0.5464480874316939
+        curr_nu_y = self._nu_y[0] / (1.0 + z)
+        rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+        rel_mass = rel_mass_per + self._nmasslessnu
+        return prefac * self._neff_per_nu * rel_mass
+
+    def _nu_relative_density_scalar_double(self, z):
+        """ Neutrino density function relative to the energy density in
+        photons.
+
+        Parameters
+        ----------
+        z : scalar
+           Redshift
+
+        Returns
+        -------
+         f : float
+           The neutrino density scaling factor relative to the density
+           in photons at the specified redshift
+
+        Notes
+        -----
+        This version is specialized to scalar z and two
+        massive neutrino flavor for performance reasons.
+        """
+
+        prefac = 0.22710731766
+        p = 1.83
+        invp = 0.5464480874316939
+        invz = 1.0 / (1.0 + z)
+        curr_nu_y = self._nu_y[0] * invz
+        rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+        curr_nu_y = self._nu_y[1] * invz
+        rel_mass_per += (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+        rel_mass = rel_mass_per + self._nmasslessnu
+        return prefac * self._neff_per_nu * rel_mass
+
+    def _nu_relative_density_scalar_triple(self, z):
+        """ Neutrino density function relative to the energy density in
+        photons.
+
+        Parameters
+        ----------
+        z : scalar
+           Redshift
+
+        Returns
+        -------
+         f : float
+           The neutrino density scaling factor relative to the density
+           in photons at the specified redshift
+
+        Notes
+        -----
+        This version is specialized to scalar z and three
+        massive neutrino flavor for performance reasons.
+        """
+
+        prefac = 0.22710731766
+        p = 1.83
+        invp = 0.5464480874316939
+        invz = 1.0 / (1.0 + z)
+        curr_nu_y = self._nu_y[0] * invz
+        rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+        curr_nu_y = self._nu_y[1] * invz
+        rel_mass_per += (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+        curr_nu_y = self._nu_y[2] * invz
+        rel_mass_per += (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+        rel_mass = rel_mass_per + self._nmasslessnu
+        return prefac * self._neff_per_nu * rel_mass
+
+    def _nu_relative_density_scalar(self, z):
+        """ Neutrino density function relative to the energy density in
+        photons.
+
+        Parameters
+        ----------
+        z : scalar
+           Redshift
+
+        Returns
+        -------
+         f : float
+           The neutrino density scaling factor relative to the density
+           in photons at the specified redshift
+
+        Notes
+        -----
+        This version is specialized to scalar z for performance reasons.
+        """
+
+        prefac = 0.22710731766
+        p = 1.83
+        invp = 0.5464480874316939
+        curr_nu_y = self._nu_y / (1.0 + z)
+        rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
+        rel_mass = rel_mass_per.sum() + self._nmasslessnu
+        return prefac * self._neff_per_nu * rel_mass
+
     def _w_integrand(self, ln1pz):
         """ Internal convenience function for w(z) integral."""
 
@@ -1591,7 +1724,7 @@ class LambdaCDM(FLRW):
             self._inv_efunc_scalar = self._lcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density)
+                                           self._get_nufunc_scalar())
 
     def w(self, z):
         """Returns dark energy equation of state at redshift ``z``.
@@ -1790,7 +1923,7 @@ class FlatLambdaCDM(LambdaCDM):
             self._inv_efunc_scalar = self._flcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0,
-                                           self.nu_relative_density)
+                                           self._get_nufunc_scalar())
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1958,7 +2091,7 @@ class wCDM(FLRW):
             self._inv_efunc_scalar = self._wcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0)
 
     @property
@@ -2183,7 +2316,7 @@ class FlatwCDM(wCDM):
             self._inv_efunc_scalar = self._fwcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0)
 
     def efunc(self, z):
@@ -2358,7 +2491,7 @@ class w0waCDM(FLRW):
             self._inv_efunc_scalar = self._w0wa_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0, self._wa)
 
     @property
@@ -2546,7 +2679,7 @@ class Flatw0waCDM(w0waCDM):
             self._inv_efunc_scalar = self._fw0wa_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0, self._wa)
 
     def __repr__(self):
@@ -2673,7 +2806,7 @@ class wpwaCDM(FLRW):
             self._inv_efunc_scalar = self._wpwa_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._wp, apiv, self._wa)
 
     @property
@@ -2874,7 +3007,7 @@ class w0wzCDM(FLRW):
             self._inv_efunc_scalar = self._w0wz_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0,
-                                           self.nu_relative_density,
+                                           self._get_nufunc_scalar(),
                                            self._w0, self._wz)
 
     @property
