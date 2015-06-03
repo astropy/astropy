@@ -309,7 +309,7 @@ class WCSAxes(Axes):
         draw_grid : bool
             Whether to show the gridlines
         """
-        if draw_grid:
+        if draw_grid and hasattr(self, 'coords'):
             self.coords.grid(draw_grid=draw_grid, **kwargs)
 
 # In the following, we put the generated subplot class in a temporary class and
