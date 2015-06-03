@@ -106,7 +106,7 @@ class LatexSplitter(core.BaseSplitter):
 
 class LatexHeader(core.BaseHeader):
     '''Class to read the header of Latex Tables'''
-    header_start = r'\begin{tabular}'
+    header_start = r'\begin{{{tabular_type}}}'
     splitter_class = LatexSplitter
 
     def start_line(self, lines):
@@ -127,7 +127,8 @@ class LatexHeader(core.BaseHeader):
         add_dictval_to_list(self.latex, 'preamble', lines)
         if 'caption' in self.latex:
             lines.append(r'\caption{' + self.latex['caption'] + '}')
-        lines.append(self.header_start + r'{' + self.latex['col_align'] + r'}')
+        lines.append(self.header_start.format(self.latex['tabular_type']) +
+                     r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
         col_units = [col_getattr(col, 'unit') for col in self.cols]
         lines.append(self.splitter.join(self.colnames))
@@ -143,7 +144,7 @@ class LatexHeader(core.BaseHeader):
 class LatexData(core.BaseData):
     '''Class to read the data in LaTeX tables'''
     data_start = None
-    data_end = r'\end{tabular}'
+    data_end = r'\end{{{tabular_type}}}'
     splitter_class = LatexSplitter
 
     def start_line(self, lines):
@@ -154,7 +155,7 @@ class LatexData(core.BaseData):
 
     def end_line(self, lines):
         if self.data_end:
-            return find_latex_line(lines, self.data_end)
+            return find_latex_line(lines, self.data_end.format(self.latex['tabular_type']))
         else:
             return None
 
@@ -162,7 +163,7 @@ class LatexData(core.BaseData):
         add_dictval_to_list(self.latex, 'data_start', lines)
         core.BaseData.write(self, lines)
         add_dictval_to_list(self.latex, 'data_end', lines)
-        lines.append(self.data_end)
+        lines.append(self.data_end.format(self.latex['tabular_type']))
         add_dictval_to_list(self.latex, 'tablefoot', lines)
         lines.append(r'\end{' + self.latex['tabletype'] + '}')
 
@@ -290,6 +291,7 @@ class Latex(core.BaseReader):
         self.header.latex = self.latex
         self.data.latex = self.latex
         self.latex['tabletype'] = 'table'
+        self.latex['tabulartype'] = 'tabular'
         self.latex.update(latexdict)
         if caption:
             self.latex['caption'] = caption
