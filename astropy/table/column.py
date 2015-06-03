@@ -128,7 +128,8 @@ class BaseColumn(np.ndarray):
 
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None, copy=False):
+                description=None, unit=None, format=None, meta=None,
+                copy=False):
 
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
@@ -174,6 +175,7 @@ class BaseColumn(np.ndarray):
         self.description = description
         self.meta = meta
         self._parent_table = None
+        self.indices = []
 
         return self
 
@@ -609,6 +611,7 @@ class BaseColumn(np.ndarray):
         out : Column
             New column with groups attribute set accordingly
         """
+        ##TODO: possibly replace this with indices
         return groups.column_group_by(self, keys)
 
     def _copy_groups(self, out):
@@ -668,6 +671,8 @@ class BaseColumn(np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
+        if hasattr(obj, 'indices'):
+            self.indices = deepcopy(obj.indices) ##TODO: make sure this works
 
 
 class Column(BaseColumn):
@@ -737,7 +742,8 @@ class Column(BaseColumn):
 
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None, copy=False):
+                description=None, unit=None, format=None, meta=None,
+                copy=False):
 
         if isinstance(data, MaskedColumn) and np.any(data.mask):
             raise TypeError("Cannot convert a MaskedColumn with masked value to a Column")
@@ -806,6 +812,9 @@ class Column(BaseColumn):
     # order-of-magnitude speed-up. [#2994]
     def __setitem__(self, index, value):
         self.data[index] = value
+        # update indices
+        for col_index in self.indices:
+            col_index.replace(index, value)
 
     # # Set slices using a view of the underlying data, as it gives an
     # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
@@ -847,6 +856,9 @@ class Column(BaseColumn):
         out = data.view(self.__class__)
         out.__array_finalize__(self)
         return out
+
+    def add_index(self, index):
+        self.indices.append(index)
 
     # We do this to make the methods show up in the API docs
     name = BaseColumn.name

@@ -27,6 +27,7 @@ from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
+from .index import Index
 
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays containing Unicode columns to
@@ -238,6 +239,8 @@ class Table(object):
         self.columns = self.TableColumns()
         self.meta = meta
         self.formatter = self.TableFormatter()
+        self.indices = [] ##TODO: possibly copy indices if data is a Table
+        ##TODO: update indices after each modification
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -397,6 +400,12 @@ class Table(object):
         else:
             data = self
         return self.__class__(data, meta=deepcopy(self.meta))
+
+    def add_index(self, colname):
+        column = self.columns[colname]
+        index = Index([(column[i], i) for i in range(len(self))])
+        column.add_index(index)
+        self.indices.append(index)
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
@@ -1399,6 +1408,10 @@ class Table(object):
         if hasattr(self, '_groups'):
             del self._groups
 
+        # Update indices
+        for index in self.indices:
+            index.remove_rows(row_specifier)
+
     def remove_column(self, name):
         """
         Remove a column from the table.
@@ -1856,6 +1869,9 @@ class Table(object):
                     newcol.mask[index] = mask_
 
                 columns[name] = newcol
+            # insert row in indices
+            for table_index in self.indices:
+                table_index.insert_row(index, vals)
 
         except Exception as err:
             raise ValueError("Unable to insert row because of exception in column '{0}':\n{1}"
@@ -1938,6 +1954,7 @@ class Table(object):
                    Jo  Miller  15
                   Max  Miller  12
         '''
+        ##TODO: use indices to do this if possible, update indices regardless
         if type(keys) is not list:
             keys = [keys]
 
@@ -1975,6 +1992,8 @@ class Table(object):
         '''
         for col in self.columns.values():
             col[:] = col[::-1]
+        for index in self.indices:
+            index.reverse()
 
     @classmethod
     def read(cls, *args, **kwargs):
