@@ -550,7 +550,7 @@ def test_pprint_recarray_col():
     else:
         assert "dtype='(int32, (string8, float64))'" in repr(col)
 
-    t = table.Table([col, table.Column([1])], names=['a', 'b'])
+    t = table.Table([col, table.Column(np.array([1], np.int64))], names=['a', 'b'])
     if PY3:
         assert "(int32, (bytes8, float64)) int64" in repr(t)
     else:
