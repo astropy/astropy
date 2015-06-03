@@ -775,7 +775,7 @@ def get_testfiles(name=None):
         testfiles.append({'cols': ('Column 1', 'Column 2', 'Column 3'),
                           'name': 't/html.html',
                           'nrows': 3,
-                          'opts': {'Reader': ascii.HTML, 'guess': False}})
+                          'opts': {'Reader': ascii.HTML}})
     except ImportError:
         pass
 

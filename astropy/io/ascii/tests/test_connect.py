@@ -17,6 +17,9 @@ try:
 except ImportError:
     HAS_BEAUTIFUL_SOUP = False
 
+if HAS_BEAUTIFUL_SOUP:
+    files.append('t/html.html')
+
 @pytest.mark.parametrize('filename', files)
 
 def test_read_generic(filename):
