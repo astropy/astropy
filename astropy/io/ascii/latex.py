@@ -127,7 +127,7 @@ class LatexHeader(core.BaseHeader):
         add_dictval_to_list(self.latex, 'preamble', lines)
         if 'caption' in self.latex:
             lines.append(r'\caption{' + self.latex['caption'] + '}')
-        lines.append(self.header_start.format(self.latex['tabulartype']) +
+        lines.append(self.header_start.format(tabulartype=self.latex['tabulartype']) +
                      r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
         col_units = [col_getattr(col, 'unit') for col in self.cols]
@@ -155,7 +155,7 @@ class LatexData(core.BaseData):
 
     def end_line(self, lines):
         if self.data_end:
-            return find_latex_line(lines, self.data_end.format(self.latex['tabulartype']))
+            return find_latex_line(lines, self.data_end.format(tabulartype=self.latex['tabulartype']))
         else:
             return None
 
@@ -163,7 +163,7 @@ class LatexData(core.BaseData):
         add_dictval_to_list(self.latex, 'data_start', lines)
         core.BaseData.write(self, lines)
         add_dictval_to_list(self.latex, 'data_end', lines)
-        lines.append(self.data_end.format(self.latex['tabulartype']))
+        lines.append(self.data_end.format(tabulartype=self.latex['tabulartype']))
         add_dictval_to_list(self.latex, 'tablefoot', lines)
         lines.append(r'\end{' + self.latex['tabletype'] + '}')
 
