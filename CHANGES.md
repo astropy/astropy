@@ -9,6 +9,9 @@
 
 - Fix bug when plotting overlays on images with 3+ WCS dimensions.
 
+- Fixed bug that occurred when hovering over an interactive plot before the
+  axes were drawn the first time. [#152]
+
 - Fix bug that occurred in some cases where Matplotlib would try and plot a
   grid as soon as the axes were initialized.
 

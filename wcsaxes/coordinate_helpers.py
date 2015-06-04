@@ -174,6 +174,8 @@ class CoordinateHelper(object):
         Given the value of a coordinate, will format it according to the
         format of the formatter_locator.
         """
+        if not hasattr(self, "_fl_spacing"):
+            return ""  # _update_ticks has not been called yet
         fl = self._formatter_locator
         if isinstance(fl, AngleFormatterLocator):
             if self.coord_type == 'longitude':

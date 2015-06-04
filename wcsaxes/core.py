@@ -47,8 +47,12 @@ class WCSAxes(Axes):
         self._display_coords_index = 0
         fig.canvas.mpl_connect('key_press_event', self._set_cursor_prefs)
         self.patch = self.coords.frame.patch
+        self._drawn = False
 
     def _display_world_coords(self, x, y):
+
+        if not self._drawn:
+            return ""
 
         if self._display_coords_index == -1:
             return "%s %s (pixel)" % (x, y)
@@ -202,6 +206,8 @@ class WCSAxes(Axes):
                                        visible_ticks=visible_ticks)
 
         self.coords.frame.draw(renderer)
+
+        self._drawn = True
 
     def set_xlabel(self, label):
         self.coords[self._x_index].set_axislabel(label)
