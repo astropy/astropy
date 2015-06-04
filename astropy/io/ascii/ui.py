@@ -42,6 +42,52 @@ except ImportError:
 _GUESS = True
 
 
+def _probably_html(table, maxchars=100000):
+    """
+    Determine if ``table`` probably contains HTML content.  See PR #3693 and issue
+    #3691 for context.
+    """
+    if not isinstance(table, six.string_types):
+        try:
+            # If table is an iterable (list of strings) then take the first
+            # maxchars of these.  Make sure this is something with random
+            # access to exclude a file-like object
+            table[0]
+            table[:1]
+            size = 0
+            for i, line in enumerate(table):
+                size += len(line)
+                if size > maxchars:
+                    break
+            table = os.linesep.join(table[:i+1])
+        except:
+            pass
+
+    if isinstance(table, six.string_types):
+        # Look for signs of an HTML table in the first maxchars characters
+        table = table[:maxchars]
+
+        # URL ending in .htm or .html
+        if re.match(r'( http[s]? | ftp | file ) :// .+ \.htm[l]?$', table,
+                    re.IGNORECASE | re.VERBOSE):
+            return True
+
+        # Filename ending in .htm or .html which exists
+        if re.search(r'\.htm[l]?$', table[-5:], re.IGNORECASE) and os.path.exists(table):
+            return True
+
+        # Table starts with HTML document type declaration
+        if re.match(r'\s* <! \s* DOCTYPE \s* HTML', table, re.IGNORECASE | re.VERBOSE):
+            return True
+
+        # Look for <TABLE .. >, <TR .. >, <TD .. > tag openers.
+        if all(re.search(r'< \s* {0} [^>]* >'.format(element), table, re.IGNORECASE | re.VERBOSE)
+               for element in ('table', 'tr', 'td')):
+            return True
+
+    return False
+
+
 def set_guess(guess):
     """
     Set the default value of the ``guess`` parameter for read()
@@ -201,7 +247,14 @@ def read(table, guess=None, **kwargs):
 
     if guess is None:
         guess = _GUESS
+
     if guess:
+        # If ``table`` is probably an HTML file then tell guess function to add
+        # the HTML reader at the top of the guess list.  This is in response to
+        # issue #3691 (and others) where libxml can segfault on a long non-HTML
+        # file, thus prompting removal of the HTML reader from the default
+        # guess list.
+        new_kwargs['guess_html'] = _probably_html(table)
         dat = _guess(table, new_kwargs, format, fast_reader_param)
     else:
         reader = get_reader(**new_kwargs)
@@ -317,6 +370,11 @@ def _guess(table, read_kwargs, format, fast_reader):
 def _get_guess_kwargs_list(read_kwargs):
     guess_kwargs_list = []
 
+    # If the table is probably HTML based on some heuristics then start with the
+    # HTML reader.
+    if read_kwargs.pop('guess_html', None):
+        guess_kwargs_list.append(dict(Reader=html.HTML))
+
     # Start with ECSV because an ECSV file will be read by Basic.  This format
     # has very specific header requirements and fails out quickly.
     if HAS_YAML:
@@ -344,8 +402,7 @@ def _get_guess_kwargs_list(read_kwargs):
                               dict(Reader=sextractor.SExtractor),
                               dict(Reader=ipac.Ipac),
                               dict(Reader=latex.Latex),
-                              dict(Reader=latex.AASTex),
-                              dict(Reader=html.HTML)
+                              dict(Reader=latex.AASTex)
                               ])
 
     for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,

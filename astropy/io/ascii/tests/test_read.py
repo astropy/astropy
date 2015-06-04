@@ -16,7 +16,7 @@ from ....units import Unit
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
 from .. import core
-
+from ..ui import _probably_html
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -952,3 +952,33 @@ def test_commented_header_comments(fast):
              '3 4']
     dat = ascii.read(lines, format='commented_header', fast_reader=fast)
     assert 'comments' not in dat.meta
+
+
+def test_probably_html():
+    """
+    Test the routine for guessing if a table input to ascii.read is probably HTML
+    """
+    for table in ('t/html.html',
+                  'http://blah.com/table.html',
+                  'https://blah.com/table.html',
+                  'file://blah/table.htm',
+                  'ftp://blah.com/table.html',
+                  'file://blah.com/table.htm',
+                  ' <! doctype html > hello world',
+                  'junk < table baz> <tr foo > <td bar> </td> </tr> </table> junk',
+                  ['junk < table baz>', ' <tr foo >', ' <td bar> ', '</td> </tr>',  '</table> junk'],
+                  (' <! doctype html > ', ' hello world'),
+    ):
+        assert _probably_html(table) is True
+
+    for table in ('t/html.htms',
+                  'Xhttp://blah.com/table.html',
+                  ' https://blah.com/table.htm',
+                  'fole://blah/table.htm',
+                  ' < doctype html > hello world',
+                  'junk < tble baz> <tr foo > <td bar> </td> </tr> </table> junk',
+                  ['junk < table baz>', ' <t foo >', ' <td bar> ', '</td> </tr>',  '</table> junk'],
+                  (' <! doctype htm > ', ' hello world'),
+                  [[1, 2, 3]],
+    ):
+        assert _probably_html(table) is False

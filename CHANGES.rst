@@ -13,6 +13,19 @@ New Features
 
   - Add support for the 2015-Jun-30 leap second. [#3794]
 
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.io.ascii``
+
+  - Note that HTML formatted tables will not always be found with guess mode
+    unless it passes certain heuristics that strongly suggest the presence of
+    HTML in the input.  Code that expects to read tables from HTML should
+    specify ``format='html'`` explicitly. See bug fixes below for more
+    details. [#3693]
+
+
 Bug Fixes
 ^^^^^^^^^
 
@@ -27,6 +40,13 @@ Bug Fixes
   - Fixed ``get_sun`` to account for aberration of light. [#3750]
 
   - Fixed error in the GCRS->ICRS transformation that gave incorrect distances. [#3750]
+
+- ``astropy.io.ascii``
+
+  - Remove HTML from the list of automatically-guessed formats when reading if
+    the file does not appear to be HTML.  This was necessary to avoid a
+    commonly-encountered segmentation fault occurring in the libxml parser on
+    MacOSX. [#3693]
 
 - ``astropy.io.fits``
 
