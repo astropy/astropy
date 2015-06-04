@@ -1,4 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import warnings
+
 import numpy as np
 
 from . import settings
@@ -8,7 +11,8 @@ from . import settings
 
 def wrap_180(values):
     values_new = values % 360.
-    values_new[values_new > 180.] -= 360
+    with np.errstate(invalid='ignore'):
+        values_new[values_new > 180.] -= 360
     return values_new
 
 
@@ -47,7 +51,8 @@ def find_coordinate_range(transform, extent, coord_types):
 
             # Iron out coordinates along first row
             wjump = xw[0, 1:] - xw[0, :-1]
-            reset = np.abs(wjump) > 180.
+            with np.errstate(invalid='ignore'):
+                reset = np.abs(wjump) > 180.
             if np.any(reset):
                 wjump = wjump + np.sign(wjump) * 180.
                 wjump = 360. * (wjump / 360.).astype(int)
@@ -55,21 +60,26 @@ def find_coordinate_range(transform, extent, coord_types):
 
             # Now iron out coordinates along all columns, starting with first row.
             wjump = xw[1:] - xw[:1]
-            reset = np.abs(wjump) > 180.
+            with np.errstate(invalid='ignore'):
+                reset = np.abs(wjump) > 180.
             if np.any(reset):
                 wjump = wjump + np.sign(wjump) * 180.
                 wjump = 360. * (wjump / 360.).astype(int)
                 xw[1:][reset] -= wjump[reset]
 
-        xw_min = np.nanmin(xw)
-        xw_max = np.nanmax(xw)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            xw_min = np.nanmin(xw)
+            xw_max = np.nanmax(xw)
 
         # Check if range is smaller when normalizing to the range 0 to 360
 
         if coord_type in ['longitude', 'latitude']:
 
-            xw_min_check = np.min(xw % 360.)
-            xw_max_check = np.max(xw % 360.)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                xw_min_check = np.nanmin(xw % 360.)
+                xw_max_check = np.nanmax(xw % 360.)
 
             if xw_max - xw_min < 360. and xw_max - xw_min >= xw_max_check - xw_min_check:
                 xw_min = xw_min_check
@@ -79,8 +89,10 @@ def find_coordinate_range(transform, extent, coord_types):
 
         if coord_type in ['longitude', 'latitude']:
 
-            xw_min_check = np.min(wrap_180(xw))
-            xw_max_check = np.max(wrap_180(xw))
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                xw_min_check = np.nanmin(wrap_180(xw))
+                xw_max_check = np.nanmax(wrap_180(xw))
 
             if xw_max_check - xw_min_check < 360. and xw_max - xw_min >= xw_max_check - xw_min_check:
                 xw_min = xw_min_check
