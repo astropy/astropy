@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -61,5 +63,9 @@ def test_no_numpy_warnings():
     with catch_warnings() as ws:
         ax.coords.frame.set_color('none')
         plt.savefig('test.png')
+
+    # For debugging
+    for w in ws:
+        print(w)
 
     assert len(ws) == 0
