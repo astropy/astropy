@@ -4,6 +4,7 @@ from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
 from astropy.wcs import WCS
+from astropy.extern import six
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
@@ -83,6 +84,43 @@ class WCSAxes(Axes):
 
         self.xaxis.set_visible(False)
         self.yaxis.set_visible(False)
+
+    # We now overload ``imshow`` because we need to make sure that origin is
+    # set to ``lower`` for all images, which means that we need to flip RGB
+    # images.
+    def imshow(self, X, *args, **kwargs):
+        """
+        Wrapper to Matplotlib's :meth:`~matplotlib.axes.Axes.imshow`.
+
+        If an RGB image is passed as a PIL object, it will be flipped
+        vertically and ``origin`` will be set to ``lower``, since WCS
+        transformations - like FITS files - assume that the origin is the lower
+        left pixel of the image (whereas RGB images have the origin in the top
+        left).
+
+        All arguments are passed to :meth:`~matplotlib.axes.Axes.imshow`.
+        """
+
+        origin = kwargs.get('origin', None)
+
+        if origin == 'upper':
+            raise ValueError("Cannot use images with origin='upper' in WCSAxes.")
+
+        # To check whether the image is a PIL image we can check if the data
+        # has a 'getpixel' attribute - this is what Matplotlib's AxesImage does
+
+        try:
+            from PIL.Image import Image, FLIP_TOP_BOTTOM
+        except ImportError:
+            # We don't need to worry since PIL is not installed, so user cannot
+            # have passed RGB image.
+            pass
+        else:
+            if isinstance(X, Image) or hasattr(X, 'getpixel'):
+                X = X.transpose(FLIP_TOP_BOTTOM)
+                kwargs['origin'] = 'lower'
+
+        return super(WCSAxes, self).imshow(X, *args, **kwargs)
 
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
