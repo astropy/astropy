@@ -5,6 +5,7 @@ This module includes helper functions for array operations.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
+import copy
 from .decorators import support_nddata
 from astropy.utils import lazyproperty
 from astropy.coordinates import SkyCoord
@@ -491,8 +492,7 @@ class Cutout(object):
             if wcs is None:
                 raise ValueError('wcs must be input if position is a '
                                  'SkyCoord')
-
-            position= skycoord_to_pixel(position, wcs, mode='all')
+            position = skycoord_to_pixel(position, wcs, mode='all')
 
         if mode not in ['partial', 'trim', 'strict']:
             raise ValueError("Valid modes are 'partial', 'trim', and "
@@ -516,6 +516,19 @@ class Cutout(object):
 
         (self.ymin_small, self.xmin_small,
          self.ymax_small, self.xmax_small) = self.bbox_small
+
+        # the true origin pixel of the cutout array, including any
+        # filled cutout values
+        self._origin_large_true = (self.origin_large[1] -
+                                   self.slices_small[1].start,
+                                   self.origin_large[0] -
+                                   self.slices_small[0].start)
+
+        if wcs is not None:
+            self.wcs = copy.deepcopy(wcs)
+            self.wcs.wcs.crpix -= self._origin_large_true
+        else:
+            self.wcs = None
 
     @staticmethod
     def _calc_center(slices):
@@ -552,7 +565,8 @@ class Cutout(object):
     @lazyproperty
     def position(self):
         """
-        The central position index (rounded position) in the large array.
+        The central position index (rounded to the nearest pixel) in the
+        large array.
         """
         return _round(self.position_input[0]), _round(self.position_input[1])
 
