@@ -499,3 +499,15 @@ def test_unicode_guidelines():
     c = table.Column(arr, name='a')
 
     assert_follows_unicode_guidelines(c)
+
+
+def test_scalar_column():
+    """
+    Column is not designed to hold scalars, but for numpy 1.6 this can happen:
+
+      >> type(np.std(table.Column([1, 2])))
+      astropy.table.column.Column
+    """
+    c = table.Column(1.5)
+    assert repr(c) == '1.5'
+    assert str(c) == '1.5'
