@@ -168,7 +168,8 @@ class WCSPixel2WorldTransform(CurvedTransform):
         # At the moment, one has to manually check that the transformation
         # round-trips, otherwise it should be considered invalid.
         pixel_check = self.wcs.wcs_world2pix(world, 1)
-        invalid = np.any(np.abs(pixel_check - pixel_full) > 1., axis=1)
+        with np.errstate(invalid='ignore'):
+            invalid = np.any(np.abs(pixel_check - pixel_full) > 1., axis=1)
         world[invalid] = np.nan
 
         return world

@@ -469,8 +469,9 @@ class CoordinateHelper(object):
             tick_angle = np.degrees(np.arctan2(dy, dx))
 
             normal_angle_full = np.hstack([spine.normal_angle, spine.normal_angle[-1]])
-            reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
-                     ((tick_angle - normal_angle_full) % 360 > 90.))
+            with np.errstate(invalid='ignore'):
+                reset = (((normal_angle_full - tick_angle) % 360 > 90.) &
+                         ((tick_angle - normal_angle_full) % 360 > 90.))
             tick_angle[reset] -= 180.
 
             # We find for each interval the starting and ending coordinate,
@@ -481,8 +482,9 @@ class CoordinateHelper(object):
             if self.coord_type == 'longitude':
                 w1 = wrap_angle_at(w1, self.coord_wrap)
                 w2 = wrap_angle_at(w2, self.coord_wrap)
-                w1[w2 - w1 > 180.] += 360
-                w2[w1 - w2 > 180.] += 360
+                with np.errstate(invalid='ignore'):
+                    w1[w2 - w1 > 180.] += 360
+                    w2[w1 - w2 > 180.] += 360
 
             # For longitudes, we need to check ticks as well as ticks + 360,
             # since the above can produce pairs such as 359 to 361 or 0.5 to
@@ -511,8 +513,9 @@ class CoordinateHelper(object):
             # separately for the case where the tick falls exactly on the
             # frame points, otherwise we'll get two matches, one for w1 and
             # one for w2.
-            intersections = np.hstack([np.nonzero((t - w1) == 0)[0],
-                                       np.nonzero(((t - w1) * (t - w2)) < 0)[0]])
+            with np.errstate(invalid='ignore'):
+                intersections = np.hstack([np.nonzero((t - w1) == 0)[0],
+                                           np.nonzero(((t - w1) * (t - w2)) < 0)[0]])
 
             # But we also need to check for intersection with the last w2
             if t - w2[-1] == 0:
