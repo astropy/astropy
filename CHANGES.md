@@ -12,6 +12,8 @@
 - Fix bug that occurred in some cases where Matplotlib would try and plot a
   grid as soon as the axes were initialized.
 
+- Fix bug with plotting RGB images. [#15]
+
 0.3 (2014-12-07)
 ----------------
 
