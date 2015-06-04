@@ -947,8 +947,23 @@ class Card(_Verify):
         keyword = self._image[:KEYWORD_LENGTH].strip()
         keyword_upper = keyword.upper()
         val_ind_idx = self._image.find(VALUE_INDICATOR)
+        hval_ind_idx = self._image.find(HIERARCH_VALUE_INDICATOR)
 
         special = self._commentary_keywords
+
+        # We couldn't find the value indicator, but it looks like a
+        # non-standard card. Let's try to artificially put the indicator
+        # there.
+        #
+        # If the card ends on ' it will probably by a string and we give up.
+        # Otherwise, we discard the last character to make room (it will
+        # probably be part of the comment, anyway)
+        if (val_ind_idx < 0 and keyword_upper != 'HIERARCH' and
+                hval_ind_idx == KEYWORD_LENGTH and self._image[-1] != "'"):
+            val_ind_idx = hval_ind_idx
+            value_start = val_ind_idx + len(HIERARCH_VALUE_INDICATOR)
+            self._image = VALUE_INDICATOR.join([self._image[:KEYWORD_LENGTH],
+                                                self._image[value_start:-1]])
 
         if (0 <= val_ind_idx <= KEYWORD_LENGTH or keyword_upper in special or
                 keyword_upper == 'CONTINUE'):
