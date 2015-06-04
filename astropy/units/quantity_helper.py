@@ -202,7 +202,6 @@ helper_division = lambda f, unit1, unit2: ([None, None], _d(unit1) / _d(unit2))
 
 UFUNC_HELPERS[np.divide] = helper_division
 UFUNC_HELPERS[np.true_divide] = helper_division
-UFUNC_HELPERS[np.floor_divide] = helper_division
 
 
 def helper_power(f, unit1, unit2):
@@ -317,10 +316,17 @@ UFUNC_HELPERS[np.equal] = helper_twoarg_comparison
 
 def helper_twoarg_invtrig(f, unit1, unit2):
     from .si import radian
-    scales, _ = get_converters_and_unit(f, unit1, unit2)
-    return scales, radian
+    converters, _ = get_converters_and_unit(f, unit1, unit2)
+    return converters, radian
 
 UFUNC_HELPERS[np.arctan2] = helper_twoarg_invtrig
 # another private function in numpy; use getattr in case it disappears
 if isinstance(getattr(np.core.umath, '_arg', None), np.ufunc):
     UFUNC_HELPERS[np.core.umath._arg] = helper_twoarg_invtrig
+
+
+def helper_twoarg_floor_divide(f, unit1, unit2):
+    converters, _ = get_converters_and_unit(f, unit1, unit2)
+    return converters, dimensionless_unscaled
+
+UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
