@@ -777,7 +777,7 @@ class Column(BaseColumn):
     def _base_repr_(self, html=False):
         # If scalar then just convert to correct numpy type and use numpy repr
         if self.ndim == 0:
-            return repr(self.dtype.type(self))
+            return repr(self.item())
 
         descr_vals = [self.__class__.__name__]
         unit = None if self.unit is None else str(self.unit)
@@ -817,7 +817,7 @@ class Column(BaseColumn):
     def __unicode__(self):
         # If scalar then just convert to correct numpy type and use numpy repr
         if self.ndim == 0:
-            return str(self.dtype.type(self))
+            return str(self.item())
 
         lines, outs = self._formatter._pformat_col(self)
         return '\n'.join(lines)
