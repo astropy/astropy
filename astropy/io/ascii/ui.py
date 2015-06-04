@@ -68,10 +68,11 @@ def _probably_html(table, maxchars=100000):
         table = table[:maxchars]
 
         # URL ending in .htm or .html
-        if re.match(r'http[s]?:// .+ \.htm[l]?$', table, re.IGNORECASE):
+        if re.match(r'( http[s]? | ftp | file ) :// .+ \.htm[l]?$', table,
+                    re.IGNORECASE | re.VERBOSE):
             return True
 
-        # Filename ending in .htm or .html
+        # Filename ending in .htm or .html which exists
         if re.search(r'\.htm[l]?$', table[-5:], re.IGNORECASE) and os.path.exists(table):
             return True
 
