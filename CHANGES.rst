@@ -268,7 +268,6 @@ New Features
 
   - Add support for the 2015-Jun-30 leap second. [#3794]
 
-
 API Changes
 ^^^^^^^^^^^
 
@@ -279,7 +278,6 @@ API Changes
     HTML in the input.  Code that expects to read tables from HTML should
     specify ``format='html'`` explicitly. See bug fixes below for more
     details. [#3693]
-
 
 Bug Fixes
 ^^^^^^^^^
