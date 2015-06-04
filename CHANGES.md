@@ -9,6 +9,9 @@
 
 - Fix bug when plotting overlays on images with 3+ WCS dimensions.
 
+- Fix bug that occurred in some cases where Matplotlib would try and plot a
+  grid as soon as the axes were initialized.
+
 0.3 (2014-12-07)
 ----------------
 
