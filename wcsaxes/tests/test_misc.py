@@ -54,14 +54,13 @@ COORDSYS= 'icrs    '
 def test_no_numpy_warnings():
 
     # Make sure that no warnings are raised if some pixels are outside WCS
-    # (since this is normal/)
+    # (since this is normal)
 
     ax = plt.subplot(1,1,1, projection=WCS(TARGET_HEADER))
     ax.imshow(np.zeros((100,200)))
     ax.coords.grid(color='white')
 
     with catch_warnings() as ws:
-        ax.coords.frame.set_color('none')
         plt.savefig('test.png')
 
     # For debugging
