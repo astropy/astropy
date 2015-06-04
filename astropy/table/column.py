@@ -775,6 +775,10 @@ class Column(BaseColumn):
         return self
 
     def _base_repr_(self, html=False):
+        # If scalar then just convert to correct numpy type and use numpy repr
+        if self.ndim == 0:
+            return repr(self.item())
+
         descr_vals = [self.__class__.__name__]
         unit = None if self.unit is None else str(self.unit)
         shape = None if self.ndim <= 1 else self.shape[1:]
@@ -811,6 +815,10 @@ class Column(BaseColumn):
         return self._base_repr_(html=False)
 
     def __unicode__(self):
+        # If scalar then just convert to correct numpy type and use numpy repr
+        if self.ndim == 0:
+            return str(self.item())
+
         lines, outs = self._formatter._pformat_col(self)
         return '\n'.join(lines)
     if six.PY3:
