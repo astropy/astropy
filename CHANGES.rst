@@ -151,6 +151,11 @@ API changes
 
 - ``astropy.io.ascii``
 
+  - Remove HTML from the list of automatically-guessed formats when reading if
+    the file does not appear to be HTML.  This was necessary to avoid a
+    commonly-encountered segmentation fault occurring in the libxml parser on
+    MacOSX. [#3693]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``

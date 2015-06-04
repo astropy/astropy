@@ -267,7 +267,7 @@ class which actually implements reading the different file formats::
 
   for Reader in (Ecsv, FixedWidthTwoLine, FastBasic, Basic,
                  Rdb, FastTab, Tab, Cds, Daophot, SExtractor,
-                 Ipac, Latex, AASTex, HTML):
+                 Ipac, Latex, AASTex):
       read(Reader=Reader)
 
   for Reader in (CommentedHeader, FastBasic, Basic, FastNoHeader, NoHeader):
