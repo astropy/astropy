@@ -472,20 +472,56 @@ class Cutout(object):
     def __init__(self, data, position, shape, wcs=None, mode='trim',
                  fill_value=np.nan):
         """
-        Create a cutout image.
+        Create a cutout object from a 2D array.
+
+        The returned object will contain the 2D cutout array and the
+        updated WCS, if an `~astropy.wcs.WCS` object is input.
 
         Parameters
         ----------
+        data : `~numpy.ndarray`
+            The 2D data array from which to extract the cutout array.
+
         position : tuple or `~astropy.coordinates.SkyCoord`
+            The position of the cutout array's center, with
+            respect to the large ``data`` array.  Integer positions are
+            at the pixel centers.
 
         shape : tuple
+            The shape of the cutout array in pixel coordinates (but see
+            the ``mode`` keyword for additional details).
 
-        wcs : `~astropy.wcs.WCS`, optional
+        wcs : `~astropy.wcs.WCS`
+            A WCS object associated with the input ``data`` array.  If
+            ``wcs`` is not `None`, then the returned cutout object will
+            contain the updated WCS for the cutout data array.
+
+        mode : {'partial', 'trim', 'strict'}
+            The mode used for creating the cutout data array.  For the
+            ``'partial'`` and ``'trim'`` modes, a partial overlap of the
+            cutout array and the input ``data`` array is sufficient.
+            For the ``'strict'`` mode, the cutout array has to be fully
+            contained within input ``data`` array, otherwise an
+            `~astropy.nddata.utils.PartialOverlapError` is raised.   In
+            all modes, non-overlapping arrays will raise a
+            `~astropy.nddata.utils.NoOverlapError`.  In ``'partial'``
+            mode, positions in the cutout array that do not overlap with
+            the input ``data`` array will be filled with ``fill_value``.
+            In ``'trim'`` mode only the overlapping elements are
+            returned, thus the resulting array may be smaller than the
+            requested ``shape``.
+
+        fill_value : number
+            If ``mode='partial'``, the value to fill pixels in the
+            cutout array that do not overlap with the input ``data``.
+            ``fill_value`` must have the same ``dtype`` as the input
+            ``data`` array.
 
         Returns
         -------
         result : `~astropy.nddata.utils.Cutout`
-            Cutout object
+            A cutout object containing the 2D cutout data array and the
+            updated WCS, if ``wcs`` is input.
         """
 
         if isinstance(position, SkyCoord):
