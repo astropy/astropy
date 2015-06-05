@@ -30,7 +30,7 @@ class PartialOverlapError(ValueError):
 def _round(a):
     '''Always round up.
 
-    ``np.round`` cannot be used here, because it round .5 to the nearest
+    ``np.round`` cannot be used here, because it rounds .5 to the nearest
     even number.
     '''
     return int(np.floor(a + 0.5))
@@ -77,7 +77,7 @@ def overlap_slices(large_array_shape, small_array_shape, position,
         For any axis where ``small_array_shape`` is even, the position
         is rounded up, e.g. extracting two elements with a center of
         ``1`` will define the extracted region as ``[0, 1]``.
-    mode : {'partial', 'trim', 'strict'}
+    mode : {'partial', 'trim', 'strict'}, optional
         In ``'partial'`` mode, a partial overlap of the small and the
         large array is sufficient.  The ``'trim'`` mode is similar to
         the ``'partial'`` mode, but ``slices_small`` will be adjusted to
@@ -172,7 +172,7 @@ def extract_array(array_large, shape, position, mode='partial',
         large array.  The pixel cordinates should be in the same order
         as the array shape.  Integer positions are at the pixel centers
         (for 1D arrays, this can be a number).
-    mode : {'partial', 'trim', 'strict'}
+    mode : {'partial', 'trim', 'strict'}, optional
         The mode used for extracting the small array.  For the
         ``'partial'`` and ``'trim'`` modes, a partial overlap of the
         small array and the large array is sufficient.  For the
@@ -185,12 +185,12 @@ def extract_array(array_large, shape, position, mode='partial',
         array will be filled with ``fill_value``.  In ``'trim'`` mode
         only the overlapping elements are returned, thus the resulting
         small array may be smaller than the requested ``shape``.
-    fill_value : number
+    fill_value : number, optional
         If ``mode='partial'``, the value to fill pixels in the extracted
         small array that do not overlap with the input ``array_large``.
         ``fill_value`` must have the same ``dtype`` as the
         ``array_large`` array.
-    return_position : boolean
+    return_position : boolean, optional
         If `True`, return the coordinates of ``position`` in the
         coordinate system of the returned array.
 
@@ -359,7 +359,7 @@ def block_reduce(data, block_size, func=np.sum):
         scalar and ``data`` has more than one dimension, then
         ``block_size`` will be used for for every axis.
 
-    func : callable
+    func : callable, optional
         The method to use to downsample the data.  Must be a callable
         that takes in a `~numpy.ndarray` along with an ``axis`` keyword,
         which defines the axis along which the function is applied.  The
@@ -426,7 +426,7 @@ def block_replicate(data, block_size, conserve_sum=True):
         scalar and ``data`` has more than one dimension, then
         ``block_size`` will be used for for every axis.
 
-    conserve_sum : bool
+    conserve_sum : bool, optional
         If `True` (the default) then the sum of the output
         block-replicated data will equal the sum of the input ``data``.
 
@@ -479,7 +479,7 @@ class Cutout(object):
         Create a cutout object from a 2D array.
 
         The returned object will contain the 2D cutout array and the
-        updated WCS, if an `~astropy.wcs.WCS` object is input.
+        updated WCS, if a `~astropy.wcs.WCS` object is input.
 
         Parameters
         ----------
@@ -487,35 +487,38 @@ class Cutout(object):
             The 2D data array from which to extract the cutout array.
 
         position : tuple or `~astropy.coordinates.SkyCoord`
-            The position of the cutout array's center, with
-            respect to the large ``data`` array.  Integer positions are
-            at the pixel centers.
+            The position of the cutout array's center with respect to
+            the ``data`` array.  The position can be specified either as
+            a ``(y, x)`` (``(row, col)``) tuple of pixel coordinates or
+            a `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is
+            a required input.  For pixel coordinates, integer positions
+            are at the pixel centers.
 
         shape : tuple
             The shape of the cutout array in pixel coordinates (but see
             the ``mode`` keyword for additional details).
 
-        wcs : `~astropy.wcs.WCS`
+        wcs : `~astropy.wcs.WCS`, optional
             A WCS object associated with the input ``data`` array.  If
             ``wcs`` is not `None`, then the returned cutout object will
             contain the updated WCS for the cutout data array.
 
-        mode : {'partial', 'trim', 'strict'}
+        mode : {'trim', 'partial', 'strict'}, optional
             The mode used for creating the cutout data array.  For the
             ``'partial'`` and ``'trim'`` modes, a partial overlap of the
             cutout array and the input ``data`` array is sufficient.
             For the ``'strict'`` mode, the cutout array has to be fully
-            contained within input ``data`` array, otherwise an
+            contained within the ``data`` array, otherwise an
             `~astropy.nddata.utils.PartialOverlapError` is raised.   In
             all modes, non-overlapping arrays will raise a
             `~astropy.nddata.utils.NoOverlapError`.  In ``'partial'``
             mode, positions in the cutout array that do not overlap with
-            the input ``data`` array will be filled with ``fill_value``.
-            In ``'trim'`` mode only the overlapping elements are
-            returned, thus the resulting array may be smaller than the
+            the ``data`` array will be filled with ``fill_value``.  In
+            ``'trim'`` mode only the overlapping elements are returned,
+            thus the resulting cutout array may be smaller than the
             requested ``shape``.
 
-        fill_value : number
+        fill_value : number, optional
             If ``mode='partial'``, the value to fill pixels in the
             cutout array that do not overlap with the input ``data``.
             ``fill_value`` must have the same ``dtype`` as the input
@@ -622,9 +625,9 @@ class Cutout(object):
     @lazyproperty
     def center_small(self):
         """
-        The central ``(y, x)`` position of the cutout array.  For
-        ``mode='partial'``, the central position is calculated for the
-        valid (non-filled) cutout values.
+        The central ``(y, x)`` position of the cutout array with respect
+        to the cutout array.  For ``mode='partial'``, the central
+        position is calculated for the valid (non-filled) cutout values.
         """
         return self._calc_center(self.slices_small)
 
@@ -642,8 +645,8 @@ class Cutout(object):
     def bbox_small(self):
         """
         The bounding box ``(ymin, xmin, ymax, xmax)`` of the minimal
-        rectangular region of the cutout array.  For ``mode='partial'``,
-        the bounding box indices are for the valid (non-filled) cutout
-        values.
+        rectangular region of the cutout array with respect to the
+        cutout array.  For ``mode='partial'``, the bounding box indices
+        are for the valid (non-filled) cutout values.
         """
         return self._calc_bbox(self.slices_small)
