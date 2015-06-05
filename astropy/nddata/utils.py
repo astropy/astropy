@@ -65,17 +65,19 @@ def overlap_slices(large_array_shape, small_array_shape, position,
     Parameters
     ----------
     large_array_shape : tuple or int
-        Shape of the large array (for 1D arrays, this can be an int).
+        The shape of the large array (for 1D arrays, this can be an
+        `int`).
     small_array_shape : tuple or int
-        Shape of the small array (for 1D arrays, this can be an int).
+        The shape of the small array (for 1D arrays, this can be an
+        `int`).  See the ``mode`` keyword for additional details.
     position : tuple of numbers or number
-        Position of the small array's center, with respect to the large array.
-        Coordinates should be in the same order as the array shape.
-        Integer positions are at the pixel centers.
-        For a coordinate with an even number of elements, the position is
-        rounded up, e.g. extracting two elements with a center of ``1`` will
-        give positions ``[0, 1]``.
-    mode : ['partial', 'trim', 'strict']
+        The position of the small array's center with respect to the
+        large array.  The pixel coordinates should be in the same order
+        as the array shape.  Integer positions are at the pixel centers.
+        For any axis where ``small_array_shape`` is even, the position
+        is rounded up, e.g. extracting two elements with a center of
+        ``1`` will define the extracted region as ``[0, 1]``.
+    mode : {'partial', 'trim', 'strict'}
         In ``'partial'`` mode, a partial overlap of the small and the
         large array is sufficient.  The ``'trim'`` mode is similar to
         the ``'partial'`` mode, but ``slices_small`` will be adjusted to
@@ -88,14 +90,15 @@ def overlap_slices(large_array_shape, small_array_shape, position,
     Returns
     -------
     slices_large : tuple of slices
-        Slices in all directions for the large array, such that
-        ``large_array[slices_large]`` extracts the region of the large array
-        that overlaps with the small array.
+        A tuple of slice objects for each axis of the large array, such
+        that ``large_array[slices_large]`` extracts the region of the
+        large array that overlaps with the small array.
     slices_small : slice
-        Slices in all directions for the small array, such that
-        ``small_array[slices_small]`` extracts the region that is inside the
-        large array.
+        A tuple of slice objects for each axis of the small array, such
+        that ``small_array[slices_small]`` extracts the region that is
+        inside the large array.
     """
+
     if mode not in ['partial', 'trim', 'strict']:
         raise ValueError('Mode can be only "partial", "trim", or "strict".')
     if np.isscalar(small_array_shape):
@@ -106,10 +109,12 @@ def overlap_slices(large_array_shape, small_array_shape, position,
         position = (position, )
 
     if len(small_array_shape) != len(large_array_shape):
-        raise ValueError("Both arrays must have the same number of dimensions.")
+        raise ValueError('"large_array_shape" and "small_array_shape" must '
+                         'have the same number of dimensions.')
 
     if len(small_array_shape) != len(position):
-        raise ValueError("Position must have the same number of dimensions as array.")
+        raise ValueError('"position" must have the same number of dimensions '
+                         'as "small_array_shape".')
     # Get edge coordinates
     edges_min = [_round(pos + 0.5 - small_shape / 2. + _offset(small_shape))
                  for (pos, small_shape) in zip(position, small_array_shape)]
@@ -165,17 +170,19 @@ def extract_array(array_large, shape, position, mode='partial',
         Coordinates should be in the same order as the array shape.
         Integer positions are at the pixel centers. (For 1D arrays, this can be
         a number.)
-    mode : ['partial', 'trim', 'strict']
-        In "partial" and "trim" mode, a partial overlap of the small
-        and the large array is sufficient. In the "strict" mode, the
-        small array has to be fully contained in the large array,
-        otherwise an `~astropy.nddata.utils.PartialOverlapError` is
-        raised. In all modes, non-overlapping arrays will raise a
-        `~astropy.nddata.utils.NoOverlapError`.  In "partial" mode,
-        positions in the extracted array, that do not overlap with the
-        original array, will be filled with ``fill_value``. In "trim"
-        mode only the overlapping elements are returned, thus the
-        resulting array may be smaller than requested.
+    mode : {'partial', 'trim', 'strict'}
+        The mode used for extracting the small array.  For the
+        ``'partial'`` and ``'trim'`` modes, a partial overlap of the
+        small array and the large array is sufficient.  For the
+        ``'strict'`` mode, the small array has to be fully contained
+        within the large array, otherwise an
+        `~astropy.nddata.utils.PartialOverlapError` is raised.   In all
+        modes, non-overlapping arrays will raise a
+        `~astropy.nddata.utils.NoOverlapError`.  In ``'partial'`` mode,
+        positions in the small array that do not overlap with the large
+        array will be filled with ``fill_value``.  In ``'trim'`` mode
+        only the overlapping elements are returned, thus the resulting
+        small array may be smaller than the requested ``shape``.
 
     fill_value : object of type array_large.dtype
         In "partial" mode ``fill_value`` set the values in the
