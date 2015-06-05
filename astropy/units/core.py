@@ -24,7 +24,7 @@ from .utils import (is_effectively_unity, sanitize_scale, validate_power,
                     resolve_fractions)
 from . import format as unit_format
 
-# TODO: Support functional units, e.g. log(x), ln(x)
+# TODO: Support function units, e.g. log(x), ln(x)
 
 __all__ = [
     'UnitsError', 'UnitsWarning', 'UnitConversionError', 'UnitBase',
@@ -95,8 +95,8 @@ def _normalize_equivalencies(equivalencies):
         else:
             raise ValueError(
                 "Invalid equivalence entry {0}: {1!r}".format(i, equiv))
-        if not (isinstance(funit, UnitBase) and
-                (isinstance(tunit, UnitBase) or tunit is None) and
+        if not (funit is Unit(funit) and
+                (tunit is None or tunit is Unit(tunit)) and
                 six.callable(a) and
                 six.callable(b)):
             raise ValueError(
@@ -541,7 +541,6 @@ class UnitBase(object):
         raise AttributeError(
             "Can not get names from unnamed units. "
             "Perhaps you meant to_string()?")
-        return self._names
 
     @property
     def name(self):
@@ -641,24 +640,30 @@ class UnitBase(object):
                 return self
             return CompositeUnit(1, [self, m], [1, -1], _error_check=False)
 
-        # Cannot handle this as Unit, re-try as Quantity
-        from .quantity import Quantity
-        return Quantity(1, self) / m
+        try:
+            # Cannot handle this as Unit, re-try as Quantity
+            from .quantity import Quantity
+            return Quantity(1, self) / m
+        except TypeError:
+            return NotImplemented
 
     def __rdiv__(self, m):
         if isinstance(m, (bytes, six.text_type)):
             return Unit(m) / self
 
-        # Cannot handle this as Unit.  Here, m cannot be a Quantity,
-        # so we make it into one, fasttracking when it does not have a unit,
-        # for the common case of <array> / <unit>.
-        from .quantity import Quantity
-        if hasattr(m, 'unit'):
-            result = Quantity(m)
-            result /= self
-            return result
-        else:
-            return Quantity(m, self**(-1))
+        try:
+            # Cannot handle this as Unit.  Here, m cannot be a Quantity,
+            # so we make it into one, fasttracking when it does not have a unit,
+            # for the common case of <array> / <unit>.
+            from .quantity import Quantity
+            if hasattr(m, 'unit'):
+                result = Quantity(m)
+                result /= self
+                return result
+            else:
+                return Quantity(m, self**(-1))
+        except TypeError:
+            return NotImplemented
 
     __truediv__ = __div__
 
@@ -676,8 +681,11 @@ class UnitBase(object):
             return CompositeUnit(1, [self, m], [1, 1], _error_check=False)
 
         # Cannot handle this as Unit, re-try as Quantity.
-        from .quantity import Quantity
-        return Quantity(1, self) * m
+        try:
+            from .quantity import Quantity
+            return Quantity(1, self) * m
+        except TypeError:
+            return NotImplemented
 
     def __rmul__(self, m):
         if isinstance(m, (bytes, six.text_type)):
@@ -686,13 +694,16 @@ class UnitBase(object):
         # Cannot handle this as Unit.  Here, m cannot be a Quantity,
         # so we make it into one, fasttracking when it does not have a unit
         # for the common case of <array> * <unit>.
-        from .quantity import Quantity
-        if hasattr(m, 'unit'):
-            result = Quantity(m)
-            result *= self
-            return result
-        else:
-            return Quantity(m, self)
+        try:
+            from .quantity import Quantity
+            if hasattr(m, 'unit'):
+                result = Quantity(m)
+                result *= self
+                return result
+            else:
+                return Quantity(m, self)
+        except TypeError:
+            return NotImplemented
 
     def __hash__(self):
         # This must match the hash used in CompositeUnit for a unit
@@ -707,6 +718,12 @@ class UnitBase(object):
             other = Unit(other, parse_strict='silent')
         except (ValueError, UnitsError, TypeError):
             return False
+
+        # Other is Unit-like, but the test below requires it is a UnitBase
+        # instance; if it is not, give up (so that other can try).
+        if not isinstance(other, UnitBase):
+            return NotImplemented
+
         try:
             return is_effectively_unity(self._to(other))
         except UnitsError:
@@ -758,8 +775,8 @@ class UnitBase(object):
         if isinstance(other, tuple):
             return any(self.is_equivalent(u, equivalencies=equivalencies)
                        for u in other)
-        else:
-            other = Unit(other, parse_strict='silent')
+
+        other = Unit(other, parse_strict='silent')
 
         return self._is_equivalent(other, equivalencies)
 
@@ -804,16 +821,14 @@ class UnitBase(object):
                 return func(_condition_arg(v) / scale1) * scale2
             return convert
 
-        orig_unit = unit
-        orig_other = other
-
-        unit = self.decompose()
-        other = other.decompose()
+        if hasattr(other, 'equivalencies'):
+            equivalencies += other.equivalencies
 
         for funit, tunit, a, b in equivalencies:
             if tunit is None:
                 try:
-                    ratio_in_funit = (other/unit).decompose([funit])
+                    ratio_in_funit = (other.decompose() /
+                                      unit.decompose()).decompose([funit])
                     return make_converter(ratio_in_funit.scale, a, 1.)
                 except UnitsError:
                     pass
@@ -841,8 +856,8 @@ class UnitBase(object):
                 unit_str = "'{0}'".format(unit_str)
             return unit_str
 
-        unit_str = get_err_str(orig_unit)
-        other_str = get_err_str(orig_other)
+        unit_str = get_err_str(unit)
+        other_str = get_err_str(other)
 
         raise UnitConversionError(
             "{0} and {1} are not convertible".format(
@@ -905,17 +920,20 @@ class UnitBase(object):
         if self is other:
             return 1.0
 
-        self_decomposed = self.decompose()
-        other_decomposed = other.decompose()
+        # Don't presume decomposition is possible; e.g.,
+        # conversion to function units is through equivalencies.
+        if isinstance(other, UnitBase):
+            self_decomposed = self.decompose()
+            other_decomposed = other.decompose()
 
-        # Check quickly whether equivalent.  This is faster than
-        # `is_equivalent`, because it doesn't generate the entire
-        # physical type list of both units.  In other words it "fails
-        # fast".
-        if(self_decomposed.powers == other_decomposed.powers and
-           all(self_base is other_base for (self_base, other_base)
-               in zip(self_decomposed.bases, other_decomposed.bases))):
-            return self_decomposed.scale / other_decomposed.scale
+            # Check quickly whether equivalent.  This is faster than
+            # `is_equivalent`, because it doesn't generate the entire
+            # physical type list of both units.  In other words it "fails
+            # fast".
+            if(self_decomposed.powers == other_decomposed.powers and
+               all(self_base is other_base for (self_base, other_base)
+                   in zip(self_decomposed.bases, other_decomposed.bases))):
+                return self_decomposed.scale / other_decomposed.scale
 
         raise UnitConversionError(
             "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
@@ -1727,7 +1745,7 @@ class _UnitMetaClass(InheritDocstrings):
                  doc=None, parse_strict='raise'):
 
         # Short-circuit if we're already a unit
-        if isinstance(s, UnitBase):
+        if hasattr(s, '_get_physical_type_id'):
             return s
 
         # turn possible Quantity input for s or represents into a Unit

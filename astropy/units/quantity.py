@@ -187,7 +187,8 @@ class Quantity(np.ndarray):
                 # the above already makes a copy (with float dtype)
                 copy = False
 
-            if not subok and type(value) is not cls:
+            if type(value) is not cls and not (subok and
+                                               isinstance(value, cls)):
                 value = value.view(cls)
 
             if dtype is None:
@@ -757,7 +758,10 @@ class Quantity(np.ndarray):
         """ Multiplication between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._new_view(self.copy(), other * self.unit)
+            try:
+                return self._new_view(self.copy(), other * self.unit)
+            except UnitsError:  # let other try to deal with it
+                return NotImplemented
 
         return np.multiply(self, other)
 
@@ -781,7 +785,10 @@ class Quantity(np.ndarray):
         """ Division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
-            return self._new_view(self.copy(), self.unit / other)
+            try:
+                return self._new_view(self.copy(), self.unit / other)
+            except UnitsError:  # let other try to deal with it
+                return NotImplemented
 
         return np.true_divide(self, other)
 
@@ -1082,7 +1089,8 @@ class Quantity(np.ndarray):
 
     def _to_own_unit(self, value, check_precision=True):
         try:
-            _value = value.to(self.unit).value
+            # for speed, "unit.to(...)" instead of "value.to(self.unit).value
+            _value = value.unit.to(self.unit, value.value)
         except AttributeError:
             try:
                 _value = dimensionless_unscaled.to(self.unit, value)

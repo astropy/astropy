@@ -142,6 +142,7 @@ Using `astropy.units`
    standard_units
    combining_and_defining
    decomposing_and_composing
+   logarithmic_units	      
    format
    equivalencies
    conversion
@@ -189,6 +190,7 @@ Reference/API
 
 .. automodapi:: astropy.units.equivalencies
 
+.. automodapi:: astropy.units.function
 
 Acknowledgments
 ===============
