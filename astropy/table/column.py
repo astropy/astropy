@@ -16,6 +16,7 @@ from ..utils.console import color_print
 from ..utils.metadata import MetaData
 from . import groups
 from . import pprint
+from . import info
 from .np_utils import fix_column_name
 
 from ..config import ConfigAlias
@@ -695,6 +696,9 @@ class BaseColumn(np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
+
+    info = info.column_info
+    info.__name__ = str('info')
 
 
 class Column(BaseColumn):

@@ -24,7 +24,7 @@ from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
                      col_getattr, col_setattr, col_copy, _col_update_attrs_from)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
-
+from . import info
 
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays containing Unicode columns to
@@ -2173,6 +2173,11 @@ class Table(object):
                 out[name] = Column(data=data, name=name)
 
         return cls(out)
+
+
+
+    info = info.table_info
+    info.__name__ == str('info')
 
 
 class QTable(Table):

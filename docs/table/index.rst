@@ -94,6 +94,16 @@ assigned, all units would be shown as follows::
       4     5.0       y
       5     8.2       z
 
+Finally, you can get a summary information about the table as follows::
+
+  >>> t.info()
+  <Table length=3>
+  name  dtype  unit
+  ---- ------- ----
+     a   int32
+     b float64    s
+     c string8
+
 A column with a unit works with and can be easily converted to an
 `~astropy.units.Quantity` object::
 
