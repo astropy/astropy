@@ -117,12 +117,28 @@ def sigma_clip(data, sig=3.0, iters=1, cenfunc=np.ma.median, varfunc=np.var,
     is higher.
 
     """
+    def perform_clip(_filtered_data, _kwargs):
+        """
+        Perform sigma clip by comparing the data to the minimum and maximum
+        values (median + sig * standard deviation). Data values less or greater
+        than the minimum / maximum values will have True set in the mask array.
+        """
+        max_value = cenfunc(_filtered_data, **_kwargs)
+        standard_deviations = np.sqrt(varfunc(_filtered_data, **_kwargs))
+        standard_deviations *= sig
+        min_value = max_value - standard_deviations
+        max_value += standard_deviations
+        if axis is not None:
+            if axis > 0:
+                min_value = np.expand_dims(min_value, axis=axis)
+                max_value = np.expand_dims(max_value, axis=axis)
+        _filtered_data.mask |= _filtered_data > max_value
+        _filtered_data.mask |= _filtered_data < min_value
+
+    kwargs = dict()
 
     if axis is not None:
-        cenfunc_in = cenfunc
-        varfunc_in = varfunc
-        cenfunc = lambda d: np.expand_dims(cenfunc_in(d, axis=axis), axis=axis)
-        varfunc = lambda d: np.expand_dims(varfunc_in(d, axis=axis), axis=axis)
+        kwargs['axis'] = axis
 
     filtered_data = np.ma.array(data, copy=copy)
 
@@ -132,12 +148,11 @@ def sigma_clip(data, sig=3.0, iters=1, cenfunc=np.ma.median, varfunc=np.var,
         while filtered_data.count() != lastrej:
             i += 1
             lastrej = filtered_data.count()
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            perform_clip(filtered_data, kwargs)
+
     else:
         for i in range(iters):
-            do = filtered_data - cenfunc(filtered_data)
-            filtered_data.mask |= do * do > varfunc(filtered_data) * sig ** 2
+            perform_clip(filtered_data, kwargs)
 
     return filtered_data
 
