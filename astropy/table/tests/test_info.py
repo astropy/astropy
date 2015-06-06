@@ -139,7 +139,7 @@ def test_data_info_subclass():
         Confusingly named Column on purpose, but that is legal.
         """
         pass
-    c = Column([1, 2])
+    c = Column([1, 2], dtype='int64')
     cinfo = c.info(out=None)
     assert cinfo == OrderedDict([('dtype', 'int64'),
                                  ('shape', ''),

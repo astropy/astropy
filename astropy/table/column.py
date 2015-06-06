@@ -48,8 +48,6 @@ _comparison_functions = set(
 def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
     """
     Copy info from mixin `col` to `newcol`.  Does nothing for BaseColumn cols.
-
-    Warning: this function is subject to change or removal.
     """
     if isinstance(newcol, BaseColumn):
         return
@@ -66,8 +64,6 @@ def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
 def col_iter_str_vals(col):
     """
     This is a mixin-safe version of Column.iter_str_vals.
-
-    Warning: this function is subject to change or removal.
     """
     parent_table = col.info.parent_table
     formatter = FORMATTER if parent_table is None else parent_table.formatter
