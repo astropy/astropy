@@ -52,9 +52,6 @@ def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
     if isinstance(newcol, BaseColumn):
         return
 
-    if not hasattr(newcol, 'info'):
-        newcol.__class__.info = InfoDescriptor(DataInfo)
-
     attrs = newcol.info.attr_names - set(exclude_attrs) - newcol.info.attrs_from_parent
     for attr in attrs:
         val = getattr(col.info, attr)

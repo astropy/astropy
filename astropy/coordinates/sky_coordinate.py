@@ -48,7 +48,7 @@ class SkyCoordInfo(DataInfo):
     required when the object is used as a mixin column within a table, but can
     be used as a general way to store meta information.
     """
-    attrs_from_parent = set(['unit'])  # Unit is read-only and None
+    attrs_from_parent = set(['unit'])  # Unit is read-only
 
     @staticmethod
     def default_format(val):
