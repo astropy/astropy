@@ -78,13 +78,18 @@ def col_copy(col):
     if isinstance(col, BaseColumn):
         return col.copy()
 
+    # The new column should have None for the parent_table ref.  If the
+    # original parent_table weakref there at the point of copying then it
+    # generates an infinite recursion.  Instead temporarily remove the weakref
+    # on the original column and restore after the copy in an exception-safe
+    # manner.
+
     parent_table = col.info.parent_table
     col.info.parent_table = None
 
     try:
         newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
         newcol.info = col.info.copy()
-        newcol.info._parent_ref = weakref.ref(newcol)
     finally:
         col.info.parent_table = parent_table
 
