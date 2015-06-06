@@ -77,7 +77,7 @@ def _get_column_attribute(col, attr=None):
     return str(val)
 
 
-class DataInfo(object):
+class InfoDescriptor(object):
     """
     Descriptor that data classes use to add an ``info`` attribute for storing
     data attributes in a uniform and portable way.  Note that it *must* be
@@ -91,7 +91,7 @@ class DataInfo(object):
     Parameters
     ----------
     info_cls : class
-        Class reference for the BaseInfo subclass that actually stores info
+        Class reference for the DataInfo subclass that actually stores info
     """
     def __init__(self, info_cls):
         self.info_cls = info_cls
@@ -103,13 +103,13 @@ class DataInfo(object):
         return instance.__dict__['info']
 
     def __set__(self, instance, value):
-        if isinstance(value, BaseInfo):
+        if isinstance(value, DataInfo):
             instance.__dict__['info'] = value
         else:
-            raise TypeError('info must be set with a BaseInfo instance')
+            raise TypeError('info must be set with a DataInfo instance')
 
 
-class BaseInfo(object):
+class DataInfo(object):
 
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
@@ -129,7 +129,7 @@ class BaseInfo(object):
 
     def __getattr__(self, attr):
         if attr.startswith('_'):
-            return super(BaseInfo, self).__getattribute__(attr)
+            return super(DataInfo, self).__getattribute__(attr)
 
         if attr in self.attrs_from_parent:
             return getattr(self._parent_ref(), attr)
@@ -137,7 +137,7 @@ class BaseInfo(object):
         try:
             value = self._attrs[attr]
         except KeyError:
-            super(BaseInfo, self).__getattribute__(attr)  # Generate AttributeError
+            super(DataInfo, self).__getattribute__(attr)  # Generate AttributeError
 
         # Weak ref for parent table
         if attr == 'parent_table' and callable(value):
@@ -168,7 +168,7 @@ class BaseInfo(object):
 
         # Private attr names get directly set
         if attr.startswith('_'):
-            super(BaseInfo, self).__setattr__(attr, value)
+            super(DataInfo, self).__setattr__(attr, value)
             return
 
         # Finally this must be an actual data attribute that this class is handling.

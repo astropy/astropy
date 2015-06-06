@@ -24,7 +24,7 @@ from ..utils import lazyproperty
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
-from ..utils.data_info import BaseInfo, DataInfo
+from ..utils.data_info import DataInfo, InfoDescriptor
 from .utils import validate_power
 from .. import config as _config
 
@@ -115,7 +115,7 @@ class QuantityIterator(object):
     next = __next__
 
 
-class QuantityInfo(BaseInfo):
+class QuantityInfo(DataInfo):
     attrs_from_parent = set(['dtype', 'unit'])
 
     def default_format_func(self, format, val):
@@ -615,7 +615,7 @@ class Quantity(np.ndarray):
             self.unit.to(unit, self.value, equivalencies=equivalencies))
         return self._new_view(new_val, unit)
 
-    info = DataInfo(QuantityInfo)
+    info = InfoDescriptor(QuantityInfo)
 
     @property
     def value(self):
