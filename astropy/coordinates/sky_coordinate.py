@@ -43,7 +43,12 @@ def FRAME_ATTR_NAMES_SET():
 
 
 class SkyCoordInfo(DataInfo):
-    attrs_from_parent = set(['unit'])
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    attrs_from_parent = set(['unit'])  # Unit is read-only and None
 
     @staticmethod
     def default_format(val):
@@ -55,7 +60,7 @@ class SkyCoordInfo(DataInfo):
     @property
     def unit(self):
         repr_data = self._repr_data
-        unit = ','.join(str(getattr(repr_data, comp).unit)
+        unit = ','.join(str(getattr(repr_data, comp).unit) or 'None'
                         for comp in repr_data.components)
         return unit
 

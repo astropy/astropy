@@ -378,3 +378,49 @@ def test_setitem_as_column_name():
     t['b'] = 'b'  # Previously was failing with KeyError
     assert np.all(t['a'] == ['x', 'y'])
     assert np.all(t['b'] == ['b', 'b'])
+
+
+def test_quantity_representation():
+    """
+    Test that table representation of quantities does not have unit
+    """
+    t = QTable([[1, 2] * u.m])
+    assert t.pformat() == ['col0',
+                           ' m  ',
+                           '----',
+                           ' 1.0',
+                           ' 2.0']
+
+
+def test_skycoord_representation():
+    """
+    Test that skycoord representation works, both in the way that the
+    values are output and in changing the frame representation.
+    """
+    # With no unit we get "None" in the unit row
+    c = coordinates.SkyCoord([0], [1], [0], representation='cartesian')
+    t = Table([c])
+    assert t.pformat() == ['     col0     ',
+                           'None,None,None',
+                           '--------------',
+                           '   0.0,1.0,0.0']
+
+    # Test that info works with a dynamically changed representation
+    c = coordinates.SkyCoord([0], [1], [0], unit='m', representation='cartesian')
+    t = Table([c])
+    assert t.pformat() == ['    col0   ',
+                           '   m,m,m   ',
+                           '-----------',
+                           '0.0,1.0,0.0']
+
+    t['col0'].representation = 'unitspherical'
+    assert t.pformat() == ['  col0  ',
+                           'deg,deg ',
+                           '--------',
+                           '90.0,0.0']
+
+    t['col0'].representation = 'cylindrical'
+    assert t.pformat() == ['    col0    ',
+                           '  m,deg,m   ',
+                           '------------',
+                           '1.0,90.0,0.0']

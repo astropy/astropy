@@ -116,10 +116,11 @@ SIDEREAL_TIME_MODELS = {
 
 class TimeInfo(DataInfo):
     """
-    Make dtype and unit be None and be read-only.  Setting attrs_from_parent
-    to these read-only values is needed so they don't get copied.
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
     """
-    attrs_from_parent = set(['unit'])
+    attrs_from_parent = set(['unit'])  # unit is read-only and None
 
     @property
     def unit(self):

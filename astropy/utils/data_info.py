@@ -278,7 +278,10 @@ class DataInfo(object):
                 n_bad = 0
         info['n_bad'] = n_bad
 
-        info['length'] = len(col)
+        try:
+            info['length'] = len(col)
+        except TypeError:
+            pass
 
         if out is None:
             return info
@@ -288,6 +291,6 @@ class DataInfo(object):
                 out.write('{0} = {1}'.format(key, val) + os.linesep)
 
     def __repr__(self):
-        with six.moves.cStringIO() as out:
-            self.__call__(out=out)
-            return out.getvalue()
+        out = six.moves.cStringIO()
+        self.__call__(out=out)
+        return out.getvalue()

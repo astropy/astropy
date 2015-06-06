@@ -116,9 +116,15 @@ class QuantityIterator(object):
 
 
 class QuantityInfo(DataInfo):
-    attrs_from_parent = set(['dtype', 'unit'])
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    attrs_from_parent = set(['dtype', 'unit'])  # dtype and unit taken from parent
 
-    def default_format_func(self, format, val):
+    @staticmethod
+    def default_format(val):
         return '{0.value:}'.format(val)
 
 

@@ -8,13 +8,15 @@ import numpy as np
 from ...extern import six
 from ... import units as u
 from ... import time
+from ... import coordinates
+from ... import units as u
 from ... import table
 from ...utils.data_info import data_info_factory
 from ...utils import OrderedDict
 
 STRING8 = 'string8' if six.PY2 else 'bytes8'
 
-def test_info_attributes(table_types):
+def test_table_info_attributes(table_types):
     """
     Test the info() method of printing a summary of table column attributes
     """
@@ -33,21 +35,26 @@ def test_info_attributes(table_types):
         assert np.all(tinfo['class'] == ['MyColumn'] * 3)
 
     # All output fields including a mixin column
-    t['d'] = [1,2,3] * u.m
-    t['d'].description = 'description'
+    t['d'] = [1, 2, 3] * u.m
+    t['d'].description = 'quantity'
     t['a'].format = '%02d'
     t['e'] = time.Time([1,2,3], format='mjd')
+    t['e'].info.description = 'time'
+    t['f'] = coordinates.SkyCoord([1,2,3], [1,2,3], unit='deg')
+    t['f'].info.description = 'skycoord'
+
     tinfo = t.info(out=None)
     assert tinfo.colnames == 'name  dtype  unit format description class'.split()
-    assert np.all(tinfo['name'] == 'a b c d e'.split())
-    assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8, 'float64', 'object'])
-    assert np.all(tinfo['unit'] == ['', '', '', 'm', ''])
-    assert np.all(tinfo['format'] == ['%02d', '', '', '', ''])
-    assert np.all(tinfo['description'] == ['', '', '', 'description', ''])
+    assert np.all(tinfo['name'] == 'a b c d e f'.split())
+    assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8, 'float64',
+                                     'object', 'object'])
+    assert np.all(tinfo['unit'] == ['', '', '', 'm', '', 'deg,deg'])
+    assert np.all(tinfo['format'] == ['%02d', '', '', '', '', ''])
+    assert np.all(tinfo['description'] == ['', '', '', 'quantity', 'time', 'skycoord'])
     cls = 'MyColumn' if subcls else ''
-    assert np.all(tinfo['class'] == [cls, cls, cls, cls, 'Time'])
+    assert np.all(tinfo['class'] == [cls, cls, cls, cls, 'Time', 'SkyCoord'])
 
-def test_info_stats(table_types):
+def test_table_info_stats(table_types):
     """
     Test the info() method of printing a summary of table column statistics
     """
@@ -73,7 +80,7 @@ def test_info_stats(table_types):
 
     # option = ['attributes', 'stats']
     tinfo = t.info(['attributes', 'stats'], out=None)
-    assert tinfo.colnames == 'name  dtype  class mean std min max'.split()
+    assert tinfo.colnames == 'name  dtype class mean std min max'.split()
     assert np.all(tinfo['mean'] == ['1.5', '1.5', '--', '--'])
     assert np.all(tinfo['std'] == ['0.5', '0.5', '--', '--'])
     assert np.all(tinfo['min'] == ['1', '1.0', '--', '1.0'])
@@ -123,6 +130,9 @@ def test_data_info():
                'length = 3']
         assert out.getvalue().splitlines() == exp
 
+        # repr(c.info) gives the same as c.info()
+        assert repr(c.info) == out.getvalue()
+
         # Test stats info
         cinfo = c.info('stats', out=None)
         assert cinfo == OrderedDict([('name', 'name'),
@@ -149,3 +159,13 @@ def test_data_info_subclass():
                                  ('class', 'Column'),
                                  ('n_bad', 0),
                                  ('length', 2)])
+
+
+def test_scalar_info():
+    """
+    Make sure info works with scalar values
+    """
+    c = time.Time('2000:001')
+    cinfo = c.info(out=None)
+    assert cinfo['n_bad'] == 0
+    assert 'length' not in cinfo
