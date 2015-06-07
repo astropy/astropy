@@ -1,4 +1,4 @@
-0.4 (unreleased)
+0.4 (2015-06-07)
 ----------------
 
 - Astropy frame instances to now be passed to ``get_transform`` and ``get_coords_overlay``. [#149]
