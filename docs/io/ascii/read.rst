@@ -244,7 +244,7 @@ be the string ``'0'``,
 otherwise you may get unexpected behavior [#f1]_.  By default the
 ``<missing_spec>`` is applied to all columns unless column name strings are
 supplied.  An alterate way to limit the columns is via the
-n``fill_include_names`` and ``fill_exclude_names`` keyword arguments in |read|.
+``fill_include_names`` and ``fill_exclude_names`` keyword arguments in |read|.
 
 In the example below we read back the weather table after filling the missing
 values in with typical placeholders::
