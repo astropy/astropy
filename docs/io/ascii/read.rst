@@ -51,7 +51,7 @@ Parameters for ``read()``
   a CDS-compatible table, etc.  The value of this parameter must
   be one of the :ref:`supported_formats`.
 
-**guess**: try to guess table format (default=True)
+**guess** : try to guess table format (default=True)
   If set to True then |read| will try to guess the table format by cycling
   through a number of possible table format permutations and attempting to read
   the table in each case.  See the `Guess table format`_ section for further details.
@@ -72,65 +72,63 @@ Parameters for ``read()``
   quote character.  This is can be useful for reading text fields with spaces in a space-delimited
   table.  The default is typically the double quote.
 
-**header_start** : line index for the header line not counting comment lines
-  This specifies in the line index where the header line will be found.  Comment lines are
-  not included in this count and the counting starts from 0 (first non-comment line has index=0).
-  If set to None this indicates that there is no header line and the column names
-  will be auto-generated.  The default is dependent on the format.
+**header_start** : line index for the header line
+  This includes only significant non-comment lines and counting starts at 0. If
+  set to None this indicates that there is no header line and the column names
+  will be auto-generated.  See `Specifying header and data location`_ for more
+  details.
 
-**data_start**: line index for the start of data not counting comment lines
-  This specifies in the line index where the data lines begin where the counting starts
-  from 0 and does not include comment lines.  The default is dependent on the format.
+**data_start** : line index for the start of data counting
+  This includes only significant non-comment lines and counting starts at 0.  See
+  `Specifying header and data location`_ for more details.
 
-**data_end**: line index for the end of data (can be negative to count from end)
-  If this is not None then it allows for excluding lines at the end that are not
-  valid data lines.  A negative value means to count from the end, so -1 would
-  exclude the last line, -2 the last two lines, and so on.
+**data_end** : line index for the end of data
+  This includes only significant non-comment line and can be negative to count
+  from end.  See `Specifying header and data location`_ for more details.
 
-**converters**: dict of data type converters
+**converters** : dict of data type converters
   See the `Converters`_ section for more information.
 
-**names**: list of names corresponding to each data column
+**names** : list of names corresponding to each data column
   Define the complete list of names for each data column.  This will override
   names found in the header (if it exists).  If not supplied then
   use names from the header or auto-generated names if there is no header.
 
-**include_names**: list of names to include in output
+**include_names** : list of names to include in output
   From the list of column names found from the header or the ``names``
   parameter, select for output only columns within this list.  If not supplied
   then include all names.
 
-**exclude_names**: list of names to exclude from output
+**exclude_names** : list of names to exclude from output
   Exclude these names from the list of output columns.  This is applied *after*
   the ``include_names`` filtering.  If not specified then no columns are excluded.
 
-**fill_values**: list of fill value specifiers
+**fill_values** : list of fill value specifiers
   Specify input table entries which should be masked in the output table
   because they are bad or missing.  See the `Bad or missing values`_ section
   for more information and examples.  The default is that any blank table
   values are treated as missing.
-
-**fill_include_names**: list of column names, which are affected by ``fill_values``.
+**fill_include_names** : list of column names, which are affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
 
-**fill_exclude_names**: list of column names, which are not affected by ``fill_values``.
+**fill_exclude_names** : list of column names, which are not affected by ``fill_values``.
   If not supplied, then ``fill_values`` can affect all columns.
 
-**Outputter**: Outputter class
+**Outputter** : Outputter class
   This converts the raw data tables value into the
   output object that gets returned by |read|.  The default is
   :class:`~astropy.io.ascii.TableOutputter`, which returns a
   :class:`~astropy.table.Table` object (see :ref:`Data Tables <astropy-table>`).
 
-**Inputter**: Inputter class
+**Inputter** : Inputter class
   This is generally not specified.
 
-**data_Splitter**: Splitter class to split data columns
+**data_Splitter** : Splitter class to split data columns
 
-**header_Splitter**: Splitter class to split header columns
+**header_Splitter** : Splitter class to split header columns
 
-**fast_reader**: whether to use the C engine, can also be a dict with options
-  which default to False
+**fast_reader** : whether to use the C engine
+  This can be ``True`` or ``False``, and also be a dict with options.
   (see :ref:`fast_ascii_io`)
 
 **Reader** : Reader class (*deprecated* in favor of ``format``)
@@ -139,6 +137,53 @@ Parameters for ``read()``
   a CDS-compatible table, etc.  The value of this parameter must
   be a Reader class.  For basic usage this means one of the
   built-in :ref:`extension_reader_classes`.
+
+Specifying header and data location
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The three parameters ``header_start``, ``data_start`` and ``data_end`` make it
+possible to read a table file that has extraneous non-table data included.
+This is a case where you need to help out ``io.ascii`` and tell it where to
+find the header and data.
+
+When processing of a file into a header and data components any blank lines
+(which might have whitespace characters) and commented lines (starting with the
+comment character ``#``) are stripped out *before* the header and data
+parsing code sees the table content. For example imagine you have the file
+below. The column on the left is not part of the file but instead shows how
+``io.ascii`` is viewing each line and the line count index.  ::
+
+  Index    Table content
+  ------ ----------------------------------------------------------------
+     -  | # This is the start of my data file
+     -  |
+     0  | Automatically generated by my_script.py at 2012-01-01T12:13:14
+     1  | Run parameters: None
+     2  | Column header line:
+     -  |
+     3  | x y z
+     -  |
+     4  | Data values section:
+     -  |
+     5  | 1 2 3
+     6  | 4 5 6
+     -  |
+     7  | Run completed at 2012:01-01T12:14:01
+
+In this case you would have ``header_start=3``, ``data_start=5``, and
+``data_end=7``.  The convention for ``data_end`` follows the normal Python
+slicing convention where to select data rows 5 and 6 you would do
+``rows[5:7]``.  For ``data_end`` you can also supply a negative index to
+count backward from the end, so ``data_end=-1`` (like ``rows[5:-1]``) would
+work in this case.
+
+.. note::
+
+   Prior to astropy v1.1 there was a bug in which a blank line that had one or
+   more whitespace characters was mistakenly counted for ``header_start`` but
+   was (correctly) not counted for ``data_start`` and ``data_end``.  If you
+   have code that was depending on the incorrect pre-1.1 behavior then it needs
+   to be modified.
 
 .. _replace_bad_or_missing_values:
 
@@ -199,7 +244,7 @@ be the string ``'0'``,
 otherwise you may get unexpected behavior [#f1]_.  By default the
 ``<missing_spec>`` is applied to all columns unless column name strings are
 supplied.  An alterate way to limit the columns is via the
-``fill_include_names`` and ``fill_exclude_names`` keyword arguments in |read|.
+n``fill_include_names`` and ``fill_exclude_names`` keyword arguments in |read|.
 
 In the example below we read back the weather table after filling the missing
 values in with typical placeholders::
