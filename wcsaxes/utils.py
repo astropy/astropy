@@ -106,7 +106,10 @@ def get_coord_meta(frame):
         from astropy.coordinates import frame_transform_graph
 
         if isinstance(frame, six.string_types):
+            initial_frame = frame
             frame = frame_transform_graph.lookup_name(frame)
+            if frame is None:
+                raise ValueError("Unknown frame: {0}".format(initial_frame))
 
         if not isinstance(frame, BaseCoordinateFrame):
             frame = frame()
