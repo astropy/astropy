@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 
 from astropy.wcs import WCS
 from astropy.io import fits
-from astropy.tests.helper import catch_warnings
-
+from astropy.tests.helper import catch_warnings, pytest
 
 from ..core import WCSAxes
+from ..utils import get_coord_meta
 
 
 def test_grid_regression():
@@ -68,3 +68,16 @@ def test_no_numpy_warnings():
         print(w)
 
     assert len(ws) == 0
+
+
+def test_invalid_frame_overlay():
+
+    # Make sure a nice error is returned if a frame doesn't exist
+    ax = plt.subplot(1,1,1, projection=WCS(TARGET_HEADER))
+    with pytest.raises(ValueError) as exc:
+        ax.get_coords_overlay('banana')
+    assert exc.value.args[0] == 'Unknown frame: banana'
+
+    with pytest.raises(ValueError) as exc:
+        get_coord_meta('banana')
+    assert exc.value.args[0] == 'Unknown frame: banana'
