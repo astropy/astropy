@@ -154,6 +154,12 @@ API changes
 
 - ``astropy.io.ascii``
 
+  - The default header line processing was made to be consistent with data line
+    processing in that it now ignores blank lines that may have whitespace
+    characters.  Any code that explicitly specifies a ``header_start`` value
+    for parsing a file with blank lines in the header containing whitespace will
+    need to be updated. [#2654]
+
 - ``astropy.io.fits``
 
 - ``astropy.io.misc``
