@@ -22,6 +22,9 @@
 
 - Fix bug with plotting RGB images. [#15]
 
+- Improved error message when passing non-existent frame to
+  ``get_overlay_coords``. [#154]
+
 0.3 (2014-12-07)
 ----------------
 
