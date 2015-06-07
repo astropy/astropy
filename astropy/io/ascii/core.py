@@ -485,12 +485,12 @@ class BaseHeader(object):
         self._set_cols_from_names()
 
     def process_lines(self, lines):
-        """Generator to yield non-comment lines"""
+        """Generator to yield non-blank and non-comment lines"""
         if self.comment:
             re_comment = re.compile(self.comment)
         # Yield non-comment lines
         for line in lines:
-            if line and (not self.comment or not re_comment.match(line)):
+            if line.strip() and (not self.comment or not re_comment.match(line)):
                 yield line
 
     def write_comments(self, lines, meta):

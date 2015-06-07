@@ -283,7 +283,7 @@ int skip_lines(tokenizer_t *self, int offset, int header)
             signif_chars = 0;
             comment = 0;
         }
-        else if ((c != ' ' && c != '\t') || !self->strip_whitespace_lines || header)
+        else if ((c != ' ' && c != '\t') || !self->strip_whitespace_lines)
         {
                 // comment line
                 if (!signif_chars && self->comment != 0 && c == self->comment)
@@ -291,9 +291,7 @@ int skip_lines(tokenizer_t *self, int offset, int header)
                 else if (comment && !header)
                     push_comment(self, c);
 
-                // significant character encountered; during header
-                // tokenization, we count whitespace unlike data tokenization
-                // (see #2654)
+                // significant character encountered
                 ++signif_chars;
         }
         else if (comment && !header)
