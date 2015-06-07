@@ -25,6 +25,11 @@ Developers and Contributors
 * Leo Singer
 * Stuart Mumford
 * Christoph Deil
+* Joseph Booker
+* Matt Craig
+* Adam Ginsburg
+* Mathieu Servillat
+
 
 Build and coverage status
 =========================
