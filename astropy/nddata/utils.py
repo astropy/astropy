@@ -141,9 +141,8 @@ def overlap_slices(large_array_shape, small_array_shape, position,
                          for (edge_min, edge_max, large_shape) in
                          zip(edges_min, edges_max, large_array_shape))
     if mode == 'trim':
-        ny = slices_large[0].stop - slices_large[0].start
-        nx = slices_large[1].stop - slices_large[1].start
-        slices_small = (slice(0, ny), slice(0, nx))
+        slices_small = tuple(slice(0, slc.stop - slc.start)
+                             for slc in slices_large)
     else:
         slices_small = tuple(slice(max(0, -edge_min),
                                    min(large_shape - edge_min,
