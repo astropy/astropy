@@ -2,11 +2,15 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
+from numpy.testing import assert_allclose
 
 from ...tests.helper import pytest
 from ..utils import (extract_array, add_array, subpixel_indices,
                      block_reduce, block_replicate,
-                     overlap_slices, NoOverlapError, PartialOverlapError)
+                     overlap_slices, NoOverlapError, PartialOverlapError,
+                     Cutout)
+from ...wcs import WCS
+from ...coordinates import SkyCoord
 
 try:
     import skimage
@@ -316,3 +320,83 @@ class TestBlockReplicate(object):
         data = np.arange(5)
         with pytest.raises(ValueError):
             block_replicate(data, (2, 2))
+
+
+class TestCutout(object):
+    data = np.arange(20.).reshape(5, 4)
+    position = SkyCoord('13h11m29.96s -01d19m18.7s', frame='icrs')
+    wcs = WCS(naxis=2)
+    rho = np.pi / 3.
+    scale = 0.05 / 3600.
+    wcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
+                    [scale*np.sin(rho), scale*np.cos(rho)]]
+    wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+    wcs.wcs.crval = [position.ra.value, position.dec.value]
+    wcs.wcs.crpix = [3, 3]
+
+    def test_cutout(self):
+        position = (2, 2)
+        shape = (3, 3)
+        c = Cutout(self.data, position, shape)
+        assert c.data.shape == shape
+        assert c.data[1, 1] == 10
+        assert c.origin_large == (1, 1)
+        assert c.position == position
+        assert c.center_large == position
+        assert c.center_small == (1., 1.)
+        assert c.bbox_large == (1, 1, 3, 3)
+        assert c.bbox_small == (0, 0, 2, 2)
+        assert c.slices_large == (slice(1, 4), slice(1, 4))
+        assert c.slices_small == (slice(0, 3), slice(0, 3))
+
+    def test_cutout_trim_overlap(self):
+        shape = (3, 3)
+        c = Cutout(self.data, (0, 0), shape, mode='trim')
+        assert c.data.shape == (2, 2)
+        assert c.data[0, 0] == 0
+        assert c.slices_large == (slice(0, 2), slice(0, 2))
+        assert c.slices_small == (slice(0, 2), slice(0, 2))
+
+    def test_cutout_partial_overlap(self):
+        shape = (3, 3)
+        c = Cutout(self.data, (0, 0), shape, mode='partial')
+        assert c.data.shape == (3, 3)
+        assert c.data[1, 1] == 0
+        assert c.slices_large == (slice(0, 2), slice(0, 2))
+        assert c.slices_small == (slice(1, 3), slice(1, 3))
+
+    def test_cutout_partial_overlap_fill_value(self):
+        shape = (3, 3)
+        fill_value = -99
+        c = Cutout(self.data, (0, 0), shape, mode='partial',
+                   fill_value=fill_value)
+        assert c.data.shape == (3, 3)
+        assert c.data[1, 1] == 0
+        assert c.data[0, 0] == fill_value
+
+    def test_invalid_mode(self):
+        with pytest.raises(ValueError):
+            Cutout(self.data, (0, 0), (3, 3), mode='invalid')
+
+    def test_skycoord_without_wcs(self):
+        with pytest.raises(ValueError):
+            Cutout(self.data, self.position, (3, 3))
+
+    def test_skycoord(self):
+        c = Cutout(self.data, self.position, (3, 3), wcs=self.wcs)
+        skycoord_large = self.position.from_pixel(c.center_large[1],
+                                                  c.center_large[0], self.wcs)
+        skycoord_small = self.position.from_pixel(c.center_small[1],
+                                                  c.center_small[0], c.wcs)
+        assert_allclose(skycoord_large.ra.value, skycoord_small.ra.value)
+        assert_allclose(skycoord_large.dec.value, skycoord_small.dec.value)
+
+    def test_skycoord_partial(self):
+        c = Cutout(self.data, self.position, (3, 3), wcs=self.wcs,
+                   mode='partial')
+        skycoord_large = self.position.from_pixel(c.center_large[1],
+                                                  c.center_large[0], self.wcs)
+        skycoord_small = self.position.from_pixel(c.center_small[1],
+                                                  c.center_small[0], c.wcs)
+        assert_allclose(skycoord_large.ra.value, skycoord_small.ra.value)
+        assert_allclose(skycoord_large.dec.value, skycoord_small.dec.value)
