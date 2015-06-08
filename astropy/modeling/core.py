@@ -255,7 +255,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                     "instance or `None` (where `None` restores the default "
                     "inverse for this model if one is defined.")
 
-            if isinstance(value, Model):
+            if not isinstance(value, (_CompoundModel, type(None))):
                 value = value.copy()
             self._custom_inverse = value
 
