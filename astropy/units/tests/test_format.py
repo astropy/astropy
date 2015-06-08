@@ -51,6 +51,20 @@ def test_unit_grammar():
             yield _test_unit_grammar, s, unit
 
 
+def test_unit_grammar_fail():
+    @raises(ValueError)
+    def _test_unit_grammar_fail(s):
+        u_format.Generic().parse(s)
+
+    data = ['sin( /pixel /s)',
+            'mag(mag)',
+            'dB(dB(mW))',
+            'dex()']
+
+    for s in data:
+        yield _test_unit_grammar_fail, s
+
+
 def test_cds_grammar():
     def _test_cds_grammar(s, unit):
         print(s)
