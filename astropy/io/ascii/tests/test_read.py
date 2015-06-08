@@ -1009,11 +1009,11 @@ def test_data_header_start(fast_reader):
 
              (['# comment',
                '',
-               ' ',
+               ' \t',
                'skip this line',  # line 0
                'a b',  # line 1
                '',
-               ' ',
+               ' \t',
                'skip this line',  # line 2
                '1 2'],  # line 3
               [{'header_start': 1, 'data_start': 3}]),

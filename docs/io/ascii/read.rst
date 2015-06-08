@@ -148,7 +148,7 @@ find the header and data.
 
 When processing of a file into a header and data components any blank lines
 (which might have whitespace characters) and commented lines (starting with the
-comment character ``#``) are stripped out *before* the header and data
+comment character, typically ``#``) are stripped out *before* the header and data
 parsing code sees the table content. For example imagine you have the file
 below. The column on the left is not part of the file but instead shows how
 ``io.ascii`` is viewing each line and the line count index.  ::
