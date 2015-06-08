@@ -528,6 +528,35 @@ class Cutout(object):
         result : `~astropy.nddata.utils.Cutout`
             A cutout object containing the 2D cutout data array and the
             updated WCS, if ``wcs`` is input.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from astropy.nddata.utils import Cutout
+        >>> data = np.arange(20.).reshape(5, 4)
+        >>> c1 = Cutout(data, (2, 2), (3, 3))
+        >>> print(c1.data)
+        [[  5.   6.   7.]
+         [  9.  10.  11.]
+         [ 13.  14.  15.]]
+
+        >>> print(c1.center_large)
+        (2.0, 2.0)
+        >>> print(c1.center_small)
+        (1.0, 1.0)
+        >>> print(c1.origin_large)
+        (1, 1)
+
+        >>> c2 = Cutout(data, (0, 0), (3, 3))
+        >>> print(c2.data)
+        [[ 0.  1.]
+         [ 4.  5.]]
+
+        >>> c3 = Cutout(data, (0, 0), (3, 3), mode='partial')
+        >>> print(c3.data)
+        [[ nan  nan  nan]
+         [ nan   0.   1.]
+         [ nan   4.   5.]]
         """
 
         if isinstance(position, SkyCoord):
