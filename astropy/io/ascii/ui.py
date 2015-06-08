@@ -125,11 +125,14 @@ def get_reader(Reader=None, Inputter=None, Outputter=None, **kwargs):
     quotechar : str
         One-character string to quote fields containing special characters
     header_start : int
-        Line index for the header line not counting comment lines
+        Line index for the header line not counting comment or blank lines.
+        A line with only whitespace is considered blank.
     data_start : int
-        Line index for the start of data not counting comment lines
+        Line index for the start of data not counting comment or blank lines.
+        A line with only whitespace is considered blank.
     data_end : int
-        Line index for the end of data (can be negative to count from end)
+        Line index for the end of data not counting comment or blank lines.
+        This value can be negative to count from the end.
     converters : dict
         Dictionary of converters
     data_Splitter : `~astropy.io.ascii.BaseSplitter`
@@ -201,11 +204,14 @@ def read(table, guess=None, **kwargs):
     quotechar : str
         One-character string to quote fields containing special characters
     header_start : int
-        Line index for the header line not counting comment lines
+        Line index for the header line not counting comment or blank lines.
+        A line with only whitespace is considered blank.
     data_start : int
-        Line index for the start of data not counting comment lines
+        Line index for the start of data not counting comment or blank lines.
+        A line with only whitespace is considered blank.
     data_end : int
-        Line index for the end of data (can be negative to count from end)
+        Line index for the end of data not counting comment or blank lines.
+        This value can be negative to count from the end.
     converters : dict
         Dictionary of converters
     data_Splitter : `~astropy.io.ascii.BaseSplitter`

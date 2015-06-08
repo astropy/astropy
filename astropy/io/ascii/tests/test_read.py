@@ -16,7 +16,7 @@ from ....units import Unit
 from .common import (raises, assert_equal, assert_almost_equal,
                      assert_true, setup_function, teardown_function)
 from .. import core
-from ..ui import _probably_html
+from ..ui import _probably_html, get_read_trace
 
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
@@ -992,3 +992,51 @@ def test_probably_html():
                   [[1, 2, 3]],
     ):
         assert _probably_html(table) is False
+
+
+@pytest.mark.parametrize('fast_reader', [True, False, 'force'])
+def test_data_header_start(fast_reader):
+    tests = [(['# comment',
+               '',
+               ' ',
+               'skip this line',  # line 0
+               'a b',  # line 1
+               '1 2'],  # line 2
+              [{'header_start': 1},
+               {'header_start': 1, 'data_start': 2}
+           ]
+           ),
+
+             (['# comment',
+               '',
+               ' \t',
+               'skip this line',  # line 0
+               'a b',  # line 1
+               '',
+               ' \t',
+               'skip this line',  # line 2
+               '1 2'],  # line 3
+              [{'header_start': 1, 'data_start': 3}]),
+
+             (['# comment',
+               '',
+               ' ',
+               'a b',  # line 0
+               '',
+               ' ',
+               'skip this line',  # line 1
+               '1 2'],  # line 2
+              [{'header_start': 0, 'data_start': 2},
+               {'data_start': 2}])]
+
+    for lines, kwargs_list in tests:
+        for kwargs in kwargs_list:
+
+            t = ascii.read(lines, format='basic', fast_reader=fast_reader,
+                           guess=True, **kwargs)
+            assert t.colnames == ['a', 'b']
+            assert len(t) == 1
+            assert np.all(t['a'] == [1])
+            # Sanity check that the expected Reader is being used
+            assert get_read_trace()[-1]['kwargs']['Reader'] is (
+                ascii.Basic if (fast_reader is False) else ascii.FastBasic)
