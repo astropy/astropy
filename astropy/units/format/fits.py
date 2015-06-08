@@ -142,3 +142,10 @@ class Fits(generic.Generic):
             return '{0} (with data multiplied by {1})'.format(
                 cls.to_string(unit), scale)
         return s
+
+    def parse(self, s, debug=False):
+        result = super(Fits, self).parse(s, debug)
+        if hasattr(result, 'function_unit'):
+            raise ValueError("Function units are not yet supported for "
+                             "FITS units.")
+        return result
