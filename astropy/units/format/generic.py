@@ -341,7 +341,7 @@ class Generic(Base):
 
         def p_function(p):
             '''
-            function : function_name OPEN_PAREN division_product_of_units CLOSE_PAREN
+            function : function_name OPEN_PAREN main CLOSE_PAREN
             '''
             if p[1] == 'sqrt':
                 p[0] = p[3] ** 0.5
