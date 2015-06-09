@@ -417,7 +417,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             self._header.set('PCOUNT', len(self.data.parnames), after='GROUPS')
             self._header.set('GCOUNT', len(self.data), after='PCOUNT')
 
-            column = self.data._coldefs[self.data._data_field]
+            column = self.data._coldefs[self._data_field]
             scale, zero = self.data._get_scale_factors(column)[3:5]
             if scale:
                 self._header.set('BSCALE', column.bscale)

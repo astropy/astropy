@@ -105,6 +105,8 @@ Bug Fixes
   - Reading memmaped scaled images won't fail when
     ``do_not_scale_image_data=True`` (that is, since we're just reading the
     raw / physical data there is no reason mmap can't be used). [#3766]
+  - Fixed crash when updating data in a random groups HDU opened in update
+    mode. [#3730]
 
 - ``astropy.io.misc``
 

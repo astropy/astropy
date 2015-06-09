@@ -60,6 +60,19 @@ class TestGroupsFunctions(FitsTestCase):
         # opening and closing it.
         assert mtime == os.stat(self.temp('random_groups.fits')).st_mtime
 
+    def test_random_groups_data_update(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/3730 and
+        for https://github.com/spacetelescope/PyFITS/issues/102
+        """
+
+        self.copy_file('random_groups.fits')
+        with fits.open(self.temp('random_groups.fits'), mode='update') as h:
+            h[0].data['UU'] = 0.42
+
+        with fits.open(self.temp('random_groups.fits'), mode='update') as h:
+            assert np.all(h[0].data['UU'] == 0.42)
+
     def test_parnames_round_trip(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/130
