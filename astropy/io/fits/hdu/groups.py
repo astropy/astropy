@@ -3,7 +3,8 @@
 import sys
 import numpy as np
 
-from .image import _ImageBaseHDU, PrimaryHDU
+from .base import DTYPE2BITPIX
+from .image import PrimaryHDU
 from .table import _TableLikeHDU
 from ..column import Column, ColDefs, FITS2NUMPY
 from ..fitsrec import FITS_rec, FITS_record
@@ -148,7 +149,7 @@ class GroupData(FITS_rec):
             unique_parnames = _unique_parnames(parnames + ['DATA'])
 
             if bitpix is None:
-                bitpix = _ImageBaseHDU.ImgCode[input.dtype.name]
+                bitpix = DTYPE2BITPIX[input.dtype.name]
 
             fits_fmt = GroupsHDU._bitpix2tform[bitpix]  # -32 -> 'E'
             format = FITS2NUMPY[fits_fmt]  # 'E' -> 'f4'
@@ -391,7 +392,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
             else:
                 raise ValueError('incorrect array type')
 
-            self._header['BITPIX'] = _ImageBaseHDU.ImgCode[field0_code]
+            self._header['BITPIX'] = DTYPE2BITPIX[field0_code]
 
         self._header['NAXIS'] = len(self._axes)
 
