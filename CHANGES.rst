@@ -31,7 +31,7 @@ New Features
     are now > 10x faster for the supplied cosmologies. [#3767]
 
   - ``FLRW._tfunc`` and ``FLRW._xfunc`` are marked as deprecated.  Users
-    should use the new public interfaces ``FLRW.lookback_time_integrand`` 
+    should use the new public interfaces ``FLRW.lookback_time_integrand``
     and ``FLRW.abs_distance_integrand`` instead. [#3767]
 
 - ``astropy.io.ascii``
@@ -72,6 +72,9 @@ New Features
 
   - ``extract_array`` now offers different options to deal with array
     boundaries [#3727]
+
+  - Added a new ``Cutout`` class to create postage stamp image cutouts
+    with optional WCS propagation. [#3823]
 
 - ``astropy.stats``
 
