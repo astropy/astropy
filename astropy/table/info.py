@@ -1,6 +1,5 @@
 """
-Table method and functions related to providing information about
-columns and tables.
+Table method for providing information about table.
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, division, print_function,
@@ -79,6 +78,12 @@ def info(self, option='attributes', out=''):
         infos.append(col.info(option, out=None))
 
     info = Table(infos, names=list(infos[0]))
+
+    if out is None:
+        return info
+
+    # Since info is going to a filehandle for viewing then remove uninteresting
+    # columns.
     for name in info.colnames:
         if np.all(info[name] == ''):
             del info[name]
@@ -89,9 +94,6 @@ def info(self, option='attributes', out=''):
     # Standard attributes has 'length' but this is typically redundant
     if 'length' in info.colnames and np.all(info['length'] == len(self)):
         del info['length']
-
-    if out is None:
-        return info
 
     outlines.extend(info.pformat(max_width=-1, max_lines=-1, show_unit=False))
     out.writelines(outline + os.linesep for outline in outlines)

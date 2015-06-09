@@ -9,10 +9,10 @@ from ...extern import six
 from ... import units as u
 from ... import time
 from ... import coordinates
-from ... import units as u
 from ... import table
 from ...utils.data_info import data_info_factory
 from ...utils import OrderedDict
+from ...utils.compat import NUMPY_LT_1_8
 
 STRING8 = 'string8' if six.PY2 else 'bytes8'
 
@@ -28,7 +28,8 @@ def test_table_info_attributes(table_types):
     # Minimal output for a typical table
     tinfo = t.info(out=None)
     subcls = ['class'] if table_types.Table.__name__ == 'MyTable' else []
-    assert tinfo.colnames == ['name', 'dtype'] + subcls
+    assert tinfo.colnames == ['name', 'dtype', 'shape', 'unit', 'format',
+                              'description', 'class', 'n_bad', 'length']
     assert np.all(tinfo['name'] == ['a', 'b', 'c'])
     assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8])
     if subcls:
@@ -44,7 +45,6 @@ def test_table_info_attributes(table_types):
     t['f'].info.description = 'skycoord'
 
     tinfo = t.info(out=None)
-    assert tinfo.colnames == 'name  dtype  unit format description class'.split()
     assert np.all(tinfo['name'] == 'a b c d e f'.split())
     assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8, 'float64',
                                      'object', 'object'])
@@ -80,18 +80,31 @@ def test_table_info_stats(table_types):
 
     # option = ['attributes', 'stats']
     tinfo = t.info(['attributes', 'stats'], out=None)
-    assert tinfo.colnames == 'name  dtype class mean std min max'.split()
+    assert tinfo.colnames == ['name', 'dtype', 'shape', 'unit', 'format', 'description',
+                              'class', 'mean', 'std', 'min', 'max', 'n_bad', 'length']
     assert np.all(tinfo['mean'] == ['1.5', '1.5', '--', '--'])
     assert np.all(tinfo['std'] == ['0.5', '0.5', '--', '--'])
     assert np.all(tinfo['min'] == ['1', '1.0', '--', '1.0'])
     assert np.all(tinfo['max'] == ['2', '2.0', '--', '2.0'])
+
+    out = six.moves.cStringIO()
+    t.info('stats', out=out)
+    exp = [table_header_line,
+           'name mean std min max',
+           '---- ---- --- --- ---',
+           '   a  1.5 0.5   1   2',
+           '   b  1.5 0.5 1.0 2.0',
+           '   c   --  --  --  --',
+           '   d   --  -- 1.0 2.0']
+    assert out.getvalue().splitlines() == exp
 
     # option = ['attributes', custom]
     custom = data_info_factory(names=['sum', 'first'],
                                funcs=[np.sum, lambda col: col[0]])
     out = six.moves.cStringIO()
     tinfo = t.info(['attributes', custom], out=None)
-    assert tinfo.colnames == 'name dtype class sum first'.split()
+    assert tinfo.colnames == ['name', 'dtype', 'shape', 'unit', 'format', 'description',
+                              'class', 'sum', 'first', 'n_bad', 'length']
     assert np.all(tinfo['name'] == ['a', 'b', 'c', 'd'])
     assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8, 'object'])
     assert np.all(tinfo['sum'] == ['6', '6.0', '--', '--'])
@@ -135,11 +148,12 @@ def test_data_info():
 
         # Test stats info
         cinfo = c.info('stats', out=None)
+        is_nan = NUMPY_LT_1_8 and type(c) is table.Column
         assert cinfo == OrderedDict([('name', 'name'),
-                                     ('mean', '1.5'),
-                                     ('std', '0.5'),
-                                     ('min', '1.0'),
-                                     ('max', '2.0'),
+                                     ('mean', 'nan' if is_nan else '1.5'),
+                                     ('std', 'nan' if is_nan else '0.5'),
+                                     ('min', 'nan' if is_nan else '1.0'),
+                                     ('max', 'nan' if is_nan else '2.0'),
                                      ('n_bad', 1),
                                      ('length', 3)])
 

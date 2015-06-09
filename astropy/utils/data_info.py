@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# Note: these functions and classes are tested extensively in astropy table
+# tests via their use in providing mixin column info, and in
+# astropy/tests/test_info for providing table and column info summary data.
+
 import os
 import sys
 from copy import deepcopy
