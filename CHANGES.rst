@@ -366,6 +366,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fixed crash when updating data in a random groups HDU opened in update
+    mode. [#3730]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
