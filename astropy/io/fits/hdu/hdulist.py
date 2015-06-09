@@ -19,7 +19,7 @@ from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
 from ....utils import indent
-from ....utils.exceptions import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -122,6 +122,9 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     if 'uint16' in kwargs and 'uint' not in kwargs:
         kwargs['uint'] = kwargs['uint16']
         del kwargs['uint16']
+        warnings.warn(
+            'The uint16 keyword argument is deprecated since v1.1.0.  Use '
+            'the uint argument instead.', AstropyDeprecationWarning)
 
     if not name:
         raise ValueError('Empty filename: %s' % repr(name))
