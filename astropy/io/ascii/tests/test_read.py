@@ -211,6 +211,14 @@ def test_daophot_multiple_aperture():
     assert np.all(table['RAPERT5'] == 23.3)  # assert all the 5th apertures are same 23.3
 
 
+def test_daophot_multiple_aperture2():
+    table = ascii.read('t/daophot4.dat', Reader=ascii.Daophot)
+    assert 'MAG15' in table.colnames  # MAG15 is one of the newly created column name
+    assert table['MAG15'][1] == -7.573  # A sample entry in daophot4.dat file
+    assert table['MERR2'][0] == 0.049
+    assert np.all(table['RAPERT5'] == 5.)  # assert all the 5th apertures are same 5.0
+
+
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_empty_table_no_header(fast_reader):
     with pytest.raises(ascii.InconsistentTableError):

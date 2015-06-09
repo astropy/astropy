@@ -9,37 +9,24 @@ misc.py:
 
 from __future__ import absolute_import, division, print_function
 
-import numpy as np
 import itertools as itt
 import collections as coll
 
 from ...extern.six.moves import zip, map, filter
 
 
-def nth(iterable, n, default=None):
-    '''Returns the nth item or a default value'''
-    return next(itt.islice(iterable, n, None), default)
-
-def nthzip(n, *its):
-    '''Return the nth component of the zipped sequence'''
-    return tuple( nth(it, n) for it in its )
-    
-def accordion(it):
-    ''' interleave an iterator with a -1 rolled version of itself'''
-    return list( zip(it, np.roll(it,-1)) )[:-1]
-    
-def first_true_idx(iterable, pred=None, default=None):
+def first_true_index(iterable, pred=None, default=None):
     '''find the first index position for the which the callable pred returns True'''
     if pred is None:    func = lambda x : x[1]
     else:               func = lambda x : pred(x[1])
     ii = next( filter(func, enumerate(iterable)), default )     #either index-item pair or default
     return ii[0] if ii else default
 
-def first_false_idx(iterable, pred=None, default=None):
+def first_false_index(iterable, pred=None, default=None):
     '''find the first index position for the which the callable pred returns False'''
     if pred is None:    func = lambda x : not x
     else:               func = lambda x : not pred(x)
-    return first_true_idx(iterable, func, default)
+    return first_true_index(iterable, func, default)
     
 def where_true( iterable, pred=None ):
     '''Return the indeces of an iterable for which the callable pred evaluates as True'''
@@ -54,25 +41,49 @@ def sortmore(*args, **kw):
     
     Parameters
     ----------
-    globalkey : None                revert to sorting by key function
-    globalkey : callable            Sort by evaluated value for all items in the lists
-                                    (call signiture of this function needs to be such that it accepts an
-                                    argument tuple of items from each list.
-                                    eg.: globalkey = lambda *l : sum(l) will order all the lists by the 
-                                    sum of the items from each list
+    One or more lists
     
-    if key : None                   sorting done by value of first input list 
-                                    (in this case the objects in the first iterable need the comparison 
-                                    methods __lt__ etc...)
-    if key : callable               sorting done by value of key(item) for items in first iterable
-    if key : tuple                  sorting done by value of (key(item_0), ...,key(item_n) for items in 
-                                    the first n iterables (where n is the length of the key tuple)
-                                    i.e. the first callable is the primary sorting criterion, and the 
-                                    rest act as tiebreakers.
+    Keywords
+    --------
+    globalkey : None                
+        revert to sorting by key function
+    globalkey : callable            
+        Sort by evaluated value for all items in the lists
+        (call signiture of this function needs to be such that it accepts an
+        argument tuple of items from each list.
+        eg.: globalkey = lambda *l : sum(l) will order all the lists by the 
+        sum of the items from each list
+    
+    if key : None                   
+        sorting done by value of first input list 
+        (in this case the objects in the first iterable need the comparison 
+        methods __lt__ etc...)
+    if key : callable               
+        sorting done by value of key(item) for items in first iterable
+    if key : tuple                  
+        sorting done by value of (key(item_0), ..., key(item_n)) for items in 
+        the first n iterables (where n is the length of the key tuple)
+        i.e. the first callable is the primary sorting criterion, and the 
+        rest act as tie-breakers.
+    
+    Returns
+    -------   
+    Sorted lists
+    
+    Examples
+    --------
+    Capture sorting indeces:
+        l = list('CharacterS')
+        In [1]: sortmore( l, range(len(l)) )
+        Out[1]: (['C', 'S', 'a', 'a', 'c', 'e', 'h', 'r', 'r', 't'],
+                 [0, 9, 2, 4, 5, 7, 1, 3, 8, 6])
+        In [2]: sortmore( l, range(len(l)), key=str.lower )
+        Out[2]: (['a', 'a', 'C', 'c', 'e', 'h', 'r', 'r', 'S', 't'],
+                 [2, 4, 0, 5, 7, 1, 3, 8, 9, 6])
     '''
     
-    farg = list( args[0] )
-    if not len(farg):
+    first = list( args[0] )
+    if not len(first):
         return args
     
     globalkey   =       kw.get('globalkey')
@@ -104,6 +115,7 @@ def sortmore(*args, **kw):
     
 #====================================================================================================
 def groupmore(func=None, *its):
+    '''Extends the itertools.groupby functionality to arbitrary number of iterators.'''
     if not func:        func = lambda x: x
     its = sortmore(*its, key=func)
     nfunc = lambda x : func(x[0])
