@@ -65,10 +65,10 @@ def sortmore(*args, **kw):
                                     (in this case the objects in the first iterable need the comparison 
                                     methods __lt__ etc...)
     if key : callable               sorting done by value of key(item) for items in first iterable
-    if key : tuple                  sorting done by value of (key(item_0), ...,key(item_n) for items in 
+    if key : tuple                  sorting done by value of (key(item_0), ...,key(item_n)) for items in 
                                     the first n iterables (where n is the length of the key tuple)
                                     i.e. the first callable is the primary sorting criterion, and the 
-                                    rest act as tiebreakers.
+                                    rest act as tie-breakers.
     '''
     
     farg = list( args[0] )
