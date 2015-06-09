@@ -834,12 +834,12 @@ class PrimaryHDU(_ImageBaseHDU):
 
         do_not_scale_image_data : bool, optional
             If `True`, image data is not scaled using BSCALE/BZERO values
-            when read.
+            when read. (default: False)
 
         ignore_blank : bool, optional
             If `True`, the BLANK header keyword will be ignored if present.
             Otherwise, pixels equal to this value will be replaced with
-            NaNs.
+            NaNs. (default: False)
 
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
@@ -852,7 +852,9 @@ class PrimaryHDU(_ImageBaseHDU):
             image data, restore the data to the original type and reapply the
             original BSCALE/BZERO values.  This could lead to loss of accuracy
             if scaling back to integer values after performing floating point
-            operations on the data.
+            operations on the data.  Pseudo-unsigned integers are automatically
+            rescaled unless scale_back is explicitly set to `False`.
+            (default: None)
         """
 
         super(PrimaryHDU, self).__init__(
@@ -927,7 +929,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
 
         do_not_scale_image_data : bool, optional
             If `True`, image data is not scaled using BSCALE/BZERO values
-            when read.
+            when read. (default: False)
 
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
@@ -940,7 +942,9 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             image data, restore the data to the original type and reapply the
             original BSCALE/BZERO values.  This could lead to loss of accuracy
             if scaling back to integer values after performing floating point
-            operations on the data.
+            operations on the data.  Pseudo-unsigned integers are automatically
+            rescaled unless scale_back is explicitly set to `False`.
+            (default: None)
         """
 
         # This __init__ currently does nothing differently from the base class,
