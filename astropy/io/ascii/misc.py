@@ -8,14 +8,13 @@ misc.py:
 """
 
 from __future__ import absolute_import, division, print_function
-try:
-    from future_builtins import filter, zip, map
-except Exception as err:
-    pass
 
 import numpy as np
 import itertools as itt
 import collections as coll
+
+from ...extern.six.moves import zip, map, filter
+
 
 def nth(iterable, n, default=None):
     '''Returns the nth item or a default value'''
