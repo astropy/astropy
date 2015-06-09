@@ -99,12 +99,8 @@ class _ImageBaseHDU(_ValidHDU):
         self._uint = uint
         self._scale_back = scale_back
 
-        if do_not_scale_image_data:
-            self._bzero = 0
-            self._bscale = 1
-        else:
-            self._bzero = self._header.get('BZERO', 0)
-            self._bscale = self._header.get('BSCALE', 1)
+        self._bzero = self._header.get('BZERO', 0)
+        self._bscale = self._header.get('BSCALE', 1)
 
         # Save off other important values from the header needed to interpret
         # the image data
@@ -258,8 +254,9 @@ class _ImageBaseHDU(_ValidHDU):
         if isinstance(data, np.ndarray):
             self._bitpix = DTYPE2BITPIX[data.dtype.name]
             self._orig_bitpix = self._bitpix
-            self._orig_bscale = 1
-            self._orig_bzero = 0
+            self._bscale = self._orig_bscale = 1
+            self._bzero = self._orig_bzero = 0
+            self._blank = None
             self._axes = list(data.shape)
             self._axes.reverse()
         elif self.data is None:
@@ -337,37 +334,38 @@ class _ImageBaseHDU(_ValidHDU):
         self._modified = False
 
     def _update_header_scale_info(self, dtype=None):
-        if (not self._do_not_scale_image_data and
-                not (self._orig_bzero == 0 and self._orig_bscale == 1)):
+        if (self._do_not_scale_image_data or
+                (self._orig_bzero == 0 and self._orig_bscale == 1)):
+            return
 
-            if dtype is None:
-                dtype = self._dtype_for_bitpix()
+        if dtype is None:
+            dtype = self._dtype_for_bitpix()
 
-            if (dtype is not None and dtype.kind == 'u' and
-                    (self._scale_back or self._scale_back is None)):
-                # Data is pseudo-unsigned integers, and the scale_back option
-                # was not explicitly set to False, so preserve all the scale
-                # factors
-                return
+        if (dtype is not None and dtype.kind == 'u' and
+                (self._scale_back or self._scale_back is None)):
+            # Data is pseudo-unsigned integers, and the scale_back option
+            # was not explicitly set to False, so preserve all the scale
+            # factors
+            return
 
-            for keyword in ['BSCALE', 'BZERO']:
-                try:
-                    del self._header[keyword]
-                    # Since _update_header_scale_info can, currently, be called
-                    # *after* _prewriteto(), replace these with blank cards so
-                    # the header size doesn't change
-                    self._header.append()
-                except KeyError:
-                    pass
+        for keyword in ['BSCALE', 'BZERO']:
+            try:
+                del self._header[keyword]
+                # Since _update_header_scale_info can, currently, be called
+                # *after* _prewriteto(), replace these with blank cards so
+                # the header size doesn't change
+                self._header.append()
+            except KeyError:
+                pass
 
-            if dtype is None:
-                dtype = self._dtype_for_bitpix()
-            if dtype is not None:
-                self._header['BITPIX'] = DTYPE2BITPIX[dtype.name]
+        if dtype is None:
+            dtype = self._dtype_for_bitpix()
+        if dtype is not None:
+            self._header['BITPIX'] = DTYPE2BITPIX[dtype.name]
 
-            self._bzero = 0
-            self._bscale = 1
-            self._bitpix = self._header['BITPIX']
+        self._bzero = 0
+        self._bscale = 1
+        self._bitpix = self._header['BITPIX']
 
     def scale(self, type=None, option='old', bscale=1, bzero=0):
         """
@@ -578,7 +576,7 @@ class _ImageBaseHDU(_ValidHDU):
         raw_data.dtype = raw_data.dtype.newbyteorder('>')
 
         if (self._orig_bzero == 0 and self._orig_bscale == 1 and
-                self._blank is None):
+                self._blank is None) or self._do_not_scale_image_data:
             # No further conversion of the data is necessary
             return raw_data
 
@@ -635,7 +633,6 @@ class _ImageBaseHDU(_ValidHDU):
 
         return data
 
-    # TODO: Move the GroupsHDU-specific summary code to GroupsHDU itself
     def _summary(self):
         """
         Summarize the HDU: name, dimensions, and formats.
@@ -657,6 +654,11 @@ class _ImageBaseHDU(_ValidHDU):
                 format = BITPIX2DTYPE[self._bitpix]
             else:
                 format = ''
+
+            if (format and not self._do_not_scale_image_data and
+                    (self._orig_bscale != 1 or self._orig_bzero != 0)):
+                new_dtype = self._dtype_for_bitpix()
+                format += ' (rescales to {0})'.format(new_dtype.name)
 
         # Display shape in FITS-order
         shape = tuple(reversed(self.shape))
