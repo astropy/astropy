@@ -62,6 +62,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
             central value and ``BSCALE == 1`` as unsigned integer
             data.  For example, ``int16`` data with ``BZERO = 32768``
             and ``BSCALE = 1`` would be treated as ``uint16`` data.
+            This is enabled by default so that the pseudo-unsigned
+            integer convention is assumed.
 
             Note, for backward compatibility, the kwarg **uint16** may
             be used instead.  The kwarg was renamed when support was

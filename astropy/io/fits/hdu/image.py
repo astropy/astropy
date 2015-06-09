@@ -37,7 +37,7 @@ class _ImageBaseHDU(_ValidHDU):
     }
 
     def __init__(self, data=None, header=None, do_not_scale_image_data=False,
-                 uint=False, scale_back=False, ignore_blank=False, **kwargs):
+                 uint=True, scale_back=False, ignore_blank=False, **kwargs):
 
         from .groups import GroupsHDU
 
@@ -819,7 +819,7 @@ class PrimaryHDU(_ImageBaseHDU):
 
     def __init__(self, data=None, header=None, do_not_scale_image_data=False,
                  ignore_blank=False,
-                 uint=False, scale_back=None):
+                 uint=True, scale_back=None):
         """
         Construct a primary HDU.
 
@@ -846,6 +846,7 @@ class PrimaryHDU(_ImageBaseHDU):
             central value and ``BSCALE == 1`` as unsigned integer
             data.  For example, ``int16`` data with ``BZERO = 32768``
             and ``BSCALE = 1`` would be treated as ``uint16`` data.
+            (default: True)
 
         scale_back : bool, optional
             If `True`, when saving changes to a file that contained scaled
@@ -910,7 +911,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
     _extension = 'IMAGE'
 
     def __init__(self, data=None, header=None, name=None,
-                 do_not_scale_image_data=False, uint=False, scale_back=None):
+                 do_not_scale_image_data=False, uint=True, scale_back=None):
         """
         Construct an image HDU.
 
@@ -936,6 +937,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             central value and ``BSCALE == 1`` as unsigned integer
             data.  For example, ``int16`` data with ``BZERO = 32768``
             and ``BSCALE = 1`` would be treated as ``uint16`` data.
+            (default: True)
 
         scale_back : bool, optional
             If `True`, when saving changes to a file that contained scaled
