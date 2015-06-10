@@ -1,7 +1,9 @@
+.. |quantity| replace:: :class:`~astropy.units.Quantity`
+
+.. _logarithmic_units:
+
 Magnitudes and other Logarithmic Units
 ======================================
-
-.. |quantity| replace:: :class:`~astropy.units.Quantity`
 
 Magnitudes and logarithmic units such as ``dex`` and ``dB`` are used the
 logarithm of values relative to some reference value.  Quantities with such
@@ -17,23 +19,32 @@ a logarithmic unit.  For instance::
   >>> import astropy.units as u, astropy.constants as c, numpy as np
   >>> u.Magnitude(-10.)
   <Magnitude -10.0 mag>
-  >>> u.Magnitude(-2.5, u.MagUnit(u.ct / u.s))
-  <Magnitude -2.5 mag(ct / s)>
   >>> u.Magnitude(10 * u.ct / u.s)
   <Magnitude -2.5 mag(ct / s)>
-  >>> -2.5 * u.MagUnit(u.ct / u.s)
+  >>> u.Magnitude(-2.5, "mag(ct/s)")
+  <Magnitude -2.5 mag(ct / s)>
+  >>> -2.5 * u.mag(u.ct / u.s)
   <Magnitude -2.5 mag(ct / s)>
   >>> u.Dex((c.G * u.M_sun / u.R_sun**2).cgs)  # doctest: +FLOAT_CMP
   <Dex 4.43842814841305 dex(cm / s2)>
-  >>> np.linspace(2., 5., 7) * u.DexUnit(u.cm / u.s**2)
+  >>> np.linspace(2., 5., 7) * u.Unit("dex(cm/s2)")
   <Dex [ 2. , 2.5, 3. , 3.5, 4. , 4.5, 5. ] dex(cm / s2)>
+
+Above, we make use of the fact that the units ``mag``, ``dex``, and
+``dB`` are special in that, when used as functions, they return a
+:class:`~astropy.units.function.logarithmic.LogUnit` instance
+(:class:`~astropy.units.function.logarithmic.MagUnit`,
+:class:`~astropy.units.function.logarithmic.DexUnit`, and
+:class:`~astropy.units.function.logarithmic.DecibelUnit`,
+respectively).  The same happens as required when strings are parsed
+by :class:`~astropy.units.Unit`.
 
 As for normal |quantity| objects, one can access the value with the
 `~astropy.units.Quantity.value` attribute. In addition, one can convert easily
-to a normal |quantity| using the
+to a |quantity| with the physical unit using the
 `~astropy.units.function.FunctionQuantity.physical` attribute::
 
-    >>> logg = 5. * u.DexUnit(u.cm / u.s**2)
+    >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.value
     5.0
     >>> logg.physical
@@ -47,10 +58,10 @@ units using the :meth:`~astropy.units.function.FunctionQuantity.to` method.
 Here, if the requested unit is not a logarithmic unit, the object will be
 automatically converted to its physical unit::
 
-    >>> logg = 5. * u.DexUnit(u.cm / u.s**2)
+    >>> logg = 5. * u.dex(u.cm / u.s**2)
     >>> logg.to(u.m / u.s**2)
     <Quantity 1000.0 m / s2>
-    >>> logg.to(u.DexUnit(u.m / u.s**2))
+    >>> logg.to('dex(m/s2)')
     <Dex 3.0 dex(m / s2)>
 
 For convenience, the `~astropy.units.function.FunctionQuantity.si` and
@@ -152,7 +163,7 @@ magnitude, then we can define the appropriate corresponding luminosity and
 absolute magnitude and calculate the distance modulus::
 
     >>> ST0abs = u.Unit('STabs', u.STmag.physical_unit * 4.*np.pi*(10.*u.pc)**2)
-    >>> STabsmag = u.MagUnit(ST0abs)
+    >>> STabsmag = u.mag(ST0abs)
     >>> M_V = 5.76 * STabsmag
     >>> M_B = M_V + B_V0
     >>> DM = V[0] - A_V - M_V
@@ -197,7 +208,7 @@ appropriate unit of ``mag``, ``dB``, or ``dex``.  With this, it is possible to
 use composite units like ``mag/d`` or ``dB/m``, which cannot easily be
 supported as logarithmic units.  For instance::
 
-    >>> dBm = u.DecibelUnit(u.mW)
+    >>> dBm = u.dB(u.mW)
     >>> signal_in, signal_out = 100. * dBm, 50 * dBm
     >>> cable_loss = (signal_in - signal_out) / (100. * u.m)
     >>> signal_in, signal_out, cable_loss

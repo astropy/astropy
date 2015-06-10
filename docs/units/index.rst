@@ -12,8 +12,8 @@ Introduction
 ============
 
 `astropy.units` handles defining, converting between, and performing
-arithmetic with physical quantities. Examples of physical quantities
-are meters, seconds, Hz, etc.
+arithmetic with physical quantities, such as meters, seconds, Hz,
+etc.  It also handles logarithmic units such as magnitude and decibel.
 
 `astropy.units` does not know spherical geometry or sexagesimal
 (hours, min, sec): if you want to deal with celestial coordinates,
@@ -22,10 +22,10 @@ see the `astropy.coordinates` package.
 Getting Started
 ===============
 
-Most users of the `astropy.units` package will work with "quantities":
-the combination of a value and a unit.  The easiest way to create a
-|quantity| is to simply multiply or divide a value by one of the
-built-in units.  It works with scalars, sequences and Numpy arrays::
+Most users of the `astropy.units` package will :ref:`work with "quantities"
+<quantity>`: the combination of a value and a unit.  The easiest way to create
+a |quantity| is to simply multiply or divide a value by one of the built-in
+units.  It works with scalars, sequences and Numpy arrays::
 
     >>> from astropy import units as u
     >>> 42.0 * u.meter
@@ -96,10 +96,22 @@ And it can convert between unit systems, such as SI or CGS:
     >>> (1.0 * u.Pa).cgs
     <Quantity 10.0 Ba>
 
-`astropy.units` also handles equivalencies, such as that between wavelength
-and frequency. To use that feature, equivalence objects are passed to the
-:meth:`~astropy.units.quantity.Quantity.to` conversion method. For instance, a
-conversion from wavelength to frequency doesn't normally work:
+The units ``mag``, ``dex`` and ``dB`` are special, being :ref:`logarithmic
+units <logarithmic_units>`, for which a value is the logarithm of a physical
+quantity in a given unit.  These can be used with a physical unit in
+parentheses to create a corresponding logarithmic quantity::
+
+    >>> -2.5 * u.mag(u.ct / u.s)
+    <Magnitude -2.5 mag(ct / s)>
+    >>> from astropy import constants as c
+    >>> u.Dex((c.G * u.M_sun / u.R_sun**2).cgs)  # doctest: +FLOAT_CMP
+    <Dex 4.43842814841305 dex(cm / s2)>
+    
+`astropy.units` also handles :ref:`equivalencies <unit_equivalencies>`, such as
+that between wavelength and frequency. To use that feature, equivalence objects
+are passed to the :meth:`~astropy.units.quantity.Quantity.to` conversion
+method. For instance, a conversion from wavelength to frequency doesn't
+normally work:
 
     >>> (1000 * u.nm).to(u.Hz)
     Traceback (most recent call last):
@@ -111,11 +123,12 @@ but by passing an equivalency list, in this case ``spectral()``, it does:
     >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())
     <Quantity 299792457999999.94 Hz>
 
-Quantities and units can be printed nicely to strings using the
-`Format String Syntax <http://docs.python.org/library/string.html#format-string-syntax>`_,
-the preferred string formatting syntax in recent versions of python.
-Format specifiers (like ``0.03f``) in new-style format
-strings will used to format the quantity value::
+Quantities and units can be :ref:`printed nicely to strings
+<astropy-units-format>` using the `Format String Syntax
+<http://docs.python.org/library/string.html#format-string-syntax>`_, the
+preferred string formatting syntax in recent versions of python.  Format
+specifiers (like ``0.03f``) in new-style format strings will used to format the
+quantity value::
 
     >>> q = 15.1 * u.meter / (32.0 * u.second)
     >>> q  # doctest: +FLOAT_CMP
@@ -142,7 +155,7 @@ Using `astropy.units`
    standard_units
    combining_and_defining
    decomposing_and_composing
-   logarithmic_units	      
+   logarithmic_units
    format
    equivalencies
    conversion
@@ -183,6 +196,8 @@ Reference/API
 .. automodapi:: astropy.units.cgs
 
 .. automodapi:: astropy.units.astrophys
+
+.. automodapi:: astropy.units.function.units
 
 .. automodapi:: astropy.units.imperial
 
