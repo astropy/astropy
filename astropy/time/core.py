@@ -124,6 +124,16 @@ class Time(object):
     formats (e.g. JD) where very high precision (better than 64-bit precision)
     is required.
 
+    The allowed values for ``format`` and ``scale`` can be listed with::
+
+      >>> list(Time.FORMATS)
+      ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date', 'astropy_time',
+       'datetime', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear', 'byear_str',
+       'jyear_str']
+
+      >>> list(Time.SCALES)
+      ['tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc']
+
     Parameters
     ----------
     val : sequence, str, number, or `~astropy.time.Time` object
@@ -1062,6 +1072,14 @@ class TimeDelta(Time):
     ``format``.  The optional ``val2`` time input should be supplied only for
     numeric input formats (e.g. JD) where very high precision (better than
     64-bit precision) is required.
+
+    The allowed values for ``format`` and ``scale`` can be listed with::
+
+      >>> list(TimeDelta.FORMATS)
+      ['sec', 'jd']
+
+      >>> list(TimeDelta.SCALES)
+      ['tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai']
 
     Parameters
     ----------
