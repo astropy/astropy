@@ -19,7 +19,7 @@ from . import basic
 from . import fixedwidth
 from ...utils import OrderedDict
 from ...extern.six.moves import zip, map
-from .misc import first_true_idx, first_false_idx, groupmore
+from .misc import first_true_index, first_false_index, groupmore
 
 
 class DaophotHeader(core.BaseHeader):
@@ -42,17 +42,6 @@ class DaophotHeader(core.BaseHeader):
             return os.linesep.join( self.lines )
         else:
             return super(core.BaseHeader, self).__str__()
-
-    def extract_keyword_line(self, line):
-        '''extract info from a header keyword line (#K) '''
-        m = self.re_header_keyword.match(line)
-        if m:
-            vals = m.group('stuff').strip().rsplit(None, 2)
-            keyword_dict = { 'units': vals[-2],
-                            'format': vals[-1],
-                            'value' : (vals[0] if len(vals) > 2 else "") }
-            return m.group('name'), keyword_dict
-
 
     def parse_col_defs(self, grouped_lines_dict):
         '''
@@ -106,7 +95,6 @@ class DaophotHeader(core.BaseHeader):
 
         return coldef_dict
 
-
     def update_meta(self, lines, meta):
         """
         Extract table-level keywords for DAOphot table.  These are indicated by
@@ -119,7 +107,7 @@ class DaophotHeader(core.BaseHeader):
         if Nlines > 0:
             #group the header lines according to their line identifiers (#K, #N, #U, #F or just # (spacer line))
             get_line_id = lambda s: s.split(None,1)[0]   #function that grabs the line identifier
-            #group lines by the line identifier and capture line index
+            #group lines by the line identifier ('#N', '#U', '#F', '#K') and capture line index
             gid, groups = zip( *groupmore(get_line_id, self.lines, range(Nlines)) )
             #groups of lines and their indeces
             grouped_lines, gix = zip( *groups )
@@ -149,7 +137,15 @@ class DaophotHeader(core.BaseHeader):
             self.meta = meta
             self.names = coldef_dict['#N']
 
-
+    def extract_keyword_line(self, line):
+        '''extract info from a header keyword line (#K) '''
+        m = self.re_header_keyword.match(line)
+        if m:
+            vals = m.group('stuff').strip().rsplit(None, 2)
+            keyword_dict = { 'units': vals[-2],
+                            'format': vals[-1],
+                            'value' : (vals[0] if len(vals) > 2 else "") }
+            return m.group('name'), keyword_dict
 
     def get_cols(self, lines):
         """Initialize the header Column objects from the table ``lines`` for a DAOphot
@@ -205,7 +201,7 @@ class DaophotData(core.BaseData):
 
     def get_data_lines(self, lines):
 
-        # Special case for certain daophot databases. Extract the aperture values from the first data multiline block
+        # Special case for multiline daophot databases. Extract the aperture values from the first multiline data block
         if self.is_multiline:
             #grab the first column of the special block (aperture values) and recreate the aperture description string
             aplist = next( zip(*map(str.split, self.first_block)) )
@@ -229,31 +225,31 @@ class DaophotInputter(core.ContinuationLinesInputter):
 
         #The list of apertures given in the #K APERTURES keyword may not be complete!!
         #This happens if the string description of the aperture list is longer than the
-        #field width %len(self.aperture_values) of the #K APERTURES field.
+        #field width of the #K APERTURES field.
         #In this case we have to figure out how many apertures there are based on the file
         #structure.
 
         comment, special, cont = zip( *(self.re_multiline.search(l).groups() for l in lines[:depth]) )
 
         #find first non-comment line
-        data_start = first_false_idx( comment )
+        data_start = first_false_index( comment )
         if data_start is None: #no data in lines[:depth].  This may be because there is no data in the file, or because the header is really huge.  If the latter, increasing the search depth should help
             return None, None, lines[:depth]
 
         header_lines = lines[:data_start]
 
         #find first line ending on special row continuation character '*'
-        first_special = first_true_idx( special[data_start:depth] )   #indexed relative to data_start
+        first_special = first_true_index( special[data_start:depth] )   #indexed relative to data_start
         if first_special is None:  #no special lines
             return None, None, header_lines
 
         #last line ending on special '*', but not on line continue '/'
-        last_special = first_false_idx( special[data_start+first_special:depth] )  #index relative to first_special
+        last_special = first_false_index( special[data_start+first_special:depth] )  #index relative to first_special
         #if first_special is None: #no end of special lines within search depth!  increase search depth
             #return self.search_multiline( lines, depth=2*depth )
 
-        markers = np.cumsum( [data_start,first_special,last_special] )                    #indexing now relative to line[0]
-        multiline_block = lines[ markers[1]:markers[-1] ]       #multiline portion of first data block
+        markers = np.cumsum( [data_start,first_special,last_special] )  #indexing now relative to line[0]
+        multiline_block = lines[ markers[1]:markers[-1] ]               #multiline portion of first data block
 
         return markers, multiline_block, header_lines
 
@@ -283,13 +279,13 @@ class DaophotInputter(core.ContinuationLinesInputter):
                 if special:
                     line = line.replace(multiline_char, replace_char)
                 if cont and not comment:
-                    parts.append(  line )
+                    parts.append( line )
                 if not cont:
                     parts.append(line)
-                    outlines.append(''.join(parts))
+                    outlines.append( ''.join(parts) )
                     parts = []
             else:
-                raise ValueError( 'multiline re could not match line %i: %s' %(i,l) )
+                raise ValueError( 'multiline re could not match line %i: %s' %(i,line) )
 
         return outlines
 

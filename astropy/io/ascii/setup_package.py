@@ -40,6 +40,7 @@ def get_package_data():
                                    't/daophot.dat',
                                    't/daophot2.dat',
                                    't/daophot3.dat',
+                                   't/daophot4.dat',
                                    't/sextractor.dat',
                                    't/sextractor2.dat',
                                    't/daophot.dat.gz',
