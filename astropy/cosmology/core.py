@@ -1825,7 +1825,7 @@ class FlatLambdaCDM(LambdaCDM):
         return np.sqrt(zp1 ** 3 * (Or * zp1 + Om0) + Ode0)
 
     def inv_efunc(self, z):
-        """Function used to calculate :math:`\frac{1}{H_z}`.
+        r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
