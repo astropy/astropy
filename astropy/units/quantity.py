@@ -927,7 +927,7 @@ class Quantity(np.ndarray):
         if self.unit is None:
             unitstr = _UNIT_NOT_INITIALISED
         else:
-            unitstr = self.unit.to_string()
+            unitstr = str(self.unit)
 
         if unitstr:
             unitstr = ' ' + unitstr

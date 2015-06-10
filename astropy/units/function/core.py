@@ -360,24 +360,46 @@ class FunctionUnitBase(object):
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
         """
-        if format not in ('generic', 'unscaled'):
+        if format not in ('generic', 'unscaled', 'latex'):
             raise ValueError("Function units cannot be written in {0} format. "
-                             "Only 'generic' and 'unscaled' are supported."
-                             .format(format))
+                             "Only 'generic', 'unscaled' and 'latex' are "
+                             "supported.".format(format))
         self_str = self.function_unit.to_string(format)
-        if self.physical_unit != dimensionless_unscaled:
-            self_str += '({0})'.format(self.physical_unit.to_string(format))
+        pu_str = self.physical_unit.to_string(format)
+        parens = '\left({0}\right)' if format == 'latex' else '({0})'
+        self_str += parens.format(pu_str if pu_str != '' else '1')
         return self_str
 
     def __str__(self):
         """Return string representation for unit."""
-        return self.to_string()
+        self_str = str(self.function_unit)
+        pu_str = str(self.physical_unit)
+        if pu_str:
+            self_str += '({0})'.format(pu_str)
+        return self_str
 
     def __repr__(self):
-        return "{0}('{1}'{2})".format(
-            self.__class__.__name__, self.physical_unit,
-            "" if self.function_unit is self._default_function_unit
-            else ", unit='{0}'".format(self.function_unit))
+        # By default, try to give a representation using `Unit(<string>)`,
+        # with string such that parsing it would give the correct FunctionUnit.
+        if callable(self.function_unit):
+            return 'Unit("{0}")'.format(self.to_string())
+
+        else:
+            return '{0}("{1}"{2})'.format(
+                self.__class__.__name__, self.physical_unit,
+                "" if self.function_unit is self._default_function_unit
+                else ', unit="{0}"'.format(self.function_unit))
+
+    def _repr_latex_(self):
+        """
+        Generate latex representation of unit name.  This is used by
+        the IPython notebook to print a unit with a nice layout.
+
+        Returns
+        -------
+        Latex string
+        """
+        return self.to_string('latex')
 
     def __hash__(self):
         return hash((self.function_unit, self.physical_unit))
