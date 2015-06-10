@@ -19,6 +19,7 @@ datasets in astropy through:
   containers.
 + A decorator, `~astropy.nddata.support_nddata`, for facilitating use of
   `~astropy.nddata` objects  in functions in astropy and affiliated packages.
++ General utility functions (:ref:`nddata_utils`) for array operations.
 
 .. warning::
 
@@ -166,6 +167,7 @@ Using ``nddata``
    decorator.rst
    mixins/index.rst
    subclassing.rst
+   utils.rst
 
 Reference/API
 =============
