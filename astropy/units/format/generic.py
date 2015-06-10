@@ -17,7 +17,6 @@ from . import utils
 from .base import Base
 from ...utils.misc import did_you_mean
 
-
 def _to_string(cls, unit):
     from .. import core
 
@@ -130,7 +129,7 @@ class Generic(Base):
         # This needs to be a function so we can force it to happen
         # before t_UNIT
         def t_FUNCNAME(t):
-            r'(sqrt)|(ln)|(exp)|(log)'
+            r'((sqrt)|(ln)|(exp)|(log)|(mag)|(dB)|(dex))(?=\ *\()'
             return t
 
         def t_UNIT(t):
@@ -342,10 +341,19 @@ class Generic(Base):
 
         def p_function(p):
             '''
-            function : function_name OPEN_PAREN unit_expression CLOSE_PAREN
+            function : function_name OPEN_PAREN main CLOSE_PAREN
             '''
             if p[1] == 'sqrt':
                 p[0] = p[3] ** 0.5
+            elif p[1] == 'mag':
+                from ..function.logarithmic import MagUnit
+                p[0] = MagUnit(p[3])
+            elif p[1] == 'dB':
+                from ..function.logarithmic import DecibelUnit
+                p[0] = DecibelUnit(p[3])
+            elif p[1] == 'dex':
+                from ..function.logarithmic import DexUnit
+                p[0] = DexUnit(p[3])
             else:
                 raise ValueError(
                    "'{0}' is not a recognized function".format(p[1]))

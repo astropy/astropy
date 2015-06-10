@@ -102,6 +102,9 @@ class VOUnit(generic.Generic):
                 "'{0}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard".format(s))
         result = self._do_parse(s, debug=debug)
+        if hasattr(result, 'function_unit'):
+            raise ValueError("Function units are not yet supported in "
+                             "VOUnit.")
         return result
 
     @classmethod

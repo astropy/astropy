@@ -38,12 +38,31 @@ def test_unit_grammar():
         (["10+8m"], u.Unit(u.m * 1e8)),
         # This is the VOUnits documentation, but doesn't seem to follow the
         # unity grammar (["3.45 10**(-4)Jy"], 3.45 * 1e-4 * u.Jy)
-        (["sqrt(m)"], u.m ** 0.5)
+        (["sqrt(m)"], u.m ** 0.5),
+        (["dB(mW)", "dB (mW)"], u.DecibelUnit(u.mW)),
+        (["mag"], u.mag),
+        (["mag(ct/s)"], u.MagUnit(u.ct / u.s)),
+        (["dex"], u.dex),
+        (["dex(cm s**-2)", "dex(cm/s2)"], u.DexUnit(u.cm / u.s**2))
     ]
 
     for strings, unit in data:
         for s in strings:
             yield _test_unit_grammar, s, unit
+
+
+def test_unit_grammar_fail():
+    @raises(ValueError)
+    def _test_unit_grammar_fail(s):
+        u_format.Generic().parse(s)
+
+    data = ['sin( /pixel /s)',
+            'mag(mag)',
+            'dB(dB(mW))',
+            'dex()']
+
+    for s in data:
+        yield _test_unit_grammar_fail, s
 
 
 def test_cds_grammar():
@@ -107,7 +126,10 @@ def test_cds_grammar_fail():
             '5x8+3m',
             '0.1---',
             '---m',
-            'm---']
+            'm---',
+            'mag(s-1)',
+            'dB(mW)',
+            'dex(cm s-2)']
 
     for s in data:
         yield _test_cds_grammar_fail, s
@@ -163,7 +185,8 @@ def test_ogip_grammar_fail():
     data = ['log(photon /m**2 /s /Hz)',
             'sin( /pixel /s)',
             'log(photon /cm**2 /s /Hz) /(sin( /pixel /s))',
-            'log(photon /cm**2 /s /Hz) (sin( /pixel /s))**(-1)']
+            'log(photon /cm**2 /s /Hz) (sin( /pixel /s))**(-1)',
+            'dB(mW)', 'dex(cm/s**2)']
 
     for s in data:
         yield _test_ogip_grammar_fail, s
@@ -396,6 +419,36 @@ def test_deprecated_did_you_mean_units():
         u.Unit('angstrom', format='vounit')
     assert len(w) == 1
     assert '0.1nm' in six.text_type(w[0].message)
+
+
+def test_fits_function():
+    # Function units cannot be written, so ensure they're not parsed either.
+    @raises(ValueError)
+    def _test_fits_grammar_fail(s):
+        print(s)
+        u_format.Fits().parse(s)
+
+    data = ['mag(ct/s)',
+            'dB(mW)',
+            'dex(cm s**-2)']
+
+    for s in data:
+        yield _test_fits_grammar_fail, s
+
+
+def test_vounit_function():
+    # Function units cannot be written, so ensure they're not parsed either.
+    @raises(ValueError)
+    def _test_vounit_grammar_fail(s):
+        print(s)
+        u_format.VOUnit().parse(s)
+
+    data = ['mag(ct/s)',
+            'dB(mW)',
+            'dex(cm s**-2)']
+
+    for s in data:
+        yield _test_vounit_grammar_fail, s
 
 
 def test_vounit_binary_prefix():

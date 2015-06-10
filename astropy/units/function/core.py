@@ -10,7 +10,7 @@ import numpy as np
 # LOCAL
 from ...extern import six
 from .. import (Unit, UnitBase, UnitsError,
-                dimensionless_unscaled, Quantity, quantity_helper as qh)
+                dimensionless_unscaled, dex, Quantity, quantity_helper as qh)
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 
@@ -95,6 +95,10 @@ class FunctionUnitBase(object):
             self._physical_unit = dimensionless_unscaled
         else:
             self._physical_unit = Unit(physical_unit)
+            if(not isinstance(self._physical_unit, UnitBase) or
+               self._physical_unit.is_equivalent(dex)):
+                raise ValueError("Unit {0} is not a physical unit."
+                                 .format(self._physical_unit))
 
         if function_unit is None:
             self._function_unit = self._default_function_unit
@@ -105,7 +109,7 @@ class FunctionUnitBase(object):
             if function_unit.is_equivalent(self._default_function_unit):
                 self._function_unit = function_unit
             else:
-                raise ValueError("Cannot initiliaze '{0}' instance with "
+                raise ValueError("Cannot initialize '{0}' instance with "
                                  "function unit '{1}', as it is not "
                                  "equivalent to default function unit '{2}'."
                                  .format(self.__class__.__name__,
@@ -457,6 +461,10 @@ class FunctionQuantity(Quantity):
 
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0):
+
+        if unit is not None:
+            # Convert possible string input to a (function) unit.
+            unit = Unit(unit)
 
         value_unit = getattr(value, 'unit', None)
         if value_unit is None:
