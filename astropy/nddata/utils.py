@@ -601,6 +601,42 @@ class Cutout(object):
         else:
             self.wcs = None
 
+    def to_large(self, position):
+        """
+        Calculate the pixel position in the large array corresponding to
+        the input pixel position in the cutout array.
+
+        Parameters
+        ----------
+        position : tuple
+            The ``(y, x)`` pixel position in the cutout array.
+
+        Returns
+        -------
+        position : tuple
+            The corresponding ``(y, x)`` pixel position in the large
+            array.
+        """
+        return tuple(position[i] + self.origin_large[i] for i in [0, 1])
+
+    def from_large(self, position):
+        """
+        Calculate the pixel position in the cutout array corresponding to
+        the input pixel position in the large array.
+
+        Parameters
+        ----------
+        position : tuple
+            The ``(y, x)`` pixel position in the large array.
+
+        Returns
+        -------
+        position : tuple
+            The corresponding ``(y, x)`` pixel position in the cutout
+            array.
+        """
+        return tuple(position[i] - self.origin_large[i] for i in [0, 1])
+
     @staticmethod
     def _calc_center(slices):
         """
