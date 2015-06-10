@@ -181,10 +181,10 @@ class FixedWidthHeader(basic.BasicHeader):
             List of ending indices.
 
         """
-        
+
         # If column positions are already specified then just use those.
-        # If neither column starts or ends are given, figure out poistions
-        # between delimiters. Otherwise, either the starts or the ends have 
+        # If neither column starts or ends are given, figure out positions
+        # between delimiters. Otherwise, either the starts or the ends have
         # been given, so figure out whichever wasn't given.
         if self.col_starts is not None and self.col_ends is not None:
             starts = list(self.col_starts)  # could be any iterable, e.g. np.array

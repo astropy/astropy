@@ -1132,7 +1132,7 @@ def test_constellations():
 def test_constellations_with_nameresolve():
     assert SkyCoord.from_name('And I').get_constellation(short_name=True) == 'And'
 
-    #you'd think "And ..." should be in andromeda.  But you'd be wrong.
+    #you'd think "And ..." should be in Andromeda.  But you'd be wrong.
     assert SkyCoord.from_name('And VI').get_constellation() == 'Pegasus'
 
     #maybe it's because And VI isn't really a galaxy?

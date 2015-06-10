@@ -6,14 +6,13 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-"""Test initalization of angles not already covered by the API tests"""
+"""Test initialization of angles not already covered by the API tests"""
 
 import numpy as np
 
 from ..earth import EarthLocation, ELLIPSOIDS
 from ..angles import Longitude, Latitude
 from ...tests.helper import pytest, quantity_allclose
-from ...utils import minversion
 from ... import units as u
 
 def allclose_m14(a, b, rtol=1.e-14, atol=None):

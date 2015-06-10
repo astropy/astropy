@@ -29,7 +29,7 @@ class LogUnit(FunctionUnitBase):
         By default, the same as the logarithmic unit set by the subclass.
 
     """
-    # vvvv the four essential overrides of FunctionUnitBase
+    # the four essential overrides of FunctionUnitBase
     @property
     def _default_function_unit(self):
         return ap.dex
@@ -217,10 +217,10 @@ class LogQuantity(FunctionQuantity):
         <Decibel 30.0 dB(mW)>
 
     """
-    # vvvv only override of FunctionQuantity
+    # only override of FunctionQuantity
     _unit_class = LogUnit
 
-    # vvvv additions that work just for logarithmic units
+    # additions that work just for logarithmic units
     def __add__(self, other):
         # Add function units, thus multiplying physical units. If no unit is
         # given, assume dimensionless_unscaled; this will give the appropriate

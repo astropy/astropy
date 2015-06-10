@@ -391,9 +391,9 @@ ways, for an enhanced viewing experience.
  >>> t1.pprint()
    long column name 1 long column name 2 long column name 3 long column name 4
   ------------------ ------------------ ------------------ ------------------
-                   1 4                  000000000000000007       700000      
-                   2 5                  000000000000000008       800000      
-                   3 6                  000000000000000009       900000      
+                   1 4                  000000000000000007       700000
+                   2 5                  000000000000000008       800000
+                   3 6                  000000000000000009       900000
 
 Conveniently, alignment can be handled another way, by passing a list to the
 keyword argument ``align``.
@@ -414,9 +414,9 @@ By default, if the length of the list does not match the number of columns
 within the table, alignment defaults to right-aligned columns. This default
 behavior also holds true even if a single alignment character is passed in as a
 list (e.g., align=['^']), where global alignment of all columns within a table
-is intended. For very large tables, this can be a nuissance, and so looping is the
+is intended. For very large tables, this can be a nuisance, and so looping is the
 recommended solution for this task.
- 
+
 pformat() method
 ''''''''''''''''
 

@@ -39,7 +39,7 @@ class TestLogUnitCreation(object):
     @pytest.mark.parametrize('lu_cls, physical_unit',
                              itertools.product(lu_subclasses, pu_sample))
     def test_subclass_creation(self, lu_cls, physical_unit):
-        """Create a LogUnit subclass object for given physcal unit,
+        """Create a LogUnit subclass object for given physical unit,
         and do basic check that output is right."""
         lu1 = lu_cls(physical_unit)
         assert lu1.physical_unit == physical_unit
@@ -290,7 +290,7 @@ class TestLogQuantityCreation(object):
     @pytest.mark.parametrize('lq_cls, physical_unit',
                              itertools.product(lq_subclasses, pu_sample))
     def test_subclass_creation(self, lq_cls, physical_unit):
-        """Create LogQuantity subclass objects for some physcal units,
+        """Create LogQuantity subclass objects for some physical units,
         and basic check on transformations"""
         value = np.arange(1.,10.)
         log_q = lq_cls(value * physical_unit)
@@ -372,7 +372,7 @@ class TestLogQuantitySlicing(object):
 
 class TestLogQuantityArithmetic(object):
     def test_multiplication_division(self):
-        """Check that multiplication/division with other quanties is only
+        """Check that multiplication/division with other quantities is only
         possible when the physical unit is dimensionless, and that this turns
         the result into a normal quantity."""
         lq = u.Magnitude(np.arange(1., 11.)*u.Jy)

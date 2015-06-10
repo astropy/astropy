@@ -137,7 +137,7 @@ class Parameter(object):
         if bounds is not None:
             if min is not None or max is not None:
                 raise ValueError(
-                    'bounds may not be specified simulatenously with min or '
+                    'bounds may not be specified simultaneously with min or '
                     'or max when instantiating Parameter {0}'.format(name))
         else:
             bounds = (min, max)

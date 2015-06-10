@@ -177,7 +177,7 @@ The current planned and existing sub-packages are:
                 <span class="dev"></span>
             </td>
             <td>
-                New in v0.3.  Major changes in v1.0, signficant additions planned.  Backwards-compatibility likely to be maintained, but not guaranteed.
+                New in v0.3.  Major changes in v1.0, significant additions planned.  Backwards-compatibility likely to be maintained, but not guaranteed.
             </td>
         </tr>
         <tr>
@@ -255,7 +255,7 @@ The current planned and existing sub-packages are:
                 <span class="dev"></span>
             </td>
             <td>
-                Contains mostly utilities destined for internal use with other parts of Astropy.  Existing functionality generally stable, but reglar additions and occasional changes.
+                Contains mostly utilities destined for internal use with other parts of Astropy.  Existing functionality generally stable, but regular additions and occasional changes.
             </td>
         </tr>
         <tr>

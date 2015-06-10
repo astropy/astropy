@@ -126,7 +126,7 @@ def itrs_to_itrs(from_coo, to_frame):
 
 #TODO: implement GCRS<->CIRS if there's call for it.  The thing that's awkward
 #is that they both have obstimes, so an extra set of transformations are necessary.
-#so unless there's a specific need for that, better to just have it go through te above
+#so unless there's a specific need for that, better to just have it go through the above
 #two steps anyway
 
 

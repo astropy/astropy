@@ -5,7 +5,7 @@ Magnitudes and other Logarithmic Units
 
 Magnitudes and logarithmic units such as ``dex`` and ``dB`` are used the
 logarithm of values relative to some reference value.  Quantities with such
-units are supported in ``astropy`` via the :class:`~astropy.units.Magnitude`, 
+units are supported in ``astropy`` via the :class:`~astropy.units.Magnitude`,
 :class:`~astropy.units.Dex`, and :class:`~astropy.units.Decibel` classes.
 
 Creating Logarithmic Quantities
@@ -113,7 +113,7 @@ Here, ``ST`` is a short-hand for the ST zero-point flux::
 .. note:: only ST [H+95]_ and AB [OG83]_ magnitudes are implemented at
 	  present, as these are defined in terms of flux densities, i.e.,
           do not depend on the filter the measurement was made with.
-    
+
 Now applying the calibration, we find (note the proper change in units)::
 
     >>> B, V = b_i0 + zp_b, v_i0 + zp_v
@@ -173,7 +173,7 @@ the 5-5log rule::
 Numpy functions
 ---------------
 
-For logarithmic quanties, most numpy functions and many array methods do not
+For logarithmic quantities, most numpy functions and many array methods do not
 make sense, hence they are disabled.  But one can use those one would expect to
 work::
 
@@ -187,7 +187,7 @@ work::
 	  array methods in :class:`~astropy.units.function.FunctionQuantity`.
           If you believe a function or method is incorrectly treated,
 	  please `let us know <http://www.astropy.org/contribute.html>`_.
-	  
+
 Dimensionless logarithmic quantities
 ------------------------------------
 
