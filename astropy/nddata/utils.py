@@ -570,8 +570,8 @@ class Cutout(object):
                              "'strict'.")
 
         data = np.asanyarray(data)
-        self.data, self.position_small  = extract_array(data, shape, position,
-            mode=mode, fill_value=fill_value, return_position=True)
+        self.data, self.input_position_small  = extract_array(data, shape,
+            position, mode=mode, fill_value=fill_value, return_position=True)
 
         slices_large, slices_small = overlap_slices(data.shape, shape,
                                                     position, mode=mode)
@@ -579,7 +579,7 @@ class Cutout(object):
         self.slices_small = slices_small
 
         self.shape = self.data.shape
-        self.position_input = position
+        self.input_position_large = position
         self.shape_input = shape
 
         (self.ymin_large, self.xmin_large,
@@ -609,8 +609,8 @@ class Cutout(object):
         central position is calculated for the valid (non-filled) cutout
         values.
         """
-        return (0.5 * (slices[0].start + slices[0].stop - 1),
-                0.5 * (slices[1].start + slices[1].stop - 1))
+        return tuple(0.5 * (slices[i].start + slices[i].stop - 1)
+                     for i in [0, 1])
 
     @staticmethod
     def _calc_bbox(slices):
@@ -634,12 +634,31 @@ class Cutout(object):
         return (self.slices_large[0].start, self.slices_large[1].start)
 
     @lazyproperty
-    def position(self):
+    def origin_small(self):
         """
-        The central position index (rounded to the nearest pixel) in the
-        large array.
+        The ``(y, x)`` index of the origin pixel of the cutout with
+        respect to the small array.  For ``mode='partial'``, the origin
+        pixel is calculated for the valid (non-filled) cutout values.
         """
-        return _round(self.position_input[0]), _round(self.position_input[1])
+        return (self.slices_small[0].start, self.slices_small[1].start)
+
+    @lazyproperty
+    def position_large(self):
+        """
+        The position index (rounded to the nearest pixel) in the large
+        array.
+        """
+        return (_round(self.input_position_large[0]),
+                _round(self.input_position_large[1]))
+
+    @lazyproperty
+    def position_small(self):
+        """
+        The position index (rounded to the nearest pixel) in the cutout
+        array.
+        """
+        return (_round(self.input_position_small[0]),
+                _round(self.input_position_small[1]))
 
     @lazyproperty
     def center_large(self):
