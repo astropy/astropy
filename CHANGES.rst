@@ -12,6 +12,8 @@ New Features
 
 - ``astropy.constants``
 
+  - Added the Thomson scattering cross-section. [#3839]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
