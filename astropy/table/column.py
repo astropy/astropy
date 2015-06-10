@@ -811,10 +811,10 @@ class Column(BaseColumn):
     # Set items using a view of the underlying data, as it gives an
     # order-of-magnitude speed-up. [#2994]
     def __setitem__(self, index, value):
-        self.data[index] = value
         # update indices
         for col_index in self.indices:
-            col_index.replace(index, value)
+            col_index.replace(index, value, self)
+        self.data[index] = value
 
     # # Set slices using a view of the underlying data, as it gives an
     # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
@@ -1125,9 +1125,13 @@ class MaskedColumn(Column, ma.MaskedArray):
     # to the (faster) Column version which uses an ndarray view.  This doesn't
     # copy the mask properly. See test_setting_from_masked_column test.
     def __setitem__(self, index, value):
+        # update indices
+        for col_index in self.indices:
+            col_index.replace(index, value, self)
         ma.MaskedArray.__setitem__(self, index, value)
 
     def __setslice__(self, start, stop, value):
+        ##TODO: handle
         ma.MaskedArray.__setslice__(self, start, stop, value)
 
     # We do this to make the methods show up in the API docs
@@ -1137,3 +1141,4 @@ class MaskedColumn(Column, ma.MaskedArray):
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
     convert_unit_to = BaseColumn.convert_unit_to
+    add_index = Column.add_index

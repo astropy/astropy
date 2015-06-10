@@ -239,7 +239,7 @@ class Table(object):
         self.columns = self.TableColumns()
         self.meta = meta
         self.formatter = self.TableFormatter()
-        self.indices = [] ##TODO: possibly copy indices if data is a Table
+        self.indices = {} ##TODO: possibly copy indices if data is a Table
         ##TODO: update indices after each modification
 
         # Must copy if dtype are changing
@@ -403,9 +403,9 @@ class Table(object):
 
     def add_index(self, colname):
         column = self.columns[colname]
-        index = Index([(column[i], i) for i in range(len(self))])
+        index = Index(column)
         column.add_index(index)
-        self.indices.append(index)
+        self.indices[colname] = index
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
@@ -1409,8 +1409,8 @@ class Table(object):
             del self._groups
 
         # Update indices
-        for index in self.indices:
-            index.remove_rows(row_specifier)
+        for col, index in self.indices.items():
+            index.remove_rows(row_specifier, col)
 
     def remove_column(self, name):
         """
@@ -1870,7 +1870,7 @@ class Table(object):
 
                 columns[name] = newcol
             # insert row in indices
-            for table_index in self.indices:
+            for table_index in self.indices.values():
                 table_index.insert_row(index, vals)
 
         except Exception as err:
@@ -1992,7 +1992,7 @@ class Table(object):
         '''
         for col in self.columns.values():
             col[:] = col[::-1]
-        for index in self.indices:
+        for index in self.indices.values():
             index.reverse()
 
     @classmethod
