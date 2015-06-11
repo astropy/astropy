@@ -668,14 +668,14 @@ class FunctionQuantity(Quantity):
         raise UnitsError("Cannot multiply function quantities which "
                          "are not dimensionless with anything.")
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
             return self._function_view / other
 
         raise UnitsError("Cannot divide function quantities which "
                          "are not dimensionless by anything.")
 
-    def __rdiv__(self, other):
+    def __rtruediv__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
             return self._function_view.__rdiv__(other)
 
