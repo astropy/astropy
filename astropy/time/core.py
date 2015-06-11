@@ -1076,6 +1076,15 @@ class TimeDelta(Time):
       >>> list(TimeDelta.FORMATS)
       ['sec', 'jd']
 
+    Note that for time differences, the scale can be among three groups:
+    geocentric ('tai', 'tt', 'tcg'), barycentric ('tcb', 'tdb'), and rotational
+    ('ut1'). Within each of these, the scales for time differences are the
+    same. Conversion between geocentric and barycentric is possible, as there
+    is only a scale factor change, but one cannot convert to or from 'ut1', as
+    this requires knowledge of the actual times, not just their difference. For
+    a similar reason, 'utc' is not a valid scale for a time difference: a UTC
+    day is not always 86400 seconds.
+
     Parameters
     ----------
     val : numpy ndarray, list, str, number, or `~astropy.time.TimeDelta` object
@@ -1086,7 +1095,9 @@ class TimeDelta(Time):
         Format of input value(s)
     scale : str, optional
         Time scale of input value(s), must be one of the following values:
-        ('tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai')
+        ('tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai'). If not given (or
+        ``None``), the scale is arbitrary; when added or subtracted from a
+        ``Time`` instance, it will be used without conversion.
     copy : bool, optional
         Make a copy of the input values
     """
