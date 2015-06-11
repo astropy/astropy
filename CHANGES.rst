@@ -365,6 +365,9 @@ Bug Fixes
   - Fix bug where coordinate representation setting gets reset to default
     value when coordinate array is indexed or sliced. [#3824]
 
+  - Fixed confusing warning message shown when using dates outside current
+    IERS data. [#3844]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
