@@ -336,7 +336,7 @@ def _guess(table, read_kwargs, format, fast_reader):
     """
     Try to read the table using various sets of keyword args.  Start with the
     standard guess list and filter to make it unique and consistent with
-    user-suppled read keyword args.  Finally, if none of those work then
+    user-supplied read keyword args.  Finally, if none of those work then
     try the original user-supplied keyword args.
 
     Parameters

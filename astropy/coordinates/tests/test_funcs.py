@@ -74,7 +74,7 @@ def test_constellations():
     npt.assert_equal(get_constellation(testcoos, short_name=True), shortnames)
 
     # test on a SkyCoord, *and* test Boötes, which is special in that it has a
-    # non-ASCII charater
+    # non-ASCII character
     bootest = SkyCoord(15*u.hour, 30*u.deg, frame='icrs')
     boores = get_constellation(bootest)
     assert boores == u'Boötes'

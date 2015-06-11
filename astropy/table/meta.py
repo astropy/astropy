@@ -213,7 +213,7 @@ def get_yaml_from_header(header):
     The ``header`` dict must contain these keys:
 
     - 'cols' : list of table column objects (required)
-    - 'meta' : table 'meta' attribute (optonal)
+    - 'meta' : table 'meta' attribute (optional)
 
     Other keys included in ``header`` will be serialized in the output YAML
     representation.

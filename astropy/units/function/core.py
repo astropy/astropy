@@ -105,7 +105,7 @@ class FunctionUnitBase(object):
             if function_unit.is_equivalent(self._default_function_unit):
                 self._function_unit = function_unit
             else:
-                raise ValueError("Cannot initiliaze '{0}' instance with "
+                raise ValueError("Cannot initialize '{0}' instance with "
                                  "function unit '{1}', as it is not "
                                  "equivalent to default function unit '{2}'."
                                  .format(self.__class__.__name__,
@@ -382,7 +382,7 @@ class FunctionUnitBase(object):
 class FunctionQuantity(Quantity):
     """A representation of a (scaled) function of a number with a unit.
 
-    Function quanties are quantities whose units are functions containing a
+    Function quantities are quantities whose units are functions containing a
     physical unit, such as dB(mW).  Most of the arithmetic operations on
     function quantities are defined in this base class.
 

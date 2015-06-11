@@ -112,7 +112,7 @@ TFORMAT_ASCII_RE = re.compile(r'(?:(?P<format>[AIJ])(?P<width>[0-9]+)?)|'
 
 TTYPE_RE = re.compile(r'[0-9a-zA-Z_]+')
 """
-Regular exprssion for valid table column names.  See FITS Standard v3.0 section
+Regular expression for valid table column names.  See FITS Standard v3.0 section
 7.2.2.
 """
 

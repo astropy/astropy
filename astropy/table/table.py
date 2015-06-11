@@ -2100,7 +2100,7 @@ class Table(object):
         ImportError
             If pandas is not installed
         ValueError
-            If the Table contains mixin or multi-dimensional colunns
+            If the Table contains mixin or multi-dimensional columns
         """
         from pandas import DataFrame
 

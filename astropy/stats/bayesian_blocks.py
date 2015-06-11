@@ -10,7 +10,7 @@ et al 2012 [1]_. This code was ported from the astroML project [2]_.
 
 Applications include:
 
-- finding an optimial histogram with adaptive bin widths
+- finding an optimal histogram with adaptive bin widths
 - finding optimal segmentation of time series data
 - detecting inflection points in the rate of event data
 

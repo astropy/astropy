@@ -123,8 +123,8 @@ with an interface very similar to ``match_coordinates_*``::
     True
 
 The key difference for these methods is that there can be multiple (or no)
-matches in ``catalog`` around any locations in ``c``.  Hence, indecies into both
-``c`` and ``catalog`` are returned instead of just indecies into ``catalog``.
+matches in ``catalog`` around any locations in ``c``.  Hence, indices into both
+``c`` and ``catalog`` are returned instead of just indices into ``catalog``.
 These can then be indexed back into the two |skycoord| objects, or, for that
 matter, any array with the same order::
 
@@ -154,9 +154,9 @@ use the ``separation*`` methods::
     >>> catalog3dmsk = d3d < 1*u.kpc  # doctest: +SKIP
 
 The resulting ``catalogmsk`` or ``catalog3dmsk`` variables are boolean arrays
-rather than arrays of indicies, but in practice they usually can be used in
+rather than arrays of indices, but in practice they usually can be used in
 the same way as ``idxcatalog`` from the above examples.  If you definitely do
-need indicies instead of boolean masks, you can do:
+need indices instead of boolean masks, you can do:
 
     >>> idxcatalog = np.where(catalogmsk)[0]  # doctest: +SKIP
     >>> idxcatalog3d = np.where(catalog3dmsk)[0]  # doctest: +SKIP

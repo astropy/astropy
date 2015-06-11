@@ -437,7 +437,7 @@ def test_de_subclass():
     # This is the comparison object
     z = [0.2, 0.4, 0.6, 0.9]
     cosmo = core.wCDM(H0=70, Om0=0.27, Ode0=0.73, w0=-0.9, Tcmb0=0.0)
-    # Values taken from Ned Wrights advanced cosmo calcluator, Aug 17 2012
+    # Values taken from Ned Wrights advanced cosmo calculator, Aug 17 2012
     assert allclose(cosmo.luminosity_distance(z),
                              [975.5, 2158.2, 3507.3, 5773.1] * u.Mpc,
                     rtol=1e-3)
@@ -1173,7 +1173,7 @@ def test_massivenu_basic():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_distances():
     # Test distance calculations for various special case
-    #  scenarios (no relatavistic species, normal, massive neutrinos)
+    #  scenarios (no relativistic species, normal, massive neutrinos)
     # These do not come from external codes -- they are just internal
     #  checks to make sure nothing changes if we muck with the distance
     #  calculators

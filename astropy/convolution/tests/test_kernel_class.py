@@ -213,20 +213,20 @@ class TestKernels(object):
         assert type(gauss_new) == Gaussian1DKernel
 
     def test_multiply_kernel1d(self):
-        """Test that multipling two 1D kernels raises an exception."""
+        """Test that multiplying two 1D kernels raises an exception."""
         gauss = Gaussian1DKernel(3)
         with pytest.raises(Exception):
             gauss * gauss
 
     def test_multiply_kernel2d(self):
-        """Test that multipling two 2D kernels raises an exception."""
+        """Test that multiplying two 2D kernels raises an exception."""
         gauss = Gaussian2DKernel(3)
         with pytest.raises(Exception):
             gauss * gauss
 
     def test_multiply_kernel1d_kernel2d(self):
         """
-        Test that multipling a 1D kernel with a 2D kernel raises an
+        Test that multiplying a 1D kernel with a 2D kernel raises an
         exception.
         """
         with pytest.raises(Exception):
@@ -412,7 +412,7 @@ class TestKernels(object):
         box.normalize()
         assert_almost_equal(box._kernel_sum, 1., decimal=12)
 
-        # Check seperability
+        # Check separability
         assert box.separable
 
     @pytest.mark.parametrize(('kernel_type', 'mode'), list(itertools.product(KERNEL_TYPES, MODES)))
