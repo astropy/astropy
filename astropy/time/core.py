@@ -114,6 +114,13 @@ class Time(object):
     formats (e.g. JD) where very high precision (better than 64-bit precision)
     is required.
 
+    The allowed values for ``format`` can be listed with::
+
+      >>> sorted(Time.FORMATS)
+      ['astropy_time', 'byear', 'byear_str', 'cxcsec', 'datetime',
+      'decimalyear', 'gps', 'iso', 'isot', 'jd', 'jyear', 'jyear_str', 'mjd',
+      'plot_date', 'unix', 'yday']
+
     Parameters
     ----------
     val : sequence, str, number, or `~astropy.time.Time` object
@@ -123,7 +130,8 @@ class Time(object):
     format : str, optional
         Format of input value(s)
     scale : str, optional
-        Time scale of input value(s)
+        Time scale of input value(s), must be one of the following:
+        ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
     precision : int, optional
         Digits of precision in string representation of time
     in_subfmt : str, optional
@@ -1041,6 +1049,20 @@ class TimeDelta(Time):
     numeric input formats (e.g. JD) where very high precision (better than
     64-bit precision) is required.
 
+    The allowed values for ``format`` can be listed with::
+
+      >>> sorted(TimeDelta.FORMATS)
+      ['jd', 'sec']
+
+    Note that for time differences, the scale can be among three groups:
+    geocentric ('tai', 'tt', 'tcg'), barycentric ('tcb', 'tdb'), and rotational
+    ('ut1'). Within each of these, the scales for time differences are the
+    same. Conversion between geocentric and barycentric is possible, as there
+    is only a scale factor change, but one cannot convert to or from 'ut1', as
+    this requires knowledge of the actual times, not just their difference. For
+    a similar reason, 'utc' is not a valid scale for a time difference: a UTC
+    day is not always 86400 seconds.
+
     Parameters
     ----------
     val : numpy ndarray, list, str, number, or `~astropy.time.TimeDelta` object
@@ -1050,7 +1072,10 @@ class TimeDelta(Time):
     format : str, optional
         Format of input value(s)
     scale : str, optional
-        Time scale of input value(s)
+        Time scale of input value(s), must be one of the following values:
+        ('tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai'). If not given (or
+        ``None``), the scale is arbitrary; when added or subtracted from a
+        ``Time`` instance, it will be used without conversion.
     copy : bool, optional
         Make a copy of the input values
     """
