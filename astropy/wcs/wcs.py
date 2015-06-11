@@ -54,6 +54,7 @@ except ImportError:
 from ..utils import deprecated, deprecated_attribute
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
+from ..utils import minversion
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -449,6 +450,14 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         for fd in close_fds:
             fd.close()
+
+        if sip is not None and minversion(_wcs.__version__, '5.4'):
+            warnings.warn(
+                "This header has SIP keywords, and since you are using "
+                "wcslib 5.4, which also handles SIP keywords, the "
+                "transformation results will be incorrect.  Build with "
+                "wcslib 5.3 or earlier to resolve this.",
+                AstropyWarning)
 
     def __copy__(self):
         new_copy = self.__class__()
@@ -2479,7 +2488,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         description = ["WCS Keywords\n",
                        "Number of WCS axes: {0!r}".format(self.naxis)]
         sfmt = ' : ' +  "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
-        
+
         keywords = ['CTYPE', 'CRVAL', 'CRPIX']
         values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]
         for keyword, value in zip(keywords, values):
@@ -2502,7 +2511,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 s += sfmt
                 description.append(s.format(*self.wcs.cd[i]))
 
-        description.append('NAXIS    : {0!r} {1!r}'.format(self._naxis1, 
+        description.append('NAXIS    : {0!r} {1!r}'.format(self._naxis1,
                            self._naxis2))
         return '\n'.join(description)
 
@@ -3026,7 +3035,8 @@ def validate(source):
 
         with warnings.catch_warnings(record=True) as warning_lines:
             wcses = find_all_wcs(
-                hdu.header, relax=True, fix=False, _do_set=False)
+                hdu.header, relax=_wcs.WCSHDR_reject,
+                fix=False, _do_set=False)
 
         for wcs in wcses:
             wcs_results = _WcsValidateWcsResult(wcs.wcs.alt)
@@ -3045,7 +3055,8 @@ def validate(source):
                 try:
                     WCS(hdu.header,
                         key=wcs.wcs.alt or ' ',
-                        relax=True, fix=True, _do_set=False)
+                        relax=_wcs.WCSHDR_reject,
+                        fix=True, _do_set=False)
                 except WcsError as e:
                     wcs_results.append(str(e))
 

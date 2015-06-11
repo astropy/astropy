@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.h,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: spc.h,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.25 - C routines that implement the spectral coordinate systems
+* WCSLIB 5.3 - C routines that implement the spectral coordinate systems
 * recognized by the FITS World Coordinate System (WCS) standard.  Refer to
 *
 *   "Representations of world coordinates in FITS",
@@ -719,7 +719,7 @@
 *     (An unused variable inserted for alignment purposes only.)
 *
 *   struct wcserr *err
-*     (Returned) If enabled, when an error status is returned this structure
+*     (Returned) If enabled, when an error status is returned, this struct
 *     contains detailed information about the error, see wcserr_enable().
 *
 *   void *padding2
@@ -751,7 +751,6 @@
 #define WCSLIB_SPC
 
 #include "spx.h"
-#include "wcserr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -869,10 +868,10 @@ int spctyp(const char ctype[9], char stype[], char scode[], char sname[],
            char units[], char *ptype, char *xtype, int *restreq);
 int spcspx(const char ctypeS[9], double crvalS, double restfrq,
            double restwav, char *ptype, char *xtype, int *restreq,
-	   double *crvalX, double *dXdS);
+           double *crvalX, double *dXdS);
 int spcxps(const char ctypeS[9], double crvalX, double restfrq,
            double restwav, char *ptype, char *xtype, int *restreq,
-	   double *crvalS, double *dSdX);
+           double *crvalS, double *dSdX);
 int spctrn(const char ctypeS1[9], double crvalS1, double cdeltS1,
            double restfrq, double restwav, char ctypeS2[9], double *crvalS2,
            double *cdeltS2);

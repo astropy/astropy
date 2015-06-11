@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile definitions for building WCSLIB 4.25
+# GNU makefile definitions for building WCSLIB 5.3
 #
 # makedefs is generated from makedefs.in by configure.  It contains variable
 # definitions and some general-purpose rules for building WCSLIB.
@@ -39,11 +39,11 @@
 #      compiled separately without this option.
 #
 #      The shared library will be installed with version number, e.g. as
-#      libwcs.so.4.25 or libwcs.4.25.dylib with or without the symlink
+#      libwcs.so.5.3 or libwcs.5.3.dylib with or without the symlink
 #      required to make it visible to the linker (controlled by the SHRLN
 #      variable).  On Macs it is deliberately not created because its very
 #      existence precludes static linking with the cctools linker.  You can
-#      still link dynamically by using -lwcs.4.25.
+#      still link dynamically by using -lwcs.5.3.
 #
 #   4) PGPLOT is Tim Pearson's Fortran graphics library with separate C
 #      interface available from astro.caltech.edu.  It is only required by
@@ -74,7 +74,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: makedefs.in,v 4.25 2014/12/14 14:29:38 mcalabre Exp $
+# $Id: makedefs.in,v 5.3 2015/04/21 02:50:53 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Version.
   LIBVER    := @LIBVER@
@@ -89,7 +89,7 @@
 
 # C preprocessor and options.
   CPP      := @CPP@
-  CPPFLAGS := @DEFS@
+  CPPFLAGS := @CPPFLAGS@ @DEFS@
   WCSTRIG  := WRAPPER
 
 # C compiler and options.

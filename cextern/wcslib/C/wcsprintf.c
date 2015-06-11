@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.3 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsprintf.c,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: wcsprintf.c,v 5.3 2015/04/21 02:50:51 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -39,6 +39,7 @@ static size_t wcsprintf_size = 0;
 /*--------------------------------------------------------------------------*/
 
 int wcsprintf_set(FILE *wcsout)
+
 {
   if (wcsout != 0x0) {
     /* Output to file. */
@@ -72,6 +73,7 @@ int wcsprintf_set(FILE *wcsout)
 /*--------------------------------------------------------------------------*/
 
 const char *wcsprintf_buf(void)
+
 {
   return wcsprintf_buff;
 }
@@ -79,6 +81,7 @@ const char *wcsprintf_buf(void)
 /*--------------------------------------------------------------------------*/
 
 int wcsprintf(const char *format, ...)
+
 {
   char *realloc_buff;
   int  nbytes;
@@ -124,6 +127,7 @@ int wcsprintf(const char *format, ...)
 /*--------------------------------------------------------------------------*/
 
 int wcsfprintf(FILE *stream, const char *format, ...)
+
 {
   char *realloc_buff;
   int  nbytes;

@@ -985,6 +985,16 @@ struct module_state {
     INITERROR;
   }
 
+#ifdef HAVE_WCSLIB_VERSION
+  if (PyModule_AddStringConstant(m, "__version__", wcslib_version(NULL))) {
+    INITERROR;
+  }
+#else
+  if (PyModule_AddStringConstant(m, "__version__", "4.x")) {
+    INITERROR;
+  }
+#endif
+
 #if PY3K
   return m;
 #endif
