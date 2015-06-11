@@ -1801,7 +1801,7 @@ sip_pix2foc = """
 sip_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 
 Convert pixel coordinates to focal plane coordinates using any
-polynomial distrotions (SIP, TPV or TPD) that may be present.
+polynomial distortions (SIP, TPV or TPD) that may be present.
 
 Parameters
 ----------
