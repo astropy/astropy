@@ -345,18 +345,16 @@ class Generic(Base):
             '''
             if p[1] == 'sqrt':
                 p[0] = p[3] ** 0.5
-            elif p[1] == 'mag':
-                from ..function.logarithmic import MagUnit
-                p[0] = MagUnit(p[3])
-            elif p[1] == 'dB':
-                from ..function.logarithmic import DecibelUnit
-                p[0] = DecibelUnit(p[3])
-            elif p[1] == 'dex':
-                from ..function.logarithmic import DexUnit
-                p[0] = DexUnit(p[3])
-            else:
-                raise ValueError(
-                   "'{0}' is not a recognized function".format(p[1]))
+                return
+            elif p[1] in ('mag', 'dB', 'dex'):
+                function_unit = cls._parse_unit(p[1])
+                # In Generic, this is callable, but that does not have to
+                # be the case in subclasses (e.g., in VOUnit it is not).
+                if callable(function_unit):
+                    p[0] = function_unit(p[3])
+                    return
+
+            raise ValueError("'{0}' is not a recognized function".format(p[1]))
 
         def p_error(p):
             raise ValueError()
