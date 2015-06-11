@@ -206,7 +206,7 @@ Bug Fixes
 
 - ``astropy.testing``
 
-  - The Astropy py.test plugins that disable unintential internet access
+  - The Astropy py.test plugins that disable unintentional internet access
     in tests were also blocking use of local UNIX sockets in tests, which
     prevented testing some multiprocessing code--fixed. [#3713]
 
@@ -233,7 +233,7 @@ Other Changes and Additions
 - Added a new ``astropy.__bibtex__`` attribute which gives a citation
   for Astropy in bibtex format. [#3697]
 
-- The bundled version of ERFA was updated to v1.2.0 to address leapscond
+- The bundled version of ERFA was updated to v1.2.0 to address leapsecond
   updates. [#3802]
 
 
@@ -402,7 +402,7 @@ Bug Fixes
 
 - ``astropy.time``
 
-  - Time objects now always evalutate to ``True``, except when empty. [#3530]
+  - Time objects now always evaluate to ``True``, except when empty. [#3530]
 
 Miscellaneous
 ^^^^^^^^^^^^^

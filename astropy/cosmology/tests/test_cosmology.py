@@ -406,7 +406,7 @@ def test_de_subclass():
     # This is the comparison object
     z = [0.2, 0.4, 0.6, 0.9]
     cosmo = core.wCDM(H0=70, Om0=0.27, Ode0=0.73, w0=-0.9, Tcmb0=0.0)
-    # Values taken from Ned Wrights advanced cosmo calcluator, Aug 17 2012
+    # Values taken from Ned Wrights advanced cosmo calculator, Aug 17 2012
     assert allclose(cosmo.luminosity_distance(z),
                              [975.5, 2158.2, 3507.3, 5773.1] * u.Mpc, rtol=1e-3)
     # Now try the subclass that only gives w(z)

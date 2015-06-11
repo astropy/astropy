@@ -152,7 +152,7 @@ def get_sun(time):
 
     earth_pv_helio, earth_pv_bary = erfa.epv00(time.jd1, time.jd2)
 
-    # We have to manually do abberation because we're outputting directly into
+    # We have to manually do aberration because we're outputting directly into
     # GCRS
     earth_p = earth_pv_helio[..., 0, :]
     earth_v = earth_pv_helio[..., 1, :]

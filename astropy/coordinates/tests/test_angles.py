@@ -317,7 +317,7 @@ def test_to_string_vector():
 
 def test_angle_format_roundtripping():
     """
-    Ensures that the string represtation of an angle can be used to create a
+    Ensures that the string representation of an angle can be used to create a
     new valid Angle.
     """
 

@@ -290,7 +290,7 @@ def test_transform_api():
     fk5_trans_2 = fk5_2.transform_to(FK5(equinox=J2001))
     assert_allclose(fk5_2.ra, fk5_trans_2.ra, rtol=0, atol=1e-10*u.deg)
 
-    # Trying to tansforming a frame with no data is of course an error:
+    # Trying to transforming a frame with no data is of course an error:
     with raises(ValueError):
         FK5(equinox=J2001).transform_to(ICRS)
 

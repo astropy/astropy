@@ -19,9 +19,9 @@ and the wrappers will automatically vectorize and call the ERFA functions for
 each item using broadcasting rules for numpy.  So the return values are always
 numpy arrays of some sort.
 
-For ERFA functions that take/return vectors or matricies, the vector/matrix
+For ERFA functions that take/return vectors or matrices, the vector/matrix
 dimension(s) are always the *last* dimension(s).  For example, if you
-want to give ten matricies (i.e., the ERFA input type is double[3][3]),
+want to give ten matrices (i.e., the ERFA input type is double[3][3]),
 you would pass in a (10, 3, 3) numpy array.  If the output of the ERFA
 function is scalar, you'll get back a length-10 1D array.
 

@@ -769,7 +769,7 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given on-sky separation.
 
-        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        This is intended for use on `~astropy.coordinates.SkyCoord` objects
         with coordinate arrays, rather than a scalar coordinate.  For a scalar
         coordinate, it is better to use
         `~astropy.coordinates.SkyCoord.separation`.
@@ -827,7 +827,7 @@ class SkyCoord(object):
         Searches for all coordinates in this object around a supplied set of
         points within a given 3D radius.
 
-        This is inteded for use on `~astropy.coordinates.SkyCoord` objects
+        This is intended for use on `~astropy.coordinates.SkyCoord` objects
         with coordinate arrays, rather than a scalar coordinate.  For a scalar
         coordinate, it is better to use
         `~astropy.coordinates.SkyCoord.separation_3d`.

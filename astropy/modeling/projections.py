@@ -170,7 +170,7 @@ class Pix2Sky_AZP(Pix2SkyProjection, Zenithal):
 
 class Sky2Pix_AZP(Sky2PixProjection, Zenithal):
     r"""
-    AZP : Zenital perspective projection - sky to pixel.
+    AZP : Zenithal perspective projection - sky to pixel.
 
     .. math::
         x &= R \sin \phi \\

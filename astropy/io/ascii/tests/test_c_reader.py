@@ -565,7 +565,7 @@ def test_many_rows(parallel, read_basic):
 def test_many_columns(parallel, read_basic):
     """
     Make sure memory reallocation works okay when the number of columns
-    is large (so that each hedaer string is longer than INITIAL_HEADER_SIZE).
+    is large (so that each header string is longer than INITIAL_HEADER_SIZE).
     """
     # create a string with 500 columns and two data rows
     text = ' '.join([str(i) for i in range(500)])
