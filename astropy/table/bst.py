@@ -48,10 +48,6 @@ class BST:
             self.root = node
             return
         while True:
-            try:
-                node < curr_node
-            except:
-                import pdb;pdb.set_trace()
             if node < curr_node:
                 if curr_node.left is None:
                     curr_node.left = node
@@ -68,6 +64,7 @@ class BST:
                 raise ValueError("Cannot insert non-unique value")
             else: # add data to node
                 curr_node.data.extend(node.data)
+                curr_node.data = sorted(curr_node.data) ##TODO: speed up
                 return
                 
         self.balance()
