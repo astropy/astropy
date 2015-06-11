@@ -649,3 +649,14 @@ def test_representation_subclass():
                 representation=NewSphericalRepresentation)
 
     assert repr(frame) == "<FK5 Coordinate (equinox=J2000.000):  spam spam spam>"
+
+
+def test_getitem_representation():
+    """
+    Make sure current representation survives __getitem__ even if different
+    from data representation.
+    """
+    from ..builtin_frames import ICRS
+    c = ICRS([1, 1] * u.deg, [2, 2] * u.deg)
+    c.representation = 'cartesian'
+    assert c[0].representation is representation.CartesianRepresentation

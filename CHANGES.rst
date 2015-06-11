@@ -96,6 +96,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fix bug where coordinate representation setting gets reset to default
+    value when coordinate array is indexed or sliced. [#3824]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``

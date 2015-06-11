@@ -198,7 +198,7 @@ class SkyCoord(object):
             # First turn `self` into a mockup of the thing we want - we can copy
             # this to get all the right attributes
             self._sky_coord_frame = self_frame[item]
-            return SkyCoord(self)
+            return SkyCoord(self, representation=self.representation)
         finally:
             # now put back the right frame in self
             self._sky_coord_frame = self_frame

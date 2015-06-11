@@ -1113,3 +1113,13 @@ def test_equiv_skycoord():
     assert scf2.is_equivalent_frame(FK5(equinox='J2005'))
     assert not scf3.is_equivalent_frame(scf1)
     assert not scf3.is_equivalent_frame(FK5(equinox='J2005'))
+
+
+def test_getitem_representation():
+    """
+    Make sure current representation survives __getitem__ even if different
+    from data representation.
+    """
+    sc = SkyCoord([1, 1] * u.deg, [2, 2] * u.deg)
+    sc.representation = 'cartesian'
+    assert sc[0].representation is CartesianRepresentation
