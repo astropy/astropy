@@ -124,15 +124,12 @@ class Time(object):
     formats (e.g. JD) where very high precision (better than 64-bit precision)
     is required.
 
-    The allowed values for ``format`` and ``scale`` can be listed with::
+    The allowed values for ``format`` can be listed with::
 
       >>> list(Time.FORMATS)
       ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date', 'astropy_time',
        'datetime', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear', 'byear_str',
        'jyear_str']
-
-      >>> list(Time.SCALES)
-      ['tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc']
 
     Parameters
     ----------
@@ -143,7 +140,8 @@ class Time(object):
     format : str, optional
         Format of input value(s)
     scale : str, optional
-        Time scale of input value(s)
+        Time scale of input value(s), must be one of the following:
+        ('tai', 'tcb', 'tcg', 'tdb', 'tt', 'ut1', 'utc')
     precision : int, optional
         Digits of precision in string representation of time
     in_subfmt : str, optional
@@ -1073,13 +1071,10 @@ class TimeDelta(Time):
     numeric input formats (e.g. JD) where very high precision (better than
     64-bit precision) is required.
 
-    The allowed values for ``format`` and ``scale`` can be listed with::
+    The allowed values for ``format`` can be listed with::
 
       >>> list(TimeDelta.FORMATS)
       ['sec', 'jd']
-
-      >>> list(TimeDelta.SCALES)
-      ['tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai']
 
     Parameters
     ----------
@@ -1090,7 +1085,8 @@ class TimeDelta(Time):
     format : str, optional
         Format of input value(s)
     scale : str, optional
-        Time scale of input value(s)
+        Time scale of input value(s), must be one of the following values:
+        ('tdb', 'tt', 'ut1', 'tcg', 'tcb', 'tai')
     copy : bool, optional
         Make a copy of the input values
     """
