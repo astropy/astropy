@@ -50,7 +50,7 @@ class FunctionUnitBase(object):
     function_unit :  `~astropy.units.Unit` or `string`
         By default, the same as the function unit set by the subclass.
     """
-    # the following four need to be set by subclasses
+    # vvvvv the following four need to be set by subclasses
     # Make this a property so we can ensure subclasses define it.
     @abstractproperty
     def _default_function_unit(self):
@@ -135,7 +135,7 @@ class FunctionUnitBase(object):
         return [(self.physical_unit, self,
                  self.from_physical, self.to_physical)]
 
-    # properties/methods required to behave like a unit
+    # vvvv properties/methods required to behave like a unit
     def decompose(self, bases=set()):
         """Copy the current unit with the physical unit decomposed.
 
@@ -490,7 +490,7 @@ class FunctionQuantity(Quantity):
         self._full_unit = unit
         return self
 
-    # properties not found in Quantity
+    # vvvv properties not found in Quantity
     @property
     def physical(self):
         """The physical quantity corresponding the function one."""
@@ -504,7 +504,7 @@ class FunctionQuantity(Quantity):
         """
         return self._new_view(self, self.unit.function_unit)
 
-    # properties overridden to point to different places
+    # vvvv properties overridden to point to different places
     @property
     def unit(self):
         """Function unit of the quantity, containing the physical unit.
@@ -522,7 +522,7 @@ class FunctionQuantity(Quantity):
         """
         return self.unit.equivalencies
 
-    # methods overridden to change the behaviour
+    # vvvv methods overridden to change the behaviour
     @property
     def si(self):
         """Return a copy with the physical unit in SI units."""
@@ -540,7 +540,7 @@ class FunctionQuantity(Quantity):
         """
         return self.__class__(self.physical.decompose(bases))
 
-    # methods overridden to add additional behaviour
+    # vvvv methods overridden to add additional behaviour
     def to(self, unit, equivalencies=[]):
         """Returns a new quantity with the specified units.
 
@@ -630,7 +630,7 @@ class FunctionQuantity(Quantity):
             view._unit = unit.function_unit
         return view
 
-    # methods overridden to change behaviour
+    # vvvv methods overridden to change behaviour
     def __mul__(self, other):
         if self.unit.physical_unit == dimensionless_unscaled:
             return self._function_view * other
@@ -688,7 +688,7 @@ class FunctionQuantity(Quantity):
     def __le__(self, other):
         return self._comparison(other, self.value.__le__)
 
-    # override Quantity methods that make no sense for function units
+    # vvvv override Quantity methods that make no sense for function units
     def _not_implemented(self, *args, **kwargs):
         raise NotImplementedError
 
