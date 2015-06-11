@@ -335,14 +335,18 @@ class TestCutout(object):
     wcs.wcs.crpix = [3, 3]
 
     def test_cutout(self):
-        position = (2, 2)
+        position = (2.1, 1.9)
         shape = (3, 3)
         c = Cutout(self.data, position, shape)
         assert c.data.shape == shape
         assert c.data[1, 1] == 10
         assert c.origin_large == (1, 1)
-        assert c.position == position
-        assert c.center_large == position
+        assert c.origin_small == (0, 0)
+        assert c.input_position_large == position
+        assert_allclose(c.input_position_small, (1.1, 0.9))
+        assert c.position_large == (2., 2.)
+        assert c.position_small == (1., 1.)
+        assert c.center_large == (2., 2.)
         assert c.center_small == (1., 1.)
         assert c.bbox_large == (1, 1, 3, 3)
         assert c.bbox_small == (0, 0, 2, 2)
