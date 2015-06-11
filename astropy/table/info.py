@@ -99,10 +99,6 @@ def info(self, option='attributes', out=''):
         if len(uniq_types) == 1 and not self._is_mixin_column(cols[0]):
             del info['class']
 
-    if 'class' in info.colnames:
-        if np.all(info['class'] == 'Column') or np.all(info['class'] == 'MaskedColumn'):
-            del info['class']
-
     if 'n_bad' in info.colnames and np.all(info['n_bad'] == 0):
         del info['n_bad']
 
