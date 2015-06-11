@@ -369,6 +369,8 @@ def test_to_fits():
 
 
 def test_to_header_warning():
+    if wcs.wcs.WCSLIB_HAS_SIP:
+        pytest.skip("wcslib no longer warns about SIP keywords")
     fits_name = get_pkg_data_filename('data/sip.fits')
     x = wcs.WCS(fits_name)
     with catch_warnings() as w:

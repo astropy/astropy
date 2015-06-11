@@ -406,5 +406,5 @@ def test_skycoord_to_pixel_distortions(mode):
     # WCS is in FK5 so we need to transform back to ICRS
     new = pixel_to_skycoord(xp, yp, wcs, mode=mode).transform_to('icrs')
 
-    assert_allclose(new.ra.degree, ref.ra.degree)
-    assert_allclose(new.dec.degree, ref.dec.degree)
+    assert_allclose(new.ra.degree, ref.ra.degree, rtol=1e-5)
+    assert_allclose(new.dec.degree, ref.dec.degree, rtol=1e-5)

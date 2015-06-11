@@ -19,6 +19,9 @@
 #include <wcsprintf.h>
 #include <wcsunits.h>
 #include <tab.h>
+#ifdef HAVE_WCSLIB_VERSION
+#include <dis.h>
+#endif
 
 #include "astropy_wcs/isnan.h"
 #include "astropy_wcs/distortion.h"
@@ -847,6 +850,141 @@ PyWcsprm_datfix(
   }
 }
 
+#ifdef HAVE_WCSLIB_VERSION
+/*@null@*/ static PyObject*
+_do_dis(
+    PyWcsprm* self,
+    PyObject* args,
+    PyObject* kwds,
+    struct disprm* dis,
+    int (* trans)(struct disprm *, const double[], double[])) {
+
+  int            naxis      = 2;
+  int            ncoord     = 0;
+  PyObject*      pixcrd_obj = NULL;
+  int            origin     = 1;
+  PyArrayObject* pixcrd     = NULL;
+  PyArrayObject* outcrd     = NULL;
+  PyObject*      result     = NULL;
+  int            status     = 0;
+  npy_intp       i;
+  const char*    keywords[] = {
+    "pixcrd", "origin", NULL };
+
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "Oi", (char **)keywords,
+          &pixcrd_obj, &origin)) {
+    return NULL;
+  }
+
+  naxis = self->x.naxis;
+
+  pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny
+    (pixcrd_obj, PyArray_DOUBLE, 2, 2);
+  if (pixcrd == NULL) {
+    return NULL;
+  }
+
+  if (PyArray_DIM(pixcrd, 1) < naxis) {
+    PyErr_Format(
+      PyExc_RuntimeError,
+      "Input array must be 2-dimensional, where the second dimension >= %d",
+      naxis);
+    goto exit;
+  }
+
+  outcrd = (PyArrayObject*)PyArray_SimpleNew(
+      2, PyArray_DIMS(pixcrd), PyArray_DOUBLE);
+  if (outcrd == NULL) {
+    goto exit;
+  }
+
+  if (dis == 0x0) {
+    if (PyArray_CopyInto(outcrd, pixcrd)) {
+      goto exit;
+    }
+    result = (PyObject *)outcrd;
+    Py_INCREF(result);
+    status = 0;
+    goto exit;
+  }
+
+  /* Make the call */
+  ncoord = PyArray_DIM(pixcrd, 0);
+  preoffset_array(pixcrd, origin);
+  wcsprm_python2c(&self->x);
+
+  for (i = 0; i < ncoord; ++i) {
+    status = trans(dis, (double *)PyArray_GETPTR1(pixcrd, i),
+                   (double *)PyArray_GETPTR1(outcrd, i));
+    if (status == 2) {
+      unoffset_array(pixcrd, origin);
+      wcsprm_c2python(&self->x);
+      goto exit;
+    }
+  }
+
+  unoffset_array(pixcrd, origin);
+  unoffset_array(outcrd, origin);
+
+  result = (PyObject *)outcrd;
+  Py_INCREF(result);
+
+ exit:
+  Py_XDECREF(pixcrd);
+  Py_XDECREF(outcrd);
+
+  if (status == 0) {
+    return result;
+  } else if (status == 2) {
+    PyErr_SetString(PyExc_MemoryError, "Out of memory");
+    return NULL;
+  } else if (status == 3) {
+    PyErr_SetString(WcsExc_InvalidTransform, "Invalid distortion parameter");
+    return NULL;
+  } else if (status == 4) {
+    PyErr_SetString(WcsExc_InvalidTransform, "Distort error");
+    return NULL;
+  }
+}
+
+/*@null@*/ static PyObject*
+PyWcsprm_dispre_p2x(
+    PyWcsprm* self,
+    PyObject* args,
+    PyObject* kwds) {
+
+    return _do_dis(self, args, kwds, self->x.lin.dispre, &disp2x);
+}
+
+/*@null@*/ static PyObject*
+PyWcsprm_disseq_p2x(
+    PyWcsprm* self,
+    PyObject* args,
+    PyObject* kwds) {
+
+    return _do_dis(self, args, kwds, self->x.lin.disseq, &disp2x);
+}
+
+/*@null@*/ static PyObject*
+PyWcsprm_dispre_x2p(
+    PyWcsprm* self,
+    PyObject* args,
+    PyObject* kwds) {
+
+    return _do_dis(self, args, kwds, self->x.lin.dispre, &disx2p);
+}
+
+/*@null@*/ static PyObject*
+PyWcsprm_disseq_x2p(
+    PyWcsprm* self,
+    PyObject* args,
+    PyObject* kwds) {
+
+    return _do_dis(self, args, kwds, self->x.lin.disseq, &disx2p);
+}
+#endif /* defined(HAVE_WCSLIB_VERSION) */
+
 /*@null@*/ static PyObject*
 PyWcsprm_fix(
     PyWcsprm* self,
@@ -1232,6 +1370,7 @@ PyWcsprm_p2s(
   int            nelem      = 0;
   PyObject*      pixcrd_obj = NULL;
   int            origin     = 1;
+  int            distortions= 0;
   PyArrayObject* pixcrd     = NULL;
   PyArrayObject* imgcrd     = NULL;
   PyArrayObject* phi        = NULL;
@@ -1240,12 +1379,16 @@ PyWcsprm_p2s(
   PyArrayObject* stat       = NULL;
   PyObject*      result     = NULL;
   int            status     = 0;
+  #ifdef HAVE_WCSLIB_VERSION
+  struct disprm* dispre     = NULL;
+  struct disprm* disseq     = NULL;
+  #endif
   const char*    keywords[] = {
-    "pixcrd", "origin", NULL };
+    "pixcrd", "origin", "distortions", NULL };
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "Oi:p2s", (char **)keywords,
-          &pixcrd_obj, &origin)) {
+          args, kwds, "Oi|i:p2s", (char **)keywords,
+          &pixcrd_obj, &origin, &distortions)) {
     return NULL;
   }
 
@@ -1299,6 +1442,16 @@ PyWcsprm_p2s(
 
   /* Make the call */
   Py_BEGIN_ALLOW_THREADS
+
+  #if HAVE_WCSLIB_VERSION
+  if (!distortions) {
+    dispre = self->x.lin.dispre;
+    self->x.lin.dispre = NULL;
+    disseq = self->x.lin.disseq;
+    self->x.lin.disseq = NULL;
+  }
+  #endif
+
   ncoord = PyArray_DIM(pixcrd, 0);
   nelem = PyArray_DIM(pixcrd, 1);
   preoffset_array(pixcrd, origin);
@@ -1327,6 +1480,14 @@ PyWcsprm_p2s(
     set_invalid_to_nan(
         ncoord, nelem, (double*)PyArray_DATA(world), (int*)PyArray_DATA(stat));
   }
+
+  #ifdef HAVE_WCSLIB_VERSION
+  if (!distortions) {
+    self->x.lin.dispre = dispre;
+    self->x.lin.disseq = disseq;
+  }
+  #endif
+
   Py_END_ALLOW_THREADS
 
   if (status == 0 || status == 8) {
@@ -1369,25 +1530,30 @@ PyWcsprm_s2p(
     PyObject* args,
     PyObject* kwds) {
 
-  int            naxis     = 2;
-  int            ncoord    = 0;
-  int            nelem     = 0;
-  PyObject*      world_obj = NULL;
-  int            origin    = 1;
-  PyArrayObject* world     = NULL;
-  PyArrayObject* phi       = NULL;
-  PyArrayObject* theta     = NULL;
-  PyArrayObject* imgcrd    = NULL;
-  PyArrayObject* pixcrd    = NULL;
-  PyArrayObject* stat      = NULL;
-  PyObject*      result    = NULL;
-  int            status    = -1;
+  int            naxis       = 2;
+  int            ncoord      = 0;
+  int            nelem       = 0;
+  PyObject*      world_obj   = NULL;
+  int            origin      = 1;
+  int            distortions = 0;
+  PyArrayObject* world       = NULL;
+  PyArrayObject* phi         = NULL;
+  PyArrayObject* theta       = NULL;
+  PyArrayObject* imgcrd      = NULL;
+  PyArrayObject* pixcrd      = NULL;
+  PyArrayObject* stat        = NULL;
+  PyObject*      result      = NULL;
+  #if HAVE_WCSLIB_VERSION
+  struct disprm* dispre      = NULL;
+  struct disprm* disseq      = NULL;
+  #endif
+  int            status      = -1;
   const char*    keywords[] = {
-    "world", "origin", NULL };
+    "world", "origin", "distortions", NULL };
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "Oi:s2p", (char **)keywords,
-          &world_obj, &origin)) {
+          args, kwds, "Oi|i:s2p", (char **)keywords,
+          &world_obj, &origin, &distortions)) {
     return NULL;
   }
 
@@ -1442,6 +1608,16 @@ PyWcsprm_s2p(
 
   /* Make the call */
   Py_BEGIN_ALLOW_THREADS
+
+  #if HAVE_WCSLIB_VERSION
+  if (!distortions) {
+    dispre = self->x.lin.dispre;
+    self->x.lin.dispre = NULL;
+    disseq = self->x.lin.disseq;
+    self->x.lin.disseq = NULL;
+  }
+  #endif
+
   ncoord = (int)PyArray_DIM(world, 0);
   nelem = (int)PyArray_DIM(world, 1);
   /* preoffset_array(world, origin); */
@@ -1470,6 +1646,13 @@ PyWcsprm_s2p(
     set_invalid_to_nan(
         ncoord, nelem, (double*)PyArray_DATA(pixcrd), (int*)PyArray_DATA(stat));
   }
+
+  #if HAVE_WCSLIB_VERSION
+  if (!distortions) {
+    self->x.lin.dispre = dispre;
+    self->x.lin.disseq = disseq;
+  }
+  #endif
   Py_END_ALLOW_THREADS
 
   if (status == 0 || status == 9) {
@@ -3347,6 +3530,13 @@ static PyMethodDef PyWcsprm_methods[] = {
   {"compare", (PyCFunction)PyWcsprm_compare, METH_VARARGS|METH_KEYWORDS, doc_compare},
   {"__copy__", (PyCFunction)PyWcsprm_copy, METH_NOARGS, doc_copy},
   {"cylfix", (PyCFunction)PyWcsprm_cylfix, METH_VARARGS|METH_KEYWORDS, doc_cylfix},
+  {"datfix", (PyCFunction)PyWcsprm_datfix, METH_NOARGS, doc_datfix},
+#ifdef HAVE_WCSLIB_VERSION
+  {"dispre_p2x", (PyCFunction)PyWcsprm_dispre_p2x, METH_VARARGS|METH_KEYWORDS, doc_dispre_p2x},
+  {"dispre_x2p", (PyCFunction)PyWcsprm_dispre_x2p, METH_VARARGS|METH_KEYWORDS, doc_dispre_x2p},
+  {"disseq_p2x", (PyCFunction)PyWcsprm_disseq_p2x, METH_VARARGS|METH_KEYWORDS, doc_disseq_p2x},
+  {"disseq_x2p", (PyCFunction)PyWcsprm_disseq_x2p, METH_VARARGS|METH_KEYWORDS, doc_disseq_x2p},
+#endif
   {"datfix", (PyCFunction)PyWcsprm_datfix, METH_NOARGS, doc_datfix},
   {"__deepcopy__", (PyCFunction)PyWcsprm_copy, METH_O, doc_copy},
   {"fix", (PyCFunction)PyWcsprm_fix, METH_VARARGS|METH_KEYWORDS, doc_fix},

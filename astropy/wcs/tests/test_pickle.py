@@ -7,11 +7,13 @@ import os
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
+from ...tests.helper import pytest
 from ...extern.six.moves import cPickle
 from ...utils.data import get_pkg_data_contents, get_pkg_data_fileobj
 from ...utils.misc import NumpyRNGContext
 from ...io import fits
 from ... import wcs
+from ...wcs.wcs import WCSLIB_HAS_SIP
 
 
 def test_basic():
@@ -37,6 +39,7 @@ def test_dist():
         assert_array_almost_equal(world1, world2)
 
 
+@pytest.mark.skipif('WCSLIB_HAS_SIP')
 def test_sip():
     with get_pkg_data_fileobj(
             os.path.join("data", "sip.fits"), encoding='binary') as test_file:
@@ -54,6 +57,7 @@ def test_sip():
         assert_array_almost_equal(world1, world2)
 
 
+@pytest.mark.skipif('WCSLIB_HAS_SIP')
 def test_sip2():
     with get_pkg_data_fileobj(
             os.path.join("data", "sip2.fits"), encoding='binary') as test_file:

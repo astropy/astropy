@@ -135,10 +135,16 @@ New Features
 
   - Enhanced text representation of ``WCS`` objects. [#3604]
 
-  - The included version of wcslib has been upgraded to 5.3.  The
-    minimum required version of wcslib remains 4.24.  wcslib 5.4 is
-    not supported, since it now supports SIP directly, this results in
-    the SIP transformation being doubly-applied.
+  - The included version of wcslib has been upgraded to 5.6.
+
+    The minimum required version of wcslib in the 4.x series remains 4.24.
+
+    The minimum required version of wcslib in the 5.x series is 5.6.
+
+    When built with wcslib 5.x, the SIP polynomial distortion is now
+    performed by wcslib itself, and not code specific to astropy.
+    Therefore, there may be small numerical differences in the
+    results.
 
     The wcslib changes relevant to astropy are:
 
