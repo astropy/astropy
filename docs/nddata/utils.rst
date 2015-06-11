@@ -22,12 +22,24 @@ postage stamp cutout image from a 2D array.  If an optional
 then the `~astropy.nddata.utils.Cutout` object will contain an updated
 `~astropy.wcs.WCS` corresponding to the cutout array.
 
-First, let's create a simple 2D data array:
+First, let's create a simple 2D data array::
+
+    >>> import numpy as np
+    >>> from astropy.modeling.models import Gaussian2D
+    >>> y, x = np.mgrid[0:500, 0:500]
+    >>> data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
+
+Next, let's display the image:
+
+.. doctest-skip::
+
+    >>> import matplotlib.pyplot as plt
+    >>> plt.imshow(data, origin='lower')
 
 .. plot::
-    :include-source:
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import Gaussian2D
     y, x = np.mgrid[0:500, 0:500]
     data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
@@ -43,13 +55,16 @@ x)``) with a shape of ``(40, 50)`` (``(ny, nx)``)::
     >>> cutout = Cutout(data, position, shape)
 
 The cutout array is stored in the ``data`` attribute of the
-`~astropy.nddata.utils.Cutout` instance::
+`~astropy.nddata.utils.Cutout` instance:
+
+.. doctest-skip::
 
     >>> plt.imshow(cutout.data, origin='lower')
 
 .. plot::
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import Gaussian2D
     from astropy.nddata import Cutout
     y, x = np.mgrid[0:500, 0:500]
@@ -72,10 +87,10 @@ attributes, including::
 
     >>> # corresponding position in the cutout array
     >>> print(cutout.position_small)
-    (20, 50)
+    (20, 25)
 
     >>> # (non-rounded) input position in both the large and cutout arrays
-    >>> print(cutout.input_position_large, cutout.input_position_small)
+    >>> print(cutout.input_position_large, cutout.input_position_small)    # doctest: +FLOAT_CMP
     ((100.1, 49.7), (20.099999999999994, 24.700000000000003))
 
     >>> # the origin pixel in both arrays
@@ -84,7 +99,7 @@ attributes, including::
 
     >>> # tuple of slice objects for the large array
     >>> print(cutout.slices_large)
-    ((slice(80, 120, None), slice(25, 75, None))
+    (slice(80, 120, None), slice(25, 75, None))
 
     >>> # tuple of slice objects for the cutout array
     >>> print(cutout.slices_small)
@@ -151,7 +166,9 @@ values::
     (slice(1, 3, None), slice(1, 3, None))
 
 Using ``mode='strict'`` will raise an exception if the cutout is not
-fully contained in the data array::
+fully contained in the data array:
+
+.. doctest-skip::
 
     >>> c3 = Cutout(data2, (0, 0), (3, 3), mode='strict')
     PartialOverlapError: Arrays overlap only partially.
@@ -184,11 +201,12 @@ Now let's create the cutout array using the
 `~astropy.coordinates.SkyCoord` position and ``wcs`` object::
 
     >>> cutout = Cutout(data, position, (30, 40), wcs=wcs)
-    >>> plt.imshow(cutout.data, origin='lower')
+    >>> plt.imshow(cutout.data, origin='lower')   # doctest: +SKIP
 
 .. plot::
 
     import numpy as np
+    import matplotlib.pyplot as plt
     from astropy.modeling.models import Gaussian2D
     from astropy.nddata import Cutout
     from astropy.coordinates import SkyCoord
@@ -216,7 +234,7 @@ positions::
 
     >>> from astropy.wcs.utils import pixel_to_skycoord
     >>> x_cutout, y_cutout = (5, 10)
-    >>> pixel_to_skycoord(x_cutout, y_cutout, cutout.wcs)
+    >>> pixel_to_skycoord(x_cutout, y_cutout, cutout.wcs)    # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
         (197.87384041, -1.32233044)>
 
@@ -224,7 +242,7 @@ We now find the corresponding pixel in the large ``data`` array and
 its sky coordinates::
 
     >>> y_data, x_data = cutout.to_large((y_cutout, x_cutout))
-    >>> pixel_to_skycoord(x_data, y_data, wcs)
+    >>> pixel_to_skycoord(x_data, y_data, wcs)    # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
         (197.87384041, -1.32233044)>
 
