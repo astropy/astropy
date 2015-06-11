@@ -1020,7 +1020,9 @@ class BaseCoordinateFrame(object):
 
     def __getitem__(self, view):
         if self.has_data:
-            return self.realize_frame(self.data[view])
+            out = self.realize_frame(self.data[view])
+            out.representation = self.representation
+            return out
         else:
             raise ValueError('Cannot index a frame with no data')
 

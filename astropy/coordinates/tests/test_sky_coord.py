@@ -1144,3 +1144,13 @@ def test_constellations_with_nameresolve():
     assert SkyCoord.from_name('Coma Cluster').get_constellation(short_name=True) == 'Com'
     assert SkyCoord.from_name('UMa II').get_constellation() == 'Ursa Major'
     assert SkyCoord.from_name('Triangulum Galaxy').get_constellation() == 'Triangulum'
+
+
+def test_getitem_representation():
+    """
+    Make sure current representation survives __getitem__ even if different
+    from data representation.
+    """
+    sc = SkyCoord([1, 1] * u.deg, [2, 2] * u.deg)
+    sc.representation = 'cartesian'
+    assert sc[0].representation is CartesianRepresentation
