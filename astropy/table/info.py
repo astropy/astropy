@@ -20,7 +20,7 @@ def info(self, option='attributes', out=''):
     to include.  This can be a string, a function, or a list of
     strings or functions.  Built-in options are:
 
-    - ``meta``: basic column meta data like ``dtype`` or ``format``
+    - ``attributes``: basic column meta data like ``dtype`` or ``format``
     - ``stats``: basic statistics: minimum, mean, and maximum
 
     If a function is specified then that function will be called with the
@@ -73,11 +73,15 @@ def info(self, option='attributes', out=''):
 
     outlines = ['<' + ' '.join(descr_vals) + '>']
 
-    infos = []
-    for col in self.columns.values():
-        infos.append(col.info(option, out=None))
+    cols = self.columns.values()
+    if self.colnames:
+        infos = []
+        for col in cols:
+            infos.append(col.info(option, out=None))
 
-    info = Table(infos, names=list(infos[0]))
+        info = Table(infos, names=list(infos[0]))
+    else:
+        info = Table()
 
     if out is None:
         return info
@@ -88,12 +92,27 @@ def info(self, option='attributes', out=''):
         if np.all(info[name] == ''):
             del info[name]
 
-    if np.all(info['n_bad'] == 0):
+    if 'class' in info.colnames:
+        # Remove 'class' info column if all table columns are the same class
+        # and they are not mixin columns.
+        uniq_types = set(type(col) for col in cols)
+        if len(uniq_types) == 1 and not self._is_mixin_column(cols[0]):
+            del info['class']
+
+    if 'class' in info.colnames:
+        if np.all(info['class'] == 'Column') or np.all(info['class'] == 'MaskedColumn'):
+            del info['class']
+
+    if 'n_bad' in info.colnames and np.all(info['n_bad'] == 0):
         del info['n_bad']
 
     # Standard attributes has 'length' but this is typically redundant
     if 'length' in info.colnames and np.all(info['length'] == len(self)):
         del info['length']
 
-    outlines.extend(info.pformat(max_width=-1, max_lines=-1, show_unit=False))
+    if self.colnames:
+        outlines.extend(info.pformat(max_width=-1, max_lines=-1, show_unit=False))
+    else:
+        outlines.append('<No columns>')
+
     out.writelines(outline + os.linesep for outline in outlines)

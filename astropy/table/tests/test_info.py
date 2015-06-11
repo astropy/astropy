@@ -51,7 +51,7 @@ def test_table_info_attributes(table_types):
     assert np.all(tinfo['unit'] == ['', '', '', 'm', '', 'deg,deg'])
     assert np.all(tinfo['format'] == ['%02d', '', '', '', '', ''])
     assert np.all(tinfo['description'] == ['', '', '', 'quantity', 'time', 'skycoord'])
-    cls = 'MyColumn' if subcls else ''
+    cls = t.ColumnClass.__name__
     assert np.all(tinfo['class'] == [cls, cls, cls, cls, 'Time', 'SkyCoord'])
 
 def test_table_info_stats(table_types):
@@ -128,7 +128,7 @@ def test_data_info():
                                      ('unit', 'm / s'),
                                      ('format', ''),
                                      ('description', 'description'),
-                                     ('class', ''),
+                                     ('class', type(c).__name__),
                                      ('n_bad', 1),
                                      ('length', 3)])
 
@@ -139,6 +139,7 @@ def test_data_info():
                'dtype = float64',
                'unit = m / s',
                'description = description',
+               'class = {0}'.format(type(c).__name__),
                'n_bad = 1',
                'length = 3']
         assert out.getvalue().splitlines() == exp
@@ -163,16 +164,17 @@ def test_data_info_subclass():
         Confusingly named Column on purpose, but that is legal.
         """
         pass
-    c = Column([1, 2], dtype='int64')
-    cinfo = c.info(out=None)
-    assert cinfo == OrderedDict([('dtype', 'int64'),
-                                 ('shape', ''),
-                                 ('unit', ''),
-                                 ('format', ''),
-                                 ('description', ''),
-                                 ('class', 'Column'),
-                                 ('n_bad', 0),
-                                 ('length', 2)])
+    for data in ([], [1, 2]):
+        c = Column(data, dtype='int64')
+        cinfo = c.info(out=None)
+        assert cinfo == OrderedDict([('dtype', 'int64'),
+                                     ('shape', ''),
+                                     ('unit', ''),
+                                     ('format', ''),
+                                     ('description', ''),
+                                     ('class', 'Column'),
+                                     ('n_bad', 0),
+                                     ('length', len(data))])
 
 
 def test_scalar_info():
@@ -183,3 +185,11 @@ def test_scalar_info():
     cinfo = c.info(out=None)
     assert cinfo['n_bad'] == 0
     assert 'length' not in cinfo
+
+
+def test_empty_table():
+    t = table.Table()
+    out = six.moves.cStringIO()
+    t.info(out=out)
+    exp = ['<Table length=0>', '<No columns>']
+    assert out.getvalue().splitlines() == exp

@@ -68,10 +68,8 @@ def _get_column_attribute(col, attr=None):
     """
     Get a column attribute for the ``attributes`` info summary method
     """
-    from ..table.column import Column, MaskedColumn
-
     if attr == 'class':
-        val = '' if type(col) in (Column, MaskedColumn) else type(col).__name__
+        val = type(col).__name__
     elif attr == 'dtype':
         val = col.info.dtype.name
     elif attr == 'shape':
