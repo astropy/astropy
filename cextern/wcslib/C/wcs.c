@@ -1010,7 +1010,9 @@ int wcssub(
     }
   }
 
-  lincpy(0, &wcssrc->lin, &wcsdst->lin);
+  if (*nsub == naxis) {
+      lincpy(1, &(wcssrc->lin), &(wcsdst->lin));
+  }
 
 cleanup:
   if (itmp) free(itmp);

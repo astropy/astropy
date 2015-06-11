@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
+  $Id: dis.c,v 5.5.1.1 2015/05/05 13:21:00 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -2166,12 +2166,16 @@ int sipset(int j, struct disprm *dis)
     }
   }
 
-  /* The SIP distortion is an additive correction to the pixel coordinate, */
-  /* whereas we want the value of the pixel coordinate after distortion.   */
-  /* Note also that SIP has no axis mapping, i.e. jhat = j always.         */
+  /* Account for the fact that the SIP distortion provides an additive    */
+  /* correction to the offset of the pixel coordinate from CRPIX, whereas */
+  /* we expect the distortion function to provide the actual value of the */
+  /* distorted pixel coordinate.  Note also that SIP has no axis mapping, */
+  /* i.e. jhat = j always.                                                */
   m = j + 1;
+  dis->dparm[j][0]  = dis->offset[j][j];
   dis->dparm[j][m] += 1.0;
   if (degree[1] > 0) {
+    dis->dparm[j][ncoeff[0]]    = dis->offset[j][j];
     dis->dparm[j][ncoeff[0]+m] += 1.0;
   }
 

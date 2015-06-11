@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
+  $Id: wcspih.l,v 5.5.1.1 2015/05/05 13:21:00 mcalabre Exp mcalabre $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -147,7 +147,7 @@ INLINE " "*(\/.*)?
 char *wcspih_hdr;
 int  wcspih_nkeyrec;
 
-int wcspih_final(int alts[], int ndp[], int ndq[], int *nwcs,
+int wcspih_final(int alts[], int ndp[], int ndq[], int dosip, int *nwcs,
         struct wcsprm **wcs);
 int wcspih_inits(int naxis, int alts[], int dpq[], int npv[], int nps[],
         int ndp[], int ndq[], int dosip, int *nwcs, struct wcsprm **wcs);
@@ -1652,7 +1652,7 @@ jmp_buf wcspih_abort_jmp_env;
 	        "keyrecords.\n", nother, (nother==1)?"":"s");
 	    }
 	
-	    return wcspih_final(alts, ndp, ndq, nwcs, wcs);
+	    return wcspih_final(alts, ndp, ndq, dosip, nwcs, wcs);
 	  }
 	}
 
@@ -1669,7 +1669,7 @@ void wcspih_naxes(
   int i,
   int j,
   char a,
-  int distype, 
+  int distype,
   int alts[],
   int dpq[],
   int *npptr)
@@ -1761,8 +1761,9 @@ int wcspih_inits(
 
     ndis = 0;
     if (dosip) {
-      /* DPja.NAXES to be added for SIP (see below). */
-      ndp[0] += 2;
+      /* DPja.NAXES and DPja.OFFSET.j to be added for SIP (see below and
+         wcspih_final()). */
+      ndp[0] += 6;
     }
 
     /* Initialize each wcsprm struct. */
@@ -1836,9 +1837,9 @@ int wcspih_inits(
       strcpy((*wcs)->lin.dispre->dtype[1], "SIP");
 
       /* SIP doesn't have alternates, nor axis mapping. */
-      (*wcs)->lin.dispre->ndp = 2;
+      (*wcs)->lin.dispre->ndp = 6;
       dpfill((*wcs)->lin.dispre->dp,   "DP1", "NAXES",  0, 0, 2, 0.0);
-      dpfill((*wcs)->lin.dispre->dp+1, "DP2", "NAXES",  0, 0, 2, 0.0);
+      dpfill((*wcs)->lin.dispre->dp+3, "DP2", "NAXES",  0, 0, 2, 0.0);
     }
   }
 
@@ -1890,6 +1891,7 @@ int wcspih_final(
   int alts[],
   int ndp[],
   int ndq[],
+  int dosip,
   int *nwcs,
   struct wcsprm **wcs)
 
@@ -1908,6 +1910,18 @@ int wcspih_final(
          ensure the latter gets DVERRa. */
       (*wcs+ialt)->lin.disseq->totdis = (*wcs+ialt)->lin.dispre->totdis;
     }
+  }
+
+  /* SIP doesn't have alternates, nor axis mapping. */
+  if (dosip) {
+    dpfill((*wcs)->lin.dispre->dp+1, "DP1", "OFFSET.1",  0, 1, 0,
+           (*wcs)->crpix[0]);
+    dpfill((*wcs)->lin.dispre->dp+2, "DP1", "OFFSET.2",  0, 1, 0,
+           (*wcs)->crpix[1]);
+    dpfill((*wcs)->lin.dispre->dp+4, "DP2", "OFFSET.1",  0, 1, 0,
+           (*wcs)->crpix[0]);
+    dpfill((*wcs)->lin.dispre->dp+5, "DP2", "OFFSET.2",  0, 1, 0,
+           (*wcs)->crpix[1]);
   }
 
   return 0;
