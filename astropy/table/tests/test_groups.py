@@ -45,16 +45,16 @@ def test_column_group_by():
         t1ag = t1a.group_by(t1['a', 'b'].as_array())
         assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
 
-
-def test_table_group_by():
+@pytest.mark.parametrize("index", [True, False])
+def test_table_group_by(index):
     """
     Test basic table group_by functionality for possible key types and for
     masked/unmasked tables.
     """
-
     for masked in (False, True):
         t1 = Table(T1, masked=masked)
-
+        if index:
+            t1.add_index('a')
         # Group by a single column key specified by name
         tg = t1.group_by('a')
         assert np.all(tg.groups.indices == np.array([0, 1, 4, 8]))

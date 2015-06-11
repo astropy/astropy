@@ -33,3 +33,7 @@ class Index:
     def replace(self, pos, val, col):
         self.remove_rows(pos, col)
         self.insert_row(pos, val)
+
+    def sorted_data(self):
+        lst = [x.data for x in self.data.traverse('inorder')]
+        return [row for l in lst for row in l]

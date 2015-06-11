@@ -58,7 +58,13 @@ def table_group_by(table, keys):
                         .format(type(keys)))
 
     try:
-        idx_sort = table_keys.argsort(kind='mergesort')
+        if isinstance(table_keys, Table) and len(table_keys.columns) == 1 \
+           and len(table_keys.columns[0].indices) > 0:
+            # use pre-existing index order
+            idx_sort = table_keys.columns[0].indices[0].sorted_data()
+            ##TODO: change from indices[0] after creating composite indices
+        else:
+            idx_sort = table_keys.argsort(kind='mergesort')
         stable_sort = True
     except TypeError:
         # Some versions (likely 1.6 and earlier) of numpy don't support
