@@ -16,6 +16,7 @@ from ..extern.six.moves import xrange, zip_longest
 
 from ..utils import isiterable
 from ..utils.compat.funcsigs import signature
+from ..units import dimensionless_unscaled
 
 
 __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
@@ -655,3 +656,14 @@ def get_inputs_and_params(func):
             params.append(param)
 
     return inputs, params
+
+
+def format_unit_with_type(unit):
+    """
+    Returns a string-formatted unit with its physical dimension in parentheses.
+    """
+
+    if unit == dimensionless_unscaled:
+        return '({0})'.format(unit.physical_type)
+    else:
+        return '{0} ({1})'.format(unit, unit.physical_type)

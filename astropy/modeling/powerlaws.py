@@ -46,6 +46,7 @@ class PowerLaw1D(Fittable1DModel):
     x_0 = Parameter(default=1)
     alpha = Parameter(default=1)
 
+    input_units = 'x_0'
     output_units = 'amplitude'
 
     @staticmethod
@@ -107,6 +108,7 @@ class BrokenPowerLaw1D(Fittable1DModel):
     alpha_1 = Parameter(default=1)
     alpha_2 = Parameter(default=1)
 
+    input_units = 'x_break'
     output_units = 'amplitude'
 
     @staticmethod
@@ -165,6 +167,7 @@ class ExponentialCutoffPowerLaw1D(Fittable1DModel):
     alpha = Parameter(default=1)
     x_cutoff = Parameter(default=1)
 
+    input_units = 'x_0'
     output_units = 'amplitude'
 
     @staticmethod
@@ -221,6 +224,7 @@ class LogParabola1D(Fittable1DModel):
     alpha = Parameter(default=1)
     beta = Parameter(default=0)
 
+    input_units = 'x_0'
     output_units = 'amplitude'
 
     @staticmethod
