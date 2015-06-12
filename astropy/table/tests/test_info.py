@@ -193,3 +193,30 @@ def test_empty_table():
     t.info(out=out)
     exp = ['<Table length=0>', '<No columns>']
     assert out.getvalue().splitlines() == exp
+
+
+def test_class_attribute():
+    """
+    Test that class info column is suppressed only for identical non-mixin
+    columns.
+    """
+    vals = [[1] * u.m, [2] * u.m]
+
+    texp = ['<Table length=1>',
+            'name  dtype  unit',
+            '---- ------- ----',
+            'col0 float64    m',
+            'col1 float64    m']
+
+    qexp = ['<QTable length=1>',
+            'name  dtype  unit  class  ',
+            '---- ------- ---- --------',
+            'col0 float64    m Quantity',
+            'col1 float64    m Quantity']
+
+    for table_cls, exp in ((table.Table, texp),
+                           (table.QTable, qexp)):
+        t = table_cls(vals)
+        out = six.moves.cStringIO()
+        t.info(out=out)
+        assert out.getvalue().splitlines() == exp
