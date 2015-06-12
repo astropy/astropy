@@ -190,3 +190,41 @@ def test_kwargs_extra():
     assert isinstance(solarx, u.Quantity)
 
     assert solarx.unit == u.deg
+
+# ---------------------------------------------------------------
+# Repeat core tests with physical types instead of units
+
+def test_args_physical_type():
+    @u.quantity_input(solarx='angle', solary='angle')
+    def myfunc_args(solarx, solary):
+        return solarx, solary
+
+    solarx, solary = myfunc_args(1*u.arcsec, 1*u.arcsec)
+
+    assert isinstance(solarx, u.Quantity)
+    assert isinstance(solary, u.Quantity)
+
+    assert solarx.unit == u.arcsec
+    assert solary.unit == u.arcsec
+
+def test_arg_equivalencies_physical_type():
+    @u.quantity_input(solarx='angle', solary='energy', equivalencies=u.mass_energy())
+    def myfunc_args(solarx, solary):
+        return solarx, solary+(10*u.J)  # Add an energy to check equiv is working
+
+    solarx, solary = myfunc_args(1*u.arcsec, 100*u.gram)
+
+    assert isinstance(solarx, u.Quantity)
+    assert isinstance(solary, u.Quantity)
+
+    assert solarx.unit == u.arcsec
+    assert solary.unit == u.gram
+
+def test_kwarg_wrong_unit_physical_type():
+    @u.quantity_input(solarx='angle', solary='angle')
+    def myfunc_args(solarx, solary=10*u.deg):
+        return solarx, solary
+
+    with pytest.raises(u.UnitsError) as e:
+        solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.km)
+    assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertable to physical type 'angle'."
