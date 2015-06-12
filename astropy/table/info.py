@@ -95,9 +95,9 @@ def table_info(tbl, option='attributes', out=''):
 
     if 'class' in info.colnames:
         # Remove 'class' info column if all table columns are the same class
-        # and they are not mixin columns.
+        # and they are the default column class for that table.
         uniq_types = set(type(col) for col in cols)
-        if len(uniq_types) == 1 and not tbl._is_mixin_column(cols[0]):
+        if len(uniq_types) == 1 and isinstance(cols[0], tbl.ColumnClass):
             del info['class']
 
     if 'n_bad' in info.colnames and np.all(info['n_bad'] == 0):

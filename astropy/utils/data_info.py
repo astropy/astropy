@@ -230,12 +230,14 @@ class DataInfo(object):
         >>> c.info()
         dtype = int32
         unit = m
+        class = Column
         n_bad = 0
         length = 2
 
         >>> c.info(['attributes', 'stats'])
         dtype = int32
         unit = m
+        class = Column
         mean = 1.5
         std = 0.5
         min = 1
