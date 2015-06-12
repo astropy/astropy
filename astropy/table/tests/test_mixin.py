@@ -73,12 +73,11 @@ def test_make_table(table_types, mixin_cols):
     check_mixin_type(t, t['m'], mixin_cols['m'])
 
     cols = list(mixin_cols.values())
-    t = table_types.Table(cols, names=('a', 'b', 'c', 'm'))
+    t = table_types.Table(cols, names=('i', 'a', 'b', 'c', 'm'))
     check_mixin_type(t, t['m'], mixin_cols['m'])
 
     t = table_types.Table(cols)
-    check_mixin_type(t, t['col3'], mixin_cols['m'])
-
+    check_mixin_type(t, t['col4'], mixin_cols['m'])
 
 def test_io_ascii_write():
     """

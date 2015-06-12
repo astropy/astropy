@@ -44,9 +44,9 @@ def descr(col):
     This returns a 3-tuple (name, type, shape) that can always be
     used in a structured array dtype definition.
     """
-    col_dtype_str = col.dtype.str if hasattr(col, 'dtype') else 'O'
+    col_dtype = col.dtype if hasattr(col, 'dtype') else 'O'
     col_shape = col.shape[1:] if hasattr(col, 'shape') else ()
-    return (col_getattr(col, 'name'), col_dtype_str, col_shape)
+    return (col_getattr(col, 'name'), col_dtype, col_shape)
 
 
 def is_mixin_class(obj):

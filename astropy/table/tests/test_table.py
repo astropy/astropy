@@ -60,6 +60,15 @@ class SetupData(object):
             return self._d
 
     @property
+    def e(self):
+        if self._column_type is not None:
+            if not hasattr(self, '_e'):
+                self._e = self._column_type(np.array(
+                    [(7, 'a'), (8, 'b'), (7, 'c')],
+                    dtype=str('<i4,|U1')), 'e')
+            return self._e
+
+    @property
     def obj(self):
         if self._column_type is not None:
             if not hasattr(self, '_obj'):
@@ -204,6 +213,13 @@ class TestSetTableColumn(SetupData):
         # Wrong size
         with pytest.raises(ValueError):
             t['b'] = [1, 2]
+
+    def test_recarray_column(self, table_types):
+        """Test that structured array columns works"""
+        self._setup(table_types)
+        t = table_types.Table([self.a, self.e])
+        assert t['e'].dtype == np.dtype(
+            [(str('f0'), str('<i4')), (str('f1'), str('<U1'))])
 
 
 @pytest.mark.usefixtures('table_types')

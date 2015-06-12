@@ -164,6 +164,8 @@ def mixin_cols(request):
     cols['i'] = table.Column([0, 1, 2, 3], name='i')
     cols['a'] = table.Column(['a', 'b', 'b', 'c'], name='a')
     cols['b'] = table.Column(['b', 'c', 'a', 'd'], name='b')
+    cols['c'] = table.Column([(1, 'a'), (2, 'b'), (3, 'c'), (4, 'd')],
+                             dtype=str('<i4, |S1'), name='c')
     cols['m'] = mixin_cols[request.param]
 
     return cols

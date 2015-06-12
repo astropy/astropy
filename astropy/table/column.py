@@ -783,7 +783,7 @@ class Column(BaseColumn):
         unit = None if self.unit is None else str(self.unit)
         shape = None if self.ndim <= 1 else self.shape[1:]
         for attr, val in (('name', self.name),
-                          ('dtype', self.dtype.name),
+                          ('dtype', pprint.pprint_dtype(self)),
                           ('shape', shape),
                           ('unit', unit),
                           ('format', self.format),
@@ -978,6 +978,8 @@ class MaskedColumn(Column, ma.MaskedArray):
         # with MaskedArray.
         self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
                                unit=unit, format=format, description=description, meta=meta, copy=copy)
+        if self_data.dtype.names and mask is None:
+            mask = np.ma.nomask
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
