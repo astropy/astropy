@@ -582,3 +582,50 @@ class TestLogQuantityComparisons(object):
         assert lq1 != lq4
         with pytest.raises(u.UnitsError):
             lq1 < lq4
+
+
+class TestLogQuantityMethods(object):
+    def setup(self):
+        self.mJy = np.arange(1., 5.).reshape(2, 2) * u.mag(u.Jy)
+        self.m1 = np.arange(1., 5.5, 0.5).reshape(3, 3) * u.mag()
+        self.mags = (self.mJy, self.m1)
+
+    @pytest.mark.parametrize('method', ('mean', 'min', 'max', 'round', 'trace',
+                                        'std', 'var', 'diff', 'ediff1d'))
+    def test_always_ok(self, method):
+        for mag in self.mags:
+            res = getattr(mag, method)()
+            assert np.all(res.value ==
+                          getattr(mag._function_view, method)().value)
+            if method in ('std', 'diff', 'ediff1d'):
+                assert res.unit == u.mag()
+            elif method == 'var':
+                assert res.unit == u.mag**2
+            else:
+                assert res.unit == mag.unit
+
+    def test_clip(self):
+        for mag in self.mags:
+            assert np.all(mag.clip(2. * mag.unit, 4. * mag.unit).value ==
+                          mag.value.clip(2., 4.))
+
+    @pytest.mark.parametrize('method', ('sum', 'cumsum', 'nansum'))
+    def test_only_ok_if_dimensionless(self, method):
+        res = getattr(self.m1, method)()
+        assert np.all(res.value ==
+                      getattr(self.m1._function_view, method)().value)
+        assert res.unit == self.m1.unit
+        with pytest.raises(TypeError):
+            getattr(self.mJy, method)()
+
+    def test_dot(self):
+        assert np.all(self.m1.dot(self.m1).value ==
+                      self.m1.value.dot(self.m1.value))
+
+    @pytest.mark.parametrize('method', ('prod', 'cumprod'))
+    def test_never_ok(self, method):
+        with pytest.raises(ValueError):
+            getattr(self.mJy, method)()
+
+        with pytest.raises(ValueError):
+            getattr(self.m1, method)()

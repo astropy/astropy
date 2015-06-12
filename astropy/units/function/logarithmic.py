@@ -269,6 +269,33 @@ class LogQuantity(FunctionQuantity):
     # Could add __mul__ and __div__ and try interpreting other as a power,
     # but this seems just too error-prone.
 
+    # Methods that do not work for function units generally but are OK for
+    # logarithmic units as they imply differences and independence of
+    # physical unit.
+    def var(self, axis=None, dtype=None, out=None, ddof=0):
+        return self._wrap_function(np.var, axis, dtype, out=out, ddof=ddof,
+                                   unit=self.unit.function_unit**2)
+
+    def std(self, axis=None, dtype=None, out=None, ddof=0):
+        return self._wrap_function(np.std, axis, dtype, out=out, ddof=ddof,
+                                   unit=self.unit._copy(dimensionless_unscaled))
+
+    def ptp(self, axis=None, out=None):
+        return self._wrap_function(np.ptp, axis, out=out,
+                                   unit=self.unit._copy(dimensionless_unscaled))
+
+    def diff(self, n=1, axis=-1):
+        return self._wrap_function(np.diff, n, axis,
+                                   unit=self.unit._copy(dimensionless_unscaled))
+
+    def ediff1d(self, to_end=None, to_begin=None):
+        return self._wrap_function(np.ediff1d, to_end, to_begin,
+                                   unit=self.unit._copy(dimensionless_unscaled))
+
+    _supported_functions = (FunctionQuantity._supported_functions |
+                            set(getattr(np, function) for function in
+                                ('var', 'std', 'ptp', 'diff', 'ediff1d')))
+
 
 class Dex(LogQuantity):
     _unit_class = DexUnit
