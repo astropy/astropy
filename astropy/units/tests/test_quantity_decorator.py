@@ -234,6 +234,6 @@ def test_kwarg_invalid_physical_type():
     def myfunc_args(solarx, solary=10*u.deg):
         return solarx, solary
 
-    with pytest.raises(u.ValueError) as e:
+    with pytest.raises(ValueError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.deg)
     assert str(e.value) == "Invalid physical type 'africanswallow'."
