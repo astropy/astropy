@@ -106,13 +106,57 @@ Summary information
 
 You can get summary information about the table as follows::
 
-  >>> t.info()
+  >>> t.info
   <Table length=5>
   name dtype   unit   format       description
   ---- ----- -------- ------ ------------------------
      a int32 m sec^-1  %6.3f unladen swallow velocity
      b int32
      c int32
+
+If called as a function then one can supply an ``option`` that specifies
+the type of information to return.  The built-in ``option`` choices are
+``attributes`` (column attributes, which is the default) or ``stats``
+(basic column statistics).  The ``option`` argument can also be a list
+of available options::
+
+  >>> t.info('stats')  # doctest: +FLOAT_CMP
+  <Table length=5>
+  name mean      std      min max
+  ---- ---- ------------- --- ---
+     a  6.0 4.24264068712   0  12
+     b  7.0 4.24264068712   1  13
+     c  8.0 4.24264068712   2  14
+
+  >>> t.info(['attributes', 'stats'])  # doctest: +FLOAT_CMP
+  <Table length=5>
+  name dtype   unit   format       description        mean      std      min max
+  ---- ----- -------- ------ ------------------------ ---- ------------- --- ---
+     a int32 m sec^-1  %6.3f unladen swallow velocity  6.0 4.24264068712   0  12
+     b int32                                           7.0 4.24264068712   1  13
+     c int32                                           8.0 4.24264068712   2  14
+
+Columns also have an ``info`` property that has the behavior and arguments,
+but provides information about a single column::
+
+  >>> t['a'].info
+  name = a
+  dtype = int32
+  unit = m sec^-1
+  format = %6.3f
+  description = unladen swallow velocity
+  class = Column
+  n_bad = 0
+  length = 5
+
+  >>> t['a'].info('stats')  # doctest: +FLOAT_CMP
+  name = a
+  mean = 6.0
+  std = 4.24264068712
+  min = 0
+  max = 12
+  n_bad = 0
+  length = 5
 
 
 Accessing properties

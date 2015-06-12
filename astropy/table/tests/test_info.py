@@ -54,6 +54,11 @@ def test_table_info_attributes(table_types):
     cls = t.ColumnClass.__name__
     assert np.all(tinfo['class'] == [cls, cls, cls, cls, 'Time', 'SkyCoord'])
 
+    # Test that repr(t.info) is same as t.info()
+    out = six.moves.cStringIO()
+    t.info(out=out)
+    assert repr(t.info) == out.getvalue()
+
 def test_table_info_stats(table_types):
     """
     Test the info() method of printing a summary of table column statistics

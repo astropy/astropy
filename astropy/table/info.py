@@ -1,5 +1,5 @@
 """
-Table method for providing information about table.
+Table property for providing information about table.
 """
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, division, print_function,
@@ -8,10 +8,11 @@ import sys
 import os
 
 import numpy as np
+from ..extern import six
 
-__all__ = ['info']
+__all__ = ['table_info', 'TableInfo']
 
-def info(self, option='attributes', out=''):
+def table_info(tbl, option='attributes', out=''):
     """
     Write summary information about column to the ``out`` filehandle.
     By default this prints to standard output via sys.stdout.
@@ -66,15 +67,15 @@ def info(self, option='attributes', out=''):
     if out == '':
         out = sys.stdout
 
-    descr_vals = [self.__class__.__name__]
-    if self.masked:
+    descr_vals = [tbl.__class__.__name__]
+    if tbl.masked:
         descr_vals.append('masked=True')
-    descr_vals.append('length={0}'.format(len(self)))
+    descr_vals.append('length={0}'.format(len(tbl)))
 
     outlines = ['<' + ' '.join(descr_vals) + '>']
 
-    cols = self.columns.values()
-    if self.colnames:
+    cols = tbl.columns.values()
+    if tbl.colnames:
         infos = []
         for col in cols:
             infos.append(col.info(option, out=None))
@@ -96,19 +97,32 @@ def info(self, option='attributes', out=''):
         # Remove 'class' info column if all table columns are the same class
         # and they are not mixin columns.
         uniq_types = set(type(col) for col in cols)
-        if len(uniq_types) == 1 and not self._is_mixin_column(cols[0]):
+        if len(uniq_types) == 1 and not tbl._is_mixin_column(cols[0]):
             del info['class']
 
     if 'n_bad' in info.colnames and np.all(info['n_bad'] == 0):
         del info['n_bad']
 
     # Standard attributes has 'length' but this is typically redundant
-    if 'length' in info.colnames and np.all(info['length'] == len(self)):
+    if 'length' in info.colnames and np.all(info['length'] == len(tbl)):
         del info['length']
 
-    if self.colnames:
+    if tbl.colnames:
         outlines.extend(info.pformat(max_width=-1, max_lines=-1, show_unit=False))
     else:
         outlines.append('<No columns>')
 
     out.writelines(outline + os.linesep for outline in outlines)
+
+class TableInfo(object):
+    _parent_ref = None
+
+    def __call__(self, option='attributes', out=''):
+        return table_info(self._parent_ref(), option, out)
+
+    __call__.__doc__ = table_info.__doc__
+
+    def __repr__(self):
+        out = six.moves.cStringIO()
+        self.__call__(out=out)
+        return out.getvalue()

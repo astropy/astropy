@@ -96,7 +96,7 @@ assigned, all units would be shown as follows::
 
 Finally, you can get summary information about the table as follows::
 
-  >>> t.info()
+  >>> t.info
   <Table length=3>
   name  dtype  unit
   ---- ------- ----

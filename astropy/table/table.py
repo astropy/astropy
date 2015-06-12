@@ -18,6 +18,7 @@ from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
+from ..utils.data_info import InfoDescriptor
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -25,7 +26,7 @@ from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
                      ColumnInfo)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
-from . import info as table_info
+from .info import TableInfo
 
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays containing Unicode columns to
@@ -2175,7 +2176,7 @@ class Table(object):
 
         return cls(out)
 
-    info = table_info.info
+    info = InfoDescriptor(TableInfo)
 
 
 class QTable(Table):
