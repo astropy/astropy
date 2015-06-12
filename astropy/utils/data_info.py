@@ -19,7 +19,7 @@ from ..utils.compat import NUMPY_LT_1_8
 def data_info_factory(names, funcs):
     """
     Factory to create a function that can be used as an ``option``
-    for outputting table or column summary information.
+    for outputting data object summary information.
 
     Examples
     --------
@@ -45,16 +45,16 @@ def data_info_factory(names, funcs):
     Returns
     -------
     func: function
-        Function that can be used as a table or column info option
+        Function that can be used as a data info option
     """
-    def func(col):
+    def func(dat):
         outs = []
         for name, func in zip(names, funcs):
             try:
                 if isinstance(func, six.string_types):
-                    out = getattr(col, func)()
+                    out = getattr(dat, func)()
                 else:
-                    out = func(col)
+                    out = func(dat)
             except:
                 outs.append('--')
             else:
@@ -64,19 +64,19 @@ def data_info_factory(names, funcs):
     return func
 
 
-def _get_column_attribute(col, attr=None):
+def _get_data_attribute(dat, attr=None):
     """
-    Get a column attribute for the ``attributes`` info summary method
+    Get a data object attribute for the ``attributes`` info summary method
     """
     if attr == 'class':
-        val = type(col).__name__
+        val = type(dat).__name__
     elif attr == 'dtype':
-        val = col.info.dtype.name
+        val = dat.info.dtype.name
     elif attr == 'shape':
-        colshape = col.shape[1:]
-        val = colshape if colshape else ''
+        datshape = dat.shape[1:]
+        val = datshape if datshape else ''
     else:
-        val = getattr(col.info, attr)
+        val = getattr(dat.info, attr)
     if val is None:
         val = ''
     return str(val)
@@ -194,7 +194,7 @@ class DataInfo(object):
 
     info_summary_attributes = staticmethod(
         data_info_factory(names=_info_summary_attrs,
-                          funcs=[partial(_get_column_attribute, attr=attr)
+                          funcs=[partial(_get_data_attribute, attr=attr)
                                  for attr in _info_summary_attrs]))
 
     # No nan* methods in numpy < 1.8
@@ -205,19 +205,19 @@ class DataInfo(object):
 
     def __call__(self, option='attributes', out=''):
         """
-        Write summary information about column to the ``out`` filehandle.
+        Write summary information about data object to the ``out`` filehandle.
         By default this prints to standard output via sys.stdout.
 
         The ``option` argument specifies what type of information
         to include.  This can be a string, a function, or a list of
         strings or functions.  Built-in options are:
 
-        - ``attributes``: column attributes like ``dtype`` and ``format``
+        - ``attributes``: data object attributes like ``dtype`` and ``format``
         - ``stats``: basic statistics: min, mean, and max
 
         If a function is specified then that function will be called with the
-        column as its single argument.  The function must return an OrderedDict
-        containing the information attributes.
+        data object as its single argument.  The function must return an
+        OrderedDict containing the information attributes.
 
         If a list is provided then the information attributes will be
         appended for each of the options, in order.
@@ -258,9 +258,9 @@ class DataInfo(object):
         if out == '':
             out = sys.stdout
 
-        col = self._parent_ref()
+        dat = self._parent_ref()
         info = OrderedDict()
-        name = col.info.name
+        name = dat.info.name
         if name is not None:
             info['name'] = name
 
@@ -272,19 +272,19 @@ class DataInfo(object):
                 else:
                     raise ValueError('option={0} is not an allowed information type'
                                      .format(option))
-            info.update(option(col))
+            info.update(option(dat))
 
-        if hasattr(col, 'mask'):
-            n_bad = np.count_nonzero(col.mask)
+        if hasattr(dat, 'mask'):
+            n_bad = np.count_nonzero(dat.mask)
         else:
             try:
-                n_bad = np.count_nonzero(np.isinf(col) | np.isnan(col))
+                n_bad = np.count_nonzero(np.isinf(dat) | np.isnan(dat))
             except:
                 n_bad = 0
         info['n_bad'] = n_bad
 
         try:
-            info['length'] = len(col)
+            info['length'] = len(dat)
         except TypeError:
             pass
 
