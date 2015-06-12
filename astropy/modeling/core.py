@@ -31,7 +31,7 @@ import numpy as np
 from ..utils import indent, isiterable, isinstancemethod, metadata
 from ..extern import six
 from ..table import Table
-from ..units import (Quantity, Unit, UnitConversionError,
+from ..units import (Quantity, UnitBase, UnitConversionError,
                      dimensionless_unscaled)
 from ..units.quantity import _can_have_arbitrary_unit
 from ..utils import (deprecated, sharedmethod, find_current_module,
@@ -40,7 +40,7 @@ from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
-                    IncompatibleShapeError, AliasDict)
+                    IncompatibleShapeError, AliasDict, format_unit_with_type)
 
 from .parameters import Parameter, InputParameterError
 
@@ -90,15 +90,16 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         mcls._create_inverse_property(members)
         mcls._handle_backwards_compat(name, members)
 
-        # Prevent output_units, etc. from being treated as a method
-        for attr in ('output_units', 'output_unit_types'):
+        # Prevent callable values for input_units or output_units from being
+        # treated as a method
+        for attr in ('input_units', 'output_units'):
             if attr in members and callable(members[attr]):
                 members[attr] = staticmethod(members[attr])
 
         cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
         mcls._handle_special_methods(members, cls, parameters)
-        mcls._check_output_units(cls, members)
+        mcls._check_unit_specs(cls, members)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
             mcls.registry.add(cls)
@@ -238,33 +239,44 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                     dict((name, idx) for idx, name in enumerate(param_names))
 
     @staticmethod
-    def _check_output_units(cls, members):
+    def _check_unit_specs(cls, members):
         """
-        Validates the output_units and output_unit_types attributes.
+        Validates the input_units and output_units attributes.
         """
 
         unit_attrs = []
 
-        for attr_name in ('output_units', 'output_unit_types'):
-            if attr_name in members and members[attr_name] is not None:
+        for var_type in ('input', 'output'):
+            attr_name = var_type + '_units'
+
+            if not (attr_name in members and members[attr_name] is not None):
                 # Attribute not defined, or was defined on a base class, so we
                 # don't need to check it again (I don't think?)
-                attr = getattr(cls, attr_name)
-                if cls.n_outputs == 1 and not isinstance(attr, tuple):
-                    attr = (attr,)
+                continue
 
-                if not isinstance(attr, tuple) or len(attr) != cls.n_outputs:
-                    raise ModelDefinitionError(
-                        'If defined, the {0}.{1} attribute must be a tuple '
-                        'of length equal to the number of outputs from this '
-                        'model ({2}).  Only single-output models may forgo '
-                        'the tuple as a shortcut.  However, some entries in '
-                        'the tuple may be None.'.format(cls.__name__,
-                                                        attr_name,
-                                                        cls.n_outputs))
+            attr = getattr(cls, attr_name)
+            n_vars = getattr(cls, 'n_{0}s'.format(var_type))
 
-                # TODO: Validate the types of the items in the tuples as well
+            if n_vars == 1 and not isinstance(attr, tuple):
+                attr = (attr,)
 
+            if not isinstance(attr, tuple) or len(attr) != n_vars:
+                raise ModelDefinitionError(
+                    'If defined, the {0}.{1} attribute must be a tuple of '
+                    'length equal to the number of {2}s from this model '
+                    '({3}).  Only single-{2} models may forgo the tuple as a '
+                    'shortcut.  However, some entries in the tuple may be '
+                    'None.'.format(cls.__name__, attr_name, var_type, n_vars))
+
+            # TODO: Validate the types of the items in the tuples as well
+            for unit_spec in attr:
+                if isinstance(unit_spec, UnitBase):
+                    # If any of the input_units or output_units are specific,
+                    # concrete units this implies that units are *always*
+                    # required for this model, so we implicitly force
+                    # _using_quantities
+                    cls._using_quantities = True
+                    break
 
     @staticmethod
     def _create_inverse_property(members):
@@ -562,68 +574,53 @@ class Model(object):
     outputs = ()
     """The name(s) of the output(s) of the model."""
 
-    output_units = None
+    input_units = None
     """
-    This attribute specifies what units should be attached to a model's output
-    when being evaluated on inputs with units.  This can be defined in several
-    ways:
+    This attribute specifies what units should be attached to a model's inputs.
+    This can be defined in several ways:
 
-        1. If this attribute is a `~astropy.units.Unit`, the output is
-           required to be in that unit.  This must be a specific unit--to
-           require only a compatible physical unit, use
-           `~astropy.modeling.Model.output_unit_types` instead (see below).
-           If the output is not in the specified unit, but is in a compatible
-           unit (including any active equivalencies) then the output will be
-           converted to the unit specified here.
+        1. If this attribute is a `~astropy.units.Unit`, the input is
+           required to be in that unit or a compatible unit (up to any
+           active equivalencies).
 
         2. If this attribute is a string, it must be the name of one of the
-           model's parameters, or one of the model's inputs.  In this case the
-           output units are taken from the units of that parameter or input.
-           The same semantics as in case 1. are then applied.  For example
-           ``output_units = 'amplitude'`` implies that the units of the output
-           should be the same as the units of the "amplitude" parameter.
+           model's parameters, or one of the model's other inputs.  In this
+           case the input units are checked against the units of that parameter
+           or input.  The same semantics as in case 1. are then applied.  For
+           example ``input_units = 'mean'`` implies that the units of the input
+           should be the same as the units of the "mean" parameter.
 
-        3. This attribute may also be a callable (i.e. a function).  It is
-           called just before the output from the model is returned.  There
-           are two possibilities allowed for the signature of the callable:
+        3. This attribute may also be a callable (i.e. a function).  It may
+           take arguments with the same names as any of the model's inputs
+           and/or parameters just as in case 2.  The corresponding parameter
+           and/or input quantities are passed in to this functionas arguments.
+           The function must return a `~astropy.units.Unit`, against which
+           the input is checked.  For example,
+           ``lambda slope, intercept: intercept.unit / slope.unit`` implies
+           that the input's unit must be equivalent to the intercept's unit
+           over the slope's unit, so that ``x.unit * intercept.unit ==
+           slope.unit``.
 
-               a. It may take arguments with the same names as any of the
-                  model's inputs and/or parameters (not outputs, however).
-                  The corresponding parameters and inputs are passed in as
-                  arguments.  This allows in most cases for very terse,
-                  readable code.
-
-               b. For cases where just having the parameters and inputs is
-                  not sufficient, and more power/flexibility is needed a
-                  generic three argument call signature is allowed, consisting
-                  of:  The model instance itself, *all* inputs to the model as
-                  a `tuple`, and *all* outputs from the model as `tuple`.
-
-           In either case, this function must return a `~astropy.units.Unit`,
-           to which the output will be converted.
-
-    For models with more than one output, this attribute must be a tuple with
-    one entry per output.  The above rules are then applied on a per-output
+    For models with more than one input, this attribute must be a tuple with
+    one entry per output.  The above rules are then applied on a per-input
     basis.
     """
 
-    output_unit_types = None
+    output_units = None
     """
-    This attribute takes the same values as
-    `~astropy.modeling.Model.output_units`, but has different semantics.
-    Whereas the ``output_units`` *converts* the output to the specified units,
-    this attribute only ensures that the output units have a compatible type.
-    For example, ``output_units = u.km`` will *always* convert the output to
-    kilometers (as long as it is convertible to kilometers), whereas
-    ``output_unit_types = u.km`` will ensure that the output has units of
-    length, but otherwise performs no conversion.  This is useful for cases
-    where it is important to *validate* the type of the output, but it is not
-    the extra overhead of type conversion is not necessary.
+    This attribute specifies what units should be attached to a model's output
+    when being evaluated on inputs with units.  It takes the same values as
+    `~astropy.modeling.Model.input_units`, but has different semantics.
+    Whereas the ``input_units`` merely checks that an input has compatible
+    units with the specification, ``output_units`` always coverts an output to
+    the unit given by this specification.
 
-    It is an error to define both an output unit and an output unit type for a
-    single output.  However, both ``output_units`` and ``output_unit_types``
-    may be defined in the case of multiple outputs, where some outputs specify
-    a unit and others specify a unit type.
+    Specifying an ``output_units`` is not necessary, but is often a useful way
+    to specify what units a model should be converted to (for example by
+    outputting in the same units as the model's "amplitude" parameter) rather
+    than leaving users to manually perform unit conversion.  Otherwise the
+    exact output units may not be guaranteed, depending on what units the
+    inputs and parameters were converted to for efficient evaluation.
     """
 
     standard_broadcasting = True
@@ -645,10 +642,9 @@ class Model(object):
     _n_models = 1
 
     # Flag indicating whether units should be considered when evaluating this
-    # model.  This is enabled only if all of the model's parameters have units
-    _params_using_quantities = False
-    # This serves a similar purpose, but is reset between each __call__
-    _inputs_using_quantities = False
+    # model.  This is enabled only if any of the model's parameters or inputs
+    # have units, or if the outputs are forced to have a unit
+    _using_quantities = False
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
@@ -1206,7 +1202,7 @@ class Model(object):
 
                 if default is None:
                     # No value was supplied for the parameter, and the
-                    # parameter does not have a default--therefor the model is
+                    # parameter does not have a default--therefore the model is
                     # underspecified
                     raise TypeError(
                         "{0}.__init__() requires a value for parameter "
@@ -1228,7 +1224,7 @@ class Model(object):
                 param_metrics[name]['orig_unit'] = value.unit
                 # A flag, for convenience, to track whether quantities were
                 # used in instantiating this model
-                self._params_using_quantities = True
+                self._using_quantities = True
             else:
                 param_metrics[name]['orig_unit'] = None
 
@@ -1377,112 +1373,104 @@ class Model(object):
         return np.array(values)
 
     def _prepare_input_units(self, inputs):
-        self._inputs_using_quantities = False
         for input_ in inputs:
             if isinstance(input_, Quantity):
-                self._inputs_using_quantities = True
+                self._using_quantities = True
                 break
 
-        # If any parameters or inputs are using quantities, then all should;
-        # unit-less inputs are thus treated as dimensionless
-        if self._params_using_quantities or self._inputs_using_quantities:
-            converted_inputs = []
-            for input_ in inputs:
-                if (not isinstance(input_, Quantity) and
-                        not _can_have_arbitrary_unit(input_)):
-                    # We make a special case also for 0, since 0 may
-                    # be used in many quantity calculations without
-                    # penalty so long as it is not explicitly dimensionless
-                    input_ = input_ * dimensionless_unscaled
-                converted_inputs.append(input_)
-            return converted_inputs
-        else:
+        if not self._using_quantities:
             return inputs
+        else:
+            return self._prepare_variable_units(inputs)
 
     def _prepare_output_units(self, inputs, outputs):
-        """
-        Checks/converts units of model evaluation outputs using any directions
-        from ``output_units`` and/or ``output_unit_types`` if they are
-        specified.
-        """
-
-        output_units = self.output_units
-        output_unit_types = self.output_unit_types
-
-        if ((output_units is None and output_unit_types is None)
-                or not (self._params_using_quantities or
-                        self._inputs_using_quantities)):
-            # No output units specified, so we just return whatever we got
+        if not self._using_quantities:
             return outputs
+        else:
+            return self._prepare_variable_units(inputs, outputs)
 
-        if self.n_outputs == 1 and not isinstance(output_units, tuple):
-            output_units = (output_units,)
+    def _prepare_variable_units(self, inputs, outputs=None):
+        if outputs is None:
+            units = self.input_units
+            var_names = self.inputs
+            n_vars = self.n_inputs
+            vars_ = inputs
+        else:
+            units = self.output_units
+            var_names = self.outputs
+            n_vars = self.n_outputs
+            vars_ = outputs
 
-        if self.n_outputs == 1 and not isinstance(output_unit_types, tuple):
-            output_unit_types = (output_unit_types,)
+        if units is None:
+            units = (None,) * n_vars
+        elif not isinstance(units, tuple) and n_vars == 1:
+            units = (units,)
 
-        # Make sure all inputs have units; this is specifically to
-        # address the case of 0 (without units) being an allowed input
-        inputs = [Quantity(input_, dimensionless_unscaled)
-                  if _can_have_arbitrary_unit(input_)
-                  else input_ for input_ in inputs]
-
-        def to_unit(item):
-            # Go from an element in the output_units or output_unit_types
-            # attributes to an actual Unit object
-            if isinstance(item, Unit):
-                return item
-            elif isinstance(item, six.string_types):
+        def to_unit(value, unit_spec):
+            # Go from an element in the output_units attributes to an actual
+            # Unit object
+            if isinstance(unit_spec, UnitBase):
+                return unit_spec
+            elif isinstance(unit_spec, six.string_types):
                 # Take the unit from one of the parameter's or input's units
-                if item in self.inputs:
-                    return inputs[self.inputs.index(item)].unit
+                if unit_spec in self.inputs:
+                    input_ = inputs[self.inputs.index(unit_spec)]
+                    if (not isinstance(input_, Quantity) and
+                            _can_have_arbitrary_unit(input_)):
+                        # This will allow trivial conversion
+                        return value.unit
+                    else:
+                        return input_
                 else:
-                    return getattr(self, item).unit
-                return getattr(self, item).unit
+                    return getattr(self, unit_spec).unit
             else:
                 # TODO: Move the call to _analyze_unit_converter to the
                 # validation code in the metaclass, rather than doing that
                 # on every call
                 # Must be a callable
-                item = _analyze_unit_converter(self, outputs, item)
-                return item(self, inputs, outputs)
+                unit_spec = _analyze_unit_converter(self, inputs, unit_spec)
+                return unit_spec(self, inputs)
 
-        # The output_units and output_unit_types should have already been
-        # validated, so now all that's left is to apply them
         converted = []
 
-        for output, output_name, output_unit, output_unit_type in \
-                zip(outputs, self.outputs, output_units, output_unit_types):
-            if not isinstance(output, Quantity):
-                # TODO: We should probably avoid this loop altogether if the
-                # model is not being evaluated with quantities.  It might be
-                # nice if the model had a flag set somewhere specifying whether
-                # or not quantities are being used (based on the types of the
-                # parameters)
-                pass
-            elif output_unit is not None:
-                # Just go ahead and try converting the output straight to the
+        for var, var_name, var_unit in zip(vars_, var_names, units):
+            if outputs is None and not isinstance(var, Quantity):
+                # This check really only applies to inputs
+                if not _can_have_arbitrary_unit(var):
+                    # We make a special case also for 0, since 0 may
+                    # be used in many quantity calculations without
+                    # penalty so long as it is not explicitly dimensionless
+                    var = var * dimensionless_unscaled
+                else:
+                    # The input has "arbitrary" units, so there is no sense in
+                    # performing further checks on it.
+                    converted.append(var)
+                    continue
+
+            if var_unit is not None:
+                # Just go ahead and try converting the input straight to the
                 # new unit; if this results in a conversion error that's fine;
                 # just raise it directly
-                unit = to_unit(output_unit)
+                unit = to_unit(var, var_unit)
+
+                if (not isinstance(var, Quantity) and
+                        _can_have_arbitrary_unit(var)):
+                    # This supports the case of converting an output (such as
+                    # 0) that allows arbitrary units to the specified output
+                    # unit
+                    converted.append(Quantity(var, unit))
+                    continue
+
                 try:
-                    output = output.to(unit)
+                    var = var.to(unit)
                 except UnitConversionError:
                     raise UnitConversionError(
-                        "Units of output '{0}', {1} ({2}), could not be "
-                        "converted to required output units of {3} "
-                        "({4}).".format(output_name, output.unit,
-                                        output.unit.physical_type, unit,
-                                        unit.physical_type))
-            elif output_unit_type is not None:
-                unit = to_unit(output_unit_type)
-                if not output.unit.is_equivalent(unit):
-                    raise UnitConversionError(
-                        "Units of output '{0}' ({1}, {2}) are not compatible "
-                        "with the required physical type {3}.".format(
-                            output_name, output.unit,
-                            output.unit.physical_type, unit.physical_type))
-            converted.append(output)
+                        "Units of input '{0}', {1}, could not be converted "
+                        "to required input units of {2}".format(
+                            var_name, format_unit_with_type(var.unit),
+                            format_unit_with_type(unit)))
+
+            converted.append(var)
 
         return tuple(converted)
 
@@ -2693,37 +2681,27 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
     return input_broadcast
 
 
-def _analyze_unit_converter(model, output, converter):
+def _analyze_unit_converter(model, inputs, converter):
     """
-    This is to support the callable modes of output_units and
-    output_unit_types.  This allows a "magic" call signature that
-    specifies only the parameters and/or inputs needed to determine
-    the output units.
-
-    If all the arguments to the converter do not match either parameter
-    names or input names, then the default 3 argument signature will be
-    assumed.
+    This is to support the callable modes of input_units and output_units.
+    This allows a "magic" call signature that specifies only the parameters
+    and/or inputs needed to determine the output units.
     """
 
     argspec = inspect.getargspec(converter)
 
     for argname in argspec.args:
         if not (argname in model.param_names or argname in model.inputs):
-            if not len(argspec.args) == 3:
-                raise ModelDefinitionError(
-                    "Unit conversion/validation function for '{0}' does not "
-                    "have a compatible signature; it must either take three "
-                    "arguments (model, inputs, outputs) or have arguments "
-                    "with the same name as parameters and/or inputs to the "
-                    "model.  See the documentation for Model.output_units "
-                    "for more details.".format(output))
-
-            # Just use the converter as is
-            return converter
+            raise ModelDefinitionError(
+                "Unit conversion/validation function for '{0}' does not have "
+                "a compatible signature; it must have arguments with the "
+                "same names as parameters and/or inputs to the model.  See "
+                "the documentation for Model.output_units for more "
+                "details.".format(output))
     else:
         # Return a wrapper that passes the correct arguments in to the
         # converter
-        def wrapped_converter(model, inputs, outputs):
+        def wrapped_converter(model, inputs):
             # Outputs is included for compatibility with the 3-argument
             # signature, but is not used here
             return _unit_converter_wrapper(model, inputs, converter,
@@ -2739,8 +2717,16 @@ def _unit_converter_wrapper(model, inputs, converter, argnames):
     signature.
     """
 
-    args = (getattr(model, name) if name in model.param_names
-            else inputs[model.inputs.index(name)]
-            for name in argnames)
+    args = []
+
+    for name in argnames:
+        if name in model.param_names:
+            arg = getattr(model, name)
+        else:
+            arg = inputs[model.inputs.index(name)]
+            if not isinstance(arg, Quantity):
+                arg = Quantity(arg, dimensionless_unscaled)
+
+        args.append(arg)
 
     return converter(*args)
