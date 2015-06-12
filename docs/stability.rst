@@ -152,7 +152,7 @@ The current planned and existing sub-packages are:
                 astropy.io.misc
             </td>
             <td align='center'>
-                <img alt="mature" src="_images/dev.png">
+                <span class="mature"></span>
             </td>
             <td>
                  The functionality that is currently present is stable, but this sub-package will likely see major additions in future.
