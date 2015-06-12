@@ -161,3 +161,17 @@ def test_output_units():
     assert m(0 * u.dimensionless_unscaled).unit == (1 / u.s)
     assert m(2 * u.dimensionless_unscaled).unit == (1 / u.s)
     assert m(2 * u.m).unit == (u.m / u.s)
+
+    class TestModelD(Fittable1DModel):
+        output_units = u.m
+
+        @staticmethod
+        def evaluate(x):
+            # This is a no-op model that just always forces the output to be in
+            # meters (if the input is a length)
+            return 2 * x
+
+    m = TestModelD()
+    assert m(0).unit is u.m
+    assert m(1 * u.m) == 2 * u.m
+    assert m(1 * u.km) == 2000 * u.m

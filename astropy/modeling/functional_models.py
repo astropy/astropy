@@ -153,6 +153,7 @@ class Gaussian1D(BaseGaussian1D):
     Gaussian2D, Box1D, Moffat1D, Lorentz1D
     """
 
+    input_units = 'mean'  # Input must have same units as mean
     output_units = 'amplitude'  # Output must have same units as amplitude
 
     @staticmethod
@@ -218,6 +219,7 @@ class GaussianAbsorption1D(BaseGaussian1D):
     Gaussian1D
     """
 
+    input_units = 'mean'
     output_units = 'amplitude'
 
     @staticmethod
@@ -323,6 +325,7 @@ class Gaussian2D(Fittable2DModel):
     y_stddev = Parameter(default=1)
     theta = Parameter(default=0.0)
 
+    input_units = ('x_mean', 'y_mean')
     output_units = 'amplitude'
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
@@ -484,6 +487,10 @@ class Shift(Model):
 
     inputs = ('x',)
     outputs = ('x',)
+
+    # Input must have compatible units with offset, but output is kept in the
+    # input units
+    input_units = 'offset'
     output_units = 'x'
 
     offset = Parameter(default=0)
@@ -512,6 +519,7 @@ class Scale(Model):
 
     inputs = ('x',)
     outputs = ('x',)
+
     output_units = lambda factor, x: factor.units * x.units
 
     factor = Parameter(default=1)
@@ -705,6 +713,7 @@ class Sine1D(Fittable1DModel):
     frequency = Parameter(default=1)
     phase = Parameter(default=0)
 
+    input_units = lambda frequency: 1 / frequency.unit
     output_units = 'amplitude'
 
     @staticmethod
@@ -751,6 +760,7 @@ class Linear1D(Fittable1DModel):
     slope = Parameter(default=1)
     intercept = Parameter(default=0)
 
+    input_units = lambda slope, intercept: intercept.unit / slope.unit
     output_units = 'intercept'
 
     linear = True
@@ -874,6 +884,7 @@ class Lorentz1D(Fittable1DModel):
     x_0 = Parameter(default=0)
     fwhm = Parameter(default=1)
 
+    input_units = 'x_0'
     output_units = 'amplitude'
 
     @staticmethod
@@ -1193,6 +1204,7 @@ class Ellipse2D(Fittable2DModel):
     b = Parameter(default=1)
     theta = Parameter(default=0)
 
+    input_units = ('x_0', 'y_0')
     output_units = 'amplitude'
 
     @staticmethod
@@ -1263,6 +1275,7 @@ class Disk2D(Fittable2DModel):
     y_0 = Parameter(default=0)
     R_0 = Parameter(default=1)
 
+    input_units = ('x_0', 'y_0')
     output_units = 'amplitude'
 
     @staticmethod
@@ -1329,6 +1342,7 @@ class Ring2D(Fittable2DModel):
     r_in = Parameter(default=1)
     width = Parameter(default=1)
 
+    input_units = ('x_0', 'y_0')
     output_units = 'amplitude'
 
     def __init__(self, amplitude=amplitude.default, x_0=x_0.default,
@@ -1514,6 +1528,7 @@ class Box2D(Fittable2DModel):
     x_width = Parameter(default=1)
     y_width = Parameter(default=1)
 
+    input_units = ('x_0', 'y_0')
     output_units = 'amplitude'
 
     @staticmethod
@@ -1588,6 +1603,7 @@ class Trapezoid1D(Fittable1DModel):
     width = Parameter(default=1)
     slope = Parameter(default=1)
 
+    input_units = 'x_0'
     output_units = 'amplitude'
 
     @staticmethod
@@ -1651,6 +1667,7 @@ class TrapezoidDisk2D(Fittable2DModel):
     R_0 = Parameter(default=1)
     slope = Parameter(default=1)
 
+    input_units = ('x_0', 'y_0')
     output_units = 'amplitude'
 
     @staticmethod
@@ -1731,6 +1748,7 @@ class MexicanHat1D(Fittable1DModel):
     x_0 = Parameter(default=0)
     sigma = Parameter(default=1)
 
+    input_units = 'x_0'
     output_units = 'amplitude'
 
     @staticmethod
@@ -1792,6 +1810,7 @@ class MexicanHat2D(Fittable2DModel):
     y_0 = Parameter(default=0)
     sigma = Parameter(default=1)
 
+    input_units = ('x_0', 'y_0')
     output_units = 'amplitude'
 
     @staticmethod
@@ -1849,6 +1868,7 @@ class AiryDisk2D(Fittable2DModel):
     x_0 = Parameter(default=0)
     y_0 = Parameter(default=0)
     radius = Parameter(default=1)
+    input_units = ('x_0', 'y_0')
     output_units = 'amplitude'
     _rz = None
     _j1 = None
@@ -1939,6 +1959,7 @@ class Moffat1D(Fittable1DModel):
         """
         return 2.0 * self.gamma * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
 
+    input_units = 'x_0'
     output_units = 'amplitude'
 
     @staticmethod
@@ -2006,6 +2027,7 @@ class Moffat2D(Fittable2DModel):
         """
         return 2.0 * self.gamma * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
 
+    input_units = ('x_0', 'y_0')
     output_units = 'amplitude'
 
     @staticmethod
