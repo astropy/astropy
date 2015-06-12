@@ -6,7 +6,8 @@ __all__ = ['quantity_input']
 from ..utils.decorators import wraps
 from ..utils.compat import funcsigs
 
-from .core import UnitsError, add_enabled_equivalencies
+from .core import UnitsError, add_enabled_equivalencies, get_current_unit_registry
+from .physical import _unit_physical_mapping
 
 class QuantityInput(object):
 
@@ -115,16 +116,24 @@ class QuantityInput(object):
                 # If the target unit is empty, then no unit was specified so we
                 # move past it
                 if target_unit is not funcsigs.Parameter.empty:
+
+                    if isinstance(target_unit, str):
+                        # user specified a physical type instead of a unit
+                        ureg = get_current_unit_registry()
+                        target_units = ureg._by_physical_type[_unit_physical_mapping[target_unit]]
+                        target_unit = target_units.pop() # HACK
+
                     try:
                         equivalent = arg.unit.is_equivalent(target_unit,
                                                   equivalencies=self.equivalencies)
 
                         if not equivalent:
                             raise UnitsError("Argument '{0}' to function '{1}'"
-                                             " must be in units convertible to"
-                                             " '{2}'.".format(param.name,
+                                             " must be in units convertable to"
+                                             " physical type '{2}'."
+                                             .format(param.name,
                                                      wrapped_function.__name__,
-                                                     target_unit.to_string()))
+                                                     target_unit.physical_type))
 
                     # Either there is no .unit or no .is_equivalent
                     except AttributeError:
