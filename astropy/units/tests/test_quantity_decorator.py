@@ -228,3 +228,12 @@ def test_kwarg_wrong_unit_physical_type():
     with pytest.raises(u.UnitsError) as e:
         solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.km)
     assert str(e.value) == "Argument 'solary' to function 'myfunc_args' must be in units convertable to physical type 'angle'."
+
+def test_kwarg_invalid_physical_type():
+    @u.quantity_input(solarx='angle', solary='africanswallow')
+    def myfunc_args(solarx, solary=10*u.deg):
+        return solarx, solary
+
+    with pytest.raises(u.ValueError) as e:
+        solarx, solary = myfunc_args(1*u.arcsec, solary=100*u.deg)
+    assert str(e.value) == "Invalid physical type 'africanswallow'."
