@@ -120,7 +120,11 @@ class QuantityInput(object):
                     if isinstance(target_unit, str):
                         # user specified a physical type instead of a unit
                         ureg = get_current_unit_registry()
-                        target_units = ureg._by_physical_type[_unit_physical_mapping[target_unit]]
+                        try:
+                            physical_type_id = _unit_physical_mapping[target_unit]
+                        except KeyError:
+                            raise ValueError("Invalid physical type '{0}'.".format(target_unit))
+                        target_units = ureg._by_physical_type[physical_type_id]
                         target_unit = target_units.pop() # HACK
 
                     try:
