@@ -197,6 +197,11 @@ API changes
 
 - ``astropy.utils``
 
+  - ``astropy.utils.iers`` now uses a ``QTable`` internally, which means that
+    the numerical columns are stored as ``Quantity``, with full support for
+    units.  Furthermore, the ``ut1_utc`` method now returns a ``Quantity``
+    instead of a float or an array (as did ``pm_xy`` already). [#3223]
+    
 - ``astropy.visualization``
 
 - ``astropy.vo``

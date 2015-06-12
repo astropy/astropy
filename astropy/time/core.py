@@ -850,7 +850,10 @@ class Time(object):
         return self._delta_ut1_utc
 
     def _set_delta_ut1_utc(self, val):
-        self._delta_ut1_utc = self._match_shape(val)
+        val = self._match_shape(val)
+        if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
+            val = val.to(u.second).value
+        self._delta_ut1_utc = val
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
@@ -897,7 +900,10 @@ class Time(object):
         return self._delta_tdb_tt
 
     def _set_delta_tdb_tt(self, val):
-        self._delta_tdb_tt = self._match_shape(val)
+        val = self._match_shape(val)
+        if hasattr(val, 'to'):  # Matches Quantity but also TimeDelta.
+            val = val.to(u.second).value
+        self._delta_tdb_tt = val
 
     # Note can't use @property because _get_delta_tdb_tt is explicitly
     # called with the optional jd1 and jd2 args.
