@@ -12,8 +12,9 @@ from itertools import cycle
 import string
 import numpy as np
 
-from .table import Table, Column, col_setattr, col_getattr
+from .table import Table, Column
 from ..extern.six.moves import zip, range
+from ..utils.data_info import InfoDescriptor, DataInfo
 
 class TimingTables(object):
     """
@@ -141,11 +142,9 @@ class ArrayWrapper(object):
     """
     Minimal mixin using a simple wrapper around a numpy array
     """
-    _astropy_column_attrs = None
-
     def __init__(self, data):
         self.data = np.array(data)
-        col_setattr(self, 'dtype', self.data.dtype)
+        self.info.dtype = self.data.dtype
 
     def __getitem__(self, item):
         if isinstance(item, (int, np.integer)):
@@ -160,10 +159,12 @@ class ArrayWrapper(object):
     def __len__(self):
         return len(self.data)
 
+    info = InfoDescriptor(DataInfo)
+
     @property
     def shape(self):
         return self.data.shape
 
     def __repr__(self):
         return ("<{0} name='{1}' data={2}>"
-                .format(self.__class__.__name__, col_getattr(self, 'name'), self.data))
+                .format(self.__class__.__name__, self.info.name, self.data))

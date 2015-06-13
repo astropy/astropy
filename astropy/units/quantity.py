@@ -24,6 +24,7 @@ from ..utils import lazyproperty
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
+from ..utils.data_info import DataInfo, InfoDescriptor
 from .utils import validate_power
 from .. import config as _config
 
@@ -112,6 +113,19 @@ class QuantityIterator(object):
         return self._quantity._new_view(out)
 
     next = __next__
+
+
+class QuantityInfo(DataInfo):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    attrs_from_parent = set(['dtype', 'unit'])  # dtype and unit taken from parent
+
+    @staticmethod
+    def default_format(val):
+        return '{0.value:}'.format(val)
 
 
 @six.add_metaclass(InheritDocstrings)
@@ -606,6 +620,8 @@ class Quantity(np.ndarray):
         new_val = np.asarray(
             self.unit.to(unit, self.value, equivalencies=equivalencies))
         return self._new_view(new_val, unit)
+
+    info = InfoDescriptor(QuantityInfo)
 
     @property
     def value(self):

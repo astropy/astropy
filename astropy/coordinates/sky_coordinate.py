@@ -13,6 +13,7 @@ from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
+from ..utils.data_info import InfoDescriptor, DataInfo
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -39,6 +40,42 @@ def FRAME_ATTR_NAMES_SET():
         for attr in frame_cls.get_frame_attr_names().keys():
             out.add(attr)
     return out
+
+
+class SkyCoordInfo(DataInfo):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    attrs_from_parent = set(['unit'])  # Unit is read-only
+
+    @staticmethod
+    def default_format(val):
+        repr_data = val.info._repr_data
+        formats = ['{0.' + compname + '.value:}' for compname
+                   in repr_data.components]
+        return ','.join(formats).format(repr_data)
+
+    @property
+    def unit(self):
+        repr_data = self._repr_data
+        unit = ','.join(str(getattr(repr_data, comp).unit) or 'None'
+                        for comp in repr_data.components)
+        return unit
+
+    @property
+    def _repr_data(self):
+        if self._parent_ref is None:
+            return None
+
+        sc = self._parent_ref()
+        if (issubclass(sc.representation, SphericalRepresentation) and
+                isinstance(sc.data, UnitSphericalRepresentation)):
+            repr_data = sc.represent_as(sc.data.__class__, in_frame_units=True)
+        else:
+            repr_data = sc.represent_as(sc.representation, in_frame_units=True)
+        return repr_data
 
 
 class SkyCoord(object):
@@ -170,6 +207,8 @@ class SkyCoord(object):
 
         if not self._sky_coord_frame.has_data:
             raise ValueError('Cannot create a SkyCoord without data')
+
+    info = InfoDescriptor(SkyCoordInfo)
 
     @property
     def frame(self):

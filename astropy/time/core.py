@@ -23,6 +23,7 @@ from .. import _erfa as erfa
 from ..units import UnitConversionError
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
+from ..utils.data_info import InfoDescriptor, DataInfo, data_info_factory
 from ..extern import six
 
 
@@ -112,6 +113,24 @@ SIDEREAL_TIME_MODELS = {
         'IAU2000B': {'function': erfa_time.gst00b, 'scales': ('ut1',)},
         'IAU1994': {'function': erfa_time.gst94, 'scales': ('ut1',)}}}
 
+
+class TimeInfo(DataInfo):
+    """
+    Container for meta information like name, description, format.  This is
+    required when the object is used as a mixin column within a table, but can
+    be used as a general way to store meta information.
+    """
+    attrs_from_parent = set(['unit'])  # unit is read-only and None
+
+    @property
+    def unit(self):
+        return None
+
+    info_summary_stats = staticmethod(
+        data_info_factory(names=DataInfo._stats,
+                          funcs=[getattr(np, stat) for stat in DataInfo._stats]))
+    # When Time has mean, std, min, max methods:
+    # funcs = [lambda x: getattr(x, stat)() for stat_name in DataInfo._stats])
 
 class Time(object):
     """
@@ -319,6 +338,8 @@ class Time(object):
         # call `utcnow` immediately to be sure it's ASAP
         dtnow = datetime.utcnow()
         return cls(val=dtnow, format='datetime', scale='utc')
+
+    info = InfoDescriptor(TimeInfo)
 
     @property
     def format(self):

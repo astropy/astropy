@@ -103,6 +103,14 @@ New Features
   - Initializing a ``Table`` with ``Column`` objects no longer requires
     that the column ``name`` attribute be defined. [#3781]
 
+  - Added an ``info`` property to ``Table`` objects which provides configurable
+    summary information about the table and its columns. [#3731]
+
+  - Added an ``info`` property to column classes (``Column`` or mixins).  This
+    serves a dual function of providing configurable summary information about
+    the column, and acting as a manager of column attributes such as
+    name, format, or description. [#3731]
+
 - ``astropy.tests``
 
 - ``astropy.time``

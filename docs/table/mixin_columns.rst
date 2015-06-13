@@ -104,16 +104,6 @@ So instead let's do the same thing using a quantity table |QTable|::
   >>> qt['time'] = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
   >>> qt['velocity'] = [3, 4] * u.m / u.s
 
-Now we print the table again but this time notice that the individual values
-all have units because this is how |Quantity| prints a single array element::
-
-  >>> print(qt)
-  index           time           velocity
-                                  m / s
-  ----- ----------------------- ---------
-      1 2001-01-02T12:34:56.000 3.0 m / s
-      2 2001-02-03T00:01:02.000 4.0 m / s
-
 The ``velocity`` column is now a |Quantity| and behaves accordingly::
 
   >>> type(qt['velocity'])

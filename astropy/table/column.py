@@ -14,6 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
+from ..utils.data_info import DataInfo, InfoDescriptor
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -44,85 +45,24 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
-COLUMN_ATTRS = set(['name', 'unit', 'dtype', 'format', 'description', 'meta', 'parent_table'])
-
-def col_setattr(col, attr, value):
-    """
-    Set one of the column attributes.
-
-    Warning: this function is subject to change or removal.
-    """
-    if attr not in COLUMN_ATTRS:
-        raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
-
-    # The unit and dtype attributes are considered universal and do NOT get
-    # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
-    if isinstance(col, BaseColumn):
-        setattr(col, attr, value)
-    else:
-        # If no _astropy_column_attrs or it is None then convert to dict
-        if getattr(col, '_astropy_column_attrs', None) is None:
-            col._astropy_column_attrs = {}
-        if attr == 'parent_table':
-            value = None if value is None else weakref.ref(value)
-        col._astropy_column_attrs[attr] = value
-
-def col_getattr(col, attr, default=None):
-    """
-    Get one of the column attributes
-
-    Warning: this function is subject to change or removal.
-    """
-    if attr not in COLUMN_ATTRS:
-        raise AttributeError("attribute must be one of {0}".format(COLUMN_ATTRS))
-
-    # The unit and dtype attributes are considered universal and do NOT get
-    # stored in _astropy_column_attrs.  For BaseColumn instances use the usual setattr.
-    if (isinstance(col, BaseColumn) or
-            (isinstance(col, Quantity) and attr in ('dtype', 'unit'))):
-        value = getattr(col, attr, default)
-    else:
-        # If col does not have _astropy_column_attrs or it is None (meaning
-        # nothing has been set yet) then return default, otherwise look for
-        # the attribute in the astropy_column_attrs dict.
-        if getattr(col, '_astropy_column_attrs', None) is None:
-            value = default
-        else:
-            value = col._astropy_column_attrs.get(attr, default)
-
-        # Weak ref for parent table
-        if attr == 'parent_table' and callable(value):
-            value = value()
-
-        # Mixins have a default dtype of Object if nothing else was set
-        if attr == 'dtype' and value is None:
-            value = np.dtype('O')
-
-    return value
-
 def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
     """
-    Update _astropy_column_attrs from mixin `col` to `newcol`.  Does nothing
-    for BaseColumn cols
-
-    Warning: this function is subject to change or removal.
+    Copy info from mixin `col` to `newcol`.  Does nothing for BaseColumn cols.
     """
     if isinstance(newcol, BaseColumn):
         return
 
-    attrs = COLUMN_ATTRS - set(exclude_attrs)
+    attrs = newcol.info.attr_names - set(exclude_attrs) - newcol.info.attrs_from_parent
     for attr in attrs:
-        val = col_getattr(col, attr)
+        val = getattr(col.info, attr)
         if val is not None:
-            col_setattr(newcol, attr, deepcopy(val))
+            setattr(newcol.info, attr, deepcopy(val))
 
 def col_iter_str_vals(col):
     """
     This is a mixin-safe version of Column.iter_str_vals.
-
-    Warning: this function is subject to change or removal.
     """
-    parent_table = col_getattr(col, 'parent_table')
+    parent_table = col.info.parent_table
     formatter = FORMATTER if parent_table is None else parent_table.formatter
     _pformat_col_iter = formatter._pformat_col_iter
     for str_val in _pformat_col_iter(col, -1, False, False, {}):
@@ -131,21 +71,24 @@ def col_iter_str_vals(col):
 def col_copy(col):
     """
     This is a mixin-safe version of Column.copy() (with copy_data=True).
-
-    Warning: this function is subject to change or removal.
     """
     if isinstance(col, BaseColumn):
         return col.copy()
 
-    if hasattr(col, '_astropy_column_attrs'):
-        col_setattr(col, 'parent_table', None)  # Don't copy weakref to parent table
-    newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
+    # The new column should have None for the parent_table ref.  If the
+    # original parent_table weakref there at the point of copying then it
+    # generates an infinite recursion.  Instead temporarily remove the weakref
+    # on the original column and restore after the copy in an exception-safe
+    # manner.
 
-    # Copy old attributes.  Even deepcopy above may not get this (e.g. pandas).
-    if (not hasattr(newcol, '_astropy_column_attrs') or
-            newcol._astropy_column_attrs is None):
-        _column_attrs = deepcopy(getattr(col, '_astropy_column_attrs', {}))
-        newcol._astropy_column_attrs = _column_attrs
+    parent_table = col.info.parent_table
+    col.info.parent_table = None
+
+    try:
+        newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
+        newcol.info = col.info.copy()
+    finally:
+        col.info.parent_table = parent_table
 
     return newcol
 
@@ -166,6 +109,10 @@ class FalseArray(np.ndarray):
         if np.any(val):
             raise ValueError('Cannot set any element of {0} class to True'
                              .format(self.__class__.__name__))
+
+
+class ColumnInfo(DataInfo):
+    attrs_from_parent = DataInfo.attr_names
 
 
 class BaseColumn(np.ndarray):
@@ -202,11 +149,11 @@ class BaseColumn(np.ndarray):
             else:
                 self_data = np.array(data.to(unit), dtype=dtype, copy=copy)
             if description is None:
-                description = col_getattr(data, 'description')
+                description = data.info.description
             if format is None:
-                format = col_getattr(data, 'format')
+                format = data.info.format
             if meta is None:
-                meta = deepcopy(col_getattr(data, 'meta'))
+                meta = deepcopy(data.info.meta)
 
         else:
             self_data = np.array(data, dtype=dtype, copy=copy)
@@ -239,6 +186,7 @@ class BaseColumn(np.ndarray):
         else:
             self._parent_table = weakref.ref(table)
 
+    info = InfoDescriptor(ColumnInfo)
 
     def copy(self, order='C', data=None, copy_data=True):
         """

@@ -216,7 +216,7 @@ class ColumnGroups(BaseGroups):
             return self._keys
 
     def aggregate(self, func):
-        from .column import MaskedColumn, col_getattr
+        from .column import MaskedColumn
 
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
@@ -236,15 +236,15 @@ class ColumnGroups(BaseGroups):
                 vals = np.array([func(par_col[i0: i1]) for i0, i1 in izip(i0s, i1s)])
         except Exception:
             raise TypeError("Cannot aggregate column '{0}' with type '{1}'"
-                            .format(col_getattr(par_col, 'name'),
-                                    col_getattr(par_col, 'dtype')))
+                            .format(par_col.info.name,
+                                    par_col.info.dtype))
 
         out = par_col.__class__(data=vals,
-                                name=col_getattr(par_col, 'name'),
-                                description=col_getattr(par_col, 'description'),
-                                unit=col_getattr(par_col, 'unit'),
-                                format=col_getattr(par_col, 'format'),
-                                meta=col_getattr(par_col, 'meta'))
+                                name=par_col.info.name,
+                                description=par_col.info.description,
+                                unit=par_col.info.unit,
+                                format=par_col.info.format,
+                                meta=par_col.info.meta)
         return out
 
     def filter(self, func):
@@ -321,7 +321,6 @@ class TableGroups(BaseGroups):
         out : Table
             New table with the aggregated rows.
         """
-        from .column import col_getattr
 
         i0s, i1s = self.indices[:-1], self.indices[1:]
         out_cols = []
@@ -329,7 +328,7 @@ class TableGroups(BaseGroups):
 
         for col in six.itervalues(parent_table.columns):
             # For key columns just pick off first in each group since they are identical
-            if col_getattr(col, 'name') in self.key_colnames:
+            if col.info.name in self.key_colnames:
                 new_col = col.take(i0s)
             else:
                 try:

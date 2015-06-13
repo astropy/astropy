@@ -14,7 +14,6 @@ import re
 
 from ...extern import six
 from . import core
-from ...table.column import col_getattr
 
 latexdicts = {'AA':  {'tabletype': 'table',
                       'header_start': r'\hline \hline', 'header_end': r'\hline',
@@ -116,6 +115,17 @@ class LatexHeader(core.BaseHeader):
         else:
             return None
 
+    def _get_units(self):
+        units = {}
+        col_units = [col.info.unit for col in self.cols]
+        for name, unit in zip(self.colnames, col_units):
+            if unit:
+                try:
+                    units[name] = unit.to_string(format='latex_inline')
+                except AttributeError:
+                    units[name] = unit
+        return units
+
     def write(self, lines):
         if not 'col_align' in self.latex:
             self.latex['col_align'] = len(self.cols) * 'c'
@@ -129,10 +139,8 @@ class LatexHeader(core.BaseHeader):
             lines.append(r'\caption{' + self.latex['caption'] + '}')
         lines.append(self.header_start + r'{' + self.latex['col_align'] + r'}')
         add_dictval_to_list(self.latex, 'header_start', lines)
-        col_units = [col_getattr(col, 'unit') for col in self.cols]
         lines.append(self.splitter.join(self.colnames))
-        units = dict((name, unit.to_string(format='latex_inline'))
-                     for name, unit in zip(self.colnames, col_units) if unit)
+        units = self._get_units()
         if 'units' in self.latex:
             units.update(self.latex['units'])
         if units:
@@ -356,9 +364,7 @@ class AASTexHeader(LatexHeader):
         if 'caption' in self.latex:
             lines.append(r'\tablecaption{' + self.latex['caption'] + '}')
         tablehead = ' & '.join([r'\colhead{' + name + '}' for name in self.colnames])
-        col_units = [col_getattr(col, 'unit') for col in self.cols]
-        units = dict((name, unit.to_string(format='latex_inline'))
-                     for name, unit in zip(self.colnames, col_units) if unit)
+        units = self._get_units()
         if 'units' in self.latex:
             units.update(self.latex['units'])
         if units:

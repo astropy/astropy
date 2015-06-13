@@ -10,7 +10,6 @@ from ...utils import OrderedDict
 from ...extern import six
 
 from . import core, basic
-from ...table.column import col_getattr
 from ...table import meta
 
 ECSV_VERSION = '0.9'
@@ -54,7 +53,7 @@ class EcsvHeader(basic.BasicHeader):
         for col in self.cols:
             if len(getattr(col, 'shape', ())) > 1:
                 raise ValueError("ECSV format does not support multidimensional column '{0}'"
-                                 .format(col_getattr(col, 'name')))
+                                 .format(col.info.name))
 
         # Now assemble the header dict that will be serialized by the YAML dumper
         header = {'cols': self.cols}
@@ -71,7 +70,7 @@ class EcsvHeader(basic.BasicHeader):
                              + meta.get_yaml_from_header(header))
 
         lines.extend([self.write_comment + line for line in header_yaml_lines])
-        lines.append(self.splitter.join([col_getattr(x, 'name') for x in self.cols]))
+        lines.append(self.splitter.join([x.info.name for x in self.cols]))
 
     def write_comments(self, lines, meta):
         """

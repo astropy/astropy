@@ -3,7 +3,6 @@ import copy
 
 from ..utils import OrderedDict
 from ..extern import six
-from .column import col_getattr
 
 
 __all__ = ['get_header_from_yaml', 'get_yaml_from_header', 'get_yaml_from_table']
@@ -163,9 +162,9 @@ def _get_col_attributes(col):
     to fully serialize the column.
     """
     attrs = ColumnDict()
-    attrs['name'] = col_getattr(col, 'name')
+    attrs['name'] = col.info.name
 
-    type_name = col_getattr(col, 'dtype').type.__name__
+    type_name = col.info.dtype.type.__name__
     if six.PY3 and (type_name.startswith('bytes') or type_name.startswith('str')):
         type_name = 'string'
     if type_name.endswith('_'):
@@ -177,7 +176,7 @@ def _get_col_attributes(col):
                                     ('format', lambda x: x is not None, None),
                                     ('description', lambda x: x is not None, None),
                                     ('meta', lambda x: x, None)):
-        col_attr = col_getattr(col, attr)
+        col_attr = getattr(col.info, attr)
         if nontrivial(col_attr):
             attrs[attr] = xform(col_attr) if xform else col_attr
 

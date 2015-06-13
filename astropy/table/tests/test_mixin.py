@@ -20,9 +20,9 @@ import numpy as np
 
 from ...tests.helper import pytest
 from ...table import Table, QTable, join, hstack, vstack
-from ..column import col_setattr, col_getattr
-from ... import units as u
+from ... import time
 from ... import coordinates
+from ... import units as u
 from .. import table_helpers
 from .conftest import MIXIN_COLS
 
@@ -32,27 +32,31 @@ def test_attributes(mixin_cols):
     Required attributes for a column can be set.
     """
     m = mixin_cols['m']
-    col_setattr(m, 'name', 'a')
-    assert col_getattr(m, 'name') == 'a'
+    m.info.name = 'a'
+    assert m.info.name == 'a'
 
-    col_setattr(m, 'description', 'a')
-    assert col_getattr(m, 'description') == 'a'
+    m.info.description = 'a'
+    assert m.info.description == 'a'
 
-    if not isinstance(m, u.Quantity):
-        col_setattr(m, 'unit', u.m)
-    assert col_getattr(m, 'unit') is u.m
+    # Cannot set unit for these classes
+    if isinstance(m, (u.Quantity, coordinates.SkyCoord, time.Time)):
+        with pytest.raises(AttributeError):
+            m.info.unit = u.m
+    else:
+        m.info.unit = u.m
+        assert m.info.unit is u.m
 
-    col_setattr(m, 'format', 'a')
-    assert col_getattr(m, 'format') == 'a'
+    m.info.format = 'a'
+    assert m.info.format == 'a'
 
-    col_setattr(m, 'meta', {'a': 1})
-    assert col_getattr(m, 'meta') == {'a': 1}
+    m.info.meta = {'a': 1}
+    assert m.info.meta == {'a': 1}
 
     with pytest.raises(AttributeError):
-        col_setattr(m, 'bad_attr', 1)
+        m.info.bad_attr = 1
 
     with pytest.raises(AttributeError):
-        col_getattr(m, 'bad_attr')
+        m.info.bad_attr
 
 
 def check_mixin_type(table, table_col, in_col):
@@ -62,7 +66,7 @@ def check_mixin_type(table, table_col, in_col):
         assert type(table_col) is type(in_col)
 
     # Make sure in_col got copied and creating table did not touch it
-    assert col_getattr(in_col, 'name') is None
+    assert in_col.info.name is None
 
 def test_make_table(table_types, mixin_cols):
     """
@@ -128,8 +132,8 @@ def test_join(table_types):
     t2['a'] = ['b', 'c', 'a', 'd']
 
     for name, col in MIXIN_COLS.items():
-        col_setattr(t1[name], 'description', name)
-        col_setattr(t2[name], 'description', name + '2')
+        t1[name].info.description = name
+        t2[name].info.description = name + '2'
 
     for join_type in ('inner', 'left'):
         t12 = join(t1, t2, keys='a', join_type=join_type)
@@ -140,8 +144,8 @@ def test_join(table_types):
             name2 = name + '_2'
             assert_table_name_col_equal(t12, name1, col[idx1])
             assert_table_name_col_equal(t12, name2, col[idx2])
-            assert col_getattr(t12[name1], 'description') == name
-            assert col_getattr(t12[name2], 'description') == name + '2'
+            assert t12[name1].info.description == name
+            assert t12[name2].info.description == name + '2'
 
     for join_type in ('outer', 'right'):
         with pytest.raises(ValueError) as exc:
@@ -165,8 +169,8 @@ def test_hstack(table_types):
     t1['i'] = table_types.Column([0, 1, 2, 3])
     for name, col in MIXIN_COLS.items():
         t1[name] = col
-        col_setattr(t1[name], 'description', name)
-        col_setattr(t1[name], 'meta', {'a': 1})
+        t1[name].info.description = name
+        t1[name].info.meta = {'a': 1}
 
     for join_type in ('inner', 'outer'):
         for chop in (True, False):
@@ -188,8 +192,8 @@ def test_hstack(table_types):
                 assert_table_name_col_equal(t12, name1, col[idx1])
                 assert_table_name_col_equal(t12, name2, col[idx2])
                 for attr in ('description', 'meta'):
-                    assert col_getattr(t1[name], attr) == col_getattr(t12[name1], attr)
-                    assert col_getattr(t2[name], attr) == col_getattr(t12[name2], attr)
+                    assert getattr(t1[name].info, attr) == getattr(t12[name1].info, attr)
+                    assert getattr(t2[name].info, attr) == getattr(t12[name2].info, attr)
 
 
 def assert_table_name_col_equal(t, name, col):
@@ -213,16 +217,16 @@ def test_get_items(mixin_cols):
     """
     attrs = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
     m = mixin_cols['m']
-    col_setattr(m, 'name', 'm')
-    col_setattr(m, 'format', '{0}')
-    col_setattr(m, 'description', 'd')
-    col_setattr(m, 'meta', {'a': 1})
+    m.info.name = 'm'
+    m.info.format = '{0}'
+    m.info.description = 'd'
+    m.info.meta = {'a': 1}
     t = QTable([m])
     for item in ([1, 3], np.array([0, 2]), slice(1, 3)):
         t2 = t[item]
         assert_table_name_col_equal(t2, 'm', m[item])
         for attr in attrs:
-            assert col_getattr(t2['m'], attr) == col_getattr(m, attr)
+            assert getattr(t2['m'].info, attr) == getattr(m.info, attr)
 
 def test_add_column(mixin_cols):
     """
@@ -230,32 +234,32 @@ def test_add_column(mixin_cols):
     """
     attrs = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
     m = mixin_cols['m']
-    assert col_getattr(m, 'name') is None
+    assert m.info.name is None
 
     # Make sure adding column in various ways doesn't touch
     t = QTable([m], names=['a'])
-    assert col_getattr(m, 'name') is None
+    assert m.info.name is None
 
     t['new'] = m
-    assert col_getattr(m, 'name') is None
+    assert m.info.name is None
 
-    col_setattr(m, 'name', 'm')
-    col_setattr(m, 'format', '{0}')
-    col_setattr(m, 'description', 'd')
-    col_setattr(m, 'meta', {'a': 1})
+    m.info.name = 'm'
+    m.info.format = '{0}'
+    m.info.description = 'd'
+    m.info.meta = {'a': 1}
     t = QTable([m])
 
     # Add columns m2 and m3 by two different methods and test expected equality
     t['m2'] = m
-    col_setattr(m, 'name', 'm3')
+    m.info.name = 'm3'
     t.add_columns([m], copy=True)
-    col_setattr(m, 'name', 'm4')
+    m.info.name = 'm4'
     t.add_columns([m], copy=False)
     for name in ('m2', 'm3', 'm4'):
         assert_table_name_col_equal(t, 'm', t[name])
         for attr in attrs:
             if attr != 'name':
-                assert col_getattr(t['m'], attr) == col_getattr(t[name], attr)
+                assert getattr(t['m'].info, attr) == getattr(t[name].info, attr)
 
 def test_vstack():
     """
@@ -271,11 +275,11 @@ def test_insert_row(mixin_cols):
     Test inserting a row, which only works for BaseColumn and Quantity
     """
     t = QTable(mixin_cols)
-    col_setattr(t['m'], 'description', 'd')
+    t['m'].info.description = 'd'
     if isinstance(t['m'], u.Quantity):
         t.insert_row(1, t[-1])
         assert t[1] == t[-1]
-        assert col_getattr(t['m'], 'description') == 'd'
+        assert t['m'].info.description == 'd'
     else:
         with pytest.raises(ValueError) as exc:
             t.insert_row(1, t[-1])
@@ -339,11 +343,11 @@ def test_conversion_qtable_table():
     qt = QTable(MIXIN_COLS)
     names = qt.colnames
     for name in names:
-        col_setattr(qt[name], 'description', name)
+        qt[name].info.description = name
 
     t = Table(qt)
     for name in names:
-        assert col_getattr(t[name], 'description') == name
+        assert t[name].info.description == name
         if name == 'quantity':
             assert np.all(t['quantity'] == qt['quantity'].value)
             assert np.all(t['quantity'].unit is qt['quantity'].unit)
@@ -353,7 +357,7 @@ def test_conversion_qtable_table():
 
     qt2 = QTable(qt)
     for name in names:
-        assert col_getattr(qt2[name], 'description') == name
+        assert qt2[name].info.description == name
         assert_table_name_col_equal(qt2, name, qt[name])
 
 @pytest.mark.xfail
@@ -374,3 +378,49 @@ def test_setitem_as_column_name():
     t['b'] = 'b'  # Previously was failing with KeyError
     assert np.all(t['a'] == ['x', 'y'])
     assert np.all(t['b'] == ['b', 'b'])
+
+
+def test_quantity_representation():
+    """
+    Test that table representation of quantities does not have unit
+    """
+    t = QTable([[1, 2] * u.m])
+    assert t.pformat() == ['col0',
+                           ' m  ',
+                           '----',
+                           ' 1.0',
+                           ' 2.0']
+
+
+def test_skycoord_representation():
+    """
+    Test that skycoord representation works, both in the way that the
+    values are output and in changing the frame representation.
+    """
+    # With no unit we get "None" in the unit row
+    c = coordinates.SkyCoord([0], [1], [0], representation='cartesian')
+    t = Table([c])
+    assert t.pformat() == ['     col0     ',
+                           'None,None,None',
+                           '--------------',
+                           '   0.0,1.0,0.0']
+
+    # Test that info works with a dynamically changed representation
+    c = coordinates.SkyCoord([0], [1], [0], unit='m', representation='cartesian')
+    t = Table([c])
+    assert t.pformat() == ['    col0   ',
+                           '   m,m,m   ',
+                           '-----------',
+                           '0.0,1.0,0.0']
+
+    t['col0'].representation = 'unitspherical'
+    assert t.pformat() == ['  col0  ',
+                           'deg,deg ',
+                           '--------',
+                           '90.0,0.0']
+
+    t['col0'].representation = 'cylindrical'
+    assert t.pformat() == ['    col0    ',
+                           '  m,deg,m   ',
+                           '------------',
+                           '1.0,90.0,0.0']

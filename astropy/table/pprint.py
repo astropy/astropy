@@ -71,6 +71,9 @@ def _auto_format_func(format_, val):
 
     Returns the formatted value.
     """
+    if format_ in _format_funcs:
+        return _format_funcs[format_](format_, val)
+
     if six.callable(format_):
         format_func = lambda format_, val: format_(val)
         if NUMPY_LT_1_6_1:
@@ -226,7 +229,7 @@ class TableFormatter(object):
 
         """
         if show_unit is None:
-            show_unit = getattr(col, 'unit', None) is not None
+            show_unit = col.info.unit is not None
 
         outs = {}  # Some values from _pformat_col_iter iterator that are needed here
         col_strs_iter = self._pformat_col_iter(col, max_lines, show_name=show_name,
@@ -342,7 +345,6 @@ class TableFormatter(object):
             Must be a dict which is used to pass back additional values
             defined within the iterator.
         """
-        from .column import col_getattr
         max_lines, _ = self._get_pprint_size(max_lines, -1)
 
         multidims = getattr(col, 'shape', [0])[1:]
@@ -357,7 +359,7 @@ class TableFormatter(object):
         if show_name:
             i_centers.append(n_header)
             # Get column name (or 'None' if not set)
-            col_name = six.text_type(col_getattr(col, 'name'))
+            col_name = six.text_type(col.info.name)
             if multidims:
                 col_name += ' [{0}]'.format(
                     ','.join(six.text_type(n) for n in multidims))
@@ -366,7 +368,7 @@ class TableFormatter(object):
         if show_unit:
             i_centers.append(n_header)
             n_header += 1
-            yield six.text_type(getattr(col, 'unit', None) or '')
+            yield six.text_type(col.info.unit or '')
         if show_dtype:
             i_centers.append(n_header)
             n_header += 1
@@ -384,7 +386,7 @@ class TableFormatter(object):
         n_print2 = max_lines // 2
         n_rows = len(col)
 
-        col_format = col_getattr(col, 'format')
+        col_format = col.info.format or getattr(col.info, 'default_format', None)
         format_func = _format_funcs.get(col_format, _auto_format_func)
         if len(col) > max_lines:
             if show_length is None:
@@ -473,7 +475,7 @@ class TableFormatter(object):
         cols = []
 
         if show_unit is None:
-            show_unit = any([getattr(col, 'unit', None) for col in six.itervalues(table.columns)])
+            show_unit = any([col.info.unit for col in six.itervalues(table.columns)])
 
         # Figure out align
         if isinstance(align,str):
