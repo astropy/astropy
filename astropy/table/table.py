@@ -435,8 +435,8 @@ class Table(object):
         col = self.columns[colname]
         for index in self.indices:
             if col in index.columns:
-                index.columns.remove(col)
-                col.indices.remove(index)
+                for c in index.columns:
+                    c.indices.remove(index)
 
     def where(self, expression, *vals):
         '''
@@ -1923,7 +1923,7 @@ class Table(object):
                 columns[name] = newcol
             # insert row in indices
             for table_index in self.indices:
-                table_index.insert_row(index, vals)
+                table_index.insert_row(index, vals, self.columns.values())
 
         except Exception as err:
             raise ValueError("Unable to insert row because of exception in column '{0}':\n{1}"

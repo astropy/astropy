@@ -7,6 +7,7 @@ import platform
 import warnings
 
 import numpy as np
+from .index import get_index
 
 from ..utils.exceptions import AstropyUserWarning
 
@@ -57,11 +58,10 @@ def table_group_by(table, keys):
                         .format(type(keys)))
 
     try:
-        if isinstance(table_keys, Table) and len(table_keys.columns) == 1 \
-           and len(table_keys.columns[0].indices) > 0:
-            # use pre-existing index order
-            idx_sort = table_keys.columns[0].indices[0].sorted_data()
-            ##TODO: change from indices[0] after creating composite indices
+        table_index = get_index(table_keys) if isinstance(table_keys, Table) \
+                      else None
+        if table_index is not None:
+            idx_sort = table_index.sorted_data()
         else:
             idx_sort = table_keys.argsort(kind='mergesort')
         stable_sort = True
