@@ -239,7 +239,6 @@ class Table(object):
         self.columns = self.TableColumns()
         self.meta = meta
         self.formatter = self.TableFormatter()
-        self.indices = {} ##TODO: possibly copy indices if data is a Table
         ##TODO: update indices after each modification
 
         # Must copy if dtype are changing
@@ -350,6 +349,10 @@ class Table(object):
         if type(self.masked) != bool:
             raise TypeError("masked property has not been set to True or False")
 
+        # remove indices upon column copy (##TODO: change this)
+        for col in self.columns.values():
+            col.indices = []
+
     def __getstate__(self):
         return (self.columns.values(), self.meta)
 
@@ -405,7 +408,6 @@ class Table(object):
         column = self.columns[colname]
         index = Index(column)
         column.add_index(index)
-        self.indices[colname] = index
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
@@ -1409,8 +1411,9 @@ class Table(object):
             del self._groups
 
         # Update indices
-        for col, index in self.indices.items():
-            index.remove_rows(row_specifier, col)
+        for col in self.columns.values():
+            for index in col.indices:
+                index.remove_rows(row_specifier, col)
 
     def remove_column(self, name):
         """
@@ -1870,8 +1873,9 @@ class Table(object):
 
                 columns[name] = newcol
             # insert row in indices
-            for table_index in self.indices.values():
-                table_index.insert_row(index, vals)
+            for col in self.columns.values():
+                for table_index in col.indices:
+                    table_index.insert_row(index, vals)
 
         except Exception as err:
             raise ValueError("Unable to insert row because of exception in column '{0}':\n{1}"
@@ -1992,8 +1996,8 @@ class Table(object):
         '''
         for col in self.columns.values():
             col[:] = col[::-1]
-        for index in self.indices.values():
-            index.reverse()
+            for index in col.indices:
+                index.reverse()
 
     @classmethod
     def read(cls, *args, **kwargs):
