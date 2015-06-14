@@ -706,6 +706,17 @@ class TestAddRow(SetupData):
         self._setup(table_types)
         t = self.t
         t.add_index('a')
+        t2 = t.where('a={0}', 2)
+        assert len(t2) == 1
+        with pytest.raises(IndexError):
+            t.where('d={0}', 1)
+        with pytest.raises(ValueError):
+            t.where('a=7')
+        with pytest.raises(ValueError):
+            t.where('a={0}')
+        t.remove_index('a')
+        with pytest.raises(ValueError):
+            t.where('a={0}', 2)
 
 @pytest.mark.usefixtures('table_types')
 class TestTableColumn(SetupData):
