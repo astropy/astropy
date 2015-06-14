@@ -404,16 +404,44 @@ class Table(object):
             data = self
         return self.__class__(data, meta=deepcopy(self.meta))
 
-    def add_index(self, colname):
-        column = self.columns[colname]
-        index = Index(column)
-        column.add_index(index)
+    @property
+    def indices(self):
+        '''
+        Returns the indices associated with columns of the table.
+        '''
+        lst = []
+        for column in self.columns.values():
+            for index in column.indices:
+                if sum([index is x for x in lst]) == 0: # ensure uniqueness
+                    lst.append(index)
+        return lst
 
-    def remove_index(self, colname):
-        # for now, remove all indices
-        self.columns[colname].indices = []
+    def add_index(self, colnames):
+        '''
+        Inserts a new index among one or more columns. The input parameter
+        may be either a list of column names or a single column name.
+        '''
+        if isinstance(colnames, six.string_types):
+            colnames = (colnames,)
+        columns = self.columns[colnames].values()
+        index = Index(columns)
+        for col in columns:
+            col.add_index(index)
+
+    def remove_indices(self, colname):
+        '''
+        Remove all indices involving the given column.
+        '''
+        col = self.columns[colname]
+        for index in self.indices:
+            if col in index.columns:
+                index.columns.remove(col)
+                col.indices.remove(index)
 
     def where(self, expression, *vals):
+        '''
+        Returns all rows matching the given criteria.
+        '''
         ##TODO: implement mini-language for query expressions
         # for now, we just deal with "colname={0}"
         match = re.match('(\w+) *= *\{ *0 *\}', expression)
@@ -1433,9 +1461,8 @@ class Table(object):
             del self._groups
 
         # Update indices
-        for col in self.columns.values():
-            for index in col.indices:
-                index.remove_rows(row_specifier, col)
+        for index in self.indices:
+            index.remove_rows(row_specifier, col)
 
     def remove_column(self, name):
         """
@@ -1895,9 +1922,8 @@ class Table(object):
 
                 columns[name] = newcol
             # insert row in indices
-            for col in self.columns.values():
-                for table_index in col.indices:
-                    table_index.insert_row(index, vals)
+            for table_index in self.indices:
+                table_index.insert_row(index, vals)
 
         except Exception as err:
             raise ValueError("Unable to insert row because of exception in column '{0}':\n{1}"
@@ -2018,8 +2044,8 @@ class Table(object):
         '''
         for col in self.columns.values():
             col[:] = col[::-1]
-            for index in col.indices:
-                index.reverse()
+        for index in self.indices:
+            index.reverse()
 
     @classmethod
     def read(cls, *args, **kwargs):
