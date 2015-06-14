@@ -11,10 +11,16 @@ from copy import deepcopy
 import weakref
 import numpy as np
 from functools import partial
+import warnings
 
 from ..extern import six
 from ..utils import OrderedDict
 from ..utils.compat import NUMPY_LT_1_8
+
+
+# Tuple of filterwarnings kwargs to ignore when calling info
+IGNORE_WARNINGS = (dict(category=RuntimeWarning,
+                        module=r'numpy\.lib\.nanfunctions'),)
 
 def data_info_factory(names, funcs):
     """
@@ -274,7 +280,11 @@ class DataInfo(object):
                 else:
                     raise ValueError('option={0} is not an allowed information type'
                                      .format(option))
-            info.update(option(dat))
+
+            with warnings.catch_warnings():
+                for ignore_kwargs in IGNORE_WARNINGS:
+                    warnings.filterwarnings('ignore', **ignore_kwargs)
+                info.update(option(dat))
 
         if hasattr(dat, 'mask'):
             n_bad = np.count_nonzero(dat.mask)

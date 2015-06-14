@@ -3,6 +3,7 @@
 
 # TEST_UNICODE_LITERALS
 
+import warnings
 import numpy as np
 
 from ...extern import six
@@ -225,3 +226,10 @@ def test_class_attribute():
         out = six.moves.cStringIO()
         t.info(out=out)
         assert out.getvalue().splitlines() == exp
+
+
+def test_ignore_warnings():
+    t = table.Table([[np.nan, np.nan]])
+    with warnings.catch_warnings(record=True) as warns:
+        t.info('stats', out=None)
+        assert len(warns) == 0
