@@ -9,6 +9,10 @@ class Node:
         self.parent = parent
 
     def __cmp__(self, other):
+        if self.key < other.key:
+            return -1
+        elif self.key > other.key:
+            return 1
         return self.key.__cmp__(other.key)
 
     def replace(self, child, new_child):
@@ -66,7 +70,6 @@ class BST:
                 curr_node.data.extend(node.data)
                 curr_node.data = sorted(curr_node.data) ##TODO: speed up
                 return
-                
         self.balance()
 
     def balance(self):
@@ -97,6 +100,7 @@ class BST:
         elif order == 'postorder':
             return self._postorder(self.root, [])
         raise ValueError("Invalid traversal method: \"{0}\"".format(order))
+        ##TODO: find out why inorder is so slow
 
     def _preorder(self, node, lst):
         if node is None:
