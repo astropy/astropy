@@ -13,7 +13,7 @@ class Node:
             return -1
         elif self.key > other.key:
             return 1
-        return self.key.__cmp__(other.key)
+        return 0
 
     def replace(self, child, new_child):
         if self.left is not None and self.left == child:

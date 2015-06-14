@@ -30,7 +30,6 @@ def table_group_by(table, keys):
     grouped_table : Table object with groups attr set accordingly
     """
     from .table import Table
-
     # Pre-convert string to tuple of strings, or Table to the underlying structured array
     if isinstance(keys, six.string_types):
         keys = (keys,)

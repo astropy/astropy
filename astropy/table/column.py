@@ -672,8 +672,7 @@ class BaseColumn(np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
-        if hasattr(obj, 'indices'):
-            self.indices = deepcopy(obj.indices) ##TODO: make sure this works
+        self.indices = [] ##TODO: think about copying indices
 
 
 class Column(BaseColumn):

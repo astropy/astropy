@@ -714,7 +714,7 @@ class TestAddRow(SetupData):
             t.where('a=7')
         with pytest.raises(ValueError):
             t.where('a={0}')
-        t.remove_index('a')
+        t.remove_indices('a')
         with pytest.raises(ValueError):
             t.where('a={0}', 2)
 
