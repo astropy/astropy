@@ -25,7 +25,8 @@ class Index:
         self.data.remove(col[row], data=row)
 
     def find(self, key):
-        return self.data.find(key)
+        node = self.data.find(key)
+        return [] if node is None else node.data
 
     def range(self, lower, upper):
         return self.data.range(lower, upper)

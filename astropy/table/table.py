@@ -409,6 +409,28 @@ class Table(object):
         index = Index(column)
         column.add_index(index)
 
+    def remove_index(self, colname):
+        # for now, remove all indices
+        self.columns[colname].indices = []
+
+    def where(self, expression, *vals):
+        ##TODO: implement mini-language for query expressions
+        # for now, we just deal with "colname={0}"
+        match = re.match('(\w+) *= *\{ *0 *\}', expression)
+        if match is None:
+            raise ValueError("Invalid expression for where ([colname]={0})")
+        colname = match.groups()[0]
+        if colname not in self.colnames:
+            raise IndexError("Invalid column name: {0}".format(colname))
+        col = self.columns[colname]
+        if len(col.indices) == 0:
+            raise ValueError("Cannot call where() with an unindexed column")
+        index = col.indices[0] ##TODO: adjust when doing composite indices
+        if len(vals) == 0:
+            raise ValueError("Must enter a value along with {0}")
+        rows = index.find(vals[0])
+        return self[rows]
+
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
 
