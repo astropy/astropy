@@ -1,4 +1,4 @@
-from bst import BST
+from .bst import BST
 
 class Index:
     Implementation = BST
@@ -9,8 +9,9 @@ class Index:
         self.data = self.Implementation(data)
         self.columns = columns
 
-    def insert_row(self, pos, val):
-        self.data.add(val, pos)
+    def insert_row(self, pos, vals, columns):
+        key = [vals[columns.index(col)] for col in self.columns]
+        self.data.add(tuple(key), pos)
 
     def remove_rows(self, row_specifier):
         if isinstance(row_specifier, int):
@@ -40,3 +41,16 @@ class Index:
     def sorted_data(self):
         lst = [x.data for x in self.data.traverse('inorder')]
         return [row for l in lst for row in l]
+
+def get_index(table):
+    '''
+    Returns a sorted table if an index covers the entire table,
+    and None otherwise.
+    '''
+    cols = set(table.columns.values())
+    indices = set()
+    for column in cols:
+        for index in column.indices:
+            if set(index.columns) == cols:
+                return index
+    return None

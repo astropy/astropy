@@ -67,16 +67,16 @@ def test_bst_remove(bst):
         assert bst.remove(-val) is False
 
 def test_bst_duplicate(bst):
-    bst.add(10, 'Foo')
+    bst.add(10, 11)
     node = bst.find(10)
     assert node is not None
-    assert node.data == [10, 'Foo']
+    assert node.data == [10, 11]
     assert bst.remove(10, data=10) is True
     node = bst.find(10)
     assert node is not None
-    assert node.data == ['Foo']
+    assert node.data == [11]
     with pytest.raises(ValueError):
-        bst.remove(10, data='Bar') # invalid data
+        bst.remove(10, data=30) # invalid data
     assert bst.remove(10) is True
     assert bst.remove(10) is False
 

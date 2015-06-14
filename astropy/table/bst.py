@@ -1,4 +1,11 @@
 class Node:
+    __lt__ = lambda x, y: x.key < y.key
+    __le__ = lambda x, y: x.key <= y.key
+    __eq__ = lambda x, y: x.key == y.key
+    __ge__ = lambda x, y: x.key >= y.key
+    __gt__ = lambda x, y: x.key > y.key
+    __ne__ = lambda x, y: x.key != y.key
+
     # each node has a key and data list
     def __init__(self, key, data=None,
                  left=None, right=None, parent=None):
@@ -7,13 +14,6 @@ class Node:
         self.left = left
         self.right = right
         self.parent = parent
-
-    def __cmp__(self, other):
-        if self.key < other.key:
-            return -1
-        elif self.key > other.key:
-            return 1
-        return 0
 
     def replace(self, child, new_child):
         if self.left is not None and self.left == child:
@@ -81,16 +81,19 @@ class BST:
         return self._find_recursive(key, self.root)
 
     def _find_recursive(self, key, node):
-        if key == node.key:
-            return node
-        elif key > node.key:
-            if node.right is None:
-                return None
-            return self._find_recursive(key, node.right)
-        else:
-            if node.left is None:
-                return None
-            return self._find_recursive(key, node.left)
+        try:
+            if key == node.key:
+                return node
+            elif key > node.key:
+                if node.right is None:
+                    return None
+                return self._find_recursive(key, node.right)
+            else:
+                if node.left is None:
+                    return None
+                return self._find_recursive(key, node.left)
+        except TypeError: # wrong key type
+            return None
 
     def traverse(self, order):
         if order == 'preorder':
