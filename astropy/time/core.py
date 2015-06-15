@@ -146,7 +146,7 @@ class Time(object):
     The allowed values for ``format`` can be listed with::
 
       >>> list(Time.FORMATS)
-      ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date', 'astropy_time',
+      ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
        'datetime', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear', 'byear_str',
        'jyear_str']
 
@@ -293,6 +293,9 @@ class Time(object):
                        if issubclass(cls, TimeUnique)]
             err_msg = ('any of the formats where the format keyword is '
                        'optional {0}'.format([name for name, cls in formats]))
+            # AstropyTime is a pseudo-format that isn't in the TIME_FORMATS registry,
+            # but try to guess it at the end.
+            formats.insert(0, ('astropy_time', TimeAstropyTime))
         elif not (isinstance(format, six.string_types) and
                   format.lower() in self.FORMATS):
             if format is None:
@@ -1373,7 +1376,10 @@ class TimeFormatMeta(type):
     def __new__(mcls, name, bases, members):
         cls = super(TimeFormatMeta, mcls).__new__(mcls, name, bases, members)
 
-        if 'name' in members:
+        # Register time formats that have a name, but leave out astropy_time since
+        # it is not a user-accessible format and is only used for initialization into
+        # a different format.
+        if 'name' in members and cls.name != 'astropy_time':
             mcls._registry[cls.name] = cls
 
         if 'subfmts' in members:
