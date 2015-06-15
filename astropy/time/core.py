@@ -343,15 +343,32 @@ class Time(object):
 
     @property
     def format(self):
-        """Get time format"""
+        """Get or set time format.
+
+        The format defines the way times are represented when accessed via the
+        ``.value`` attribute.  By default it is the same as the format used for
+        initializing the `Time` instance, but it can be set to any other value
+        that could be used for initialization.  These can be listed with::
+
+          >>> list(Time.FORMATS)
+          ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date', 'astropy_time',
+           'datetime', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear', 'byear_str',
+           'jyear_str']
+
+        Note that the format cannot be set to 'astropy_time'; this format is
+        only useful on input, to help initialize from other `Time` instances.
+        """
         return self._format
 
     @format.setter
     def format(self, format):
         """Set time format"""
-        if format not in self.FORMATS:
-            raise ValueError('format must be one of {0}'
-                             .format(list(self.FORMATS)))
+        if format not in self.FORMATS or format == 'astropy_time':
+            allowed = [k for k in self.FORMATS.keys() if k != 'astropy_time']
+            raise ValueError("format must be one of {0} (i.e., any of the "
+                             "allowed input formats except 'astropy_time')"
+                             .format(allowed))
+
         format_cls = self.FORMATS[format]
 
         # If current output subformat is not in the new format then replace
@@ -670,7 +687,7 @@ class Time(object):
 
             setattr(tm, attr, val)
 
-        if format is None:
+        if format is None or format == 'astropy_time':
             format = self.format
 
         # Make the new internal _time object corresponding to the format
@@ -729,7 +746,7 @@ class Time(object):
             tm._set_scale(attr)
             return tm
 
-        elif attr in self.FORMATS:
+        elif attr in self.FORMATS and attr != 'astropy_time':
             tm = self.replicate(format=attr)
             if hasattr(self.FORMATS[attr], 'epoch_scale'):
                 tm._set_scale(self.FORMATS[attr].epoch_scale)
@@ -753,6 +770,7 @@ class Time(object):
     def __dir__(self):
         result = set(self.SCALES)
         result.update(self.FORMATS)
+        result.remove('astropy_time')
         return result
 
     def _match_shape(self, val):
