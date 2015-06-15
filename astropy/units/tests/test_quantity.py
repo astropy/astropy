@@ -618,6 +618,21 @@ def test_cgs():
     assert q.cgs.unit == u.barye
 
 
+def test_arbirary_unit():
+    q_au = np.array([1., 4.]) * u.arbitrary
+    assert q_au.unit is u.arbitrary
+    for unit in (u.m, u.dimensionless_unscaled, u.arbitrary, u.kg/u.s):
+        q = q_au.to(unit)
+        assert q.unit is unit
+        assert np.all(q.value == q_au.value)
+        assert np.all(q == q_au)
+
+        q2 = q_au + q
+        assert q2.unit is unit
+        assert np.all(q2.value == 2.*q_au.value)
+        assert np.all(q2 == 2.*q_au)
+
+
 class TestQuantityComparison(object):
 
     def test_quantity_equality(self):

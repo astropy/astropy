@@ -688,3 +688,16 @@ def test_fractional_rounding_errors_simple():
     assert isinstance(x.powers[0], Fraction)
     assert x.powers[0].numerator == 6
     assert x.powers[0].denominator == 5
+
+
+def test_arbitrary_unit():
+    assert u.arbitrary is u.core.ArbitraryUnit()
+    assert repr(u.arbitrary) == 'Unit("arbitrary")'
+    assert str(u.arbitrary) == "arbitrary"
+    assert u.CompositeUnit(10., [u.m, u.arbitrary], [1, 1]) is u.arbitrary
+    assert u.arbitrary**2 is u.arbitrary
+    assert u.arbitrary / u.m is u.arbitrary
+    assert u.m / u.arbitrary is u.arbitrary
+    assert u.m * u.arbitrary is u.arbitrary
+    assert u.m == u.arbitrary
+    assert not (u.m != u.arbitrary)

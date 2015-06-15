@@ -32,7 +32,7 @@ __all__ = [
     'PrefixUnit', 'UnrecognizedUnit', 'get_current_unit_registry',
     'set_enabled_units', 'add_enabled_units',
     'set_enabled_equivalencies', 'add_enabled_equivalencies',
-    'dimensionless_unscaled', 'one']
+    'dimensionless_unscaled', 'one', 'arbitrary', 'arbitrary_unit']
 
 
 def _flatten_units_collection(items):
@@ -934,6 +934,9 @@ class UnitBase(object):
                all(self_base is other_base for (self_base, other_base)
                    in zip(self_decomposed.bases, other_decomposed.bases))):
                 return self_decomposed.scale / other_decomposed.scale
+            elif other is arbitrary or self is arbitrary:
+                # Done last so not to slow down normal usage.
+                return 1.0
 
         raise UnitConversionError(
             "'{0!r}' is not a scaled version of '{1!r}'".format(self, other))
@@ -1047,6 +1050,8 @@ class UnitBase(object):
             final_results = [set(), set()]
 
         for tunit in namespace:
+            if tunit is arbitrary:
+                continue
             tunit_decomposed = tunit.decompose()
             for u in units:
                 # If the unit is a base unit, look for an exact match
@@ -1733,6 +1738,56 @@ class UnrecognizedUnit(IrreducibleUnit):
         return False
 
 
+class ArbitraryUnit(IrreducibleUnit):
+    """
+    A unit that has a completely arbitrary dimension.  This useful for, e.g.,
+    Quantities that are all 0 or infinity.  There can be only one such unit.
+
+    Parameters
+    ----------
+    namespace : dict, optional
+        When provided, inject the unit, and all of its aliases, in the
+        given namespace dictionary.  If a unit by the same name is
+        already in the namespace, a ValueError is raised.
+    """
+    _arbitrary_unit = None
+
+    def __new__(cls, namespace=None):
+        if cls._arbitrary_unit is None:
+            return super(ArbitraryUnit, cls).__new__(cls)
+
+        if namespace is not None:
+            cls._arbitrary_unit._inject(namespace)
+
+        return cls._arbitrary_unit
+
+    def __init__(self, namespace=None):
+        if self.__class__._arbitrary_unit is None:
+            super(ArbitraryUnit, self).__init__(
+                st=['arbitrary', 'arbitrary_unit'], doc='Arbitrary unit',
+                format=None, namespace=namespace)
+            self.__class__._arbitrary_unit = self
+
+    def decompose(self, bases=set()):
+        if len(bases) and not self in bases:
+            return bases[0]
+        else:
+            return self
+
+    def compose(self, equivalencies=[], units=None, max_depth=2,
+                include_prefix_units=False):
+        return [self]
+
+    def get_format_name(self, format):
+        return self.name
+
+    def is_unity(self):
+        return False
+
+
+arbitrary = ArbitraryUnit(namespace=globals())
+
+
 class _UnitMetaClass(InheritDocstrings):
     """
     This metaclass exists because the Unit constructor should
@@ -1968,6 +2023,16 @@ class CompositeUnit(UnitBase):
         A sequence of powers (in parallel with ``bases``) for each
         of the base units.
     """
+    def __new__(cls, scale=None, bases=None, powers=None, decompose=False,
+                decompose_bases=set(), _error_check=True):
+        # Have to set defaults of None since we can enter here from picking.
+        # But if not, we need to be able to return arbitrary if relevant.
+        if bases and any(base is arbitrary for base in bases):
+            return arbitrary
+
+        self = super(CompositeUnit, cls).__new__(cls)
+        return self
+
     def __init__(self, scale, bases, powers, decompose=False,
                  decompose_bases=set(), _error_check=True):
         # There are many cases internal to astropy.units where we

@@ -467,10 +467,16 @@ class TestInvariantUfuncs(object):
 
         q_i1 = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
         arbitrary_unit_value = np.array([0.])
-        q_o = ufunc(q_i1, arbitrary_unit_value)
-        assert isinstance(q_o, u.Quantity)
-        assert q_o.unit == q_i1.unit
-        assert_allclose(q_o.value, ufunc(q_i1.value, arbitrary_unit_value))
+        q_o1 = ufunc(q_i1, arbitrary_unit_value)
+        assert isinstance(q_o1, u.Quantity)
+        assert q_o1.unit == q_i1.unit
+        assert_allclose(q_o1.value, ufunc(q_i1.value, arbitrary_unit_value))
+        q_o2 = ufunc(arbitrary_unit_value, q_i1)
+        assert q_o2.unit == q_i1.unit
+        assert_allclose(q_o2.value, ufunc(arbitrary_unit_value, q_i1.value))
+        q_o3 = ufunc(arbitrary_unit_value * u.arbitrary, q_i1)
+        assert q_o3.unit == q_i1.unit
+        assert_allclose(q_o3.value, ufunc(arbitrary_unit_value, q_i1.value))
 
     @pytest.mark.parametrize(('ufunc'), [np.add, np.subtract, np.hypot,
                                          np.maximum, np.minimum, np.nextafter,
