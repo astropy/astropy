@@ -1769,10 +1769,7 @@ class ArbitraryUnit(IrreducibleUnit):
             self.__class__._arbitrary_unit = self
 
     def decompose(self, bases=set()):
-        if len(bases) and not self in bases:
-            return bases[0]
-        else:
-            return self
+        return self
 
     def compose(self, equivalencies=[], units=None, max_depth=2,
                 include_prefix_units=False):
