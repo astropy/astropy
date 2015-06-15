@@ -706,6 +706,22 @@ class TestAddRow(SetupData):
         self._setup(table_types)
         t = self.t
         t.add_index('a')
+        t['a'][0] = 4
+        t.add_row((5, 6, 7))
+        index = t.indices[0]
+        t['a'][3] = 10
+        t.remove_row(2)
+        assert np.all(t['a'].data == np.array([4, 2, 10]))
+        assert np.allclose(t['b'].data, np.array([4.0, 5.1, 6.0]))
+        assert np.all(t['c'].data == np.array(['7', '8', '7']))
+        index = t.indices[0]
+        l = [(x.key, x.data) for x in index.data.traverse('inorder')]
+        assert np.all(l == [((2,), [1]), ((4,), [0]), ((10,), [2])])
+
+    def test_table_where(self, table_types):
+        self._setup(table_types)
+        t = self.t
+        t.add_index('a')
         t2 = t.where('a={0}', 2)
         assert len(t2) == 1
         with pytest.raises(IndexError):
