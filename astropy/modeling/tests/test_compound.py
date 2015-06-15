@@ -16,7 +16,7 @@ from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                       Gaussian2D, Polynomial1D, Polynomial2D,
-                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D, 
+                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
                       AffineTransformation2D, Identity, Mapping)
 
 
@@ -834,3 +834,16 @@ def test_compound_with_polynomials(poly):
     result_compound = model(x, y)
     result = shift(poly(x, y))
     assert_allclose(result, result_compound)
+
+
+def test_inverse_copy():
+    """
+    Tests that the inverse of a model is a copy.
+    Issue #3828
+    """
+    poly1 = Polynomial1D(1)
+    poly2 = Polynomial1D(1)
+    poly1.inverse = poly2
+    poly2.parameters = (1, 2)
+    assert_allclose(poly1(1), 0)
+

@@ -31,7 +31,7 @@ New Features
     are now > 10x faster for the supplied cosmologies. [#3767]
 
   - ``FLRW._tfunc`` and ``FLRW._xfunc`` are marked as deprecated.  Users
-    should use the new public interfaces ``FLRW.lookback_time_integrand`` 
+    should use the new public interfaces ``FLRW.lookback_time_integrand``
     and ``FLRW.abs_distance_integrand`` instead. [#3767]
 
 - ``astropy.io.ascii``
@@ -235,6 +235,8 @@ Bug fixes
 - ``astropy.logger.py``
 
 - ``astropy.modeling``
+
+  - A copy of the model is made before it's assigned as an inverse [#3828].
 
 - ``astropy.nddata``
 
