@@ -9,8 +9,14 @@ class Index:
         self.data = self.Implementation(data)
         self.columns = columns
 
+    def col_position(self, col):
+        for i, c in enumerate(self.columns):
+            if col is c:
+                return i
+        raise ValueError("Column does not belong to index: {0}".format(col))
+
     def insert_row(self, pos, vals, columns):
-        key = [vals[columns.index(col)] for col in self.columns]
+        key = [vals[self.col_position(col)] for col in self.columns]
         self.data.add(tuple(key), pos)
 
     def remove_rows(self, row_specifier):
@@ -42,8 +48,8 @@ class Index:
 
     def replace(self, row, col, val):
         self.remove_row(row, reorder=False)
-        key = [col[row] for col in self.columns]
-        key[self.columns.index(col)] = val
+        key = [c[row] for c in self.columns]
+        key[self.col_position(col)] = val
         self.data.add(tuple(key), row)
 
     def sorted_data(self):

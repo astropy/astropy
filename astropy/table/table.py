@@ -1939,7 +1939,7 @@ class Table(object):
     def _replace_cols(self, columns):
         for col, new_col in zip(self.columns.values(), columns.values()):
             for index in col.indices:
-                index.columns[index.columns.index(col)] = new_col
+                index.columns[index.col_position(col)] = new_col
                 new_col.add_index(index)
 
         self.columns = columns
