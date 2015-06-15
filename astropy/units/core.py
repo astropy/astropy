@@ -2020,15 +2020,16 @@ class CompositeUnit(UnitBase):
         A sequence of powers (in parallel with ``bases``) for each
         of the base units.
     """
-    def __new__(cls, scale=None, bases=None, powers=None, decompose=False,
+    def __new__(cls, scale, bases, powers, decompose=False,
                 decompose_bases=set(), _error_check=True):
-        # Have to set defaults of None since we can enter here from picking.
-        # But if not, we need to be able to return arbitrary if relevant.
         if bases and any(base is arbitrary for base in bases):
             return arbitrary
 
         self = super(CompositeUnit, cls).__new__(cls)
         return self
+
+    def __getnewargs__(self):
+        return (self._scale, self._bases, self._powers, False, set(), False)
 
     def __init__(self, scale, bases, powers, decompose=False,
                  decompose_bases=set(), _error_check=True):
