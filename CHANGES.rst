@@ -406,6 +406,10 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - The ``astropy_time`` attribute, which is senseless and only raised an
+    exception, has been removed, and setting the format to this now raises a
+    much more informative error message. [#3856]
+
 - ``astropy.units``
 
 - ``astropy.utils``

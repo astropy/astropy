@@ -945,3 +945,14 @@ def test_set_format_does_not_share_subfmt():
     t.format = 'fits'
     assert t.out_subfmt == '*'
     assert t.value == '2000-02-03T00:00:00.000(UTC)'  # date_hms
+
+def test_astropy_time_format_input_only():
+    t = Time('+02000-02-03', format='fits')
+    t2 = Time(t, format='astropy_time')
+    with pytest.raises(AttributeError):
+        t2.astropy_time
+    with pytest.raises(ValueError):
+        t2.format = 'astropy_time'
+    t3 = t.replicate(format='astropy_time')
+    assert t3.format == t.format
+    assert t3 == t
