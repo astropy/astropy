@@ -97,6 +97,24 @@ use the `~astropy.units.core.UnitBase.physical_type` property::
    >>> (u.m / u.m) == u.dimensionless_unscaled
    True
 
+.. _arbitrary-unit:
+
+Arbitrary Unit
+--------------
+
+Another special unit is the `arbitrary unit <~astropy.units.core.arbitrary>`.
+It is mostly used internally for quantities which can always be converted to
+the unit of another quantity (as is true, e.g., if the value is zero).  The
+arbitrary unit is equal to any other unit, and unit composition involving the
+arbitrary unit always yield the arbitrary unit::
+
+  >>> u.m == u.arbitrary
+  True
+  >>> u.m / u.s * u.arbitrary
+  Unit("arbitrary")
+  >>> u.m.to(u.arbitrary, 1.0)
+  1.0
+
 .. _enabling-other-units:
 
 Enabling other units
@@ -149,3 +167,4 @@ To enable just specific units, use `~astropy.units.add_enabled_units`::
     >>> with u.add_enabled_units_context([imperial.knot]):
     ...     u.m.find_equivalent_units()  # doctest: +SKIP
     ...
+

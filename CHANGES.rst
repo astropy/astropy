@@ -128,6 +128,10 @@ New Features
   - Added support for functional units, in particular the logarithmic ones
     ``Magnitude``, ``Decibel``, and ``Dex``. [#1894]
 
+  - Added support for the ``arbitrary`` unit, which can convert to any other
+    unit without scale change.  This is useful mostly internally for holding
+    quantities with values all equal to zero. [#3793]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
