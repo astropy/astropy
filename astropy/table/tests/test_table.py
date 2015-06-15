@@ -702,21 +702,31 @@ class TestAddRow(SetupData):
             with pytest.raises(IndexError):
                 t.insert_row(index, row)
 
-    def test_table_index(self, table_types):
+    @pytest.mark.parametrize("composite", [False, True])
+    def test_table_index(self, table_types, composite):
         self._setup(table_types)
-        t = self.t
-        t.add_index('a')
+        t = self.t.copy()
+        t.add_index(('a', 'b') if composite else 'a')
         t['a'][0] = 4
-        t.add_row((5, 6, 7))
-        index = t.indices[0]
+        t.add_row((5, 6.0, '7'))
         t['a'][3] = 10
         t.remove_row(2)
-        assert np.all(t['a'].data == np.array([4, 2, 10]))
-        assert np.allclose(t['b'].data, np.array([4.0, 5.1, 6.0]))
-        assert np.all(t['c'].data == np.array(['7', '8', '7']))
+        t.add_row((4, 5.0, '9'))
+        assert np.all(t['a'].data == np.array([4, 2, 10, 4]))
+        assert np.allclose(t['b'].data, np.array([4.0, 5.1, 6.0, 5.0]))
+        assert np.all(t['c'].data == np.array(['7', '8', '7', '9']))
         index = t.indices[0]
         l = [(x.key, x.data) for x in index.data.traverse('inorder')]
-        assert np.all(l == [((2,), [1]), ((4,), [0]), ((10,), [2])])
+
+        if composite:
+            assert np.all(l == [((2, 5.1), [1]),
+                                ((4, 4.0), [0]),
+                                ((4, 5.0), [3]),
+                                ((10, 6.0), [2])])
+        else:
+            assert np.all(l == [((2,), [1]),
+                                ((4,), [0, 3]),
+                                ((10,), [2])])
 
     def test_table_where(self, table_types):
         self._setup(table_types)
