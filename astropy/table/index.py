@@ -20,12 +20,18 @@ class Index:
             for row in row_specifier:
                 self.remove_row(row)
         else: # must be slice
-            max_row = max([row for val, row in data])
+            max_row = max([row for val, row in row_specifier])
             for row in row_specifier.indices(max_row):
                 self.remove_row(row)
 
-    def remove_row(self, row):
-        self.data.remove(tuple([col[row] for col in self.columns]), data=row)
+    def remove_row(self, row, reorder=True):
+        if not self.data.remove(tuple([col[row] for col in self.columns]),
+                                data=row):
+            raise ValueError("Could not remove row {0} from index".format(row))
+        # decrement the row number of all later rows
+        if reorder:
+            for node in self.data.traverse('inorder'):
+                node.data = [x - 1 if x > row else x for x in node.data]
 
     def find(self, *key):
         node = self.data.find(key)
@@ -34,9 +40,11 @@ class Index:
     def range(self, lower, upper):
         return self.data.range(lower, upper)
 
-    def replace(self, pos, val):
-        self.remove_rows(pos)
-        self.insert_row(pos, val)
+    def replace(self, row, col, val):
+        self.remove_row(row, reorder=False)
+        key = [col[row] for col in self.columns]
+        key[self.columns.index(col)] = val
+        self.data.add(tuple(key), row)
 
     def sorted_data(self):
         lst = [x.data for x in self.data.traverse('inorder')]

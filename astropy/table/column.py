@@ -812,7 +812,7 @@ class Column(BaseColumn):
     def __setitem__(self, index, value):
         # update indices
         for col_index in self.indices:
-            col_index.replace(index, value, self)
+            col_index.replace(index, self, value)
         self.data[index] = value
 
     # # Set slices using a view of the underlying data, as it gives an
@@ -1126,7 +1126,7 @@ class MaskedColumn(Column, ma.MaskedArray):
     def __setitem__(self, index, value):
         # update indices
         for col_index in self.indices:
-            col_index.replace(index, value, self)
+            col_index.replace(index, self, value)
         ma.MaskedArray.__setitem__(self, index, value)
 
     def __setslice__(self, start, stop, value):
