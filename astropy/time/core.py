@@ -295,7 +295,7 @@ class Time(object):
                        'optional {0}'.format([name for name, cls in formats]))
             # AstropyTime is a pseudo-format that isn't in the TIME_FORMATS registry,
             # but try to guess it at the end.
-            formats.insert(0, ('astropy_time', TimeAstropyTime))
+            formats.append(('astropy_time', TimeAstropyTime))
 
         elif not (isinstance(format, six.string_types) and
                   format.lower() in self.FORMATS):
