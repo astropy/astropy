@@ -978,6 +978,7 @@ int disx2p(
     }
   }
 
+  return 0;
 
   /* Iteratively invert the (well-behaved!) distortion function. */
   for (iter = 0; iter < ITERMAX; iter++) {

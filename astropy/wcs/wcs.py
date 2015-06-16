@@ -2208,8 +2208,8 @@ reduce these to 2 dimensions using the naxis kwarg.
     def poly_foc2pix(self, *args):
         if WCSLIB_HAS_SIP:
             def _do_sip_in_wcs(array, origin):
-                data = self.wcs.dispre_p2x(array, origin)
-                return data + self.wcs.crpix
+                data = self.wcs.dispre_x2p(array, origin)
+                return data - self.wcs.crpix
             func = _do_sip_in_wcs
         else:
             if self.sip is None:
