@@ -945,3 +945,24 @@ def test_set_format_does_not_share_subfmt():
     t.format = 'fits'
     assert t.out_subfmt == '*'
     assert t.value == '2000-02-03T00:00:00.000(UTC)'  # date_hms
+
+def test_replicate_value_error():
+    """
+    Passing a bad format to replicate should raise ValueError, not KeyError.
+    PR #3857.
+    """
+    t1 = Time('2007:001', scale='tai')
+    with pytest.raises(ValueError) as err:
+        t1.replicate(format='definitely_not_a_valid_format')
+    assert 'format must be one of' in str(err)
+
+def test_remove_astropy_time():
+    """
+    Make sure that 'astropy_time' format is really gone after #3857.  Kind of
+    silly test but just to be sure.
+    """
+    t1 = Time('2007:001', scale='tai')
+    assert 'astropy_time' not in t1.FORMATS
+    with pytest.raises(ValueError) as err:
+        Time(t1, format='astropy_time')
+    assert 'format must be one of' in str(err)

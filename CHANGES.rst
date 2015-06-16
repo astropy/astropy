@@ -201,6 +201,11 @@ API changes
 
 - ``astropy.time``
 
+  - The ``astropy_time`` attribute and time format has been removed from the
+    public interface.  Existing code that instantiates a new time object using
+    ``format='astropy_time'`` can simply omit the ``format``
+    specification. [#3857]
+
 - ``astropy.units``
 
 - ``astropy.utils``
