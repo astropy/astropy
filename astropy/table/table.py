@@ -423,7 +423,7 @@ class Table(object):
         '''
         if isinstance(colnames, six.string_types):
             colnames = (colnames,)
-        columns = self.columns[colnames].values()
+        columns = self.columns[tuple(colnames)].values()
         index = Index(columns)
         for col in columns:
             col.add_index(index)
@@ -441,23 +441,68 @@ class Table(object):
     def where(self, expression, *vals):
         '''
         Returns all rows matching the given criteria.
+        Language syntax in Backus-Naur Form:
+
+        <query> := "[" <column name> "]" <criterion> | <query> "and" <query>
+        <criterion> := "in" <range> | "=" <value>
+        <range> := "(" <value> "," <value> ")"
+        <value> := "{" <number> "}"
+
+        Example: table.where('[col0] in ({0}, {1}) and [col1] = {2}', 1, 5, 3)
         '''
-        ##TODO: implement mini-language for query expressions
-        # for now, we just deal with "colname={0}"
-        match = re.match('(\w+) *= *\{ *0 *\}', expression)
-        if match is None:
-            raise ValueError("Invalid expression for where ([colname]={0})")
-        colname = match.groups()[0]
-        if colname not in self.colnames:
-            raise IndexError("Invalid column name: {0}".format(colname))
-        col = self.columns[colname]
-        if len(col.indices) == 0:
-            raise ValueError("Cannot call where() with an unindexed column")
-        index = col.indices[0] ##TODO: adjust when doing composite indices
-        if len(vals) == 0:
-            raise ValueError("Must enter a value along with {0}")
-        rows = index.find(vals[0])
-        return self[rows]
+
+        ##TODO: finish mini-language
+        tokens = []
+        token = ''
+        parens = {'[': ']', '(': ')', '{': '}'}
+
+        for c in expression:
+            if len(token) == 0:
+                if c.isspace():
+                    continue
+                token += c
+            elif token[0] in parens:
+                token += c
+                if c == parens[token[0]]:
+                    tokens.append(token)
+                    token = ''
+            elif c.isspace():
+                tokens.append(token)
+                token = ''
+            else:
+                token += c
+
+        col_map = {}
+
+        def interpret_query(query):
+            col = re.match('\[([^\]]+)\]', query[0]).groups()[0]
+            if query[1] == 'in':
+                val_range = re.match('\( *\{(\d+)\} *, *\{(\d+)\} *\)',
+                                     query[2]).groups()
+                col_map[col] = (vals[int(val_range[0])], vals[int(val_range[1])])
+            elif query[1] == '=':
+                val = re.match('\{ *(\d+) *\}', query[2]).groups()[0]
+                col_map[col] = vals[int(val)]
+            else:
+                raise ValueError()
+
+        ##TODO: make parser fail gracefully for bad input
+        while True:
+            if 'and' in tokens:
+                pos = tokens.index('and')
+                interpret_query(tokens[:pos])
+                tokens = tokens[pos + 1:]
+            else:
+                interpret_query(tokens)
+                break
+
+        for index in self.indices:
+            try:
+                return index.where(col_map)
+            except ValueError: # index is unsuitable
+                continue
+
+        raise ValueError("Query requirements are not satisfied by any index")
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).

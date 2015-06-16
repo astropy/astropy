@@ -180,6 +180,13 @@ class BST:
             return []
         return self._range(lower, upper, self.root, [])
 
+    def same_prefix(self, val):
+        # assuming val has smaller length than keys, return
+        # nodes whose keys have val as a prefix
+        if self.root is None:
+            return []
+        return self._same_prefix(val, self.root, [])
+
     def _range(self, lower, upper, node, lst):
         if lower <= node.key <= upper:
             lst.append(node)
@@ -187,4 +194,14 @@ class BST:
             self._range(lower, upper, node.right, lst)
         if node.key > lower and node.left is not None:
             self._range(lower, upper, node.left, lst)
+        return lst
+
+    def _same_prefix(self, val, node, lst):
+        prefix = node.key[:len(val)]
+        if prefix == val:
+            lst.append(node)
+        if prefix <= val and node.right is not None:
+            self._same_prefix(val, node.right, lst)
+        if prefix >= val and node.left is not None:
+            self._same_prefix(val, node.left, lst)
         return lst
