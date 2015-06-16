@@ -296,6 +296,7 @@ class Time(object):
             # AstropyTime is a pseudo-format that isn't in the TIME_FORMATS registry,
             # but try to guess it at the end.
             formats.insert(0, ('astropy_time', TimeAstropyTime))
+
         elif not (isinstance(format, six.string_types) and
                   format.lower() in self.FORMATS):
             if format is None:
@@ -346,7 +347,19 @@ class Time(object):
 
     @property
     def format(self):
-        """Get time format"""
+        """
+        Get or set time format.
+
+        The format defines the way times are represented when accessed via the
+        ``.value`` attribute.  By default it is the same as the format used for
+        initializing the `Time` instance, but it can be set to any other value
+        that could be used for initialization.  These can be listed with::
+
+          >>> list(Time.FORMATS)
+          ['jd', 'mjd', 'decimalyear', 'unix', 'cxcsec', 'gps', 'plot_date',
+           'datetime', 'iso', 'isot', 'yday', 'fits', 'byear', 'jyear', 'byear_str',
+           'jyear_str']
+        """
         return self._format
 
     @format.setter
@@ -679,6 +692,9 @@ class Time(object):
         # Make the new internal _time object corresponding to the format
         # in the copy.  If the format is unchanged this process is lightweight
         # and does not create any new arrays.
+        if format not in tm.FORMATS:
+            raise ValueError('format must be one of {0}'
+                             .format(list(tm.FORMATS)))
 
         NewFormat = tm.FORMATS[format]
         tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
