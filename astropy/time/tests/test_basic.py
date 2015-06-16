@@ -949,7 +949,7 @@ def test_set_format_does_not_share_subfmt():
 def test_replicate_value_error():
     """
     Passing a bad format to replicate should raise ValueError, not KeyError.
-    PR #xxxx.
+    PR #3857.
     """
     t1 = Time('2007:001', scale='tai')
     with pytest.raises(ValueError) as err:
@@ -958,7 +958,7 @@ def test_replicate_value_error():
 
 def test_remove_astropy_time():
     """
-    Make sure that 'astropy_time' format is really gone after #xxxx.  Kind of
+    Make sure that 'astropy_time' format is really gone after #3857.  Kind of
     silly test but just to be sure.
     """
     t1 = Time('2007:001', scale='tai')
