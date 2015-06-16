@@ -729,20 +729,27 @@ class TestAddRow(SetupData):
                                 ((10,), [2])])
 
     def test_table_where(self, table_types):
+        ##TODO: test for expected errors
         self._setup(table_types)
-        t = self.t
-        t.add_index('a')
-        t2 = t.where('a={0}', 2)
-        assert len(t2) == 1
-        with pytest.raises(IndexError):
-            t.where('d={0}', 1)
-        with pytest.raises(ValueError):
-            t.where('a=7')
-        with pytest.raises(ValueError):
-            t.where('a={0}')
-        t.remove_indices('a')
-        with pytest.raises(ValueError):
-            t.where('a={0}', 2)
+        t = self.t.copy()
+        t.add_index(['b', 'a'])
+        t.add_row((2, 5.3, '7'))
+        t.add_row((4, 4.0, '1'))
+        assert np.all(t['a'].data == np.array([1, 2, 3, 2, 4]))
+        assert np.all(t['b'].data == np.array([4.0, 5.1, 6.2, 5.3, 4.0]))
+        assert np.all(t['c'].data == np.array(['7', '8', '9', '7', '1']))
+
+        # only leftmost column
+        assert t.where('[b] = {0}', 4.0) == [0, 4]
+        assert t.where('[b] = {0}', 5.1) == [1]
+        # range query
+        assert t.where('[b] in ({0}, {1})', 5.0, 5.5) == [1, 3]
+        assert t.where('[b] in ({0}, {1})', 6.5, 7.0) == []
+        # both columns
+        assert t.where('[a] = {0} and [b] = {1}', 4, 4.0) == [4]
+        assert t.where('[b] = {1} and [a] = {0}', 1, 4.0) == [0]
+        # range on both columns
+        assert t.where('[b] = {0} and [a] in ({1}, {2})', 4.0, 3, 5) == [4]
 
 @pytest.mark.usefixtures('table_types')
 class TestTableColumn(SetupData):

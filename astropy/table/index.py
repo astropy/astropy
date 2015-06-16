@@ -16,7 +16,12 @@ class Index:
         raise ValueError("Column does not belong to index: {0}".format(col))
 
     def insert_row(self, pos, vals, columns):
-        key = [vals[self.col_position(col)] for col in self.columns]
+        key = [None] * len(self.columns)
+        for i, col in enumerate(columns):
+            try:
+                key[i] = vals[self.col_position(col)]
+            except ValueError: # not a member of index
+                continue
         self.data.add(tuple(key), pos)
 
     def remove_rows(self, row_specifier):
@@ -39,9 +44,36 @@ class Index:
             for node in self.data.traverse('inorder'):
                 node.data = [x - 1 if x > row else x for x in node.data]
 
-    def find(self, *key):
+    def find(self, key):
         node = self.data.find(key)
         return [] if node is None else node.data
+
+    def where(self, col_map):
+        # ensure that the keys of col_map form a left prefix of index columns
+        # also, a range query can only be on the last of the index columns
+        # note: if a range is invalid (upper < lower), there will be no results
+        names = [col.name for col in self.columns]
+        query_names = col_map.keys()
+        if set(names[:len(query_names)]) != set(query_names):
+            raise ValueError("Query columns must form a left prefix of "
+                             "index columns")
+        query_names = names[:len(query_names)] # reorder query_names
+        for name in query_names[:-1]:
+            if isinstance(col_map[name], tuple):
+                raise ValueError("Range queries are only valid on the "
+                                 "last column of an index")
+        base = [col_map[name] for name in query_names[:-1]]
+        if isinstance(col_map[query_names[-1]], tuple): # range query
+            lower = base + [col_map[query_names[-1]][0]]
+            upper = base + [col_map[query_names[-1]][1]]
+            lst = [x.data for x in self.data.range(tuple(lower), tuple(upper))]
+        else:
+            key = base + [col_map[query_names[-1]]]
+            if len(key) == len(self.columns):
+                lst = [self.find(tuple(key))]
+            else:
+                lst = [x.data for x in self.data.same_prefix(tuple(key))]
+        return [row for l in lst for row in l]
 
     def range(self, lower, upper):
         return self.data.range(lower, upper)
@@ -55,6 +87,10 @@ class Index:
     def sorted_data(self):
         lst = [x.data for x in self.data.traverse('inorder')]
         return [row for l in lst for row in l]
+
+    def nodes(self):
+        # for debugging purposes
+        return [(x.key, x.data) for x in self.data.traverse('inorder')]
 
 def get_index(table):
     '''
