@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.5 - an implementation of the FITS WCS standard.
+  WCSLIB 5.6 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
+  $Id: wcs.c,v 5.6.1.4 2015/06/16 14:16:20 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <math.h>
@@ -538,28 +538,29 @@ int wcsini(int alloc, int naxis, struct wcsprm *wcs)
   wcs->alt[0] = ' ';
   wcs->colnum = 0;
 
-  memset(wcs->wcsname, 0, 72);
   for (i = 0; i < naxis; i++) {
     wcs->colax[i] = 0;
     memset(wcs->cname[i], 0, 72);
     wcs->crder[i] = UNDEFINED;
     wcs->csyer[i] = UNDEFINED;
   }
-  memset(wcs->radesys, 0, 72);
+
+  memset(wcs->dateavg, 0, 72);
+  memset(wcs->dateobs, 0, 72);
   wcs->equinox    = UNDEFINED;
-  memset(wcs->specsys, 0, 72);
-  memset(wcs->ssysobs, 0, 72);
-  wcs->velosys    = UNDEFINED;
-  memset(wcs->ssyssrc, 0, 72);
-  wcs->zsource    = UNDEFINED;
+  wcs->mjdavg     = UNDEFINED;
+  wcs->mjdobs     = UNDEFINED;
   wcs->obsgeo[0]  = UNDEFINED;
   wcs->obsgeo[1]  = UNDEFINED;
   wcs->obsgeo[2]  = UNDEFINED;
-  memset(wcs->dateobs, 0, 72);
-  memset(wcs->dateavg, 0, 72);
-  wcs->mjdobs     = UNDEFINED;
-  wcs->mjdavg     = UNDEFINED;
+  memset(wcs->radesys, 0, 72);
+  memset(wcs->specsys, 0, 72);
+  memset(wcs->ssysobs, 0, 72);
+  wcs->velosys    = UNDEFINED;
+  wcs->zsource    = UNDEFINED;
+  memset(wcs->ssyssrc, 0, 72);
   wcs->velangl    = UNDEFINED;
+  memset(wcs->wcsname, 0, 72);
 
   wcs->ntab = 0;
   wcs->tab  = 0x0;
@@ -592,19 +593,23 @@ int wcssub(
 {
   static const char *function = "wcssub";
 
-  char *c, ctypei[16];
-  int  axis, cubeface, dealloc, dummy, i, itab, *itmp = 0x0, j, k, latitude,
-       longitude, m, *map, msub, naxis, npv, nps, ntmp, other, spectral,
-       status, stokes;
+  const char *pq = "PQ";
+  char *c, ctypei[16], ctmp[8], *fp;
+  int  axis, axmap[10], cubeface, dealloc, dummy, i, idp, itab, *itmp = 0x0,
+       j, jhat, k, latitude, longitude, m, *map, msub, naxis, ndp, ndpmax,
+       Nhat, npv, npvmax, nps, npsmax, ntmp, other, spectral, status, stokes;
   const double *srcp;
   double *dstp;
-  struct tabprm *tabp;
+  struct tabprm *tab;
+  struct disprm *dissrc, *disdst;
+  struct dpkey  *dpsrc,  *dpdst;
   struct wcserr **err;
 
   if (wcssrc == 0x0) return WCSERR_NULL_POINTER;
   if (wcsdst == 0x0) return WCSERR_NULL_POINTER;
   err = &(wcsdst->err);
 
+  /* N.B. we do not rely on the wcsprm struct having been set up. */
   if ((naxis = wcssrc->naxis) <= 0) {
     return wcserr_set(WCSERR_SET(WCSERR_MEMORY),
       "naxis must be positive (got %d)", naxis);
@@ -617,7 +622,7 @@ int wcssub(
     *nsub = naxis;
   }
 
-  /* Allocate enough temporary storage to hold either axes[] or map[].*/
+  /* Allocate enough temporary storage to hold either axes[] xor map[].*/
   ntmp = (*nsub <= naxis) ? naxis : *nsub;
   if ((itmp = calloc(ntmp, sizeof(int))) == 0x0) {
     return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
@@ -762,7 +767,7 @@ int wcssub(
   }
 
 
-  /* Construct the inverse axis map:
+  /* Construct the inverse axis map (i is 0-relative, j is 1-relative):
      axes[i] == j means that output axis i+1 comes from input axis j,
      axes[i] == 0 means to create a new axis,
       map[i] == j means that input axis i+1 goes to output axis j,
@@ -778,7 +783,9 @@ int wcssub(
     }
   }
 
-  /* Check that the subimage coordinate system is separable. */
+
+  /* Check that the subimage coordinate system is separable.  First check */
+  /* non-zero, off-diagonal elements of the linear transformation matrix. */
   srcp = wcssrc->pc;
   for (i = 0; i < naxis; i++) {
     for (j = 0; j < naxis; j++) {
@@ -791,31 +798,125 @@ int wcssub(
     }
   }
 
+  /* Now check for distortions that depend on other axes.  As the disprm    */
+  /* struct may not have been initialized, we must parse the dpkey entries. */
+  ndpmax = 0;
+  for (m = 0; m < 2; m++) {
+    if (m == 0) {
+      dissrc = wcssrc->lin.dispre;
+    } else {
+      dissrc = wcssrc->lin.disseq;
+    }
+
+    ndp = 0;
+    if (dissrc != 0x0) {
+      for (j = 0; j < naxis; j++) {
+        if (map[j] == 0) continue;
+
+        for (jhat = 0; jhat < 10; jhat++) {
+          axmap[jhat] = -1;
+        }
+
+        Nhat = 0;
+        dpsrc = dissrc->dp;
+        for (idp = 0; idp < dissrc->ndp; idp++, dpsrc++) {
+          /* Thorough error checking will be done later by disset(). */
+          if (dpsrc->j != j+1) continue;
+          if (dpsrc->field[1] != pq[m]) continue;
+          if ((fp = strpbrk(dpsrc->field, ".")) == 0x0) continue;
+          fp++;
+
+          ndp++;
+
+          if (strncmp(fp, "NAXES", 6) == 0) {
+            Nhat = wcsutil_dpkey_int(dpsrc);
+          } else if (strncmp(fp, "AXIS.", 5) == 0) {
+            sscanf(fp+5, "%d", &jhat);
+            axmap[jhat-1] = wcsutil_dpkey_int(dpsrc) - 1;
+          }
+        }
+
+        if (Nhat < 0 || (Nhat == 0 && 1 < ndp) || naxis < Nhat) {
+          status = wcserr_set(WCSERR_SET(WCSERR_BAD_PARAM),
+            "NAXES was not set (or bad) for %s distortion on axis %d",
+            dissrc->dtype[j], j+1);
+          goto cleanup;
+        }
+
+        for (jhat = 0; jhat < Nhat; jhat++) {
+          if (axmap[jhat] < 0) {
+            axmap[jhat] = jhat;
+
+            /* Make room for an additional DPja.AXIS.j record. */
+            ndp++;
+          }
+
+          if (map[axmap[jhat]] == 0) {
+            /* Distortion depends on an axis excluded from the subimage. */
+            status = wcserr_set(WCS_ERRMSG(WCSERR_NON_SEPARABLE));
+            goto cleanup;
+          }
+        }
+      }
+    }
+
+    if (ndpmax < ndp) ndpmax = ndp;
+  }
+
+
+  /* Number of PVi_ma records in the subimage. */
+  npvmax = 0;
+  for (m = 0; m < wcssrc->npv; m++) {
+    i = wcssrc->pv[m].i;
+    if (i == 0 || (i > 0 && map[i-1])) {
+      npvmax++;
+    }
+  }
+  npv = wcsnpv(-1);
+  wcsnpv(npvmax);
+
+  /* Number of PSi_ma records in the subimage. */
+  npsmax = 0;
+  for (m = 0; m < wcssrc->nps; m++) {
+    i = wcssrc->ps[m].i;
+    if (i > 0 && map[i-1]) {
+      npsmax++;
+    }
+  }
+  nps = wcsnps(-1);
+  wcsnps(npsmax);
+
+  /* Number of distortion parameters, if any. */
+  ndp = disndp(-1);
+  disndp(ndpmax);
 
   /* Initialize the destination. */
-  npv = NPVMAX;
-  nps = NPSMAX;
-
-  NPVMAX = 0;
-  for (k = 0; k < wcssrc->npv; k++) {
-    i = wcssrc->pv[k].i;
-    if (i == 0 || (i > 0 && map[i-1])) {
-      NPVMAX++;
-    }
-  }
-
-  NPSMAX = 0;
-  for (k = 0; k < wcssrc->nps; k++) {
-    i = wcssrc->ps[k].i;
-    if (i > 0 && map[i-1]) {
-      NPSMAX++;
-    }
-  }
-
   status = wcsini(alloc, *nsub, wcsdst);
 
-  NPVMAX = npv;
-  NPSMAX = nps;
+  for (m = 0; m < 2; m++) {
+    if (m == 0) {
+      dissrc = wcssrc->lin.dispre;
+      disdst = wcsdst->lin.dispre;
+    } else {
+      dissrc = wcssrc->lin.disseq;
+      disdst = wcsdst->lin.disseq;
+    }
+
+    if (dissrc && !disdst) {
+      if ((disdst = calloc(1, sizeof(struct disprm))) == 0x0) {
+        return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
+      }
+
+      /* Also inits disdst. */
+      disdst->flag = -1;
+      lindis(m+1, &(wcsdst->lin), disdst);
+    }
+  }
+
+  /* Reset WCSNPV, WCSNPS, and DISNDP. */
+  wcsnpv(npv);
+  wcsnps(nps);
+  disndp(ndp);
 
   if (status) {
     goto cleanup;
@@ -835,12 +936,10 @@ int wcssub(
   srcp = wcssrc->pc;
   dstp = wcsdst->pc;
   for (i = 0; i < *nsub; i++) {
-    if (axes[i] > 0) {
-      for (j = 0; j < *nsub; j++, dstp++) {
-        if (axes[j] > 0) {
-          k = (axes[i]-1)*naxis + (axes[j]-1);
-          *dstp = *(srcp+k);
-        }
+    for (j = 0; j < *nsub; j++, dstp++) {
+      if (axes[i] > 0 && axes[j] > 0) {
+        k = (axes[i]-1)*naxis + (axes[j]-1);
+        *dstp = *(srcp+k);
       }
     }
   }
@@ -881,15 +980,15 @@ int wcssub(
 
   /* Parameter values. */
   npv = 0;
-  for (k = 0; k < wcssrc->npv; k++) {
-    i = wcssrc->pv[k].i;
+  for (m = 0; m < wcssrc->npv; m++) {
+    i = wcssrc->pv[m].i;
     if (i == 0) {
       /* i == 0 is a special code that means "the latitude axis". */
-      wcsdst->pv[npv] = wcssrc->pv[k];
+      wcsdst->pv[npv] = wcssrc->pv[m];
       wcsdst->pv[npv].i = 0;
       npv++;
     } else if (i > 0 && map[i-1]) {
-      wcsdst->pv[npv] = wcssrc->pv[k];
+      wcsdst->pv[npv] = wcssrc->pv[m];
       wcsdst->pv[npv].i = map[i-1];
       npv++;
     }
@@ -897,10 +996,10 @@ int wcssub(
   wcsdst->npv = npv;
 
   nps = 0;
-  for (k = 0; k < wcssrc->nps; k++) {
-    i = wcssrc->ps[k].i;
+  for (m = 0; m < wcssrc->nps; m++) {
+    i = wcssrc->ps[m].i;
     if (i > 0 && map[i-1]) {
-      wcsdst->ps[nps] = wcssrc->ps[k];
+      wcsdst->ps[nps] = wcssrc->ps[m];
       wcsdst->ps[nps].i = map[i-1];
       nps++;
     }
@@ -911,12 +1010,14 @@ int wcssub(
   srcp = wcssrc->cd;
   dstp = wcsdst->cd;
   for (i = 0; i < *nsub; i++) {
-    if (axes[i] > 0) {
-      for (j = 0; j < *nsub; j++, dstp++) {
-        if (axes[j] > 0) {
-          k = (axes[i]-1)*naxis + (axes[j]-1);
-          *dstp = *(srcp+k);
-        }
+    for (j = 0; j < *nsub; j++, dstp++) {
+      if (axes[i] > 0 && axes[j] > 0) {
+        k = (axes[i]-1)*naxis + (axes[j]-1);
+        *dstp = *(srcp+k);
+      } else if (i == j && wcssrc->altlin & 2) {
+        /* A new axis is being created where CDi_ja was present in the input
+           header, so override the default value of 0 set by wcsini(). */
+        *dstp = 1.0;
       }
     }
   }
@@ -937,7 +1038,6 @@ int wcssub(
   strncpy(wcsdst->alt, wcssrc->alt, 4);
   wcsdst->colnum = wcssrc->colnum;
 
-  strncpy(wcsdst->wcsname, wcssrc->wcsname, 72);
   for (i = 0; i < *nsub; i++) {
     if (axes[i] > 0) {
       k = axes[i] - 1;
@@ -948,23 +1048,123 @@ int wcssub(
     }
   }
 
-  strncpy(wcsdst->radesys, wcssrc->radesys, 72);
+  strncpy(wcsdst->dateavg, wcssrc->dateavg, 72);
+  strncpy(wcsdst->dateobs, wcssrc->dateobs, 72);
+
   wcsdst->equinox = wcssrc->equinox;
 
-  strncpy(wcsdst->specsys, wcssrc->specsys, 72);
-  strncpy(wcsdst->ssysobs, wcssrc->ssysobs, 72);
-  wcsdst->velosys = wcssrc->velosys;
-  strncpy(wcsdst->ssyssrc, wcssrc->ssyssrc, 72);
-  wcsdst->zsource = wcssrc->zsource;
+  wcsdst->mjdavg = wcssrc->mjdavg;
+  wcsdst->mjdobs = wcssrc->mjdobs;
 
   wcsdst->obsgeo[0] = wcssrc->obsgeo[0];
   wcsdst->obsgeo[1] = wcssrc->obsgeo[1];
   wcsdst->obsgeo[2] = wcssrc->obsgeo[2];
 
-  strncpy(wcsdst->dateobs, wcssrc->dateobs, 72);
-  strncpy(wcsdst->dateavg, wcssrc->dateavg, 72);
-  wcsdst->mjdobs = wcssrc->mjdobs;
-  wcsdst->mjdavg = wcssrc->mjdavg;
+  strncpy(wcsdst->radesys, wcssrc->radesys, 72);
+  strncpy(wcsdst->specsys, wcssrc->specsys, 72);
+  strncpy(wcsdst->ssysobs, wcssrc->ssysobs, 72);
+  wcsdst->velosys = wcssrc->velosys;
+  wcsdst->zsource = wcssrc->zsource;
+  strncpy(wcsdst->ssyssrc, wcssrc->ssyssrc, 72);
+  wcsdst->velangl = wcssrc->velangl;
+  strncpy(wcsdst->wcsname, wcssrc->wcsname, 72);
+
+
+  /* Distortion parameters. */
+  for (m = 0; m < 2; m++) {
+    if (m == 0) {
+      dissrc = wcssrc->lin.dispre;
+      disdst = wcsdst->lin.dispre;
+    } else {
+      dissrc = wcssrc->lin.disseq;
+      disdst = wcsdst->lin.disseq;
+    }
+
+    if (dissrc) {
+      disdst->naxis = *nsub;
+
+      /* Distortion type and maximum distortion (but not total distortion). */
+      for (j = 0; j < *nsub; j++) {
+        if (axes[j] > 0) {
+          k = axes[j] - 1;
+          strncpy(disdst->dtype[j], dissrc->dtype[k], 72);
+          disdst->maxdis[j] = dissrc->maxdis[k];
+        }
+      }
+
+      /* DPja or DQia keyvalues. */
+      ndp = 0;
+      dpdst = disdst->dp;
+      for (j = 0; j < *nsub; j++) {
+        if (axes[j] == 0) continue;
+
+        /* Determine the axis mapping. */
+        for (jhat = 0; jhat < 10; jhat++) {
+          axmap[jhat] = -1;
+        }
+
+        dpsrc = dissrc->dp;
+        for (idp = 0; idp < dissrc->ndp; idp++, dpsrc++) {
+          if (dpsrc->j != j+1) continue;
+          if (dpsrc->field[1] != pq[m]) continue;
+          if ((fp = strpbrk(dpsrc->field, ".")) == 0x0) continue;
+          fp++;
+
+          if (strncmp(fp, "NAXES", 6) == 0) {
+            Nhat = wcsutil_dpkey_int(dpsrc);
+          } else if (strncmp(fp, "AXIS.", 5) == 0) {
+            sscanf(fp+5, "%d", &jhat);
+            axmap[jhat-1] = wcsutil_dpkey_int(dpsrc) - 1;
+          }
+        }
+
+        for (jhat = 0; jhat < Nhat; jhat++) {
+          if (axmap[jhat] < 0) {
+            axmap[jhat] = jhat;
+          }
+        }
+
+        /* Copy the DPja or DQia keyvalues. */
+        dpsrc = dissrc->dp;
+        for (idp = 0; idp < dissrc->ndp; idp++, dpsrc++) {
+          if (dpsrc->j != axes[j]) continue;
+          if (dpsrc->field[1] != pq[m]) continue;
+          if ((fp = strpbrk(dpsrc->field, ".")) == 0x0) continue;
+          fp++;
+
+          if (strncmp(fp, "AXIS.", 5) == 0) {
+            /* Skip it, we will create our own later. */
+            continue;
+          }
+
+          *dpdst = *dpsrc;
+          sprintf(ctmp, "%d", j+1);
+          dpdst->field[2] = ctmp[0];
+          dpdst->j = j+1;
+
+          ndp++;
+          dpdst++;
+
+          if (strncmp(fp, "NAXES", 6) == 0) {
+            for (jhat = 0; jhat < Nhat; jhat++) {
+              strcpy(dpdst->field, dpsrc->field);
+              dpdst->field[2] = ctmp[0];
+              fp = strpbrk(dpdst->field, ".") + 1;
+              sprintf(fp, "AXIS.%d", jhat+1);
+              dpdst->j = j+1;
+              dpdst->type = 0;
+              dpdst->value.i = map[axmap[jhat]];
+
+              ndp++;
+              dpdst++;
+            }
+          }
+        }
+      }
+
+      disdst->ndp = ndp;
+    }
+  }
 
 
   /* Coordinate lookup tables; only copy what's needed. */
@@ -993,26 +1193,23 @@ int wcssub(
     wcsdst->m_tab = wcsdst->tab;
   }
 
-  tabp = wcsdst->tab;
+  tab = wcsdst->tab;
   for (itab = 0; itab < wcssrc->ntab; itab++) {
     for (m = 0; m < wcssrc->tab[itab].M; m++) {
       i = wcssrc->tab[itab].map[m];
 
       if (map[i-1]) {
-        if ((status = tabcpy(1, wcssrc->tab + itab, tabp))) {
+        if ((status = tabcpy(1, wcssrc->tab + itab, tab))) {
           wcserr_set(WCS_ERRMSG(wcs_taberr[status]));
           goto cleanup;
         }
 
-        tabp++;
+        tab++;
         break;
       }
     }
   }
 
-  if (*nsub == naxis) {
-      lincpy(1, &(wcssrc->lin), &(wcsdst->lin));
-  }
 
 cleanup:
   if (itmp) free(itmp);
@@ -1702,7 +1899,7 @@ int wcsset(struct wcsprm *wcs)
   static const char *function = "wcsset";
 
   char   dpq[8], scode[4], stype[5];
-  int i, j, k, m, n, naxis, status;
+  int    i, j, k, m, n, naxis, ndpmax, status;
   double lambda, rho;
   double *cd, *pc;
   struct disprm *dis;
@@ -1750,6 +1947,7 @@ int wcsset(struct wcsprm *wcs)
         return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
       }
 
+      ndpmax = disndp(-1);
       disndp(6+wcs->npv);
 
       /* Attach it to linprm.  Also inits it. */
@@ -1763,6 +1961,8 @@ int wcsset(struct wcsprm *wcs)
         lindis(2, wcslin, dis);
         strcpy(dpq, "DQ");
       }
+
+      disndp(ndpmax);
 
       /* Yes, the distortion type is "TPV" even for TPU. */
       strcpy(dis->dtype[wcs->lng], "TPV");
@@ -1812,6 +2012,11 @@ int wcsset(struct wcsprm *wcs)
 
       wcs->npv = n;
       strcpy(wcsprj->code, "TAN");
+
+      /* As the PVi_ma have now been erased, ctype must be reset to prevent
+         this translation from re-occurring if wcsset() is called again. */
+      strcpy(wcs->ctype[wcs->lng]+5, "TAN");
+      strcpy(wcs->ctype[wcs->lat]+5, "TAN");
     }
 
     /* PVi_ma keyvalues. */
