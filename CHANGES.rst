@@ -134,6 +134,10 @@ Bug Fixes
 
 - ``astropy.units``
 
+  - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
+    ``divmod``, such that it only works where the quotient is dimensionless.
+    This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817]
+
 - ``astropy.utils``
 
 - ``astropy.vo``
