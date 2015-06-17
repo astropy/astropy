@@ -24,7 +24,7 @@ from ..utils import lazyproperty
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
-from ..utils.data_info import DataInfo, InfoDescriptor
+from ..utils.data_info import MixinInfo, InfoDescriptor
 from .utils import validate_power
 from .. import config as _config
 
@@ -115,7 +115,7 @@ class QuantityIterator(object):
     next = __next__
 
 
-class QuantityInfo(DataInfo):
+class QuantityInfo(MixinInfo):
     """
     Container for meta information like name, description, format.  This is
     required when the object is used as a mixin column within a table, but can

@@ -169,8 +169,8 @@ class DataInfo(object):
 
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
-    attr_names = set(['name', 'unit', 'dtype', 'format', 'description',
-                      'meta', 'parent_table'])
+    attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
+    _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
     _parent_ref = None
 
@@ -238,7 +238,7 @@ class DataInfo(object):
 
     def copy(self):
         out = self.__class__()
-        for attr in self.attr_names - self.attrs_from_parent:
+        for attr in self.attr_names - self.attrs_from_parent - self._attrs_no_copy:
             setattr(out, attr, deepcopy(getattr(self, attr)))
 
         return out
@@ -356,3 +356,8 @@ class DataInfo(object):
         out = six.moves.cStringIO()
         self.__call__(out=out)
         return out.getvalue()
+
+
+class MixinInfo(DataInfo):
+    attr_names = DataInfo.attr_names.union(['parent_table'])
+    _attrs_no_copy = set(['parent_table'])

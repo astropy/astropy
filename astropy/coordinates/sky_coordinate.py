@@ -13,7 +13,7 @@ from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.data_info import InfoDescriptor, DataInfo
+from ..utils.data_info import InfoDescriptor, MixinInfo
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -42,7 +42,7 @@ def FRAME_ATTR_NAMES_SET():
     return out
 
 
-class SkyCoordInfo(DataInfo):
+class SkyCoordInfo(MixinInfo):
     """
     Container for meta information like name, description, format.  This is
     required when the object is used as a mixin column within a table, but can
