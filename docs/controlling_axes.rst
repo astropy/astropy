@@ -52,5 +52,5 @@ so we want to flip an axis so that it goes in the opposite direction. To do this
    :include-source:
    :align: center
 
-    ax.set_xlim(ax.get_xlim()[-1],ax.get_xlim()[0])
+    ax.invert_xaxis()
 
