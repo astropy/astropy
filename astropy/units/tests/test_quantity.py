@@ -466,8 +466,12 @@ class TestQuantityOperations(object):
                 long(q1)
             assert exc.value.args[0] == converter_err_msg
 
+        # We used to test `q1 * ['a', 'b', 'c'] here, but that that worked
+        # at all was a really odd confluence of bugs.  Since it doesn't work
+        # in numpy >=1.10 any more, just go directly for `__index__` (which
+        # makes the test more similar to the `int`, `long`, etc., tests).
         with pytest.raises(TypeError) as exc:
-            q1 * ['a', 'b', 'c']
+            q1.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # dimensionless but scaled is OK, however
@@ -480,7 +484,7 @@ class TestQuantityOperations(object):
             assert long(q2) == long(q2.to(u.dimensionless_unscaled).value)
 
         with pytest.raises(TypeError) as exc:
-            q2 * ['a', 'b', 'c']
+            q2.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # dimensionless unscaled is OK, though for index needs to be int
@@ -492,7 +496,7 @@ class TestQuantityOperations(object):
             assert long(q3) == 1
 
         with pytest.raises(TypeError) as exc:
-            q1 * ['a', 'b', 'c']
+            q1.__index__()
         assert exc.value.args[0] == index_err_msg
 
         # integer dimensionless unscaled is good for all
@@ -503,7 +507,7 @@ class TestQuantityOperations(object):
         if six.PY2:
             assert long(q4) == 2
 
-        assert q4 * ['a', 'b', 'c'] == ['a', 'b', 'c', 'a', 'b', 'c']
+        assert q4.__index__() == 2
 
         # but arrays are not OK
         q5 = u.Quantity([1, 2], u.m)
@@ -521,7 +525,7 @@ class TestQuantityOperations(object):
             assert exc.value.args[0] == converter_err_msg
 
         with pytest.raises(TypeError) as exc:
-            q5 * ['a', 'b', 'c']
+            q5.__index__()
         assert exc.value.args[0] == index_err_msg
 
     def test_array_converters(self):
