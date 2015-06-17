@@ -211,35 +211,34 @@ class TestQuantityMathFuncs(object):
         assert np.all(np.multiply(np.arange(3.) * u.m, 2. / u.s) ==
                       np.arange(0, 6., 2.) * u.m / u.s)
 
-    @pytest.mark.parametrize('function', (np.divide, np.true_divide,
-                                          np.floor_divide))
+    @pytest.mark.parametrize('function', (np.divide, np.true_divide))
     def test_divide_scalar(self, function):
         assert function(4. * u.m, 2. * u.s) == function(4., 2.) * u.m / u.s
         assert function(4. * u.m, 2.) == function(4., 2.) * u.m
         assert function(4., 2. * u.s) == function(4., 2.) / u.s
 
-    @pytest.mark.parametrize('function', (np.divide, np.true_divide,
-                                          np.floor_divide))
+    @pytest.mark.parametrize('function', (np.divide, np.true_divide))
     def test_divide_array(self, function):
         assert np.all(function(np.arange(3.) * u.m, 2. * u.s) ==
                       function(np.arange(3.), 2.) * u.m / u.s)
 
-    def test_divmod(self):
+    def test_divmod_and_floor_divide(self):
         inch = u.Unit(0.0254 * u.m)
-        quotient, remainder = divmod(
-            np.array([1., 2., 3.]) * u.m,
-            np.array([3., 4., 5.]) * inch)
+        dividend = np.array([1., 2., 3.]) * u.m
+        divisor = np.array([3., 4., 5.]) * inch
+        quotient = dividend // divisor
         assert_allclose(quotient.value, [13., 19., 23.])
         assert quotient.unit == u.dimensionless_unscaled
+        quotient2, remainder = divmod(dividend, divisor)
+        assert np.all(quotient2 == quotient)
         assert_allclose(remainder.value, [0.0094, 0.0696, 0.079])
-        assert remainder.unit == u.m
+        assert remainder.unit == dividend.unit
 
-        quotient, remainder = divmod(
-            np.array([1., 2., 3.]) * u.m, u.km)
-        assert_allclose(quotient.value, [1., 2., 3.])
-        assert quotient.unit == u.m / u.km
-        assert remainder.value == 0.
-        assert remainder.unit == u.dimensionless_unscaled
+        with pytest.raises(TypeError):
+            divmod(dividend, u.km)
+
+        with pytest.raises(TypeError):
+            dividend // u.km
 
     def test_sqrt_scalar(self):
         assert np.sqrt(4. * u.m) == 2. * u.m ** 0.5

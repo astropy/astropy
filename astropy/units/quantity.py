@@ -838,13 +838,8 @@ class Quantity(np.ndarray):
         return self.__rdiv__(other)
 
     def __divmod__(self, other):
-        if isinstance(other, (six.string_types, UnitBase)):
-            return (self / other,
-                    self._new_view(np.array(0.), dimensionless_unscaled))
-
         other_value = self._to_own_unit(other)
-        result_tuple = super(Quantity, self.__class__).__divmod__(
-            self.view(np.ndarray), other_value)
+        result_tuple = divmod(self.value, other_value)
 
         return (self._new_view(result_tuple[0], dimensionless_unscaled),
                 self._new_view(result_tuple[1]))
