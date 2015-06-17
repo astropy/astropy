@@ -3,7 +3,7 @@
 
 import numpy as np
 from .core import (UnitsError, UnitConversionError, dimensionless_unscaled,
-                   get_current_unit_registry)
+                   get_current_unit_registry, arbitrary)
 from ..utils.compat.fractions import Fraction
 
 
@@ -262,7 +262,10 @@ def get_converters_and_unit(f, *units):
     if all(unit is None for unit in units):
         return converters, dimensionless_unscaled
 
-    fixed, changeable = (1, 0) if units[1] is None else (0, 1)
+    # By default, we convert the second argument to the unit of the first,
+    # but not if the second cannot be converted or the first is arbitrary.
+    fixed, changeable = ((1, 0) if units[1] is None or units[0] is arbitrary
+                         else (0, 1))
     if units[fixed] is None:
         try:
             converters[changeable] = get_converter(units[changeable],
