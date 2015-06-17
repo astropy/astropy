@@ -17,7 +17,6 @@ from . import utils
 from .base import Base
 from ...utils.misc import did_you_mean
 
-
 def _to_string(cls, unit):
     from .. import core
 
@@ -130,7 +129,7 @@ class Generic(Base):
         # This needs to be a function so we can force it to happen
         # before t_UNIT
         def t_FUNCNAME(t):
-            r'(sqrt)|(ln)|(exp)|(log)'
+            r'((sqrt)|(ln)|(exp)|(log)|(mag)|(dB)|(dex))(?=\ *\()'
             return t
 
         def t_UNIT(t):
@@ -342,13 +341,20 @@ class Generic(Base):
 
         def p_function(p):
             '''
-            function : function_name OPEN_PAREN unit_expression CLOSE_PAREN
+            function : function_name OPEN_PAREN main CLOSE_PAREN
             '''
             if p[1] == 'sqrt':
                 p[0] = p[3] ** 0.5
-            else:
-                raise ValueError(
-                   "'{0}' is not a recognized function".format(p[1]))
+                return
+            elif p[1] in ('mag', 'dB', 'dex'):
+                function_unit = cls._parse_unit(p[1])
+                # In Generic, this is callable, but that does not have to
+                # be the case in subclasses (e.g., in VOUnit it is not).
+                if callable(function_unit):
+                    p[0] = function_unit(p[3])
+                    return
+
+            raise ValueError("'{0}' is not a recognized function".format(p[1]))
 
         def p_error(p):
             raise ValueError()

@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import (absolute_import, unicode_literals,
                         division, print_function)
 import numpy as np
 
-from .. import (CompositeUnit, Unit, UnitsError, dimensionless_unscaled,
-                si, astrophys as ap)
+from .. import CompositeUnit, Unit, UnitsError, dimensionless_unscaled, si
 from .core import FunctionUnitBase, FunctionQuantity
+from .units import dex, dB, mag
 
 
 __all__ = ['LogUnit', 'MagUnit', 'DexUnit', 'DecibelUnit',
-           'LogQuantity', 'Magnitude', 'Decibel', 'Dex',
-           'STmag', 'ABmag', 'mag']
+           'LogQuantity', 'Magnitude', 'Decibel', 'Dex', 'STmag', 'ABmag']
 
 
 class LogUnit(FunctionUnitBase):
@@ -32,7 +32,7 @@ class LogUnit(FunctionUnitBase):
     # the four essential overrides of FunctionUnitBase
     @property
     def _default_function_unit(self):
-        return ap.dex
+        return dex
 
     @property
     def _quantity_class(self):
@@ -41,12 +41,12 @@ class LogUnit(FunctionUnitBase):
     def from_physical(self, x):
         """Transformation from value in physical to value in logarithmic units.
         Used in equivalency."""
-        return ap.dex.to(self._function_unit, np.log10(x))
+        return dex.to(self._function_unit, np.log10(x))
 
     def to_physical(self, x):
         """Transformation from value in logarithmic to value in physical units.
         Used in equivalency."""
-        return 10 ** self._function_unit.to(ap.dex, x)
+        return 10 ** self._function_unit.to(dex, x)
     # ^^^^ the four essential overrides of FunctionUnitBase
 
     # add addition and subtraction, which imply multiplication/division of
@@ -119,7 +119,7 @@ class MagUnit(LogUnit):
     """
     @property
     def _default_function_unit(self):
-        return ap.mag
+        return mag
 
     @property
     def _quantity_class(self):
@@ -142,7 +142,7 @@ class DexUnit(LogUnit):
 
     @property
     def _default_function_unit(self):
-        return ap.dex
+        return dex
 
     @property
     def _quantity_class(self):
@@ -165,7 +165,7 @@ class DecibelUnit(LogUnit):
 
     @property
     def _default_function_unit(self):
-        return ap.dB
+        return dB
 
     @property
     def _quantity_class(self):
@@ -282,7 +282,10 @@ class Magnitude(LogQuantity):
     _unit_class = MagUnit
 
 
-mag = MagUnit()
+dex._function_unit_class = DexUnit
+dB._function_unit_class = DecibelUnit
+mag._function_unit_class = MagUnit
+
 
 AB0 = Unit('AB', 10.**(-0.4*48.6) * 1.e-3 * si.W / si.m**2 / si.Hz,
            doc="AB magnitude zero flux density.")

@@ -15,6 +15,8 @@ from numpy.testing.utils import assert_allclose
 from ...tests.helper import pytest
 from ... import units as u
 
+lu_units = [u.dex, u.mag, u.decibel]
+
 lu_subclasses = [u.DexUnit, u.MagUnit, u.DecibelUnit]
 
 lq_subclasses = [u.Dex, u.Magnitude, u.Decibel]
@@ -30,11 +32,26 @@ class TestLogUnitCreation(object):
         assert u.dex.to(u.mag) == -2.5
         assert u.mag.to(u.dB) == -4
 
-    @pytest.mark.parametrize('lu_cls', lu_subclasses)
-    def test_equality_to_normal_unit_for_dimensionless(self, lu_cls):
-        lu = lu_cls()
+    @pytest.mark.parametrize('lu_unit, lu_cls', zip(lu_units, lu_subclasses))
+    def test_callable_units(self, lu_unit, lu_cls):
+        assert isinstance(lu_unit, u.UnitBase)
+        assert callable(lu_unit)
+        assert lu_unit._function_unit_class is lu_cls
+
+    @pytest.mark.parametrize('lu_unit', lu_units)
+    def test_equality_to_normal_unit_for_dimensionless(self, lu_unit):
+        lu = lu_unit()
         assert lu == lu._default_function_unit  # eg, MagUnit() == u.mag
         assert lu._default_function_unit == lu  # and u.mag == MagUnit()
+
+    @pytest.mark.parametrize('lu_unit, physical_unit',
+                             itertools.product(lu_units, pu_sample))
+    def test_call_units(self, lu_unit, physical_unit):
+        """Create a LogUnit subclass using the callable unit and physcal unit,
+        and do basic check that output is right."""
+        lu1 = lu_unit(physical_unit)
+        assert lu1.physical_unit == physical_unit
+        assert lu1.function_unit == lu1._default_function_unit
 
     @pytest.mark.parametrize('lu_cls, physical_unit',
                              itertools.product(lu_subclasses, pu_sample))
@@ -58,28 +75,30 @@ class TestLogUnitStrings(object):
 
     def test_str(self):
         """Do some spot checks that str, repr, etc. work as expected."""
-        lu1 = u.MagUnit(u.Jy)
+        lu1 = u.mag(u.Jy)
         assert str(lu1) == 'mag(Jy)'
-        assert repr(lu1) == "MagUnit('Jy')"
-        assert str(lu1) == lu1.to_string('generic')
+        assert repr(lu1) == 'Unit("mag(Jy)")'
+        assert lu1.to_string('generic') == 'mag(Jy)'
         with pytest.raises(ValueError):
             lu1.to_string('fits')
 
-        lu2 = u.DexUnit()
+        lu2 = u.dex()
         assert str(lu2) == 'dex'
-        assert repr(lu2) == "DexUnit('')"
+        assert repr(lu2) == 'Unit("dex(1)")'
+        assert lu2.to_string() == 'dex(1)'
 
         lu3 = u.MagUnit(u.Jy, function_unit=2*u.mag)
         assert str(lu3) == '2 mag(Jy)'
-        assert repr(lu3) == "MagUnit('Jy', unit='2 mag')"
+        assert repr(lu3) == 'MagUnit("Jy", unit="2 mag")'
+        assert lu3.to_string() == '2 mag(Jy)'
 
 class TestLogUnitConversion(object):
-    @pytest.mark.parametrize('lu_cls, physical_unit',
-                             itertools.product(lu_subclasses, pu_sample))
-    def test_physical_unit_conversion(self, lu_cls, physical_unit):
+    @pytest.mark.parametrize('lu_unit, physical_unit',
+                             itertools.product(lu_units, pu_sample))
+    def test_physical_unit_conversion(self, lu_unit, physical_unit):
         """Check various LogUnit subclasses are equivalent and convertible
         to their non-log counterparts."""
-        lu1 = lu_cls(physical_unit)
+        lu1 = lu_unit(physical_unit)
         assert lu1.is_equivalent(physical_unit)
         assert lu1.to(physical_unit, 0.) == 1.
 
@@ -106,45 +125,45 @@ class TestLogUnitConversion(object):
         with pytest.raises(u.UnitsError):
             pu2.to(lu1)
 
-    @pytest.mark.parametrize('lu_cls', lu_subclasses)
-    def test_container_unit_conversion(self, lu_cls):
+    @pytest.mark.parametrize('lu_unit', lu_units)
+    def test_container_unit_conversion(self, lu_unit):
         """Check that conversion to logarithmic units (u.mag, u.dB, u.dex)
         is only possible when the physical unit is dimensionless."""
         values = np.linspace(0.,10.,6.)
-        lu1 = lu_cls(u.dimensionless_unscaled)
+        lu1 = lu_unit(u.dimensionless_unscaled)
         assert lu1.is_equivalent(lu1.function_unit)
         assert_allclose(lu1.to(lu1.function_unit, values), values)
 
-        lu2 = lu_cls(u.Jy)
+        lu2 = lu_unit(u.Jy)
         assert not lu2.is_equivalent(lu2.function_unit)
         with pytest.raises(u.UnitsError):
             lu2.to(lu2.function_unit, values)
 
     @pytest.mark.parametrize(
-        'flu_cls, tlu_cls, physical_unit',
-        itertools.product(lu_subclasses, lu_subclasses, pu_sample))
-    def test_subclass_conversion(self, flu_cls, tlu_cls, physical_unit):
+        'flu_unit, tlu_unit, physical_unit',
+        itertools.product(lu_units, lu_units, pu_sample))
+    def test_subclass_conversion(self, flu_unit, tlu_unit, physical_unit):
         """Check various LogUnit subclasses are equivalent and convertible
         to each other if they correspond to equivalent physical units."""
         values = np.linspace(0.,10.,6.)
-        flu = flu_cls(physical_unit)
+        flu = flu_unit(physical_unit)
 
-        tlu = tlu_cls(physical_unit)
+        tlu = tlu_unit(physical_unit)
         assert flu.is_equivalent(tlu)
         assert_allclose(flu.to(tlu), flu.function_unit.to(tlu.function_unit))
         assert_allclose(flu.to(tlu, values),
                         values * flu.function_unit.to(tlu.function_unit))
 
-        tlu2 = tlu_cls(u.Unit(100.*physical_unit))
+        tlu2 = tlu_unit(u.Unit(100.*physical_unit))
         assert flu.is_equivalent(tlu2)
         # Check that we round-trip.
         assert_allclose(flu.to(tlu2, tlu2.to(flu, values)), values, atol=1.e-15)
 
-        tlu3 = tlu_cls(physical_unit.to_system(u.si)[0])
+        tlu3 = tlu_unit(physical_unit.to_system(u.si)[0])
         assert flu.is_equivalent(tlu3)
         assert_allclose(flu.to(tlu3, tlu3.to(flu, values)), values, atol=1.e-15)
 
-        tlu4 = tlu_cls(u.g)
+        tlu4 = tlu_unit(u.g)
         assert not flu.is_equivalent(tlu4)
         with pytest.raises(u.UnitsError):
             flu.to(tlu4, values)
@@ -155,7 +174,7 @@ class TestLogUnitArithmetic(object):
         """Check that multiplication/division with other units is only
         possible when the physical unit is dimensionless, and that this
         turns the unit into a normal one."""
-        lu1 = u.MagUnit(u.Jy)
+        lu1 = u.mag(u.Jy)
 
         with pytest.raises(u.UnitsError):
             lu1 * u.m
@@ -170,7 +189,7 @@ class TestLogUnitArithmetic(object):
             with pytest.raises(u.UnitsError):
                 lu1 / unit
 
-        lu2 = u.MagUnit(u.dimensionless_unscaled)
+        lu2 = u.mag(u.dimensionless_unscaled)
 
         with pytest.raises(u.UnitsError):
             lu2 * lu1
@@ -211,7 +230,7 @@ class TestLogUnitArithmetic(object):
         """Check that raising LogUnits to some power is only possible when the
         physical unit is dimensionless, and that conversion is turned off when
         the resulting logarithmic unit (such as mag**2) is incompatible."""
-        lu1 = u.MagUnit(u.Jy)
+        lu1 = u.mag(u.Jy)
 
         if power == 0:
             assert lu1 ** power == u.dimensionless_unscaled
@@ -222,7 +241,7 @@ class TestLogUnitArithmetic(object):
                 lu1 ** power
 
         # With dimensionless, though, it works, but returns a normal unit.
-        lu2 = u.MagUnit(u.dimensionless_unscaled)
+        lu2 = u.mag(u.dimensionless_unscaled)
 
         t = lu2**power
         if power == 0:
@@ -241,7 +260,7 @@ class TestLogUnitArithmetic(object):
 
     @pytest.mark.parametrize('other', pu_sample)
     def test_addition_subtraction_to_normal_units_fails(self, other):
-        lu1 = u.MagUnit(u.Jy)
+        lu1 = u.mag(u.Jy)
         with pytest.raises(u.UnitsError):
             lu1 + other
 
@@ -252,11 +271,11 @@ class TestLogUnitArithmetic(object):
             other - lu1
 
     @pytest.mark.parametrize(
-        'other', (u.mag, u.MagUnit(), u.MagUnit(u.Jy), u.MagUnit(u.m),
+        'other', (u.mag, u.mag(), u.mag(u.Jy), u.mag(u.m),
                   u.Unit(2*u.mag), u.MagUnit('', 2.*u.mag)))
     def test_addition_subtraction(self, other):
         """Check physical units are changed appropriately"""
-        lu1 = u.MagUnit(u.Jy)
+        lu1 = u.mag(u.Jy)
         other_pu = getattr(other, 'physical_unit', u.dimensionless_unscaled)
 
         lu_sf = lu1 + other
@@ -274,7 +293,7 @@ class TestLogUnitArithmetic(object):
     def test_complicated_addition_subtraction(self):
         """for fun, a more complicated example of addition and subtraction"""
         dm0 = u.Unit('DM', 1./(4.*np.pi*(10.*u.pc)**2))
-        lu_dm = u.MagUnit(dm0, u.mag)
+        lu_dm = u.mag(dm0)
         lu_absST = u.STmag - lu_dm
         assert lu_absST.is_equivalent(u.erg/u.s/u.AA)
 
@@ -301,7 +320,7 @@ class TestLogQuantityCreation(object):
             lq_cls(value, physical_unit)
 
     @pytest.mark.parametrize(
-        'unit', (u.mag, u.MagUnit(), u.MagUnit(u.Jy), u.MagUnit(u.m),
+        'unit', (u.mag, u.mag(), u.mag(u.Jy), u.mag(u.m),
                  u.Unit(2*u.mag), u.MagUnit('', 2.*u.mag),
                  u.MagUnit(u.Jy, -1*u.mag), u.MagUnit(u.m, -2.*u.mag)))
     def test_different_units(self, unit):
@@ -311,8 +330,7 @@ class TestLogQuantityCreation(object):
                                                u.dimensionless_unscaled)
 
     @pytest.mark.parametrize(
-        'unit', (u.MagUnit(), u.MagUnit(u.Jy), u.MagUnit(u.m),
-                 u.MagUnit('', 2.*u.mag),
+        'unit', (u.mag(), u.mag(u.Jy), u.mag(u.m), u.MagUnit('', 2.*u.mag),
                  u.MagUnit(u.Jy, -1*u.mag), u.MagUnit(u.m, -2.*u.mag)))
     def test_indirect_creation(self, unit):
         q1 = 2.5 * unit
@@ -467,7 +485,7 @@ class TestLogQuantityArithmetic(object):
             q - lq
 
     @pytest.mark.parametrize(
-        'other', (1.23 * u.mag, 2.34 * u.MagUnit(),
+        'other', (1.23 * u.mag, 2.34 * u.mag(),
                   u.Magnitude(3.45 * u.Jy), u.Magnitude(4.56 * u.m),
                   5.67 * u.Unit(2*u.mag), u.Magnitude(6.78, 2.*u.mag)))
     def test_addition_subtraction(self, other):
@@ -493,7 +511,7 @@ class TestLogQuantityArithmetic(object):
 
     @pytest.mark.parametrize('other', pu_sample)
     def test_inplace_addition_subtraction_unit_checks(self, other):
-        lu1 = u.MagUnit(u.Jy)
+        lu1 = u.mag(u.Jy)
         lq1 = u.Magnitude(np.arange(1.,10.), lu1)
         with pytest.raises(u.UnitsError):
             lq1 += other
@@ -508,7 +526,7 @@ class TestLogQuantityArithmetic(object):
         assert lq1.unit == lu1
 
     @pytest.mark.parametrize(
-        'other', (1.23 * u.mag, 2.34 * u.MagUnit(),
+        'other', (1.23 * u.mag, 2.34 * u.mag(),
                   u.Magnitude(3.45 * u.Jy), u.Magnitude(4.56 * u.m),
                   5.67 * u.Unit(2*u.mag), u.Magnitude(6.78, 2.*u.mag)))
     def test_inplace_addition_subtraction(self, other):
@@ -530,7 +548,7 @@ class TestLogQuantityArithmetic(object):
     def test_complicated_addition_subtraction(self):
         """For fun, a more complicated example of addition and subtraction."""
         dm0 = u.Unit('DM', 1./(4.*np.pi*(10.*u.pc)**2))
-        DMmag = u.MagUnit(dm0, u.mag)
+        DMmag = u.mag(dm0)
         m_st = 10. * u.STmag
         dm = 5. * DMmag
         M_st = m_st - dm

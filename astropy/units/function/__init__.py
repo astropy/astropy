@@ -7,3 +7,4 @@ are some function of a physical unit, such as magnitudes and decibels.
 """
 from .core import *
 from .logarithmic import *
+from .units import *

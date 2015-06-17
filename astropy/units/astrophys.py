@@ -4,12 +4,6 @@
 """
 This package defines the astrophysics-specific units.  They are also
 available in the `astropy.units` namespace.
-
-The ``mag`` unit is provided for compatibility with the FITS unit string
-standard.  However, it is not very useful as-is since it is "orphaned"
-and can not be converted to any other unit.  A future astropy
-magnitudes library is planned to address this shortcoming.
-
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -145,18 +139,6 @@ def_unit(['adu'], namespace=_ns, prefixes=True)
 def_unit(['beam'], namespace=_ns, prefixes=True)
 def_unit(['electron'], doc="Number of electrons", namespace=_ns,
          format={'latex': r'e^{-}', 'unicode': 'e⁻'})
-
-###########################################################################
-# Logarithmic units
-
-def_unit(['dex'], namespace=_ns, prefixes=False,
-         doc="Dex: Base 10 logarithmic unit")
-
-def_unit(['dB', 'decibel'], 0.1 * dex, namespace=_ns, prefixes=False,
-         doc="Decibel: ten per base 10 logarithmic unit")
-
-def_unit(['mag'], -0.4 * dex, namespace=_ns, prefixes=True,
-         doc="Astronomical magnitude: -2.5 per base 10 logarithmic unit")
 
 
 ###########################################################################

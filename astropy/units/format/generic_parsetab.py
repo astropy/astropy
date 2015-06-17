@@ -6,72 +6,72 @@ _tabversion = '3.2'
 
 _lr_method = 'LALR'
 
-_lr_signature = b'\x91n3d*\xfd\x8d\x87$W\xd5^\xb8\xc6\x16['
+_lr_signature = b'\x89w1>#\x06\xbd\xf8s\xe1m\x8b\xfc~M\x01'
 
-_lr_action_items = {'CARET':([17,18,34,40,],[35,35,35,35,]),'SOLIDUS':([0,3,4,5,7,8,12,14,15,17,18,19,21,22,25,26,31,39,44,45,46,47,50,51,52,54,55,56,61,62,63,64,65,],[1,-25,-9,1,1,-23,-24,-13,-11,-16,-29,-12,-45,-44,-9,1,-22,-17,-28,-8,-26,-21,-14,-18,-43,-19,-27,-30,-47,-15,-20,1,-31,]),'STAR':([3,8,12,18,44,46,55,56,61,65,],[-25,29,-24,-29,-28,-26,-27,-30,-47,-31,]),'DOUBLE_STAR':([17,18,34,40,],[37,37,37,37,]),'PERIOD':([3,8,12,18,44,46,55,56,61,65,],[-25,30,-24,-29,-28,-26,-27,-30,-47,-31,]),'FUNCNAME':([0,1,3,6,7,8,12,13,14,15,17,18,19,21,22,23,28,29,30,32,39,44,46,50,51,52,54,55,56,61,62,63,65,],[20,-40,-25,20,20,20,-24,20,-13,-11,-16,-29,-12,-45,-44,20,20,-38,-39,20,-17,-28,-26,-14,-18,-43,-19,-27,-30,-47,-15,-20,-31,]),'OPEN_PAREN':([0,1,3,6,7,8,11,12,13,14,15,17,18,19,20,21,22,23,28,29,30,32,35,36,37,39,41,44,46,49,50,51,52,53,54,55,56,61,62,63,65,],[6,-40,-25,6,6,6,32,-24,6,-13,-11,-16,43,-12,-46,-45,-44,6,6,-38,-39,6,-42,43,-41,-17,43,-28,-26,43,-14,-18,-43,43,-19,-27,-30,-47,-15,-20,-31,]),'UINT':([0,1,2,14,16,17,18,21,22,35,36,37,38,41,42,43,49,53,59,66,67,],[17,-40,22,34,-36,40,-37,-45,-44,-42,-37,-41,52,-37,56,-37,-37,-37,64,-37,68,]),'CLOSE_PAREN':([3,8,12,18,21,24,31,44,46,47,48,55,56,57,58,60,61,64,65,68,],[-25,-23,-24,-29,-45,46,-22,-28,-26,-21,61,-27,-30,-34,-33,65,-47,-32,-31,-35,]),'SIGN':([0,1,17,18,34,35,36,37,40,41,43,49,53,66,],[16,-40,38,16,38,-42,16,-41,38,16,16,16,16,16,]),'$end':([3,4,5,7,8,9,10,12,14,15,17,18,19,21,22,25,26,27,31,33,39,44,45,46,47,50,51,52,54,55,56,61,62,63,65,],[-25,-1,-3,-7,-23,0,-5,-24,-13,-11,-16,-29,-12,-45,-44,-2,-4,-6,-22,-10,-17,-28,-8,-26,-21,-14,-18,-43,-19,-27,-30,-47,-15,-20,-31,]),'UNIT':([0,1,3,6,7,8,12,13,14,15,17,18,19,21,22,23,28,29,30,32,39,44,46,50,51,52,54,55,56,61,62,63,65,],[18,-40,-25,18,18,18,-24,18,-13,-11,-16,-29,-12,-45,-44,18,18,-38,-39,18,-17,-28,-26,-14,-18,-43,-19,-27,-30,-47,-15,-20,-31,]),'UFLOAT':([0,2,16,43,59,],[-37,21,-36,-37,21,]),}
+_lr_action_items = {'DOUBLE_STAR':([4,10,21,22,],[23,23,23,23,]),'FUNCNAME':([0,1,2,3,4,6,7,8,9,10,16,17,20,26,28,29,34,38,39,41,42,44,45,47,49,50,51,56,57,61,62,63,65,],[14,-12,-13,-11,-16,-24,14,-40,14,-29,14,14,-25,-17,-44,-45,-28,14,14,-38,-39,14,-14,-19,-43,-18,-26,-27,-30,-15,-20,-31,-47,]),'SOLIDUS':([0,1,2,3,4,6,7,10,12,16,18,20,26,28,29,31,32,34,38,40,45,47,49,50,51,56,57,59,60,61,62,63,64,65,],[8,-12,-13,-11,-16,-24,8,-29,-9,-23,8,-25,-17,-44,-45,-9,8,-28,8,-22,-14,-19,-43,-18,-26,-27,-30,-21,-8,-15,-20,-31,8,-47,]),'$end':([1,2,3,4,6,7,10,11,12,13,16,18,20,26,28,29,30,31,32,34,40,43,45,47,49,50,51,56,57,59,60,61,62,63,65,],[-12,-13,-11,-16,-24,-7,-29,-5,-1,0,-23,-3,-25,-17,-44,-45,-6,-2,-4,-28,-22,-10,-14,-19,-43,-18,-26,-27,-30,-21,-8,-15,-20,-31,-47,]),'UNIT':([0,1,2,3,4,6,7,8,9,10,16,17,20,26,28,29,34,38,39,41,42,44,45,47,49,50,51,56,57,61,62,63,65,],[10,-12,-13,-11,-16,-24,10,-40,10,-29,10,10,-25,-17,-44,-45,-28,10,10,-38,-39,10,-14,-19,-43,-18,-26,-27,-30,-15,-20,-31,-47,]),'OPEN_PAREN':([0,1,2,3,4,6,7,8,9,10,14,15,16,17,20,23,25,26,27,28,29,34,36,38,39,41,42,44,45,46,47,48,49,50,51,56,57,61,62,63,65,],[9,-12,-13,-11,-16,-24,9,-40,9,35,-46,38,9,9,-25,-41,-42,-17,35,-44,-45,-28,35,9,9,-38,-39,9,-14,35,-19,35,-43,-18,-26,-27,-30,-15,-20,-31,-47,]),'PERIOD':([6,10,16,20,34,51,56,57,63,65,],[-24,-29,42,-25,-28,-26,-27,-30,-31,-47,]),'STAR':([6,10,16,20,34,51,56,57,63,65,],[-24,-29,41,-25,-28,-26,-27,-30,-31,-47,]),'UINT':([0,2,4,5,8,10,19,23,24,25,27,28,29,35,36,37,38,46,48,55,66,67,],[4,21,22,28,-40,-37,-36,-41,49,-42,-37,-44,-45,-37,-37,57,4,-37,-37,64,-37,68,]),'UFLOAT':([0,5,19,35,38,55,],[-37,29,-36,-37,-37,29,]),'CLOSE_PAREN':([1,2,3,4,6,7,10,11,12,16,18,20,26,28,29,30,31,32,33,34,40,43,45,47,49,50,51,52,53,54,56,57,58,59,60,61,62,63,64,65,68,],[-12,-13,-11,-16,-24,-7,-29,-5,-1,-23,-3,-25,-17,-44,-45,-6,-2,-4,51,-28,-22,-10,-14,-19,-43,-18,-26,-34,-33,63,-27,-30,65,-21,-8,-15,-20,-31,-32,-47,-35,]),'SIGN':([0,4,8,10,21,22,23,25,27,35,36,38,46,48,66,],[19,24,-40,19,24,24,-41,-42,19,19,19,19,19,19,19,]),'CARET':([4,10,21,22,],[25,25,25,25,]),}
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
-    for _x,_y in zip(_v[0],_v[1]):
-        if not _x in _lr_action:  _lr_action[_x] = { }
-        _lr_action[_x][_k] = _y
+   for _x,_y in zip(_v[0],_v[1]):
+      if not _x in _lr_action:  _lr_action[_x] = { }
+      _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'function':([0,6,7,8,13,23,28,32,],[12,12,12,12,12,12,12,12,]),'division':([0,5,7,26,64,],[13,23,13,23,66,]),'product':([8,],[28,]),'frac':([43,],[57,]),'factor_int':([0,],[19,]),'power':([17,18,34,40,],[36,41,49,53,]),'unit_with_power':([0,6,7,8,13,23,28,32,],[3,3,3,3,3,3,3,3,]),'signed_float':([0,43,],[14,58,]),'product_of_units':([0,6,7,8,23,28,],[4,24,25,31,45,47,]),'factor_float':([0,],[15,]),'sign':([0,18,36,41,43,49,53,66,],[2,42,42,42,59,42,42,67,]),'signed_int':([17,34,40,],[39,50,54,]),'division_product_of_units':([0,7,],[5,26,]),'factor':([0,],[7,]),'unit_expression':([0,6,7,8,13,23,28,32,],[8,8,8,8,33,8,8,48,]),'numeric_power':([18,36,41,49,53,],[44,51,55,62,63,]),'main':([0,],[9,]),'paren_expr':([43,],[60,]),'inverse_unit':([0,7,],[10,27,]),'function_name':([0,6,7,8,13,23,28,32,],[11,11,11,11,11,11,11,11,]),}
+_lr_goto_items = {'factor_float':([0,38,],[3,3,]),'factor_int':([0,38,],[1,1,]),'frac':([35,],[52,]),'signed_float':([0,35,38,],[2,53,2,]),'product':([16,],[39,]),'inverse_unit':([0,7,38,],[11,30,11,]),'paren_expr':([35,],[54,]),'product_of_units':([0,7,9,16,38,39,44,],[12,31,33,40,12,59,60,]),'power':([4,10,21,22,],[27,36,46,48,]),'factor':([0,38,],[7,7,]),'function_name':([0,7,9,16,17,38,39,44,],[15,15,15,15,15,15,15,15,]),'numeric_power':([10,27,36,46,48,],[34,50,56,61,62,]),'sign':([0,10,27,35,36,38,46,48,66,],[5,37,37,55,37,5,37,37,67,]),'division':([0,7,18,32,38,64,],[17,17,44,44,17,66,]),'division_product_of_units':([0,7,38,],[18,32,18,]),'function':([0,7,9,16,17,38,39,44,],[6,6,6,6,6,6,6,6,]),'unit_with_power':([0,7,9,16,17,38,39,44,],[20,20,20,20,20,20,20,20,]),'signed_int':([4,21,22,],[26,45,47,]),'main':([0,38,],[13,58,]),'unit_expression':([0,7,9,16,17,38,39,44,],[16,16,16,16,43,16,16,16,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
-    for _x,_y in zip(_v[0],_v[1]):
-        if not _x in _lr_goto: _lr_goto[_x] = { }
-        _lr_goto[_x][_k] = _y
+   for _x,_y in zip(_v[0],_v[1]):
+       if not _x in _lr_goto: _lr_goto[_x] = { }
+       _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
   ("S' -> main","S'",1,None,None,None),
-  ('main -> product_of_units','main',1,'p_main','astropy/units/format/generic.py',130),
-  ('main -> factor product_of_units','main',2,'p_main','astropy/units/format/generic.py',131),
-  ('main -> division_product_of_units','main',1,'p_main','astropy/units/format/generic.py',132),
-  ('main -> factor division_product_of_units','main',2,'p_main','astropy/units/format/generic.py',133),
-  ('main -> inverse_unit','main',1,'p_main','astropy/units/format/generic.py',134),
-  ('main -> factor inverse_unit','main',2,'p_main','astropy/units/format/generic.py',135),
-  ('main -> factor','main',1,'p_main','astropy/units/format/generic.py',136),
-  ('division_product_of_units -> division_product_of_units division product_of_units','division_product_of_units',3,'p_division_product_of_units','astropy/units/format/generic.py',146),
-  ('division_product_of_units -> product_of_units','division_product_of_units',1,'p_division_product_of_units','astropy/units/format/generic.py',147),
-  ('inverse_unit -> division unit_expression','inverse_unit',2,'p_inverse_unit','astropy/units/format/generic.py',157),
-  ('factor -> factor_float','factor',1,'p_factor','astropy/units/format/generic.py',163),
-  ('factor -> factor_int','factor',1,'p_factor','astropy/units/format/generic.py',164),
-  ('factor_float -> signed_float','factor_float',1,'p_factor_float','astropy/units/format/generic.py',170),
-  ('factor_float -> signed_float UINT signed_int','factor_float',3,'p_factor_float','astropy/units/format/generic.py',171),
-  ('factor_float -> signed_float UINT power numeric_power','factor_float',4,'p_factor_float','astropy/units/format/generic.py',172),
-  ('factor_int -> UINT','factor_int',1,'p_factor_int','astropy/units/format/generic.py',183),
-  ('factor_int -> UINT signed_int','factor_int',2,'p_factor_int','astropy/units/format/generic.py',184),
-  ('factor_int -> UINT power numeric_power','factor_int',3,'p_factor_int','astropy/units/format/generic.py',185),
-  ('factor_int -> UINT UINT signed_int','factor_int',3,'p_factor_int','astropy/units/format/generic.py',186),
-  ('factor_int -> UINT UINT power numeric_power','factor_int',4,'p_factor_int','astropy/units/format/generic.py',187),
-  ('product_of_units -> unit_expression product product_of_units','product_of_units',3,'p_product_of_units','astropy/units/format/generic.py',203),
-  ('product_of_units -> unit_expression product_of_units','product_of_units',2,'p_product_of_units','astropy/units/format/generic.py',204),
-  ('product_of_units -> unit_expression','product_of_units',1,'p_product_of_units','astropy/units/format/generic.py',205),
-  ('unit_expression -> function','unit_expression',1,'p_unit_expression','astropy/units/format/generic.py',216),
-  ('unit_expression -> unit_with_power','unit_expression',1,'p_unit_expression','astropy/units/format/generic.py',217),
-  ('unit_expression -> OPEN_PAREN product_of_units CLOSE_PAREN','unit_expression',3,'p_unit_expression','astropy/units/format/generic.py',218),
-  ('unit_with_power -> UNIT power numeric_power','unit_with_power',3,'p_unit_with_power','astropy/units/format/generic.py',227),
-  ('unit_with_power -> UNIT numeric_power','unit_with_power',2,'p_unit_with_power','astropy/units/format/generic.py',228),
-  ('unit_with_power -> UNIT','unit_with_power',1,'p_unit_with_power','astropy/units/format/generic.py',229),
-  ('numeric_power -> sign UINT','numeric_power',2,'p_numeric_power','astropy/units/format/generic.py',240),
-  ('numeric_power -> OPEN_PAREN paren_expr CLOSE_PAREN','numeric_power',3,'p_numeric_power','astropy/units/format/generic.py',241),
-  ('paren_expr -> sign UINT','paren_expr',2,'p_paren_expr','astropy/units/format/generic.py',250),
-  ('paren_expr -> signed_float','paren_expr',1,'p_paren_expr','astropy/units/format/generic.py',251),
-  ('paren_expr -> frac','paren_expr',1,'p_paren_expr','astropy/units/format/generic.py',252),
-  ('frac -> sign UINT division sign UINT','frac',5,'p_frac','astropy/units/format/generic.py',261),
-  ('sign -> SIGN','sign',1,'p_sign','astropy/units/format/generic.py',267),
-  ('sign -> <empty>','sign',0,'p_sign','astropy/units/format/generic.py',268),
-  ('product -> STAR','product',1,'p_product','astropy/units/format/generic.py',277),
-  ('product -> PERIOD','product',1,'p_product','astropy/units/format/generic.py',278),
-  ('division -> SOLIDUS','division',1,'p_division','astropy/units/format/generic.py',284),
-  ('power -> DOUBLE_STAR','power',1,'p_power','astropy/units/format/generic.py',290),
-  ('power -> CARET','power',1,'p_power','astropy/units/format/generic.py',291),
-  ('signed_int -> SIGN UINT','signed_int',2,'p_signed_int','astropy/units/format/generic.py',297),
-  ('signed_float -> sign UINT','signed_float',2,'p_signed_float','astropy/units/format/generic.py',303),
-  ('signed_float -> sign UFLOAT','signed_float',2,'p_signed_float','astropy/units/format/generic.py',304),
-  ('function_name -> FUNCNAME','function_name',1,'p_function_name','astropy/units/format/generic.py',310),
-  ('function -> function_name OPEN_PAREN unit_expression CLOSE_PAREN','function',4,'p_function','astropy/units/format/generic.py',316),
+  ('main -> product_of_units','main',1,'p_main','astropy/units/format/generic.py',158),
+  ('main -> factor product_of_units','main',2,'p_main','astropy/units/format/generic.py',159),
+  ('main -> division_product_of_units','main',1,'p_main','astropy/units/format/generic.py',160),
+  ('main -> factor division_product_of_units','main',2,'p_main','astropy/units/format/generic.py',161),
+  ('main -> inverse_unit','main',1,'p_main','astropy/units/format/generic.py',162),
+  ('main -> factor inverse_unit','main',2,'p_main','astropy/units/format/generic.py',163),
+  ('main -> factor','main',1,'p_main','astropy/units/format/generic.py',164),
+  ('division_product_of_units -> division_product_of_units division product_of_units','division_product_of_units',3,'p_division_product_of_units','astropy/units/format/generic.py',174),
+  ('division_product_of_units -> product_of_units','division_product_of_units',1,'p_division_product_of_units','astropy/units/format/generic.py',175),
+  ('inverse_unit -> division unit_expression','inverse_unit',2,'p_inverse_unit','astropy/units/format/generic.py',185),
+  ('factor -> factor_float','factor',1,'p_factor','astropy/units/format/generic.py',191),
+  ('factor -> factor_int','factor',1,'p_factor','astropy/units/format/generic.py',192),
+  ('factor_float -> signed_float','factor_float',1,'p_factor_float','astropy/units/format/generic.py',198),
+  ('factor_float -> signed_float UINT signed_int','factor_float',3,'p_factor_float','astropy/units/format/generic.py',199),
+  ('factor_float -> signed_float UINT power numeric_power','factor_float',4,'p_factor_float','astropy/units/format/generic.py',200),
+  ('factor_int -> UINT','factor_int',1,'p_factor_int','astropy/units/format/generic.py',211),
+  ('factor_int -> UINT signed_int','factor_int',2,'p_factor_int','astropy/units/format/generic.py',212),
+  ('factor_int -> UINT power numeric_power','factor_int',3,'p_factor_int','astropy/units/format/generic.py',213),
+  ('factor_int -> UINT UINT signed_int','factor_int',3,'p_factor_int','astropy/units/format/generic.py',214),
+  ('factor_int -> UINT UINT power numeric_power','factor_int',4,'p_factor_int','astropy/units/format/generic.py',215),
+  ('product_of_units -> unit_expression product product_of_units','product_of_units',3,'p_product_of_units','astropy/units/format/generic.py',231),
+  ('product_of_units -> unit_expression product_of_units','product_of_units',2,'p_product_of_units','astropy/units/format/generic.py',232),
+  ('product_of_units -> unit_expression','product_of_units',1,'p_product_of_units','astropy/units/format/generic.py',233),
+  ('unit_expression -> function','unit_expression',1,'p_unit_expression','astropy/units/format/generic.py',244),
+  ('unit_expression -> unit_with_power','unit_expression',1,'p_unit_expression','astropy/units/format/generic.py',245),
+  ('unit_expression -> OPEN_PAREN product_of_units CLOSE_PAREN','unit_expression',3,'p_unit_expression','astropy/units/format/generic.py',246),
+  ('unit_with_power -> UNIT power numeric_power','unit_with_power',3,'p_unit_with_power','astropy/units/format/generic.py',255),
+  ('unit_with_power -> UNIT numeric_power','unit_with_power',2,'p_unit_with_power','astropy/units/format/generic.py',256),
+  ('unit_with_power -> UNIT','unit_with_power',1,'p_unit_with_power','astropy/units/format/generic.py',257),
+  ('numeric_power -> sign UINT','numeric_power',2,'p_numeric_power','astropy/units/format/generic.py',268),
+  ('numeric_power -> OPEN_PAREN paren_expr CLOSE_PAREN','numeric_power',3,'p_numeric_power','astropy/units/format/generic.py',269),
+  ('paren_expr -> sign UINT','paren_expr',2,'p_paren_expr','astropy/units/format/generic.py',278),
+  ('paren_expr -> signed_float','paren_expr',1,'p_paren_expr','astropy/units/format/generic.py',279),
+  ('paren_expr -> frac','paren_expr',1,'p_paren_expr','astropy/units/format/generic.py',280),
+  ('frac -> sign UINT division sign UINT','frac',5,'p_frac','astropy/units/format/generic.py',289),
+  ('sign -> SIGN','sign',1,'p_sign','astropy/units/format/generic.py',295),
+  ('sign -> <empty>','sign',0,'p_sign','astropy/units/format/generic.py',296),
+  ('product -> STAR','product',1,'p_product','astropy/units/format/generic.py',305),
+  ('product -> PERIOD','product',1,'p_product','astropy/units/format/generic.py',306),
+  ('division -> SOLIDUS','division',1,'p_division','astropy/units/format/generic.py',312),
+  ('power -> DOUBLE_STAR','power',1,'p_power','astropy/units/format/generic.py',318),
+  ('power -> CARET','power',1,'p_power','astropy/units/format/generic.py',319),
+  ('signed_int -> SIGN UINT','signed_int',2,'p_signed_int','astropy/units/format/generic.py',325),
+  ('signed_float -> sign UINT','signed_float',2,'p_signed_float','astropy/units/format/generic.py',331),
+  ('signed_float -> sign UFLOAT','signed_float',2,'p_signed_float','astropy/units/format/generic.py',332),
+  ('function_name -> FUNCNAME','function_name',1,'p_function_name','astropy/units/format/generic.py',338),
+  ('function -> function_name OPEN_PAREN main CLOSE_PAREN','function',4,'p_function','astropy/units/format/generic.py',344),
 ]
