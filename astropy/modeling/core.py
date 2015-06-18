@@ -1239,10 +1239,11 @@ class Model(object):
 
         parts = [repr(a) for a in args]
 
-        parts.extend(
-            "{0}={1}".format(name,
-                             array_repr_oneline(getattr(self, name).value))
-            for name in self.param_names)
+        for name in self.param_names:
+            parts.append(
+                "{0}={1}{2}".format(name, array_repr_oneline(
+                    getattr(self, name).value),
+                ' [f]' if getattr(self, name).fixed else ''))
 
         if self.name is not None:
             parts.append('name={0!r}'.format(self.name))
