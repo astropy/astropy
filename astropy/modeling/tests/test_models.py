@@ -517,3 +517,9 @@ def test_ScaleModel():
 def test_model_instance_repr():
     m = models.Gaussian1D(1, 2, 3)
     assert repr(m) == '<Gaussian1D(amplitude=1.0, mean=2.0, stddev=3.0)>'
+
+def test_model_instance_fixed_repr():
+    m = models.Gaussian1D(1, 2, 3)
+    m.amplitude.fixed = True
+    assert repr(m) == ('<Gaussian1D(amplitude=1.0, mean=2.0, stddev=3.0,'
+                       ' fixed=(\'amplitude\'))>')

@@ -1241,9 +1241,13 @@ class Model(object):
 
         for name in self.param_names:
             parts.append(
-                "{0}={1}{2}".format(name, array_repr_oneline(
-                    getattr(self, name).value),
-                ' [f]' if getattr(self, name).fixed else ''))
+                "{0}={1}".format(name, array_repr_oneline(
+                    getattr(self, name).value)))
+        fixed_str_parts = [
+            "'{0}'".format(param_name) for param_name in self.param_names
+            if self.fixed[param_name]]
+        fixed_str = '' if len(fixed_str_parts) == 0 else ', fixed=({0})'.format(
+            ', '.join(fixed_str_parts))
 
         if self.name is not None:
             parts.append('name={0!r}'.format(self.name))
@@ -1256,7 +1260,8 @@ class Model(object):
         if len(self) > 1:
             parts.append("n_models={0}".format(len(self)))
 
-        return '<{0}({1})>'.format(self.__class__.__name__, ', '.join(parts))
+        return '<{0}({1}{2})>'.format(self.__class__.__name__,
+                                        ', '.join(parts), fixed_str)
 
     def _format_str(self, keywords=[]):
         """
