@@ -90,7 +90,10 @@ class Index:
 
     def nodes(self):
         # for debugging purposes
-        return [(x.key, x.data) for x in self.data.traverse('inorder')]
+        return self.data.nodes()
+
+    def __str__(self):
+        return str(self.nodes())
 
 def get_index(table):
     '''
