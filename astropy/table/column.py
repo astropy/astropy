@@ -14,7 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import DataInfo, InfoDescriptor
+from ..utils.data_info import DataInfo, InfoDescriptor, dtype_info_name
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -731,7 +731,7 @@ class Column(BaseColumn):
         unit = None if self.unit is None else str(self.unit)
         shape = None if self.ndim <= 1 else self.shape[1:]
         for attr, val in (('name', self.name),
-                          ('dtype', self.dtype.name),
+                          ('dtype', dtype_info_name(self.dtype)),
                           ('shape', shape),
                           ('unit', unit),
                           ('format', self.format),

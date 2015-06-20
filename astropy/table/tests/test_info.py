@@ -11,11 +11,9 @@ from ... import units as u
 from ... import time
 from ... import coordinates
 from ... import table
-from ...utils.data_info import data_info_factory
+from ...utils.data_info import data_info_factory, dtype_info_name
 from ...utils import OrderedDict
 from ...utils.compat import NUMPY_LT_1_8
-
-STRING8 = 'string8' if six.PY2 else 'bytes8'
 
 def test_table_info_attributes(table_types):
     """
@@ -32,7 +30,7 @@ def test_table_info_attributes(table_types):
     assert tinfo.colnames == ['name', 'dtype', 'shape', 'unit', 'format',
                               'description', 'class', 'n_bad', 'length']
     assert np.all(tinfo['name'] == ['a', 'b', 'c'])
-    assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8])
+    assert np.all(tinfo['dtype'] == ['int32', 'float32', dtype_info_name('S1')])
     if subcls:
         assert np.all(tinfo['class'] == ['MyColumn'] * 3)
 
@@ -47,7 +45,7 @@ def test_table_info_attributes(table_types):
 
     tinfo = t.info(out=None)
     assert np.all(tinfo['name'] == 'a b c d e f'.split())
-    assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8, 'float64',
+    assert np.all(tinfo['dtype'] == ['int32', 'float32', dtype_info_name('S1'), 'float64',
                                      'object', 'object'])
     assert np.all(tinfo['unit'] == ['', '', '', 'm', '', 'deg,deg'])
     assert np.all(tinfo['format'] == ['%02d', '', '', '', '', ''])
@@ -112,7 +110,7 @@ def test_table_info_stats(table_types):
     assert tinfo.colnames == ['name', 'dtype', 'shape', 'unit', 'format', 'description',
                               'class', 'sum', 'first', 'n_bad', 'length']
     assert np.all(tinfo['name'] == ['a', 'b', 'c', 'd'])
-    assert np.all(tinfo['dtype'] == ['int32', 'float32', STRING8, 'object'])
+    assert np.all(tinfo['dtype'] == ['int32', 'float32', dtype_info_name('S1'), 'object'])
     assert np.all(tinfo['sum'] == ['6', '6.0', '--', '--'])
     assert np.all(tinfo['first'] == ['1', '1.0', 'a' if six.PY2 else "b'a'", '1.0'])
 

@@ -5,6 +5,8 @@
 # tests via their use in providing mixin column info, and in
 # astropy/tests/test_info for providing table and column info summary data.
 
+from __future__ import absolute_import, division, print_function
+
 import os
 import sys
 from copy import deepcopy
@@ -12,6 +14,7 @@ import weakref
 import numpy as np
 from functools import partial
 import warnings
+import re
 
 from ..extern import six
 from ..utils import OrderedDict
@@ -21,6 +24,48 @@ from ..utils.compat import NUMPY_LT_1_8
 # Tuple of filterwarnings kwargs to ignore when calling info
 IGNORE_WARNINGS = (dict(category=RuntimeWarning,
                         module=r'numpy\.lib\.nanfunctions'),)
+
+STRING_TYPE_NAMES = {(False, 'S'): 'str',  # not PY3
+                     (False, 'U'): 'unicode',
+                     (True, 'S'): 'bytes', # PY3
+                     (True, 'U'): 'str'}
+
+def dtype_info_name(dtype):
+    """Return a human-oriented string name of the ``dtype`` arg.
+    This can be use by astropy methods that present type information about
+    a data object.
+
+    The output is mostly equivalent to ``dtype.name`` which takes the form
+    <type_name>[B] where <type_name> is like ``int`` or ``bool`` and [B] is an
+    optional number of bits which gets included only for numeric types.
+
+    For bytes, string and unicode types, the output is shown below, where <N>
+    is the number of characters.  This representation corresponds to the Python
+    type that matches the dtype::
+
+      Numpy          S<N>      U<N>
+      Python 2      str<N>  unicode<N>
+      Python 3    bytes<N>   str<N>
+
+    Parameters
+    ----------
+    dtype: str, np.dtype, type
+        Input dtype as an object that can be converted via np.dtype()
+
+    Returns
+    -------
+    dtype_info_name: str
+        String name of ``dtype``
+    """
+    dtype = np.dtype(dtype)
+    if dtype.kind in ('S', 'U'):
+        length = re.search(r'(\d+)', dtype.str).group(1)
+        type_name = STRING_TYPE_NAMES[(six.PY3, dtype.kind)]
+        out = type_name + length
+    else:
+        out = dtype.name
+
+    return out
 
 def data_info_factory(names, funcs):
     """
@@ -77,7 +122,7 @@ def _get_data_attribute(dat, attr=None):
     if attr == 'class':
         val = type(dat).__name__
     elif attr == 'dtype':
-        val = dat.info.dtype.name
+        val = dtype_info_name(dat.info.dtype)
     elif attr == 'shape':
         datshape = dat.shape[1:]
         val = datshape if datshape else ''
