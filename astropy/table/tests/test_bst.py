@@ -1,12 +1,17 @@
-from ..bst import BST
+from ..bst import BST, RedBlackTree
 import pytest
+import random
+import math
 
-@pytest.fixture
-def bst():
-    b = BST()
+def get_tree(TreeType):
+    b = TreeType()
     for val in [5, 2, 9, 3, 4, 1, 6, 10, 8, 7]:
         b.add(val)
     return b
+
+@pytest.fixture(params=[False, True])
+def bst(request):
+    return get_tree(RedBlackTree if request.param else BST)
     '''
          5
        /   \
@@ -20,20 +25,22 @@ def bst():
     '''
 
 def test_bst_add(bst):
-    root = bst.root
-    assert root.data == [5]
-    assert root.left.data == [2]
-    assert root.right.data == [9]
-    assert root.left.left.data == [1]
-    assert root.left.right.data == [3]
-    assert root.right.left.data == [6]
-    assert root.right.right.data == [10]
-    assert root.left.right.right.data == [4]
-    assert root.right.left.right.data == [8]
-    assert root.right.left.right.left.data == [7]
+    if not isinstance(bst, RedBlackTree):
+        root = bst.root
+        assert root.data == [5]
+        assert root.left.data == [2]
+        assert root.right.data == [9]
+        assert root.left.left.data == [1]
+        assert root.left.right.data == [3]
+        assert root.right.left.data == [6]
+        assert root.right.right.data == [10]
+        assert root.left.right.right.data == [4]
+        assert root.right.left.right.data == [8]
+        assert root.right.left.right.left.data == [7]
 
-def test_bst_size(bst):
+def test_bst_dimensions(bst):
     assert bst.size == 10
+    assert bst.height() == 4
 
 def test_bst_find(bst):
     for i in range(1, 11):
@@ -45,15 +52,16 @@ def test_bst_find(bst):
     assert bst.find('1') is None
 
 def test_bst_traverse(bst):
-    preord = [5, 2, 1, 3, 4, 9, 6, 8, 7, 10]
-    inord = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    postord = [1, 4, 3, 2, 7, 8, 6, 10, 9, 5]
-    traversals = {}
-    for order in ('preorder', 'inorder', 'postorder'):
-        traversals[order] = [x.key for x in bst.traverse(order)]
-    assert traversals['preorder'] == preord
-    assert traversals['inorder'] == inord
-    assert traversals['postorder'] == postord
+    if not isinstance(bst, RedBlackTree):
+        preord = [5, 2, 1, 3, 4, 9, 6, 8, 7, 10]
+        inord = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        postord = [1, 4, 3, 2, 7, 8, 6, 10, 9, 5]
+        traversals = {}
+        for order in ('preorder', 'inorder', 'postorder'):
+            traversals[order] = [x.key for x in bst.traverse(order)]
+        assert traversals['preorder'] == preord
+        assert traversals['inorder'] == inord
+        assert traversals['postorder'] == postord
 
 def test_bst_remove(bst):
     order = (6, 9, 1, 3, 7, 2, 10, 5, 4, 8)

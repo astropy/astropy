@@ -1,4 +1,7 @@
-class Node:
+BLACK = 0
+RED = 1
+
+class Node(object):
     __lt__ = lambda x, y: x.key < y.key
     __le__ = lambda x, y: x.key <= y.key
     __eq__ = lambda x, y: x.key == y.key
@@ -34,13 +37,30 @@ class Node:
         self.key = other.key
         self.data = other.data[:]
 
-class BST:
+    def __str__(self):
+        return str((self.key, self.data))
+
+    def __repr__(self):
+        return str(self)
+
+class RedBlackNode(Node):
+    def __init__(self, key, data=None,
+                 left=None, right=None, parent=None):
+        super(RedBlackNode, self).__init__(key, data, left, right, parent)
+        self.color = RED
+    def __str__(self):
+        return str((self.key, self.data, 'BLACK' if self.color == BLACK else 'RED'))
+    def __repr__(self):
+        return str(self)
+
+class BST(object):
     NodeClass = Node
     UNIQUE = False
 
     def __init__(self, data=[]):
         self.root = None
         self.size = 0
+        ##TODO: sort
         for d in data:
             self.add(*d)
 
@@ -50,6 +70,7 @@ class BST:
         curr_node = self.root
         if curr_node is None:
             self.root = node
+            node.color = BLACK
             return
         while True:
             if node < curr_node:
@@ -69,10 +90,19 @@ class BST:
             else: # add data to node
                 curr_node.data.extend(node.data)
                 curr_node.data = sorted(curr_node.data) ##TODO: speed up
-                return
-        self.balance()
+                break
+        self.balance(node)
+        self.clean() ##TODO: remove
 
-    def balance(self):
+    def clean(self):
+        for node in self.traverse('inorder'):
+            if node.parent is None:
+                assert node is self.root
+            else:
+                parent = node.parent
+                assert parent.left is node or parent.right is node
+
+    def balance(self, node):
         pass
 
     def find(self, key):
@@ -205,3 +235,118 @@ class BST:
         if prefix >= val and node.left is not None:
             self._same_prefix(val, node.left, lst)
         return lst
+
+    def nodes(self):
+        # for debugging
+        return [(x.key, x.data) for x in self.traverse('inorder')]
+
+    def __str__(self):
+        if self.root is None:
+            return 'Empty'
+        return self._print(self.root, 0)
+
+    def __repr__(self):
+        return str(self)
+
+    def _print(self, node, level):
+        line = '\t'*level + str(node) + '\n'
+        if node.left is not None:
+            line += self._print(node.left, level + 1)
+        if node.right is not None:
+            line += self._print(node.right, level + 1)
+        return line
+
+    def height(self):
+        return self._height(self.root)
+
+    def _height(self, node):
+        if node is None:
+            return -1
+        return max(self._height(node.left),
+                   self._height(node.right)) + 1
+
+    def rotate_left(self, node):
+        parent = node.parent
+        subtree = node.right.left
+        new_node = node.right
+        node.right = subtree
+        new_node.left = node
+        node.parent = new_node
+
+        if parent is not None:
+            parent.left = new_node
+            new_node.parent = parent
+        else:
+            self.root = new_node
+            new_node.parent = None
+
+    def rotate_right(self, node):
+        parent = node.parent
+        subtree = node.left.right
+        new_node = node.left
+        node.left = subtree
+        new_node.right = node
+        node.parent = new_node
+
+        if parent is not None:
+            parent.right = new_node
+            new_node.parent = parent
+        else:
+            self.root = new_node
+            new_node.parent = None
+
+class RedBlackTree(BST):
+    NodeClass = RedBlackNode
+
+    def balance(self, node):
+        node.color = RED
+        parent = node.parent
+        gp = parent.parent if parent is not None else None
+        uncle = None
+        if gp is not None:
+            uncle = gp.right if gp.left is parent else gp.left
+        if node is self.root:
+            node.color = BLACK
+        elif parent.color == BLACK:
+            pass
+        elif uncle is not None and uncle.color == RED:
+            # parent and uncle are red
+            parent.color = BLACK
+            uncle.color = BLACK
+            gp.color == RED
+            self.balance(gp)
+        else: # parent is red, uncle is black (or None)
+            # note: gp is not None because the root is black, handled above
+            if node is parent.right and parent is gp.left:
+                self.rotate_left(parent)
+                node = node.left
+            elif node is parent.left and parent is gp.right:
+                self.rotate_right(parent)
+                node = node.right
+            # left/left or right/right
+            node.parent.color = BLACK
+            node.parent.parent.color = RED
+            if node is node.parent.left:
+                self.rotate_right(node.parent.parent)
+            else:
+                self.rotate_left(node.parent.parent)
+            
+    def is_valid(self):
+        if self.root is None:
+            return True
+        return super(RedBlackTree, self).is_valid() and \
+            self.root.color == BLACK and self._rbt_check(self.root)
+
+    def _is_black(self, node):
+        return node is None or node.color == BLACK
+
+    def _rbt_check(self, node):
+        ##TODO: check black-height property
+        if node.color == RED:
+            if not (self._is_black(node.left) and self._is_black(node.right)):
+                return False
+        if node.left is not None:
+            return self._rbt_check(node.left)
+        if node.right is not None:
+            return self._rbt_check(node.right)
+        return True
