@@ -4,6 +4,7 @@
 import numpy as np
 
 from .. import Time
+from ...tests.helper import pytest
 from ...utils.compat.numpycompat import NUMPY_LT_1_9
 
 class TestManipulation():
@@ -158,6 +159,35 @@ class TestManipulation():
                 t2_reshape_t_reshape.shape)
         assert not np.may_share_memory(t2_reshape_t_reshape.location,
                                        t2_reshape_t.location)
+
+    def test_shape_setting(self):
+        t0_reshape = self.t0.copy()
+        t0_reshape.shape = (5, 2, 5)
+        assert t0_reshape.shape == (5, 2, 5)
+        assert np.all(t0_reshape.jd1 == self.t0._time.jd1.reshape(5, 2, 5))
+        assert np.all(t0_reshape.jd2 == self.t0._time.jd2.reshape(5, 2, 5))
+        assert t0_reshape.location is None
+        # But if the shape doesn't work, one should get an error.
+        t0_reshape_t = t0_reshape.T
+        with pytest.raises(AttributeError):
+            t0_reshape_t.shape = (10, 5)
+        t1_reshape = self.t1.copy()
+        t1_reshape.shape = (2, 5, 5)
+        assert t1_reshape.shape == (2, 5, 5)
+        assert np.all(t1_reshape.jd1 == self.t1.jd1.reshape(2, 5, 5))
+        # location is a single element, so its shape should not change.
+        assert t1_reshape.location.shape == ()
+        # For reshape(5, 2, 5), the location array can remain the same.
+        t2_reshape = self.t2.copy()
+        t2_reshape.shape = (5, 2, 5)
+        assert t2_reshape.shape == (5, 2, 5)
+        assert np.all(t2_reshape.jd1 == self.t2.jd1.reshape(5, 2, 5))
+        assert t2_reshape.location.shape == t2_reshape.shape
+        # But for reshape(5, 5, 2), location would need to be copied, so this
+        # should fail.
+        t2_reshape_t = t2_reshape.T
+        with pytest.raises(AttributeError):
+            t2_reshape_t.shape = (5, 5, 2)
 
     def test_squeeze(self):
         t0_squeeze = self.t0.reshape(5, 1, 2, 1, 5).squeeze()

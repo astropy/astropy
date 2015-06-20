@@ -497,6 +497,15 @@ class Time(object):
     def shape(self):
         return self._time.jd1.shape
 
+    @shape.setter
+    def shape(self, shape):
+        self._time.jd1.shape = shape
+        self._time.jd2.shape = shape
+        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location'):
+            val = getattr(self, attr, None)
+            if val is not None and val.size > 1:
+                val.shape = shape
+
     @property
     def size(self):
         return self._time.jd1.size
@@ -783,7 +792,10 @@ class Time(object):
     def reshape(self, *args, **kwargs):
         """Returns a time instance containing the same data with a new shape.
 
-        Parameters are as for meth:`~numpy.ndarray.reshape`.
+        Parameters are as for meth:`~numpy.ndarray.reshape`.  Note that it is
+        not always possible to change the shape of an array without copying the
+        data. If you want an error to be raise if the data is copied, you
+        should assign the new shape to the shape attribute.
         """
         return self._replicate('reshape', *args, **kwargs)
 
