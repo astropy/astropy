@@ -632,7 +632,7 @@ class Time(object):
         tm : Time object
             Copy of this object
         """
-        return self.replicate(format, copy=True)
+        return self._replicate(format=format, method='copy')
 
     def replicate(self, format=None, copy=False):
         """
@@ -668,27 +668,63 @@ class Time(object):
         # This also avoids quite a bit of unnecessary work in __init__
         ###  tm = self.__class__(self._time.jd1, self._time.jd2,
         ###                      format='jd', scale=self.scale, copy=copy)
+        return self._replicate(format=format, method='copy' if copy else None)
+
+
+    def _replicate(self, method=None, *args, **kwargs):
+        """Replicate a time object, possibly applying a method to the arrays.
+
+        Parameters
+        ----------
+        method : str, optional
+            If given, the method is applied to the internal ``jd1`` and ``jd2``
+            arrays, as well as to possible ``location``, ``_delta_ut1_utc``,
+            and ``_delta_tdb_tt`` arrays, broadcasting the latter as required.
+            Example methods: ``copy``, ``__getitem__``, ``reshape``.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.  If the ``format`` keyword
+            argument is present, this will be used as the Time format of the
+            replica.
+        """
+        new_format = kwargs.pop('format', None)
+        if new_format is None:
+            new_format = self.format
+
+        jd1, jd2 = self._time.jd1, self._time.jd2
+        if method is not None:
+            jd1 = getattr(jd1, method)(*args, **kwargs)
+            jd2 = getattr(jd2, method)(*args, **kwargs)
+
         tm = super(Time, self.__class__).__new__(self.__class__)
-        tm._time = TimeJD(self._time.jd1.copy() if copy else self._time.jd1,
-                          self._time.jd2.copy() if copy else self._time.jd2,
-                          self.scale, self.precision,
+        tm._time = TimeJD(jd1, jd2, self.scale, self.precision,
                           self.in_subfmt, self.out_subfmt, from_jd=True)
-        # Optional or non-arg attributes
-        attrs = ('_delta_ut1_utc', '_delta_tdb_tt',
-                 'location', 'precision', 'in_subfmt', 'out_subfmt')
-        for attr in attrs:
+        # Optional ndarray attributes.
+        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location'):
             try:
                 val = getattr(self, attr)
             except AttributeError:
                 continue
 
-            if copy and hasattr(val, 'copy'):
-                val = val.copy()
+            # Appy the method to any value arrays (though skip if there is only
+            # a single element and the method would return a view, since in
+            # that case nothing would change).
+            if method is not None and val is not None:
+                if method == 'copy' or method == 'flatten' and val.size == 1:
+                    val = val.copy()
+
+                elif val.size > 1:
+                    val = getattr(val, method)(*args, **kwargs)
 
             setattr(tm, attr, val)
 
-        if format is None:
-            format = self.format
+        for attr in ('precision', 'in_subfmt', 'out_subfmt'):
+            val = getattr(self, attr)
+            if method in ('copy', 'flatten') and hasattr(val, 'copy'):
+                val = val.copy()
+
+            setattr(tm, attr, val)
 
         # Make the new internal _time object corresponding to the format
         # in the copy.  If the format is unchanged this process is lightweight
