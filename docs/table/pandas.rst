@@ -34,7 +34,7 @@ It is also possible to create a table from a `DataFrame`_::
 
     >>> t2 = Table.from_pandas(df)
     >>> t2
-    <Table masked=False length=4>
+    <Table length=4>
       a      b
     int64 string8
     ----- -------

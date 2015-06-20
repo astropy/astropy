@@ -43,7 +43,7 @@ FixedWidth
   ... |  2.4   |'s worlds|
   ... """
   >>> ascii.read(table, format='fixed_width')
-  <Table masked=False length=2>
+  <Table length=2>
     Col1     Col2
   float64    str9
   ------- ---------
@@ -60,7 +60,7 @@ FixedWidth
   ... |  2.4   |'s worlds|
   ... """
   >>> ascii.read(table, format='fixed_width', names=['name1', 'name2'])
-  <Table masked=False length=2>
+  <Table length=2>
    name1    name2
   float64    str9
   ------- ---------
@@ -76,7 +76,7 @@ FixedWidth
   ...   2.4   sdf's worlds
   ... """
   >>> ascii.read(table, format='fixed_width')
-  <Table masked=False length=2>
+  <Table length=2>
     Col1    Col2
   float64   str7
   ------- -------
@@ -93,7 +93,7 @@ FixedWidth
   ... |   Bob  | 555-4527 | 192.168.1.9X|
   ... """
   >>> ascii.read(table, format='fixed_width')
-  <Table masked=False length=3>
+  <Table length=3>
   Name  Phone       TCP
   str4   str8      str12
   ---- -------- ------------
@@ -111,7 +111,7 @@ FixedWidth
   ...   Bob  555-4527     192.168.1.9
   ... """
   >>> ascii.read(table, format='fixed_width', delimiter=' ')
-  <Table masked=False length=3>
+  <Table length=3>
   Name --Phone- ----TCP-----
   str4   str8      str12
   ---- -------- ------------
@@ -131,7 +131,7 @@ Use header_start and data_start keywords to indicate no header line.
   ... """
   >>> ascii.read(table, format='fixed_width',
   ...            header_start=None, data_start=0)
-  <Table masked=False length=3>
+  <Table length=3>
   col1   col2       col3
   str4   str8      str12
   ---- -------- ------------
@@ -151,7 +151,7 @@ keywords to indicate no header line.
   >>> ascii.read(table, format='fixed_width',
   ...                 header_start=None, data_start=0,
   ...                 names=('Name', 'Phone', 'TCP'))
-  <Table masked=False length=3>
+  <Table length=3>
   Name  Phone       TCP
   str4   str8      str12
   ---- -------- ------------
@@ -173,7 +173,7 @@ convenience class.**
   ... |   Bob  | 555-4527 | 192.168.1.9|
   ... """
   >>> ascii.read(table, format='fixed_width_no_header')
-  <Table masked=False length=3>
+  <Table length=3>
   col1   col2       col3
   str4   str8      str12
   ---- -------- ------------
@@ -200,7 +200,7 @@ will select the first 6 characters.
   ...                 col_starts=(0, 9, 18),
   ...                 col_ends=(5, 17, 28),
   ...                 )
-  <Table masked=False length=3>
+  <Table length=3>
   Name   Phone      TCP
   str4    str9     str10
   ---- --------- ----------
@@ -235,7 +235,7 @@ The two examples below read the same table and produce the same result
   ...                 names=('Name', 'Phone', 'TCP'),
   ...                 col_starts=(1, 9, 19),
   ...                 )
-  <Table masked=False length=4>
+  <Table length=4>
   Name   Phone         TCP
   str4    str9        str15
   ---- --------- ---------------
@@ -249,7 +249,7 @@ The two examples below read the same table and produce the same result
   ...                 names=('Name', 'Phone', 'TCP'),
   ...                 col_ends=(8, 18, 32),
   ...                 )
-  <Table masked=False length=4>
+  <Table length=4>
   Name   Phone        TCP
   str4    str9       str14
   ---- --------- --------------
@@ -272,7 +272,7 @@ FixedWidthTwoLine
   ...   2.4   's worlds
   ... """
   >>> ascii.read(table, format='fixed_width_two_line')
-  <Table masked=False length=2>
+  <Table length=2>
     Col1     Col2
   float64    str9
   ------- ---------
@@ -292,7 +292,7 @@ FixedWidthTwoLine
   ... """
   >>> ascii.read(table, format='fixed_width_two_line',
   ...                 header_start=1, position_line=2, data_end=-1)
-  <Table masked=False length=2>
+  <Table length=2>
     Col1     Col2
   float64    str9
   ------- ---------
@@ -312,7 +312,7 @@ FixedWidthTwoLine
   ... """
   >>> ascii.read(table, format='fixed_width_two_line', delimiter='+',
   ...                 header_start=1, position_line=0, data_start=3, data_end=-1)
-  <Table masked=False length=2>
+  <Table length=2>
     Col1     Col2
   float64    str9
   ------- ---------
