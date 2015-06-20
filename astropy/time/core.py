@@ -490,6 +490,10 @@ class Time(object):
         self._out_subfmt = val
 
     @property
+    def ndim(self):
+        return self._time.jd1.ndim
+
+    @property
     def shape(self):
         return self._time.jd1.shape
 
@@ -775,6 +779,74 @@ class Time(object):
                     continue
 
         return tm
+
+    def reshape(self, *args, **kwargs):
+        """Returns a time instance containing the same data with a new shape.
+
+        Parameters are as for meth:`~numpy.ndarray.reshape`.
+        """
+        return self._replicate('reshape', *args, **kwargs)
+
+    def ravel(self, *args, **kwargs):
+        """Return an instance with the time array collapsed into one dimension.
+
+        Parameters are as for meth:`~numpy.ndarray.ravel`.
+        """
+        return self._replicate('ravel', *args, **kwargs)
+
+    def flatten(self, *args, **kwargs):
+        """Return a copy with the time array collapsed into one dimension.
+
+        Parameters are as for meth:`~numpy.ndarray.flatten`.
+        """
+        return self._replicate('flatten', *args, **kwargs)
+
+    def transpose(self, *args, **kwargs):
+        """Return a time instance with the data transposed.
+
+        Parameters are as for meth:`~numpy.ndarray.transpose`.
+        """
+        return self._replicate('transpose', *args, **kwargs)
+
+    @property
+    def T(self):
+        """Return a time instance with the data transposed.
+
+        Parameters are as for meth:`~numpy.ndarray.T`.
+        """
+        if self.ndim < 2:
+            return self
+        else:
+            return self.transpose()
+
+    def swapaxes(self, *args, **kwargs):
+        """Return a time instance with the given axes interchanged.
+
+        Parameters are as for meth:`~numpy.ndarray.swapaxes`
+        """
+        return self._replicate('swapaxes', *args, **kwargs)
+
+    def diagonal(self, *args, **kwargs):
+        """Return a time instance with the specified diagonals.
+
+        Parameters are as for meth:`~numpy.ndarray.diagonal`.
+        """
+        return self._replicate('diagonal', *args, **kwargs)
+
+    def squeeze(self, *args, **kwargs):
+        """Return a time instance with single-dimensional shape entries removed
+
+        Parameters are as for meth:`~numpy.ndarray.squeeze`.
+        """
+        return self._replicate('squeeze', *args, **kwargs)
+
+    def take(self, indices, axis=None, mode='raise'):
+        """Return a Time object formed from the elements the given indices.
+
+        Parameters are as for meth:`~numpy.ndarray.take`, except that,
+        obviously, no output array can be given.
+        """
+        return self._replicate('take', indices, axis=axis, mode=mode)
 
     def __getattr__(self, attr):
         """
