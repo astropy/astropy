@@ -35,7 +35,7 @@ size, columns, or data are not known.
 
 .. Note::
    Adding rows requires making a new copy of the entire
-   table each time, so in the case of large tables this may be slow. 
+   table each time, so in the case of large tables this may be slow.
    On the other hand, adding columns is quite fast.
 
 ::
@@ -67,12 +67,11 @@ keyword or they will be auto-generated as ``col<N>``.
   >>> t = Table([a, b, c], names=('a', 'b', 'c'))
   >>> t
   <Table masked=False length=2>
-    a      b       c
-  int32 float64 string8
-  ----- ------- -------
-      1     2.0       x
-      4     5.0       y
-
+    a      b     c
+  int32 float64 str1
+  ----- ------- ----
+      1     2.0    x
+      4     5.0    y
 
 **Make a new table using columns from the first table**
 
@@ -81,11 +80,11 @@ and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
 
   >>> Table([t['c'], t['a']])
   <Table masked=False length=2>
-     c      a
-  string8 int32
-  ------- -----
-        x     1
-        y     4
+   c     a
+  str1 int32
+  ---- -----
+     x     1
+     y     4
 
 **Make a new table using expressions involving columns**
 
@@ -113,11 +112,12 @@ of different data types to initialize a table::
   >>> arr = (a, b, c)
   >>> Table(arr)  # doctest: +SKIP
   <Table masked=False length=2>
-   col0 col1 [2]   axis
-  int64  int64   string8
-  ----- -------- -------
-      1   2 .. 3       x
-      4   5 .. 6       y
+   col0 col1 [2] axis
+  int64  int64   str1
+  ----- -------- ----
+      1   2 .. 3    x
+      4   5 .. 6    y
+
 
 Notice that in the third column the existing column name ``'axis'`` is used.
 
@@ -132,22 +132,22 @@ A dictionary of column data can be used to initialize a |Table|.
   >>>
   >>> Table(arr)  # doctest: +SKIP
   <Table masked=False length=2>
-    a      c       b
-  int32 string8 float64
-  ----- ------- -------
-      1       x     2.0
-      4       y     5.0
+    a    c      b
+  int32 str1 float64
+  ----- ---- -------
+      1    x     2.0
+      4    y     5.0
 
 **Specify the column order and optionally the data types**
 ::
 
   >>> Table(arr, names=('a', 'b', 'c'), dtype=('f8', 'i4', 'S2'))
   <Table masked=False length=2>
-     a      b      c
-  float64 int32 string16
-  ------- ----- --------
-      1.0     2        x
-      4.0     5        y
+     a      b    c
+  float64 int32 str2
+  ------- ----- ----
+      1.0     2    x
+      4.0     5    y
 
 **Different types of column data**
 
@@ -158,11 +158,11 @@ The input column data can be any data type that can initialize a |Column| object
   ...        'c': Column(['x', 'y'], name='axis')}
   >>> Table(arr, names=('a', 'b', 'c'))  # doctest: +SKIP
   <Table masked=False length=2>
-    a   b [2]     c
-  int64 int64  string8
-  ----- ------ -------
-      1 2 .. 3       x
-      4 5 .. 6       y
+    a   b [2]   c
+  int64 int64  str1
+  ----- ------ ----
+      1 2 .. 3    x
+      4 5 .. 6    y
 
 Notice that the key ``'c'`` takes precedence over the existing column name
 ``'axis'`` in the third column.  Also see that the ``'b'`` column is a vector
@@ -264,11 +264,11 @@ From ``arr`` it is simple to create the corresponding |Table| object::
 
   >>> Table(arr)
   <Table masked=False length=2>
-    a      b       c
-  int32 float64 string16
-  ----- ------- --------
-      1     2.0        x
-      4     5.0        y
+    a      b     c
+  int32 float64 str2
+  ----- ------- ----
+      1     2.0    x
+      4     5.0    y
 
 Note that in the above example and most the following ones we are creating a
 table and immediately asking the interactive Python interpreter to print the
@@ -288,11 +288,12 @@ The column names can be changed from the original values by providing the
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
   <Table masked=False length=2>
-  a_new  b_new   c_new
-  int32 float64 string16
-  ----- ------- --------
-      1     2.0        x
-      4     5.0        y
+  a_new  b_new  c_new
+  int32 float64  str2
+  ----- ------- -----
+      1     2.0     x
+      4     5.0     y
+
 
 **New data types**
 
@@ -300,19 +301,19 @@ Likewise the data type for each column can by changed with ``dtype``::
 
   >>> Table(arr, dtype=('f4', 'i4', 'S4'))
   <Table masked=False length=2>
-     a      b      c
-  float32 int32 string32
-  ------- ----- --------
-      1.0     2        x
-      4.0     5        y
+     a      b    c
+  float32 int32 str4
+  ------- ----- ----
+      1.0     2    x
+      4.0     5    y
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
   <Table masked=False length=2>
-   a_new  b_new  c_new
-  float32 int32 string32
-  ------- ----- --------
-      1.0     2        x
-      4.0     5        y
+   a_new  b_new c_new
+  float32 int32  str4
+  ------- ----- -----
+      1.0     2     x
+      4.0     5     y
 
 
 NumPy homogeneous array
@@ -350,11 +351,11 @@ generated as ``col<N>`` where ``<N>`` is the column number.
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
   <Table masked=False length=2>
-   a_new  b_new  c_new
-  float32 int32 string32
-  ------- ----- --------
-      1.0     2        3
-      4.0     5        6
+   a_new  b_new c_new
+  float32 int32  str4
+  ------- ----- -----
+      1.0     2     3
+      4.0     5     6
 
 **Referencing the original data**
 

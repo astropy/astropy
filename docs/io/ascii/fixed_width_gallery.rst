@@ -45,7 +45,7 @@ FixedWidth
   >>> ascii.read(table, format='fixed_width')
   <Table masked=False length=2>
     Col1     Col2
-  float64  string72
+  float64    str9
   ------- ---------
       1.2   "hello"
       2.4 's worlds
@@ -62,7 +62,7 @@ FixedWidth
   >>> ascii.read(table, format='fixed_width', names=['name1', 'name2'])
   <Table masked=False length=2>
    name1    name2
-  float64  string72
+  float64    str9
   ------- ---------
       1.2   "hello"
       2.4 's worlds
@@ -78,10 +78,10 @@ FixedWidth
   >>> ascii.read(table, format='fixed_width')
   <Table masked=False length=2>
     Col1    Col2
-  float64 string56
-  ------- --------
-      1.2     "hel
-      2.4  df's wo
+  float64   str7
+  ------- -------
+      1.2    "hel
+      2.4 df's wo
 
 **Table with double delimiters**
 ::
@@ -94,12 +94,12 @@ FixedWidth
   ... """
   >>> ascii.read(table, format='fixed_width')
   <Table masked=False length=3>
-    Name    Phone       TCP
-  string32 string64   string96
-  -------- -------- ------------
-      John 555-1234 192.168.1.10
-      Mary 555-2134 192.168.1.12
-       Bob 555-4527  192.168.1.9
+  Name  Phone       TCP
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 **Table with space delimiter**
 ::
@@ -112,12 +112,12 @@ FixedWidth
   ... """
   >>> ascii.read(table, format='fixed_width', delimiter=' ')
   <Table masked=False length=3>
-    Name   --Phone- ----TCP-----
-  string32 string64   string96
-  -------- -------- ------------
-      John 555-1234 192.168.1.10
-      Mary 555-2134 192.168.1.12
-       Bob 555-4527  192.168.1.9
+  Name --Phone- ----TCP-----
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 **Table with no header row and auto-column naming.**
 
@@ -132,12 +132,12 @@ Use header_start and data_start keywords to indicate no header line.
   >>> ascii.read(table, format='fixed_width',
   ...            header_start=None, data_start=0)
   <Table masked=False length=3>
-    col1     col2       col3
-  string32 string64   string96
-  -------- -------- ------------
-      John 555-1234 192.168.1.10
-      Mary 555-2134 192.168.1.12
-       Bob 555-4527  192.168.1.9
+  col1   col2       col3
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 **Table with no header row and with col names provided.**
 
@@ -152,12 +152,12 @@ keywords to indicate no header line.
   ...                 header_start=None, data_start=0,
   ...                 names=('Name', 'Phone', 'TCP'))
   <Table masked=False length=3>
-    Name    Phone       TCP
-  string32 string64   string96
-  -------- -------- ------------
-      John 555-1234 192.168.1.10
-      Mary 555-2134 192.168.1.12
-       Bob 555-4527  192.168.1.9
+  Name  Phone       TCP
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 
 FixedWidthNoHeader
@@ -174,12 +174,12 @@ convenience class.**
   ... """
   >>> ascii.read(table, format='fixed_width_no_header')
   <Table masked=False length=3>
-    col1     col2       col3
-  string32 string64   string96
-  -------- -------- ------------
-      John 555-1234 192.168.1.10
-      Mary 555-2134 192.168.1.12
-       Bob 555-4527  192.168.1.9
+  col1   col2       col3
+  str4   str8      str12
+  ---- -------- ------------
+  John 555-1234 192.168.1.10
+  Mary 555-2134 192.168.1.12
+   Bob 555-4527  192.168.1.9
 
 **Table with no delimiter with column start and end values specified.**
 
@@ -201,13 +201,13 @@ will select the first 6 characters.
   ...                 col_ends=(5, 17, 28),
   ...                 )
   <Table masked=False length=3>
-    Name     Phone      TCP
-  string32  string72  string80
-  -------- --------- ----------
-      John 555- 1234 192.168.1.
-      Mary 555- 2134 192.168.1.
-       Bob 555- 4527  192.168.1
-       
+  Name   Phone      TCP
+  str4    str9     str10
+  ---- --------- ----------
+  John 555- 1234 192.168.1.
+  Mary 555- 2134 192.168.1.
+   Bob 555- 4527  192.168.1
+
 **Table with no delimiter with only column start or end values specified.**
 
 If only the col_starts keyword is given, it is assumed that each column
@@ -223,7 +223,7 @@ The two examples below read the same table and produce the same result
 
   >>> table = """
   ... #1       9        19                <== Column start indexes
-  ... #|       |         |                <== Column start positions 
+  ... #|       |         |                <== Column start positions
   ... #<------><--------><------------->  <== Inferred column positions
   ...   John   555- 1234 192.168.1.10
   ...   Mary   555- 2134 192.168.1.123
@@ -236,26 +236,27 @@ The two examples below read the same table and produce the same result
   ...                 col_starts=(1, 9, 19),
   ...                 )
   <Table masked=False length=4>
-    Name     Phone         TCP      
-  string32  string72    string120   
-  -------- --------- ---------------
-      John 555- 1234    192.168.1.10
-      Mary 555- 2134   192.168.1.123
-       Bob 555- 4527     192.168.1.9
-      Bill  555-9875 192.255.255.255
+  Name   Phone         TCP
+  str4    str9        str15
+  ---- --------- ---------------
+  John 555- 1234    192.168.1.10
+  Mary 555- 2134   192.168.1.123
+   Bob 555- 4527     192.168.1.9
+  Bill  555-9875 192.255.255.255
+
   >>> ascii.read(table,
   ...                 format='fixed_width_no_header',
   ...                 names=('Name', 'Phone', 'TCP'),
   ...                 col_ends=(8, 18, 32),
   ...                 )
   <Table masked=False length=4>
-    Name     Phone        TCP      
-  string32  string72   string112   
-  -------- --------- --------------
-      John 555- 1234   192.168.1.10
-      Mary 555- 2134  192.168.1.123
-       Bob 555- 4527    192.168.1.9
-      Bill  555-9875 192.255.255.25
+  Name   Phone        TCP
+  str4    str9       str14
+  ---- --------- --------------
+  John 555- 1234   192.168.1.10
+  Mary 555- 2134  192.168.1.123
+   Bob 555- 4527    192.168.1.9
+  Bill  555-9875 192.255.255.25
 
 
 FixedWidthTwoLine
@@ -273,7 +274,7 @@ FixedWidthTwoLine
   >>> ascii.read(table, format='fixed_width_two_line')
   <Table masked=False length=2>
     Col1     Col2
-  float64  string72
+  float64    str9
   ------- ---------
       1.2   "hello"
       2.4 's worlds
@@ -293,7 +294,7 @@ FixedWidthTwoLine
   ...                 header_start=1, position_line=2, data_end=-1)
   <Table masked=False length=2>
     Col1     Col2
-  float64  string72
+  float64    str9
   ------- ---------
       1.2   "hello"
       2.4 's worlds
@@ -313,7 +314,7 @@ FixedWidthTwoLine
   ...                 header_start=1, position_line=0, data_start=3, data_end=-1)
   <Table masked=False length=2>
     Col1     Col2
-  float64  string72
+  float64    str9
   ------- ---------
       1.2   "hello"
       2.4 's worlds

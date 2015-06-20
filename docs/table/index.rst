@@ -73,12 +73,12 @@ about the table values and column definitions as follows::
 
   >>> t
   <Table masked=False length=3>
-    a      b       c
-  int32 float64 string8
-  ----- ------- -------
-      1     2.0       x
-      4     5.0       y
-      5     8.2       z
+    a      b     c
+  int32 float64 str1
+  ----- ------- ----
+      1     2.0    x
+      4     5.0    y
+      5     8.2    z
 
 You can also assign a unit to the columns. If any column has a unit
 assigned, all units would be shown as follows::
@@ -88,11 +88,11 @@ assigned, all units would be shown as follows::
   <Table masked=False length=3>
     a      b       c
            s
-  int32 float64 string8
-  ----- ------- -------
-      1     2.0       x
-      4     5.0       y
-      5     8.2       z
+  int32 float64 str1
+  ----- ------- ----
+      1     2.0    x
+      4     5.0    y
+      5     8.2    z
 
 Finally, you can get summary information about the table as follows::
 
@@ -102,7 +102,7 @@ Finally, you can get summary information about the table as follows::
   ---- ------- ----
      a   int32
      b float64    s
-     c string8
+     c    str1
 
 A column with a unit works with and can be easily converted to an
 `~astropy.units.Quantity` object::
@@ -232,12 +232,12 @@ Lastly, you can create a table with support for missing values, for example by s
   >>> t['a'].mask = [True, True, False]
   >>> t
   <Table masked=True length=3>
-    a      b       c
-  int32 float64 string8
-  ----- ------- -------
-     --     2.0       x
-     --     5.0       y
-      5     8.2       z
+    a      b     c
+  int32 float64 str1
+  ----- ------- ----
+     --     2.0    x
+     --     5.0    y
+      5     8.2    z
 
 .. _using_astropy_table:
 
