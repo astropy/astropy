@@ -973,32 +973,54 @@ class Time(object):
         else:
             return np.lexsort(keys=(self._time.jd2, self._time.jd1), axis=axis)
 
-    def min(self, axis=None, keepdims=False):
+    def min(self, axis=None, out=None, keepdims=False):
         """Minimum along a given axis.
 
         This is similar to :meth:`~numpy.ndarray.min`, but adapted to ensure
         that the full precision given by the two doubles ``jd1`` and ``jd2``
         is used, and that corresponding attributes are copied.
+
+        Note that the ``out`` argument is present only for compatibility with
+        ``np.min``; since `Time` instances are immutable, it is not possible
+        to have an actual ``out`` to store the result in.
         """
+        if out is not None:
+            raise ValueError("Since `Time` instances are immutable, ``out`` "
+                             "cannot be set to anything but ``None``.")
         return self[self._advanced_index(self.argmin(axis), axis, keepdims)]
 
-    def max(self, axis=None, keepdims=False):
+    def max(self, axis=None, out=None, keepdims=False):
         """Maximum along a given axis.
 
         This is similar to :meth:`~numpy.ndarray.max`, but adapted to ensure
         that the full precision given by the two doubles ``jd1`` and ``jd2``
         is used, and that corresponding attributes are copied.
+
+        Note that the ``out`` argument is present only for compatibility with
+        ``np.max``; since `Time` instances are immutable, it is not possible
+        to have an actual ``out`` to store the result in.
         """
+        if out is not None:
+            raise ValueError("Since `Time` instances are immutable, ``out`` "
+                             "cannot be set to anything but ``None``.")
         return self[self._advanced_index(self.argmax(axis), axis, keepdims)]
 
-    def ptp(self, axis=None, keepdims=False):
+    def ptp(self, axis=None, out=None, keepdims=False):
         """Peak to peak (maximum - minimum) along a given axis.
 
         This is similar to :meth:`~numpy.ndarray.ptp`, but adapted to ensure
         that the full precision given by the two doubles ``jd1`` and ``jd2``
         is used.
+
+        Note that the ``out`` argument is present only for compatibility with
+        `~numpy.ptp`; since `Time` instances are immutable, it is not possible
+        to have an actual ``out`` to store the result in.
         """
-        return self.max(axis, keepdims) - self.min(axis, keepdims)
+        if out is not None:
+            raise ValueError("Since `Time` instances are immutable, ``out`` "
+                             "cannot be set to anything but ``None``.")
+        return (self.max(axis, keepdims=keepdims) -
+                self.min(axis, keepdims=keepdims))
 
     def sort(self, axis=-1):
         """Return a copy sorted along the specified axis.
