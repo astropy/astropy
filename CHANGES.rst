@@ -120,6 +120,8 @@ New Features
   - Allow the ``format`` attribute to be updated in place to change the
     default representation of a ``Time`` object. [#3673]
 
+  - Add support for shape manipulation (reshape, ravel, etc.). [#3224]
+
 - ``astropy.units``
 
   - Added furlong to imperial units. [#3529]

@@ -318,6 +318,31 @@ appropriate::
   >>> t[0]
   <Time object: scale='utc' format='mjd' value=[ 50000.   50000.5]>
 
+
+Numpy method analogs
+^^^^^^^^^^^^^^^^^^^^
+
+For |Time| instances holding arrays, many of the same methods and attributes
+that work on `~numpy.ndarray` instances can be used.  E.g., one can reshape
+|Time| instances and take specific parts using
+:meth:`~astropy.time.Time.reshape`,
+:meth:`~astropy.time.Time.ravel`, :meth:`~astropy.time.Time.flatten`,
+:attr:`~astropy.time.Time.T`, :meth:`~astropy.time.Time.transpose`,
+:meth:`~astropy.time.Time.swapaxes`, :meth:`~astropy.time.Time.diagonal`,
+:meth:`~astropy.time.Time.squeeze`, :meth:`~astropy.time.Time.take`::
+
+  >>> t.reshape(2, 3)
+  <Time object: scale='utc' format='mjd' value=[[ 50000.   50000.5  50001. ]
+   [ 50001.5  50002.   50002.5]]>
+  >>> t.T
+  <Time object: scale='utc' format='mjd' value=[[ 50000.   50001.   50002. ]
+   [ 50000.5  50001.5  50002.5]]>
+
+Note that similarly to the `~numpy.ndarray` methods, all but
+:meth:`~astropy.time.Time.flatten` try to use new views of the data,
+with the data copied only if that it is impossible (as discussed, e.g., in
+the documentation for numpy :func:`~numpy.reshape`).
+   
 .. _astropy-time-inferring-input:
 
 Inferring input format
