@@ -692,9 +692,11 @@ def test_fractional_rounding_errors_simple():
 
 def test_enable_unit_groupings():
     from ...units import cds
+    assert cds.geoMass not in u.kg.find_equivalent_units()
+
     with cds.enable():
-        pass
+        assert cds.geoMass in u.kg.find_equivalent_units()
 
     from ...units import imperial
     with imperial.enable():
-        pass
+        assert imperial.inch in u.m.find_equivalent_units()
