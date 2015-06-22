@@ -419,7 +419,7 @@ Bug Fixes
 
   - Fix a crash when calling ``astropy.units.cds.enable()``.  This
     will now "set" rather than "add" units to the active set to avoid
-    the namespace clash with the default units.
+    the namespace clash with the default units. [#3873]
 
 - ``astropy.utils``
 
