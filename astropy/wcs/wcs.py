@@ -4,7 +4,8 @@ Under the hood, there are 3 separate classes that perform different
 parts of the transformation:
 
    - `~astropy.wcs.Wcsprm`: Is a direct wrapper of the core WCS
-     functionality in `wcslib`_.
+     functionality in `wcslib`_.  (This includes TPV and TPD
+     polynomial distortion, but not SIP distortion).
 
    - `~astropy.wcs.Sip`: Handles polynomial distortion as defined in the
      `SIP`_ convention.
@@ -25,6 +26,7 @@ together in a pipeline:
      `~astropy.wcs.DistortionLookupTable` objects).
 
    - `wcslib`_ WCS transformation (by a `~astropy.wcs.Wcsprm` object)
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -395,6 +397,20 @@ class WCS(WCSBase):
                 header_bytes = header_string
                 header_string = header_string.decode('ascii')
 
+            # Importantly, header is a *copy* of the passed-in header
+            # because we will be modifying it
+            header = fits.Header.fromstring(header_string)
+            if naxis is None:
+                self.naxis = header.get('NAXIS', 2)
+            else:
+                self.naxis = naxis
+            if self.naxis == 0:
+                self.naxis = 2
+            det2im = self._read_det2im_kw(header, fobj, err=minerr)
+            cpdis = self._read_distortion_kw(
+                header, fobj, dist='CPDIS', err=minerr)
+            sip = self._read_sip_kw(header)
+
             try:
                 wcsprm = _wcs.Wcsprm(header=header_bytes, key=key,
                                      relax=relax, keysel=keysel_flags,
@@ -414,12 +430,6 @@ class WCS(WCSBase):
                 wcsprm = wcsprm.sub(naxis)
             self.naxis = wcsprm.naxis
 
-            header = fits.Header.fromstring(header_string)
-
-            det2im = self._read_det2im_kw(header, fobj, err=minerr)
-            cpdis = self._read_distortion_kw(
-                header, fobj, dist='CPDIS', err=minerr)
-            sip = self._read_sip_kw(header)
             if (wcsprm.naxis != 2 and
                 (det2im[0] or det2im[1] or cpdis[0] or cpdis[1] or sip)):
                 raise ValueError(
@@ -922,17 +932,26 @@ reduce these to 2 dimensions using the naxis kwarg.
             a = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    a[i, j] = header.get((str("A_{0}_{1}").format(i, j)), 0.0)
+                    key = str("A_{0}_{1}").format(i, j)
+                    if key in header:
+                        a[i, j] = header[key]
+                        del header[key]
 
             m = int(header[str("B_ORDER")])
             if m > 1:
                 b = np.zeros((m + 1, m + 1), np.double)
                 for i in range(m + 1):
                     for j in range(m - i + 1):
-                        b[i, j] = header.get((str("B_{0}_{1}").format(i, j)), 0.0)
+                        key = str("B_{0}_{1}").format(i, j)
+                        if key in header:
+                            b[i, j] = header[key]
+                            del header[key]
             else:
                 a = None
                 b = None
+
+            del header[str('A_ORDER')]
+            del header[str('B_ORDER')]
         elif str("B_ORDER") in header and header[str('B_ORDER')] > 1:
             raise ValueError(
                 "B_ORDER provided without corresponding A_ORDER " +
@@ -951,17 +970,26 @@ reduce these to 2 dimensions using the naxis kwarg.
             ap = np.zeros((m + 1, m + 1), np.double)
             for i in range(m + 1):
                 for j in range(m - i + 1):
-                    ap[i, j] = header.get("AP_{0}_{1}".format(i, j), 0.0)
+                    key = str("AP_{0}_{1}").format(i, j)
+                    if key in header:
+                        ap[i, j] = header[key]
+                        del header[key]
 
             m = int(header[str("BP_ORDER")])
             if m > 1:
                 bp = np.zeros((m + 1, m + 1), np.double)
                 for i in range(m + 1):
                     for j in range(m - i + 1):
-                        bp[i, j] = header.get("BP_{0}_{1}".format(i, j), 0.0)
+                        key = str("BP_{0}_{1}").format(i, j)
+                        if key in header:
+                            bp[i, j] = header[key]
+                            del header[key]
             else:
                 ap = None
                 bp = None
+
+            del header[str('AP_ORDER')]
+            del header[str('BP_ORDER')]
         elif str("BP_ORDER") in header and header[str('BP_ORDER')] > 1:
             raise ValueError(
                 "BP_ORDER provided without corresponding AP_ORDER "
@@ -2479,7 +2507,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         description = ["WCS Keywords\n",
                        "Number of WCS axes: {0!r}".format(self.naxis)]
         sfmt = ' : ' +  "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
-        
+
         keywords = ['CTYPE', 'CRVAL', 'CRPIX']
         values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]
         for keyword, value in zip(keywords, values):
@@ -2502,7 +2530,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 s += sfmt
                 description.append(s.format(*self.wcs.cd[i]))
 
-        description.append('NAXIS    : {0!r} {1!r}'.format(self._naxis1, 
+        description.append('NAXIS    : {0!r} {1!r}'.format(self._naxis1,
                            self._naxis2))
         return '\n'.join(description)
 
