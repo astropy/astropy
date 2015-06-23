@@ -45,6 +45,7 @@ def test_column_group_by():
         t1ag = t1a.group_by(t1['a', 'b'].as_array())
         assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
 
+##TODO: parametrize other tests as well
 @pytest.mark.parametrize("index", [True, False])
 def test_table_group_by(index):
     """

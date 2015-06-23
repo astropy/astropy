@@ -20,13 +20,9 @@ class Node(object):
 
     def replace(self, child, new_child):
         if self.left is not None and self.left == child:
-            self.left = new_child
-            if new_child is not None:
-                new_child.parent = self
+            self.set_left(new_child)
         elif self.right is not None and self.right == child:
-            self.right = new_child
-            if new_child is not None:
-                new_child.parent = self
+            self.set_right(new_child)
         else:
             raise ValueError("Cannot call replace() on non-child")
 
@@ -36,6 +32,16 @@ class Node(object):
     def set(self, other):
         self.key = other.key
         self.data = other.data[:]
+
+    def set_left(self, node):
+        self.left = node
+        if node is not None:
+            node.parent = self
+
+    def set_right(self, node):
+        self.right = node
+        if node is not None:
+            node.parent = self
 
     def __str__(self):
         return str((self.key, self.data))
@@ -75,14 +81,12 @@ class BST(object):
         while True:
             if node < curr_node:
                 if curr_node.left is None:
-                    curr_node.left = node
-                    node.parent = curr_node
+                    curr_node.set_left(node)
                     break
                 curr_node = curr_node.left
             elif node > curr_node:
                 if curr_node.right is None:
-                    curr_node.right = node
-                    node.parent = curr_node
+                    curr_node.set_right(node)
                     break
                 curr_node = curr_node.right
             elif self.UNIQUE:
@@ -134,6 +138,9 @@ class BST(object):
             return self._postorder(self.root, [])
         raise ValueError("Invalid traversal method: \"{0}\"".format(order))
         ##TODO: find out why inorder is so slow
+
+    def sort(self):
+        return self.traverse('inorder')
 
     def _preorder(self, node, lst):
         if node is None:
@@ -269,13 +276,11 @@ class BST(object):
         parent = node.parent
         subtree = node.right.left
         new_node = node.right
-        node.right = subtree
-        new_node.left = node
-        node.parent = new_node
+        node.set_right(subtree)
+        new_node.set_left(node)
 
         if parent is not None:
-            parent.left = new_node
-            new_node.parent = parent
+            parent.replace(node, new_node)
         else:
             self.root = new_node
             new_node.parent = None
@@ -284,13 +289,11 @@ class BST(object):
         parent = node.parent
         subtree = node.left.right
         new_node = node.left
-        node.left = subtree
-        new_node.right = node
-        node.parent = new_node
+        node.set_left(subtree)
+        new_node.set_right(node)
 
         if parent is not None:
-            parent.right = new_node
-            new_node.parent = parent
+            parent.replace(node, new_node)
         else:
             self.root = new_node
             new_node.parent = None
@@ -330,7 +333,7 @@ class RedBlackTree(BST):
                 self.rotate_right(node.parent.parent)
             else:
                 self.rotate_left(node.parent.parent)
-            
+
     def is_valid(self):
         if self.root is None:
             return True
@@ -350,3 +353,5 @@ class RedBlackTree(BST):
         if node.right is not None:
             return self._rbt_check(node.right)
         return True
+
+    ##TODO: write remove method

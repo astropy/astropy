@@ -160,6 +160,8 @@ class Table(object):
         Copy the input data (default=True).
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument
+    copy_indices : bool, optional
+        Retain any indices present in the input data (default=False).
     """
 
     meta = MetaData()
@@ -232,7 +234,7 @@ class Table(object):
         return data
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None):
+                 meta=None, copy=True, rows=None, copy_indices=False):
 
         # Set up a placeholder empty table
         self._set_masked(masked)
@@ -349,9 +351,13 @@ class Table(object):
         if type(self.masked) != bool:
             raise TypeError("masked property has not been set to True or False")
 
-        # remove indices upon column copy (##TODO: change this)
-        for col in self.columns.values():
-            col.indices = []
+        # refresh indices
+        if copy_indices:
+            for index in self.indices:
+                index.refresh(self.columns)
+        else:
+            for col in self.columns.values():
+                col.indices = []
 
     def __getstate__(self):
         return (self.columns.values(), self.meta)
@@ -434,7 +440,11 @@ class Table(object):
         '''
         col = self.columns[colname]
         for index in self.indices:
-            if col in index.columns:
+            try:
+                index.col_position(col)
+            except ValueError:
+                pass
+            else:
                 for c in index.columns:
                     c.indices.remove(index)
 
@@ -1006,7 +1016,8 @@ class Table(object):
             if bad_names:
                 raise ValueError('Slice name(s) {0} not valid column name(s)'
                                  .format(', '.join(bad_names)))
-            out = self.__class__([self[x] for x in item], meta=deepcopy(self.meta))
+            out = self.__class__([self[x] for x in item],
+                                 meta=deepcopy(self.meta), copy_indices=True)
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
             return out
