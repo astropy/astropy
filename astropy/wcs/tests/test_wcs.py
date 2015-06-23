@@ -726,3 +726,17 @@ def test_no_iteration():
     with pytest.raises(TypeError) as exc:
         iter(w)
     assert exc.value.args[0] == "'NewWCS' object is not iterable"
+
+
+def test_sip_tpv_agreement():
+    sip_header = get_pkg_data_contents(
+        os.path.join("data", "siponly.hdr"), encoding='binary')
+    tpv_header = get_pkg_data_contents(
+        os.path.join("data", "tpvonly.hdr"), encoding='binary')
+
+    w_sip = wcs.WCS(sip_header)
+    w_tpv = wcs.WCS(tpv_header)
+
+    assert_array_almost_equal(
+        w_sip.all_pix2world([w_sip.wcs.crpix], 1),
+        w_tpv.all_pix2world([w_tpv.wcs.crpix], 1))
