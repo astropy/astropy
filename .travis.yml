@@ -1,0 +1,82 @@
+# We set the language to c because python isn't supported on the MacOS X nodes
+# on Travis. However, the language ends up being irrelevant anyway, since we
+# install Python ourselves using conda.
+language: c
+
+os:
+    - linux
+
+env:
+    global:
+        # Set defaults to avoid repeating in most cases
+        - NUMPY_VERSION=1.9
+        - OPTIONAL_DEPS=false
+        - MAIN_CMD='python setup.py'
+    matrix:
+        - PYTHON_VERSION=2.6 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
+
+matrix:
+
+    # Don't wait for allowed failures
+    fast_finish: true
+
+    include:
+
+        # Try MacOS X
+        - os: osx
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test' OPTIONAL_DEPS=true
+
+        # Check for sphinx doc build warnings - we do this first because it
+        # runs for a long time
+        - os: linux
+          env: PYTHON_VERSION=2.7 SETUP_CMD='build_sphinx -w'  OPTIONAL_DEPS=true
+          # OPTIONAL_DEPS needed because the plot_directive in sphinx needs them
+
+        # Try all python versions with the latest numpy
+        - os: linux
+          env: PYTHON_VERSION=2.6 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.3 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.4 SETUP_CMD='test --open-files'
+
+        # Now try with all optional dependencies on 2.7 and an appropriate 3.x
+        # build (with latest numpy). We also note the code coverage on Python
+        # 2.7.
+        - os: linux
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii
+        - os: linux
+          env: PYTHON_VERSION=3.4 SETUP_CMD='test' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii
+
+        # Try older numpy versions
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 SETUP_CMD='test'
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 SETUP_CMD='test'
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.6 SETUP_CMD='test'
+
+        # Try developer version of Numpy
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+
+        # Do a PEP8 test
+        - os: linux
+          env: PYTHON_VERSION=2.7 MAIN_CMD='pep8 astropy --count' SETUP_CMD=''
+
+    allow_failures:
+      - env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
+
+install:
+    - source .continuous-integration/travis/setup_environment_$TRAVIS_OS_NAME.sh
+
+script:
+    - $MAIN_CMD $SETUP_CMD
+
+after_success:
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='astropy/tests/coveragerc'; fi
