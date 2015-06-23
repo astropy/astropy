@@ -5,7 +5,7 @@ environment:
 
   global:
       PYTHON: "C:\\conda"
-      MINICONDA_VERSION: "3.5.5"
+      MINICONDA_VERSION: "latest"
       CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\.continuous-integration\\appveyor\\windows_sdk.cmd"
       PYTHON_ARCH: "64" # needs to be set for CMD_IN_ENV to succeed. If a mix
                         # of 32 bit and 64 bit builds are needed, move this
@@ -44,5 +44,5 @@ install:
 build: false
 
 test_script:
-  - "%CMD_IN_ENV% python setup.py test -P io.fits"
+  - "%CMD_IN_ENV% python setup.py test -P io.misc"
 
