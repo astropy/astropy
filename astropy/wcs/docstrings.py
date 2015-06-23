@@ -31,11 +31,11 @@ Transforms pixel coordinates to world coordinates.
 
 Does the following:
 
-    - Detector to image plane correction (optionally)
+    - Detector to image plane correction (if present)
 
-    - SIP distortion correction (optionally)
+    - SIP distortion correction (if present)
 
-    - FITS WCS distortion correction (optionally)
+    - FITS WCS distortion correction (if present)
 
     - wcslib "core" WCS transformation
 
