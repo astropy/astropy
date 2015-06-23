@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,27 +22,27 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: sph.h,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: sph.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.25 - C routines that implement the spherical coordinate
-* transformations used by the FITS World Coordinate System (WCS) standard.
-* Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of celestial coordinates in FITS",
-*   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (Paper II)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the sph routines
 * ---------------------------
-* The WCS spherical coordinate transformations are implemented via separate
-* functions, sphx2s() and sphs2x(), for the transformation in each direction.
+* Routines in this suite implement the spherical coordinate transformations
+* defined by the FITS World Coordinate System (WCS) standard
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of celestial coordinates in FITS",
+=   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (WCS Paper II)
+*
+* The transformations are implemented via separate functions, sphx2s() and
+* sphs2x(), for the spherical rotation in each direction.
 *
 * A utility function, sphdpa(), computes the angular distances and position
 * angles from a given point on the sky to a number of other points.  sphpad()

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.l,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: fitshdr.l,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
 *=============================================================================
 *
 * fitshdr.l is a Flex description file containing a lexical scanner
@@ -61,7 +61,7 @@ INT32	[+-]?0*[0-9]{1,9}
 INT64	[+-]?0*[0-9]{10,18}
 INTVL	[+-]?0*[0-9]{19,}
 INTEGER	[+-]?[0-9]+
-FLOAT	[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?
+FLOAT	[+-]?([0-9]+\.?[0-9]*|\.[0-9]+)([eEdD][+-]?[0-9]+)?
 ICOMPLX	\(" "*{INTEGER}" "*," "*{INTEGER}" "*\)
 FCOMPLX	\(" "*{FLOAT}" "*," "*{FLOAT}" "*\)
 STRING	'([^']|'')*'
