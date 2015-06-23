@@ -727,6 +727,8 @@ class TestAddRow(SetupData):
             assert np.all(l == [((2,), [1]),
                                 ((4,), [0, 3]),
                                 ((10,), [2])])
+        t.remove_index('a')
+        assert len(t.indices) == 0
 
     def test_table_where(self, table_types):
         ##TODO: test for expected errors

@@ -58,6 +58,7 @@ def table_group_by(table, keys):
                         .format(type(keys)))
 
     try:
+        ## TODO: handle case where table_keys is an ndarray
         table_index = get_index(table_keys) if isinstance(table_keys, Table) \
                       else None
         if table_index is not None:

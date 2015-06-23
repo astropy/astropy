@@ -175,8 +175,7 @@ class BaseColumn(np.ndarray):
         self.meta = meta
         self._parent_table = None
         self.indices = data.indices if hasattr(data, 'indices') else []
-        ##TODO: composite indices
-
+  
         return self
 
     @classmethod
@@ -671,7 +670,7 @@ class BaseColumn(np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
-        self.indices = [] ##TODO: think about copying indices
+        self.indices = obj.indices if hasattr(obj, 'indices') else []
 
 
 class Column(BaseColumn):

@@ -1,13 +1,17 @@
 from .bst import BST
+from .array import SortedArray
 
 class Index:
-    Implementation = BST
+    Implementation = SortedArray
 
     def __init__(self, columns):
         # nodes of self.data will be (key val, row index)
         data = [(c, i) for i, c in enumerate(zip(*columns))]
         self.data = self.Implementation(data)
         self.columns = columns
+
+    def refresh(self, columns):
+        self.columns = [columns[x.name] for x in self.columns]
 
     def col_position(self, col):
         for i, c in enumerate(self.columns):
@@ -85,7 +89,7 @@ class Index:
         self.data.add(tuple(key), row)
 
     def sorted_data(self):
-        lst = [x.data for x in self.data.traverse('inorder')]
+        lst = [x.data for x in self.data.sort()]
         return [row for l in lst for row in l]
 
     def nodes(self):
