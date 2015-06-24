@@ -68,6 +68,11 @@ New Features
 
 - ``astropy.modeling``
 
+  - The projection classes that are named based on the 3-letter FITS
+    WCS projections (e.g. ``Pix2Sky_TAN``) now have aliases using
+    longer, more descriptive names (e.g. ``Pix2Sky_Gnomonic``).
+    [#3583]
+
 - ``astropy.nddata``
 
   - Added ``block_reduce`` and ``block_replicate`` functions. [#3453]

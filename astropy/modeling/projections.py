@@ -24,7 +24,6 @@ from .core import Model
 from .parameters import Parameter, InputParameterError
 
 from ..utils.compat import ignored
-from ..utils.decorators import deprecated
 
 
 projcodes = ['TAN', 'AZP', 'STG', 'SIN', 'CYP', 'CEA', 'MER']
@@ -42,9 +41,9 @@ __all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
            'Pix2Sky_CylindricalEqualArea', 'Sky2Pix_CylindricalEqualArea',
            'Pix2Sky_PlateCarree', 'Sky2Pix_PlateCarree',
            'Pix2Sky_Mercator', 'Sky2Pix_Mercator',
-           'projcodes', 'get_projection_from_wcs_code',
+           'projcodes',
 
-           # The following were @deprecated in 1.1
+           # The following are short FITS WCS aliases
            'Pix2Sky_AZP', 'Sky2Pix_AZP', 'Pix2Sky_CAR', 'Sky2Pix_CAR',
            'Pix2Sky_CEA', 'Sky2Pix_CEA', 'Pix2Sky_CYP', 'Sky2Pix_CYP',
            'Pix2Sky_MER', 'Sky2Pix_MER',
@@ -184,9 +183,7 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
         return np.sqrt(x ** 2 + y ** 2 * (np.cos(gamma)) ** 2)
 
 
-@deprecated('1.1', alternative="Pix2Sky_ZenithalPerspective")
-class Pix2Sky_AZP(Pix2Sky_ZenithalPerspective):
-    pass
+Pix2Sky_AZP = Pix2Sky_ZenithalPerspective
 
 
 class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
@@ -248,9 +245,7 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
                  np.cos(theta) * np.cos(phi) * np.tan(gamma)))
 
 
-@deprecated('1.1', alternative='Sky2Pix_ZenithalPerspective')
-class Sky2Pix_AZP(Sky2Pix_ZenithalPerspective):
-    pass
+Sky2Pix_AZP = Sky2Pix_ZenithalPerspective
 
 
 class Pix2Sky_Gnomonic(Pix2SkyProjection, Zenithal):
@@ -282,9 +277,7 @@ class Pix2Sky_Gnomonic(Pix2SkyProjection, Zenithal):
         return np.sqrt(x ** 2 + y ** 2)
 
 
-@deprecated('1.1', alternative='Pix2Sky_Gnomonic')
-class Pix2Sky_TAN(Pix2Sky_Gnomonic):
-    pass
+Pix2Sky_TAN = Pix2Sky_Gnomonic
 
 
 class Sky2Pix_Gnomonic(Sky2PixProjection, Zenithal):
@@ -319,9 +312,7 @@ class Sky2Pix_Gnomonic(Sky2PixProjection, Zenithal):
         return 1 / np.tan(theta)
 
 
-@deprecated('1.1', alternative='Sky2Pix_Gnomonic')
-class Sky2Pix_TAN(Sky2Pix_Gnomonic):
-    pass
+Sky2Pix_TAN = Sky2Pix_Gnomonic
 
 
 class Pix2Sky_Stereographic(Pix2SkyProjection, Zenithal):
@@ -353,9 +344,7 @@ class Pix2Sky_Stereographic(Pix2SkyProjection, Zenithal):
         return np.sqrt(x ** 2 + y ** 2)
 
 
-@deprecated('1.1', alternative='Pix2Sky_Stereographic')
-class Pix2Sky_STG(Pix2Sky_Stereographic):
-    pass
+Pix2Sky_STG = Pix2Sky_Stereographic
 
 
 class Sky2Pix_Stereographic(Sky2PixProjection, Zenithal):
@@ -390,9 +379,7 @@ class Sky2Pix_Stereographic(Sky2PixProjection, Zenithal):
         return (cls.r0 * 2 * np.cos(theta)) / (1 + np.sin(theta))
 
 
-@deprecated('1.1', alternative='Sky2Pix_Stereographic')
-class Sky2Pix_STG(Sky2Pix_Stereographic):
-    pass
+Sky2Pix_STG = Sky2Pix_Stereographic
 
 
 class Pix2Sky_SlantOrthographic(Pix2SkyProjection, Zenithal):
@@ -424,9 +411,7 @@ class Pix2Sky_SlantOrthographic(Pix2SkyProjection, Zenithal):
         return np.sqrt(x ** 2 + y ** 2)
 
 
-@deprecated('1.1', alternative='Pix2Sky_SlantOrthographic')
-class Pix2Sky_SIN(Pix2Sky_SlantOrthographic):
-    pass
+Pix2Sky_SIN = Pix2Sky_SlantOrthographic
 
 
 class Sky2Pix_SlantOrthographic(Sky2PixProjection, Zenithal):
@@ -460,9 +445,7 @@ class Sky2Pix_SlantOrthographic(Sky2PixProjection, Zenithal):
         return cls.r0 * np.cos(theta)
 
 
-@deprecated('1.1', alternative='Sky2Pix_SlantOrthographic')
-class Sky2Pix_SIN(Sky2Pix_SlantOrthographic):
-    pass
+Sky2Pix_SIN = Sky2Pix_SlantOrthographic
 
 
 class Cylindrical(Projection):
@@ -531,9 +514,7 @@ class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
         return phi, np.rad2deg(theta)
 
 
-@deprecated('1.1', alternative='Pix2Sky_CylindricalPerspective')
-class Pix2Sky_CYP(Pix2Sky_CylindricalPerspective):
-    pass
+Pix2Sky_CYP = Pix2Sky_CylindricalPerspective
 
 
 class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
@@ -587,9 +568,7 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
         return x, y
 
 
-@deprecated('1.1', alternative='Sky2Pix_CylindricalPerspective')
-class Sky2Pix_CYP(Sky2Pix_CylindricalPerspective):
-    pass
+Sky2Pix_CYP = Sky2Pix_CylindricalPerspective
 
 
 class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
@@ -622,9 +601,7 @@ class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
         return phi, theta
 
 
-@deprecated('1.1', alternative='Pix2Sky_CylindricalEqualArea')
-class Pix2Sky_CEA(Pix2Sky_CylindricalEqualArea):
-    pass
+Pix2Sky_CEA = Pix2Sky_CylindricalEqualArea
 
 
 class Sky2Pix_CylindricalEqualArea(Sky2PixProjection, Cylindrical):
@@ -658,9 +635,7 @@ class Sky2Pix_CylindricalEqualArea(Sky2PixProjection, Cylindrical):
         return x, y
 
 
-@deprecated('1.1', alternative='Sky2Pix_CylindricalEqualArea')
-class Sky2Pix_CEA(Sky2Pix_CylindricalEqualArea):
-    pass
+Sky2Pix_CEA = Sky2Pix_CylindricalEqualArea
 
 
 class Pix2Sky_PlateCarree(Pix2SkyProjection, Cylindrical):
@@ -687,9 +662,7 @@ class Pix2Sky_PlateCarree(Pix2SkyProjection, Cylindrical):
         return phi, theta
 
 
-@deprecated('1.1', alternative='Pix2Sky_PlateCarree')
-class Pix2Sky_CAR(Pix2Sky_PlateCarree):
-    pass
+Pix2Sky_CAR = Pix2Sky_PlateCarree
 
 
 class Sky2Pix_PlateCarree(Sky2PixProjection, Cylindrical):
@@ -716,9 +689,7 @@ class Sky2Pix_PlateCarree(Sky2PixProjection, Cylindrical):
         return x, y
 
 
-@deprecated('1.1', alternative='Sky2Pix_PlateCarree')
-class Sky2Pix_CAR(Sky2Pix_PlateCarree):
-    pass
+Sky2Pix_CAR = Sky2Pix_PlateCarree
 
 
 class Pix2Sky_Mercator(Pix2SkyProjection, Cylindrical):
@@ -744,9 +715,7 @@ class Pix2Sky_Mercator(Pix2SkyProjection, Cylindrical):
         return phi, theta
 
 
-@deprecated('1.1', alternative='Pix2Sky_Mercator')
-class Pix2Sky_MER(Pix2Sky_Mercator):
-    pass
+Pix2Sky_MER = Pix2Sky_Mercator
 
 
 class Sky2Pix_Mercator(Sky2PixProjection, Cylindrical):
@@ -773,9 +742,7 @@ class Sky2Pix_Mercator(Sky2PixProjection, Cylindrical):
         return x, y
 
 
-@deprecated('1.1', alternative='Sky2Pix_Mercator')
-class Sky2Pix_MER(Sky2Pix_Mercator):
-    pass
+Sky2Pix_MER = Sky2Pix_Mercator
 
 
 class AffineTransformation2D(Model):
@@ -892,46 +859,3 @@ class AffineTransformation2D(Model):
         augmented_matrix[0:2, 2:].flat = translation
         augmented_matrix[2] = [0, 0, 1]
         return augmented_matrix
-
-
-def get_projection_from_wcs_code(direction, code):
-    """
-    Get a projection class from a 3-letter FITS WCS projection code.
-
-    Parameters
-    ----------
-    direction : string
-       Must be ``pix2sky`` or ``sky2pix``.
-
-    code : string
-       Must be a 3-letter FITS WCS projection code, such as ``TAN``.
-
-    Returns
-    -------
-    projection : Model subclass
-    """
-    direction_mapping = {
-        'pix2sky': 'Pix2Sky',
-        'sky2pix': 'Sky2Pix'
-    }
-
-    direction = direction_mapping.get(direction.lower(), None)
-    if direction is None:
-        raise ValueError("direction must be 'pix2sky' or 'sky2pix'")
-
-    code_mapping = {
-        'TAN': 'Gnomonic',
-        'AZP': 'ZenithalPerspective',
-        'STG': 'Stereographic',
-        'SIN': 'SlantedOrthographic',
-        'CYP': 'CylindricalPerspective',
-        'CEA': 'CylindricalEqualArea',
-        'CAR': 'PlateCarree',
-        'MER': 'Mercator'
-    }
-
-    code = code_mapping.get(code.upper(), None)
-    if code is None:
-        raise ValueError("Unknown code '{0}'".format(code))
-
-    return globals().get('{0}_{1}'.format(direction, code))
