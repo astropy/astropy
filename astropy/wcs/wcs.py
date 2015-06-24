@@ -3026,7 +3026,8 @@ def validate(source):
 
         with warnings.catch_warnings(record=True) as warning_lines:
             wcses = find_all_wcs(
-                hdu.header, relax=True, fix=False, _do_set=False)
+                hdu.header, relax=_wcs.WCSHDR_reject,
+                fix=False, _do_set=False)
 
         for wcs in wcses:
             wcs_results = _WcsValidateWcsResult(wcs.wcs.alt)
@@ -3045,7 +3046,8 @@ def validate(source):
                 try:
                     WCS(hdu.header,
                         key=wcs.wcs.alt or ' ',
-                        relax=True, fix=True, _do_set=False)
+                        relax=_wcs.WCSHDR_reject,
+                        fix=True, _do_set=False)
                 except WcsError as e:
                     wcs_results.append(str(e))
 

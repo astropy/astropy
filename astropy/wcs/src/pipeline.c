@@ -5,6 +5,7 @@
 
 #include "astropy_wcs/pipeline.h"
 #include "astropy_wcs/util.h"
+#include "wcserr.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
