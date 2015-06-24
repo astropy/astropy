@@ -283,7 +283,8 @@ Bug fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing yet.
+- The repr for ``Table`` no longer displays ``masked=False`` since tables
+  are not masked by default anyway. [#3869]
 
 
 1.0.4 (unreleased)
