@@ -688,3 +688,13 @@ def test_fractional_rounding_errors_simple():
     assert isinstance(x.powers[0], Fraction)
     assert x.powers[0].numerator == 6
     assert x.powers[0].denominator == 5
+
+
+def test_enable_unit_groupings():
+    from ...units import cds
+    with cds.enable():
+        pass
+
+    from ...units import imperial
+    with imperial.enable():
+        pass
