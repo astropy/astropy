@@ -881,3 +881,23 @@ def test_radesys_defaults_full():
         w.radesys = 'FK4-NO-E'
         w.set()
         assert w.equinox == 1950
+
+
+def test_linwarp():
+    header = get_pkg_data_contents('data/3d_cd.hdr', encoding='binary')
+    w = _wcs.Wcsprm(header)
+    truth = {
+        'maxdis': np.array([ 0.,  0.,  0.]),
+        'maxtot': 0.0,
+        'avgtot': 0.0,
+        'nsamp': 0,
+        'avgdis': np.array([ 0.,  0.,  0.]),
+        'rmsdis': np.array([ 0.,  0.,  0.]),
+        'rmstot': 0.0
+    }
+
+    warp = w.linwarp()
+    assert len(warp) == len(truth)
+    for key, val in warp.items():
+        assert key in truth
+        assert_array_equal(truth[key], val)

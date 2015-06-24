@@ -22,7 +22,8 @@ forward (from pixel to sky) and backward (from sky to pixel).
 It performs three separate classes of WCS transformations:
 
 - Core WCS, as defined in the `FITS WCS standard`_, based on Mark
-  Calabretta's `wcslib`_.
+  Calabretta's `wcslib`_.  (Also includes ``TPV`` and ``TPD``
+  distortion, but not ``SIP``).
 
 - Simple Imaging Polynomial (`SIP`_) convention.
 
@@ -198,6 +199,18 @@ example, ``RA---TAN-SIP``.  The supported projection codes are:
 - ``QSC``: quadrilateralized spherical cube
 - ``HPX``: HEALPix
 - ``XPH``: HEALPix polar, aka "butterfly"
+
+And, if built with wcslib 5.0 or later, the following polynomial
+distortions are supported:
+
+- ``TPV``: Polynomial distortion
+- ``TUV``: Polynomial distortion
+
+.. note::
+
+    Though wcslib 5.4 and later handles ``SIP`` polynomial distortion,
+    for backward compatibility, ``SIP`` is handled by astropy itself
+    and methods exist to handle it specially.
 
 Subsetting and Pixel Scales
 ===========================

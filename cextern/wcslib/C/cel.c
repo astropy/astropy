@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: cel.c,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: cel.c,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -47,6 +47,15 @@ const char *cel_errmsg[] = {
   "Ill-conditioned coordinate transformation parameters",
   "One or more of the (x,y) coordinates were invalid",
   "One or more of the (lng,lat) coordinates were invalid"};
+
+/* Map error returns for lower-level routines. */
+const int cel_prjerr[] = {
+  CELERR_SUCCESS,		/*  0: PRJERR_SUCCESS         */
+  CELERR_NULL_POINTER,		/*  1: PRJERR_NULL_POINTER    */
+  CELERR_BAD_PARAM,		/*  2: PRJERR_BAD_PARAM       */
+  CELERR_BAD_PIX,		/*  3: PRJERR_BAD_PIX         */
+  CELERR_BAD_WORLD		/*  4: PRJERR_BAD_WORLD       */
+};
 
 /* Convenience macro for invoking wcserr_set(). */
 #define CEL_ERRMSG(status) WCSERR_SET(status), cel_errmsg[status]
@@ -77,7 +86,7 @@ struct celprm *cel;
 
   cel->err = 0x0;
 
-  return prjini(&(cel->prj));
+  return cel_prjerr[prjini(&(cel->prj))];
 }
 
 /*--------------------------------------------------------------------------*/
@@ -94,9 +103,7 @@ struct celprm *cel;
     cel->err = 0x0;
   }
 
-  prjfree(&(cel->prj));
-
-  return 0;
+  return cel_prjerr[prjfree(&(cel->prj))];
 }
 
 /*--------------------------------------------------------------------------*/
@@ -122,16 +129,16 @@ const struct celprm *cel;
   } else {
     wcsprintf("     theta0: %9f\n", cel->theta0);
   }
-  wcsprintf("       ref:");
+  wcsprintf("        ref:");
   for (i = 0; i < 4; i++) {
-    wcsprintf("  %- 11.5g", cel->ref[i]);
+    wcsprintf("  %#- 11.5g", cel->ref[i]);
   }
   wcsprintf("\n");
-  wcsprintf("       prj: (see below)\n");
+  wcsprintf("        prj: (see below)\n");
 
-  wcsprintf("     euler:");
+  wcsprintf("      euler:");
   for (i = 0; i < 5; i++) {
-    wcsprintf("  %- 11.5g", cel->euler[i]);
+    wcsprintf("  %#- 11.5g", cel->euler[i]);
   }
   wcsprintf("\n");
   wcsprintf("    latpreq: %d", cel->latpreq);
@@ -160,6 +167,21 @@ const struct celprm *cel;
 
 /*--------------------------------------------------------------------------*/
 
+int celperr(const struct celprm *cel, const char *prefix)
+
+{
+  if (cel == 0x0) return CELERR_NULL_POINTER;
+
+  if (cel->err && wcserr_prt(cel->err, prefix) == 0) {
+    wcserr_prt(cel->prj.err, prefix);
+  }
+
+  return 0;
+}
+
+
+/*--------------------------------------------------------------------------*/
+
 int celset(cel)
 
 struct celprm *cel;
@@ -167,6 +189,7 @@ struct celprm *cel;
 {
   static const char *function = "celset";
 
+  int status;
   const double tol = 1.0e-10;
   double clat0, cphip, cthe0, lat0, lng0, phip, slat0, slz, sphip, sthe0;
   double latp, latp1, latp2, lngp;
@@ -188,8 +211,8 @@ struct celprm *cel;
     celprj->theta0 = UNDEFINED;
   }
 
-  if (prjset(celprj)) {
-    return wcserr_set(CEL_ERRMSG(CELERR_BAD_PARAM));
+  if ((status = prjset(celprj))) {
+    return wcserr_set(CEL_ERRMSG(cel_prjerr[status]));
   }
 
   /* Defaults set by the projection routines. */
@@ -418,7 +441,7 @@ int stat[];
 {
   static const char *function = "celx2s";
 
-  int    nphi, status;
+  int    istat, nphi, status = 0;
   struct prjprm *celprj;
   struct wcserr **err;
 
@@ -432,15 +455,14 @@ int stat[];
 
   /* Apply spherical deprojection. */
   celprj = &(cel->prj);
-  if ((status = celprj->prjx2s(celprj, nx, ny, sxy, 1, x, y, phi, theta,
+  if ((istat = celprj->prjx2s(celprj, nx, ny, sxy, 1, x, y, phi, theta,
                                stat))) {
-    if (status == PRJERR_BAD_PIX) {
-      status = CELERR_BAD_PIX;
+    if (istat) {
+      status = wcserr_set(CEL_ERRMSG(cel_prjerr[istat]));
+      if (status != CELERR_BAD_PIX) {
+        return status;
+      }
     }
-
-    wcserr_set(CEL_ERRMSG(status));
-
-    if (status != CELERR_BAD_PIX) return status;
   }
 
   nphi = (ny > 0) ? (nx*ny) : nx;
@@ -465,7 +487,7 @@ int stat[];
 {
   static const char *function = "cels2x";
 
-  int    nphi, ntheta, status;
+  int    istat, nphi, ntheta, status = 0;
   struct prjprm *celprj;
   struct wcserr **err;
 
@@ -491,14 +513,15 @@ int stat[];
 
   /* Apply the spherical projection. */
   celprj = &(cel->prj);
-  if ((status = celprj->prjs2x(celprj, nphi, ntheta, 1, sxy, phi, theta, x, y,
+  if ((istat = celprj->prjs2x(celprj, nphi, ntheta, 1, sxy, phi, theta, x, y,
                                stat))) {
-    if (status != PRJERR_BAD_PARAM) {
-      status = CELERR_BAD_WORLD;
+    if (istat) {
+      status = wcserr_set(CEL_ERRMSG(cel_prjerr[istat]));
+      if (status != CELERR_BAD_WORLD) {
+        return status;
+      }
     }
-
-    return wcserr_set(CEL_ERRMSG(status));
   }
 
-  return 0;
+  return status;
 }

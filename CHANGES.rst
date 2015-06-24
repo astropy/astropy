@@ -141,6 +141,26 @@ New Features
 
 - ``astropy.wcs``
 
+  - The included version of wcslib has been upgraded to 5.6.
+
+    The minimum required version of wcslib in the 4.x series remains 4.24.
+
+    The minimum required version of wcslib in the 5.x series is 5.6.
+
+    The wcslib changes relevant to astropy are:
+
+    - ``astropy.wcs.WCS`` now recognises the ``TPV``, ``TPD`` and
+      ``TPU`` polynomial distortions.
+
+    - Added relaxation flags to allow ``PC0i_0ja``, ``PV0j_0ma``, and
+      ``PS0j_0ma`` (i.e. with leading zeroes on the index).
+
+    - Tidied up error reporting, particularly relating to translating
+      status returns from lower-level functions.
+
+    - Changed output formatting of floating point values in
+      ``to_header``.
+
   - Enhanced text representation of ``WCS`` objects. [#3604]
 
 .. _astroML: http://astroML.org
@@ -214,7 +234,7 @@ API changes
     the numerical columns are stored as ``Quantity``, with full support for
     units.  Furthermore, the ``ut1_utc`` method now returns a ``Quantity``
     instead of a float or an array (as did ``pm_xy`` already). [#3223]
-    
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
@@ -270,8 +290,8 @@ Bug fixes
 
   - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
     ``divmod``, such that it only works where the quotient is dimensionless.
-    This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817] 
-    
+    This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``

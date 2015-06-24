@@ -31,11 +31,11 @@ Transforms pixel coordinates to world coordinates.
 
 Does the following:
 
-    - Detector to image plane correction (optionally)
+    - Detector to image plane correction (if present)
 
-    - SIP distortion correction (optionally)
+    - SIP distortion correction (if present)
 
-    - FITS WCS distortion correction (optionally)
+    - FITS WCS distortion correction (if present)
 
     - wcslib "core" WCS transformation
 
@@ -963,6 +963,69 @@ lattyp = """
 For example, "RA", "DEC", "GLON", "GLAT", etc. extracted from "RA--",
 "DEC-", "GLON", "GLAT", etc. in the first four characters of
 ``CTYPEia`` but with trailing dashes removed.
+"""
+
+linwarp = """
+linwarp(pixblc=None, pixtrc=None, pixsamp=None)
+
+`linwarp` computes various measures of the distortion over the
+specified range of pixel coordinates.
+
+All distortion measures are specified as an offset in pixel
+coordinates, as given directly by prior distortions.  The offset in
+intermediate pixel coordinates given by sequent distortions is
+translated back to pixel coordinates by applying the inverse of the
+linear transformation matrix (``PCi_ja`` or ``CDi_ja``).  The
+difference may be significant if the matrix introduced a scaling.
+
+Parameters
+----------
+pixblc : float[naxis], optional
+    Start of the range of pixel coordinates (i.e. "bottom left-hand
+    corner" in the conventional FITS image display orientation).  May
+    be omitted, which is interpreted as ``[1, 1, ...]```.
+
+pixtrc : float[naxis], optional
+    End of the range of pixel coordinates (i.e. "top right-hand
+    corner" in the conventional FITS image display orientation).  May
+    be omitted, which is interpreted as ``[1, 1, ...]```.
+
+pixsamp : float[naxis], optional
+    If positive or zero, the increment on the particular axis,
+    starting at ``pixblc``.  Zero is interpreted as a unit increment.
+    ``pixsamp`` may also be omitted which is interpreted as all
+    zeroes, i.e. unit increments on all axes.
+
+    If negative, the grid size on the particular axis (the absolute
+    value being rounded to the nearest integer).  For example, if
+    ``pixsamp`` is ``[-128.0, -128.0, ...]`` then each axis will be
+    sampled at 128 points between ``pixblc`` and ``pixtrc`` inclusive.
+    Use caution when using this option on non-square images.
+
+Returns
+-------
+stats : dict
+    A dictionary with the following keys:
+
+    - ``nsamp``: The number of pixel coordinates sampled.
+
+    - ``maxdis`` (array[naxis]): For each individual distortion
+      function, the maximum absolute value of the distortion.
+
+    - ``maxtot``: For the combination of all distortion functions, the
+      maximum absolute value of the distortion.
+
+    - ``avgdis`` (array[naxis]): For each individual distortion
+      function, the mean value of the distortion.
+
+    - ``avgtot``: For the combination of all distortion functions, the
+      mean value of the distortion.
+
+    - ``rmsdis`` (array[naxis]): For each individual distortion
+      function, the root mean square deviation of the distortion.
+
+    - ``rmstot``: For the combination of all distortion functions, the
+      root mean square deviation of the distortion.
 """
 
 lng = """
@@ -2093,6 +2156,12 @@ An undefined value is represented by NaN.
 See also
 --------
 astropy.wcs.Wcsprm.specsys, astropy.wcs.Wcsprm.ssysobs
+"""
+
+velref = """
+``int`` AIPS velocity code.
+
+From ``VELREF`` keyword.
 """
 
 wcs = """

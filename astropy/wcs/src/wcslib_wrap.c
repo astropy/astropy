@@ -18,6 +18,7 @@
 #include <wcsmath.h>
 #include <wcsprintf.h>
 #include <wcsunits.h>
+#include <tab.h>
 
 #include "astropy_wcs/isnan.h"
 #include "astropy_wcs/distortion.h"
@@ -63,6 +64,13 @@ convert_rejections_to_warnings() {
   PyObject *wcs_module = NULL;
   PyObject *FITSFixedWarning = NULL;
   int status = -1;
+  char delimiter;
+
+#ifdef HAVE_WCSLIB_VERSION
+  delimiter = ',';
+#else
+  delimiter = ':';
+#endif
 
   if (wcsprintf_buf()[0] == 0) {
     return 0;
@@ -105,7 +113,7 @@ convert_rejections_to_warnings() {
     /* For the second line, remove everything up to and including the
        first colon */
     for (; *src != 0; ++src) {
-      if (*src == ':') {
+      if (*src == delimiter) {
         ++src;
         break;
       }
@@ -291,8 +299,6 @@ PyWcsprm_init(
             "relax must be True, False or an integer.");
         return -1;
       }
-      /* Mask out any invalid flags */
-      relax &= WCSHDR_all;
     }
 
     if (!is_valid_alt_key(key)) {
@@ -575,9 +581,6 @@ PyWcsprm_find_all_wcs(
           "relax must be True, False or an integer.");
       return NULL;
     }
-
-    /* Mask out any invalid flags */
-    relax &= WCSHDR_all;
   }
 
   /* Call the header parser twice, the first time to get warnings
@@ -1053,6 +1056,182 @@ PyWcsprm_is_unity(
 
   return PyBool_FromLong(self->x.lin.unity);
 }
+
+#ifdef HAVE_WCSLIB_VERSION
+static PyObject*
+PyWcsprm_linwarp(
+    PyWcsprm* self,
+    PyObject* args,
+    PyObject* kwds) {
+
+  PyObject *pixblc_obj = NULL;
+  PyArrayObject *pixblc_arr = NULL;
+  double *pixblc = NULL;
+  PyObject *pixtrc_obj = NULL;
+  PyArrayObject *pixtrc_arr = NULL;
+  double *pixtrc = NULL;
+  PyObject *pixsamp_obj = NULL;
+  PyArrayObject *pixsamp_arr = NULL;
+  double *pixsamp = NULL;
+  int nsamp;
+  PyArrayObject *maxdis_arr = NULL;
+  double *maxdis;
+  double maxtot;
+  PyArrayObject *avgdis_arr = NULL;
+  double *avgdis;
+  double avgtot;
+  PyArrayObject *rmsdis_arr = NULL;
+  double *rmsdis;
+  double rmstot;
+  npy_intp naxis;
+  PyObject *result = NULL;
+
+  int status = -1;
+
+  const char* keywords[] = {
+      "pixblc", "pixtrc", "pixsamp", NULL };
+
+  if (!PyArg_ParseTupleAndKeywords(
+        args, kwds, "|OOO:linwarp", (char **)keywords,
+        &pixblc_obj, &pixtrc_obj, &pixsamp_obj)) {
+    return NULL;
+  }
+
+  if (pixblc_obj != NULL) {
+    pixblc_arr = (PyArrayObject*)PyArray_ContiguousFromAny
+      (pixblc_obj, PyArray_DOUBLE, 1, 1);
+    if (pixblc_arr == NULL) {
+      PyErr_SetString(
+          PyExc_TypeError,
+          "Argument 1 (pixblc) must be a 1-dimensional array");
+      goto exit;
+    }
+
+    if ((int)PyArray_DIM(pixblc_arr, 0) != self->x.naxis) {
+      PyErr_Format(
+          PyExc_TypeError,
+          "Argument 1 (pixblc) must be the same length as the number "
+          "of axes (%d)",
+          self->x.naxis);
+      goto exit;
+    }
+
+    pixblc = (double *)PyArray_DATA(pixblc_arr);
+  }
+
+  if (pixtrc_obj != NULL) {
+    pixtrc_arr = (PyArrayObject*)PyArray_ContiguousFromAny
+      (pixtrc_obj, PyArray_DOUBLE, 1, 1);
+    if (pixtrc_arr == NULL) {
+      PyErr_SetString(
+          PyExc_TypeError,
+          "Argument 2 (pixtrc) must be a 1-dimensional array");
+      goto exit;
+    }
+
+    if ((int)PyArray_DIM(pixtrc_arr, 0) != self->x.naxis) {
+      PyErr_Format(
+          PyExc_TypeError,
+          "Argument 2 (pixtrc) must be the same length as the number "
+          "of axes (%d)",
+          self->x.naxis);
+      goto exit;
+    }
+
+    pixtrc = (double *)PyArray_DATA(pixtrc_arr);
+  }
+
+  if (pixsamp_obj != NULL) {
+    pixsamp_arr = (PyArrayObject*)PyArray_ContiguousFromAny
+      (pixsamp_obj, PyArray_DOUBLE, 1, 1);
+    if (pixsamp_arr == NULL) {
+      PyErr_SetString(
+          PyExc_TypeError,
+          "Argument 3 (pixsamp) must be a 1-dimensional array");
+      goto exit;
+    }
+
+    if ((int)PyArray_DIM(pixsamp_arr, 0) != self->x.naxis) {
+      PyErr_Format(
+          PyExc_TypeError,
+          "Argument 3 (pixsamp) must be the same length as the number "
+          "of axes (%d)",
+          self->x.naxis);
+      goto exit;
+    }
+
+    pixsamp = (double *)PyArray_DATA(pixsamp_arr);
+  }
+
+  naxis = (npy_intp)self->x.naxis;
+
+  maxdis_arr = (PyArrayObject*)PyArray_SimpleNew(
+      1, &naxis, PyArray_DOUBLE);
+  if (maxdis_arr == NULL) {
+    goto exit;
+  }
+  maxdis = (double *)PyArray_DATA(maxdis_arr);
+
+  avgdis_arr = (PyArrayObject*)PyArray_SimpleNew(
+      1, &naxis, PyArray_DOUBLE);
+  if (avgdis_arr == NULL) {
+    goto exit;
+  }
+  avgdis = (double *)PyArray_DATA(avgdis_arr);
+
+  rmsdis_arr = (PyArrayObject*)PyArray_SimpleNew(
+      1, &naxis, PyArray_DOUBLE);
+  if (rmsdis_arr == NULL) {
+    goto exit;
+  }
+  rmsdis = (double *)PyArray_DATA(rmsdis_arr);
+
+  if (PyWcsprm_cset(self, 1)) {
+    goto exit;
+  }
+
+  Py_BEGIN_ALLOW_THREADS
+  wcsprm_python2c(&self->x);
+  status = linwarp(&self->x.lin, pixblc, pixtrc, pixsamp,
+                   &nsamp, maxdis, &maxtot, avgdis, &avgtot,
+                   rmsdis, &rmstot);
+  wcsprm_c2python(&self->x);
+  Py_END_ALLOW_THREADS
+
+  if (status == 0) {
+    result = Py_BuildValue(
+        "{s:i, s:O, s:d, s:O, s:d, s:O, s:d}",
+        "nsamp", nsamp,
+        "maxdis", (PyObject *)maxdis_arr,
+        "maxtot", maxtot,
+        "avgdis", (PyObject *)avgdis_arr,
+        "avgtot", avgtot,
+        "rmsdis", (PyObject *)rmsdis_arr,
+        "rmstot", rmstot);
+  }
+
+ exit:
+  Py_XDECREF(pixblc_arr);
+  Py_XDECREF(pixtrc_arr);
+  Py_XDECREF(pixsamp_arr);
+  Py_XDECREF(maxdis_arr);
+  Py_XDECREF(avgdis_arr);
+  Py_XDECREF(rmsdis_arr);
+
+  if (status == 0) {
+    return result;
+  } else {
+    Py_XDECREF(result);
+    if (status == -1) {
+      /* Exception already set */
+      return NULL;
+    } else {
+      wcserr_to_python_exc(self->x.lin.err);
+      return NULL;
+    }
+  }
+}
+#endif
 
 /*@null@*/ static PyObject*
 PyWcsprm_mix(
@@ -2031,8 +2210,6 @@ PyWcsprm_set_alt(
 
   strncpy(self->x.alt, value_string, 2);
 
-  note_change(self);
-
   return 0;
 }
 
@@ -2195,8 +2372,6 @@ PyWcsprm_set_cname(
     return -1;
   }
 
-  note_change(self);
-
   return set_str_list("cname", value, (Py_ssize_t)self->x.naxis, 0, self->x.cname);
 }
 
@@ -2230,8 +2405,6 @@ PyWcsprm_set_colax(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  note_change(self);
-
   return set_int_array("colax", value, 1, &naxis, self->x.colax);
 }
 
@@ -2248,8 +2421,6 @@ PyWcsprm_set_colnum(
     PyWcsprm* self,
     PyObject* value,
     /*@unused@*/ void* closure) {
-
-  note_change(self);
 
   return set_int("colnum", value, &self->x.colnum);
 }
@@ -2283,8 +2454,6 @@ PyWcsprm_set_crder(
   }
 
   naxis = (Py_ssize_t)self->x.naxis;
-
-  note_change(self);
 
   return set_double_array("crder", value, 1, &naxis, self->x.crder);
 }
@@ -2441,8 +2610,6 @@ PyWcsprm_set_csyer(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  note_change(self);
-
   return set_double_array("csyer", value, 1, &naxis, self->x.csyer);
 }
 
@@ -2543,8 +2710,6 @@ PyWcsprm_set_dateavg(
     return -1;
   }
 
-  note_change(self);
-
   /* TODO: Verify that this looks like a date string */
 
   return set_string("dateavg", value, self->x.dateavg, 72);
@@ -2572,8 +2737,6 @@ PyWcsprm_set_dateobs(
     return -1;
   }
 
-  note_change(self);
-
   return set_string("dateobs", value, self->x.dateobs, 72);
 }
 
@@ -2595,8 +2758,6 @@ PyWcsprm_set_equinox(
     self->x.equinox = (double)NPY_NAN;
     return 0;
   }
-
-  note_change(self);
 
   return set_double("equinox", value, &self->x.equinox);
 }
@@ -2741,8 +2902,6 @@ PyWcsprm_set_mjdavg(
     PyObject* value,
     /*@unused@*/ void* closure) {
 
-  note_change(self);
-
   if (value == NULL) {
     self->x.mjdavg = (double)NPY_NAN;
     return 0;
@@ -2797,8 +2956,6 @@ PyWcsprm_set_name(
     return -1;
   }
 
-  note_change(self);
-
   return set_string("name", value, self->x.wcsname, 72);
 }
 
@@ -2835,8 +2992,6 @@ PyWcsprm_set_obsgeo(
   if (is_null(self->x.obsgeo)) {
     return -1;
   }
-
-  note_change(self);
 
   if (value == NULL) {
     self->x.obsgeo[0] = NPY_NAN;
@@ -2991,8 +3146,6 @@ PyWcsprm_set_radesys(
     return -1;
   }
 
-  note_change(self);
-
   return set_string("radesys", value, self->x.radesys, 72);
 }
 
@@ -3074,8 +3227,6 @@ PyWcsprm_set_specsys(
     return -1;
   }
 
-  note_change(self);
-
   return set_string("specsys", value, self->x.specsys, 72);
 }
 
@@ -3127,8 +3278,6 @@ PyWcsprm_set_ssyssrc(
   if (is_null(self->x.ssyssrc)) {
     return -1;
   }
-
-  note_change(self);
 
   return set_string("ssyssrc", value, self->x.ssyssrc, 72);
 }
@@ -3209,8 +3358,6 @@ PyWcsprm_set_velangl(
     return 0;
   }
 
-  note_change(self);
-
   return set_double("velangl", value, &self->x.velangl);
 }
 
@@ -3233,9 +3380,29 @@ PyWcsprm_set_velosys(
     return 0;
   }
 
-  note_change(self);
-
   return set_double("velosys", value, &self->x.velosys);
+}
+
+static PyObject*
+PyWcsprm_get_velref(
+    PyWcsprm* self,
+    /*@unused@*/ void* closure) {
+
+  return get_int("velref", self->x.velref);
+}
+
+static int
+PyWcsprm_set_velref(
+    PyWcsprm* self,
+    PyObject* value,
+    /*@unused@*/ void* closure) {
+
+  if (value == NULL) { /* deletion */
+    self->x.velref = 0;
+    return 0;
+  }
+
+  return set_int("velref", value, &self->x.velref);
 }
 
 /* static PyObject* */
@@ -3290,8 +3457,6 @@ PyWcsprm_set_zsource(
     return 0;
   }
 
-  note_change(self);
-
   return set_double("zsource", value, &self->x.zsource);
 }
 
@@ -3345,6 +3510,7 @@ static PyGetSetDef PyWcsprm_getset[] = {
   {"theta0", (getter)PyWcsprm_get_theta0, (setter)PyWcsprm_set_theta0, (char *)doc_theta0},
   {"velangl", (getter)PyWcsprm_get_velangl, (setter)PyWcsprm_set_velangl, (char *)doc_velangl},
   {"velosys", (getter)PyWcsprm_get_velosys, (setter)PyWcsprm_set_velosys, (char *)doc_velosys},
+  {"velref", (getter)PyWcsprm_get_velref, (setter)PyWcsprm_set_velref, (char *)doc_velref},
   /* {"wtb", (getter)PyWcsprm_get_wtb, NULL, (char *)doc_tab}, */
   {"zsource", (getter)PyWcsprm_get_zsource, (setter)PyWcsprm_set_zsource, (char *)doc_zsource},
   {NULL}
@@ -3371,6 +3537,9 @@ static PyMethodDef PyWcsprm_methods[] = {
   {"has_pc", (PyCFunction)PyWcsprm_has_pci_ja, METH_NOARGS, doc_has_pc},
   {"has_pci_ja", (PyCFunction)PyWcsprm_has_pci_ja, METH_NOARGS, doc_has_pci_ja},
   {"is_unity", (PyCFunction)PyWcsprm_is_unity, METH_NOARGS, doc_is_unity},
+#ifdef HAVE_WCSLIB_VERSION
+  {"linwarp", (PyCFunction)PyWcsprm_linwarp, METH_VARARGS|METH_KEYWORDS, doc_linwarp},
+#endif
   {"mix", (PyCFunction)PyWcsprm_mix, METH_VARARGS|METH_KEYWORDS, doc_mix},
   {"p2s", (PyCFunction)PyWcsprm_p2s, METH_VARARGS|METH_KEYWORDS, doc_p2s},
   {"print_contents", (PyCFunction)PyWcsprm_print_contents, METH_NOARGS, doc_print_contents},
@@ -3463,12 +3632,28 @@ _setup_wcsprm_type(
     CONSTANT(WCSHDR_PIXLIST)   ||
     CONSTANT(WCSHDR_none)      ||
     CONSTANT(WCSHDR_all)       ||
+    CONSTANT(WCSHDR_reject)    ||
+#ifdef WCSHDR_strict
+    CONSTANT(WCSHDR_strict)    ||
+#endif
     CONSTANT(WCSHDR_CROTAia)   ||
     CONSTANT(WCSHDR_EPOCHa)    ||
     CONSTANT(WCSHDR_VELREFa)   ||
     CONSTANT(WCSHDR_CD00i00j)  ||
     CONSTANT(WCSHDR_PC00i00j)  ||
     CONSTANT(WCSHDR_PROJPn)    ||
+#ifdef WCSHDR_CD0i_0ja
+    CONSTANT(WCSHDR_CD0i_0ja)  ||
+#endif
+#ifdef WCSHDR_PC0i_0ja
+    CONSTANT(WCSHDR_PC0i_0ja)  ||
+#endif
+#ifdef WCSHDR_PV0i_0ma
+    CONSTANT(WCSHDR_PV0i_0ma)  ||
+#endif
+#ifdef WCSHDR_PS0i_0ma
+    CONSTANT(WCSHDR_PS0i_0ma)  ||
+#endif
     CONSTANT(WCSHDR_RADECSYS)  ||
     CONSTANT(WCSHDR_VSOURCE)   ||
     CONSTANT(WCSHDR_DOBSn)     ||
