@@ -67,7 +67,7 @@ def _square(x):
     return x ** 2
 
 
-@pytest.mark.skipif('not PY3_4 or sys.platform == "win32"')
+@pytest.mark.skipif('not PY3_4 or sys.platform == "win32" or sys.platform.startswith("gnu0")')
 def test_multiprocessing_forkserver():
     """
     Test that using multiprocessing with forkserver works.  Perhaps
