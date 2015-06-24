@@ -326,7 +326,7 @@ if not _ASTROPY_SETUP_:
     from .utils.misc import find_api_page
 
 
-def help(query):
+def online_help(query):
     """
     Search the online Astropy documentation for the given query.
     Opens the results in the default web browser.  Requires an active
