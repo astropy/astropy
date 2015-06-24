@@ -1,13 +1,11 @@
-from .bst import BST
+from .bst import BST, RedBlackTree
 from .array import SortedArray
 
 class Index:
-    Implementation = SortedArray
-
-    def __init__(self, columns):
+    def __init__(self, columns, impl=RedBlackTree):
         # nodes of self.data will be (key val, row index)
         data = [(c, i) for i, c in enumerate(zip(*columns))]
-        self.data = self.Implementation(data)
+        self.data = impl(data)
         self.columns = columns
 
     def refresh(self, columns):
@@ -15,7 +13,7 @@ class Index:
 
     def col_position(self, col):
         for i, c in enumerate(self.columns):
-            if col is c:
+            if col.name == c.name:
                 return i
         raise ValueError("Column does not belong to index: {0}".format(col))
 
@@ -89,7 +87,8 @@ class Index:
         self.data.add(tuple(key), row)
 
     def sorted_data(self):
-        lst = [x.data for x in self.data.sort()]
+        y = self.data.sort()
+        lst = [x.data for x in y]
         return [row for l in lst for row in l]
 
     def nodes(self):

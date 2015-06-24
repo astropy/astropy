@@ -8,12 +8,9 @@ from ...tests.helper import pytest, catch_warnings
 from ...table import Table, Column
 from ...utils.exceptions import AstropyUserWarning
 
-
-def sort_eq(list1, list2):
-    return sorted(list1) == sorted(list2)
-
-
-T1 = Table.read([' a b c d',
+@pytest.fixture(params=[False, True])
+def T1(request):
+    T = Table.read([' a b c d',
                  ' 2 c 7.0 0',
                  ' 2 b 5.0 1',
                  ' 2 b 6.0 2',
@@ -23,14 +20,19 @@ T1 = Table.read([' a b c d',
                  ' 1 a 2.0 6',
                  ' 1 a 1.0 7',
                  ], format='ascii')
-T1.meta.update({'ta': 1})
-T1['c'].meta.update({'a': 1})
-T1['c'].description = 'column c'
+    T.meta.update({'ta': 1})
+    T['c'].meta.update({'a': 1})
+    T['c'].description = 'column c'
+    if request.param:
+        T.add_index('a')
+    return T
 
+def sort_eq(list1, list2):
+    return sorted(list1) == sorted(list2)
 
-def test_column_group_by():
+def test_column_group_by(T1):
     for masked in (False, True):
-        t1 = Table(T1, masked=masked)
+        t1 = Table(T1, masked=masked, copy_indices=True)
         t1a = t1['a'].copy()
 
         # Group by a Column (i.e. numpy array)
@@ -45,17 +47,13 @@ def test_column_group_by():
         t1ag = t1a.group_by(t1['a', 'b'].as_array())
         assert np.all(t1ag.groups.indices == np.array([0, 1, 3, 4, 5, 7, 8]))
 
-##TODO: parametrize other tests as well
-@pytest.mark.parametrize("index", [True, False])
-def test_table_group_by(index):
+def test_table_group_by(T1):
     """
     Test basic table group_by functionality for possible key types and for
     masked/unmasked tables.
     """
     for masked in (False, True):
-        t1 = Table(T1, masked=masked)
-        if index:
-            t1.add_index('a')
+        t1 = Table(T1, masked=masked, copy_indices=True)
         # Group by a single column key specified by name
         tg = t1.group_by('a')
         assert np.all(tg.groups.indices == np.array([0, 1, 4, 8]))
@@ -120,7 +118,7 @@ def test_table_group_by(index):
                                 '  0   a 0.0   4']
 
 
-def test_groups_keys():
+def test_groups_keys(T1):
     tg = T1.group_by('a')
     keys = tg.groups.keys
     assert keys.dtype.names == ('a',)
@@ -138,14 +136,14 @@ def test_groups_keys():
     assert keys.dtype.names is None
 
 
-def test_groups_iterator():
+def test_groups_iterator(T1):
     tg = T1.group_by('a')
     for ii, group in enumerate(tg.groups):
         assert group.pformat() == tg.groups[ii].pformat()
         assert group['a'][0] == tg['a'][tg.groups.indices[ii]]
 
 
-def test_grouped_copy():
+def test_grouped_copy(T1):
     """
     Test that copying a table or column copies the groups properly
     """
@@ -165,7 +163,7 @@ def test_grouped_copy():
         assert np.all(gc1c.groups.indices == np.array([0, 1, 4, 8]))
 
 
-def test_grouped_slicing():
+def test_grouped_slicing(T1):
     """
     Test that slicing a table removes previous grouping
     """
@@ -180,7 +178,7 @@ def test_grouped_slicing():
         assert tg2.groups.keys is None
 
 
-def test_group_column_from_table():
+def test_group_column_from_table(T1):
     """
     Group a column that is part of a table
     """
@@ -189,7 +187,7 @@ def test_group_column_from_table():
     assert np.all(cg.groups.indices == np.array([0, 1, 4, 8]))
 
 
-def test_table_groups_mask_index():
+def test_table_groups_mask_index(T1):
     """
     Use boolean mask as item in __getitem__ for groups
     """
@@ -203,7 +201,7 @@ def test_table_groups_mask_index():
         assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
 
 
-def test_table_groups_array_index():
+def test_table_groups_array_index(T1):
     """
     Use numpy array as item in __getitem__ for groups
     """
@@ -217,7 +215,7 @@ def test_table_groups_array_index():
         assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
 
 
-def test_table_groups_slicing():
+def test_table_groups_slicing(T1):
     """
     Test that slicing table groups works
     """
@@ -246,7 +244,7 @@ def test_table_groups_slicing():
         assert np.all(t2.groups.keys['a'] == np.array([0, 2]))
 
 
-def test_grouped_item_access():
+def test_grouped_item_access(T1):
     """
     Test that column slicing preserves grouping
     """
@@ -276,7 +274,7 @@ def test_grouped_item_access():
                                   '22.0   6']
 
 
-def test_mutable_operations():
+def test_mutable_operations(T1):
     """
     Operations like adding or deleting a row should removing grouping,
     but adding or removing or renaming a column should retain grouping.
@@ -327,7 +325,7 @@ def test_mutable_operations():
         assert np.all(tg['aa'].groups.indices == indices)
 
 
-def test_group_by_masked():
+def test_group_by_masked(T1):
     t1m = Table(T1, masked=True)
     t1m['c'].mask[4] = True
     t1m['d'].mask[5] = True
@@ -343,7 +341,7 @@ def test_group_by_masked():
                                            '  2   a 4.0   3']
 
 
-def test_group_by_errors():
+def test_group_by_errors(T1):
     """
     Appropriate errors get raised.
     """
@@ -370,7 +368,7 @@ def test_group_by_errors():
         t1.group_by('a')
 
 
-def test_groups_keys_meta():
+def test_groups_keys_meta(T1):
     """
     Make sure the keys meta['grouped_by_table_cols'] is working.
     """
@@ -399,7 +397,7 @@ def test_groups_keys_meta():
     assert 'grouped_by_table_cols' not in tg['c'].groups.keys.meta
 
 
-def test_table_aggregate():
+def test_table_aggregate(T1):
     """
     Aggregate a table
     """
@@ -467,7 +465,7 @@ def test_table_aggregate():
                              '  2 22.0   6']
 
 
-def test_table_aggregate_reduceat():
+def test_table_aggregate_reduceat(T1):
     """
     Aggregate table with functions which have a reduceat method
     """
@@ -519,7 +517,7 @@ def test_table_aggregate_reduceat():
                              '  2']
 
 
-def test_column_aggregate():
+def test_column_aggregate(T1):
     """
     Aggregate a single table column
     """

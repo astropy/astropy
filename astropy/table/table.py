@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
+from .array import SortedArray
 
 import re
 import sys
@@ -422,7 +423,7 @@ class Table(object):
                     lst.append(index)
         return lst
 
-    def add_index(self, colnames):
+    def add_index(self, colnames, impl=SortedArray):
         '''
         Inserts a new index among one or more columns. The input parameter
         may be either a list of column names or a single column name.
@@ -430,7 +431,7 @@ class Table(object):
         if isinstance(colnames, six.string_types):
             colnames = (colnames,)
         columns = self.columns[tuple(colnames)].values()
-        index = Index(columns)
+        index = Index(columns, impl=impl)
         for col in columns:
             col.add_index(index)
 
@@ -506,6 +507,9 @@ class Table(object):
                 interpret_query(tokens)
                 break
 
+        return self.query(col_map)
+
+    def query(self, col_map):
         for index in self.indices:
             try:
                 return index.where(col_map)

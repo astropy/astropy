@@ -94,9 +94,10 @@ class BST(object):
             else: # add data to node
                 curr_node.data.extend(node.data)
                 curr_node.data = sorted(curr_node.data) ##TODO: speed up
-                break
-        self.balance(node)
+                return
         self.clean() ##TODO: remove
+        self.balance(node)
+        self.clean()
 
     def clean(self):
         for node in self.traverse('inorder'):
@@ -304,12 +305,16 @@ class RedBlackTree(BST):
     def balance(self, node):
         node.color = RED
         parent = node.parent
-        gp = parent.parent if parent is not None else None
+        if parent is None:
+            node.color = BLACK
+            if node is not self.root:
+                import pdb;pdb.set_trace()
+                raise ValueError("Non-root node has no parent")
+            return
+        gp = parent.parent
         uncle = None
         if gp is not None:
             uncle = gp.right if gp.left is parent else gp.left
-        if node is self.root:
-            node.color = BLACK
         elif parent.color == BLACK:
             pass
         elif uncle is not None and uncle.color == RED:
