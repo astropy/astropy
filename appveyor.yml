@@ -17,6 +17,8 @@ environment:
       # Python 2 (if 2.6 passes, 2.7 virtually always passes) and Python 3.4 is
       # the latest Python 3 release.
 
+      - PYTHON_VERSION: "2.7"
+        NUMPY_VERSION: "1.9.1"
       - PYTHON_VERSION: "3.4"
         NUMPY_VERSION: "1.9.1"
 
@@ -44,5 +46,5 @@ install:
 build: false
 
 test_script:
-  - "%CMD_IN_ENV% python setup.py test -P io.misc"
+  - "%CMD_IN_ENV% python setup.py test"
 
