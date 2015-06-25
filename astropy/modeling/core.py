@@ -38,11 +38,11 @@ from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
-from .utils import (array_repr_oneline, check_broadcast, combine_labels,
+from .utils import (check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
                     IncompatibleShapeError, AliasDict, format_unit_with_type)
 
-from .parameters import Parameter, InputParameterError
+from .parameters import Parameter, InputParameterError, param_repr_oneline
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
@@ -1515,7 +1515,7 @@ class Model(object):
 
         parts.extend(
             "{0}={1}".format(name,
-                             array_repr_oneline(getattr(self, name).value))
+                             param_repr_oneline(getattr(self, name)))
             for name in self.param_names)
 
         if self.name is not None:
@@ -1562,6 +1562,10 @@ class Model(object):
                        for name in self.param_names]
 
         param_table = Table(columns, names=self.param_names)
+
+        # Set units on the columns
+        for name in self.param_names:
+            param_table[name].unit = getattr(self, name).unit
 
         parts.append(indent(str(param_table), width=4))
 
