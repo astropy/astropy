@@ -225,7 +225,7 @@ API changes
     the numerical columns are stored as ``Quantity``, with full support for
     units.  Furthermore, the ``ut1_utc`` method now returns a ``Quantity``
     instead of a float or an array (as did ``pm_xy`` already). [#3223]
-    
+
 - ``astropy.visualization``
 
 - ``astropy.vo``
@@ -267,10 +267,6 @@ Bug fixes
 
 - ``astropy.modeling``
 
-  - The projection classes that are named based on the 3-letter FITS
-    WCS projections (e.g. ``Pix2Sky_TAN``) are deprecated in favor of
-    longer class names (e.g. ``Pix2Sky_Gnomonic``).  [#3583]
-
 - ``astropy.nddata``
 
 - ``astropy.stats``
@@ -285,8 +281,8 @@ Bug fixes
 
   - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
     ``divmod``, such that it only works where the quotient is dimensionless.
-    This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817] 
-    
+    This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817]
+
 - ``astropy.utils``
 
 - ``astropy.visualization``
