@@ -586,9 +586,9 @@ class Table(object):
 
     def _base_repr_(self, html=False):
         descr_vals = [self.__class__.__name__]
-        for attr, val in (('masked', self.masked),
-                          ('length', len(self))):
-            descr_vals.append('{0}={1}'.format(attr, repr(val)))
+        if self.masked:
+            descr_vals.append('masked=True')
+        descr_vals.append('length={0}'.format(len(self)))
 
         descr = '<' + ' '.join(descr_vals) + '>\n'
 

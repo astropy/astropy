@@ -236,7 +236,7 @@ meta-data and column definitions are copied.
 ::
 
   >>> t[2:5]  # Table object with rows 2:5 (reference)
-  <Table masked=False length=3>
+  <Table length=3>
      a       b     c
   m sec^-1
    int32   int32 int32

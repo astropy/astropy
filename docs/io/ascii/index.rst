@@ -163,7 +163,7 @@ data table can be stored and read back as ASCII with no loss of information.
   2.0 True
 
   >>> Table.read(table_string, format='ascii')  # doctest: +SKIP
-  <Table masked=False length=2>
+  <Table length=2>
      x      y
      m
   float32  bool

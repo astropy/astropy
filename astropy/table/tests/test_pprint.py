@@ -96,7 +96,7 @@ class TestMultiD():
 def test_html_escaping():
     t = table.Table([(str('<script>alert("gotcha");</script>'), 2, 3)])
     assert t._repr_html_().splitlines() == [
-        '&lt;Table masked=False length=3&gt;',
+        '&lt;Table length=3&gt;',
         '<table id="table{id}">'.format(id=id(t)),
         '<thead><tr><th>col0</th></tr></thead>',
         '<thead><tr><th>str33</th></tr></thead>',

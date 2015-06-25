@@ -72,7 +72,7 @@ There are a few ways to examine the table.  You can get detailed information
 about the table values and column definitions as follows::
 
   >>> t
-  <Table masked=False length=3>
+  <Table length=3>
     a      b     c
   int32 float64 str1
   ----- ------- ----
@@ -85,7 +85,7 @@ assigned, all units would be shown as follows::
 
   >>> t['b'].unit = 's'
   >>> t
-  <Table masked=False length=3>
+  <Table length=3>
     a      b       c
            s
   int32 float64 str1

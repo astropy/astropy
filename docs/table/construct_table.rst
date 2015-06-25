@@ -66,7 +66,7 @@ keyword or they will be auto-generated as ``col<N>``.
   >>> c = ['x', 'y']
   >>> t = Table([a, b, c], names=('a', 'b', 'c'))
   >>> t
-  <Table masked=False length=2>
+  <Table length=2>
     a      b     c
   int32 float64 str1
   ----- ------- ----
@@ -79,7 +79,7 @@ Once you have a |Table| then you can make new table by selecting columns
 and putting this into a Python list, e.g. ``[ t['c'], t['a'] ]``::
 
   >>> Table([t['c'], t['a']])
-  <Table masked=False length=2>
+  <Table length=2>
    c     a
   str1 int32
   ---- -----
@@ -93,7 +93,7 @@ directly in arithmetic expressions.  This allows for a compact way of making a
 new table with modified column values::
 
   >>> Table([t['a']**2, t['b'] + 10])
-  <Table masked=False length=2>
+  <Table length=2>
     a      b
   int32 float64
   ----- -------
@@ -111,7 +111,7 @@ of different data types to initialize a table::
   >>> c = Column(['x', 'y'], name='axis')
   >>> arr = (a, b, c)
   >>> Table(arr)  # doctest: +SKIP
-  <Table masked=False length=2>
+  <Table length=2>
    col0 col1 [2] axis
   int64  int64   str1
   ----- -------- ----
@@ -131,7 +131,7 @@ A dictionary of column data can be used to initialize a |Table|.
   ...        'c': ['x', 'y']}
   >>>
   >>> Table(arr)  # doctest: +SKIP
-  <Table masked=False length=2>
+  <Table length=2>
     a    c      b
   int32 str1 float64
   ----- ---- -------
@@ -142,7 +142,7 @@ A dictionary of column data can be used to initialize a |Table|.
 ::
 
   >>> Table(arr, names=('a', 'b', 'c'), dtype=('f8', 'i4', 'S2'))
-  <Table masked=False length=2>
+  <Table length=2>
      a      b    c
   float64 int32 str2
   ------- ----- ----
@@ -157,7 +157,7 @@ The input column data can be any data type that can initialize a |Column| object
   ...        'b': np.array([[2, 3], [5, 6]]),
   ...        'c': Column(['x', 'y'], name='axis')}
   >>> Table(arr, names=('a', 'b', 'c'))  # doctest: +SKIP
-  <Table masked=False length=2>
+  <Table length=2>
     a   b [2]   c
   int64 int64  str1
   ----- ------ ----
@@ -209,7 +209,7 @@ list of dict objects.  The keys determine the column names::
   >>> data = [{'a': 5, 'b': 10},
   ...         {'a': 15, 'b': 20}]
   >>> Table(rows=data)  # doctest: +SKIP
-  <Table masked=False length=2>
+  <Table length=2>
     a     b
   int64 int64
   ----- -----
@@ -263,7 +263,7 @@ created using::
 From ``arr`` it is simple to create the corresponding |Table| object::
 
   >>> Table(arr)
-  <Table masked=False length=2>
+  <Table length=2>
     a      b     c
   int32 float64 str2
   ----- ------- ----
@@ -287,7 +287,7 @@ The column names can be changed from the original values by providing the
 ``names`` argument::
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'))
-  <Table masked=False length=2>
+  <Table length=2>
   a_new  b_new  c_new
   int32 float64  str2
   ----- ------- -----
@@ -300,7 +300,7 @@ The column names can be changed from the original values by providing the
 Likewise the data type for each column can by changed with ``dtype``::
 
   >>> Table(arr, dtype=('f4', 'i4', 'S4'))
-  <Table masked=False length=2>
+  <Table length=2>
      a      b    c
   float32 int32 str4
   ------- ----- ----
@@ -308,7 +308,7 @@ Likewise the data type for each column can by changed with ``dtype``::
       4.0     5    y
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
-  <Table masked=False length=2>
+  <Table length=2>
    a_new  b_new c_new
   float32 int32  str4
   ------- ----- -----
@@ -322,7 +322,7 @@ A `numpy` 1-d array is treated as a single row table where each element of the
 array corresponds to a column::
 
   >>> Table(np.array([1, 2, 3]), names=['a', 'b', 'c'], dtype=('i8', 'i8', 'i8'))
-  <Table masked=False length=1>
+  <Table length=1>
     a     b     c
   int64 int64 int64
   ----- ----- -----
@@ -339,7 +339,7 @@ generated as ``col<N>`` where ``<N>`` is the column number.
   >>> arr = np.array([[1, 2, 3],
   ...                 [4, 5, 6]], dtype=np.int32)
   >>> Table(arr)
-  <Table masked=False length=2>
+  <Table length=2>
    col0  col1  col2
   int32 int32 int32
   ----- ----- -----
@@ -350,7 +350,7 @@ generated as ``col<N>`` where ``<N>`` is the column number.
 ::
 
   >>> Table(arr, names=('a_new', 'b_new', 'c_new'), dtype=('f4', 'i4', 'S4'))
-  <Table masked=False length=2>
+  <Table length=2>
    a_new  b_new c_new
   float32 int32  str4
   ------- ----- -----
@@ -399,7 +399,7 @@ table::
 
   >>> t = Table(names=('a', 'b', 'c'))
   >>> t['c', 'b', 'a']  # Makes a copy of the data
-  <Table masked=False length=0>
+  <Table length=0>
      c       b       a
   float64 float64 float64
   ------- ------- -------
@@ -409,13 +409,13 @@ An alternate way to use the ``columns`` attribute (explained in the
 columns by their numerical index or name and supports slicing syntax::
 
   >>> Table(t.columns[0:2])
-  <Table masked=False length=0>
+  <Table length=0>
      a       b
   float64 float64
   ------- -------
 
   >>> Table([t.columns[0], t.columns['c']])
-  <Table masked=False length=0>
+  <Table length=0>
      a       c
   float64 float64
   ------- -------
