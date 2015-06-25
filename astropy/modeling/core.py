@@ -2277,6 +2277,14 @@ class _CompoundModel(Model):
     _submodels = None
 
     def __getattr__(self, attr):
+        # This __getattr__ is necessary, because _CompoundModelMeta creates
+        # Parameter descriptors *lazily*--they do not exist in the class
+        # __dict__ until one of them has been accessed.
+        # However, this is at odds with how Python looks up descriptors (see
+        # (https://docs.python.org/3/reference/datamodel.html#invoking-descriptors)
+        # which is to look directly in the class __dict__
+        # This workaround allows descriptors to work correctly when they are
+        # not initially found in the class __dict__
         value = getattr(self.__class__, attr)
         if hasattr(value, '__get__'):
             # Object is a descriptor, so we should really return the result of
