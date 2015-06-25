@@ -192,16 +192,19 @@ class Parameter(object):
 
         self._name = name
         self.__doc__ = self._description = description.strip()
-        self._default = default
-        self._unit = unit
 
         # We only need to perform this check on unbound parameters
-        if (model is None and unit is not None and
-                isinstance(default, Quantity) and
-                not unit.is_equivalent(default.unit)):
-            raise ParameterDefinitionError(
-                "parameter default {0} does not have units equivalent to "
-                "the required unit {1}".format(default, unit))
+        if model is None and isinstance(default, Quantity):
+            if unit is not None and not unit.is_equivalent(default.unit):
+                raise ParameterDefinitionError(
+                    "parameter default {0} does not have units equivalent to "
+                    "the required unit {1}".format(default, unit))
+
+            unit = default.unit
+            default = default.value
+
+        self._default = default
+        self._unit = unit
 
         # NOTE: These are *default* constraints--on model instances constraints
         # are taken from the model if set, otherwise the defaults set here are
@@ -395,7 +398,9 @@ class Parameter(object):
         if self._model is None:
             return self._unit
         else:
-            return self._model._param_metrics[self.name]['orig_unit']
+            # orig_unit may be undefined early on in model instantiation
+            return self._model._param_metrics[self.name].get('orig_unit',
+                                                             self._unit)
 
     @unit.setter
     def unit(self, unit):
@@ -629,13 +634,15 @@ class Parameter(object):
 
         # Use the _param_metrics to extract the parameter value from the
         # _parameters array
-        param_slice = model._param_metrics[self._name]['slice']
-        param_shape = model._param_metrics[self._name]['shape']
+        param_metrics = model._param_metrics[self._name]
+        param_slice = param_metrics['slice']
+        param_shape = param_metrics['shape']
         value = model._parameters[param_slice]
         if param_shape:
             value = value.reshape(param_shape)
         else:
             value = value[0]
+
         return value
 
     def _set_model_value(self, model, value):
@@ -649,8 +656,9 @@ class Parameter(object):
         """
 
         # TODO: Maybe handle exception on invalid input shape
-        param_slice = model._param_metrics[self._name]['slice']
-        param_shape = model._param_metrics[self._name]['shape']
+        param_metrics = model._param_metrics[self._name]
+        param_slice = param_metrics['slice']
+        param_shape = param_metrics['shape']
         param_size = np.prod(param_shape)
 
         if np.size(value) != param_size:

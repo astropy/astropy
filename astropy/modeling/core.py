@@ -368,11 +368,16 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional
             # arguments
+            kwargs = []
             if all(p.default is not None
                    for p in six.itervalues(parameters)):
                 args = ('self',)
-                kwargs = [(name, parameters[name].default)
-                          for name in cls.param_names]
+                for param_name in cls.param_names:
+                    default = parameters[param_name].default
+                    unit = parameters[param_name].unit
+                    if unit is not None:
+                        default = Quantity(default, unit, copy=False)
+                    kwargs.append((param_name, default))
             else:
                 args = ('self',) + cls.param_names
                 kwargs = {}
@@ -1199,8 +1204,10 @@ class Model(object):
         total_size = 0
 
         for name in self.param_names:
+            param_descr = getattr(self, name)
+
             if params.get(name) is None:
-                default = getattr(self, name).default
+                default = param_descr.default
 
                 if default is None:
                     # No value was supplied for the parameter, and the
@@ -1211,8 +1218,13 @@ class Model(object):
                         "{1!r}".format(self.__class__.__name__, name))
 
                 value = params[name] = default
+                unit = param_descr.unit
             else:
                 value = params[name]
+                if isinstance(value, Quantity):
+                    unit = value.unit
+                else:
+                    unit = None
 
             param_size = np.size(value)
             param_shape = np.shape(value)
@@ -1222,13 +1234,26 @@ class Model(object):
             param_metrics[name]['slice'] = param_slice
             param_metrics[name]['shape'] = param_shape
 
-            if isinstance(value, Quantity):
-                param_metrics[name]['orig_unit'] = value.unit
+            if unit is None:
+                if param_descr.unit is not None:
+                    raise InputParameterError(
+                        "{0}.__init__() requires a Quantity with units "
+                        "equivalent to {1!r} for parameter {2!r}".format(
+                            self.__class__.__name__, param_descr.unit, name))
+            else:
+                if (param_descr.unit is not None and
+                        not unit.is_equivalent(param_descr.unit)):
+                    raise InputParameterError(
+                        "{0}.__init__() requires parameter {1!r} to be in "
+                        "units equivalent to {2!r} (got {3!r})".format(
+                            self.__class__.__name__, name, param_descr.unit,
+                            unit))
+
                 # A flag, for convenience, to track whether quantities were
                 # used in instantiating this model
                 self._using_quantities = True
-            else:
-                param_metrics[name]['orig_unit'] = None
+
+            param_metrics[name]['orig_unit'] = unit
 
             total_size += param_size
 
