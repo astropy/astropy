@@ -255,28 +255,29 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
                 continue
 
             attr = getattr(cls, attr_name)
-            n_vars = getattr(cls, 'n_{0}s'.format(var_type))
-
-            if n_vars == 1 and not isinstance(attr, tuple):
-                attr = (attr,)
-
-            if not isinstance(attr, tuple) or len(attr) != n_vars:
-                raise ModelDefinitionError(
-                    'If defined, the {0}.{1} attribute must be a tuple of '
-                    'length equal to the number of {2}s from this model '
-                    '({3}).  Only single-{2} models may forgo the tuple as a '
-                    'shortcut.  However, some entries in the tuple may be '
-                    'None.'.format(cls.__name__, attr_name, var_type, n_vars))
 
             # TODO: Validate the types of the items in the tuples as well
-            for unit_spec in attr:
+            def validate_unit_spec(unit_spec):
                 if isinstance(unit_spec, UnitBase):
                     # If any of the input_units or output_units are specific,
                     # concrete units this implies that units are *always*
                     # required for this model, so we implicitly force
                     # _using_quantities
                     cls._using_quantities = True
-                    break
+
+            if isinstance(attr, tuple):
+                n_vars = getattr(cls, 'n_{0}s'.format(var_type))
+                if len(attr) != n_vars:
+                    raise ModelDefinitionError(
+                        'If defined, the {0}.{1} attribute may be a tuple of '
+                        'length equal to the number of {2}s from this model '
+                        '({3}), or a single rule applying to all {2}s.'.format(
+                            cls.__name__, attr_name, var_type, n_vars))
+
+                for unit_spec in attr:
+                    validate_unit_spec(unit_spec)
+            else:
+                validate_unit_spec(attr)
 
     @staticmethod
     def _create_inverse_property(members):
@@ -601,9 +602,9 @@ class Model(object):
            over the slope's unit, so that ``x.unit * intercept.unit ==
            slope.unit``.
 
-    For models with more than one input, this attribute must be a tuple with
-    one entry per output.  The above rules are then applied on a per-input
-    basis.
+    For models with more than one input, this attribute may be a tuple with
+    one entry per input.  The above rules are then applied on a per-input
+    basis.  Otherwise the same rule is applied over all inputs.
     """
 
     output_units = None
@@ -1391,20 +1392,20 @@ class Model(object):
 
     def _prepare_variable_units(self, inputs, outputs=None):
         if outputs is None:
-            units = self.input_units
+            unit_specs = self.input_units
             var_names = self.inputs
             n_vars = self.n_inputs
             vars_ = inputs
         else:
-            units = self.output_units
+            unit_specs = self.output_units
             var_names = self.outputs
             n_vars = self.n_outputs
             vars_ = outputs
 
-        if units is None:
-            units = (None,) * n_vars
-        elif not isinstance(units, tuple) and n_vars == 1:
-            units = (units,)
+        if unit_specs is None:
+            unit_specs = (None,) * n_vars
+        elif not isinstance(unit_specs, tuple):
+            unit_specs = (unit_specs,) * n_vars
 
         def to_unit(value, unit_spec):
             # Go from an element in the output_units attributes to an actual
@@ -1433,7 +1434,7 @@ class Model(object):
 
         converted = []
 
-        for var, var_name, var_unit in zip(vars_, var_names, units):
+        for var, var_name, unit_spec in zip(vars_, var_names, unit_specs):
             if outputs is None and not isinstance(var, Quantity):
                 # This check really only applies to inputs
                 if not _can_have_arbitrary_unit(var):
@@ -1447,11 +1448,11 @@ class Model(object):
                     converted.append(var)
                     continue
 
-            if var_unit is not None:
+            if unit_spec is not None:
                 # Just go ahead and try converting the input straight to the
                 # new unit; if this results in a conversion error that's fine;
                 # just raise it directly
-                unit = to_unit(var, var_unit)
+                unit = to_unit(var, unit_spec)
 
                 if (not isinstance(var, Quantity) and
                         _can_have_arbitrary_unit(var)):
