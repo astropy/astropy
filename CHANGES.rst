@@ -112,7 +112,8 @@ New Features
     name, format, or description. [#3731]
 
   - Updated table and column representation to use the ``dtype_info_name``
-    function for the dtype value. [#3868]
+    function for the dtype value.  Removed the default "masked=False"
+    from the table representation. [#3868, #3869]
 
 - ``astropy.tests``
 
