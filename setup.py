@@ -56,20 +56,6 @@ if not RELEASE:
 # modify distutils' behavior.
 cmdclassd = register_commands(PACKAGENAME, VERSION, RELEASE)
 
-# Add distutils options specific to this package
-cmdclassd['test'].user_options.append(
-    ('generate-images-path=', None,
-        "Specify a directory to generate baseline images"))
-cmdclassd['test'].generate_images_path = None
-def get_args(self):
-    args = '' if self._args is None else self._args
-    if self.generate_images_path:
-        args += ' --generate-images-path="%s"' % self.generate_images_path
-    return args
-def set_args(self, args):
-    self._args = args
-cmdclassd['test'].args = property(get_args, set_args)
-
 # Adjust the compiler in case the default on this platform is to use a
 # broken one.
 adjust_compiler(PACKAGENAME)

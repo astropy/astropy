@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from astropy.wcs import WCS
+from astropy.tests.helper import pytest
 
 from .. import WCSAxes
 from .. import datasets
@@ -34,11 +35,13 @@ class HexagonalFrame(BaseFrame):
 
 class TestFrame(BaseImageTests):
 
-    def test_custom_frame(self, generate):
+    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
+                                   filename='custom_frame.png')
+    def test_custom_frame(self):
 
         wcs = WCS(self.msx_header)
 
-        fig = plt.figure(figsize=(4,4))
+        fig = plt.figure(figsize=(4, 4))
 
         ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7],
                      wcs=wcs,
@@ -48,7 +51,7 @@ class TestFrame(BaseImageTests):
         ax.coords.grid(color='white')
 
         im = ax.imshow(np.ones((149, 149)), vmin=0., vmax=2., cmap=plt.cm.gist_heat,
-                  origin='lower')
+                       origin='lower')
 
         minpad = {}
         minpad['a'] = minpad['d'] = 1
@@ -70,9 +73,11 @@ class TestFrame(BaseImageTests):
         # Clip the image to the frame
         im.set_clip_path(ax.coords.frame.patch)
 
-        self.generate_or_test(generate, fig, 'custom_frame.png')
+        return fig
 
-    def test_update_clip_path_rectangular(self, generate, tmpdir):
+    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
+                                   filename='update_clip_path_rectangular.png')
+    def test_update_clip_path_rectangular(self, tmpdir):
 
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect='equal')
@@ -85,14 +90,16 @@ class TestFrame(BaseImageTests):
         # Force drawing, which freezes the clip path returned by WCSAxes
         fig.savefig(tmpdir.join('nothing').strpath)
 
-        im = ax.imshow(np.zeros((12,4)))
+        im = ax.imshow(np.zeros((12, 4)))
 
         ax.set_xlim(-0.5, 3.5)
         ax.set_ylim(-0.5, 11.5)
 
-        self.generate_or_test(generate, fig, 'update_clip_path_rectangular.png')
+        return fig
 
-    def test_update_clip_path_nonrectangular(self, generate, tmpdir):
+    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
+                                   filename='update_clip_path_nonrectangular.png')
+    def test_update_clip_path_nonrectangular(self, tmpdir):
 
         fig = plt.figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect='equal',
@@ -106,14 +113,16 @@ class TestFrame(BaseImageTests):
         # Force drawing, which freezes the clip path returned by WCSAxes
         fig.savefig(tmpdir.join('nothing').strpath)
 
-        im = ax.imshow(np.zeros((12,4)))
+        im = ax.imshow(np.zeros((12, 4)))
 
         ax.set_xlim(-0.5, 3.5)
         ax.set_ylim(-0.5, 11.5)
 
-        self.generate_or_test(generate, fig, 'update_clip_path_nonrectangular.png')
+        return fig
 
-    def test_update_clip_path_change_wcs(self, generate, tmpdir):
+    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
+                                   filename='update_clip_path_change_wcs.png')
+    def test_update_clip_path_change_wcs(self, tmpdir):
 
         # When WCS is changed, a new frame is created, so we need to make sure
         # that the path is carried over to the new frame.
@@ -131,9 +140,9 @@ class TestFrame(BaseImageTests):
 
         ax.reset_wcs()
 
-        im = ax.imshow(np.zeros((12,4)))
+        im = ax.imshow(np.zeros((12, 4)))
 
         ax.set_xlim(-0.5, 3.5)
         ax.set_ylim(-0.5, 11.5)
 
-        self.generate_or_test(generate, fig, 'update_clip_path_change_wcs.png')
+        return fig

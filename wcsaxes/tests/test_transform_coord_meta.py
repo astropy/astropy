@@ -58,7 +58,9 @@ class LonLatToDistance(CurvedTransform):
 
 class TestTransformCoordMeta(BaseImageTests):
 
-    def test_coords_overlay(self, generate):
+    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
+                                   filename='coords_overlay.png')
+    def test_coords_overlay(self):
 
         # Set up a simple WCS that maps pixels to non-projected distances
         wcs = WCS(naxis=2)
@@ -68,7 +70,7 @@ class TestTransformCoordMeta(BaseImageTests):
         wcs.wcs.cdelt = [6.25, 6.25]
         wcs.wcs.crval = [0., 0.]
 
-        fig = plt.figure(figsize=(4,4))
+        fig = plt.figure(figsize=(4, 4))
 
         ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=wcs)
         fig.add_axes(ax)
@@ -102,12 +104,14 @@ class TestTransformCoordMeta(BaseImageTests):
         ax.set_xlim(-0.5, 1215.5)
         ax.set_ylim(-0.5, 1791.5)
 
-        self.generate_or_test(generate, fig, 'coords_overlay.png')
+        return fig
 
     @requires_astropy_10
-    def test_coords_overlay_auto_coord_meta(self, generate):
+    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
+                                   filename='coords_overlay_auto_coord_meta.png')
+    def test_coords_overlay_auto_coord_meta(self):
 
-        fig = plt.figure(figsize=(4,4))
+        fig = plt.figure(figsize=(4, 4))
 
         ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], wcs=WCS(self.msx_header))
         fig.add_axes(ax)
@@ -124,9 +128,11 @@ class TestTransformCoordMeta(BaseImageTests):
         ax.set_xlim(-0.5, 148.5)
         ax.set_ylim(-0.5, 148.5)
 
-        self.generate_or_test(generate, fig, 'coords_overlay_auto_coord_meta.png')
+        return fig
 
-    def test_direct_init(self, generate):
+    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
+                                   filename='direct_init.png')
+    def test_direct_init(self):
 
         s = DistanceToLonLat(R=6378.273)
 
@@ -135,7 +141,7 @@ class TestTransformCoordMeta(BaseImageTests):
         coord_meta['wrap'] = (360., None)
         coord_meta['unit'] = (u.deg, u.deg)
         coord_meta['name'] = 'lon', 'lat'
-        fig = plt.figure(figsize=(4,4))
+        fig = plt.figure(figsize=(4, 4))
 
         ax = WCSAxes(fig, [0.15, 0.15, 0.7, 0.7], transform=s, coord_meta=coord_meta)
         fig.add_axes(ax)
@@ -155,4 +161,4 @@ class TestTransformCoordMeta(BaseImageTests):
         ax.set_xlim(-400., 500.)
         ax.set_ylim(-300., 400.)
 
-        self.generate_or_test(generate, fig, 'direct_init.png')
+        return fig
