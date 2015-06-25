@@ -9,8 +9,8 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 
-from ..core import Fittable1DModel, ModelDefinitionError
-from ..parameters import Parameter
+from ..core import Fittable1DModel, ModelDefinitionError, InputParameterError
+from ..parameters import Parameter, ParameterDefinitionError
 from ..models import Gaussian1D
 from ... import units as u
 from ...units import UnitsError, Quantity
@@ -30,6 +30,61 @@ def test_quantities_as_parameters():
     assert g.mean.unit is u.m
     assert g.stddev.value == 0.1
     assert g.stddev.unit is u.m
+
+
+def test_quantity_parameter_descriptors():
+    """
+    Test Model classes that specify units in their Parameter descriptors,
+    either via a Quantity default, or explicit use of the unit argument.
+    """
+
+    def tests(TestModel):
+        assert TestModel.a.unit == u.m
+        assert TestModel.a.default == 1.0
+
+        m = TestModel()
+        assert m.a.unit == u.m
+        assert m.a.default == m.a.value == 1.0
+
+        m = TestModel(2.0 * u.m)
+        assert m.a.unit == u.m
+        assert m.a.value == 2.0
+        assert m.a.default == 1.0
+
+        # Instantiate with a different, but compatible unit
+        m = TestModel(2.0 * u.pc)
+        assert m.a.unit == u.pc
+        assert m.a.value == 2.0
+        # The default is still in the original units
+        assert m.a.default == 1.0
+
+        # Instantiating with incompatible units is in error
+        with pytest.raises(InputParameterError):
+            TestModel(1.0 * u.Jy)
+
+    class TestA(Fittable1DModel):
+        a = Parameter(default=1.0, unit=u.m)
+        @staticmethod
+        def evaluate(x, a):
+            return x
+
+    tests(TestA)
+
+    class TestB(Fittable1DModel):
+        a = Parameter(default=1.0 * u.m)
+        @staticmethod
+        def evaluate(x, a):
+            return x
+
+    tests(TestB)
+
+    # Conflicting default and units arguments
+    with pytest.raises(ParameterDefinitionError):
+        class TestC(Fittable1DModel):
+            a = Parameter(default=1.0 * u.m, unit=u.Jy)
+            @staticmethod
+            def evaluate(x, a):
+                return x
 
 
 def test_quantity_parameter_arithmetic():
