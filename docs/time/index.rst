@@ -789,6 +789,78 @@ of time.  Usage is most easily illustrated by examples::
   >>> dt * 10.*u.Unit(1)             # unless the Quantity is dimensionless
   <TimeDelta object: scale='None' format='jd' value=[ 100.  200.  300.]>
 
+Writing a Custom Format
+-----------------------
+
+Some applications may need a custom |Time| format, and this capability is
+available by making a new subclass of the `~astropy.time.TimeFormat` class.
+When such a subclass is defined in your code then the format class and
+corresponding name is automatically registered in the set of available time
+formats.
+
+The key elements of a new format class are illustrated by examining the
+code for the ``jd`` format (which is one of the simplest)::
+
+  class TimeJD(TimeFormat):
+      """
+      Julian Date time format.
+      """
+      name = 'jd'  # Unique format name
+
+      def set_jds(self, val1, val2):
+          """
+          Set the internal jd1 and jd2 values from the input val1, val2.
+          The input values are expected to conform to this format, as
+          validated by self._check_val_type(val1, val2) during __init__.
+          """
+          self._check_scale(self._scale)  # Validate scale.
+          self.jd1, self.jd2 = day_frac(val1, val2)
+
+      @property
+      def value(self):
+          """
+          Return format ``value`` property from internal jd1, jd2
+          """
+          return self.jd1 + self.jd2
+
+As mentioned above, the ``_check_val_type(self, val1, val2)``
+method may need to be overridden to validate the inputs as conforming to the
+format specification.  By default this checks for valid float, float array, or
+|Quantity| inputs.  In contrast the ``iso`` format class ensures the inputs
+meet the ISO format spec for strings.
+
+One special case that is relatively common and easier to implement is a
+format that represents the time since a particular epoch.  The classic example
+is Unix time which is the number of seconds since 1970-01-01 00:00:00 UTC,
+not counting leap seconds.  What if we wanted that value but **do** want
+to count leap seconds.  This would be done by using the TAI scale instead
+of the UTC scale.  In this case we inherit from the
+`~astropy.time.TimeFromEpoch` class and define a few class attributes::
+
+  >>> from astropy.time.core import erfa, TimeFromEpoch
+  >>> class TimeUnixLeap(TimeFromEpoch):
+  ...    """
+  ...    Seconds from 1970-01-01 00:00:00 TAI.  Similar to Unix time
+  ...    but this includes leap seconds.
+  ...    """
+  ...    name = 'unix_leap'
+  ...    unit = 1.0 / erfa.DAYSEC  # in days (1 day == 86400 seconds)
+  ...    epoch_val = '1970-01-01 00:00:00'
+  ...    epoch_val2 = None
+  ...    epoch_scale = 'tai'  # Scale for epoch_val class attribute
+  ...    epoch_format = 'iso'  # Format for epoch_val class attribute
+
+  >>> t = Time('2000-01-01')
+  >>> t.unix_leap
+  946684832.0
+  >>> t.unix_leap - t.unix
+  32.0
+
+Going beyond this will probably require looking at the astropy code for more
+guidance, but if you get stuck the astropy developers are more than happy to
+help.  If you write a format class that is widely useful then we might want to
+include it in the core!
+
 Reference/API
 =============
 
