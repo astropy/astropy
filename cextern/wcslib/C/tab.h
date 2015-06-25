@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,33 +22,34 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.h,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: tab.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.25 - C routines that implement tabular coordinate systems as
-* defined by the FITS World Coordinate System (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (paper I)
-*
-*   "Representations of spectral coordinates in FITS",
-*   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
-*   2006, A&A, 446, 747 (Paper III)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the tab routines
 * ---------------------------
-* These routines implement the part of the FITS WCS standard that deals with
-* tabular coordinates, i.e. coordinates that are defined via a lookup table.
-* They define methods to be used for computing tabular world coordinates from
-* intermediate world coordinates (a linear transformation of image pixel
-* coordinates), and vice versa.  They are based on the tabprm struct which
-* contains all information needed for the computations.  The struct contains
-* some members that must be set by the user, and others that are maintained
-* by these routines, somewhat like a C++ class but with no encapsulation.
+* Routines in this suite implement the part of the FITS World Coordinate
+* System (WCS) standard that deals with tabular coordinates, i.e. coordinates
+* that are defined via a lookup table, as described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of spectral coordinates in FITS",
+=   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
+=   2006, A&A, 446, 747 (WCS Paper III)
+*
+* These routines define methods to be used for computing tabular world
+* coordinates from intermediate world coordinates (a linear transformation
+* of image pixel coordinates), and vice versa.  They are based on the tabprm
+* struct which contains all information needed for the computations.  The
+* struct contains some members that must be set by the user, and others that
+* are maintained by these routines, somewhat like a C++ class but with no
+* encapsulation.
 *
 * tabini(), tabmem(), tabcpy(), and tabfree() are provided to manage the
 * tabprm struct, and another, tabprt(), to print its contents.
@@ -469,7 +470,7 @@
 *     inverse table lookup function, tabs2x(), to speed up table searches.
 *
 *   struct wcserr *err
-*     (Returned) If enabled, when an error status is returned this struct
+*     (Returned) If enabled, when an error status is returned, this struct
 *     contains detailed information about the error, see wcserr_enable().
 *
 *   int m_flag
@@ -502,8 +503,6 @@
 
 #ifndef WCSLIB_TAB
 #define WCSLIB_TAB
-
-#include "wcserr.h"
 
 #ifdef __cplusplus
 extern "C" {
