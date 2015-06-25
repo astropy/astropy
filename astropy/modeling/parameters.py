@@ -193,7 +193,7 @@ class Parameter(object):
         self._name = name
         self.__doc__ = self._description = description.strip()
         self._default = default
-        self._default_unit = unit
+        self._unit = unit
 
         # We only need to perform this check on unbound parameters
         if (model is None and unit is not None and
@@ -251,9 +251,9 @@ class Parameter(object):
             return self
 
         return self.__class__(self._name, default=self._default,
-                              getter=self._getter, setter=self._setter,
-                              fixed=self._fixed, tied=self._tied,
-                              bounds=self._bounds, model=obj)
+                              unit=self._unit, getter=self._getter,
+                              setter=self._setter, fixed=self._fixed,
+                              tied=self._tied, bounds=self._bounds, model=obj)
 
     def __set__(self, obj, value):
         value, shape = self._validate_value(obj, value)
@@ -310,8 +310,9 @@ class Parameter(object):
                 args += ', default={0}'.format(self._default)
         else:
             args += ', value={0}'.format(self.value)
-            if self.unit is not None:
-                args += ', unit={0}'.format(self.unit)
+
+        if self.unit is not None:
+            args += ', unit={0}'.format(self.unit)
 
         for cons in self.constraints:
             val = getattr(self, cons)
@@ -392,7 +393,7 @@ class Parameter(object):
         """
 
         if self._model is None:
-            return self._default_unit
+            return self._unit
         else:
             return self._model._param_metrics[self.name]['orig_unit']
 
@@ -545,9 +546,9 @@ class Parameter(object):
             raise AttributeError("can't set attribute 'max' on Parameter "
                                  "definition")
 
-    def copy(self, name=None, description=None, default=None, getter=None,
-             setter=None, fixed=False, tied=False, min=None, max=None,
-             bounds=None):
+    def copy(self, name=None, description=None, default=None, unit=None,
+             getter=None, setter=None, fixed=False, tied=False, min=None,
+             max=None, bounds=None):
         """
         Make a copy of this `Parameter`, overriding any of its core attributes
         in the process (or an exact copy).

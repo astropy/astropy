@@ -2051,6 +2051,7 @@ class _CompoundModelMeta(_ModelMeta):
                 # a bound Parameter even if submodel is a Model instance (as
                 # opposed to a Model subclass)
                 new_param = orig_param.copy(name=param_name, default=default,
+                                            unit=orig_param.unit,
                                             **constraints)
 
             setattr(cls, param_name, new_param)
