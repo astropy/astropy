@@ -22,6 +22,7 @@ from ..utils import isiterable, OrderedDescriptor
 from ..utils.compat import ignored
 from ..extern import six
 from ..extern.six.moves import zip
+from .utils import array_repr_oneline
 
 from .utils import get_inputs_and_params
 
@@ -855,3 +856,16 @@ class Parameter(OrderedDescriptor):
     __ge__ = _binary_comparison_operation(operator.ge)
     __neg__ = _unary_arithmetic_operation(operator.neg)
     __abs__ = _unary_arithmetic_operation(operator.abs)
+
+
+def param_repr_oneline(param):
+    """
+    Like array_repr_oneline but works on `Parameter` objects and supports
+    rendering parameters with units like quantities.
+    """
+
+    out = array_repr_oneline(param.value)
+    if param.unit is not None:
+        out = '{0} {1!s}'.format(out, param.unit)
+
+    return out
