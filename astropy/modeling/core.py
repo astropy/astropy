@@ -678,7 +678,7 @@ class Model(object):
 
         # The parallel to _prepare_output_units, though this one of course has
         # no knowledge of the outputs
-        inputs = self._prepare_input_units(inputs)
+        inputs, using_quantities = self._prepare_input_units(inputs)
 
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
         parameters = self._param_sets(raw=True, units=True)
@@ -695,7 +695,8 @@ class Model(object):
         # output units, so we would have to change the signature for
         # prepare_outputs to allow that.  So maybe having it here is fine for
         # now.
-        outputs = self._prepare_output_units(inputs, outputs)
+        if using_quantities:
+            outputs = self._prepare_output_units(inputs, outputs)
 
         if self.n_outputs == 1:
             return outputs[0]
@@ -1374,15 +1375,14 @@ class Model(object):
         return np.array(values)
 
     def _prepare_input_units(self, inputs):
-        for input_ in inputs:
-            if isinstance(input_, Quantity):
-                self._using_quantities = True
-                break
+        using_quantities = self._using_quantities
+        using_quantities |= any(isinstance(input_, Quantity)
+                                for input_ in inputs)
 
-        if not self._using_quantities:
-            return inputs
-        else:
-            return self._prepare_variable_units(inputs)
+        if using_quantities:
+            inputs = self._prepare_variable_units(inputs)
+
+        return inputs, using_quantities
 
     def _prepare_output_units(self, inputs, outputs):
         if not self._using_quantities:
