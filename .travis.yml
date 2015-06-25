@@ -97,8 +97,8 @@ install:
     # conda for packages available through conda, or pip for any other
     # packages. You should leave the `numpy=$NUMPY_VERSION` in the `conda`
     # install since this ensures Numpy does not get automatically upgraded.
-    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION nose pyqt matplotlib ; fi
-    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL pillow ; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION nose pyqt matplotlib pillow; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL pytest-mpl; fi
 
     # DOCUMENTATION DEPENDENCIES
     # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
