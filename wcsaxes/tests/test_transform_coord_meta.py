@@ -58,8 +58,7 @@ class LonLatToDistance(CurvedTransform):
 
 class TestTransformCoordMeta(BaseImageTests):
 
-    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
-                                   filename='coords_overlay.png')
+    @pytest.mark.mpl_image_compare(filename='coords_overlay.png')
     def test_coords_overlay(self):
 
         # Set up a simple WCS that maps pixels to non-projected distances
@@ -107,8 +106,7 @@ class TestTransformCoordMeta(BaseImageTests):
         return fig
 
     @requires_astropy_10
-    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
-                                   filename='coords_overlay_auto_coord_meta.png')
+    @pytest.mark.mpl_image_compare(filename='coords_overlay_auto_coord_meta.png')
     def test_coords_overlay_auto_coord_meta(self):
 
         fig = plt.figure(figsize=(4, 4))
@@ -130,8 +128,7 @@ class TestTransformCoordMeta(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(baseline_dir='baseline_images',
-                                   filename='direct_init.png')
+    @pytest.mark.mpl_image_compare(filename='direct_init.png')
     def test_direct_init(self):
 
         s = DistanceToLonLat(R=6378.273)
