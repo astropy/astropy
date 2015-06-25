@@ -369,6 +369,8 @@ def test_to_fits():
 
 
 def test_to_header_warning():
+    if wcs.wcs.WCSLIB_HAS_SIP:
+        pytest.skip("wcslib no longer warns about SIP keywords")
     fits_name = get_pkg_data_filename('data/sip.fits')
     x = wcs.WCS(fits_name)
     with catch_warnings() as w:
@@ -394,8 +396,13 @@ def test_validate():
     with catch_warnings():
         results = wcs.validate(get_pkg_data_filename("data/validate.fits"))
         results_txt = repr(results)
-        with open(get_pkg_data_filename("data/validate.txt"), "r") as fd:
-            assert set([x.strip() for x in fd.readlines()]) == set([
+        if wcs._wcs.__version__[0] == '5':
+            filename = 'data/validate.5.0.txt'
+        else:
+            filename = 'data/validate.txt'
+        with open(get_pkg_data_filename(filename), "r") as fd:
+            lines = fd.readlines()
+            assert set([x.strip() for x in lines]) == set([
                 x.strip() for x in results_txt.splitlines()])
 
 

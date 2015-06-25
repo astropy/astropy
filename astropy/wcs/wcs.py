@@ -1,13 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-Under the hood, there are 3 separate classes that perform different
+"""Under the hood, there are 3 separate classes that perform different
 parts of the transformation:
 
    - `~astropy.wcs.Wcsprm`: Is a direct wrapper of the core WCS
      functionality in `wcslib`_.
 
-   - `~astropy.wcs.Sip`: Handles polynomial distortion as defined in the
-     `SIP`_ convention.
+   - If built with wcslib 4.x, `~astropy.wcs.Sip` handles polynomial
+     distortion as defined in the `SIP`_ convention.
+
+   - If built with wcslib 5.x, polynomial distortions (SIP, TPV or
+     TPD) are handled by `~astropy.wcs.Wcsprm`.
 
    - `~astropy.wcs.DistortionLookupTable`: Handles `distortion paper`_
      lookup tables.
@@ -25,6 +27,7 @@ together in a pipeline:
      `~astropy.wcs.DistortionLookupTable` objects).
 
    - `wcslib`_ WCS transformation (by a `~astropy.wcs.Wcsprm` object)
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -54,6 +57,7 @@ except ImportError:
 from ..utils import deprecated, deprecated_attribute
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
+from ..utils import minversion
 
 if _wcs is not None:
     assert _wcs._sanity_check(), \
@@ -99,6 +103,8 @@ if _wcs is not None:
             key.startswith('WCSHDO')):
             locals()[key] = val
             __all__.append(key)
+
+    WCSLIB_HAS_SIP = minversion(_wcs, '5.4')
 else:
     WCSBase = object
     Wcsprm = object
@@ -116,6 +122,7 @@ else:
     NoWcsKeywordsFoundError = None
     InvalidTabularParametersError = None
 
+    WCSLIB_HAS_SIP = False
 
 # Additional relax bit flags
 WCSHDO_SIP = 0x10000
@@ -195,8 +202,9 @@ class FITSFixedWarning(AstropyWarning):
 
 class WCS(WCSBase):
     """WCS objects perform standard WCS transformations, and correct for
-    `SIP`_ and `distortion paper`_ table-lookup transformations, based
-    on the WCS keywords and supplementary data read from a FITS file.
+    polynomial (SIP, TPV or TPD) and `distortion paper`_ table-lookup
+    transformations, based on the WCS keywords and supplementary data
+    read from a FITS file.
 
     Parameters
     ----------
@@ -297,13 +305,13 @@ class WCS(WCSBase):
 
     1. astropy.wcs supports arbitrary *n* dimensions for the core WCS
        (the transformations handled by WCSLIB).  However, the
-       `distortion paper`_ lookup table and `SIP`_ distortions must be
-       two dimensional.  Therefore, if you try to create a WCS object
+       `distortion paper`_ lookup table distortions must be two
+       dimensional.  Therefore, if you try to create a WCS object
        where the core WCS has a different number of dimensions than 2
        and that object also contains a `distortion paper`_ lookup
-       table or `SIP`_ distortion, a `~.exceptions.ValueError`
-       exception will be raised.  To avoid this, consider using the
-       *naxis* kwarg to select two dimensions from the core WCS.
+       table, a `~.exceptions.ValueError` exception will be raised.
+       To avoid this, consider using the *naxis* kwarg to select two
+       dimensions from the core WCS.
 
     2. The number of coordinate axes in the transformation is not
        determined directly from the ``NAXIS`` keyword but instead from
@@ -419,7 +427,10 @@ class WCS(WCSBase):
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)
-            sip = self._read_sip_kw(header)
+            if WCSLIB_HAS_SIP:
+                sip = None
+            else:
+                sip = self._read_sip_kw(header)
             if (wcsprm.naxis != 2 and
                 (det2im[0] or det2im[1] or cpdis[0] or cpdis[1] or sip)):
                 raise ValueError(
@@ -452,7 +463,11 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     def __copy__(self):
         new_copy = self.__class__()
-        WCSBase.__init__(new_copy, self.sip,
+        if WCSLIB_HAS_SIP:
+            sip = None
+        else:
+            sip = self.sip
+        WCSBase.__init__(new_copy, sip,
                          (self.cpdis1, self.cpdis2),
                          self.wcs,
                          (self.det2im1, self.det2im2))
@@ -462,7 +477,11 @@ reduce these to 2 dimensions using the naxis kwarg.
     def __deepcopy__(self, memo):
         new_copy = self.__class__()
         new_copy.naxis = copy.deepcopy(self.naxis, memo)
-        WCSBase.__init__(new_copy, copy.deepcopy(self.sip, memo),
+        if WCSLIB_HAS_SIP:
+            sip = None
+        else:
+            sip = copy.deepcopy(self.sip, memo)
+        WCSBase.__init__(new_copy, sip,
                          (copy.deepcopy(self.cpdis1, memo),
                           copy.deepcopy(self.cpdis2, memo)),
                          copy.deepcopy(self.wcs, memo),
@@ -606,7 +625,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             to provide the same information.
 
         undistort : bool, optional
-            If `True`, take SIP and distortion lookup table into
+            If `True`, take polynomial and distortion lookup table into
             account
 
         axes : length 2 sequence ints, optional
@@ -908,6 +927,9 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         If no `SIP`_ header keywords are found, ``None`` is returned.
         """
+        if WCSLIB_HAS_SIP:
+            return None
+
         if isinstance(header, (six.text_type, six.binary_type)):
             # TODO: Parse SIP from a string without pyfits around
             return None
@@ -987,7 +1009,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         Write out SIP keywords.  Returns a dictionary of key-value
         pairs.
         """
-        if self.sip is None:
+        # TODO: Make this work
+        if WCSLIB_HAS_SIP or self.sip is None:
             return {}
 
         keywords = {}
@@ -1154,7 +1177,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             - Detector to image plane correction (if present in the
               FITS file)
 
-            - `SIP`_ distortion correction (if present in the FITS
+            - polynomial distortion correction (if present in the FITS
               file)
 
             - `distortion paper`_ table-lookup correction (if present
@@ -1217,15 +1240,16 @@ reduce these to 2 dimensions using the naxis kwarg.
     def wcs_pix2world(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
+        distortions = kwargs.pop('distortions', False)
         return self._array_converter(
-            lambda xy, o: self.wcs.p2s(xy, o)['world'],
+            lambda xy, o: self.wcs.p2s(xy, o, distortions)['world'],
             'output', *args, **kwargs)
     wcs_pix2world.__doc__ = """
         Transforms pixel coordinates to world coordinates by doing
         only the basic `wcslib`_ transformation.
 
-        No `SIP`_ or `distortion paper`_ table lookup correction is
-        applied.  To perform distortion correction, see
+        By default, no polynomial or `distortion paper`_ table lookup
+        correction is applied.  To perform distortion correction, see
         `~astropy.wcs.WCS.all_pix2world`,
         `~astropy.wcs.WCS.sip_pix2foc`, `~astropy.wcs.WCS.p4_pix2foc`,
         or `~astropy.wcs.WCS.pix2foc`.
@@ -1238,6 +1262,10 @@ reduce these to 2 dimensions using the naxis kwarg.
             two-argument form must be used.
 
         {1}
+
+        distortions : bool, optional
+            If `True`, perform polynomial distortions, if any.
+            Default is `False`.
 
         Returns
         -------
@@ -1501,7 +1529,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         # approximation (pix0).
         if self.sip is None and \
            self.cpdis1 is None and self.cpdis2 is None and \
-           self.det2im1 is None and self.det2im2 is None:
+           self.det2im1 is None and self.det2im2 is None and False:
             # No non-WCS corrections detected so
             # simply return initial approximation:
             return pix0
@@ -1962,67 +1990,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         [[  5.52645627 -72.05171757]
          [  7.15976932 -70.8140779 ]
          [  5.52653698 -72.05170795]]
-
-        >>> # First, turn detect_divergence on:
-        >>> try:
-        ...   xy = w.all_world2pix(divradec, 1, maxiter=20,
-        ...                        tolerance=1.0e-4, adaptive=False,
-        ...                        detect_divergence=True,
-        ...                        quiet=False)
-        ... except wcs.wcs.NoConvergence as e:
-        ...   print("Indices of diverging points: {{0}}"
-        ...         .format(e.divergent))
-        ...   print("Indices of poorly converging points: {{0}}"
-        ...         .format(e.slow_conv))
-        ...   print("Best solution:\\n{{0}}".format(e.best_solution))
-        ...   print("Achieved accuracy:\\n{{0}}".format(e.accuracy))
-        Indices of diverging points: [1]
-        Indices of poorly converging points: None
-        Best solution:
-        [[  1.00000238e+00   9.99999965e-01]
-         [ -1.99441636e+06   1.44309097e+06]
-         [  3.00000236e+00   9.99999966e-01]]
-        Achieved accuracy:
-        [[  6.13968380e-05   8.59638593e-07]
-         [  8.59526812e+11   6.61713548e+11]
-         [  6.09398446e-05   8.38759724e-07]]
-        >>> raise e
-        Traceback (most recent call last):
-        ...
-        NoConvergence: 'WCS.all_world2pix' failed to converge to the
-        requested accuracy.  After 5 iterations, the solution is
-        diverging at least for one input point.
-
-        >>> # This time turn detect_divergence off:
-        >>> try:
-        ...   xy = w.all_world2pix(divradec, 1, maxiter=20,
-        ...                        tolerance=1.0e-4, adaptive=False,
-        ...                        detect_divergence=False,
-        ...                        quiet=False)
-        ... except wcs.wcs.NoConvergence as e:
-        ...   print("Indices of diverging points: {{0}}"
-        ...         .format(e.divergent))
-        ...   print("Indices of poorly converging points: {{0}}"
-        ...         .format(e.slow_conv))
-        ...   print("Best solution:\\n{{0}}".format(e.best_solution))
-        ...   print("Achieved accuracy:\\n{{0}}".format(e.accuracy))
-        Indices of diverging points: [1]
-        Indices of poorly converging points: None
-        Best solution:
-        [[ 1.00000009  1.        ]
-         [        nan         nan]
-         [ 3.00000009  1.        ]]
-        Achieved accuracy:
-        [[  2.29417358e-06   3.21222995e-08]
-         [             nan              nan]
-         [  2.27407877e-06   3.13005639e-08]]
-        >>> raise e
-        Traceback (most recent call last):
-        ...
-        NoConvergence: 'WCS.all_world2pix' failed to converge to the
-        requested accuracy.  After 6 iterations, the solution is
-        diverging at least for one input point.
-
         """.format(__.TWO_OR_MORE_ARGS('naxis', 8),
                    __.RA_DEC_ORDER(8),
                    __.RETURNS('pixel coordinates', 8))
@@ -2031,13 +1998,15 @@ reduce these to 2 dimensions using the naxis kwarg.
     def wcs_world2pix(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
+        distortions = kwargs.pop('distortions', False)
         return self._array_converter(
-            lambda xy, o: self.wcs.s2p(xy, o)['pixcrd'],
+            lambda xy, o: self.wcs.s2p(xy, o, distortions)['pixcrd'],
             'input', *args, **kwargs)
     wcs_world2pix.__doc__ = """
         Transforms world coordinates to pixel coordinates, using only
-        the basic `wcslib`_ WCS transformation.  No `SIP`_ or
-        `distortion paper`_ table lookup transformation is applied.
+        the basic `wcslib`_ WCS transformation.  By default, no
+        polynomial or `distortion paper`_ table lookup transformation
+        is applied.
 
         Parameters
         ----------
@@ -2047,6 +2016,10 @@ reduce these to 2 dimensions using the naxis kwarg.
             two-argument form must be used.
 
         {1}
+
+        distortions : bool, optional
+            If `True`, perform polynomial distortions, if any.
+            Default is `False`.
 
         Returns
         -------
@@ -2094,9 +2067,9 @@ reduce these to 2 dimensions using the naxis kwarg.
     def pix2foc(self, *args):
         return self._array_converter(self._pix2foc, None, *args)
     pix2foc.__doc__ = """
-        Convert pixel coordinates to focal plane coordinates using the
-        `SIP`_ polynomial distortion convention and `distortion
-        paper`_ table-lookup correction.
+        Convert pixel coordinates to focal plane coordinates using any
+        polynomial distortion and `distortion paper`_ table-lookup
+        correction.
 
         The output is in absolute pixel coordinates, not relative to
         ``CRPIX``.
@@ -2179,16 +2152,23 @@ reduce these to 2 dimensions using the naxis kwarg.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
 
-    def sip_pix2foc(self, *args):
-        if self.sip is None:
-            if len(args) == 2:
-                return args[0]
-            elif len(args) == 3:
-                return args[:2]
-            else:
-                raise TypeError("Wrong number of arguments")
-        return self._array_converter(self.sip.pix2foc, None, *args)
-    sip_pix2foc.__doc__ = """
+    def poly_pix2foc(self, *args):
+        if WCSLIB_HAS_SIP:
+            def func(pix, origin):
+                foc = self.wcs.dispre_p2x(pix, origin)
+                foc -= self.wcs.crpix
+                return foc
+        else:
+            if self.sip is None:
+                if len(args) == 2:
+                    return args[0]
+                elif len(args) == 3:
+                    return args[:2]
+                else:
+                    raise TypeError("Wrong number of arguments")
+            func = self.sip.pix2foc
+        return self._array_converter(func, None, *args)
+    poly_pix2foc.__doc__ = """
         Convert pixel coordinates to focal plane coordinates using the
         `SIP`_ polynomial distortion convention.
 
@@ -2220,16 +2200,28 @@ reduce these to 2 dimensions using the naxis kwarg.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('focal coordinates', 8))
 
-    def sip_foc2pix(self, *args):
-        if self.sip is None:
-            if len(args) == 2:
-                return args[0]
-            elif len(args) == 3:
-                return args[:2]
-            else:
-                raise TypeError("Wrong number of arguments")
-        return self._array_converter(self.sip.foc2pix, None, *args)
-    sip_foc2pix.__doc__ = """
+    @deprecated('1.1', alternative='poly_pix2foc')
+    def sip_pix2foc(self, *args):
+        return self.poly_pix2foc(*args)
+    sip_pix2foc.__doc__ = poly_pix2foc.__doc__
+
+    def poly_foc2pix(self, *args):
+        if WCSLIB_HAS_SIP:
+            def _do_sip_in_wcs(array, origin):
+                data = self.wcs.dispre_x2p(array, origin)
+                return data - self.wcs.crpix
+            func = _do_sip_in_wcs
+        else:
+            if self.sip is None:
+                if len(args) == 2:
+                    return args[0]
+                elif len(args) == 3:
+                    return args[:2]
+                else:
+                    raise TypeError("Wrong number of arguments")
+            func = self.sip.foc2pix
+        return self._array_converter(func, None, *args)
+    poly_foc2pix.__doc__ = """
         Convert focal plane coordinates to pixel coordinates using the
         `SIP`_ polynomial distortion convention.
 
@@ -2256,6 +2248,11 @@ reduce these to 2 dimensions using the naxis kwarg.
             Invalid coordinate transformation parameters.
         """.format(__.TWO_OR_MORE_ARGS('2', 8),
                    __.RETURNS('pixel coordinates', 8))
+
+    @deprecated('1.1', alternative='poly_foc2pix')
+    def sip_foc2pix(self, *args):
+        return self.poly_foc2pix(*args)
+    sip_foc2pix.__doc__ = poly_foc2pix.__doc__
 
     def to_fits(self, relax=False, key=None):
         """
@@ -2301,10 +2298,10 @@ reduce these to 2 dimensions using the naxis kwarg.
         return hdulist
 
     def to_header(self, relax=None, key=None):
-        """Generate an `astropy.io.fits.Header` object with the basic WCS
-        and SIP information stored in this object.  This should be
-        logically identical to the input FITS file, but it will be
-        normalized in a number of ways.
+        """Generate an `astropy.io.fits.Header` object with the basic
+        WCS and polynomial distortion information stored in this
+        object.  This should be logically identical to the input FITS
+        file, but it will be normalized in a number of ways.
 
         .. warning::
 
@@ -2479,7 +2476,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         description = ["WCS Keywords\n",
                        "Number of WCS axes: {0!r}".format(self.naxis)]
         sfmt = ' : ' +  "".join(["{"+"{0}".format(i)+"!r}  " for i in range(self.naxis)])
-        
+
         keywords = ['CTYPE', 'CRVAL', 'CRPIX']
         values = [self.wcs.ctype, self.wcs.crval, self.wcs.crpix]
         for keyword, value in zip(keywords, values):
@@ -2502,7 +2499,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                 s += sfmt
                 description.append(s.format(*self.wcs.cd[i]))
 
-        description.append('NAXIS    : {0!r} {1!r}'.format(self._naxis1, 
+        description.append('NAXIS    : {0!r} {1!r}'.format(self._naxis1,
                            self._naxis2))
         return '\n'.join(description)
 
@@ -3026,7 +3023,8 @@ def validate(source):
 
         with warnings.catch_warnings(record=True) as warning_lines:
             wcses = find_all_wcs(
-                hdu.header, relax=True, fix=False, _do_set=False)
+                hdu.header, relax=_wcs.WCSHDR_reject,
+                fix=False, _do_set=False)
 
         for wcs in wcses:
             wcs_results = _WcsValidateWcsResult(wcs.wcs.alt)
@@ -3045,7 +3043,8 @@ def validate(source):
                 try:
                     WCS(hdu.header,
                         key=wcs.wcs.alt or ' ',
-                        relax=True, fix=True, _do_set=False)
+                        relax=_wcs.WCSHDR_reject,
+                        fix=True, _do_set=False)
                 except WcsError as e:
                     wcs_results.append(str(e))
 

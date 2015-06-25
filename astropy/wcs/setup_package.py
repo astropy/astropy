@@ -19,7 +19,7 @@ from astropy_helpers import setup_helpers
 from astropy.extern import six
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "4.25"
+WCSVERSION = "5.5"
 
 
 def b(s):
@@ -80,6 +80,9 @@ def write_wcsconfig_h():
 
     /* 64-bit integer data type. */
     #define WCSLIB_INT64 {1}
+
+    /* We ship wcslib post-5.0 */
+    #define HAVE_WCSLIB_VERSION 1
 
     /* Windows needs some other defines to prevent inclusion of wcsset()
        which conflicts with wcslib's wcsset().  These need to be set
@@ -213,6 +216,7 @@ def get_extensions():
             'flexed/wcsulex.c',
             'flexed/wcsutrn.c',
             'cel.c',
+            'dis.c',
             'lin.c',
             'log.c',
             'prj.c',

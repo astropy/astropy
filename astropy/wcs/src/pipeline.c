@@ -5,9 +5,14 @@
 
 #include "astropy_wcs/pipeline.h"
 #include "astropy_wcs/util.h"
+#include "wcserr.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef HAVE_WCSLIB_VERSION
+#include "dis.h"
+#endif
 
 #define PIP_ERRMSG(status) WCSERR_SET(status)
 
@@ -17,7 +22,9 @@ pipeline_clear(
 
   pipeline->det2im[0] = NULL;
   pipeline->det2im[1] = NULL;
+#if !defined(HAVE_WCSLIB_VERSION)
   pipeline->sip = NULL;
+#endif
   pipeline->cpdis[0] = NULL;
   pipeline->cpdis[1] = NULL;
   pipeline->wcs = NULL;
@@ -34,7 +41,9 @@ pipeline_init(
 
   pipeline->det2im[0] = det2im[0];
   pipeline->det2im[1] = det2im[1];
+#if !defined(HAVE_WCSLIB_VERSION)
   pipeline->sip = sip;
+#endif
   pipeline->cpdis[0] = cpdis[0];
   pipeline->cpdis[1] = cpdis[1];
   pipeline->wcs = wcs;
@@ -84,7 +93,11 @@ pipeline_all_pixel2world(
   err = &(pipeline->err);
 
   has_det2im = pipeline->det2im[0] != NULL || pipeline->det2im[1] != NULL;
+#ifdef HAVE_WCSLIB_VERSION
+  has_sip    = 0;
+#else
   has_sip    = pipeline->sip != NULL;
+#endif
   has_p4     = pipeline->cpdis[0] != NULL || pipeline->cpdis[1] != NULL;
   has_wcs    = pipeline->wcs != NULL;
 
@@ -177,6 +190,10 @@ int pipeline_pix2foc(
   int              has_p4;
   const double *   input  = NULL;
   double *         tmp    = NULL;
+  double *         tmp2   = NULL;
+  const double *   inputp;
+  double *         focp;
+  int              i, j;
   int              status = 1;
   struct wcserr  **err;
 
@@ -190,7 +207,11 @@ int pipeline_pix2foc(
   err = &(pipeline->err);
 
   has_det2im = pipeline->det2im[0] != NULL || pipeline->det2im[1] != NULL;
+  #ifdef HAVE_WCSLIB_VERSION
+  has_sip    = pipeline->wcs->lin.dispre != NULL;
+  #else
   has_sip    = pipeline->sip != NULL;
+  #endif
   has_p4     = pipeline->cpdis[0] != NULL || pipeline->cpdis[1] != NULL;
 
   if (has_det2im) {
@@ -229,14 +250,37 @@ int pipeline_pix2foc(
   }
 
   if (has_sip) {
-    status = sip_pix2deltas(pipeline->sip, 2, ncoord, input, foc);
-    if (status) {
-      if (pipeline->err == NULL) {
-        pipeline->err = calloc(1, sizeof(struct wcserr));
+    #ifdef HAVE_WCSLIB_VERSION
+      tmp2 = malloc(nelem * sizeof(double));
+      inputp = input;
+      focp = foc;
+      for (i = 0; i < ncoord; ++i) {
+        status = disp2x(pipeline->wcs->lin.dispre, inputp, tmp2);
+        if (status) {
+          if (pipeline->err == NULL) {
+            pipeline->err = calloc(1, sizeof(struct wcserr));
+          }
+          wcserr_copy(pipeline->wcs->lin.dispre->err, pipeline->err);
+          free(tmp2);
+          goto exit;
+        }
+        for (j = 0; j < nelem; ++j) {
+          focp[j] += tmp2[j] - inputp[j];
+        }
+        inputp += nelem;
+        focp += nelem;
       }
-      wcserr_copy(pipeline->sip->err, pipeline->err);
-      goto exit;
-    }
+      free(tmp2);
+    #else
+      status = sip_pix2deltas(pipeline->sip, 2, ncoord, input, foc);
+      if (status) {
+        if (pipeline->err == NULL) {
+          pipeline->err = calloc(1, sizeof(struct wcserr));
+        }
+        wcserr_copy(pipeline->sip->err, pipeline->err);
+        goto exit;
+      }
+    #endif
   }
 
   if (has_p4) {

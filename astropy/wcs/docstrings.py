@@ -33,7 +33,7 @@ Does the following:
 
     - Detector to image plane correction (optionally)
 
-    - SIP distortion correction (optionally)
+    - Polynomial distortion correction, such as SIP, TPV or TPD (optionally)
 
     - FITS WCS distortion correction (optionally)
 
@@ -580,6 +580,82 @@ dims = """
 
 The dimensions of the tabular array
 `~astropy.wcs.Wtbarr.data`.
+"""
+
+dispre_p2x = """
+dispre_p2x(*pixcrd*, *origin*)
+
+Perform any polynomial distortions that occur before the linear
+transformation.  This includes the SIP, TPV or TPD distortions.
+
+Parameters
+----------
+pixcrd : double array[ncoord][nelem]
+    Array of pixel coordinates.
+
+{0}
+
+Returns
+-------
+foccrd : double array[ncoord][nelem]
+    Array of focal plane coordinates.
+""".format(__.ORIGIN())
+
+dispre_x2p = """
+dispre_x2p(*pixcrd*, *origin*)
+
+Perform any inverse polynomial distortions that occur before the
+linear transformation.  This includes the SIP, TPV or TPD distortions.
+
+Parameters
+----------
+foccrd : double array[ncoord][nelem]
+    Array of focal plane coordinates.
+
+{0}
+
+Returns
+-------
+foccrd : double array[ncoord][nelem]
+    Array of pixel coordinates.
+"""
+
+disseq_p2x = """
+disseq_p2x(*pixcrd*, *origin*)
+
+Perform any polynomial distortions that occur after the linear
+transformation.  This includes the SIP, TPV or TPD distortions.
+
+Parameters
+----------
+pixcrd : double array[ncoord][nelem]
+    Array of pixel coordinates.
+
+{0}
+
+Returns
+-------
+foccrd : double array[ncoord][nelem]
+    Array of focal plane coordinates.
+"""
+
+disseq_x2p = """
+disseq_x2p(*pixcrd*, *origin*)
+
+Perform any inverse polynomial distortions that occur after the
+linear transformation.  This includes the SIP, TPV or TPD distortions.
+
+Parameters
+----------
+foccrd : double array[ncoord][nelem]
+    Array of focal plane coordinates.
+
+{0}
+
+Returns
+-------
+foccrd : double array[ncoord][nelem]
+    Array of pixel coordinates.
 """
 
 DistortionLookupTable = """
@@ -1251,6 +1327,10 @@ pixcrd : double array[ncoord][nelem]
 
 {0}
 
+distortions : bool, optional
+    If `True`, also perform any polynomial distortions.  Default is
+    `False`.
+
 Returns
 -------
 result : dict
@@ -1385,8 +1465,8 @@ astropy.wcs.Wcsprm.theta0
 pix2foc = """
 pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 
-Perform both `SIP`_ polynomial and `distortion paper`_ lookup-table
-correction in parallel.
+Perform both polynomial (SIP, TPV or TPD) and `distortion paper`_
+lookup-table correction in parallel.
 
 Parameters
 ----------
@@ -1468,6 +1548,10 @@ world : double array[ncoord][nelem]
     Array of world coordinates, in decimal degrees.
 
 {0}
+
+distortions : bool, optional
+    If `True`, also perform any polynomial distortions.  Default is
+    `False`.
 
 Returns
 -------
@@ -1645,8 +1729,11 @@ astropy.wcs.Wcsprm.get_pv
 """
 
 sip = """
-Get/set the `~astropy.wcs.Sip` object for performing `SIP`_ distortion
-correction.
+If built with wcslib 4.x, get/set the `~astropy.wcs.Sip` object for
+performing `SIP`_ distortion correction.
+
+If built with wcslib 5.x, returns `True` if a pre-applied polynomial
+distortion is present.
 """
 
 Sip = """
@@ -1686,8 +1773,8 @@ Headers."  ADASS XIV.
 sip_foc2pix = """
 sip_foc2pix(*foccrd, origin*) -> double array[ncoord][nelem]
 
-Convert focal plane coordinates to pixel coordinates using the `SIP`_
-polynomial distortion convention.
+Convert focal plane coordinates to pixel coordinates using any
+polynomial distortions (SIP, TPV or TPD) that may be present.
 
 Parameters
 ----------
@@ -1713,8 +1800,8 @@ ValueError
 sip_pix2foc = """
 sip_pix2foc(*pixcrd, origin*) -> double array[ncoord][nelem]
 
-Convert pixel coordinates to focal plane coordinates using the `SIP`_
-polynomial distortion convention.
+Convert pixel coordinates to focal plane coordinates using any
+polynomial distortions (SIP, TPV or TPD) that may be present.
 
 Parameters
 ----------
@@ -2095,6 +2182,12 @@ See also
 astropy.wcs.Wcsprm.specsys, astropy.wcs.Wcsprm.ssysobs
 """
 
+velref = """
+``int`` AIPS velocity code.
+
+From ``VELREF`` keyword.
+"""
+
 wcs = """
 A `~astropy.wcs.Wcsprm` object to perform the basic `wcslib`_ WCS
 transformation.
@@ -2112,6 +2205,7 @@ To perform all distortion corrections and WCS transformation, use
 Parameters
 ----------
 sip : `~astropy.wcs.Sip` object or `None`
+    If built with wcslib 5.x, must be `None`.
 
 cpdis : A pair of `~astropy.wcs.DistortionLookupTable` objects, or
   ``(None, None)``.

@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.5 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,25 +22,26 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spx.h,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: spx.h,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.25 - C routines that implement the spectral coordinate systems
-* recognized by the FITS World Coordinate System (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of spectral coordinates in FITS",
-*   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
-*   2006, A&A, 446, 747 (Paper III)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.5 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the spx routines
 * ---------------------------
+* Routines in this suite implement the spectral coordinate systems recognized
+* by the FITS World Coordinate System (WCS) standard, as described in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of spectral coordinates in FITS",
+=   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
+=   2006, A&A, 446, 747 (WCS Paper III)
+*
 * specx() is a scalar routine that, given one spectral variable (e.g.
 * frequency), computes all the others (e.g. wavelength, velocity, etc.) plus
 * the required derivatives of each with respect to the others.  The results
@@ -400,7 +401,7 @@
 *     (Returned) ... vice versa [s/m] (constant, = 1/c, always available).
 *
 *   struct wcserr *err
-*     (Returned) If enabled, when an error status is returned this struct
+*     (Returned) If enabled, when an error status is returned, this struct
 *     contains detailed information about the error, see wcserr_enable().
 *
 *   void *padding
@@ -418,8 +419,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "wcserr.h"
 
 extern const char *spx_errmsg[];
 

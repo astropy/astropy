@@ -40,7 +40,9 @@ Wcs_traverse(
 
   Py_VISIT(self->py_det2im[0]);
   Py_VISIT(self->py_det2im[1]);
+#if !defined(HAVE_WCSLIB_VERSION)
   Py_VISIT(self->py_sip);
+#endif
   Py_VISIT(self->py_distortion_lookup[0]);
   Py_VISIT(self->py_distortion_lookup[1]);
   Py_VISIT(self->py_wcsprm);
@@ -62,9 +64,11 @@ Wcs_clear(
   self->py_det2im[1] = NULL;
   Py_XDECREF(tmp);
 
+#if !defined(HAVE_WCSLIB_VERSION)
   tmp = self->py_sip;
   self->py_sip = NULL;
   Py_XDECREF(tmp);
+#endif
 
   tmp = self->py_distortion_lookup[0];
   self->py_distortion_lookup[0] = NULL;
@@ -102,7 +106,9 @@ Wcs_new(
     pipeline_clear(&self->x);
     self->py_det2im[0]            = NULL;
     self->py_det2im[1]            = NULL;
+#if !defined(HAVE_WCSLIB_VERSION)
     self->py_sip                  = NULL;
+#endif
     self->py_distortion_lookup[0] = NULL;
     self->py_distortion_lookup[1] = NULL;
     self->py_wcsprm               = NULL;
@@ -148,6 +154,12 @@ Wcs_init(
     }
   }
 
+  #if HAVE_WCSLIB_VERSION
+  if (py_sip != NULL && py_sip != Py_None) {
+      PyErr_SetString(PyExc_ValueError, "SIP object may not be set directly");
+      return -1;
+  }
+  #else
   /* Check and set SIP */
   if (py_sip != NULL && py_sip != Py_None) {
     if (!PyObject_TypeCheck(py_sip, &PySipType)) {
@@ -160,6 +172,7 @@ Wcs_init(
     self->py_sip = py_sip;
     self->x.sip = &(((PySip*)py_sip)->x);
   }
+  #endif
 
   /* Check and set Distortion lookup tables */
   for (i = 0; i < 2; ++i) {
@@ -189,7 +202,9 @@ Wcs_init(
     self->x.wcs = &(((PyWcsprm*)py_wcsprm)->x);
   }
 
+#if !defined(HAVE_WCSLIB_VERSION)
   Py_XINCREF(self->py_sip);
+#endif
   Py_XINCREF(self->py_distortion_lookup[0]);
   Py_XINCREF(self->py_distortion_lookup[1]);
   Py_XINCREF(self->py_wcsprm);
@@ -677,15 +692,24 @@ Wcs_get_sip(
     Wcs* self,
     /*@unused@*/ void* closure) {
 
+  #ifdef HAVE_WCSLIB_VERSION
+  if (self->py_wcsprm != NULL) {
+    if (((PyWcsprm *)(self->py_wcsprm))->x.lin.dispre != NULL) {
+      Py_INCREF(Py_True);
+      return Py_True;
+    }
+  }
+  #else
   if (self->py_sip) {
     Py_INCREF(self->py_sip);
     return self->py_sip;
   }
-
+  #endif
   Py_INCREF(Py_None);
   return Py_None;
 }
 
+#if !defined(HAVE_WCSLIB_VERSION)
 static int
 Wcs_set_sip(
     Wcs* self,
@@ -710,6 +734,7 @@ Wcs_set_sip(
 
   return 0;
 }
+#endif
 
 static PyObject*
 Wcs___copy__(
@@ -732,9 +757,11 @@ Wcs___copy__(
     Wcs_set_det2im2((Wcs*)copy, self->py_det2im[1], NULL);
   }
 
+#if !defined(HAVE_WCSLIB_VERSION)
   if (self->py_sip) {
     Wcs_set_sip((Wcs*)copy, self->py_sip, NULL);
   }
+#endif
 
   if (self->py_distortion_lookup[0]) {
     Wcs_set_cpdis1((Wcs*)copy, self->py_distortion_lookup[0], NULL);
@@ -791,7 +818,9 @@ Wcs___deepcopy__(
 
   if (_deepcopy_helper(copy, self->py_det2im[0], Wcs_set_det2im1, memo) ||
       _deepcopy_helper(copy, self->py_det2im[1], Wcs_set_det2im2, memo) ||
+#if !defined(HAVE_WCSLIB_VERSION)
       _deepcopy_helper(copy, self->py_sip, Wcs_set_sip, memo) ||
+#endif
       _deepcopy_helper(copy, self->py_distortion_lookup[0], Wcs_set_cpdis1, memo) ||
       _deepcopy_helper(copy, self->py_distortion_lookup[1], Wcs_set_det2im1, memo) ||
       _deepcopy_helper(copy, self->py_wcsprm, Wcs_set_wcs, memo)) {
@@ -826,7 +855,11 @@ static PyGetSetDef Wcs_getset[] = {
   {"det2im2", (getter)Wcs_get_det2im2, (setter)Wcs_set_det2im2, (char *)doc_det2im2},
   {"cpdis1", (getter)Wcs_get_cpdis1, (setter)Wcs_set_cpdis1, (char *)doc_cpdis1},
   {"cpdis2", (getter)Wcs_get_cpdis2, (setter)Wcs_set_cpdis2, (char *)doc_cpdis2},
+  #ifdef HAVE_WCSLIB_VERSION
+  {"sip", (getter)Wcs_get_sip, NULL, (char *)doc_sip},
+  #else
   {"sip", (getter)Wcs_get_sip, (setter)Wcs_set_sip, (char *)doc_sip},
+  #endif
   {"wcs", (getter)Wcs_get_wcs, (setter)Wcs_set_wcs, (char *)doc_wcs},
   {NULL}
 };
@@ -984,6 +1017,16 @@ struct module_state {
     Py_DECREF(m);
     INITERROR;
   }
+
+#ifdef HAVE_WCSLIB_VERSION
+  if (PyModule_AddStringConstant(m, "__version__", wcslib_version(NULL))) {
+    INITERROR;
+  }
+#else
+  if (PyModule_AddStringConstant(m, "__version__", "4.x")) {
+    INITERROR;
+  }
+#endif
 
 #if PY3K
   return m;

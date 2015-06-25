@@ -24,7 +24,9 @@ It performs three separate classes of WCS transformations:
 - Core WCS, as defined in the `FITS WCS standard`_, based on Mark
   Calabretta's `wcslib`_.
 
-- Simple Imaging Polynomial (`SIP`_) convention.
+- Polynomial distortion using the Simple Imaging Polynomial (`SIP`_)
+  convention or, if built with wcslib 5.5 or later, the ``TPV`` or
+  ``TPD`` conventions.
 
 - table lookup distortions as defined in the FITS WCS `distortion
   paper`_.
@@ -52,9 +54,9 @@ The basic workflow is as follows:
        - From pixels to world coordinates:
 
          - `~astropy.wcs.wcs.WCS.all_pix2world`: Perform all three
-           transformations in series (core WCS, SIP and table lookup
-           distortions) from pixel to world coordinates.  Use this one
-           if you're not sure which to use.
+           transformations in series (core WCS, polynomial and table
+           lookup distortions) from pixel to world coordinates.  Use
+           this one if you're not sure which to use.
 
          - `~astropy.wcs.wcs.WCS.wcs_pix2world`: Perform just the core
            WCS transformation from pixel to world coordinates.
@@ -62,21 +64,20 @@ The basic workflow is as follows:
        - From world to pixel coordinates:
 
          - `~astropy.wcs.wcs.WCS.all_world2pix`: Perform all three
-           transformations (core WCS, SIP and table lookup
+           transformations (core WCS, polynomial and table lookup
            distortions) from world to pixel coordinates, using an
            iterative method if necessary.
 
          - `~astropy.wcs.wcs.WCS.wcs_world2pix`: Perform just the core
            WCS transformation from world to pixel coordinates.
 
-       - Performing `SIP`_ transformations only:
+       - Performing polynomial transformations only:
 
-         - `~astropy.wcs.wcs.WCS.sip_pix2foc`: Convert from pixel to
-           focal plane coordinates using the `SIP`_ polynomial
-           coefficients.
+         - `~astropy.wcs.wcs.WCS.poly_pix2foc`: Convert from pixel to
+           focal plane coordinates using the polynomial coefficients.
 
-         - `~astropy.wcs.wcs.WCS.sip_foc2pix`: Convert from focal
-           plane to pixel coordinates using the `SIP`_ polynomial
+         - `~astropy.wcs.wcs.WCS.poly_foc2pix`: Convert from focal
+           plane to pixel coordinates using the polynomial
            coefficients.
 
        - Performing `distortion paper`_ transformations only:
@@ -198,6 +199,11 @@ example, ``RA---TAN-SIP``.  The supported projection codes are:
 - ``QSC``: quadrilateralized spherical cube
 - ``HPX``: HEALPix
 - ``XPH``: HEALPix polar, aka "butterfly"
+
+And, if built with wcslib 5.0 or later:
+
+- ``TPV``: Polynomial distortion
+- ``TPU``: Polynomial distortion
 
 Subsetting and Pixel Scales
 ===========================

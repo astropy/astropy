@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.5 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,31 +22,35 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.h,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: wcshdr.h,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 4.25 - C routines that implement the FITS World Coordinate System
-* (WCS) standard.  Refer to
-*
-*   "Representations of world coordinates in FITS",
-*   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (Paper I)
-*
-*   "Representations of celestial coordinates in FITS",
-*   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (Paper II)
-*
-*   "Representations of spectral coordinates in FITS",
-*   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
-*   2006, A&A, 446, 747 (Paper III)
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.5 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the wcshdr routines
 * ------------------------------
 * Routines in this suite are aimed at extracting WCS information from a FITS
-* file.  They provide the high-level interface between the FITS file and the
-* WCS coordinate transformation routines.
+* file.  The information is encoded via keywords defined in
+*
+=   "Representations of world coordinates in FITS",
+=   Greisen, E.W., & Calabretta, M.R. 2002, A&A, 395, 1061 (WCS Paper I)
+=
+=   "Representations of celestial coordinates in FITS",
+=   Calabretta, M.R., & Greisen, E.W. 2002, A&A, 395, 1077 (WCS Paper II)
+=
+=   "Representations of spectral coordinates in FITS",
+=   Greisen, E.W., Calabretta, M.R., Valdes, F.G., & Allen, S.L.
+=   2006, A&A, 446, 747 (WCS Paper III)
+=
+=   "Representations of distortions in FITS world coordinate systems",
+=   Calabretta, M.R. et al. (WCS Paper IV, draft dated 2004/04/22),
+=   available from http://www.atnf.csiro.au/people/Mark.Calabretta
+*
+* These routines provide the high-level interface between the FITS file and
+* the WCS coordinate transformation routines.
 *
 * Additionally, function wcshdo() is provided to write out the contents of a
 * wcsprm struct as a FITS header.
@@ -157,6 +161,9 @@
 *                           3: As above, but also report all non-WCS
 *                              keyrecords that were discarded, and the number
 *                              of coordinate representations (nwcs) found.
+*                           4: As above, but also report the accepted WCS
+*                              keyrecords, with a summary of the number
+*                              accepted as well as rejected.
 *                       The report is written to stderr by default, or the
 *                       stream set by wcsprintf_set().
 *
@@ -165,9 +172,9 @@
 *                          -1: Remove only valid WCS keyrecords whose values
 *                              were successfully extracted, nothing is
 *                              reported.
-*                          -2: Also remove WCS keyrecords that were rejected,
-*                              reporting each one and the reason that it was
-*                              rejected.
+*                          -2: As above, but also remove WCS keyrecords that
+*                              were rejected, reporting each one and the
+*                              reason that it was rejected.
 *                          -3: As above, and also report the number of
 *                              coordinate representations (nwcs) found.
 *                         -11: Same as -1 but preserving the basic keywords
@@ -286,6 +293,9 @@
 *                           3: As above, but also report all non-WCS
 *                              keyrecords that were discarded, and the number
 *                              of coordinate representations (nwcs) found.
+*                           4: As above, but also report the accepted WCS
+*                              keyrecords, with a summary of the number
+*                              accepted as well as rejected.
 *                       The report is written to stderr by default, or the
 *                       stream set by wcsprintf_set().
 *
@@ -409,7 +419,7 @@
 *   4: WCS Paper I mistakenly defined the pixel list form of WCSNAMEa as
 *      TWCSna instead of WCSNna; the 'T' is meant to substitute for the axis
 *      number in the binary table form of the keyword - note that keywords
-*      defined in WCS Papers II and III that are not parameterised by axis
+*      defined in WCS Papers II and III that are not parameterized by axis
 *      number have identical forms for binary tables and pixel lists.
 *      Consequently wcsbth() always treats WCSNna and TWCSna as equivalent.
 *
@@ -425,17 +435,38 @@
 *
 *      - WCSHDR_all: Accept all extensions recognized by the parser.
 *
-*      - WCSHDR_reject: Reject non-standard keywords (that are not otherwise
-*              accepted).  A message will optionally be printed on stderr by
-*              default, or the stream set by wcsprintf_set(), as determined by
-*              the ctrl argument, and nreject will be incremented.
+*      - WCSHDR_reject: Reject non-standard keyrecords (that are not otherwise
+*              explicitly accepted by one of the flags below).  A message will
+*              optionally be printed on stderr by default, or the stream set
+*              by wcsprintf_set(), as determined by the ctrl argument, and
+*              nreject will be incremented.
 *
 *              This flag may be used to signal the presence of non-standard
 *              keywords, otherwise they are simply passed over as though they
-*              did not exist in the header.
+*              did not exist in the header.  It is mainly intended for testing
+*              conformance of a FITS header to the WCS standard.
 *
-*              Useful for testing conformance of a FITS header to the WCS
-*              standard.
+*              Keyrecords may be non-standard in several ways:
+*
+*                - The keyword may be syntactically valid but with keyvalue of
+*                  incorrect type or invalid syntax, or the keycomment may be
+*                  malformed.
+*
+*                - The keyword may strongly resemble a WCS keyword but not, in
+*                  fact, be one because it does not conform to the standard.
+*                  For example, "CRPIX01" looks like a CRPIXja keyword, but in
+*                  fact the leading zero on the axis number violates the basic
+*                  FITS standard.  Likewise, "LONPOLE2" is not a valid
+*                  LONPOLEa keyword in the WCS standard, and indeed there is
+*                  nothing the parser can sensibly do with it.
+*
+*                - Use of the keyword may be deprecated by the standard.  Such
+*                  will be rejected if not explicitly accepted via one of the
+*                  flags below.
+*
+*      - WCSHDR_strict: As for WCSHDR_reject, but also reject AIPS-convention
+*              keywords and all other deprecated usage that is not explicitly
+*              accepted.
 *
 *      - WCSHDR_CROTAia: Accept CROTAia (wcspih()),
 *                               iCROTna (wcsbth()),
@@ -458,6 +489,19 @@
 *              equivalent to PVi_ma with m = n <= 9, and is associated
 *              exclusively with the latitude axis.
 *
+*      - WCSHDR_CD0i_0ja: Accept CD0i_0ja (wcspih()).
+*      - WCSHDR_PC0i_0ja: Accept PC0i_0ja (wcspih()).
+*      - WCSHDR_PV0i_0ma: Accept PV0i_0ja (wcspih()).
+*      - WCSHDR_PS0i_0ma: Accept PS0i_0ja (wcspih()).
+*              Allow the numerical index to have a leading zero in doubly-
+*              parameterized keywords, for example, PC01_01.  WCS Paper I
+*              (Sects 2.1.2 & 2.1.4) explicitly disallows leading zeroes.
+*              The FITS 3.0 standard document (Sect. 4.1.2.1) states that the
+*              index in singly-parameterized keywords (e.g. CTYPEia) "shall
+*              not have leading zeroes", and later in Sect. 8.1 that "leading
+*              zeroes must not be used" on PVi_ma and PSi_ma.  However, by an
+*              oversight, it is silent on PCi_ja and CDi_ja.
+*
 *      - WCSHDR_RADECSYS: Accept RADECSYS.  This appeared in early drafts of
 *              WCS Paper I+II and was subsequently replaced by RADESYSa.
 *
@@ -471,9 +515,9 @@
 *              wcsbth() accepts VSOURCEa only if WCSHDR_AUXIMG is also
 *              enabled.
 *
-*      - WCSHDR_DOBSn (wcsbth() only): Allow DOBSn, the column-specific analogue
-*              of DATE-OBS.  By an oversight this was never formally defined
-*              in the standard.
+*      - WCSHDR_DOBSn (wcsbth() only): Allow DOBSn, the column-specific
+*              analogue of DATE-OBS.  By an oversight this was never formally
+*              defined in the standard.
 *
 *      - WCSHDR_LONGKEY (wcsbth() only): Accept long forms of the alternate
 *              binary table and pixel list WCS keywords, i.e. with "a" non-
@@ -864,7 +908,7 @@
 *                       on return.
 *
 *   wcs       struct wcsprm**
-*                       Pointer to the array of wcsprm structs; set to 0 on
+*                       Pointer to the array of wcsprm structs; set to 0x0 on
 *                       return.
 *
 * Function return value:
@@ -1063,6 +1107,7 @@ extern "C" {
 #define WCSHDR_none     0x00000000
 #define WCSHDR_all      0x000FFFFF
 #define WCSHDR_reject   0x10000000
+#define WCSHDR_strict   0x20000000
 
 #define WCSHDR_CROTAia  0x00000001
 #define WCSHDR_EPOCHa   0x00000002
@@ -1070,17 +1115,21 @@ extern "C" {
 #define WCSHDR_CD00i00j 0x00000008
 #define WCSHDR_PC00i00j 0x00000010
 #define WCSHDR_PROJPn   0x00000020
-#define WCSHDR_RADECSYS 0x00000040
-#define WCSHDR_VSOURCE  0x00000080
-#define WCSHDR_DOBSn    0x00000100
-#define WCSHDR_LONGKEY  0x00000200
-#define WCSHDR_CNAMn    0x00000400
-#define WCSHDR_AUXIMG   0x00000800
-#define WCSHDR_ALLIMG   0x00001000
+#define WCSHDR_CD0i_0ja 0x00000040
+#define WCSHDR_PC0i_0ja 0x00000080
+#define WCSHDR_PV0i_0ma 0x00000100
+#define WCSHDR_PS0i_0ma 0x00000200
+#define WCSHDR_RADECSYS 0x00000400
+#define WCSHDR_VSOURCE  0x00000800
+#define WCSHDR_DOBSn    0x00001000
+#define WCSHDR_LONGKEY  0x00002000
+#define WCSHDR_CNAMn    0x00004000
+#define WCSHDR_AUXIMG   0x00008000
+#define WCSHDR_ALLIMG   0x00010000
 
-#define WCSHDR_IMGHEAD  0x00010000
-#define WCSHDR_BIMGARR  0x00020000
-#define WCSHDR_PIXLIST  0x00040000
+#define WCSHDR_IMGHEAD  0x00100000
+#define WCSHDR_BIMGARR  0x00200000
+#define WCSHDR_PIXLIST  0x00400000
 
 #define WCSHDO_none     0x00
 #define WCSHDO_all      0xFF

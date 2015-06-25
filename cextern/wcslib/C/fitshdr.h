@@ -1,7 +1,7 @@
 /*============================================================================
 
-  WCSLIB 4.25 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2014, Mark Calabretta
+  WCSLIB 5.5 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -22,24 +22,25 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.h,v 4.25 2014/12/14 14:29:36 mcalabre Exp $
+  $Id: fitshdr.h,v 5.5 2015/05/05 13:16:31 mcalabre Exp $
 *=============================================================================
 *
-* The Flexible Image Transport System (FITS), a data format widely used in
-* astronomy for data interchange and archive, is described in
-*
-*   "Definition of the Flexible Image Transport System (FITS), version 3.0",
-*   Pence, W.D., Chiappetti, L., Page, C.G., Shaw, R.A., & Stobie, E. 2010,
-*   A&A, 524, A42 - http://dx.doi.org/10.1051/0004-6361/201015362
-*
-* See also http://fits.gsfc.nasa.gov
-*
-* Refer to the README file provided with WCSLIB for an overview of the
-* library.
+* WCSLIB 5.5 - C routines that implement the FITS World Coordinate System
+* (WCS) standard.  Refer to the README file provided with WCSLIB for an
+* overview of the library.
 *
 *
 * Summary of the fitshdr routines
 * -------------------------------
+* The Flexible Image Transport System (FITS), is a data format widely used in
+* astronomy for data interchange and archive.  It is described in
+*
+=   "Definition of the Flexible Image Transport System (FITS), version 3.0",
+=   Pence, W.D., Chiappetti, L., Page, C.G., Shaw, R.A., & Stobie, E. 2010,
+=   A&A, 524, A42 - http://dx.doi.org/10.1051/0004-6361/201015362
+*
+* See also http://fits.gsfc.nasa.gov
+*
 * fitshdr() is a generic FITS header parser provided to handle keyrecords that
 * are ignored by the WCS header parsers, wcspih() and wcsbth().  Typically the
 * latter may be set to remove WCS keyrecords from a header leaving fitshdr()
@@ -249,7 +250,7 @@
 *
 *   int type
 *     (Returned) Keyvalue data type:
-*       - 0: No keyvalue.
+*       - 0: No keyvalue (both the value and type are undefined).
 *       - 1: Logical, represented as int.
 *       - 2: 32-bit signed integer.
 *       - 3: 64-bit signed integer (see below).

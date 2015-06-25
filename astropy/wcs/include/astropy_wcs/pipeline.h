@@ -12,7 +12,9 @@
 
 typedef struct {
   distortion_lookup_t*                   det2im[2];
+#if !defined(HAVE_WCSLIB_VERSION)
   /*@shared@*/ /*@null@*/ sip_t*         sip;
+#endif
   distortion_lookup_t*                   cpdis[2];
   /*@shared@*/ /*@null@*/ struct wcsprm* wcs;
   struct wcserr*                         err;
