@@ -99,7 +99,7 @@ def test_html_escaping():
         '&lt;Table masked=False length=3&gt;',
         '<table id="table{id}">'.format(id=id(t)),
         '<thead><tr><th>col0</th></tr></thead>',
-        '<thead><tr><th>{0}</th></tr></thead>'.format('str1056' if PY3 else 'string264'),
+        '<thead><tr><th>str33</th></tr></thead>',
         '<tr><td>&lt;script&gt;alert(&quot;gotcha&quot;);&lt;/script&gt;</td></tr>',
         '<tr><td>2</td></tr>',
         '<tr><td>3</td></tr>',

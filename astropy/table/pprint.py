@@ -15,6 +15,7 @@ from .. import log
 # Note, in numpy <= 1.6, some classes do not properly represent themselves.
 from ..utils.compat import NUMPY_LT_1_6_1
 from ..utils.console import Getch, color_print, terminal_size, conf
+from ..utils.data_info import dtype_info_name
 
 if six.PY3:
     def default_format_func(format_, val):
@@ -373,7 +374,7 @@ class TableFormatter(object):
             i_centers.append(n_header)
             n_header += 1
             try:
-                dtype = col.dtype.name
+                dtype = dtype_info_name(col.dtype)
             except AttributeError:
                 dtype = 'object'
             yield six.text_type(dtype)

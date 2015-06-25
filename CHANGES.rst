@@ -111,6 +111,9 @@ New Features
     the column, and acting as a manager of column attributes such as
     name, format, or description. [#3731]
 
+  - Updated table and column representation to use the ``dtype_info_name``
+    function for the dtype value. [#3868]
+
 - ``astropy.tests``
 
 - ``astropy.time``
@@ -129,6 +132,9 @@ New Features
     ``Magnitude``, ``Decibel``, and ``Dex``. [#1894]
 
 - ``astropy.utils``
+
+  - Added function ``dtype_info_name`` to the ``data_info`` module to provide
+    the name of a ``dtype`` for human-readable informational purposes. [#3868]
 
 - ``astropy.visualization``
 
