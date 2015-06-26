@@ -27,10 +27,6 @@ your default Python version:
 
        $ pip install virtualenv
 
-   or::
-
-       $ easy_install virtualenv
-
    or (on Debian/Ubuntu)::
 
        $ sudo apt-get install python-virtualenv
@@ -73,9 +69,9 @@ your default Python version:
        (astropy-dev) $ deactivate
 
 #. Now as long as the virtualenv is activated, packages you install with
-   ``pip``, ``easy_install``, or by manually running ``python setup.py
-   install`` will automatically install into your virtualenv instead of the
-   system site-packages.  Consider installing Astropy in develop mode into the
+   ``pip``, or by manually running ``python setup.py install`` will
+   automatically install into your virtualenv instead of the system
+   site-packages.  Consider installing Astropy in develop mode into the
    virtualenv as described :ref:`activate_development_astropy`.
 
 Using virtualenv with IPython
