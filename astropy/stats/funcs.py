@@ -497,7 +497,8 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     n is zero the interval returned is (0,1).
         
     **3. 'pearson'** This is an only-slightly-more-complicated rule
-    based on Pearson's chi-squared rule. It also has the nice feature that
+    based on Pearson's chi-squared rule (as [explained][pois_eb] by
+    the CDF working group). It also has the nice feature that
     if your theory curve touches an endpoint of the interval, then your
     data point is indeed one sigma away. The interval is
 
@@ -506,9 +507,10 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
         CI = (n+0.5-\sqrt{n+0.25}, n+0.5+\sqrt{n+0.25})
 
     **4. 'sherpagehrels'** This rule is used by default in the fitting
-    package 'sherpa'. The documentation claims it is based on a numerical
-    approximation published in [Gehrels 1986][gehrels86] but it does not
-    actually appear there. It is symmetrical, and while the upper limits
+    package 'sherpa'. The [documentation][sherpa_gehrels] claims it is
+    based on a numerical approximation published in
+    [Gehrels 1986][gehrels86] but it does not actually appear there.
+    It is symmetrical, and while the upper limits
     are within about 1% of those given by 'frequentist-confidence', the
     lower limits can be badly wrong. The interval is
 
@@ -587,10 +589,16 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     array([  4.41852954,  10.77028072])
                    
     [pois_eb]: http://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt
+    
     [ErrorBars]: http://www.pp.rhul.ac.uk/~cowan/atlas/ErrorBars.pdf
+    
     [ac12]: http://adsabs.harvard.edu/abs/2012EPJP..127...24A
+    
     [maxw11]: http://adsabs.harvard.edu/abs/2011arXiv1102.0822M
+    
     [gehrels86]: http://adsabs.harvard.edu/abs/1986ApJ...303..336G
+
+    [sherpa_gehrels]: http://cxc.harvard.edu/sherpa4.4/statistics/#chigehrels
     
     """
 
