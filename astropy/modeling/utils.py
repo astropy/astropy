@@ -33,6 +33,15 @@ class ExpressionTree(object):
 
         self.right = right
 
+    def __getstate__(self):
+        # For some reason the default pickle protocol on Python 2 does not just
+        # do this.  On Python 3 it's not a problem.
+        return dict((slot, getattr(self, slot)) for slot in self.__slots__)
+
+    def __setstate__(self, state):
+        for slot, value in state.items():
+            setattr(self, slot, value)
+
     @property
     def isleaf(self):
         return self.left is None and self.right is None

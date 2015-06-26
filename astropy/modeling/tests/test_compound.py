@@ -10,13 +10,14 @@ import numpy as np
 from numpy.testing.utils import (assert_allclose, assert_array_equal,
                                  assert_almost_equal)
 
+from ...extern.six.moves import cPickle as pickle
 from ...tests.helper import pytest
 
 from ..core import Model, ModelDefinitionError
 from ..parameters import Parameter
 from ..models import (Const1D, Shift, Scale, Rotation2D, Gaussian1D,
                       Gaussian2D, Polynomial1D, Polynomial2D,
-                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D, 
+                      Chebyshev2D, Legendre2D, Chebyshev1D, Legendre1D,
                       AffineTransformation2D, Identity, Mapping)
 
 
@@ -834,3 +835,48 @@ def test_compound_with_polynomials(poly):
     result_compound = model(x, y)
     result = shift(poly(x, y))
     assert_allclose(result, result_compound)
+
+
+# has to be defined at module level since pickling doesn't work right (in
+# general) for classes defined in functions
+class _TestPickleModel(Gaussian1D + Gaussian1D):
+    pass
+
+
+def test_pickle_compound():
+    """
+    Regression test for
+    https://github.com/astropy/astropy/issues/3867#issuecomment-114547228
+    """
+
+    # Test pickling a compound model class
+    GG = Gaussian1D + Gaussian1D
+    GG2 = pickle.loads(pickle.dumps(GG))
+    assert GG.param_names == GG2.param_names
+    assert GG.__name__ == GG2.__name__
+    # Test that it works, or at least evaluates successfully
+    assert GG()(0.12345) == GG2()(0.12345)
+
+    # Test pickling a compound model instance
+    g1 = Gaussian1D(1.0, 0.0, 0.1)
+    g2 = Gaussian1D([2.0, 3.0], [0.0, 0.0], [0.2, 0.3])
+    m = g1 + g2
+    m2 = pickle.loads(pickle.dumps(m))
+    assert m.param_names == m2.param_names
+    assert m.__class__.__name__ == m2.__class__.__name__
+    assert np.all(m.parameters == m2.parameters)
+    assert np.all(m(0) == m2(0))
+
+    # Test picling a concrete class
+    p = pickle.dumps(_TestPickleModel, protocol=0)
+    # Note: This is very dependent on the specific protocol, but the point of
+    # this test is that the "concrete" model is pickled in a very simple way
+    # that only specifies the module and class name, and is unpickled by
+    # re-importing the class from the module in which it was defined.  This
+    # should still work for concrete subclasses of compound model classes that
+    # were dynamically generated through an expression
+    exp = b'castropy.modeling.tests.test_compound\n_TestPickleModel\np0\n.'
+    # When testing against the expected value we drop the memo length field
+    # at the end, which may differ between runs
+    assert p[:p.rfind(b'p')] == exp[:exp.rfind(b'p')]
+    assert pickle.loads(p) is _TestPickleModel

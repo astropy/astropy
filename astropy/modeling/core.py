@@ -30,10 +30,12 @@ import numpy as np
 
 from ..utils import indent, isiterable, isinstancemethod, metadata
 from ..extern import six
+from ..extern.six.moves import copyreg
 from ..table import Table
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
+from ..utils.compat import ignored
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
@@ -82,7 +84,24 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     A registry of all known concrete (non-abstract) Model subclasses.
     """
 
+    _is_dynamic = False
+    """
+    This flag signifies whether this class was created in the "normal" way,
+    with a class statement in the body of a module, as opposed to a call to
+    `type` or some other metaclass constructor, such that the resulting class
+    does not belong to a specific module.  This is important for pickling of
+    dynamic classes.
+
+    This flag is always forced to False for new classes, so code that creates
+    dynamic classes should manually set it to True on those classes when
+    creating them.
+    """
+
     def __new__(mcls, name, bases, members):
+        # See the docstring for _is_dynamic above
+        if '_is_dynamic' not in members:
+            members['_is_dynamic'] = mcls._is_dynamic
+
         parameters = mcls._handle_parameters(name, members)
         mcls._create_inverse_property(members)
         mcls._handle_backwards_compat(name, members)
@@ -113,6 +132,26 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
         p.text(repr(cls))
 
+    def __reduce__(cls):
+        if not cls._is_dynamic:
+            # Just return a string specifying where the class can be imported
+            # from
+            return cls.__name__
+        else:
+            members = dict(cls.__dict__)
+            # Delete any ABC-related attributes--these will be restored when
+            # the class is reconstructed:
+            for key in list(members):
+                if key.startswith('_abc_'):
+                    del members[key]
+
+            # Delete custom __init__ and __call__ if they exist:
+            for key in ('__init__', '__call__'):
+                if key in members:
+                    del members[key]
+
+            return (type(cls), (cls.__name__, cls.__bases__, members))
+
     @property
     def name(cls):
         """
@@ -131,6 +170,15 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
     @property
     def n_outputs(cls):
         return len(cls.outputs)
+
+    @property
+    def _is_concrete(cls):
+        """
+        A class-level property that determines whether the class is a concrete
+        implementation of a Model--i.e. it is not some abstract base class or
+        internal implementation detail (i.e. begins with '_').
+        """
+        return not (cls.__name__.startswith('_') or inspect.isabstract(cls))
 
     def rename(cls, name):
         """
@@ -363,7 +411,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         # __repr__
         parts = [super(_ModelMeta, cls).__repr__()]
 
-        if cls.__name__.startswith('_') or inspect.isabstract(cls):
+        if not cls._is_concrete:
             return parts[0]
 
         def format_inheritance(cls):
@@ -1480,6 +1528,20 @@ class _CompoundModelMeta(_ModelMeta):
 
         return basedir
 
+    def __reduce__(cls):
+        # _CompoundModel classes have a generated evaluate() that is cached off
+        # in the _evaluate attribute.  This can't be pickled, and so should be
+        # regenerated after unpickling (alas)
+        rv = super(_CompoundModelMeta, cls).__reduce__()
+
+        if isinstance(rv, tuple):
+            # Delete _evaluate from the members dict
+            with ignored(KeyError):
+                del rv[1][2]['_evaluate']
+
+        return rv
+
+
     @property
     def submodel_names(cls):
         if cls._submodel_names is not None:
@@ -1646,8 +1708,7 @@ class _CompoundModelMeta(_ModelMeta):
         members = additional_members
         members.update({
             '_tree': tree,
-            # TODO: These are temporary until we implement the full rules
-            # for handling inputs/outputs
+            '_is_dynamic': True,  # See docs for _ModelMeta._is_dynamic
             'inputs': inputs,
             'outputs': outputs,
             'linear': linear,
@@ -2437,3 +2498,7 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                 arg_a, shape_a, arg_b, shape_b))
 
     return input_broadcast
+
+
+copyreg.pickle(_ModelMeta, _ModelMeta.__reduce__)
+copyreg.pickle(_CompoundModelMeta, _CompoundModelMeta.__reduce__)

@@ -408,6 +408,9 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Improved support for pickling of compound models, including both compound
+    model instances, and new compound model classes. [#3867]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
