@@ -7,7 +7,7 @@ import gc
 import locale
 import re
 
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
 from ...tests.helper import pytest, raises, catch_warnings
@@ -881,3 +881,40 @@ def test_radesys_defaults_full():
         w.radesys = 'FK4-NO-E'
         w.set()
         assert w.equinox == 1950
+
+
+def test_iteration():
+    world = np.array(
+        [[-0.58995335, -0.5],
+         [0.00664326, -0.5],
+         [-0.58995335, -0.25],
+         [0.00664326, -0.25],
+         [-0.58995335,  0.],
+         [0.00664326,  0.],
+         [-0.58995335,  0.25],
+         [0.00664326,  0.25],
+         [-0.58995335,  0.5],
+         [0.00664326,  0.5]],
+        np.float
+    )
+
+    w = wcs.WCS()
+    w.wcs.ctype = ['GLON-CAR', 'GLAT-CAR']
+    w.wcs.cdelt = [-0.006666666828, 0.006666666828]
+    w.wcs.crpix = [75.907, 74.8485]
+    x = w.wcs_world2pix(world, 1)
+
+    expected = np.array(
+        [[1.64400000e+02, -1.51498185e-01],
+         [7.49105110e+01, -1.51498185e-01],
+         [1.64400000e+02, 3.73485009e+01],
+         [7.49105110e+01, 3.73485009e+01],
+         [1.64400000e+02, 7.48485000e+01],
+         [7.49105110e+01, 7.48485000e+01],
+         [1.64400000e+02, 1.12348499e+02],
+         [7.49105110e+01, 1.12348499e+02],
+         [1.64400000e+02, 1.49848498e+02],
+         [7.49105110e+01, 1.49848498e+02]],
+        np.float)
+
+    assert_array_almost_equal(x, expected)
