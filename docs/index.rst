@@ -106,6 +106,7 @@ User Documentation
    logging
    warnings
    utils/index
+   testhelpers
 
 **Astropy project details**
 
