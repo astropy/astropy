@@ -18,11 +18,8 @@ class BaseImageTests(object):
 
     @classmethod
     def setup_class(cls):
-        cls._moduledir = os.path.dirname(__file__)
-        cls._data_dir = os.path.abspath(os.path.join(cls._moduledir, 'data'))
-        cls._baseline_images_dir = os.path.abspath(os.path.join(cls._moduledir, 'baseline_images'))
 
-        cls._tolerance = 1.5
+        cls._data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
 
         msx_header = os.path.join(cls._data_dir, 'msx_header')
         cls.msx_header = fits.Header.fromtextfile(msx_header)
@@ -42,7 +39,7 @@ class BaseImageTests(object):
 
 class TestBasic(BaseImageTests):
 
-    @pytest.mark.mpl_image_compare(filename='image_plot.png')
+    @pytest.mark.mpl_image_compare(filename='image_plot.png', tolerance=1.5)
     def test_image_plot(self):
         # Test for plotting image and also setting values of ticks
         fig = plt.figure(figsize=(6, 6))
@@ -53,7 +50,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @remote_data
-    @pytest.mark.mpl_image_compare(filename='contour_overlay.png')
+    @pytest.mark.mpl_image_compare(filename='contour_overlay.png', tolerance=1.5)
     def test_contour_overlay(self):
         # Test for overlaying contours on images
         hdu_msx = datasets.fetch_msx_hdu()
@@ -76,7 +73,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='overlay_features_image.png')
+    @pytest.mark.mpl_image_compare(filename='overlay_features_image.png', tolerance=1.5)
     def test_overlay_features_image(self):
 
         # Test for overlaying grid, changing format of ticks, setting spacing
@@ -109,7 +106,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='curvlinear_grid_patches_image.png')
+    @pytest.mark.mpl_image_compare(filename='curvlinear_grid_patches_image.png', tolerance=1.5)
     def test_curvilinear_grid_patches_image(self):
 
         # Overlay curvilinear grid and patches on image
@@ -140,7 +137,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='cube_slice_image.png')
+    @pytest.mark.mpl_image_compare(filename='cube_slice_image.png', tolerance=1.5)
     def test_cube_slice_image(self):
 
         # Test for cube slicing
@@ -165,7 +162,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='cube_slice_image_lonlat.png')
+    @pytest.mark.mpl_image_compare(filename='cube_slice_image_lonlat.png', tolerance=1.5)
     def test_cube_slice_image_lonlat(self):
 
         # Test for cube slicing. Here we test with longitude and latitude since
@@ -184,7 +181,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='changed_axis_units.png')
+    @pytest.mark.mpl_image_compare(filename='changed_axis_units.png', tolerance=1.5)
     def test_changed_axis_units(self):
         # Test to see if changing the units of axis works
         fig = plt.figure()
@@ -201,7 +198,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='minor_ticks_image.png')
+    @pytest.mark.mpl_image_compare(filename='minor_ticks_image.png', tolerance=1.5)
     def test_minor_ticks(self):
         # Test for drawing minor ticks
         fig = plt.figure()
@@ -219,7 +216,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='ticks_labels.png', savefig_kwargs={'bbox_inches': 'tight'})
+    @pytest.mark.mpl_image_compare(filename='ticks_labels.png', savefig_kwargs={'bbox_inches': 'tight'}, tolerance=1.5)
     def test_ticks_labels(self):
         fig = plt.figure(figsize=(6, 6))
         ax = WCSAxes(fig, [0.1, 0.1, 0.7, 0.7], wcs=None)
@@ -246,7 +243,7 @@ class TestBasic(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='rcparams.png')
+    @pytest.mark.mpl_image_compare(filename='rcparams.png', tolerance=1.5)
     def test_rcparams(self):
         # Test default style (matplotlib.rcParams) for ticks and gridlines
         with rc_context({
@@ -267,7 +264,7 @@ class TestBasic(BaseImageTests):
             ax.coords[1].set_ticks(exclude_overlapping=True)
             return fig
 
-    @pytest.mark.mpl_image_compare(filename='tick_angles.png')
+    @pytest.mark.mpl_image_compare(filename='tick_angles.png', tolerance=1.5)
     def test_tick_angles(self):
         # Test that tick marks point in the correct direction, even when the
         # axes limits extend only over a few FITS pixels. Addresses #45, #46.
@@ -287,7 +284,7 @@ class TestBasic(BaseImageTests):
         ax.coords['dec'].set_ticks(color='red', size=20)
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='tick_angles_non_square_axes.png')
+    @pytest.mark.mpl_image_compare(filename='tick_angles_non_square_axes.png', tolerance=1.5)
     def test_tick_angles_non_square_axes(self):
         # Test that tick marks point in the correct direction, even when the
         # axes limits extend only over a few FITS pixels, and the axes are
@@ -308,7 +305,7 @@ class TestBasic(BaseImageTests):
         ax.coords['dec'].set_ticks(color='red', size=20)
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='set_coord_type.png')
+    @pytest.mark.mpl_image_compare(filename='set_coord_type.png', tolerance=1.5)
     def test_set_coord_type(self):
         # Test for setting coord_type
         fig = plt.figure(figsize=(3, 3))
@@ -325,7 +322,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticks(exclude_overlapping=True)
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='test_ticks_regression_1.png')
+    @pytest.mark.mpl_image_compare(filename='test_ticks_regression_1.png', tolerance=1.5)
     def test_ticks_regression(self):
         # Regression test for a bug that caused ticks aligned exactly with a
         # sampled frame point to not appear. This also checks that tick labels
@@ -347,7 +344,7 @@ class TestBasic(BaseImageTests):
         ax.coords[1].set_ticklabel_position('all')
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='test_axislabels_regression.png', savefig_kwargs={'bbox_inches': 'tight'})
+    @pytest.mark.mpl_image_compare(filename='test_axislabels_regression.png', savefig_kwargs={'bbox_inches': 'tight'}, tolerance=1.5)
     def test_axislabels_regression(self):
         # Regression test for a bug that meant that if tick labels were made
         # invisible with ``set_visible(False)``, they were still added to the
