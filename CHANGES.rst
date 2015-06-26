@@ -25,6 +25,9 @@ New Features
   - Added ``PrecessedGeocentric`` frame, which is based on GCRS, but precessed
     to a specific requested mean equinox. [#3758]
 
+  - Added ``Supergalactic`` frame to support de Vaucouleurs supergalactic
+    coordinates. [#3892]
+
 - ``astropy.cosmology``
 
   - Add Planck 2015 cosmology [#3476]
