@@ -35,7 +35,7 @@ class HexagonalFrame(BaseFrame):
 
 class TestFrame(BaseImageTests):
 
-    @pytest.mark.mpl_image_compare(filename='custom_frame.png')
+    @pytest.mark.mpl_image_compare(filename='custom_frame.png', tolerance=1.5)
     def test_custom_frame(self):
 
         wcs = WCS(self.msx_header)
@@ -74,7 +74,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='update_clip_path_rectangular.png')
+    @pytest.mark.mpl_image_compare(filename='update_clip_path_rectangular.png', tolerance=1.5)
     def test_update_clip_path_rectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -95,7 +95,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='update_clip_path_nonrectangular.png')
+    @pytest.mark.mpl_image_compare(filename='update_clip_path_nonrectangular.png', tolerance=1.5)
     def test_update_clip_path_nonrectangular(self, tmpdir):
 
         fig = plt.figure()
@@ -117,7 +117,7 @@ class TestFrame(BaseImageTests):
 
         return fig
 
-    @pytest.mark.mpl_image_compare(filename='update_clip_path_change_wcs.png')
+    @pytest.mark.mpl_image_compare(filename='update_clip_path_change_wcs.png', tolerance=1.5)
     def test_update_clip_path_change_wcs(self, tmpdir):
 
         # When WCS is changed, a new frame is created, so we need to make sure
