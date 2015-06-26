@@ -250,8 +250,10 @@ def test_bootstrap_multiple_outputs():
 
         answer = np.array((0.19425, 0.02094))
 
+        bootfunc = lambda x:spearmanr(x)[0]
+
         bootresult = funcs.bootstrap(bootarr, 2,
-                                     bootfunc=spearmanr)
+                                     bootfunc=bootfunc)
 
         assert_allclose(answer, bootresult, atol=1e-3)
 
@@ -264,9 +266,10 @@ def test_bootstrap_multiple_outputs():
         answer = np.array((0.5907,
                            0.9541))
 
+        bootfunc = lambda x:spearmanr(x)[1]
+
         bootresult = funcs.bootstrap(bootarr, 2,
-                                     bootfunc=spearmanr,
-                                     output_index=1)
+                                     bootfunc=bootfunc)
 
         assert_allclose(answer, bootresult, atol=1e-3)
 
@@ -275,27 +278,14 @@ def test_bootstrap_multiple_outputs():
         answer = np.array(((0.1942, 0.5907),
                            (0.0209, 0.9541),
                            (0.4286, 0.2165)))
+
+        bootfunc = lambda x:spearmanr(x)
+
         bootresult = funcs.bootstrap(bootarr, 3,
-                                     bootfunc=spearmanr,
-                                     output_index=(0,1))
+                                     bootfunc=bootfunc)
 
         assert bootresult.shape == (3, 2)
         assert_allclose(answer, bootresult, atol=1e-3)
-
-    # return just bootstrapping with two outputs from bootfunc, switch order of
-    # outputs
-    with NumpyRNGContext(42):
-        answer = np.array(((0.5907, 0.1942),
-                           (0.9541, 0.0209),
-                           (0.2165, 0.4286)))
-        bootresult = funcs.bootstrap(bootarr, 3,
-                                     bootfunc=spearmanr,
-                                     output_index=(1, 0))
-
-        assert bootresult.shape == (3, 2)
-        assert_allclose(answer, bootresult, atol=1e-3)
-
-
 
 def test_mad_std():
     with NumpyRNGContext(12345):
