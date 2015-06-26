@@ -964,6 +964,18 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     >>> bootresult.shape
     (3, 2)
 
+    Obtain a statistic with two outputs on the array, keeping only the first
+    output
+
+    >>> bootfunc = lambda x:spearmanr(x)[0]
+    >>> with NumpyRNGContext(1):
+    ...     bootresult = bootstrap(bootarr, 3, bootfunc=bootfunc)
+    ...
+    >>> bootresult
+    array([ 0.60629737,  0.14159484,  0.54091829])
+    >>> bootresult.shape
+    (3,)
+
     """
     if samples is None:
         samples = data.shape[0]
