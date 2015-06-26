@@ -926,6 +926,44 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
         Bootstrapped data. Each row is a bootstrap resample of the data. The
         columns will correspond to the outputs of bootfunc.
 
+    Examples
+    --------
+    Obtain a twice resampled array:
+
+    >>> from astropy.stats import bootstrap
+    >>> import numpy as np
+    >>> from astropy.utils import NumpyRNGContext
+    >>> bootarr = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
+    >>> with NumpyRNGContext(1):
+    ...     bootresult = bootstrap(bootarr, 2)
+    ...
+    >>> bootresult
+    array([[ 6.,  9.,  0.,  6.,  1.,  1.,  2.,  8.,  7.,  0.],
+           [ 3.,  5.,  6.,  3.,  5.,  3.,  5.,  8.,  8.,  0.]])
+    >>> bootresult.shape
+    (2, 10)
+
+    Obtain a statistic on the array
+
+    >>> with NumpyRNGContext(1):
+    ...     bootresult = bootstrap(bootarr, 2, bootfunc=np.mean)
+    ...
+    >>> bootresult
+    array([ 4. ,  4.6])
+
+    Obtain a statistic with two outputs on the array
+
+    >>> from scipy.stats import spearmanr
+    >>> with NumpyRNGContext(1):
+    ...     bootresult = bootstrap(bootarr, 3, bootfunc=spearmanr)
+    ...
+    >>> bootresult
+    array([[ 0.60629737,  0.06314051],
+           [ 0.14159484,  0.69639692],
+           [ 0.54091829,  0.10640863]])
+    >>> bootresult.shape
+    (3, 2)
+
     """
     if samples is None:
         samples = data.shape[0]
@@ -937,7 +975,8 @@ def bootstrap(data, bootnum=100, samples=None, bootfunc=None):
     if bootfunc is None:
         resultdims = (bootnum,) + (samples,) + data.shape[1:]
     else:
-        # test number of outputs from bootfunc
+        # test number of outputs from bootfunc, avoid single outputs which are
+        # array-like
         try:
             resultdims = (bootnum, len(bootfunc(data)))
         except TypeError:
