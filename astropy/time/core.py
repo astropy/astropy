@@ -24,6 +24,7 @@ from ..units import UnitConversionError
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import InfoDescriptor, DataInfo, data_info_factory
+from ..utils.compat.numpy import broadcast_to
 from ..extern import six
 
 
@@ -235,12 +236,12 @@ class Time(object):
         else:
             self._init_from_vals(val, val2, format, scale, copy)
 
-        if self.location:
+        if self.location and (self.location.size > 1
+                              and self.location.shape != self.shape):
             try:
-                # check the two can be broadcast together
-                b = np.broadcast(self.location, self._time.jd1)
-                # and insist there are not more locations than times
-                assert b.size == self.size
+                # check the location can be broadcast to self's shape.
+                self.location = broadcast_to(self.location, self.shape,
+                                             subok=True)
             except:
                 raise ValueError('The location with shape {0} cannot be '
                                  'broadcast against time with shape {1}. '
@@ -489,8 +490,33 @@ class Time(object):
         self._out_subfmt = val
 
     @property
+    def ndim(self):
+        return self._time.jd1.ndim
+
+    @property
     def shape(self):
+        """The shape of the time instances.
+
+        Like `~numpy.ndarray.shape`, can be set to a new shape by assigning a
+        tuple.
+
+        Raises
+        ------
+        AttributeError: if the shape of the ``jd1``, ``jd2``, ``location``,
+        ``delta_ut1_utc``, or ``delta_tdb_tt`` attributes cannot be changed
+        without the arrays being copied.  For these cases, use the
+        `Time.reshape` method.
+        """
         return self._time.jd1.shape
+
+    @shape.setter
+    def shape(self, shape):
+        self._time.jd1.shape = shape
+        self._time.jd2.shape = shape
+        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location'):
+            val = getattr(self, attr, None)
+            if val is not None and val.size > 1:
+                val.shape = shape
 
     @property
     def size(self):
@@ -631,7 +657,7 @@ class Time(object):
         tm : Time object
             Copy of this object
         """
-        return self.replicate(format, copy=True)
+        return self._replicate(format=format, method='copy')
 
     def replicate(self, format=None, copy=False):
         """
@@ -667,41 +693,77 @@ class Time(object):
         # This also avoids quite a bit of unnecessary work in __init__
         ###  tm = self.__class__(self._time.jd1, self._time.jd2,
         ###                      format='jd', scale=self.scale, copy=copy)
+        return self._replicate(format=format, method='copy' if copy else None)
+
+
+    def _replicate(self, method=None, *args, **kwargs):
+        """Replicate a time object, possibly applying a method to the arrays.
+
+        Parameters
+        ----------
+        method : str, optional
+            If given, the method is applied to the internal ``jd1`` and ``jd2``
+            arrays, as well as to possible ``location``, ``_delta_ut1_utc``,
+            and ``_delta_tdb_tt`` arrays, broadcasting the latter as required.
+            Example methods: ``copy``, ``__getitem__``, ``reshape``.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.  If the ``format`` keyword
+            argument is present, this will be used as the Time format of the
+            replica.
+        """
+        new_format = kwargs.pop('format', None)
+        if new_format is None:
+            new_format = self.format
+
+        jd1, jd2 = self._time.jd1, self._time.jd2
+        if method is not None:
+            jd1 = getattr(jd1, method)(*args, **kwargs)
+            jd2 = getattr(jd2, method)(*args, **kwargs)
+
         tm = super(Time, self.__class__).__new__(self.__class__)
-        tm._time = TimeJD(self._time.jd1.copy() if copy else self._time.jd1,
-                          self._time.jd2.copy() if copy else self._time.jd2,
-                          self.scale, self.precision,
+        tm._time = TimeJD(jd1, jd2, self.scale, self.precision,
                           self.in_subfmt, self.out_subfmt, from_jd=True)
-        # Optional or non-arg attributes
-        attrs = ('_delta_ut1_utc', '_delta_tdb_tt',
-                 'location', 'precision', 'in_subfmt', 'out_subfmt')
-        for attr in attrs:
+        # Optional ndarray attributes.
+        for attr in ('_delta_ut1_utc', '_delta_tdb_tt', 'location'):
             try:
                 val = getattr(self, attr)
             except AttributeError:
                 continue
 
-            if copy and hasattr(val, 'copy'):
+            # Appy the method to any value arrays (though skip if there is only
+            # a single element and the method would return a view, since in
+            # that case nothing would change).
+            if method is not None and val is not None:
+                if method == 'copy' or method == 'flatten' and val.size == 1:
+                    val = val.copy()
+
+                elif val.size > 1:
+                    val = getattr(val, method)(*args, **kwargs)
+
+            setattr(tm, attr, val)
+
+        for attr in ('precision', 'in_subfmt', 'out_subfmt'):
+            val = getattr(self, attr)
+            if method in ('copy', 'flatten') and hasattr(val, 'copy'):
                 val = val.copy()
 
             setattr(tm, attr, val)
 
-        if format is None:
-            format = self.format
-
         # Make the new internal _time object corresponding to the format
         # in the copy.  If the format is unchanged this process is lightweight
         # and does not create any new arrays.
-        if format not in tm.FORMATS:
+        if new_format not in tm.FORMATS:
             raise ValueError('format must be one of {0}'
                              .format(list(tm.FORMATS)))
 
-        NewFormat = tm.FORMATS[format]
+        NewFormat = tm.FORMATS[new_format]
         tm._time = NewFormat(tm._time.jd1, tm._time.jd2,
                              tm._time._scale, tm.precision,
                              tm.in_subfmt, tm.out_subfmt,
                              from_jd=True)
-        tm._format = format
+        tm._format = new_format
 
         return tm
 
@@ -738,6 +800,85 @@ class Time(object):
                     continue
 
         return tm
+
+    def reshape(self, *args, **kwargs):
+        """Returns a time instance containing the same data with a new shape.
+
+        Parameters are as for :meth:`~numpy.ndarray.reshape`.  Note that it is
+        not always possible to change the shape of an array without copying the
+        data. If you want an error to be raise if the data is copied, you
+        should assign the new shape to the shape attribute.
+        """
+        return self._replicate('reshape', *args, **kwargs)
+
+    def ravel(self, *args, **kwargs):
+        """Return an instance with the time array collapsed into one dimension.
+
+        Parameters are as for :meth:`~numpy.ndarray.ravel`. Note that it is
+        not always possible to unravel an array without copying the data.
+        If you want an error to be raise if the data is copied, you should
+        should assign shape ``(-1,)`` to the shape attribute.
+        """
+        return self._replicate('ravel', *args, **kwargs)
+
+    def flatten(self, *args, **kwargs):
+        """Return a copy with the time array collapsed into one dimension.
+
+        Parameters are as for :meth:`~numpy.ndarray.flatten`.
+        """
+        return self._replicate('flatten', *args, **kwargs)
+
+    def transpose(self, *args, **kwargs):
+        """Return a time instance with the data transposed.
+
+        Parameters are as for :meth:`~numpy.ndarray.transpose`.  All internal
+        data are views of the data of the original.
+        """
+        return self._replicate('transpose', *args, **kwargs)
+
+    @property
+    def T(self):
+        """Return a time instance with the data transposed.
+
+        Parameters are as for :attr:`~numpy.ndarray.T`.  All internal
+        data are views of the data of the original.
+        """
+        if self.ndim < 2:
+            return self
+        else:
+            return self.transpose()
+
+    def swapaxes(self, *args, **kwargs):
+        """Return a time instance with the given axes interchanged.
+
+        Parameters are as for :meth:`~numpy.ndarray.swapaxes`.  All internal
+        data are views of the data of the original.
+        """
+        return self._replicate('swapaxes', *args, **kwargs)
+
+    def diagonal(self, *args, **kwargs):
+        """Return a time instance with the specified diagonals.
+
+        Parameters are as for :meth:`~numpy.ndarray.diagonal`.  All internal
+        data are views of the data of the original.
+        """
+        return self._replicate('diagonal', *args, **kwargs)
+
+    def squeeze(self, *args, **kwargs):
+        """Return a time instance with single-dimensional shape entries removed
+
+        Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
+        data are views of the data of the original.
+        """
+        return self._replicate('squeeze', *args, **kwargs)
+
+    def take(self, indices, axis=None, mode='raise'):
+        """Return a Time object formed from the elements the given indices.
+
+        Parameters are as for :meth:`~numpy.ndarray.take`, except that,
+        obviously, no output array can be given.
+        """
+        return self._replicate('take', indices, axis=axis, mode=mode)
 
     def __getattr__(self, attr):
         """
@@ -780,13 +921,15 @@ class Time(object):
         then broadcast, otherwise cast to double and make sure shape matches.
         """
         val = _make_array(val, copy=True)  # be conservative and copy
-        try:
-            # check the two can be broadcast together
-            b = np.broadcast(val, self._time.jd1)
-            # and insist there are not more attributes than times
-            assert b.size == self.size
-        except:
-            raise ValueError('Attribute shape must match that of Time object')
+        if val.size > 1 and val.shape != self.shape:
+            try:
+                # check the value can be broadcast to the shape of self.
+                val = broadcast_to(val, self.shape, subok=True)
+            except:
+                raise ValueError('Attribute shape must match or be '
+                                 'broadcastable to that of Time object. '
+                                 'Typically, give either a single value or '
+                                 'one for each time.')
 
         return val
 

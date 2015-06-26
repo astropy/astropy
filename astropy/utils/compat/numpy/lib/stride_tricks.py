@@ -16,32 +16,31 @@ from __future__ import division, absolute_import, print_function
 
 import numpy as np
 
-__all__ = ['broadcast_arrays', 'GE1P10']
+__all__ = ['broadcast_arrays', 'broadcast_to', 'GE1P10']
 
 
-def GE1P10(function=np.broadcast_arrays):
-    """Test whether the broadcast_arrays function respects subclasses
-
-    By default, ``np.broadcast_arrays`` is checked
-
-    See https://github.com/numpy/numpy/pull/4622
-    """
-
-    class MySubClass(np.ndarray):
-        pass
-
-    try:
-        return isinstance(function(MySubClass((1,)), subok=True)[0],
-                          MySubClass)
-    except TypeError:  # unexpected argument subok
-        return False
+def GE1P10(module=np):
+    return hasattr(module, 'broadcast_to')
 
 
 if GE1P10():
-    from numpy.lib.stride_tricks import broadcast_arrays
+    from numpy.lib.stride_tricks import broadcast_arrays, broadcast_to
 
 else:
     from numpy.lib.stride_tricks import DummyArray
+
+    def _maybe_view_as_subclass(original_array, new_array):
+        if type(original_array) is not type(new_array):
+            # if input was an ndarray subclass and subclasses were OK,
+            # then view the result as that subclass.
+            new_array = new_array.view(type=type(original_array))
+            # Since we have done something akin to a view from original_array, we
+            # should let the subclass finalize (if it has it implemented, i.e., is
+            # not None).
+            if new_array.__array_finalize__:
+                new_array.__array_finalize__(original_array)
+        return new_array
+
 
     def as_strided(x, shape=None, strides=None, subok=False):
         """ Make an ndarray from the given array with the given shape and strides.
@@ -54,18 +53,85 @@ else:
         if strides is not None:
             interface['strides'] = tuple(strides)
         array = np.asarray(DummyArray(interface, base=x))
-        # Make sure dtype is correct in case of custom dtype
-        if array.dtype.kind == 'V':
+
+        if array.dtype.fields is None and x.dtype.fields is not None:
+            # This should only happen if x.dtype is [('', 'Vx')]
             array.dtype = x.dtype
-        if type(x) is not type(array):
-            # if input was an ndarray subclass and subclasses were OK,
-            # then view the result as that subclass.
-            array = array.view(type=type(x))
-            # Since we have done something akin to a view from x, we should let
-            # the subclass finalize (if it has it implemented, i.e., is not None).
-            if array.__array_finalize__:
-                array.__array_finalize__(x)
-        return array
+
+        return _maybe_view_as_subclass(x, array)
+
+
+    def _broadcast_to(array, shape, subok, readonly):
+        shape = tuple(shape) if np.iterable(shape) else (shape,)
+        array = np.array(array, copy=False, subok=subok)
+        if not shape and array.shape:
+            raise ValueError('cannot broadcast a non-scalar to a scalar array')
+        if any(size < 0 for size in shape):
+            raise ValueError('all elements of broadcast shape must be non-'
+                             'negative')
+        broadcast = np.nditer(
+            (array,), flags=['multi_index', 'refs_ok', 'zerosize_ok'],
+            op_flags=['readonly'], itershape=shape, order='C').itviews[0]
+        result = _maybe_view_as_subclass(array, broadcast)
+        if not readonly and array.flags.writeable:
+            result.flags.writeable = True
+        return result
+
+
+    def broadcast_to(array, shape, subok=False):
+        """Broadcast an array to a new shape.
+
+        Parameters
+        ----------
+        array : array_like
+            The array to broadcast.
+        shape : tuple
+            The shape of the desired array.
+        subok : bool, optional
+            If True, then sub-classes will be passed-through, otherwise
+            the returned array will be forced to be a base-class array (default).
+
+        Returns
+        -------
+        broadcast : array
+            A readonly view on the original array with the given shape. It is
+            typically not contiguous. Furthermore, more than one element of a
+            broadcasted array may refer to a single memory location.
+
+        Raises
+        ------
+        ValueError
+            If the array is not compatible with the new shape according to NumPy's
+            broadcasting rules.
+
+        Examples
+        --------
+        >>> x = np.array([1, 2, 3])
+        >>> np.broadcast_to(x, (3, 3))
+        array([[1, 2, 3],
+               [1, 2, 3],
+               [1, 2, 3]])
+        """
+        return _broadcast_to(array, shape, subok=subok, readonly=True)
+
+
+    def _broadcast_shape(*args):
+        """Returns the shape of the ararys that would result from broadcasting the
+        supplied arrays against each other.
+        """
+        if not args:
+            raise ValueError('must provide at least one argument')
+        if len(args) == 1:
+            # a single argument does not work with np.broadcast
+            return np.asarray(args[0]).shape
+        # use the old-iterator because np.nditer does not handle size 0 arrays
+        # consistently
+        b = np.broadcast(*args[:32])
+        # unfortunately, it cannot handle 32 or more arguments directly
+        for pos in range(32, len(args), 31):
+            b = np.broadcast(b, *args[pos:(pos + 31)])
+        return b.shape
+
 
     def broadcast_arrays(*args, **kwargs):
         """
@@ -110,55 +176,24 @@ else:
                [3, 3, 3]])]
 
         """
+        # nditer is not used here to avoid the limit of 32 arrays.
+        # Otherwise, something like the following one-liner would suffice:
+        # return np.nditer(args, flags=['multi_index', 'zerosize_ok'],
+        #                  order='C').itviews
+
         subok = kwargs.pop('subok', False)
         if kwargs:
             raise TypeError('broadcast_arrays() got an unexpected keyword '
                             'argument {}'.format(kwargs.pop()))
         args = [np.array(_m, copy=False, subok=subok) for _m in args]
-        shapes = [x.shape for x in args]
-        if len(set(shapes)) == 1:
+
+        shape = _broadcast_shape(*args)
+
+        if all(array.shape == shape for array in args):
             # Common case where nothing needs to be broadcasted.
             return args
-        shapes = [list(s) for s in shapes]
-        strides = [list(x.strides) for x in args]
-        nds = [len(s) for s in shapes]
-        biggest = max(nds)
-        # Go through each array and prepend dimensions of length 1 to each of
-        # the shapes in order to make the number of dimensions equal.
-        for i in range(len(args)):
-            diff = biggest - nds[i]
-            if diff > 0:
-                shapes[i] = [1] * diff + shapes[i]
-                strides[i] = [0] * diff + strides[i]
-        # Chech each dimension for compatibility. A dimension length of 1 is
-        # accepted as compatible with any other length.
-        common_shape = []
-        for axis in range(biggest):
-            lengths = [s[axis] for s in shapes]
-            unique = set(lengths + [1])
-            if len(unique) > 2:
-                # There must be at least two non-1 lengths for this axis.
-                raise ValueError("shape mismatch: two or more arrays have "
-                    "incompatible dimensions on axis %r." % (axis,))
-            elif len(unique) == 2:
-                # There is exactly one non-1 length. The common shape will take
-                # this value.
-                unique.remove(1)
-                new_length = unique.pop()
-                common_shape.append(new_length)
-                # For each array, if this axis is being broadcasted from a
-                # length of 1, then set its stride to 0 so that it repeats its
-                # data.
-                for i in range(len(args)):
-                    if shapes[i][axis] == 1:
-                        shapes[i][axis] = new_length
-                        strides[i][axis] = 0
-            else:
-                # Every array has a length of 1 on this axis. Strides can be
-                # left alone as nothing is broadcasted.
-                common_shape.append(1)
 
-        # Construct the new arrays.
-        broadcasted = [as_strided(x, shape=sh, strides=st, subok=subok)
-                       for (x, sh, st) in zip(args, shapes, strides)]
-        return broadcasted
+        # TODO: consider making the results of broadcast_arrays readonly to match
+        # broadcast_to. This will require a deprecation cycle.
+        return [_broadcast_to(array, shape, subok=subok, readonly=False)
+                for array in args]

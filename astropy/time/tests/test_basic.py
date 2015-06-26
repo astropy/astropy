@@ -157,11 +157,28 @@ class TestBasic():
         assert np.all(t7[:, 2]._time.jd2 == t7._time.jd2[:, 2])
         assert np.all(t7[:, 0]._time.jd1 == t._time.jd1)
         assert np.all(t7[:, 0]._time.jd2 == t._time.jd2)
+        # Get tdb to check that delta_tdb_tt attribute is sliced properly.
+        t7_tdb = t7.tdb
+        assert t7_tdb[0, 0].delta_tdb_tt == t7_tdb.delta_tdb_tt[0, 0]
+        assert np.all(t7_tdb[5].delta_tdb_tt == t7_tdb.delta_tdb_tt[5])
+        assert np.all(t7_tdb[:, 2].delta_tdb_tt == t7_tdb.delta_tdb_tt[:, 2])
+        # Explicitly set delta_tdb_tt attrbite. Now it should not be sliced.
+        t7.delta_tdb_tt = 0.1
+        t7_tdb2 = t7.tdb
+        assert t7_tdb2[0, 0].delta_tdb_tt == 0.1
+        assert t7_tdb2[5].delta_tdb_tt == 0.1
+        assert t7_tdb2[:, 2].delta_tdb_tt == 0.1
+        # Check broadcasting of location.
+        t8 = Time(mjd[:, np.newaxis] + frac, format='mjd', scale='utc',
+                  location=(np.arange(len(frac)), np.arange(len(frac))))
+        assert t8[0, 0].location == t8.location[0, 0]
+        assert np.all(t8[5].location == t8.location[5])
+        assert np.all(t8[:, 2].location == t8.location[:, 2])
         # Finally check empty array.
-        t8 = t[:0]
-        assert t8.isscalar is False
-        assert t8.shape == (0,)
-        assert t8.size == 0
+        t9 = t[:0]
+        assert t9.isscalar is False
+        assert t9.shape == (0,)
+        assert t9.size == 0
 
     def test_properties(self):
         """Use properties to convert scales and formats.  Note that the UT1 to
@@ -277,18 +294,18 @@ class TestBasic():
         t3 = Time(mjd, format='mjd', scale='utc', location=(lon, lat))
         assert t3.shape == (4, 2)
         assert t3.location.shape == ()
-        assert t3.tdb.shape == (4, 2)
+        assert t3.tdb.shape == t3.shape
         t4 = Time(mjd, format='mjd', scale='utc',
                   location=(np.array([lon, 0]), np.array([lat, 0])))
         assert t4.shape == (4, 2)
-        assert t4.location.shape == (2,)
-        assert t4.tdb.shape == (4, 2)
+        assert t4.location.shape == t4.shape
+        assert t4.tdb.shape == t4.shape
         t5 = Time(mjd, format='mjd', scale='utc',
                   location=(np.array([[lon], [0], [0], [0]]),
                             np.array([[lat], [0], [0], [0]])))
         assert t5.shape == (4, 2)
-        assert t5.location.shape == (4, 1)
-        assert t5.tdb.shape == (4, 2)
+        assert t5.location.shape == t5.shape
+        assert t5.tdb.shape == t5.shape
 
     def test_all_transforms(self):
         """Test that all transforms work.  Does not test correctness,
