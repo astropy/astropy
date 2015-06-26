@@ -223,7 +223,7 @@ Tick, tick label, and axis label position
 
 By default, the tick and axis labels for the first coordinate are shown on the
 x-axis, and the tick and axis labels for the second coordinate are shown on
-the y-axis. In addition, the ticks for both coordintes are shown on all axes.
+the y-axis. In addition, the ticks for both coordinates are shown on all axes.
 This can be customized using the
 :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_position` and
 :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_position` methods, which each
@@ -243,7 +243,7 @@ right, or top axes respectively):
     lat.set_ticklabel_position('lr')
     lat.set_axislabel_position('lr')
 
-we can set the defaults back using:
+We can set the defaults back using:
 
 .. plot::
    :context:
