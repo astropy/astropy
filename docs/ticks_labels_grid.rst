@@ -258,6 +258,43 @@ We can set the defaults back using:
     lat.set_axislabel_position('l')
 
 
+Hiding ticks and tick labels
+============================
+
+Sometimes it's desirable to hide ticks and tick labels. A common scenario
+is where WCSAxes is being used in a grid of subplots and the tick labels
+are redundant across rows or columns. Tick labels and ticks can be hidden with
+the :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticklabel_visible`
+and :meth:`~wcsaxes.coordinate_helpers.CoordinateHelper.set_ticks_visible`
+methods, respectively:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.set_ticks_visible(False)
+    lon.set_ticklabel_visible(False)
+    lat.set_ticks_visible(False)
+    lat.set_ticklabel_visible(False)
+    lon.set_axislabel('')
+    lat.set_axislabel('')
+
+And we can restore the ticks and tick labels again using:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    lon.set_ticks_visible(True)
+    lon.set_ticklabel_visible(True)
+    lat.set_ticks_visible(True)
+    lat.set_ticklabel_visible(True)
+    lon.set_axislabel('Galactic Longitude')
+    lat.set_axislabel('Galactic Latitude')
+
+
 Coordinate grid
 ===============
 
