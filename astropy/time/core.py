@@ -744,7 +744,7 @@ class Time(object):
 
             setattr(tm, attr, val)
 
-        for attr in ('precision', 'in_subfmt', 'out_subfmt'):
+        for attr in ('precision', 'in_subfmt', 'out_subfmt', 'info'):
             val = getattr(self, attr)
             if method in ('copy', 'flatten') and hasattr(val, 'copy'):
                 val = val.copy()
