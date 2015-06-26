@@ -21,6 +21,7 @@ import copy
 import inspect
 import functools
 import operator
+import sys
 import warnings
 
 from collections import defaultdict
@@ -1529,9 +1530,6 @@ class _CompoundModelMeta(_ModelMeta):
         return basedir
 
     def __reduce__(cls):
-        # _CompoundModel classes have a generated evaluate() that is cached off
-        # in the _evaluate attribute.  This can't be pickled, and so should be
-        # regenerated after unpickling (alas)
         rv = super(_CompoundModelMeta, cls).__reduce__()
 
         if isinstance(rv, tuple):
@@ -2072,6 +2070,23 @@ class _CompoundModel(Model):
                                 for name in model.param_names)
 
         return model._from_existing(self, param_names)
+
+    if sys.version_info[:3] < (2, 7, 3):
+        def __reduce__(self):
+            # _CompoundModel classes have a generated evaluate() that is cached
+            # off in the _evaluate attribute.  This can't be pickled, and so
+            # should be regenerated after unpickling (alas)
+            if find_current_module(2) is not copy:
+                # The copy module also uses __reduce__, but there's no problem
+                # there.
+                raise RuntimeError(
+                    "Pickling of compound models is not possible using Python "
+                    "versions less than 2.7.3 due to a bug in Python.  See "
+                    "http://docs.astropy.org/en/v1.0.4/known_issues.html#"
+                    "pickling-error-on-compound-models for more information ("
+                    "tried to pickle {0!r}).".format(self))
+            else:
+                return super(_CompoundModel, self).__reduce__()
 
     @property
     def submodel_names(self):

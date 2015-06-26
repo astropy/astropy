@@ -61,3 +61,5 @@ py:obj list.insert
 py:meth list.pop
 py:obj list.remove
 py:class classmethod
+py:obj RuntimeError
+py:obj AttributeError
