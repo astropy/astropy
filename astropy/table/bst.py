@@ -1,5 +1,19 @@
+from bintrees import FastBinaryTree, FastRBTree
+
 BLACK = 0
 RED = 1
+
+class MaxValue(object):
+    def __gt__(self, other):
+        return True
+    def __lt__(self, other):
+        return False
+
+class MinValue(object):
+    def __lt__(self, other):
+        return True
+    def __gt__(self, other):
+        return False
 
 class Node(object):
     __lt__ = lambda x, y: x.key < y.key
@@ -63,12 +77,11 @@ class BST(object):
     NodeClass = Node
     UNIQUE = False
 
-    def __init__(self, data=[]):
+    def __init__(self, lines={}):
         self.root = None
         self.size = 0
-        ##TODO: sort
-        for d in data:
-            self.add(*d)
+        for el in lines.items():
+            self.add(*el)
 
     def add(self, *data):
         self.size += 1
@@ -95,9 +108,7 @@ class BST(object):
                 curr_node.data.extend(node.data)
                 curr_node.data = sorted(curr_node.data) ##TODO: speed up
                 return
-        self.clean() ##TODO: remove
         self.balance(node)
-        self.clean()
 
     def clean(self):
         for node in self.traverse('inorder'):
@@ -130,7 +141,7 @@ class BST(object):
         except TypeError: # wrong key type
             return None
 
-    def traverse(self, order):
+    def traverse(self, order='inorder'):
         if order == 'preorder':
             return self._preorder(self.root, [])
         elif order == 'inorder':
@@ -308,7 +319,6 @@ class RedBlackTree(BST):
         if parent is None:
             node.color = BLACK
             if node is not self.root:
-                import pdb;pdb.set_trace()
                 raise ValueError("Non-root node has no parent")
             return
         gp = parent.parent
@@ -360,3 +370,62 @@ class RedBlackTree(BST):
         return True
 
     ##TODO: write remove method
+
+class FastBase(object):
+    def __init__(self, lines):
+        self.data = self.engine(lines)
+
+    def add(self, key, val):
+        self.data.set_default(key, []).append(val)
+
+    def find(self, key):
+        val = self.data.get(key, None)
+        if val is None:
+            return None
+        return Node(key, val[0]) ##TODO: why [0]?
+
+    def remove(self, key, data=None):
+        node = self.data.get(key, None)
+        if node is None or len(node) == 0:
+            return False
+        if data is None:
+            self.data.pop(key)
+            return True
+        if data not in node:
+            if len(node) == 0:
+                return False
+            raise ValueError("Data does not belong to correct node")
+        node.remove(data)
+        return True
+
+    def reorder(self, row):
+        for key, node in self.data.items():
+            self.data[key] = [x - 1 if x > row else x for x in node]
+
+    def traverse(self):
+        l = []
+        for key, data in self.data.items():
+            if len(data) > 0:
+                n = Node(key)
+                n.data = data
+                l.append(n)
+        return l
+
+    def sort(self):
+        return self.traverse()
+
+    def same_prefix(self, key, ncols):
+        n = len(key)
+        lower = tuple(key + (ncols - n) * [MinValue()])
+        upper = tuple(key + (ncols - n) * [MaxValue()])
+        return self.range(lower, upper)
+
+    def range(self, lower, upper):
+        ##TODO: fix lower<=x<upper; why v[0]?
+        return [Node(k, v[0]) for k, v in self.data.item_slice(lower, upper)]
+
+class FastBST(FastBase):
+    engine = FastBinaryTree
+
+class FastRBT(FastBase):
+    engine = FastRBTree

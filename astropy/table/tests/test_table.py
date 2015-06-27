@@ -704,6 +704,7 @@ class TestAddRow(SetupData):
 
     @pytest.mark.parametrize("composite", [False, True])
     def test_table_index(self, table_types, composite):
+        ##TODO: put into test_index.py
         self._setup(table_types)
         t = self.t.copy()
         t.add_index(('a', 'b') if composite else 'a')
@@ -716,7 +717,7 @@ class TestAddRow(SetupData):
         assert np.allclose(t['b'].data, np.array([4.0, 5.1, 6.0, 5.0]))
         assert np.all(t['c'].data == np.array(['7', '8', '7', '9']))
         index = t.indices[0]
-        l = [(x.key, x.data) for x in index.data.traverse('inorder')]
+        l = [(x.key, x.data) for x in index.data.traverse()]
 
         if composite:
             assert np.all(l == [((2, 5.1), [1]),
@@ -727,7 +728,7 @@ class TestAddRow(SetupData):
             assert np.all(l == [((2,), [1]),
                                 ((4,), [0, 3]),
                                 ((10,), [2])])
-        t.remove_index('a')
+        t.remove_indices('a')
         assert len(t.indices) == 0
 
     def test_table_where(self, table_types):
