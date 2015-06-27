@@ -1,11 +1,19 @@
-from .bst import BST, RedBlackTree
+from .bst import BST, RedBlackTree, FastBST
 from .array import SortedArray
 
 class Index:
-    def __init__(self, columns, impl=RedBlackTree):
+    def __init__(self, columns, impl=None):
+        if impl is None:
+            impl = FastBST
         # nodes of self.data will be (key val, row index)
-        data = [(c, i) for i, c in enumerate(zip(*columns))]
-        self.data = impl(data)
+        iterable = columns[0] if len(columns) == 1 else zip(*columns)
+        lines = {}
+        for val, key in enumerate(iterable):
+            if not key in lines:
+                lines[key] = [val]
+            else:
+                lines[key].append(val)
+        self.data = impl(lines)
         self.columns = columns
 
     def refresh(self, columns):
@@ -43,8 +51,7 @@ class Index:
             raise ValueError("Could not remove row {0} from index".format(row))
         # decrement the row number of all later rows
         if reorder:
-            for node in self.data.traverse('inorder'):
-                node.data = [x - 1 if x > row else x for x in node.data]
+            self.data.reorder(row)
 
     def find(self, key):
         node = self.data.find(key)
@@ -71,10 +78,11 @@ class Index:
             lst = [x.data for x in self.data.range(tuple(lower), tuple(upper))]
         else:
             key = base + [col_map[query_names[-1]]]
-            if len(key) == len(self.columns):
+            ncols = len(self.columns)
+            if len(key) == ncols:
                 lst = [self.find(tuple(key))]
             else:
-                lst = [x.data for x in self.data.same_prefix(tuple(key))]
+                lst = [x.data for x in self.data.same_prefix(key, ncols)]
         return [row for l in lst for row in l]
 
     def range(self, lower, upper):
@@ -88,7 +96,7 @@ class Index:
 
     def sorted_data(self):
         y = self.data.sort()
-        lst = [x.data for x in y]
+        lst = [x[1] for x in y]
         return [row for l in lst for row in l]
 
     def nodes(self):

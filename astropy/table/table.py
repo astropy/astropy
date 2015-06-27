@@ -161,8 +161,6 @@ class Table(object):
         Copy the input data (default=True).
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument
-    copy_indices : bool, optional
-        Retain any indices present in the input data (default=False).
     """
 
     meta = MetaData()
@@ -235,7 +233,7 @@ class Table(object):
         return data
 
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None, copy_indices=False):
+                 meta=None, copy=True, rows=None):
 
         # Set up a placeholder empty table
         self._set_masked(masked)
@@ -353,12 +351,8 @@ class Table(object):
             raise TypeError("masked property has not been set to True or False")
 
         # refresh indices
-        if copy_indices:
-            for index in self.indices:
-                index.refresh(self.columns)
-        else:
-            for col in self.columns.values():
-                col.indices = []
+        for index in self.indices:
+            index.refresh(self.columns)
 
     def __getstate__(self):
         return (self.columns.values(), self.meta)
@@ -423,7 +417,7 @@ class Table(object):
                     lst.append(index)
         return lst
 
-    def add_index(self, colnames, impl=SortedArray):
+    def add_index(self, colnames, impl=None):
         '''
         Inserts a new index among one or more columns. The input parameter
         may be either a list of column names or a single column name.
@@ -510,7 +504,8 @@ class Table(object):
         return self.query(col_map)
 
     def query(self, col_map):
-        for index in self.indices:
+        col = six.next(six.iterkeys(col_map))
+        for index in self.columns[col].indices:
             try:
                 return index.where(col_map)
             except ValueError: # index is unsuitable
@@ -1021,7 +1016,7 @@ class Table(object):
                 raise ValueError('Slice name(s) {0} not valid column name(s)'
                                  .format(', '.join(bad_names)))
             out = self.__class__([self[x] for x in item],
-                                 meta=deepcopy(self.meta), copy_indices=True)
+                                 meta=deepcopy(self.meta))
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
             return out
@@ -1998,6 +1993,7 @@ class Table(object):
 
     def _replace_cols(self, columns):
         for col, new_col in zip(self.columns.values(), columns.values()):
+            new_col.indices = []
             for index in col.indices:
                 index.columns[index.col_position(col)] = new_col
                 new_col.add_index(index)
