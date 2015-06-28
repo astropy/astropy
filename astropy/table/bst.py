@@ -24,13 +24,12 @@ class Node(object):
     __ne__ = lambda x, y: x.key != y.key
 
     # each node has a key and data list
-    def __init__(self, key, data=None,
-                 left=None, right=None, parent=None):
+    def __init__(self, key, data):
         self.key = key
-        self.data = [data] if data is not None else [key]
-        self.left = left
-        self.right = right
-        self.parent = parent
+        self.data = [data]
+        self.left = None
+        self.right = None
+        self.parent = None
 
     def replace(self, child, new_child):
         if self.left is not None and self.left == child:
@@ -64,9 +63,8 @@ class Node(object):
         return str(self)
 
 class RedBlackNode(Node):
-    def __init__(self, key, data=None,
-                 left=None, right=None, parent=None):
-        super(RedBlackNode, self).__init__(key, data, left, right, parent)
+    def __init__(self, key, data):
+        super(RedBlackNode, self).__init__(key, data)
         self.color = RED
     def __str__(self):
         return str((self.key, self.data, 'BLACK' if self.color == BLACK else 'RED'))
@@ -110,26 +108,18 @@ class BST(object):
                 return
         self.balance(node)
 
-    def clean(self):
-        for node in self.traverse('inorder'):
-            if node.parent is None:
-                assert node is self.root
-            else:
-                parent = node.parent
-                assert parent.left is node or parent.right is node
-
     def balance(self, node):
         pass
 
     def find(self, key):
         if self.root is None:
-            return None
+            return []
         return self._find_recursive(key, self.root)
 
     def _find_recursive(self, key, node):
         try:
             if key == node.key:
-                return node
+                return node.data
             elif key > node.key:
                 if node.right is None:
                     return None
@@ -152,7 +142,7 @@ class BST(object):
         ##TODO: find out why inorder is so slow
 
     def sort(self):
-        return self.traverse('inorder')
+        return [x for node in self.traverse() for x in node.data]
 
     def _preorder(self, node, lst):
         if node is None:
@@ -227,14 +217,16 @@ class BST(object):
         # return all nodes with keys in (inclusive) range [lower, upper]
         if self.root is None:
             return []
-        return self._range(lower, upper, self.root, [])
+        nodes = self._range(lower, upper, self.root, [])
+        return [x for node in nodes for x in node.data]
 
     def same_prefix(self, val):
         # assuming val has smaller length than keys, return
         # nodes whose keys have val as a prefix
         if self.root is None:
             return []
-        return self._same_prefix(val, self.root, [])
+        nodes = self._same_prefix(val, self.root, [])
+        return [x for node in nodes for x in node.data]
 
     def _range(self, lower, upper, node, lst):
         if lower <= node.key <= upper:
@@ -379,10 +371,7 @@ class FastBase(object):
         self.data.set_default(key, []).append(val)
 
     def find(self, key):
-        val = self.data.get(key, None)
-        if val is None:
-            return None
-        return Node(key, val[0]) ##TODO: why [0]?
+        return self.data.get(key, None)
 
     def remove(self, key, data=None):
         node = self.data.get(key, None)
@@ -406,13 +395,13 @@ class FastBase(object):
         l = []
         for key, data in self.data.items():
             if len(data) > 0:
-                n = Node(key)
+                n = Node(key, key)
                 n.data = data
                 l.append(n)
         return l
 
     def sort(self):
-        return self.traverse()
+        return [x for node in self.traverse() for x in node.data]
 
     def same_prefix(self, key, ncols):
         n = len(key)
@@ -421,8 +410,16 @@ class FastBase(object):
         return self.range(lower, upper)
 
     def range(self, lower, upper):
-        ##TODO: fix lower<=x<upper; why v[0]?
-        return [Node(k, v[0]) for k, v in self.data.item_slice(lower, upper)]
+        ##TODO: fix lower<=x<upper
+        l = [v for v in self.data.value_slice(lower, upper)]
+        return [x for sublist in l for x in sublist]
+
+    def replace_rows(self, row_map):
+        for data in self.data.values():
+            data[:] = [row_map[x] for x in data if x in row_map]
+
+    def __str__(self):
+        return str(self.data)
 
 class FastBST(FastBase):
     engine = FastBinaryTree
