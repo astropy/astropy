@@ -357,3 +357,15 @@ class DataInfo(object):
 class MixinInfo(DataInfo):
     attr_names = DataInfo.attr_names.union(['parent_table'])
     _attrs_no_copy = set(['parent_table'])
+
+    def iter_str_vals(self):
+        """
+        This is a mixin-safe version of Column.iter_str_vals.
+        """
+        from ..table.column import FORMATTER
+        col = self._parent_ref()
+        parent_table = self.parent_table
+        formatter = FORMATTER if parent_table is None else parent_table.formatter
+        _pformat_col_iter = formatter._pformat_col_iter
+        for str_val in _pformat_col_iter(col, -1, False, False, {}):
+            yield str_val

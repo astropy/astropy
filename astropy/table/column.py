@@ -45,16 +45,6 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
-def col_iter_str_vals(col):
-    """
-    This is a mixin-safe version of Column.iter_str_vals.
-    """
-    parent_table = col.info.parent_table
-    formatter = FORMATTER if parent_table is None else parent_table.formatter
-    _pformat_col_iter = formatter._pformat_col_iter
-    for str_val in _pformat_col_iter(col, -1, False, False, {}):
-        yield str_val
-
 def col_copy(col):
     """
     This is a mixin-safe version of Column.copy() (with copy_data=True).

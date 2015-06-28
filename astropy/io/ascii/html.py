@@ -14,7 +14,6 @@ from ...extern.six.moves import zip as izip
 
 from . import core
 from ...table import Column
-from ...table.column import col_iter_str_vals
 from ...utils.xml import writer
 
 from copy import deepcopy
@@ -361,15 +360,17 @@ class HTML(core.BaseReader):
                                 w.data(col.info.name.strip())
                                 w.end(indent=False)
                         col_str_iters = []
+                        new_cols = []
                         for col in cols:
                             if len(col.shape) > 1 and self.html['multicol']:
                                 span = col.shape[1]
                                 for i in range(span):
                                     # Split up multicolumns into separate columns
                                     new_col = Column([el[i] for el in col])
-                                    col_str_iters.append(col_iter_str_vals(new_col))
+                                    col_str_iters.append(new_col.info.iter_str_vals())
+                                    new_cols.append(new_col)
                             else:
-                                col_str_iters.append(col_iter_str_vals(col))
+                                col_str_iters.append(col.info.iter_str_vals())
 
                     for row in izip(*col_str_iters):
                         with w.tag('tr'):
