@@ -274,8 +274,10 @@ class Quantity(np.ndarray):
 
     def __array_finalize__(self, obj):
         self._unit = getattr(obj, '_unit', None)
-        if hasattr(obj, 'info'):
-            self.info = obj.info.copy()
+
+        # Copy info (except for a scalar output for performance reasons)
+        if self.ndim > 0 and hasattr(obj, 'info'):
+            self.info = obj.info
 
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the

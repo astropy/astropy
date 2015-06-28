@@ -236,7 +236,7 @@ class SkyCoord(object):
             # this to get all the right attributes
             self._sky_coord_frame = self_frame[item]
             out = SkyCoord(self, representation=self.representation)
-            out.info = self.info.copy()
+            out.info = self.info
             return out
         finally:
             # now put back the right frame in self
@@ -283,7 +283,7 @@ class SkyCoord(object):
                 # were explicitly specified in the coordinate object (i.e. non-default).
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, units, kwargs)
                 if hasattr(args[0], 'info'):
-                    self.info = args[0].info.copy()
+                    self.info = args[0].info
 
             elif len(args) <= 3:
                 frame_attr_names = frame.representation_component_names.keys()

@@ -20,7 +20,6 @@ import numpy as np
 from numpy import ma
 
 from ..utils import OrderedDict, metadata
-from .column import _col_update_attrs_from
 
 from . import _np_utils
 from .np_utils import fix_column_name, TableMergeError
@@ -633,7 +632,6 @@ def _join(left, right, keys=None, join_type='inner',
 
         # Finally add the joined column to the output table.
         out[out_name] = array[name][array_out]
-        _col_update_attrs_from(out[out_name], array[name])
 
         # If the output table is masked then set the output column masking
         # accordingly.  Check for columns that don't support a mask attribute.
@@ -842,8 +840,6 @@ def _hstack(arrays, join_type='exact', uniq_col_name='{col_name}_{table_name}',
                                      .format(out_name, out[out_name].__class__.__name__))
             else:
                 out[out_name] = array[name][:n_rows]
-
-            _col_update_attrs_from(out[out_name], array[name])
 
     # If col_name_map supplied as a dict input, then update.
     if isinstance(_col_name_map, collections.Mapping):

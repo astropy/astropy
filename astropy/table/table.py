@@ -18,12 +18,11 @@ from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import InfoDescriptor, MixinInfo
+from ..utils.data_info import InfoDescriptor
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
-                     col_copy, _col_update_attrs_from,
-                     ColumnInfo)
+                     col_copy, ColumnInfo)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
@@ -533,8 +532,7 @@ class Table(object):
                     and getattr(col, 'unit', None) is not None):
 
                 qcol = Quantity(col, unit=col.unit, copy=False)
-                _col_update_attrs_from(qcol, col, exclude_attrs=['unit', 'dtype', 'parent_table'])
-
+                qcol.info = col.info
                 newcols.append(qcol)
                 continue
 
@@ -551,14 +549,7 @@ class Table(object):
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
-        names = [col.info.name for col in cols]
         newcols = [col[slice_] for col in cols]
-
-        # Mixin column classes are not responsible for copying column attributes
-        # for item/slicing operations.  Do this here in table.
-        for name, col, newcol in zip(names, cols, newcols):
-            if is_mixin_class(col):
-                _col_update_attrs_from(newcol, col, exclude_attrs=['parent_table'])
 
         self._update_table_from_cols(table, newcols)
 
@@ -1801,7 +1792,6 @@ class Table(object):
 
                 newcol = col.insert(index, val)
                 if not isinstance(newcol, BaseColumn):
-                    _col_update_attrs_from(newcol, col)
                     newcol.info.name = name
                     if self.masked:
                         newcol.mask = FalseArray(newcol.shape)

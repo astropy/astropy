@@ -145,7 +145,7 @@ class ArrayWrapper(object):
     def __init__(self, data):
         self.data = np.array(data)
         if isinstance(data, ArrayWrapper):
-            self.info = data.info.copy()
+            self.info = data.info
         else:
             self.info.dtype = self.data.dtype
 
@@ -154,7 +154,7 @@ class ArrayWrapper(object):
             out = self.data[item]
         else:
             out = self.__class__(self.data[item])
-            out.info = self.info.copy()
+            out.info = self.info
         return out
 
     def __setitem__(self, item, value):

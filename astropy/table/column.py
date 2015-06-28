@@ -45,19 +45,6 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
-def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
-    """
-    Copy info from mixin `col` to `newcol`.  Does nothing for BaseColumn cols.
-    """
-    if isinstance(newcol, BaseColumn):
-        return
-
-    attrs = newcol.info.attr_names - set(exclude_attrs) - newcol.info.attrs_from_parent
-    for attr in attrs:
-        val = getattr(col.info, attr)
-        if val is not None:
-            setattr(newcol.info, attr, deepcopy(val))
-
 def col_iter_str_vals(col):
     """
     This is a mixin-safe version of Column.iter_str_vals.
@@ -86,7 +73,7 @@ def col_copy(col):
 
     try:
         newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
-        newcol.info = col.info.copy()
+        newcol.info = col.info
     finally:
         col.info.parent_table = parent_table
 

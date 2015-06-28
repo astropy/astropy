@@ -798,7 +798,7 @@ class Time(object):
                     setattr(tm, attr, val[item])
                 except IndexError:  # location may be scalar (same for all)
                     continue
-        tm.info = self.info.copy()
+        tm.info = self.info
 
         return tm
 

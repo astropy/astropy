@@ -160,7 +160,10 @@ class InfoDescriptor(object):
 
     def __set__(self, instance, value):
         if isinstance(value, DataInfo):
-            instance.__dict__['info'] = value
+            info = instance.__dict__['info'] = self.info_cls()
+            for attr in info.attr_names - info.attrs_from_parent - info._attrs_no_copy:
+                setattr(info, attr, deepcopy(getattr(value, attr)))
+
         else:
             raise TypeError('info must be set with a DataInfo instance')
 
