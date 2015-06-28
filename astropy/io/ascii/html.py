@@ -360,7 +360,6 @@ class HTML(core.BaseReader):
                                 w.data(col.info.name.strip())
                                 w.end(indent=False)
                         col_str_iters = []
-                        new_cols = []
                         for col in cols:
                             if len(col.shape) > 1 and self.html['multicol']:
                                 span = col.shape[1]
@@ -368,7 +367,6 @@ class HTML(core.BaseReader):
                                     # Split up multicolumns into separate columns
                                     new_col = Column([el[i] for el in col])
                                     col_str_iters.append(new_col.info.iter_str_vals())
-                                    new_cols.append(new_col)
                             else:
                                 col_str_iters.append(col.info.iter_str_vals())
 

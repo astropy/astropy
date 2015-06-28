@@ -155,7 +155,7 @@ class InfoDescriptor(object):
     def __get__(self, instance, owner_cls):
         if 'info' not in instance.__dict__:
             instance.__dict__['info'] = self.info_cls()
-        instance.__dict__['info']._parent_ref = weakref.ref(instance)
+        instance.__dict__['info']._parent = instance
         return instance.__dict__['info']
 
     def __set__(self, instance, value):
@@ -175,7 +175,7 @@ class DataInfo(object):
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
     _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-    _parent_ref = None
+    _parent = None
 
     def __init__(self):
         self._attrs = dict((attr, None) for attr in self.attr_names)
@@ -191,7 +191,7 @@ class DataInfo(object):
             return super(DataInfo, self).__getattribute__(attr)
 
         if attr in self.attrs_from_parent:
-            return getattr(self._parent_ref(), attr)
+            return getattr(self._parent, attr)
 
         try:
             value = self._attrs[attr]
@@ -215,7 +215,7 @@ class DataInfo(object):
         # class property (getter/setter) for this attribute then set
         # attribute directly in parent.
         if attr in self.attrs_from_parent and not isinstance(propobj, property):
-            setattr(self._parent_ref(), attr, value)
+            setattr(self._parent, attr, value)
             return
 
         # Check if there is a property setter and use it if possible.
@@ -307,7 +307,7 @@ class DataInfo(object):
         if out == '':
             out = sys.stdout
 
-        dat = self._parent_ref()
+        dat = self._parent
         info = OrderedDict()
         name = dat.info.name
         if name is not None:
@@ -363,7 +363,7 @@ class MixinInfo(DataInfo):
         This is a mixin-safe version of Column.iter_str_vals.
         """
         from ..table.column import FORMATTER
-        col = self._parent_ref()
+        col = self._parent
         parent_table = self.parent_table
         formatter = FORMATTER if parent_table is None else parent_table.formatter
         _pformat_col_iter = formatter._pformat_col_iter

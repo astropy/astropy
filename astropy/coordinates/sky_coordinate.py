@@ -66,10 +66,10 @@ class SkyCoordInfo(MixinInfo):
 
     @property
     def _repr_data(self):
-        if self._parent_ref is None:
+        if self._parent is None:
             return None
 
-        sc = self._parent_ref()
+        sc = self._parent
         if (issubclass(sc.representation, SphericalRepresentation) and
                 isinstance(sc.data, UnitSphericalRepresentation)):
             repr_data = sc.represent_as(sc.data.__class__, in_frame_units=True)
