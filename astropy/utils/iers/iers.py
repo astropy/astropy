@@ -55,10 +55,12 @@ Instead of local copies of IERS files, one can also download them, using
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from urlparse import urlparse
+
 import numpy as np
 
 from ...table import Table, QTable
-from ...utils.data import get_pkg_data_filename
+from ...utils.data import get_pkg_data_filename, download_file
 
 __all__ = ['IERS', 'IERS_B', 'IERS_A',
            'FROM_IERS_B', 'FROM_IERS_A', 'FROM_IERS_A_PREDICTION',
@@ -101,9 +103,9 @@ class IERS(QTable):
         Parameters
         ----------
         file : str or None
-            full path to the ascii file holding IERS data, for passing on to
-            the `read` class methods (further optional arguments that are
-            available for some IERS subclasses can be added).
+            full local or network path to the ascii file holding IERS data,
+            for passing on to the `read` class methods (further optional
+            arguments that are available for some IERS subclasses can be added).
             If None, use the default location from the `read` class method.
 
         Returns
@@ -117,13 +119,19 @@ class IERS(QTable):
         table if `file=None` (the default).
 
         If a table needs to be re-read from disk, pass on an explicit file
-        loction or use the (sub-class) close method and re-open.
+        location or use the (sub-class) close method and re-open.
+
+        If the location is a network location it is first downloaded via
+        download_file.
 
         For the IERS class itself, an IERS_B sub-class instance is opened.
         """
         if file is not None or cls.iers_table is None:
             if file is not None:
-                kwargs.update(file=file)
+                if urlparse(file).netloc:
+                    kwargs.update(file=download_file(file))
+                else:
+                    kwargs.update(file=file)
             cls.iers_table = cls.read(**kwargs)
         return cls.iers_table
 

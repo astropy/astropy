@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import numpy as np
 
-from ....tests.helper import pytest, assert_quantity_allclose
+from ....tests.helper import pytest, assert_quantity_allclose, remote_data
 from .. import iers
 from .... import units as u
 from ....table import QTable
@@ -22,6 +22,7 @@ else:
     HAS_IERS_A = True
 
 IERS_A_EXCERPT = os.path.join(os.path.dirname(__file__), 'iers_a_excerpt')
+IERS_A_EXCEPRT_NETWORK = "https://mstuchli.fedorapeople.org/iers_a_excerpt"
 
 class TestBasic():
     """Basic tests that IERS_B returns correct values"""
@@ -67,6 +68,14 @@ class TestBasic():
         iers.IERS.close()
         with pytest.raises(FILE_NOT_FOUND_ERROR):
             iers.IERS.open('surely this does not exist')
+
+    @remote_data
+    def test_open_network_url(self):
+        iers.IERS_A.close()
+        iers.IERS_A.open(IERS_A_EXCEPRT_NETWORK)
+        assert iers.IERS_A.iers_table is not None
+        assert isinstance(iers.IERS_A.iers_table, QTable)
+        iers.IERS_A.close()
 
 class TestIERS_AExcerpt():
     def test_simple(self):
