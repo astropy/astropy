@@ -239,13 +239,6 @@ class DataInfo(object):
 
         self._attrs[attr] = value
 
-    def copy(self):
-        out = self.__class__()
-        for attr in self.attr_names - self.attrs_from_parent - self._attrs_no_copy:
-            setattr(out, attr, deepcopy(getattr(self, attr)))
-
-        return out
-
     info_summary_attributes = staticmethod(
         data_info_factory(names=_info_summary_attrs,
                           funcs=[partial(_get_data_attribute, attr=attr)
