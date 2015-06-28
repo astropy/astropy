@@ -1,10 +1,30 @@
-from .bst import BST, RedBlackTree, FastBST
+from .bst import BST, RedBlackTree, FastBST, FastRBT
 from .array import SortedArray
+
+'''
+The Index class can use several implementations as its
+engine. Any implementation should implement the following:
+
+__init__([dict] lines) : initializes based on key/row list pairs
+add(key, row) -> None : add (key, row) to existing data
+remove(key, data=None) -> boolean : remove data from self[key], or all of
+                                    self[key] if data is None
+reorder(row) -> None : decrement row numbers after row
+find(key) -> list : list of rows corresponding to key
+same_prefix(key, ncols) -> list : rows in self[k] where k[:ncols]==key
+range(lower, upper) -> list : rows in self[k] where lower<=k<=upper
+sort() -> list of rows in sorted order (by key)
+replace_rows(row_map) -> None : replace row numbers based on slice
+
+
+Note: when a Table is initialized from another Table, indices are
+(deep) copied and their columns are set to the columns of the new Table.
+'''
 
 class Index:
     def __init__(self, columns, impl=None):
         if impl is None:
-            impl = FastBST
+            impl = FastRBT
         # nodes of self.data will be (key val, row index)
         iterable = columns[0] if len(columns) == 1 else zip(*columns)
         lines = {}
@@ -54,8 +74,7 @@ class Index:
             self.data.reorder(row)
 
     def find(self, key):
-        node = self.data.find(key)
-        return [] if node is None else node.data
+        return self.data.find(key)
 
     def where(self, col_map):
         # ensure that the keys of col_map form a left prefix of index columns
@@ -75,15 +94,14 @@ class Index:
         if isinstance(col_map[query_names[-1]], tuple): # range query
             lower = base + [col_map[query_names[-1]][0]]
             upper = base + [col_map[query_names[-1]][1]]
-            lst = [x.data for x in self.data.range(tuple(lower), tuple(upper))]
+            return self.data.range(tuple(lower), tuple(upper))
         else:
             key = base + [col_map[query_names[-1]]]
             ncols = len(self.columns)
             if len(key) == ncols:
-                lst = [self.find(tuple(key))]
+                return self.data.find(tuple(key))
             else:
-                lst = [x.data for x in self.data.same_prefix(key, ncols)]
-        return [row for l in lst for row in l]
+                return self.data.same_prefix(key, ncols)
 
     def range(self, lower, upper):
         return self.data.range(lower, upper)
@@ -94,17 +112,18 @@ class Index:
         key[self.col_position(col)] = val
         self.data.add(tuple(key), row)
 
-    def sorted_data(self):
-        y = self.data.sort()
-        lst = [x[1] for x in y]
-        return [row for l in lst for row in l]
+    def replace_rows(self, col_slice):
+        row_map = dict((row, i) for i, row in enumerate(col_slice))
+        self.data.replace_rows(row_map)
 
-    def nodes(self):
-        # for debugging purposes
-        return self.data.nodes()
+    def sorted_data(self):
+        return self.data.sort()
 
     def __str__(self):
-        return str(self.nodes())
+        return str(self.data)
+
+    def __repr__(self):
+        return str(self)
 
 def get_index(table):
     '''

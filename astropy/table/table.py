@@ -240,7 +240,6 @@ class Table(object):
         self.columns = self.TableColumns()
         self.meta = meta
         self.formatter = self.TableFormatter()
-        ##TODO: update indices after each modification
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -697,6 +696,9 @@ class Table(object):
         newcols = [col[slice_] for col in cols]
 
         self._make_table_from_cols(table, newcols)
+
+        for index in table.indices:
+            index.refresh(table.columns) # this doesn't happen in Table initialization
 
         return table
 
