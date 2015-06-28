@@ -144,13 +144,17 @@ class ArrayWrapper(object):
     """
     def __init__(self, data):
         self.data = np.array(data)
-        self.info.dtype = self.data.dtype
+        if isinstance(data, ArrayWrapper):
+            self.info = data.info.copy()
+        else:
+            self.info.dtype = self.data.dtype
 
     def __getitem__(self, item):
         if isinstance(item, (int, np.integer)):
             out = self.data[item]
         else:
             out = self.__class__(self.data[item])
+            out.info = self.info.copy()
         return out
 
     def __setitem__(self, item, value):

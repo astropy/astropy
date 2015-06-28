@@ -176,10 +176,10 @@ class SkyCoord(object):
             Cartesian coordinates values for the Galactic frame.
     """
 
-
     # Declare that SkyCoord can be used as a Table column by defining the
-    # attribute where column attributes will be stored.
-    _astropy_column_attrs = None
+    # info property.
+    info = InfoDescriptor(SkyCoordInfo)
+
 
     def __init__(self, *args, **kwargs):
 
@@ -208,8 +208,6 @@ class SkyCoord(object):
         if not self._sky_coord_frame.has_data:
             raise ValueError('Cannot create a SkyCoord without data')
 
-    info = InfoDescriptor(SkyCoordInfo)
-
     @property
     def frame(self):
         return self._sky_coord_frame
@@ -237,7 +235,9 @@ class SkyCoord(object):
             # First turn `self` into a mockup of the thing we want - we can copy
             # this to get all the right attributes
             self._sky_coord_frame = self_frame[item]
-            return SkyCoord(self, representation=self.representation)
+            out = SkyCoord(self, representation=self.representation)
+            out.info = self.info.copy()
+            return out
         finally:
             # now put back the right frame in self
             self._sky_coord_frame = self_frame
@@ -282,6 +282,8 @@ class SkyCoord(object):
                 # along with any frame attributes like equinox or obstime which
                 # were explicitly specified in the coordinate object (i.e. non-default).
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, units, kwargs)
+                if hasattr(args[0], 'info'):
+                    self.info = args[0].info.copy()
 
             elif len(args) <= 3:
                 frame_attr_names = frame.representation_component_names.keys()
