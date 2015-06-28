@@ -55,7 +55,10 @@ Instead of local copies of IERS files, one can also download them, using
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 import numpy as np
 
