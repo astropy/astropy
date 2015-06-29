@@ -18,11 +18,11 @@ from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import InfoDescriptor, BaseColumnInfo
+from ..utils.data_info import InfoDescriptor, BaseColumnInfo, MixinInfo
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
-                     col_copy, ColumnInfo)
+                     col_copy)
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
@@ -50,17 +50,8 @@ def descr(col):
     return (col.info.name, col_dtype_str, col_shape)
 
 
-def is_mixin_class(obj):
-    """
-    Abstraction to determine if ``obj`` should be used as a mixin column
-    when input to a table.  This function does not apply to ``Quantity``.
-
-    Parameters
-    ----------
-    obj : object
-        Object being queried for mixin compatibility
-    """
-    return hasattr(obj, 'info') and not isinstance(obj.info, ColumnInfo)
+def has_info_class(obj, cls):
+    return hasattr(obj, 'info') and isinstance(obj.info, cls)
 
 
 class TableColumns(OrderedDict):
@@ -449,7 +440,7 @@ class Table(object):
                 col = self.ColumnClass(name=(name or col.info.name or def_name),
                                        data=col, dtype=dtype,
                                        copy=copy)
-            elif self._is_mixin_column(col):
+            elif self._add_as_mixin_column(col):
                 # Copy the mixin column attributes if they exist since the copy below
                 # may not get this attribute.
                 if copy:
@@ -524,7 +515,7 @@ class Table(object):
         return col
 
     def _init_from_cols(self, cols):
-        """Initialize table from a list of Column objects"""
+        """Initialize table from a list of Column or mixin objects"""
 
         lengths = set(len(col) for col in cols)
         if len(lengths) != 1:
@@ -618,21 +609,19 @@ class Table(object):
         True if table has any mixin columns (defined as columns that are not Column
         subclasses)
         """
-        return any(not isinstance(col, BaseColumn) for col in self.columns.values())
+        return any(has_info_class(col, MixinInfo) for col in self.columns.values())
 
-    def _is_mixin_column(self, col, quantity_is_mixin=False):
+    def _add_as_mixin_column(self, col):
         """
-        Determine if ``col`` meets the protocol for a mixin Table column for
-        this table.  By definition a BaseColumn instance is not a mixin.
+        Determine if ``col`` should be added to the table directly as
+        a mixin column.
         """
         if isinstance(col, BaseColumn):
-            is_mixin = False
-        elif isinstance(col, Quantity):
-            is_mixin = quantity_is_mixin
-        else:
-            is_mixin = is_mixin_class(col)
+            return False
 
-        return is_mixin
+        # Is it a mixin but not not Quantity (which gets converted to Column with
+        # unit set).
+        return has_info_class(col, MixinInfo) and not isinstance(col, Quantity)
 
     def pprint(self, max_lines=None, max_width=None, show_name=True,
                show_unit=None, show_dtype=False, align='right'):
@@ -882,8 +871,9 @@ class Table(object):
         if isinstance(item, six.string_types) and item not in self.colnames:
             NewColumn = self.MaskedColumn if self.masked else self.Column
 
-            # Make sure value has a dtype.  If not make it into a numpy array
-            if not hasattr(value, 'dtype') and not self._is_mixin_column(value):
+            # If value doesn't have a dtype and won't be added as a mixin then
+            # convert to a numpy array.
+            if not hasattr(value, 'dtype') and not self._add_as_mixin_column(value):
                 value = np.asarray(value)
 
             # Make new column and assign the value.  If the table currently
@@ -894,7 +884,8 @@ class Table(object):
             # set it from value.  This allows for broadcasting, e.g. t['a']
             # = 1.
             name = item
-            if isinstance(value, BaseColumn) or self._is_mixin_column(value):
+            # If this is a column-like object that could be added directly to table
+            if isinstance(value, BaseColumn) or self._add_as_mixin_column(value):
                 new_column = col_copy(value)
                 new_column.info.name = name
             elif len(self) == 0:
@@ -2199,14 +2190,12 @@ class QTable(Table):
                  meta=None, copy=True, rows=None):
         super(QTable, self).__init__(data, masked, names, dtype, meta, copy, rows)
 
-    def _is_mixin_column(self, col):
+    def _add_as_mixin_column(self, col):
         """
-        Determine if ``col`` meets the protocol for a mixin Table column for
-        this table.  By definition a BaseColumn instance is not a mixin.
-
-        If ``col`` is a string then it refers to a column name in this table.
+        Determine if ``col`` should be added to the table directly as
+        a mixin column.
         """
-        return super(QTable, self)._is_mixin_column(col, quantity_is_mixin=True)
+        return has_info_class(col, MixinInfo)
 
     def __getstate__(self):
         columns = dict((key, col if isinstance(col, BaseColumn) else col_copy(col))
