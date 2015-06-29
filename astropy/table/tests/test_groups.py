@@ -13,7 +13,7 @@ def sort_eq(list1, list2):
 
 def test_column_group_by(T1):
     for masked in (False, True):
-        t1 = Table(T1, masked=masked, copy_indices=True)
+        t1 = Table(T1, masked=masked)
         t1a = t1['a'].copy()
 
         # Group by a Column (i.e. numpy array)
@@ -34,7 +34,7 @@ def test_table_group_by(T1):
     masked/unmasked tables.
     """
     for masked in (False, True):
-        t1 = Table(T1, masked=masked, copy_indices=True)
+        t1 = Table(T1, masked=masked)
         # Group by a single column key specified by name
         tg = t1.group_by('a')
         assert np.all(tg.groups.indices == np.array([0, 1, 4, 8]))
