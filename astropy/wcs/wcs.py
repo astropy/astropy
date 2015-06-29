@@ -388,15 +388,6 @@ class WCS(WCSBase):
                         "header must be a string, an astropy.io.fits.Header "
                         "object, or a dict-like object")
 
-            header_string = header_string.strip()
-
-            if isinstance(header_string, six.text_type):
-                header_bytes = header_string.encode('ascii')
-                header_string = header_string
-            else:
-                header_bytes = header_string
-                header_string = header_string.decode('ascii')
-
             # Importantly, header is a *copy* of the passed-in header
             # because we will be modifying it
             header = fits.Header.fromstring(header_string)
@@ -410,6 +401,16 @@ class WCS(WCSBase):
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)
             sip = self._read_sip_kw(header)
+
+            header_string = header.tostring()
+            header_string = header_string.replace('END' + ' ' * 77, '')
+
+            if isinstance(header_string, six.text_type):
+                header_bytes = header_string.encode('ascii')
+                header_string = header_string
+            else:
+                header_bytes = header_string
+                header_string = header_string.decode('ascii')
 
             try:
                 wcsprm = _wcs.Wcsprm(header=header_bytes, key=key,
