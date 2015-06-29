@@ -669,7 +669,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
         strcpy(ctypei+8, "-SIP'");
       } else if (dotpv == 1) {
         /* Reinstate projection code edited by wcsset(). */
-        strcpy(ctypei+4, "-TPV");
+        strcpy(ctypei+4, "-TPV'");
       }
 
       if (strncmp(ctypei+8, "-SIP", 4) == 0) {
