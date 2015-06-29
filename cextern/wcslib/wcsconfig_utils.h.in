@@ -1,12 +1,12 @@
 /*============================================================================
 *
 * wcsconfig_utils.h is generated from wcsconfig_utils.h.in by 'configure'.
-* It contains C preprocessor macro definitions for compiling the WCSLIB 5.6
+* It contains C preprocessor macro definitions for compiling the WCSLIB 5.7
 * utilities.
 *
 * Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 * http://www.atnf.csiro.au/people/Mark.Calabretta
-* $Id: wcsconfig_utils.h.in,v 5.6 2015/06/14 07:11:26 mcalabre Exp $
+* $Id: wcsconfig_utils.h.in,v 5.7 2015/06/29 02:44:18 mcalabre Exp $
 *===========================================================================*/
 
 #include <wcsconfig.h>

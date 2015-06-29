@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.c,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: prj.c,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -289,6 +289,20 @@ const struct prjprm *prj;
     wcsutil_fptr2str((int (*)(void))prj->prjx2s, hext));
   wcsprintf("     prjs2x: %s\n",
     wcsutil_fptr2str((int (*)(void))prj->prjs2x, hext));
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int prjperr(const struct prjprm *prj, const char *prefix)
+
+{
+  if (prj == 0x0) return PRJERR_NULL_POINTER;
+
+  if (prj->err) {
+    wcserr_prt(prj->err, prefix);
+  }
 
   return 0;
 }

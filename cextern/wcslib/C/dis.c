@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: dis.c,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -67,8 +67,8 @@ int dpfill(
   const char *field,
   int j,
   int type,
-  int ival,
-  double fval)
+  int i,
+  double f)
 
 {
   char *cp;
@@ -93,9 +93,9 @@ int dpfill(
   }
 
   if ((dp->type = type)) {
-    dp->value.f = fval;
+    dp->value.f = f;
   } else {
-    dp->value.i = ival;
+    dp->value.i = i;
   }
 
   return 0;
@@ -270,7 +270,6 @@ int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst)
   memcpy(disdst->dtype, dissrc->dtype, naxis*sizeof(char [72]));
 
   disdst->ndp = dissrc->ndp;
-  disdst->ndpmax = dissrc->ndpmax;
   memcpy(disdst->dp, dissrc->dp, dissrc->ndpmax*sizeof(struct dpkey));
 
   memcpy(disdst->maxdis, dissrc->maxdis, naxis*sizeof(double));
@@ -352,7 +351,7 @@ int disprt(const struct disprm *dis)
 
 {
   char hext[32];
-  int i, j, k, naxis;
+  int i, j, jhat, k, naxis;
 
   if (dis == 0x0) return DISERR_NULL_POINTER;
 
@@ -400,12 +399,12 @@ int disprt(const struct disprm *dis)
   WCSPRINTF_PTR("      axmap: ", dis->axmap, "\n");
   for (j = 0; j < naxis; j++) {
     wcsprintf(" axmap[%d][]:", j);
-    for (i = 0; i < naxis; i++) {
-      wcsprintf("%6d", dis->axmap[j][i]);
+    for (jhat = 0; jhat < naxis; jhat++) {
+      wcsprintf("%6d", dis->axmap[j][jhat]);
     }
     wcsprintf("\n            ");
-    for (i = naxis; i < 2*naxis; i++) {
-      wcsprintf("%6d", dis->axmap[j][i]);
+    for (jhat = naxis; jhat < 2*naxis; jhat++) {
+      wcsprintf("%6d", dis->axmap[j][jhat]);
     }
     wcsprintf("\n");
   }
@@ -420,8 +419,8 @@ int disprt(const struct disprm *dis)
   WCSPRINTF_PTR("     offset: ", dis->offset, "\n");
   for (j = 0; j < naxis; j++) {
     wcsprintf("offset[%d][]:", j);
-    for (i = 0; i < naxis; i++) {
-      wcsprintf("  %#- 11.5g", dis->offset[j][i]);
+    for (jhat = 0; jhat < naxis; jhat++) {
+      wcsprintf("  %#- 11.5g", dis->offset[j][jhat]);
     }
     wcsprintf("\n");
   }
@@ -429,34 +428,44 @@ int disprt(const struct disprm *dis)
   WCSPRINTF_PTR("      scale: ", dis->scale, "\n");
   for (j = 0; j < naxis; j++) {
     wcsprintf(" scale[%d][]:", j);
-    for (i = 0; i < naxis; i++) {
-      wcsprintf("  %#- 11.5g", dis->scale[j][i]);
+    for (jhat = 0; jhat < naxis; jhat++) {
+      wcsprintf("  %#- 11.5g", dis->scale[j][jhat]);
     }
     wcsprintf("\n");
   }
 
   WCSPRINTF_PTR("      iparm: ", dis->iparm, "\n");
   for (j = 0; j < naxis; j++) {
-    wcsprintf(" iparm[%d][]:", j);
-    for (k = 0; k < dis->iparm[j][1]; k++) {
-      if (k && k%5 == 0) {
-        wcsprintf("\n            ");
+    wcsprintf(" iparm[%d]  : ", j);
+    WCSPRINTF_PTR("", dis->iparm[j], "\n");
+
+    if (dis->iparm[j]) {
+      wcsprintf(" iparm[%d][]:", j);
+      for (k = 0; k < dis->iparm[j][1]; k++) {
+        if (k && k%5 == 0) {
+          wcsprintf("\n            ");
+        }
+        wcsprintf("  %11d", dis->iparm[j][k]);
       }
-      wcsprintf("  %11d", dis->iparm[j][k]);
+      wcsprintf("\n");
     }
-    wcsprintf("\n");
   }
 
   WCSPRINTF_PTR("      dparm: ", dis->dparm, "\n");
   for (j = 0; j < naxis; j++) {
-    wcsprintf(" dparm[%d][]:", j);
-    for (k = 0; k < dis->iparm[j][2]; k++) {
-      if (k && k%5 == 0) {
-        wcsprintf("\n            ");
+    wcsprintf(" dparm[%d]  : ", j);
+    WCSPRINTF_PTR("", dis->dparm[j], "\n");
+
+    if (dis->dparm[j]) {
+      wcsprintf(" dparm[%d][]:", j);
+      for (k = 0; k < dis->iparm[j][2]; k++) {
+        if (k && k%5 == 0) {
+          wcsprintf("\n            ");
+        }
+        wcsprintf("  %#- 11.5g", dis->dparm[j][k]);
       }
-      wcsprintf("  %#- 11.5g", dis->dparm[j][k]);
+      wcsprintf("\n");
     }
-    wcsprintf("\n");
   }
 
   wcsprintf("    i_naxis: %d\n", dis->i_naxis);
@@ -522,6 +531,20 @@ int disprt(const struct disprm *dis)
 
 /*--------------------------------------------------------------------------*/
 
+int disperr(const struct disprm *dis, const char *prefix)
+
+{
+  if (dis == 0x0) return DISERR_NULL_POINTER;
+
+  if (dis->err) {
+    wcserr_prt(dis->err, prefix);
+  }
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
 int disset(struct disprm *dis)
 
 {
@@ -553,6 +576,7 @@ int disset(struct disprm *dis)
   }
 
   if (dis->ndp) {
+    /* Is it prior or sequent? */
     if (dis->dp[0].field[1] == 'P') {
       dpq = "DPja";
     } else if (dis->dp[0].field[1] == 'Q') {
@@ -565,7 +589,7 @@ int disset(struct disprm *dis)
   } else {
     if (ndis) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-        "No DPja or DQia keywords, NAXES at least is required for each"
+        "No DPja or DQia keywords, NAXES at least is required for each "
         "distortion");
     }
   }
@@ -676,15 +700,15 @@ int disset(struct disprm *dis)
   }
 
   /* Start with a clean slate. */
-  for (j = 0; j < 2*naxis*naxis; j++) {
-    dis->axmap[0][j] = -1;
+  for (jhat = 0; jhat < 2*naxis*naxis; jhat++) {
+    dis->axmap[0][jhat] = -1;
   }
 
   memset(dis->Nhat,      0, naxis*sizeof(int));
   memset(dis->offset[0], 0, naxis*naxis*sizeof(double));
 
-  for (j = 0; j < naxis*naxis; j++) {
-    dis->scale[0][j] = 1.0;
+  for (jhat = 0; jhat < naxis*naxis; jhat++) {
+    dis->scale[0][jhat] = 1.0;
   }
 
   /* polyset() etc. must look after iparm[][] and dparm[][]. */
@@ -701,7 +725,7 @@ int disset(struct disprm *dis)
   keyp = dis->dp;
   for (idp = 0; idp < dis->ndp; idp++, keyp++) {
     /* Check that they're all one kind or the other. */
-    if (dis->dp[0].field[1] != dpq[1]) {
+    if (keyp->field[1] != dpq[1]) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "disprm::dp appears to contain a mix of DPja and DQia keys");
     }
@@ -732,7 +756,7 @@ int disset(struct disprm *dis)
 
     } else if (strncmp(fp, "AXIS.", 5) == 0) {
       sscanf(fp+5, "%d", &jhat);
-      if (jhat < 0 || naxis < jhat) {
+      if (jhat < 1 || naxis < jhat) {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
           "Invalid axis in axis map for %s distortion in %s: %d",
           dis->dtype[j], keyp->field, jhat);
@@ -828,7 +852,7 @@ int disset(struct disprm *dis)
 
     /* Invoke the specific setup functions for each distortion. */
     if (strcmp(dis->dtype[j], "TPD") == 0) {
-      /* Template Polynomial Distortion". */
+      /* Template Polynomial Distortion. */
       if ((status = tpdset(j, dis))) {
         /* (Preserve the error message set by tpdset().) */
         return status;
@@ -880,7 +904,7 @@ int disp2x(
 {
   static const char *function = "disp2x";
 
-  int axisj, j, jhat, naxis, Nhat, status;
+  int    axisj, j, jhat, naxis, Nhat, status;
   double dtmp, *offset, *scale, *tmpcrd;
   struct wcserr **err;
 
@@ -899,10 +923,10 @@ int disp2x(
   /* Invoke the distortion functions for each axis. */
   tmpcrd = dis->tmpmem;
   for (j = 0; j < naxis; j++) {
-    offset = dis->offset[j];
-    scale  = dis->scale[j];
-
     if (dis->disp2x[j]) {
+      offset = dis->offset[j];
+      scale  = dis->scale[j];
+
       Nhat = dis->Nhat[j];
       for (jhat = 0; jhat < Nhat; jhat++) {
         axisj = dis->axmap[j][jhat];
@@ -925,6 +949,22 @@ int disp2x(
 }
 
 /*--------------------------------------------------------------------------*/
+/* This function is intended for debugging purposes only.                   */
+/* No documentation or prototype is provided in dis.h.                      */
+
+int disitermax(int itermax)
+
+{
+  static int ITERMAX = 30;
+
+  if (itermax >= 0) {
+    ITERMAX = itermax;
+  }
+
+  return ITERMAX;
+}
+
+/*--------------------------------------------------------------------------*/
 
 int disx2p(
   struct disprm *dis,
@@ -934,11 +974,11 @@ int disx2p(
 {
   static const char *function = "disx2p";
 
-  const int ITERMAX = 30;
   const double TOL = 1.0e-13;
 
-  int convergence, iter, j, jhat, naxis, Nhat, status;
-  double dd, *dcrd0, *dcrd1, *delta, residual, *rcrd1, rtmp;
+  int    axisj, convergence, iter, itermax, j, jhat, naxis, Nhat, status;
+  double dd, *dcrd0, *dcrd1, *delta, *offset, residual, *rcrd1, rtmp, *scale,
+         *tmpcrd;
   struct wcserr **err;
 
 
@@ -966,21 +1006,33 @@ int disx2p(
   /* If available, use disprm::disx2p to improve the zeroth approximation. */
   for (j = 0; j < naxis; j++) {
     if (dis->disx2p[j]) {
+      offset = dis->offset[j];
+      scale  = dis->scale[j];
+      tmpcrd = dis->tmpmem;
+
       Nhat = dis->Nhat[j];
+      for (jhat = 0; jhat < Nhat; jhat++) {
+        axisj = dis->axmap[j][jhat];
+        tmpcrd[jhat] = (discrd[axisj] - offset[jhat])*scale[jhat];
+      }
+
       if ((status = (dis->disx2p[j])(1, dis->iparm[j], dis->dparm[j], Nhat,
-                                     discrd, &rtmp))) {
+                                     tmpcrd, &rtmp))) {
         return wcserr_set(DIS_ERRMSG(DISERR_DEDISTORT));
       }
 
-      /* Using the inverse axis map. */
-      jhat = dis->axmap[j][naxis+j];
-      rawcrd[j] = dis->offset[j][jhat] + rtmp/dis->scale[j][jhat];
+      rawcrd[j] = rtmp;
     }
+  }
+
+  /* Quick return debugging hook, assumes inverse functions were defined. */
+  if ((itermax = disitermax(-1)) == 0) {
+    return 0;
   }
 
 
   /* Iteratively invert the (well-behaved!) distortion function. */
-  for (iter = 0; iter < ITERMAX; iter++) {
+  for (iter = 0; iter < itermax; iter++) {
     if ((status = disp2x(dis, rawcrd, dcrd0))) {
       return wcserr_set(DIS_ERRMSG(status));
     }
@@ -1025,10 +1077,10 @@ int disx2p(
       }
     }
 
-    if (iter < ITERMAX/2) {
+    if (iter < itermax/2) {
       /* With the assumption of small distortions (as above), the gradient */
       /* of discrd[j] should be dominated by the partial derivative with   */
-      /* respect  to rawcrd[j], and we can neglect partials with respect   */
+      /* respect to rawcrd[j], and we can neglect partials with respect    */
       /* to rawcrd[i], where i != j.  Thus only one test point is needed,  */
       /* not one for each axis.                                            */
       for (j = 0; j < naxis; j++) {
@@ -1307,7 +1359,7 @@ int polyset(int j, struct disprm *dis)
 #define I_NDPARM  2	/* No. of parameters in dparm[], excl. work space.  */
 #define I_NIDX    3	/* No. of indexes in iparm[].                       */
 #define I_LENDP   4	/* Full (allocated) length of dparm[].              */
-#define I_K       5	/* No. of independent variables.                    */
+#define I_K       5	/* No. of auxiliary variables.                      */
 #define I_M       6	/* No. of terms in the polynomial.                  */
 #define I_NKPARM  7	/* No. of parameters used to define each auxiliary. */
 #define I_NTPARM  8	/* No. of parameters used to define each term.      */
@@ -1906,7 +1958,7 @@ int tpvset(int j, struct disprm *dis)
       if (0 <= k && k <= 39) {
         if (ndparm < k+1) ndparm = k+1;
 
-	/* Any radial terms? */
+        /* Any radial terms? */
         if (k == 3 || k == 11 || k == 23 || k == 39 || k == 59) {
           doradial = 1;
         }
@@ -2019,7 +2071,8 @@ int sipset(int j, struct disprm *dis)
                                 {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
   char   *fp, id[16];
-  int    deg, degree[2], idp, m, ncoeff[2], ndparm, niparm, p, q;
+  int    deg, degree[2], idis, idp, jhat, naxis, ncoeff[2], ndparm, niparm,
+         p, q;
   struct dpkey *keyp;
   struct wcserr **err;
   int (*(distpd[2]))(DISP2X_ARGS);
@@ -2048,11 +2101,11 @@ int sipset(int j, struct disprm *dis)
     if (strncmp(fp, "SIP.", 4) == 0) {
       fp += 4;
       if (strncmp(fp, "FWD.", 4) == 0) {
-        m = 0;
+        idis = 0;
 
       } else if (strncmp(fp, "REV.", 4) == 0) {
         /* SIP uses a polynomial approximation for the inverse. */
-        m = 1;
+        idis = 1;
 
       } else {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
@@ -2067,7 +2120,7 @@ int sipset(int j, struct disprm *dis)
         "Invalid powers (%d, %d) for %s: %s", p, q, id, keyp->field);
       }
 
-      if (degree[m] < deg) degree[m] = deg;
+      if (degree[idis] < deg) degree[idis] = deg;
 
     } else if (strcmp(fp, "NAXES")  &&
               strncmp(fp, "AXIS.",   5) &&
@@ -2083,35 +2136,35 @@ int sipset(int j, struct disprm *dis)
   /* TPD is going to do the dirty work. */
   distpd[0] = 0x0;
   distpd[1] = 0x0;
-  for (m = 0; m < 2; m++) {
-    ncoeff[m] = 0;
-    if (degree[m] == 1) {
-      ncoeff[m] = 4;
-      distpd[m] = tpd1;
-    } else if (degree[m] == 2) {
-      ncoeff[m] = 7;
-      distpd[m] = tpd2;
-    } else if (degree[m] == 3) {
-      ncoeff[m] = 12;
-      distpd[m] = tpd3;
-    } else if (degree[m] == 4) {
-      ncoeff[m] = 17;
-      distpd[m] = tpd4;
-    } else if (degree[m] == 5) {
-      ncoeff[m] = 24;
-      distpd[m] = tpd5;
-    } else if (degree[m] == 6) {
-      ncoeff[m] = 31;
-      distpd[m] = tpd6;
-    } else if (degree[m] == 7) {
-      ncoeff[m] = 40;
-      distpd[m] = tpd7;
-    } else if (degree[m] == 8) {
-      ncoeff[m] = 49;
-      distpd[m] = tpd8;
-    } else if (degree[m] == 9) {
-      ncoeff[m] = 60;
-      distpd[m] = tpd9;
+  for (idis = 0; idis < 2; idis++) {
+    ncoeff[idis] = 0;
+    if (degree[idis] == 1) {
+      ncoeff[idis] = 4;
+      distpd[idis] = tpd1;
+    } else if (degree[idis] == 2) {
+      ncoeff[idis] = 7;
+      distpd[idis] = tpd2;
+    } else if (degree[idis] == 3) {
+      ncoeff[idis] = 12;
+      distpd[idis] = tpd3;
+    } else if (degree[idis] == 4) {
+      ncoeff[idis] = 17;
+      distpd[idis] = tpd4;
+    } else if (degree[idis] == 5) {
+      ncoeff[idis] = 24;
+      distpd[idis] = tpd5;
+    } else if (degree[idis] == 6) {
+      ncoeff[idis] = 31;
+      distpd[idis] = tpd6;
+    } else if (degree[idis] == 7) {
+      ncoeff[idis] = 40;
+      distpd[idis] = tpd7;
+    } else if (degree[idis] == 8) {
+      ncoeff[idis] = 49;
+      distpd[idis] = tpd8;
+    } else if (degree[idis] == 9) {
+      ncoeff[idis] = 60;
+      distpd[idis] = tpd9;
     }
   }
 
@@ -2152,31 +2205,32 @@ int sipset(int j, struct disprm *dis)
     if (strncmp(fp, "SIP.", 4) == 0) {
       fp += 4;
       if (strncmp(fp, "FWD.", 4) == 0) {
-        m = 0;
+        idis = 0;
       } else {
-        m = ncoeff[0];
+        idis = ncoeff[0];
       }
 
       sscanf(fp+4, "%d_%d", &p, &q);
 
       /* Map to TPD coefficient number. */
-      m += map[p][q];
+      idis += map[p][q];
 
-      dis->dparm[j][m] = wcsutil_dpkey_double(keyp);
+      dis->dparm[j][idis] = wcsutil_dpkey_double(keyp);
     }
   }
 
   /* Account for the fact that the SIP distortion provides an additive    */
   /* correction to the offset of the pixel coordinate from CRPIX, whereas */
   /* we expect the distortion function to provide the actual value of the */
-  /* distorted pixel coordinate.  Note also that SIP has no axis mapping, */
-  /* i.e. jhat = j always.                                                */
-  m = j + 1;
-  dis->dparm[j][0]  = dis->offset[j][j];
-  dis->dparm[j][m] += 1.0;
+  /* distorted pixel coordinate.                                          */
+  naxis = dis->naxis;
+  jhat  = dis->axmap[j][naxis+j];
+  idis  = jhat + 1;
+  dis->dparm[j][0]  = dis->offset[j][jhat];
+  dis->dparm[j][idis] += 1.0;
   if (degree[1] > 0) {
-    dis->dparm[j][ncoeff[0]]    = dis->offset[j][j];
-    dis->dparm[j][ncoeff[0]+m] += 1.0;
+    dis->dparm[j][ncoeff[0]] = dis->offset[j][jhat];
+    dis->dparm[j][ncoeff[0]+idis] += 1.0;
   }
 
 
@@ -2191,7 +2245,7 @@ int tpdset(int j, struct disprm *dis)
   static const char *function = "tpdset";
 
   char   *fp, id[16];
-  int    doradial, idp, k, m, ncoeff[2], ndparm, niparm;
+  int    doradial, idis, idp, k, ncoeff[2], ndparm, niparm;
   struct dpkey *keyp;
   struct wcserr **err;
   int (*(distpd[2]))(DISP2X_ARGS);
@@ -2222,11 +2276,11 @@ int tpdset(int j, struct disprm *dis)
     if (strncmp(fp, "TPD.", 4) == 0) {
       fp += 4;
       if (strncmp(fp, "FWD.", 4) == 0) {
-        m = 0;
+        idis = 0;
 
       } else if (strncmp(fp, "REV.", 4) == 0) {
         /* TPD may provide a polynomial approximation for the inverse. */
-        m = 1;
+        idis = 1;
 
       } else {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
@@ -2235,7 +2289,7 @@ int tpdset(int j, struct disprm *dis)
 
       sscanf(fp+4, "%d", &k);
       if (0 <= k && k <= 59) {
-        if (ncoeff[m] < k+1) ncoeff[m] = k+1;
+        if (ncoeff[idis] < k+1) ncoeff[idis] = k+1;
 
         /* Any radial terms? */
         if (k == 3 || k == 11 || k == 23 || k == 39 || k == 59) {
@@ -2258,46 +2312,51 @@ int tpdset(int j, struct disprm *dis)
 
   distpd[0] = 0x0;
   distpd[1] = 0x0;
-  for (m = 0; m < 2; m++) {
-    if (ncoeff[m] <= 4) {
+  for (idis = 0; idis < 2; idis++) {
+    if (ncoeff[idis] <= 4) {
+      if (idis) {
+        /* No inverse polynomial. */
+        break;
+      }
+
       /* First degree. */
-      ncoeff[m] = 4;
-      distpd[m] = tpd1;
-    } else if (ncoeff[m] <= 7) {
+      ncoeff[idis] = 4;
+      distpd[idis] = tpd1;
+    } else if (ncoeff[idis] <= 7) {
       /* Second degree. */
-      ncoeff[m] = 7;
-      distpd[m] = tpd2;
-    } else if (ncoeff[m] <= 12) {
+      ncoeff[idis] = 7;
+      distpd[idis] = tpd2;
+    } else if (ncoeff[idis] <= 12) {
       /* Third degree. */
-      ncoeff[m] = 12;
-      distpd[m] = tpd3;
-    } else if (ncoeff[m] <= 17) {
+      ncoeff[idis] = 12;
+      distpd[idis] = tpd3;
+    } else if (ncoeff[idis] <= 17) {
       /* Fourth degree. */
-      ncoeff[m] = 17;
-      distpd[m] = tpd4;
-    } else if (ncoeff[m] <= 24) {
+      ncoeff[idis] = 17;
+      distpd[idis] = tpd4;
+    } else if (ncoeff[idis] <= 24) {
       /* Fifth degree. */
-      ncoeff[m] = 24;
-      distpd[m] = tpd5;
-    } else if (ncoeff[m] <= 31) {
+      ncoeff[idis] = 24;
+      distpd[idis] = tpd5;
+    } else if (ncoeff[idis] <= 31) {
       /* Sixth degree. */
-      ncoeff[m] = 31;
-      distpd[m] = tpd6;
-    } else if (ncoeff[m] <= 40) {
+      ncoeff[idis] = 31;
+      distpd[idis] = tpd6;
+    } else if (ncoeff[idis] <= 40) {
       /* Seventh degree. */
-      ncoeff[m] = 40;
-      distpd[m] = tpd7;
-    } else if (ncoeff[m] <= 49) {
+      ncoeff[idis] = 40;
+      distpd[idis] = tpd7;
+    } else if (ncoeff[idis] <= 49) {
       /* Eighth degree. */
-      ncoeff[m] = 49;
-      distpd[m] = tpd8;
-    } else if (ncoeff[m] <= 60) {
+      ncoeff[idis] = 49;
+      distpd[idis] = tpd8;
+    } else if (ncoeff[idis] <= 60) {
       /* Ninth degree. */
-      ncoeff[m] = 60;
-      distpd[m] = tpd9;
+      ncoeff[idis] = 60;
+      distpd[idis] = tpd9;
     } else {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-        "Invalid number of parameters (%d) for %s", ncoeff[m], id);
+        "Invalid number of parameters (%d) for %s", ncoeff[idis], id);
     }
   }
 
@@ -2338,13 +2397,13 @@ int tpdset(int j, struct disprm *dis)
     if (strncmp(fp, "TPD.", 4) == 0) {
       fp += 4;
       if (strncmp(fp, "FWD.", 4) == 0) {
-        m = 0;
+        idis = 0;
       } else {
-        m = ncoeff[0];
+        idis = ncoeff[0];
       }
 
       sscanf(fp+4, "%d", &k);
-      dis->dparm[j][m+k] = wcsutil_dpkey_double(keyp);
+      dis->dparm[j][idis+k] = wcsutil_dpkey_double(keyp);
     }
   }
 

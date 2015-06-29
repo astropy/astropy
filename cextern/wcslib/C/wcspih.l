@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: wcspih.l,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -673,7 +673,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCCCa);
 	}
 
-^CPDIS  {
+^CPDIS	{
 	  valtype = STRING;
 	  distype = 1;
 	  vptr    = &(distem.dtype);
@@ -682,7 +682,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCia);
 	}
 
-^CQDIS {
+^CQDIS	{
 	  valtype = STRING;
 	  distype = 2;
 	  vptr    = &(distem.dtype);
@@ -691,7 +691,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCia);
 	}
 
-^DP {
+^DP	{
 	  valtype = RECORD;
 	  distype = 1;
 	  vptr    = &(distem.dp);
@@ -701,7 +701,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCia);
 	}
 
-^DQ {
+^DQ	{
 	  valtype = RECORD;
 	  distype = 2;
 	  vptr    = &(distem.dp);
@@ -711,7 +711,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCia);
 	}
 
-^CPERRja {
+^CPERR	{
 	  valtype = FLOAT;
 	  distype = 1;
 	  vptr    = &(distem.maxdis);
@@ -720,7 +720,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCia);
 	}
 
-^CQERRia {
+^CQERR	{
 	  valtype = FLOAT;
 	  distype = 2;
 	  vptr    = &(distem.maxdis);
@@ -729,12 +729,12 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(CCCCCia);
 	}
 
-^DVERRa {
+^DVERR	{
 	  valtype = FLOAT;
 	  distype = 1;
 	  vptr    = &(distem.totdis);
 	
-	  keyname = "CVERRa";
+	  keyname = "DVERRa";
 	  BEGIN(CCCCCCCa);
 	}
 
@@ -816,38 +816,38 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(VALUE);
 	}
 
-^A_ {
+^A_	{
 	  /* SIP: axis 1 polynomial coefficient. */
 	  i = 1;
 	  sip = 2;
-
+	
 	  keyname = "A_p_q";
 	  BEGIN(SIP2);
 	}
 
-^B_ {
+^B_	{
 	  /* SIP: axis 2 polynomial coefficient. */
 	  i = 2;
 	  sip = 2;
-
+	
 	  keyname = "B_p_q";
 	  BEGIN(SIP2);
 	}
 
-^AP_ {
+^AP_	{
 	  /* SIP: axis 1 inverse polynomial coefficient. */
 	  i = 1;
 	  sip = 3;
-
+	
 	  keyname = "AP_p_q";
 	  BEGIN(SIP3);
 	}
 
-^BP_ {
+^BP_	{
 	  /* SIP: axis 2 inverse polynomial coefficient. */
 	  i = 2;
 	  sip = 3;
-
+	
 	  keyname = "BP_p_q";
 	  BEGIN(SIP3);
 	}

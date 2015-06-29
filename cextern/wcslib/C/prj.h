@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: prj.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: prj.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -54,8 +54,10 @@
 *
 * Routine prjini() is provided to initialize the prjprm struct with default
 * values, prjfree() reclaims any memory that may have been allocated to store
-* an error message, and prjprt() prints its contents.  prjbchk() performs
-* bounds checking on native spherical coordinates.
+* an error message, and prjprt() prints its contents.
+*
+* prjperr() prints the error message(s) (if any) stored in a prjprm struct.
+* prjbchk() performs bounds checking on native spherical coordinates.
 *
 * Setup routines for each projection with names of the form ???set(), where
 * "???" is the down-cased three-letter projection code, compute intermediate
@@ -75,6 +77,7 @@
 *   - prjini()                Initialization routine for the prjprm struct.
 *   - prjfree()               Reclaim memory allocated for error messages.
 *   - prjprt()                Print the prjprm struct.
+*   - prjperr()               Print error message (if any).
 *   - prjbchk()               Bounds checking on native coordinates.
 *
 *   - prjset(), prjx2s(), prjs2x():   Generic driver routines
@@ -184,6 +187,25 @@
 * Given:
 *   prj       const struct prjprm*
 *                       Projection parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null prjprm pointer passed.
+*
+*
+* prjperr() - Print error messages from a prjprm struct
+* -----------------------------------------------------
+* prjperr() prints the error message(s) (if any) stored in a prjprm struct.
+* If there are no errors then nothing is printed.  It uses wcserr_prt(), q.v.
+*
+* Given:
+*   prj       const struct prjprm*
+*                       Projection parameters.
+*
+*   prefix    const char *
+*                       If non-NULL, each output line will be prefixed with
+*                       this string.
 *
 * Function return value:
 *             int       Status return value:
@@ -689,6 +711,7 @@ struct prjprm {
 int prjini(struct prjprm *prj);
 int prjfree(struct prjprm *prj);
 int prjprt(const struct prjprm *prj);
+int prjperr(const struct prjprm *prj, const char *prefix);
 int prjbchk(double tol, int nx, int ny, int spt, double phi[], double theta[],
            int stat[]);
 

@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spx.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: spx.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -46,6 +46,8 @@
 * frequency), computes all the others (e.g. wavelength, velocity, etc.) plus
 * the required derivatives of each with respect to the others.  The results
 * are returned in the spxprm struct.
+*
+* spxperr() prints the error message(s) (if any) stored in a spxprm struct.
 *
 * The remaining routines are all vector conversions from one spectral
 * variable to another.  The API of these functions only differ in whether the
@@ -156,6 +158,25 @@
 * velobeta(), and betavelo() implement vector conversions between wave-like
 * or velocity-like spectral types (i.e. conversions that do not need the rest
 * frequency or wavelength).  They all have the same API.
+*
+*
+* spxperr() - Print error messages from a spxprm struct
+* -----------------------------------------------------
+* spxperr() prints the error message(s) (if any) stored in a spxprm struct.
+* If there are no errors then nothing is printed.  It uses wcserr_prt(), q.v.
+*
+* Given:
+*   spx       const struct spxprm*
+*                       Spectral variables and their derivatives.
+*
+*   prefix    const char *
+*                       If non-NULL, each output line will be prefixed with
+*                       this string.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null spxprm pointer passed.
 *
 *
 * freqafrq() - Convert frequency to angular frequency (vector)
@@ -483,6 +504,7 @@ struct spxprm {
 int specx(const char *type, double spec, double restfrq, double restwav,
           struct spxprm *specs);
 
+int spxperr(const struct spxprm *spx, const char *prefix);
 
 /* For use in declaring function prototypes, e.g. in spcprm. */
 #define SPX_ARGS double param, int nspec, int instep, int outstep, \

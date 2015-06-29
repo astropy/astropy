@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.c,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: tab.c,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -696,6 +696,20 @@ int tabprt(const struct tabprm *tab)
   WCSPRINTF_PTR("    m_coord: ", tab->m_coord, "");
   if (tab->m_coord == tab->coord) wcsprintf("  (= coord)");
   wcsprintf("\n");
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int tabperr(const struct tabprm *tab, const char *prefix)
+
+{
+  if (tab == 0x0) return TABERR_NULL_POINTER;
+
+  if (tab->err) {
+    wcserr_prt(tab->err, prefix);
+  }
 
   return 0;
 }
