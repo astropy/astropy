@@ -488,8 +488,11 @@ class _ImageBaseHDU(_ValidHDU):
             self.scale(self.NumCode[self._orig_bitpix])
 
         self.update_header()
-        if not inplace and not self._has_data:
-            self._update_header_scale_info()
+        if not inplace and self._data_needs_rescale:
+            # Go ahead and load the scaled image data and update the header
+            # with the correct post-rescaling headers
+            _ = self.data
+
         return super(_ImageBaseHDU, self)._prewriteto(checksum, inplace)
 
     def _writedata_internal(self, fileobj):

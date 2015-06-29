@@ -434,6 +434,10 @@ Bug Fixes
   - Fixed crash when updating data in a random groups HDU opened in update
     mode. [#3730]
 
+  - Fixed incorrect checksum / datasum being written when re-writing a scaled
+    HDU (i.e. non-trivial BSCALE and/or BZERO) with
+    ``do_not_scale_image_data=False``. [#3883]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
