@@ -58,7 +58,7 @@ MODELS_WITH_CONSTRAINTS = [
     Linear1D, Lorentz1D, MexicanHat1D, MexicanHat2D,
     PowerLaw1D, Sersic1D, Sersic2D, Sine1D, Trapezoid1D, TrapezoidDisk2D,
     Chebyshev1D, Chebyshev2D, Legendre2D, Legendre1D,
-    Polynomial1D, Polynomial2D
+    Polynomial1D, Polynomial2D, Voigt1D
 ]
 
 

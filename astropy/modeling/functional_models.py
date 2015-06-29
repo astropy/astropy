@@ -21,7 +21,7 @@ __all__ = sorted([
     'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D',
     'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Redshift', 'Scale',
     'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D',
-    'Ring2D', 'custom_model_1d'
+    'Ring2D', 'custom_model_1d', 'Voigt1D'
 ])
 
 
@@ -445,8 +445,8 @@ class Sersic1D(Fittable1DModel):
 
     Parameters
     ----------
-    amplitude : float 
-        Central surface brightness, within r_eff. 
+    amplitude : float
+        Central surface brightness, within r_eff.
     r_eff : float
         Effective (half-light) radius
     n : float
@@ -464,10 +464,10 @@ class Sersic1D(Fittable1DModel):
 
         I(r)=I_e exp\left[-b_n\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
 
-    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total 
-    luminosity, and can be solved for numerically.  
+    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
+    luminosity, and can be solved for numerically.
 
-    .. math:: 
+    .. math::
 
         \Gamma(2n) = 2\gamma (b_n,2n)
 
@@ -486,7 +486,7 @@ class Sersic1D(Fittable1DModel):
         r=np.arange(0,100,.01)
 
         for n in range(1,10):
-             s1.n = n 
+             s1.n = n
              plt.plot(r,s1(r),color='k',alpha=0.5,lw=2)
 
         plt.axis([1e-1,30,1e-2,1e3])
@@ -655,6 +655,92 @@ class Lorentz1D(Fittable1DModel):
                  (fwhm ** 2 + (x - x_0) ** 2))
         d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
         return [d_amplitude, d_x_0, d_fwhm]
+
+
+class Voigt1D(Fittable1DModel):
+    """
+    One dimensional model for the Voigt profile.
+
+    Parameters
+    ----------
+    pos : float
+        Position of the peak
+    amp_L : float
+        The Lorentzian amplitude
+    fwhm_L : float
+        The Lorentzian full width at half maximum
+    fwhm_G : float
+        The Gaussian full width at half maximum
+
+    See Also
+    --------
+    Gaussian1D, Lorentz1D
+
+    Notes
+    -----
+    Algorithm for the computation taken from
+    McLean, A. B., Mitchell, C. E. J. & Swanston, D. M. Implementation of an
+    efficient analytical approximation to the Voigt function for photoemission
+    lineshape analysis. Journal of Electron Spectroscopy and Related Phenomena
+    69, 125-132 (1994)
+    """
+
+    pos = Parameter()
+    amp_L = Parameter()
+    fwhm_L = Parameter()
+    fwhm_G = Parameter()
+
+    @staticmethod
+    def evaluate(x, pos, amp_L, fwhm_L, fwhm_G):
+        A = [-1.2150, -1.3509, -1.2150, -1.3509]
+        B = [1.2359, 0.3786, -1.2359, -0.3786]
+        C = [-0.3085, 0.5906, 0.3085, 0.5906]
+        D = [0.0210, -1.1858, -0.0210, 1.1858]
+
+        sqrt_ln2 = np.sqrt(np.log(2))
+        sqrt_pi = np.sqrt(np.pi)
+        X = (x - pos) * 2 * sqrt_ln2 / fwhm_G
+        Y = fwhm_L * sqrt_ln2 / fwhm_G
+        V = 0
+
+        for i in range(4):
+            V += (C[i] * (Y - A[i]) + D[i] * (X - B[i]))/(((Y - A[i]) ** 2 + (X - B[i]) ** 2))
+
+        return (fwhm_L * amp_L * sqrt_pi * sqrt_ln2 / fwhm_G) * V
+
+    @staticmethod
+    def fit_deriv(x, pos, amp_L, fwhm_L, fwhm_G):
+        A = [-1.2150, -1.3509, -1.2150, -1.3509]
+        B = [1.2359, 0.3786, -1.2359, -0.3786]
+        C = [-0.3085, 0.5906, -0.3085, 0.5906]
+        D = [0.0210, -1.1858, -0.0210, 1.1858]
+
+        sqrt_ln2 = np.sqrt(np.log(2))
+        sqrt_pi = np.sqrt(np.pi)
+        a = [amp_L, pos, fwhm_L, fwhm_G]
+        dVdx = 0
+        dVdy = 0
+        V = 0
+        dyda = [0, 0, 0, 0]
+
+        X = (x - a[1]) * 2 * sqrt_ln2 / (a[3])
+        Y = a[2] * sqrt_ln2 / (a[3])
+        constant = a[2] * a[0] * sqrt_pi * sqrt_ln2 / (a[3])
+
+        for j in range(4):
+            alpha = C[j] * (Y - A[j]) + D[j] * (X - B[j])
+            beta = np.square(Y - A[j]) + np.square(X - B[j])
+            V += alpha / beta
+
+            dVdx += (D[j]/beta - 2 * (X - B[j]) * alpha / np.square(beta))
+            dVdy += (C[j]/beta - 2 * (Y - A[j]) * alpha / np.square(beta))
+
+        dyda[0] = constant * V / a[0]
+        dyda[1] = - constant * dVdx * 2 * sqrt_ln2 / a[3]
+        dyda[2] = constant * (V / a[2] + dVdy * sqrt_ln2 / a[3])
+        dyda[3] = -constant * (V + (sqrt_ln2 / a[3]) * (2 * (x - a[1]) * dVdx + a[2] * dVdy)) / a[3]
+
+        return dyda
 
 
 class Const1D(Fittable1DModel):
@@ -1463,7 +1549,7 @@ class Sersic2D(Fittable2DModel):
     Parameters
     ----------
     amplitude : float
-        Central surface brightness, within r_eff. 
+        Central surface brightness, within r_eff.
     r_eff : float
         Effective (half-light) radius
     n : float
@@ -1471,12 +1557,12 @@ class Sersic2D(Fittable2DModel):
     x_0 : float, optional
         x position of the center.
     y_0 : float, optional
-        y position of the center. 
+        y position of the center.
     ellip : float, optional
         Ellipticity.
     theta : float, optional
         Rotation angle in radians, counterclockwise from
-        the positive x-axis. 
+        the positive x-axis.
 
     See Also
     --------
@@ -1490,10 +1576,10 @@ class Sersic2D(Fittable2DModel):
 
         I(x,y) = I(r) = I_e\exp\left[-b_n\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
 
-    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total 
-    luminosity, and can be solved for numerically.  
+    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total
+    luminosity, and can be solved for numerically.
 
-    .. math:: 
+    .. math::
 
         \Gamma(2n) = 2\gamma (b_n,2n)
 
@@ -1556,10 +1642,9 @@ class Sersic2D(Fittable2DModel):
 
         bn = cls._gammaincinv(2. * n, 0.5)
         a, b = r_eff, (1 - ellip) * r_eff
-        cos_theta, sin_theta = np.cos(theta), np.sin(theta) 
+        cos_theta, sin_theta = np.cos(theta), np.sin(theta)
         x_maj = (x - x_0) * cos_theta + (y - y_0) * sin_theta
         x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
         z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
         return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
-
