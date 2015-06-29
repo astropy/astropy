@@ -189,6 +189,7 @@ New Features
 
   - Added ``classproperty`` decorator--this is to ``property`` as
     ``classmethod`` is to normal instance methods. [#3982]
+  - ``iers.open`` now handles network URLs, as well as local paths. [#3850] 
 
 - ``astropy.visualization``
 
