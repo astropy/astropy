@@ -631,7 +631,7 @@ units_attr_args = ('repr_name','unit1','unit2','unit3','cls2','attr1','attr2','a
 
 
 @pytest.mark.parametrize(units_attr_args,
-                         (x for x in units_attr_sets if x[0] != 'unitspherical'))
+                         list(x for x in units_attr_sets if x[0] != 'unitspherical'))
 def test_skycoord_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3,
                                    representation, c1, c2, c3):
     """
@@ -663,7 +663,7 @@ def test_skycoord_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, 
 
 
 @pytest.mark.parametrize(units_attr_args,
-                         (x for x in units_attr_sets
+                         list(x for x in units_attr_sets
                           if x[0] in ('spherical', 'unitspherical')))
 def test_skycoord_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
                                            attr1, attr2, attr3, representation, c1, c2, c3):
@@ -690,7 +690,7 @@ def test_skycoord_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
 
 
 @pytest.mark.parametrize(units_attr_args,
-                         (x for x in units_attr_sets if x[0] != 'unitspherical'))
+                         list(x for x in units_attr_sets if x[0] != 'unitspherical'))
 def test_galactic_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3,
                                    representation, c1, c2, c3):
     """
@@ -715,7 +715,7 @@ def test_galactic_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, 
 
 
 @pytest.mark.parametrize(units_attr_args,
-                         (x for x in units_attr_sets
+                         list(x for x in units_attr_sets
                           if x[0] in ('spherical', 'unitspherical')))
 def test_galactic_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
                                            attr1, attr2, attr3, representation, c1, c2, c3):
@@ -736,7 +736,7 @@ def test_galactic_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
 
 
 @pytest.mark.parametrize(('repr_name','unit1','unit2','unit3','cls2','attr1','attr2','attr3'),
-                         (x for x in base_unit_attr_sets if x[0] != 'unitspherical'))
+                         list(x for x in base_unit_attr_sets if x[0] != 'unitspherical'))
 def test_skycoord_coordinate_input(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3):
     c1, c2, c3 = 1, 2, 3
     sc = SkyCoord([(c1, c2, c3)], unit=(unit1, unit2, unit3), representation=repr_name,
