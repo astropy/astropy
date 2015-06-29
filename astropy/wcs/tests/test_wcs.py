@@ -13,7 +13,8 @@ from datetime import datetime
 
 import numpy as np
 from numpy.testing import (
-    assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp)
+    assert_allclose, assert_array_almost_equal, assert_array_almost_equal_nulp,
+    assert_array_equal)
 
 from ...tests.helper import raises, catch_warnings, pytest
 from ... import wcs
@@ -740,3 +741,16 @@ def test_sip_tpv_agreement():
     assert_array_almost_equal(
         w_sip.all_pix2world([w_sip.wcs.crpix], 1),
         w_tpv.all_pix2world([w_tpv.wcs.crpix], 1))
+
+    w_sip2 = wcs.WCS(w_sip.to_header())
+    w_tpv2 = wcs.WCS(w_tpv.to_header())
+
+    assert_array_almost_equal(
+        w_sip.all_pix2world([w_sip.wcs.crpix], 1),
+        w_sip2.all_pix2world([w_sip.wcs.crpix], 1))
+    assert_array_almost_equal(
+        w_tpv.all_pix2world([w_sip.wcs.crpix], 1),
+        w_tpv2.all_pix2world([w_sip.wcs.crpix], 1))
+    assert_array_almost_equal(
+        w_sip2.all_pix2world([w_sip.wcs.crpix], 1),
+        w_tpv2.all_pix2world([w_tpv.wcs.crpix], 1))
