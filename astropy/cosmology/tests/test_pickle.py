@@ -10,7 +10,7 @@ from ... import cosmology as cosm
 originals = [cosm.FLRW]
 xfails = [False]
 
-@pytest.mark.parametrize("original,xfail",
+@pytest.mark.parametrize(("original","xfail"),
                          zip(originals, xfails))
 def test_flrw(pickle_protocol, original, xfail):
     if xfail:
