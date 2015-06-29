@@ -47,7 +47,7 @@ int sphx2s(
   double lat[])
 
 {
-  int jphi, mphi, mtheta, rowlen, rowoff;
+  int mphi, mtheta, rowlen, rowoff;
   double cosphi, costhe, costhe3, costhe4, dlng, dphi, sinphi, sinthe,
          sinthe3, sinthe4, x, y, z;
   register int iphi, itheta;
@@ -69,13 +69,12 @@ int sphx2s(
     if (eul[1] == 0.0) {
       dlng = fmod(eul[0] + 180.0 - eul[2], 360.0);
 
-      jphi   = 0;
+      lngp = lng;
+      latp = lat;
+      phip   = phi;
       thetap = theta;
-      lngp   = lng;
-      latp   = lat;
-      for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-        phip = phi + jphi%nphi;
-        for (iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
+      for (itheta = 0; itheta < ntheta; itheta++) {
+        for (iphi = 0; iphi < mphi; iphi++) {
           *lngp = *phip + dlng;
           *latp = *thetap;
 
@@ -94,19 +93,20 @@ int sphx2s(
 
           lngp   += sll;
           latp   += sll;
+          phip   += spt;
+          thetap += spt;
         }
       }
 
     } else {
       dlng = fmod(eul[0] + eul[2], 360.0);
 
-      jphi   = 0;
+      lngp = lng;
+      latp = lat;
+      phip   = phi;
       thetap = theta;
-      lngp   = lng;
-      latp   = lat;
-      for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-        phip = phi + jphi%nphi;
-        for (iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
+      for (itheta = 0; itheta < ntheta; itheta++) {
+        for (iphi = 0; iphi < mphi; iphi++) {
           *lngp = dlng - *phip;
           *latp = -(*thetap);
 
@@ -125,6 +125,8 @@ int sphx2s(
 
           lngp   += sll;
           latp   += sll;
+          phip   += spt;
+          thetap += spt;
         }
       }
     }
@@ -230,7 +232,7 @@ int sphs2x(
   double theta[])
 
 {
-  int jlng, mlat, mlng, rowlen, rowoff;
+  int mlat, mlng, rowlen, rowoff;
   double coslat, coslat3, coslat4, coslng, dlng, dphi, sinlat, sinlat3,
          sinlat4, sinlng, x, y, z;
   register int ilat, ilng;
@@ -252,13 +254,12 @@ int sphs2x(
     if (eul[1] == 0.0) {
       dphi = fmod(eul[2] - 180.0 - eul[0], 360.0);
 
-      jlng   = 0;
-      latp   = lat;
+      lngp = lng;
+      latp = lat;
       phip   = phi;
       thetap = theta;
-      for (ilat = 0; ilat < nlat; ilat++, latp += sll) {
-        lngp = lng + jlng%nlng;
-        for (ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
+      for (ilat = 0; ilat < nlat; ilat++) {
+        for (ilng = 0; ilng < mlng; ilng++) {
           *phip = fmod(*lngp + dphi, 360.0);
           *thetap = *latp;
 
@@ -271,19 +272,20 @@ int sphs2x(
 
           phip   += spt;
           thetap += spt;
+          lngp   += sll;
+          latp   += sll;
         }
       }
 
     } else {
       dphi = fmod(eul[2] + eul[0], 360.0);
 
-      jlng   = 0;
-      latp   = lat;
+      lngp = lng;
+      latp = lat;
       phip   = phi;
       thetap = theta;
-      for (ilat = 0; ilat < nlat; ilat++, latp += sll) {
-        lngp = lng + jlng%nlng;
-        for (ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
+      for (ilat = 0; ilat < nlat; ilat++) {
+        for (ilng = 0; ilng < mlng; ilng++) {
           *phip = fmod(dphi - *lngp, 360.0);
           *thetap = -(*latp);
 
@@ -296,6 +298,8 @@ int sphs2x(
 
           phip   += spt;
           thetap += spt;
+          lngp   += sll;
+          latp   += sll;
         }
       }
     }
