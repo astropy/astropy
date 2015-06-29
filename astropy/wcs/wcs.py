@@ -390,7 +390,15 @@ class WCS(WCSBase):
 
             # Importantly, header is a *copy* of the passed-in header
             # because we will be modifying it
+            if isinstance(header_string, six.text_type):
+                header_bytes = header_string.encode('ascii')
+                header_string = header_string
+            else:
+                header_bytes = header_string
+                header_string = header_string.decode('ascii')
+
             header = fits.Header.fromstring(header_string)
+
             if naxis is None:
                 self.naxis = header.get('NAXIS', 2)
             else:
