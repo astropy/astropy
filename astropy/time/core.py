@@ -931,15 +931,24 @@ class Time(object):
         that the full precision given by the two doubles ``jd1`` and ``jd2``
         is used.  See :func:`~numpy.argmin` for detailed documentation.
         """
+        # first get the minimum at normal precision.
         jd = self.jd1 + self.jd2
         if NUMPY_LT_1_7:
-            guess = jd.min(axis)
+            approx = jd.min(axis)
             if axis is not None:
-                guess = np.expand_dims(guess, axis)
+                approx = np.expand_dims(approx, axis)
         else:
-            guess = jd.min(axis, keepdims=True)
+            approx = jd.min(axis, keepdims=True)
 
-        dt = (self.jd1 - guess) + self.jd2
+        # Approx is very close to the true minimum, and by subtracting it at
+        # full precision, all numbers near 0 can be represented correctly,
+        # so we can be sure we get the true minimum.
+        # The below is effectively what would be done for
+        # dt = (self - self.__class__(approx, format='jd')).jd
+        # which translates to:
+        # approx_jd1, approx_jd2 = day_frac(approx, 0.)
+        # dt = (self.jd1 - approx_jd1) + (self.jd2 - approx_jd2)
+        dt = (self.jd1 - approx) + self.jd2
         return dt.argmin(axis, out)
 
     def argmax(self, axis=None, out=None):
@@ -949,15 +958,16 @@ class Time(object):
         that the full precision given by the two doubles ``jd1`` and ``jd2``
         is used.  See :func:`~numpy.argmax` for detailed documentation.
         """
+        # For procedure, see comment on argmin.
         jd = self.jd1 + self.jd2
         if NUMPY_LT_1_7:
-            guess = jd.max(axis)
+            approx = jd.max(axis)
             if axis is not None:
-                guess = np.expand_dims(guess, axis)
+                approx = np.expand_dims(approx, axis)
         else:
-            guess = jd.max(axis, keepdims=True)
+            approx = jd.max(axis, keepdims=True)
 
-        dt = (self.jd1 - guess) + self.jd2
+        dt = (self.jd1 - approx) + self.jd2
         return dt.argmax(axis, out)
 
     def argsort(self, axis=-1):
@@ -968,10 +978,12 @@ class Time(object):
         is used, and that corresponding attributes are copied.  Internally,
         it uses :func:`~numpy.lexsort`, and hence no sort method can be chosen.
         """
+        jd_approx = self.jd
+        jd_remainder = (self - self.__class__(jd_approx, format='jd')).jd
         if axis is None:
-            return np.lexsort((self._time.jd2.ravel(), self._time.jd1.ravel()))
+            return np.lexsort((jd_remainder.ravel(), jd_approx.ravel()))
         else:
-            return np.lexsort(keys=(self._time.jd2, self._time.jd1), axis=axis)
+            return np.lexsort(keys=(jd_remainder, jd_approx), axis=axis)
 
     def min(self, axis=None, out=None, keepdims=False):
         """Minimum along a given axis.
