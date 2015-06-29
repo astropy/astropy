@@ -342,7 +342,18 @@ Note that similarly to the `~numpy.ndarray` methods, all but
 :meth:`~astropy.time.Time.flatten` try to use new views of the data,
 with the data copied only if that it is impossible (as discussed, e.g., in
 the documentation for numpy :func:`~numpy.reshape`).
-   
+
+Some arithmetic methods are supported as well: :meth:`~astropy.time.Time.min`,
+:meth:`~astropy.time.Time.max`, :meth:`~astropy.time.Time.ptp`,
+:meth:`~astropy.time.Time.sort`, :meth:`~astropy.time.Time.argmin`,
+:meth:`~astropy.time.Time.argmax`, and :meth:`~astropy.time.Time.argsort`.
+E.g.::
+
+  >> t.max()
+  <Time object: scale='utc' format='mjd' value=50002.5>
+  >> t.ptp(axis=0)
+  <TimeDelta object: scale='tai' format='jd' value=[ 2.  2.]>
+
 .. _astropy-time-inferring-input:
 
 Inferring input format
