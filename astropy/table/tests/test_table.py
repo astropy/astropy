@@ -702,58 +702,6 @@ class TestAddRow(SetupData):
             with pytest.raises(IndexError):
                 t.insert_row(index, row)
 
-    @pytest.mark.parametrize("composite", [False, True])
-    def test_table_index(self, table_types, composite):
-        ##TODO: put into test_index.py
-        self._setup(table_types)
-        t = self.t.copy()
-        t.add_index(('a', 'b') if composite else 'a')
-        t['a'][0] = 4
-        t.add_row((5, 6.0, '7'))
-        t['a'][3] = 10
-        t.remove_row(2)
-        t.add_row((4, 5.0, '9'))
-        assert np.all(t['a'].data == np.array([4, 2, 10, 4]))
-        assert np.allclose(t['b'].data, np.array([4.0, 5.1, 6.0, 5.0]))
-        assert np.all(t['c'].data == np.array(['7', '8', '7', '9']))
-        index = t.indices[0]
-        l = [(x.key, x.data) for x in index.data.traverse()]
-
-        if composite:
-            assert np.all(l == [((2, 5.1), [1]),
-                                ((4, 4.0), [0]),
-                                ((4, 5.0), [3]),
-                                ((10, 6.0), [2])])
-        else:
-            assert np.all(l == [((2,), [1]),
-                                ((4,), [0, 3]),
-                                ((10,), [2])])
-        t.remove_indices('a')
-        assert len(t.indices) == 0
-
-    def test_table_where(self, table_types):
-        ##TODO: test for expected errors
-        self._setup(table_types)
-        t = self.t.copy()
-        t.add_index(['b', 'a'])
-        t.add_row((2, 5.3, '7'))
-        t.add_row((4, 4.0, '1'))
-        assert np.all(t['a'].data == np.array([1, 2, 3, 2, 4]))
-        assert np.all(t['b'].data == np.array([4.0, 5.1, 6.2, 5.3, 4.0]))
-        assert np.all(t['c'].data == np.array(['7', '8', '9', '7', '1']))
-
-        # only leftmost column
-        assert t.where('[b] = {0}', 4.0) == [0, 4]
-        assert t.where('[b] = {0}', 5.1) == [1]
-        # range query
-        assert t.where('[b] in ({0}, {1})', 5.0, 5.5) == [1, 3]
-        assert t.where('[b] in ({0}, {1})', 6.5, 7.0) == []
-        # both columns
-        assert t.where('[a] = {0} and [b] = {1}', 4, 4.0) == [4]
-        assert t.where('[b] = {1} and [a] = {0}', 1, 4.0) == [0]
-        # range on both columns
-        assert t.where('[b] = {0} and [a] in ({1}, {2})', 4.0, 3, 5) == [4]
-
 @pytest.mark.usefixtures('table_types')
 class TestTableColumn(SetupData):
 

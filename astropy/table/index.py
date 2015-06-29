@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from .bst import BST, RedBlackTree, FastBST, FastRBT
 from .array import SortedArray
 
@@ -19,6 +21,11 @@ replace_rows(row_map) -> None : replace row numbers based on slice
 
 Note: when a Table is initialized from another Table, indices are
 (deep) copied and their columns are set to the columns of the new Table.
+
+Column creation:
+Column(c) -> deep copy of indices
+c[1:2] -> deep copy and reordering of indices
+array.view(Column) -> no indices
 '''
 
 class Index:
@@ -124,6 +131,14 @@ class Index:
 
     def __repr__(self):
         return str(self)
+
+    def __deepcopy__(self, memo):
+        # deep copy must be overridden to perform a shallow copy of columns
+        index = Index([], impl=self.data.__class__)
+        index.data = deepcopy(self.data, memo)
+        index.columns = self.columns[:] # new list, same columns
+        memo[id(self)] = index
+        return index
 
 def get_index(table):
     '''

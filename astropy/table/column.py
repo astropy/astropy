@@ -662,7 +662,7 @@ class BaseColumn(np.ndarray):
         """
         return self.quantity.to(unit, equivalencies)
 
-    def _copy_attrs(self, obj):
+    def _copy_attrs(self, obj, copy_indices=True):
         """
         Copy key column attributes from ``obj`` to self
         """
@@ -670,7 +670,8 @@ class BaseColumn(np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
-        self.indices = obj.indices[:] if hasattr(obj, 'indices') else []
+        if copy_indices:
+            self.indices = deepcopy(getattr(obj, 'indices', []))
 
 
 class Column(BaseColumn):
@@ -1114,8 +1115,18 @@ class MaskedColumn(Column, ma.MaskedArray):
         # Fixes issue #3023: when calling getitem with a MaskedArray subclass
         # the original object attributes are not copied.
         if out.__class__ is self.__class__:
+            # We need to redo the index replacement from Column.__getitem__
+            # since the ndarray view discards self.indices
+            if isinstance(item, slice):
+                item = range(*item.indices(len(self)))
+            out.indices = []
+            for i, index in enumerate(self.indices):
+                index = deepcopy(index)
+                index.replace_rows(item)
+                out.indices.append(index)
+
             out.parent_table = None
-            out._copy_attrs(self)
+            out._copy_attrs(self, copy_indices=False)
 
         return out
 

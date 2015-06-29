@@ -81,9 +81,12 @@ class BST(object):
         for el in lines.items():
             self.add(*el)
 
-    def add(self, *data):
+    def add(self, key, data=None):
+        if data is None:
+            data = key
+
         self.size += 1
-        node = self.NodeClass(*data)
+        node = self.NodeClass(key, data)
         curr_node = self.root
         if curr_node is None:
             self.root = node
@@ -112,14 +115,18 @@ class BST(object):
         pass
 
     def find(self, key):
+        node = self.find_node(key)
+        return node.data if node is not None else []
+
+    def find_node(self, key):
         if self.root is None:
-            return []
+            return None
         return self._find_recursive(key, self.root)
 
     def _find_recursive(self, key, node):
         try:
             if key == node.key:
-                return node.data
+                return node
             elif key > node.key:
                 if node.right is None:
                     return None
@@ -178,7 +185,7 @@ class BST(object):
         # returns True if successfully removed, False otherwise
         # if data is not None, remove the entire node if only this data
         # is present, otherwise just pop off data from the node
-        node = self.find(key)
+        node = self.find_node(key)
         if node is None:
             return False
         if data is not None:
@@ -215,10 +222,13 @@ class BST(object):
 
     def range(self, lower, upper):
         # return all nodes with keys in (inclusive) range [lower, upper]
+        nodes = self.range_nodes(lower, upper)
+        return [x for node in nodes for x in node.data]
+
+    def range_nodes(self, lower, upper):
         if self.root is None:
             return []
-        nodes = self._range(lower, upper, self.root, [])
-        return [x for node in nodes for x in node.data]
+        return self._range(lower, upper, self.root, [])
 
     def same_prefix(self, val):
         # assuming val has smaller length than keys, return
