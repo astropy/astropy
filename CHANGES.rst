@@ -244,6 +244,9 @@ API changes
 
 - ``astropy.units``
 
+  - Single-item ``Quantity`` instances with record ``dtype`` will now have
+    their ``isscalar`` property return ``True``. [#3899]
+
 - ``astropy.utils``
 
   - ``astropy.utils.iers`` now uses a ``QTable`` internally, which means that
