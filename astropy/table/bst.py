@@ -1,5 +1,3 @@
-from bintrees import FastBinaryTree, FastRBTree
-
 BLACK = 0
 RED = 1
 
@@ -431,8 +429,15 @@ class FastBase(object):
     def __str__(self):
         return str(self.data)
 
-class FastBST(FastBase):
-    engine = FastBinaryTree
+try:
+    # bintrees is an optional dependency
+    from bintrees import FastBinaryTree, FastRBTree
 
-class FastRBT(FastBase):
-    engine = FastRBTree
+    class FastBST(FastBase):
+        engine = FastBinaryTree
+
+    class FastRBT(FastBase):
+        engine = FastRBTree
+except ImportError:
+    FastBST = BST
+    FastRBT = RedBlackTree

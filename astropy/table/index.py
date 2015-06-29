@@ -1,4 +1,5 @@
 from copy import deepcopy
+import numpy as np
 
 from .bst import BST, RedBlackTree, FastBST, FastRBT
 from .array import SortedArray
@@ -32,6 +33,12 @@ class Index:
     def __init__(self, columns, impl=None):
         if impl is None:
             impl = FastRBT
+
+        if columns is None: # this creates a special exception for deep copying
+            columns = []
+        elif len(columns) == 0:
+            raise ValueError("Cannot create index without at least one column")
+
         # nodes of self.data will be (key val, row index)
         iterable = columns[0] if len(columns) == 1 else zip(*columns)
         lines = {}
@@ -62,15 +69,30 @@ class Index:
         self.data.add(tuple(key), pos)
 
     def remove_rows(self, row_specifier):
+        # row_specifier must be an int, list of ints, ndarray, or slice
         if isinstance(row_specifier, int):
             self.remove_row(row_specifier)
-        elif isinstance(row_specifier, list): ##TODO: check other iterables
-            for row in row_specifier:
-                self.remove_row(row)
-        else: # must be slice
-            max_row = max([row for val, row in row_specifier])
-            for row in row_specifier.indices(max_row):
-                self.remove_row(row)
+            return
+        elif isinstance(row_specifier, (list, np.ndarray)):
+            iterable = row_specifier
+        elif isinstance(row_specifier, slice):
+            col_len = len(self.columns[0])
+            iterable = range(*row_specifier.indices(col_len))
+        else:
+            raise ValueError("Expected int, array of ints, or slice but "
+                             "got {0} in remove_rows".format(row_specifier))
+
+        rows = []
+
+        # To maintain the correct row order, we loop twice,
+        # deleting rows first and then reordering the remaining rows
+        for row in iterable:
+            self.remove_row(row, reorder=False)
+            rows.append(row)
+        # second pass - row order is reversed to maintain
+        # correct row numbers
+        for row in reversed(sorted(rows)):
+            self.data.reorder(row)
 
     def remove_row(self, row, reorder=True):
         if not self.data.remove(tuple([col[row] for col in self.columns]),
@@ -134,7 +156,7 @@ class Index:
 
     def __deepcopy__(self, memo):
         # deep copy must be overridden to perform a shallow copy of columns
-        index = Index([], impl=self.data.__class__)
+        index = Index(None, impl=self.data.__class__)
         index.data = deepcopy(self.data, memo)
         index.columns = self.columns[:] # new list, same columns
         memo[id(self)] = index
