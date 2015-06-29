@@ -513,6 +513,17 @@ class Table(object):
 
         self._init_from_list(cols, names, dtype, n_cols, copy)
 
+    def _convert_col_for_table(self, col):
+        """
+        Make sure that all Column objects have correct class for this type of
+        Table.  For a base Table this most commonly means setting to
+        MaskedColumn if the table is masked.  Table subclasses like QTable
+        override this method.
+        """
+        if isinstance(col, Column) and not col.__class__ is self.ColumnClass:
+            col = self.ColumnClass(col)  # copy attributes and reference data
+        return col
+
     def _init_from_cols(self, cols):
         """Initialize table from a list of Column objects"""
 
@@ -524,23 +535,11 @@ class Table(object):
         # Set the table masking
         self._set_masked_from_cols(cols)
 
-        # Make sure that all Column-based objects have class self.ColumnClass
-        newcols = []
-        for col in cols:
-            # Convert any Columns with units to Quantity for a QTable
-            if (isinstance(self, QTable) and isinstance(col, Column)
-                    and getattr(col, 'unit', None) is not None):
-
-                qcol = Quantity(col, unit=col.unit, copy=False)
-                qcol.info = col.info
-                newcols.append(qcol)
-                continue
-
-            if isinstance(col, Column) and not col.__class__ is self.ColumnClass:
-                col = self.ColumnClass(col)  # copy attributes and reference data
-            newcols.append(col)
-
-        self._update_table_from_cols(self, newcols)
+        # Make sure that all Column-based objects have correct class.  For
+        # plain Table this is self.ColumnClass, but for instance QTable will
+        # convert columns with units to a Quantity mixin.
+        newcols = [self._convert_col_for_table(col) for col in cols]
+        self._make_table_from_cols(self, newcols)
 
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
@@ -551,15 +550,15 @@ class Table(object):
         cols = self.columns.values()
         newcols = [col[slice_] for col in cols]
 
-        self._update_table_from_cols(table, newcols)
+        self._make_table_from_cols(table, newcols)
 
         return table
 
     @staticmethod
-    def _update_table_from_cols(table, cols):
-        """Update the existing ``table`` so that it represents the given
-        ``data`` (a structured ndarray) with ``cols`` and ``names``."""
-
+    def _make_table_from_cols(table, cols):
+        """
+        Make ``table`` in-place so that it represents the given list of ``cols``.
+        """
         colnames = set(col.info.name for col in cols)
         if None in colnames:
             raise TypeError('Cannot have None for column name')
@@ -2214,3 +2213,13 @@ class QTable(Table):
         columns = dict((key, col if isinstance(col, BaseColumn) else col_copy(col))
                 for key, col in self.columns.items())
         return (columns, self.meta)
+
+    def _convert_col_for_table(self, col):
+        if (isinstance(col, Column) and getattr(col, 'unit', None) is not None):
+            qcol = Quantity(col, unit=col.unit, copy=False)
+            qcol.info = col.info
+            col = qcol
+        else:
+            col = super(QTable, self)._convert_col_for_table(col)
+
+        return col
