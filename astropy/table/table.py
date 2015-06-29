@@ -18,7 +18,7 @@ from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import InfoDescriptor
+from ..utils.data_info import InfoDescriptor, BaseColumnInfo
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -86,8 +86,7 @@ class TableColumns(OrderedDict):
             # columns (BaseColumn or mixins) in the list.
             newcols = []
             for col in cols:
-                if (isinstance(col, (BaseColumn, Quantity))
-                        or is_mixin_class(col)):
+                if (hasattr(col, 'info') and isinstance(col.info, BaseColumnInfo)):
                     newcols.append((col.info.name, col))
                 else:
                     newcols.append(col)

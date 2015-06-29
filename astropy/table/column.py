@@ -14,7 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import MixinInfo, InfoDescriptor, dtype_info_name
+from ..utils.data_info import BaseColumnInfo, InfoDescriptor, dtype_info_name
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -88,8 +88,8 @@ class FalseArray(np.ndarray):
                              .format(self.__class__.__name__))
 
 
-class ColumnInfo(MixinInfo):
-    attrs_from_parent = MixinInfo.attr_names
+class ColumnInfo(BaseColumnInfo):
+    attrs_from_parent = BaseColumnInfo.attr_names
 
 
 class BaseColumn(np.ndarray):

@@ -354,7 +354,17 @@ class DataInfo(object):
         return out.getvalue()
 
 
-class MixinInfo(DataInfo):
+class BaseColumnInfo(DataInfo):
+    """
+    Base info class for anything that can be a column in an astropy
+    Table.  There are at least two classes that inherit from this:
+
+      ColumnInfo: for native astropy Column / MaskedColumn objects
+      MixinInfo: for mixin column objects
+
+    Note that this class is defined here so that mixins can use it
+    without importing the table package.
+    """
     attr_names = DataInfo.attr_names.union(['parent_table'])
     _attrs_no_copy = set(['parent_table'])
 
@@ -369,3 +379,6 @@ class MixinInfo(DataInfo):
         _pformat_col_iter = formatter._pformat_col_iter
         for str_val in _pformat_col_iter(col, -1, False, False, {}):
             yield str_val
+
+class MixinInfo(BaseColumnInfo):
+    pass
