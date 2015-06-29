@@ -48,9 +48,7 @@ Instead of local copies of IERS files, one can also download them, using
 `iers.IERS_A_URL` and `iers.IERS_B_URL`::
 
     >>> from astropy.utils.iers import IERS_A, IERS_A_URL
-    >>> from astropy.utils.data import download_file
-    >>> iers_a_file = download_file(IERS_A_URL, cache=True)  # doctest: +SKIP
-    >>> iers_a = IERS_A.open(iers_a_file)                    # doctest: +SKIP
+    >>> iers_a = IERS_A.open(IERS_A_URL)                    # doctest: +SKIP
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
