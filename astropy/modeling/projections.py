@@ -25,6 +25,8 @@ from .parameters import Parameter, InputParameterError
 
 from ..utils.compat import ignored
 
+from . import _projections
+
 
 projcodes = ['TAN', 'AZP', 'STG', 'SIN', 'CYP', 'CEA', 'MER']
 
@@ -153,34 +155,7 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
 
     @classmethod
     def evaluate(cls, x, y, mu, gamma):
-        phi = np.arctan2(x / np.cos(gamma), -y)
-        r = cls._compute_r_theta(x, y, gamma)
-        pho = r / (cls.r0 * (mu + 1) + y * np.sin(gamma))
-        psi = np.arctan2(1, pho)
-        omega = np.arcsin((pho * mu) / np.sqrt(pho ** 2 + 1))
-
-        theta1 = np.rad2deg(psi - omega)
-        theta2 = np.rad2deg(psi + omega) + 180
-
-        if np.abs(mu) < 1:
-            if theta1 < 90 and theta1 > -90:
-                theta = theta1
-            else:
-                theta = theta2
-        else:
-            # theta1dif = 90 - theta1
-            # theta2dif = 90 - theta2
-            if theta1 < theta2:
-                theta = theta1
-            else:
-                theta = theta2
-
-        phi = np.rad2deg(phi)
-        return phi, theta
-
-    @staticmethod
-    def _compute_r_theta(x, y, gamma):
-        return np.sqrt(x ** 2 + y ** 2 * (np.cos(gamma)) ** 2)
+        return _projections.azpx2s(x, y, mu, np.rad2deg(gamma))
 
 
 Pix2Sky_AZP = Pix2Sky_ZenithalPerspective
@@ -229,20 +204,8 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
 
     @classmethod
     def evaluate(cls, phi, theta, mu, gamma):
-        phi = np.deg2rad(phi)
-        theta = np.deg2rad(theta)
-
-        r = cls._compute_r_theta(phi, theta, mu, gamma)
-        x = r * np.sin(phi)
-        y = (-r * np.cos(phi)) / np.cos(gamma)
-
-        return x, y
-
-    @classmethod
-    def _compute_r_theta(cls, phi, theta, mu, gamma):
-        return ((cls.r0 * (mu + 1) * np.cos(theta)) /
-                (mu + np.sin(theta) +
-                 np.cos(theta) * np.cos(phi) * np.tan(gamma)))
+        return _projections.azps2x(
+            phi, theta, mu, np.rad2deg(gamma))
 
 
 Sky2Pix_AZP = Sky2Pix_ZenithalPerspective
@@ -266,15 +229,7 @@ class Pix2Sky_Gnomonic(Pix2SkyProjection, Zenithal):
 
     @classmethod
     def evaluate(cls, x, y):
-        phi = np.rad2deg(np.arctan2(x, -y))
-        r_theta = cls._compute_r_theta(x, y)
-        theta = np.rad2deg(np.arctan2(cls.r0, r_theta))
-
-        return phi, theta
-
-    @staticmethod
-    def _compute_r_theta(x, y):
-        return np.sqrt(x ** 2 + y ** 2)
+        return _projections.tanx2s(x, y)
 
 
 Pix2Sky_TAN = Pix2Sky_Gnomonic
@@ -298,18 +253,7 @@ class Sky2Pix_Gnomonic(Sky2PixProjection, Zenithal):
 
     @classmethod
     def evaluate(cls, phi, theta):
-        phi = np.deg2rad(phi)
-        theta = np.deg2rad(theta)
-
-        r_theta = cls._compute_r_theta(theta)
-        x = np.rad2deg(r_theta * np.sin(phi))
-        y = -np.rad2deg(r_theta * np.cos(phi))
-
-        return x, y
-
-    @staticmethod
-    def _compute_r_theta(theta):
-        return 1 / np.tan(theta)
+        return _projections.tans2x(phi, theta)
 
 
 Sky2Pix_TAN = Sky2Pix_Gnomonic
@@ -333,15 +277,7 @@ class Pix2Sky_Stereographic(Pix2SkyProjection, Zenithal):
 
     @classmethod
     def evaluate(cls, x, y):
-        phi = np.rad2deg(np.arctan2(x, -y))
-        rtheta = cls._compute_r_theta(x, y)
-        theta = 90 - np.rad2deg(2 * np.arctan(rtheta / (2 * cls.r0)))
-
-        return phi, theta
-
-    @staticmethod
-    def _compute_r_theta(x, y):
-        return np.sqrt(x ** 2 + y ** 2)
+        return _projections.stgx2s(x, y)
 
 
 Pix2Sky_STG = Pix2Sky_Stereographic
@@ -365,18 +301,7 @@ class Sky2Pix_Stereographic(Sky2PixProjection, Zenithal):
 
     @classmethod
     def evaluate(cls, phi, theta):
-        phi = np.deg2rad(phi)
-        theta = np.deg2rad(theta)
-
-        r_theta = cls._compute_r_theta(theta)
-        x = r_theta * np.sin(phi)
-        y = -r_theta * np.cos(phi)
-
-        return x, y
-
-    @classmethod
-    def _compute_r_theta(cls, theta):
-        return (cls.r0 * 2 * np.cos(theta)) / (1 + np.sin(theta))
+        return _projections.stgs2x(phi, theta)
 
 
 Sky2Pix_STG = Sky2Pix_Stereographic
@@ -506,12 +431,7 @@ class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
 
     @classmethod
     def evaluate(cls, x, y, mu, lam):
-        phi = x / lam
-        eta = y / (cls.r0 * (mu + lam))
-        theta = (np.arctan2(eta, 1) +
-                 np.arcsin(eta * mu / np.sqrt(eta ** 2 + 1)))
-
-        return phi, np.rad2deg(theta)
+        return _projections.cypx2s(x, y, mu, lam)
 
 
 Pix2Sky_CYP = Pix2Sky_CylindricalPerspective
@@ -561,11 +481,7 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
 
     @classmethod
     def evaluate(cls, phi, theta, mu, lam):
-        theta = np.deg2rad(theta)
-        x = lam * phi
-        y = (cls.r0 * (mu + lam) / (mu + np.cos(theta))) * np.sin(theta)
-
-        return x, y
+        return _projections.cyps2x(phi, theta, mu, lam)
 
 
 Sky2Pix_CYP = Sky2Pix_CylindricalPerspective
@@ -595,10 +511,7 @@ class Pix2Sky_CylindricalEqualArea(Pix2SkyProjection, Cylindrical):
 
     @classmethod
     def evaluate(cls, x, y, lam):
-        phi = x.copy()
-        theta = np.rad2deg(np.arcsin(1 / cls.r0 * lam * y))
-
-        return phi, theta
+        return _projections.ceax2s(x, y, lam)
 
 
 Pix2Sky_CEA = Pix2Sky_CylindricalEqualArea
@@ -628,11 +541,7 @@ class Sky2Pix_CylindricalEqualArea(Sky2PixProjection, Cylindrical):
 
     @classmethod
     def evaluate(cls, phi, theta, lam):
-        x = phi.copy()
-        theta = np.deg2rad(theta)
-        y = cls.r0 * np.sin(theta) / lam
-
-        return x, y
+        return _projections.ceas2x(phi, theta, lam)
 
 
 Sky2Pix_CEA = Sky2Pix_CylindricalEqualArea
@@ -709,11 +618,7 @@ class Pix2Sky_Mercator(Pix2SkyProjection, Cylindrical):
 
     @classmethod
     def evaluate(cls, x, y):
-        phi = x.copy()
-        theta = np.rad2deg(2 * np.arctan(np.exp(y / cls.r0))) - 90
-
-        return phi, theta
-
+        return _projections.merx2s(x, y)
 
 Pix2Sky_MER = Pix2Sky_Mercator
 
@@ -735,11 +640,7 @@ class Sky2Pix_Mercator(Sky2PixProjection, Cylindrical):
 
     @classmethod
     def evaluate(cls, phi, theta):
-        x = phi.copy()
-        theta = np.deg2rad(theta)
-        y = cls.r0 * np.log(np.tan((np.pi / 2 + theta) / 2))
-
-        return x, y
+        return _projections.mers2x(phi, theta)
 
 
 Sky2Pix_MER = Sky2Pix_Mercator

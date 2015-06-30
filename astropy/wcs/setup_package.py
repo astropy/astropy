@@ -69,7 +69,7 @@ def determine_64_bit_int():
         return "long long int"
 
 
-def write_wcsconfig_h():
+def write_wcsconfig_h(paths):
     """
     Writes out the wcsconfig.h header with local configuration.
     """
@@ -112,12 +112,10 @@ def write_wcsconfig_h():
 
     #endif
     """.format(WCSVERSION, determine_64_bit_int()))
-    setup_helpers.write_if_different(
-        join(WCSROOT, 'include', 'astropy_wcs', 'wcsconfig.h'),
-        h_file.getvalue().encode('ascii'))
-    setup_helpers.write_if_different(
-        join(WCSROOT, 'include', 'wcsconfig.h'),
-        h_file.getvalue().encode('ascii'))
+    content = h_file.getvalue().encode('ascii')
+    for path in paths:
+        setup_helpers.write_if_different(path, content)
+
 
 ######################################################################
 # GENERATE DOCSTRINGS IN C
@@ -188,16 +186,10 @@ MSVC, do not support string literals greater than 256 characters.
         c_file.getvalue().encode('utf-8'))
 
 
-def get_extensions():
+def get_wcslib_cfg(cfg, wcslib_files, include_paths):
     from astropy.version import debug
 
-    generate_c_docstrings()
-
-    ######################################################################
-    # DISTUTILS SETUP
-    cfg = setup_helpers.DistutilsExtensionArgs()
-
-    cfg['include_dirs'].extend(['numpy', join(WCSROOT, "include")])
+    cfg['include_dirs'].append('numpy')
     cfg['define_macros'].extend([
         ('ECHO', None),
         ('WCSTRIG_MACRO', None),
@@ -206,31 +198,10 @@ def get_extensions():
 
     if (not setup_helpers.use_system_library('wcslib') or
         sys.platform == 'win32'):
-        write_wcsconfig_h()
+        write_wcsconfig_h(include_paths)
 
         wcslib_path = join("cextern", "wcslib")  # Path to wcslib
         wcslib_cpath = join(wcslib_path, "C")  # Path to wcslib source files
-        wcslib_files = [  # List of wcslib files to compile
-            'flexed/wcsbth.c',
-            'flexed/wcspih.c',
-            'flexed/wcsulex.c',
-            'flexed/wcsutrn.c',
-            'cel.c',
-            'dis.c',
-            'lin.c',
-            'log.c',
-            'prj.c',
-            'spc.c',
-            'sph.c',
-            'spx.c',
-            'tab.c',
-            'wcs.c',
-            'wcserr.c',
-            'wcsfix.c',
-            'wcshdr.c',
-            'wcsprintf.c',
-            'wcsunits.c',
-            'wcsutil.c']
         cfg['sources'].extend(join(wcslib_cpath, x) for x in wcslib_files)
         cfg['include_dirs'].append(wcslib_cpath)
     else:
@@ -238,24 +209,6 @@ def get_extensions():
         if os.path.exists(wcsconfig_h_path):
             os.unlink(wcsconfig_h_path)
         cfg.update(setup_helpers.pkg_config(['wcslib'], ['wcs']))
-
-    astropy_wcs_files = [  # List of astropy.wcs files to compile
-        'distortion.c',
-        'distortion_wrap.c',
-        'docstrings.c',
-        'pipeline.c',
-        'pyutil.c',
-        'astropy_wcs.c',
-        'astropy_wcs_api.c',
-        'sip.c',
-        'sip_wrap.c',
-        'str_list_proxy.c',
-        'unit_list_proxy.c',
-        'util.c',
-        'wcslib_wrap.c',
-        'wcslib_tabprm_wrap.c',
-        'wcslib_wtbarr_wrap.c']
-    cfg['sources'].extend(join(WCSROOT, 'src', x) for x in astropy_wcs_files)
 
     if debug:
         cfg['define_macros'].append(('DEBUG', None))
@@ -283,8 +236,65 @@ def get_extensions():
     if sys.platform.startswith('linux'):
         cfg['define_macros'].append(('HAVE_SINCOS', None))
 
-    cfg['sources'] = [str(x) for x in cfg['sources']]
 
+def get_extensions():
+    generate_c_docstrings()
+
+    ######################################################################
+    # DISTUTILS SETUP
+    cfg = setup_helpers.DistutilsExtensionArgs()
+
+    wcslib_files = [  # List of wcslib files to compile
+        'flexed/wcsbth.c',
+        'flexed/wcspih.c',
+        'flexed/wcsulex.c',
+        'flexed/wcsutrn.c',
+        'cel.c',
+        'dis.c',
+        'lin.c',
+        'log.c',
+        'prj.c',
+        'spc.c',
+        'sph.c',
+        'spx.c',
+        'tab.c',
+        'wcs.c',
+        'wcserr.c',
+        'wcsfix.c',
+        'wcshdr.c',
+        'wcsprintf.c',
+        'wcsunits.c',
+        'wcsutil.c'
+    ]
+
+    wcslib_config_paths = [
+        join(WCSROOT, 'include', 'astropy_wcs', 'wcsconfig.h'),
+        join(WCSROOT, 'include', 'wcsconfig.h')
+    ]
+
+    get_wcslib_cfg(cfg, wcslib_files, wcslib_config_paths)
+
+    cfg['include_dirs'].append(join(WCSROOT, "include"))
+
+    astropy_wcs_files = [  # List of astropy.wcs files to compile
+        'distortion.c',
+        'distortion_wrap.c',
+        'docstrings.c',
+        'pipeline.c',
+        'pyutil.c',
+        'astropy_wcs.c',
+        'astropy_wcs_api.c',
+        'sip.c',
+        'sip_wrap.c',
+        'str_list_proxy.c',
+        'unit_list_proxy.c',
+        'util.c',
+        'wcslib_wrap.c',
+        'wcslib_tabprm_wrap.c',
+        'wcslib_wtbarr_wrap.c']
+    cfg['sources'].extend(join(WCSROOT, 'src', x) for x in astropy_wcs_files)
+
+    cfg['sources'] = [str(x) for x in cfg['sources']]
     cfg = dict((str(key), val) for key, val in six.iteritems(cfg))
 
     return [Extension(str('astropy.wcs._wcs'), **cfg)]

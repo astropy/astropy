@@ -1,0 +1,284 @@
+#include <Python.h> /* Python */
+
+#include <numpy/arrayobject.h> /* Numpy */
+
+#include "prj.h" /* from wcslib */
+#include "wcsmath.h"
+
+
+{% for name, nargs in projections.iteritems() %}
+static PyObject*
+Py_{{ name }}x2s(PyObject* __, PyObject* args, PyObject* kwds)
+{
+  PyObject* x = NULL;
+  PyObject* y = NULL;
+  PyObject* x_array = NULL;
+  PyObject* y_array = NULL;
+  PyObject* phi_array = NULL;
+  PyObject* theta_array = NULL;
+  PyObject* stat_array = NULL;
+  Py_ssize_t n;
+  Py_ssize_t i;
+  PyObject* result = NULL;
+
+  struct prjprm prj;
+
+  int status = -1;
+
+  memset(&prj, 0, sizeof(struct prjprm));
+  prj.phi0 = UNDEFINED;
+  prj.theta0 = UNDEFINED;
+
+  if (!PyArg_ParseTuple(args,
+                        "OO"
+                        {% for i in range(nargs) %}"d" {% endfor %}
+                        ":{{ name }}x2s",
+                        &x, &y
+                        {% for i in range(nargs) %}
+                        {% if loop.first %},{% endif %}
+                        &prj.pv[{{i}} + 1]
+                        {% if not loop.last %},{% endif %}
+                        {% endfor %}
+                        )) {
+    return NULL;
+  }
+
+  /* TODO: This assumes the same shape for the input arrays.  Instead,
+     we should broadcast */
+
+  x_array = PyArray_FromObject(x, PyArray_DOUBLE, 1, NPY_MAXDIMS);
+  if (x_array == NULL) {
+    goto exit;
+  }
+
+  y_array = PyArray_FromObject(y, PyArray_DOUBLE, 1, NPY_MAXDIMS);
+  if (y_array == NULL) {
+    goto exit;
+  }
+
+  phi_array = PyArray_SimpleNew(PyArray_NDIM(x_array), PyArray_DIMS(x_array), PyArray_DOUBLE);
+  if (phi_array == NULL) {
+    goto exit;
+  }
+
+  theta_array = PyArray_SimpleNew(PyArray_NDIM(x_array), PyArray_DIMS(x_array), PyArray_DOUBLE);
+  if (theta_array == NULL) {
+    goto exit;
+  }
+
+  stat_array = PyArray_SimpleNew(PyArray_NDIM(x_array), PyArray_DIMS(x_array), PyArray_INT);
+  if (stat_array == NULL) {
+    goto exit;
+  }
+
+  if ((status = {{ name }}set(&prj))) {
+    goto exit;
+  }
+
+  n = 1;
+  for (i = 0; i < PyArray_NDIM(x_array); ++i) {
+    n *= PyArray_DIM(x_array, i);
+  }
+
+  if ((status = {{ name }}x2s(&prj, n, n,
+                       PyArray_STRIDE(x_array, PyArray_NDIM(x_array) - 1),
+                       PyArray_STRIDE(y_array, PyArray_NDIM(y_array) - 1),
+                       (double *)PyArray_DATA(x_array),
+                       (double *)PyArray_DATA(y_array),
+                       (double *)PyArray_DATA(phi_array),
+                       (double *)PyArray_DATA(theta_array),
+                       (int *)PyArray_DATA(stat_array)))) {
+    goto exit;
+  }
+
+  result = Py_BuildValue("(OO)", phi_array, theta_array);
+
+ exit:
+  if (result == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "wcslib error");
+  }
+
+  Py_XDECREF(x_array);
+  Py_XDECREF(y_array);
+  Py_XDECREF(phi_array);
+  Py_XDECREF(theta_array);
+  Py_XDECREF(stat_array);
+
+  return result;
+}
+
+static PyObject*
+Py_{{ name }}s2x(PyObject* __, PyObject* args, PyObject* kwds)
+{
+  PyObject* phi = NULL;
+  PyObject* theta = NULL;
+  PyObject* phi_array = NULL;
+  PyObject* theta_array = NULL;
+  PyObject* x_array = NULL;
+  PyObject* y_array = NULL;
+  PyObject* stat_array = NULL;
+  Py_ssize_t n;
+  Py_ssize_t i;
+  PyObject* result = NULL;
+
+  struct prjprm prj;
+
+  int status = -1;
+
+  memset(&prj, 0, sizeof(struct prjprm));
+  prj.phi0 = UNDEFINED;
+  prj.theta0 = UNDEFINED;
+
+  if (!PyArg_ParseTuple(args,
+                        "OO"
+                        {% for i in range(nargs) %}"d" {% endfor %}
+                        ":{{ name }}s2x",
+                        &phi, &theta
+                        {% for i in range(nargs) %}
+                        {% if loop.first %},{% endif %}
+                        &prj.pv[{{i}} + 1]
+                        {% if not loop.last %},{% endif %}
+                        {% endfor %}
+                        )) {
+    return NULL;
+  }
+
+  /* TODO: This assumes the same shape for the input arrays.  Instead,
+     we should broadcast */
+
+  phi_array = PyArray_FromObject(phi, PyArray_DOUBLE, 1, NPY_MAXDIMS);
+  if (phi_array == NULL) {
+    goto exit;
+  }
+
+  theta_array = PyArray_FromObject(theta, PyArray_DOUBLE, 1, NPY_MAXDIMS);
+  if (theta_array == NULL) {
+    goto exit;
+  }
+
+  x_array = PyArray_SimpleNew(PyArray_NDIM(phi_array), PyArray_DIMS(phi_array), PyArray_DOUBLE);
+  if (x_array == NULL) {
+    goto exit;
+  }
+
+  y_array = PyArray_SimpleNew(PyArray_NDIM(phi_array), PyArray_DIMS(phi_array), PyArray_DOUBLE);
+  if (y_array == NULL) {
+    goto exit;
+  }
+
+  stat_array = PyArray_SimpleNew(PyArray_NDIM(phi_array), PyArray_DIMS(phi_array), PyArray_INT);
+  if (stat_array == NULL) {
+    goto exit;
+  }
+
+  if ((status = {{ name }}set(&prj))) {
+    goto exit;
+  }
+
+  n = 1;
+  for (i = 0; i < PyArray_NDIM(phi_array); ++i) {
+    n *= PyArray_DIM(phi_array, i);
+  }
+
+  if ((status = {{ name }}s2x(&prj, n, n,
+                              PyArray_STRIDE(phi_array, PyArray_NDIM(phi_array) - 1),
+                              PyArray_STRIDE(theta_array, PyArray_NDIM(theta_array) - 1),
+                              (double *)PyArray_DATA(phi_array),
+                              (double *)PyArray_DATA(theta_array),
+                              (double *)PyArray_DATA(x_array),
+                              (double *)PyArray_DATA(y_array),
+                              (int *)PyArray_DATA(stat_array)))) {
+    goto exit;
+  }
+
+  result = Py_BuildValue("(OO)", x_array, y_array);
+
+ exit:
+  if (result == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "wcslib error");
+  }
+
+  Py_XDECREF(phi_array);
+  Py_XDECREF(theta_array);
+  Py_XDECREF(x_array);
+  Py_XDECREF(y_array);
+  Py_XDECREF(stat_array);
+
+  return result;
+}
+
+{% endfor %}
+
+
+/***************************************************************************
+ * Module-level
+ ***************************************************************************/
+
+static PyMethodDef module_methods[] = {
+  {% for name in projections.iterkeys() %}
+  {"{{ name }}x2s", (PyCFunction)Py_{{ name }}x2s, METH_VARARGS, NULL},
+  {"{{ name }}s2x", (PyCFunction)Py_{{ name }}s2x, METH_VARARGS, NULL},
+  {% endfor %}
+  {NULL}  /* Sentinel */
+};
+
+struct module_state {
+/* The Sun compiler can't handle empty structs */
+#if defined(__SUNPRO_C) || defined(_MSC_VER)
+    int _dummy;
+#endif
+};
+
+#if PY3K
+    static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "_projections",
+        NULL,
+        sizeof(struct module_state),
+        module_methods,
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    };
+
+    #define INITERROR return NULL
+
+    PyMODINIT_FUNC
+    PyInit__projections(void)
+
+#else
+    #define INITERROR return
+
+    PyMODINIT_FUNC
+    init_projections(void)
+#endif
+
+{
+  PyObject* m;
+
+#if PY3K
+  m = PyModule_Create(&moduledef);
+#else
+  m = Py_InitModule3("_projections", module_methods, NULL);
+#endif
+
+  if (m == NULL)
+    INITERROR;
+
+  import_array();
+
+#ifdef HAVE_WCSLIB_VERSION
+  if (PyModule_AddStringConstant(m, "__version__", wcslib_version(NULL))) {
+    INITERROR;
+  }
+#else
+  if (PyModule_AddStringConstant(m, "__version__", "4.x")) {
+    INITERROR;
+  }
+#endif
+
+#if PY3K
+  return m;
+#endif
+}
