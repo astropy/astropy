@@ -663,9 +663,9 @@ class Voigt1D(Fittable1DModel):
 
     Parameters
     ----------
-    pos : float
+    x_0 : float
         Position of the peak
-    amp_L : float
+    amplitude_L : float
         The Lorentzian amplitude
     fwhm_L : float
         The Lorentzian full width at half maximum
@@ -683,57 +683,69 @@ class Voigt1D(Fittable1DModel):
     efficient analytical approximation to the Voigt function for photoemission
     lineshape analysis. Journal of Electron Spectroscopy and Related Phenomena
     69, 125-132 (1994)
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy.modeling.models import Voigt1D
+        import matplotlib.pyplot as plt
+
+        plt.figure()
+        x = np.arange(0, 10, 0.1)
+        v1 = Voigt1D(x_0=5,amplitude_L=10,fwhm_L=0.5, fwhm_G=0.9)
+        plt.plot(x, v1(x))
+        plt.show()
     """
 
-    pos = Parameter()
-    amp_L = Parameter()
-    fwhm_L = Parameter()
-    fwhm_G = Parameter()
+    x_0 = Parameter(default=0)
+    amplitude_L = Parameter(default=1)
+    fwhm_L = Parameter(default=2/np.pi)
+    fwhm_G = Parameter(default=np.log(2))
 
-    @staticmethod
-    def evaluate(x, pos, amp_L, fwhm_L, fwhm_G):
-        A = [-1.2150, -1.3509, -1.2150, -1.3509]
-        B = [1.2359, 0.3786, -1.2359, -0.3786]
-        C = [-0.3085, 0.5906, 0.3085, 0.5906]
-        D = [0.0210, -1.1858, -0.0210, 1.1858]
+    _abcd = np.array([
+        [-1.2150, -1.3509, -1.2150, -1.3509],  # A
+        [1.2359, 0.3786, -1.2359, -0.3786],    # B
+        [-0.3085, 0.5906, 0.3085, 0.5906],     # C
+        [0.0210, -1.1858, -0.0210, 1.1858]])   # D
 
+    @classmethod
+    def evaluate(cls, x, x_0, amplitude_L, fwhm_L, fwhm_G):
+
+        A, B, C, D = cls._abcd
         sqrt_ln2 = np.sqrt(np.log(2))
-        sqrt_pi = np.sqrt(np.pi)
-        X = (x - pos) * 2 * sqrt_ln2 / fwhm_G
+        X = (x - x_0) * 2 * sqrt_ln2 / fwhm_G
+        X = X[:, np.newaxis]
         Y = fwhm_L * sqrt_ln2 / fwhm_G
-        V = 0
+        Y = Y[:, np.newaxis]
+        V = np.sum((C * (Y - A) + D * (X - B))/(((Y - A) ** 2 + (X - B) ** 2)), axis=-1)
 
-        for i in range(4):
-            V += (C[i] * (Y - A[i]) + D[i] * (X - B[i]))/(((Y - A[i]) ** 2 + (X - B[i]) ** 2))
+        return (fwhm_L * amplitude_L * np.sqrt(np.pi) * sqrt_ln2 / fwhm_G) * V
 
-        return (fwhm_L * amp_L * sqrt_pi * sqrt_ln2 / fwhm_G) * V
+    @classmethod
+    def fit_deriv(cls, x, x_0, amplitude_L, fwhm_L, fwhm_G):
 
-    @staticmethod
-    def fit_deriv(x, pos, amp_L, fwhm_L, fwhm_G):
-        A = [-1.2150, -1.3509, -1.2150, -1.3509]
-        B = [1.2359, 0.3786, -1.2359, -0.3786]
-        C = [-0.3085, 0.5906, -0.3085, 0.5906]
-        D = [0.0210, -1.1858, -0.0210, 1.1858]
-
+        A, B, C, D = cls._abcd
         sqrt_ln2 = np.sqrt(np.log(2))
-        sqrt_pi = np.sqrt(np.pi)
-        a = [amp_L, pos, fwhm_L, fwhm_G]
+        a = [amplitude_L, x_0, fwhm_L, fwhm_G]
         dVdx = 0
         dVdy = 0
         V = 0
         dyda = [0, 0, 0, 0]
 
         X = (x - a[1]) * 2 * sqrt_ln2 / (a[3])
+        X = X[:, np.newaxis]
         Y = a[2] * sqrt_ln2 / (a[3])
-        constant = a[2] * a[0] * sqrt_pi * sqrt_ln2 / (a[3])
+        Y = Y[:, np.newaxis]
+        constant = a[2] * a[0] * np.sqrt(np.pi) * sqrt_ln2 / (a[3])
 
-        for j in range(4):
-            alpha = C[j] * (Y - A[j]) + D[j] * (X - B[j])
-            beta = np.square(Y - A[j]) + np.square(X - B[j])
-            V += alpha / beta
-
-            dVdx += (D[j]/beta - 2 * (X - B[j]) * alpha / np.square(beta))
-            dVdy += (C[j]/beta - 2 * (Y - A[j]) * alpha / np.square(beta))
+        alpha = C * (Y - A) + D * (X - B)
+        beta = np.square(Y - A) + np.square(X - B)
+        V = np.sum((alpha / beta), axis=-1)
+        dVdx = np.sum((D/beta - 2 * (X - B) * alpha / np.square(beta)), axis=-1)
+        dVdy = np.sum((C/beta - 2 * (Y - A) * alpha / np.square(beta)), axis=-1)
 
         dyda[0] = constant * V / a[0]
         dyda[1] = - constant * dVdx * 2 * sqrt_ln2 / a[3]
