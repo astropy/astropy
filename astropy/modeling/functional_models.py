@@ -717,9 +717,9 @@ class Voigt1D(Fittable1DModel):
         A, B, C, D = cls._abcd
         sqrt_ln2 = np.sqrt(np.log(2))
         X = (x - x_0) * 2 * sqrt_ln2 / fwhm_G
-        X = X[:, np.newaxis]
+        X = np.atleast_1d(X)[:, np.newaxis]
         Y = fwhm_L * sqrt_ln2 / fwhm_G
-        Y = Y[:, np.newaxis]
+        Y = np.atleast_1d(Y)[:, np.newaxis]
         V = np.sum((C * (Y - A) + D * (X - B))/(((Y - A) ** 2 + (X - B) ** 2)), axis=-1)
 
         return (fwhm_L * amplitude_L * np.sqrt(np.pi) * sqrt_ln2 / fwhm_G) * V
@@ -729,29 +729,23 @@ class Voigt1D(Fittable1DModel):
 
         A, B, C, D = cls._abcd
         sqrt_ln2 = np.sqrt(np.log(2))
-        a = [amplitude_L, x_0, fwhm_L, fwhm_G]
-        dVdx = 0
-        dVdy = 0
-        V = 0
-        dyda = [0, 0, 0, 0]
 
-        X = (x - a[1]) * 2 * sqrt_ln2 / (a[3])
-        X = X[:, np.newaxis]
-        Y = a[2] * sqrt_ln2 / (a[3])
-        Y = Y[:, np.newaxis]
-        constant = a[2] * a[0] * np.sqrt(np.pi) * sqrt_ln2 / (a[3])
+        X = (x - x_0) * 2 * sqrt_ln2 / fwhm_G
+        X = np.atleast_1d(X)[:, np.newaxis]
+        Y = fwhm_L * sqrt_ln2 / fwhm_G
+        Y = np.atleast_1d(Y)[:, np.newaxis]
+        constant = fwhm_L * amplitude_L * np.sqrt(np.pi) * sqrt_ln2 / fwhm_G
 
         alpha = C * (Y - A) + D * (X - B)
-        beta = np.square(Y - A) + np.square(X - B)
+        beta = (Y - A) ** 2 + (X - B) ** 2
         V = np.sum((alpha / beta), axis=-1)
         dVdx = np.sum((D/beta - 2 * (X - B) * alpha / np.square(beta)), axis=-1)
         dVdy = np.sum((C/beta - 2 * (Y - A) * alpha / np.square(beta)), axis=-1)
 
-        dyda[0] = constant * V / a[0]
-        dyda[1] = - constant * dVdx * 2 * sqrt_ln2 / a[3]
-        dyda[2] = constant * (V / a[2] + dVdy * sqrt_ln2 / a[3])
-        dyda[3] = -constant * (V + (sqrt_ln2 / a[3]) * (2 * (x - a[1]) * dVdx + a[2] * dVdy)) / a[3]
-
+        dyda = [constant * V / amplitude_L,
+                - constant * dVdx * 2 * sqrt_ln2 / fwhm_G,
+                constant * (V / fwhm_L + dVdy * sqrt_ln2 / fwhm_G),
+                -constant * (V + (sqrt_ln2 / fwhm_G) * (2 * (x - x_0) * dVdx + fwhm_L * dVdy)) / fwhm_G]
         return dyda
 
 
