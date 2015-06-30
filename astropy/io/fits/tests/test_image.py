@@ -642,6 +642,88 @@ class TestImageFunctions(FitsTestCase):
         hdul = fits.open(self.temp('test_new.fits'))
         assert np.isnan(hdul[1].data[1]).all()
 
+    def test_invalid_blanks(self):
+        """
+        Test that invalid use of the BLANK keyword leads to an appropriate
+        warning, and that the BLANK keyword is ignored when returning the
+        HDU data.
+
+        Regression test for https://github.com/astropy/astropy/issues/3865
+        """
+
+        arr = np.arange(5, dtype=np.float64)
+        hdu = fits.PrimaryHDU(data=arr)
+        hdu.header['BLANK'] = 2
+
+        with catch_warnings() as w:
+            hdu.writeto(self.temp('test_new.fits'))
+            # Allow the HDU to be written, but there should be a warning
+            # when writing a header with BLANK when then data is not
+            # int
+            assert len(w) == 1
+            assert "Invalid 'BLANK' keyword in header" in str(w[0].message)
+
+        # Should also get a warning when opening the file, and the BLANK
+        # value should not be applied
+        with catch_warnings() as w:
+            with fits.open(self.temp('test_new.fits')) as h:
+                assert len(w) == 1
+                assert "Invalid 'BLANK' keyword in header" in str(w[0].message)
+                assert np.all(arr == h[0].data)
+
+    def test_scale_back_with_blanks(self):
+        """
+        Test that when auto-rescaling integer data with "blank" values (where
+        the blanks are replaced by NaN in the float data), that the "BLANK"
+        keyword is removed from the header.
+
+        Further, test that when using the ``scale_back=True`` option the blank
+        values are restored properly.
+
+        Regression test for https://github.com/astropy/astropy/issues/3865
+        """
+
+        # Make the sample file
+        arr = np.arange(5, dtype=np.int32)
+        hdu = fits.PrimaryHDU(data=arr)
+        hdu.scale('int16', bscale=1.23)
+
+        # Creating data that uses BLANK is currently kludgy--a speparate issue
+        # TODO: Rewrite this test when scaling with blank support is better
+        # supported
+
+        # Let's just add a value to the data that should be converted to NaN
+        # when it is read back in:
+        hdu.data[0] = 9999
+        hdu.header['BLANK'] = 9999
+        hdu.writeto(self.temp('test.fits'))
+
+        with fits.open(self.temp('test.fits')) as hdul:
+            data = hdul[0].data
+            assert np.isnan(data[0])
+            hdul.writeto(self.temp('test2.fits'))
+
+        # Now reopen the newly written file.  It should not have a 'BLANK'
+        # keyword
+        with catch_warnings() as w:
+            with fits.open(self.temp('test2.fits')) as hdul2:
+                assert len(w) == 0
+                assert 'BLANK' not in hdul2[0].header
+                data = hdul2[0].data
+                assert np.isnan(data[0])
+
+        # Finally, test that scale_back keeps the BLANKs correctly
+        with fits.open(self.temp('test.fits'), scale_back=True,
+                       mode='update') as hdul3:
+            data = hdul3[0].data
+            assert np.isnan(data[0])
+
+        with fits.open(self.temp('test.fits'),
+                       do_not_scale_image_data=True) as hdul4:
+            assert hdul4[0].header['BLANK'] == 9999
+            assert hdul4[0].header['BSCALE'] == 1.23
+            assert hdul4[0].data[0] == 9999
+
     def test_bzero_with_floats(self):
         """Test use of the BZERO keyword in an image HDU containing float
         data.

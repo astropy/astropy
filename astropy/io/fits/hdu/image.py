@@ -110,26 +110,7 @@ class _ImageBaseHDU(_ValidHDU):
         self._gcount = self._header.get('GCOUNT', 1)
         self._pcount = self._header.get('PCOUNT', 0)
         self._blank = None if ignore_blank else self._header.get('BLANK')
-
-        if self._blank is not None:
-            messages = []
-            # TODO: Once the FITSSchema framewhere is merged these warnings
-            # should be handled by the schema
-            if not _is_int(self._blank):
-                messages.append(
-                    "Invalid value for 'BLANK' keyword in header: {0!r} "
-                    "The 'BLANK' keyword must be an integer.  It will be "
-                    "ignored in the meantime.".format(self._blank))
-                self._blank = None
-            if not self._bitpix > 0:
-                messages.append(
-                    "Invalid 'BLANK' keyword in header.  The 'BLANK' keyword "
-                    "is only applicable to integer data, and will be ignored "
-                    "in this HDU.")
-                self._blank = None
-
-            for msg in messages:
-                warnings.warn(msg, VerifyWarning)
+        self._verify_blank()
 
         self._orig_bitpix = self._bitpix
         self._orig_bzero = self._bzero
@@ -329,6 +310,9 @@ class _ImageBaseHDU(_ValidHDU):
             except KeyError:
                 pass
 
+        if 'BLANK' in self._header:
+            self._blank = self._header['BLANK']
+
         self._update_uint_scale_keywords()
 
         self._modified = False
@@ -366,6 +350,7 @@ class _ImageBaseHDU(_ValidHDU):
         self._bzero = 0
         self._bscale = 1
         self._bitpix = self._header['BITPIX']
+        self._blank = self._header.pop('BLANK', None)
 
     def scale(self, type=None, option='old', bscale=1, bzero=0):
         """
@@ -392,6 +377,27 @@ class _ImageBaseHDU(_ValidHDU):
 
         bscale, bzero : int, optional
             User-specified ``BSCALE`` and ``BZERO`` values
+        """
+
+        # Disable blank support for now
+        self._scale_internal(type=type, option=option, bscale=bscale,
+                             bzero=bzero, blank=None)
+
+    def _scale_internal(self, type=None, option='old', bscale=1, bzero=0,
+                        blank=0):
+        """
+        This is an internal implementation of the `scale` method, which
+        also supports handling BLANK properly.
+
+        TODO: This is only needed for fixing #3865 without introducing any
+        public API changes.  We should support BLANK better when rescaling
+        data, and when that is added the need for this internal interface
+        should go away.
+
+        Note: the default of ``blank=0`` merely reflects the current behavior,
+        and is not necessarily a deliberate choice (better would be to disallow
+        conversion of floats to ints without specifying a BLANK if there are
+        NaN/inf values).
         """
 
         if self.data is None:
@@ -450,6 +456,13 @@ class _ImageBaseHDU(_ValidHDU):
             except KeyError:
                 pass
 
+        # Set blanks
+        if blank is not None and issubclass(_type, np.integer):
+            # TODO: Perhaps check that the requested BLANK value fits in the
+            # integer type being scaled to?
+            self.data[np.isnan(self.data)] = blank
+            self._header['BLANK'] = blank
+
         if self.data.dtype.type != _type:
             self.data = np.array(np.around(self.data), dtype=_type)
 
@@ -457,6 +470,7 @@ class _ImageBaseHDU(_ValidHDU):
         self._bitpix = DTYPE2BITPIX[self.data.dtype.name]
         self._bzero = self._header.get('BZERO', 0)
         self._bscale = self._header.get('BSCALE', 1)
+        self._blank = blank
         self._header['BITPIX'] = self._bitpix
 
         # Since the image has been manually scaled, the current
@@ -465,17 +479,46 @@ class _ImageBaseHDU(_ValidHDU):
         self._orig_bitpix = self._bitpix
         self._orig_bzero = self._bzero
         self._orig_bscale = self._bscale
+        self._orig_blank = self._blank
 
     def _verify(self, option='warn'):
         # update_header can fix some things that would otherwise cause
         # verification to fail, so do that now...
         self.update_header()
+        self._verify_blank()
 
         return super(_ImageBaseHDU, self)._verify(option)
 
+    def _verify_blank(self):
+        # Probably not the best place for this (it should probably happen
+        # in _verify as well) but I want to be able to raise this warning
+        # both when the HDU is created and when written
+        if self._blank is None:
+            return
+
+        messages = []
+        # TODO: Once the FITSSchema framewhere is merged these warnings
+        # should be handled by the schema
+        if not _is_int(self._blank):
+            messages.append(
+                "Invalid value for 'BLANK' keyword in header: {0!r} "
+                "The 'BLANK' keyword must be an integer.  It will be "
+                "ignored in the meantime.".format(self._blank))
+            self._blank = None
+        if not self._bitpix > 0:
+            messages.append(
+                "Invalid 'BLANK' keyword in header.  The 'BLANK' keyword "
+                "is only applicable to integer data, and will be ignored "
+                "in this HDU.")
+            self._blank = None
+
+        for msg in messages:
+            warnings.warn(msg, VerifyWarning)
+
     def _prewriteto(self, checksum=False, inplace=False):
         if self._scale_back:
-            self.scale(BITPIX2DTYPE[self._orig_bitpix])
+            self._scale_internal(BITPIX2DTYPE[self._orig_bitpix],
+                                 blank=self._orig_blank)
 
         self.update_header()
         if not inplace and self._data_needs_rescale:
@@ -578,8 +621,9 @@ class _ImageBaseHDU(_ValidHDU):
         raw_data = self._get_raw_data(shape, code, offset)
         raw_data.dtype = raw_data.dtype.newbyteorder('>')
 
-        if (self._orig_bzero == 0 and self._orig_bscale == 1 and
-                self._blank is None) or self._do_not_scale_image_data:
+        if self._do_not_scale_image_data or (
+                self._orig_bzero == 0 and self._orig_bscale == 1 and
+                self._blank is None):
             # No further conversion of the data is necessary
             return raw_data
 
@@ -601,6 +645,8 @@ class _ImageBaseHDU(_ValidHDU):
             # to NaN in the resulting floating-point arrays.
             # The BLANK keyword should only be applied for integer data (this
             # is checked in __init__ but it can't hurt to double check here)
+            blanks = None
+
             if self._blank is not None and self._bitpix > 0:
                 blanks = raw_data.flat == self._blank
                 # The size of blanks in bytes is the number of elements in
@@ -631,7 +677,7 @@ class _ImageBaseHDU(_ValidHDU):
             if self._orig_bzero != 0:
                 data += self._orig_bzero
 
-            if self._blank is not None:
+            if self._blank:
                 data.flat[blanks] = np.nan
 
         return data
