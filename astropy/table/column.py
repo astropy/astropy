@@ -811,14 +811,25 @@ class Column(BaseColumn):
     # order-of-magnitude speed-up. [#2994]
     def __setitem__(self, index, value):
         # update indices
-        for col_index in self.indices:
-            col_index.replace(index, self, value)
+        self._adjust_indices(index, value)
         self.data[index] = value
 
     # # Set slices using a view of the underlying data, as it gives an
     # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
     def __setslice__(self, start, stop, value):
+        self._adjust_indices(slice(start, stop), value)
         self.data.__setslice__(start, stop, value)
+
+    def _adjust_indices(self, index, value):
+        if isinstance(index, slice):
+            # run through each key in slice
+            keys = range(*index.indices(len(self)))
+        else:
+            keys = [index]
+            value = [value]
+        for key in keys:
+            for col_index, val in zip(self.indices, value):
+                col_index.replace(key, self, val)
 
     def insert(self, obj, values):
         """
@@ -1135,12 +1146,11 @@ class MaskedColumn(Column, ma.MaskedArray):
     # copy the mask properly. See test_setting_from_masked_column test.
     def __setitem__(self, index, value):
         # update indices
-        for col_index in self.indices:
-            col_index.replace(index, self, value)
+        self._adjust_indices(index, value)
         ma.MaskedArray.__setitem__(self, index, value)
 
     def __setslice__(self, start, stop, value):
-        ##TODO: handle
+        # defers to __setitem__, so we don't adjust indices here
         ma.MaskedArray.__setslice__(self, start, stop, value)
 
     # We do this to make the methods show up in the API docs
