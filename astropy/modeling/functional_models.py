@@ -732,7 +732,7 @@ class Ellipse2D(Fittable2DModel):
     y_0 = Parameter()
     a = Parameter()
     b = Parameter()
-    theta = Parameter()
+    theta = Parameter(default=0)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
