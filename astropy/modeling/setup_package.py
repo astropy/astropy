@@ -47,17 +47,17 @@ def pre_sdist_hook(cmd_obj):
 def preprocess_source():
     # TODO: Move this to setup_helpers
 
-    # Generating the ERFA wrappers should only be done if needed. This also
+    # Generating the wcslib wrappers should only be done if needed. This also
     # ensures that it is not done for any release tarball since those will
     # include core.py and core.c.
     if all(os.path.exists(filename) for filename in GEN_FILES):
         # Determine modification times
-        erfa_mtime = max(os.path.getmtime(filename) for filename in SRC_FILES)
+        src_mtime = max(os.path.getmtime(filename) for filename in SRC_FILES)
         gen_mtime = min(os.path.getmtime(filename) for filename in GEN_FILES)
 
         version = get_pkg_version_module('astropy')
 
-        if gen_mtime > erfa_mtime:
+        if gen_mtime > src_mtime:
             # If generated source is recent enough, don't update
             return
         elif version.release:
@@ -80,7 +80,7 @@ def preprocess_source():
             import jinja2
         except:
             log.warn("WARNING: jinja2 could not be imported, so the existing "
-                     "ERFA core.py and core.c files will be used")
+                     "modeling _projections.c file will be used")
             return
 
     from jinja2 import Environment, FileSystemLoader
