@@ -77,7 +77,7 @@ class TableColumns(OrderedDict):
             # columns (BaseColumn or mixins) in the list.
             newcols = []
             for col in cols:
-                if (hasattr(col, 'info') and isinstance(col.info, BaseColumnInfo)):
+                if has_info_class(col, BaseColumnInfo):
                     newcols.append((col.info.name, col))
                 else:
                     newcols.append(col)

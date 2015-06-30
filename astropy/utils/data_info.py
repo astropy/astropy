@@ -372,10 +372,12 @@ class BaseColumnInfo(DataInfo):
         """
         This is a mixin-safe version of Column.iter_str_vals.
         """
-        from ..table.column import FORMATTER
         col = self._parent
-        parent_table = self.parent_table
-        formatter = FORMATTER if parent_table is None else parent_table.formatter
+        if self.parent_table is None:
+            from ..table.column import FORMATTER as formatter
+        else:
+            formatter = self.parent_table.formatter
+
         _pformat_col_iter = formatter._pformat_col_iter
         for str_val in _pformat_col_iter(col, -1, False, False, {}):
             yield str_val
