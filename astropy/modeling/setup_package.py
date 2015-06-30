@@ -22,6 +22,9 @@ SRC_FILES = [join(MODELING_SRC, 'projections.c.templ'),
 GEN_FILES = [join(MODELING_SRC, 'projections.c')]
 
 
+# This defines the set of projection functions that we want to wrap.
+# The key is the projection name, and the value is the number of
+# parameters.
 projections = {
     'azp': 2,
     'tan': 0,
