@@ -476,6 +476,8 @@ Bug Fixes
     HDU (i.e. non-trivial BSCALE and/or BZERO) with
     ``do_not_scale_image_data=False``. [#3883]
 
+  - Fixed stray deprecation warning in ``BinTableHDU.copy()``. [#3789]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
