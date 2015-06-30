@@ -99,12 +99,12 @@ class TestChecksumFunctions(FitsTestCase):
 
         # Reopen the new file and save it back again with a checksum
         with fits.open(self.temp('rescaled.fits')) as hdul:
-            hdul.writeto(self.temp('rescaled.fits'), clobber=True,
+            hdul.writeto(self.temp('rescaled2.fits'), clobber=True,
                          checksum=True)
 
         # Now do like in the first writeto but use checksum immediately
         with fits.open(self.data('scale.fits')) as hdul:
-            hdul.writeto(self.temp('rescaled2.fits'), checksum=True)
+            hdul.writeto(self.temp('rescaled3.fits'), checksum=True)
 
         # Also don't rescale the data but add a checksum
         with fits.open(self.data('scale.fits'),
@@ -113,8 +113,8 @@ class TestChecksumFunctions(FitsTestCase):
 
         # Must used nested with statements to support older Python versions
         # (but contextlib.nested is not available in newer Pythons :(
-        with fits.open(self.temp('rescaled.fits')) as hdul1:
-            with fits.open(self.temp('rescaled2.fits')) as hdul2:
+        with fits.open(self.temp('rescaled2.fits')) as hdul1:
+            with fits.open(self.temp('rescaled3.fits')) as hdul2:
                 with fits.open(self.temp('scaled.fits')) as hdul3:
                     hdr1 = hdul1[0].header
                     hdr2 = hdul2[0].header
