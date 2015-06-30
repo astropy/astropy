@@ -147,6 +147,11 @@ Bug Fixes
 
 - ``astropy.wcs``
 
+- Misc
+
+  - ``fitscheck`` no longer causes scaled image data to be rescaled when 
+    adding checksums to existing files. [#3884]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
