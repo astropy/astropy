@@ -757,3 +757,18 @@ def test_sip_tpv_agreement():
     assert_array_almost_equal(
         w_sip2.all_pix2world([w_sip.wcs.crpix], 1),
         w_tpv2.all_pix2world([w_tpv.wcs.crpix], 1))
+
+
+@pytest.mark.skipif('_wcs.__version__[0] < "5"',
+                    reason="TPV only works with wcslib 5.x or later")
+def test_tpv_copy():
+    # See #3904
+
+    tpv_header = get_pkg_data_contents(
+        os.path.join("data", "tpvonly.hdr"), encoding='binary')
+
+    w_tpv = wcs.WCS(tpv_header)
+
+    ra, dec = w_tpv.wcs_pix2world([0, 100, 200], [0, -100, 200], 0)
+    assert ra[0] != ra[1] and ra[1] != ra[2]
+    assert dec[0] != dec[1] and dec[1] != dec[2]
