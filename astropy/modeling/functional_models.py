@@ -719,7 +719,6 @@ class Voigt1D(Fittable1DModel):
         X = (x - x_0) * 2 * sqrt_ln2 / fwhm_G
         Y = fwhm_L * sqrt_ln2 / fwhm_G
         V = 0
-
         for i in range(4):
             V += (C[i] * (Y - A[i]) + D[i] * (X - B[i]))/(((Y - A[i]) ** 2 + (X - B[i]) ** 2))
 
@@ -730,7 +729,6 @@ class Voigt1D(Fittable1DModel):
 
         A, B, C, D = cls._abcd
         sqrt_ln2 = np.sqrt(np.log(2))
-
         X = (x - x_0) * 2 * sqrt_ln2 / fwhm_G
         X = np.atleast_1d(X)[:, np.newaxis]
         Y = fwhm_L * sqrt_ln2 / fwhm_G

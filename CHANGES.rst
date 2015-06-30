@@ -80,6 +80,8 @@ New Features
     - Added ``Sersic1D`` and ``Sersic2D`` model classes. [#3889]
     - Added ``Sersic1D`` and ``Sersic2D`` model classes. 
   - Added the Voigt profile to existing models. [#3901]
+    - Added ``Sersic1D`` and ``Sersic2D`` model classes. 
+  - Added the Voigt profile to existing models. [#3901]
 
 - ``astropy.nddata``
 
