@@ -4,15 +4,15 @@
 Astropy Testing helpers (`astropy.tests.helper`)
 ************************************************
 
-To easy development of tests that work with Astropy, the
+To ease development of tests that work with Astropy, the
 `astropy.tests.helper` module provides some utility functions to make
-test that use astropy conventions or classes easier to work with. E.g.,
+tests that use Astropy conventions or classes easier to work with. e.g.,
 functions to test for near-equality of `~astropy.units.Quantity` objects.
 
 The functionality here is not exhaustive, because much of the useful
 tools are either in the standard library, py.test, or
 `numpy.testing <http://docs.scipy.org/doc/numpy/reference/routines.testing.html>`_.
-This module contains primarily functionality specific to astropy or
+This module contains primarily functionality specific to Astropy or
 affiliated packages that follow the package template.
 
 Note that this module also includes the ``remote_data`` marker, which
@@ -27,6 +27,9 @@ It is intended to be used as::
         This test dowloads something from the intenet
         """
         # test code here ...
+
+This test will now only run if the test suite is invoked as
+``python setup.py test --remote-data``.
 
 
 Reference/API

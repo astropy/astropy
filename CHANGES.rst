@@ -174,7 +174,7 @@ New Features
 
   - Enhanced text representation of ``WCS`` objects. [#3604]
 
-- The `astropy.tests.helper` module is now part of the public API (and has a
+- The ``astropy.tests.helper`` module is now part of the public API (and has a
   documentation page).  This module was in previous releases of astropy,
   but was not considered part of the public API until now. [#3890]
 
