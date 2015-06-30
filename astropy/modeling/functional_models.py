@@ -678,7 +678,7 @@ class Ellipse2D(Fittable2DModel):
     b : float
         The length of the semiminor axis.
 
-    theta : float, optional
+    theta : float
         The rotation angle in radians of the semimajor axis.  The
         rotation angle increases counterclockwise from the positive x
         axis.
@@ -727,11 +727,11 @@ class Ellipse2D(Fittable2DModel):
         plt.show()
     """
 
-    amplitude = Parameter()
-    x_0 = Parameter()
-    y_0 = Parameter()
-    a = Parameter()
-    b = Parameter()
+    amplitude = Parameter(default=1)
+    x_0 = Parameter(default=0)
+    y_0 = Parameter(default=0)
+    a = Parameter(default=1)
+    b = Parameter(default=1)
     theta = Parameter(default=0)
 
     @staticmethod
