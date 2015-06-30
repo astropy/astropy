@@ -1,17 +1,24 @@
 BLACK = 0
 RED = 1
 
-class MaxValue(object):
-    def __gt__(self, other):
-        return True
-    def __lt__(self, other):
-        return False
+class Epsilon(object):
+    # Represents the "next largest" version of a given value,
+    # so for all valid comparisons we have
+    # x < y < Epsilon(y) < z wherever x < y < z and x, z are
+    # not Epsilon objects
 
-class MinValue(object):
+    def __init__(self, val):
+        self.val = val
+
     def __lt__(self, other):
-        return True
+        if self.val == other:
+            return False
+        return self.val < other
+
     def __gt__(self, other):
-        return False
+        if self.val == other:
+            return True
+        return self.val > other
 
 class Node(object):
     __lt__ = lambda x, y: x.key < y.key
@@ -144,7 +151,6 @@ class BST(object):
         elif order == 'postorder':
             return self._postorder(self.root, [])
         raise ValueError("Invalid traversal method: \"{0}\"".format(order))
-        ##TODO: find out why inorder is so slow
 
     def sort(self):
         return [x for node in self.traverse() for x in node.data]
@@ -411,15 +417,10 @@ class FastBase(object):
     def sort(self):
         return [x for node in self.traverse() for x in node.data]
 
-    def same_prefix(self, key, ncols):
-        n = len(key)
-        lower = tuple(key + (ncols - n) * [MinValue()])
-        upper = tuple(key + (ncols - n) * [MaxValue()])
-        return self.range(lower, upper)
-
     def range(self, lower, upper):
-        ##TODO: fix lower<=x<upper
-        l = [v for v in self.data.value_slice(lower, upper)]
+        # we need Epsilon(upper) since bintrees searches for
+        # lower <= key < upper, while we want lower <= key <= upper
+        l = [v for v in self.data.value_slice(lower, Epsilon(upper))]
         return [x for sublist in l for x in sublist]
 
     def replace_rows(self, row_map):

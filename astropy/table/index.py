@@ -29,6 +29,20 @@ c[1:2] -> deep copy and reordering of indices
 array.view(Column) -> no indices
 '''
 
+class MaxValue(object):
+    def __gt__(self, other):
+        return True
+
+    def __lt__(self, other):
+        return False
+
+class MinValue(object):
+    def __lt__(self, other):
+        return True
+
+    def __gt__(self, other):
+        return False
+
 class Index:
     def __init__(self, columns, impl=None):
         if impl is None:
@@ -114,25 +128,40 @@ class Index:
         if set(names[:len(query_names)]) != set(query_names):
             raise ValueError("Query columns must form a left prefix of "
                              "index columns")
-        query_names = names[:len(query_names)] # reorder query_names
+        # query_names is a prefix of index column names
+        query_names = names[:len(query_names)]
         for name in query_names[:-1]:
             if isinstance(col_map[name], tuple):
                 raise ValueError("Range queries are only valid on the "
                                  "last column of an index")
         base = [col_map[name] for name in query_names[:-1]]
-        if isinstance(col_map[query_names[-1]], tuple): # range query
-            lower = base + [col_map[query_names[-1]][0]]
-            upper = base + [col_map[query_names[-1]][1]]
-            return self.data.range(tuple(lower), tuple(upper))
+        last_col = query_names[-1]
+
+        if isinstance(col_map[last_col], tuple): # range query
+            lower = base + [col_map[last_col][0]]
+            upper = base + [col_map[last_col][1]]
+            if len(lower) == len(self.columns):
+                return self.data.range(tuple(lower), tuple(upper))
+            else:
+                return self.same_prefix_range(lower, upper)
         else:
             key = base + [col_map[query_names[-1]]]
-            ncols = len(self.columns)
-            if len(key) == ncols:
+            if len(key) == len(self.columns):
                 return self.data.find(tuple(key))
             else:
-                return self.data.same_prefix(key, ncols)
+                return self.same_prefix(key)
 
     def range(self, lower, upper):
+        return self.data.range(lower, upper)
+
+    def same_prefix(self, key):
+        return self.same_prefix_range(key, key)
+
+    def same_prefix_range(self, lower, upper):
+        n = len(lower)
+        ncols = len(self.columns)
+        lower = tuple(lower + (ncols - n) * [MinValue()])
+        upper = tuple(upper + (ncols - n) * [MaxValue()])
         return self.data.range(lower, upper)
 
     def replace(self, row, col, val):
