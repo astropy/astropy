@@ -869,13 +869,6 @@ class FITS_rec(np.recarray):
 
         return field
 
-    def _clone(self, shape):
-        """
-        Overload this to make mask array indexing work properly.
-        """
-
-        return self.copy()
-
     def _get_heap_data(self):
         """
         Returns a pointer into the table's raw data to its heap (if present).
