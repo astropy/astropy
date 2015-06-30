@@ -759,7 +759,7 @@ class Quantity(np.ndarray):
         if isinstance(other, (UnitBase, six.string_types)):
             return self._new_view(self.copy(), other * self.unit)
 
-        return np.multiply(self, other)
+        return super(Quantity, self).__mul__(other)
 
     def __imul__(self, other):
         """In-place multiplication between `Quantity` objects and others."""
@@ -768,7 +768,7 @@ class Quantity(np.ndarray):
             self._unit = other * self.unit
             return self
 
-        return np.multiply(self, other, self)
+        return super(Quantity, self).__imul__(other)
 
     def __rmul__(self, other):
         """ Right Multiplication between `Quantity` objects and other
@@ -777,42 +777,42 @@ class Quantity(np.ndarray):
 
         return self.__mul__(other)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """ Division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
             return self._new_view(self.copy(), self.unit / other)
 
-        return np.true_divide(self, other)
+        return super(Quantity, self).__truediv__(other)
 
-    def __idiv__(self, other):
+    def __itruediv__(self, other):
         """Inplace division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
             self._unit = self.unit / other
             return self
 
-        return np.true_divide(self, other, self)
+        return super(Quantity, self).__itruediv__(other)
 
-    def __rdiv__(self, other):
+    def __rtruediv__(self, other):
         """ Right Division between `Quantity` objects and other objects."""
 
         if isinstance(other, (UnitBase, six.string_types)):
             return self._new_view(1. / self.value, other / self.unit)
 
-        return np.divide(other, self)
+        return super(Quantity, self).__rtruediv__(other)
 
-    def __truediv__(self, other):
+    def __div__(self, other):
         """ Division between `Quantity` objects. """
-        return self.__div__(other)
+        return self.__truediv__(other)
 
-    def __itruediv__(self, other):
+    def __idiv__(self, other):
         """ Division between `Quantity` objects. """
-        return self.__idiv__(other)
+        return self.__itruediv__(other)
 
-    def __rtruediv__(self, other):
+    def __rdiv__(self, other):
         """ Division between `Quantity` objects. """
-        return self.__rdiv__(other)
+        return self.__rtruediv__(other)
 
     def __divmod__(self, other):
         other_value = self._to_own_unit(other)
