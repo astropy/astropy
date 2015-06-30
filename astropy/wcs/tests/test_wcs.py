@@ -18,6 +18,7 @@ from numpy.testing import (
 
 from ...tests.helper import raises, catch_warnings, pytest
 from ... import wcs
+from .. import _wcs
 from ...utils.data import (
     get_pkg_data_filenames, get_pkg_data_contents, get_pkg_data_filename)
 from ...utils.misc import NumpyRNGContext
@@ -729,6 +730,8 @@ def test_no_iteration():
     assert exc.value.args[0] == "'NewWCS' object is not iterable"
 
 
+@pytest.mark.skipif('_wcs.__version__[0] < "5"',
+                    reason="TPV only works with wcslib 5.x or later")
 def test_sip_tpv_agreement():
     sip_header = get_pkg_data_contents(
         os.path.join("data", "siponly.hdr"), encoding='binary')
