@@ -22,6 +22,12 @@ import tempfile
 import types
 import warnings
 
+__all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
+           'treat_deprecations_as_exceptions', 'catch_warnings',
+           'assert_follows_unicode_guidelines', 'quantity_allclose',
+           'assert_quantity_allclose', 'check_pickling_recovery',
+           'pickle_protocol', 'generic_recursive_equality_test']
+
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
     # imported from within py.test.  See
@@ -471,7 +477,7 @@ class catch_warnings(warnings.catch_warnings):
     This completely blitzes any memory of any warnings that have
     appeared before so that all warnings will be caught and displayed.
 
-    *args is a set of warning classes to collect.  If no arguments are
+    ``*args`` is a set of warning classes to collect.  If no arguments are
     provided, all warnings are collected.
 
     Use as follows::

@@ -61,6 +61,9 @@ check_sphinx_version("1.2.1")
 # own build so we remove it here.
 del intersphinx_mapping['astropy']
 
+# add any custom intersphinx for astropy
+intersphinx_mapping['pytest'] = ('http://pytest.org/latest/', None)
+
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns.append('_templates')
