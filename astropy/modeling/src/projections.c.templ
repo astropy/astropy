@@ -52,7 +52,7 @@ static PyObject *do_work(struct prjprm *prj, PyObject *in[2],
      we should broadcast */
 
   for (i = 0; i < 2; ++i) {
-    in_array[i] = PyArray_FromObject(in[i], PyArray_DOUBLE, 1, NPY_MAXDIMS);
+    in_array[i] = PyArray_ContiguousFromObject(in[i], PyArray_DOUBLE, 1, NPY_MAXDIMS);
     if (in_array[i] == NULL) {
       goto exit;
     }
@@ -86,9 +86,7 @@ static PyObject *do_work(struct prjprm *prj, PyObject *in[2],
     goto exit;
   }
 
-  if ((status = prjtrn(prj, n, n,
-                       PyArray_STRIDE(in_array[0], PyArray_NDIM(in_array[0]) - 1),
-                       PyArray_STRIDE(in_array[1], PyArray_NDIM(in_array[1]) - 1),
+  if ((status = prjtrn(prj, n, 1, 1, 1,
                        (double *)PyArray_DATA(in_array[0]),
                        (double *)PyArray_DATA(in_array[1]),
                        (double *)PyArray_DATA(out_array[0]),
