@@ -12,17 +12,6 @@ enable_deprecations_as_exceptions()
 import os
 from astropy.tests.helper import pytest
 
-
-def pytest_addoption(parser):
-    parser.addoption('--generate-images-path', help="directory to generate reference images in", action='store')
-    return astropy_pytest_addoption(parser)
-
-
-@pytest.fixture
-def generate(request):
-    return request.config.getoption("--generate-images-path")
-
-
 # Uncomment and customize the following lines to add/remove entries
 # from the list of packages for which version numbers are displayed
 # when running the tests
