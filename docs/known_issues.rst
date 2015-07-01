@@ -183,6 +183,27 @@ but only when running in the IPython console.  Colors are not currently
 supported in the basic Python command-line interpreter on Windows.
 
 
+Pickling error on compound models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When calling `pickle.dumps` on a :ref:`compound model <compound-models>`, it
+is possible to get an exception with a `pickle.PickleError` or, depending on
+the Python version or whether the `cPickle` module was being used, an
+`AttributeError` like::
+
+    AttributeError: 'module' object has no attribute 'CompoundModel0'
+
+as originally reported in issue
+`#3867 <https://github.com/astropy/astropy/pull/3867>`_.  You may also get a
+`RuntimeError` that directed you to this documentation.
+
+This is due to a bug in Python versions older than 2.7.3 (see
+http://bugs.python.org/issue7689) that is very difficult to work around when
+trying to pickle compound models.  If the need is dire it may be possible
+to work around by using a patched copy of the `pickle` module (i.e.
+backporting a copy of the Python `pickle` module from newer Python versions
+and using it instead of the copy built-in to your Python).
+
 
 Build/installation/test issues
 ------------------------------
