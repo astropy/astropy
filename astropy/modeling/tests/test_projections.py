@@ -183,3 +183,20 @@ def test_AffineTransformation2D_inverse():
     x_new, y_new = model2.inverse(*model2(x, y))
 
     utils.assert_allclose([x, y], [x_new, y_new], atol=1e-10)
+
+
+def test_c_projection_striding():
+    # This is just a simple test to make sure that the striding is
+    # handled correctly in the projection C extension
+    coords = np.arange(10).reshape((5, 2))
+
+    model = projections.Sky2Pix_ZenithalPerspective(2, 30)
+
+    phi, theta = model(coords[:, 0], coords[:, 1])
+
+    utils.assert_allclose(
+        phi,
+        [0., 2.31188456, 4.62283148, 6.9319002, 9.23814431])
+    utils.assert_allclose(
+        theta,
+        [-76.48169176, -76.44546157, -76.33675621, -76.15553145, -75.90171376])
