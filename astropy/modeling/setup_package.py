@@ -8,10 +8,10 @@ from distutils.core import Extension
 from distutils import log
 
 from astropy.extern import six
-from astropy_helpers import setup_helpers
+from astropy_helpers import setup_helpers, utils
 from astropy_helpers.version_helpers import get_pkg_version_module
 
-from astropy.wcs import setup_package as wcs_setup_package
+wcs_setup_package = utils.import_file(join('astropy', 'wcs', 'setup_package.py'))
 
 
 MODELING_ROOT = os.path.relpath(os.path.dirname(__file__))
