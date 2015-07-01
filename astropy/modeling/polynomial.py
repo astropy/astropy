@@ -58,9 +58,7 @@ class PolynomialBase(FittableModel):
 
     def __getattr__(self, attr):
         if self._param_names and attr in self._param_names:
-            param = Parameter(attr, default=0.0)
-            param._bind(self)
-            return param
+            return Parameter(attr, default=0.0, model=self)
 
         raise AttributeError(attr)
 
@@ -73,8 +71,7 @@ class PolynomialBase(FittableModel):
         # Parameter.__set__.
         # TODO: I wonder if there might be a way around that though...
         if attr[0] != '_' and self._param_names and attr in self._param_names:
-            param = Parameter(attr, default=0.0)
-            param._bind(self)
+            param = Parameter(attr, default=0.0, model=self)
             # This is a little hackish, but we can actually reuse the
             # Parameter.__set__ method here
             param.__set__(self, value)

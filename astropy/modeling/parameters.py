@@ -104,6 +104,11 @@ class Parameter(object):
     bounds : tuple
         specify min and max as a single tuple--bounds may not be specified
         simultaneously with min or max
+    model : `Model` instance
+        binds the the `Parameter` instance to a specific model upon
+        instantiation; this should only be used internally for creating bound
+        Parameters, and should not be used for `Parameter` descriptors defined
+        as class attributes
     """
 
     constraints = ('fixed', 'tied', 'bounds')
@@ -118,7 +123,7 @@ class Parameter(object):
 
     def __init__(self, name='', description='', default=None, getter=None,
                  setter=None, fixed=False, tied=False, min=None, max=None,
-                 bounds=None):
+                 bounds=None, model=None):
         super(Parameter, self).__init__()
 
         self._name = name
@@ -141,6 +146,7 @@ class Parameter(object):
         self._bounds = bounds
 
         self._order = None
+        self._model = None
 
         # The getter/setter functions take one or two arguments: The first
         # argument is always the value itself (either the value returned or the
@@ -152,13 +158,18 @@ class Parameter(object):
 
         # Only Parameters declared as class-level descriptors require
         # and ordering ID
-        self._order = self._get_nextid()
-        self._model = None
+        if model is None:
+            self._order = self._get_nextid()
+        else:
+            self._bind(model)
 
     def __get__(self, obj, objtype):
         if obj is None:
             return self
 
+        # All of the Parameter.__init__ work should already have been done for
+        # the class-level descriptor; we can skip that stuff and just copy the
+        # existing __dict__ and then bind to the model instance
         parameter = self.__class__.__new__(self.__class__)
         parameter.__dict__.update(self.__dict__)
         parameter._bind(obj)
