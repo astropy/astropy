@@ -24,44 +24,28 @@ static void set_error(int status) {
     break;
   default:
     PyErr_SetString(PyExc_RuntimeError, "Unknown error");
-    break
+    break;
   }
 }
 
 
-{% for name, nargs in projections.items() %}
-{% for dir in ['x2s', 's2x'] %}
-static PyObject*
-Py_{{ name }}{{ dir }}(PyObject* __, PyObject* args, PyObject* kwds)
+static PyObject *do_work(struct prjprm *prj, PyObject *in[2],
+                         int (*prjset)(struct prjprm *),
+                         int (*prjtrn)(struct prjprm *, int, int, int, int, const double[], const double[], double[], double[], int[]))
 {
-  PyObject* in[2] = { NULL, NULL };
   PyObject* in_array[2] = { NULL, NULL };
   PyObject* out_array[2] = { NULL, NULL };
   PyObject* stat_array = NULL;
   Py_ssize_t n;
   Py_ssize_t i;
   PyObject* result = NULL;
-
-  struct prjprm prj;
-
   int status = -1;
 
-  memset(&prj, 0, sizeof(struct prjprm));
-  prj.phi0 = UNDEFINED;
-  prj.theta0 = UNDEFINED;
+  prj->phi0 = UNDEFINED;
+  prj->theta0 = UNDEFINED;
 
-  if (!PyArg_ParseTuple(args,
-                        "OO"
-                        {% for i in range(nargs) %}"d" {% endfor %}
-                        ":{{ name }}x2s",
-                        &in[0], &in[1]
-                        {% for i in range(nargs) %}
-                        {% if loop.first %},{% endif %}
-                        &prj.pv[{{i}} + 1]
-                        {% if not loop.last %},{% endif %}
-                        {% endfor %}
-                        )) {
-    return NULL;
+  if ((status = prjset(prj))) {
+    goto exit;
   }
 
   /* TODO: This assumes the same shape for the input arrays.  Instead,
@@ -102,11 +86,7 @@ Py_{{ name }}{{ dir }}(PyObject* __, PyObject* args, PyObject* kwds)
     goto exit;
   }
 
-  if ((status = {{ name }}set(&prj))) {
-    goto exit;
-  }
-
-  if ((status = {{ name }}{{ dir }}(&prj, n, n,
+  if ((status = prjtrn(prj, n, n,
                        PyArray_STRIDE(in_array[0], PyArray_NDIM(in_array[0]) - 1),
                        PyArray_STRIDE(in_array[1], PyArray_NDIM(in_array[1]) - 1),
                        (double *)PyArray_DATA(in_array[0]),
@@ -141,6 +121,35 @@ Py_{{ name }}{{ dir }}(PyObject* __, PyObject* args, PyObject* kwds)
   Py_XDECREF(stat_array);
 
   return result;
+}
+
+
+{% for name, nargs in projections.items() %}
+{% for dir in ['x2s', 's2x'] %}
+static PyObject*
+Py_{{ name }}{{ dir }}(PyObject* __, PyObject* args, PyObject* kwds)
+{
+  PyObject* in[2] = { NULL, NULL };
+
+  struct prjprm prj;
+
+  memset(&prj, 0, sizeof(struct prjprm));
+
+  if (!PyArg_ParseTuple(args,
+                        "OO"
+                        {% for i in range(nargs) %}"d" {% endfor %}
+                        ":{{ name }}x2s",
+                        &in[0], &in[1]
+                        {% for i in range(nargs) %}
+                        {% if loop.first %},{% endif %}
+                        &prj.pv[{{i}} + 1]
+                        {% if not loop.last %},{% endif %}
+                        {% endfor %}
+                        )) {
+    return NULL;
+  }
+
+  return do_work(&prj, in, {{ name }}set, {{ name }}{{ dir }});
 }
 
 {% endfor %}
