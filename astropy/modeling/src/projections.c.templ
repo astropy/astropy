@@ -6,7 +6,14 @@
 #include "wcsmath.h"
 
 
-{% for name, nargs in projections.iteritems() %}
+#if PY_MAJOR_VERSION >= 3
+#define PY3K 1
+#else
+#define PY3K 0
+#endif
+
+
+{% for name, nargs in projections.items() %}
 static PyObject*
 Py_{{ name }}x2s(PyObject* __, PyObject* args, PyObject* kwds)
 {
@@ -215,7 +222,7 @@ Py_{{ name }}s2x(PyObject* __, PyObject* args, PyObject* kwds)
  ***************************************************************************/
 
 static PyMethodDef module_methods[] = {
-  {% for name in projections.iterkeys() %}
+  {% for name in projections.keys() %}
   {"{{ name }}x2s", (PyCFunction)Py_{{ name }}x2s, METH_VARARGS, NULL},
   {"{{ name }}s2x", (PyCFunction)Py_{{ name }}s2x, METH_VARARGS, NULL},
   {% endfor %}

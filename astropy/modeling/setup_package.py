@@ -3,7 +3,6 @@ from __future__ import absolute_import
 
 import os
 from os.path import join
-import sys
 
 from distutils.core import Extension
 from distutils import log
@@ -12,7 +11,7 @@ from astropy.extern import six
 from astropy_helpers import setup_helpers
 from astropy_helpers.version_helpers import get_pkg_version_module
 
-from ..wcs import setup_package as wcs_setup_package
+from astropy.wcs import setup_package as wcs_setup_package
 
 
 MODELING_ROOT = os.path.relpath(os.path.dirname(__file__))
@@ -94,7 +93,7 @@ def preprocess_source():
     c_in = env.get_template('projections.c.templ')
     c_out = c_in.render(projections=projections)
 
-    with open(join(MODELING_SRC, 'projections.c'), 'wb') as fd:
+    with open(join(MODELING_SRC, 'projections.c'), 'w') as fd:
         fd.write(c_out)
 
 
