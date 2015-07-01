@@ -54,6 +54,15 @@ def_unit(['cycle', 'cy'], 2.0 * _numpy.pi * si.rad,
 def_unit(['solMass', 'M_sun', 'Msun'], _si.M_sun.value * si.kg, namespace=_ns,
          prefixes=True, doc="Solar mass",
          format={'latex': r'M_{\odot}', 'unicode': 'M⊙'})
+def_unit(['jupiterMass', 'M_jup', 'Mjup','M_jupiter', 'Mjupiter'],
+         _si.M_jup.value * si.kg, namespace=_ns,
+         prefixes=True, doc="Jupiter mass",
+         # LaTeX jupiter symbol requires wasysym
+         format={'latex': r'M_{Jup}', 'unicode': 'M♃'})
+def_unit(['earthMass', 'M_earth', 'Mearth'], _si.M_earth.value * si.kg, namespace=_ns,
+         prefixes=True, doc="Earth mass",
+         # LaTeX earth symbol requires wasysym
+         format={'latex': r'M_{\oplus}', 'unicode': 'M'})
 def_unit(['M_p'], _si.m_p.value * si.kg, namespace=_ns,
          doc="Proton mass",
          format={'latex': r'M_{p}', 'unicode': 'Mₚ'})
@@ -64,7 +73,6 @@ def_unit(['M_e'], _si.m_e.value * si.kg, namespace=_ns,
 def_unit(['u', 'Da', 'Dalton'], 1.6605387e-27 * si.kg, namespace=_ns,
          prefixes=True, exclude_prefixes=['a', 'da'],
          doc="Unified atomic mass unit")
-
 
 ##########################################################################
 # ENERGY
