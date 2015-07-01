@@ -827,8 +827,8 @@ class Column(BaseColumn):
         else:
             keys = [index]
             value = [value]
-        for key in keys:
-            for col_index, val in zip(self.indices, value):
+        for key, val in zip(keys, value):
+            for col_index in self.indices:
                 col_index.replace(key, self, val)
 
     def insert(self, obj, values):

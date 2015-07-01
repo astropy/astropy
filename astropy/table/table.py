@@ -2073,7 +2073,6 @@ class Table(object):
                    Jo  Miller  15
                   Max  Miller  12
         '''
-        ##TODO: use indices to do this if possible, update indices regardless
         if type(keys) is not list:
             keys = [keys]
 

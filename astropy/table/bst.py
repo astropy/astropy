@@ -430,6 +430,9 @@ class FastBase(object):
     def __str__(self):
         return str(self.data)
 
+    def __repr__(self):
+        return str(self)
+
 try:
     # bintrees is an optional dependency
     from bintrees import FastBinaryTree, FastRBTree
