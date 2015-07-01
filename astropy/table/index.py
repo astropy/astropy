@@ -14,7 +14,6 @@ remove(key, data=None) -> boolean : remove data from self[key], or all of
                                     self[key] if data is None
 reorder(row) -> None : decrement row numbers after row
 find(key) -> list : list of rows corresponding to key
-same_prefix(key, ncols) -> list : rows in self[k] where k[:ncols]==key
 range(lower, upper) -> list : rows in self[k] where lower<=k<=upper
 sort() -> list of rows in sorted order (by key)
 replace_rows(row_map) -> None : replace row numbers based on slice

@@ -84,7 +84,7 @@ class TestIndex(SetupData):
         # range on both columns
         assert t.where('[b] = {0} and [a] in ({1}, {2})', 4.0, 3, 5) == [6]
 
-    def test_slicing(self, table_types):
+    def test_table_slicing(self, table_types):
         self._setup(table_types)
         t = self.t
         t.add_index('a')
@@ -121,11 +121,33 @@ class TestIndex(SetupData):
         with pytest.raises(ValueError):
             t.remove_rows((0, 2, 4))
 
-    def test_set_slice(self, table_types):
+    def test_col_slicing(self, table_types):
         self._setup(table_types)
         t = self.t
         t.add_index('a')
 
+        # get slice
+        t2 = t[1:3] # table slice
+        assert np.all(t2['a'].data == np.array([2, 3]))
+        assert np.all(t2.indices[0].sorted_data() == [0, 1])
+        col_slice = t['a'][1:3] # column slice
+        assert np.all(col_slice == [2, 3])
+        assert np.all(col_slice.indices[0].sorted_data() == [0, 1])
+
+        # set slice
         t['a'][1:3] = np.array([6, 7])
         assert np.all(t['a'].data == np.array([1, 6, 7, 4, 5]))
         assert np.all(t.indices[0].sorted_data() == [0, 3, 4, 1, 2])
+
+    def test_sort(self, table_types):
+        self._setup(table_types)
+        t = self.t[::-1] # reverse table
+        assert np.all(t['a'].data == [5, 4, 3, 2, 1])
+        t.add_index('a')
+        assert np.all(t.indices[0].sorted_data() == [4, 3, 2, 1, 0])
+
+        # sort table by column a
+        t.sort('a')
+        assert np.all(t['a'].data == [1, 2, 3, 4, 5])
+        assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+
