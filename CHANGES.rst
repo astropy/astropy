@@ -161,7 +161,9 @@ New Features
 
     The minimum required version of wcslib in the 4.x series remains 4.24.
 
-    The minimum required version of wcslib in the 5.x series is 5.8.pre.
+    The minimum required version of wcslib in the 5.x series is
+    5.8.pre.  Building astropy against a wcslib 5.x prior to 5.8.pre
+    will raise an ``ImportError`` when ``astropy.wcs`` is imported.
 
     The wcslib changes relevant to astropy are:
 

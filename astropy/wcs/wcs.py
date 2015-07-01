@@ -58,7 +58,8 @@ if _wcs is not None:
     if int(_parsed_version[0]) == 5 and int(_parsed_version[1]) < 8:
         raise ImportError(
             "astropy.wcs is built with wcslib {0}, but only versions 5.8 and "
-            "later on the 5.x series are known to work.")
+            "later on the 5.x series are known to work.  The version of wcslib "
+            "that ships with astropy may be used.")
 
 from ..utils import deprecated, deprecated_attribute
 from ..utils.compat import possible_filename
