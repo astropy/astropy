@@ -62,7 +62,7 @@ def_unit(['jupiterMass', 'M_jup', 'Mjup','M_jupiter', 'Mjupiter'],
 def_unit(['earthMass', 'M_earth', 'Mearth'], _si.M_earth.value * si.kg, namespace=_ns,
          prefixes=True, doc="Earth mass",
          # LaTeX earth symbol requires wasysym
-         format={'latex': r'M_{\oplus}', 'unicode': 'M'})
+         format={'latex': r'M_{\oplus}', 'unicode': 'M⊕'})
 def_unit(['M_p'], _si.m_p.value * si.kg, namespace=_ns,
          doc="Proton mass",
          format={'latex': r'M_{p}', 'unicode': 'Mₚ'})
