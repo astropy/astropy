@@ -31,15 +31,18 @@ import numpy as np
 from ..utils import indent, isiterable, isinstancemethod, metadata
 from ..extern import six
 from ..table import Table
+from ..units import (Quantity, UnitBase, UnitConversionError,
+                     dimensionless_unscaled)
+from ..units.quantity import _can_have_arbitrary_unit
 from ..utils import (deprecated, sharedmethod, find_current_module,
                      InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
 from ..utils.exceptions import AstropyDeprecationWarning
-from .utils import (array_repr_oneline, check_broadcast, combine_labels,
+from .utils import (check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
-                    IncompatibleShapeError, AliasDict)
+                    IncompatibleShapeError, AliasDict, format_unit_with_type)
 
-from .parameters import Parameter, InputParameterError
+from .parameters import Parameter, InputParameterError, param_repr_oneline
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
@@ -87,9 +90,16 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         mcls._create_inverse_property(members)
         mcls._handle_backwards_compat(name, members)
 
+        # Prevent callable values for input_units or output_units from being
+        # treated as a method
+        for attr in ('input_units', 'output_units'):
+            if attr in members and callable(members[attr]):
+                members[attr] = staticmethod(members[attr])
+
         cls = super(_ModelMeta, mcls).__new__(mcls, name, bases, members)
 
         mcls._handle_special_methods(members, cls, parameters)
+        mcls._check_unit_specs(cls, members)
 
         if not inspect.isabstract(cls) and not name.startswith('_'):
             mcls.registry.add(cls)
@@ -217,7 +227,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         if param_names and isiterable(param_names):
             for param_name in param_names:
                 if param_name not in parameters:
-                    raise RuntimeError(
+                    raise ModelDefinitionError(
                         "Parameter {0!r} listed in {1}.param_names was not "
                         "declared in the class body.".format(param_name, name))
         else:
@@ -227,6 +237,47 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             members['param_names'] = param_names
             members['_param_orders'] = \
                     dict((name, idx) for idx, name in enumerate(param_names))
+
+    @staticmethod
+    def _check_unit_specs(cls, members):
+        """
+        Validates the input_units and output_units attributes.
+        """
+
+        unit_attrs = []
+
+        for var_type in ('input', 'output'):
+            attr_name = var_type + '_units'
+
+            if not (attr_name in members and members[attr_name] is not None):
+                # Attribute not defined, or was defined on a base class, so we
+                # don't need to check it again (I don't think?)
+                continue
+
+            attr = getattr(cls, attr_name)
+
+            # TODO: Validate the types of the items in the tuples as well
+            def validate_unit_spec(unit_spec):
+                if isinstance(unit_spec, UnitBase):
+                    # If any of the input_units or output_units are specific,
+                    # concrete units this implies that units are *always*
+                    # required for this model, so we implicitly force
+                    # _using_quantities
+                    cls._using_quantities = True
+
+            if isinstance(attr, tuple):
+                n_vars = getattr(cls, 'n_{0}s'.format(var_type))
+                if len(attr) != n_vars:
+                    raise ModelDefinitionError(
+                        'If defined, the {0}.{1} attribute may be a tuple of '
+                        'length equal to the number of {2}s from this model '
+                        '({3}), or a single rule applying to all {2}s.'.format(
+                            cls.__name__, attr_name, var_type, n_vars))
+
+                for unit_spec in attr:
+                    validate_unit_spec(unit_spec)
+            else:
+                validate_unit_spec(attr)
 
     @staticmethod
     def _create_inverse_property(members):
@@ -317,11 +368,16 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             # If *all* the parameters have default values we can make them
             # keyword arguments; otherwise they must all be positional
             # arguments
+            kwargs = []
             if all(p.default is not None
                    for p in six.itervalues(parameters)):
                 args = ('self',)
-                kwargs = [(name, parameters[name].default)
-                          for name in cls.param_names]
+                for param_name in cls.param_names:
+                    default = parameters[param_name].default
+                    unit = parameters[param_name].unit
+                    if unit is not None:
+                        default = Quantity(default, unit, copy=False)
+                    kwargs.append((param_name, default))
             else:
                 args = ('self',) + cls.param_names
                 kwargs = {}
@@ -524,6 +580,55 @@ class Model(object):
     outputs = ()
     """The name(s) of the output(s) of the model."""
 
+    input_units = None
+    """
+    This attribute specifies what units should be attached to a model's inputs.
+    This can be defined in several ways:
+
+        1. If this attribute is a `~astropy.units.Unit`, the input is
+           required to be in that unit or a compatible unit (up to any
+           active equivalencies).
+
+        2. If this attribute is a string, it must be the name of one of the
+           model's parameters, or one of the model's other inputs.  In this
+           case the input units are checked against the units of that parameter
+           or input.  The same semantics as in case 1. are then applied.  For
+           example ``input_units = 'mean'`` implies that the units of the input
+           should be the same as the units of the "mean" parameter.
+
+        3. This attribute may also be a callable (i.e. a function).  It may
+           take arguments with the same names as any of the model's inputs
+           and/or parameters just as in case 2.  The corresponding parameter
+           and/or input quantities are passed in to this functionas arguments.
+           The function must return a `~astropy.units.Unit`, against which
+           the input is checked.  For example,
+           ``lambda slope, intercept: intercept.unit / slope.unit`` implies
+           that the input's unit must be equivalent to the intercept's unit
+           over the slope's unit, so that ``x.unit * intercept.unit ==
+           slope.unit``.
+
+    For models with more than one input, this attribute may be a tuple with
+    one entry per input.  The above rules are then applied on a per-input
+    basis.  Otherwise the same rule is applied over all inputs.
+    """
+
+    output_units = None
+    """
+    This attribute specifies what units should be attached to a model's output
+    when being evaluated on inputs with units.  It takes the same values as
+    `~astropy.modeling.Model.input_units`, but has different semantics.
+    Whereas the ``input_units`` merely checks that an input has compatible
+    units with the specification, ``output_units`` always coverts an output to
+    the unit given by this specification.
+
+    Specifying an ``output_units`` is not necessary, but is often a useful way
+    to specify what units a model should be converted to (for example by
+    outputting in the same units as the model's "amplitude" parameter) rather
+    than leaving users to manually perform unit conversion.  Otherwise the
+    exact output units may not be guaranteed, depending on what units the
+    inputs and parameters were converted to for efficient evaluation.
+    """
+
     standard_broadcasting = True
     fittable = False
     linear = True
@@ -541,6 +646,11 @@ class Model(object):
     # Default n_models attribute, so that __len__ is still defined even when a
     # model hasn't completed initialization yet
     _n_models = 1
+
+    # Flag indicating whether units should be considered when evaluating this
+    # model.  This is enabled only if any of the model's parameters or inputs
+    # have units, or if the outputs are forced to have a unit
+    _using_quantities = False
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__()
@@ -571,15 +681,32 @@ class Model(object):
         that were specified when the model was instantiated.
         """
 
+        # The parallel to _prepare_output_units, though this one of course has
+        # no knowledge of the outputs
+        inputs, using_quantities = self._prepare_input_units(inputs)
+
         inputs, format_info = self.prepare_inputs(*inputs, **kwargs)
-        parameters = self._param_sets(raw=True)
+        parameters = self._param_sets(raw=True, units=True)
 
         outputs = self.evaluate(*chain(inputs, parameters))
 
         if self.n_outputs == 1:
             outputs = (outputs,)
 
-        return self.prepare_outputs(format_info, *outputs, **kwargs)
+        outputs = self.prepare_outputs(format_info, *outputs, **kwargs)
+
+        # One might think this should go in prepare_outputs, except that
+        # for now we also allow the inputs to be factored into determing the
+        # output units, so we would have to change the signature for
+        # prepare_outputs to allow that.  So maybe having it here is fine for
+        # now.
+        if using_quantities:
+            outputs = self._prepare_output_units(inputs, outputs)
+
+        if self.n_outputs == 1:
+            return outputs[0]
+        else:
+            return outputs
 
     # *** Arithmetic operators for creating compound models ***
     __add__ =     _model_oper('+')
@@ -993,6 +1120,9 @@ class Model(object):
                 "given)".format(self.__class__.__name__, len(self.param_names),
                                 len(args)))
 
+        self._model_set_axis = model_set_axis
+        self._param_metrics = param_metrics = defaultdict(dict)
+
         for idx, arg in enumerate(args):
             if arg is None:
                 # A value of None implies using the default value, if exists
@@ -1010,7 +1140,8 @@ class Model(object):
                 value = kwargs.pop(param_name)
                 if value is None:
                     continue
-                params[param_name] = np.asanyarray(value, dtype=np.float)
+                else:
+                   params[param_name] = np.asanyarray(value, dtype=np.float)
 
         if kwargs:
             # If any keyword arguments were left over at this point they are
@@ -1021,9 +1152,6 @@ class Model(object):
                 raise TypeError(
                     '{0}.__init__() got an unrecognized parameter '
                     '{1!r}'.format(self.__class__.__name__, kwarg))
-
-        self._model_set_axis = model_set_axis
-        self._param_metrics = defaultdict(dict)
 
         # Determine the number of model sets: If the model_set_axis is
         # None then there is just one parameter set; otherwise it is determined
@@ -1076,20 +1204,27 @@ class Model(object):
         total_size = 0
 
         for name in self.param_names:
+            param_descr = getattr(self, name)
+
             if params.get(name) is None:
-                default = getattr(self, name).default
+                default = param_descr.default
 
                 if default is None:
                     # No value was supplied for the parameter, and the
-                    # parameter does not have a default--therefor the model is
+                    # parameter does not have a default--therefore the model is
                     # underspecified
                     raise TypeError(
                         "{0}.__init__() requires a value for parameter "
                         "{1!r}".format(self.__class__.__name__, name))
 
                 value = params[name] = default
+                unit = param_descr.unit
             else:
                 value = params[name]
+                if isinstance(value, Quantity):
+                    unit = value.unit
+                else:
+                    unit = None
 
             param_size = np.size(value)
             param_shape = np.shape(value)
@@ -1098,6 +1233,28 @@ class Model(object):
 
             param_metrics[name]['slice'] = param_slice
             param_metrics[name]['shape'] = param_shape
+
+            if unit is None:
+                if param_descr.unit is not None:
+                    raise InputParameterError(
+                        "{0}.__init__() requires a Quantity with units "
+                        "equivalent to {1!r} for parameter {2!r}".format(
+                            self.__class__.__name__, param_descr.unit, name))
+            else:
+                if (param_descr.unit is not None and
+                        not unit.is_equivalent(param_descr.unit)):
+                    raise InputParameterError(
+                        "{0}.__init__() requires parameter {1!r} to be in "
+                        "units equivalent to {2!r} (got {3!r})".format(
+                            self.__class__.__name__, name, param_descr.unit,
+                            unit))
+
+                # A flag, for convenience, to track whether quantities were
+                # used in instantiating this model
+                self._using_quantities = True
+
+            param_metrics[name]['orig_unit'] = unit
+
             total_size += param_size
 
         self._param_metrics = param_metrics
@@ -1105,6 +1262,10 @@ class Model(object):
         # Now set the parameter values (this will also fill
         # self._parameters)
         for name, value in params.items():
+            # TODO: Going through setattr does a lot of things redundantly when
+            # initializing a model for the first time.  For example, it
+            # re-checks all the parameter shapes and units for consistency.  We
+            # should see if there isn't a way to refactor this
             setattr(self, name, value)
 
     def _check_param_broadcast(self, params, max_ndim):
@@ -1176,7 +1337,7 @@ class Model(object):
                 "to the broadcasting rules.".format(param_a, shape_a,
                                                     param_b, shape_b))
 
-    def _param_sets(self, raw=False):
+    def _param_sets(self, raw=False, units=False):
         """
         Implementation of the Model.param_sets property.
 
@@ -1192,26 +1353,33 @@ class Model(object):
 
         param_metrics = self._param_metrics
         values = []
+        shapes = []
         for name in self.param_names:
+            param = getattr(self, name)
+
             if raw:
-                value = getattr(self, name)._raw_value
+                value = param._raw_value
             else:
-                value = getattr(self, name).value
+                value = param.value
 
             broadcast_shape = param_metrics[name].get('broadcast_shape')
             if broadcast_shape is not None:
                 value = value.reshape(broadcast_shape)
 
+            shapes.append(np.shape(value))
+
+            if len(self) == 1:
+                # Add a single param set axis to the parameter's value (thus
+                # converting scalars to shape (1,) array values) for
+                # consistenc
+                value = np.array([value])
+
+            if units and param.unit is not None:
+                value = Quantity(value, param.unit)
+
             values.append(value)
 
-        shapes = [np.shape(value) for value in values]
-
-        if len(self) == 1:
-            # Add a single param set axis to the parameter's value (thus
-            # converting scalars to shape (1,) array values) for consistency
-            values = [np.array([value]) for value in values]
-
-        if len(set(shapes)) != 1:
+        if len(set(shapes)) != 1 or units:
             # If the parameters are not all the same shape, converting to an
             # array is going to produce an object array
             # However the way Numpy creates object arrays is tricky in that it
@@ -1224,7 +1392,113 @@ class Model(object):
             psets[:] = values
             return psets
 
+        # TODO: Returning an array from this method may be entirely pointless
+        # for internal use--perhaps only the external param_sets method should
+        # return an array (and just for backwards compat--I would prefer to
+        # maybe deprecate that method)
+
         return np.array(values)
+
+    def _prepare_input_units(self, inputs):
+        using_quantities = self._using_quantities
+        using_quantities |= any(isinstance(input_, Quantity)
+                                for input_ in inputs)
+
+        if using_quantities:
+            inputs = self._prepare_variable_units(inputs)
+
+        return inputs, using_quantities
+
+    def _prepare_output_units(self, inputs, outputs):
+        if not self._using_quantities:
+            return outputs
+        else:
+            return self._prepare_variable_units(inputs, outputs)
+
+    def _prepare_variable_units(self, inputs, outputs=None):
+        if outputs is None:
+            unit_specs = self.input_units
+            var_names = self.inputs
+            n_vars = self.n_inputs
+            vars_ = inputs
+        else:
+            unit_specs = self.output_units
+            var_names = self.outputs
+            n_vars = self.n_outputs
+            vars_ = outputs
+
+        if unit_specs is None:
+            unit_specs = (None,) * n_vars
+        elif not isinstance(unit_specs, tuple):
+            unit_specs = (unit_specs,) * n_vars
+
+        def to_unit(value, unit_spec):
+            # Go from an element in the output_units attributes to an actual
+            # Unit object
+            if isinstance(unit_spec, UnitBase):
+                return unit_spec
+            elif isinstance(unit_spec, six.string_types):
+                # Take the unit from one of the parameter's or input's units
+                if unit_spec in self.inputs:
+                    input_ = inputs[self.inputs.index(unit_spec)]
+                    if (not isinstance(input_, Quantity) and
+                            _can_have_arbitrary_unit(input_)):
+                        # This will allow trivial conversion
+                        return value.unit
+                    else:
+                        return input_
+                else:
+                    return getattr(self, unit_spec).unit
+            else:
+                # TODO: Move the call to _analyze_unit_converter to the
+                # validation code in the metaclass, rather than doing that
+                # on every call
+                # Must be a callable
+                unit_spec = _analyze_unit_converter(self, inputs, unit_spec)
+                return unit_spec(self, inputs)
+
+        converted = []
+
+        for var, var_name, unit_spec in zip(vars_, var_names, unit_specs):
+            if outputs is None and not isinstance(var, Quantity):
+                # This check really only applies to inputs
+                if not _can_have_arbitrary_unit(var):
+                    # We make a special case also for 0, since 0 may
+                    # be used in many quantity calculations without
+                    # penalty so long as it is not explicitly dimensionless
+                    var = var * dimensionless_unscaled
+                else:
+                    # The input has "arbitrary" units, so there is no sense in
+                    # performing further checks on it.
+                    converted.append(var)
+                    continue
+
+            if unit_spec is not None:
+                # Just go ahead and try converting the input straight to the
+                # new unit; if this results in a conversion error that's fine;
+                # just raise it directly
+                unit = to_unit(var, unit_spec)
+
+                if (not isinstance(var, Quantity) and
+                        _can_have_arbitrary_unit(var)):
+                    # This supports the case of converting an output (such as
+                    # 0) that allows arbitrary units to the specified output
+                    # unit
+                    converted.append(Quantity(var, unit))
+                    continue
+
+                try:
+                    var = var.to(unit)
+                except UnitConversionError:
+                    raise UnitConversionError(
+                        "Units of input '{0}', {1}, could not be converted "
+                        "to required input units of {2}".format(
+                            var_name, format_unit_with_type(var.unit),
+                            format_unit_with_type(unit)))
+
+            converted.append(var)
+
+        return tuple(converted)
 
     def _format_repr(self, args=[], kwargs={}, defaults={}):
         """
@@ -1241,7 +1515,7 @@ class Model(object):
 
         parts.extend(
             "{0}={1}".format(name,
-                             array_repr_oneline(getattr(self, name).value))
+                             param_repr_oneline(getattr(self, name)))
             for name in self.param_names)
 
         if self.name is not None:
@@ -1288,6 +1562,10 @@ class Model(object):
                        for name in self.param_names]
 
         param_table = Table(columns, names=self.param_names)
+
+        # Set units on the columns
+        for name in self.param_names:
+            param_table[name].unit = getattr(self, name).unit
 
         parts.append(indent(str(param_table), width=4))
 
@@ -1599,37 +1877,7 @@ class _CompoundModelMeta(_ModelMeta):
         else:
             modname = '__main__'
 
-        # TODO: These aren't the full rules for handling inputs and outputs, but
-        # this will handle most basic cases correctly
-        if operator == '|':
-            inputs = left.inputs
-            outputs = right.outputs
-
-            if left.n_outputs != right.n_inputs:
-                raise ModelDefinitionError(
-                    "Unsupported operands for |: {0} (n_inputs={1}, "
-                    "n_outputs={2}) and {3} (n_inputs={4}, n_outputs={5}); "
-                    "n_outputs for the left-hand model must match n_inputs "
-                    "for the right-hand model.".format(
-                        left.name, left.n_inputs, left.n_outputs, right.name,
-                        right.n_inputs, right.n_outputs))
-        elif operator == '&':
-            inputs = combine_labels(left.inputs, right.inputs)
-            outputs = combine_labels(left.outputs, right.outputs)
-        else:
-            # Without loss of generality
-            inputs = left.inputs
-            outputs = left.outputs
-
-            if (left.n_inputs != right.n_inputs or
-                    left.n_outputs != right.n_outputs):
-                raise ModelDefinitionError(
-                    "Unsupported operands for {0}: {1} (n_inputs={2}, "
-                    "n_outputs={3}) and {4} (n_inputs={5}, n_outputs={6}); "
-                    "models must have the same n_inputs and the same "
-                    "n_outputs for this operator".format(
-                        operator, left.name, left.n_inputs, left.n_outputs,
-                        right.name, right.n_inputs, right.n_outputs))
+        inputs, outputs = mcls._check_inputs_and_outputs(operator, left, right)
 
         if operator in ('|', '+', '-'):
             linear = left.linear and right.linear
@@ -1685,6 +1933,42 @@ class _CompoundModelMeta(_ModelMeta):
         # TODO: Remove this at the same time as removing
         # _ModelMeta._handle_backwards_compat
         return
+
+    @classmethod
+    def _check_inputs_and_outputs(mcls, operator, left, right):
+        # TODO: These aren't the full rules for handling inputs and outputs, but
+        # this will handle most basic cases correctly
+        if operator == '|':
+            inputs = left.inputs
+            outputs = right.outputs
+
+            if left.n_outputs != right.n_inputs:
+                raise ModelDefinitionError(
+                    "Unsupported operands for |: {0} (n_inputs={1}, "
+                    "n_outputs={2}) and {3} (n_inputs={4}, n_outputs={5}); "
+                    "n_outputs for the left-hand model must match n_inputs "
+                    "for the right-hand model.".format(
+                        left.name, left.n_inputs, left.n_outputs, right.name,
+                        right.n_inputs, right.n_outputs))
+        elif operator == '&':
+            inputs = combine_labels(left.inputs, right.inputs)
+            outputs = combine_labels(left.outputs, right.outputs)
+        else:
+            # Without loss of generality
+            inputs = left.inputs
+            outputs = left.outputs
+
+            if (left.n_inputs != right.n_inputs or
+                    left.n_outputs != right.n_outputs):
+                raise ModelDefinitionError(
+                    "Unsupported operands for {0}: {1} (n_inputs={2}, "
+                    "n_outputs={3}) and {4} (n_inputs={5}, n_outputs={6}); "
+                    "models must have the same n_inputs and the same "
+                    "n_outputs for this operator".format(
+                        operator, left.name, left.n_inputs, left.n_outputs,
+                        right.name, right.n_inputs, right.n_outputs))
+
+        return inputs, outputs
 
     @classmethod
     def _make_custom_inverse(mcls, operator, left, right):
@@ -1796,6 +2080,7 @@ class _CompoundModelMeta(_ModelMeta):
                 # a bound Parameter even if submodel is a Model instance (as
                 # opposed to a Model subclass)
                 new_param = orig_param.copy(name=param_name, default=default,
+                                            unit=orig_param.unit,
                                             **constraints)
 
             setattr(cls, param_name, new_param)
@@ -2295,10 +2580,7 @@ def _prepare_outputs_single_model(model, outputs, format_info):
             else:
                 outputs[idx] = output.reshape(broadcast_shape)
 
-    if model.n_outputs == 1:
-        return outputs[0]
-    else:
-        return tuple(outputs)
+    return tuple(outputs)
 
 
 def _prepare_inputs_model_set(model, params, inputs, n_models, model_set_axis,
@@ -2377,10 +2659,7 @@ def _prepare_outputs_model_set(model, outputs, format_info):
             outputs[idx] = np.rollaxis(output, pivot,
                                        model.model_set_axis)
 
-    if model.n_outputs == 1:
-        return outputs[0]
-    else:
-        return tuple(outputs)
+    return tuple(outputs)
 
 
 def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
@@ -2437,3 +2716,54 @@ def _validate_input_shapes(inputs, argnames, n_models, model_set_axis,
                 arg_a, shape_a, arg_b, shape_b))
 
     return input_broadcast
+
+
+def _analyze_unit_converter(model, inputs, converter):
+    """
+    This is to support the callable modes of input_units and output_units.
+    This allows a "magic" call signature that specifies only the parameters
+    and/or inputs needed to determine the output units.
+    """
+
+    argspec = inspect.getargspec(converter)
+
+    for argname in argspec.args:
+        if not (argname in model.param_names or argname in model.inputs):
+            raise ModelDefinitionError(
+                "Unit conversion/validation function for '{0}' does not have "
+                "a compatible signature; it must have arguments with the "
+                "same names as parameters and/or inputs to the model.  See "
+                "the documentation for Model.output_units for more "
+                "details.".format(output))
+    else:
+        # Return a wrapper that passes the correct arguments in to the
+        # converter
+        def wrapped_converter(model, inputs):
+            # Outputs is included for compatibility with the 3-argument
+            # signature, but is not used here
+            return _unit_converter_wrapper(model, inputs, converter,
+                                           argspec.args)
+
+        return wrapped_converter
+
+
+def _unit_converter_wrapper(model, inputs, converter, argnames):
+    """
+    Used in conjunction with _analyze_unit_converter.  This evaluates the
+    unit conversion callable with the correct inputs by evaluating its
+    signature.
+    """
+
+    args = []
+
+    for name in argnames:
+        if name in model.param_names:
+            arg = getattr(model, name)
+        else:
+            arg = inputs[model.inputs.index(name)]
+            if not isinstance(arg, Quantity):
+                arg = Quantity(arg, dimensionless_unscaled)
+
+        args.append(arg)
+
+    return converter(*args)
