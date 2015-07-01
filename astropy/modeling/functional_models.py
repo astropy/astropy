@@ -695,7 +695,7 @@ class Voigt1D(Fittable1DModel):
 
         plt.figure()
         x = np.arange(0, 10, 0.1)
-        v1 = Voigt1D(x_0=5,amplitude_L=10,fwhm_L=0.5, fwhm_G=0.9)
+        v1 = Voigt1D(x_0=5, amplitude_L=10, fwhm_L=0.5, fwhm_G=0.9)
         plt.plot(x, v1(x))
         plt.show()
     """
