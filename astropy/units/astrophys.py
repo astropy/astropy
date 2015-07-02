@@ -58,7 +58,7 @@ def_unit(['jupiterMass', 'M_jup', 'Mjup','M_jupiter', 'Mjupiter'],
          _si.M_jup.value * si.kg, namespace=_ns,
          prefixes=True, doc="Jupiter mass",
          # LaTeX jupiter symbol requires wasysym
-         format={'latex': r'M_{Jup}', 'unicode': 'M♃'})
+         format={'latex': r'M_{\rm J}', 'unicode': 'M♃'})
 def_unit(['earthMass', 'M_earth', 'Mearth'], _si.M_earth.value * si.kg, namespace=_ns,
          prefixes=True, doc="Earth mass",
          # LaTeX earth symbol requires wasysym
