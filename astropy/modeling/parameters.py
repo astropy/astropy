@@ -65,17 +65,19 @@ class Parameter(object):
     "unbound parameter"), or it can act as a proxy for the parameter values on
     an individual model instance (called a "bound parameter").
 
-    Parameter instances never store the actual value of the parameter
-    directly.  Rather, each instance of a model stores its own parameters
-    as either hidden attributes or (in the case of
-    `~astropy.modeling.FittableModel`) in an array.  A *bound*
-    Parameter simply wraps the value in a Parameter proxy which provides some
-    additional information about the parameter such as its constraints.
+    Parameter instances never store the actual value of the parameter directly.
+    Rather, each instance of a model stores its own parameters parameter values
+    in an array.  A *bound* Parameter simply wraps the value in a Parameter
+    proxy which provides some additional information about the parameter such
+    as its constraints.  In other words, this is a high-level interface to a
+    model's adjustable parameter values.
 
     *Unbound* Parameters are not associated with any specific model instance,
     and are merely used by model classes to determine the names of their
     parameters and other information about each parameter such as their default
     values and default constraints.
+
+    See :ref:`modeling-parameters` for more details.
 
     Parameters
     ----------
@@ -459,13 +461,13 @@ class Parameter(object):
         instance (remember, this is a method defined on a `Model`), and
         the value being set for this parameter.  The validator method's
         return value is ignored, but it may raise an exception if the value
-        set on the parameter is invalid (typically an `InputParameteError`
+        set on the parameter is invalid (typically an `InputParameterError`
         should be raised, though this is not currently a requirement).
 
         The decorator *returns* the `Parameter` instance that the validator
         is set on, so the underlying validator method should have the same
         name as the `Parameter` itself (think of this as analogous to
-        `property.setter`).  For example::
+        ``property.setter``).  For example::
 
             >>> from astropy.modeling import Fittable1DModel
             >>> class TestModel(Fittable1DModel):

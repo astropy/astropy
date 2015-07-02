@@ -68,6 +68,10 @@ New Features
 
 - ``astropy.modeling``
 
+  - Added a new ``Parameter.validator`` interface for setting a validation
+    method on individual model parameters.  See the ``Parameter``
+    documentation for more details. [#3910]
+
   - The projection classes that are named based on the 3-letter FITS
     WCS projections (e.g. ``Pix2Sky_TAN``) now have aliases using
     longer, more descriptive names (e.g. ``Pix2Sky_Gnomonic``).
@@ -223,6 +227,10 @@ API changes
   - Renamed the parameters of ``RotateNative2Celestial`` and
     ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
     ``lon``, ``lat`` and ``lon_pole``. [#3578]
+
+  - Deprecated the ``Pix2Sky_AZP.check_mu`` and ``Sky2Pix_AZP.check_mu``
+    methods (these were obscure "accidentally public" methods that were
+    probably not used by anyone). [#3910]
 
 - ``astropy.nddata``
 
