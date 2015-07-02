@@ -254,7 +254,7 @@ class TestParameters(object):
         p1 = models.Polynomial1D(3, n_models=3)
         utils.assert_equal(p1.parameters, [0.0, 0.0, 0.0, 0, 0, 0,
                                            0, 0, 0, 0, 0, 0])
-        utils.assert_equal(p1.c0, [0, 0, 0])
+        utils.assert_array_equal(p1.c0, [0, 0, 0])
         p1.c0 = [10, 10, 10]
         utils.assert_equal(p1.parameters, [10.0, 10.0, 10.0, 0, 0,
                                            0, 0, 0, 0, 0, 0, 0])
@@ -289,7 +289,7 @@ class TestParameters(object):
     def test_scale_model_parametersnd(self):
         sc1 = models.Scale([2, 2])
         sc1.factor = [3, 3]
-        assert sc1.factor == [3, 3]
+        assert np.all(sc1.factor == [3, 3])
         utils.assert_array_equal(sc1.factor.value, [3, 3])
 
     def test_parameters_wrong_shape(self):

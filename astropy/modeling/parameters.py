@@ -728,22 +728,22 @@ class Parameter(object):
         return val / self.value
 
     def __eq__(self, val):
-        return (np.asarray(self) == np.asarray(val)).all()
+        return np.asanyarray(self) == np.asanyarray(val)
 
     def __ne__(self, val):
-        return not (np.asarray(self) == np.asarray(val)).all()
+        return np.asanyarray(self) != np.asanyarray(val)
 
     def __lt__(self, val):
-        return (np.asarray(self) < np.asarray(val)).all()
+        return np.asanyarray(self) < np.asanyarray(val)
 
     def __gt__(self, val):
-        return (np.asarray(self) > np.asarray(val)).all()
+        return np.asanyarray(self) > np.asanyarray(val)
 
     def __le__(self, val):
-        return (np.asarray(self) <= np.asarray(val)).all()
+        return np.asanyarray(self) <= np.asanyarray(val)
 
     def __ge__(self, val):
-        return (np.asarray(self) >= np.asarray(val)).all()
+        return np.asanyarray(self) >= np.asanyarray(val)
 
     def __neg__(self):
         return -self.value
