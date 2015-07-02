@@ -13,6 +13,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import inspect
 import functools
 import numbers
+import types
 
 import numpy as np
 
@@ -156,6 +157,8 @@ class Parameter(object):
         self._getter = self._create_value_wrapper(getter, None)
         self._setter = self._create_value_wrapper(setter, None)
 
+        self._validator = None
+
         # Only Parameters declared as class-level descriptors require
         # and ordering ID
         if model is None:
@@ -177,6 +180,10 @@ class Parameter(object):
 
     def __set__(self, obj, value):
         value = _tofloat(value)
+
+        # Call the validator before the setter
+        if self._validator is not None:
+            self._validator(obj, value)
 
         if self._setter is not None:
             setter = self._create_value_wrapper(self._setter, obj)
@@ -442,6 +449,72 @@ class Parameter(object):
         else:
             raise AttributeError("can't set attribute 'max' on Parameter "
                                  "definition")
+
+    @property
+    def validator(self):
+        """
+        Used as a decorator to set the validator method for a `Parameter`.
+        The validator method validates any value set for that parameter.
+        It takes two arguments--``self``, which refers to the `Model`
+        instance (remember, this is a method defined on a `Model`), and
+        the value being set for this parameter.  The validator method's
+        return value is ignored, but it may raise an exception if the value
+        set on the parameter is invalid (typically an `InputParameteError`
+        should be raised, though this is not currently a requirement).
+
+        The decorator *returns* the `Parameter` instance that the validator
+        is set on, so the underlying validator method should have the same
+        name as the `Parameter` itself (think of this as analogous to
+        `property.setter`).  For example::
+
+            >>> from astropy.modeling import Fittable1DModel
+            >>> class TestModel(Fittable1DModel):
+            ...     a = Parameter()
+            ...     b = Parameter()
+            ...
+            ...     @a.validator
+            ...     def a(self, value):
+            ...         # Remember, the value can be an array
+            ...         if np.any(value < self.b):
+            ...             raise InputParameterError(
+            ...                 "parameter 'a' must be greater than or equal "
+            ...                 "to parameter 'b'")
+            ...
+            ...     @staticmethod
+            ...     def evaluate(x, a, b):
+            ...         return a * x + b
+            ...
+            >>> m = TestModel(a=1, b=2)  # doctest: +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            ...
+            InputParameterError: parameter 'a' must be greater than or equal
+            to parameter 'b'
+            >>> m = TestModel(a=2, b=2)
+            >>> m.a = 0  # doctest: +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            ...
+            InputParameterError: parameter 'a' must be greater than or equal
+            to parameter 'b'
+
+        On bound parameters this property returns the validator method itself,
+        as a bound method on the `Parameter`.
+        """
+
+        if self._model is None:
+            # For unbound parameters return the validator setter
+            def validator(func, self=self):
+                self._validator = func
+                return self
+
+            return validator
+        else:
+            # Return the validator method, bound to the Parameter instance with
+            # the name "validator"
+            def validator(self, value):
+                if self._validator is not None:
+                    return self._validator(self._model, value)
+
+            return types.MethodType(validator, self)
 
     def copy(self, name=None, description=None, default=None, getter=None,
              setter=None, fixed=False, tied=False, min=None, max=None,
