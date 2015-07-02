@@ -828,7 +828,7 @@ def test_arrays():
     assert qkpc0.value == a[0].item()
     assert qkpc0.unit == qkpc.unit
     assert isinstance(qkpc0, u.Quantity)
-    assert not qkpc0.isscalar
+    assert qkpc0.isscalar
     qkpcx = qkpc['x']
     assert np.all(qkpcx.value == a['x'])
     assert qkpcx.unit == qkpc.unit

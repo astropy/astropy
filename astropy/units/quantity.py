@@ -10,7 +10,6 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 # Standard library
-import re
 import numbers
 
 import numpy as np
@@ -20,7 +19,6 @@ from ..extern import six
 from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
 from .format.latex import Latex
-from ..utils import lazyproperty
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
@@ -673,7 +671,7 @@ class Quantity(np.ndarray):
         return self._new_view(self.value * cgs_unit.scale,
                               cgs_unit / cgs_unit.scale)
 
-    @lazyproperty
+    @property
     def isscalar(self):
         """
         True if the `value` of this quantity is a scalar, or False if it
@@ -685,7 +683,7 @@ class Quantity(np.ndarray):
             (e.g. ``np.array(1)``), while this is True for quantities,
             since quantities cannot represent true numpy scalars.
         """
-        return not isiterable(self.value)
+        return not self.shape
 
     # This flag controls whether convenience conversion members, such
     # as `q.m` equivalent to `q.to(u.m).value` are available.  This is
@@ -869,11 +867,10 @@ class Quantity(np.ndarray):
         return quantity_iter()
 
     def __getitem__(self, key):
-        if self.isscalar:
+        if self.isscalar and not self.dtype.fields:
             raise TypeError(
                 "'{cls}' object with a scalar value does not support "
                 "indexing".format(cls=self.__class__.__name__))
-
         out = super(Quantity, self).__getitem__(key)
         return self._new_view(out)
 
