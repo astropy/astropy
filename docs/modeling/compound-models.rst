@@ -299,13 +299,13 @@ and ``intercept`` parameters for the
 `~astropy.modeling.functional_models.Linear1D` part of the model::
 
     >>> my_model = MyModel(1, 0)
-    >>> my_model(0.25)  # doctest +FLOAT_CMP
+    >>> my_model(0.25)  # doctest: +FLOAT_CMP
     1.25
 
 This does not prevent the other parameters from being overridden, however::
 
     >>> my_model = MyModel(slope_0=1, intercept_0=0, frequency_1=2)
-    >>> my_model(0.125)  # doctest +FLOAT_CMP
+    >>> my_model(0.125)  # doctest: +FLOAT_CMP
     1.125
 
 In fact, this is currently the only way to use a `polynomial
