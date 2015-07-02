@@ -136,7 +136,7 @@ Py_{{ name }}{{ dir }}(PyObject* __, PyObject* args, PyObject* kwds)
   if (!PyArg_ParseTuple(args,
                         "OO"
                         {% for i in range(nargs) %}"d" {% endfor %}
-                        ":{{ name }}x2s",
+                        ":{{ name }}{{ dir }}",
                         &in[0], &in[1]
                         {% for i in range(nargs) %}
                         {% if loop.first %},{% endif %}
