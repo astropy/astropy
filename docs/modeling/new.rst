@@ -78,7 +78,11 @@ the model's class definition using the `~astropy.modeling.Parameter`
 descriptor.  All arguments to the Parameter constructor are optional, and may
 include a default value for that parameter, a text description of the parameter
 (useful for `help` and documentation generation), as well default constraints
-and custom getters/setters for the parameter value.
+and custom getters/setters for the parameter value.  It is also possible to
+define a "validator" method for each parameter, enabling custom code to check
+whether that parameter's value is valid according to the model definition (for
+example if it must be non-negative).  See the example in
+`Parameter.validator <astropy.modeling.Parameter.validator>` for more details.
 
 ::
 

@@ -13,6 +13,7 @@ from __future__ import (absolute_import, unicode_literals, division,
 import inspect
 import functools
 import numbers
+import types
 
 import numpy as np
 
@@ -64,17 +65,19 @@ class Parameter(object):
     "unbound parameter"), or it can act as a proxy for the parameter values on
     an individual model instance (called a "bound parameter").
 
-    Parameter instances never store the actual value of the parameter
-    directly.  Rather, each instance of a model stores its own parameters
-    as either hidden attributes or (in the case of
-    `~astropy.modeling.FittableModel`) in an array.  A *bound*
-    Parameter simply wraps the value in a Parameter proxy which provides some
-    additional information about the parameter such as its constraints.
+    Parameter instances never store the actual value of the parameter directly.
+    Rather, each instance of a model stores its own parameters parameter values
+    in an array.  A *bound* Parameter simply wraps the value in a Parameter
+    proxy which provides some additional information about the parameter such
+    as its constraints.  In other words, this is a high-level interface to a
+    model's adjustable parameter values.
 
     *Unbound* Parameters are not associated with any specific model instance,
     and are merely used by model classes to determine the names of their
     parameters and other information about each parameter such as their default
     values and default constraints.
+
+    See :ref:`modeling-parameters` for more details.
 
     Parameters
     ----------
@@ -104,9 +107,11 @@ class Parameter(object):
     bounds : tuple
         specify min and max as a single tuple--bounds may not be specified
         simultaneously with min or max
-    model : object
-        an instance of a Model class; this should only be used internally for
-        creating bound Parameters
+    model : `Model` instance
+        binds the the `Parameter` instance to a specific model upon
+        instantiation; this should only be used internally for creating bound
+        Parameters, and should not be used for `Parameter` descriptors defined
+        as class attributes
     """
 
     constraints = ('fixed', 'tied', 'bounds')
@@ -123,9 +128,6 @@ class Parameter(object):
                  setter=None, fixed=False, tied=False, min=None, max=None,
                  bounds=None, model=None):
         super(Parameter, self).__init__()
-
-        if model is not None and not name:
-            raise TypeError('Bound parameters must have a name specified.')
 
         self._name = name
         self.__doc__ = self._description = description.strip()
@@ -147,44 +149,43 @@ class Parameter(object):
         self._bounds = bounds
 
         self._order = None
-        self._shape = None
-        self._model = model
+        self._model = None
 
         # The getter/setter functions take one or two arguments: The first
         # argument is always the value itself (either the value returned or the
         # value being set).  The second argument is optional, but if present
         # will contain a reference to the model object tied to a parameter (if
         # it exists)
-        if getter is not None:
-            self._getter = self._create_value_wrapper(getter, model)
-        else:
-            self._getter = None
-        if setter is not None:
-            self._setter = self._create_value_wrapper(setter, model)
-        else:
-            self._setter = None
+        self._getter = self._create_value_wrapper(getter, None)
+        self._setter = self._create_value_wrapper(setter, None)
 
-        if model is not None:
-            with ignored(AttributeError):
-                # This can only work if the parameter's value has been set by
-                # the model
-                _, self._shape = self._validate_value(model, self.value)
-        else:
-            # Only Parameters declared as class-level descriptors require
-            # and ordering ID
+        self._validator = None
+
+        # Only Parameters declared as class-level descriptors require
+        # and ordering ID
+        if model is None:
             self._order = self._get_nextid()
+        else:
+            self._bind(model)
 
     def __get__(self, obj, objtype):
         if obj is None:
             return self
 
-        return self.__class__(self._name, default=self._default,
-                              getter=self._getter, setter=self._setter,
-                              fixed=self._fixed, tied=self._tied,
-                              bounds=self._bounds, model=obj)
+        # All of the Parameter.__init__ work should already have been done for
+        # the class-level descriptor; we can skip that stuff and just copy the
+        # existing __dict__ and then bind to the model instance
+        parameter = self.__class__.__new__(self.__class__)
+        parameter.__dict__.update(self.__dict__)
+        parameter._bind(obj)
+        return parameter
 
     def __set__(self, obj, value):
-        value, shape = self._validate_value(obj, value)
+        value = _tofloat(value)
+
+        # Call the validator before the setter
+        if self._validator is not None:
+            self._validator(obj, value)
 
         if self._setter is not None:
             setter = self._create_value_wrapper(self._setter, obj)
@@ -311,11 +312,30 @@ class Parameter(object):
     def shape(self):
         """The shape of this parameter's value array."""
 
-        return self._shape
+        if self._model is None:
+            raise AttributeError('Parameter definition does not have a '
+                                 'shape.')
+
+        shape = self._model._param_metrics[self._name]['shape']
+
+        if len(self._model) > 1:
+            # If we are dealing with a model *set* the shape is the shape of
+            # the parameter within a single model in the set
+            model_axis = self._model._model_set_axis
+
+            if model_axis < 0:
+                model_axis = len(shape) + model_axis
+
+            shape = shape[:model_axis] + shape[model_axis + 1:]
+
+        return shape
 
     @property
     def size(self):
         """The size of this parameter's value array."""
+
+        # TODO: Rather than using self.value this could be determined from the
+        # size of the parameter in _param_metrics
 
         return np.size(self.value)
 
@@ -432,6 +452,72 @@ class Parameter(object):
             raise AttributeError("can't set attribute 'max' on Parameter "
                                  "definition")
 
+    @property
+    def validator(self):
+        """
+        Used as a decorator to set the validator method for a `Parameter`.
+        The validator method validates any value set for that parameter.
+        It takes two arguments--``self``, which refers to the `Model`
+        instance (remember, this is a method defined on a `Model`), and
+        the value being set for this parameter.  The validator method's
+        return value is ignored, but it may raise an exception if the value
+        set on the parameter is invalid (typically an `InputParameterError`
+        should be raised, though this is not currently a requirement).
+
+        The decorator *returns* the `Parameter` instance that the validator
+        is set on, so the underlying validator method should have the same
+        name as the `Parameter` itself (think of this as analogous to
+        ``property.setter``).  For example::
+
+            >>> from astropy.modeling import Fittable1DModel
+            >>> class TestModel(Fittable1DModel):
+            ...     a = Parameter()
+            ...     b = Parameter()
+            ...
+            ...     @a.validator
+            ...     def a(self, value):
+            ...         # Remember, the value can be an array
+            ...         if np.any(value < self.b):
+            ...             raise InputParameterError(
+            ...                 "parameter 'a' must be greater than or equal "
+            ...                 "to parameter 'b'")
+            ...
+            ...     @staticmethod
+            ...     def evaluate(x, a, b):
+            ...         return a * x + b
+            ...
+            >>> m = TestModel(a=1, b=2)  # doctest: +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            ...
+            InputParameterError: parameter 'a' must be greater than or equal
+            to parameter 'b'
+            >>> m = TestModel(a=2, b=2)
+            >>> m.a = 0  # doctest: +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            ...
+            InputParameterError: parameter 'a' must be greater than or equal
+            to parameter 'b'
+
+        On bound parameters this property returns the validator method itself,
+        as a bound method on the `Parameter`.
+        """
+
+        if self._model is None:
+            # For unbound parameters return the validator setter
+            def validator(func, self=self):
+                self._validator = func
+                return self
+
+            return validator
+        else:
+            # Return the validator method, bound to the Parameter instance with
+            # the name "validator"
+            def validator(self, value):
+                if self._validator is not None:
+                    return self._validator(self._model, value)
+
+            return types.MethodType(validator, self)
+
     def copy(self, name=None, description=None, default=None, getter=None,
              setter=None, fixed=False, tied=False, min=None, max=None,
              bounds=None):
@@ -495,6 +581,17 @@ class Parameter(object):
         cls._nextid += 1
         return nextid
 
+    def _bind(self, model):
+        """
+        Bind the `Parameter` to a specific `Model` instance; don't use this
+        directly on *unbound* parameters, i.e. `Parameter` descriptors that
+        are defined in class bodies.
+        """
+
+        self._model = model
+        self._getter = self._create_value_wrapper(self._getter, model)
+        self._setter = self._create_value_wrapper(self._setter, model)
+
     def _get_model_value(self, model):
         """
         This method implements how to retrieve the value of this parameter from
@@ -543,26 +640,9 @@ class Parameter(object):
 
         model._parameters[param_slice] = np.array(value).ravel()
 
-    def _validate_value(self, model, value):
-        if model is None:
-            return
-
-        n_models = len(model)
-        value = _tofloat(value)
-        if n_models == 1:
-            # Just validate the value with _tofloat
-            return value, np.shape(value)
-        else:
-            shape = np.shape(value)
-            model_axis = model._model_set_axis
-            if model_axis < 0:
-                model_axis = len(shape) + model_axis
-            shape = shape[:model_axis] + shape[model_axis + 1:]
-
-            return value, shape
-
-    def _create_value_wrapper(self, wrapper, model):
-        """Wrappers a getter/setter function to support optionally passing in
+    @staticmethod
+    def _create_value_wrapper(wrapper, model):
+        """Wraps a getter/setter function to support optionally passing in
         a reference to the model object as the second argument.
 
         If a model is tied to this parameter and its getter/setter supports
@@ -575,6 +655,9 @@ class Parameter(object):
                 raise TypeError("A numpy.ufunc used for Parameter "
                                 "getter/setter may only take one input "
                                 "argument")
+        elif wrapper is None:
+            # Just allow non-wrappers to fall through silently, for convenience
+            return None
         else:
             wrapper_args = inspect.getargspec(wrapper)
             nargs = len(wrapper_args.args)

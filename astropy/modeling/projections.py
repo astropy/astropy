@@ -23,6 +23,7 @@ import numpy as np
 from .core import Model
 from .parameters import Parameter, InputParameterError
 
+from ..utils import deprecated
 from ..utils.compat import ignored
 
 
@@ -126,26 +127,19 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
         look angle in deg, default is 0.
     """
 
-
-    def _validate_mu(mu):
-        if np.asarray(mu == -1).any():
-            raise ValueError(
-                "Zenithal perspective projection is not defined for mu=-1")
-        return mu
-
-    mu = Parameter(default=0.0, setter=_validate_mu)
+    mu = Parameter(default=0.0)
     gamma = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
     def __init__(self, mu=mu.default, gamma=gamma.default, **kwargs):
-        self.check_mu(mu)
         # units : mu - in spherical radii, gamma - in deg
         # TODO: Support quantity objects here and in similar contexts
         super(Pix2Sky_ZenithalPerspective, self).__init__(mu, gamma, **kwargs)
 
-    def check_mu(self, val):
-        if np.asarray(val == -1).any():
-            raise ValueError(
-                "Zenithal perspective projection is not defined for mu=-1")
+    @mu.validator
+    def mu(self, value):
+        if np.any(value == -1):
+            raise InputParameterError(
+                "Zenithal perspective projection is not defined for mu = -1")
 
     @property
     def inverse(self):
@@ -182,6 +176,14 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
     def _compute_r_theta(x, y, gamma):
         return np.sqrt(x ** 2 + y ** 2 * (np.cos(gamma)) ** 2)
 
+    @deprecated('1.1', message='this method was never intended as part of '
+                               'the public API and wil be removed; if you '
+                               'do need its functionality use '
+                               'model.mu.validator(val)')
+    def check_mu(self, value):
+        return self.mu.validator(value)
+
+
 
 Pix2Sky_AZP = Pix2Sky_ZenithalPerspective
 
@@ -211,17 +213,14 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
         look angle in deg, default is 0.
     """
 
-    def _validate_mu(mu):
-        if np.asarray(mu == -1).any():
-            raise ValueError("Zenithal perspective projection is not defined for mu=-1")
-        return mu
-
-    mu = Parameter(default=0.0, setter=_validate_mu)
+    mu = Parameter(default=0.0)
     gamma = Parameter(default=0.0, getter=np.rad2deg, setter=np.deg2rad)
 
-    def check_mu(self, val):
-        if np.asarray(val == -1).any():
-            raise ValueError("Zenithal perspective projection is not defined for mu=-1")
+    @mu.validator
+    def mu(self, value):
+        if np.any(value == -1):
+            raise InputParameterError(
+                "Zenithal perspective projection is not defined for mu = -1")
 
     @property
     def inverse(self):
@@ -243,6 +242,13 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
         return ((cls.r0 * (mu + 1) * np.cos(theta)) /
                 (mu + np.sin(theta) +
                  np.cos(theta) * np.cos(phi) * np.tan(gamma)))
+
+    @deprecated('1.1', message='this method was never intended as part of '
+                               'the public API and wil be removed; if you '
+                               'do need its functionality use '
+                               'model.mu.validator(val)')
+    def check_mu(self, value):
+        return self.mu.validator(value)
 
 
 Sky2Pix_AZP = Sky2Pix_ZenithalPerspective
@@ -481,24 +487,20 @@ class Pix2Sky_CylindricalPerspective(Pix2SkyProjection, Cylindrical):
         radius of the cylinder in spherical radii, default is 0.
     """
 
-    def _validate_mu(mu, model):
-        with ignored(AttributeError):
-            # An attribute error can occur if model.lam has not been set yet
-            if np.asarray(mu == -model.lam).any():
-                raise ValueError(
-                    "CYP projection is not defined for mu=-lambda")
-        return mu
+    mu = Parameter(default=0)
+    lam = Parameter(default=0)
 
-    def _validate_lam(lam, model):
-        with ignored(AttributeError):
-            # An attribute error can occur if model.lam has not been set yet
-            if np.asarray(lam == -model.mu).any():
-                raise ValueError(
-                    "CYP projection is not defined for mu=-lambda")
-        return lam
+    @mu.validator
+    def mu(self, value):
+        if np.any(value == -self.lam):
+            raise InputParameterError(
+                "CYP projection is not defined for mu = -lambda")
 
-    mu = Parameter(default=0, setter=_validate_mu)
-    lam = Parameter(default=0, setter=_validate_lam)
+    @lam.validator
+    def lam(self, value):
+        if np.any(value == -self.mu):
+            raise InputParameterError(
+                "CYP projection is not defined for lambda = -mu")
 
     @property
     def inverse(self):
@@ -537,23 +539,20 @@ class Sky2Pix_CylindricalPerspective(Sky2PixProjection, Cylindrical):
         radius of the cylinder in spherical radii, default is 0.
     """
 
-    # TODO: Eliminate duplication on these
-    def _validate_mu(mu, model):
-        with ignored(AttributeError):
-            if np.asarray(mu == -model.lam).any():
-                raise ValueError(
-                    "CYP projection is not defined for mu=-lambda")
-        return mu
+    mu = Parameter(default=0)
+    lam = Parameter(default=0)
 
-    def _validate_lam(lam, model):
-        with ignored(AttributeError):
-            if np.asarray(lam == -model.mu).any():
-                raise ValueError(
-                    "CYP projection is not defined for mu=-lambda")
-        return lam
+    @mu.validator
+    def mu(self, value):
+        if np.any(value == -self.lam):
+            raise InputParameterError(
+                "CYP projection is not defined for mu = -lambda")
 
-    mu = Parameter(default=0, setter=_validate_mu)
-    lam = Parameter(default=0, setter=_validate_lam)
+    @lam.validator
+    def lam(self, value):
+        if np.any(value == -self.mu):
+            raise InputParameterError(
+                "CYP projection is not defined for lambda = -mu")
 
     @property
     def inverse(self):
@@ -765,12 +764,30 @@ class AffineTransformation2D(Model):
 
     standard_broadcasting = False
 
-    matrix = Parameter(
-        setter=lambda m: AffineTransformation2D._validate_matrix(m),
-        default=[[1.0, 0.0], [0.0, 1.0]])
-    translation = Parameter(
-        setter=lambda t: AffineTransformation2D._validate_vector(t),
-        default=[0.0, 0.0])
+    matrix = Parameter(default=[[1.0, 0.0], [0.0, 1.0]])
+    translation = Parameter(default=[0.0, 0.0])
+
+    @matrix.validator
+    def matrix(self, value):
+        """Validates that the input matrix is a 2x2 2D array."""
+
+        if np.shape(value) != (2, 2):
+            raise InputParameterError(
+                "Expected transformation matrix to be a 2x2 array")
+
+    @translation.validator
+    def translation(self, value):
+        """
+        Validates that the translation vector is a 2D vector.  This allows
+        either a "row" vector or a "column" vector where in the latter case the
+        resultant Numpy array has ``ndim=2`` but the shape is ``(1, 2)``.
+        """
+
+        if not ((np.ndim(value) == 1 and np.shape(value) == (2,)) or
+                (np.ndim(value) == 2 and np.shape(value) == (1, 2))):
+            raise InputParameterError(
+                "Expected translation vector to be a 2 element row or column "
+                "vector array")
 
     @property
     def inverse(self):
@@ -821,36 +838,6 @@ class AffineTransformation2D(Model):
         x.shape = y.shape = shape
 
         return x, y
-
-    @staticmethod
-    def _validate_matrix(matrix):
-        """Validates that the input matrix is a 2x2 2D array."""
-
-        matrix = np.array(matrix)
-        if matrix.shape != (2, 2):
-            raise ValueError(
-                "Expected transformation matrix to be a 2x2 array")
-        return matrix
-
-    @staticmethod
-    def _validate_vector(vector):
-        """
-        Validates that the translation vector is a 2D vector.  This allows
-        either a "row" vector or a "column" vector where in the latter case the
-        resultant Numpy array has ``ndim=2`` but the shape is ``(1, 2)``.
-        """
-
-        vector = np.array(vector)
-
-        if vector.ndim == 1:
-            vector = vector[:, np.newaxis]
-
-        if vector.shape != (2, 1):
-            raise ValueError(
-                "Expected translation vector to be a 2 element row or column "
-                "vector array")
-
-        return vector
 
     @staticmethod
     def _create_augmented_matrix(matrix, translation):

@@ -1151,10 +1151,27 @@ class Model(object):
 
         self._param_metrics = param_metrics
         self._parameters = np.empty(total_size, dtype=np.float64)
+
         # Now set the parameter values (this will also fill
         # self._parameters)
+        # TODO: This is a bit ugly, but easier to deal with than how this was
+        # done previously.  There's still lots of opportunity for refactoring
+        # though, in particular once we move the _get/set_model_value methods
+        # out of Parameter and into Model (renaming them
+        # _get/set_parameter_value)
         for name, value in params.items():
-            setattr(self, name, value)
+            param_descr = getattr(self, name)
+            value = np.array(value)
+            if param_descr._setter is not None:
+                value = param_descr._setter(value)
+            self._parameters[param_metrics[name]['slice']] = value.ravel()
+
+        # Finally validate all the parameters; we do this last so that
+        # validators that depend on one of the other parameters' values will
+        # work
+        for name in params:
+            param_descr = getattr(self, name)
+            param_descr.validator(param_descr.value)
 
     def _check_param_broadcast(self, params, max_ndim):
         """
