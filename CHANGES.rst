@@ -245,7 +245,8 @@ API changes
 - ``astropy.units``
 
   - Single-item ``Quantity`` instances with record ``dtype`` will now have
-    their ``isscalar`` property return ``True``. [#3899]
+    their ``isscalar`` property return ``True``, consistent with behaviour for
+    numpy arrays, where ``np.void`` records are considered scalar. [#3899]
 
 - ``astropy.utils``
 
