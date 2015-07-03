@@ -821,12 +821,27 @@ class Column(BaseColumn):
         self.data.__setslice__(start, stop, value)
 
     def _adjust_indices(self, index, value):
+        if not self.indices:
+            return
+
         if isinstance(index, slice):
             # run through each key in slice
-            keys = range(*index.indices(len(self)))
-        else:
+            t = index.indices(len(self))
+            keys = range(*t)
+            num_keys = len(t)
+        elif isinstance(index, np.ndarray) and index.dtype.kind == 'b':
+            # boolean mask
+            keys = np.where(index)[0]
+            num_keys = len(keys)
+        else: # single int
             keys = [index]
-            value = [value]
+            num_keys = 1
+
+        value = np.atleast_1d(value) # turn array(x) into array([x])
+        if value.size == 1:
+            # repeat single value
+            value = list(value) * num_keys
+
         for key, val in zip(keys, value):
             for col_index in self.indices:
                 col_index.replace(key, self, val)
@@ -1130,6 +1145,10 @@ class MaskedColumn(Column, ma.MaskedArray):
             # since the ndarray view discards self.indices
             if isinstance(item, slice):
                 item = range(*item.indices(len(self)))
+            elif isinstance(item, np.ndarray) and item.dtype.kind == 'b':
+                # boolean mask
+                item = np.where(item)[0]
+
             out.indices = []
             for i, index in enumerate(self.indices):
                 index = deepcopy(index)

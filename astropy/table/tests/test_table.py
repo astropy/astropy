@@ -702,6 +702,7 @@ class TestAddRow(SetupData):
             with pytest.raises(IndexError):
                 t.insert_row(index, row)
 
+
 @pytest.mark.usefixtures('table_types')
 class TestTableColumn(SetupData):
 
@@ -1517,7 +1518,7 @@ class TestPandas(object):
             t.to_pandas()
         assert exc.value.args[0] == "Cannot convert a table with multi-dimensional columns to a pandas DataFrame"
 
-    '''def test_mixin(self):
+    def test_mixin(self):
 
         from ...coordinates import SkyCoord
 
@@ -1526,7 +1527,7 @@ class TestPandas(object):
 
         with pytest.raises(ValueError) as exc:
             t.to_pandas()
-        assert exc.value.args[0] == "Cannot convert a table with mixin columns to a pandas DataFrame"'''
+        assert exc.value.args[0] == "Cannot convert a table with mixin columns to a pandas DataFrame"
 
     def test_masking(self):
 

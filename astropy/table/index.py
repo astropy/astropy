@@ -32,14 +32,26 @@ class MaxValue(object):
     def __gt__(self, other):
         return True
 
+    def __ge__(self, other):
+        return True
+
     def __lt__(self, other):
+        return False
+
+    def __le__(self, other):
         return False
 
 class MinValue(object):
     def __lt__(self, other):
         return True
 
+    def __le__(self, other):
+        return True
+
     def __gt__(self, other):
+        return False
+
+    def __ge__(self, other):
         return False
 
 class Index:

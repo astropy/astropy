@@ -411,10 +411,17 @@ class Table(object):
         '''
         lst = []
         for column in self.columns.values():
-            for index in column.indices:
+            for index in self._get_indices(column):
                 if sum([index is x for x in lst]) == 0: # ensure uniqueness
                     lst.append(index)
         return lst
+
+    def _get_indices(self, col):
+        '''
+        Returns the indices associated with col, or [] if col
+        is a mixin rather than a regular column.
+        '''
+        return getattr(col, 'indices', [])        
 
     def add_index(self, colnames, impl=None):
         '''
@@ -504,7 +511,7 @@ class Table(object):
 
     def query(self, col_map):
         col = six.next(six.iterkeys(col_map))
-        for index in self.columns[col].indices:
+        for index in self._get_indices(self.columns[col]):
             try:
                 return index.where(col_map)
             except ValueError: # index is unsuitable
@@ -1996,7 +2003,7 @@ class Table(object):
     def _replace_cols(self, columns):
         for col, new_col in zip(self.columns.values(), columns.values()):
             new_col.indices = []
-            for index in col.indices:
+            for index in self._get_indices(col):
                 index.columns[index.col_position(col)] = new_col
                 new_col.add_index(index)
 
