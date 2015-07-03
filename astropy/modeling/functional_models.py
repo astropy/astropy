@@ -19,9 +19,9 @@ __all__ = sorted([
     'AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D',
     'Box2D', 'Const1D', 'Const2D', 'Ellipse2D', 'Disk2D',
     'Gaussian1D', 'GaussianAbsorption1D', 'Gaussian2D', 'Linear1D',
-    'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Scale', 'Redshift', 'Shift',
-    'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D', 'Ring2D',
-    'custom_model_1d'
+    'Lorentz1D', 'MexicanHat1D', 'MexicanHat2D', 'Redshift', 'Scale',
+    'Sersic1D', 'Sersic2D', 'Shift', 'Sine1D', 'Trapezoid1D', 'TrapezoidDisk2D',
+    'Ring2D', 'custom_model_1d'
 ])
 
 
@@ -241,7 +241,6 @@ class Gaussian2D(Fittable2DModel):
     y_stddev = Parameter(default=1)
     theta = Parameter(default=0)
 
-
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
                  theta=0.0, cov_matrix=None, **kwargs):
@@ -440,6 +439,92 @@ class Redshift(Fittable1DModel):
         return inv
 
 
+class Sersic1D(Fittable1DModel):
+    r"""
+    One dimensional Sersic surface brightness profile.
+
+    Parameters
+    ----------
+    amplitude : float 
+        Central surface brightness, within r_eff. 
+    r_eff : float
+        Effective (half-light) radius
+    n : float
+        Sersic Index.
+
+    See Also
+    --------
+    Gaussian1D, Moffat1D, Lorentz1D
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        I(r)=I_e exp\left[-b_n\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
+
+    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total 
+    luminosity, and can be solved for numerically.  
+
+    .. math:: 
+
+        \Gamma(2n) = 2\gamma (b_n,2n)
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy.modeling.models import Sersic1D
+        import matplotlib.pyplot as plt
+
+        plt.figure()
+        plt.subplot(111,xscale='log',yscale='log')
+        s1 = Sersic1D(amplitude=1, r_eff=5)
+        r=np.arange(0,100,.01)
+
+        for n in range(1,10):
+             s1.n = n 
+             plt.plot(r,s1(r),color='k',alpha=0.5,lw=2)
+
+        plt.axis([1e-1,30,1e-2,1e3])
+        plt.xlabel('log Radius',fontsize=16)
+        plt.ylabel('log Surface Brightness',fontsize=16)
+        plt.text(.25,1.5,'n=1',fontsize=16)
+        plt.text(.25,300,'n=10',fontsize=16)
+        plt.xticks([])
+        plt.yticks([])
+        plt.show()
+
+    References
+    ----------
+    .. [1] http://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
+    """
+
+    amplitude = Parameter(default=1)
+    r_eff = Parameter(default=1)
+    n = Parameter(default=4)
+    _gammaincinv = None
+
+    def __init__(self, amplitude=amplitude.default, r_eff=r_eff.default,
+                 n=n.default, **kwargs):
+        try:
+            from scipy.special import gammaincinv
+            self.__class__._gammaincinv = gammaincinv
+        except ValueError:
+            raise ImportError("Sersic1D model requires scipy > 0.11.")
+
+        super(Sersic1D, self).__init__(
+            amplitude=amplitude, r_eff=r_eff, n=n, **kwargs)
+
+    @classmethod
+    def evaluate(cls, r, amplitude, r_eff, n):
+        """One dimensional Sersic profile function."""
+        return amplitude * np.exp(-cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1))
+
+
 class Sine1D(Fittable1DModel):
     """
     One dimensional Sine model.
@@ -559,7 +644,7 @@ class Lorentz1D(Fittable1DModel):
         """One dimensional Lorentzian model function"""
 
         return (amplitude * ((fwhm / 2.) ** 2) / ((x - x_0) ** 2 +
-                (fwhm / 2.) ** 2))
+                                                  (fwhm / 2.) ** 2))
 
     @staticmethod
     def fit_deriv(x, amplitude, x_0, fwhm):
@@ -795,7 +880,6 @@ class Disk2D(Fittable2DModel):
 
 
 class Ring2D(Fittable2DModel):
-
     """
     Two dimensional radial symmetric Ring model.
 
@@ -1065,7 +1149,7 @@ class TrapezoidDisk2D(Fittable2DModel):
 
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
         range_1 = r <= R_0
-        range_2 = np.logical_and(r > R_0,  r <= R_0 + amplitude / slope)
+        range_2 = np.logical_and(r > R_0, r <= R_0 + amplitude / slope)
         val_1 = amplitude
         val_2 = amplitude + slope * (R_0 - r)
         return np.select([range_1, range_2], [val_1, val_2])
@@ -1240,7 +1324,7 @@ class AiryDisk2D(Fittable2DModel):
         # separately so as not to raise a numpy warning
         z = np.ones(r.shape)
         rt = np.pi * r[r > 0]
-        z[r > 0] = (2.0 * cls._j1(rt) / rt)**2
+        z[r > 0] = (2.0 * cls._j1(rt) / rt) ** 2
         z *= amplitude
         return z
 
@@ -1370,3 +1454,112 @@ def custom_model_1d(func, func_fit_deriv=None):
             "All parameters must be keyword arguments")
 
     return custom_model(func, fit_deriv=func_fit_deriv)
+
+
+class Sersic2D(Fittable2DModel):
+    r"""
+    Two dimensional Sersic surface brightness profile.
+
+    Parameters
+    ----------
+    amplitude : float
+        Central surface brightness, within r_eff. 
+    r_eff : float
+        Effective (half-light) radius
+    n : float
+        Sersic Index.
+    x_0 : float, optional
+        x position of the center.
+    y_0 : float, optional
+        y position of the center. 
+    ellip : float, optional
+        Ellipticity.
+    theta : float, optional
+        Rotation angle in radians, counterclockwise from
+        the positive x-axis. 
+
+    See Also
+    --------
+    Gaussian2D, Moffat2D
+
+    Notes
+    -----
+    Model formula:
+
+    .. math::
+
+        I(x,y) = I(r) = I_e\exp\left[-b_n\left(\frac{r}{r_{e}}\right)^{(1/n)}-1\right]
+
+    The constant :math:`b_n` is defined such that :math:`r_e` contains half the total 
+    luminosity, and can be solved for numerically.  
+
+    .. math:: 
+
+        \Gamma(2n) = 2\gamma (b_n,2n)
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy.modeling.models import Sersic2D
+        import matplotlib.pyplot as plt
+
+        x,y = np.meshgrid(np.arange(100),np.arange(100))
+
+        mod = Sersic2D(amplitude = 1, r_eff = 25, n=4, x_0=50, y_0=50, ellip=.5,theta=-1)
+        img = mod(x,y)
+        log_img = np.log10(img)
+
+
+        plt.figure()
+        plt.imshow(log_img, origin='lower', interpolation='nearest', cmap='binary_r',
+                    vmin=-1, vmax=2)
+        plt.xlabel('x', fontsize=16)
+        plt.ylabel('y', fontsize=16)
+        cbar=plt.colorbar()
+        cbar.set_label('Log Brightness', rotation=270, labelpad=25, fontsize=16)
+        cbar.set_ticks([-1,0,1,2],update_ticks=True)
+        plt.show()
+
+    References
+    ----------
+    .. [1] http://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
+    """
+
+    amplitude = Parameter(default=1)
+    r_eff = Parameter(default=1)
+    n = Parameter(default=4)
+    x_0 = Parameter(default=0)
+    y_0 = Parameter(default=0)
+    ellip = Parameter(default=0)
+    theta = Parameter(default=0)
+    _gammaincinv = None
+
+    def __init__(self, amplitude=amplitude.default, r_eff=r_eff.default,
+                 n=n.default, x_0=x_0.default, y_0=y_0.default, ellip=ellip.default,
+                 theta=theta.default, **kwargs):
+        try:
+            from scipy.special import gammaincinv
+            self.__class__._gammaincinv = gammaincinv
+        except ValueError:
+            raise ImportError("Sersic2D model requires scipy > 0.11.")
+
+        super(Sersic2D, self).__init__(
+            amplitude=amplitude, r_eff=r_eff, n=n, x_0=x_0, y_0=y_0,
+            ellip=ellip, theta=theta, **kwargs)
+
+    @classmethod
+    def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta):
+        """Two dimensional Sersic profile function."""
+
+        bn = cls._gammaincinv(2. * n, 0.5)
+        a, b = r_eff, (1 - ellip) * r_eff
+        cos_theta, sin_theta = np.cos(theta), np.sin(theta) 
+        x_maj = (x - x_0) * cos_theta + (y - y_0) * sin_theta
+        x_min = -(x - x_0) * sin_theta + (y - y_0) * cos_theta
+        z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
+
+        return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
+

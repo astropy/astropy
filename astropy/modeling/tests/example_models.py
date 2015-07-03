@@ -32,7 +32,7 @@ Explanation of keywords of the dictionaries:
 
 "log_fit" : bool
     PowerLaw models should be tested over a few magnitudes. So log_fit should
-    be true.
+    be true.  
 
 "requires_scipy" : bool
     If a model requires scipy (Bessel functions etc.) set this flag.
@@ -57,7 +57,7 @@ from ..functional_models import (
     MexicanHat1D, Trapezoid1D, Const1D, Moffat1D,
     Gaussian2D, Const2D, Box2D, MexicanHat2D,
     TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
-    Ring2D)
+    Ring2D, Sersic1D, Sersic2D)
 from ..polynomial import Polynomial1D, Polynomial2D
 from ..powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
@@ -184,6 +184,16 @@ models_1D = {
         'x_values': [1, 10, 100],
         'y_values': [3, 111, 10101],
         'x_lim': [-3, 3]
+     },
+
+    Sersic1D: {
+        'parameters': [1, 20, 4],
+        'x_values': [0.1, 1, 10, 100],
+        'y_values': [2.78629391e+02, 5.69791430e+01, 3.38788244e+00,
+                     2.23941982e-02],
+        'requires_scipy': True,
+        'x_lim': [0,10],
+        'log_fit': True
     }
 }
 
@@ -289,5 +299,15 @@ models_2D = {
         'x_lim': [-10, 10],
         'y_lim': [-10, 10],
         'integral': np.pi * (10 ** 2 - 5 ** 2)
+    },
+
+    Sersic2D: {
+        'parameters': [1, 25, 4, 50, 50, 0.5, -1],
+        'x_values': [0.0, 1, 10, 100],
+        'y_values': [1, 100, 0.0, 10],
+        'z_values': [1.686398e-02, 9.095221e-02, 2.341879e-02, 9.419231e-02],
+        'requires_scipy': True,
+        'x_lim': [1,1e10],
+        'y_lim': [1,1e10]
     }
 }
