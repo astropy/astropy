@@ -31,7 +31,7 @@ class Node(object):
     # each node has a key and data list
     def __init__(self, key, data):
         self.key = key
-        self.data = [data]
+        self.data = data if isinstance(data, list) else [data]
         self.left = None
         self.right = None
         self.parent = None
@@ -71,6 +71,7 @@ class RedBlackNode(Node):
     def __init__(self, key, data):
         super(RedBlackNode, self).__init__(key, data)
         self.color = RED
+
     def __str__(self):
         return str((self.key, self.data, 'BLACK' if self.color == BLACK else 'RED'))
     def __repr__(self):
@@ -83,8 +84,8 @@ class BST(object):
     def __init__(self, lines={}):
         self.root = None
         self.size = 0
-        for el in lines.items():
-            self.add(*el)
+        for key, data in lines.items():
+            self.add(key, data)
 
     def add(self, key, data=None):
         if data is None:
@@ -127,6 +128,10 @@ class BST(object):
         if self.root is None:
             return None
         return self._find_recursive(key, self.root)
+
+    def reorder(self, row):
+        for node in self.traverse():
+            node.data = [x - 1 if x > row else x for x in node.data]
 
     def _find_recursive(self, key, node):
         try:
@@ -290,6 +295,10 @@ class BST(object):
         return max(self._height(node.left),
                    self._height(node.right)) + 1
 
+    def replace_rows(self, row_map):
+        for key, data in self.nodes():
+            data[:] = [row_map[x] for x in data if x in row_map]
+
     def rotate_left(self, node):
         parent = node.parent
         subtree = node.right.left
@@ -444,4 +453,4 @@ try:
         engine = FastRBTree
 except ImportError:
     FastBST = BST
-    FastRBT = RedBlackTree
+    FastRBT = BST ##TODO: change to RedBlackTree when completed
