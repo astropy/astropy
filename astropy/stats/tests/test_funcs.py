@@ -11,6 +11,7 @@ from numpy.testing.utils import assert_allclose
 
 try:
     import scipy
+    import scipy.stats
 except ImportError:
     HAS_SCIPY = False
 else:
@@ -256,3 +257,84 @@ def test_gaussian_sigma_to_fwhm():
 def test_gaussian_sigma_to_fwhm_to_sigma():
     assert_allclose(funcs.gaussian_fwhm_to_sigma *
                     funcs.gaussian_sigma_to_fwhm, 1.0)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_sigma_to_logp_small():
+    assert_allclose(funcs.sigma_to_logp(5),
+                    np.log(2*scipy.stats.norm.sf(5)))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_sigma_to_logp_list():
+    funcs.sigma_to_logp([1,2,3])
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_logp_to_sigma_list():
+    funcs.logp_to_sigma([-1,-2,-3])
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_logp_to_sigma_small():
+    assert_allclose(funcs.logp_to_sigma(-5),
+                    scipy.stats.norm.isf(0.5*np.exp(-5)))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_logp_to_sigma_verysmall():
+    assert_allclose(funcs.logp_to_sigma(-0.01),
+                    scipy.stats.norm.isf(0.5*np.exp(-0.01)))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_sigma_to_logp_small_one_sided():
+    assert_allclose(funcs.sigma_to_logp(5, two_sided=False),
+                    np.log(scipy.stats.norm.sf(5)))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_logp_to_sigma_small_one_sided():
+    assert_allclose(funcs.logp_to_sigma(-5, two_sided=False),
+                    scipy.stats.norm.isf(np.exp(-5)))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_logp_to_sigma_roundtrip():
+    assert_allclose(funcs.sigma_to_logp(funcs.logp_to_sigma(-50)),
+                    -50)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_sigma_to_logp_roundtrip():
+    assert_allclose(funcs.logp_to_sigma(funcs.sigma_to_logp(50)),
+                    50)
+    
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_sigma_to_logp_negative():
+    assert_allclose(funcs.sigma_to_logp(-5, two_sided=False),
+                    np.log(scipy.stats.norm.sf(-5)))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_sigma_to_logp_negative_large():
+    assert_allclose(funcs.sigma_to_logp(-500, two_sided=False),
+                    0)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_sigma_to_logp_array():
+    s = 100*np.ones((3,4,5))
+    assert_allclose(funcs.sigma_to_logp(s),
+                    funcs.sigma_to_logp(s[0,0,0])*np.ones(s.shape))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_sigma_to_logp_array_negative():
+    s = -np.ones((3,4,5))
+    assert_allclose(funcs.sigma_to_logp(s, two_sided=False),
+                    funcs.sigma_to_logp(s[0,0,0], two_sided=False)*np.ones(s.shape))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_logp_to_sigma_small():
+    assert_allclose(funcs.logp_to_sigma(-0.01, two_sided=False),
+                    scipy.stats.norm.isf(np.exp(-0.01)))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_logp_to_sigma_large():
+    assert_allclose(funcs.logp_to_sigma(-1e-10, two_sided=False),
+                    scipy.stats.norm.isf(np.exp(-1e-10)))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_logp_to_sigma_small_two():
+    assert_allclose(funcs.logp_to_sigma(-0.01),
+                    scipy.stats.norm.isf(0.5*np.exp(-0.01)))
+
