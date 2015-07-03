@@ -3,6 +3,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import itertools
+
 import numpy as np
 
 from numpy.random import randn, normal
@@ -256,3 +258,116 @@ def test_gaussian_sigma_to_fwhm():
 def test_gaussian_sigma_to_fwhm_to_sigma():
     assert_allclose(funcs.gaussian_fwhm_to_sigma *
                     funcs.gaussian_sigma_to_fwhm, 1.0)
+
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N',[10,100,1000,10000])
+def test_uniform(N):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper(np.random.random(N))[1]>0.01
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,M',[(100,100),
+                                (20,100),
+                                (100,20),
+                                (10,20),
+                                (5,5),
+                                (1000,100)])
+def test_kuiper_two_uniform(N,M):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper_two(np.random.random(N),
+                                np.random.random(M))[1]>0.01
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,M',[(100,100),
+                                (20,100),
+                                (100,20),
+                                (10,20),
+                                (5,5),
+                                (1000,100)])
+def test_kuiper_two_nonuniform(N,M):
+    with NumpyRNGContext(12345):
+        assert funcs.kuiper_two(np.random.random(N)**2,
+                                np.random.random(M)**2)[1]>0.01
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_detect_kuiper_two_different():
+    with NumpyRNGContext(12345):
+        D, f = funcs.kuiper_two(np.random.random(500)*0.5,
+                                np.random.random(500))
+        assert f<0.01
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,M',[(100,100),
+                                (20,100),
+                                (100,20),
+                                (10,20),
+                                (5,5),
+                                (1000,100)])
+def test_fpp_kuiper_two(N,M):
+    with NumpyRNGContext(12345):
+        R = 100
+        fpp = 0.05
+        fps = 0
+        for i in range(R):
+            D, f = funcs.kuiper_two(np.random.random(N),np.random.random(M))
+            if f<fpp:
+                fps += 1
+        assert scipy.stats.binom(R,fpp).sf(fps-1)>0.005
+        assert scipy.stats.binom(R,fpp).cdf(fps-1)>0.005
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_histogram():
+    with NumpyRNGContext(1234):
+        a, b = 0.3, 3.14
+        s = np.random.uniform(a,b,10000) % 1
+    
+        b, w = funcs.fold_intervals([(a,b,1./(b-a))])
+
+        h = funcs.histogram_intervals(16,b,w)
+        nn, bb = np.histogram(s, bins=len(h), range=(0,1))
+
+        uu = np.sqrt(nn)
+        nn, uu = len(h)*nn/h/len(s), len(h)*uu/h/len(s)
+
+        c2 = np.sum(((nn-1)/uu)**2)
+    
+        assert scipy.stats.chi2(len(h)).cdf(c2)>0.01
+        assert scipy.stats.chi2(len(h)).sf(c2)>0.01
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize("ii,rr",[ 
+            ( (4,(0,1),(1,)), (1,1,1,1) ),
+            ( (2,(0,1),(1,)), (1,1) ),
+            ( (4,(0,0.5,1),(1,1)), (1,1,1,1) ),
+            ( (4,(0,0.5,1),(1,2)), (1,1,2,2) ),
+            ( (3,(0,0.5,1),(1,2)), (1,1.5,2) ),
+            ])
+def test_histogram_intervals_known(ii, rr):
+    with NumpyRNGContext(1234):
+        assert_allclose(funcs.histogram_intervals(*ii),rr)
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('N,m,p',[(100,10000,0.01),
+                                  (300,10000,0.001),
+                                  (10,10000,0.001),
+                                  ])
+def test_uniform_binomial(N,m,p):
+    """Check that the false positive probability is right
+
+    In particular, run m trials with N uniformly-distributed photons
+    and check that the number of false positives is consistent with
+    a binomial distribution. The more trials, the tighter the bounds
+    but the longer the runtime.
+    
+    """
+    with NumpyRNGContext(1234):
+        fpps = [funcs.kuiper(np.random.random(N))[1]
+                for i in range(m)]
+        assert (scipy.stats.binom(n=m,p=p).ppf(0.01)
+                <len([fpp for fpp in fpps if fpp<p])
+                <scipy.stats.binom(n=m,p=p).ppf(0.99))
