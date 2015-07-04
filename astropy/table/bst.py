@@ -1,3 +1,5 @@
+import operator
+
 BLACK = 0
 RED = 1
 
@@ -19,6 +21,12 @@ class Epsilon(object):
         if self.val == other:
             return True
         return self.val > other
+
+    def __eq__(self, other):
+        return False
+
+    def __repr__(self):
+        return repr(self.val) + " + epsilon"
 
 class Node(object):
     __lt__ = lambda x, y: x.key < y.key
@@ -229,15 +237,18 @@ class BST(object):
             (node.right is None or node.right >= node) and \
             self._is_valid(node.left) and self._is_valid(node.right)
 
-    def range(self, lower, upper):
-        # return all nodes with keys in (inclusive) range [lower, upper]
-        nodes = self.range_nodes(lower, upper)
+    def range(self, lower, upper, bounds=(True, True)):
+        # return all nodes with keys in range [lower, upper] by default
+        # changing bounds to (False, False) makes the range exclusive
+        nodes = self.range_nodes(lower, upper, bounds)
         return [x for node in nodes for x in node.data]
 
-    def range_nodes(self, lower, upper):
+    def range_nodes(self, lower, upper, bounds=(True, True)):
         if self.root is None:
             return []
-        return self._range(lower, upper, self.root, [])
+        # ops are <= or <
+        ops = tuple([operator.le if x else operator.lt for x in bounds])
+        return self._range(lower, upper, ops, self.root, [])
 
     def same_prefix(self, val):
         # assuming val has smaller length than keys, return
@@ -247,13 +258,14 @@ class BST(object):
         nodes = self._same_prefix(val, self.root, [])
         return [x for node in nodes for x in node.data]
 
-    def _range(self, lower, upper, node, lst):
-        if lower <= node.key <= upper:
+    def _range(self, lower, upper, ops, node, lst):
+        op1, op2 = ops
+        if op1(lower, node.key) and op2(node.key, upper):
             lst.append(node)
         if node.key < upper and node.right is not None:
-            self._range(lower, upper, node.right, lst)
+            self._range(lower, upper, ops, node.right, lst)
         if node.key > lower and node.left is not None:
-            self._range(lower, upper, node.left, lst)
+            self._range(lower, upper, ops, node.left, lst)
         return lst
 
     def _same_prefix(self, val, node, lst):
@@ -426,10 +438,15 @@ class FastBase(object):
     def sort(self):
         return [x for node in self.traverse() for x in node.data]
 
-    def range(self, lower, upper):
-        # we need Epsilon(upper) since bintrees searches for
-        # lower <= key < upper, while we want lower <= key <= upper
-        l = [v for v in self.data.value_slice(lower, Epsilon(upper))]
+    def range(self, lower, upper, bounds=(True, True)):
+        # we need Epsilon since bintrees searches for
+        # lower <= key < upper, while we might want lower <= key <= upper
+        # or similar
+        if not bounds[0]: # lower < key
+            lower = Epsilon(lower)
+        if bounds[1]: # key <= upper
+            upper = Epsilon(upper)
+        l = [v for v in self.data.value_slice(lower, upper)]
         return [x for sublist in l for x in sublist]
 
     def replace_rows(self, row_map):

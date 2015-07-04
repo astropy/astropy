@@ -456,13 +456,14 @@ class Table(object):
 
         <query> := "[" <column name> "]" <criterion> | <query> "and" <query>
         <criterion> := "in" <range> | "=" <value>
-        <range> := "(" <value> "," <value> ")"
+        <range> := <left-paren> <value> "," <value> <right-paren>
         <value> := "{" <number> "}"
+        <left-paren> := "[" | "("
+        <right-paren> := "]" | ")"
 
-        Example: table.where('[col0] in ({0}, {1}) and [col1] = {2}', 1, 5, 3)
+        Example: table.where('[col0] in [{0}, {1}) and [col1] = {2}', 1, 5, 3)
         '''
 
-        ##TODO: finish mini-language
         tokens = []
         token = ''
         parens = {'[': ']', '(': ')', '{': '}'}
@@ -474,7 +475,8 @@ class Table(object):
                 token += c
             elif token[0] in parens:
                 token += c
-                if c == parens[token[0]]:
+                if c == parens[token[0]] or (token[0] == '(' and
+                        c == ']') or (token[0] == '[' and c == ')'):
                     tokens.append(token)
                     token = ''
             elif c.isspace():
@@ -482,15 +484,15 @@ class Table(object):
                 token = ''
             else:
                 token += c
-
         col_map = {}
 
         def interpret_query(query):
             col = re.match('\[([^\]]+)\]', query[0]).groups()[0]
             if query[1] == 'in':
-                val_range = re.match('\( *\{(\d+)\} *, *\{(\d+)\} *\)',
+                val_range = re.match('(\(|\[) *\{(\d+)\} *, *\{(\d+)\} *(\)|\])',
                                      query[2]).groups()
-                col_map[col] = (vals[int(val_range[0])], vals[int(val_range[1])])
+                col_map[col] = ((vals[int(val_range[1])], vals[int(val_range[2])]),
+                                (val_range[0] == '[', val_range[3] == ']'))
             elif query[1] == '=':
                 val = re.match('\{ *(\d+) *\}', query[2]).groups()[0]
                 col_map[col] = vals[int(val)]

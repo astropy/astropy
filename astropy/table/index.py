@@ -14,7 +14,8 @@ remove(key, data=None) -> boolean : remove data from self[key], or all of
                                     self[key] if data is None
 reorder(row) -> None : decrement row numbers after row
 find(key) -> list : list of rows corresponding to key
-range(lower, upper) -> list : rows in self[k] where lower<=k<=upper
+range(lower, upper, bounds) -> list : rows in self[k] where k is between
+                               lower and upper (<= or < based on bounds)
 sort() -> list of rows in sorted order (by key)
 replace_rows(row_map) -> None : replace row numbers based on slice
 
@@ -149,12 +150,14 @@ class Index:
         last_col = query_names[-1]
 
         if isinstance(col_map[last_col], tuple): # range query
-            lower = base + [col_map[last_col][0]]
-            upper = base + [col_map[last_col][1]]
+            lower = base + [col_map[last_col][0][0]]
+            upper = base + [col_map[last_col][0][1]]
+            bounds = col_map[last_col][1]
+            # bounds is a tuple of True (<=) or False (<)
             if len(lower) == len(self.columns):
-                return self.data.range(tuple(lower), tuple(upper))
+                return self.data.range(tuple(lower), tuple(upper), bounds)
             else:
-                return self.same_prefix_range(lower, upper)
+                return self.same_prefix_range(lower, upper, bounds)
         else:
             key = base + [col_map[query_names[-1]]]
             if len(key) == len(self.columns):
@@ -166,14 +169,18 @@ class Index:
         return self.data.range(lower, upper)
 
     def same_prefix(self, key):
-        return self.same_prefix_range(key, key)
+        return self.same_prefix_range(key, key, (True, True))
 
-    def same_prefix_range(self, lower, upper):
+    def same_prefix_range(self, lower, upper, bounds):
         n = len(lower)
         ncols = len(self.columns)
-        lower = tuple(lower + (ncols - n) * [MinValue()])
-        upper = tuple(upper + (ncols - n) * [MaxValue()])
-        return self.data.range(lower, upper)
+        a = MinValue() if bounds[0] else MaxValue()
+        b = MaxValue() if bounds[1] else MinValue()
+        # [x, y] search corresponds to [(x, min), (y, max)]
+        # (x, y) search corresponds to ((x, max), (x, min))
+        lower = tuple(lower + (ncols - n) * [a])
+        upper = tuple(upper + (ncols - n) * [b])
+        return self.data.range(lower, upper, bounds)
 
     def replace(self, row, col, val):
         self.remove_row(row, reorder=False)
