@@ -17,24 +17,41 @@ class ArraySlot(object):
         return repr(self)
 
 class SortedArray(object):
-    ''' Implements a sorted array container.'''
+    '''
+    Implements a sorted array container using
+    a numpy structured array.
+    '''
 
     def __init__(self, lines):
         self.root = None
-        self.data = sorted(lines.items())
-        # data is list of tuples (key, data)
+        for key in lines:
+            self.num_cols = len(key)
+            break
+        self.length = len(lines)
+        self.buffer_size = self.length
+        self._data = np.zeros(length, dtype=[
+            ('key', '{0}O'.format(num_cols)), ('rows', 'O')])
+        for i, (key, rows) in enumerate(lines.items()):
+            self._data['key'][i] = key
+            self._data['rows'][i] = rows
 
+    @property
+    def data(self):
+        return self._data[:self.length]
+
+    def resize(self):
+        if self.length == self.buffer_size:
+            # resize to 50% larger capacity
+            increase = int(0.5 * self.buffer_size)
+            if increase == 0: # started out with buffer_size == 1
+                increase = 1
+            self.buffer_size += increase
+            self._data = np.resize(self._data, self.buffer_size)
+                                                
     def add(self, key, val):
-        if len(self.data) == 0:
-            self.data.append((key, val))
-            return
-        pos = self.find_pos(key)
-        if pos < len(self.data) and self.data[pos][0] == key:
-            # add data to existing ArraySlot
-            self.data[pos][1].extend(val)
-            self.data[pos][1] = sorted(self.data[pos][1])
-        else:
-            self.data.insert(pos, (key, val))
+        self.resize()
+        self.length += 1
+        
 
     def find_pos(self, key):
         # returns index of first data key larger than the supplied key,
