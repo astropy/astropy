@@ -77,6 +77,8 @@ New Features
     longer, more descriptive names (e.g. ``Pix2Sky_Gnomonic``).
     [#3583]
 
+    - Added ``Sersic1D`` and ``Sersic2D`` model classes. 
+
 - ``astropy.nddata``
 
   - Added ``block_reduce`` and ``block_replicate`` functions. [#3453]
