@@ -826,7 +826,12 @@ class Parameter(OrderedDescriptor):
 
     def __array__(self, dtype=None):
         # Make np.asarray(self) work a little more straightforwardly
-        return np.asarray(self.value, dtype=dtype)
+        arr = np.asarray(self.value, dtype=dtype)
+
+        if self.unit is not None:
+            arr = Quantity(arr, self.unit, copy=False)
+
+        return arr
 
     def __nonzero__(self):
         if self._model is None:
