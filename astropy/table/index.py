@@ -56,9 +56,8 @@ class MinValue(object):
         return False
 
 class Index:
-    def __init__(self, columns, impl=None):
-        if impl is None:
-            impl = FastRBT
+    def __init__(self, columns, impl=None, num_cols=None):
+        self.engine = impl or FastRBT
 
         if columns is None: # this creates a special exception for deep copying
             columns = []
@@ -73,7 +72,10 @@ class Index:
                 lines[key] = [val]
             else:
                 lines[key].append(val)
-        self.data = impl(lines)
+        if self.engine == SortedArray:
+            self.data = self.engine(lines, num_cols=num_cols)
+        else:
+            self.data = self.engine(lines)
         self.columns = columns
 
     def refresh(self, columns):
@@ -203,7 +205,8 @@ class Index:
 
     def __deepcopy__(self, memo):
         # deep copy must be overridden to perform a shallow copy of columns
-        index = Index(None, impl=self.data.__class__)
+        num_cols = self.data.num_cols if self.engine == SortedArray else None
+        index = Index(None, impl=self.data.__class__, num_cols=num_cols)
         index.data = deepcopy(self.data, memo)
         index.columns = self.columns[:] # new list, same columns
         memo[id(self)] = index
