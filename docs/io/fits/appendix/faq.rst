@@ -398,6 +398,8 @@ extensions (a default PRIMARY HDU is prepended automatically if one was not
 provided manually).
 
 
+.. _fits-scaled-data-faq:
+
 Why is an image containing integer data being converted unexpectedly to floats?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
