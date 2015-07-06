@@ -32,7 +32,7 @@ Explanation of keywords of the dictionaries:
 
 "log_fit" : bool
     PowerLaw models should be tested over a few magnitudes. So log_fit should
-    be true.  
+    be true.
 
 "requires_scipy" : bool
     If a model requires scipy (Bessel functions etc.) set this flag.
@@ -57,7 +57,7 @@ from ..functional_models import (
     MexicanHat1D, Trapezoid1D, Const1D, Moffat1D,
     Gaussian2D, Const2D, Box2D, MexicanHat2D,
     TrapezoidDisk2D, AiryDisk2D, Moffat2D, Disk2D,
-    Ring2D, Sersic1D, Sersic2D)
+    Ring2D, Sersic1D, Sersic2D, Voigt1D)
 from ..polynomial import Polynomial1D, Polynomial2D
 from ..powerlaws import (
     PowerLaw1D, BrokenPowerLaw1D, ExponentialCutoffPowerLaw1D,
@@ -194,11 +194,18 @@ models_1D = {
         'requires_scipy': True,
         'x_lim': [0,10],
         'log_fit': True
+    },
+
+    Voigt1D: {
+        'parameters': [0, 1, 0.5, 0.9],
+        'x_values': [0, 2, 4, 8, 10],
+        'y_values': [0.71638049, 0.0484249, 0.01496101, 0.00424706, 0.00279052],
+        'x_lim': [-3, 3]
     }
 }
 
 
-#2D Models
+# 2D Models
 models_2D = {
     Gaussian2D: {
         'parameters': [1, 0, 0, 1, 1],
