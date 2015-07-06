@@ -113,8 +113,9 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
     """
 
+    from .. import conf
+
     if memmap is None:
-        from .. import conf
         # distinguish between True (kwarg explicitly set)
         # and None (preference for memmap in config, might be ignored)
         memmap = None if conf.use_memmap else False
@@ -127,6 +128,9 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
         warnings.warn(
             'The uint16 keyword argument is deprecated since v1.1.0.  Use '
             'the uint argument instead.', AstropyDeprecationWarning)
+
+    if 'uint' not in kwargs:
+        kwargs['uint'] = conf.enable_uint
 
     if not name:
         raise ValueError('Empty filename: %s' % repr(name))
