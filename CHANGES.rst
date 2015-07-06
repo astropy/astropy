@@ -77,7 +77,7 @@ New Features
     longer, more descriptive names (e.g. ``Pix2Sky_Gnomonic``).
     [#3583]
 
-    - Added ``Sersic1D`` and ``Sersic2D`` model classes. 
+    - Added ``Sersic1D`` and ``Sersic2D`` model classes. [#3889]
 
 - ``astropy.nddata``
 
