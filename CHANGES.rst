@@ -78,10 +78,8 @@ New Features
     [#3583]
 
     - Added ``Sersic1D`` and ``Sersic2D`` model classes. [#3889]
-    - Added ``Sersic1D`` and ``Sersic2D`` model classes. 
-  - Added the Voigt profile to existing models. [#3901]
-    - Added ``Sersic1D`` and ``Sersic2D`` model classes. 
-  - Added the Voigt profile to existing models. [#3901]
+
+    - Added the Voigt profile to existing models. [#3901]
 
 - ``astropy.nddata``
 
@@ -491,7 +489,7 @@ Bug Fixes
 
 - Misc
 
-  - ``fitscheck`` no longer causes scaled image data to be rescaled when 
+  - ``fitscheck`` no longer causes scaled image data to be rescaled when
     adding checksums to existing files. [#3884]
 
 Other Changes and Additions
