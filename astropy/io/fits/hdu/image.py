@@ -448,7 +448,7 @@ class _ImageBaseHDU(_ValidHDU):
                 pass
 
         if _scale and _scale != 1:
-            self.data /= _scale
+            self.data = self.data / _scale
             self._header['BSCALE'] = _scale
         else:
             try:
