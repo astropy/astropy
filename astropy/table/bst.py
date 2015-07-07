@@ -165,6 +165,9 @@ class BST(object):
             return self._postorder(self.root, [])
         raise ValueError("Invalid traversal method: \"{0}\"".format(order))
 
+    def items(self):
+        return [(x.key, x.data) for x in self.traverse()]
+
     def sort(self):
         return [x for node in self.traverse() for x in node.data]
 
@@ -434,6 +437,10 @@ class FastBase(object):
                 n.data = data
                 l.append(n)
         return l
+
+    def items(self):
+        # remove empty entries
+        return [x for x in self.data.items() if len(x[1]) > 0]
 
     def sort(self):
         return [x for node in self.traverse() for x in node.data]
