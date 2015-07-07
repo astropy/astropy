@@ -236,7 +236,13 @@ class SkyCoord(object):
             # this to get all the right attributes
             self._sky_coord_frame = self_frame[item]
             out = SkyCoord(self, representation=self.representation)
-            out.info = self.info
+
+            # Copy other 'info' attr only if it has actually been defined.
+            # See PR #3898 for further explanation and justification, along
+            # with Quantity.__array_finalize__
+            if 'info' in getattr(self, '__dict__', ()):
+                out.info = self.info
+
             return out
         finally:
             # now put back the right frame in self
@@ -282,7 +288,9 @@ class SkyCoord(object):
                 # along with any frame attributes like equinox or obstime which
                 # were explicitly specified in the coordinate object (i.e. non-default).
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, units, kwargs)
-                if hasattr(args[0], 'info'):
+
+                # Copy other 'info' attr only if it has actually been defined.
+                if 'info' in getattr(args[0], '__dict__', ()):
                     self.info = args[0].info
 
             elif len(args) <= 3:

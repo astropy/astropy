@@ -744,12 +744,18 @@ class Time(object):
 
             setattr(tm, attr, val)
 
-        for attr in ('precision', 'in_subfmt', 'out_subfmt', 'info'):
+        for attr in ('precision', 'in_subfmt', 'out_subfmt'):
             val = getattr(self, attr)
             if method in ('copy', 'flatten') and hasattr(val, 'copy'):
                 val = val.copy()
 
             setattr(tm, attr, val)
+
+        # Copy other 'info' attr only if it has actually been defined.
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if 'info' in getattr(self, '__dict__', ()):
+            tm.info = self.info
 
         # Make the new internal _time object corresponding to the format
         # in the copy.  If the format is unchanged this process is lightweight
@@ -798,7 +804,10 @@ class Time(object):
                     setattr(tm, attr, val[item])
                 except IndexError:  # location may be scalar (same for all)
                     continue
-        tm.info = self.info
+
+        # Copy other 'info' attr only if it has actually been defined.
+        if 'info' in getattr(self, '__dict__', ()):
+            tm.info = self.info
 
         return tm
 

@@ -280,7 +280,7 @@ class Quantity(np.ndarray):
         # works, `'info' in obj.__dict__` is False until the `info` attribute
         # is accessed or set.  Note that `obj` can be an ndarray which doesn't
         # have a `__dict__`.
-        if self.ndim > 0 and hasattr(obj, '__dict__') and 'info' in obj.__dict__:
+        if 'info' in getattr(obj, '__dict__', ()):
             self.info = obj.info
 
     def __array_prepare__(self, obj, context=None):
