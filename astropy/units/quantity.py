@@ -22,7 +22,7 @@ from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
-from ..utils.data_info import DataInfo, InfoDescriptor
+from ..utils.data_info import MixinInfo, InfoDescriptor
 from .utils import validate_power
 from .. import config as _config
 
@@ -113,7 +113,7 @@ class QuantityIterator(object):
     next = __next__
 
 
-class QuantityInfo(DataInfo):
+class QuantityInfo(MixinInfo):
     """
     Container for meta information like name, description, format.  This is
     required when the object is used as a mixin column within a table, but can
@@ -272,6 +272,13 @@ class Quantity(np.ndarray):
 
     def __array_finalize__(self, obj):
         self._unit = getattr(obj, '_unit', None)
+
+        # Copy info if the original had `info` defined.  Because of the way the
+        # InfoDescriptor works, `'info' in obj.__dict__` is False until the
+        # `info` attribute is accessed or set.  Note that `obj` can be an
+        # ndarray which doesn't have a `__dict__`.
+        if 'info' in getattr(obj, '__dict__', ()):
+            self.info = obj.info
 
     def __array_prepare__(self, obj, context=None):
         # This method gets called by Numpy whenever a ufunc is called on the

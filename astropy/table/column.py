@@ -14,7 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import DataInfo, InfoDescriptor, dtype_info_name
+from ..utils.data_info import BaseColumnInfo, InfoDescriptor, dtype_info_name
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -45,29 +45,6 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
-def _col_update_attrs_from(newcol, col, exclude_attrs=['name', 'parent_table']):
-    """
-    Copy info from mixin `col` to `newcol`.  Does nothing for BaseColumn cols.
-    """
-    if isinstance(newcol, BaseColumn):
-        return
-
-    attrs = newcol.info.attr_names - set(exclude_attrs) - newcol.info.attrs_from_parent
-    for attr in attrs:
-        val = getattr(col.info, attr)
-        if val is not None:
-            setattr(newcol.info, attr, deepcopy(val))
-
-def col_iter_str_vals(col):
-    """
-    This is a mixin-safe version of Column.iter_str_vals.
-    """
-    parent_table = col.info.parent_table
-    formatter = FORMATTER if parent_table is None else parent_table.formatter
-    _pformat_col_iter = formatter._pformat_col_iter
-    for str_val in _pformat_col_iter(col, -1, False, False, {}):
-        yield str_val
-
 def col_copy(col):
     """
     This is a mixin-safe version of Column.copy() (with copy_data=True).
@@ -86,7 +63,7 @@ def col_copy(col):
 
     try:
         newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
-        newcol.info = col.info.copy()
+        newcol.info = col.info
     finally:
         col.info.parent_table = parent_table
 
@@ -111,8 +88,8 @@ class FalseArray(np.ndarray):
                              .format(self.__class__.__name__))
 
 
-class ColumnInfo(DataInfo):
-    attrs_from_parent = DataInfo.attr_names
+class ColumnInfo(BaseColumnInfo):
+    attrs_from_parent = BaseColumnInfo.attr_names
 
 
 class BaseColumn(np.ndarray):

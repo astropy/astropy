@@ -14,7 +14,7 @@ import numpy as np
 
 from .table import Table, Column
 from ..extern.six.moves import zip, range
-from ..utils.data_info import InfoDescriptor, DataInfo
+from ..utils.data_info import InfoDescriptor, MixinInfo
 
 class TimingTables(object):
     """
@@ -144,13 +144,17 @@ class ArrayWrapper(object):
     """
     def __init__(self, data):
         self.data = np.array(data)
-        self.info.dtype = self.data.dtype
+        if isinstance(data, ArrayWrapper):
+            self.info = data.info
+        else:
+            self.info.dtype = self.data.dtype
 
     def __getitem__(self, item):
         if isinstance(item, (int, np.integer)):
             out = self.data[item]
         else:
             out = self.__class__(self.data[item])
+            out.info = self.info
         return out
 
     def __setitem__(self, item, value):
@@ -159,7 +163,7 @@ class ArrayWrapper(object):
     def __len__(self):
         return len(self.data)
 
-    info = InfoDescriptor(DataInfo)
+    info = InfoDescriptor(MixinInfo)
 
     @property
     def shape(self):

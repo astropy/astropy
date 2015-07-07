@@ -17,7 +17,9 @@ except ImportError:
     HAS_YAML = False
 
 import numpy as np
+import copy
 
+from ...extern.six.moves import cPickle as pickle
 from ...tests.helper import pytest
 from ...table import Table, QTable, join, hstack, vstack
 from ... import time
@@ -224,9 +226,35 @@ def test_get_items(mixin_cols):
     t = QTable([m])
     for item in ([1, 3], np.array([0, 2]), slice(1, 3)):
         t2 = t[item]
+        m2 = m[item]
         assert_table_name_col_equal(t2, 'm', m[item])
         for attr in attrs:
             assert getattr(t2['m'].info, attr) == getattr(m.info, attr)
+            assert getattr(m2.info, attr) == getattr(m.info, attr)
+
+def test_info_preserved_pickle_copy_init(mixin_cols):
+    """
+    Test copy, pickle, and init from class roundtrip preserve info.  This
+    tests not only the mixin classes but a regular column as well.
+    """
+    def pickle_roundtrip(c):
+        return pickle.loads(pickle.dumps(c))
+
+    def init_from_class(c):
+        return c.__class__(c)
+
+    attrs = ('name', 'unit', 'dtype', 'format', 'description', 'meta')
+    for colname in ('i', 'm'):
+        m = mixin_cols[colname]
+        m.info.name = colname
+        m.info.format = '{0}'
+        m.info.description = 'd'
+        m.info.meta = {'a': 1}
+        for func in (copy.copy, copy.deepcopy, pickle_roundtrip, init_from_class):
+            m2 = func(m)
+            for attr in attrs:
+                assert getattr(m2.info, attr) == getattr(m.info, attr)
+
 
 def test_add_column(mixin_cols):
     """

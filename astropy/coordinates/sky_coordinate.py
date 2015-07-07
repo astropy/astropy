@@ -13,7 +13,7 @@ from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.data_info import InfoDescriptor, DataInfo
+from ..utils.data_info import InfoDescriptor, MixinInfo
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -42,7 +42,7 @@ def FRAME_ATTR_NAMES_SET():
     return out
 
 
-class SkyCoordInfo(DataInfo):
+class SkyCoordInfo(MixinInfo):
     """
     Container for meta information like name, description, format.  This is
     required when the object is used as a mixin column within a table, but can
@@ -66,10 +66,10 @@ class SkyCoordInfo(DataInfo):
 
     @property
     def _repr_data(self):
-        if self._parent_ref is None:
+        if self._parent is None:
             return None
 
-        sc = self._parent_ref()
+        sc = self._parent
         if (issubclass(sc.representation, SphericalRepresentation) and
                 isinstance(sc.data, UnitSphericalRepresentation)):
             repr_data = sc.represent_as(sc.data.__class__, in_frame_units=True)
@@ -176,10 +176,10 @@ class SkyCoord(object):
             Cartesian coordinates values for the Galactic frame.
     """
 
-
     # Declare that SkyCoord can be used as a Table column by defining the
-    # attribute where column attributes will be stored.
-    _astropy_column_attrs = None
+    # info property.
+    info = InfoDescriptor(SkyCoordInfo)
+
 
     def __init__(self, *args, **kwargs):
 
@@ -208,8 +208,6 @@ class SkyCoord(object):
         if not self._sky_coord_frame.has_data:
             raise ValueError('Cannot create a SkyCoord without data')
 
-    info = InfoDescriptor(SkyCoordInfo)
-
     @property
     def frame(self):
         return self._sky_coord_frame
@@ -237,7 +235,15 @@ class SkyCoord(object):
             # First turn `self` into a mockup of the thing we want - we can copy
             # this to get all the right attributes
             self._sky_coord_frame = self_frame[item]
-            return SkyCoord(self, representation=self.representation)
+            out = SkyCoord(self, representation=self.representation)
+
+            # Copy other 'info' attr only if it has actually been defined.
+            # See PR #3898 for further explanation and justification, along
+            # with Quantity.__array_finalize__
+            if 'info' in self.__dict__:
+                out.info = self.info
+
+            return out
         finally:
             # now put back the right frame in self
             self._sky_coord_frame = self_frame
@@ -282,6 +288,10 @@ class SkyCoord(object):
                 # along with any frame attributes like equinox or obstime which
                 # were explicitly specified in the coordinate object (i.e. non-default).
                 coord_kwargs = _parse_coordinate_arg(args[0], frame, units, kwargs)
+
+                # Copy other 'info' attr only if it has actually been defined.
+                if 'info' in getattr(args[0], '__dict__', ()):
+                    self.info = args[0].info
 
             elif len(args) <= 3:
                 frame_attr_names = frame.representation_component_names.keys()

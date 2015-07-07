@@ -115,10 +115,10 @@ def table_info(tbl, option='attributes', out=''):
     out.writelines(outline + os.linesep for outline in outlines)
 
 class TableInfo(object):
-    _parent_ref = None
+    _parent = None
 
     def __call__(self, option='attributes', out=''):
-        return table_info(self._parent_ref(), option, out)
+        return table_info(self._parent, option, out)
 
     __call__.__doc__ = table_info.__doc__
 

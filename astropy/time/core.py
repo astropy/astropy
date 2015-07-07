@@ -24,7 +24,7 @@ from ..units import UnitConversionError
 from ..utils.compat.numpycompat import NUMPY_LT_1_7
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
-from ..utils.data_info import InfoDescriptor, DataInfo, data_info_factory
+from ..utils.data_info import InfoDescriptor, MixinInfo, data_info_factory
 from ..utils.compat.numpy import broadcast_to
 from ..extern import six
 
@@ -116,7 +116,7 @@ SIDEREAL_TIME_MODELS = {
         'IAU1994': {'function': erfa_time.gst94, 'scales': ('ut1',)}}}
 
 
-class TimeInfo(DataInfo):
+class TimeInfo(MixinInfo):
     """
     Container for meta information like name, description, format.  This is
     required when the object is used as a mixin column within a table, but can
@@ -129,10 +129,10 @@ class TimeInfo(DataInfo):
         return None
 
     info_summary_stats = staticmethod(
-        data_info_factory(names=DataInfo._stats,
-                          funcs=[getattr(np, stat) for stat in DataInfo._stats]))
+        data_info_factory(names=MixinInfo._stats,
+                          funcs=[getattr(np, stat) for stat in MixinInfo._stats]))
     # When Time has mean, std, min, max methods:
-    # funcs = [lambda x: getattr(x, stat)() for stat_name in DataInfo._stats])
+    # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
 
 class Time(object):
     """
@@ -752,6 +752,12 @@ class Time(object):
 
             setattr(tm, attr, val)
 
+        # Copy other 'info' attr only if it has actually been defined.
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if 'info' in self.__dict__:
+            tm.info = self.info
+
         # Make the new internal _time object corresponding to the format
         # in the copy.  If the format is unchanged this process is lightweight
         # and does not create any new arrays.
@@ -799,6 +805,10 @@ class Time(object):
                     setattr(tm, attr, val[item])
                 except IndexError:  # location may be scalar (same for all)
                     continue
+
+        # Copy other 'info' attr only if it has actually been defined.
+        if 'info' in self.__dict__:
+            tm.info = self.info
 
         return tm
 

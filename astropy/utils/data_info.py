@@ -155,12 +155,15 @@ class InfoDescriptor(object):
     def __get__(self, instance, owner_cls):
         if 'info' not in instance.__dict__:
             instance.__dict__['info'] = self.info_cls()
-        instance.__dict__['info']._parent_ref = weakref.ref(instance)
+        instance.__dict__['info']._parent = instance
         return instance.__dict__['info']
 
     def __set__(self, instance, value):
         if isinstance(value, DataInfo):
-            instance.__dict__['info'] = value
+            info = instance.__dict__['info'] = self.info_cls()
+            for attr in info.attr_names - info.attrs_from_parent - info._attrs_no_copy:
+                info._attrs[attr] = deepcopy(getattr(value, attr))
+
         else:
             raise TypeError('info must be set with a DataInfo instance')
 
@@ -169,10 +172,10 @@ class DataInfo(object):
 
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
-    attr_names = set(['name', 'unit', 'dtype', 'format', 'description',
-                      'meta', 'parent_table'])
+    attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
+    _attrs_no_copy = set()
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
-    _parent_ref = None
+    _parent = None
 
     def __init__(self):
         self._attrs = dict((attr, None) for attr in self.attr_names)
@@ -188,7 +191,7 @@ class DataInfo(object):
             return super(DataInfo, self).__getattribute__(attr)
 
         if attr in self.attrs_from_parent:
-            return getattr(self._parent_ref(), attr)
+            return getattr(self._parent, attr)
 
         try:
             value = self._attrs[attr]
@@ -212,7 +215,7 @@ class DataInfo(object):
         # class property (getter/setter) for this attribute then set
         # attribute directly in parent.
         if attr in self.attrs_from_parent and not isinstance(propobj, property):
-            setattr(self._parent_ref(), attr, value)
+            setattr(self._parent, attr, value)
             return
 
         # Check if there is a property setter and use it if possible.
@@ -235,13 +238,6 @@ class DataInfo(object):
             value = None if value is None else weakref.ref(value)
 
         self._attrs[attr] = value
-
-    def copy(self):
-        out = self.__class__()
-        for attr in self.attr_names - self.attrs_from_parent:
-            setattr(out, attr, deepcopy(getattr(self, attr)))
-
-        return out
 
     info_summary_attributes = staticmethod(
         data_info_factory(names=_info_summary_attrs,
@@ -311,7 +307,7 @@ class DataInfo(object):
         if out == '':
             out = sys.stdout
 
-        dat = self._parent_ref()
+        dat = self._parent
         info = OrderedDict()
         name = dat.info.name
         if name is not None:
@@ -356,3 +352,35 @@ class DataInfo(object):
         out = six.moves.cStringIO()
         self.__call__(out=out)
         return out.getvalue()
+
+
+class BaseColumnInfo(DataInfo):
+    """
+    Base info class for anything that can be a column in an astropy
+    Table.  There are at least two classes that inherit from this:
+
+      ColumnInfo: for native astropy Column / MaskedColumn objects
+      MixinInfo: for mixin column objects
+
+    Note that this class is defined here so that mixins can use it
+    without importing the table package.
+    """
+    attr_names = DataInfo.attr_names.union(['parent_table'])
+    _attrs_no_copy = set(['parent_table'])
+
+    def iter_str_vals(self):
+        """
+        This is a mixin-safe version of Column.iter_str_vals.
+        """
+        col = self._parent
+        if self.parent_table is None:
+            from ..table.column import FORMATTER as formatter
+        else:
+            formatter = self.parent_table.formatter
+
+        _pformat_col_iter = formatter._pformat_col_iter
+        for str_val in _pformat_col_iter(col, -1, False, False, {}):
+            yield str_val
+
+class MixinInfo(BaseColumnInfo):
+    pass
