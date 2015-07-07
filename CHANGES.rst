@@ -218,6 +218,13 @@ API changes
 
 - ``astropy.io.fits``
 
+  - The ``uint`` argument to ``fits.open`` is now True by default; that is,
+    arrays using the FITS unsigned integer convention will be detected, and
+    read as unsigned integers by default.  A new config option for
+    ``io.fits``, ``enable_uint``, can be changed to False to revert to the
+    original behavior of ignoring the ``uint`` convention unless it is
+    explicitly requested with ``uint=True``. [#3916]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.votable``

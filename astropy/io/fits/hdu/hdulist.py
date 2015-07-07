@@ -19,7 +19,7 @@ from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
 from ....utils import indent
-from ....utils.exceptions import AstropyUserWarning
+from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -62,6 +62,8 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
             central value and ``BSCALE == 1`` as unsigned integer
             data.  For example, ``int16`` data with ``BZERO = 32768``
             and ``BSCALE = 1`` would be treated as ``uint16`` data.
+            This is enabled by default so that the pseudo-unsigned
+            integer convention is assumed.
 
             Note, for backward compatibility, the kwarg **uint16** may
             be used instead.  The kwarg was renamed when support was
@@ -111,8 +113,9 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
 
     """
 
+    from .. import conf
+
     if memmap is None:
-        from .. import conf
         # distinguish between True (kwarg explicitly set)
         # and None (preference for memmap in config, might be ignored)
         memmap = None if conf.use_memmap else False
@@ -122,6 +125,12 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     if 'uint16' in kwargs and 'uint' not in kwargs:
         kwargs['uint'] = kwargs['uint16']
         del kwargs['uint16']
+        warnings.warn(
+            'The uint16 keyword argument is deprecated since v1.1.0.  Use '
+            'the uint argument instead.', AstropyDeprecationWarning)
+
+    if 'uint' not in kwargs:
+        kwargs['uint'] = conf.enable_uint
 
     if not name:
         raise ValueError('Empty filename: %s' % repr(name))

@@ -97,6 +97,29 @@ because by that point you're likely to run out of physical memory anyways), but
 	out of scope, or manually call ``del hdul[0].data`` (this works so long as there are no other
 	references held to the data array).
 
+Unsigned integers
+"""""""""""""""""
+
+Due to the FITS format's FORTRAN origins, FITS does not natively support
+unsigned integer data in images or tables.  However, there is a common
+convention to store unsigned integers as signed integers, along with a
+*shift* instruction (a ``BZERO`` keyword with value ``2 ** (BITPIX - 1)``) to
+shift up all signed integers to unsigned inters.  For example, when writing
+the value ``0`` as an unsigned 32-bit integer, it is stored in the FITS
+file as ``-32768``, along with the header keyword ``BZERO = 32768``.
+
+Astropy recognizes and applies this convention by default, so that all data
+that looks like it should be interpreted as unsigned integers is automatically
+converted (this applies to both images and tables).  In Astropy versions prior
+to v1.1.0 this was *not* applied automatically, and it is necessary to pass the
+argument ``uint=True`` to :func:`open`.  In v1.1.0 or later this is the
+default.
+
+Even with ``uint=False``, the ``BZERO`` shift is still applied, but the
+returned array is of "float64" type.  To disable scaling/shifting entirely, use
+``do_not_scale_image_data=True`` (see :ref:`fits-scaled-data-faq` in the FAQ
+for more details).
+
 Working with compressed files
 """""""""""""""""""""""""""""
 

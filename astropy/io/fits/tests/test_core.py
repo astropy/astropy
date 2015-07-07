@@ -150,7 +150,7 @@ class TestCore(FitsTestCase):
         assert header.ascard['BITPIX'].comment == comment
 
     def test_uint(self):
-        hdulist_f = fits.open(self.data('o4sp040b0_raw.fits'))
+        hdulist_f = fits.open(self.data('o4sp040b0_raw.fits'), uint=False)
         hdulist_i = fits.open(self.data('o4sp040b0_raw.fits'), uint=True)
 
         assert hdulist_f[1].data.dtype == np.float32

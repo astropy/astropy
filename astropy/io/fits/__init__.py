@@ -46,6 +46,13 @@ class Conf(_config.ConfigNamespace):
         'FITS files. This generally provides better performance, especially '
         'for large files, but may affect performance in I/O-heavy '
         'applications.')
+    enable_uint = _config.ConfigItem(
+        True,
+        'If True, default to recognizing the convention for representing '
+        'unsigned integers in FITS--if an array has BITPIX > 0, BSCALE = 1, '
+        'and BZERO = 2**BITPIX, represent the data as unsigned integers '
+        'per this convention.')
+
 conf = Conf()
 
 
