@@ -238,6 +238,12 @@ API changes
 
 - ``astropy.modeling``
 
+  - Note: Comparisons of model parameters with array-like values now
+    yields a Numpy boolean array as one would get with normal Numpy
+    array comparison.  Previously this returned a scalar True or False,
+    with True only if the comparison was true for all elements compared,
+    which could lead to confusing circumstances. [#3912]
+
   - Renamed the parameters of ``RotateNative2Celestial`` and
     ``RotateCelestial2Native`` from ``phi``, ``theta``, ``psi`` to
     ``lon``, ``lat`` and ``lon_pole``. [#3578]

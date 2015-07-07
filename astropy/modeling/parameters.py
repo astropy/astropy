@@ -678,10 +678,7 @@ class Parameter(object):
 
     def __array__(self, dtype=None):
         # Make np.asarray(self) work a little more straightforwardly
-        if self._model is None:
-            return np.array([], dtype=np.float)
-        else:
-            return np.asarray(self.value, dtype=dtype)
+        return np.asarray(self.value, dtype=dtype)
 
     def __nonzero__(self):
         if self._model is None:
@@ -728,22 +725,25 @@ class Parameter(object):
         return val / self.value
 
     def __eq__(self, val):
-        return (np.asarray(self) == np.asarray(val)).all()
+        if self._model is None:
+            return super(Parameter, self).__eq__(val)
+
+        return self.__array__() == val
 
     def __ne__(self, val):
-        return not (np.asarray(self) == np.asarray(val)).all()
+        return self.__array__() != val
 
     def __lt__(self, val):
-        return (np.asarray(self) < np.asarray(val)).all()
+        return self.__array__() < val
 
     def __gt__(self, val):
-        return (np.asarray(self) > np.asarray(val)).all()
+        return self.__array__() > val
 
     def __le__(self, val):
-        return (np.asarray(self) <= np.asarray(val)).all()
+        return self.__array__() <= val
 
     def __ge__(self, val):
-        return (np.asarray(self) >= np.asarray(val)).all()
+        return self.__array__() >= val
 
     def __neg__(self):
         return -self.value
