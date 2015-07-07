@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: dis.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -197,6 +197,8 @@
 * disndp(), dpfill(), disini(), discpy(), and disfree() are provided to manage
 * the disprm struct, and another, disprt(), prints its contents.
 *
+* disperr() prints the error message(s) (if any) stored in a disprm struct.
+*
 * A setup routine, disset(), computes intermediate values in the disprm struct
 * from parameters in it that were supplied by the user.  The struct always
 * needs to be set up by disset(), though disset() need not be called
@@ -208,9 +210,7 @@
 * An auxiliary routine, diswarp(), computes various measures of the distortion
 * over a specified range of coordinates.
 *
-* PLEASE NOTE:
-* Distortions are not currently handled by wcsbth(), wcssub(), wcscompare(),
-* or wcshdo().
+* PLEASE NOTE: Distortions are not yet handled by wcsbth(), or wcscompare().
 *
 *
 * disndp() - Memory allocation for DPja and DQia
@@ -270,9 +270,9 @@
 *                         0: Integer,
 *                         1: Floating point.
 *
-*   ival      int       For type == 0, the integer value of the record.
+*   i         int       For type == 0, the integer value of the record.
 *
-*   fval      double    For type == 1, the floating point value of the record.
+*   f         double    For type == 1, the floating point value of the record.
 *
 * Function return value:
 *             int       Status return value:
@@ -382,6 +382,25 @@
 * Given:
 *   dis       const struct disprm*
 *                       Distortion function parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null disprm pointer passed.
+*
+*
+* disperr() - Print error messages from a disprm struct
+* -----------------------------------------------------
+* disperr() prints the error message(s) (if any) stored in a disprm struct.
+* If there are no errors then nothing is printed.  It uses wcserr_prt(), q.v.
+*
+* Given:
+*   dis       const struct disprm*
+*                       Distortion function parameters.
+*
+*   prefix    const char *
+*                       If non-NULL, each output line will be prefixed with
+*                       this string.
 *
 * Function return value:
 *             int       Status return value:
@@ -667,17 +686,18 @@
 *     pointers to the first elements of the axis mapping arrays for each axis.
 *
 *     An axis mapping associates the independent variables of a distortion
-*     function with the 1-relative image axis number.  For example, consider
-*     an image with a spectrum on the first axis, followed by RA, Dec, and
-*     time axes.  For a distortion in (RA,Dec) and no distortion on the
-*     spectral or time axes, the axis mapping arrays, axmap[j][], would be
+*     function with the 0-relative image axis number.  For example, consider
+*     an image with a spectrum on the first axis (axis 0), followed by RA
+*     (axis 1), Dec (axis2), and time (axis 3) axes.  For a distortion in
+*     (RA,Dec) and no distortion on the spectral or time axes, the axis
+*     mapping arrays, axmap[j][], would be
 *
-=       j=0: [0, 0, 0, 0]   ...no  distortion on spectral axis,
-=         1: [2, 3, 0, 0]   ...RA  distortion depends on RA and Dec,
-=         2: [3, 2, 0, 0]   ...Dec distortion depends on Dec and RA,
-=         3: [0, 0, 0, 0]   ...no  distortion on time axis,
+=       j=0: [-1, -1, -1, -1]   ...no  distortion on spectral axis,
+=         1: [ 1,  2, -1, -1]   ...RA  distortion depends on RA and Dec,
+=         2: [ 2,  1, -1, -1]   ...Dec distortion depends on Dec and RA,
+=         3: [-1, -1, -1, -1]   ...no  distortion on time axis,
 *
-*     where zero indicates that there is no corresponding independent
+*     where -1 indicates that there is no corresponding independent
 *     variable.
 *
 *   int *Nhat
@@ -768,8 +788,8 @@
 *
 *   union value
 *     (Given) A union comprised of
-*       - dpkey::ival,
-*       - dpkey::fval,
+*       - dpkey::i,
+*       - dpkey::f,
 *
 *     the record's value.
 *
@@ -878,7 +898,7 @@ struct disprm {
 int disndp(int n);
 
 int dpfill(struct dpkey *dp, const char *keyword, const char *field, int j,
-           int type, int ival, double fval);
+           int type, int i, double f);
 
 int disini(int alloc, int naxis, struct disprm *dis);
 
@@ -887,6 +907,8 @@ int discpy(int alloc, const struct disprm *dissrc, struct disprm *disdst);
 int disfree(struct disprm *dis);
 
 int disprt(const struct disprm *dis);
+
+int disperr(const struct disprm *dis, const char *prefix);
 
 int disset(struct disprm *dis);
 

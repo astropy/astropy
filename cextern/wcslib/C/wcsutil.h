@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutil.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: wcsutil.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -321,30 +321,30 @@
 *   value     double *  The double value parsed from the string.
 *
 *
-* wcsutil_dpkey_int() - Convert the data type in a dpkey struct to int
-* --------------------------------------------------------------------
+* wcsutil_dpkey_int() - Get the data value in a dpkey struct as int
+* -----------------------------------------------------------------
 * INTERNAL USE ONLY.
 *
-* wcsutil_dpkey_int(), if necessary, converts the data type in a dpkey struct
-* to floating point.  The double value itself is returned.
+* wcsutil_dpkey_int() returns the data value in a dpkey struct as an integer
+* value.
 *
 * Given and returned:
-*   dp        struct dpkey *
+*   dp        const struct dpkey *
 *                       Parsed contents of a DPja or DQia keyrecords.
 *
 * Function return value:
 *             int       The record's value as int.
 *
 *
-* wcsutil_dpkey_double() - Convert the data type in a dpkey struct to double
-* --------------------------------------------------------------------------
+* wcsutil_dpkey_double() - Get the data value in a dpkey struct as double
+* -----------------------------------------------------------------------
 * INTERNAL USE ONLY.
 *
-* wcsutil_dpkey_double(), if necessary, converts the data type in a dpkey
-* struct to floating point.  The integer value itself is returned.
+* wcsutil_dpkey_double() returns the data value in a dpkey struct as a
+* floating point value.
 *
 * Given and returned:
-*   dp        struct dpkey *
+*   dp        const struct dpkey *
 *                       Parsed contents of a DPja or DQia keyrecords.
 *
 * Function return value:
@@ -375,8 +375,8 @@ void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);
 char *wcsutil_fptr2str(int (*func)(void), char hext[19]);
 int  wcsutil_str2double(const char *buf, const char *format, double *value);
 void wcsutil_double2str(char *buf, const char *format, double value);
-int    wcsutil_dpkey_int(struct dpkey *dp);
-double wcsutil_dpkey_double(struct dpkey *dp);
+int    wcsutil_dpkey_int(const struct dpkey *dp);
+double wcsutil_dpkey_double(const struct dpkey *dp);
 
 #ifdef __cplusplus
 }

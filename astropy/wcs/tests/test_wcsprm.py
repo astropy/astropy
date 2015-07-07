@@ -918,3 +918,9 @@ def test_iteration():
         np.float)
 
     assert_array_almost_equal(x, expected)
+
+    w2 = w.wcs_pix2world(x, 1)
+
+    world[:, 0] %= 360.
+
+    assert_array_almost_equal(w2, world)

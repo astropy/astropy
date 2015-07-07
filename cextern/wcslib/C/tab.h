@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: tab.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: tab.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -53,6 +53,8 @@
 *
 * tabini(), tabmem(), tabcpy(), and tabfree() are provided to manage the
 * tabprm struct, and another, tabprt(), to print its contents.
+*
+* tabperr() prints the error message(s) (if any) stored in a tabprm struct.
 *
 * A setup routine, tabset(), computes intermediate values in the tabprm struct
 * from parameters in it that were supplied by the user.  The struct always
@@ -241,6 +243,25 @@
 * Given:
 *   tab       const struct tabprm*
 *                       Tabular transformation parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null tabprm pointer passed.
+*
+*
+* tabperr() - Print error messages from a tabprm struct
+* -----------------------------------------------------
+* tabperr() prints the error message(s) (if any) stored in a tabprm struct.
+* If there are no errors then nothing is printed.  It uses wcserr_prt(), q.v.
+*
+* Given:
+*   tab       const struct tabprm*
+*                       Tabular transformation parameters.
+*
+*   prefix    const char *
+*                       If non-NULL, each output line will be prefixed with
+*                       this string.
 *
 * Function return value:
 *             int       Status return value:
@@ -586,6 +607,8 @@ int tabcmp(int cmp, double tol, const struct tabprm *tab1,
 int tabfree(struct tabprm *tab);
 
 int tabprt(const struct tabprm *tab);
+
+int tabperr(const struct tabprm *tab, const char *prefix);
 
 int tabset(struct tabprm *tab);
 

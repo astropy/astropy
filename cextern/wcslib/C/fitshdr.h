@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: fitshdr.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -134,7 +134,7 @@
 *
 *      f: Sect. 5.2.3 offers no comment on the size of an integer keyvalue
 *         except indirectly in limiting it to 70 digits.  The parser will
-*         translates an integer keyvalue to a 32-bit signed integer if it
+*         translate an integer keyvalue to a 32-bit signed integer if it
 *         lies in the range -2147483648 to +2147483647, otherwise it
 *         interprets it as a 64-bit signed integer if possible, or else a
 *         "very long" integer (see fitskey::type).

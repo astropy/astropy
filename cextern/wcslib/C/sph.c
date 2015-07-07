@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: sph.c,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: sph.c,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -47,7 +47,7 @@ int sphx2s(
   double lat[])
 
 {
-  int mphi, mtheta, rowlen, rowoff;
+  int jphi, mphi, mtheta, rowlen, rowoff;
   double cosphi, costhe, costhe3, costhe4, dlng, dphi, sinphi, sinthe,
          sinthe3, sinthe4, x, y, z;
   register int iphi, itheta;
@@ -64,17 +64,19 @@ int sphx2s(
   }
 
 
-  /* Check for a simple change in origin of longitude. */
+  /* Check for special-case rotations. */
   if (eul[4] == 0.0) {
     if (eul[1] == 0.0) {
+      /* Simple change in origin of longitude. */
       dlng = fmod(eul[0] + 180.0 - eul[2], 360.0);
 
-      lngp = lng;
-      latp = lat;
-      phip   = phi;
+      jphi   = 0;
       thetap = theta;
-      for (itheta = 0; itheta < ntheta; itheta++) {
-        for (iphi = 0; iphi < mphi; iphi++) {
+      lngp   = lng;
+      latp   = lat;
+      for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+        phip = phi + (jphi%nphi)*spt;
+        for (iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
           *lngp = *phip + dlng;
           *latp = *thetap;
 
@@ -91,22 +93,22 @@ int sphx2s(
             *lngp += 360.0;
           }
 
-          lngp   += sll;
-          latp   += sll;
-          phip   += spt;
-          thetap += spt;
+          lngp += sll;
+          latp += sll;
         }
       }
 
     } else {
+      /* Pole-flip with change in origin of longitude. */
       dlng = fmod(eul[0] + eul[2], 360.0);
 
-      lngp = lng;
-      latp = lat;
-      phip   = phi;
+      jphi   = 0;
       thetap = theta;
-      for (itheta = 0; itheta < ntheta; itheta++) {
-        for (iphi = 0; iphi < mphi; iphi++) {
+      lngp   = lng;
+      latp   = lat;
+      for (itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
+        phip = phi + (jphi%nphi)*spt;
+        for (iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
           *lngp = dlng - *phip;
           *latp = -(*thetap);
 
@@ -123,10 +125,8 @@ int sphx2s(
             *lngp += 360.0;
           }
 
-          lngp   += sll;
-          latp   += sll;
-          phip   += spt;
-          thetap += spt;
+          lngp += sll;
+          latp += sll;
         }
       }
     }
@@ -232,7 +232,7 @@ int sphs2x(
   double theta[])
 
 {
-  int mlat, mlng, rowlen, rowoff;
+  int jlng, mlat, mlng, rowlen, rowoff;
   double coslat, coslat3, coslat4, coslng, dlng, dphi, sinlat, sinlat3,
          sinlat4, sinlng, x, y, z;
   register int ilat, ilng;
@@ -249,17 +249,19 @@ int sphs2x(
   }
 
 
-  /* Check for a simple change in origin of longitude. */
+  /* Check for special-case rotations. */
   if (eul[4] == 0.0) {
     if (eul[1] == 0.0) {
+      /* Simple change in origin of longitude. */
       dphi = fmod(eul[2] - 180.0 - eul[0], 360.0);
 
-      lngp = lng;
-      latp = lat;
+      jlng   = 0;
+      latp   = lat;
       phip   = phi;
       thetap = theta;
-      for (ilat = 0; ilat < nlat; ilat++) {
-        for (ilng = 0; ilng < mlng; ilng++) {
+      for (ilat = 0; ilat < nlat; ilat++, latp += sll) {
+        lngp = lng + (jlng%nlng)*sll;
+        for (ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
           *phip = fmod(*lngp + dphi, 360.0);
           *thetap = *latp;
 
@@ -272,20 +274,20 @@ int sphs2x(
 
           phip   += spt;
           thetap += spt;
-          lngp   += sll;
-          latp   += sll;
         }
       }
 
     } else {
+      /* Pole-flip with change in origin of longitude. */
       dphi = fmod(eul[2] + eul[0], 360.0);
 
-      lngp = lng;
-      latp = lat;
+      jlng   = 0;
+      latp   = lat;
       phip   = phi;
       thetap = theta;
-      for (ilat = 0; ilat < nlat; ilat++) {
-        for (ilng = 0; ilng < mlng; ilng++) {
+      for (ilat = 0; ilat < nlat; ilat++, latp += sll) {
+        lngp = lng + (jlng%nlng)*sll;
+        for (ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
           *phip = fmod(dphi - *lngp, 360.0);
           *thetap = -(*latp);
 
@@ -298,8 +300,6 @@ int sphs2x(
 
           phip   += spt;
           thetap += spt;
-          lngp   += sll;
-          latp   += sll;
         }
       }
     }

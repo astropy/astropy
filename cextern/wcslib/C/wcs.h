@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: wcs.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -200,14 +200,18 @@
 * wcssub() extracts the coordinate description for a subimage from a wcsprm
 * struct.  It does a deep copy, using wcsini() to allocate memory for its
 * arrays if required.  Only the "information to be provided" part of the
-* struct is extracted; a call to wcsset() is required to set up the remainder.
+* struct is extracted.  Consequently, wcsset() need not have been, and won't
+* be invoked on the struct from which the subimage is extracted.  A call to
+* wcsset() is required to set up the subimage struct.
 *
 * The world coordinate system of the subimage must be separable in the sense
 * that the world coordinates at any point in the subimage must depend only on
 * the pixel coordinates of the axes extracted.  In practice, this means that
-* the PCi_ja matrix of the original image must not contain non-zero
-* off-diagonal terms that associate any of the subimage axes with any of the
-* non-subimage axes.
+* the linear transformation matrix of the original image must not contain
+* non-zero off-diagonal terms that associate any of the subimage axes with any
+* of the non-subimage axes.  Likewise, if any distortions are associated with
+* the subimage axes, they must not depend on any of the axes that are not
+* being extracted.
 *
 * Note that while the required elements of the tabprm array are extracted, the
 * wtbarr array is not.  (Thus it is not appropriate to call wcssub() after

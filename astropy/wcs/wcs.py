@@ -53,6 +53,14 @@ except ImportError:
     else:
         _wcs = None
 
+if _wcs is not None:
+    _parsed_version = _wcs.__version__.split('.')
+    if int(_parsed_version[0]) == 5 and int(_parsed_version[1]) < 8:
+        raise ImportError(
+            "astropy.wcs is built with wcslib {0}, but only versions 5.8 and "
+            "later on the 5.x series are known to work.  The version of wcslib "
+            "that ships with astropy may be used.")
+
 from ..utils import deprecated, deprecated_attribute
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
@@ -388,8 +396,8 @@ class WCS(WCSBase):
                         "header must be a string, an astropy.io.fits.Header "
                         "object, or a dict-like object")
 
-            header_string = header_string.strip()
-
+            # Importantly, header is a *copy* of the passed-in header
+            # because we will be modifying it
             if isinstance(header_string, six.text_type):
                 header_bytes = header_string.encode('ascii')
                 header_string = header_string
@@ -397,9 +405,8 @@ class WCS(WCSBase):
                 header_bytes = header_string
                 header_string = header_string.decode('ascii')
 
-            # Importantly, header is a *copy* of the passed-in header
-            # because we will be modifying it
             header = fits.Header.fromstring(header_string)
+
             if naxis is None:
                 self.naxis = header.get('NAXIS', 2)
             else:
@@ -410,6 +417,16 @@ class WCS(WCSBase):
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)
             sip = self._read_sip_kw(header)
+
+            header_string = header.tostring()
+            header_string = header_string.replace('END' + ' ' * 77, '')
+
+            if isinstance(header_string, six.text_type):
+                header_bytes = header_string.encode('ascii')
+                header_string = header_string
+            else:
+                header_bytes = header_string
+                header_string = header_string.decode('ascii')
 
             try:
                 wcsprm = _wcs.Wcsprm(header=header_bytes, key=key,

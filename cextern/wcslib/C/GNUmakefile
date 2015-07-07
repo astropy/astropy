@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 5.6 and its test suite.
+# GNU makefile for building WCSLIB 5.7 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+# $Id: GNUmakefile,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include ../makedefs
@@ -63,11 +63,11 @@ vpath %.in ..
 # For building and exercising the test suite
 # ------------------------------------------
 # Test programs that don't require CFITSIO or PGPLOT...
-TEST_N := tlin tdis1 tlog tprj1 tsph tsphdpa tspx ttab1 twcs twcssub tpih1 \
-          tbth1 tfitshdr tunits twcsfix twcscompare
+TEST_N := tlin tdis1 tdis2 tlog tprj1 tsph tsphdpa tspx ttab1 twcs twcssub \
+          tpih1 tbth1 tfitshdr tunits twcsfix twcscompare
 
 # ...and unofficial test programs.
-TEST_n := tspcaips tspcspxe tspctrne twcs_locale
+TEST_n := tdisiter tspcaips tspcspxe tspctrne twcs_locale
 
 # Test programs that require CFITSIO (they don't need PGPLOT).
 TEST_C := twcstab twcshdr twcslint
@@ -289,7 +289,7 @@ cleaner : clean
 	-  $(RM) $(TEST_P) tpih2 twcstab twcshdr twcslint
 	-  $(RM) tofits
 	-  $(RM) bth.fits fitshdr.fits pih.fits wcslint.fits wcstab.fits
-	-  $(RM) TPV3.fits TPV5.fits TPV7.fits SIP.fits
+	-  $(RM) TPV3.fits TPV5.fits TPV7.fits SIP.fits SIPTPV.fits
 	-  $(RM) t*_cfitsio test_results
 
 cleanest distclean realclean : cleaner
@@ -415,6 +415,10 @@ tfitshdr tfitshdr_cfitsio : fitshdr.h wcsconfig.h wcsconfig_tests.h
 tlin    : lin.h
 tdis1   : cel.h dis.h lin.h prj.h spc.h spx.h wcs.h wcserr.h wcshdr.h \
           wcsprintf.h
+tdis2   : cel.h dis.h lin.h prj.h spc.h spx.h wcs.h wcserr.h wcshdr.h \
+          wcsprintf.h
+tdisiter: cel.h dis.h lin.h prj.h spc.h spx.h wcs.h wcserr.h wcshdr.h \
+          wcsprintf.h
 tlog    : log.h
 tpih1 tpih1_cfitsio : cel.h lin.h prj.h spc.h spx.h wcs.h wcsconfig.h \
                       wcsconfig_tests.h wcserr.h wcsfix.h wcshdr.h wcsprintf.h
@@ -449,6 +453,7 @@ twcstab : cel.h fitshdr.h getwcstab.h lin.h log.h prj.h spc.h sph.h spx.h \
           wcsmath.h wcsprintf.h wcstrig.h wcsunits.h wcsutil.h
 
 run_tdis1 : TPV3.fits TPV5.fits TPV7.fits
+run_tdis2 : SIP.fits
 run_tbth1 run_tbth1_cfitsio : bth.fits
 run_tfitshdr run_tfitshdr_cfitsio : fitshdr.fits
 run_tpih1 run_tpih1_cfitsio : pih.fits

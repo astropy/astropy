@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.6 - an implementation of the FITS WCS standard.
+  WCSLIB 5.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.h,v 5.6 2015/06/14 07:11:24 mcalabre Exp $
+  $Id: spc.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -53,6 +53,8 @@
 * Routine spcini() is provided to initialize the spcprm struct with default
 * values, spcfree() reclaims any memory that may have been allocated to store
 * an error message, and spcprt() prints its contents.
+*
+* spcperr() prints the error message(s) (if any) stored in a spcprm struct.
 *
 * A setup routine, spcset(), computes intermediate values in the spcprm struct
 * from parameters in it that were supplied by the user.  The struct always
@@ -209,6 +211,25 @@
 * Given:
 *   spc       const struct spcprm*
 *                       Spectral transformation parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null spcprm pointer passed.
+*
+*
+* spcperr() - Print error messages from a spcprm struct
+* -----------------------------------------------------
+* spcperr() prints the error message(s) (if any) stored in a spcprm struct.
+* If there are no errors then nothing is printed.  It uses wcserr_prt(), q.v.
+*
+* Given:
+*   spc       const struct spcprm*
+*                       Spectral transformation parameters.
+*
+*   prefix    const char *
+*                       If non-NULL, each output line will be prefixed with
+*                       this string.
 *
 * Function return value:
 *             int       Status return value:
@@ -829,6 +850,8 @@ int spcini(struct spcprm *spc);
 int spcfree(struct spcprm *spc);
 
 int spcprt(const struct spcprm *spc);
+
+int spcperr(const struct spcprm *spc, const char *prefix);
 
 int spcset(struct spcprm *spc);
 
