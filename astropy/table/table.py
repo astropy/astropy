@@ -18,11 +18,7 @@ from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-<<<<<<< HEAD
-from ..utils.data_info import InfoDescriptor, BaseColumnInfo, MixinInfo
-=======
-from ..utils.data_info import InfoDescriptor, DataInfo
->>>>>>> 461e063... WIP on getting StructuredArrayMixin working
+from ..utils.data_info import InfoDescriptor, BaseColumnInfo, MixinInfo, ParentDtypeInfo
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -49,9 +45,9 @@ def descr(col):
     This returns a 3-tuple (name, type, shape) that can always be
     used in a structured array dtype definition.
     """
-    col_dtype_str = col.dtype.str if hasattr(col, 'dtype') else 'O'
+    col_dtype = 'O' if (col.info.dtype is None) else col.info.dtype
     col_shape = col.shape[1:] if hasattr(col, 'shape') else ()
-    return (col.info.name, col_dtype_str, col_shape)
+    return (col.info.name, col_dtype, col_shape)
 
 
 def has_info_class(obj, cls):
@@ -2228,10 +2224,15 @@ class NdarrayMixin(np.ndarray):
     """
     Minimal mixin using a simple subclass of numpy array
     """
-    info = InfoDescriptor(DataInfo)
+    info = InfoDescriptor(ParentDtypeInfo)
+
+    def __new__(cls, obj, *args, **kwargs):
+        self = np.array(obj, *args, **kwargs).view(cls)
+        if 'info' in getattr(obj, '__dict__', ()):
+            self.info = obj.info
+        return self
 
     def __array_finalize__(self, obj):
-        import weakref
         if obj is None:
             return
 
@@ -2241,8 +2242,22 @@ class NdarrayMixin(np.ndarray):
         # Self was created from template (e.g. obj[slice] or (obj * 2))
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
-        if hasattr(obj, 'info'):
-            self.info = obj.info.copy()
-            import pdb; pdb.set_trace()
-            self.info._parent_ref = weakref.ref(self)
+        if 'info' in getattr(obj, '__dict__', ()):
+            self.info = obj.info
+
+    def __reduce__(self):
+        # patch to pickle Quantity objects (ndarray subclasses), see
+        # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+
+        object_state = list(super(NdarrayMixin, self).__reduce__())
+        object_state[2] = (object_state[2], self.__dict__)
+        return tuple(object_state)
+
+    def __setstate__(self, state):
+        # patch to unpickle NdarrayMixin objects (ndarray subclasses), see
+        # http://www.mail-archive.com/numpy-discussion@scipy.org/msg02446.html
+
+        nd_state, own_state = state
+        super(NdarrayMixin, self).__setstate__(nd_state)
+        self.__dict__.update(own_state)
 

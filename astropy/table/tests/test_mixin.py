@@ -464,7 +464,15 @@ def test_ndarray_mixin():
                  dtype='<i4,|S1')
     b = np.array([(10, 'aa'), (20, 'bb'), (30, 'cc'), (40, 'dd')],
                  dtype=[('x', 'i4'), ('y', 'S2')])
-    t = Table([a, b], names=['a', 'b'])
+    c = np.rec.fromrecords([(100, 'raa'), (200, 'rbb'), (300, 'rcc'), (400, 'rdd')],
+                           names=['rx', 'ry'])
+    d = np.arange(8).reshape(4, 2).view(NdarrayMixin)
+
+    # Add one during initialization and the next as a new column.
+    t = Table([a], names=['a'])
+    t['b'] = b
+    t['c'] = c
+    t['d'] = d
 
     assert isinstance(t['a'], NdarrayMixin)
 
@@ -481,3 +489,26 @@ def test_ndarray_mixin():
 
     assert t[1]['b']['x'] == 20
     assert t[1]['b']['y'] == 'bb'
+
+    assert isinstance(t['c'], NdarrayMixin)
+
+    assert t['c'][1]['rx'] == 200
+    assert t['c'][1]['ry'] == 'rbb'
+
+    assert t[1]['c']['rx'] == 200
+    assert t[1]['c']['ry'] == 'rbb'
+
+    assert isinstance(t['d'], NdarrayMixin)
+
+    assert t['d'][1][0] == 2
+    assert t['d'][1][1] == 3
+
+    assert t[1]['d'][0] == 2
+    assert t[1]['d'][1] == 3
+
+    assert t.pformat() == ['   a         b           c       d [2] ',
+                           '-------- ---------- ------------ ------',
+                           "(1, 'a') (10, 'aa') (100, 'raa') 0 .. 1",
+                           "(2, 'b') (20, 'bb') (200, 'rbb') 2 .. 3",
+                           "(3, 'c') (30, 'cc') (300, 'rcc') 4 .. 5",
+                           "(4, 'd') (40, 'dd') (400, 'rdd') 6 .. 7"]
