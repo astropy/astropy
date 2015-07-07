@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import contextlib
 import sys
 import warnings
-import sys
 
 import numpy as np
 
@@ -83,11 +83,52 @@ class TestChecksumFunctions(FitsTestCase):
                 assert 'DATASUM' in hdul1[0].header
                 assert hdul1[0].header['DATASUM'] == '1891563534'
 
+    def test_scaled_data_auto_rescale(self):
+        """
+        Regression test for
+        https://github.com/astropy/astropy/issues/3883#issuecomment-115122647
+
+        Ensure that when scaled data is automatically rescaled on
+        opening/writing a file that the checksum and datasum are computed for
+        the rescaled array.
+        """
+
+        with fits.open(self.data('scale.fits')) as hdul:
+            # Write out a copy of the data with the rescaling applied
+            hdul.writeto(self.temp('rescaled.fits'))
+
+        # Reopen the new file and save it back again with a checksum
+        with fits.open(self.temp('rescaled.fits')) as hdul:
+            hdul.writeto(self.temp('rescaled2.fits'), clobber=True,
+                         checksum=True)
+
+        # Now do like in the first writeto but use checksum immediately
+        with fits.open(self.data('scale.fits')) as hdul:
+            hdul.writeto(self.temp('rescaled3.fits'), checksum=True)
+
+        # Also don't rescale the data but add a checksum
+        with fits.open(self.data('scale.fits'),
+                       do_not_scale_image_data=True) as hdul:
+            hdul.writeto(self.temp('scaled.fits'), checksum=True)
+
+        # Must used nested with statements to support older Python versions
+        # (but contextlib.nested is not available in newer Pythons :(
+        with fits.open(self.temp('rescaled2.fits')) as hdul1:
+            with fits.open(self.temp('rescaled3.fits')) as hdul2:
+                with fits.open(self.temp('scaled.fits')) as hdul3:
+                    hdr1 = hdul1[0].header
+                    hdr2 = hdul2[0].header
+                    hdr3 = hdul3[0].header
+                    assert hdr1['DATASUM'] == hdr2['DATASUM']
+                    assert hdr1['CHECKSUM'] == hdr2['CHECKSUM']
+                    assert hdr1['DATASUM'] != hdr3['DATASUM']
+                    assert hdr1['CHECKSUM'] != hdr3['CHECKSUM']
+
     def test_uint16_data(self):
         checksums = [
-            ('aDcXaCcXaCcXaCcX', '0'), ('84DJ83CH83CH83CH', '1746888714'),
+            ('aDcXaCcXaCcXaCcX', '0'), ('oYiGqXi9oXiEoXi9', '1746888714'),
             ('VhqQWZoQVfoQVZoQ', '0'), ('4cPp5aOn4aOn4aOn', '0'),
-            ('97ZYI7WV97WVG7WV', '1756785133'), ('UhqdUZnbUfnbUZnb', '0'),
+            ('8aCN8X9N8aAN8W9N', '1756785133'), ('UhqdUZnbUfnbUZnb', '0'),
             ('4cQJ5aN94aNG4aN9', '0')]
         with fits.open(self.data('o4sp040b0_raw.fits'), uint=True) as hdul:
             hdul.writeto(self.temp('tmp.fits'), clobber=True, checksum=True)
