@@ -275,11 +275,10 @@ class Quantity(np.ndarray):
     def __array_finalize__(self, obj):
         self._unit = getattr(obj, '_unit', None)
 
-        # Copy info (except for a scalar output for performance reasons) if the
-        # original had `info` defined.  Because of the way the InfoDescriptor
-        # works, `'info' in obj.__dict__` is False until the `info` attribute
-        # is accessed or set.  Note that `obj` can be an ndarray which doesn't
-        # have a `__dict__`.
+        # Copy info if the original had `info` defined.  Because of the way the
+        # InfoDescriptor works, `'info' in obj.__dict__` is False until the
+        # `info` attribute is accessed or set.  Note that `obj` can be an
+        # ndarray which doesn't have a `__dict__`.
         if 'info' in getattr(obj, '__dict__', ()):
             self.info = obj.info
 
