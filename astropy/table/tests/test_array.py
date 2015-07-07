@@ -15,3 +15,5 @@ def test_array_find(array):
 
 def test_array_range(array):
     assert np.all(array.range((0, 8), (1, 3), (True, True)) == [8, 10, 1, 3])
+    assert np.all(array.range((0, 8), (1, 3), (False, True)) == [10, 1, 3])
+    assert np.all(array.range((0, 8), (1, 3), (True, False)) == [8, 10, 1])

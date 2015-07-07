@@ -1,6 +1,12 @@
 import pytest
 import numpy as np
 from .test_table import SetupData
+from ..bst import BST, FastBST, FastRBT
+from ..array import SortedArray
+
+@pytest.fixture(params=[BST, FastBST, FastRBT, SortedArray])
+def impl(request):
+    return request.param
 
 @pytest.mark.usefixtures('table_types')
 class TestIndex(SetupData):
@@ -19,10 +25,10 @@ class TestIndex(SetupData):
             return self._t
 
     @pytest.mark.parametrize("composite", [False, True])
-    def test_table_index(self, table_types, composite):
+    def test_table_index(self, table_types, composite, impl):
         self._setup(table_types)
         t = self.t
-        t.add_index(('a', 'b') if composite else 'a')
+        t.add_index(('a', 'b') if composite else 'a', impl=impl)
         t['a'][0] = 4
         t.add_row((6, 6.0, '7'))
         t['a'][3] = 10
@@ -32,7 +38,7 @@ class TestIndex(SetupData):
         assert np.allclose(t['b'].data, np.array([4.0, 5.1, 7.0, 1.1, 6.0, 5.0]))
         assert np.all(t['c'].data == np.array(['7', '8', '10', '11', '7', '9']))
         index = t.indices[0]
-        l = [(x.key, x.data) for x in index.data.traverse()]
+        l = list(index.data.items())
 
         if composite:
             assert np.all(l == [((2, 5.1), [1]),
@@ -50,11 +56,11 @@ class TestIndex(SetupData):
         t.remove_indices('a')
         assert len(t.indices) == 0
 
-    def test_table_where(self, table_types):
+    def test_table_where(self, table_types, impl):
         ##TODO: test for expected errors
         self._setup(table_types)
         t = self.t
-        t.add_index(['b', 'a'])
+        t.add_index(['b', 'a'], impl=impl)
         t.add_row((2, 5.3, '7'))
         t.add_row((4, 4.0, '1'))
         '''
@@ -85,10 +91,10 @@ class TestIndex(SetupData):
         # range on both columns
         assert t.where('[b] = {0} and [a] in ({1}, {2})', 4.0, 3, 5) == [6]
 
-    def test_table_slicing(self, table_types):
+    def test_table_slicing(self, table_types, impl):
         self._setup(table_types)
         t = self.t
-        t.add_index('a')
+        t.add_index('a', impl=impl)
         assert np.all(t['a'].data == np.array([1, 2, 3, 4, 5]))
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
@@ -101,10 +107,10 @@ class TestIndex(SetupData):
         # however, this index should be a deep copy of t1's index
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
-    def test_remove_rows(self, table_types):
+    def test_remove_rows(self, table_types, impl):
         self._setup(table_types)
         t = self.t
-        t.add_index('a')
+        t.add_index('a', impl=impl)
         
         # remove individual row
         t2 = t.copy()
@@ -122,10 +128,10 @@ class TestIndex(SetupData):
         with pytest.raises(ValueError):
             t.remove_rows((0, 2, 4))
 
-    def test_col_slicing(self, table_types):
+    def test_col_slicing(self, table_types, impl):
         self._setup(table_types)
         t = self.t
-        t.add_index('a')
+        t.add_index('a', impl=impl)
 
         # get slice
         t2 = t[1:3] # table slice
@@ -153,11 +159,11 @@ class TestIndex(SetupData):
         assert np.all(t2['a'].data == [0, 2, 0, 4, 0])
         assert np.all(t2.indices[0].sorted_data() == [0, 2, 4, 1, 3])
 
-    def test_sort(self, table_types):
+    def test_sort(self, table_types, impl):
         self._setup(table_types)
         t = self.t[::-1] # reverse table
         assert np.all(t['a'].data == [5, 4, 3, 2, 1])
-        t.add_index('a')
+        t.add_index('a', impl=impl)
         assert np.all(t.indices[0].sorted_data() == [4, 3, 2, 1, 0])
 
         # sort table by column a

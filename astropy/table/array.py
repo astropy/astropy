@@ -32,7 +32,6 @@ class SortedArray(object):
                 break
 
         self.length = len(lines)
-        self.buffer_size = self.length
         key_cols = [('k{0}'.format(i), 'O') for i in range(self.num_cols)]
         self._data = np.zeros(self.length, dtype=key_cols + [('rows', 'O')])
         for i, (key, rows) in enumerate(lines.items()):
@@ -41,27 +40,32 @@ class SortedArray(object):
             self._data['rows'][i] = rows
         self._data = self._data[np.argsort(self._data)]
 
-    @property
-    def data(self):
-        return self._data[:self.length]
-
     def resize(self):
-        if self.length == self.buffer_size:
+        buffer_size = len(self._data)
+        if self.length == buffer_size:
             # resize to 50% larger capacity
-            increase = int(0.5 * self.buffer_size)
+            increase = int(0.5 * buffer_size)
             if increase == 0: # started out with buffer_size == 1
                 increase = 1
-            self.buffer_size += increase
-            self._data = np.resize(self._data, self.buffer_size)
+            buffer_size += increase
+            self._data = np.resize(self._data, buffer_size)
                                                 
     def add(self, key, val):
-        self.resize()
-        begin = 0
-        end = self.length
-        self.length += 1
+        pos = self.find_pos(key) # first >= key
+        if pos < self.length and tuple(self._data[pos])[:-1] == key:
+            # add to existing entry
+            rows = self._data['rows'][pos]
+            # make sure row lists remain sorted
+            rows[:] = np.insert(rows, np.searchsorted(rows, val), val)
+        else:
+            self.resize()
+            self.length += 1
+            # shift larger keys rightward
+            self._data[pos:] = np.roll(self._data[pos:], 1)
+            self._data[pos] = key + ([val],)
 
     def find_pos(self, key, exact=False):
-        # Return the index of the largest key in data <= given key.
+        # Return the index of the largest key in data >= given key.
         # If exact is True, return the index of the given key in
         # data or -1 if the key is not present.
         begin = 0
@@ -71,13 +75,18 @@ class SortedArray(object):
         for i in range(self.num_cols):
             key_slice = self._data['k{0}'.format(i)][begin:end]
             t = np.searchsorted(key_slice, key[i])
-            begin += t
-            if exact and (begin == self.length or key_slice[t] != key[i]):
+            # t is the smallest index >= key[i]
+            if exact and (t == len(key_slice) or key_slice[t] != key[i]):
                 # no match
                 return -1
-            elif begin == self.length: # greater than all keys
-                return begin
+            elif t == len(key_slice) or (t == 0 and len(key_slice > 0) and
+                                         key_slice[0] > key[i]):
+                # too small or too large
+                return begin + t
             end = begin + np.searchsorted(key_slice, key[i], side='right')
+            begin += t
+            if begin >= self.length: # greater than all keys
+                return begin
 
         return begin
 
@@ -88,17 +97,62 @@ class SortedArray(object):
     def range(self, lower, upper, bounds):
         lower_pos = self.find_pos(lower)
         upper_pos = self.find_pos(upper)
-        # data[lower_pos] <= lower
-        # data[upper_pos] <= upper
-        if not bounds[0] and self._data[lower_pos] == lower:
-            lower_pos += 1
-        if bounds[1] or self._data[upper_pos] == upper:
-            upper_pos += 1
-        row_range = self._data['rows'][lower_pos:upper_pos]
+        if lower_pos == self.length:
+            return []
+
+        ##TODO: figure out why this tuple thing is necessary
+        lower_bound = tuple(self._data[lower_pos])[:-1]
+        if not bounds[0] and lower_bound == lower:
+            lower_pos += 1 # data[lower_pos] > lower
+
+        # data[lower_pos] >= lower
+        # data[upper_pos] >= upper
+        if upper_pos < self.length:
+            upper_bound = tuple(self._data[upper_pos])[:-1]
+            if not bounds[1] and upper_bound == upper:
+                upper_pos -= 1 # data[upper_pos] < upper
+            elif upper_bound > upper:
+                upper_pos -= 1 # data[upper_pos] <= upper
+        row_range = self._data['rows'][lower_pos:upper_pos + 1]
         return np.ravel(list(row_range)) ##TODO: remove list() call
 
+    def remove(self, key, data=None):
+        pos = self.find_pos(key, exact=True)
+        if pos == -1: # key not found
+            return False
+
+        if data is not None:
+            node = self._data['rows'][pos]
+            if data not in node:
+                raise ValueError("Data does not belong to correct node")
+            elif len(node) > 1: # other rows should be retained
+                node.remove(data)
+                return True
+
+        # shift larger keys leftward
+        self._data[pos:] = np.roll(self._data[pos:], -1)
+        self.length -= 1
+        return True
+
+    def reorder(self, row):
+        for data in self._data['rows']:
+            data[:] = [x - 1 if x > row else x for x in data]
+
+    def replace_rows(self, row_map):
+        for data in self._data['rows']:
+            data[:] = [row_map[x] for x in data if x in row_map]
+
+    def items(self):
+        ##TODO: figure this tuple thing out
+        return [(tuple(k)[:-1], tuple(k)[-1]) for k in self.data]
+
     def sort(self):
-        return self.data
+        rows = [tuple(k)[-1] for k in self.data]
+        return [x for sublist in rows for x in sublist]
+
+    @property
+    def data(self):
+        return self._data[:self.length]
 
     def __repr__(self):
         return '[' + ', '.join([str(x) for x in self.data]) + ']'

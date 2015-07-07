@@ -18,6 +18,7 @@ range(lower, upper, bounds) -> list : rows in self[k] where k is between
                                lower and upper (<= or < based on bounds)
 sort() -> list of rows in sorted order (by key)
 replace_rows(row_map) -> None : replace row numbers based on slice
+items() -> list of tuples of the form (key, data)
 
 
 Note: when a Table is initialized from another Table, indices are
@@ -42,6 +43,14 @@ class MaxValue(object):
     def __le__(self, other):
         return False
 
+    def __repr__(self):
+        return "MAX"
+
+    __le__ = __lt__
+    __ge__ = __gt__
+    __str__ = __repr__
+
+
 class MinValue(object):
     def __lt__(self, other):
         return True
@@ -54,6 +63,14 @@ class MinValue(object):
 
     def __ge__(self, other):
         return False
+
+    def __repr__(self):
+        return "MIN"
+
+    __le__ = __lt__
+    __ge__ = __gt__
+    __str__ = __repr__
+
 
 class Index:
     def __init__(self, columns, impl=None, num_cols=None):
@@ -68,6 +85,8 @@ class Index:
         iterable = columns[0] if len(columns) == 1 else zip(*columns)
         lines = {}
         for val, key in enumerate(iterable):
+            if not isinstance(key, tuple):
+                key = (key,)
             if not key in lines:
                 lines[key] = [val]
             else:
@@ -157,15 +176,16 @@ class Index:
             bounds = col_map[last_col][1]
             # bounds is a tuple of True (<=) or False (<)
             if len(lower) == len(self.columns):
-                return self.data.range(tuple(lower), tuple(upper), bounds)
+                result = self.data.range(tuple(lower), tuple(upper), bounds)
             else:
-                return self.same_prefix_range(lower, upper, bounds)
+                result = self.same_prefix_range(lower, upper, bounds)
         else:
             key = base + [col_map[query_names[-1]]]
             if len(key) == len(self.columns):
-                return self.data.find(tuple(key))
+                result = self.data.find(tuple(key))
             else:
-                return self.same_prefix(key)
+                result = self.same_prefix(key)
+        return sorted(result)
 
     def range(self, lower, upper):
         return self.data.range(lower, upper)
