@@ -49,6 +49,7 @@ for _nm, _c in itertools.chain(sorted(vars(si).items()),
 
 _lines.append(_lines[1])
 
-__doc__ += '\n'.join(_lines)
+if __doc__ is not None:
+    __doc__ += '\n'.join(_lines)
 
 del _lines, _nm, _c
