@@ -240,7 +240,7 @@ class SkyCoord(object):
             # Copy other 'info' attr only if it has actually been defined.
             # See PR #3898 for further explanation and justification, along
             # with Quantity.__array_finalize__
-            if 'info' in getattr(self, '__dict__', ()):
+            if 'info' in self.__dict__:
                 out.info = self.info
 
             return out

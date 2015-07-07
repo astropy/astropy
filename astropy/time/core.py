@@ -754,7 +754,7 @@ class Time(object):
         # Copy other 'info' attr only if it has actually been defined.
         # See PR #3898 for further explanation and justification, along
         # with Quantity.__array_finalize__
-        if 'info' in getattr(self, '__dict__', ()):
+        if 'info' in self.__dict__:
             tm.info = self.info
 
         # Make the new internal _time object corresponding to the format
@@ -806,7 +806,7 @@ class Time(object):
                     continue
 
         # Copy other 'info' attr only if it has actually been defined.
-        if 'info' in getattr(self, '__dict__', ()):
+        if 'info' in self.__dict__:
             tm.info = self.info
 
         return tm
