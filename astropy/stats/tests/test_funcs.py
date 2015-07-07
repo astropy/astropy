@@ -256,3 +256,136 @@ def test_gaussian_sigma_to_fwhm():
 def test_gaussian_sigma_to_fwhm_to_sigma():
     assert_allclose(funcs.gaussian_fwhm_to_sigma *
                     funcs.gaussian_sigma_to_fwhm, 1.0)
+
+
+def test_poisson_conf_interval_rootn():
+    assert_allclose(funcs.poisson_conf_interval(16, interval='root-n'),
+                    (12, 20))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('interval',['root-n-0',
+                                      'pearson',
+                                      'sherpagehrels',
+                                      'frequentist-confidence'])
+def test_poisson_conf_large(interval):
+    n = 100
+    assert_allclose(funcs.poisson_conf_interval(n, interval='root-n'),
+                    funcs.poisson_conf_interval(n, interval=interval),
+                    rtol=2e-2)
+
+def test_poisson_conf_array_rootn0_zero():
+    n = np.zeros((3,4,5))
+    assert_allclose(funcs.poisson_conf_interval(n, interval='root-n-0'),
+                    funcs.poisson_conf_interval(n[0,0,0], interval='root-n-0')[:,None,None,None]*np.ones_like(n))
+
+    assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='root-n-0')))
+    
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_array_frequentist_confidence_zero():
+    n = np.zeros((3,4,5))
+    assert_allclose(funcs.poisson_conf_interval(n, interval='frequentist-confidence'),
+                    funcs.poisson_conf_interval(n[0,0,0], interval='frequentist-confidence')[:,None,None,None]*np.ones_like(n))
+
+    assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='root-n-0')))
+    
+def test_poisson_conf_list_rootn0_zero():
+    n = [0,0,0]
+    assert_allclose(funcs.poisson_conf_interval(n, interval='root-n-0'),
+                    [[0,0,0],[1,1,1]])
+
+    assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='root-n-0')))
+    
+def test_poisson_conf_array_rootn0():
+    n = 7*np.ones((3,4,5))
+    assert_allclose(funcs.poisson_conf_interval(n, interval='root-n-0'),
+                    funcs.poisson_conf_interval(n[0,0,0], interval='root-n-0')[:,None,None,None]*np.ones_like(n))
+
+    n[1,2,3] = 0
+    assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='root-n-0')))
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_array_fc():
+    n = 7*np.ones((3,4,5))
+    assert_allclose(funcs.poisson_conf_interval(n, interval='frequentist-confidence'),
+                    funcs.poisson_conf_interval(n[0,0,0], interval='frequentist-confidence')[:,None,None,None]*np.ones_like(n))
+
+    n[1,2,3] = 0
+    assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='frequentist-confidence')))
+
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_frequentist_confidence_gehrels():
+    """Test intervals against those published in Gehrels 1986"""
+    nlh = np.array([(0, 0, 1.841),
+                    (1, 0.173, 3.300),
+                    (2, 0.708, 4.638),
+                    (3, 1.367, 5.918),
+                    (4, 2.086, 7.163),
+                    (5, 2.840, 8.382),
+                    (6, 3.620, 9.584),
+                    (7, 4.419, 10.77),
+                    (8, 5.232, 11.95),
+                    (9, 6.057, 13.11),
+                    (10, 6.891, 14.27),
+                    ])
+    assert_allclose(funcs.poisson_conf_interval(nlh[:,0],
+                        interval='frequentist-confidence'),
+                    nlh[:,1:].T,
+                    rtol=0.001, atol=0.001)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_frequentist_confidence_gehrels_2sigma():
+    """Test intervals against those published in Gehrels 1986
+
+    Note: I think there's a typo (transposition of digits) in Gehrels 1986,
+    specifically for the two-sigma lower limit for 3 events; they claim
+    0.569 but this function returns 0.59623...
+    
+    """
+    nlh = np.array([(0, 2, 0, 3.783),
+                    (1, 2, 2.30e-2, 5.683),
+                    (2, 2, 0.230, 7.348),
+                    (3, 2, 0.596, 8.902),
+                    (4, 2, 1.058, 10.39),
+                    (5, 2, 1.583, 11.82),
+                    (6, 2, 2.153, 13.22),
+                    (7, 2, 2.758, 14.59),
+                    (8, 2, 3.391, 15.94),
+                    (9, 2, 4.046, 17.27),
+                    (10, 2, 4.719, 18.58)])
+    assert_allclose(funcs.poisson_conf_interval(nlh[:,0],
+                        sigma=2,
+                        interval='frequentist-confidence').T,
+                    nlh[:,2:],
+                    rtol=0.01)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+def test_poisson_conf_frequentist_confidence_gehrels_3sigma():
+    """Test intervals against those published in Gehrels 1986"""
+    nlh = np.array([(0, 3, 0, 6.608),
+                    (1, 3, 1.35e-3, 8.900),
+                    (2, 3, 5.29e-2, 10.87),
+                    (3, 3, 0.212, 12.68),
+                    (4, 3, 0.465, 14.39),
+                    (5, 3, 0.792, 16.03),
+                    (6, 3, 1.175, 17.62),
+                    (7, 3, 1.603, 19.17),
+                    (8, 3, 2.068, 20.69),
+                    (9, 3, 2.563, 22.18),
+                    (10, 3, 3.084, 23.64),
+                    ])
+    assert_allclose(funcs.poisson_conf_interval(nlh[:,0],
+                        sigma=3,
+                        interval='frequentist-confidence').T,
+                    nlh[:,2:],
+                    rtol=0.01, verbose=True)
+
+@pytest.mark.skipif('not HAS_SCIPY')
+@pytest.mark.parametrize('n', [0,1,2,3,10,20,100])
+def test_poisson_conf_gehrels86(n):
+    assert_allclose(
+        funcs.poisson_conf_interval(
+            n, interval='sherpagehrels')[1],
+        funcs.poisson_conf_interval(
+            n, interval='frequentist-confidence')[1],
+        rtol = 0.02)

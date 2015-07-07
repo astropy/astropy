@@ -103,6 +103,9 @@ New Features
 
   - Added the ``bayesian_blocks`` routine, which implements a dynamic algorithm
     for locating change-points in various time series. [#3756]
+  - A new function ``poisson_conf_interval()`` was added to allow easy calculation 
+    of several standard formulae for the error bars on the mean of a Poisson variable 
+    estimated from a single sample.
 
 - ``astropy.table``
 
