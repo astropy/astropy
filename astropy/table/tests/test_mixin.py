@@ -90,6 +90,7 @@ def test_make_table(table_types, mixin_cols):
     t = table_types.Table(cols)
     check_mixin_type(t, t['col3'], mixin_cols['m'])
 
+
 def test_io_ascii_write():
     """
     Test that table with mixin column can be written by io.ascii for
