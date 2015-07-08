@@ -76,6 +76,7 @@ entry_points['console_scripts'] = [
     'fitscheck = astropy.io.fits.scripts.fitscheck:main',
     'fitsdiff = astropy.io.fits.scripts.fitsdiff:main',
     'fitsheader = astropy.io.fits.scripts.fitsheader:main',
+    'fitsinfo = astropy.io.fits.scripts.fitsinfo:main',
     'samp_hub = astropy.vo.samp.hub_script:hub_script',
     'volint = astropy.io.votable.volint:main',
     'wcslint = astropy.wcs.wcslint:main',
