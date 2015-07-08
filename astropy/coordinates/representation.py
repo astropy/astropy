@@ -406,7 +406,7 @@ class SphericalRepresentation(BaseRepresentation):
                                 ('distance', u.Quantity)])
     recommended_units = {'lon': u.deg, 'lat': u.deg}
 
-    _unitrep = UnitSphericalRepresentation
+    _unit_representation = UnitSphericalRepresentation
 
     def __init__(self, lon, lat, distance, copy=True):
 
