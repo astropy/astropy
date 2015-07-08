@@ -350,7 +350,7 @@ API changes
 
 - ``astropy.coordinates``
 
-  - ``SphericalRepresentation`` now has a ``._unitrep`` class attribute to specify 
+  - ``SphericalRepresentation`` now has a ``._unit_representation`` class attribute to specify 
     an equivalent UnitSphericalRepresentation. This allows subclasses of 
     representations to pair up correctly.
 
