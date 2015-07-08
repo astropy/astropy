@@ -358,7 +358,13 @@ def test_to_header_string():
     WCSAXES =                    2 / Number of coordinate axes                      CRPIX1  =                  0.0 / Pixel coordinate of reference point            CRPIX2  =                  0.0 / Pixel coordinate of reference point            CDELT1  =                  1.0 / Coordinate increment at reference point        CDELT2  =                  1.0 / Coordinate increment at reference point        CRVAL1  =                  0.0 / Coordinate value at reference point            CRVAL2  =                  0.0 / Coordinate value at reference point            LATPOLE =                 90.0 / [deg] Native latitude of celestial pole        END"""
 
     w = wcs.WCS()
-    assert w.to_header_string().strip() == header_string.strip()
+    h0 = fits.Header.fromstring(w.to_header_string().strip())
+    if 'COMMENT' in h0:
+        del h0['COMMENT']
+    if '' in h0:
+        del h0['']
+    h1 = fits.Header.fromstring(header_string.strip())
+    assert dict(h0) == dict(h1)
 
 
 def test_to_fits():
@@ -367,7 +373,10 @@ def test_to_fits():
     wfits = w.to_fits()
     assert isinstance(wfits, fits.HDUList)
     assert isinstance(wfits[0], fits.PrimaryHDU)
-    assert header_string == wfits[0].header[-8:]
+    if wcs._wcs.__version__[0] == '5':
+        assert header_string == wfits[0].header[-10:]
+    else:
+        assert header_string == wfits[0].header[-8:]
 
 
 def test_to_header_warning():

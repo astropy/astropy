@@ -177,13 +177,13 @@ New Features
     The minimum required version of wcslib in the 4.x series remains 4.24.
 
     The minimum required version of wcslib in the 5.x series is
-    5.8.pre.  Building astropy against a wcslib 5.x prior to 5.8.pre
+    5.8.  Building astropy against a wcslib 5.x prior to 5.8
     will raise an ``ImportError`` when ``astropy.wcs`` is imported.
 
     The wcslib changes relevant to astropy are:
 
-    - ``astropy.wcs.WCS`` now recognises the ``TPV``, ``TPD`` and
-      ``TPU`` polynomial distortions.
+    - ``astropy.wcs.WCS`` now recognises the ``TPV``, ``TPD``,
+      ``TPU``, ``DSS``, ``TNX`` and ``ZPX`` polynomial distortions.
 
     - Added relaxation flags to allow ``PC0i_0ja``, ``PV0j_0ma``, and
       ``PS0j_0ma`` (i.e. with leading zeroes on the index).

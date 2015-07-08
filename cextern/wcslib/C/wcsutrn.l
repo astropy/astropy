@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.7 - an implementation of the FITS WCS standard.
+  WCSLIB 5.8 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsutrn.l,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
+  $Id: wcsutrn.l,v 5.8 2015/07/08 11:03:59 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
