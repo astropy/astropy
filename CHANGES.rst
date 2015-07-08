@@ -267,6 +267,12 @@ API changes
 
 - ``astropy.table``
 
+  - PR #3095 fixed an issue where a single-element item access of a multi-
+    dimensional column would return a ``Column`` object instead of the expected
+    ``ndarray``.  Unfortunately this fix made accessing column items or
+    iterating over a column about 10 times slower.  In light of this performance
+    penalty it was decided to back out #3095 and accept this "feature". [#3929]
+
 - ``astropy.tests``
 
 - ``astropy.time``
