@@ -35,7 +35,7 @@ class DaophotHeader(core.BaseHeader):
                                             r'\s* = (?P<stuff> .+) $',
                                             re.VERBOSE)
 
-        self.aperture_values = ''
+        self.aperture_values = ()
 
     def __str__():
         if hasattr(self, 'lines'):
@@ -67,7 +67,7 @@ class DaophotHeader(core.BaseHeader):
             #Autogen column names, units, formats from last row of column headers
             last_names, last_units, last_formats = list(zip(*map(coldef_dict.get, line_ids)))[-1]
             N_multiline = len(self.data.first_block)
-            for i in np.arange(1, N_multiline+1).astype(str):
+            for i in np.arange(1, N_multiline+1).astype('U2'):
                 #extra column names eg. RAPERT2, SUM2 etc...
                 extended_names = list(map( ''.join, zip(last_names, itt.repeat(i)) ))
                 if i=='1':      #Enumerate the names starting at 1
@@ -205,7 +205,7 @@ class DaophotData(core.BaseData):
         if self.is_multiline:
             #grab the first column of the special block (aperture values) and recreate the aperture description string
             aplist = next( zip(*map(str.split, self.first_block)) )
-            self.header.aperture_values = ', '.join( aplist )
+            self.header.aperture_values = tuple(map( float, aplist ))
 
         # Set self.data.data_lines to a slice of lines contain the data rows
         core.BaseData.get_data_lines(self, lines)
