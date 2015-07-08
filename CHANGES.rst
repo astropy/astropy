@@ -349,6 +349,9 @@ Bug fixes
 
 - ``astropy.units``
 
+  - Added frequency-equivalency check when declaring doppler equivalencies
+    [#3728]
+
   - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
     ``divmod``, such that it only works where the quotient is dimensionless.
     This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817]
