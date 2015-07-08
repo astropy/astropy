@@ -350,6 +350,10 @@ API changes
 
 - ``astropy.coordinates``
 
+  - ``SphericalRepresentation`` now has a ``._unitrep`` class attribute to specify 
+    an equivalent UnitSphericalRepresentation. This allows subclasses of 
+    representations to pair up correctly.
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
