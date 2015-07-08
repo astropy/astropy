@@ -1102,14 +1102,14 @@ class BaseCoordinateFrame(object):
 
         from .distances import Distance
 
-        if self.data.__class__ == UnitSphericalRepresentation:
+        if issubclass(self.data.__class__, UnitSphericalRepresentation):
             raise ValueError('This object does not have a distance; cannot '
                              'compute 3d separation.')
 
         # do this first just in case the conversion somehow creates a distance
         other_in_self_system = other.transform_to(self)
 
-        if other_in_self_system.__class__ == UnitSphericalRepresentation:
+        if issubclass(other_in_self_system.__class__, UnitSphericalRepresentation):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 

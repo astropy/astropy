@@ -674,10 +674,10 @@ class SkyCoord(object):
             raise TypeError('Can only get separation to another SkyCoord or a '
                             'coordinate frame with data')
 
-        if self.data.__class__ == UnitSphericalRepresentation:
+        if issubclass(self.data.__class__, UnitSphericalRepresentation):
             raise ValueError('This object does not have a distance; cannot '
                              'compute 3d separation.')
-        if other.data.__class__ == UnitSphericalRepresentation:
+        if issubclass(other.data.__class__, UnitSphericalRepresentation):
             raise ValueError('The other object does not have a distance; '
                              'cannot compute 3d separation.')
 

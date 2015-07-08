@@ -766,10 +766,10 @@ class StaticMatrixTransform(CoordinateTransform):
         z = v2[2].reshape(subshape)
 
         newrep = CartesianRepresentation(x, y, z)
-        if fromcoord.data.__class__ == UnitSphericalRepresentation:
+        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
             #need to special-case this because otherwise the new class will
             #think it has a valid distance
-            newrep = newrep.represent_as(UnitSphericalRepresentation)
+            newrep = newrep.represent_as(fromcoord.data.__class__)
 
         frameattrs = dict([(attrnm, getattr(fromcoord, attrnm))
                            for attrnm in self.overlapping_frame_attr_names])
@@ -830,10 +830,10 @@ class DynamicMatrixTransform(CoordinateTransform):
         z = v2[2].reshape(subshape)
 
         newrep = CartesianRepresentation(x, y, z)
-        if fromcoord.data.__class__ == UnitSphericalRepresentation:
+        if issubclass(fromcoord.data.__class__, UnitSphericalRepresentation):
             #need to special-case this because otherwise the new class will
             #think it has a valid distance
-            newrep = newrep.represent_as(UnitSphericalRepresentation)
+            newrep = newrep.represent_as(fromcoord.data.__class__)
 
         return toframe.realize_frame(newrep)
 
