@@ -77,9 +77,9 @@ New Features
     longer, more descriptive names (e.g. ``Pix2Sky_Gnomonic``).
     [#3583]
 
-    - Added ``Sersic1D`` and ``Sersic2D`` model classes. [#3889]
+  - Added ``Sersic1D`` and ``Sersic2D`` model classes. [#3889]
 
-    - Added the Voigt profile to existing models. [#3901]
+  - Added the Voigt profile to existing models. [#3901]
 
 - ``astropy.nddata``
 
