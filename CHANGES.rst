@@ -131,6 +131,10 @@ New Features
     function for the dtype value.  Removed the default "masked=False"
     from the table representation. [#3868, #3869]
 
+  - Added capability to include a structured array or recarray in a table
+    as a mixin column.  This allows for an approximation of nested tables.
+    [#3925]
+
 - ``astropy.tests``
 
 - ``astropy.time``
