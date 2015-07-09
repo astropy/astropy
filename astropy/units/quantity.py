@@ -20,6 +20,7 @@ from .core import (Unit, dimensionless_unscaled, UnitBase, UnitsError,
                    get_current_unit_registry)
 from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
+from ..utils.compat.fractions import Fraction
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
 from ..utils.data_info import ParentDtypeInfo
@@ -98,7 +99,12 @@ class QuantityIterator(object):
 
     def __getitem__(self, indx):
         out = self._dataiter.__getitem__(indx)
-        return self._quantity._new_view(out)
+        # For single elements, ndarray.flat.__getitem__ returns scalars; these
+        # need a new view as a Quantity.
+        if isinstance(out, type(self._quantity)):
+            return out
+        else:
+            return self._quantity._new_view(out)
 
     def __setitem__(self, index, value):
         self._dataiter[index] = self._quantity._to_own_unit(value)
@@ -108,6 +114,7 @@ class QuantityIterator(object):
         Return the next value, or raise StopIteration.
         """
         out = next(self._dataiter)
+        # ndarray.flat._dataiter returns scalars, so need a view as a Quantity.
         return self._quantity._new_view(out)
 
     next = __next__
@@ -548,7 +555,7 @@ class Quantity(np.ndarray):
 
         Parameters
         ----------
-        obj : ndarray
+        obj : ndarray or scalar
             The array to create a view of.  If obj is a numpy or python scalar,
             it will be converted to an array scalar.
 
@@ -621,8 +628,8 @@ class Quantity(np.ndarray):
         if equivalencies == []:
             equivalencies = self._equivalencies
         unit = Unit(unit)
-        new_val = np.asarray(
-            self.unit.to(unit, self.value, equivalencies=equivalencies))
+        new_val = self.unit.to(unit, self.view(np.ndarray),
+                               equivalencies=equivalencies)
         return self._new_view(new_val, unit)
 
     info = QuantityInfo()
@@ -873,12 +880,20 @@ class Quantity(np.ndarray):
         return quantity_iter()
 
     def __getitem__(self, key):
-        if self.isscalar and not self.dtype.fields:
-            raise TypeError(
-                "'{cls}' object with a scalar value does not support "
-                "indexing".format(cls=self.__class__.__name__))
-        out = super(Quantity, self).__getitem__(key)
-        return self._new_view(out)
+        try:
+            out = super(Quantity, self).__getitem__(key)
+        except IndexError:
+            # We want zero-dimensional Quantity objects to behave like scalars,
+            # so they should raise a TypeError rather than an IndexError.
+            if self.isscalar:
+                raise TypeError(
+                    "'{cls}' object with a scalar value does not support "
+                    "indexing".format(cls=self.__class__.__name__))
+            else:
+                raise
+        # For single elements, ndarray.__getitem__ returns scalars; these
+        # need a new view as a Quantity.
+        return out if type(out) is type(self) else self._new_view(out)
 
     def __setitem__(self, i, value):
         self.view(np.ndarray).__setitem__(i, self._to_own_unit(value))
@@ -1094,8 +1109,7 @@ class Quantity(np.ndarray):
     # http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#array-conversion
 
     def item(self, *args):
-        # item returns python built-ins, so use initializer, not _new_view
-        return self.__class__(super(Quantity, self).item(*args), self.unit)
+        return self._new_view(super(Quantity, self).item(*args))
 
     def tolist(self):
         raise NotImplementedError("cannot make a list of Quantities.  Get "
