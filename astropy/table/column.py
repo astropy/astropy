@@ -165,8 +165,7 @@ class BaseColumn(np.ndarray):
         else:
             self_data = np.array(data, dtype=dtype, copy=copy)
 
-        if self_data.ndim > 1:
-            cls = cls._get_nd_proxy_class()
+        cls = cls._get_nd_proxy_class(self_data)
 
         self = self_data.view(cls)
         self._name = fix_column_name(name)
@@ -179,11 +178,20 @@ class BaseColumn(np.ndarray):
         return self
 
     @classmethod
-    def _get_nd_proxy_class(cls):
+    def _get_nd_proxy_class(cls, data):
         """
         Creates new classes with the _NDColumnProxyShim.  See the docstring
         for _NDColumnProxyShim for more detail.
+
+        The data argument should be the array data that will be held by the
+        column--this can be used to determine what proxy class to use if any at
+        all.
         """
+
+        if data.ndim < 2:
+            # We only this special proxy for columns whose individual elements
+            # are themselves arrays
+            return cls
 
         if cls not in cls._nd_proxy_classes:
             cls._nd_proxy_classes[cls] = type(cls.__name__,
@@ -943,8 +951,7 @@ class MaskedColumn(Column, ma.MaskedArray):
         self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
                                unit=unit, format=format, description=description, meta=meta, copy=copy)
 
-        if self_data.ndim > 1:
-            cls = cls._get_nd_proxy_class()
+        cls = cls._get_nd_proxy_class(self_data)
 
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
