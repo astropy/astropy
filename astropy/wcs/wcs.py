@@ -727,7 +727,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                         del header[dp_extver_key]
                     else:
                         d_extver = 1
-                    dp_axis_key = dp + '.AXIS.{0:d}'.format(i)
+                    dp_axis_key = dp + str('.AXIS.{0:d}').format(i)
                     if i == header[dp_axis_key]:
                         d_data = fobj[str('D2IMARR'), d_extver].data
                     else:
@@ -742,7 +742,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     tables[i] = d_lookup
                 else:
                     warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
-                for key in header.keys():
+                for key in list(header.keys()):
                     if key.startswith(dp + str('.')):
                         del header[key]
             else:
@@ -879,7 +879,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                         del header[dp_extver_key]
                     else:
                         d_extver = 1
-                    dp_axis_key = dp + str('.AXIS.') + str(i)
+                    dp_axis_key = dp + str('.AXIS.{0:d}'.format(i))
                     if i == header[dp_axis_key]:
                         d_data = fobj[str('WCSDVARR'), d_extver].data
                     else:
@@ -895,7 +895,7 @@ reduce these to 2 dimensions using the naxis kwarg.
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
 
-                    for key in header.keys():
+                    for key in list(header.keys()):
                         if key.startswith(dp + str('.')):
                             del header[key]
                 else:
