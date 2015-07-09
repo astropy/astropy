@@ -92,7 +92,7 @@ class ColumnInfo(BaseColumnInfo):
     attrs_from_parent = BaseColumnInfo.attr_names
 
 
-class _NDColumnMixin(np.ndarray):
+class _NDColumnProxyShim(np.ndarray):
     """
     This mixin class exists solely to provide an override to
     ndarray.__getitem__ that provides the desirable behavior for single
@@ -111,7 +111,7 @@ class _NDColumnMixin(np.ndarray):
         if isinstance(item, INTEGER_TYPES):
             return self.data[item]  # Return as plain ndarray or ma.MaskedArray
         else:
-            return super(_NDColumnMixin, self).__getitem__(item)
+            return super(_NDColumnProxyShim, self).__getitem__(item)
 
 
 class BaseColumn(np.ndarray):
@@ -121,7 +121,7 @@ class BaseColumn(np.ndarray):
     _nd_proxy_classes = {}
     """
     Alternate versions of BaseColumn and any subclasses that have the
-    _NDColumnMixin shim, mapped to by the original class.  The shimmed
+    _NDColumnProxyShim, mapped to by the original class.  The shimmed
     classes have the same name as the original class and are otherwise
     indistinguishable.  This hack exists only as a performance tweak.
     """
@@ -181,13 +181,13 @@ class BaseColumn(np.ndarray):
     @classmethod
     def _get_nd_proxy_class(cls):
         """
-        Creates new classes with the _NDColumnMixin shim.  See the docstring
-        for _NDColumnMixin for more detail.
+        Creates new classes with the _NDColumnProxyShim.  See the docstring
+        for _NDColumnProxyShim for more detail.
         """
 
         if cls not in cls._nd_proxy_classes:
             cls._nd_proxy_classes[cls] = type(cls.__name__,
-                                              (_NDColumnMixin, cls), {})
+                                              (_NDColumnProxyShim, cls), {})
         return cls._nd_proxy_classes[cls]
 
     @property
