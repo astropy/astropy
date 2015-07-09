@@ -492,8 +492,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
         # touch the data, so it's defined (in the case of reading from a
         # FITS file)
-        self.data
-        return new_table(self.columns, header=self._header)
+        return self.__class__(data=self.data.copy(),
+                              header=self._header.copy())
 
     def _prewriteto(self, checksum=False, inplace=False):
         if self._has_data:
