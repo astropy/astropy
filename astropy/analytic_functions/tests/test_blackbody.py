@@ -12,7 +12,7 @@ import numpy as np
 from ..blackbody import blackbody_nu, blackbody_lambda, FNU
 from ... import units as u
 from ... import constants as const
-from ...tests.helper import pytest
+from ...tests.helper import pytest, catch_warnings
 from ...utils.exceptions import AstropyUserWarning
 
 try:
@@ -95,15 +95,13 @@ def test_blackbody_exceptions_and_warnings():
         blackbody_nu(1000 * u.AA, -100)
 
     # Zero wavelength given for conversion to Hz
-    with warnings.catch_warnings(record=True) as w:
+    with catch_warnings(AstropyUserWarning) as w:
         blackbody_nu(0 * u.AA, 5000)
-    categories = [_w.category for _w in w]
-    assert AstropyUserWarning in categories
-    assert 'invalid' in w[categories.index(AstropyUserWarning)].message.args[0]
+    assert len(w) == 1
+    assert 'invalid' in w[0].message.args[0]
 
     # Negative wavelength given for conversion to Hz
-    with warnings.catch_warnings(record=True) as w:
+    with catch_warnings(AstropyUserWarning) as w:
         blackbody_nu(-1. * u.AA, 5000)
-    categories = [_w.category for _w in w]
-    assert AstropyUserWarning in categories
-    assert 'invalid' in w[categories.index(AstropyUserWarning)].message.args[0]
+    assert len(w) == 1
+    assert 'invalid' in w[0].message.args[0]
