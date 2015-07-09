@@ -772,3 +772,12 @@ def test_tpv_copy():
     ra, dec = w_tpv.wcs_pix2world([0, 100, 200], [0, -100, 200], 0)
     assert ra[0] != ra[1] and ra[1] != ra[2]
     assert dec[0] != dec[1] and dec[1] != dec[2]
+
+
+def test_hst_wcs():
+    path = get_pkg_data_filename("data/dist_lookup.fits.gz")
+
+    hdulist = fits.open(path)
+    # wcslib will complain about the distortion parameters if they
+    # weren't correctly deleted from the header
+    wcs.WCS(hdulist[1].header, hdulist)
