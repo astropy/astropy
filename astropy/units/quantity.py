@@ -855,6 +855,14 @@ class Quantity(np.ndarray):
         return (self._new_view(result_tuple[0], dimensionless_unscaled),
                 self._new_view(result_tuple[1]))
 
+    def __pow__(self, other):
+        if isinstance(other, Fraction):
+            # Avoid getting object arrays by raising the value to a Fraction.
+            return self._new_view(self.value ** float(other),
+                                  self.unit ** other)
+
+        return super(Quantity, self).__pow__(other)
+
     def __pos__(self):
         """
         Plus the quantity. This is implemented in case users use +q where q is

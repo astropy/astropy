@@ -199,7 +199,7 @@ class TestInput():
         assert loc_slice1.unit is locwgs72.unit
         assert loc_slice1.ellipsoid == locwgs72.ellipsoid == 'WGS72'
         assert not loc_slice1.shape
-        with pytest.raises(IndexError):
+        with pytest.raises(TypeError):
             loc_slice1[0]
         with pytest.raises(IndexError):
             len(loc_slice1)

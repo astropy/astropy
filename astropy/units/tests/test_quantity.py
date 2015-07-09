@@ -18,6 +18,7 @@ from numpy.testing import (assert_allclose, assert_array_equal,
 from ...tests.helper import raises, pytest
 from ...utils import isiterable, minversion
 from ...utils.compat import NUMPY_LT_1_7
+from ...utils.compat.fractions import Fraction
 from ... import units as u
 from ...units.quantity import _UNIT_NOT_INITIALISED
 from ...extern.six.moves import xrange
@@ -1088,6 +1089,14 @@ def test_quantity_to_view():
 def test_quantity_tuple_power():
     (5.0 * u.m) ** (1, 2)
 
+
+def test_quantity_fraction_power():
+    q = (25.0 * u.m**2) ** Fraction(1, 2)
+    assert q.value == 5.
+    assert q.unit == u.m
+    # Regression check to ensure we didn't create an object type by raising
+    # the value of the quantity to a Fraction. [#3922]
+    assert q.dtype.kind == 'f'
 
 def test_inherit_docstrings():
     assert u.Quantity.argmax.__doc__ == np.ndarray.argmax.__doc__
