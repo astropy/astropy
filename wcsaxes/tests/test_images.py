@@ -2,15 +2,19 @@
 import os
 import shutil
 import tempfile
+
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.testing.compare import compare_images
 from matplotlib.patches import Circle
-from ..rc_utils import rc_context
 
 from astropy import units as u
 from astropy.io import fits
 from astropy.tests.helper import pytest
 from astropy.tests.helper import remote_data
+
+from ..rc_utils import rc_context
+
 from .. import datasets, WCS, WCSAxes
 
 
@@ -356,4 +360,31 @@ class TestBasic(BaseImageTests):
         ax.coords[0].set_axislabel("Label 1")
         ax.coords[1].set_axislabel("Label 2")
         ax.coords[1].ticklabels.set_visible(False)
+        return fig
+
+    @pytest.mark.mpl_image_compare(savefig_kwargs={'bbox_inches': 'tight'},
+                                   tolerance=1.5)
+    def test_noncelestial_angular(self):
+        # Regression test for a bug that meant that when passing a WCS that had
+        # angular axes and using set_coord_type to set the coordinates to
+        # longitude/latitude, but where the WCS wasn't recognized as celestial,
+        # the WCS units are not converted to deg, so we can't assume that
+        # transform will always return degrees.
+
+        wcs = WCS(naxis=2)
+
+        wcs.wcs.ctype = ['solar-x', 'solar-y']
+        wcs.wcs.cunit = ['arcsec', 'arcsec']
+
+        fig = plt.figure(figsize=(3, 3))
+        ax = fig.add_subplot(1,1,1,projection=wcs)
+
+        ax.imshow(np.zeros([1024, 1024]), origin='lower')
+
+        ax.coords[0].set_coord_type('longitude', coord_wrap=180)
+        ax.coords[1].set_coord_type('latitude')
+
+        ax.coords[0].set_major_formatter('s.s')
+        ax.coords[1].set_major_formatter('s.s')
+
         return fig
