@@ -1449,7 +1449,7 @@ class FLRW(Cosmology):
         dh = self._hubble_distance
         da = self.angular_diameter_distance(z)
         zp1 = 1.0 + z
-        return dh * (zp1 ** 2.0 * da ** 2.0) / u.Quantity(self.efunc(z),
+        return dh * ((zp1 * da) ** 2.0) / u.Quantity(self.efunc(z),
                                                           u.steradian)
 
     def kpc_comoving_per_arcmin(self, z):
