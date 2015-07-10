@@ -240,6 +240,7 @@ class Table(object):
         self.columns = self.TableColumns()
         self.meta = meta
         self.formatter = self.TableFormatter()
+        self._copy_indices = True # copy indices by default
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -603,7 +604,7 @@ class Table(object):
             if isinstance(col, (Column, MaskedColumn)):
                 col = self.ColumnClass(name=(name or col.info.name or def_name),
                                        data=col, dtype=dtype,
-                                       copy=copy)
+                                       copy=copy, copy_indices=self._copy_indices)
             elif self._add_as_mixin_column(col):
                 # Copy the mixin column attributes if they exist since the copy below
                 # may not get this attribute.
@@ -613,7 +614,7 @@ class Table(object):
                 col.info.name = name or col.info.name or def_name
             elif isinstance(col, np.ndarray) or isiterable(col):
                 col = self.ColumnClass(name=(name or def_name), data=col, dtype=dtype,
-                                       copy=copy)
+                                       copy=copy, copy_indices=self._copy_indices)
             else:
                 raise ValueError('Elements in list initialization must be '
                                  'either Column or list-like')

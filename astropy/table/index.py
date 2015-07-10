@@ -73,7 +73,13 @@ class MinValue(object):
 
 
 class Index:
-    def __init__(self, columns, impl=None, num_cols=None):
+    def __init__(self, columns, impl=None, num_cols=None, data=None):
+        if data is not None: # create from data
+            self.engine = data.__class__
+            self.data = data
+            self.columns = columns
+            return
+
         self.engine = impl or FastRBT
 
         if columns is None: # this creates a special exception for deep copying
@@ -217,6 +223,12 @@ class Index:
     def sorted_data(self):
         return self.data.sort()
 
+    def __getitem__(self, item):
+        # item must be a slice
+        ##TODO: implement for non-SortedArray
+        data = self.data[item]
+        return Index(self.columns, data=data)
+
     def __str__(self):
         return str(self.data)
 
@@ -244,3 +256,15 @@ def get_index(table):
             if set(index.columns) == cols:
                 return index
     return None
+
+class static_indices:
+    # provides a context in which Table indices
+    # are not copied
+    def __init__(self, table):
+        self.table = table
+
+    def __enter__(self):
+        self.table._copy_indices = False
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.table._copy_indices = True
