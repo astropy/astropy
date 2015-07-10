@@ -460,6 +460,10 @@ class CoordinateHelper(object):
             # Rotate by 90 degrees
             dx, dy = -dy, dx
 
+            if self.coord_type in ['longitude', 'latitude']:
+                dx *= self.coord_unit.to(u.deg)
+                dy *= self.coord_unit.to(u.deg)
+
             if self.coord_type == 'longitude':
                 # Here we wrap at 180 not self.coord_wrap since we want to
                 # always ensure abs(dx) < 180 and abs(dy) < 180
@@ -479,6 +483,11 @@ class CoordinateHelper(object):
             # longitudes.
             w1 = spine.world[:-1, self.coord_index]
             w2 = spine.world[1:, self.coord_index]
+
+            if self.coord_type in ['longitude', 'latitude']:
+                w1 = w1 * self.coord_unit.to(u.deg)
+                w2 = w2 * self.coord_unit.to(u.deg)
+
             if self.coord_type == 'longitude':
                 w1 = wrap_angle_at(w1, self.coord_wrap)
                 w2 = wrap_angle_at(w2, self.coord_wrap)

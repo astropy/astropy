@@ -3,6 +3,7 @@
 import warnings
 
 import numpy as np
+from astropy import units as u
 
 from . import settings
 
@@ -16,7 +17,7 @@ def wrap_180(values):
     return values_new
 
 
-def find_coordinate_range(transform, extent, coord_types):
+def find_coordinate_range(transform, extent, coord_types, coord_units):
     '''
     Find the range of coordinates to use for ticks/grids
 
@@ -32,6 +33,8 @@ def find_coordinate_range(transform, extent, coord_types):
     coord_types : list of str
         Whether each coordinate is a ``'longitude'``, ``'latitude'``, or
         ``'scalar'`` value.
+    coord_units : list of `astropy.units.Unit`
+        The units for each coordinate
     '''
 
     # Sample coordinates on a NX x NY grid.
@@ -48,6 +51,9 @@ def find_coordinate_range(transform, extent, coord_types):
         xw = world[:, coord_index].reshape(xp.shape)
 
         if coord_type in ['longitude', 'latitude']:
+
+            unit = coord_units[coord_index]
+            xw = xw * unit.to(u.deg)
 
             # Iron out coordinates along first row
             wjump = xw[0, 1:] - xw[0, :-1]
