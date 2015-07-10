@@ -409,7 +409,7 @@ class FastBase(object):
         self.data.set_default(key, []).append(val)
 
     def find(self, key):
-        return self.data.get(key, None)
+        return self.data.get(key, [])
 
     def remove(self, key, data=None):
         node = self.data.get(key, None)

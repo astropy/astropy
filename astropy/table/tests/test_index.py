@@ -88,6 +88,7 @@ class TestIndex(SetupData):
         # both columns
         assert t.where('[a] = {0} and [b] = {1}', 4, 4.0) == [6]
         assert t.where('[b] = {1} and [a] = {0}', 1, 4.0) == [0]
+        assert t.where('[a] = {0} and [b] = {1}', 4, 10.0) == []
         # range on both columns
         assert t.where('[b] = {0} and [a] in ({1}, {2})', 4.0, 3, 5) == [6]
 

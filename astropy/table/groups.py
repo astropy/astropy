@@ -7,15 +7,18 @@ import platform
 import warnings
 
 import numpy as np
-from .index import get_index
+from .index import get_index, static_indices
 
 from ..utils.exceptions import AstropyUserWarning
 
 
 __all__ = ['TableGroups', 'ColumnGroups']
 
-
 def table_group_by(table, keys):
+    with static_indices(table):
+        return _table_group_by(table, keys)
+
+def _table_group_by(table, keys):
     """
     Get groups for ``table`` on specified ``keys``.
 

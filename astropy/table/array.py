@@ -22,8 +22,11 @@ class SortedArray(object):
     a numpy structured array.
     '''
 
-    def __init__(self, lines, num_cols=None):
-        self.root = None
+    def __init__(self, lines, num_cols=None, data=None):
+        if data is not None: # sliced reference to data
+            self.length = len(data)
+            self._data = data
+            return
         if num_cols is not None:
             self.num_cols = num_cols
         else:
@@ -153,6 +156,10 @@ class SortedArray(object):
     @property
     def data(self):
         return self._data[:self.length]
+
+    def __getitem__(self, item):
+        # item must be slice
+        return SortedArray({}, data=self._data[item])
 
     def __repr__(self):
         return '[' + ', '.join([str(x) for x in self.data]) + ']'

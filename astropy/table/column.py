@@ -129,7 +129,7 @@ class BaseColumn(np.ndarray):
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
                 description=None, unit=None, format=None, meta=None,
-                copy=False):
+                copy=False, copy_indices=True):
         if data is None:
             dtype = (np.dtype(dtype).str, shape)
             self_data = np.zeros(length, dtype=dtype)
@@ -174,7 +174,8 @@ class BaseColumn(np.ndarray):
         self.description = description
         self.meta = meta
         self._parent_table = None
-        self.indices = deepcopy(data.indices) if hasattr(data, 'indices') else []
+        self.indices = deepcopy(getattr(data, 'indices', [])) if \
+                       copy_indices else []
   
         return self
 
@@ -670,7 +671,10 @@ class BaseColumn(np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
-        if copy_indices:
+        indices = getattr(obj, 'indices', [])
+        if getattr(obj, '_slice', False):
+            self.indices = []
+        elif copy_indices:
             self.indices = deepcopy(getattr(obj, 'indices', []))
 
 
@@ -742,14 +746,15 @@ class Column(BaseColumn):
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
                 description=None, unit=None, format=None, meta=None,
-                copy=False):
+                copy=False, copy_indices=True):
 
         if isinstance(data, MaskedColumn) and np.any(data.mask):
             raise TypeError("Cannot convert a MaskedColumn with masked value to a Column")
 
         self = super(Column, cls).__new__(cls, data=data, name=name, dtype=dtype,
                                           shape=shape, length=length, description=description,
-                                          unit=unit, format=format, meta=meta, copy=copy)
+                                          unit=unit, format=format, meta=meta,
+                                          copy=copy, copy_indices=copy_indices)
         return self
 
     def _base_repr_(self, html=False):
@@ -971,7 +976,8 @@ class MaskedColumn(Column, ma.MaskedArray):
 
     def __new__(cls, data=None, name=None, mask=None, fill_value=None,
                 dtype=None, shape=(), length=0,
-                description=None, unit=None, format=None, meta=None, copy=False):
+                description=None, unit=None, format=None, meta=None,
+                copy=False, copy_indices=True):
 
         if mask is None and hasattr(data, 'mask'):
             mask = data.mask
@@ -987,10 +993,9 @@ class MaskedColumn(Column, ma.MaskedArray):
         # First just pass through all args and kwargs to BaseColumn, then wrap that object
         # with MaskedArray.
         self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
-                               unit=unit, format=format, description=description, meta=meta, copy=copy)
-
+                               unit=unit, format=format, description=description,
+                               meta=meta, copy=copy, copy_indices=copy_indices)
         cls = cls._get_nd_proxy_class(self_data)
-
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
@@ -1143,11 +1148,11 @@ class MaskedColumn(Column, ma.MaskedArray):
         if out.__class__ is self.__class__:
             # We need to redo the index replacement from Column.__getitem__
             # since the ndarray view discards self.indices
-            if isinstance(item, slice):
-                item = range(*item.indices(len(self)))
-            elif isinstance(item, np.ndarray) and item.dtype.kind == 'b':
+            if isinstance(item, np.ndarray) and item.dtype.kind == 'b':
                 # boolean mask
                 item = np.where(item)[0]
+            else: ##TODO: make sure slice is handled correctly
+                return out
 
             out.indices = []
             for i, index in enumerate(self.indices):
