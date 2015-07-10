@@ -146,8 +146,13 @@ class CoordinateHelper(object):
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
+            self._coord_unit_scale = None
             self._formatter_locator = ScalarFormatterLocator(unit=self.coord_unit)
         elif coord_type in ['longitude', 'latitude']:
+            if self.coord_unit is u.deg:
+                self._coord_unit_scale = None
+            else:
+                self._coord_unit_scale = self.coord_unit.to(u.deg)
             self._formatter_locator = AngleFormatterLocator()
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
@@ -460,9 +465,9 @@ class CoordinateHelper(object):
             # Rotate by 90 degrees
             dx, dy = -dy, dx
 
-            if self.coord_type in ['longitude', 'latitude']:
-                dx *= self.coord_unit.to(u.deg)
-                dy *= self.coord_unit.to(u.deg)
+            if self._coord_unit_scale is not None:
+                dx *= self._coord_unit_scale
+                dy *= self._coord_unit_scale
 
             if self.coord_type == 'longitude':
                 # Here we wrap at 180 not self.coord_wrap since we want to
@@ -484,9 +489,9 @@ class CoordinateHelper(object):
             w1 = spine.world[:-1, self.coord_index]
             w2 = spine.world[1:, self.coord_index]
 
-            if self.coord_type in ['longitude', 'latitude']:
-                w1 = w1 * self.coord_unit.to(u.deg)
-                w2 = w2 * self.coord_unit.to(u.deg)
+            if self._coord_unit_scale is not None:
+                w1 = w1 * self._coord_unit_scale
+                w2 = w2 * self._coord_unit_scale
 
             if self.coord_type == 'longitude':
                 w1 = wrap_angle_at(w1, self.coord_wrap)
