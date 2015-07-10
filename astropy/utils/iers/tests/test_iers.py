@@ -22,7 +22,6 @@ else:
     HAS_IERS_A = True
 
 IERS_A_EXCERPT = os.path.join(os.path.dirname(__file__), 'iers_a_excerpt')
-IERS_A_EXCERPT_NETWORK = "https://raw.githubusercontent.com/astropy/astropy/master/astropy/utils/iers/tests/iers_a_excerpt"
 
 class TestBasic():
     """Basic tests that IERS_B returns correct values"""
@@ -72,7 +71,7 @@ class TestBasic():
     @remote_data
     def test_open_network_url(self):
         iers.IERS_A.close()
-        iers.IERS_A.open(IERS_A_EXCERPT_NETWORK)
+        iers.IERS_A.open("file://" + IERS_A_EXCERPT)
         assert iers.IERS_A.iers_table is not None
         assert isinstance(iers.IERS_A.iers_table, QTable)
         iers.IERS_A.close()
