@@ -133,8 +133,18 @@ class WCSAxes(Axes):
 
         # Here determine all the coordinate axes that should be shown.
         if wcs is None and transform is None:
+
             self.wcs = IDENTITY
+
         else:
+
+            # We now force call 'set', which ensures the WCS object is
+            # consistent, which will only be important if the WCS has been set
+            # by hand. For example if the user sets a celestial WCS by hand and
+            # forgets to set the units, WCS.wcs.set() will do this.
+            if wcs is not None:
+                wcs.wcs.set()
+
             self.wcs = wcs
 
         # If we are making a new WCS, we need to preserve the path object since
