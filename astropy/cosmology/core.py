@@ -1940,7 +1940,7 @@ class wCDM(FLRW):
                  Neff=3.04, m_nu=u.Quantity(0.0, u.eV), name=None, Ob0=None):
 
         FLRW.__init__(self, H0, Om0, Ode0, Tcmb0, Neff, m_nu, name=name,
-                      Ob0=None)
+                      Ob0=Ob0)
         self._w0 = float(w0)
 
         # Please see "Notes about speeding up integrals" for discussion
