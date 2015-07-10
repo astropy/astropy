@@ -1,7 +1,9 @@
 0.5 (unreleased)
 ----------------
 
-- No changes yet.
+- Fix a bug that caused ticks and labels to be incorrect if a WCS object was
+  used that was not recognized as celestial by WCSlib but had angular units for
+  the axes, when setting the coord_type to longitude/latitude. [#171]
 
 0.4 (2015-06-07)
 ----------------
