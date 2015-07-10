@@ -304,6 +304,33 @@ class BaseColumn(np.ndarray):
 
         return reconstruct_func, reconstruct_func_args, state
 
+
+    def __getslice__(self, start, stop):
+        return self.__getitem__(slice(start, stop))
+
+    def __getitem__(self, item):
+        if isinstance(item, INTEGER_TYPES):
+            return self.data[item]  # Return as plain ndarray or ma.MaskedArray
+
+        elif isinstance(item, slice):
+            self._slice = True
+            col_slice = super(BaseColumn, self).__getitem__(item)
+            col_slice.indices = [x[item] for x in self.indices] if \
+                                self.parent_table._copy_indices else []
+            self._slice = False
+        else:
+            col_slice = super(BaseColumn, self).__getitem__(item)
+
+            if isinstance(col_slice, BaseColumn) and col_slice.indices \
+               and isinstance(item, np.ndarray) and item.dtype.kind == 'b':
+                # boolean mask
+                item = np.where(item)[0]
+                for index in col_slice.indices:
+                    index.replace_rows(item)
+
+        return col_slice
+
+>>>>>>> Fixed index deep copies in static_indices context
     # avoid == and != to be done based on type of subclass
     # (helped solve #1446; see also __array_wrap__)
     def __eq__(self, other):
@@ -672,7 +699,7 @@ class BaseColumn(np.ndarray):
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
         indices = getattr(obj, 'indices', [])
-        if getattr(obj, '_slice', False):
+        if getattr(obj, '_slice', False) or not getattr(obj, '_copy_indices', True):
             self.indices = []
         elif copy_indices:
             self.indices = deepcopy(getattr(obj, 'indices', []))
