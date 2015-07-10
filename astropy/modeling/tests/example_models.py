@@ -75,7 +75,7 @@ models_1D = {
     },
 
     Sine1D: {
-        'parameters': [1, 0.1],
+        'parameters': [1, 0.1, 0],
         'x_values': [0, 2.5],
         'y_values': [0, 1],
         'x_lim': [-10, 10],

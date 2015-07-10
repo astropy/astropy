@@ -535,6 +535,8 @@ class Sine1D(Fittable1DModel):
         Oscillation amplitude
     frequency : float
         Oscillation frequency
+    phase : float
+        Osciallation phase
 
     See Also
     --------
@@ -545,26 +547,29 @@ class Sine1D(Fittable1DModel):
     -----
     Model formula:
 
-        .. math:: f(x) = A \\sin(2 \\pi f x)
+        .. math:: f(x) = A \\sin(2 \\pi f x + 2 \\pi p)
     """
 
     amplitude = Parameter(default=1)
     frequency = Parameter(default=1)
+    phase = Parameter(default=0)
 
     @staticmethod
-    def evaluate(x, amplitude, frequency):
+    def evaluate(x, amplitude, frequency, phase):
         """One dimensional Sine model function"""
 
-        return amplitude * np.sin(2 * np.pi * frequency * x)
+        return amplitude * np.sin(2 * np.pi * frequency * x + np.pi * phase)
 
     @staticmethod
-    def fit_deriv(x, amplitude, frequency):
+    def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional Sine model derivative"""
 
-        d_amplitude = np.sin(2 * np.pi * frequency * x)
+        d_amplitude = np.sin(2 * np.pi * frequency * x + 2 * np.pi * phase)
         d_frequency = (2 * np.pi * x * amplitude *
-                       np.cos(2 * np.pi * frequency * x))
-        return [d_amplitude, d_frequency]
+                       np.cos(2 * np.pi * frequency * x + 2 * np.pi * phase))
+        d_phase = (2 * np.pi * amplitude *
+                   np.cos(2 * np.pi * frequency * x + 2 * np.pi * phase))
+        return [d_amplitude, d_frequency, d_phase]
 
 
 class Linear1D(Fittable1DModel):
