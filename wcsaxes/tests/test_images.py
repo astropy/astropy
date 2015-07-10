@@ -364,7 +364,7 @@ class TestBasic(BaseImageTests):
 
     @pytest.mark.mpl_image_compare(savefig_kwargs={'bbox_inches': 'tight'},
                                    tolerance=1.5)
-    def test_noncelestial_angular(self):
+    def test_noncelestial_angular(self, tmpdir):
         # Regression test for a bug that meant that when passing a WCS that had
         # angular axes and using set_coord_type to set the coordinates to
         # longitude/latitude, but where the WCS wasn't recognized as celestial,
@@ -386,5 +386,13 @@ class TestBasic(BaseImageTests):
 
         ax.coords[0].set_major_formatter('s.s')
         ax.coords[1].set_major_formatter('s.s')
+
+        ax.grid(color='white', ls='solid')
+
+        # Force drawing (needed for format_coord)
+        fig.savefig(tmpdir.join('nothing').strpath)
+
+        # TODO: the formatted string should show units
+        assert ax.format_coord(512, 512) == "513.0 513.0 (world)"
 
         return fig
