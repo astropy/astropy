@@ -179,16 +179,25 @@ class CoordinateHelper(object):
         Given the value of a coordinate, will format it according to the
         format of the formatter_locator.
         """
+
         if not hasattr(self, "_fl_spacing"):
             return ""  # _update_ticks has not been called yet
+
         fl = self._formatter_locator
         if isinstance(fl, AngleFormatterLocator):
+
+            # Convert to degrees if needed
+            if self._coord_unit_scale is not None:
+                value *= self._coord_unit_scale
+
             if self.coord_type == 'longitude':
                 value = wrap_angle_at(value, self.coord_wrap)
             value = value * u.degree
             value = value.to(fl._unit).value
+
         spacing = self._fl_spacing
         string = fl.formatter(values=[value] * fl._unit, spacing=spacing)
+
         return string[0]
 
     def set_separator(self, separator):
@@ -644,6 +653,11 @@ class CoordinateHelper(object):
         # We now convert all the world coordinates to pixel coordinates in a
         # single go rather than doing this in the gridline to path conversion
         # to fully benefit from vectorized coordinate transformations.
+
+        # Currently xy_world is in deg, but transform function needs it in
+        # native units
+        if self._coord_unit_scale is not None:
+            xy_world /= self._coord_unit_scale
 
         # Transform line to pixel coordinates
         pixel = self.transform.inverted().transform(xy_world)
