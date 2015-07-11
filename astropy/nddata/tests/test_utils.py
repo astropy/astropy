@@ -323,16 +323,18 @@ class TestBlockReplicate(object):
 
 
 class TestCutout(object):
-    data = np.arange(20.).reshape(5, 4)
-    position = SkyCoord('13h11m29.96s -01d19m18.7s', frame='icrs')
-    wcs = WCS(naxis=2)
-    rho = np.pi / 3.
-    scale = 0.05 / 3600.
-    wcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
-                    [scale*np.sin(rho), scale*np.cos(rho)]]
-    wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
-    wcs.wcs.crval = [position.ra.value, position.dec.value]
-    wcs.wcs.crpix = [3, 3]
+    def setup_class(self):
+        self.data = np.arange(20.).reshape(5, 4)
+        self.position = SkyCoord('13h11m29.96s -01d19m18.7s', frame='icrs')
+        wcs = WCS(naxis=2)
+        rho = np.pi / 3.
+        scale = 0.05 / 3600.
+        wcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
+                        [scale*np.sin(rho), scale*np.cos(rho)]]
+        wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+        wcs.wcs.crval = [self.position.ra.value, self.position.dec.value]
+        wcs.wcs.crpix = [3, 3]
+        self.wcs = wcs
 
     def test_cutout(self):
         position = (2.1, 1.9)
