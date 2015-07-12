@@ -19,6 +19,14 @@ from .utils.exceptions import AstropyWarning, AstropyUserWarning
 
 __all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
 
+# import the logging levels from logging so that one can do:
+# log.setLevel(log.DEBUG), for example
+logging_levels = ['DEBUG', 'CRITICAL', 'FATAL', 'ERROR', 'WARN', 'WARNING',
+                  'NOTSET', 'INFO']
+for level in logging_levels:
+    __import__('logging', level)
+__all__ += logging_levels
+
 
 # Initialize by calling _init_log()
 log = None
