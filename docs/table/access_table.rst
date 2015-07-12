@@ -31,7 +31,7 @@ the data contained in that object relate to the original table data
 **Table properties**
 ::
 
-  t.columns   # Dict of table columns
+  t.columns   # Dict of table columns (access by column name, number, or slice)
   t.colnames  # List of column names
   t.meta      # Dict of meta-data
   len(t)      # Number of table rows
@@ -51,6 +51,8 @@ the data contained in that object relate to the original table data
   dat = np.array(t)  # Copy table data to numpy structured array object
   t['a'].quantity  # an astropy.units.Quantity for Column 'a'
   t['a'].to('km')  # an astropy.units.Quantity for Column 'a' in units of kilometers
+  t.columns[1]  # Column 1 (which is the 'b' column)
+  t.columns[0:2]  # New table with columns 0 and 1
 
 .. Note::
    Although they appear nearly equivalent, there is a factor of two performance
