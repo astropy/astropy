@@ -6,12 +6,16 @@ language: c
 os:
     - linux
 
+# Setting sudo to false opts in to Travis-CI container-based builds.
+sudo: false
+
 env:
     global:
         # Set defaults to avoid repeating in most cases
         - NUMPY_VERSION=1.9
         - OPTIONAL_DEPS=false
         - MAIN_CMD='python setup.py'
+
     matrix:
         - PYTHON_VERSION=2.6 SETUP_CMD='egg_info'
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
