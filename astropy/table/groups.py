@@ -62,8 +62,8 @@ def _table_group_by(table, keys):
 
     try:
         ## TODO: handle case where table_keys is an ndarray
-        table_index = get_index(table_keys) if isinstance(table_keys, Table) \
-                      else None
+        table_index = get_index(table, table_keys) if \
+                      isinstance(table_keys, Table) else None
         if table_index is not None:
             idx_sort = table_index.sorted_data()
         else:

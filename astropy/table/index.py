@@ -244,16 +244,17 @@ class Index:
         memo[id(self)] = index
         return index
 
-def get_index(table):
+def get_index(table, table_copy):
     '''
-    Returns a sorted table if an index covers the entire table,
-    and None otherwise.
+    Inputs a table and some subset of its columns, and
+    returns an index corresponding to this subset or None
+    if no such index exists.
     '''
-    cols = set(table.columns.values())
+    cols = set(table_copy.columns)
     indices = set()
     for column in cols:
-        for index in column.indices:
-            if set(index.columns) == cols:
+        for index in table[column].indices:
+            if set([x.name for x in index.columns]) == cols:
                 return index
     return None
 

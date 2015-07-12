@@ -150,8 +150,7 @@ class SortedArray(object):
         return [(tuple(k)[:-1], tuple(k)[-1]) for k in self.data]
 
     def sort(self):
-        rows = [tuple(k)[-1] for k in self.data]
-        return [x for sublist in rows for x in sublist]
+        return [x for sublist in self.data['rows'] for x in sublist]
 
     @property
     def data(self):
