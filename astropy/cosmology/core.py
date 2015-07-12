@@ -110,28 +110,29 @@ class FLRW(Cosmology):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    Tcmb0 : float or scalar `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
-        Setting this to zero will turn off both photons and neutrinos (even
-        massive ones)
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    Ob0 : float or None
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
 
-    name : str
-        Optional name for this cosmological object.
+    name : str, optional
+        Name for this cosmological object.
 
     Notes
     -----
@@ -1541,29 +1542,32 @@ class LambdaCDM(FLRW):
         critical density at z=0.
 
     Ode0 : float
-        Omega dark energy: density of the cosmological constant in units of the
-        critical density at z=0.
+        Omega dark energy: density of the cosmological constant in units of
+        the critical density at z=0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    Ob0 : float or None
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
 
-    name : str
-        Optional name for this cosmological object.
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -1744,26 +1748,29 @@ class FlatLambdaCDM(LambdaCDM):
         Omega matter: density of non-relativistic matter in units of the
         critical density at z=0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    Ob0 : float or None
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
 
-    name : str
-        Optional name for this cosmological object.
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -1907,31 +1914,34 @@ class wCDM(FLRW):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    w0 : float
+    w0 : float, optional
         Dark energy equation of state at all redshifts. This is
         pressure/density for dark energy in units where c=1. A cosmological
         constant has w0=-1.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    Ob0 : float or None
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
 
-    name : str
-        Optional name for this cosmological object.
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -2130,31 +2140,34 @@ class FlatwCDM(wCDM):
         Omega matter: density of non-relativistic matter in units of the
         critical density at z=0.
 
-    w0 : float
+    w0 : float, optional
         Dark energy equation of state at all redshifts. This is
         pressure/density for dark energy in units where c=1. A cosmological
         constant has w0=-1.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    Ob0 : float or None
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
 
-    name : str
-        Optional name for this cosmological object.
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -2303,34 +2316,37 @@ class w0waCDM(FLRW):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    w0 : float
+    w0 : float, optional
         Dark energy equation of state at z=0 (a=1). This is pressure/density
         for dark energy in units where c=1.
 
-    wa : float
+    wa : float, optional
         Negative derivative of the dark energy equation of state with respect
         to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    Ob0 : float
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
 
-    name : str
-        Optional name for this cosmological object.
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -2490,34 +2506,37 @@ class Flatw0waCDM(w0waCDM):
         Omega matter: density of non-relativistic matter in units of the
         critical density at z=0.
 
-    w0 : float
+    w0 : float, optional
         Dark energy equation of state at z=0 (a=1). This is pressure/density
         for dark energy in units where c=1.
 
-    wa : float
+    wa : float, optional
         Negative derivative of the dark energy equation of state with respect
         to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    Ob0 : float or None
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
 
-    name : str
-        Optional name for this cosmological object.
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -2612,37 +2631,40 @@ class wpwaCDM(FLRW):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    wp : float
+    wp : float, optional
         Dark energy equation of state at the pivot redshift zp. This is
         pressure/density for dark energy in units where c=1.
 
-    wa : float
+    wa : float, optional
         Negative derivative of the dark energy equation of state with respect
-        to the scale factor. A cosmological constant has w0=-1.0 and wa=0.0.
+        to the scale factor. A cosmological constant has wp=-1.0 and wa=0.0.
 
-    zp : float
+    zp : float, optional
         Pivot redshift -- the redshift where w(z) = wp
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : `~astropy.units.Quantity`
+    m_nu : `~astropy.units.Quantity`, optional
         Mass of each neutrino species. If this is a scalar Quantity, then all
         neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you must provide three neutrino masses unless
-        you are considering something like a sterile neutrino.
+        Neff. Typically this means you should provide three neutrino masses
+        unless you are considering something like a sterile neutrino.
 
-    Ob0 : float or None
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
 
-    name : str
-        Optional name for this cosmological object.
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
@@ -2819,34 +2841,37 @@ class w0wzCDM(FLRW):
         Omega dark energy: density of dark energy in units of the critical
         density at z=0.
 
-    w0 : float
-        Dark energy equation of state at z=0. This is pressure/density for dark
-        energy in units where c=1. A cosmological constant has w0=-1.0.
+    w0 : float, optional
+        Dark energy equation of state at z=0. This is pressure/density for
+        dark energy in units where c=1.
 
-    wz : float
+    wz : float, optional
         Derivative of the dark energy equation of state with respect to z.
+        A cosmological constant has w0=-1.0 and wz=0.0.
 
-    Tcmb0 : float or `~astropy.units.Quantity`
-        Temperature of the CMB z=0. If a float, must be in [K]. Default: 2.725.
+    Tcmb0 : float or scalar `~astropy.units.Quantity`, optional
+        Temperature of the CMB z=0. If a float, must be in [K].
+        Default: 2.725 [K]. Setting this to zero will turn off both photons
+        and neutrinos (even massive ones).
 
-    Neff : float
+    Neff : float, optional
         Effective number of Neutrino species. Default 3.04.
 
-    m_nu : float or ndarray or `~astropy.units.Quantity`
-        Mass of each neutrino species, in eV. If this is a float or scalar
-        Quantity, then all neutrino species are assumed to have that mass. If
-        a ndarray or array Quantity, then these are the values of the mass of
+    m_nu : `~astropy.units.Quantity`, optional
+        Mass of each neutrino species. If this is a scalar Quantity, then all
+        neutrino species are assumed to have that mass. Otherwise, the mass of
         each species. The actual number of neutrino species (and hence the
         number of elements of m_nu if it is not scalar) must be the floor of
-        Neff. Usually this means you should provide three neutrino masses
+        Neff. Typically this means you should provide three neutrino masses
         unless you are considering something like a sterile neutrino.
 
-    Ob0 : float or None
+    Ob0 : float or None, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.
+        density at z=0.  If this is set to None (the default), any
+        computation that requires its value will raise an exception.
 
-    name : str
-        Optional name for this cosmological object.
+    name : str, optional
+        Name for this cosmological object.
 
     Examples
     --------
