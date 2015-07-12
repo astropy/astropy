@@ -1,4 +1,5 @@
 import operator
+import numpy as np
 
 BLACK = 0
 RED = 1
@@ -406,7 +407,8 @@ class FastBase(object):
         self.data = self.engine(lines)
 
     def add(self, key, val):
-        self.data.set_default(key, []).append(val)
+        rows = self.data.set_default(key, [])
+        rows.insert(np.searchsorted(rows, val), val)
 
     def find(self, key):
         return self.data.get(key, [])

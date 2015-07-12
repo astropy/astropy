@@ -148,6 +148,17 @@ class TestIndex(SetupData):
         assert np.all(t2['a'].data == np.array([1, 6, 7, 4, 5]))
         assert np.all(t2.indices[0].sorted_data() == [0, 3, 4, 1, 2])
 
+        # change original table via slice reference
+        t2 = t.copy()
+        t3 = t2[1:3]
+        assert np.all(t3['a'].data == np.array([2, 3]))
+        assert np.all(t3.indices[0].sorted_data() == [0, 1])
+        t3['a'][0] = 5
+        assert np.all(t3['a'].data == np.array([5, 3]))
+        assert np.all(t2['a'].data == np.array([1, 5, 3, 4, 5]))
+        assert np.all(t3.indices[0].sorted_data() == [1, 0])
+        assert np.all(t2.indices[0].sorted_data() == [0, 2, 3, 1, 4])
+
         # get boolean mask
         mask = t['a'] % 2 == 1
         t2 = t[mask]

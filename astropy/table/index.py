@@ -26,7 +26,8 @@ Note: when a Table is initialized from another Table, indices are
 
 Column creation:
 Column(c) -> deep copy of indices
-c[1:2] -> deep copy and reordering of indices
+c[[1, 2]] -> deep copy and reordering of indices
+c[1:2] -> reference
 array.view(Column) -> no indices
 '''
 
@@ -224,10 +225,8 @@ class Index:
         return self.data.sort()
 
     def __getitem__(self, item):
-        # item must be a slice
-        ##TODO: implement for non-SortedArray
-        data = self.data[item]
-        return Index(self.columns, data=data)
+        # item must be a slice; return sliced copy
+        return SlicedIndex(self, item)
 
     def __str__(self):
         return str(self.data)
@@ -243,6 +242,45 @@ class Index:
         index.columns = self.columns[:] # new list, same columns
         memo[id(self)] = index
         return index
+
+class SlicedIndex:
+    def __init__(self, index, index_slice):
+        if False: ##TODO index.engine == SortedArray:
+            self.index = Index(index.columns, index.data[index_slice])
+        else:
+            self.index = index
+
+        num_cols = len(index.columns[0])
+        self.start, self.stop, self.step = index_slice.indices(num_cols)
+
+    def sliced_coords(self, rows):
+        return [(row - self.start) / self.step for row in rows
+                if self.start <= row < self.stop and
+                (row - self.start) % self.step == 0]
+
+    def orig_coords(self, row):
+        return self.start + row * self.step
+
+    def find(self, key):
+        return self.sliced_coords(self.index.find(key))
+
+    def where(self, col_map):
+        return self.sliced_coords(self.index.where(col_map))
+
+    def range(self, lower, upper):
+        return self.sliced_coords(self.index.range(lower, upper))
+
+    def same_prefix(self, key):
+        return self.sliced_coords(self.index.same_prefix(key))
+
+    def sorted_data(self):
+        return self.sliced_coords(self.index.sorted_data())
+
+    def replace(self, row, col, val):
+        return self.index.replace(self.orig_coords(row), col, val)
+
+    ##TODO: adapt other Index methods here
+
 
 def get_index(table, table_copy):
     '''
