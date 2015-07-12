@@ -225,7 +225,7 @@ utc    Coordinated Universal Time  (UTC)
 
 .. [#] Wikipedia `time standard <http://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] SOFA Time Scale and Calendar Tools
-       `(PDF) <http://www.iausofa.org/2012_0301_C/sofa/sofa_ts_c.pdf>`_
+       `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
 .. [#] `<http://www.ucolick.org/~sla/leapsecs/timescales.html>`_
 
 The system of transformation between supported time scales is shown in the
@@ -560,7 +560,7 @@ Transformation offsets
 Time scale transformations that cross one of the orange circles in the image
 above require an additional offset time value that is model or
 observation-dependent.  See `SOFA Time Scale and Calendar Tools
-<http://www.iausofa.org/2012_0301_C/sofa/sofa_ts_c.pdf>`_ for further details.
+<http://www.iausofa.org/sofa_ts_c.pdf>`_ for further details.
 
 The two attributes :attr:`~astropy.time.Time.delta_ut1_utc` and
 :attr:`~astropy.time.Time.delta_tdb_tt` provide a way to set
@@ -598,7 +598,7 @@ offset.  Note that if ``lon`` and ``lat`` are not explicitly initialized,
 values of 0.0 degrees for both will be used.
 
 The following code replicates an example in the `SOFA Time Scale and Calendar
-Tools <http://www.iausofa.org/2012_0301_C/sofa/sofa_ts_c.pdf>`_ document.  It
+Tools <http://www.iausofa.org/sofa_ts_c.pdf>`_ document.  It
 does the transform from UTC to all supported time scales (TAI, TCB, TCG, TDB,
 TT, UT1, UTC).  This requires an observer location (here, latitude and
 longitude).::
