@@ -93,7 +93,9 @@ class BST(object):
     def __init__(self, lines={}):
         self.root = None
         self.size = 0
-        for key, data in lines.items():
+        for row in lines:
+            row = tuple(row)
+            key, data = row[:-1], row[-1]
             self.add(key, data)
 
     def add(self, key, data=None):
@@ -404,7 +406,11 @@ class RedBlackTree(BST):
 
 class FastBase(object):
     def __init__(self, lines):
-        self.data = self.engine(lines)
+        keys = {}
+        for row in lines:
+            row = tuple(row)
+            keys.setdefault(row[:-1], []).append(row[-1])
+        self.data = self.engine(keys)
 
     def add(self, key, val):
         rows = self.data.set_default(key, [])

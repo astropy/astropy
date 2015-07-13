@@ -72,9 +72,12 @@ class MinValue(object):
     __ge__ = __gt__
     __str__ = __repr__
 
+class QueryError(ValueError):
+    pass
 
 class Index:
     def __init__(self, columns, impl=None, num_cols=None, data=None):
+        from .table import Table
         if data is not None: # create from data
             self.engine = data.__class__
             self.data = data
@@ -85,19 +88,14 @@ class Index:
 
         if columns is None: # this creates a special exception for deep copying
             columns = []
+            lines = []
         elif len(columns) == 0:
             raise ValueError("Cannot create index without at least one column")
+        else:
+            num_rows = len(columns[0])
+            table = Table(columns + [[x for x in range(num_rows)]])
+            lines = table.group_by([x.name for x in columns])
 
-        # nodes of self.data will be (key val, row index)
-        iterable = columns[0] if len(columns) == 1 else zip(*columns)
-        lines = {}
-        for val, key in enumerate(iterable):
-            if not isinstance(key, tuple):
-                key = (key,)
-            if not key in lines:
-                lines[key] = [val]
-            else:
-                lines[key].append(val)
         if self.engine == SortedArray:
             self.data = self.engine(lines, num_cols=num_cols)
         else:
@@ -166,7 +164,7 @@ class Index:
         names = [col.name for col in self.columns]
         query_names = col_map.keys()
         if set(names[:len(query_names)]) != set(query_names):
-            raise ValueError("Query columns must form a left prefix of "
+            raise QueryError("Query columns must form a left prefix of "
                              "index columns")
         # query_names is a prefix of index column names
         query_names = names[:len(query_names)]

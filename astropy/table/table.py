@@ -5,6 +5,7 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 from .array import SortedArray
+from .index import QueryError
 
 import re
 import sys
@@ -518,7 +519,7 @@ class Table(object):
         for index in self._get_indices(self.columns[col]):
             try:
                 return index.where(col_map)
-            except ValueError: # index is unsuitable
+            except QueryError: # index is unsuitable
                 continue
 
         raise ValueError("Query requirements are not satisfied by any index")

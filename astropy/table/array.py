@@ -27,21 +27,20 @@ class SortedArray(object):
             self.length = len(data)
             self._data = data
             return
-        if num_cols is not None:
+        elif num_cols is not None:
             self.num_cols = num_cols
         else:
-            for key in lines:
-                self.num_cols = len(key) if isinstance(key, tuple) else 1
-                break
+            self.num_cols = len(lines.colnames) - 1
 
-        self.length = len(lines)
+        self.length = 0 if lines is None else len(lines)
         key_cols = [('k{0}'.format(i), 'O') for i in range(self.num_cols)]
-        self._data = np.zeros(self.length, dtype=key_cols + [('rows', 'O')])
-        for i, (key, rows) in enumerate(lines.items()):
-            for j in range(self.num_cols):
-                self._data['k{0}'.format(j)][i] = key[j]
-            self._data['rows'][i] = rows
-        self._data = self._data[np.argsort(self._data)]
+        self._data = np.zeros(self.length, dtype=key_cols + [('row', 'i')])
+        self.cols = ['k{0}'.format(i) for i in range(self.num_cols)] + ['row']
+
+        if len(lines) > 0:
+            for i in range(self.num_cols):
+                self._data['k{0}'.format(i)] = lines[lines.colnames[i]]
+            self._data['row'] = lines[lines.colnames[self.num_cols]]
 
     def resize(self):
         buffer_size = len(self._data)
@@ -52,31 +51,27 @@ class SortedArray(object):
                 increase = 1
             buffer_size += increase
             self._data = np.resize(self._data, buffer_size)
-                                                
-    def add(self, key, val):
-        pos = self.find_pos(key) # first >= key
-        if pos < self.length and tuple(self._data[pos])[:-1] == key:
-            # add to existing entry
-            rows = self._data['rows'][pos]
-            # make sure row lists remain sorted
-            rows[:] = np.insert(rows, np.searchsorted(rows, val), val)
-        else:
-            self.resize()
-            self.length += 1
-            # shift larger keys rightward
-            self._data[pos:] = np.roll(self._data[pos:], 1)
-            self._data[pos] = key + ([val],)
 
-    def find_pos(self, key, exact=False):
-        # Return the index of the largest key in data >= given key.
+    def add(self, key, row):
+        self.resize()
+        pos = self.find_pos(key, row) # first >= key
+
+        # shift larger keys rightward
+        self._data[pos:] = np.roll(self._data[pos:], 1)
+        self._data[pos] = key + (row,)
+        self.length += 1
+
+    def find_pos(self, key, data, exact=False):
+        # Return the index of the largest key in data >= given key, data pair.
         # If exact is True, return the index of the given key in
         # data or -1 if the key is not present.
         begin = 0
         end = self.length
+        key = key + (data,)
 
         # search through keys in lexicographic order
-        for i in range(self.num_cols):
-            key_slice = self._data['k{0}'.format(i)][begin:end]
+        for i in range(self.num_cols + 1):
+            key_slice = self._data[self.cols[i]][begin:end]
             t = np.searchsorted(key_slice, key[i])
             # t is the smallest index >= key[i]
             if exact and (t == len(key_slice) or key_slice[t] != key[i]):
@@ -94,12 +89,11 @@ class SortedArray(object):
         return begin
 
     def find(self, key):
-        pos = self.find_pos(key, exact=True)
-        return [] if pos == -1 else tuple(self._data[pos])[-1]
+        return self.range(key, key, (True, True))
 
     def range(self, lower, upper, bounds):
-        lower_pos = self.find_pos(lower)
-        upper_pos = self.find_pos(upper)
+        lower_pos = self.find_pos(lower, 0)
+        upper_pos = self.find_pos(upper, 0)
         if lower_pos == self.length:
             return []
 
@@ -116,21 +110,13 @@ class SortedArray(object):
                 upper_pos -= 1 # data[upper_pos] < upper
             elif upper_bound > upper:
                 upper_pos -= 1 # data[upper_pos] <= upper
-        row_range = self._data['rows'][lower_pos:upper_pos + 1]
-        return np.ravel(list(row_range)) ##TODO: remove list() call
+        row_range = self._data['row'][lower_pos:upper_pos + 1]
+        return list(np.ravel(list(row_range))) ##TODO: remove list() call
 
     def remove(self, key, data=None):
-        pos = self.find_pos(key, exact=True)
+        pos = self.find_pos(key, data, exact=True)
         if pos == -1: # key not found
             return False
-
-        if data is not None:
-            node = self._data['rows'][pos]
-            if data not in node:
-                raise ValueError("Data does not belong to correct node")
-            elif len(node) > 1: # other rows should be retained
-                node.remove(data)
-                return True
 
         # shift larger keys leftward
         self._data[pos:] = np.roll(self._data[pos:], -1)
@@ -138,19 +124,27 @@ class SortedArray(object):
         return True
 
     def reorder(self, row):
-        for data in self._data['rows']:
-            data[:] = [x - 1 if x > row else x for x in data]
+        self._data['row'][self._data['row'] > row] -= 1
 
     def replace_rows(self, row_map):
-        for data in self._data['rows']:
-            data[:] = [row_map[x] for x in data if x in row_map]
+        self._data = self._data[np.array([x in row_map for x in self._data['row']])]
+        self._data['row'] = [row_map[x] for x in self._data['row']]
 
     def items(self):
-        ##TODO: figure this tuple thing out
-        return [(tuple(k)[:-1], tuple(k)[-1]) for k in self.data]
+        array = []
+        last_key = None
+        for line in self.data:
+            line = tuple(line)
+            key, row = line[:-1], line[-1]
+            if key == last_key:
+                array[-1][1].append(row)
+            else:
+                last_key = key
+                array.append((key, [row]))
+        return array
 
     def sort(self):
-        return [x for sublist in self.data['rows'] for x in sublist]
+        return self.data['row']
 
     @property
     def data(self):
@@ -158,7 +152,7 @@ class SortedArray(object):
 
     def __getitem__(self, item):
         # item must be slice
-        return SortedArray({}, data=self._data[item])
+        return SortedArray([], data=self._data[item])
 
     def __repr__(self):
         return '[' + ', '.join([str(x) for x in self.data]) + ']'
