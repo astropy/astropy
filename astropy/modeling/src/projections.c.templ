@@ -154,7 +154,7 @@ Py_{{ name }}{{ dir }}(PyObject* __, PyObject* args, PyObject* kwds)
                         &in[0], &in[1]
                         {% for i in range(nargs) %}
                         {% if loop.first %},{% endif %}
-                        &prj.pv[{{i}} + 1]
+                        &prj.pv[{{i}}{% if name != 'zpn' %} + 1{% endif %}]
                         {% if not loop.last %},{% endif %}
                         {% endfor %}
                         )) {
