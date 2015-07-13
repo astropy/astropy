@@ -1532,22 +1532,6 @@ class Moffat2D(Fittable2DModel):
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
-@deprecated('1.0', alternative='astropy.modeling.models.custom_model',
-            pending=True)
-def custom_model_1d(func, func_fit_deriv=None):
-    argspec = inspect.getargspec(func)
-    param_values = argspec.defaults
-    nparams = len(param_values)
-
-    if len(argspec.args) == nparams + 1:
-        param_names = argspec.args[-nparams:]
-    else:
-        raise ModelDefinitionError(
-            "All parameters must be keyword arguments")
-
-    return custom_model(func, fit_deriv=func_fit_deriv)
-
-
 class Sersic2D(Fittable2DModel):
     r"""
     Two dimensional Sersic surface brightness profile.
@@ -1654,3 +1638,19 @@ class Sersic2D(Fittable2DModel):
         z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
         return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
+
+
+@deprecated('1.0', alternative='astropy.modeling.models.custom_model',
+            pending=True)
+def custom_model_1d(func, func_fit_deriv=None):
+    argspec = inspect.getargspec(func)
+    param_values = argspec.defaults
+    nparams = len(param_values)
+
+    if len(argspec.args) == nparams + 1:
+        param_names = argspec.args[-nparams:]
+    else:
+        raise ModelDefinitionError(
+            "All parameters must be keyword arguments")
+
+    return custom_model(func, fit_deriv=func_fit_deriv)
