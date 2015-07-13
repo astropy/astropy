@@ -16,6 +16,8 @@ New Features
 
 - ``astropy.convolution``
 
+  - Modified cython functions to release the GIL. [#3949]
+
 - ``astropy.coordinates``
 
   - Added ``get_constellation`` function and ``SkyCoord.get_constellation``
