@@ -258,6 +258,8 @@ API changes
     methods (these were obscure "accidentally public" methods that were
     probably not used by anyone). [#3910]
 
+  - Added a phase parameter to the Sine1D model. [#3807]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
