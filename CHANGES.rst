@@ -120,6 +120,13 @@ Bug Fixes
 
   - Fixed stray deprecation warning in ``BinTableHDU.copy()``. [#3789]
 
+  - Better handling of the ``BLANK`` keyword when auto-scaling scaled image
+    data.  The ``BLANK`` keyword is now removed from the header after
+    auto-scaling is applied, and it is restored properly (with floating
+    point NaNs replaced by the filler value) when updating a file opened with
+    the ``scale_back=True`` argument.  Invalid usage of the ``BLANK`` keyword
+    is also better warned about during validation. [#3865]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
