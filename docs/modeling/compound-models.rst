@@ -278,7 +278,7 @@ combination of classes *and* instances in the same expression::
     Name: CompoundModel...
     Inputs: ('x',)
     Outputs: ('y',)
-    Fittable parameters: ('slope_0', 'intercept_0', 'amplitude_1', 'frequency_1')
+    Fittable parameters: ('slope_0', 'intercept_0', 'amplitude_1', 'frequency_1', 'phase_1')
     Expression: [0] + [1]
     Components:
         [0]: <class 'astropy.modeling.functional_models.Linear1D'>
