@@ -55,7 +55,8 @@ def test_init():
         core.default_cosmology.validate(4)
 
 def test_basic():
-    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04, Ob0=0.05)
+    cosmo = core.FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0, Neff=3.04,
+                               Ob0=0.05)
     assert allclose(cosmo.Om0, 0.27)
     assert allclose(cosmo.Ode0, 0.729975, rtol=1e-4)
     assert allclose(cosmo.Ob0, 0.05)
@@ -87,9 +88,9 @@ def test_basic():
     assert allclose(cosmo.Onu0, 1.01026e-5, rtol=1e-4)
     assert allclose(cosmo.Ok0, 0.0)
     assert allclose(cosmo.Om0 + cosmo.Ode0 + cosmo.Ogamma0 + cosmo.Onu0,
-                       1.0, rtol=1e-6)
+                    1.0, rtol=1e-6)
     assert allclose(cosmo.Om(1) + cosmo.Ode(1) + cosmo.Ogamma(1) +
-                       cosmo.Onu(1), 1.0, rtol=1e-6)
+                    cosmo.Onu(1), 1.0, rtol=1e-6)
     assert allclose(cosmo.Tcmb0, 2.0 * u.K)
     assert allclose(cosmo.Tnu0, 1.4275317 * u.K, rtol=1e-5)
     assert allclose(cosmo.Neff, 3.04)
@@ -208,12 +209,12 @@ def test_clone():
     assert newclone is not cosmo
     assert newclone.__class__ == cosmo.__class__
     assert newclone.name == cosmo.name
-    assert not np.allclose(newclone.H0.value, cosmo.H0.value)
+    assert not allclose(newclone.H0.value, cosmo.H0.value)
     assert allclose(newclone.H0, 60.0 * u.km / u.s / u.Mpc)
     assert allclose(newclone.Om0, cosmo.Om0)
     assert allclose(newclone.Ok0, cosmo.Ok0)
-    assert not np.allclose(newclone.Ogamma0, cosmo.Ogamma0)
-    assert not np.allclose(newclone.Onu0, cosmo.Onu0)
+    assert not allclose(newclone.Ogamma0, cosmo.Ogamma0)
+    assert not allclose(newclone.Onu0, cosmo.Onu0)
     assert allclose(newclone.Tcmb0, cosmo.Tcmb0)
     assert allclose(newclone.m_nu, cosmo.m_nu)
     assert allclose(newclone.Neff, cosmo.Neff)
@@ -239,16 +240,16 @@ def test_clone():
 
     # Now try changing multiple things
     newclone = cosmo.clone(name="New name", H0=65 * u.km / u.s / u.Mpc,
-                         Tcmb0=2.8 * u.K)
+                           Tcmb0=2.8 * u.K)
     assert newclone.__class__ == cosmo.__class__
     assert not newclone.name == cosmo.name
-    assert not np.allclose(newclone.H0.value, cosmo.H0.value)
+    assert not allclose(newclone.H0.value, cosmo.H0.value)
     assert allclose(newclone.H0, 65.0 * u.km / u.s / u.Mpc)
     assert allclose(newclone.Om0, cosmo.Om0)
     assert allclose(newclone.Ok0, cosmo.Ok0)
-    assert not np.allclose(newclone.Ogamma0, cosmo.Ogamma0)
-    assert not np.allclose(newclone.Onu0, cosmo.Onu0)
-    assert not np.allclose(newclone.Tcmb0.value, cosmo.Tcmb0.value)
+    assert not allclose(newclone.Ogamma0, cosmo.Ogamma0)
+    assert not allclose(newclone.Onu0, cosmo.Onu0)
+    assert not allclose(newclone.Tcmb0.value, cosmo.Tcmb0.value)
     assert allclose(newclone.Tcmb0, 2.8 * u.K)
     assert allclose(newclone.m_nu, cosmo.m_nu)
     assert allclose(newclone.Neff, cosmo.Neff)
@@ -270,7 +271,7 @@ def test_clone():
     assert allclose(newclone.Om(z), cmp.Om(z))
     assert allclose(newclone.H(z), cmp.H(z))
     assert allclose(newclone.luminosity_distance(z),
-                             cmp.luminosity_distance(z))
+                    cmp.luminosity_distance(z))
 
     # Try a dark energy class, make sure it can handle w params
     cosmo = core.w0waCDM(name="test w0wa", H0=70 * u.km / u.s / u.Mpc,
@@ -282,9 +283,9 @@ def test_clone():
     assert allclose(newclone.Om0, cosmo.Om0)
     assert allclose(newclone.Ode0, cosmo.Ode0)
     assert allclose(newclone.Ok0, cosmo.Ok0)
-    assert not np.allclose(newclone.w0, cosmo.w0)
+    assert not allclose(newclone.w0, cosmo.w0)
     assert allclose(newclone.w0, -1.1)
-    assert not np.allclose(newclone.wa, cosmo.wa)
+    assert not allclose(newclone.wa, cosmo.wa)
     assert allclose(newclone.wa, 0.2)
 
     # Now test exception if user passes non-parameter
@@ -415,7 +416,8 @@ def test_zeroing():
 # if one only overloads w(z)
 class test_cos_sub(core.FLRW):
     def __init__(self):
-        core.FLRW.__init__(self, 70.0, 0.27, 0.73, Tcmb0=0.0, name="test_cos")
+        core.FLRW.__init__(self, 70.0, 0.27, 0.73, Tcmb0=0.0,
+                           name="test_cos")
         self._w0 = -0.9
 
     def w(self, z):
@@ -439,13 +441,11 @@ def test_de_subclass():
     cosmo = core.wCDM(H0=70, Om0=0.27, Ode0=0.73, w0=-0.9, Tcmb0=0.0)
     # Values taken from Ned Wrights advanced cosmo calculator, Aug 17 2012
     assert allclose(cosmo.luminosity_distance(z),
-                             [975.5, 2158.2, 3507.3, 5773.1] * u.Mpc,
-                    rtol=1e-3)
+                    [975.5, 2158.2, 3507.3, 5773.1] * u.Mpc, rtol=1e-3)
     # Now try the subclass that only gives w(z)
     cosmo = test_cos_sub()
     assert allclose(cosmo.luminosity_distance(z),
-                             [975.5, 2158.2, 3507.3, 5773.1] * u.Mpc,
-                    rtol=1e-3)
+                    [975.5, 2158.2, 3507.3, 5773.1] * u.Mpc, rtol=1e-3)
     # Test efunc
     assert allclose(cosmo.efunc(1.0), 1.7489240754, rtol=1e-5)
     assert allclose(cosmo.efunc([0.5, 1.0]),
@@ -473,17 +473,18 @@ def test_varyde_lumdist_mathematica():
     assert allclose(cosmo.wa, 0.2)
 
     assert allclose(cosmo.luminosity_distance(z),
-                             [1004.0, 2268.62, 6265.76, 9061.84] * u.Mpc, rtol=1e-4)
+                    [1004.0, 2268.62, 6265.76, 9061.84] * u.Mpc, rtol=1e-4)
     assert allclose(cosmo.de_density_scale(0.0), 1.0, rtol=1e-5)
     assert allclose(cosmo.de_density_scale([0.0, 0.5, 1.5]),
-                       [1.0, 0.9246310669529021, 0.9184087000251957])
+                    [1.0, 0.9246310669529021, 0.9184087000251957])
 
     cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=0.0, Tcmb0=0.0)
     assert allclose(cosmo.luminosity_distance(z),
-                             [971.667, 2141.67, 5685.96, 8107.41] * u.Mpc, rtol=1e-4)
-    cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=-0.5, Tcmb0=0.0)
+                    [971.667, 2141.67, 5685.96, 8107.41] * u.Mpc, rtol=1e-4)
+    cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.7, w0=-0.9, wa=-0.5,
+                         Tcmb0=0.0)
     assert allclose(cosmo.luminosity_distance(z),
-                       [974.087, 2157.08, 5783.92, 8274.08] * u.Mpc, rtol=1e-4)
+                    [974.087, 2157.08, 5783.92, 8274.08] * u.Mpc, rtol=1e-4)
 
     # wpwa models
     cosmo = core.wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.5,
@@ -492,7 +493,7 @@ def test_varyde_lumdist_mathematica():
     assert allclose(cosmo.wa, 0.2)
     assert allclose(cosmo.zp, 0.5)
     assert allclose(cosmo.luminosity_distance(z),
-                       [1010.81, 2294.45, 6369.45, 9218.95] * u.Mpc, rtol=1e-4)
+                    [1010.81, 2294.45, 6369.45, 9218.95] * u.Mpc, rtol=1e-4)
 
     cosmo = core.wpwaCDM(H0=70, Om0=0.2, Ode0=0.8, wp=-1.1, wa=0.2, zp=0.9,
                          Tcmb0=0.0)
@@ -500,7 +501,7 @@ def test_varyde_lumdist_mathematica():
     assert allclose(cosmo.wa, 0.2)
     assert allclose(cosmo.zp, 0.9)
     assert allclose(cosmo.luminosity_distance(z),
-                       [1013.68, 2305.3, 6412.37, 9283.33] * u.Mpc, rtol=1e-4)
+                    [1013.68, 2305.3, 6412.37, 9283.33] * u.Mpc, rtol=1e-4)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -513,11 +514,11 @@ def test_matter():
     assert allclose(tcos.Ob(0), 0.045)
     z = np.array([0.0, 0.5, 1.0, 2.0])
     assert allclose(tcos.Om(z), [0.3, 0.59112134, 0.77387435, 0.91974179],
-                       rtol=1e-4)
-    assert allclose(tcos.Ob(z), [0.045, 0.08866820, 0.11608115,
-                                    0.13796127], rtol=1e-4)
+                    rtol=1e-4)
+    assert allclose(tcos.Ob(z),
+                    [0.045, 0.08866820, 0.11608115, 0.13796127], rtol=1e-4)
     assert allclose(tcos.Odm(z), [0.255, 0.50245314, 0.6577932, 0.78178052],
-                       rtol=1e-4)
+                    rtol=1e-4)
     # Consistency of dark and baryonic matter evolution with all
     # non-relativistic matter
     assert allclose(tcos.Ob(z) + tcos.Odm(z), tcos.Om(z))
@@ -532,18 +533,18 @@ def test_ocurv():
     assert allclose(tcos.Ok(0), 0.0)
     z = np.array([0.0, 0.5, 1.0, 2.0])
     assert allclose(tcos.Ok(z), [0.0, 0.0, 0.0, 0.0],
-                       rtol=1e-6)
+                    rtol=1e-6)
 
     # Not flat
     tcos = core.LambdaCDM(70.0, 0.3, 0.5, Tcmb0=u.Quantity(0.0, u.K))
     assert allclose(tcos.Ok0, 0.2)
     assert allclose(tcos.Ok(0), 0.2)
     assert allclose(tcos.Ok(z), [0.2, 0.22929936, 0.21621622, 0.17307692],
-                       rtol=1e-4)
+                    rtol=1e-4)
 
     # Test the sum; note that Ogamma/Onu are 0
     assert allclose(tcos.Ok(z) + tcos.Om(z) + tcos.Ode(z),
-                       [1.0, 1.0, 1.0, 1.0], rtol=1e-5)
+                    [1.0, 1.0, 1.0, 1.0], rtol=1e-5)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -554,7 +555,7 @@ def test_ode():
     assert allclose(tcos.Ode(0), 0.7)
     z = np.array([0.0, 0.5, 1.0, 2.0])
     assert allclose(tcos.Ode(z), [0.7, 0.408759, 0.2258065, 0.07954545],
-                       rtol=1e-5)
+                    rtol=1e-5)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -576,26 +577,26 @@ def test_ogamma():
     z = np.array([1.0, 10.0, 500.0, 1000.0])
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=0, Neff=3)
     assert allclose(cosmo.angular_diameter_distance(z),
-                             [1651.9, 858.2, 26.855, 13.642] * u.Mpc, rtol=5e-4)
+                    [1651.9, 858.2, 26.855, 13.642] * u.Mpc, rtol=5e-4)
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=2.725, Neff=3)
     assert allclose(cosmo.angular_diameter_distance(z),
-                       [1651.8, 857.9, 26.767, 13.582] * u.Mpc, rtol=5e-4)
+                    [1651.8, 857.9, 26.767, 13.582] * u.Mpc, rtol=5e-4)
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=4.0, Neff=3)
     assert allclose(cosmo.angular_diameter_distance(z),
-                       [1651.4, 856.6, 26.489, 13.405] * u.Mpc, rtol=5e-4)
+                    [1651.4, 856.6, 26.489, 13.405] * u.Mpc, rtol=5e-4)
 
     # Next compare with doing the integral numerically in Mathematica,
     # which allows more precision in the test.  It is at least as
     # good as 0.01%, possibly better
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=0, Neff=3.04)
     assert allclose(cosmo.angular_diameter_distance(z),
-                       [1651.91, 858.205, 26.8586, 13.6469] * u.Mpc, rtol=1e-5)
+                    [1651.91, 858.205, 26.8586, 13.6469] * u.Mpc, rtol=1e-5)
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=2.725, Neff=3.04)
     assert allclose(cosmo.angular_diameter_distance(z),
-                       [1651.76, 857.817, 26.7688, 13.5841] * u.Mpc, rtol=1e-5)
+                    [1651.76, 857.817, 26.7688, 13.5841] * u.Mpc, rtol=1e-5)
     cosmo = core.FlatLambdaCDM(H0=70, Om0=0.3, Tcmb0=4.0, Neff=3.04)
     assert allclose(cosmo.angular_diameter_distance(z),
-                       [1651.21, 856.411, 26.4845, 13.4028] * u.Mpc, rtol=1e-5)
+                    [1651.21, 856.411, 26.4845, 13.4028] * u.Mpc, rtol=1e-5)
 
     # Just to be really sure, we also do a version where the integral
     # is analytic, which is a Ode = 0 flat universe.  In this case
@@ -613,7 +614,7 @@ def test_ogamma():
 
     # And integers for z
     assert allclose(cosmo.comoving_distance(z.astype(np.int)),
-                       targvals, rtol=1e-5)
+                    targvals, rtol=1e-5)
 
     # Try Tcmb0 = 4
     Or0 *= (4.0 / 2.725) ** 4
@@ -631,11 +632,11 @@ def test_tcmb():
     assert allclose(cosmo.Tcmb(2), 7.5 * u.K)
     z = [0.0, 1.0, 2.0, 3.0, 9.0]
     assert allclose(cosmo.Tcmb(z),
-                             [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)
+                    [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)
     # Make sure it's the same for integers
     z = [0, 1, 2, 3, 9]
     assert allclose(cosmo.Tcmb(z),
-                       [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)
+                    [2.5, 5.0, 7.5, 10.0, 25.0] * u.K, rtol=1e-6)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -774,14 +775,14 @@ def test_differential_comoving_volume():
     ctemp = lambda x: c_closed.differential_comoving_volume(x).value
     # Multiply by solid_angle (4 * pi)
     assert allclose(np.array([4.0 * np.pi * quad(ftemp, 0, redshift)[0]
-                                       for redshift in redshifts]) * u.Mpc**3,
-                             wright_flat, rtol=1e-2)
+                              for redshift in redshifts]) * u.Mpc**3,
+                    wright_flat, rtol=1e-2)
     assert allclose(np.array([4.0 * np.pi * quad(otemp, 0, redshift)[0]
-                                       for redshift in redshifts]) * u.Mpc**3,
-                             wright_open, rtol=1e-2)
+                              for redshift in redshifts]) * u.Mpc**3,
+                    wright_open, rtol=1e-2)
     assert allclose(np.array([4.0 * np.pi * quad(ctemp, 0, redshift)[0]
-                                       for redshift in redshifts]) * u.Mpc**3,
-                             wright_closed, rtol=1e-2)
+                              for redshift in redshifts]) * u.Mpc**3,
+                    wright_closed, rtol=1e-2)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -928,27 +929,27 @@ def test_integral():
     # Test integer vs. floating point inputs
     cosmo = core.LambdaCDM(H0=73.2, Om0=0.3, Ode0=0.50)
     assert allclose(cosmo.comoving_distance(3),
-                       cosmo.comoving_distance(3.0), rtol=1e-7)
+                    cosmo.comoving_distance(3.0), rtol=1e-7)
     assert allclose(cosmo.comoving_distance([1, 2, 3, 5]),
-                       cosmo.comoving_distance([1.0, 2.0, 3.0, 5.0]),
-                       rtol=1e-7)
+                    cosmo.comoving_distance([1.0, 2.0, 3.0, 5.0]),
+                    rtol=1e-7)
     assert allclose(cosmo.efunc(6), cosmo.efunc(6.0), rtol=1e-7)
     assert allclose(cosmo.efunc([1, 2, 6]),
-                       cosmo.efunc([1.0, 2.0, 6.0]), rtol=1e-7)
+                    cosmo.efunc([1.0, 2.0, 6.0]), rtol=1e-7)
     assert allclose(cosmo.inv_efunc([1, 2, 6]),
-                       cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7)
+                    cosmo.inv_efunc([1.0, 2.0, 6.0]), rtol=1e-7)
 
 
 def test_wz():
     cosmo = core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.70)
     assert allclose(cosmo.w(1.0), -1.)
     assert allclose(cosmo.w([0.1, 0.2, 0.5, 1.5, 2.5, 11.5]),
-                       [-1., -1, -1, -1, -1, -1])
+                    [-1., -1, -1, -1, -1, -1])
 
     cosmo = core.wCDM(H0=70, Om0=0.3, Ode0=0.70, w0=-0.5)
     assert allclose(cosmo.w(1.0), -0.5)
     assert allclose(cosmo.w([0.1, 0.2, 0.5, 1.5, 2.5, 11.5]),
-                       [-0.5, -0.5, -0.5, -0.5, -0.5, -0.5])
+                    [-0.5, -0.5, -0.5, -0.5, -0.5, -0.5])
     assert allclose(cosmo.w0, -0.5)
 
     cosmo = core.w0wzCDM(H0=70, Om0=0.3, Ode0=0.70, w0=-1, wz=0.5)
@@ -981,7 +982,7 @@ def test_de_densityscale():
     cosmo = core.LambdaCDM(H0=70, Om0=0.3, Ode0=0.70)
     z = np.array([0.1, 0.2, 0.5, 1.5, 2.5])
     assert allclose(cosmo.de_density_scale(z),
-                       [1.0, 1.0, 1.0, 1.0, 1.0])
+                    [1.0, 1.0, 1.0, 1.0, 1.0])
     # Integer check
     assert allclose(cosmo.de_density_scale(3),
                        cosmo.de_density_scale(3.0), rtol=1e-7)
@@ -990,26 +991,26 @@ def test_de_densityscale():
 
     cosmo = core.wCDM(H0=70, Om0=0.3, Ode0=0.60, w0=-0.5)
     assert allclose(cosmo.de_density_scale(z),
-                       [1.15369, 1.31453, 1.83712, 3.95285, 6.5479],
-                       rtol=1e-4)
+                    [1.15369, 1.31453, 1.83712, 3.95285, 6.5479],
+                    rtol=1e-4)
     assert allclose(cosmo.de_density_scale(3),
-                       cosmo.de_density_scale(3.0), rtol=1e-7)
+                    cosmo.de_density_scale(3.0), rtol=1e-7)
     assert allclose(cosmo.de_density_scale([1, 2, 3]),
-                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
+                    cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
 
     cosmo = core.w0wzCDM(H0=70, Om0=0.3, Ode0=0.50, w0=-1, wz=0.5)
     assert allclose(cosmo.de_density_scale(z),
-                       [0.746048, 0.5635595, 0.25712378, 0.026664129,
-                        0.0035916468], rtol=1e-4)
+                    [0.746048, 0.5635595, 0.25712378, 0.026664129,
+                     0.0035916468], rtol=1e-4)
     assert allclose(cosmo.de_density_scale(3),
-                       cosmo.de_density_scale(3.0), rtol=1e-7)
+                    cosmo.de_density_scale(3.0), rtol=1e-7)
     assert allclose(cosmo.de_density_scale([1, 2, 3]),
-                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
+                    cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
 
     cosmo = core.w0waCDM(H0=70, Om0=0.3, Ode0=0.70, w0=-1, wa=-0.5)
     assert allclose(cosmo.de_density_scale(z),
-                       [0.9934201, 0.9767912, 0.897450,
-                        0.622236, 0.4458753], rtol=1e-4)
+                    [0.9934201, 0.9767912, 0.897450,
+                     0.622236, 0.4458753], rtol=1e-4)
     assert allclose(cosmo.de_density_scale(3),
                        cosmo.de_density_scale(3.0), rtol=1e-7)
     assert allclose(cosmo.de_density_scale([1, 2, 3]),
@@ -1018,12 +1019,12 @@ def test_de_densityscale():
     cosmo = core.wpwaCDM(H0=70, Om0=0.3, Ode0=0.70, wp=-0.9,
                          wa=0.2, zp=0.5)
     assert allclose(cosmo.de_density_scale(z),
-                       [1.012246048, 1.0280102, 1.087439,
-                        1.324988, 1.565746], rtol=1e-4)
+                    [1.012246048, 1.0280102, 1.087439,
+                     1.324988, 1.565746], rtol=1e-4)
     assert allclose(cosmo.de_density_scale(3),
-                       cosmo.de_density_scale(3.0), rtol=1e-7)
+                    cosmo.de_density_scale(3.0), rtol=1e-7)
     assert allclose(cosmo.de_density_scale([1, 2, 3]),
-                       cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
+                    cosmo.de_density_scale([1., 2., 3.]), rtol=1e-7)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1033,7 +1034,7 @@ def test_age():
     assert allclose(tcos.hubble_time, 13.889094057856937 * u.Gyr)
     assert allclose(tcos.age(4), 1.5823603508870991 * u.Gyr)
     assert allclose(tcos.age([1., 5.]),
-                             [5.97113193, 1.20553129] * u.Gyr)
+                    [5.97113193, 1.20553129] * u.Gyr)
     assert allclose(tcos.age([1, 5]), [5.97113193, 1.20553129] * u.Gyr)
 
     # Add relativistic species
@@ -1054,9 +1055,9 @@ def test_distmod():
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert allclose(tcos.hubble_distance, 4258.415596590909 * u.Mpc)
     assert allclose(tcos.distmod([1, 5]),
-                             [44.124857, 48.40167258] * u.mag)
+                    [44.124857, 48.40167258] * u.mag)
     assert allclose(tcos.distmod([1., 5.]),
-                             [44.124857, 48.40167258] * u.mag)
+                    [44.124857, 48.40167258] * u.mag)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1065,9 +1066,9 @@ def test_neg_distmod():
     #  if obscure)
     tcos = core.LambdaCDM(70, 0.2, 1.3, Tcmb0=0)
     assert allclose(tcos.luminosity_distance([50, 100]),
-                             [16612.44047622, -46890.79092244] * u.Mpc)
+                    [16612.44047622, -46890.79092244] * u.Mpc)
     assert allclose(tcos.distmod([50, 100]),
-                             [46.102167189, 48.355437790944] * u.mag)
+                    [46.102167189, 48.355437790944] * u.mag)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1077,13 +1078,13 @@ def test_critical_density():
     #  units by default; see the comment at the top of core.py
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert allclose(tcos.critical_density0,
-                             9.31000324385361e-30 * u.g / u.cm**3)
+                    9.31000324385361e-30 * u.g / u.cm**3)
     assert allclose(tcos.critical_density0,
-                       tcos.critical_density(0))
+                    tcos.critical_density(0))
     assert allclose(tcos.critical_density([1, 5]),
-                             [2.70362491e-29, 5.53758986e-28] * u.g / u.cm**3)
+                    [2.70362491e-29, 5.53758986e-28] * u.g / u.cm**3)
     assert allclose(tcos.critical_density([1., 5.]),
-                             [2.70362491e-29, 5.53758986e-28] * u.g / u.cm**3)
+                    [2.70362491e-29, 5.53758986e-28] * u.g / u.cm**3)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
@@ -1110,21 +1111,21 @@ def test_angular_diameter_distance_z1z2():
                115.72768186186921) * u.Mpc
 
     assert allclose(tcos.angular_diameter_distance_z1z2(z1, z2),
-                       results)
+                    results)
 
     # Non-flat (positive Ocurv) test
     tcos = core.LambdaCDM(H0=70.4, Om0=0.2, Ode0=0.5, Tcmb0=0.0)
     assert allclose(tcos.angular_diameter_distance_z1z2(1, 2),
-                             620.1175337852428 * u.Mpc)
+                    620.1175337852428 * u.Mpc)
 
 
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_absorption_distance():
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
     assert allclose(tcos.absorption_distance([1, 3]),
-                       [1.72576635, 7.98685853])
+                    [1.72576635, 7.98685853])
     assert allclose(tcos.absorption_distance([1., 3.]),
-                       [1.72576635, 7.98685853])
+                    [1.72576635, 7.98685853])
     assert allclose(tcos.absorption_distance(3), 7.98685853)
     assert allclose(tcos.absorption_distance(3.), 7.98685853)
 
@@ -1132,7 +1133,8 @@ def test_absorption_distance():
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_massivenu_basic():
     # Test no neutrinos case
-    tcos = core.FlatLambdaCDM(70.4, 0.272, Neff=4.05, m_nu=u.Quantity(0, u.eV))
+    tcos = core.FlatLambdaCDM(70.4, 0.272, Neff=4.05,
+                              m_nu=u.Quantity(0, u.eV))
     assert allclose(tcos.Neff, 4.05)
     assert not tcos.has_massive_nu
     mnu = tcos.m_nu
@@ -1140,9 +1142,9 @@ def test_massivenu_basic():
     assert mnu.unit == u.eV
     assert allclose(mnu, [0.0, 0.0, 0.0, 0.0] * u.eV)
     assert allclose(tcos.nu_relative_density(1.), 0.22710731766 * 4.05,
-                       rtol=1e-6)
+                    rtol=1e-6)
     assert allclose(tcos.nu_relative_density(1), 0.22710731766 * 4.05,
-                       rtol=1e-6)
+                    rtol=1e-6)
 
     # Alternative no neutrinos case
     tcos = core.FlatLambdaCDM(70.4, 0.272, Tcmb0 = 0 * u.K,
@@ -1346,22 +1348,23 @@ def test_massivenu_density():
     nurel_exp = nuprefac * tcos.Neff * np.array([17.2347, 8.67345, 5.84348,
                                                  1.90671, 1.00021])
     assert allclose(tcos.nu_relative_density(ztest), nurel_exp,
-                       rtol=5e-3)
+                    rtol=5e-3)
     onu_exp = np.array([0.00066599, 0.00172677, 0.0020732,
                         0.00268404, 0.0978313])
     assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
     assert allclose(tcos.efunc([1.0, 2.0]), [1.76225893, 2.97022048],
-                       rtol=1e-4)
+                    rtol=1e-4)
     assert allclose(tcos.inv_efunc([1.0, 2.0]), [0.5674535, 0.33667534],
-                       rtol=1e-4)
+                    rtol=1e-4)
 
     # Now a mixture of neutrino masses, with non-integer Neff
     tcos = core.FlatLambdaCDM(80.0, 0.30, Tcmb0=3.0, Neff=3.04,
                               m_nu=u.Quantity([0.0, 0.01, 0.25], u.eV))
-    nurel_exp = nuprefac * tcos.Neff * np.array([149.386233, 74.87915, 50.0518,
-                                                 14.002403, 1.03702333])
+    nurel_exp = nuprefac * tcos.Neff * \
+                np.array([149.386233, 74.87915, 50.0518,
+                          14.002403, 1.03702333])
     assert allclose(tcos.nu_relative_density(ztest), nurel_exp,
-                       rtol=5e-3)
+                    rtol=5e-3)
     onu_exp = np.array([0.00584959, 0.01493142, 0.01772291,
                         0.01963451, 0.10227728])
     assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
@@ -1369,7 +1372,7 @@ def test_massivenu_density():
     # Integer redshifts
     ztest = ztest.astype(np.int)
     assert allclose(tcos.nu_relative_density(ztest), nurel_exp,
-                       rtol=5e-3)
+                    rtol=5e-3)
     assert allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
 
 
@@ -1385,19 +1388,19 @@ def test_z_at_value():
     cosmo = core.Planck13
     d = cosmo.luminosity_distance(3)
     assert allclose(z_at_value(cosmo.luminosity_distance, d), 3,
-                       rtol=1e-8)
+                    rtol=1e-8)
     assert allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.198122684356,
-                       rtol=1e-6)
+                    rtol=1e-6)
     assert allclose(z_at_value(cosmo.luminosity_distance, 1e4 * u.Mpc),
-                       1.3685790653802761, rtol=1e-6)
+                    1.3685790653802761, rtol=1e-6)
     assert allclose(z_at_value(cosmo.lookback_time, 7 * u.Gyr),
-                       0.7951983674601507, rtol=1e-6)
+                    0.7951983674601507, rtol=1e-6)
     assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
-                                  zmax=2), 0.68127769625288614, rtol=1e-6)
+                               zmax=2), 0.68127769625288614, rtol=1e-6)
     assert allclose(z_at_value(cosmo.angular_diameter_distance, 1500*u.Mpc,
-                                  zmin=2.5), 3.7914908028272083, rtol=1e-6)
+                               zmin=2.5), 3.7914908028272083, rtol=1e-6)
     assert allclose(z_at_value(cosmo.distmod, 46 * u.mag),
-                       1.9913891680278133, rtol=1e-6)
+                    1.9913891680278133, rtol=1e-6)
 
     # test behaviour when the solution is outside z limits (should
     # raise a CosmologyError)
@@ -1436,11 +1439,11 @@ def test_z_at_value_roundtrip():
         # Be slightly more generous with rtol than the default 1e-8
         # used in z_at_value
         assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
-                           rtol=2e-8)
+                        rtol=2e-8)
 
     # Test angular_diameter_distance_z1z2
     z2 = 2.0
     func = lambda z1: core.Planck13.angular_diameter_distance_z1z2(z1, z2)
     fval = func(z)
     assert allclose(z, funcs.z_at_value(func, fval, zmax=1.5),
-                       rtol=2e-8)
+                    rtol=2e-8)
