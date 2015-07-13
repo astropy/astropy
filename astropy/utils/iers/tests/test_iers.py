@@ -68,7 +68,6 @@ class TestBasic():
         with pytest.raises(FILE_NOT_FOUND_ERROR):
             iers.IERS.open('surely this does not exist')
 
-    @remote_data
     def test_open_network_url(self):
         iers.IERS_A.close()
         iers.IERS_A.open("file://" + IERS_A_EXCERPT)
