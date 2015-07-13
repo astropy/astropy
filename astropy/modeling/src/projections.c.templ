@@ -86,12 +86,18 @@ static PyObject *do_work(struct prjprm *prj, PyObject *in[2],
     goto exit;
   }
 
-  if ((status = prjtrn(prj, n, 1, 1, 1,
-                       (double *)PyArray_DATA(in_array[0]),
-                       (double *)PyArray_DATA(in_array[1]),
-                       (double *)PyArray_DATA(out_array[0]),
-                       (double *)PyArray_DATA(out_array[1]),
-                       (int *)PyArray_DATA(stat_array)))) {
+  Py_BEGIN_ALLOW_THREADS
+
+  status = prjtrn(prj, n, 1, 1, 1,
+                  (double *)PyArray_DATA(in_array[0]),
+                  (double *)PyArray_DATA(in_array[1]),
+                  (double *)PyArray_DATA(out_array[0]),
+                  (double *)PyArray_DATA(out_array[1]),
+                  (int *)PyArray_DATA(stat_array));
+
+  Py_END_ALLOW_THREADS
+
+  if (status) {
     if (status == 3) {
       for (i = 0; i < n; ++i) {
         if (((int *)PyArray_DATA(stat_array))[i]) {
