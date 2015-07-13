@@ -1,11 +1,15 @@
 from ..array import SortedArray
+from ..table import Table
 import pytest
 import numpy as np
 
 @pytest.fixture
 def array():
     # composite index
-    return SortedArray(dict(((x % 2, x), [x]) for x in range(1, 11)))
+    col0 = [x % 2 for x in range(1, 11)]
+    col1 = [x for x in range(1, 11)]
+    t = Table([col0, col1, [x for x in range(1, 11)]])
+    return SortedArray(t[t.argsort()])
 
 def test_array_find(array):
     for i in range(1, 11):
