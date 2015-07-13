@@ -48,7 +48,7 @@ __all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
            'Pix2Sky_SlantOrthographic', 'Sky2Pix_SlantOrthographic',
            'Pix2Sky_ZenithalEquidistant', 'Sky2Pix_ZenithalEquidistant',
            'Pix2Sky_ZenithalPolynomial', 'Sky2Pix_ZenithalPolynomial',
-           'Pix2Sky_ZenithalEqualArea', 'Pix2Sky_ZenithalEqualArea',
+           'Pix2Sky_ZenithalEqualArea', 'Sky2Pix_ZenithalEqualArea',
            'Pix2Sky_Airy', 'Sky2Pix_Airy',
            'Pix2Sky_CylindricalPerspective', 'Sky2Pix_CylindricalPerspective',
            'Pix2Sky_CylindricalEqualArea', 'Sky2Pix_CylindricalEqualArea',
@@ -1298,12 +1298,12 @@ class Conic(Projection):
     .. math::
 
         \phi &= \arg\left(\frac{Y_0 - y}{R_\theta}, \frac{x}{R_\theta}\right) / C \\
-        R_\theta &= \sign \theta_a \sqrt{x^2 + (Y_0 - y)^2}
+        R_\theta &= \mathrm{sign} \theta_a \sqrt{x^2 + (Y_0 - y)^2}
 
     and the inverse (sky-to-pixel) is defined as:
 
     .. math::
-        x &= R_\theta \sin (C \phi)
+        x &= R_\theta \sin (C \phi) \\
         y &= R_\theta \cos (C \phi) + Y_0
 
     where :math:`C` is the "constant of the cone":
@@ -1677,7 +1677,7 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
 
     .. math::
 
-        R_\theta &= \sign \theta_1 \sqrt{x^2 + (Y_0 - y)^2} \\
+        R_\theta &= \mathrm{sign} \theta_1 \sqrt{x^2 + (Y_0 - y)^2} \\
         A_\phi &= \arg\left(\frac{Y_0 - y}{R_\theta}, \frac{x}{R_\theta}\right)
 
     Parameters
