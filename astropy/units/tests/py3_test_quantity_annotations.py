@@ -15,6 +15,11 @@ def py3only(func):
     else:
         @wraps(func)
         def wrapper(*args, **kwargs):
+            if func.__doc__ is None:
+                pytest.skip('unable to run this test due to missing '
+                            'docstrings (maybe the module was compiled with '
+                            'optimization flags?)')
+
             code = compile(dedent(func.__doc__), __file__, 'exec')
             # This uses an unqualified exec statement illegally in Python 2,
             # but perfectly allowed in Python 3 so in fact we eval the exec

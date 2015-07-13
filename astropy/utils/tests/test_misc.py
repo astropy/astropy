@@ -65,4 +65,6 @@ def test_inherit_docstrings():
         def __call__(self, *args):
             pass
 
-    assert Subclass.__call__.__doc__ == "FOO"
+    if Base.__call__.__doc__ is not None:
+        # TODO: Maybe if __doc__ is None this test should be skipped instead?
+        assert Subclass.__call__.__doc__ == "FOO"

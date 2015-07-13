@@ -524,7 +524,8 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
     return wrapper
 
 
-wraps.__doc__ += functools.wraps.__doc__
+if isinstance(wraps.__doc__, six.string_types):
+    wraps.__doc__ += functools.wraps.__doc__
 
 
 if six.PY3:

@@ -1036,7 +1036,8 @@ class BinTableHDU(_TableBaseHDU):
         if hfile:
             self._header.tofile(hfile, sep='\n', endcard=False, padding=False)
 
-    dump.__doc__ += _tdump_file_format.replace('\n', '\n        ')
+    if isinstance(dump.__doc__, string_types):
+        dump.__doc__ += _tdump_file_format.replace('\n', '\n        ')
 
     @deprecated('0.1', alternative=':meth:`dump`')
     def tdump(self, datafile=None, cdfile=None, hfile=None, clobber=False):
@@ -1119,7 +1120,10 @@ class BinTableHDU(_TableBaseHDU):
         hdu = cls(data=data, header=header)
         hdu.columns = coldefs
         return hdu
-    load.__doc__ += _tdump_file_format.replace('\n', '\n        ')
+
+    if isinstance(load.__doc__, string_types):
+        load.__doc__ += _tdump_file_format.replace('\n', '\n        ')
+
     load = classmethod(load)
     # Have to create a classmethod from this here instead of as a decorator;
     # otherwise we can't update __doc__

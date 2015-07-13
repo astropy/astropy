@@ -537,6 +537,10 @@ Bug Fixes
     tree did not automatically build the extension modules if the source is
     from a source distribution (as opposed to a git repository). [#3932]
 
+  - Fixed multiple instances of a bug that prevented Astropy from being used
+    when compiled with the ``python -OO`` flag, due to it causing all
+    docstrings to be stripped out. [#3923]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
