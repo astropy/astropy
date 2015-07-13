@@ -29,7 +29,6 @@ AUTO_COLNAME = ConfigAlias(
 # Create a generic TableFormatter object for use by bare columns with no
 # parent table.
 FORMATTER = pprint.TableFormatter()
-INTEGER_TYPES = (int, long, np.integer) if six.PY2 else (int, np.integer)
 
 def _auto_names(n_cols):
     from . import conf

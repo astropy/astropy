@@ -227,8 +227,11 @@ class TestColumn():
 
     def test_item_access_type(self, Column):
         """
-        Tests for #3095, which forces integer item access to always return a plain
-        ndarray or MaskedArray, even in the case of a multi-dim column.
+        Test the type of output for access to Column/MaskedColumn objects.  This
+        was originally written for #3095, which forced integer item access to
+        always return a plain ndarray or MaskedArray, even in the case of a
+        multi-dim column.  However, that was backed out by #3929, so this just
+        tests the the pre-3095 behavior holds.
         """
         integer_types = (int, long, np.int) if six.PY2 else (int, np.int)
 
@@ -237,7 +240,9 @@ class TestColumn():
             i0 = int_type(0)
             i1 = int_type(1)
             assert np.all(c[i0] == [1, 2])
-            assert type(c[i0]) == (np.ma.MaskedArray if hasattr(Column, 'mask') else np.ndarray)
+            # Class was (np.ma.MaskedArray if hasattr(Column, 'mask') else np.ndarray)
+            # with 3095 in place.
+            assert isinstance(c[i0], Column)
             assert c[i0].shape == (2,)
 
             c01 = c[i0:i1]
