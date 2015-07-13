@@ -170,6 +170,10 @@ Bug Fixes
   - ``fitscheck`` no longer causes scaled image data to be rescaled when 
     adding checksums to existing files. [#3884]
 
+  - Fixed an issue where running ``import astropy`` from within the source
+    tree did not automatically build the extension modules if the source is
+    from a source distribution (as opposed to a git repository). [#3932]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
