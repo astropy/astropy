@@ -34,20 +34,20 @@ for simple call `warnings.simplefilter`::
 
     >>> warnings.simplefilter('ignore', UserWarning)
 
-Astropy includes its own warning class,
-`~astropy.utils.exceptions.AstropyUserWarning`, on which all warnings from
-Astropy are based.  So one can also ignore warnings from Astropy (while still
-allowing through warnings from other libraries like Numpy) by using something
-like::
+Astropy includes its own warning classes,
+`~astropy.utils.exceptions.AstropyWarning` and `~astropy.utils.exceptions.AstropyUserWarning`,
+on which all warnings from Astropy are based.  So one can also ignore warnings
+from Astropy (while still allowing through warnings from other libraries
+like Numpy) by using something like::
 
-    >>> from astropy.utils.exceptions import AstropyUserWarning
-    >>> warnings.simplefilter('ignore', category=AstropyUserWarning)
+    >>> from astropy.utils.exceptions import AstropyWarning
+    >>> warnings.simplefilter('ignore', category=AstropyWarning)
 
 However, warning filters may also be modified just within a certain context
 using the `warnings.catch_warnings` context manager::
 
     >>> with warnings.catch_warnings():
-    ...     warnings.simplefilter('ignore', AstropyUserWarning)
+    ...     warnings.simplefilter('ignore', AstropyWarning)
     ...     fits.writeto(filename, data, clobber=True)
 
 Astropy also issues warnings when deprecated API features are used.  If you
