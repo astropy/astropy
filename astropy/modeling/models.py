@@ -15,6 +15,8 @@ from .polynomial import *
 from .functional_models import *
 from .powerlaws import *
 
+from ..extern.six import string_types
+
 """
 Attach a docstring explaining constraints to all models which support them.
 
@@ -63,4 +65,5 @@ MODELS_WITH_CONSTRAINTS = [
 
 
 for item in MODELS_WITH_CONSTRAINTS:
-    item.__doc__ += CONSTRAINTS_DOC
+    if isinstance(item.__doc__, string_types):
+        item.__doc__ += CONSTRAINTS_DOC

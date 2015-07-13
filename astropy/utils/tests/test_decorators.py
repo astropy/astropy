@@ -29,7 +29,10 @@ def test_wraps():
     expected = ('test', 1, 2, 3, 4, 5, {'f': 6, 'g': 7})
     assert bar(1, 2, 3, 4, 5, f=6, g=7) == expected
     assert bar.__name__ == 'foo'
-    assert bar.__doc__ == "A test function."
+
+    if foo.__doc__ is not None:
+        # May happen if using optimized opcode
+        assert bar.__doc__ == "A test function."
 
     if hasattr(foo, '__qualname__'):
         assert bar.__qualname__ == foo.__qualname__
@@ -98,10 +101,11 @@ def test_deprecated_class():
         TestA()
 
     assert len(w) == 1
-    assert 'function' not in TestA.__doc__
-    assert 'deprecated' in TestA.__doc__
-    assert 'function' not in TestA.__init__.__doc__
-    assert 'deprecated' in TestA.__init__.__doc__
+    if TestA.__doc__ is not None:
+        assert 'function' not in TestA.__doc__
+        assert 'deprecated' in TestA.__doc__
+        assert 'function' not in TestA.__init__.__doc__
+        assert 'deprecated' in TestA.__init__.__doc__
 
     # Make sure the object is picklable
     pickle.dumps(TestA)
@@ -123,10 +127,11 @@ def test_deprecated_class_with_super():
         TestB(1, 2)
 
     assert len(w) == 1
-    assert 'function' not in TestB.__doc__
-    assert 'deprecated' in TestB.__doc__
-    assert 'function' not in TestB.__init__.__doc__
-    assert 'deprecated' in TestB.__init__.__doc__
+    if TestB.__doc__ is not None:
+        assert 'function' not in TestB.__doc__
+        assert 'deprecated' in TestB.__doc__
+        assert 'function' not in TestB.__init__.__doc__
+        assert 'deprecated' in TestB.__init__.__doc__
 
 
 def test_deprecated_static_and_classmethod():
@@ -138,6 +143,8 @@ def test_deprecated_static_and_classmethod():
     """
 
     class A(object):
+        """Docstring"""
+
         @deprecated('1.0')
         @staticmethod
         def B():
@@ -152,13 +159,15 @@ def test_deprecated_static_and_classmethod():
         A.B()
 
     assert len(w) == 1
-    assert 'deprecated' in A.B.__doc__
+    if A.__doc__ is not None:
+        assert 'deprecated' in A.B.__doc__
 
     with catch_warnings(AstropyDeprecationWarning) as w:
         A.C()
 
     assert len(w) == 1
-    assert 'deprecated' in A.C.__doc__
+    if A.__doc__ is not None:
+        assert 'deprecated' in A.C.__doc__
 
 
 @pytest.mark.skipif('six.PY3')

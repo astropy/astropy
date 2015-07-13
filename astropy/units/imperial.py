@@ -118,7 +118,8 @@ del def_unit
 # This generates a docstring for this module that describes all of the
 # standard units defined here.
 from .utils import generate_unit_summary as _generate_unit_summary
-__doc__ += _generate_unit_summary(globals())
+if __doc__ is not None:
+    __doc__ += _generate_unit_summary(globals())
 
 
 def enable():

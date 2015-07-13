@@ -521,9 +521,11 @@ class Time(object):
 
         gst = self._erfa_sidereal_time(available_models[model.upper()])
         return Longitude(gst + longitude, u.hourangle)
-    sidereal_time.__doc__ = sidereal_time.__doc__.format(
-        'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
-        'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
+
+    if isinstance(sidereal_time.__doc__, six.string_types):
+        sidereal_time.__doc__ = sidereal_time.__doc__.format(
+            'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
+            'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
 
     def _erfa_sidereal_time(self, model):
         """Calculate a sidereal time using a IAU precession/nutation model."""

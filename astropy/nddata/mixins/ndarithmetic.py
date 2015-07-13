@@ -10,6 +10,7 @@ import numpy as np
 
 from ... units import dimensionless_unscaled, UnitsError
 from ... import log
+from ...extern.six import string_types
 from ..nduncertainty import IncompatibleUncertaintiesException
 
 __all__ = ['NDArithmeticMixin']
@@ -192,7 +193,9 @@ class NDArithmeticMixin(object):
             propagate_uncertainties = None
         return self._arithmetic(
             operand, propagate_uncertainties, "addition", np.add)
-    add.__doc__ = _arithmetic.__doc__.format(name="Add", operator="+")
+
+    if isinstance(_arithmetic.__doc__, string_types):
+        add.__doc__ = _arithmetic.__doc__.format(name="Add", operator="+")
 
     def subtract(self, operand, propagate_uncertainties=True):
         if propagate_uncertainties:
@@ -201,8 +204,10 @@ class NDArithmeticMixin(object):
             propagate_uncertainties = None
         return self._arithmetic(
             operand, propagate_uncertainties, "subtraction", np.subtract)
-    subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract",
-                                                  operator="-")
+
+    if isinstance(_arithmetic.__doc__, string_types):
+        subtract.__doc__ = _arithmetic.__doc__.format(name="Subtract",
+                                                      operator="-")
 
     def multiply(self, operand, propagate_uncertainties=True):
         if propagate_uncertainties:
@@ -211,8 +216,10 @@ class NDArithmeticMixin(object):
             propagate_uncertainties = None
         return self._arithmetic(
             operand, propagate_uncertainties, "multiplication", np.multiply)
-    multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply",
-                                                  operator="*")
+
+    if isinstance(_arithmetic.__doc__, string_types):
+        multiply.__doc__ = _arithmetic.__doc__.format(name="Multiply",
+                                                      operator="*")
 
     def divide(self, operand, propagate_uncertainties=True):
         if propagate_uncertainties:
@@ -221,4 +228,7 @@ class NDArithmeticMixin(object):
             propagate_uncertainties = None
         return self._arithmetic(
             operand, propagate_uncertainties, "division", np.divide)
-    divide.__doc__ = _arithmetic.__doc__.format(name="Divide", operator="/")
+
+    if isinstance(_arithmetic.__doc__, string_types):
+        divide.__doc__ = _arithmetic.__doc__.format(name="Divide",
+                                                    operator="/")
