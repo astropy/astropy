@@ -6,7 +6,7 @@ cimport numpy as np
 DTYPE = np.float
 ctypedef np.float_t DTYPE_t
 
-cdef extern from "numpy/npy_math.h":
+cdef extern from "numpy/npy_math.h" nogil:
     bint npy_isnan(double x)
 
 cimport cython
@@ -109,63 +109,65 @@ def convolve2d_boundary_fill(np.ndarray[DTYPE_t, ndim=2] f,
 
     cdef DTYPE_t top, bot, ker, val
 
-    # Need a first pass to replace NaN values with value convolved from
-    # neighboring values
-    for i in range(nx):
-        for j in range(ny):
-            if npy_isnan(f[i, j]):
-                top = 0.
-                bot = 0.
-                iimin = i - wkx
-                iimax = i + wkx + 1
-                jjmin = j - wky
-                jjmax = j + wky + 1
-                for ii in range(iimin, iimax):
-                    for jj in range(jjmin, jjmax):
-                        if ii < 0 or ii > nx - 1 or jj < 0 or jj > ny - 1:
-                            val = fill_value
-                        else:
-                            val = f[ii, jj]
-                        if not npy_isnan(val):
-                            ker = g[<unsigned int>(wkx + ii - i),
-                                    <unsigned int>(wky + jj - j)]
-                            top += val * ker
-                            bot += ker
-                if bot != 0.:
-                    fixed[i, j] = top / bot
+    # release the GIL
+    with nogil:
+        # Need a first pass to replace NaN values with value convolved
+        # from neighboring values
+        for i in range(nx):
+            for j in range(ny):
+                if npy_isnan(f[i, j]):
+                    top = 0.
+                    bot = 0.
+                    iimin = i - wkx
+                    iimax = i + wkx + 1
+                    jjmin = j - wky
+                    jjmax = j + wky + 1
+                    for ii in range(iimin, iimax):
+                        for jj in range(jjmin, jjmax):
+                            if ii < 0 or ii > nx - 1 or jj < 0 or jj > ny - 1:
+                                val = fill_value
+                            else:
+                                val = f[ii, jj]
+                            if not npy_isnan(val):
+                                ker = g[<unsigned int>(wkx + ii - i),
+                                        <unsigned int>(wky + jj - j)]
+                                top += val * ker
+                                bot += ker
+                    if bot != 0.:
+                        fixed[i, j] = top / bot
+                    else:
+                        fixed[i, j] = f[i, j]
                 else:
                     fixed[i, j] = f[i, j]
-            else:
-                fixed[i, j] = f[i, j]
 
-    # Now run the proper convolution
-    for i in range(nx):
-        for j in range(ny):
-            if not npy_isnan(fixed[i, j]):
-                top = 0.
-                bot = 0.
-                iimin = i - wkx
-                iimax = i + wkx + 1
-                jjmin = j - wky
-                jjmax = j + wky + 1
-                for ii in range(iimin, iimax):
-                    for jj in range(jjmin, jjmax):
-                        if ii < 0 or ii > nx - 1 or jj < 0 or jj > ny - 1:
-                            val = fill_value
+        # now run the proper convolution
+        for i in range(nx):
+            for j in range(ny):
+                    if not npy_isnan(fixed[i, j]):
+                        top = 0.
+                        bot = 0.
+                        iimin = i - wkx
+                        iimax = i + wkx + 1
+                        jjmin = j - wky
+                        jjmax = j + wky + 1
+                        for ii in range(iimin, iimax):
+                            for jj in range(jjmin, jjmax):
+                                if ii < 0 or ii > nx - 1 or jj < 0 or jj > ny - 1:
+                                    val = fill_value
+                                else:
+                                    val = fixed[ii, jj]
+                                ker = g[<unsigned int>(wkx + ii - i),
+                                        <unsigned int>(wky + jj - j)]
+                                if not npy_isnan(val):
+                                    top += val * ker
+                                    bot += ker
+                        if bot != 0:
+                            conv[i, j] = top / bot
                         else:
-                            val = fixed[ii, jj]
-                        ker = g[<unsigned int>(wkx + ii - i),
-                                <unsigned int>(wky + jj - j)]
-                        if not npy_isnan(val):
-                            top += val * ker
-                            bot += ker
-                if bot != 0:
-                    conv[i, j] = top / bot
-                else:
-                    conv[i, j] = fixed[i, j]
-            else:
-                conv[i, j] = fixed[i, j]
-
+                            conv[i, j] = fixed[i, j]
+                    else:
+                        conv[i, j] = fixed[i, j]
+        # GIL acquired again here
     return conv
 
 
