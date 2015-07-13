@@ -558,7 +558,7 @@ class Sine1D(Fittable1DModel):
     def evaluate(x, amplitude, frequency, phase):
         """One dimensional Sine model function"""
 
-        return amplitude * np.sin(2 * np.pi * frequency * x + np.pi * phase)
+        return amplitude * np.sin(2 * np.pi * frequency * x + 2 * np.pi * phase)
 
     @staticmethod
     def fit_deriv(x, amplitude, frequency, phase):
