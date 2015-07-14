@@ -585,8 +585,8 @@ class _ImageBaseHDU(_ValidHDU):
         raw_data = self._get_raw_data(shape, code, offset)
         raw_data.dtype = raw_data.dtype.newbyteorder('>')
 
-        if (self._orig_bzero == 0 and self._orig_bscale == 1 and
-                self._blank is None):
+        if ((self._orig_bzero == 0 and self._orig_bscale == 1 and
+                self._blank is None) or self._do_not_scale_image_data):
             # No further conversion of the data is necessary
             return raw_data
 
