@@ -104,6 +104,8 @@ Bug Fixes
 
 - ``astropy.cosmology``
 
+  - Fixed wCDM to not ignore the Ob0 parameter on initialization. [#3934]
+
 - ``astropy.io.ascii``
 
 - ``astropy.io.fits``
