@@ -7,12 +7,8 @@ chmod +x miniconda.sh
 export PATH=/home/travis/miniconda/bin:$PATH
 conda update --yes conda
 
-# Install non-Python dependencies for documentation
-if [[ $SETUP_CMD == build_sphinx* ]]
-then
-  sudo apt-get update
-  sudo apt-get install graphviz texlive-latex-extra dvipng
-fi
+# Installation of non-Python dependencies for documentation is now
+# in .travis.yml
 
 # Install Python dependencies
 source "$( dirname "${BASH_SOURCE[0]}" )"/setup_dependencies_common.sh
