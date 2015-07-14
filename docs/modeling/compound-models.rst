@@ -272,13 +272,13 @@ It is also possible, and sometimes useful, to make a compound model from a
 combination of classes *and* instances in the same expression::
 
     >>> from astropy.modeling.models import Linear1D, Sine1D
-    >>> MyModel = Linear1D + Sine1D(amplitude=1, frequency=1)
+    >>> MyModel = Linear1D + Sine1D(amplitude=1, frequency=1, phase=0)
     >>> MyModel
     <class '__main__.CompoundModel...'>
     Name: CompoundModel...
     Inputs: ('x',)
     Outputs: ('y',)
-    Fittable parameters: ('slope_0', 'intercept_0', 'amplitude_1', 'frequency_1')
+    Fittable parameters: ('slope_0', 'intercept_0', 'amplitude_1', 'frequency_1', 'phase_1')
     Expression: [0] + [1]
     Components:
         [0]: <class 'astropy.modeling.functional_models.Linear1D'>
@@ -287,7 +287,7 @@ combination of classes *and* instances in the same expression::
         Outputs: ('y',)
         Fittable parameters: ('slope', 'intercept')
     <BLANKLINE>
-        [1]: <Sine1D(amplitude=1.0, frequency=1.0)>
+        [1]: <Sine1D(amplitude=1.0, frequency=1.0, phase=0.0)>
 
 In this case the result is always a class.  However (and this is not
 immediately obvious by the representation) the difference is that the
