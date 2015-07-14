@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.7 - an implementation of the FITS WCS standard.
+  WCSLIB 5.8 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: fitshdr.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
+  $Id: fitshdr.h,v 5.8 2015/07/08 11:03:59 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.8 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -74,7 +74,7 @@
 *                       keyids[] provides a convienient way of indexing them.
 *                       The fitskeyid struct contains three members;
 *                       fitskeyid::name must be set by the user while
-*                       fitskeyid::count and fitskeyid::name are returned by
+*                       fitskeyid::count and fitskeyid::idx are returned by
 *                       fitshdr().  All matched keywords will have their
 *                       fitskey::keyno member negated.
 *

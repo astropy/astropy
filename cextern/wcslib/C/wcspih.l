@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.7 - an implementation of the FITS WCS standard.
+  WCSLIB 5.8 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
+  $Id: wcspih.l,v 5.8 2015/07/08 11:03:59 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -99,10 +99,9 @@ FIELD	[a-zA-Z_][a-zA-Z_0-9.]*
 INLINE " "*(\/.*)?
 
 /* Exclusive start states. */
-%x CROTAi PROJPn SIP2 SIP3
-%x CCCCCia CCia CCi_ja CCi_ma CCCCCCCa CCCCCCCC
-%x VALUE
-%x INTEGER_VAL FLOAT_VAL STRING_VAL
+%x CCia CCi_ja CCCCCia CCi_ma CCCCCCCa CCCCCCCC
+%x CROTAi PROJPn SIP2 SIP3 DSSAMDXY PLTDECSN
+%x VALUE INTEGER_VAL FLOAT_VAL STRING_VAL
 %x RECORD_VAL RECFIELD RECCOLON RECVALUE RECEND
 %x COMMENT
 %x DISCARD ERROR FLUSH
@@ -127,6 +126,13 @@ INLINE " "*(\/.*)?
 #define STRING  2
 #define RECORD  3
 
+#define PRIOR   1
+#define SEQUENT 2
+
+#define SIP     1
+#define DSS     2
+#define WAT     3
+
 #define YY_DECL int wcspih(char *header, int nkeyrec, int relax, int ctrl, \
                            int *nreject, int *nwcs, struct wcsprm **wcs)
 
@@ -147,10 +153,10 @@ INLINE " "*(\/.*)?
 char *wcspih_hdr;
 int  wcspih_nkeyrec;
 
-int wcspih_final(int alts[], int ndp[], int ndq[], int dosip, int *nwcs,
-        struct wcsprm **wcs);
+int wcspih_final(int alts[], int ndp[], int ndq[], int distran,
+        double dsstmp[], char *wat[], int *nwcs, struct wcsprm **wcs);
 int wcspih_inits(int naxis, int alts[], int dpq[], int npv[], int nps[],
-        int ndp[], int ndq[], int dosip, int *nwcs, struct wcsprm **wcs);
+        int ndp[], int ndq[], int distran, int *nwcs, struct wcsprm **wcs);
 void wcspih_naxes(int naxis, int i, int j, char a, int distype, int alts[],
         int dpq[], int *npptr);
 
@@ -169,12 +175,12 @@ jmp_buf wcspih_abort_jmp_env;
 	int  i, j, m, p, q;
 	
 	char *cptr, *errmsg, errtxt[80], *hptr, *keep, *keyname, *keyrec,
-	     keyword[16], strtmp[80];
-	int  altlin, alts[27], distype, dosip, dpq[27], gotone, ialt, inttmp,
-	     ipass, ipx, ix, jx, naxis, ndp[27], ndq[27], nother, *npptr,
-	     nps[27], npass, npv[27], nvalid, rectype, sip, status, valtype,
-	     voff;
-	double dbltmp;
+	     keyword[16], strtmp[80], *wat[2], *watstr;
+	int  altlin, alts[27], distran, distype, dpq[27], dssflag, gotone,
+	     ialt, inttmp, ipass, ipx, ix, jx, naxis, ndp[27], ndq[27],
+	     nother, *npptr, nps[27], npass, npv[27], nvalid, rectype,
+	     sipflag, status, valtype, voff, watflag, watn;
+	double dbltmp, dsstmp[20];
 	void *vptr, *wptr;
 	struct disprm *disp, distem;
 	struct wcsprm *wcsp, wcstem;
@@ -222,8 +228,11 @@ jmp_buf wcspih_abort_jmp_env;
 	altlin  = 0;
 	npptr   = 0x0;
 	special = 0x0;
-	sip     = 0;
-	dosip   = 0;
+	distran = 0;
+	sipflag = 0;
+	dssflag = 0;
+	watflag = 0;
+	watn    = 0;
 	
 	/* The data structures produced. */
 	*nwcs = 0;
@@ -675,7 +684,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^CPDIS	{
 	  valtype = STRING;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = &(distem.dtype);
 	
 	  keyname = "CPDISja";
@@ -684,7 +693,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^CQDIS	{
 	  valtype = STRING;
-	  distype = 2;
+	  distype = SEQUENT;
 	  vptr    = &(distem.dtype);
 	
 	  keyname = "CQDISia";
@@ -693,7 +702,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^DP	{
 	  valtype = RECORD;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = &(distem.dp);
 	  npptr   = ndp;
 	
@@ -703,7 +712,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^DQ	{
 	  valtype = RECORD;
-	  distype = 2;
+	  distype = SEQUENT;
 	  vptr    = &(distem.dp);
 	  npptr   = ndq;
 	
@@ -713,7 +722,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^CPERR	{
 	  valtype = FLOAT;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = &(distem.maxdis);
 	
 	  keyname = "CPERRja";
@@ -722,7 +731,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^CQERR	{
 	  valtype = FLOAT;
-	  distype = 2;
+	  distype = SEQUENT;
 	  vptr    = &(distem.maxdis);
 	
 	  keyname = "CQERRia";
@@ -731,7 +740,7 @@ jmp_buf wcspih_abort_jmp_env;
 
 ^DVERR	{
 	  valtype = FLOAT;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = &(distem.totdis);
 	
 	  keyname = "DVERRa";
@@ -741,7 +750,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^A_ORDER" " {
 	  /* SIP: axis 1 polynomial degree (not stored). */
 	  valtype = INTEGER;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = 0x0;
 	
 	  i = 1;
@@ -754,7 +763,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^B_ORDER" " {
 	  /* SIP: axis 2 polynomial degree (not stored). */
 	  valtype = INTEGER;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = 0x0;
 	
 	  i = 2;
@@ -767,7 +776,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^AP_ORDER {
 	  /* SIP: axis 1 inverse polynomial degree (not stored). */
 	  valtype = INTEGER;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = 0x0;
 	
 	  i = 1;
@@ -780,7 +789,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^BP_ORDER {
 	  /* SIP: axis 2 inverse polynomial degree (not stored). */
 	  valtype = INTEGER;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = 0x0;
 	
 	  i = 2;
@@ -793,7 +802,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^A_DMAX"  " {
 	  /* SIP: axis 1 maximum distortion. */
 	  valtype = FLOAT;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = &(distem.maxdis);
 	
 	  i = 1;
@@ -806,7 +815,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^B_DMAX"  " {
 	  /* SIP: axis 2 maximum distortion. */
 	  valtype = FLOAT;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = &(distem.maxdis);
 	
 	  i = 2;
@@ -819,7 +828,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^A_	{
 	  /* SIP: axis 1 polynomial coefficient. */
 	  i = 1;
-	  sip = 2;
+	  sipflag = 2;
 	
 	  keyname = "A_p_q";
 	  BEGIN(SIP2);
@@ -828,7 +837,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^B_	{
 	  /* SIP: axis 2 polynomial coefficient. */
 	  i = 2;
-	  sip = 2;
+	  sipflag = 2;
 	
 	  keyname = "B_p_q";
 	  BEGIN(SIP2);
@@ -837,7 +846,7 @@ jmp_buf wcspih_abort_jmp_env;
 ^AP_	{
 	  /* SIP: axis 1 inverse polynomial coefficient. */
 	  i = 1;
-	  sip = 3;
+	  sipflag = 3;
 	
 	  keyname = "AP_p_q";
 	  BEGIN(SIP3);
@@ -846,10 +855,213 @@ jmp_buf wcspih_abort_jmp_env;
 ^BP_	{
 	  /* SIP: axis 2 inverse polynomial coefficient. */
 	  i = 2;
-	  sip = 3;
+	  sipflag = 3;
 	
 	  keyname = "BP_p_q";
 	  BEGIN(SIP3);
+	}
+
+^CNPIX1"  " {
+	  /* DSS: LLH corner pixel coordinate 1. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "CNPIX1";
+	  BEGIN(VALUE);
+	}
+
+^CNPIX2"  " {
+	  /* DSS: LLH corner pixel coordinate 2. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+1;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "CNPIX1";
+	  BEGIN(VALUE);
+	}
+
+^PPO3"    " {
+	  /* DSS: plate centre x-coordinate in micron. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+2;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "PPO3";
+	  BEGIN(VALUE);
+	}
+
+^PPO6"    " {
+	  /* DSS: plate centre y-coordinate in micron. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+3;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "PPO6";
+	  BEGIN(VALUE);
+	}
+
+^XPIXELSZ {
+	  /* DSS: pixel x-dimension in micron. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+4;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "XPIXELSZ";
+	  BEGIN(VALUE);
+	}
+
+^YPIXELSZ {
+	  /* DSS: pixel y-dimension in micron. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+5;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "YPIXELSZ";
+	  BEGIN(VALUE);
+	}
+
+^PLTRAH"  " {
+	  /* DSS: plate centre, right ascension - hours. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+6;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "PLTRAH";
+	  BEGIN(VALUE);
+	}
+
+^PLTRAM"  " {
+	  /* DSS: plate centre, right ascension - minutes. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+7;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "PLTRAM";
+	  BEGIN(VALUE);
+	}
+
+^PLTRAS"  " {
+	  /* DSS: plate centre, right ascension - seconds. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+8;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "PLTRAS";
+	  BEGIN(VALUE);
+	}
+
+^PLTDECSN {
+	  /* DSS: plate centre, declination - sign. */
+	  valtype = STRING;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+9;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "PLTDECSN";
+	  BEGIN(PLTDECSN);
+	}
+
+^PLTDECD" " {
+	  /* DSS: plate centre, declination - degrees. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+10;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "PLTDECD";
+	  BEGIN(VALUE);
+	}
+
+^PLTDECM" " {
+	  /* DSS: plate centre, declination - arcmin. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+11;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "PLTDECM";
+	  BEGIN(VALUE);
+	}
+
+^PLTDECS" " {
+	  /* DSS: plate centre, declination - arcsec. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+12;
+	  dssflag = 1;
+	  distran = DSS;
+	
+	  keyname = "PLTDECS";
+	  BEGIN(VALUE);
+	}
+
+^PLATEID" " {
+	  /* DSS: plate identification. */
+	  valtype = STRING;
+	  distype = SEQUENT;
+	  vptr    = dsstmp+13;
+	  dssflag = 2;
+	  distran = DSS;
+	
+	  keyname = "PLATEID";
+	  BEGIN(VALUE);
+	}
+
+^AMDX	{
+	  /* DSS: axis 1 polynomial coefficient. */
+	  i = 1;
+	  dssflag = 3;
+	
+	  keyname = "AMDXm";
+	  BEGIN(DSSAMDXY);
+	}
+
+^AMDY	{
+	  /* DSS: axis 2 polynomial coefficient. */
+	  i = 2;
+	  dssflag = 3;
+	
+	  keyname = "AMDYm";
+	  BEGIN(DSSAMDXY);
+	}
+
+^WAT[12]_{Z3} {
+	  /* TNX or ZPX: string-encoded data array. */
+	  sscanf(yytext, "WAT%d_%d", &i, &m);
+	  if (watn < m) watn = m;
+	  watflag = 1;
+	
+	  valtype = STRING;
+	  distype = SEQUENT;
+	  vptr = wat[i-1] + 68*(m-1);
+	
+	  a = ' ';
+	  distran = WAT;
+	
+	  keyname = "WATi_m";
+	  BEGIN(VALUE);
 	}
 
 ^END" "{77} {
@@ -1030,35 +1242,6 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(DISCARD);
 	}
 
-<CROTAi>{Z1}{ALT}" " |
-<CROTAi>{Z2}{ALT} |
-<CROTAi>{Z3} {
-	  a = ' ';
-	  sscanf(yytext, "%d%c", &i, &a);
-	
-	  if (relax & WCSHDR_strict) {
-	    errmsg = "the CROTAn keyword is deprecated, use PCi_ja";
-	    BEGIN(ERROR);
-	
-	  } else if (a == ' ' || relax & WCSHDR_CROTAia) {
-	    yyless(0);
-	    BEGIN(CCCCCia);
-	
-	  } else if (relax & WCSHDR_reject) {
-	    errmsg = "CROTAn keyword may not have an alternate version code";
-	    BEGIN(ERROR);
-	
-	  } else {
-	    /* Pretend we don't recognize it. */
-	    BEGIN(DISCARD);
-	  }
-	}
-
-<CROTAi>. {
-	  yyless(0);
-	  BEGIN(CCCCCia);
-	}
-
 <CCCCCCCa>{ALT} |
 <CCCCCCCC>. {
 	  if (YY_START == CCCCCCCa) {
@@ -1166,6 +1349,35 @@ jmp_buf wcspih_abort_jmp_env;
 	  BEGIN(DISCARD);
 	}
 
+<CROTAi>{Z1}{ALT}" " |
+<CROTAi>{Z2}{ALT} |
+<CROTAi>{Z3} {
+	  a = ' ';
+	  sscanf(yytext, "%d%c", &i, &a);
+	
+	  if (relax & WCSHDR_strict) {
+	    errmsg = "the CROTAn keyword is deprecated, use PCi_ja";
+	    BEGIN(ERROR);
+	
+	  } else if (a == ' ' || relax & WCSHDR_CROTAia) {
+	    yyless(0);
+	    BEGIN(CCCCCia);
+	
+	  } else if (relax & WCSHDR_reject) {
+	    errmsg = "CROTAn keyword may not have an alternate version code";
+	    BEGIN(ERROR);
+	
+	  } else {
+	    /* Pretend we don't recognize it. */
+	    BEGIN(DISCARD);
+	  }
+	}
+
+<CROTAi>. {
+	  yyless(0);
+	  BEGIN(CCCCCia);
+	}
+
 <PROJPn>{Z1}"  " {
 	  if (relax & WCSHDR_PROJPn) {
 	    sscanf(yytext, "%d", &m);
@@ -1201,12 +1413,12 @@ jmp_buf wcspih_abort_jmp_env;
 <SIP3>{Z1}_{Z1}"  " {
 	  /* SIP keywords. */
 	  valtype = FLOAT;
-	  distype = 1;
+	  distype = PRIOR;
 	  vptr    = &(distem.dp);
 	  npptr   = ndp;
 	
 	  a = ' ';
-	  dosip = 1;
+	  distran = SIP;
 	
 	  sscanf(yytext, "%d_%d", &p, &q);
 	  BEGIN(VALUE);
@@ -1214,6 +1426,40 @@ jmp_buf wcspih_abort_jmp_env;
 
 <SIP2>. |
 <SIP3>. {
+	  BEGIN(DISCARD);
+	}
+
+<DSSAMDXY>{I1}"   " |
+<DSSAMDXY>{I2}"  " {
+	  /* DSS keywords. */
+	  valtype = FLOAT;
+	  distype = SEQUENT;
+	  vptr    = &(distem.dp);
+	  npptr   = ndq;
+	
+	  a = ' ';
+	  distran = DSS;
+	
+	  sscanf(yytext, "%d", &m);
+	  BEGIN(VALUE);
+	}
+
+<DSSAMDXY>. {
+	  BEGIN(DISCARD);
+	}
+
+<PLTDECSN>=" "+{STRING} {
+	  /* Special handling for this iconic DSS keyword. */
+	  if (1 < ipass) {
+	    /* Look for a minus sign. */
+	    sscanf(yytext, "= '%s", strtmp);
+	    dbltmp = strcmp(strtmp, "-") ? 1.0 : -1.0;
+	  }
+	
+	  BEGIN(COMMENT);
+	}
+
+<PLTDECSN>. {
 	  BEGIN(DISCARD);
 	}
 
@@ -1399,92 +1645,129 @@ jmp_buf wcspih_abort_jmp_env;
 	      gotone = 1;
 	
 	      if (vptr) {
-	        wcsp = *wcs + ialt;
-	        if (distype == 0) {
-	          voff = (char *)vptr - (char *)(&wcstem);
-	          wptr = (void *)((char *)wcsp + voff);
-	
-	        } else {
-	          voff = (char *)vptr - (char *)(&distem);
-	          if (distype & 1) {
-	            /* Prior distortion. */
-	            disp = wcsp->lin.dispre;
-	          } else {
-	            /* Sequent distortion. */
-	            disp = wcsp->lin.disseq;
-	          }
-	          wptr = (void *)((char *)disp + voff);
-	        }
-	
-	        if (sip) {
+	        if (sipflag) {
 	          /* Translate a SIP keyword into DPja. */
+	          disp = wcsp->lin.dispre;
 	          ipx = (disp->ndp)++;
 	
 	          /* SIP doesn't have alternates. */
 	          sprintf(keyword, "DP%d", i);
-	          sprintf(strtmp, "SIP.%s.%d_%d", (sip==2)?"FWD":"REV", p, q);
+	          sprintf(strtmp, "SIP.%s.%d_%d", (sipflag==2)?"FWD":"REV",
+	                  p, q);
 	          if (valtype == INTEGER) {
 	            dpfill(disp->dp+ipx, keyword, strtmp, i, 0, inttmp, 0.0);
 	          } else {
 	            dpfill(disp->dp+ipx, keyword, strtmp, i, 1, 0, dbltmp);
 	          }
 	
-	        } else if (valtype == INTEGER) {
-	          *((int *)wptr) = inttmp;
+	        } else if (dssflag) {
+	          /* All DSS keywords require special handling. */
+	          if (dssflag == 1) {
+	            /* Temporary parameter for DSS used by wcspih_final(). */
+	            *((double *)vptr) = dbltmp;
 	
-	        } else if (valtype == FLOAT) {
-	          /* Apply keyword parameterization. */
-	          if (npptr == npv) {
-	            ipx = (wcsp->npv)++;
-	            wcsp->pv[ipx].i = i;
-	            wcsp->pv[ipx].m = m;
-	            wptr = &(wcsp->pv[ipx].value);
+	          } else if (dssflag == 2) {
+	            /* Temporary parameter for DSS used by wcspih_final(). */
+	            strcpy((char *)vptr, strtmp);
 	
-	          } else if (j) {
-	            wptr = *((double **)wptr) + (i - 1)*(wcsp->naxis)
-	                                      + (j - 1);
-	
-	          } else if (i) {
-	            wptr = *((double **)wptr) + (i - 1);
-	          }
-	
-	          if (special) {
-	            special(wptr, dbltmp);
 	          } else {
-	            *((double *)wptr) = dbltmp;
+	            /* Translate a DSS keyword into DQia. */
+	            if (m <= 13 || dbltmp != 0.0) {
+	              disp = wcsp->lin.disseq;
+	              ipx = (disp->ndp)++;
+	
+	              /* DSS doesn't have alternates. */
+	              sprintf(keyword, "DQ%d", i);
+	              sprintf(strtmp, "DSS.AMD.%d", m);
+	              dpfill(disp->dp+ipx, keyword, strtmp, i, 1, 0, dbltmp);
+	
+	              /* Also required by wcspih_final(). */
+	              if (m <= 3) {
+	                dsstmp[13+(i-1)*3+m] = dbltmp;
+	              }
+	            }
 	          }
 	
-	          /* Flag the presence of PCi_ja, or CDi_ja and/or CROTAia. */
-	          if (altlin) {
-	            wcsp->altlin |= altlin;
-	            altlin = 0;
+	        } else if (watflag) {
+	          /* String array for TNX and ZPX used by wcspih_final(). */
+	          strcpy((char *)vptr, strtmp);
+	
+	        } else {
+	          /* An ordinary keyword. */
+	          wcsp = *wcs + ialt;
+	          if (distype == 0) {
+	            voff = (char *)vptr - (char *)(&wcstem);
+	            wptr = (void *)((char *)wcsp + voff);
+	
+	          } else {
+	            voff = (char *)vptr - (char *)(&distem);
+	            if (distype == PRIOR) {
+	              /* Prior distortion. */
+	              disp = wcsp->lin.dispre;
+	            } else {
+	              /* Sequent distortion. */
+	              disp = wcsp->lin.disseq;
+	            }
+	            wptr = (void *)((char *)disp + voff);
 	          }
 	
-	        } else if (valtype == STRING) {
-	          /* Apply keyword parameterization. */
-	          if (npptr == nps) {
-	            ipx = (wcsp->nps)++;
-	            wcsp->ps[ipx].i = i;
-	            wcsp->ps[ipx].m = m;
-	            wptr = wcsp->ps[ipx].value;
+	          if (valtype == INTEGER) {
+	            *((int *)wptr) = inttmp;
 	
-	          } else if (j) {
-	            wptr = *((char (**)[72])wptr) +
-	                    (i - 1)*(wcsp->naxis) + (j - 1);
+	          } else if (valtype == FLOAT) {
+	            /* Apply keyword parameterization. */
+	            if (npptr == npv) {
+	              ipx = (wcsp->npv)++;
+	              wcsp->pv[ipx].i = i;
+	              wcsp->pv[ipx].m = m;
+	              wptr = &(wcsp->pv[ipx].value);
 	
-	          } else if (i) {
-	            wptr = *((char (**)[72])wptr) + (i - 1);
+	            } else if (j) {
+	              wptr = *((double **)wptr) + (i - 1)*(wcsp->naxis)
+	                                        + (j - 1);
+	
+	            } else if (i) {
+	              wptr = *((double **)wptr) + (i - 1);
+	            }
+	
+	            if (special) {
+	              special(wptr, dbltmp);
+	            } else {
+	              *((double *)wptr) = dbltmp;
+	            }
+	
+	            /* Flag presence of PCi_ja, or CDi_ja and/or CROTAia. */
+	            if (altlin) {
+	              wcsp->altlin |= altlin;
+	              altlin = 0;
+	            }
+	
+	          } else if (valtype == STRING) {
+	            /* Apply keyword parameterization. */
+	            if (npptr == nps) {
+	              ipx = (wcsp->nps)++;
+	              wcsp->ps[ipx].i = i;
+	              wcsp->ps[ipx].m = m;
+	              wptr = wcsp->ps[ipx].value;
+	
+	            } else if (j) {
+	              wptr = *((char (**)[72])wptr) +
+	                      (i - 1)*(wcsp->naxis) + (j - 1);
+	
+	            } else if (i) {
+	              wptr = *((char (**)[72])wptr) + (i - 1);
+	            }
+	
+	            cptr = (char *)wptr;
+	            strcpy(cptr, strtmp);
+	
+	          } else if (valtype == RECORD) {
+	            ipx = (disp->ndp)++;
+	
+	            sprintf(keyword, "%.2s%d%c", keyname, i, a);
+	            dpfill(disp->dp+ipx, keyword, strtmp, i, rectype, inttmp,
+	                   dbltmp);
 	          }
-	
-	          cptr = (char *)wptr;
-	          strcpy(cptr, strtmp);
-	
-	        } else if (valtype == RECORD) {
-	          ipx = (disp->ndp)++;
-	
-	          sprintf(keyword, "%.2s%d%c", keyname, i, a);
-	          dpfill(disp->dp+ipx, keyword, strtmp, i, rectype, inttmp,
-	                 dbltmp);
 	        }
 	      }
 	
@@ -1494,9 +1777,13 @@ jmp_buf wcspih_abort_jmp_env;
 	    if (gotone) {
 	      nvalid++;
 	      if (ctrl == 4) {
-	        wcsfprintf(stderr,
-	          "%.80s\n  Accepted (%d) as a valid WCS keyrecord.\n",
-	          keyrec, nvalid);
+	        if (distran == 0) {
+	          wcsfprintf(stderr, "%.80s\n  Accepted (%d) as a "
+	            "valid WCS keyrecord.\n", keyrec, nvalid);
+	        } else {
+	          wcsfprintf(stderr, "%.80s\n  Accepted (%d) as a "
+	            "recognised WCS convention.\n", keyrec, nvalid);
+	        }
 	      }
 	
 	      BEGIN(FLUSH);
@@ -1586,7 +1873,9 @@ jmp_buf wcspih_abort_jmp_env;
 	  altlin  = 0;
 	  npptr   = 0x0;
 	  special = 0x0;
-	  sip     = 0;
+	  sipflag = 0;
+	  dssflag = 0;
+	  watflag = 0;
 	
 	  BEGIN(INITIAL);
 	}
@@ -1595,7 +1884,7 @@ jmp_buf wcspih_abort_jmp_env;
 	  /* End-of-input. */
 	  if (ipass == 1) {
 	    if ((status = wcspih_inits(naxis, alts, dpq, npv, nps, ndp, ndq,
-	                               dosip, nwcs, wcs)) ||
+	                               distran, nwcs, wcs)) ||
 	        (*nwcs == 0 && ctrl == 0)) {
 	      yylex_destroy();
 	      return status;
@@ -1611,6 +1900,10 @@ jmp_buf wcspih_abort_jmp_env;
 	          *nwcs);
 	      }
 	    }
+	
+	    watstr = calloc(2*(watn*68 + 1), sizeof(char));
+	    wat[0] = watstr;
+	    wat[1] = watstr + watn*68 + 1;
 	  }
 	
 	  if (ipass++ < npass) {
@@ -1630,7 +1923,9 @@ jmp_buf wcspih_abort_jmp_env;
 	    altlin  = 0;
 	    npptr   = 0x0;
 	    special = 0x0;
-	    sip     = 0;
+	    sipflag = 0;
+	    dssflag = 0;
+	    watflag = 0;
 	
 	    yyrestart(yyin);
 	
@@ -1652,7 +1947,8 @@ jmp_buf wcspih_abort_jmp_env;
 	        "keyrecords.\n", nother, (nother==1)?"":"s");
 	    }
 	
-	    return wcspih_final(alts, ndp, ndq, dosip, nwcs, wcs);
+	    return wcspih_final(alts, ndp, ndq, distran, dsstmp, wat, nwcs,
+	                        wcs);
 	  }
 	}
 
@@ -1726,7 +2022,7 @@ int wcspih_inits(
   int nps[],
   int ndp[],
   int ndq[],
-  int dosip,
+  int distran,
   int *nwcs,
   struct wcsprm **wcs)
 
@@ -1751,7 +2047,7 @@ int wcspih_inits(
   if (*nwcs) {
     /* Allocate memory for the required number of wcsprm structs. */
     if ((*wcs = calloc(*nwcs, sizeof(struct wcsprm))) == 0x0) {
-      return 2;
+      return WCSHDRERR_MEMORY;
     }
 
     /* Record the current values of NPVMAX, NPSMAX, and NDPMAX. */
@@ -1760,10 +2056,14 @@ int wcspih_inits(
     ndpmax = disndp(-1);
 
     ndis = 0;
-    if (dosip) {
+    if (distran == SIP) {
       /* DPja.NAXES and DPja.OFFSET.j to be added for SIP (see below and
          wcspih_final()). */
       ndp[0] += 6;
+
+    } else if (distran == DSS) {
+      /* DPja.NAXES to be added for DSS (see below and wcspih_final()). */
+      ndq[0] += 2;
     }
 
     /* Initialize each wcsprm struct. */
@@ -1792,7 +2092,7 @@ int wcspih_inits(
         /* Any distortions present? */
         if (dpq[ialt] & 1) {
           if ((dis = calloc(1, sizeof(struct disprm))) == 0x0) {
-            return 2;
+            return WCSHDRERR_MEMORY;
           }
 
           /* Attach it to linprm.  Also inits it. */
@@ -1804,7 +2104,7 @@ int wcspih_inits(
 
         if (dpq[ialt] & 2) {
           if ((dis = calloc(1, sizeof(struct disprm))) == 0x0) {
-            return 2;
+            return WCSHDRERR_MEMORY;
           }
 
           /* Attach it to linprm.  Also inits it. */
@@ -1831,15 +2131,26 @@ int wcspih_inits(
     if (ndis) disndp(ndpmax);
 
 
-    /* SIP distortion? */
-    if (dosip) {
+    /* Translated distortion?  Neither SIP nor DSS have alternates, so the */
+    /* presence of keywords for either (not both together), as flagged by  */
+    /* distran, necessarily refers to the primary representation.          */
+    if (distran == SIP) {
       strcpy((*wcs)->lin.dispre->dtype[0], "SIP");
       strcpy((*wcs)->lin.dispre->dtype[1], "SIP");
 
-      /* SIP doesn't have alternates, nor axis mapping. */
+      /* SIP doesn't have axis mapping. */
       (*wcs)->lin.dispre->ndp = 6;
       dpfill((*wcs)->lin.dispre->dp,   "DP1", "NAXES",  0, 0, 2, 0.0);
       dpfill((*wcs)->lin.dispre->dp+3, "DP2", "NAXES",  0, 0, 2, 0.0);
+
+    } else if (distran == DSS) {
+      strcpy((*wcs)->lin.disseq->dtype[0], "DSS");
+      strcpy((*wcs)->lin.disseq->dtype[1], "DSS");
+
+      /* The Paper IV translation of DSS doesn't require an axis mapping. */
+      (*wcs)->lin.disseq->ndp = 2;
+      dpfill((*wcs)->lin.disseq->dp,   "DQ1", "NAXES",  0, 0, 2, 0.0);
+      dpfill((*wcs)->lin.disseq->dp+1, "DQ2", "NAXES",  0, 0, 2, 0.0);
     }
   }
 
@@ -1891,12 +2202,19 @@ int wcspih_final(
   int alts[],
   int ndp[],
   int ndq[],
-  int dosip,
-  int *nwcs,
+  int distran,
+  double dsstmp[],
+  char *wat[],
+  int  *nwcs,
   struct wcsprm **wcs)
 
 {
-  int ialt, status;
+  char   field[8], *wp, wpoly[12], wtype[8];
+  int    i, ialt, idp, ipv, m, npv, n, nterms, omax, omin, status, wctrl[4];
+  double A1, A2, A3, B1, B2, B3, CNPIX1, CNPIX2, *crval, Rx, Ry, S, wval,
+         X0, Y0, Xc, Yc;
+  struct disprm *disp;
+  struct wcsprm *wcsp;
 
   for (ialt = 0; ialt < *nwcs; ialt++) {
     /* Interpret -TAB header keywords. */
@@ -1912,16 +2230,236 @@ int wcspih_final(
     }
   }
 
-  /* SIP doesn't have alternates, nor axis mapping. */
-  if (dosip) {
-    dpfill((*wcs)->lin.dispre->dp+1, "DP1", "OFFSET.1",  0, 1, 0,
-           (*wcs)->crpix[0]);
-    dpfill((*wcs)->lin.dispre->dp+2, "DP1", "OFFSET.2",  0, 1, 0,
-           (*wcs)->crpix[1]);
-    dpfill((*wcs)->lin.dispre->dp+4, "DP2", "OFFSET.1",  0, 1, 0,
-           (*wcs)->crpix[0]);
-    dpfill((*wcs)->lin.dispre->dp+5, "DP2", "OFFSET.2",  0, 1, 0,
-           (*wcs)->crpix[1]);
+  /* Translated distortion functions; apply only to the primary WCS. */
+  wcsp = *wcs;
+  if (distran == SIP) {
+    /* SIP doesn't have alternates, nor axis mapping. */
+    disp = wcsp->lin.dispre;
+    dpfill(disp->dp+1, "DP1", "OFFSET.1",  0, 1, 0, wcsp->crpix[0]);
+    dpfill(disp->dp+2, "DP1", "OFFSET.2",  0, 1, 0, wcsp->crpix[1]);
+    dpfill(disp->dp+4, "DP2", "OFFSET.1",  0, 1, 0, wcsp->crpix[0]);
+    dpfill(disp->dp+5, "DP2", "OFFSET.2",  0, 1, 0, wcsp->crpix[1]);
+
+  } else if (distran == DSS) {
+    /* DSS doesn't have alternates, nor axis mapping.  This translation */
+    /* follows Paper IV, Sect. 5.2 using the same variable names.       */
+    CNPIX1 = dsstmp[0];
+    CNPIX2 = dsstmp[1];
+
+    Xc = dsstmp[2]/1000.0;
+    Yc = dsstmp[3]/1000.0;
+    Rx = dsstmp[4]/1000.0;
+    Ry = dsstmp[5]/1000.0;
+
+    A1 = dsstmp[14];
+    A2 = dsstmp[15];
+    A3 = dsstmp[16];
+    B1 = dsstmp[17];
+    B2 = dsstmp[18];
+    B3 = dsstmp[19];
+    S  = sqrt(fabs(A1*B1 - A2*B2));
+
+    X0 = (A2*B3 - A3*B1) / (A1*B1 - A2*B2);
+    Y0 = (A3*B2 - A1*B3) / (A1*B1 - A2*B2);
+
+    wcsp->crpix[0] = (Xc - X0)/Rx - (CNPIX1 - 0.5);
+    wcsp->crpix[1] = (Yc + Y0)/Ry - (CNPIX2 - 0.5);
+
+    wcsp->pc[0] =  A1*Rx/S;
+    wcsp->pc[1] = -A2*Ry/S;
+    wcsp->pc[2] = -B2*Rx/S;
+    wcsp->pc[3] =  B1*Ry/S;
+    wcsp->altlin = 1;
+
+    wcsp->cdelt[0] = -S/3600.0;
+    wcsp->cdelt[1] =  S/3600.0;
+
+    crval = wcsp->crval;
+    crval[0] = (dsstmp[6]  + (dsstmp[7]  + dsstmp[8] /60.0)/60.0)*15.0;
+    crval[1] =  dsstmp[10] + (dsstmp[11] + dsstmp[12]/60.0)/60.0;
+    if (dsstmp[9] == -1.0) crval[1] *= -1.0;
+
+    strcpy(wcsp->ctype[0], "RA---TAN");
+    strcpy(wcsp->ctype[1], "DEC--TAN");
+
+    sprintf(wcsp->wcsname, "DSS PLATEID %.4s", (char *)(dsstmp+13));
+
+    /* Erase the approximate WCS provided in modern DSS headers. */
+    wcsp->cd[0] = 0.0;
+    wcsp->cd[1] = 0.0;
+    wcsp->cd[2] = 0.0;
+    wcsp->cd[3] = 0.0;
+
+  } else if (distran == WAT) {
+    /* TNX and ZPX don't have alternates, nor axis mapping. */
+    disp = wcsp->lin.disseq;
+
+    /* Decipher the core dump stored in the WATi_m strings. */
+    nterms = 0;
+    for (i = 0; i < 2; i++) {
+      sscanf(wat[i], "wtype=%s", wtype);
+
+      if (strcmp(wtype, "tnx") == 0) {
+        strcpy(disp->dtype[i], "WAT-TNX");
+      } else if (strcmp(wtype, "zpx") == 0) {
+        strcpy(disp->dtype[i], "WAT-ZPX");
+      } else {
+        return WCSHDRERR_PARSER;
+      }
+
+      /* The PROJPn parameters are duplicated on each ZPX axis. */
+      if (i == 1 && strcmp(wtype, "zpx") == 0) {
+        /* Take those on the second (latitude) axis ignoring the other. */
+        /* First we have to count them and allocate space in wcsprm.    */
+        wp  = wat[i];
+        for (npv = 0; npv < 30; npv++) {
+          if ((wp = strstr(wp, "projp")) == 0x0) break;
+          wp += 5;
+        }
+
+        /* Allocate space. */
+        if (npv) {
+          wcsp->npvmax += npv;
+          wcsp->pv = realloc(wcsp->pv, wcsp->npvmax*sizeof(struct pvcard));
+          if (wcsp->pv == 0x0) {
+            return WCSHDRERR_MEMORY;
+          }
+
+          wcsp->m_pv = wcsp->pv;
+        }
+
+        /* Copy the values. */
+        wp = wat[i];
+        for (ipv = wcsp->npv; ipv < wcsp->npvmax; ipv++) {
+          if ((wp = strstr(wp, "projp")) == 0x0) break;
+
+          sscanf(wp, "projp%d=%lf", &m, &wval);
+          wcsp->pv[ipv].i = 2;
+          wcsp->pv[ipv].m = m;
+          wcsp->pv[ipv].value = wval;
+
+          wp += 5;
+        }
+
+        wcsp->npv += npv;
+      }
+
+      /* Read the control parameters. */
+      if ((wp = strchr(wat[i], '"')) == 0x0) {
+        return WCSHDRERR_PARSER;
+      }
+      wp++;
+
+      for (m = 0; m < 4; m++) {
+        sscanf(wp, "%d", wctrl+m);
+        if ((wp = strchr(wp, ' ')) == 0x0) {
+          return WCSHDRERR_PARSER;
+        }
+        wp++;
+      }
+
+      /* How many coefficients are we expecting? */
+      omin = (wctrl[1] < wctrl[2]) ? wctrl[1] : wctrl[2];
+      omax = (wctrl[1] < wctrl[2]) ? wctrl[2] : wctrl[1];
+      if (wctrl[3] == 0) {
+        /* No cross terms. */
+        nterms += omin + omax;
+
+      } else if (wctrl[3] == 1) {
+        /* Full cross terms. */
+        nterms += omin*omax;
+
+      } else if (wctrl[3] == 2) {
+        /* Half cross terms. */
+        nterms += omin*omax - omin*(omin-1)/2;
+      }
+    }
+
+    /* Allocate memory for dpkeys. */
+    ndq[0] += 2*(1 + 1 + 4) + nterms;
+
+    disp->ndpmax += ndq[0];
+    disp->dp = realloc(disp->dp, disp->ndpmax*sizeof(struct dpkey));
+    if (disp->dp == 0x0) {
+      return WCSHDRERR_MEMORY;
+    }
+
+    disp->m_dp = disp->dp;
+
+
+    /* Populate dpkeys. */
+    idp = disp->ndp;
+    for (i = 0; i < 2; i++) {
+      dpfill(disp->dp+(idp++), "DQ", "NAXES", i+1, 0, 2, 0.0);
+
+      /* Read the control parameters. */
+      if ((wp = strchr(wat[i], '"')) == 0x0) {
+        return WCSHDRERR_PARSER;
+      }
+      wp++;
+
+      for (m = 0; m < 4; m++) {
+        sscanf(wp, "%d", wctrl+m);
+        if ((wp = strchr(wp, ' ')) == 0x0) {
+          return WCSHDRERR_PARSER;
+        }
+        wp++;
+      }
+
+      /* Polynomial type. */
+      dpfill(disp->dp+(idp++), "DQ", "WAT.POLY", i+1, 0, wctrl[0], 0.0);
+      if (wctrl[0] == 1) {
+        /* Chebyshev polynomial. */
+        strcpy(wpoly, "CHBY");
+      } else if (wctrl[0] == 2) {
+        /* Legendre polynomial. */
+        strcpy(wpoly, "LEGR");
+      } else if (wctrl[0] == 3) {
+        /* Polynomial is the sum of monomials. */
+        strcpy(wpoly, "MONO");
+      } else {
+        /* Unknown code. */
+        strcpy(wpoly, "UNKN");
+      }
+
+      /* Read the scaling parameters. */
+      for (m = 0; m < 4; m++) {
+        sscanf(wp, "%lf", &wval);
+        sprintf(field, "WAT.%c%s", (m<2)?'X':'Y', (m%2)?"MAX":"MIN");
+        dpfill(disp->dp+(idp++), "DQ", field, i+1, 1, 0, wval);
+
+        if ((wp = strchr(wp, ' ')) == 0x0) {
+          return WCSHDRERR_PARSER;
+        }
+        wp++;
+      }
+
+      /* Read the coefficients. */
+      for (n = 0; n < wctrl[2]; n++) {
+        for (m = 0; m < wctrl[1]; m++) {
+          if (wctrl[3] == 0) {
+            if (m && n) continue;
+          } else if (wctrl[3] == 2) {
+            if (m+n > omax-1) continue;
+          }
+
+          sscanf(wp, "%lf", &wval);
+          if (wval == 0.0) continue;
+
+          sprintf(field, "WAT.%s.%d_%d", wpoly, m, n);
+          dpfill(disp->dp+(idp++), "DQ", field, i+1, 1, 0, wval);
+
+          if ((wp = strchr(wp, ' ')) == 0x0) {
+            return WCSHDRERR_PARSER;
+          }
+          wp++;
+        }
+      }
+    }
+
+    disp->ndp = idp;
+
+    free(wat[0]);
   }
 
   return 0;

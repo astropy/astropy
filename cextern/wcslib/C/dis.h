@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.7 - an implementation of the FITS WCS standard.
+  WCSLIB 5.8 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
+  $Id: dis.h,v 5.8 2015/07/08 11:03:59 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.7 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.8 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -42,7 +42,7 @@
 * In brief, a distortion function may occupy one of two positions in the WCS
 * algorithm chain.  Prior distortions precede the linear transformation
 * matrix, whether it be PCi_ja or CDi_ja, and sequent distortions follow it.
-* Paper IV defines FITS keywords used to specify parameters for predefined
+* WCS Paper IV defines FITS keywords used to specify parameters for predefined
 * distortion functions.  The following are used for prior distortions:
 *
 =   CPDISja   ...(string-valued, identifies the distortion function)
@@ -66,14 +66,14 @@
 =   DP1 = 'AXIS.1: 1'
 *
 * Certain field-specifiers are defined for all distortion functions, while
-* others are defined only for particular distortions.  Refer to Paper IV for
-* further details.  wcspih() parses all distortion keywords and loads them
+* others are defined only for particular distortions.  Refer to WCS Paper IV
+* for further details.  wcspih() parses all distortion keywords and loads them
 * into a disprm struct for analysis by disset() which knows (or possibly does
 * not know) how to interpret them.  Of the Paper IV distortion functions, only
 * the general Polynomial distortion is currently implemented here.
 *
-* The TPV "projection":
-* ---------------------
+* TPV: The TPV "projection"
+* -------------------------
 * The distortion function component of the TPV celestial "projection" is also
 * supported.  The TPV projection, originally proposed in a draft of WCS Paper
 * II, consists of a TAN projection with sequent polynomial distortion, the
@@ -90,13 +90,13 @@
 *
 * where i, a, m, and the value for each DQia match each PVi_ma.  Consequently,
 * WCSLIB would handle a FITS header containing these keywords, along with
-* CQDISja = 'TPV' and a few other required keywords.
+* CQDISia = 'TPV' and the required DQia.NAXES and DQia.AXIS.ihat keywords.
 *
-* Simple Imaging Polynomial (SIP):
-* --------------------------------
-* These routines also support the Simple Imaging Polynomial (SIP), which arose
-* as an application of an early draft of Paper IV.  It is described in detail
-* in
+* SIP: Simple Imaging Polynomial
+* ------------------------------
+* These routines also support the Simple Imaging Polynomial (SIP), whose
+* design was influenced by early drafts of WCS Paper IV.  It is described in
+* detail in
 *
 =   http://fits.gsfc.nasa.gov/registry/sip.html
 *
@@ -115,20 +115,74 @@
 =   B_DMAX = <value>   ->   DPERR2 = <value>
 *
 * SIP's A_ORDER and B_ORDER keywords are not used.  WCSLIB would recognise a
-* FITS header containing the above keywords, along with CPDISja = 'SIP' and a
-* few other required keywords.
+* FITS header containing the above keywords, along with CPDISja = 'SIP' and
+* the required DPja.NAXES keywords.
 *
-* Template Polynomial Distortion (TPD):
-* -------------------------------------
-* The "Template Polynomial Distortion" (TPD) is a superset of the TPV and SIP
-* polynomial distortions that also supports 1D usage and inversions.  Like TPV
-* and SIP, the form of the polynomial is fixed (the "template") and only the
-* coefficients for the required terms are set non-zero.  TPD generalizes TPV
-* in going to 9th degree, and SIP by accomodating TPV's linear and radial
-* terms.  Within WCSLIB, both TPV and SIP are implemented as special cases of
-* TPD.  Indeed, TPD was developed precisely for that purpose.  Moreover, the
-* general Polynomial distortion is translated and implemented internally as
-* TPD whenever possible.
+* DSS: Digitized Sky Survey
+* -------------------------
+* The Digitized Sky Survey resulted from the production of the Guide Star
+* Catalogue for the Hubble Space Telescope.  Plate solutions based on a
+* polynomial distortion function were encoded in FITS using non-standard
+* keywords.  Sect. 5.2 of WCS Paper IV describes how DSS coordinates may be
+* translated to a sequent Polynomial distortion using two auxiliary variables.
+* That translation is based on optimising the non-distortion component of the
+* plate solution.
+*
+* Following Paper IV, wcspih() translates the non-distortion component of DSS
+* coordinates to standard WCS keywords (CRPIXja, PCi_ja, CRVALia, etc), and
+* fills a wcsprm struct with their values.  It encodes the DSS polynomial
+* coefficients as
+*
+=    AMDXm = <value>   ->   DQ1 = 'AMD.m: <value>'
+=    AMDYm = <value>   ->   DQ2 = 'AMD.m: <value>'
+*
+* WCSLIB would recognise a FITS header containing the above keywords, along
+* with CQDISia = 'DSS' and the required DQia.NAXES keywords.
+*
+* WAT: The TNX and ZPX "projections"
+* ----------------------------------
+* The TNX and ZPX "projections" add a polynomial distortion function to the
+* standard TAN and ZPN projections respectively.  Unusually, the polynomial
+* may be expressed as the sum of Chebyshev or Legendre polynomials, or as a
+* simple sum of monomials, as described in
+*
+=   http://fits.gsfc.nasa.gov/registry/tnx/tnx-doc.html
+=   http://fits.gsfc.nasa.gov/registry/zpxwcs/zpx.html
+*
+* The polynomial coefficients are encoded in special-purpose WATi_n keywords
+* as a set of continued strings, thus providing the name for this distortion
+* type.  WATi_n are parsed and translated by wcspih() into the following set:
+*
+=    DQi = 'WAT.POLY: <value>'
+=    DQi = 'WAT.XMIN: <value>'
+=    DQi = 'WAT.XMAX: <value>'
+=    DQi = 'WAT.YMIN: <value>'
+=    DQi = 'WAT.YMAX: <value>'
+=    DQi = 'WAT.CHBY.m_n: <value>'  or
+=    DQi = 'WAT.LEGR.m_n: <value>'  or
+=    DQi = 'WAT.MONO.m_n: <value>'
+*
+* along with CQDISia = 'WAT' and the required DPja.NAXES keywords.  For ZPX,
+* the ZPN projection parameters are also encoded in WATi_n, and wcspih()
+* translates these to standard PVi_ma.
+*
+* TPD: Template Polynomial Distortion
+* -----------------------------------
+* The "Template Polynomial Distortion" (TPD) is a superset of the TPV, SIP,
+* DSS, and WAT (TNX & ZPX) polynomial distortions that also supports 1D usage
+* and inversions.  Like TPV, SIP, and DSS, the form of the polynomial is fixed
+* (the "template") and only the coefficients for the required terms are set
+* non-zero.  TPD generalizes TPV in going to 9th degree, SIP by accomodating
+* TPV's linear and radial terms, and DSS in both respects.  While in theory
+* the degree of the WAT polynomial distortion in unconstrained, in practice it
+* is limited to values that can be handled by TPD.
+*
+* Within WCSLIB, TPV, SIP, DSS, and WAT are all implemented as special cases
+* of TPD.  Indeed, TPD was developed precisely for that purpose.  WAT
+* distortions expressed as the sum of Chebyshev or Legendre polynomials are
+* expanded for TPD as a simple sum of monomials.  Moreover, the general
+* Polynomial distortion is translated and implemented internally as TPD
+* whenever possible.
 *
 * However, WCSLIB also recognizes 'TPD' as a distortion function in its own
 * right (i.e. a recognized value of CPDISja or CQDISia), for use as both prior
@@ -137,14 +191,28 @@
 =   DPja = 'TPD.FWD.m: <value>'
 =   DPja = 'TPD.REV.m: <value>'
 *
-* for the forward and reverse distortion functions.
+* for the forward and reverse distortion functions.  Moreover, like the
+* general Polynomial distortion, TPD supports auxiliary variables, though only
+* as a linear transformation of pixel coordinates (p1,p2):
 *
-* In typical applications, TPD is considerably faster than the general
-* Polynomial distortion, though nowhere near as powerful.  As TPD has a finite
-* and not too large number of possible terms (60), the coefficients for each
-* can be stored (by disset()) in a fixed location in the disprm::dparm[]
-* array.  A large part of the speedup then arises from evaluating the
-* polynomial using Horner's scheme.
+=   x = a0 + a1*p1 + a2*p2
+=   y = b0 + b1*p1 + b2*p2
+*
+* where the coefficients of the auxiliary variables (x,y) are recorded as
+*
+=   DPja = 'AUX.1.COEFF.0: a0'      ...default 0.0
+=   DPja = 'AUX.1.COEFF.1: a1'      ...default 1.0
+=   DPja = 'AUX.1.COEFF.2: a2'      ...default 0.0
+=   DPja = 'AUX.2.COEFF.0: b0'      ...default 0.0
+=   DPja = 'AUX.2.COEFF.1: b1'      ...default 0.0
+=   DPja = 'AUX.2.COEFF.2: b2'      ...default 1.0
+*
+* Though nowhere near as powerful, in typical applications TPD is considerably
+* faster than the general Polynomial distortion.  As TPD has a finite and not
+* too large number of possible terms (60), the coefficients for each can be
+* stored (by disset()) in a fixed location in the disprm::dparm[] array.  A
+* large part of the speedup then arises from evaluating the polynomial using
+* Horner's scheme.
 *
 * Separate implementations for polynomials of each degree, and conditionals
 * for 1D polynomials and 2D polynomials with and without the radial variable,
@@ -185,6 +253,19 @@
 * only used for the inverse.  Its A_p_q, etc. keywords must be translated
 * using a map.
 *
+* DSS uses terms 0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 17, 19, and 21.  The presence
+* of a non-zero constant term arises through the use of auxiliary variables
+* with origin offset from the reference point of the TAN projection.  However,
+* in the translation given by WCS Paper IV, the distortion polynomial is zero,
+* or very close to zero, at the reference pixel itself.  The mapping between
+* DSS's AMDXm (or AMDYm) keyvalues and TPD coefficients, while still simple,
+* is not quite as straightforward as for TPV and SIP.
+*
+* WAT uses all but the radial terms: 3, 11, 23, 39, and 59.  While the mapping
+* between WAT's monomial coefficients and TPD is fairly simple, for its
+* expression in terms of a sum of Chebyshev or Legendre polynomials it is much
+* less so. 
+*
 * Summary of the dis routines:
 * ----------------------------
 * These routines apply the distortion functions defined by the extension to
@@ -198,6 +279,10 @@
 * the disprm struct, and another, disprt(), prints its contents.
 *
 * disperr() prints the error message(s) (if any) stored in a disprm struct.
+*
+* wcshdo() normally writes SIP and TPV headers in their native form if at all
+* possible.  However, dishdo() may be used to set a flag that tells it to
+* write the header in the form of the TPD translation used internally.
 *
 * A setup routine, disset(), computes intermediate values in the disprm struct
 * from parameters in it that were supplied by the user.  The struct always
@@ -265,6 +350,9 @@
 *                       number will be obtained from the keyword component of
 *                       the field name which must either have been given or
 *                       preset.
+*
+*                       If j is non-zero, and keyword was given, then the
+*                       value of j will be used to fill in the axis number.
 *
 *   type      int       Data type of the record's value
 *                         0: Integer,
@@ -406,6 +494,23 @@
 *             int       Status return value:
 *                         0: Success.
 *                         1: Null disprm pointer passed.
+*
+*
+* dishdo() - write FITS headers using TPD
+* ---------------------------------------
+* dishdo() sets a flag that tells wcshdo() to write FITS headers in the form
+* of the TPD translation used internally.  Normally SIP and TPV would be
+* written in their native form if at all possible.
+*
+* Given and returned:
+*   dis       struct disprm*
+*                       Distortion function parameters.
+*
+* Function return value:
+*             int       Status return value:
+*                         0: Success.
+*                         1: Null disprm pointer passed.
+*                         3: No TPD translation.
 *
 *
 * disset() - Setup routine for the disprm struct
@@ -910,6 +1015,8 @@ int disprt(const struct disprm *dis);
 
 int disperr(const struct disprm *dis, const char *prefix);
 
+int dishdo(struct disprm *dis);
+
 int disset(struct disprm *dis);
 
 int disp2x(struct disprm *dis, const double rawcrd[], double discrd[]);
@@ -921,26 +1028,6 @@ int diswarp(struct disprm *dis, const double pixblc[], const double pixtrc[],
             double maxdis[], double *maxtot,
             double avgdis[], double *avgtot,
             double rmsdis[], double *rmstot);
-
-
-/* Specialist distortion functions (internal use only). */
-int polyset(int j, struct disprm *dis);
-int pol2tpd(int j, struct disprm *dis);
-int dispoly(DISP2X_ARGS);
-
-int tpvset(int j, struct disprm *dis);
-int sipset(int j, struct disprm *dis);
-
-int tpdset(int j, struct disprm *dis);
-int tpd1(DISP2X_ARGS);
-int tpd2(DISP2X_ARGS);
-int tpd3(DISP2X_ARGS);
-int tpd4(DISP2X_ARGS);
-int tpd5(DISP2X_ARGS);
-int tpd6(DISP2X_ARGS);
-int tpd7(DISP2X_ARGS);
-int tpd8(DISP2X_ARGS);
-int tpd9(DISP2X_ARGS);
 
 #ifdef __cplusplus
 }
