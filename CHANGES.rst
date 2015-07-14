@@ -110,6 +110,8 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Added missing default values for ``Ellipse2D`` parameters. [#3903]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
