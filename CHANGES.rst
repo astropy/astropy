@@ -16,8 +16,6 @@ New Features
 
 - ``astropy.convolution``
 
-  - Modified cython functions to release the GIL. [#3949]
-
 - ``astropy.coordinates``
 
   - Added ``get_constellation`` function and ``SkyCoord.get_constellation``
@@ -384,6 +382,10 @@ New Features
 - ``astropy.constants``
 
 - ``astropy.convolution``
+
+  - Modified Cython functions to release the GIL. This enables convolution
+    to be parallelized effectively and gives large speedups when used with
+    multithreaded task schedulers such as Dask. [#3949]
 
 - ``astropy.coordinates``
 
