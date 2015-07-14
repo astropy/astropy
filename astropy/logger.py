@@ -24,7 +24,7 @@ __all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
 logging_levels = ['DEBUG', 'CRITICAL', 'FATAL', 'ERROR', 'WARN', 'WARNING',
                   'NOTSET', 'INFO']
 for level in logging_levels:
-    __import__('logging', level)
+    globals()[level] = getattr(logging, level)
 __all__ += logging_levels
 
 

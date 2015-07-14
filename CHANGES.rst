@@ -66,6 +66,8 @@ New Features
 
 - ``astropy.logger.py``
 
+  - Added log levels (e.g., DEBUG, INFO, CRITICAL) to ``astropy.log`` [#3947]
+
 - ``astropy.modeling``
 
   - Added a new ``Parameter.validator`` interface for setting a validation
