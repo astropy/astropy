@@ -521,8 +521,24 @@ class Table(object):
                 return index.where(col_map)
             except QueryError: # index is unsuitable
                 continue
-
-        raise ValueError("Query requirements are not satisfied by any index")
+        # resort to unindexed search
+        mask = np.ones(len(self), dtype=np.bool)
+        for colname, arg in col_map.items():
+            col = self[colname]
+            if isinstance(arg, tuple):
+                # ((start, end), (lower bound, upper bound))
+                start, end = arg[0]
+                lower, upper = arg[1]
+                if lower:
+                    f = (lambda x: start <= x <= end) if upper else \
+                        lambda x: start <= x < end
+                else:
+                    f = (lambda x: start < x <= end) if upper else \
+                        lambda x: start < x < end
+                mask &= np.array([f(x) for x in col], dtype=np.bool)
+            else:
+                mask &= (col == arg)
+        return list(np.where(mask)[0])
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).

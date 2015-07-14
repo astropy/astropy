@@ -91,6 +91,11 @@ class TestIndex(SetupData):
         assert t.where('[a] = {0} and [b] = {1}', 4, 10.0) == []
         # range on both columns
         assert t.where('[b] = {0} and [a] in ({1}, {2})', 4.0, 3, 5) == [6]
+        # query without index
+        t.remove_indices('a')
+        assert t.where('[b] = {0}', 4.0) == [0, 6]
+        # range query without index
+        assert t.where('[b] in ({0}, {1})', 5.0, 5.5) == [1, 5]
 
     def test_table_slicing(self, table_types, impl):
         self._setup(table_types)
