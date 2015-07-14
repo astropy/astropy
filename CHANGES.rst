@@ -387,6 +387,10 @@ New Features
 
 - ``astropy.convolution``
 
+  - Modified Cython functions to release the GIL. This enables convolution
+    to be parallelized effectively and gives large speedups when used with
+    multithreaded task schedulers such as Dask. [#3949]
+
 - ``astropy.coordinates``
 
 - ``astropy.cosmology``
