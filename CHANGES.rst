@@ -514,6 +514,8 @@ Bug Fixes
   - Improved support for pickling of compound models, including both compound
     model instances, and new compound model classes. [#3867]
 
+  - Added missing default values for ``Ellipse2D`` parameters. [#3903]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
