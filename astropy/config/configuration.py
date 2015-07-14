@@ -276,7 +276,8 @@ class ConfigItem(object):
         return self()
 
     def set(self, value):
-        """ Sets the current value of this `ConfigItem`.
+        """
+        Sets the current value of this ``ConfigItem``.
 
         This also updates the comments that give the description and type
         information.
@@ -289,7 +290,7 @@ class ConfigItem(object):
         Raises
         ------
         TypeError
-            If the provided ``value`` is not valid for this `ConfigItem`.
+            If the provided ``value`` is not valid for this ``ConfigItem``.
         """
         try:
             value = self._validate_val(value)
@@ -328,7 +329,7 @@ class ConfigItem(object):
             self.set(initval)
 
     def reload(self):
-        """ Reloads the value of this `ConfigItem` from the relevant
+        """ Reloads the value of this ``ConfigItem`` from the relevant
         configuration file.
 
         Returns
@@ -373,12 +374,12 @@ class ConfigItem(object):
         return out
 
     def __call__(self):
-        """ Returns the value of this `ConfigItem`
+        """ Returns the value of this ``ConfigItem``
 
         Returns
         -------
         val
-            This item's value, with a type determined by the `cfgtype`
+            This item's value, with a type determined by the ``cfgtype``
             attribute.
 
         Raises
@@ -455,7 +456,7 @@ class ConfigurationItem(ConfigItem):
     """
     A backward-compatibility layer to support the old
     `ConfigurationItem` API.  The only difference between this and
-    `ConfigItem` is that this requires an explicit name to be set as
+    ``ConfigItem`` is that this requires an explicit name to be set as
     the first argument.
     """
     # REMOVE in astropy 0.5
