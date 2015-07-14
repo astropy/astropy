@@ -98,7 +98,7 @@ class IERS(QTable):
     iers_table = None
 
     @classmethod
-    def open(cls, file=None, **kwargs):
+    def open(cls, file=None, cache=False, **kwargs):
         """Open an IERS table, reading it from a file if not loaded before.
 
         Parameters
@@ -130,7 +130,7 @@ class IERS(QTable):
         if file is not None or cls.iers_table is None:
             if file is not None:
                 if urlparse(file).netloc:
-                    kwargs.update(file=download_file(file))
+                    kwargs.update(file=download_file(file, cache=cache))
                 else:
                     kwargs.update(file=file)
             cls.iers_table = cls.read(**kwargs)
