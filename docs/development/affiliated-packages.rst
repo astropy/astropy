@@ -194,7 +194,7 @@ Starting a new package
 
     python setup.py build
     python setup.py test --coverage
-    python setup.py build_sphinx
+    python setup.py build_docs
 
    If you have any issues that you cannot fix, feel free to ask us on the
    `astropy-dev mailing list`_!
