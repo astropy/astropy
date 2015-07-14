@@ -76,7 +76,7 @@ class QueryError(ValueError):
     pass
 
 class Index:
-    def __init__(self, columns, impl=None, num_cols=None, data=None):
+    def __init__(self, columns, impl=None, col_dtypes=None, data=None):
         from .table import Table
         if data is not None: # create from data
             self.engine = data.__class__
@@ -97,7 +97,7 @@ class Index:
             lines = table.group_by([x.name for x in columns])
 
         if self.engine == SortedArray:
-            self.data = self.engine(lines, num_cols=num_cols)
+            self.data = self.engine(lines, col_dtypes=col_dtypes)
         else:
             self.data = self.engine(lines)
         self.columns = columns
@@ -235,7 +235,8 @@ class Index:
     def __deepcopy__(self, memo):
         # deep copy must be overridden to perform a shallow copy of columns
         num_cols = self.data.num_cols if self.engine == SortedArray else None
-        index = Index(None, impl=self.data.__class__, num_cols=num_cols)
+        index = Index(None, impl=self.data.__class__, col_dtypes=[x.dtype for
+                                                    x in self.columns])
         index.data = deepcopy(self.data, memo)
         index.columns = self.columns[:] # new list, same columns
         memo[id(self)] = index
