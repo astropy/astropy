@@ -5,7 +5,7 @@ from __future__ import (absolute_import, division, print_function,
 import os
 import numpy as np
 
-from ....tests.helper import pytest, assert_quantity_allclose, remote_data
+from ....tests.helper import pytest, assert_quantity_allclose
 from .. import iers
 from .... import units as u
 from ....table import QTable
