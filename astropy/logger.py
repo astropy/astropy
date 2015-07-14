@@ -21,8 +21,8 @@ __all__ = ['Conf', 'conf', 'log', 'AstropyLogger', 'LoggingError']
 
 # import the logging levels from logging so that one can do:
 # log.setLevel(log.DEBUG), for example
-logging_levels = ['DEBUG', 'CRITICAL', 'FATAL', 'ERROR', 'WARN', 'WARNING',
-                  'NOTSET', 'INFO']
+logging_levels = ['NOTSET', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
+                  'FATAL', ]
 for level in logging_levels:
     globals()[level] = getattr(logging, level)
 __all__ += logging_levels
