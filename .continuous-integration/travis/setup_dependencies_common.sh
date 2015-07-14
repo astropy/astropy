@@ -52,7 +52,5 @@ fi
 # COVERAGE DEPENDENCIES
 if [[ $SETUP_CMD == 'test --coverage' ]]
 then
-  pip install coverage coveralls
+  pip install coverage coveralls cpp-coveralls
 fi
-
-
