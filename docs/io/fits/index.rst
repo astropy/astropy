@@ -26,6 +26,12 @@ much detail. If you are a first time user or have never used Astropy or PyFITS,
 this is where you should start.  See also the :ref:`FAQ <io-fits-faq>` for
 answers to common questions/issues.
 
+.. note::
+
+    If you want to read or write a single table in FITS format then the
+    simplest method is often via the high-level :ref:`table_io`.  In particular
+    see the :ref:`Unified I/O FITS <table_io_fits>` section.
+
 Reading and Updating Existing FITS Files
 ----------------------------------------
 
@@ -299,16 +305,21 @@ a new file, you can use the :meth:`HDUList.writeto` method (see below).
 Working With Table Data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-If you are familiar with numpy `~numpy.recarray` (record array) objects, you
-will find the table data is basically a record array with some extra
-properties. But familiarity with record arrays is not a prerequisite for this
-guide.
+This section describes reading and writing table data in the FITS format using
+the `~astropy.io.fits` package directly.  For simple cases, however, the
+high-level :ref:`table_io` will often suffice and is somewhat easier to use.
+See the :ref:`Unified I/O FITS <table_io_fits>` section for details.
 
 Like images, the data portion of a FITS table extension is in the ``.data``
 attribute::
 
     >>> hdulist = fits.open('table.fits')
     >>> tbdata = hdulist[1].data # assuming the first extension is a table
+
+If you are familiar with numpy `~numpy.recarray` (record array) objects, you
+will find the table data is basically a record array with some extra
+properties. But familiarity with record arrays is not a prerequisite for this
+guide.
 
 To see the first row of the table::
 
