@@ -780,8 +780,8 @@ class Moffat2DKernel(Kernel2D):
         :include-source:
 
         import matplotlib.pyplot as plt
-        from astropy.convolution import Moffat2dKernel
-        moffat_2D_kernel = Moffat2dKernel(10)
+        from astropy.convolution import Moffat2DKernel
+        moffat_2D_kernel = Moffat2DKernel(3, 2)
         plt.imshow(moffat_2D_kernel, interpolation='none', origin='lower')
         plt.xlabel('x [pixels]')
         plt.ylabel('y [pixels]')

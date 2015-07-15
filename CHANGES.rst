@@ -16,6 +16,8 @@ New Features
 
 - ``astropy.convolution``
 
+  - Added Moffat2DKernel. [#]
+
 - ``astropy.coordinates``
 
   - Added ``get_constellation`` function and ``SkyCoord.get_constellation``
