@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from .test_table import SetupData
 from ..bst import BST, FastBST, FastRBT
-from ..array import SortedArray
+from ..sorted_array import SortedArray
 
 @pytest.fixture(params=[BST, FastBST, FastRBT, SortedArray])
 def impl(request):

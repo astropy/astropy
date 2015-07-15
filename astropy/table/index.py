@@ -2,7 +2,7 @@ from copy import deepcopy
 import numpy as np
 
 from .bst import BST, RedBlackTree, FastBST, FastRBT
-from .array import SortedArray
+from .sorted_array import SortedArray
 
 '''
 The Index class can use several implementations as its
@@ -93,8 +93,8 @@ class Index:
             raise ValueError("Cannot create index without at least one column")
         else:
             num_rows = len(columns[0])
-            table = Table(columns + [[x for x in range(num_rows)]])
-            lines = table.group_by([x.name for x in columns])
+            table = Table(columns + [np.arange(num_rows)])
+            lines = table[np.lexsort(columns[::-1])]
 
         if self.engine == SortedArray:
             self.data = self.engine(lines, col_dtypes=col_dtypes)

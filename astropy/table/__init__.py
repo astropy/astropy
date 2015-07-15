@@ -24,7 +24,7 @@ from .table import Table, QTable, TableColumns, Row, TableFormatter, NdarrayMixi
 from .operations import join, hstack, vstack, unique, TableMergeError
 from .jsviewer import JSViewer
 from .bst import BST, RedBlackTree, FastBST, FastRBT
-from .array import SortedArray
+from .sorted_array import SortedArray
 
 # Import routines that connect readers/writers to astropy.table
 from ..io.ascii import connect

@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
-from .array import SortedArray
+from .sorted_array import SortedArray
 from .index import QueryError
 
 import re
