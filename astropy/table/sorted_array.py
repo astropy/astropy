@@ -24,7 +24,7 @@ class SortedArray(object):
 
     def __init__(self, lines, col_dtypes=None, data=None):
         if data is not None: # sliced reference to data
-            self.length = len(data)
+            self.length = len(data[0])
             self._data = data
             return
         elif col_dtypes is not None:
@@ -175,7 +175,7 @@ class SortedArray(object):
 
     def __getitem__(self, item):
         # item must be slice
-        return SortedArray([], data=self._data[item])
+        return SortedArray([], data=[col[item] for col in self._data])
 
     def __repr__(self):
         return '[' + ', '.join([str(x) for x in self.data]) + ']'
