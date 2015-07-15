@@ -27,7 +27,9 @@ Models maintain a list of parameter names,
 `~astropy.modeling.Parameter` which provide a proxy for the actual parameter
 values.  Simple mathematical operations can be performed with them, but they
 also contain additional attributes specific to model parameters, such as any
-constraints on their values and documentation.
+constraints on their values and documentation. See
+:ref:`here <constrained-fitting:>` for examples on how to constrain
+parameters during fitting.
 
 Parameter values may be scalars *or* array values.  Some parameters are
 required by their very nature to be arrays (such as the transformation matrix
@@ -36,6 +38,8 @@ cases, however, array-valued parameters have no meaning specific to the model,
 and are simply combined with input arrays during model evaluation according to
 the standard `Numpy broadcasting rules`_.
 
+A discussion of how parameters are handled in :ref:`compound-models` is found
+:ref:`here <compound-model-parameters>`
 
 Parameter examples
 ------------------

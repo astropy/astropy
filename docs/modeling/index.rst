@@ -10,13 +10,17 @@ Introduction
 ============
 
 `astropy.modeling` provides a framework for representing models and performing
-model evaluation and fitting. It currently supports 1-D and 2-D models and
-fitting with parameter constraints.
+model evaluation and fitting. The major components of the package are models,
+parameters and fitters. Models are behave like parametrized functions, with
+Parameters set as attributes. Fitters are used to fit specific models to
+datasets, and Parameters can easily be tied or constrained for the fitting
+routine.
 
-It is designed to be easily extensible and flexible.  Models do not reference
-fitting algorithms explicitly and new fitting algorithms may be added without
-changing the existing models (though not all models can be used with all
-fitting algorithms due to constraints such as model linearity).
+This module currently supports 1-D and 2-D models. It is designed to be
+easily extensible and flexible.  Models do not reference fitting algorithms
+explicitly and new fitting algorithms may be added without changing the
+existing models (though not all models can be used with all fitting algorithms
+due to constraints such as model linearity).
 
 The goal is to eventually provide a rich toolset of models and fitters such
 that most users will not need to define new model classes, nor special purpose
@@ -33,8 +37,25 @@ fitting routines (while making it reasonably easy to do when necessary).
     http://feedback.astropy.org
 
 
-Getting started
-===============
+Using `astropy.modeling`
+========================
+
+.. toctree::
+   :maxdepth: 1
+
+   models
+   parameters
+   fitting
+   compound-models
+   new
+   algorithms
+   api
+
+
+.. _quick_tutorial:
+
+Quick Tutorial
+==============
 
 The examples here use the predefined models and assume the following modules
 have been imported::
@@ -91,6 +112,7 @@ inputs according to the standard `Numpy broadcasting rules`_ for arrays.
 Models can therefore already be useful to evaluate common functions,
 independently of the fitting features of the package.
 
+.. _1D-fitting:
 
 Simple 1-D model fitting
 ------------------------
@@ -135,116 +157,11 @@ As shown above, once instantiated, the fitter class can be used as a function
 that takes the initial model (``t_init`` or ``g_init``) and the data values
 (``x`` and ``y``), and returns a fitted model (``t`` or ``g``).
 
-
-Simple 2-D model fitting
-------------------------
-
-Similarly to the 1-D example, we can create a simulated 2-D data dataset, and
-fit a polynomial model to it.  This could be used for example to fit the
-background in an image.
-
-.. plot::
-   :include-source:
-
-    import warnings
-    import numpy as np
-    from astropy.modeling import models, fitting
-
-    # Generate fake data
-    np.random.seed(0)
-    y, x = np.mgrid[:128, :128]
-    z = 2. * x ** 2 - 0.5 * x ** 2 + 1.5 * x * y - 1.
-    z += np.random.normal(0., 0.1, z.shape) * 50000.
-
-    # Fit the data using astropy.modeling
-    p_init = models.Polynomial2D(degree=2)
-    fit_p = fitting.LevMarLSQFitter()
-
-    with warnings.catch_warnings():
-        # Ignore model linearity warning from the fitter
-        warnings.simplefilter('ignore')
-        p = fit_p(p_init, x, y, z)
-
-    # Plot the data with the best-fit model
-    plt.figure(figsize=(8,2.5))
-    plt.subplot(1,3,1)
-    plt.imshow(z, origin='lower', interpolation='nearest', vmin=-1e4, vmax=5e4)
-    plt.title("Data")
-    plt.subplot(1,3,2)
-    plt.imshow(p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
-               vmax=5e4)
-    plt.title("Model")
-    plt.subplot(1,3,3)
-    plt.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
-               vmax=5e4)
-    plt.title("Residual")
-
-A list of models is provided in the `Reference/API`_ section. The fitting
-framework includes many useful features that are not demonstrated here, such as
-weighting of datapoints, fixing or linking parameters, and placing lower or
-upper limits on parameters. For more information on these, take a look at the
-:doc:`fitting` documentation.
-
-
-Model sets
-----------
-
-In some cases it is necessary to describe many models of the same type but with
-different sets of parameter values.  This could be done simply by instantiating
-as many instances of a `~astropy.modeling.Model` as are needed.  But that can
-be inefficient for a large number of models.  To that end, all model classes in
-`astropy.modeling` can also be used to represent a model *set* which is a
-collection of models of the same type, but with different values for their
-parameters.
-
-To instantiate a model set, use argument ``n_models=N`` where ``N`` is the
-number of models in the set when constructing the model.  The value of each
-parameter must be a list or array of length ``N``, such that each item in
-the array corresponds to one model in the set::
-
-    >>> g = models.Gaussian1D(amplitude=[1, 2], mean=[0, 0],
-    ...                       stddev=[0.1, 0.2], n_models=2)
-    >>> print(g)
-    Model: Gaussian1D
-    Inputs: ('x',)
-    Outputs: ('y',)
-    Model set size: 2
-    Parameters:
-        amplitude mean stddev
-        --------- ---- ------
-              1.0  0.0    0.1
-              2.0  0.0    0.2
-
-This is equivalent to two Gaussians with the parameters ``amplitude=1, mean=0,
-stddev=0.1`` and ``amplitude=2, mean=0, stddev=0.2`` respectively.  When
-printing the model the parameter values are displayed as a table, with each row
-corresponding to a single model in the set.
-
-The number of models in a model set can be determined using the `len` builtin::
-
-    >>> len(g)
-    2
-
-Single models have a length of 1, and are not considered a model set as such.
-
-When evaluating a model set, by default the input must be the same length as
-the number of models, with one input per model::
-
-    >>> g([0, 0.1])
-    array([ 1.        ,  1.76499381])
-
-The result is an array with one result per model in the set.  It is also
-possible to broadcast a single value to all models in the set::
-
-    >>> g(0)
-    array([ 1.,  2.])
-
-Model sets are used primarily for fitting, allowing a large number of models of
-the same type to be fitted simultaneously (and independently from each other)
-to some large set of inputs.  For example, fitting a polynomial to the time
-response of each pixel in a data cube.  This can greatly speed up the fitting
-process, especially for linear models.
-
+The fitting framework includes many useful features that are not demonstrated
+here, such as weighting of datapoints, fixing or linking parameters, and
+placing lower or upper limits on parameters. For more information on these,
+take a look at the :doc:`fitting` documentation. A list of available models is
+provided :ref:`here <models_list>`.
 
 .. _compound-models-intro:
 
@@ -314,33 +231,3 @@ This works for 1-D models, 2-D models, and combinations thereof, though there
 are some complexities involved in correctly matching up the inputs and outputs
 of all models used to build a compound model.  You can learn more details in
 the :doc:`compound-models` documentation.
-
-
-Using `astropy.modeling`
-========================
-
-.. toctree::
-   :maxdepth: 1
-
-   models
-   parameters
-   fitting
-   compound-models
-   new
-   algorithms
-
-
-Reference/API
-=============
-
-.. automodapi:: astropy.modeling
-.. automodapi:: astropy.modeling.mappings
-.. automodapi:: astropy.modeling.functional_models
-.. automodapi:: astropy.modeling.powerlaws
-.. automodapi:: astropy.modeling.polynomial
-.. automodapi:: astropy.modeling.projections
-.. automodapi:: astropy.modeling.rotations
-.. automodapi:: astropy.modeling.fitting
-.. automodapi:: astropy.modeling.optimizers
-.. automodapi:: astropy.modeling.statistic
-
