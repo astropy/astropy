@@ -14,6 +14,11 @@ and manipulation. ASCII tables store the data in a "human readable" form and
 therefore take up more storage space as well as more processing time since the
 ASCII text needs to be parsed into numerical values.
 
+.. note::
+
+    If you want to read or write a single table in FITS format then the
+    simplest method is often via the high-level :ref:`table_io`.  In particular
+    see the :ref:`Unified I/O FITS <table_io_fits>` section.
 
 Table Data as a Record Array
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
