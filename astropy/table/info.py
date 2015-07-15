@@ -9,6 +9,7 @@ import os
 
 import numpy as np
 from ..extern import six
+from ..utils.data_info import ParentDtypeInfo
 
 __all__ = ['table_info', 'TableInfo']
 
@@ -114,8 +115,18 @@ def table_info(tbl, option='attributes', out=''):
 
     out.writelines(outline + os.linesep for outline in outlines)
 
-class TableInfo(object):
+class TableInfo(ParentDtypeInfo):
     _parent = None
+
+    @staticmethod
+    def default_format(val):
+        return str(val.as_void())
+
+    @property
+    def unit(self):
+        """Use the unit row to show column names"""
+        unit = '(' + ', '.join(self._parent.colnames) + ')'
+        return unit
 
     def __call__(self, option='attributes', out=''):
         return table_info(self._parent, option, out)
