@@ -146,8 +146,11 @@ class SortedArray(object):
         self.length -= 1
         return True
 
-    def reorder(self, row):
+    def shift_left(self, row):
         self._data[-1][self._data[-1] > row] -= 1
+
+    def shift_right(self, row):
+        self._data[-1][self.data[-1] >= row] += 1
 
     def replace_rows(self, row_map):
         for i, col in enumerate(self._data):

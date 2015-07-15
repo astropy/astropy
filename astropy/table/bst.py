@@ -140,9 +140,13 @@ class BST(object):
             return None
         return self._find_recursive(key, self.root)
 
-    def reorder(self, row):
+    def shift_left(self, row):
         for node in self.traverse():
             node.data = [x - 1 if x > row else x for x in node.data]
+
+    def shift_right(self, row):
+        for node in self.traverse():
+            node.data = [x + 1 if x >= row else x for x in node.data]
 
     def _find_recursive(self, key, node):
         try:
@@ -432,9 +436,13 @@ class FastBase(object):
         node.remove(data)
         return True
 
-    def reorder(self, row):
+    def shift_left(self, row):
         for key, node in self.data.items():
             self.data[key] = [x - 1 if x > row else x for x in node]
+
+    def shift_right(self, row):
+        for key, node in self.data.items():
+            self.data[key] = [x + 1 if x >= row else x for x in node]
 
     def traverse(self):
         l = []
