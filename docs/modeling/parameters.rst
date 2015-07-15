@@ -28,7 +28,7 @@ Models maintain a list of parameter names,
 values.  Simple mathematical operations can be performed with them, but they
 also contain additional attributes specific to model parameters, such as any
 constraints on their values and documentation. See
-:ref:`here <constrained-fitting:>` for examples on how to constrain
+:ref:`here <constraining_parameters>` for examples on how to constrain
 parameters during fitting.
 
 Parameter values may be scalars *or* array values.  Some parameters are

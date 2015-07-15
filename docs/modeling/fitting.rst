@@ -21,8 +21,7 @@ The rules for passing input to fitters are:
   argument just as used when evaluating models; this may be required for the
   fitter to know how to broadcast the input data.
 
-
-.. _constrained-fitting:
+.. _constraining_parameters:
 
 Constrained fitting
 ===================
