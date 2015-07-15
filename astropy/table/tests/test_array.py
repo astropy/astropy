@@ -1,4 +1,4 @@
-from ..array import SortedArray
+from ..sorted_array import SortedArray
 from ..table import Table
 import pytest
 import numpy as np
