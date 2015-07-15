@@ -16,7 +16,7 @@ New Features
 
 - ``astropy.convolution``
 
-  - Added Moffat2DKernel. [#]
+  - Added Moffat2DKernel. [#3965]
 
 - ``astropy.coordinates``
 
