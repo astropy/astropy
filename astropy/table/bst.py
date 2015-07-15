@@ -406,11 +406,10 @@ class RedBlackTree(BST):
 
 class FastBase(object):
     def __init__(self, lines):
-        keys = {}
-        for row in lines:
+        self.data = self.engine()
+        for row in np.array(lines):
             row = tuple(row)
-            keys.setdefault(row[:-1], []).append(row[-1])
-        self.data = self.engine(keys)
+            self.add(row[:-1], row[-1])
 
     def add(self, key, val):
         rows = self.data.set_default(key, [])
