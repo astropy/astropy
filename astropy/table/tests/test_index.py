@@ -188,3 +188,13 @@ class TestIndex(SetupData):
         assert np.all(t['a'].data == [1, 2, 3, 4, 5])
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
+    def test_insert_row(self, table_types, impl):
+        self._setup(table_types)
+        t = self.t
+        t.add_index('a', impl=impl)
+        t.insert_row(2, (6, 1.0, '12'))
+        assert np.all(t['a'].data == [1, 2, 6, 3, 4, 5])
+        assert np.all(t.indices[0].sorted_data() == [0, 1, 3, 4, 5, 2])
+        t.insert_row(1, (0, 4.0, '13'))
+        assert np.all(t['a'].data == [1, 0, 2, 6, 3, 4, 5])
+        assert np.all(t.indices[0].sorted_data() == [1, 0, 2, 4, 5, 6, 3])

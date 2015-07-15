@@ -12,7 +12,8 @@ __init__([dict] lines) : initializes based on key/row list pairs
 add(key, row) -> None : add (key, row) to existing data
 remove(key, data=None) -> boolean : remove data from self[key], or all of
                                     self[key] if data is None
-reorder(row) -> None : decrement row numbers after row
+shift_left(row) -> None : decrement row numbers after row
+shift_right(row) -> None : increase row numbers >= row
 find(key) -> list : list of rows corresponding to key
 range(lower, upper, bounds) -> list : rows in self[k] where k is between
                                lower and upper (<= or < based on bounds)
@@ -84,7 +85,8 @@ class Index:
             self.columns = columns
             return
 
-        self.engine = impl or FastRBT
+        # by default, use SortedArray
+        self.engine = impl or SortedArray
 
         if columns is None: # this creates a special exception for deep copying
             columns = []
@@ -118,6 +120,8 @@ class Index:
                 key[i] = vals[self.col_position(col)]
             except ValueError: # not a member of index
                 continue
+        # shift all rows >= pos to the right
+        self.data.shift_right(pos)
         self.data.add(tuple(key), pos)
 
     def remove_rows(self, row_specifier):
@@ -144,7 +148,7 @@ class Index:
         # second pass - row order is reversed to maintain
         # correct row numbers
         for row in reversed(sorted(rows)):
-            self.data.reorder(row)
+            self.data.shift_left(row)
 
     def remove_row(self, row, reorder=True):
         if not self.data.remove(tuple([col[row] for col in self.columns]),
@@ -152,7 +156,7 @@ class Index:
             raise ValueError("Could not remove row {0} from index".format(row))
         # decrement the row number of all later rows
         if reorder:
-            self.data.reorder(row)
+            self.data.shift_left(row)
 
     def find(self, key):
         return self.data.find(key)
