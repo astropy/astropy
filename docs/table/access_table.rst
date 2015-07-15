@@ -31,7 +31,7 @@ the data contained in that object relate to the original table data
 **Table properties**
 ::
 
-  t.columns   # Dict of table columns (access by column name, number, or slice)
+  t.columns   # Dict of table columns (access by column name, index, or slice)
   t.colnames  # List of column names
   t.meta      # Dict of meta-data
   len(t)      # Number of table rows
