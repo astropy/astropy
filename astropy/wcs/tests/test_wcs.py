@@ -799,4 +799,29 @@ def test_hst_wcs():
     hdulist = fits.open(path)
     # wcslib will complain about the distortion parameters if they
     # weren't correctly deleted from the header
-    wcs.WCS(hdulist[1].header, hdulist)
+    w = wcs.WCS(hdulist[1].header, hdulist)
+
+    # Exercise the main transformation functions, mainly just for
+    # coverage
+    w.p4_pix2foc([0, 100, 200], [0, -100, 200], 0)
+    w.det2im([0, 100, 200], [0, -100, 200], 0)
+
+    w.cpdis1 = w.cpdis1
+    w.cpdis2 = w.cpdis2
+
+    w.det2im1 = w.det2im1
+    w.det2im2 = w.det2im2
+
+    w.sip = w.sip
+
+    w.cpdis1.cdelt = w.cpdis1.cdelt
+    w.cpdis1.crpix = w.cpdis1.crpix
+    w.cpdis1.crval = w.cpdis1.crval
+    w.cpdis1.data = w.cpdis1.data
+
+    print(w.sip.crpix, w.sip.ap_order, w.sip.bp_order)
+    assert w.sip.a_order == 4
+    assert w.sip.b_order == 4
+    assert w.sip.ap_order == 0
+    assert w.sip.bp_order == 0
+    assert_array_equal(w.sip.crpix, [2048., 1024.])

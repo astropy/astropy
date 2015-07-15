@@ -196,7 +196,7 @@ PyUnitListProxy_setitem(
   PyObject* unicode_value;
   PyObject* bytes_value;
 
-  if (index > self->size) {
+  if (index >= self->size) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return -1;
   }
