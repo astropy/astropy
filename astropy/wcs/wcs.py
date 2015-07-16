@@ -2451,9 +2451,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             display_warning = True
             relax = False
 
-        if key is not None:
-            self.wcs.alt = key
-
         if relax not in (True, False):
             do_sip = relax & WCSHDO_SIP
             relax &= ~WCSHDO_SIP
@@ -2461,8 +2458,17 @@ reduce these to 2 dimensions using the naxis kwarg.
             do_sip = relax
 
         if self.wcs is not None:
-            header_string = self.wcs.to_header(relax)
+            if key is not None:
+                orig_key = self.wcs.alt
+                self.wcs.alt = key
+            try:
+                header_string = self.wcs.to_header(relax)
+            finally:
+                if key is not None:
+                    self.wcs.alt = orig_key
             header = fits.Header.fromstring(header_string)
+            del header['']
+            del header['COMMENT']
         else:
             header = fits.Header()
 

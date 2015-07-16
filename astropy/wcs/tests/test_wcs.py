@@ -373,10 +373,7 @@ def test_to_fits():
     wfits = w.to_fits()
     assert isinstance(wfits, fits.HDUList)
     assert isinstance(wfits[0], fits.PrimaryHDU)
-    if wcs._wcs.__version__[0] == '5':
-        assert header_string == wfits[0].header[-10:]
-    else:
-        assert header_string == wfits[0].header[-8:]
+    assert header_string == wfits[0].header[-8:]
 
 
 def test_to_header_warning():
@@ -386,6 +383,13 @@ def test_to_header_warning():
         x.to_header()
     assert len(w) == 1
     assert 'A_ORDER' in str(w[0])
+
+
+def test_no_comments_in_header():
+    w = wcs.WCS()
+    header = w.to_header()
+    assert '' not in header
+    assert 'COMMENT' not in header
 
 
 @raises(wcs.InvalidTransformError)
