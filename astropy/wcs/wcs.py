@@ -2463,6 +2463,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         if self.wcs is not None:
             header_string = self.wcs.to_header(relax)
             header = fits.Header.fromstring(header_string)
+            del header['']
+            del header['COMMENT']
         else:
             header = fits.Header()
 
