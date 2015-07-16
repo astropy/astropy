@@ -444,7 +444,10 @@ def pytest_runtest_teardown(item, nextitem):
     for filename in open_files:
         # astropy.log files are allowed to continue to exist
         # between test runs
-        if os.path.basename(filename) == 'astropy.log':
+        if (os.path.basename(filename) == 'astropy.log' or
+                filename == '/etc/hosts'):
+            # /etc/hosts exclusion is a limited backport of
+            # https://github.com/astropy/astropy/pull/3954
             continue
 
         if filename not in start_open_files:
