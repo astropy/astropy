@@ -64,6 +64,13 @@ def pytest_addoption(parser):
                   "Run the doctests in the rst documentation",
                   default=False)
 
+    parser.addini("open_files_ignore",
+                  "when used with the --open-files option, allows "
+                  "specifying names of files that may be ignored when "
+                  "left open between tests--files in this list are matched "
+                  "may be specified by their base name (ignoring their full "
+                  "path) or by absolute path", type="args", default=())
+
     parser.addoption('--repeat', action='store',
                      help='Number of times to repeat each test')
 
@@ -441,10 +448,21 @@ def pytest_runtest_teardown(item, nextitem):
         return
 
     not_closed = set()
+    open_files_ignore = item.config.getini('open_files_ignore')
     for filename in open_files:
-        # astropy.log files are allowed to continue to exist
-        # between test runs
-        if os.path.basename(filename) == 'astropy.log':
+        ignore = False
+
+        for ignored in open_files_ignore:
+            if not os.path.isabs(ignored):
+                if os.path.basename(filename) == ignored:
+                    ignore = True
+                    break
+            else:
+                if filename == ignored:
+                    ignore = True
+                    break
+
+        if ignore:
             continue
 
         if filename not in start_open_files:
