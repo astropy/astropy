@@ -61,7 +61,7 @@ matrix:
         # build (with latest numpy). We also note the code coverage on Python
         # 2.7.
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii CFLAGS='-ftest-coverage -fprofile-arcs'
+          env: PYTHON_VERSION=2.7 SETUP_CMD='test --coverage' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii CFLAGS='-ftest-coverage -fprofile-arcs -fno-inline-functions -O0'
         - os: linux
           env: PYTHON_VERSION=3.4 SETUP_CMD='test' OPTIONAL_DEPS=true LC_CTYPE=C.ascii LC_ALL=C.ascii
 
@@ -92,6 +92,6 @@ script:
 
 after_success:
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then
-        cpp-coveralls -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" --dump c-coveralls.json;
+        cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" --dump c-coveralls.json;
         coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
       fi
