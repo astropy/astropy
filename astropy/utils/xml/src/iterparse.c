@@ -1148,10 +1148,15 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         return NULL;
     }
 
+    /* First, try as Unicode */
     #ifdef IS_PY3K
-    input_coerce = PyObject_Str(input_obj);
+    if (!PyBytes_Check(input_obj)) {
+        input_coerce = PyObject_Str(input_obj);
+    }
     #else
-    input_coerce = PyObject_Unicode(input_obj);
+    if (PyUnicode_Check(input_obj)) {
+        input_coerce = PyObject_Unicode(input_obj);
+    }
     #endif
     if (input_coerce) {
         uinput = PyUnicode_AsUnicode(input_coerce);
@@ -1207,6 +1212,7 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         }
     }
 
+    /* Now try as bytes */
     input_coerce = PyObject_Bytes(input_obj);
     if (input_coerce) {
         if (PyBytes_AsStringAndSize(input_coerce, &input, &input_len) == -1) {
