@@ -29,9 +29,9 @@ from . import _projections
 
 
 projcodes = [
-    'AZP', 'SZP', 'TAN', 'STG', 'SIN', 'ARC', 'ZPN', 'ZEA', 'AIR',
-    'CYP', 'CEA', 'MER', 'SFL', 'PAR', 'MOL', 'AIT', 'COP', 'COE',
-    'COD', 'COO', 'BON', 'PCO', 'TSC', 'CSC', 'QSC', 'HPX', 'XPH'
+    'AZP', 'SZP', 'TAN', 'STG', 'SIN', 'ARC', 'ZEA', 'AIR', 'CYP',
+    'CEA', 'MER', 'SFL', 'PAR', 'MOL', 'AIT', 'COP', 'COE', 'COD',
+    'COO', 'BON', 'PCO', 'TSC', 'CSC', 'QSC', 'HPX', 'XPH'
 ]
 
 
@@ -47,7 +47,6 @@ __all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
            'Pix2Sky_Stereographic', 'Sky2Pix_Stereographic',
            'Pix2Sky_SlantOrthographic', 'Sky2Pix_SlantOrthographic',
            'Pix2Sky_ZenithalEquidistant', 'Sky2Pix_ZenithalEquidistant',
-           'Pix2Sky_ZenithalPolynomial', 'Sky2Pix_ZenithalPolynomial',
            'Pix2Sky_ZenithalEqualArea', 'Sky2Pix_ZenithalEqualArea',
            'Pix2Sky_Airy', 'Sky2Pix_Airy',
            'Pix2Sky_CylindricalPerspective', 'Sky2Pix_CylindricalPerspective',
@@ -77,7 +76,6 @@ __all__ = ['Projection', 'Pix2SkyProjection', 'Sky2PixProjection',
            'Pix2Sky_STG', 'Sky2Pix_STG',
            'Pix2Sky_SIN', 'Sky2Pix_SIN',
            'Pix2Sky_ARC', 'Sky2Pix_ARC',
-           'Pix2Sky_ZPN', 'Sky2Pix_ZPN',
            'Pix2Sky_ZEA', 'Sky2Pix_ZEA',
            'Pix2Sky_AIR', 'Sky2Pix_AIR',
            'Pix2Sky_CYP', 'Sky2Pix_CYP',
@@ -571,136 +569,6 @@ class Sky2Pix_ZenithalEquidistant(Sky2PixProjection, Zenithal):
 
 
 Sky2Pix_ARC = Sky2Pix_ZenithalEquidistant
-
-
-class Pix2Sky_ZenithalPolynomial(Pix2SkyProjection, Zenithal):
-    r"""
-    Zenithal polynomial projection - pixel to sky.
-
-    Corresponds to the ``ZPN`` projection in FITS WCS.
-
-    See `Zenithal` for a definition of the full transformation.
-
-    Parameters
-    ----------
-    cN : float
-        Where N is 0 - 19 inclusive.  The polynomial coefficients.
-    """
-    c0 = Parameter(default=0.0)
-    c1 = Parameter(default=0.0)
-    c2 = Parameter(default=0.0)
-    c3 = Parameter(default=0.0)
-    c4 = Parameter(default=0.0)
-    c5 = Parameter(default=0.0)
-    c6 = Parameter(default=0.0)
-    c7 = Parameter(default=0.0)
-    c9 = Parameter(default=0.0)
-    c10 = Parameter(default=0.0)
-    c11 = Parameter(default=0.0)
-    c12 = Parameter(default=0.0)
-    c13 = Parameter(default=0.0)
-    c14 = Parameter(default=0.0)
-    c15 = Parameter(default=0.0)
-    c16 = Parameter(default=0.0)
-    c17 = Parameter(default=0.0)
-    c18 = Parameter(default=0.0)
-    c19 = Parameter(default=0.0)
-
-    @property
-    def inverse(self):
-        return Sky2Pix_ZenithalPolynomial(
-            self.c0.value,
-            self.c1.value,
-            self.c2.value,
-            self.c3.value,
-            self.c4.value,
-            self.c5.value,
-            self.c6.value,
-            self.c7.value,
-            self.c8.value,
-            self.c9.value,
-            self.c10.value,
-            self.c11.value,
-            self.c12.value,
-            self.c13.value,
-            self.c14.value,
-            self.c15.value,
-            self.c16.value,
-            self.c17.value,
-            self.c18.value,
-            self.c19.value
-        )
-
-    @classmethod
-    def evaluate(cls, x, y, *coeffs):
-        return _projections.zpnx2s(x, y, *coeffs)
-
-
-Pix2Sky_ZPN = Pix2Sky_ZenithalPolynomial
-
-
-class Sky2Pix_ZenithalPolynomial(Sky2PixProjection, Zenithal):
-    r"""
-    Zenithal polynomial projection - sky to pixel.
-
-    Corresponds to the ``ZPN`` projection in FITS WCS.
-
-    See `Zenithal` for a definition of the full transformation.
-
-    .. math::
-        R_\theta = \frac{180^\circ}{\pi} \sum_{m=0}^{20} c_m \left( \frac{\pi}{180^\circ}(90^\circ - \theta)\right)^m
-    """
-    c0 = Parameter(default=0.0)
-    c1 = Parameter(default=0.0)
-    c2 = Parameter(default=0.0)
-    c3 = Parameter(default=0.0)
-    c4 = Parameter(default=0.0)
-    c5 = Parameter(default=0.0)
-    c6 = Parameter(default=0.0)
-    c7 = Parameter(default=0.0)
-    c9 = Parameter(default=0.0)
-    c10 = Parameter(default=0.0)
-    c11 = Parameter(default=0.0)
-    c12 = Parameter(default=0.0)
-    c13 = Parameter(default=0.0)
-    c14 = Parameter(default=0.0)
-    c15 = Parameter(default=0.0)
-    c16 = Parameter(default=0.0)
-    c17 = Parameter(default=0.0)
-    c18 = Parameter(default=0.0)
-    c19 = Parameter(default=0.0)
-
-    @property
-    def inverse(self):
-        return Pix2Sky_ZenithalPolynomial(
-            self.c0.value,
-            self.c1.value,
-            self.c2.value,
-            self.c3.value,
-            self.c4.value,
-            self.c5.value,
-            self.c6.value,
-            self.c7.value,
-            self.c8.value,
-            self.c9.value,
-            self.c10.value,
-            self.c11.value,
-            self.c12.value,
-            self.c13.value,
-            self.c14.value,
-            self.c15.value,
-            self.c16.value,
-            self.c17.value,
-            self.c18.value,
-            self.c19.value
-        )
-
-    @classmethod
-    def evaluate(cls, phi, theta, *coeffs):
-        return _projections.zpns2x(phi, theta, *coeffs)
-
-
-Sky2Pix_ZPN = Sky2Pix_ZenithalPolynomial
 
 
 class Pix2Sky_ZenithalEqualArea(Pix2SkyProjection, Zenithal):

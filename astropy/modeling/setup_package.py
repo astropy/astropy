@@ -34,7 +34,6 @@ projections = {
     'stg': 0,
     'sin': 2,
     'arc': 0,
-    'zpn': 20,
     'zea': 0,
     'air': 1,
     'cyp': 2,
