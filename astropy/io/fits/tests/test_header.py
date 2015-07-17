@@ -1184,6 +1184,7 @@ class TestHeaderFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU()
         hdu2 = fits.ImageHDU()
         hdu.header['MYKEY'] = ('some val', 'some comment')
+        hdu2.header['MYKEY'] = ('some other val', 'some other comment')
         hdu.header.extend(hdu2.header, unique=True)
         assert len(hdu.header) == 5
         assert hdu.header[-1] == 'some val'
