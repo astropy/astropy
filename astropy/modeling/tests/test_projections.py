@@ -41,7 +41,7 @@ def test_Sky2Pix(code):
     header = fits.Header.fromfile(test_file, endcard=False, padding=False)
 
     params = []
-    for i in xrange(3):
+    for i in range(3):
         key = 'PV2_{0}'.format(i + 1)
         if key in header:
             params.append(header[key])
@@ -69,7 +69,7 @@ def test_Pix2Sky(code):
     header = fits.Header.fromfile(test_file, endcard=False, padding=False)
 
     params = []
-    for i in xrange(3):
+    for i in range(3):
         key = 'PV2_{0}'.format(i + 1)
         if key in header:
             params.append(header[key])
