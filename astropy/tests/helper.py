@@ -6,6 +6,7 @@ from the installed astropy.  It makes use of the `pytest` testing framework.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+from ..config.paths import set_temp_config, set_temp_cache
 from ..extern import six
 from ..extern.six.moves import cPickle as pickle
 
@@ -40,7 +41,7 @@ from .. import test
 from ..utils.exceptions import (AstropyWarning,
                                 AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
-from ..config import configuration
+
 
 if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
     import pytest
@@ -254,40 +255,18 @@ class TestRunner(object):
 
         # override the config locations to not make a new directory nor use
         # existing cache or config
-        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
-        xdg_cache_home = os.environ.get('XDG_CACHE_HOME')
         astropy_config = tempfile.mkdtemp('astropy_config')
         astropy_cache = tempfile.mkdtemp('astropy_cache')
-        os.environ[str('XDG_CONFIG_HOME')] = str(astropy_config)
-        os.environ[str('XDG_CACHE_HOME')] = str(astropy_cache)
-        os.mkdir(os.path.join(os.environ['XDG_CONFIG_HOME'], 'astropy'))
-        os.mkdir(os.path.join(os.environ['XDG_CACHE_HOME'], 'astropy'))
-        # To fully force configuration reloading from a different file (in this
-        # case our default one in a temp directory), clear the config object
-        # cache.
-        configuration._cfgobjs.clear()
 
         # This prevents cyclical import problems that make it
         # impossible to test packages that define Table types on their
         # own.
         from ..table import Table
 
-        try:
-            result = pytest.main(args=all_args, plugins=plugins)
-        finally:
-            shutil.rmtree(os.environ['XDG_CONFIG_HOME'])
-            shutil.rmtree(os.environ['XDG_CACHE_HOME'])
-            if xdg_config_home is not None:
-                os.environ[str('XDG_CONFIG_HOME')] = xdg_config_home
-            else:
-                del os.environ['XDG_CONFIG_HOME']
-            if xdg_cache_home is not None:
-                os.environ[str('XDG_CACHE_HOME')] = xdg_cache_home
-            else:
-                del os.environ['XDG_CACHE_HOME']
-            configuration._cfgobjs.clear()
-
-        return result
+        # Have to use nested with statements for cross-Python support
+        with set_temp_config(astropy_config, delete=True):
+            with set_temp_cache(astropy_cache, delete=True):
+                return pytest.main(args=all_args, plugins=plugins)
 
     run_tests.__doc__ = test.__doc__
 
