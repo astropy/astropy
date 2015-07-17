@@ -30,8 +30,8 @@ from . import _projections
 
 projcodes = [
     'AZP', 'SZP', 'TAN', 'STG', 'SIN', 'ARC', 'ZEA', 'AIR', 'CYP',
-    'CEA', 'MER', 'SFL', 'PAR', 'MOL', 'AIT', 'COP', 'COE', 'COD',
-    'COO', 'BON', 'PCO', 'TSC', 'CSC', 'QSC', 'HPX', 'XPH'
+    'CEA', 'CAR', 'MER', 'SFL', 'PAR', 'MOL', 'AIT', 'COP', 'COE',
+    'COD', 'COO', 'BON', 'PCO', 'TSC', 'CSC', 'QSC', 'HPX', 'XPH'
 ]
 
 
@@ -669,13 +669,15 @@ class Sky2Pix_Airy(Sky2PixProjection, Zenithal):
         The latitude :math:`\theta_b` at which to minimize the error,
         in degrees.  Default is 90°.
     """
+    theta_b = Parameter(default=90.0)
+
     @property
     def inverse(self):
         return Pix2Sky_Airy(self.theta_b.value)
 
     @classmethod
     def evaluate(cls, phi, theta, theta_b):
-        return _projections.zeas2x(phi, theta, theta_b)
+        return _projections.airs2x(phi, theta, theta_b)
 
 
 Sky2Pix_AIR = Sky2Pix_Airy
@@ -1619,7 +1621,7 @@ class Pix2Sky_Polyconic(Pix2SkyProjection, PseudoConic):
 Pix2Sky_PCO = Pix2Sky_Polyconic
 
 
-class Sky2Pix_Polyconic(Sky2PixProjection, Conic):
+class Sky2Pix_Polyconic(Sky2PixProjection, PseudoConic):
     r"""
     Polyconic projection - sky to pixel.
 
@@ -1774,8 +1776,8 @@ class Pix2Sky_HEALPix(Pix2SkyProjection, HEALPix):
     X : float
         The number of facets in latitude direction.
     """
-    H = Parameter(default=360.0)
-    X = Parameter(default=180.0)
+    H = Parameter(default=4.0)
+    X = Parameter(default=3.0)
 
     @property
     def inverse(self):
@@ -1802,8 +1804,8 @@ class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
     X : float
         The number of facets in latitude direction.
     """
-    H = Parameter(default=360.0)
-    X = Parameter(default=180.0)
+    H = Parameter(default=4.0)
+    X = Parameter(default=3.0)
 
     @property
     def inverse(self):
