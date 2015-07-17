@@ -2467,8 +2467,9 @@ reduce these to 2 dimensions using the naxis kwarg.
                 if key is not None:
                     self.wcs.alt = orig_key
             header = fits.Header.fromstring(header_string)
-            del header['']
-            del header['COMMENT']
+            for kw in ["", " ", "COMMENT"]:
+                if kw in header:
+                    del header[kw]
         else:
             header = fits.Header()
 
