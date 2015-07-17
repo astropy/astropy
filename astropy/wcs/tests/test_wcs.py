@@ -388,8 +388,12 @@ def test_to_header_warning():
 def test_no_comments_in_header():
     w = wcs.WCS()
     header = w.to_header()
-    assert '' not in header
-    assert 'COMMENT' not in header
+    assert w.wcs.alt not in header
+    assert 'COMMENT' + w.wcs.alt.strip() not in header
+    wkey = 'P'
+    header = w.to_header(key=wkey)
+    assert wkey not in header
+    assert 'COMMENT' + wkey not in header
 
 
 @raises(wcs.InvalidTransformError)
