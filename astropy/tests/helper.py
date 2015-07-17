@@ -264,6 +264,9 @@ class TestRunner(object):
         from ..table import Table
 
         # Have to use nested with statements for cross-Python support
+        # Note, using these context managers here is superfluous if the
+        # config_dir or cache_dir options to py.test are in use, but it's
+        # also harmless to nest the contexts
         with set_temp_config(astropy_config, delete=True):
             with set_temp_cache(astropy_cache, delete=True):
                 return pytest.main(args=all_args, plugins=plugins)
