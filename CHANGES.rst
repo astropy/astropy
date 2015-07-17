@@ -341,9 +341,11 @@ Bug fixes
 
 - ``astropy.modeling``
 
-  - Simplex method now correctly passes additional keywords arguments to the scipy solver. [#3966]
-  
-  - The keyword ``acc`` (for accuracy) is now correctly accepted by Simplex [#3966]
+  - ``Simplex`` fitter now correctly passes additional keywords arguments to
+    the scipy solver. [#3966]
+
+  - The keyword ``acc`` (for accuracy) is now correctly accepted by
+    ``Simplex``. [#3966]
 
 - ``astropy.nddata``
 
