@@ -2467,7 +2467,13 @@ reduce these to 2 dimensions using the naxis kwarg.
                 if key is not None:
                     self.wcs.alt = orig_key
             header = fits.Header.fromstring(header_string)
-            for kw in ["", " ", "COMMENT"]:
+            if key is not None:
+                keys_to_remove = [key, "COMMENT"+key]
+            elif self.wcs.alt.strip() is not "":
+                keys_to_remove = [self.wcs.alt, "COMMENT"+self.wcs.alt]
+            else:
+                keys_to_remove = ["", " ", "COMMENT"]
+            for kw in keys_to_remove:
                 if kw in header:
                     del header[kw]
         else:
