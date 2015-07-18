@@ -724,7 +724,7 @@ class Table(object):
         cols = self.columns.values()
         for col in cols:
             col._copy_indices = self._copy_indices
-        newcols = [col[slice_] for col in cols]
+        newcols = [col.get_item(slice_) for col in cols]
         for col in cols:
             col._copy_indices = True
 

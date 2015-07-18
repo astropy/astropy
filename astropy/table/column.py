@@ -304,32 +304,26 @@ class BaseColumn(np.ndarray):
 
         return reconstruct_func, reconstruct_func_args, state
 
-
-    def __getslice__(self, start, stop):
-        return self.__getitem__(slice(start, stop))
-
-    
-    def __getitem__(self, item):
+    def get_item(self, item):
         if isinstance(item, INTEGER_TYPES):
             return self.data[item]  # Return as plain ndarray or ma.MaskedArray
 
-        elif isinstance(item, slice):
-            self._slice = True
-            col_slice = super(BaseColumn, self).__getitem__(item)
-            col_slice.indices = [x[item] for x in self.indices]
-            self._slice = False
-        else:
-            col_slice = super(BaseColumn, self).__getitem__(item)
+        col_slice = self[item]
 
-            if isinstance(col_slice, BaseColumn) and col_slice.indices:
-                if isinstance(item, np.ndarray) and item.dtype.kind == 'b':
-                    # boolean mask
-                    item = np.where(item)[0]
-                for index in col_slice.indices:
-                    index.replace_rows(item)
+        if not self._copy_indices:
+            return col_slice
+        elif isinstance(item, slice):
+            col_slice.indices = [x[item] for x in self.indices]
+        elif isinstance(col_slice, BaseColumn) and self.indices:
+            col_slice.indices = deepcopy(self.indices)
+            if isinstance(item, np.ndarray) and item.dtype.kind == 'b':
+                # boolean mask
+                item = np.where(item)[0]
+            for index in col_slice.indices:
+                index.replace_rows(item)
 
         return col_slice
-    
+
 
 >>>>>>> Fixed index deep copies in static_indices context
     # avoid == and != to be done based on type of subclass
@@ -352,6 +346,8 @@ class BaseColumn(np.ndarray):
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
         self.parent_table = None
+        if not hasattr(self, 'indices'): # may have been copied in __new__
+            self.indices = []
         self._copy_attrs(obj)
 
     def __array_wrap__(self, out_arr, context=None):
@@ -691,7 +687,7 @@ class BaseColumn(np.ndarray):
         """
         return self.quantity.to(unit, equivalencies)
 
-    def _copy_attrs(self, obj, copy_indices=True):
+    def _copy_attrs(self, obj):
         """
         Copy key column attributes from ``obj`` to self
         """
@@ -699,11 +695,6 @@ class BaseColumn(np.ndarray):
             val = getattr(obj, attr, None)
             setattr(self, attr, val)
         self.meta = deepcopy(getattr(obj, 'meta', {}))
-        indices = getattr(obj, 'indices', [])
-        if getattr(obj, '_slice', False) or not getattr(obj, '_copy_indices', True):
-            self.indices = []
-        elif copy_indices:
-            self.indices = deepcopy(getattr(obj, 'indices', []))
 
 
 class Column(BaseColumn):
@@ -1164,6 +1155,7 @@ class MaskedColumn(Column, ma.MaskedArray):
 
         out = new_ma.view(self.__class__)
         out.parent_table = None
+        out.indices = []
         out._copy_attrs(self)
 
         return out
@@ -1174,27 +1166,18 @@ class MaskedColumn(Column, ma.MaskedArray):
         # Fixes issue #3023: when calling getitem with a MaskedArray subclass
         # the original object attributes are not copied.
         if out.__class__ is self.__class__:
-            # We need to redo the index replacement from Column.__getitem__
-            # since the ndarray view discards self.indices
-            if isinstance(item, np.ndarray) and item.dtype.kind == 'b':
-                # boolean mask
-                item = np.where(item)[0]
-            if not isinstance(item, slice): # deep copy indices
-                out.indices = []
-                for i, index in enumerate(self.indices):
-                    index = deepcopy(index)
-                    index.replace_rows(item)
-                    out.indices.append(index)
-
             out.parent_table = None
-            out._copy_attrs(self, copy_indices=False)
 
+            # we need this because __getitem__ does a shallow copy of indices
+            out.indices = []
+            out._copy_attrs(self)
         return out
 
     # Set items and slices using MaskedArray method, instead of falling through
     # to the (faster) Column version which uses an ndarray view.  This doesn't
     # copy the mask properly. See test_setting_from_masked_column test.
     def __setitem__(self, index, value):
+        ##TODO: check this out!
         # update indices
         self._adjust_indices(index, value)
         ma.MaskedArray.__setitem__(self, index, value)
