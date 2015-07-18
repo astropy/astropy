@@ -155,7 +155,7 @@ class SortedArray(object):
     def replace_rows(self, row_map):
         for i, col in enumerate(self._data):
             self._data[i] = col[np.array([x in row_map for x in self._data[-1]])]
-        self._data[-1] = [row_map[x] for x in self._data[-1]]
+        self._data[-1] = np.array([row_map[x] for x in self._data[-1]])
 
     def items(self):
         array = []

@@ -424,7 +424,14 @@ class Table(object):
         Returns the indices associated with col, or [] if col
         is a mixin rather than a regular column.
         '''
-        return getattr(col, 'indices', [])        
+        return getattr(col, 'indices', [])
+
+    def _get_slice(self, col, item):
+        '''
+        Returns either col.get_item(item) if col is a regular Column
+        or col[item] if col is a mixin.
+        '''
+        return getattr(col, 'get_item', col.__getitem__)(item)
 
     def add_index(self, colnames, impl=None):
         '''
@@ -724,14 +731,16 @@ class Table(object):
         cols = self.columns.values()
         for col in cols:
             col._copy_indices = self._copy_indices
-        newcols = [col.get_item(slice_) for col in cols]
+        newcols = [self._get_slice(col, slice_) for col in cols]
         for col in cols:
             col._copy_indices = True
 
         self._make_table_from_cols(table, newcols)
 
-        for index in table.indices:
-            index.refresh(table.columns) # this doesn't happen in Table initialization
+        if not isinstance(slice_, slice): # list, boolean mask, etc.
+            for index in table.indices:
+                # this doesn't happen in Table initialization
+                index.refresh(table.columns)
         return table
 
     @staticmethod

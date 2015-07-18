@@ -325,7 +325,6 @@ class BaseColumn(np.ndarray):
         return col_slice
 
 
->>>>>>> Fixed index deep copies in static_indices context
     # avoid == and != to be done based on type of subclass
     # (helped solve #1446; see also __array_wrap__)
     def __eq__(self, other):
