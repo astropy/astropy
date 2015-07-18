@@ -143,9 +143,10 @@ class TestIndex(SetupData):
         t2 = t[1:3] # table slice
         assert np.all(t2['a'].data == np.array([2, 3]))
         assert np.all(t2.indices[0].sorted_data() == [0, 1])
-        col_slice = t['a'][1:3] # column slice
-        assert np.all(col_slice == [2, 3])
-        assert np.all(col_slice.indices[0].sorted_data() == [0, 1])
+
+        col_slice = t['a'][1:3] # column slice should discard indices
+        assert np.all(col_slice.data == np.array([2, 3]))
+        assert np.all(col_slice.indices == [])
 
         # set slice
         t2 = t.copy()
