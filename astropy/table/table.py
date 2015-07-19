@@ -289,10 +289,11 @@ class Table(object):
                 except:
                     raise ValueError('dtype was specified but could not be '
                                      'parsed for column names')
-            if names is not None:
-                init_func = self._init_from_list
-                n_cols = len(names)
-                data = [[]] * n_cols
+            # names is guaranteed to be set at this point
+            init_func = self._init_from_list
+            n_cols = len(names)
+            data = [[]] * n_cols
+
         else:
             raise ValueError('Data type {0} not allowed to init Table'
                              .format(type(data)))
