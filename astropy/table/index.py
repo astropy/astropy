@@ -248,18 +248,34 @@ class Index:
 
 class SlicedIndex:
     def __init__(self, index, index_slice):
-        if False: ##TODO index.engine == SortedArray:
-            self.index = Index(index.columns, index.data[index_slice])
+        self.index = index
+        num_rows = len(index.columns[0])
+        if isinstance(index_slice, tuple):
+            self.start, self.stop, self.step = index_slice
         else:
-            self.index = index
+            self.start, self.stop, self.step = index_slice.indices(num_rows)
+        self.length = 1 + (self.stop - self.start - 1) // self.step
 
-        num_cols = len(index.columns[0])
-        self.start, self.stop, self.step = index_slice.indices(num_cols)
+    def __getitem__(self, item):
+        # item must be a slice
+        if self.length <= 0:
+            # empty slice
+            return SlicedIndex(self.index, slice(1, 0))
+        start, stop, step = item.indices(self.length)
+        new_start = self.orig_coords(start)
+        new_stop = self.orig_coords(stop)
+        new_step = self.orig_coords(step)
+        return SlicedIndex(self.index, (new_start, new_stop, new_step))
 
     def sliced_coords(self, rows):
-        return [(row - self.start) / self.step for row in rows
-                if self.start <= row < self.stop and
-                (row - self.start) % self.step == 0]
+        if self.step > 0:
+            return [(row - self.start) / self.step for row in rows
+                    if self.start <= row < self.stop and
+                    (row - self.start) % self.step == 0]
+        else:
+            return [(row - self.start) / self.step for row in rows
+                    if self.stop < row <= self.start and
+                    (row - self.start) % self.step == 0]
 
     def orig_coords(self, row):
         return self.start + row * self.step
@@ -281,6 +297,10 @@ class SlicedIndex:
 
     def replace(self, row, col, val):
         return self.index.replace(self.orig_coords(row), col, val)
+
+    def __repr__(self):
+        return 'Index slice {0} of {1}'.format(
+            (self.start, self.stop, self.step), self.index)
 
     ##TODO: adapt other Index methods here
 

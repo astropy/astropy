@@ -148,6 +148,20 @@ class TestIndex(SetupData):
         assert np.all(col_slice.data == np.array([2, 3]))
         assert np.all(col_slice.indices == [])
 
+        # take slice of slice
+        t2 = t[::2]
+        assert np.all(t2['a'].data == np.array([1, 3, 5]))
+        t3 = t2[::-1]
+        assert np.all(t3['a'].data == np.array([5, 3, 1]))
+        assert np.all(t3.indices[0].sorted_data() == [2, 1, 0])
+        t3 = t2[:2]
+        assert np.all(t3['a'].data == np.array([1, 3]))
+        assert np.all(t3.indices[0].sorted_data() == [0, 1])
+        # out-of-bound slices
+        for t_empty in (t2[3:], t2[2:1], t3[2:]):
+            assert len(t_empty['a'].data) == 0
+            assert np.all(t_empty.indices[0].sorted_data() == [])
+
         # set slice
         t2 = t.copy()
         t2['a'][1:3] = np.array([6, 7])
