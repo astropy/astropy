@@ -283,9 +283,9 @@ class Table(object):
                 try:
                     # No data nor names but dtype is available.  This must be
                     # valid to initialize a structured array.
-                    tmp = np.empty(0, dtype=dtype)
-                    names = tmp.dtype.names
-                    dtype = [tmp.dtype[i] for i in range(len(tmp.dtype))]
+                    dtype = np.dtype(dtype)
+                    names = dtype.names
+                    dtype = [dtype[name] for name in names]
                 except:
                     raise ValueError('dtype was specified but could not be '
                                      'parsed for column names')

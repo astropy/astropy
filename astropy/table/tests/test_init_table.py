@@ -4,12 +4,9 @@
 
 from __future__ import print_function  # For print debugging with python 2 or 3
 
-from distutils import version
-
 import numpy as np
 
 from ...tests.helper import pytest
-from ... import table
 from ...table import Column, TableColumns
 from ...utils import OrderedDict
 
