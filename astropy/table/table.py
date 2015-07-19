@@ -278,8 +278,18 @@ class Table(object):
 
         elif data is None:
             if names is None:
-                return  # Empty table
-            else:
+                if dtype is None:
+                    return  # Empty table
+                try:
+                    # No data nor names but dtype is available.  This must be
+                    # valid to initialize a structured array.
+                    tmp = np.empty(0, dtype=dtype)
+                    names = tmp.dtype.names
+                    dtype = [tmp.dtype[i] for i in range(len(tmp.dtype))]
+                except:
+                    raise ValueError('dtype was specified but could not be '
+                                     'parsed for column names')
+            if names is not None:
                 init_func = self._init_from_list
                 n_cols = len(names)
                 data = [[]] * n_cols
