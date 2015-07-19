@@ -1253,6 +1253,9 @@ API Changes
   - The representation of Table and Column objects has been changed to
     be formatted similar to the print output. [#3239]
 
+  - An empty table can now be initialized without a ``names`` argument as long
+    as a valid ``dtype`` argument (with names embedded) is supplied. [#3977]
+
 - ``astropy.time``
 
   - The ``Time.val`` and ``Time.vals`` properties (deprecated in v0.3) and the

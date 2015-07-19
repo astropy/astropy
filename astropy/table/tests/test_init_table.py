@@ -4,12 +4,9 @@
 
 from __future__ import print_function  # For print debugging with python 2 or 3
 
-from distutils import version
-
 import numpy as np
 
 from ...tests.helper import pytest
-from ... import table
 from ...table import Column, TableColumns
 from ...utils import OrderedDict
 
@@ -394,14 +391,23 @@ class TestInitFromNone():
     # table and adding data.
 
     def test_data_none_with_cols(self, table_type):
-        t = table_type(names=('a', 'b'))
-        assert len(t['a']) == 0
-        assert len(t['b']) == 0
-        assert t.colnames == ['a', 'b']
-        t = table_type(names=('a', 'b'), dtype=('f4', 'i4'))
-        assert t['a'].dtype.type == np.float32
-        assert t['b'].dtype.type == np.int32
-        assert t.colnames == ['a', 'b']
+        """
+        Test different ways of initing an empty table
+        """
+        np_t = np.empty(0, dtype=[(str('a'), 'f4', (2,)),
+                                  (str('b'), 'i4')])
+        for kwargs in ({'names': ('a', 'b')},
+                       {'names': ('a', 'b'), 'dtype': (('f4', (2,)), 'i4')},
+                       {'dtype': [(str('a'), 'f4', (2,)), (str('b'), 'i4')]},
+                       {'dtype': np_t.dtype}):
+            t = table_type(**kwargs)
+            assert t.colnames == ['a', 'b']
+            assert len(t['a']) == 0
+            assert len(t['b']) == 0
+            if 'dtype' in kwargs:
+                assert t['a'].dtype.type == np.float32
+                assert t['b'].dtype.type == np.int32
+                assert t['a'].shape[1:] == (2,)
 
 
 @pytest.mark.usefixtures('table_types')
