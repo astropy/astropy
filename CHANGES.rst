@@ -182,6 +182,9 @@ New Features
   - Added function ``dtype_info_name`` to the ``data_info`` module to provide
     the name of a ``dtype`` for human-readable informational purposes. [#3868]
 
+  - Added ``classproperty`` decorator--this is to ``property`` as
+    ``classmethod`` is to normal instance methods. [#3982]
+
 - ``astropy.visualization``
 
   - Added the ``hist`` function, which is similar to ``plt.hist`` but
@@ -256,6 +259,11 @@ API changes
     ``io.fits``, ``enable_uint``, can be changed to False to revert to the
     original behavior of ignoring the ``uint`` convention unless it is
     explicitly requested with ``uint=True``. [#3916]
+
+  - The ``ImageHDU.NumCode`` and ``ImageHDU.ImgCode`` attributes (and same
+    for other classes derived from ``_ImageBaseHDU``) are deprecated.  Instead,
+    the ``astropy.io.fits`` module-level constants ``BITPIX2DTYPE`` and
+    ``DTYPE2BITPIX`` can be used. [#3916]
 
 - ``astropy.io.misc``
 
