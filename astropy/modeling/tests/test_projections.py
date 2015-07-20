@@ -25,53 +25,55 @@ def test_Projection_properties():
 PIX_COORDINATES = [-10, 30]
 
 
-pars = [
-    ('TAN', projections.Sky2Pix_Gnomonic, {}),
-    ('STG', projections.Sky2Pix_Stereographic, {}),
-    ('SIN', projections.Sky2Pix_SlantOrthographic, {}),
-    ('CEA', projections.Sky2Pix_CylindricalEqualArea, {}),
-    ('CAR', projections.Sky2Pix_PlateCarree, {}),
-    ('MER', projections.Sky2Pix_Mercator, {})
-]
+pars = [(x,) for x in projections.projcodes]
+# There is no groundtruth file for the XPH projection available here:
+#   http://www.atnf.csiro.au/people/mcalabre/WCS/example_data.html
+pars.remove(('XPH',))
 
 
-@pytest.mark.parametrize(('ID', 'model', 'args'), pars)
-def test_Sky2Pix(ID, model, args):
+@pytest.mark.parametrize(('code',), pars)
+def test_Sky2Pix(code):
     """Check astropy model eval against wcslib eval"""
 
     wcs_map = os.path.join(os.pardir, os.pardir, "wcs", "tests", "maps",
-                           "1904-66_{0}.hdr".format(ID))
+                           "1904-66_{0}.hdr".format(code))
     test_file = get_pkg_data_filename(wcs_map)
     header = fits.Header.fromfile(test_file, endcard=False, padding=False)
+
+    params = []
+    for i in range(3):
+        key = 'PV2_{0}'.format(i + 1)
+        if key in header:
+            params.append(header[key])
+
     w = wcs.WCS(header)
     w.wcs.crval = [0., 0.]
     w.wcs.crpix = [0, 0]
     w.wcs.cdelt = [1, 1]
     wcslibout = w.wcs.p2s([PIX_COORDINATES], 1)
     wcs_pix = w.wcs.s2p(wcslibout['world'], 1)['pixcrd']
-    tinv = model(**args)
+    model = getattr(projections, 'Sky2Pix_' + code)
+    tinv = model(*params)
     x, y = tinv(wcslibout['phi'], wcslibout['theta'])
     utils.assert_almost_equal(np.asarray(x), wcs_pix[:, 0])
     utils.assert_almost_equal(np.asarray(y), wcs_pix[:, 1])
 
-pars = [
-    ('TAN', projections.Pix2Sky_Gnomonic, {}),
-    ('STG', projections.Pix2Sky_Stereographic, {}),
-    ('SIN', projections.Pix2Sky_SlantOrthographic, {}),
-    ('CEA', projections.Pix2Sky_CylindricalEqualArea, {}),
-    ('CAR', projections.Pix2Sky_PlateCarree, {}),
-    ('MER', projections.Pix2Sky_Mercator, {}),
-]
 
-
-@pytest.mark.parametrize(('ID', 'model', 'args'), pars)
-def test_Pix2Sky(ID, model, args):
+@pytest.mark.parametrize(('code',), pars)
+def test_Pix2Sky(code):
     """Check astropy model eval against wcslib eval"""
 
     wcs_map = os.path.join(os.pardir, os.pardir, "wcs", "tests", "maps",
-                           "1904-66_{0}.hdr".format(ID))
+                           "1904-66_{0}.hdr".format(code))
     test_file = get_pkg_data_filename(wcs_map)
     header = fits.Header.fromfile(test_file, endcard=False, padding=False)
+
+    params = []
+    for i in range(3):
+        key = 'PV2_{0}'.format(i + 1)
+        if key in header:
+            params.append(header[key])
+
     w = wcs.WCS(header)
     w.wcs.crval = [0., 0.]
     w.wcs.crpix = [0, 0]
@@ -79,7 +81,8 @@ def test_Pix2Sky(ID, model, args):
     wcslibout = w.wcs.p2s([PIX_COORDINATES], 1)
     wcs_phi = wcslibout['phi']
     wcs_theta = wcslibout['theta']
-    tanprj = model(**args)
+    model = getattr(projections, 'Pix2Sky_' + code)
+    tanprj = model(*params)
     phi, theta = tanprj(*PIX_COORDINATES)
     utils.assert_almost_equal(np.asarray(phi), wcs_phi)
     utils.assert_almost_equal(np.asarray(theta), wcs_theta)
@@ -183,3 +186,20 @@ def test_AffineTransformation2D_inverse():
     x_new, y_new = model2.inverse(*model2(x, y))
 
     utils.assert_allclose([x, y], [x_new, y_new], atol=1e-10)
+
+
+def test_c_projection_striding():
+    # This is just a simple test to make sure that the striding is
+    # handled correctly in the projection C extension
+    coords = np.arange(10).reshape((5, 2))
+
+    model = projections.Sky2Pix_ZenithalPerspective(2, 30)
+
+    phi, theta = model(coords[:, 0], coords[:, 1])
+
+    utils.assert_allclose(
+        phi,
+        [0., 2.31188456, 4.62283148, 6.9319002, 9.23814431])
+    utils.assert_allclose(
+        theta,
+        [-76.48169176, -76.44546157, -76.33675621, -76.15553145, -75.90171376])
