@@ -2,6 +2,7 @@
 # quantities (http://pythonhosted.org/quantities/) package.
 
 import numpy as np
+from numpy.core import numeric
 from .core import (UnitsError, UnitConversionError, dimensionless_unscaled,
                    get_current_unit_registry)
 from ..utils.compat.fractions import Fraction
@@ -330,3 +331,13 @@ def helper_twoarg_floor_divide(f, unit1, unit2):
     return converters, dimensionless_unscaled
 
 UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
+
+
+_array_repr = numeric.array_repr
+def _monkeypatch_array_repr(
+        arr, max_line_width=None, precision=None, suppress_small=None):
+    try:
+        return _array_repr(arr, max_line_width, precision, suppress_small)
+    except:
+        return repr(arr)
+np.testing.utils.array_repr = _monkeypatch_array_repr
