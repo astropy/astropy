@@ -311,6 +311,8 @@ class classproperty(property):
     Examples
     --------
 
+    ::
+
         >>> class Foo(object):
         ...     _bar_internal = 1
         ...     @classproperty
