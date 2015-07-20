@@ -5,6 +5,10 @@
   used that was not recognized as celestial by WCSlib but had angular units for
   the axes, when setting the coord_type to longitude/latitude. [#171]
 
+- Switch to using pytest-mpl for image testing. [#168]
+
+- Show users how to invert axes easily. [#158]
+
 0.4 (2015-06-07)
 ----------------
 
