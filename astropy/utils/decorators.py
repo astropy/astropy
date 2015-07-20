@@ -384,6 +384,9 @@ class classproperty(property):
         def fget(obj):
             return orig_fget(obj.__class__)
 
+        # Set the __wrapped__ attribute manually for support on Python 2
+        fget.__wrapped__ = orig_fget
+
         return fget
 
 
