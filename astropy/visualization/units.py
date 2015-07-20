@@ -36,13 +36,13 @@ def quantity_support():
         if n == 0:
             return '0'
         elif n == 1:
-            return 'π²'
+            return 'π/2'
         elif n == 2:
             return 'π'
         elif n % 2 == 0:
             return '{0}π'.format(n / 2)
         else:
-            return '{0}π²'.format(n)
+            return '{0}π/2'.format(n)
 
     class MplQuantityConverter(units.ConversionInterface):
         @staticmethod
