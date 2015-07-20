@@ -11,7 +11,7 @@ from ..util import _is_pseudo_unsigned, _unsigned_zero, _is_int
 from ..verify import VerifyWarning
 
 from ....extern.six import string_types
-from ....utils import isiterable, lazyproperty, deprecated
+from ....utils import isiterable, lazyproperty, classproperty, deprecated
 
 
 class _ImageBaseHDU(_ValidHDU):
@@ -756,12 +756,16 @@ class _ImageBaseHDU(_ValidHDU):
             return super(_ImageBaseHDU, self)._calculate_datasum(
                 blocking=blocking)
 
-    @deprecated('1.1.0', alternative='the module level constant BITPIX2DTYPE')
-    def NumCode(self):
+    @classproperty
+    @deprecated('1.1.0', alternative='the module level constant BITPIX2DTYPE',
+                obj_type='class attribute')
+    def NumCode(cls):
         return BITPIX2DTYPE
 
-    @deprecated('1.1.0', alternative='the module level constant DTYPE2BITPIX')
-    def ImgCode(self):
+    @classproperty
+    @deprecated('1.1.0', alternative='the module level constant DTYPE2BITPIX',
+                obj_type='class attribute')
+    def ImgCode(cls):
         return DTYPE2BITPIX
 
 
