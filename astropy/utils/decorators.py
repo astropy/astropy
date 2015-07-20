@@ -18,8 +18,8 @@ from .exceptions import (AstropyDeprecationWarning,
 from ..extern import six
 
 
-__all__ = ['deprecated', 'deprecated_attribute', 'lazyproperty',
-           'sharedmethod', 'wraps']
+__all__ = ['deprecated', 'deprecated_attribute', 'classproperty',
+           'lazyproperty', 'sharedmethod', 'wraps']
 
 
 def deprecated(since, message='', name='', alternative='', pending=False,
@@ -287,6 +287,104 @@ def deprecated_attribute(name, since, message=None, alternative=None,
         delattr(self, private_name)
 
     return property(get, set, delete)
+
+
+# TODO: This can still be made to work for setters by implementing an
+# accompanying metaclass that supports it; we just don't need that right this
+# second
+class classproperty(property):
+    """
+    Similar to `property`, but allows class-level properties.  That is,
+    a property whose getter is like a `classmethod`.
+
+    The wrapped method may explicitly use the `classmethod` decorator (which
+    must become before this decorator), or the `classmethod` may be omitted
+    (it is implicit through use of this decorator).
+
+    .. note::
+
+        classproperty only works for *read-only* properties.  It does not
+        currently allow writeable/deleteable properties, due to subtleties of how
+        Python descriptors work.  In order to implement such properties on a class
+        a metaclass for that class must be implemented.
+
+    Examples
+    --------
+
+        >>> class Foo(object):
+        ...     _bar_internal = 1
+        ...     @classproperty
+        ...     def bar(cls):
+        ...         return cls._bar_internal + 1
+        ...
+        >>> Foo.bar
+        2
+        >>> foo_instance = Foo()
+        >>> foo_instance.bar
+        2
+        >>> foo_instance._bar_internal = 2
+        >>> foo_instance.bar  # Ignores instance attributes
+        2
+
+    As previously noted, a `classproperty` is limited to implementing
+    read-only attributes::
+
+        >>> class Foo(object):
+        ...     _bar_internal = 1
+        ...     @classproperty
+        ...     def bar(cls):
+        ...         return cls._bar_internal
+        ...     @bar.setter
+        ...     def bar(cls, value):
+        ...         cls._bar_internal = value
+        ...
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: classproperty can only be read-only; use a
+        metaclass to implement modifiable class-level properties
+
+    """
+
+    def __init__(self, fget, doc=None):
+        fget = self._wrap_fget(fget)
+
+        super(classproperty, self).__init__(fget=fget, doc=doc)
+
+    def __get__(self, obj, objtype=None):
+        if objtype is not None:
+            # The base property.__get__ will just return self here;
+            # instead we pass objtype through to the original wrapped
+            # function (which takes the class as its sole argument)
+            return self.fget.__wrapped__(objtype)
+
+        return super(classproperty, self).__get__(obj, objtype=objtype)
+
+    def getter(self, fget):
+        return super(classproperty, self).getter(self._wrap_fget(fget))
+
+    def setter(self, fset):
+        raise NotImplementedError(
+            "classproperty can only be read-only; use a metaclass to "
+            "implement modifiable class-level properties")
+
+    def deleter(self, fdel):
+        raise NotImplementedError(
+            "classproperty can only be read-only; use a metaclass to "
+            "implement modifiable class-level properties")
+
+    @staticmethod
+    def _wrap_fget(orig_fget):
+        if isinstance(orig_fget, classmethod):
+            orig_fget = orig_fget.__func__
+
+        # Using stock functools.wraps instead of the fancier version
+        # found later in this module, which is overkill for this purpose
+
+        @wraps(orig_fget)
+        def fget(obj):
+            return orig_fget(obj.__class__)
+
+        return fget
 
 
 class lazyproperty(object):
