@@ -1187,4 +1187,4 @@ def test_quantity_assert_repr(capsys):
     with pytest.raises(AssertionError) as e:
         assert_allclose(a, b)
 
-    assert '<Quantity [ 0., 0.] deg>' in e.value
+    assert '<Quantity [ 0., 0.] deg>' in str(e.value)
