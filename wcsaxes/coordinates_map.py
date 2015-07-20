@@ -113,4 +113,5 @@ class CoordinatesMap(object):
         ymin, ymax = self._axes.get_ylim()
         return find_coordinate_range(self._transform,
                                      [xmin, xmax, ymin, ymax],
-                                     [coord.coord_type for coord in self])
+                                     [coord.coord_type for coord in self],
+                                     [coord.coord_unit for coord in self])

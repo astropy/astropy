@@ -146,8 +146,13 @@ class CoordinateHelper(object):
 
         # Initialize tick formatter/locator
         if coord_type == 'scalar':
+            self._coord_unit_scale = None
             self._formatter_locator = ScalarFormatterLocator(unit=self.coord_unit)
         elif coord_type in ['longitude', 'latitude']:
+            if self.coord_unit is u.deg:
+                self._coord_unit_scale = None
+            else:
+                self._coord_unit_scale = self.coord_unit.to(u.deg)
             self._formatter_locator = AngleFormatterLocator()
         else:
             raise ValueError("coord_type should be one of 'scalar', 'longitude', or 'latitude'")
@@ -174,16 +179,25 @@ class CoordinateHelper(object):
         Given the value of a coordinate, will format it according to the
         format of the formatter_locator.
         """
+
         if not hasattr(self, "_fl_spacing"):
             return ""  # _update_ticks has not been called yet
+
         fl = self._formatter_locator
         if isinstance(fl, AngleFormatterLocator):
+
+            # Convert to degrees if needed
+            if self._coord_unit_scale is not None:
+                value *= self._coord_unit_scale
+
             if self.coord_type == 'longitude':
                 value = wrap_angle_at(value, self.coord_wrap)
             value = value * u.degree
             value = value.to(fl._unit).value
+
         spacing = self._fl_spacing
         string = fl.formatter(values=[value] * fl._unit, spacing=spacing)
+
         return string[0]
 
     def set_separator(self, separator):
@@ -460,6 +474,10 @@ class CoordinateHelper(object):
             # Rotate by 90 degrees
             dx, dy = -dy, dx
 
+            if self._coord_unit_scale is not None:
+                dx *= self._coord_unit_scale
+                dy *= self._coord_unit_scale
+
             if self.coord_type == 'longitude':
                 # Here we wrap at 180 not self.coord_wrap since we want to
                 # always ensure abs(dx) < 180 and abs(dy) < 180
@@ -479,6 +497,11 @@ class CoordinateHelper(object):
             # longitudes.
             w1 = spine.world[:-1, self.coord_index]
             w2 = spine.world[1:, self.coord_index]
+
+            if self._coord_unit_scale is not None:
+                w1 = w1 * self._coord_unit_scale
+                w2 = w2 * self._coord_unit_scale
+
             if self.coord_type == 'longitude':
                 w1 = wrap_angle_at(w1, self.coord_wrap)
                 w2 = wrap_angle_at(w2, self.coord_wrap)
@@ -630,6 +653,11 @@ class CoordinateHelper(object):
         # We now convert all the world coordinates to pixel coordinates in a
         # single go rather than doing this in the gridline to path conversion
         # to fully benefit from vectorized coordinate transformations.
+
+        # Currently xy_world is in deg, but transform function needs it in
+        # native units
+        if self._coord_unit_scale is not None:
+            xy_world /= self._coord_unit_scale
 
         # Transform line to pixel coordinates
         pixel = self.transform.inverted().transform(xy_world)
