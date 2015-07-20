@@ -302,7 +302,7 @@ to degrees, it merely checks that such a conversion is possible, thus verifying
 that the `~astropy.units.Quantity` argument can be used in calculations.
 
 The decorator `~astropy.units.quantity_input` accepts keyword arguments to
-spcifiy which arguments should be validated and what unit they are expected to
+specify which arguments should be validated and what unit they are expected to
 be compatible with:
 
     >>> @u.quantity_input(myarg=u.deg)
