@@ -222,6 +222,9 @@ def test_data_noastropy_fallback(monkeypatch):
     monkeypatch.setenv(str('XDG_CACHE_HOME'), 'bar')
     monkeypatch.delenv(str('XDG_CACHE_HOME'))
 
+    monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
+    monkeypatch.setattr(paths.set_temp_cache, '_temp_path', None)
+
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
     def osraiser(dirnm, linkto):
@@ -334,6 +337,7 @@ def test_invalid_location_download():
 
     with pytest.raises(URLError):
         download_file('http://astropy.org/nonexistentfile')
+
 
 def test_invalid_location_download_noconnect():
     """
