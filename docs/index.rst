@@ -20,7 +20,7 @@ intended for inclusion in the Astropy package once stable.
    overlaying_coordinate_systems.rst
    slicing_datacubes.rst
    initializing_axes.rst
-   changing_axis_unit.rst
+   controlling_axes.rst
    custom_frames.rst
    api.rst
 
