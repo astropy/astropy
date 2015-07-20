@@ -1179,3 +1179,12 @@ def test_repr_array_of_quantity():
     else:
         assert repr(a) == 'array([<Quantity 1.0 m>, <Quantity 2.0 s>], dtype=object)'
         assert str(a) == '[<Quantity 1.0 m> <Quantity 2.0 s>]'
+
+
+def test_quantity_assert_repr(capsys):
+    a = u.Quantity([0., 0.], 'degree')
+    b = u.Quantity([1., 1.], 'degree')
+    with pytest.raises(AssertionError) as e:
+        assert_allclose(a, b)
+
+    assert '<Quantity [ 0., 0.] deg>' in str(e.value)
