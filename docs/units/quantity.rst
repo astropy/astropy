@@ -87,7 +87,7 @@ feature needs to be explicitly turned on:
 
     >>> from astropy.visualization import quantity_support
     >>> quantity_support()
-    <astropy.visualization.units.MplQuantityConverter object at ...>
+    <astropy.visualization.units.MplQuantityConverter ...>
 
 Then |quantity| objects can be passed to matplotlib plotting
 functions.  The axis labels are automatically labeled with the unit of
