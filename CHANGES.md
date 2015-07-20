@@ -1,4 +1,4 @@
-0.5 (unreleased)
+0.6 (2015-07-20)
 ----------------
 
 - Fix a bug that caused ticks and labels to be incorrect if a WCS object was
