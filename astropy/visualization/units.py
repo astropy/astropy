@@ -80,8 +80,6 @@ def quantity_support():
         @staticmethod
         def default_units(x, axis):
             if hasattr(x, 'unit'):
-                if x.unit.is_equivalent(u.radian):
-                    return u.radian
                 return x.unit
             return None
 
