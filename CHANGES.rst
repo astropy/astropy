@@ -8,6 +8,15 @@ New Features
 
 - ``astropy.config``
 
+  - Added new tools ``set_temp_config`` and ``set_temp_cache`` which can be
+    used either as function decorators or context managers to temporarily
+    use alternative directories in which to read/write the Astropy config
+    files and download caches respectively.  This is especially useful for
+    testing, though ``set_temp_cache`` may also be used as a way to provide
+    an alternative (application specific) download cache for large data files,
+    rather than relying on the default cache location in users' home
+    directories. [#3975]
+
 - ``astropy.conftest.py``
 
 - ``astropy.constants``
@@ -138,6 +147,12 @@ New Features
     [#3925]
 
 - ``astropy.tests``
+
+  - Added new test config options, ``config_dir`` and ``cache_dir``  (these
+    can be edited in ``setup.cfg`` or as extra command-line options to
+    py.test) for setting the locations to use for the Astropy config files
+    and download caches (see also the related ``set_temp_config/cache``
+    features added in ``astropy.config``). [#3975]
 
 - ``astropy.time``
 
