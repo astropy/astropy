@@ -61,7 +61,6 @@ if _wcs is not None:
             "later on the 5.x series are known to work.  The version of wcslib "
             "that ships with astropy may be used.")
 
-from ..utils import deprecated, deprecated_attribute
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
