@@ -79,6 +79,10 @@ New Features
     longer, more descriptive names (e.g. ``Pix2Sky_Gnomonic``).
     [#3583]
 
+  - All of the standard FITS WCS projection types have been
+    implemented in ``astropy.modeling.projections`` (by wrapping
+    WCSLIB). [#3906]
+
   - Added ``Sersic1D`` and ``Sersic2D`` model classes. [#3889]
 
   - Added the Voigt profile to existing models. [#3901]
@@ -105,8 +109,8 @@ New Features
 
   - Added the ``bayesian_blocks`` routine, which implements a dynamic algorithm
     for locating change-points in various time series. [#3756]
-  - A new function ``poisson_conf_interval()`` was added to allow easy calculation 
-    of several standard formulae for the error bars on the mean of a Poisson variable 
+  - A new function ``poisson_conf_interval()`` was added to allow easy calculation
+    of several standard formulae for the error bars on the mean of a Poisson variable
     estimated from a single sample.
 
 - ``astropy.table``
