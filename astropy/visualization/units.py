@@ -45,6 +45,13 @@ def quantity_support():
             return '{0}π/2'.format(n)
 
     class MplQuantityConverter(units.ConversionInterface):
+        def __init__(self):
+            if u.Quantity not in units.registry[u.Quantity]:
+                units.registry[u.Quantity] = mpl_quantity_converter
+                self._remove = True
+            else:
+                self._remove = False
+
         @staticmethod
         def axisinfo(unit, axis):
             if unit == u.radian:
@@ -82,9 +89,7 @@ def quantity_support():
             return self
 
         def __exit__(self, type, value, tb):
-            del units.registry[u.Quantity]
+            if self._remove:
+                del units.registry[u.Quantity]
 
-    mpl_quantity_converter = MplQuantityConverter()
-    units.registry[u.Quantity] = mpl_quantity_converter
-
-    return mpl_quantity_converter
+    return MplQuantityConverter()
