@@ -14,7 +14,7 @@ from astropy.wcs.utils import skycoord_to_pixel
 
 __all__ = ['extract_array', 'add_array', 'subpixel_indices',
            'overlap_slices', 'block_reduce', 'block_replicate',
-           'NoOverlapError', 'PartialOverlapError', 'Cutout']
+           'NoOverlapError', 'PartialOverlapError', 'Cutout2D']
 
 
 class NoOverlapError(ValueError):
@@ -471,7 +471,7 @@ def block_replicate(data, block_size, conserve_sum=True):
     return data
 
 
-class Cutout(object):
+class Cutout2D(object):
     def __init__(self, data, position, shape, wcs=None, mode='trim',
                  fill_value=np.nan):
         """
@@ -525,16 +525,16 @@ class Cutout(object):
 
         Returns
         -------
-        result : `~astropy.nddata.utils.Cutout`
+        result : `~astropy.nddata.utils.Cutout2D`
             A cutout object containing the 2D cutout data array and the
             updated WCS, if ``wcs`` is input.
 
         Examples
         --------
         >>> import numpy as np
-        >>> from astropy.nddata.utils import Cutout
+        >>> from astropy.nddata.utils import Cutout2D
         >>> data = np.arange(20.).reshape(5, 4)
-        >>> c1 = Cutout(data, (2, 2), (3, 3))
+        >>> c1 = Cutout2D(data, (2, 2), (3, 3))
         >>> print(c1.data)
         [[  5.   6.   7.]
          [  9.  10.  11.]
@@ -547,12 +547,12 @@ class Cutout(object):
         >>> print(c1.origin_large)
         (1, 1)
 
-        >>> c2 = Cutout(data, (0, 0), (3, 3))
+        >>> c2 = Cutout2D(data, (0, 0), (3, 3))
         >>> print(c2.data)
         [[ 0.  1.]
          [ 4.  5.]]
 
-        >>> c3 = Cutout(data, (0, 0), (3, 3), mode='partial')
+        >>> c3 = Cutout2D(data, (0, 0), (3, 3), mode='partial')
         >>> print(c3.data)
         [[ nan  nan  nan]
          [ nan   0.   1.]

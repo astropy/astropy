@@ -16,10 +16,11 @@ Cutout Images
 Getting Started
 ^^^^^^^^^^^^^^^
 
-The `~astropy.nddata.utils.Cutout` class can be used to create a
+The `~astropy.nddata.utils.Cutout2D` class can be used to create a
 postage stamp cutout image from a 2D array.  If an optional
-`~astropy.wcs.WCS` object is input to `~astropy.nddata.utils.Cutout`,
-then the `~astropy.nddata.utils.Cutout` object will contain an updated
+`~astropy.wcs.WCS` object is input to
+`~astropy.nddata.utils.Cutout2D`, then the
+`~astropy.nddata.utils.Cutout2D` object will contain an updated
 `~astropy.wcs.WCS` corresponding to the cutout array.
 
 First, let's create a simple 2D data array::
@@ -49,13 +50,13 @@ Now let's create a cutout array for the single object in this image.
 We create a cutout array centered at position ``(100.1, 49.7)`` (``(y,
 x)``) with a shape of ``(40, 50)`` (``(ny, nx)``)::
 
-    >>> from astropy.nddata import Cutout
+    >>> from astropy.nddata import Cutout2D
     >>> position = (100.1, 49.7)
     >>> shape = (40, 50)
-    >>> cutout = Cutout(data, position, shape)
+    >>> cutout = Cutout2D(data, position, shape)
 
 The cutout array is stored in the ``data`` attribute of the
-`~astropy.nddata.utils.Cutout` instance:
+`~astropy.nddata.utils.Cutout2D` instance:
 
 .. doctest-skip::
 
@@ -66,12 +67,12 @@ The cutout array is stored in the ``data`` attribute of the
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling.models import Gaussian2D
-    from astropy.nddata import Cutout
+    from astropy.nddata import Cutout2D
     y, x = np.mgrid[0:500, 0:500]
     data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
     position = (100.1, 49.7)
     shape = (40, 50)
-    cutout = Cutout(data, position, shape)
+    cutout = Cutout2D(data, position, shape)
     plt.imshow(cutout.data, origin='lower')
 
 Many other properties of the cutout array are also stored as
@@ -105,7 +106,7 @@ attributes, including::
     >>> print(cutout.slices_small)
     (slice(0, 40, None), slice(0, 50, None))
 
-There are also two `~astropy.nddata.utils.Cutout` methods to convert
+There are also two `~astropy.nddata.utils.Cutout2D` methods to convert
 pixel positions between the large and cutout arrays::
 
     >>> print(cutout.to_large((1, 2)))
@@ -135,7 +136,7 @@ The default uses ``mode='trim'``, which can result in cutout arrays
 that are smaller than the requested ``shape``::
 
     >>> data2 = np.arange(20.).reshape(5, 4)
-    >>> c1 = Cutout(data2, (0, 0), (3, 3), mode='trim')
+    >>> c1 = Cutout2D(data2, (0, 0), (3, 3), mode='trim')
     >>> print(c1.data)
     [[ 0.  1.]
      [ 4.  5.]]
@@ -146,7 +147,7 @@ With ``mode='partial'``, the cutout will never be trimmed.  Instead it
 will be filled with ``fill_value`` (the default is ``numpy.nan``) if
 the cutout is not fully contained in the data array::
 
-    >>> c2 = Cutout(data2, (0, 0), (3, 3), mode='partial')
+    >>> c2 = Cutout2D(data2, (0, 0), (3, 3), mode='partial')
     >>> print(c2.data)
     [[ nan  nan  nan]
      [ nan   0.   1.]
@@ -170,7 +171,7 @@ fully contained in the data array:
 
 .. doctest-skip::
 
-    >>> c3 = Cutout(data2, (0, 0), (3, 3), mode='strict')
+    >>> c3 = Cutout2D(data2, (0, 0), (3, 3), mode='strict')
     PartialOverlapError: Arrays overlap only partially.
 
 

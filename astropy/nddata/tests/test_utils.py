@@ -8,7 +8,7 @@ from ...tests.helper import pytest
 from ..utils import (extract_array, add_array, subpixel_indices,
                      block_reduce, block_replicate,
                      overlap_slices, NoOverlapError, PartialOverlapError,
-                     Cutout)
+                     Cutout2D)
 from ...wcs import WCS
 from ...coordinates import SkyCoord
 
@@ -322,7 +322,7 @@ class TestBlockReplicate(object):
             block_replicate(data, (2, 2))
 
 
-class TestCutout(object):
+class TestCutout2D(object):
     def setup_class(self):
         self.data = np.arange(20.).reshape(5, 4)
         self.position = SkyCoord('13h11m29.96s -01d19m18.7s', frame='icrs')
@@ -339,7 +339,7 @@ class TestCutout(object):
     def test_cutout(self):
         position = (2.1, 1.9)
         shape = (3, 3)
-        c = Cutout(self.data, position, shape)
+        c = Cutout2D(self.data, position, shape)
         assert c.data.shape == shape
         assert c.data[1, 1] == 10
         assert c.origin_large == (1, 1)
@@ -357,7 +357,7 @@ class TestCutout(object):
 
     def test_cutout_trim_overlap(self):
         shape = (3, 3)
-        c = Cutout(self.data, (0, 0), shape, mode='trim')
+        c = Cutout2D(self.data, (0, 0), shape, mode='trim')
         assert c.data.shape == (2, 2)
         assert c.data[0, 0] == 0
         assert c.slices_large == (slice(0, 2), slice(0, 2))
@@ -365,7 +365,7 @@ class TestCutout(object):
 
     def test_cutout_partial_overlap(self):
         shape = (3, 3)
-        c = Cutout(self.data, (0, 0), shape, mode='partial')
+        c = Cutout2D(self.data, (0, 0), shape, mode='partial')
         assert c.data.shape == (3, 3)
         assert c.data[1, 1] == 0
         assert c.slices_large == (slice(0, 2), slice(0, 2))
@@ -374,7 +374,7 @@ class TestCutout(object):
     def test_cutout_partial_overlap_fill_value(self):
         shape = (3, 3)
         fill_value = -99
-        c = Cutout(self.data, (0, 0), shape, mode='partial',
+        c = Cutout2D(self.data, (0, 0), shape, mode='partial',
                    fill_value=fill_value)
         assert c.data.shape == (3, 3)
         assert c.data[1, 1] == 0
@@ -382,14 +382,14 @@ class TestCutout(object):
 
     def test_invalid_mode(self):
         with pytest.raises(ValueError):
-            Cutout(self.data, (0, 0), (3, 3), mode='invalid')
+            Cutout2D(self.data, (0, 0), (3, 3), mode='invalid')
 
     def test_skycoord_without_wcs(self):
         with pytest.raises(ValueError):
-            Cutout(self.data, self.position, (3, 3))
+            Cutout2D(self.data, self.position, (3, 3))
 
     def test_skycoord(self):
-        c = Cutout(self.data, self.position, (3, 3), wcs=self.wcs)
+        c = Cutout2D(self.data, self.position, (3, 3), wcs=self.wcs)
         skycoord_large = self.position.from_pixel(c.center_large[1],
                                                   c.center_large[0], self.wcs)
         skycoord_small = self.position.from_pixel(c.center_small[1],
@@ -398,7 +398,7 @@ class TestCutout(object):
         assert_allclose(skycoord_large.dec.value, skycoord_small.dec.value)
 
     def test_skycoord_partial(self):
-        c = Cutout(self.data, self.position, (3, 3), wcs=self.wcs,
+        c = Cutout2D(self.data, self.position, (3, 3), wcs=self.wcs,
                    mode='partial')
         skycoord_large = self.position.from_pixel(c.center_large[1],
                                                   c.center_large[0], self.wcs)
