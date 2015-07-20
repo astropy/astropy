@@ -292,7 +292,7 @@ Instead, only dimensionless values can be converted to plain Python scalars:
 Functions Accepting Quantities
 ------------------------------
 
-Validation of quantity arguments to functions can lead to many repetitons
+Validation of quantity arguments to functions can lead to many repetitions
 of the same checking code. A decorator is provided which verifies that certain
 arguments to a function are `~astropy.units.Quantity` objects and that the units
 are compatible with a desired unit.
