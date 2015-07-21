@@ -544,11 +544,11 @@ class Cutout2D(object):
          [  9.  10.  11.]
          [ 13.  14.  15.]]
 
-        >>> print(c1.center_large)
+        >>> print(c1.center_original)
         (2.0, 2.0)
-        >>> print(c1.center_small)
+        >>> print(c1.center_cutout)
         (1.0, 1.0)
-        >>> print(c1.origin_large)
+        >>> print(c1.origin_original)
         (1, 1)
 
         >>> c2 = Cutout2D(data, (0, 0), (3, 3))
@@ -577,40 +577,40 @@ class Cutout2D(object):
         pos = position[::-1]
 
         data = np.asanyarray(data)
-        self.data, input_position_small  = extract_array(
+        self.data, input_position_cutout  = extract_array(
             data, shape, pos, mode=mode, fill_value=fill_value,
             return_position=True)
-        self.input_position_small = input_position_small[::-1]    # (x, y)
+        self.input_position_cutout = input_position_cutout[::-1]    # (x, y)
 
-        slices_large, slices_small = overlap_slices(data.shape, shape,
+        slices_original, slices_cutout = overlap_slices(data.shape, shape,
                                                     pos, mode=mode)
-        self.slices_large = slices_large
-        self.slices_small = slices_small
+        self.slices_original = slices_original
+        self.slices_cutout = slices_cutout
 
         self.shape = self.data.shape
-        self.input_position_large = position
+        self.input_position_original = position
         self.shape_input = shape
 
-        (self.ymin_large, self.xmin_large,
-         self.ymax_large, self.xmax_large) = self.bbox_large
+        (self.ymin_original, self.xmin_original,
+         self.ymax_original, self.xmax_original) = self.bbox_original
 
-        (self.ymin_small, self.xmin_small,
-         self.ymax_small, self.xmax_small) = self.bbox_small
+        (self.ymin_cutout, self.xmin_cutout,
+         self.ymax_cutout, self.xmax_cutout) = self.bbox_cutout
 
         # the true origin pixel of the cutout array, including any
         # filled cutout values
-        self._origin_large_true = (self.origin_large[0] -
-                                   self.slices_small[1].start,
-                                   self.origin_large[1] -
-                                   self.slices_small[0].start)
+        self._origin_original_true = (self.origin_original[0] -
+                                   self.slices_cutout[1].start,
+                                   self.origin_original[1] -
+                                   self.slices_cutout[0].start)
 
         if wcs is not None:
             self.wcs = copy.deepcopy(wcs)
-            self.wcs.wcs.crpix -= self._origin_large_true
+            self.wcs.wcs.crpix -= self._origin_original_true
         else:
             self.wcs = None
 
-    def to_large(self, cutout_position):
+    def to_original_position(self, cutout_position):
         """
         Convert an ``(x, y)`` position in the cutout array to the original
         ``(x, y)`` position in the original large array.
@@ -626,10 +626,10 @@ class Cutout2D(object):
             The corresponding ``(x, y)`` pixel position in the original
             large array.
         """
-        return tuple(cutout_position[i] + self.origin_large[i]
+        return tuple(cutout_position[i] + self.origin_original[i]
                      for i in [0, 1])
 
-    def from_large(self, original_position):
+    def to_cutout_position(self, original_position):
         """
         Convert an ``(x, y)`` position in the original large array to
         the ``(x, y)`` position in the cutout array.
@@ -645,7 +645,7 @@ class Cutout2D(object):
             The corresponding ``(x, y)`` pixel position in the cutout
             array.
         """
-        return tuple(original_position[i] - self.origin_large[i]
+        return tuple(original_position[i] - self.origin_original[i]
                      for i in [0, 1])
 
     @staticmethod
@@ -672,75 +672,76 @@ class Cutout2D(object):
                 slices[0].stop - 1, slices[1].stop - 1)
 
     @lazyproperty
-    def origin_large(self):
+    def origin_original(self):
         """
         The ``(x, y)`` index of the origin pixel of the cutout with
-        respect to the large array.  For ``mode='partial'``, the origin
-        pixel is calculated for the valid (non-filled) cutout values.
+        respect to the original array.  For ``mode='partial'``, the
+        origin pixel is calculated for the valid (non-filled) cutout
+        values.
         """
-        return (self.slices_large[1].start, self.slices_large[0].start)
+        return (self.slices_original[1].start, self.slices_original[0].start)
 
     @lazyproperty
-    def origin_small(self):
+    def origin_cutout(self):
         """
         The ``(x, y)`` index of the origin pixel of the cutout with
-        respect to the small array.  For ``mode='partial'``, the origin
+        respect to the cutout array.  For ``mode='partial'``, the origin
         pixel is calculated for the valid (non-filled) cutout values.
         """
-        return (self.slices_small[1].start, self.slices_small[0].start)
+        return (self.slices_cutout[1].start, self.slices_cutout[0].start)
 
     @lazyproperty
-    def position_large(self):
+    def position_original(self):
         """
         The ``(x, y)`` position index (rounded to the nearest pixel) in
-        the large array.
+        the original array.
         """
-        return (_round(self.input_position_large[0]),
-                _round(self.input_position_large[1]))
+        return (_round(self.input_position_original[0]),
+                _round(self.input_position_original[1]))
 
     @lazyproperty
-    def position_small(self):
+    def position_cutout(self):
         """
         The ``(x, y)`` position index (rounded to the nearest pixel) in
         the cutout array.
         """
-        return (_round(self.input_position_small[0]),
-                _round(self.input_position_small[1]))
+        return (_round(self.input_position_cutout[0]),
+                _round(self.input_position_cutout[1]))
 
     @lazyproperty
-    def center_large(self):
+    def center_original(self):
         """
         The central ``(x, y)`` position of the cutout array with respect
-        to the large array.  For ``mode='partial'``, the central
+        to the original array.  For ``mode='partial'``, the central
         position is calculated for the valid (non-filled) cutout values.
         """
-        return self._calc_center(self.slices_large)
+        return self._calc_center(self.slices_original)
 
     @lazyproperty
-    def center_small(self):
+    def center_cutout(self):
         """
         The central ``(x, y)`` position of the cutout array with respect
         to the cutout array.  For ``mode='partial'``, the central
         position is calculated for the valid (non-filled) cutout values.
         """
-        return self._calc_center(self.slices_small)
+        return self._calc_center(self.slices_cutout)
 
     @lazyproperty
-    def bbox_large(self):
+    def bbox_original(self):
         """
         The bounding box ``(ymin, xmin, ymax, xmax)`` of the minimal
-        rectangular region of the cutout array with respect to the large
-        array.  For ``mode='partial'``, the bounding box indices are for
-        the valid (non-filled) cutout values.
+        rectangular region of the cutout array with respect to the
+        original array.  For ``mode='partial'``, the bounding box
+        indices are for the valid (non-filled) cutout values.
         """
-        return self._calc_bbox(self.slices_large)
+        return self._calc_bbox(self.slices_original)
 
     @lazyproperty
-    def bbox_small(self):
+    def bbox_cutout(self):
         """
         The bounding box ``(ymin, xmin, ymax, xmax)`` of the minimal
         rectangular region of the cutout array with respect to the
         cutout array.  For ``mode='partial'``, the bounding box indices
         are for the valid (non-filled) cutout values.
         """
-        return self._calc_bbox(self.slices_small)
+        return self._calc_bbox(self.slices_cutout)

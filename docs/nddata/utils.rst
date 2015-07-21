@@ -84,36 +84,36 @@ attributes, including::
     (40, 50)
 
     >>> # rounded pixel index of the input position
-    >>> print(cutout.position_large)
+    >>> print(cutout.position_original)
     (50, 100)
 
     >>> # corresponding position in the cutout array
-    >>> print(cutout.position_small)
-    (20, 25)
+    >>> print(cutout.position_cutout)
+    (25, 20)
 
-    >>> # (non-rounded) input position in both the large and cutout arrays
-    >>> print(cutout.input_position_large, cutout.input_position_small)    # doctest: +FLOAT_CMP
-    ((49.7, 100.1, 49.7), (24.700000000000003, 20.099999999999994))
+    >>> # (non-rounded) input position in both the original and cutout arrays
+    >>> print(cutout.input_position_original, cutout.input_position_cutout)    # doctest: +FLOAT_CMP
+    ((49.7, 100.1), (24.700000000000003, 20.099999999999994))
 
     >>> # the origin pixel in both arrays
-    >>> print(cutout.origin_large, cutout.origin_small)
+    >>> print(cutout.origin_original, cutout.origin_cutout)
     ((25, 80), (0, 0))
 
-    >>> # tuple of slice objects for the large array
-    >>> print(cutout.slices_large)
+    >>> # tuple of slice objects for the original array
+    >>> print(cutout.slices_original)
     (slice(80, 120, None), slice(25, 75, None))
 
     >>> # tuple of slice objects for the cutout array
-    >>> print(cutout.slices_small)
+    >>> print(cutout.slices_cutout)
     (slice(0, 40, None), slice(0, 50, None))
 
 There are also two `~astropy.nddata.utils.Cutout2D` methods to convert
-pixel positions between the large and cutout arrays::
+pixel positions between the original and cutout arrays::
 
-    >>> print(cutout.to_large((2, 1)))
+    >>> print(cutout.to_original_position((2, 1)))
     (27, 81)
 
-    >>> print(cutout.from_large((27, 81)))
+    >>> print(cutout.to_cutout_position((27, 81)))
     (2, 1)
 
 
@@ -141,7 +141,7 @@ that are smaller than the requested ``shape``::
     >>> print(c1.data)
     [[ 0.  1.]
      [ 4.  5.]]
-    >>> print(c1.position_large, c1.position_small)
+    >>> print(c1.position_original, c1.position_cutout)
     ((0, 0), (0, 0))
 
 With ``mode='partial'``, the cutout will never be trimmed.  Instead it
@@ -158,13 +158,13 @@ Note that for the ``'partial'`` mode, the positions (and several other
 attributes) are calculated for on the *valid* (non-filled) cutout
 values::
 
-    >>> print(c2.position_large, c2.position_small)
+    >>> print(c2.position_original, c2.position_cutout)
     ((0, 0), (1, 1))
-    >>> print(c2.origin_large, c2.origin_small)
+    >>> print(c2.origin_original, c2.origin_cutout)
     ((0, 0), (1, 1))
-    >>> print(c2.slices_large)
+    >>> print(c2.slices_original)
     (slice(0, 2, None), slice(0, 2, None))
-    >>> print(c2.slices_small)
+    >>> print(c2.slices_cutout)
     (slice(1, 3, None), slice(1, 3, None))
 
 Using ``mode='strict'`` will raise an exception if the cutout is not
@@ -240,10 +240,10 @@ positions::
     <SkyCoord (ICRS): (ra, dec) in deg
         (197.8747893, -1.32207626)>
 
-We now find the corresponding pixel in the large ``data`` array and
+We now find the corresponding pixel in the original ``data`` array and
 its sky coordinates::
 
-    >>> y_data, x_data = cutout.to_large((y_cutout, x_cutout))
+    >>> y_data, x_data = cutout.to_original_position((y_cutout, x_cutout))
     >>> pixel_to_skycoord(x_data, y_data, wcs)    # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
         (197.8747893, -1.32207626)>

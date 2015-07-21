@@ -342,34 +342,34 @@ class TestCutout2D(object):
         c = Cutout2D(self.data, position, shape)
         assert c.data.shape == shape
         assert c.data[1, 1] == 10
-        assert c.origin_large == (1, 1)
-        assert c.origin_small == (0, 0)
-        assert c.input_position_large == position
-        assert_allclose(c.input_position_small, (1.1, 0.9))
-        assert c.position_large == (2., 2.)
-        assert c.position_small == (1., 1.)
-        assert c.center_large == (2., 2.)
-        assert c.center_small == (1., 1.)
-        assert c.bbox_large == (1, 1, 3, 3)
-        assert c.bbox_small == (0, 0, 2, 2)
-        assert c.slices_large == (slice(1, 4), slice(1, 4))
-        assert c.slices_small == (slice(0, 3), slice(0, 3))
+        assert c.origin_original == (1, 1)
+        assert c.origin_cutout == (0, 0)
+        assert c.input_position_original == position
+        assert_allclose(c.input_position_cutout, (1.1, 0.9))
+        assert c.position_original == (2., 2.)
+        assert c.position_cutout == (1., 1.)
+        assert c.center_original == (2., 2.)
+        assert c.center_cutout == (1., 1.)
+        assert c.bbox_original == (1, 1, 3, 3)
+        assert c.bbox_cutout == (0, 0, 2, 2)
+        assert c.slices_original == (slice(1, 4), slice(1, 4))
+        assert c.slices_cutout == (slice(0, 3), slice(0, 3))
 
     def test_cutout_trim_overlap(self):
         shape = (3, 3)
         c = Cutout2D(self.data, (0, 0), shape, mode='trim')
         assert c.data.shape == (2, 2)
         assert c.data[0, 0] == 0
-        assert c.slices_large == (slice(0, 2), slice(0, 2))
-        assert c.slices_small == (slice(0, 2), slice(0, 2))
+        assert c.slices_original == (slice(0, 2), slice(0, 2))
+        assert c.slices_cutout == (slice(0, 2), slice(0, 2))
 
     def test_cutout_partial_overlap(self):
         shape = (3, 3)
         c = Cutout2D(self.data, (0, 0), shape, mode='partial')
         assert c.data.shape == (3, 3)
         assert c.data[1, 1] == 0
-        assert c.slices_large == (slice(0, 2), slice(0, 2))
-        assert c.slices_small == (slice(1, 3), slice(1, 3))
+        assert c.slices_original == (slice(0, 2), slice(0, 2))
+        assert c.slices_cutout == (slice(1, 3), slice(1, 3))
 
     def test_cutout_partial_overlap_fill_value(self):
         shape = (3, 3)
@@ -389,7 +389,7 @@ class TestCutout2D(object):
         shape = (3, 3)
         c = Cutout2D(self.data, position, shape)
         xy = (0, 0)
-        result = c.from_large(c.to_large(xy))
+        result = c.to_cutout_position(c.to_original_position(xy))
         assert_allclose(result, xy)
 
     def test_skycoord_without_wcs(self):
@@ -398,19 +398,23 @@ class TestCutout2D(object):
 
     def test_skycoord(self):
         c = Cutout2D(self.data, self.position, (3, 3), wcs=self.wcs)
-        skycoord_large = self.position.from_pixel(c.center_large[1],
-                                                  c.center_large[0], self.wcs)
-        skycoord_small = self.position.from_pixel(c.center_small[1],
-                                                  c.center_small[0], c.wcs)
-        assert_allclose(skycoord_large.ra.value, skycoord_small.ra.value)
-        assert_allclose(skycoord_large.dec.value, skycoord_small.dec.value)
+        skycoord_original = self.position.from_pixel(c.center_original[1],
+                                                     c.center_original[0],
+                                                     self.wcs)
+        skycoord_cutout = self.position.from_pixel(c.center_cutout[1],
+                                                   c.center_cutout[0], c.wcs)
+        assert_allclose(skycoord_original.ra.value, skycoord_cutout.ra.value)
+        assert_allclose(skycoord_original.dec.value,
+                        skycoord_cutout.dec.value)
 
     def test_skycoord_partial(self):
         c = Cutout2D(self.data, self.position, (3, 3), wcs=self.wcs,
                    mode='partial')
-        skycoord_large = self.position.from_pixel(c.center_large[1],
-                                                  c.center_large[0], self.wcs)
-        skycoord_small = self.position.from_pixel(c.center_small[1],
-                                                  c.center_small[0], c.wcs)
-        assert_allclose(skycoord_large.ra.value, skycoord_small.ra.value)
-        assert_allclose(skycoord_large.dec.value, skycoord_small.dec.value)
+        skycoord_original = self.position.from_pixel(c.center_original[1],
+                                                     c.center_original[0],
+                                                     self.wcs)
+        skycoord_cutout = self.position.from_pixel(c.center_cutout[1],
+                                                   c.center_cutout[0], c.wcs)
+        assert_allclose(skycoord_original.ra.value, skycoord_cutout.ra.value)
+        assert_allclose(skycoord_original.dec.value,
+                        skycoord_cutout.dec.value)
