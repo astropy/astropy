@@ -527,6 +527,69 @@ with FITS tables some users might find the ``fitsio`` library more to their
 liking.
 
 
+I'm opening many FITS files in a loop and getting OSError: Too many open files
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Say you have some code like:
+
+.. doctest-skip::
+
+    >>> from astropy.io import fits
+    >>> for filename in filenames:
+    ...     hdul = fits.open(filename)
+    ...     for hdu in hdul:
+    ...         hdu_data = hdul.data
+    ...         # Do some stuff with the data
+    ...     hdul.close()
+    ...
+
+The details may differ, but the qualitative point is that the data to many
+HDUs and/or FITS files are being accessed in a loop.  This may result in
+an exception like::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 2, in <module>
+    OSError: [Errno 24] Too many open files: 'my_data.fits'
+
+As explained in the :ref:`note on working with large files <fits-large-files>`,
+because Astropy uses mmap by default to read the data in a FITS file, even if
+you correctly close a file with `HDUList.close <astropy.io.fits.HDUList.close>`
+a handle is kept open to that file so that the memory-mapped data array can
+still be continued to be read transparently.
+
+The way Numpy supports mmap is such that the file mapping is not closed until
+the overlying `~numpy.ndarray` object has no references to it and is freed
+memory.  However, when looping over a large number of files (or even just HDUs)
+rapidly, this may not happen immediately.  Or in some cases if the HDU object
+persists, the data array attached to it may persist too.  The easiest
+workaround is to *manually* delete the ``.data`` attribute on the HDU object so
+that the `~numpy.ndarray` reference is freed and the mmap can be closed:
+
+.. doctest-skip::
+
+    >>> from astropy.io import fits
+    >>> for filename in filenames:
+    ...     hdul = fits.open(filename)
+    ...     for hdu in hdul:
+    ...         hdu_data = hdul.data
+    ...         # Do some stuff with the data
+    ...         # ...
+    ...         # Don't need the data anymore; delete all references to it
+    ...         # so that it can be garbage collected
+    ...         del hdu_data
+    ...         del hdu.data
+    ...     hdul.close()
+    ...
+
+In some extreme cases files are opened and closed fast enough that Python's
+garbage collector does not free them (and hence free the file handles) often
+enough.  To mitigate this your code can manually force a garbage collection
+by calling :func:`gc.collect` at the end of the loop.
+
+In a future release it will be easier to automatically perform this sort of
+cleanup when closing FITS files, where needed.
+
+
 Comparison with Other FITS Readers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
