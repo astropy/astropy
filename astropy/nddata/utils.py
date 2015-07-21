@@ -660,6 +660,37 @@ class Cutout2D(object):
         return tuple(original_position[i] - self.origin_original[i]
                      for i in [0, 1])
 
+    def plot_on_original(self, ax=None, fill=False, **kwargs):
+        """
+        Plot the cutout region on a matplotlib Axes instance.
+
+        Parameters
+        ----------
+        ax : `matplotlib.axes.Axes` instance, optional
+            If `None`, then the current ``Axes`` instance is used.
+
+        fill : bool, optional
+            Set whether to fill the cutout patch.  The default is
+            `False`.
+
+        kwargs : optional
+            Any keyword arguments accepted by `matplotlib.patches.Patch`.
+        """
+
+        import matplotlib.pyplot as plt
+        import matplotlib.patches as mpatches
+
+        kwargs['fill'] = fill
+
+        if ax is None:
+            ax = plt.gca()
+
+        height, width = self.shape
+        hw, hh = width / 2., height / 2.
+        pos = self.position_original - np.array([hw, hh])
+        patch = mpatches.Rectangle(pos, width, height, 0., **kwargs)
+        ax.add_patch(patch)
+
     @staticmethod
     def _calc_center(slices):
         """
