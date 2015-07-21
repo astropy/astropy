@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.8 - an implementation of the FITS WCS standard.
+  WCSLIB 5.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 5.8 2015/07/08 11:03:59 mcalabre Exp $
+  $Id: dis.h,v 5.9 2015/07/21 09:20:01 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 5.8 - C routines that implement the FITS World Coordinate System
+* WCSLIB 5.9 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -72,8 +72,8 @@
 * not know) how to interpret them.  Of the Paper IV distortion functions, only
 * the general Polynomial distortion is currently implemented here.
 *
-* TPV: The TPV "projection"
-* -------------------------
+* TPV - the TPV "projection":
+* ---------------------------
 * The distortion function component of the TPV celestial "projection" is also
 * supported.  The TPV projection, originally proposed in a draft of WCS Paper
 * II, consists of a TAN projection with sequent polynomial distortion, the
@@ -92,15 +92,15 @@
 * WCSLIB would handle a FITS header containing these keywords, along with
 * CQDISia = 'TPV' and the required DQia.NAXES and DQia.AXIS.ihat keywords.
 *
-* SIP: Simple Imaging Polynomial
-* ------------------------------
+* SIP - Simple Imaging Polynomial:
+* --------------------------------
 * These routines also support the Simple Imaging Polynomial (SIP), whose
 * design was influenced by early drafts of WCS Paper IV.  It is described in
 * detail in
 *
 =   http://fits.gsfc.nasa.gov/registry/sip.html
 *
-* SIP, which is defined only as a prior distortion for 2D celestial images,
+* SIP, which is defined only as a prior distortion for 2-D celestial images,
 * has the interesting feature that it records an approximation to the inverse
 * polynomial distortion function.  This is used by disx2p() to provide an
 * initial estimate for its more precise iterative inversion.  The
@@ -118,8 +118,8 @@
 * FITS header containing the above keywords, along with CPDISja = 'SIP' and
 * the required DPja.NAXES keywords.
 *
-* DSS: Digitized Sky Survey
-* -------------------------
+* DSS - Digitized Sky Survey:
+* ---------------------------
 * The Digitized Sky Survey resulted from the production of the Guide Star
 * Catalogue for the Hubble Space Telescope.  Plate solutions based on a
 * polynomial distortion function were encoded in FITS using non-standard
@@ -139,8 +139,8 @@
 * WCSLIB would recognise a FITS header containing the above keywords, along
 * with CQDISia = 'DSS' and the required DQia.NAXES keywords.
 *
-* WAT: The TNX and ZPX "projections"
-* ----------------------------------
+* WAT - the TNX and ZPX "projections":
+* ------------------------------------
 * The TNX and ZPX "projections" add a polynomial distortion function to the
 * standard TAN and ZPN projections respectively.  Unusually, the polynomial
 * may be expressed as the sum of Chebyshev or Legendre polynomials, or as a
@@ -166,10 +166,10 @@
 * the ZPN projection parameters are also encoded in WATi_n, and wcspih()
 * translates these to standard PVi_ma.
 *
-* TPD: Template Polynomial Distortion
-* -----------------------------------
+* TPD - Template Polynomial Distortion:
+* -------------------------------------
 * The "Template Polynomial Distortion" (TPD) is a superset of the TPV, SIP,
-* DSS, and WAT (TNX & ZPX) polynomial distortions that also supports 1D usage
+* DSS, and WAT (TNX & ZPX) polynomial distortions that also supports 1-D usage
 * and inversions.  Like TPV, SIP, and DSS, the form of the polynomial is fixed
 * (the "template") and only the coefficients for the required terms are set
 * non-zero.  TPD generalizes TPV in going to 9th degree, SIP by accomodating
@@ -215,9 +215,9 @@
 * Horner's scheme.
 *
 * Separate implementations for polynomials of each degree, and conditionals
-* for 1D polynomials and 2D polynomials with and without the radial variable,
-* ensure that unused terms mostly do not impose a significant computational
-* overhead.
+* for 1-D polynomials and 2-D polynomials with and without the radial
+* variable, ensure that unused terms mostly do not impose a significant
+* computational overhead.
 *
 * The TPD terms are as follows
 *
@@ -266,8 +266,8 @@
 * expression in terms of a sum of Chebyshev or Legendre polynomials it is much
 * less so. 
 *
-* Summary of the dis routines:
-* ----------------------------
+* Summary of the dis routines
+* ---------------------------
 * These routines apply the distortion functions defined by the extension to
 * the FITS WCS standard proposed in Paper IV.  They are based on the disprm
 * struct which contains all information needed for the computations.  The

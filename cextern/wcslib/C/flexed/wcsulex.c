@@ -6862,7 +6862,7 @@ char *wcsulextext;
 #line 1 "wcsulex.l"
 /*============================================================================
 
-  WCSLIB 5.8 - an implementation of the FITS WCS standard.
+  WCSLIB 5.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -6884,7 +6884,7 @@ char *wcsulextext;
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.c,v 5.8 2015/07/08 11:04:00 mcalabre Exp $
+  $Id: wcsulex.c,v 5.9 2015/07/21 09:20:02 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a
