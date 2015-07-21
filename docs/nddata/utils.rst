@@ -247,7 +247,7 @@ positions::
 We now find the corresponding pixel in the original ``data`` array and
 its sky coordinates::
 
-    >>> y_data, x_data = cutout.to_original_position((y_cutout, x_cutout))
+    >>> x_data, y_data = cutout.to_original_position((x_cutout, y_cutout))
     >>> pixel_to_skycoord(x_data, y_data, wcs)    # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
         (197.8747893, -1.32207626)>

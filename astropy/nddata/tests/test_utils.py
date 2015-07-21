@@ -384,6 +384,21 @@ class TestCutout2D(object):
         with pytest.raises(ValueError):
             Cutout2D(self.data, (0, 0), (3, 3), mode='invalid')
 
+    def test_copy(self):
+        data = np.copy(self.data)
+        c = Cutout2D(data, (2, 3), (3, 3))
+        xy = (0, 0)
+        value = 100.
+        c.data[xy] = value
+        xy_orig = c.to_original_position(xy)
+        yx = xy_orig[::-1]
+        assert data[yx] == value
+
+        data = np.copy(self.data)
+        c2 = Cutout2D(self.data, (2, 3), (3, 3), copy=True)
+        c2.data[xy] = value
+        assert data[yx] != value
+
     def test_to_from_large(self):
         position = (2, 2)
         shape = (3, 3)
