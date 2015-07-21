@@ -74,7 +74,7 @@ from `~astropy.modeling.FittableModel`; if not it should subclass
 `~astropy.modeling.Model`.
 
 If the model takes parameters they should be specified as class attributes in
-the model's class definition using the `~astropy.modeling.Parameter`
+the model's class definition using the `~astropy.modeling.parameters.Parameter`
 descriptor.  All arguments to the Parameter constructor are optional, and may
 include a default value for that parameter, a text description of the parameter
 (useful for `help` and documentation generation), as well default constraints

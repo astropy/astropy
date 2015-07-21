@@ -1,11 +1,17 @@
 .. include:: links.inc
 .. _modeling-instantiating:
 
-***********************************
-Instantiating and Evaluating Models
-***********************************
+************
+Using Models
+************
 
-As demonstrated in the :ref:`quick tutorial <quick_tutorial>`, a model can be
+The module currently supports 1-D and 2-D models. It is designed to be
+easily extensible and flexible.  Models do not reference fitting algorithms
+explicitly and new fitting algorithms may be added without changing the
+existing models (though not all models can be used with all fitting algorithms
+due to constraints such as model linearity).
+
+As demonstrated in the :doc:`quick-tutorial`, a model can be
 instantiated with one set of parameters::
 
     >>> from astropy.modeling import models
