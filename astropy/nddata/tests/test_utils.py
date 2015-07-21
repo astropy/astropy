@@ -384,6 +384,14 @@ class TestCutout2D(object):
         with pytest.raises(ValueError):
             Cutout2D(self.data, (0, 0), (3, 3), mode='invalid')
 
+    def test_to_from_large(self):
+        position = (2, 2)
+        shape = (3, 3)
+        c = Cutout2D(self.data, position, shape)
+        xy = (0, 0)
+        result = c.from_large(c.to_large(xy))
+        assert_allclose(result, xy)
+
     def test_skycoord_without_wcs(self):
         with pytest.raises(ValueError):
             Cutout2D(self.data, self.position, (3, 3))
