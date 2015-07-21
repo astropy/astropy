@@ -85,6 +85,8 @@ Plotting quantities
 |quantity| objects can be conveniently plotted using matplotlib.  This
 feature needs to be explicitly turned on:
 
+.. doctest-requires:: matplotlib
+
     >>> from astropy.visualization import quantity_support
     >>> quantity_support()
     <astropy.visualization.units.MplQuantityConverter ...>
