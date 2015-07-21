@@ -15,6 +15,8 @@ def quantity_support():
 
     May be (optionally) used with a ``with`` statement.
 
+    .. doctest-requires: matplotlib
+
       >>> import matplotlib.pyplot as plt
       >>> from astropy import units as u
       >>> from astropy import visualization
