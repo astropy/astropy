@@ -33,6 +33,10 @@ array.view(Column) -> no indices
 '''
 
 class MaxValue(object):
+    '''
+    Represents an infinite value for purposes
+    of tuple comparison.
+    '''
     def __gt__(self, other):
         return True
 
@@ -54,6 +58,10 @@ class MaxValue(object):
 
 
 class MinValue(object):
+    '''
+    The opposite of MaxValue, i.e. a representation of
+    negative infinity.
+    '''
     def __lt__(self, other):
         return True
 
@@ -74,9 +82,18 @@ class MinValue(object):
     __str__ = __repr__
 
 class QueryError(ValueError):
+    '''
+    Indicates that a given index cannot handle the supplied query.
+    '''
     pass
 
 class Index:
+    '''
+    The Index class makes it possible to maintain indices
+    on columns of a Table, so that column values can be queried
+    quickly and efficiently. Column values are stored in lexicographic
+    sorted order, which allows for binary searching in O(log n).
+    '''
     def __init__(self, columns, impl=None, col_dtypes=None, data=None):
         from .table import Table
         if data is not None: # create from data
@@ -95,6 +112,7 @@ class Index:
             raise ValueError("Cannot create index without at least one column")
         else:
             num_rows = len(columns[0])
+            # sort the table lexicographically and keep row numbers
             table = Table(columns + [np.arange(num_rows)])
             lines = table[np.lexsort(columns[::-1])]
 
@@ -105,15 +123,29 @@ class Index:
         self.columns = columns
 
     def refresh(self, columns):
+        # update index to include correct column references
         self.columns = [columns[x.name] for x in self.columns]
 
     def col_position(self, col):
+        # return the position of col in self.columns
         for i, c in enumerate(self.columns):
             if col.name == c.name:
                 return i
         raise ValueError("Column does not belong to index: {0}".format(col))
 
     def insert_row(self, pos, vals, columns):
+        '''
+        Insert a new row from the given values.
+
+        Parameters
+        ----------
+        pos : int
+            Position at which to insert row
+        vals : list or tuple
+            List of values to insert into a new row
+        columns : list
+            Table column references
+        '''
         key = [None] * len(self.columns)
         for i, col in enumerate(columns):
             try:
@@ -127,6 +159,7 @@ class Index:
     def remove_rows(self, row_specifier):
         # row_specifier must be an int, list of ints, ndarray, or slice
         if isinstance(row_specifier, int):
+            # single row
             self.remove_row(row_specifier)
             return
         elif isinstance(row_specifier, (list, np.ndarray)):
@@ -151,6 +184,7 @@ class Index:
             self.data.shift_left(row)
 
     def remove_row(self, row, reorder=True):
+        # for removal, form a key consisting of column values in this row
         if not self.data.remove(tuple([col[row] for col in self.columns]),
                                 data=row):
             raise ValueError("Could not remove row {0} from index".format(row))
@@ -159,6 +193,7 @@ class Index:
             self.data.shift_left(row)
 
     def find(self, key):
+        # return the row values corresponding to key, in sorted order
         return self.data.find(key)
 
     def where(self, col_map):
@@ -197,12 +232,19 @@ class Index:
         return sorted(result)
 
     def range(self, lower, upper):
+        # return values between lower and upper
         return self.data.range(lower, upper)
 
     def same_prefix(self, key):
+        # return rows whose keys contain supplied key as a prefix
         return self.same_prefix_range(key, key, (True, True))
 
     def same_prefix_range(self, lower, upper, bounds):
+        '''
+        Return rows whose keys have a prefix between lower and upper.
+        The parameter bounds is (x, y) where x <-> inclusive lower bound,
+        y <-> inclusive upper bound
+        '''
         n = len(lower)
         ncols = len(self.columns)
         a = MinValue() if bounds[0] else MaxValue()
@@ -214,16 +256,39 @@ class Index:
         return self.data.range(lower, upper, bounds)
 
     def replace(self, row, col, val):
+        '''
+        Replace the value of a column at a given position.
+
+        Parameters
+        ----------
+        row : int
+            Row number to modify
+        col : Column
+            Column to modify
+        val : col.dtype
+            Value to insert at specified row of col
+        '''
         self.remove_row(row, reorder=False)
         key = [c[row] for c in self.columns]
         key[self.col_position(col)] = val
         self.data.add(tuple(key), row)
 
     def replace_rows(self, col_slice):
+        '''
+        Modify rows in this index to agree with the specified
+        col_slice. For example, given an index
+        {'5': 1, '2': 0, '3': 2} on a column ['2', '5', '3'],
+        an input col_slice of [2, 0] will result in the relabeling
+        {'3': 0, '2': 1} on the sliced column ['3', '2'].
+        '''
         row_map = dict((row, i) for i, row in enumerate(col_slice))
         self.data.replace_rows(row_map)
 
     def sorted_data(self):
+        '''
+        Returns a list of rows in sorted order based on keys;
+        essentially acts as an argsort() on columns
+        '''
         return self.data.sort()
 
     def __getitem__(self, item):
@@ -247,12 +312,19 @@ class Index:
         return index
 
 class SlicedIndex:
+    '''
+    This class provides a wrapper around an actual Index object
+    to make index slicing function correctly. Since numpy expects
+    array slices to provide an actual data view, a SlicedIndex should
+    retrieve data directly from the original index and then adapt
+    it to the sliced coordinate system as appropriate.
+    '''
     def __init__(self, index, index_slice):
         self.index = index
         num_rows = len(index.columns[0])
         if isinstance(index_slice, tuple):
             self.start, self.stop, self.step = index_slice
-        else:
+        else: # index_slice is an actual slice
             self.start, self.stop, self.step = index_slice.indices(num_rows)
         self.length = 1 + (self.stop - self.start - 1) // self.step
 
@@ -268,6 +340,7 @@ class SlicedIndex:
         return SlicedIndex(self.index, (new_start, new_stop, new_step))
 
     def sliced_coords(self, rows):
+        # Convert the input rows to the sliced coordinate system
         if self.step > 0:
             return [(row - self.start) / self.step for row in rows
                     if self.start <= row < self.stop and
@@ -278,6 +351,10 @@ class SlicedIndex:
                     (row - self.start) % self.step == 0]
 
     def orig_coords(self, row):
+        '''
+        Convert the input row from sliced coordinates back
+        to original coordinates.
+        '''
         return self.start + row * self.step
 
     def find(self, key):

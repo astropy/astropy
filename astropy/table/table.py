@@ -1086,7 +1086,6 @@ class Table(object):
         # If that column doesn't already exist then create it now.
         if isinstance(item, six.string_types) and item not in self.colnames:
             NewColumn = self.MaskedColumn if self.masked else self.Column
-
             # If value doesn't have a dtype and won't be added as a mixin then
             # convert to a numpy array.
             if not hasattr(value, 'dtype') and not self._add_as_mixin_column(value):
