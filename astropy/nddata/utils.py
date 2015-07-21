@@ -477,8 +477,11 @@ class Cutout2D(object):
         """
         Create a cutout object from a 2D array.
 
-        The returned object will contain the 2D cutout array and the
-        updated WCS, if a `~astropy.wcs.WCS` object is input.
+        The returned object will contain a view of the 2D cutout array
+        and a copy of the updated WCS, if a `~astropy.wcs.WCS` object is
+        input.
+
+        For example usage, see :ref:`cutout_images`.
 
         Parameters
         ----------

@@ -9,9 +9,10 @@ Overview
 The `astropy.nddata.utils` module includes general utility functions
 for array operations.
 
+.. _cutout_images:
 
-Cutout Images
--------------
+2D Cutout Images
+----------------
 
 Getting Started
 ^^^^^^^^^^^^^^^
@@ -47,8 +48,8 @@ Next, let's display the image:
     plt.imshow(data, origin='lower')
 
 Now let's create a cutout array for the single object in this image.
-We create a cutout array centered at position ``(100.1, 49.7)`` (``(y,
-x)``) with a shape of ``(40, 50)`` (``(ny, nx)``)::
+We create a cutout array centered at position ``(x, y) = (100.1,
+49.7)`` with a shape of ``(ny, nx) = (40, 50)``::
 
     >>> from astropy.nddata import Cutout2D
     >>> position = (100.1, 49.7)
@@ -116,8 +117,8 @@ pixel positions between the large and cutout arrays::
     (1, 2)
 
 
-Cutout modes
-^^^^^^^^^^^^
+2D Cutout modes
+^^^^^^^^^^^^^^^
 
 There are three modes for creating cutout arrays, ``'trim'``,
 ``'partial'``, and ``'strict'``.  For the ``'partial'`` and ``'trim'``
@@ -175,8 +176,8 @@ fully contained in the data array:
     PartialOverlapError: Arrays overlap only partially.
 
 
-Cutout from a `~astropy.coordinates.SkyCoord` position
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2D Cutout from a `~astropy.coordinates.SkyCoord` position
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The input ``position`` can also be specified as a
 `~astropy.coordinates.SkyCoord`, in which case a `~astropy.wcs.WCS`
@@ -201,7 +202,7 @@ your FITS header)::
 Now let's create the cutout array using the
 `~astropy.coordinates.SkyCoord` position and ``wcs`` object::
 
-    >>> cutout = Cutout(data, position, (30, 40), wcs=wcs)
+    >>> cutout = Cutout2D(data, position, (30, 40), wcs=wcs)
     >>> plt.imshow(cutout.data, origin='lower')   # doctest: +SKIP
 
 .. plot::
@@ -209,7 +210,7 @@ Now let's create the cutout array using the
     import numpy as np
     import matplotlib.pyplot as plt
     from astropy.modeling.models import Gaussian2D
-    from astropy.nddata import Cutout
+    from astropy.nddata import Cutout2D
     from astropy.coordinates import SkyCoord
     from astropy.wcs import WCS
     y, x = np.mgrid[0:500, 0:500]
@@ -224,10 +225,10 @@ Now let's create the cutout array using the
     wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     wcs.wcs.crval = [position.ra.value, position.dec.value]
     wcs.wcs.crpix = [100, 50]
-    cutout = Cutout(data, position, (30, 40), wcs=wcs)
-    plt.imshow(cutout.data)
+    cutout = Cutout2D(data, position, (30, 40), wcs=wcs)
+    plt.imshow(cutout.data, origin='lower')
 
-The ``wcs`` attribute of the `~astropy.nddata.utils.Cutout` object now
+The ``wcs`` attribute of the `~astropy.nddata.utils.Cutout2D` object now
 contains the propagated `~astropy.wcs.WCS` for the cutout array.
 Let's find the sky coordinates for a given pixel in the cutout array.
 Note that we need to use the ``cutout.wcs`` object for the cutout
