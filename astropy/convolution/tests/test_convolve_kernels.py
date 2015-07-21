@@ -9,6 +9,7 @@ from numpy.testing import assert_almost_equal
 
 from ..convolve import convolve, convolve_fft
 from ..kernels import Gaussian2DKernel, Box2DKernel, Tophat2DKernel
+from ..kernels import Moffat2DKernel
 from ...tests.helper import pytest
 
 
@@ -34,6 +35,11 @@ for shape in SHAPES_ODD:
                                    factor=10))
 
         KERNELS.append(Tophat2DKernel(width,
+                                      x_size=shape[0],
+                                      y_size=shape[1],
+                                      mode='oversample',
+                                      factor=10))
+        KERNELS.append(Moffat2DKernel(width, 2,
                                       x_size=shape[0],
                                       y_size=shape[1],
                                       mode='oversample',
