@@ -197,9 +197,31 @@ def test_c_projection_striding():
 
     phi, theta = model(coords[:, 0], coords[:, 1])
 
+    utils.assert_almost_equal(
+        phi,
+        [0., 2.2790416, 4.4889294, 6.6250643, 8.68301])
+
+    utils.assert_almost_equal(
+        theta,
+        [-76.4816918, -75.3594654, -74.1256332, -72.784558, -71.3406629])
+
+
+def test_c_projections_shaped():
+    nx, ny = (5, 2)
+    x = np.linspace(0, 1, nx)
+    y = np.linspace(0, 1, ny)
+    xv, yv = np.meshgrid(x, y)
+
+    model = projections.Pix2Sky_TAN()
+
+    phi, theta = model(xv, yv)
+
     utils.assert_allclose(
         phi,
-        [0., 2.31188456, 4.62283148, 6.9319002, 9.23814431])
+        [[0., 90., 90., 90., 90.,],
+         [180., 165.96375653, 153.43494882, 143.13010235, 135.]])
+
     utils.assert_allclose(
         theta,
-        [-76.48169176, -76.44546157, -76.33675621, -76.15553145, -75.90171376])
+        [[90., 89.75000159, 89.50001269, 89.25004283, 89.00010152],
+         [89.00010152, 88.96933478, 88.88210788, 88.75019826,  88.58607353]])

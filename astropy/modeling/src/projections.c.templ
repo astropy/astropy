@@ -96,7 +96,7 @@ static PyObject *do_work(struct prjprm *prj, PyObject *in[2],
 
   Py_BEGIN_ALLOW_THREADS
 
-  status = prjtrn(prj, n, 1, 1, 1,
+  status = prjtrn(prj, n, 0, 1, 1,
                   (double *)PyArray_DATA(in_array[0]),
                   (double *)PyArray_DATA(in_array[1]),
                   (double *)PyArray_DATA(out_array[0]),
