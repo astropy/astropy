@@ -49,7 +49,7 @@ def quantity_support():
 
     class MplQuantityConverter(units.ConversionInterface):
         def __init__(self):
-            if u.Quantity not in units.registry[u.Quantity]:
+            if u.Quantity not in units.registry:
                 units.registry[u.Quantity] = mpl_quantity_converter
                 self._remove = True
             else:
