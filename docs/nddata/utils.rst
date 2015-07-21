@@ -48,8 +48,8 @@ Next, let's display the image:
     plt.imshow(data, origin='lower')
 
 Now let's create a cutout array for the single object in this image.
-We create a cutout array centered at position ``(x, y) = (100.1,
-49.7)`` with a shape of ``(ny, nx) = (40, 50)``::
+We create a cutout array centered at position ``(x, y) = (49.7,
+100.1)`` with a shape of ``(ny, nx) = (40, 50)``::
 
     >>> from astropy.nddata import Cutout2D
     >>> position = (49.7, 100.1)
@@ -57,7 +57,11 @@ We create a cutout array centered at position ``(x, y) = (100.1,
     >>> cutout = Cutout2D(data, position, shape)
 
 The cutout array is stored in the ``data`` attribute of the
-`~astropy.nddata.utils.Cutout2D` instance:
+`~astropy.nddata.utils.Cutout2D` instance.  If the ``copy`` keyword is
+`False` (default), then ``cutout.data`` will be a view into the
+original ``data`` array.  If ``copy=True``, then ``cutout.data`` will
+hold a copy of the original ``data``.  Let's display the cutout
+image:
 
 .. doctest-skip::
 

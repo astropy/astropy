@@ -5,7 +5,7 @@ This module includes helper functions for array operations.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
-import copy
+from copy import deepcopy
 from .decorators import support_nddata
 from astropy.utils import lazyproperty
 from astropy.coordinates import SkyCoord
@@ -473,14 +473,18 @@ def block_replicate(data, block_size, conserve_sum=True):
 
 class Cutout2D(object):
     def __init__(self, data, position, shape, wcs=None, mode='trim',
-                 fill_value=np.nan):
+                 fill_value=np.nan, copy=False):
         """
         Create a cutout object from a 2D array.
 
-        The returned object will contain a 2D cutout array, which is a
-        view into the original ``data`` array.  If a `~astropy.wcs.WCS`
-        object is input, then the returned object will also contain a
-        copy of the original WCS, but updated for the cutout array.
+        The returned object will contain a 2D cutout array.  If
+        ``copy=False`` (default), the cutout array is a view into the
+        original ``data`` array, otherwise the cutout array will contain
+        a copy of the original data.
+
+        If a `~astropy.wcs.WCS` object is input, then the returned
+        object will also contain a copy of the original WCS, but updated
+        for the cutout array.
 
         For example usage, see :ref:`cutout_images`.
 
@@ -526,6 +530,11 @@ class Cutout2D(object):
             cutout array that do not overlap with the input ``data``.
             ``fill_value`` must have the same ``dtype`` as the input
             ``data`` array.
+
+        copy : bool, optional
+            If `False` (default), then the cutout data will be a view
+            into the original ``data`` array.  If `True`, then the
+            cutout data will hold a copy of the original ``data`` array.
 
         Returns
         -------
@@ -577,11 +586,14 @@ class Cutout2D(object):
         pos = position[::-1]
 
         data = np.asanyarray(data)
-        self.data, input_position_cutout  = extract_array(
+        cutout_data, input_position_cutout  = extract_array(
             data, shape, pos, mode=mode, fill_value=fill_value,
             return_position=True)
-        self.input_position_cutout = input_position_cutout[::-1]    # (x, y)
+        if copy:
+            cutout_data = np.copy(cutout_data)
+        self.data = cutout_data
 
+        self.input_position_cutout = input_position_cutout[::-1]    # (x, y)
         slices_original, slices_cutout = overlap_slices(data.shape, shape,
                                                     pos, mode=mode)
         self.slices_original = slices_original
@@ -605,7 +617,7 @@ class Cutout2D(object):
                                    self.slices_cutout[0].start)
 
         if wcs is not None:
-            self.wcs = copy.deepcopy(wcs)
+            self.wcs = deepcopy(wcs)
             self.wcs.wcs.crpix -= self._origin_original_true
         else:
             self.wcs = None
