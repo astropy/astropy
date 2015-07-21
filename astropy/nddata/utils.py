@@ -477,9 +477,10 @@ class Cutout2D(object):
         """
         Create a cutout object from a 2D array.
 
-        The returned object will contain a view of the 2D cutout array
-        and a copy of the updated WCS, if a `~astropy.wcs.WCS` object is
-        input.
+        The returned object will contain a 2D cutout array, which is a
+        view into the original ``data`` array.  If a `~astropy.wcs.WCS`
+        object is input, then the returned object will also contain a
+        copy of the original WCS, but updated for the cutout array.
 
         For example usage, see :ref:`cutout_images`.
 
@@ -491,19 +492,19 @@ class Cutout2D(object):
         position : tuple or `~astropy.coordinates.SkyCoord`
             The position of the cutout array's center with respect to
             the ``data`` array.  The position can be specified either as
-            a ``(y, x)`` (``(row, col)``) tuple of pixel coordinates or
-            a `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is
-            a required input.  For pixel coordinates, integer positions
-            are at the pixel centers.
+            a ``(x, y)`` tuple of pixel coordinates or a
+            `~astropy.coordinates.SkyCoord`, in which case ``wcs`` is a
+            required input.
 
         shape : tuple
-            The shape of the cutout array in pixel coordinates (but see
-            the ``mode`` keyword for additional details).
+            The shape (``(ny, nx)``) of the cutout array in pixel
+            coordinates (but see the ``mode`` keyword for additional
+            details).
 
         wcs : `~astropy.wcs.WCS`, optional
             A WCS object associated with the input ``data`` array.  If
             ``wcs`` is not `None`, then the returned cutout object will
-            contain the updated WCS for the cutout data array.
+            contain a copy of the updated WCS for the cutout data array.
 
         mode : {'trim', 'partial', 'strict'}, optional
             The mode used for creating the cutout data array.  For the
@@ -562,22 +563,27 @@ class Cutout2D(object):
          [ nan   4.   5.]]
         """
 
-        if isinstance(position, SkyCoord):
-            if wcs is None:
-                raise ValueError('wcs must be input if position is a '
-                                 'SkyCoord')
-            position = skycoord_to_pixel(position, wcs, mode='all')
-
         if mode not in ['partial', 'trim', 'strict']:
             raise ValueError("Valid modes are 'partial', 'trim', and "
                              "'strict'.")
 
+        if isinstance(position, SkyCoord):
+            if wcs is None:
+                raise ValueError('wcs must be input if position is a '
+                                 'SkyCoord')
+            position = skycoord_to_pixel(position, wcs, mode='all')  # (x, y)
+
+        # extract_array and overlap_slices use (y, x) positions
+        pos = position[::-1]
+
         data = np.asanyarray(data)
-        self.data, self.input_position_small  = extract_array(data, shape,
-            position, mode=mode, fill_value=fill_value, return_position=True)
+        self.data, input_position_small  = extract_array(
+            data, shape, pos, mode=mode, fill_value=fill_value,
+            return_position=True)
+        self.input_position_small = input_position_small[::-1]    # (x, y)
 
         slices_large, slices_small = overlap_slices(data.shape, shape,
-                                                    position, mode=mode)
+                                                    pos, mode=mode)
         self.slices_large = slices_large
         self.slices_small = slices_small
 
@@ -593,9 +599,9 @@ class Cutout2D(object):
 
         # the true origin pixel of the cutout array, including any
         # filled cutout values
-        self._origin_large_true = (self.origin_large[1] -
+        self._origin_large_true = (self.origin_large[0] -
                                    self.slices_small[1].start,
-                                   self.origin_large[0] -
+                                   self.origin_large[1] -
                                    self.slices_small[0].start)
 
         if wcs is not None:
@@ -604,41 +610,43 @@ class Cutout2D(object):
         else:
             self.wcs = None
 
-    def to_large(self, position):
+    def to_large(self, cutout_position):
         """
-        Calculate the pixel position in the large array corresponding to
-        the input pixel position in the cutout array.
+        Convert an ``(x, y)`` position in the cutout array to the original
+        ``(x, y)`` position in the original large array.
 
         Parameters
         ----------
-        position : tuple
-            The ``(y, x)`` pixel position in the cutout array.
+        cutout_position : tuple
+            The ``(x, y)`` pixel position in the cutout array.
 
         Returns
         -------
-        position : tuple
-            The corresponding ``(y, x)`` pixel position in the large
-            array.
+        original_position : tuple
+            The corresponding ``(x, y)`` pixel position in the original
+            large array.
         """
-        return tuple(position[i] + self.origin_large[i] for i in [0, 1])
+        return tuple(cutout_position[i] + self.origin_large[i]
+                     for i in [0, 1])
 
-    def from_large(self, position):
+    def from_large(self, original_position):
         """
-        Calculate the pixel position in the cutout array corresponding to
-        the input pixel position in the large array.
+        Convert an ``(x, y)`` position in the original large array to
+        the ``(x, y)`` position in the cutout array.
 
         Parameters
         ----------
-        position : tuple
-            The ``(y, x)`` pixel position in the large array.
+        original_position : tuple
+            The ``(x, y)`` pixel position in the original large array.
 
         Returns
         -------
-        position : tuple
-            The corresponding ``(y, x)`` pixel position in the cutout
+        cutout_position : tuple
+            The corresponding ``(x, y)`` pixel position in the cutout
             array.
         """
-        return tuple(position[i] - self.origin_large[i] for i in [0, 1])
+        return tuple(original_position[i] - self.origin_large[i]
+                     for i in [0, 1])
 
     @staticmethod
     def _calc_center(slices):
@@ -649,7 +657,7 @@ class Cutout2D(object):
         values.
         """
         return tuple(0.5 * (slices[i].start + slices[i].stop - 1)
-                     for i in [0, 1])
+                     for i in [1, 0])
 
     @staticmethod
     def _calc_bbox(slices):
@@ -666,26 +674,26 @@ class Cutout2D(object):
     @lazyproperty
     def origin_large(self):
         """
-        The ``(y, x)`` index of the origin pixel of the cutout with
+        The ``(x, y)`` index of the origin pixel of the cutout with
         respect to the large array.  For ``mode='partial'``, the origin
         pixel is calculated for the valid (non-filled) cutout values.
         """
-        return (self.slices_large[0].start, self.slices_large[1].start)
+        return (self.slices_large[1].start, self.slices_large[0].start)
 
     @lazyproperty
     def origin_small(self):
         """
-        The ``(y, x)`` index of the origin pixel of the cutout with
+        The ``(x, y)`` index of the origin pixel of the cutout with
         respect to the small array.  For ``mode='partial'``, the origin
         pixel is calculated for the valid (non-filled) cutout values.
         """
-        return (self.slices_small[0].start, self.slices_small[1].start)
+        return (self.slices_small[1].start, self.slices_small[0].start)
 
     @lazyproperty
     def position_large(self):
         """
-        The position index (rounded to the nearest pixel) in the large
-        array.
+        The ``(x, y)`` position index (rounded to the nearest pixel) in
+        the large array.
         """
         return (_round(self.input_position_large[0]),
                 _round(self.input_position_large[1]))
@@ -693,8 +701,8 @@ class Cutout2D(object):
     @lazyproperty
     def position_small(self):
         """
-        The position index (rounded to the nearest pixel) in the cutout
-        array.
+        The ``(x, y)`` position index (rounded to the nearest pixel) in
+        the cutout array.
         """
         return (_round(self.input_position_small[0]),
                 _round(self.input_position_small[1]))
@@ -702,7 +710,7 @@ class Cutout2D(object):
     @lazyproperty
     def center_large(self):
         """
-        The central ``(y, x)`` position of the cutout array with respect
+        The central ``(x, y)`` position of the cutout array with respect
         to the large array.  For ``mode='partial'``, the central
         position is calculated for the valid (non-filled) cutout values.
         """
@@ -711,7 +719,7 @@ class Cutout2D(object):
     @lazyproperty
     def center_small(self):
         """
-        The central ``(y, x)`` position of the cutout array with respect
+        The central ``(x, y)`` position of the cutout array with respect
         to the cutout array.  For ``mode='partial'``, the central
         position is calculated for the valid (non-filled) cutout values.
         """

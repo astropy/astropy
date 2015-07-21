@@ -52,7 +52,7 @@ We create a cutout array centered at position ``(x, y) = (100.1,
 49.7)`` with a shape of ``(ny, nx) = (40, 50)``::
 
     >>> from astropy.nddata import Cutout2D
-    >>> position = (100.1, 49.7)
+    >>> position = (49.7, 100.1)
     >>> shape = (40, 50)
     >>> cutout = Cutout2D(data, position, shape)
 
@@ -71,7 +71,7 @@ The cutout array is stored in the ``data`` attribute of the
     from astropy.nddata import Cutout2D
     y, x = np.mgrid[0:500, 0:500]
     data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
-    position = (100.1, 49.7)
+    position = (49.7, 100.1)
     shape = (40, 50)
     cutout = Cutout2D(data, position, shape)
     plt.imshow(cutout.data, origin='lower')
@@ -85,7 +85,7 @@ attributes, including::
 
     >>> # rounded pixel index of the input position
     >>> print(cutout.position_large)
-    (100, 50)
+    (50, 100)
 
     >>> # corresponding position in the cutout array
     >>> print(cutout.position_small)
@@ -93,11 +93,11 @@ attributes, including::
 
     >>> # (non-rounded) input position in both the large and cutout arrays
     >>> print(cutout.input_position_large, cutout.input_position_small)    # doctest: +FLOAT_CMP
-    ((100.1, 49.7), (20.099999999999994, 24.700000000000003))
+    ((49.7, 100.1, 49.7), (24.700000000000003, 20.099999999999994))
 
     >>> # the origin pixel in both arrays
     >>> print(cutout.origin_large, cutout.origin_small)
-    ((80, 25), (0, 0))
+    ((25, 80), (0, 0))
 
     >>> # tuple of slice objects for the large array
     >>> print(cutout.slices_large)
@@ -110,11 +110,11 @@ attributes, including::
 There are also two `~astropy.nddata.utils.Cutout2D` methods to convert
 pixel positions between the large and cutout arrays::
 
-    >>> print(cutout.to_large((1, 2)))
-    (81, 27)
+    >>> print(cutout.to_large((2, 1)))
+    (27, 81)
 
-    >>> print(cutout.from_large((81, 27)))
-    (1, 2)
+    >>> print(cutout.from_large((27, 81)))
+    (2, 1)
 
 
 2D Cutout modes
@@ -197,7 +197,7 @@ your FITS header)::
     ...               [scale*np.sin(rho), scale*np.cos(rho)]]
     >>> wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     >>> wcs.wcs.crval = [position.ra.value, position.dec.value]
-    >>> wcs.wcs.crpix = [100, 50]
+    >>> wcs.wcs.crpix = [50, 100]
 
 Now let's create the cutout array using the
 `~astropy.coordinates.SkyCoord` position and ``wcs`` object::
@@ -224,7 +224,7 @@ Now let's create the cutout array using the
                   [scale*np.sin(rho), scale*np.cos(rho)]]
     wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
     wcs.wcs.crval = [position.ra.value, position.dec.value]
-    wcs.wcs.crpix = [100, 50]
+    wcs.wcs.crpix = [50, 100]
     cutout = Cutout2D(data, position, (30, 40), wcs=wcs)
     plt.imshow(cutout.data, origin='lower')
 
@@ -238,7 +238,7 @@ positions::
     >>> x_cutout, y_cutout = (5, 10)
     >>> pixel_to_skycoord(x_cutout, y_cutout, cutout.wcs)    # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        (197.87384041, -1.32233044)>
+        (197.8747893, -1.32207626)>
 
 We now find the corresponding pixel in the large ``data`` array and
 its sky coordinates::
@@ -246,7 +246,7 @@ its sky coordinates::
     >>> y_data, x_data = cutout.to_large((y_cutout, x_cutout))
     >>> pixel_to_skycoord(x_data, y_data, wcs)    # doctest: +FLOAT_CMP
     <SkyCoord (ICRS): (ra, dec) in deg
-        (197.87384041, -1.32233044)>
+        (197.8747893, -1.32207626)>
 
 As expected, the sky coordinates in the original ``data`` and the
 cutout array agree.
