@@ -1,3 +1,16 @@
+WCSLIB version 5.9 (2015/07/21)
+-------------------------------
+
+* C library
+
+  - In disx2p(), make proper allowance for the possibility that the TPD
+    and SIP forward and inverse distortion polynomials may not be of the
+    same degree, reported by Martin Kuemmel.
+
+  - Fix-ups in wcshdo() reported by Michael Droettboom, and several
+    tidy-ups as well.
+
+
 WCSLIB version 5.8 (2015/07/08)
 -------------------------------
 
@@ -2477,4 +2490,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 5.8 2015/07/08 11:04:02 mcalabre Exp $
+$Id: CHANGES,v 5.9 2015/07/21 09:20:04 mcalabre Exp $
