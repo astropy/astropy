@@ -5,6 +5,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 
+__doctest_skip__ = ['quantity_support']
+
+
 import numpy as np
 
 
@@ -14,8 +17,6 @@ def quantity_support():
     matplotlib.
 
     May be (optionally) used with a ``with`` statement.
-
-    .. doctest-requires:: matplotlib
 
       >>> import matplotlib.pyplot as plt
       >>> from astropy import units as u
