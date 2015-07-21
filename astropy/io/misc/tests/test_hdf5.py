@@ -120,7 +120,6 @@ def test_read_write_simple(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 def test_read_write_existing_table(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
@@ -193,7 +192,6 @@ def test_read_write_existing_append_groups(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
-@pytest.mark.skipif(os.environ.get('APPVEYOR'), reason="fails on AppVeyor")
 def test_read_write_existing_append_overwrite(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
     t1 = Table()
