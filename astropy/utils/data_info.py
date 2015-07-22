@@ -375,7 +375,7 @@ class BaseColumnInfo(DataInfo):
     Note that this class is defined here so that mixins can use it
     without importing the table package.
     """
-    attr_names = DataInfo.attr_names.union(['parent_table'])
+    attr_names = DataInfo.attr_names.union(['parent_table', 'indices'])
     _attrs_no_copy = set(['parent_table'])
 
     def iter_str_vals(self):

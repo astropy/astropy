@@ -132,7 +132,7 @@ def column_group_by(column, keys):
     index = None
     if isinstance(keys, Table):
         index = get_index(keys)
-    elif hasattr(keys, 'indices'):
+    elif hasattr(keys, 'indices') and keys.indices:
         index = keys.indices[0]
 
     if index is not None:
