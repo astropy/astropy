@@ -319,6 +319,18 @@ API changes
     their ``isscalar`` property return ``True``, consistent with behaviour for
     numpy arrays, where ``np.void`` records are considered scalar. [#3899]
 
+  - Three changes relating to the FITS unit format [#3993]:
+
+    - The FITS unit format will no longer parse an arbitrary number as a
+      scale value.  It must be a power of 10 of the form ``10^^k``,
+      ``10^k``, ``10+k``, ``10-k`` and ``10(k)``. [#3993]
+
+    - Scales that are powers of 10 can be written out.  Previously, any
+      non-1.0 scale was rejected.
+
+    - The ``*`` character is accepted as a separator between the scale
+      and the units.
+
 - ``astropy.utils``
 
   - ``astropy.utils.iers`` now uses a ``QTable`` internally, which means that
@@ -572,17 +584,6 @@ Bug Fixes
   - Fix a crash when calling ``astropy.units.cds.enable()``.  This
     will now "set" rather than "add" units to the active set to avoid
     the namespace clash with the default units. [#3873]
-
-  - Three changes were made to the FITS unit format:
-
-    - Only scales of the form ``10^^k``, ``10^k``, ``10+k``, ``10-k``
-      and ``10(k)`` are accepted.
-
-    - Scales that are powers of 10 are written out.  Previously, any
-      non-1.0 scale was rejected.
-
-    - The ``*`` character is accepted as a separator between the scale
-      and the units.
 
 - ``astropy.utils``
 
