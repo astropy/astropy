@@ -66,7 +66,7 @@ def blackbody_nu(in_x, temperature):
     # Check if input values are physically possible
     if temp < 0:
         raise ValueError('Invalid temperature {0}'.format(temp))
-    if not np.all(np.isfinite(freq)) or np.any(freq <= 0):  # pragma: no cover
+    if not np.all(np.isfinite(freq)) or np.any(freq <= 0):
         warnings.warn('Input contains invalid wavelength/frequency value(s)',
                       AstropyUserWarning)
 
