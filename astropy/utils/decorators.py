@@ -178,7 +178,7 @@ def deprecated(since, message='', name='', alternative='', pending=False,
                                            message),
         })
 
-        return type(cls.__name__, cls.__bases__, members)
+        return type(cls)(cls.__name__, cls.__bases__, members)
 
     def deprecate(obj, message=message, name=name, alternative=alternative,
                   pending=pending):

@@ -87,6 +87,16 @@ class TestA(object):
         pass
 
 
+class TestMeta(type):
+    metaclass_attr = 1
+
+
+@deprecated('100.0')
+@six.add_metaclass(TestMeta)
+class TestB(object):
+    pass
+
+
 def test_deprecated_class():
     orig_A = TestA.__bases__[0]
 
@@ -132,6 +142,21 @@ def test_deprecated_class_with_super():
         assert 'deprecated' in TestB.__doc__
         assert 'function' not in TestB.__init__.__doc__
         assert 'deprecated' in TestB.__init__.__doc__
+
+
+def test_deprecated_class_with_custom_metaclass():
+    """
+    Regression test for an issue where deprecating a class with a metaclass
+    other than type did not restore the metaclass properly (at least not
+    on Python 3).
+    """
+
+    with catch_warnings(AstropyDeprecationWarning) as w:
+        TestB()
+
+    assert len(w) == 1
+    assert type(TestB) is TestMeta
+    assert TestB.metaclass_attr == 1
 
 
 def test_deprecated_static_and_classmethod():
