@@ -72,10 +72,19 @@ class Index:
         else:
             self.data = self.engine(lines)
         self.columns = columns
+        self._frozen = False # if _frozen, treat index as read-only
 
     def refresh(self, columns):
         # update index to include correct column references
         self.columns = [columns[x.name] for x in self.columns]
+
+    def reload(self):
+        # recreate the index based on data in self.columns
+        from .table import Table
+        num_rows = len(self.columns[0])
+        table = Table([np.array(x) for x in self.columns] + [np.arange(num_rows)])
+        lines = table[np.lexsort(self.columns[::-1])]
+        self.data = self.engine(lines)
 
     def col_position(self, col):
         # return the position of col in self.columns
@@ -97,6 +106,8 @@ class Index:
         columns : list
             Table column references
         '''
+        if self._frozen: # don't modify index
+            return
         key = [None] * len(self.columns)
         for i, col in enumerate(columns):
             try:
@@ -109,7 +120,9 @@ class Index:
 
     def remove_rows(self, row_specifier):
         # row_specifier must be an int, list of ints, ndarray, or slice
-        if isinstance(row_specifier, int):
+        if self._frozen:
+            return
+        elif isinstance(row_specifier, int):
             # single row
             self.remove_row(row_specifier)
             return
@@ -135,6 +148,8 @@ class Index:
             self.data.shift_left(row)
 
     def remove_row(self, row, reorder=True):
+        if self._frozen:
+            return
         # for removal, form a key consisting of column values in this row
         if not self.data.remove(tuple([col[row] for col in self.columns]),
                                 data=row):
@@ -219,6 +234,8 @@ class Index:
         val : col.dtype
             Value to insert at specified row of col
         '''
+        if self._frozen:
+            return
         self.remove_row(row, reorder=False)
         key = [c[row] for c in self.columns]
         key[self.col_position(col)] = val
@@ -347,14 +364,45 @@ def get_index(table, table_copy):
                 return index
     return None
 
-class static_indices:
-    # provides a context in which Table indices
-    # are not copied
-    def __init__(self, table):
+class index_mode:
+    '''
+    A context manager that allows for special indexing modes, which
+    are intended to improve performance. Currently the allowed modes
+    are "modify", in which indices are not modified upon column modification,
+    and "copy", in which indices are discarded upon table copying/slicing.
+    '''
+
+    def __init__(self, table, mode):
+        '''
+        Parameters
+        ----------
+        table : Table
+            The table to which the mode should be applied
+        mode : str
+            Either 'modify' or 'copy'. In 'copy' mode, indices are not
+            copied whenever columns or tables are copied. In 'modify' mode,
+            indices are not modified whenever columns are modified; at the
+            exit of the context, indices refresh themselves based on column
+            values. This mode is intended for scenarios in which one intends
+            to make many additions or modifications in an indexed column.
+        '''
         self.table = table
+        self.mode = mode
+        if mode not in ('modify', 'copy'):
+            raise ValueError("index_mode expects a mode of either 'modify' or "
+                             "'copy', got '{0}'".format(mode))
 
     def __enter__(self):
-        self.table._copy_indices = False
+        if self.mode == 'copy':
+            self.table._copy_indices = False
+        else:
+            for index in self.table.indices:
+                index._frozen = True
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.table._copy_indices = True
+        if self.mode == 'copy':
+            self.table._copy_indices = True
+        else:
+            for index in self.table.indices:
+                index._frozen = False
+                index.reload()
