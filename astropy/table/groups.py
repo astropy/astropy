@@ -115,6 +115,7 @@ def column_group_by(column, keys):
     grouped_column : Column object with groups attr set accordingly
     """
     from .table import Table
+    from .column import Column
 
     if isinstance(keys, Table):
         keys = keys.as_array()
@@ -127,7 +128,17 @@ def column_group_by(column, keys):
         raise ValueError('Input keys array length {0} does not match column length {1}'
                          .format(len(keys), len(column)))
 
-    idx_sort = keys.argsort()
+    # take advantage of table or column indices, if possible
+    index = None
+    if isinstance(keys, Table):
+        index = get_index(keys)
+    elif hasattr(keys, 'indices'):
+        index = keys.indices[0]
+
+    if index is not None:
+        idx_sort = index.sorted_data()
+    else:
+        idx_sort = keys.argsort()
     keys = keys[idx_sort]
 
     # Get all keys
