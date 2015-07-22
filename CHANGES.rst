@@ -573,6 +573,17 @@ Bug Fixes
     will now "set" rather than "add" units to the active set to avoid
     the namespace clash with the default units. [#3873]
 
+  - Three changes were made to the FITS unit format:
+
+    - Only scales of the form ``10^^k``, ``10^k``, ``10+k``, ``10-k``
+      and ``10(k)`` are accepted.
+
+    - Scales that are powers of 10 are written out.  Previously, any
+      non-1.0 scale was rejected.
+
+    - The ``*`` character is accepted as a separator between the scale
+      and the units.
+
 - ``astropy.utils``
 
 - ``astropy.vo``
