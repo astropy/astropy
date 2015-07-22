@@ -417,17 +417,10 @@ class Table(object):
         '''
         lst = []
         for column in self.columns.values():
-            for index in self._get_indices(column):
+            for index in column.info.indices:
                 if sum([index is x for x in lst]) == 0: # ensure uniqueness
                     lst.append(index)
         return lst
-
-    def _get_indices(self, col):
-        '''
-        Returns the indices associated with col, or [] if col
-        is a mixin rather than a regular column.
-        '''
-        return getattr(col, 'indices', [])
 
     def _get_slice(self, col, item):
         '''
@@ -446,7 +439,7 @@ class Table(object):
         columns = self.columns[tuple(colnames)].values()
         index = Index(columns, impl=impl)
         for col in columns:
-            col.add_index(index)
+            col.info.indices.append(index)
 
     def remove_indices(self, colname):
         '''
@@ -460,7 +453,7 @@ class Table(object):
                 pass
             else:
                 for c in index.columns:
-                    c.indices.remove(index)
+                    c.info.indices.remove(index)
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
@@ -1951,10 +1944,10 @@ class Table(object):
 
     def _replace_cols(self, columns):
         for col, new_col in zip(self.columns.values(), columns.values()):
-            new_col.indices = []
-            for index in self._get_indices(col):
+            new_col.info.indices = []
+            for index in col.info.indices:
                 index.columns[index.col_position(col)] = new_col
-                new_col.add_index(index)
+                new_col.info.indices.append(index)
 
         self.columns = columns
 
