@@ -123,8 +123,8 @@ class Fits(generic.Generic):
 
             if base % 1.0 != 0.0:
                 raise core.UnitScaleError(
-                    "The FITS unit format is not able to scales that "
-                    "are not powers of 10.  Multiply your data by "
+                    "The FITS unit format is not able to represent scales "
+                    "that are not powers of 10.  Multiply your data by "
                     "{0:e}.".format(unit.scale))
             elif unit.scale != 1.0:
                 parts.append('10**{0}'.format(int(base)))
