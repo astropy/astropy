@@ -58,47 +58,6 @@ class TestIndex(SetupData):
         t.remove_indices('a')
         assert len(t.indices) == 0
 
-    def test_table_where(self, table_types, impl):
-        ##TODO: test for expected errors
-        self._setup(table_types)
-        t = self.t
-        t.add_index(['b', 'a'], impl=impl)
-        t.add_row((2, 5.3, '7'))
-        t.add_row((4, 4.0, '1'))
-        '''
-        a   b   c 
-        --- --- ---
-        1 4.0   7
-        2 5.1   8
-        3 6.2   9
-        4 7.0  10
-        5 1.1  11
-        2 5.3   7
-        4 4.0   1
-        '''
-        assert np.all(t['a'].data == np.array([1, 2, 3, 4, 5, 2, 4]))
-        assert np.all(t['b'].data == np.array([4.0, 5.1, 6.2, 7.0, 1.1, 5.3, 4.0]))
-        assert np.all(t['c'].data == np.array(['7', '8', '9', '10', '11', '7', '1']))
-        
-        # only leftmost column
-        assert t.where('[b] = {0}', 4.0) == [0, 6]
-        assert t.where('[b] = {0}', 5.1) == [1]
-        # range query
-        assert t.where('[b] in ({0}, {1})', 5.0, 5.5) == [1, 5]
-        assert t.where('[b] in ({0}, {1})', 6.5, 7.0) == [] # exclusive range
-        assert t.where('[b] in ({0}, {1}]', 6.5, 7.0) == [3] # inclusive range
-        # both columns
-        assert t.where('[a] = {0} and [b] = {1}', 4, 4.0) == [6]
-        assert t.where('[b] = {1} and [a] = {0}', 1, 4.0) == [0]
-        assert t.where('[a] = {0} and [b] = {1}', 4, 10.0) == []
-        # range on both columns
-        assert t.where('[b] = {0} and [a] in ({1}, {2})', 4.0, 3, 5) == [6]
-        # query without index
-        t.remove_indices('a')
-        assert t.where('[b] = {0}', 4.0) == [0, 6]
-        # range query without index
-        assert t.where('[b] in ({0}, {1})', 5.0, 5.5) == [1, 5]
-
     def test_table_slicing(self, table_types, impl):
         self._setup(table_types)
         t = self.t

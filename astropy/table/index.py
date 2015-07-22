@@ -1,7 +1,7 @@
 from copy import deepcopy
 import numpy as np
 
-from .bst import BST, RedBlackTree, FastBST, FastRBT, MinValue, MaxValue
+from .bst import BST, FastBST, FastRBT, MinValue, MaxValue
 from .sorted_array import SortedArray
 
 '''
@@ -161,41 +161,6 @@ class Index:
     def find(self, key):
         # return the row values corresponding to key, in sorted order
         return self.data.find(key)
-
-    def where(self, col_map):
-        # ensure that the keys of col_map form a left prefix of index columns
-        # also, a range query can only be on the last of the index columns
-        # note: if a range is invalid (upper < lower), there will be no results
-        names = [col.name for col in self.columns]
-        query_names = col_map.keys()
-        if set(names[:len(query_names)]) != set(query_names):
-            raise QueryError("Query columns must form a left prefix of "
-                             "index columns")
-        # query_names is a prefix of index column names
-        query_names = names[:len(query_names)]
-        for name in query_names[:-1]:
-            if isinstance(col_map[name], tuple):
-                raise ValueError("Range queries are only valid on the "
-                                 "last column of an index")
-        base = [col_map[name] for name in query_names[:-1]]
-        last_col = query_names[-1]
-
-        if isinstance(col_map[last_col], tuple): # range query
-            lower = base + [col_map[last_col][0][0]]
-            upper = base + [col_map[last_col][0][1]]
-            bounds = col_map[last_col][1]
-            # bounds is a tuple of True (<=) or False (<)
-            if len(lower) == len(self.columns):
-                result = self.data.range(tuple(lower), tuple(upper), bounds)
-            else:
-                result = self.same_prefix_range(lower, upper, bounds)
-        else:
-            key = base + [col_map[query_names[-1]]]
-            if len(key) == len(self.columns):
-                result = self.data.find(tuple(key))
-            else:
-                result = self.same_prefix(key)
-        return sorted(result)
 
     def range(self, lower, upper):
         # return values between lower and upper

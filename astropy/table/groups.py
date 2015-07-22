@@ -15,6 +15,7 @@ from ..utils.exceptions import AstropyUserWarning
 __all__ = ['TableGroups', 'ColumnGroups']
 
 def table_group_by(table, keys):
+    # index copies are unnecessary and slow down _table_group_by
     with index_mode(table, 'copy'):
         return _table_group_by(table, keys)
 
@@ -61,7 +62,7 @@ def _table_group_by(table, keys):
                         .format(type(keys)))
 
     try:
-        ## TODO: handle case where table_keys is an ndarray
+        # take advantage of index internal sort if possible
         table_index = get_index(table, table_keys) if \
                       isinstance(table_keys, Table) else None
         if table_index is not None:

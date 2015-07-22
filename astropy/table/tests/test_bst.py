@@ -1,4 +1,4 @@
-from ..bst import BST, RedBlackTree
+from ..bst import BST
 import pytest
 import random
 import math
@@ -9,9 +9,9 @@ def get_tree(TreeType):
         b.add(val)
     return b
 
-@pytest.fixture(params=[False, True])
-def tree(request):
-    return get_tree(RedBlackTree if request.param else BST)
+@pytest.fixture
+def tree():
+    return get_tree(BST)
     '''
          5
        /   \
@@ -26,7 +26,7 @@ def tree(request):
 
 @pytest.fixture
 def bst():
-    return get_tree(BST)
+    return tree()
 
 def test_bst_add(bst):
     root = bst.root
@@ -94,18 +94,3 @@ def test_bst_range(tree):
     assert [x.key for x in lst] == [10]
     lst = bst.range_nodes(11, 20)
     assert len(lst) == 0
-
-def test_rbt():
-    random.seed(1)
-    rbt = RedBlackTree()
-    for i in range(1000):
-        rbt.add(random.random())
-        assert rbt.size == i + 1
-        ##TODO: fix this
-        '''
-        assert rbt.is_valid()
-        # h <= 2log(n+1)
-        h = rbt.height()
-        n = rbt.size
-        assert h <= 2*math.log(n+1)/math.log(2)
-        '''

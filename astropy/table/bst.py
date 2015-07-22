@@ -127,16 +127,6 @@ class Node(object):
     def __repr__(self):
         return str(self)
 
-class RedBlackNode(Node):
-    def __init__(self, key, data):
-        super(RedBlackNode, self).__init__(key, data)
-        self.color = RED
-
-    def __str__(self):
-        return str((self.key, self.data, 'BLACK' if self.color == BLACK else 'RED'))
-    def __repr__(self):
-        return str(self)
-
 class BST(object):
     NodeClass = Node
     UNIQUE = False
@@ -175,7 +165,7 @@ class BST(object):
                 raise ValueError("Cannot insert non-unique value")
             else: # add data to node
                 curr_node.data.extend(node.data)
-                curr_node.data = sorted(curr_node.data) ##TODO: speed up
+                curr_node.data = sorted(curr_node.data)
                 return
         self.balance(node)
 
@@ -398,66 +388,6 @@ class BST(object):
             self.root = new_node
             new_node.parent = None
 
-class RedBlackTree(BST):
-    NodeClass = RedBlackNode
-
-    def balance(self, node):
-        node.color = RED
-        parent = node.parent
-        if parent is None:
-            node.color = BLACK
-            if node is not self.root:
-                raise ValueError("Non-root node has no parent")
-            return
-        gp = parent.parent
-        uncle = None
-        if gp is not None:
-            uncle = gp.right if gp.left is parent else gp.left
-        elif parent.color == BLACK:
-            pass
-        elif uncle is not None and uncle.color == RED:
-            # parent and uncle are red
-            parent.color = BLACK
-            uncle.color = BLACK
-            gp.color == RED
-            self.balance(gp)
-        else: # parent is red, uncle is black (or None)
-            # note: gp is not None because the root is black, handled above
-            if node is parent.right and parent is gp.left:
-                self.rotate_left(parent)
-                node = node.left
-            elif node is parent.left and parent is gp.right:
-                self.rotate_right(parent)
-                node = node.right
-            # left/left or right/right
-            node.parent.color = BLACK
-            node.parent.parent.color = RED
-            if node is node.parent.left:
-                self.rotate_right(node.parent.parent)
-            else:
-                self.rotate_left(node.parent.parent)
-
-    def is_valid(self):
-        if self.root is None:
-            return True
-        return super(RedBlackTree, self).is_valid() and \
-            self.root.color == BLACK and self._rbt_check(self.root)
-
-    def _is_black(self, node):
-        return node is None or node.color == BLACK
-
-    def _rbt_check(self, node):
-        ##TODO: check black-height property
-        if node.color == RED:
-            if not (self._is_black(node.left) and self._is_black(node.right)):
-                return False
-        if node.left is not None:
-            return self._rbt_check(node.left)
-        if node.right is not None:
-            return self._rbt_check(node.right)
-        return True
-
-    ##TODO: write remove method
 
 class FastBase(object):
     def __init__(self, lines):
@@ -569,4 +499,4 @@ try:
 
 except ImportError:
     FastBST = BST
-    FastRBT = BST ##TODO: change to RedBlackTree when completed
+    FastRBT = BST
