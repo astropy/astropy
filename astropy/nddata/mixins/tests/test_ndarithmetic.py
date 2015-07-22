@@ -328,7 +328,7 @@ def test_nddata_subtract_uncertainties_mismatch():
                                  'type FakeUncertainty for subtraction')
 
 
-@pytest.mark.parametrize('op1_unc,op2_unc', [
+@pytest.mark.parametrize(('op1_unc','op2_unc'), [
                          (None, None),
                          (StdDevUncertainty([1]), None),
                          (None, StdDevUncertainty([1])),
@@ -362,7 +362,7 @@ def test_arithmetic_result_not_tied_to_operands_uncertainty(op1_unc, op2_unc):
     assert op2.data[0] == 1
 
 
-@pytest.mark.parametrize('op1_mask,op2_mask', [
+@pytest.mark.parametrize(('op1_mask','op2_mask'), [
                          (None, None),
                          (None, np.array([False])),
                          (np.array([False]), None),
@@ -399,7 +399,7 @@ def test_arithmetic_result_not_tied_to_operands_wcs():
 
 
 # first operand has unit km, second has unit m
-@pytest.mark.parametrize('operation,result_unit', [
+@pytest.mark.parametrize(('operation','result_unit'), [
                          ('add', u.km),
                          ('subtract', u.km),
                          ('multiply', u.km * u.m),
@@ -422,7 +422,7 @@ def test_uncertainty_unit_conversion_add_subtract(operation, result_unit):
             np.sqrt(2) * in_km.uncertainty.array * combined.data)
 
 
-@pytest.mark.parametrize('unit1,unit2,op,result_unit', [
+@pytest.mark.parametrize(('unit1','unit2','op','result_unit'), [
                          (None, None, 'add', None),
                          (None, None, 'multiply', None),
                          (None, u.m, 'multiply', u.m),

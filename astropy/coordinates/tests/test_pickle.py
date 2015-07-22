@@ -61,7 +61,7 @@ _kwargs = [{'unit':'radian'},
            ]
 
 
-@pytest.mark.parametrize("name,args,kwargs,xfail",
+@pytest.mark.parametrize(("name","args","kwargs","xfail"),
                          zip(_names, _args, _kwargs, _xfail))
 def test_simple_object(pickle_protocol, name, args, kwargs, xfail):
     # Tests easily instantiated objects

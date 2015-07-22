@@ -71,10 +71,10 @@ for rt_frame0 in rt_frames:
                 for obstime0 in (None, 'J1980.0'):
                     for equinox1 in (None, 'J1975.0'):
                         for obstime1 in (None, 'J1980.0'):
-                            rt_sets.append([rt_frame0, rt_frame1,
+                            rt_sets.append((rt_frame0, rt_frame1,
                                             equinox0, equinox1,
-                                            obstime0, obstime1])
-rt_args = 'frame0,frame1,equinox0,equinox1,obstime0,obstime1'
+                                            obstime0, obstime1))
+rt_args = ('frame0','frame1','equinox0','equinox1','obstime0','obstime1')
 
 
 @pytest.mark.parametrize(rt_args, rt_sets)
@@ -627,11 +627,11 @@ for base_unit_attr_set in base_unit_attr_sets:
                     c2 = np.array(c2)
                     c3 = np.array(c3)
                 units_attr_sets.append(base_unit_attr_set + (representation, c1, c2, c3))
-units_attr_args = 'repr_name,unit1,unit2,unit3,cls2,attr1,attr2,attr3,representation,c1,c2,c3'
+units_attr_args = ('repr_name','unit1','unit2','unit3','cls2','attr1','attr2','attr3','representation','c1','c2','c3')
 
 
 @pytest.mark.parametrize(units_attr_args,
-                         (x for x in units_attr_sets if x[0] != 'unitspherical'))
+                         [x for x in units_attr_sets if x[0] != 'unitspherical'])
 def test_skycoord_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3,
                                    representation, c1, c2, c3):
     """
@@ -663,8 +663,8 @@ def test_skycoord_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, 
 
 
 @pytest.mark.parametrize(units_attr_args,
-                         (x for x in units_attr_sets
-                          if x[0] in ('spherical', 'unitspherical')))
+                         [x for x in units_attr_sets
+                          if x[0] in ('spherical', 'unitspherical')])
 def test_skycoord_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
                                            attr1, attr2, attr3, representation, c1, c2, c3):
     """
@@ -690,7 +690,7 @@ def test_skycoord_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
 
 
 @pytest.mark.parametrize(units_attr_args,
-                         (x for x in units_attr_sets if x[0] != 'unitspherical'))
+                         [x for x in units_attr_sets if x[0] != 'unitspherical'])
 def test_galactic_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3,
                                    representation, c1, c2, c3):
     """
@@ -715,8 +715,8 @@ def test_galactic_three_components(repr_name, unit1, unit2, unit3, cls2, attr1, 
 
 
 @pytest.mark.parametrize(units_attr_args,
-                         (x for x in units_attr_sets
-                          if x[0] in ('spherical', 'unitspherical')))
+                         [x for x in units_attr_sets
+                          if x[0] in ('spherical', 'unitspherical')])
 def test_galactic_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
                                            attr1, attr2, attr3, representation, c1, c2, c3):
     """
@@ -735,8 +735,8 @@ def test_galactic_spherical_two_components(repr_name, unit1, unit2, unit3, cls2,
     assert_quantities_allclose(sc, (c1*unit1, c2*unit2), (attr1, attr2))
 
 
-@pytest.mark.parametrize('repr_name,unit1,unit2,unit3,cls2,attr1,attr2,attr3',
-                         (x for x in base_unit_attr_sets if x[0] != 'unitspherical'))
+@pytest.mark.parametrize(('repr_name','unit1','unit2','unit3','cls2','attr1','attr2','attr3'),
+                         [x for x in base_unit_attr_sets if x[0] != 'unitspherical'])
 def test_skycoord_coordinate_input(repr_name, unit1, unit2, unit3, cls2, attr1, attr2, attr3):
     c1, c2, c3 = 1, 2, 3
     sc = SkyCoord([(c1, c2, c3)], unit=(unit1, unit2, unit3), representation=repr_name,
@@ -798,7 +798,7 @@ def test_nodata_failure():
         SkyCoord()
 
 
-@pytest.mark.parametrize('mode, origin', [('wcs', 0),
+@pytest.mark.parametrize(('mode', 'origin'), [('wcs', 0),
                                           ('all', 0),
                                           ('all', 1)])
 def test_wcs_methods(mode, origin):

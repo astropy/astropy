@@ -437,7 +437,7 @@ class TestParameterInitialization(object):
         assert np.all(t.param_sets[1] == [[1, 2, 3]])
         assert np.all(t.parameters == [10, 20, 30, 40, 50, 60, 1, 2, 3])
 
-    @pytest.mark.parametrize('p1, p2', [
+    @pytest.mark.parametrize(('p1', 'p2'), [
         (1, 2), (1, [2, 3]), ([1, 2], 3), ([1, 2, 3], [4, 5]),
         ([1, 2], [3, 4, 5])])
     def test_two_model_incorrect_scalar_parameters(self, p1, p2):
