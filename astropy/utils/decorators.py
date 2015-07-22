@@ -308,6 +308,24 @@ class classproperty(property):
         Python descriptors work.  In order to implement such properties on a class
         a metaclass for that class must be implemented.
 
+    Parameters
+    ----------
+    fget : callable
+        The function that computes the value of this property (in particular,
+        the function when this is used as a decorator) a la `property`.
+
+    doc : str, optional
+        The docstring for the property--by default inherited from the getter
+        function.
+
+    lazy : bool, optional
+        If True, caches the value returned by the first call to the getter
+        function, so that it is only caused once (used for lazy evaluation
+        of an attribute).  This is analogous to `lazyproperty`.  The ``lazy``
+        argument can also be used when `classproperty` is used as a decorator
+        (see the third example below).  When used in the decorator syntax this
+        *must* be passed in as a keyword argument.
+
     Examples
     --------
 
@@ -345,21 +363,71 @@ class classproperty(property):
         NotImplementedError: classproperty can only be read-only; use a
         metaclass to implement modifiable class-level properties
 
+    When the ``lazy`` option is used, the getter is only called once::
+
+        >>> class Foo(object):
+        ...     @classproperty(lazy=True)
+        ...     def bar(cls):
+        ...         print("Performing complicated calculation")
+        ...         return 1
+        ...
+        >>> Foo.bar
+        Performing complicated calculation
+        1
+        >>> Foo.bar
+        1
+
+    If a subclass inherits a lazy `classproperty` the property is still
+    re-evaluated for the subclass::
+
+        >>> class FooSub(Foo):
+        ...     pass
+        ...
+        >>> FooSub.bar
+        Performing complicated calculation
+        1
+        >>> FooSub.bar
+        1
     """
 
-    def __init__(self, fget, doc=None):
+    def __new__(cls, fget=None, doc=None, lazy=False):
+        if fget is None:
+            # Being used as a decorator--return a wrapper that implements
+            # decorator syntax
+            def wrapper(func):
+                return cls(func, lazy=lazy)
+
+            return wrapper
+
+        return super(classproperty, cls).__new__(cls)
+
+    def __init__(self, fget, doc=None, lazy=False):
+        self._lazy = lazy
+        if lazy:
+            self._cache = {}
         fget = self._wrap_fget(fget)
 
         super(classproperty, self).__init__(fget=fget, doc=doc)
 
     def __get__(self, obj, objtype=None):
+        if self._lazy and objtype in self._cache:
+            return self._cache[objtype]
+
         if objtype is not None:
             # The base property.__get__ will just return self here;
             # instead we pass objtype through to the original wrapped
             # function (which takes the class as its sole argument)
-            return self.fget.__wrapped__(objtype)
+            val = self.fget.__wrapped__(objtype)
+        else:
+            val = super(classproperty, self).__get__(obj, objtype=objtype)
 
-        return super(classproperty, self).__get__(obj, objtype=objtype)
+        if self._lazy:
+            if objtype is None:
+                objtype = obj.__class__
+
+            self._cache[objtype] = val
+
+        return val
 
     def getter(self, fget):
         return super(classproperty, self).getter(self._wrap_fget(fget))
