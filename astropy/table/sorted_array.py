@@ -132,8 +132,7 @@ class SortedArray(object):
                 upper_pos -= 1 # data[upper_pos] < upper
             elif upper_bound > upper:
                 upper_pos -= 1 # data[upper_pos] <= upper
-        row_range = self._data[-1][lower_pos:upper_pos + 1]
-        return list(np.ravel(list(row_range))) ##TODO: remove list() call
+        return self._data[-1][lower_pos:upper_pos + 1]
 
     def remove(self, key, data=None):
         pos = self.find_pos(key, data, exact=True)
