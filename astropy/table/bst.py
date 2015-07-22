@@ -1,8 +1,59 @@
 import operator
 import numpy as np
+from ..extern.six.moves import zip
 
 BLACK = 0
 RED = 1
+
+
+class MaxValue(object):
+    '''
+    Represents an infinite value for purposes
+    of tuple comparison.
+    '''
+    def __gt__(self, other):
+        return True
+
+    def __ge__(self, other):
+        return True
+
+    def __lt__(self, other):
+        return False
+
+    def __le__(self, other):
+        return False
+
+    def __repr__(self):
+        return "MAX"
+
+    __le__ = __lt__
+    __ge__ = __gt__
+    __str__ = __repr__
+
+
+class MinValue(object):
+    '''
+    The opposite of MaxValue, i.e. a representation of
+    negative infinity.
+    '''
+    def __lt__(self, other):
+        return True
+
+    def __le__(self, other):
+        return True
+
+    def __gt__(self, other):
+        return False
+
+    def __ge__(self, other):
+        return False
+
+    def __repr__(self):
+        return "MIN"
+
+    __le__ = __lt__
+    __ge__ = __gt__
+    __str__ = __repr__
 
 class Epsilon(object):
     # Represents the "next largest" version of a given value,
@@ -410,70 +461,95 @@ class RedBlackTree(BST):
 
 class FastBase(object):
     def __init__(self, lines):
-        self.data = self.engine()
-        for row in np.array(lines):
-            row = tuple(row)
-            self.add(row[:-1], row[-1])
+        if lines == []:
+            self.data = self.engine()
+            return
+        num_cols = len(lines.columns)
+        key_cols = lines[['col{0}'.format(i) for i in range(num_cols - 1)]]
+        row_col = lines['col{0}'.format(num_cols - 1)]
+        self.next_ID = len(lines)
+        key_cols['id'] = np.arange(self.next_ID)
+        self.data = self.engine(zip(zip(*key_cols.columns.values()), row_col))
 
     def add(self, key, val):
-        rows = self.data.set_default(key, [])
-        rows.insert(np.searchsorted(rows, val), val)
+        self.data[key + (self.next_ID,)] = val
+        self.next_ID += 1
 
     def find(self, key):
-        return self.data.get(key, [])
+        return sorted(self.data.value_slice(key + (MinValue(),), key + (MaxValue(),)))
 
     def remove(self, key, data=None):
-        node = self.data.get(key, None)
-        if node is None or len(node) == 0:
-            return False
+        lower = key + (MinValue(),)
+        upper = key + (MaxValue(),)
         if data is None:
-            self.data.pop(key)
-            return True
-        if data not in node:
-            if len(node) == 0:
+            data_slice = self.data[lower:upper]
+            if len(data_slice) == 0:
                 return False
-            raise ValueError("Data does not belong to correct node")
-        node.remove(data)
+            del self.data[lower:upper]
+        else:
+            for k, v in self.data.item_slice(lower, upper):
+                if v == data:
+                    del self.data[k]
+                    break
+            else:
+                raise ValueError("Data does not belong to correct node")
         return True
 
     def shift_left(self, row):
-        for key, node in self.data.items():
-            self.data[key] = [x - 1 if x > row else x for x in node]
+        for key, val in self.data.items():
+            if val > row:
+                self.data[key] = val - 1
 
     def shift_right(self, row):
-        for key, node in self.data.items():
-            self.data[key] = [x + 1 if x >= row else x for x in node]
+        for key, val in self.data.items():
+            if val >= row:
+                self.data[key] = val + 1
 
     def traverse(self):
         l = []
         for key, data in self.data.items():
-            if len(data) > 0:
-                n = Node(key, key)
-                n.data = data
-                l.append(n)
+            n = Node(key, key)
+            n.data = data
+            l.append(n)
         return l
 
     def items(self):
-        # remove empty entries
-        return [x for x in self.data.items() if len(x[1]) > 0]
+        equiv_dict = {}
+        keys = []
+        for x, y in self.data.items():
+            equiv_dict.setdefault(x[:-1], []).append(y)
+            if len(keys) == 0 or keys[-1] != x[:-1]:
+                keys.append(x[:-1])
+        return [(k, equiv_dict[k]) for k in keys]
 
     def sort(self):
-        return [x for node in self.traverse() for x in node.data]
+        keys = [] # find unique keys
+        l = []
+        for key in self.data:
+            if key[:-1] not in keys: # eliminate duplicates
+                keys.append(key[:-1])
+
+        l = [self.find(x) for x in keys]
+        return [x for sublist in l for x in sublist]
 
     def range(self, lower, upper, bounds=(True, True)):
         # we need Epsilon since bintrees searches for
         # lower <= key < upper, while we might want lower <= key <= upper
         # or similar
+        lower += (MinValue(),)
+        upper += (MaxValue(),)
         if not bounds[0]: # lower < key
             lower = Epsilon(lower)
         if bounds[1]: # key <= upper
             upper = Epsilon(upper)
-        l = [v for v in self.data.value_slice(lower, upper)]
-        return [x for sublist in l for x in sublist]
+        return [v for v in self.data.value_slice(lower, upper)]
 
     def replace_rows(self, row_map):
-        for data in self.data.values():
-            data[:] = [row_map[x] for x in data if x in row_map]
+        for key, row in self.data.items():
+            if row in row_map:
+                self.data[key] = row_map[row]
+            else:
+                del self.data[key]
 
     def __str__(self):
         return str(self.data)
@@ -490,6 +566,7 @@ try:
 
     class FastRBT(FastBase):
         engine = FastRBTree
+
 except ImportError:
     FastBST = BST
     FastRBT = BST ##TODO: change to RedBlackTree when completed
