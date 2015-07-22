@@ -247,10 +247,10 @@ def test_scale_error():
     b = [2.0, 5.0, 8.2]
     c = ['x', 'y', 'z']
     t = Table([a, b, c], names=('a', 'b', 'c'), meta={'name': 'first table'})
-    t['a'].unit='percent'
+    t['a'].unit='1.2'
     with pytest.raises(UnitScaleError) as exc:
         t.write('t.fits',format='fits', overwrite=True)
-    assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.0)' that is not recognized by the FITS standard. Either scale the data or change the units."
+    assert exc.value.args[0]=="The column 'a' could not be stored in FITS format because it has a scale '(1.2)' that is not recognized by the FITS standard. Either scale the data or change the units."
 
 
 def test_bool_column(tmpdir):
