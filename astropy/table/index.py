@@ -1,7 +1,7 @@
 from copy import deepcopy
 import numpy as np
 
-from .bst import BST, RedBlackTree, FastBST, FastRBT
+from .bst import BST, RedBlackTree, FastBST, FastRBT, MinValue, MaxValue
 from .sorted_array import SortedArray
 
 '''
@@ -31,55 +31,6 @@ c[[1, 2]] -> deep copy and reordering of indices
 c[1:2] -> reference
 array.view(Column) -> no indices
 '''
-
-class MaxValue(object):
-    '''
-    Represents an infinite value for purposes
-    of tuple comparison.
-    '''
-    def __gt__(self, other):
-        return True
-
-    def __ge__(self, other):
-        return True
-
-    def __lt__(self, other):
-        return False
-
-    def __le__(self, other):
-        return False
-
-    def __repr__(self):
-        return "MAX"
-
-    __le__ = __lt__
-    __ge__ = __gt__
-    __str__ = __repr__
-
-
-class MinValue(object):
-    '''
-    The opposite of MaxValue, i.e. a representation of
-    negative infinity.
-    '''
-    def __lt__(self, other):
-        return True
-
-    def __le__(self, other):
-        return True
-
-    def __gt__(self, other):
-        return False
-
-    def __ge__(self, other):
-        return False
-
-    def __repr__(self):
-        return "MIN"
-
-    __le__ = __lt__
-    __ge__ = __gt__
-    __str__ = __repr__
 
 class QueryError(ValueError):
     '''
@@ -113,7 +64,7 @@ class Index:
         else:
             num_rows = len(columns[0])
             # sort the table lexicographically and keep row numbers
-            table = Table(columns + [np.arange(num_rows)])
+            table = Table([np.array(x) for x in columns] + [np.arange(num_rows)])
             lines = table[np.lexsort(columns[::-1])]
 
         if self.engine == SortedArray:
