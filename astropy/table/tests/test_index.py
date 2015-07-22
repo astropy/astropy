@@ -3,6 +3,8 @@ import numpy as np
 from .test_table import SetupData
 from ..bst import BST, FastBST, FastRBT
 from ..sorted_array import SortedArray
+from ..table import Table
+from ..index import index_mode
 
 @pytest.fixture(params=[BST, FastBST, FastRBT, SortedArray])
 def impl(request):
@@ -213,3 +215,41 @@ class TestIndex(SetupData):
         t.insert_row(1, (0, 4.0, '13'))
         assert np.all(t['a'].data == [1, 0, 2, 6, 3, 4, 5])
         assert np.all(t.indices[0].sorted_data() == [1, 0, 2, 4, 5, 6, 3])
+
+    def test_index_modes(self, table_types, impl):
+        self._setup(table_types)
+        t = self.t
+        t.add_index('a', impl=impl)
+
+        # first, no special mode
+        assert len(t[[1, 3]].indices) == 1
+        assert len(t[::-1].indices) == 1
+        assert len(Table(t).indices) == 1
+        assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+        t['a'][0] = 6
+        assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
+
+        # non-copy mode
+        with index_mode(t, 'copy'):
+            assert len(t[[1, 3]].indices) == 0
+            assert len(t[::-1].indices) == 0
+            assert len(Table(t).indices) == 0
+
+        # make sure non-copy mode is exited correctly
+        assert len(t[[1, 3]].indices) == 1
+
+        # non-modify mode
+        with index_mode(t, 'modify'):
+            assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
+            t['a'][0] = 1
+            assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
+            t.add_row((2, 1.5, '12'))
+            assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
+            t.remove_rows([1, 3])
+            assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
+            assert np.all(t['a'].data == [1, 3, 5, 2])
+
+        # make sure non-modify mode is exited correctly
+        assert np.all(t.indices[0].sorted_data() == [0, 3, 1, 2])
+
+
