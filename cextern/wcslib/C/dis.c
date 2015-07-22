@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.9 - an implementation of the FITS WCS standard.
+  WCSLIB 5.8 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 5.9 2015/07/21 09:20:01 mcalabre Exp $
+  $Id: dis.c,v 5.8 2015/07/08 11:03:59 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -1864,11 +1864,10 @@ int tpdset(int j, struct disprm *dis)
 
 
 /* These iparm indices are specific to TPD.                      */
-#define I_TPDNCO  4	/* No. of TPD coefficients, forward...   */
-#define I_TPDINV  5     /* ...and inverse.                       */
-#define I_TPDAUX  6	/* True if auxiliary variables are used. */
-#define I_TPDRAD  7	/* True if the radial variable is used.  */
-#define I_NTPD    8
+#define I_TPDNCO  4	/* No. of TPD coefficients.              */
+#define I_TPDAUX  5	/* True if auxiliary variables are used. */
+#define I_TPDRAD  6	/* True if the radial variable is used.  */
+#define I_NTPD    7
 
   /* Record indexing parameters. */
   niparm = I_NTPD;
@@ -1886,7 +1885,6 @@ int tpdset(int j, struct disprm *dis)
 
   /* Number of TPD coefficients. */
   dis->iparm[j][I_TPDNCO] = ncoeff[0];
-  dis->iparm[j][I_TPDINV] = ncoeff[1];
 
   /* Flag for presence of auxiliary variables. */
   dis->iparm[j][I_TPDAUX] = doaux;
@@ -2093,7 +2091,6 @@ int pol2tpd(int j, struct disprm *dis)
 
   /* Number of TPD coefficients. */
   tpd_iparm[I_TPDNCO] = ndparm;
-  tpd_iparm[I_TPDINV] = 0;
 
   /* No auxiliary variables yet. */
   tpd_iparm[I_TPDAUX] = 0;
@@ -2267,7 +2264,6 @@ int tpvset(int j, struct disprm *dis)
 
   /* Number of TPD coefficients. */
   dis->iparm[j][I_TPDNCO] = ndparm;
-  dis->iparm[j][I_TPDINV] = 0;
 
   /* TPV never needs auxiliary variables. */
   dis->iparm[j][I_TPDAUX] = 0;
@@ -2437,7 +2433,6 @@ int sipset(int j, struct disprm *dis)
 
   /* Number of TPD coefficients. */
   dis->iparm[j][I_TPDNCO] = ncoeff[0];
-  dis->iparm[j][I_TPDINV] = ncoeff[1];
 
   /* SIP never needs auxiliary variables. */
   dis->iparm[j][I_TPDAUX] = 0;
@@ -2523,9 +2518,6 @@ int dssset(int j, struct disprm *dis)
   ncoeff = 24;
   dis->disp2x[j] = tpd5;
 
-  /* No specialist de-distortions. */
-  dis->disx2p[j] = 0x0;
-
 
  /* Record indexing parameters. */
   niparm = I_NTPD;
@@ -2543,7 +2535,6 @@ int dssset(int j, struct disprm *dis)
 
   /* Number of TPD coefficients. */
   dis->iparm[j][I_TPDNCO] = ncoeff;
-  dis->iparm[j][I_TPDINV] = 0;
 
   /* DSS always needs auxiliary variables. */
   dis->iparm[j][I_TPDAUX] = 1;
@@ -2854,7 +2845,6 @@ int watset(int j, struct disprm *dis)
 
   /* Number of TPD coefficients. */
   iparm[I_TPDNCO] = ncoeff;
-  iparm[I_TPDINV] = 0;
 
   /* The Chebyshev and Legendre polynomials use auxiliary variables. */
   iparm[I_TPDAUX] = doaux;
@@ -3123,7 +3113,7 @@ int tpd1(
 {
   double r, s, u, v;
 
-  if (i[I_TPDNCO+inverse] != 4 || 2 < Nhat) {
+  if (i[I_TPDNCO] != 4 || 2 < Nhat) {
     return 1;
   }
 
@@ -3171,7 +3161,7 @@ int tpd2(
 {
   double r, s, u, v;
 
-  if (i[I_TPDNCO+inverse] != 7 || 2 < Nhat) {
+  if (i[I_TPDNCO] != 7 || 2 < Nhat) {
     return 1;
   }
 
@@ -3221,7 +3211,7 @@ int tpd3(
 {
   double r, s, u, v;
 
-  if (i[I_TPDNCO+inverse] != 12 || 2 < Nhat) {
+  if (i[I_TPDNCO] != 12 || 2 < Nhat) {
     return 1;
   }
 
@@ -3272,7 +3262,7 @@ int tpd4(
 {
   double r, s, u, v;
 
-  if (i[I_TPDNCO+inverse] != 17 || 2 < Nhat) {
+  if (i[I_TPDNCO] != 17 || 2 < Nhat) {
     return 1;
   }
 
@@ -3324,7 +3314,7 @@ int tpd5(
 {
   double r, s, u, v;
 
-  if (i[I_TPDNCO+inverse] != 24 || 2 < Nhat) {
+  if (i[I_TPDNCO] != 24 || 2 < Nhat) {
     return 1;
   }
 
@@ -3377,7 +3367,7 @@ int tpd6(
 {
   double r, s, u, v;
 
-  if (i[I_TPDNCO+inverse] != 31 || 2 < Nhat) {
+  if (i[I_TPDNCO] != 31 || 2 < Nhat) {
     return 1;
   }
 
@@ -3431,7 +3421,7 @@ int tpd7(
 {
   double r, s, u, v;
 
-  if (i[I_TPDNCO+inverse] != 40 || 2 < Nhat) {
+  if (i[I_TPDNCO] != 40 || 2 < Nhat) {
     return 1;
   }
 
@@ -3486,7 +3476,7 @@ int tpd8(
 {
   double r, s, u, v;
 
-  if (i[I_TPDNCO+inverse] != 49 || 2 < Nhat) {
+  if (i[I_TPDNCO] != 49 || 2 < Nhat) {
     return 1;
   }
 
@@ -3542,7 +3532,7 @@ int tpd9(
 {
   double r, s, u, v;
 
-  if (i[I_TPDNCO+inverse] != 60 || 2 < Nhat) {
+  if (i[I_TPDNCO] != 60 || 2 < Nhat) {
     return 1;
   }
 

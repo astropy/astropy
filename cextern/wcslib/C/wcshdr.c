@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.9 - an implementation of the FITS WCS standard.
+  WCSLIB 5.8 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,11 +22,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 5.9 2015/07/21 09:20:01 mcalabre Exp $
+  $Id: wcshdr.c,v 5.8 2015/07/08 11:03:59 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -503,8 +502,8 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   const int  nTPD[] = {1, 4, 7, 12, 17, 24, 31, 40, 49, 60};
 
   char alt, comment[72], ctemp[32], *ctypei, format[8], keyvalue[72],
-       keyword[16], *kp, *kp0, obsg[8] = "OBSG?", obsgeo[8] = "OBSGEO-?", pq,
-       ptype, xtype, term[16], tpdsrc[24], xyz[] = "XYZ";
+       keyword[16], *kp, obsg[8] = "OBSG?", obsgeo[8] = "OBSGEO-?", pq, ptype,
+       xtype, term[16], tpdsrc[24], xyz[] = "XYZ";
   int  *axmap, bintab, col0, *colax, colnum, degree, direct, doaux, dosip,
        dotpd, dotpv, i, idis, idp, *iparm, j, jhat, k, m, naxis, ncoeff, Nhat,
        p, pixlist, precision, primage, q, status = 0;
@@ -556,16 +555,14 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   }
 
   /* Reference pixel coordinates. */
-  wcshdo_format('G', naxis, wcs->crpix, format);
   for (j = 0; j < naxis; j++) {
-    wcsutil_double2str(keyvalue, format, wcs->crpix[j]);
+    wcsutil_double2str(keyvalue, "%20.12G", wcs->crpix[j]);
     wcshdo_util(relax, "CRPIX", "CRP", WCSHDO_CRPXna, "CRPX", 0, j+1, 0, alt,
       colnum, colax, keyvalue, "Pixel coordinate of reference point", nkeyrec,
       header, &status);
   }
 
   /* Linear transformation matrix. */
-  wcshdo_format('G', naxis*naxis, wcs->pc, format);
   k = 0;
   for (i = 0; i < naxis; i++) {
     for (j = 0; j < naxis; j++, k++) {
@@ -575,7 +572,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
         if (wcs->pc[k] == 0.0) continue;
       }
 
-      wcsutil_double2str(keyvalue, format, wcs->pc[k]);
+      wcsutil_double2str(keyvalue, "%20.12G", wcs->pc[k]);
       wcshdo_util(relax, "PC", bintab ? "PC" : "P", WCSHDO_TPCn_ka,
         bintab ? 0x0 : "PC", i+1, j+1, 0, alt, colnum, colax,
         keyvalue, "Coordinate transformation matrix element",
@@ -584,9 +581,8 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   }
 
   /* Coordinate increment at reference point. */
-  wcshdo_format('G', naxis, wcs->cdelt, format);
   for (i = 0; i < naxis; i++) {
-    wcsutil_double2str(keyvalue, format, wcs->cdelt[i]);
+    wcsutil_double2str(keyvalue, "%20.12G", wcs->cdelt[i]);
     comment[0] = '\0';
     if (wcs->cunit[i][0]) sprintf(comment, "[%s] ", wcs->cunit[i]);
     strcat(comment, "Coordinate increment at reference point");
@@ -796,9 +792,8 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   }
 
   /* Coordinate value at reference point. */
-  wcshdo_format('G', naxis, wcs->crval, format);
   for (i = 0; i < naxis; i++) {
-    wcsutil_double2str(keyvalue, format, wcs->crval[i]);
+    wcsutil_double2str(keyvalue, "%20.12G", wcs->crval[i]);
     comment[0] = '\0';
     if (wcs->cunit[i][0]) sprintf(comment, "[%s] ", wcs->cunit[i]);
     strcat(comment, "Coordinate value at reference point");
@@ -1091,20 +1086,17 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
     /* records.  Determine a suitable numerical precision for the          */
     /* polynomial coefficients to avoid trailing zeroes common to all of   */
     /* them.                                                               */
-    dis  = wcs->lin.dispre;
+    dis = wcs->lin.dispre;
     keyp = dis->dp;
-    kp0  = keyvalue + 2;
+    kp = keyvalue + 3;
     for (idp = 0; idp < dis->ndp; idp++, keyp++) {
       cp = strchr(keyp->field, '.') + 1;
       if (strncmp(cp, "SIP.", 4) != 0) continue;
       wcsutil_double2str(keyvalue, "%20.13E", wcsutil_dpkey_double(keyp));
-
-      kp = keyvalue + 15;
-      while (kp0 < kp && *kp == '0') kp--;
-      kp0 = kp;
+      while (*kp != '0' && *kp != 'E') kp++;
     }
 
-    precision = kp - (keyvalue + 2);
+    precision = kp - keyvalue - 3;
     if (precision < 1)  precision = 1;
     if (13 < precision) precision = 13;
     sprintf(format, "%%20.%dE", precision);
@@ -1128,7 +1120,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
 
       strcpy(keyword+2, "ORDER");
       sprintf(keyvalue, "%20d", degree);
-      sprintf(comment, "SIP polynomial degree, axis %d, pixel-to-sky", j+1);
+      sprintf(comment, "SIP polynomial degree, axis %d, pixel-to-sky", j);
       wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, ' ', 0, 0,
         keyvalue, comment, nkeyrec, header, &status);
 
@@ -1152,13 +1144,11 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
           keyvalue, comment, nkeyrec, header, &status);
       }
 
-      if (dis->maxdis[j] != 0.0) {
-        strcpy(keyword+2, "DMAX");
-        wcsutil_double2str(keyvalue, "%20.3f", dis->maxdis[j]);
-        wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, ' ', 0, 0,
-          keyvalue, "Maximum value of distortion function", nkeyrec,
-          header, &status);
-      }
+      strcpy(keyword+2, "MAX");
+      wcsutil_double2str(keyvalue, "%20.3f", dis->maxdis[j]);
+      wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, ' ', 0, 0,
+        keyvalue, "Maximum value of distortion function", nkeyrec,
+        header, &status);
 
       /* Inverse distortion function polynomial coefficients. */
       if (dis->disx2p == 0x0) continue;
@@ -1605,8 +1595,8 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
 
 
   /* Add identification. */
-  wcshdo_util(relax, "", "", 0, 0x0, 0, 0, 0, ' ', 0, 0, "", "",
-    nkeyrec, header, &status);
+  wcshdo_util(relax, "", "", 0, 0x0, 0, 0, 0, alt, 0, 0,
+    keyvalue, comment, nkeyrec, header, &status);
 
   if (dotpd == DIS_DOTPD) {
     /* TPD by translation. */
@@ -1617,8 +1607,8 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
       wcslib_version(0x0));
   }
 
-  wcshdo_util(relax, "COMMENT", "", 0, 0x0, 0, 0, 0, ' ', 0, 0,
-    "", comment, nkeyrec, header, &status);
+  wcshdo_util(relax, "COMMENT", "", 0, 0x0, 0, 0, 0, alt, 0, 0,
+    keyvalue, comment, nkeyrec, header, &status);
 
 
   if (status == WCSHDRERR_MEMORY) {
@@ -1637,43 +1627,37 @@ void wcshdo_format(
   char *format)
 
 {
-  char *cp, *cp0, cval[24];
-  int  i, expmax, expon, nsig, precision;
-
-  if (fmt == 'G') {
-    fmt = 'f';
-    for (i = 0; i < nval; i++) {
-      if (fabs(val[i]) < 1e-4 || 1e12 < val[i]) {
-        fmt = 'E';
-        break;
-      }
-    }
-  }
-
-  cp0 = cval + 2;
-  expmax = -999;
-  for (i = 0; i < nval; i++) {
-    wcsutil_double2str(cval, "%20.13E", val[i]);
-
-    cp = cval + 15;
-    while (cp0 < cp && *cp == '0') cp--;
-    cp0 = cp;
-
-    sscanf(cval+17, "%d", &expon);
-    if (expmax < expon) expmax = expon;
-  }
-
-  nsig = cp - (cval + 2) + 1;
-
+  char *cp, cval[24];
+  int  i, j, nblank, precision;
 
   if (fmt == 'f') {
-    precision = nsig - (expmax + 1);
+    nblank = 8;
+    cp = cval + 10;
+    for (i = 0; i < nval; i++) {
+      wcsutil_double2str(cval, "%20.10f", val[i]);
+
+      for (j = 0; j <= nblank; j++) {
+        if (cval[j] != ' ') {
+          if (j < nblank) nblank = j;
+          break;
+        }
+      }
+
+      while (*cp && *cp != '0') cp++;
+    }
+
+    precision = cp - (cval + 10);
     if (precision < 1)  precision = 1;
-    if (17 < precision) precision = 17;
-    sprintf(format, "%%20.%df", precision);
+    sprintf(format, "%%%d.%df", (10-nblank)+precision, precision);
 
   } else {
-    precision = nsig - 1;
+    cp = cval + 3;
+    for (i = 0; i < nval; i++) {
+      wcsutil_double2str(cval, "%20.13E", val[i]);
+      while (*cp != '0' && *cp != 'E') cp++;
+    }
+
+    precision = cp - cval - 3;
     if (precision < 1)  precision = 1;
     if (13 < precision) precision = 13;
     sprintf(format, "%%20.%dE", precision);
