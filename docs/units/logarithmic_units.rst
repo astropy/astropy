@@ -191,7 +191,7 @@ work::
     >>> np.max(v_i)  # doctest: +FLOAT_CMP
     <Magnitude 4.005149978319905 mag(ct / s)>
     >>> np.std(v_i)  # doctest: +FLOAT_CMP
-    <Magnitude 2.339711494548601 mag(ct / s)>
+    <Magnitude 2.339711494548601 mag>
 
 .. note:: This is implemented by having a list of supported ufuncs in
 	  ``units/function/core.py`` and by explicitly disabling some
