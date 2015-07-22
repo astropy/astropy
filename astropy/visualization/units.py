@@ -21,13 +21,13 @@ def quantity_support():
       >>> import matplotlib.pyplot as plt
       >>> from astropy import units as u
       >>> from astropy import visualization
-      >>> visualization.quantity_support()
-      <...>
-      >>> plt.plot([1, 2, 3] * u.m)
+      >>> with visualization.quantity_support():
+      ...     plt.figure()
+      ...     plt.plot([1, 2, 3] * u.m)
       [...]
-      >>> plt.plot([101, 125, 150] * u.cm)
+      ...     plt.plot([101, 125, 150] * u.cm)
       [...]
-      >>> plt.draw()
+      ...     plt.draw()
     """
     from .. import units as u
 

@@ -98,6 +98,7 @@ the quantity:
 .. doctest-requires:: matplotlib
 
     >>> from matplotlib import pyplot as plt
+    >>> plt.figure()
     >>> plt.plot([1, 2, 3] * u.m)
     [...]
 
