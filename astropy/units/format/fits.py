@@ -8,6 +8,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from ...extern.six.moves import zip
 
+import numpy as np
+
 import copy
 import keyword
 
@@ -114,16 +116,25 @@ class Fits(generic.Generic):
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
+        parts = []
+
         if isinstance(unit, core.CompositeUnit):
-            if unit.scale != 1:
+            base = np.log10(unit.scale)
+
+            if base % 1.0 != 0.0:
                 raise core.UnitScaleError(
-                    "The FITS unit format is not able to represent scale. "
-                    "Multiply your data by {0:e}.".format(unit.scale))
+                    "The FITS unit format is not able to scales that "
+                    "are not powers of 10.  Multiply your data by "
+                    "{0:e}.".format(unit.scale))
+            elif unit.scale != 1.0:
+                parts.append('10**{0}'.format(int(base)))
 
             pairs = list(zip(unit.bases, unit.powers))
-            pairs.sort(key=lambda x: x[1], reverse=True)
+            if len(pairs):
+                pairs.sort(key=lambda x: x[1], reverse=True)
+                parts.append(cls._format_unit_list(pairs))
 
-            s = cls._format_unit_list(pairs)
+            s = ' '.join(parts)
         elif isinstance(unit, core.NamedUnit):
             s = cls._get_unit_name(unit)
 

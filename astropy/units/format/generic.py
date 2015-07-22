@@ -157,17 +157,22 @@ class Generic(Base):
             '''
             main : product_of_units
                  | factor product_of_units
+                 | factor product product_of_units
                  | division_product_of_units
                  | factor division_product_of_units
+                 | factor product division_product_of_units
                  | inverse_unit
                  | factor inverse_unit
+                 | factor product inverse_unit
                  | factor
             '''
             from ..core import Unit
             if len(p) == 2:
                 p[0] = Unit(p[1])
-            else:
+            elif len(p) == 3:
                 p[0] = Unit(p[1] * p[2])
+            elif len(p) == 4:
+                p[0] = Unit(p[1] * p[3])
 
         def p_division_product_of_units(p):
             '''
@@ -188,7 +193,8 @@ class Generic(Base):
 
         def p_factor(p):
             '''
-            factor : factor_float
+            factor : factor_fits
+                   | factor_float
                    | factor_int
             '''
             p[0] = p[1]
@@ -199,6 +205,8 @@ class Generic(Base):
                          | signed_float UINT signed_int
                          | signed_float UINT power numeric_power
             '''
+            if cls.name == 'fits':
+                raise ValueError("Numeric factor not supported by FITS")
             if len(p) == 4:
                 p[0] = p[1] * p[2] ** float(p[3])
             elif len(p) == 5:
@@ -214,6 +222,8 @@ class Generic(Base):
                        | UINT UINT signed_int
                        | UINT UINT power numeric_power
             '''
+            if cls.name == 'fits':
+                raise ValueError("Numeric factor not supported by FITS")
             if len(p) == 2:
                 p[0] = p[1]
             elif len(p) == 3:
@@ -225,6 +235,28 @@ class Generic(Base):
                     p[0] = p[1] ** float(p[3])
             elif len(p) == 5:
                 p[0] = p[1] * p[2] ** p[4]
+
+        def p_factor_fits(p):
+            '''
+            factor_fits : UINT power OPEN_PAREN signed_int CLOSE_PAREN
+                        | UINT power signed_int
+                        | UINT SIGN UINT
+                        | UINT OPEN_PAREN signed_int CLOSE_PAREN
+            '''
+            if p[1] != 10:
+                if cls.name == 'fits':
+                    raise ValueError("Base must be 10")
+                else:
+                    return
+            if len(p) == 4:
+                if p[2] in ('**', '^'):
+                    p[0] = 10 ** p[3]
+                else:
+                    p[0] = 10 ** (p[2] * p[3])
+            elif len(p) == 5:
+                p[0] = 10 ** p[3]
+            elif len(p) == 6:
+                p[0] = 10 ** p[4]
 
         def p_product_of_units(p):
             '''

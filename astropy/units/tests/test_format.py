@@ -383,7 +383,9 @@ def test_scaled_dimensionless():
     assert u.Unit('10+8').to_string('cds') == '10+8'
 
     with pytest.raises(ValueError):
-        u.Unit(0.1).to_string('fits')
+        u.Unit(0.15).to_string('fits')
+
+    assert u.Unit(0.1).to_string('fits') == '10**-1'
 
     with pytest.raises(ValueError):
         u.Unit(0.1).to_string('vounit')
@@ -395,12 +397,12 @@ def test_deprecated_did_you_mean_units():
     except ValueError as e:
         assert 'angstrom (deprecated)' in six.text_type(e)
         assert 'Angstrom (deprecated)' in six.text_type(e)
-        assert 'nm (with data multiplied by 0.1)' in six.text_type(e)
+        assert '10**-1 nm' in six.text_type(e)
 
     with catch_warnings() as w:
         u.Unit('Angstrom', format='fits')
     assert len(w) == 1
-    assert 'nm (with data multiplied by 0.1)' in six.text_type(w[0].message)
+    assert '10**-1 nm' in six.text_type(w[0].message)
 
     try:
         u.Unit('crab', format='ogip')
@@ -493,3 +495,29 @@ def test_vounit_implicit_custom():
     x = u.Unit("furlong/week", format="vounit")
     assert x.bases[0]._represents.scale == 1e-15
     assert x.bases[0]._represents.bases[0].name == 'urlong'
+
+
+def test_fits_scale_factor():
+    with pytest.raises(ValueError):
+        x = u.Unit('1000 erg/s/cm**2/Angstrom', format='fits')
+
+    with pytest.raises(ValueError):
+        x = u.Unit('12 erg/s/cm**2/Angstrom', format='fits')
+
+    x = u.Unit('10+2 erg/s/cm**2/Angstrom', format='fits')
+    assert x == 100 * (u.erg / u.s / u.cm ** 2 / u.Angstrom)
+    assert x.to_string(format='fits') == '10**2 Angstrom-1 cm-2 erg s-1'
+
+    x = u.Unit('10**(-20) erg/s/cm**2/Angstrom', format='fits')
+    assert x == 10**(-20) * (u.erg / u.s / u.cm ** 2 / u.Angstrom)
+    assert x.to_string(format='fits') == '10**-20 Angstrom-1 cm-2 erg s-1'
+
+    x = u.Unit('10**(-20)*erg/s/cm**2/Angstrom', format='fits')
+    assert x == 10**(-20) * (u.erg / u.s / u.cm ** 2 / u.Angstrom)
+
+    x = u.Unit(1.2 * u.erg)
+    with pytest.raises(ValueError):
+        x.to_string(format='fits')
+
+    x = u.Unit(100.0 * u.erg)
+    assert x.to_string(format='fits') == '10**2 erg'
