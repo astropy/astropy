@@ -38,10 +38,11 @@ class Base(object):
         raise NotImplementedError(
             "Can not parse {0}".format(self.__class__.__name__))
 
-    def to_string(self, u):
+    @classmethod
+    def to_string(cls, u):
         """
         Convert a unit object to a string.
         """
 
         raise NotImplementedError(
-            "Can not output in {0} format".format(self.__class__.__name__))
+            "Can not output in {0} format".format(cls.__name__))

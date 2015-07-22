@@ -284,24 +284,27 @@ class CDS(Base):
                 else:
                     raise ValueError("Syntax error")
 
-    def _get_unit_name(self, unit):
+    @staticmethod
+    def _get_unit_name(unit):
         return unit.get_format_name('cds')
 
-    def _format_unit_list(self, units):
+    @classmethod
+    def _format_unit_list(cls, units):
         out = []
         for base, power in units:
             if power == 1:
-                out.append(self._get_unit_name(base))
+                out.append(cls._get_unit_name(base))
             else:
                 out.append('{0}{1}'.format(
-                    self._get_unit_name(base), int(power)))
+                    cls._get_unit_name(base), int(power)))
         return '.'.join(out)
 
-    def to_string(self, unit):
+    @classmethod
+    def to_string(cls, unit):
         from .. import core
 
         # Remove units that aren't known to the format
-        unit = utils.decompose_to_known_units(unit, self._get_unit_name)
+        unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
         if isinstance(unit, core.CompositeUnit):
             if(unit.physical_type == 'dimensionless' and
@@ -325,9 +328,9 @@ class CDS(Base):
             if len(pairs) > 0:
                 pairs.sort(key=lambda x: x[1], reverse=True)
 
-                s += self._format_unit_list(pairs)
+                s += cls._format_unit_list(pairs)
 
         elif isinstance(unit, core.NamedUnit):
-            s = self._get_unit_name(unit)
+            s = cls._get_unit_name(unit)
 
         return s
