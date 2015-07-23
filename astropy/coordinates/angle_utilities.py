@@ -113,12 +113,8 @@ class _AngleParser(object):
                 "Invalid character at col {0}".format(t.lexpos))
 
         # Build the lexer
-        try:
-            from . import angle_lextab
-            lexer = lex.lex(optimize=True, lextab=angle_lextab)
-        except ImportError:
-            lexer = lex.lex(optimize=True, lextab='angle_lextab',
-                            outputdir=os.path.dirname(__file__))
+        lexer = lex.lex(optimize=True, lextab='angle_lextab',
+                        outputdir=os.path.dirname(__file__))
 
         def p_angle(p):
             '''
@@ -242,13 +238,9 @@ class _AngleParser(object):
         def p_error(p):
             raise ValueError
 
-        try:
-            from . import angle_parsetab
-            parser = yacc.yacc(debug=False, tabmodule=angle_parsetab,
-                               write_tables=False)
-        except ImportError:
-            parser = yacc.yacc(debug=False, tabmodule='angle_parsetab',
-                               outputdir=os.path.dirname(__file__))
+        parser = yacc.yacc(debug=False, tabmodule='angle_parsetab',
+                           outputdir=os.path.dirname(__file__),
+                           write_tables=True)
 
         return parser, lexer
 
