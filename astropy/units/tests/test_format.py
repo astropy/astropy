@@ -25,7 +25,7 @@ from ..utils import is_effectively_unity
 def test_unit_grammar():
     def _test_unit_grammar(s, unit):
         print(s)
-        unit2 = u_format.Generic().parse(s)
+        unit2 = u_format.Generic.parse(s)
         assert unit2 == unit
 
     data = [
@@ -54,7 +54,7 @@ def test_unit_grammar():
 def test_unit_grammar_fail():
     @raises(ValueError)
     def _test_unit_grammar_fail(s):
-        u_format.Generic().parse(s)
+        u_format.Generic.parse(s)
 
     data = ['sin( /pixel /s)',
             'mag(mag)',
@@ -68,7 +68,7 @@ def test_unit_grammar_fail():
 def test_cds_grammar():
     def _test_cds_grammar(s, unit):
         print(s)
-        unit2 = u_format.CDS().parse(s)
+        unit2 = u_format.CDS.parse(s)
         assert unit2 == unit
 
     data = [
@@ -113,7 +113,7 @@ def test_cds_grammar_fail():
     @raises(ValueError)
     def _test_cds_grammar_fail(s):
         print(s)
-        u_format.CDS().parse(s)
+        u_format.CDS.parse(s)
 
     data = ['0.1 nm',
             'solMass(3/2)',
@@ -138,7 +138,7 @@ def test_cds_grammar_fail():
 def test_ogip_grammar():
     def _test_ogip_grammar(s, unit):
         print(s)
-        unit2 = u_format.OGIP().parse(s)
+        unit2 = u_format.OGIP.parse(s)
         assert unit2 == unit
 
     # These examples are taken from the EXAMPLES section of
@@ -180,7 +180,7 @@ def test_ogip_grammar():
 def test_ogip_grammar_fail():
     @raises(ValueError)
     def _test_ogip_grammar_fail(s):
-        u_format.OGIP().parse(s)
+        u_format.OGIP.parse(s)
 
     data = ['log(photon /m**2 /s /Hz)',
             'sin( /pixel /s)',
@@ -215,7 +215,7 @@ def test_roundtrip_vo_unit():
         b = core.Unit(u, format='vounit')
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
-    x = u_format.VOUnit()
+    x = u_format.VOUnit
     for key, val in x._units.items():
         if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_vo_unit, val, val in (u.mag, u.dB)
@@ -227,7 +227,7 @@ def test_roundtrip_fits():
         a = core.Unit(s, format='fits')
         assert_allclose(a.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
-    for key, val in u_format.Fits()._units.items():
+    for key, val in u_format.Fits._units.items():
         if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_fits, val
 
@@ -242,7 +242,7 @@ def test_roundtrip_cds():
             return
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
-    x = u_format.CDS()
+    x = u_format.CDS
     for key, val in x._units.items():
         if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_cds, val
@@ -258,22 +258,22 @@ def test_roundtrip_ogip():
             return
         assert_allclose(b.decompose().scale, unit.decompose().scale, rtol=1e-2)
 
-    x = u_format.OGIP()
+    x = u_format.OGIP
     for key, val in x._units.items():
         if isinstance(val, core.UnitBase) and not isinstance(val, core.PrefixUnit):
             yield _test_roundtrip_ogip, val
 
 
 def test_fits_units_available():
-    u_format.Fits()
+    u_format.Fits._units
 
 
 def test_vo_units_available():
-    u_format.VOUnit()
+    u_format.VOUnit._units
 
 
 def test_cds_units_available():
-    u_format.CDS()
+    u_format.CDS._units
 
 
 def test_latex():

@@ -23,6 +23,7 @@ __all__ = [
     'Base', 'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'LatexInline',
     'OGIP', 'Unicode', 'Unscaled', 'VOUnit', 'get_format']
 
+
 def get_format(format=None):
     """
     Get a formatter by name.
@@ -39,8 +40,6 @@ def get_format(format=None):
         The requested formatter.
     """
     if isinstance(format, type) and issubclass(format, Base):
-        return format()
-    elif isinstance(format, Base):
         return format
     elif not (isinstance(format, string_types) or format is None):
         raise TypeError(
@@ -54,7 +53,7 @@ def get_format(format=None):
     format_lower = format.lower()
 
     if format_lower in Base.registry:
-        return Base.registry[format_lower]()
+        return Base.registry[format_lower]
 
     raise ValueError("Unknown format {0!r}.  Valid formatter names are: "
                      "[{1}]".format(format, ', '.join(Base.registry)))

@@ -30,6 +30,12 @@ class Base(object):
     The abstract base class of all unit formats.
     """
 
+    def __new__(cls, *args, **kwargs):
+        # This __new__ is to make it clear that there is no reason to
+        # instantiate a Formatter--if you try to you'll just get back the
+        # class
+        return cls
+
     @classmethod
     def parse(cls, s):
         """

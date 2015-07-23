@@ -498,22 +498,22 @@ class UnitBase(object):
         -------
         Latex string
         """
-        return unit_format.Latex().to_string(self)
+        return unit_format.Latex.to_string(self)
 
     def __bytes__(self):
         """Return string representation for unit"""
-        return unit_format.Generic().to_string(self).encode('ascii')
+        return unit_format.Generic.to_string(self).encode('ascii')
     if six.PY2:
         __str__ = __bytes__
 
     def __unicode__(self):
         """Return string representation for unit"""
-        return unit_format.Generic().to_string(self)
+        return unit_format.Generic.to_string(self)
     if six.PY3:
         __str__ = __unicode__
 
     def __repr__(self):
-        string = unit_format.Generic().to_string(self)
+        string = unit_format.Generic.to_string(self)
         if six.PY2:
             string = string.encode('unicode_escape')
 
@@ -1798,9 +1798,9 @@ class _UnitMetaClass(InheritDocstrings):
                 if parse_strict == 'silent':
                     pass
                 else:
-                    # Deliberately not isinstance here. Subclasses
+                    # Deliberately not issubclass here. Subclasses
                     # should use their name.
-                    if type(f) is not unit_format.Generic:
+                    if f is not unit_format.Generic:
                         format_clause = f.name + ' '
                     else:
                         format_clause = ''
