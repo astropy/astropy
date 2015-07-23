@@ -171,6 +171,10 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - The ``deprecated`` decorator did not correctly wrap classes that have a
+    custom metaclass--the metaclass could be dropped from the deprecated
+    version of the class. [#3997]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
