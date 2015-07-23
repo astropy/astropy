@@ -120,7 +120,6 @@ Plotting a quantity with an incompatible unit will raise an exception::
     Traceback (most recent call last):
     ...
     UnitConversionError: 'kg' (mass) and 'm' (length) are not convertible
-
     >>> plt.clf()
 
 Arithmetic
