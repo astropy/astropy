@@ -22,21 +22,9 @@ from ..units import quantity_support
 
 
 @pytest.mark.skipif('not HAS_PLT')
-def test_radians():
-    with quantity_support():
-        buff = io.BytesIO()
-
-        plt.plot([1, 2, 3] * u.degree)
-        plt.savefig(buff, format='svg')
-
-        assert plt.gca().xaxis.get_units() == None
-        assert plt.gca().yaxis.get_units() == u.radian
-
-    plt.clf()
-
-
-@pytest.mark.skipif('not HAS_PLT')
 def test_units():
+    plt.figure()
+
     with quantity_support():
         buff = io.BytesIO()
 
@@ -52,6 +40,8 @@ def test_units():
 
 @pytest.mark.skipif('not HAS_PLT')
 def test_incompatible_units():
+    plt.figure()
+
     with quantity_support():
         plt.plot([1, 2, 3] * u.m)
         with pytest.raises(u.UnitConversionError):

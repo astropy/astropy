@@ -99,6 +99,7 @@ the quantity:
 
     >>> from matplotlib import pyplot as plt
     >>> plt.figure()
+    <...>
     >>> plt.plot([1, 2, 3] * u.m)
     [...]
 
@@ -119,6 +120,8 @@ Plotting a quantity with an incompatible unit will raise an exception::
     Traceback (most recent call last):
     ...
     UnitConversionError: 'kg' (mass) and 'm' (length) are not convertible
+
+    >>> plt.clf()
 
 Arithmetic
 ----------
