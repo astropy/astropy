@@ -25,8 +25,6 @@ class Console(base.Base):
       2.1798721*10^-18 ------
                         s^2
     """
-    def __init__(self):
-        pass
 
     _times = "*"
     _line = "-"

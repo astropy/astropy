@@ -15,6 +15,7 @@ import warnings
 
 from . import utils
 from .base import Base
+from ...utils import classproperty
 from ...utils.misc import did_you_mean
 
 def _to_string(cls, unit):
@@ -58,41 +59,50 @@ class Generic(Base):
 
     _show_scale = True
 
-    def __init__(self):
-        # Build this on the class, so it only gets generated once.
-        if '_parser' not in Generic.__dict__:
-            Generic._parser, Generic._lexer = self._make_parser()
+    _tokens = (
+        'DOUBLE_STAR',
+        'STAR',
+        'PERIOD',
+        'SOLIDUS',
+        'CARET',
+        'OPEN_PAREN',
+        'CLOSE_PAREN',
+        'FUNCNAME',
+        'UNIT',
+        'SIGN',
+        'UINT',
+        'UFLOAT'
+    )
+
+    @classproperty(lazy=True)
+    def _all_units(cls):
+        return cls._generate_unit_names()
+
+    @classproperty(lazy=True)
+    def _units(cls):
+        return cls._all_units[0]
+
+    @classproperty(lazy=True)
+    def _deprecated_units(cls):
+        return cls._all_units[1]
+
+    @classproperty(lazy=True)
+    def _functions(cls):
+        return cls._all_units[2]
+
+    @classproperty(lazy=True)
+    def _parser(cls):
+        return cls._make_parser()
+
+    @classproperty(lazy=True)
+    def _lexer(cls):
+        return cls._make_lexer()
 
     @classmethod
-    def _make_parser(cls):
-        """
-        The grammar here is based on the description in the `FITS
-        standard
-        <http://fits.gsfc.nasa.gov/standard30/fits_standard30aa.pdf>`_,
-        Section 4.3, which is not terribly precise.  The exact grammar
-        is here is based on the YACC grammar in the `unity library
-        <https://bitbucket.org/nxg/unity/>`_.
+    def _make_lexer(cls):
+        from ...extern.ply import lex
 
-        This same grammar is used by the `"fits"` and `"vounit"`
-        formats, the only difference being the set of available unit
-        strings.
-        """
-        from ...extern.ply import lex, yacc
-
-        tokens = (
-            'DOUBLE_STAR',
-            'STAR',
-            'PERIOD',
-            'SOLIDUS',
-            'CARET',
-            'OPEN_PAREN',
-            'CLOSE_PAREN',
-            'FUNCNAME',
-            'UNIT',
-            'SIGN',
-            'UINT',
-            'UFLOAT'
-            )
+        tokens = cls._tokens
 
         t_STAR = r'\*'
         t_PERIOD = r'\.'
@@ -147,6 +157,27 @@ class Generic(Base):
         lexer = lex.lex(optimize=True, lextab='generic_lextab',
                         outputdir=os.path.dirname(__file__),
                         reflags=re.UNICODE)
+
+        return lexer
+
+    @classmethod
+    def _make_parser(cls):
+        """
+        The grammar here is based on the description in the `FITS
+        standard
+        <http://fits.gsfc.nasa.gov/standard30/fits_standard30aa.pdf>`_,
+        Section 4.3, which is not terribly precise.  The exact grammar
+        is here is based on the YACC grammar in the `unity library
+        <https://bitbucket.org/nxg/unity/>`_.
+
+        This same grammar is used by the `"fits"` and `"vounit"`
+        formats, the only difference being the set of available unit
+        strings.
+        """
+
+        from ...extern.ply import yacc
+
+        tokens = cls._tokens
 
         def p_main(p):
             '''
@@ -389,7 +420,7 @@ class Generic(Base):
         parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
-        return parser, lexer
+        return parser
 
     @classmethod
     def _get_unit(cls, t):
@@ -416,11 +447,12 @@ class Generic(Base):
         else:
             raise ValueError()
 
-    def parse(self, s, debug=False):
+    @classmethod
+    def parse(cls, s, debug=False):
         if not isinstance(s, six.text_type):
             s = s.decode('ascii')
 
-        result = self._do_parse(s, debug=debug)
+        result = cls._do_parse(s, debug=debug)
         if s.count('/') > 1:
             from ..core import UnitsWarning
             warnings.warn(
@@ -429,14 +461,15 @@ class Generic(Base):
                 UnitsWarning)
         return result
 
-    def _do_parse(self, s, debug=False):
+    @classmethod
+    def _do_parse(cls, s, debug=False):
         try:
             # This is a short circuit for the case where the string
             # is just a single unit name
-            return self._parse_unit(s, detailed_exception=False)
+            return cls._parse_unit(s, detailed_exception=False)
         except ValueError as e:
             try:
-                return self._parser.parse(s, lexer=self._lexer, debug=debug)
+                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
             except ValueError as e:
                 if six.text_type(e):
                     raise

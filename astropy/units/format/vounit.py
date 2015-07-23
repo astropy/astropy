@@ -29,14 +29,6 @@ class VOUnit(generic.Generic):
     _custom_unit_regex = re.compile("^((?!\d)\w)+$")
     _custom_units = {}
 
-    def __init__(self):
-        if '_parser' not in VOUnit.__dict__:
-            VOUnit._parser, VOUnit._lexer = self._make_parser()
-
-        if not '_units' in VOUnit.__dict__:
-            unit_names = VOUnit._generate_unit_names()
-            VOUnit._units, VOUnit._deprecated_units = unit_names
-
     @staticmethod
     def _generate_unit_names():
         from ... import units as u
@@ -87,9 +79,10 @@ class VOUnit(generic.Generic):
         do_defines(binary_bases, si_prefixes + binary_prefixes, ['dB', 'dbyte'])
         do_defines(simple_units, [''])
 
-        return names, deprecated_names
+        return names, deprecated_names, []
 
-    def parse(self, s, debug=False):
+    @classmethod
+    def parse(cls, s, debug=False):
         from ... import units as u
 
         if s in ('unknown', 'UNKNOWN'):
@@ -101,7 +94,7 @@ class VOUnit(generic.Generic):
             raise UnitsError(
                 "'{0}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard".format(s))
-        result = self._do_parse(s, debug=debug)
+        result = cls._do_parse(s, debug=debug)
         if hasattr(result, 'function_unit'):
             raise ValueError("Function units are not yet supported in "
                              "VOUnit.")

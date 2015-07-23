@@ -28,13 +28,21 @@ class OGIP(generic.Generic):
     FITS files
     <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
     """
-    def __init__(self):
-        # Build this on the class, so it only gets generated once.
-        if not '_units' in OGIP.__dict__:
-            OGIP._units, OGIP._deprecated_units, OGIP._functions = self._generate_unit_names()
 
-        if '_parser' not in OGIP.__dict__:
-            OGIP._parser, OGIP._lexer = self._make_parser()
+    _tokens = (
+        'DIVISION',
+        'OPEN_PAREN',
+        'CLOSE_PAREN',
+        'WHITESPACE',
+        'STARSTAR',
+        'STAR',
+        'SIGN',
+        'UFLOAT',
+        'LIT10',
+        'UINT',
+        'UNKNOWN',
+        'UNIT'
+    )
 
     @staticmethod
     def _generate_unit_names():
@@ -97,31 +105,10 @@ class OGIP(generic.Generic):
         return names, deprecated_names, functions
 
     @classmethod
-    def _make_parser(cls):
-        """
-        The grammar here is based on the description in the
-        `Specification of Physical Units within OGIP FITS files
-        <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__,
-        which is not terribly precise.  The exact grammar is here is
-        based on the YACC grammar in the `unity library
-        <https://bitbucket.org/nxg/unity/>`_.
-        """
-        from ...extern.ply import lex, yacc
+    def _make_lexer(cls):
+        from ...extern.ply import lex
 
-        tokens = (
-            'DIVISION',
-            'OPEN_PAREN',
-            'CLOSE_PAREN',
-            'WHITESPACE',
-            'STARSTAR',
-            'STAR',
-            'SIGN',
-            'UFLOAT',
-            'LIT10',
-            'UINT',
-            'UNKNOWN',
-            'UNIT'
-            )
+        tokens = cls._tokens
 
         t_DIVISION = r'/'
         t_OPEN_PAREN = r'\('
@@ -174,6 +161,23 @@ class OGIP(generic.Generic):
 
         lexer = lex.lex(optimize=True, lextab='ogip_lextab',
                         outputdir=os.path.dirname(__file__))
+
+        return lexer
+
+    @classmethod
+    def _make_parser(cls):
+        """
+        The grammar here is based on the description in the
+        `Specification of Physical Units within OGIP FITS files
+        <http://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__,
+        which is not terribly precise.  The exact grammar is here is
+        based on the YACC grammar in the `unity library
+        <https://bitbucket.org/nxg/unity/>`_.
+        """
+
+        from ...extern.ply import yacc
+
+        tokens = cls._tokens
 
         def p_main(p):
             '''
@@ -342,7 +346,7 @@ class OGIP(generic.Generic):
                            outputdir=os.path.dirname(__file__),
                            write_tables=True)
 
-        return parser, lexer
+        return parser
 
     @classmethod
     def _get_unit(cls, t):
@@ -376,17 +380,18 @@ class OGIP(generic.Generic):
         cls._validate_unit(unit, detailed_exception=detailed_exception)
         return cls._units[unit]
 
-    def parse(self, s, debug=False):
+    @classmethod
+    def parse(cls, s, debug=False):
         s = s.strip()
         try:
             # This is a short circuit for the case where the string is
             # just a single unit name
-            return self._parse_unit(s, detailed_exception=False)
+            return cls._parse_unit(s, detailed_exception=False)
         except ValueError:
             from ..core import Unit
             try:
                 return Unit(
-                    self._parser.parse(s, lexer=self._lexer, debug=debug))
+                    cls._parser.parse(s, lexer=cls._lexer, debug=debug))
             except ValueError as e:
                 if six.text_type(e):
                     raise

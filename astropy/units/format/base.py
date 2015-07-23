@@ -30,13 +30,14 @@ class Base(object):
     The abstract base class of all unit formats.
     """
 
-    def parse(self, s):
+    @classmethod
+    def parse(cls, s):
         """
         Convert a string to a unit object.
         """
 
         raise NotImplementedError(
-            "Can not parse {0}".format(self.__class__.__name__))
+            "Can not parse {0}".format(cls.__name__))
 
     @classmethod
     def to_string(cls, u):

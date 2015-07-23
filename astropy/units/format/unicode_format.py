@@ -26,9 +26,6 @@ class Unicode(console.Console):
                        s²
     """
 
-    def __init__(self):
-        pass
-
     _times = "×"
     _line = "─"
 
