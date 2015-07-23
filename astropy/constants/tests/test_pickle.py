@@ -10,7 +10,7 @@ originals = [const.Constant('h_fake', 'Not Planck',
              const.e]
 xfails = [True, True, True]
 
-@pytest.mark.parametrize("original,xfail", zip(originals, xfails))
+@pytest.mark.parametrize(("original","xfail"), zip(originals, xfails))
 def test_new_constant(pickle_protocol, original, xfail):
     if xfail:
         pytest.xfail()
