@@ -458,11 +458,6 @@ class UnitConversionError(UnitsError, ValueError):
     """
 
 
-# Maintain error in old location for backward compatibility
-from .format import fits as _fits
-_fits.UnitScaleError = UnitScaleError
-
-
 class UnitsWarning(AstropyWarning):
     """
     The base class for unit-specific exceptions.
@@ -591,6 +586,7 @@ class UnitBase(object):
             The name of a format or a formatter object.  If not
             provided, defaults to the generic format.
         """
+
         f = unit_format.get_format(format)
         return f.to_string(self)
 
@@ -1697,7 +1693,7 @@ class UnrecognizedUnit(IrreducibleUnit):
     if six.PY3:
         __str__ = __unicode__
 
-    def to_string(self, format=unit_format.Generic):
+    def to_string(self, format=None):
         return self.name
 
     def _unrecognized_operator(self, *args, **kwargs):
@@ -2324,3 +2320,7 @@ def _condition_arg(value):
 dimensionless_unscaled = CompositeUnit(1, [], [], _error_check=False)
 # Abbreviation of the above, see #1980
 one = dimensionless_unscaled
+
+# Maintain error in old location for backward compatibility
+# TODO: Is this still needed? Should there be a deprecation warning?
+unit_format.fits.UnitScaleError = UnitScaleError

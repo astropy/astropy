@@ -9,8 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from . import base
-from . import utils
+from . import base, core, utils
 from ...extern.six.moves import zip
 
 
@@ -68,8 +67,6 @@ class Latex(base.Base):
 
     @classmethod
     def to_string(cls, unit):
-        from .. import core
-
         latex_name = None
         if hasattr(unit, '_format'):
             latex_name = unit._format.get('latex')

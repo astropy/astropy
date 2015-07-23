@@ -17,8 +17,7 @@ import math
 import os
 import warnings
 
-from . import generic
-from . import utils
+from . import core, generic, utils
 from ...utils.compat.fractions import Fraction
 
 
@@ -388,9 +387,8 @@ class OGIP(generic.Generic):
             # just a single unit name
             return cls._parse_unit(s, detailed_exception=False)
         except ValueError:
-            from ..core import Unit
             try:
-                return Unit(
+                return core.Unit(
                     cls._parser.parse(s, lexer=cls._lexer, debug=debug))
             except ValueError as e:
                 if six.text_type(e):
@@ -425,8 +423,6 @@ class OGIP(generic.Generic):
 
     @classmethod
     def to_string(cls, unit):
-        from .. import core
-
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
@@ -443,8 +439,6 @@ class OGIP(generic.Generic):
 
     @classmethod
     def _to_decomposed_alternative(cls, unit):
-        from .. import core
-
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 

@@ -13,8 +13,7 @@ import numpy as np
 import copy
 import keyword
 
-from . import generic
-from . import utils
+from . import core, generic, utils
 
 
 class Fits(generic.Generic):
@@ -104,8 +103,6 @@ class Fits(generic.Generic):
 
     @classmethod
     def to_string(cls, unit):
-        from .. import core
-
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 
@@ -135,8 +132,6 @@ class Fits(generic.Generic):
 
     @classmethod
     def _to_decomposed_alternative(cls, unit):
-        from .. import core
-
         try:
             s = cls.to_string(unit)
         except core.UnitScaleError:

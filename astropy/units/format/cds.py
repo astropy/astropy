@@ -16,7 +16,7 @@ from ...extern import six
 from ...extern.six.moves import zip
 
 from .base import Base
-from . import utils
+from . import core, utils
 from ..utils import is_effectively_unity
 from ...utils import classproperty
 from ...utils.misc import did_you_mean
@@ -319,8 +319,6 @@ class CDS(Base):
 
     @classmethod
     def to_string(cls, unit):
-        from .. import core
-
         # Remove units that aren't known to the format
         unit = utils.decompose_to_known_units(unit, cls._get_unit_name)
 

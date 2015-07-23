@@ -8,8 +8,7 @@ Handles the "Console" unit format.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from . import base
-from . import utils
+from . import base, core, utils
 
 
 class Console(base.Base):
@@ -66,8 +65,6 @@ class Console(base.Base):
 
     @classmethod
     def to_string(cls, unit):
-        from .. import core
-
         if isinstance(unit, core.CompositeUnit):
             if unit.scale == 1:
                 s = ''

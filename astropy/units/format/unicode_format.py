@@ -8,8 +8,7 @@ Handles the "Unicode" unit format.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from . import console
-from . import utils
+from . import console, utils
 
 
 class Unicode(console.Console):

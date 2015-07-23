@@ -7,6 +7,12 @@ A collection of different unit formats.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+# This is pretty atrocious, but it will prevent a circular import for those
+# formatters that need access to the units.core module An entry for it should
+# exist in sys.modules since astropy.units.core imports this module
+import sys
+core = sys.modules['astropy.units.core']
+
 from .base import Base
 from .generic import Generic, Unscaled
 from .cds import CDS

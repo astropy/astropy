@@ -13,14 +13,12 @@ import os
 import re
 import warnings
 
-from . import utils
+from . import core, utils
 from .base import Base
 from ...utils import classproperty
 from ...utils.misc import did_you_mean
 
 def _to_string(cls, unit):
-    from .. import core
-
     if isinstance(unit, core.CompositeUnit):
         parts = []
 
@@ -433,8 +431,7 @@ class Generic(Base):
 
     @classmethod
     def _parse_unit(cls, s, detailed_exception=True):
-        from ..core import get_current_unit_registry
-        registry = get_current_unit_registry().registry
+        registry = core.get_current_unit_registry().registry
         if s == '%':
             return registry['percent']
         elif s in registry:
@@ -454,11 +451,10 @@ class Generic(Base):
 
         result = cls._do_parse(s, debug=debug)
         if s.count('/') > 1:
-            from ..core import UnitsWarning
             warnings.warn(
                 "'{0}' contains multiple slashes, which is "
                 "discouraged by the FITS standard".format(s),
-                UnitsWarning)
+                core.UnitsWarning)
         return result
 
     @classmethod
