@@ -472,11 +472,11 @@ def block_replicate(data, block_size, conserve_sum=True):
 
 
 class Cutout2D(object):
+    """Create a cutout object from a 2D array."""
+
     def __init__(self, data, position, shape, wcs=None, mode='trim',
                  fill_value=np.nan, copy=False):
         """
-        Create a cutout object from a 2D array.
-
         The returned object will contain a 2D cutout array.  If
         ``copy=False`` (default), the cutout array is a view into the
         original ``data`` array, otherwise the cutout array will contain
@@ -487,6 +487,11 @@ class Cutout2D(object):
         for the cutout array.
 
         For example usage, see :ref:`cutout_images`.
+
+        .. warning::
+
+            The cutout WCS object does not currently handle cases where
+            the input WCS object contains tabular distortions.
 
         Parameters
         ----------
@@ -677,7 +682,7 @@ class Cutout2D(object):
         -------
         ax : `matplotlib.axes.Axes` instance
             The matplotlib Axes instance constructed in the method if
-            `ax=None`.  Otherwise the output ``ax`` is the same as the
+            ``ax=None``.  Otherwise the output ``ax`` is the same as the
             input ``ax``.
         """
 
