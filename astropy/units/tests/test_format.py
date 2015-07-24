@@ -512,6 +512,22 @@ def test_fits_scale_factor():
     assert x == 10**(-20) * (u.erg / u.s / u.cm ** 2 / u.Angstrom)
     assert x.to_string(format='fits') == '10**-20 Angstrom-1 cm-2 erg s-1'
 
+    x = u.Unit('10**-20 erg/s/cm**2/Angstrom', format='fits')
+    assert x == 10**(-20) * (u.erg / u.s / u.cm ** 2 / u.Angstrom)
+    assert x.to_string(format='fits') == '10**-20 Angstrom-1 cm-2 erg s-1'
+
+    x = u.Unit('10^(-20) erg/s/cm**2/Angstrom', format='fits')
+    assert x == 10**(-20) * (u.erg / u.s / u.cm ** 2 / u.Angstrom)
+    assert x.to_string(format='fits') == '10**-20 Angstrom-1 cm-2 erg s-1'
+
+    x = u.Unit('10^-20 erg/s/cm**2/Angstrom', format='fits')
+    assert x == 10**(-20) * (u.erg / u.s / u.cm ** 2 / u.Angstrom)
+    assert x.to_string(format='fits') == '10**-20 Angstrom-1 cm-2 erg s-1'
+
+    x = u.Unit('10-20 erg/s/cm**2/Angstrom', format='fits')
+    assert x == 10**(-20) * (u.erg / u.s / u.cm ** 2 / u.Angstrom)
+    assert x.to_string(format='fits') == '10**-20 Angstrom-1 cm-2 erg s-1'
+
     x = u.Unit('10**(-20)*erg/s/cm**2/Angstrom', format='fits')
     assert x == 10**(-20) * (u.erg / u.s / u.cm ** 2 / u.Angstrom)
 

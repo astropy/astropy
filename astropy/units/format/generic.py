@@ -350,7 +350,7 @@ class Generic(Base):
             power : DOUBLE_STAR
                   | CARET
             '''
-            pass
+            p[0] = p[1]
 
         def p_signed_int(p):
             '''
