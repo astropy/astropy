@@ -349,8 +349,8 @@ class TestCutout2D(object):
         assert c.position_cutout == (1., 1.)
         assert c.center_original == (2., 2.)
         assert c.center_cutout == (1., 1.)
-        assert c.bbox_original == (1, 1, 3, 3)
-        assert c.bbox_cutout == (0, 0, 2, 2)
+        assert c.bbox_original == ((1, 3), (1, 3))
+        assert c.bbox_cutout == ((0, 2), (0, 2))
         assert c.slices_original == (slice(1, 4), slice(1, 4))
         assert c.slices_cutout == (slice(0, 3), slice(0, 3))
 
