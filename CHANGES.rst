@@ -211,6 +211,12 @@ New Features
 
     The wcslib changes relevant to astropy are:
 
+    - The FITS headers returned by ``astropy.wcs.WCS.to_header`` and
+      ``astropy.wcs.WCS.to_header_string`` now include values with
+      more precision.  This will result in numerical differences in
+      your results if you convert ``astropy.wcs.WCS`` objects to FITS
+      headers and use the results.
+
     - ``astropy.wcs.WCS`` now recognises the ``TPV``, ``TPD``,
       ``TPU``, ``DSS``, ``TNX`` and ``ZPX`` polynomial distortions.
 
@@ -334,6 +340,13 @@ API changes
 - ``astropy.vo``
 
 - ``astropy.wcs``
+
+  - When compiled with wcslib 5.9 or later, the FITS headers returned
+    by ``astropy.wcs.WCS.to_header`` and
+    ``astropy.wcs.WCS.to_header_string`` now include values with more
+    precision.  This will result in numerical differences in your
+    results if you convert ``astropy.wcs.WCS`` objects to FITS headers
+    and use the results.
 
   - If NAXIS1 or NAXIS2 is not passed with the header object to
     WCS.calc_footprint, a ValueError is raised. [#3557]
