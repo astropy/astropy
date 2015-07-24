@@ -572,10 +572,6 @@ class Cutout2D(object):
          [ nan   4.   5.]]
         """
 
-        if mode not in ['partial', 'trim', 'strict']:
-            raise ValueError("Valid modes are 'partial', 'trim', and "
-                             "'strict'.")
-
         if isinstance(position, SkyCoord):
             if wcs is None:
                 raise ValueError('wcs must be input if position is a '

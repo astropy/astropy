@@ -379,10 +379,6 @@ class TestCutout2D(object):
         assert c.data[1, 1] == 0
         assert c.data[0, 0] == fill_value
 
-    def test_invalid_mode(self):
-        with pytest.raises(ValueError):
-            Cutout2D(self.data, (0, 0), (3, 3), mode='invalid')
-
     def test_copy(self):
         data = np.copy(self.data)
         c = Cutout2D(data, (2, 3), (3, 3))
