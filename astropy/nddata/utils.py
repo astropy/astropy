@@ -663,7 +663,8 @@ class Cutout2D(object):
         Parameters
         ----------
         ax : `matplotlib.axes.Axes` instance, optional
-            If `None`, then the current ``Axes`` instance is used.
+            If `None`, then the current `matplotlib.axes.Axes` instance
+            is used.
 
         fill : bool, optional
             Set whether to fill the cutout patch.  The default is
@@ -671,6 +672,13 @@ class Cutout2D(object):
 
         kwargs : optional
             Any keyword arguments accepted by `matplotlib.patches.Patch`.
+
+        Returns
+        -------
+        ax : `matplotlib.axes.Axes` instance
+            The matplotlib Axes instance constructed in the method if
+            `ax=None`.  Otherwise the output ``ax`` is the same as the
+            input ``ax``.
         """
 
         import matplotlib.pyplot as plt
@@ -686,6 +694,7 @@ class Cutout2D(object):
         pos = self.position_original - np.array([hw, hh])
         patch = mpatches.Rectangle(pos, width, height, 0., **kwargs)
         ax.add_patch(patch)
+        return ax
 
     @staticmethod
     def _calc_center(slices):
