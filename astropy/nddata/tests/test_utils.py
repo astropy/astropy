@@ -3,8 +3,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
 from numpy.testing import assert_allclose
-
-from ...tests.helper import pytest
+from ...tests.helper import pytest, assert_quantity_allclose
 from ..utils import (extract_array, add_array, subpixel_indices,
                      block_reduce, block_replicate,
                      overlap_slices, NoOverlapError, PartialOverlapError,
@@ -418,9 +417,8 @@ class TestCutout2D(object):
                                                      self.wcs)
         skycoord_cutout = self.position.from_pixel(c.center_cutout[1],
                                                    c.center_cutout[0], c.wcs)
-        assert_allclose(skycoord_original.ra.value, skycoord_cutout.ra.value)
-        assert_allclose(skycoord_original.dec.value,
-                        skycoord_cutout.dec.value)
+        assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
+        assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
 
     def test_skycoord_partial(self):
         c = Cutout2D(self.data, self.position, (3, 3), wcs=self.wcs,
@@ -430,6 +428,5 @@ class TestCutout2D(object):
                                                      self.wcs)
         skycoord_cutout = self.position.from_pixel(c.center_cutout[1],
                                                    c.center_cutout[0], c.wcs)
-        assert_allclose(skycoord_original.ra.value, skycoord_cutout.ra.value)
-        assert_allclose(skycoord_original.dec.value,
-                        skycoord_cutout.dec.value)
+        assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
+        assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
