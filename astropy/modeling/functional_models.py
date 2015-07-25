@@ -548,6 +548,26 @@ class Sine1D(Fittable1DModel):
     Model formula:
 
         .. math:: f(x) = A \\sin(2 \\pi f x + 2 \\pi p)
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        from astropy.modeling.models import Sine1D
+        import matplotlib.pyplot as plt
+
+        plt.figure()
+        s1 = Sine1D(amplitude=1, frequency=.25)
+        r=np.arange(0, 10, .01)
+
+        for amplitude in range(1,4):
+             s1.amplitude = amplitude
+             plt.plot(r, s1(r), color=str(0.25 * amplitude), lw=2)
+
+        plt.axis([0, 10, -5, 5])
+        plt.show()
     """
 
     amplitude = Parameter(default=1)
