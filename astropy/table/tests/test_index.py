@@ -189,7 +189,7 @@ class TestIndex(SetupData):
         assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
 
         # non-copy mode
-        with index_mode(t, 'copy'):
+        with index_mode(t, 'discard_on_copy'):
             assert len(t[[1, 3]].indices) == 0
             assert len(t[::-1].indices) == 0
             assert len(Table(t).indices) == 0
@@ -198,7 +198,7 @@ class TestIndex(SetupData):
         assert len(t[[1, 3]].indices) == 1
 
         # non-modify mode
-        with index_mode(t, 'modify'):
+        with index_mode(t, 'freeze'):
             assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
             t['a'][0] = 1
             assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
@@ -211,4 +211,8 @@ class TestIndex(SetupData):
         # make sure non-modify mode is exited correctly
         assert np.all(t.indices[0].sorted_data() == [0, 3, 1, 2])
 
+        assert len(t['a'][::-1].indices) == 0
+        with index_mode(t, 'copy_on_getitem'):
+            assert len(t['a'][[1,2]].indices) == 1
 
+        assert len(t['a'][::-1].indices) == 0
