@@ -333,8 +333,9 @@ class index_mode:
     '''
     A context manager that allows for special indexing modes, which
     are intended to improve performance. Currently the allowed modes
-    are "modify", in which indices are not modified upon column modification,
-    and "copy", in which indices are discarded upon table copying/slicing.
+    are "freeze", in which indices are not modified upon column modification,
+    and "discard_on_copy", in which indices are discarded upon table
+    copying/slicing.
     '''
 
     def __init__(self, table, mode):
@@ -344,29 +345,41 @@ class index_mode:
         table : Table
             The table to which the mode should be applied
         mode : str
-            Either 'modify' or 'copy'. In 'copy' mode, indices are not
-            copied whenever columns or tables are copied. In 'modify' mode,
-            indices are not modified whenever columns are modified; at the
-            exit of the context, indices refresh themselves based on column
-            values. This mode is intended for scenarios in which one intends
-            to make many additions or modifications in an indexed column.
+            Either 'freeze', 'copy_on_getitem', or 'discard_on_copy'. In 'discard_on_copy' mode,
+            indices are not copied whenever columns or tables are copied.
+            In 'freeze' mode, indices are not modified whenever columns are
+            modified; at the exit of the context, indices refresh themselves
+            based on column values. This mode is intended for scenarios in
+            which one intends to make many additions or modifications in an
+            indexed column.
+            In 'copy_on_getitem' mode, indices are copied when taking column
+            slices as well as table slices, so col[i0:i1] will preserve indices.
         '''
         self.table = table
         self.mode = mode
-        if mode not in ('modify', 'copy'):
-            raise ValueError("index_mode expects a mode of either 'modify' or "
-                             "'copy', got '{0}'".format(mode))
+        if mode not in ('freeze', 'discard_on_copy', 'copy_on_getitem'):
+            raise ValueError("index_mode expects a mode of either 'freeze', "
+                             "'discard_on_copy', or 'copy_on_getitem', got "
+                             "'{0}'".format(mode))
 
     def __enter__(self):
-        if self.mode == 'copy':
+        if self.mode == 'discard_on_copy':
             self.table._copy_indices = False
+        elif self.mode == 'copy_on_getitem':
+            self.copy_func = {}
+            for col in self.table.columns.values():
+                self.copy_func[col.info.name] = col._instance_getitem
+                col._instance_getitem = col.get_item
         else:
             for index in self.table.indices:
                 index._frozen = True
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self.mode == 'copy':
+        if self.mode == 'discard_on_copy':
             self.table._copy_indices = True
+        elif self.mode == 'copy_on_getitem':
+            for col in self.table.columns.values():
+                col._instance_getitem = self.copy_func[col.info.name]
         else:
             for index in self.table.indices:
                 index._frozen = False

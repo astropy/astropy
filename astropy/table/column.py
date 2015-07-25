@@ -307,13 +307,20 @@ class BaseColumn(np.ndarray):
 
         return reconstruct_func, reconstruct_func_args, state
 
+    def __getitem__(self, item):
+        return self._instance_getitem(item)
+
+    def _instance_getitem(self, item):
+        return super(BaseColumn, self).__getitem__(item)
+
     def get_item(self, item):
+        print('get_item: {0}'.format(item))
         if isinstance(item, INTEGER_TYPES):
             return self.data[item]  # Return as plain ndarray or ma.MaskedArray
 
-        col_slice = self[item]
+        col_slice = super(BaseColumn, self).__getitem__(item)
 
-        if not self._copy_indices:
+        if not getattr(self, '_copy_indices', True):
             return col_slice
         elif isinstance(item, slice):
             col_slice.indices = [x[item] for x in self.indices]
