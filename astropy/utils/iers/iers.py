@@ -108,6 +108,9 @@ class IERS(QTable):
             for passing on to the `read` class methods (further optional
             arguments that are available for some IERS subclasses can be added).
             If None, use the default location from the `read` class method.
+        cache : bool
+            Whether to use cache. Defaults to False, since IERS files
+            are regularly updated.
 
         Returns
         -------
