@@ -213,6 +213,6 @@ class TestIndex(SetupData):
 
         assert len(t['a'][::-1].indices) == 0
         with index_mode(t, 'copy_on_getitem'):
-            assert len(t['a'][[1,2]].indices) == 1
+            assert len(t['a'][[1, 2]].indices) == 1
 
         assert len(t['a'][::-1].indices) == 0

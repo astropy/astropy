@@ -16,7 +16,7 @@ __all__ = ['TableGroups', 'ColumnGroups']
 
 def table_group_by(table, keys):
     # index copies are unnecessary and slow down _table_group_by
-    with index_mode(table, 'copy'):
+    with index_mode(table, 'discard_on_copy'):
         return _table_group_by(table, keys)
 
 def _table_group_by(table, keys):
