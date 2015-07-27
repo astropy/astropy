@@ -18,7 +18,7 @@ from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
-from ....utils import indent
+from ....utils import indent, check_free_space_in_dir, get_free_space_in_dir
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 
 
@@ -599,6 +599,11 @@ class HDUList(list, _Verify):
                     except KeyError:
                         extver = ''
 
+                free_space = get_free_space_in_dir(os.getcwd())
+                hdulist_size = np.sum(hdu_size for hdu.size in self)
+                if not self._file.file_like and free_space < hdu.size:
+                    raise IOError('Not enough space on disk')
+
                 # only append HDU's which are "new"
                 if hdu._new:
                     hdu._prewriteto(checksum=hdu._output_checksum)
@@ -684,6 +689,11 @@ class HDUList(list, _Verify):
         # but only if the file doesn't exist.
         fileobj = _File(fileobj, mode='ostream', clobber=clobber)
         hdulist = self.fromfile(fileobj)
+
+        free_space = get_free_space_in_dir(os.getcwd())
+        hdulist_size = np.sum(hdu_size for hdu.size in self)
+        if not fileobj.file_like and free_space < hdu.size:
+            raise IOError('Not enough space on disk')
 
         for hdu in self:
             hdu._prewriteto(checksum=checksum)
