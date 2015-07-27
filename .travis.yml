@@ -92,6 +92,6 @@ script:
 
 after_success:
     - if [[ $SETUP_CMD == 'test --coverage' ]]; then
-        cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" --dump c-coveralls.json;
+        cpp-coveralls -E ".*convolution.*" -E ".*_erfa.*" -E ".*\.l" -E ".*\.y" -E ".*flexed.*" -E ".*cextern.*" -E ".*_np_utils.*" -E ".*cparser.*" --dump c-coveralls.json;
         coveralls --merge=c-coveralls.json --rcfile='astropy/tests/coveragerc';
       fi
