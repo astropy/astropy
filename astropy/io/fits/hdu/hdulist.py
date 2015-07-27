@@ -9,6 +9,7 @@ import shutil
 import sys
 import textwrap
 import warnings
+import numpy as np
 
 import numpy as np
 
@@ -19,7 +20,7 @@ from .image import PrimaryHDU, ImageHDU
 from ..file import _File
 from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
-                    _get_array_mmap)
+                    _get_array_mmap, _free_space_check)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
 from ....utils import indent
@@ -51,7 +52,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     save_backup : bool, optional
         If the file was opened in update or append mode, this ensures that a
         backup of the original file is saved before any changes are flushed.
-        The backup has the same name as the original file with ".bak" appended.
+        The backup has the same name as the original file  ".bak" appended.
         If "file.bak" already exists then "file.bak.1" is used, and so on.
 
     cache : bool, optional
@@ -774,15 +775,15 @@ class HDUList(list, _Verify):
                 # only append HDU's which are "new"
                 if hdu._new:
                     hdu._prewriteto(checksum=hdu._output_checksum)
-                    try:
+                    with _free_space_check(self):
                         hdu._writeto(self._file)
                         if verbose:
                             print('append HDU', hdu.name, extver)
                         hdu._new = False
-                    finally:
-                        hdu._postwriteto()
+                    hdu._postwriteto()
         elif self._file.mode == 'update':
-            self._flush_update()
+            with _free_space_check(self):
+                self._flush_update()
 
     def update_extend(self):
         """
@@ -871,10 +872,9 @@ class HDUList(list, _Verify):
 
         for hdu in self:
             hdu._prewriteto(checksum=checksum)
-            try:
+            with _free_space_check(hdulist):
                 hdu._writeto(hdulist._file)
-            finally:
-                hdu._postwriteto()
+            hdu._postwriteto()
 
         hdulist.close(output_verify=output_verify, closed=closed)
 
