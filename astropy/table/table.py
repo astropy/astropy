@@ -437,6 +437,13 @@ class Table(object):
         if isinstance(colnames, six.string_types):
             colnames = (colnames,)
         columns = self.columns[tuple(colnames)].values()
+
+        # make sure all columns support indexing
+        for col in columns:
+            if not getattr(col.info, '_supports_indexing', False):
+                raise ValueError('Cannot create an index on column "{0}", of '
+                                 'type "{1}"'.format(col.info.name, type(col)))
+
         index = Index(columns, impl=impl)
         for col in columns:
             col.info.indices.append(index)
@@ -448,7 +455,7 @@ class Table(object):
         col = self.columns[colname]
         for index in self.indices:
             try:
-                index.col_position(col)
+                index.col_position(col.info.name)
             except ValueError:
                 pass
             else:
@@ -1932,7 +1939,7 @@ class Table(object):
             for table_index in self.indices:
                 table_index.insert_row(index, vals, self.columns.values())
 
-        except Exception as err:
+        except RuntimeError:
             raise ValueError("Unable to insert row because of exception in column '{0}':\n{1}"
                              .format(name, err))
         else:
@@ -1946,7 +1953,7 @@ class Table(object):
         for col, new_col in zip(self.columns.values(), columns.values()):
             new_col.info.indices = []
             for index in col.info.indices:
-                index.columns[index.col_position(col)] = new_col
+                index.columns[index.col_position(col.info.name)] = new_col
                 new_col.info.indices.append(index)
 
         self.columns = columns

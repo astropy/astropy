@@ -47,6 +47,7 @@ class Index:
     '''
     def __init__(self, columns, impl=None, col_dtypes=None, data=None):
         from .table import Table
+
         if data is not None: # create from data
             self.engine = data.__class__
             self.data = data
@@ -62,10 +63,16 @@ class Index:
         elif len(columns) == 0:
             raise ValueError("Cannot create index without at least one column")
         else:
+            num_cols = len(columns)
             num_rows = len(columns[0])
+            names = ['col{0}'.format(i) for i in range(num_cols + 1)]
             # sort the table lexicographically and keep row numbers
-            table = Table([np.array(x) for x in columns] + [np.arange(num_rows)])
-            lines = table[np.lexsort(columns[::-1])]
+            table = Table(columns + [np.arange(num_rows)], names=names)
+            sort_columns = columns[::-1]
+            try:
+                lines = table[np.lexsort(sort_columns)]
+            except TypeError: # mixin columns might not work with lexsort
+                lines = table[np.argsort(sort_columns)]
 
         if self.engine == SortedArray:
             self.data = self.engine(lines, col_dtypes=col_dtypes)
@@ -76,7 +83,7 @@ class Index:
 
     def refresh(self, columns):
         # update index to include correct column references
-        self.columns = [columns[x.name] for x in self.columns]
+        self.columns = [columns[x.info.name] for x in self.columns]
 
     def reload(self):
         # recreate the index based on data in self.columns
@@ -86,12 +93,12 @@ class Index:
         lines = table[np.lexsort(self.columns[::-1])]
         self.data = self.engine(lines)
 
-    def col_position(self, col):
-        # return the position of col in self.columns
+    def col_position(self, col_name):
+        # return the position of col_name in self.columns
         for i, c in enumerate(self.columns):
-            if col.name == c.name:
+            if c.info.name == col_name:
                 return i
-        raise ValueError("Column does not belong to index: {0}".format(col))
+        raise ValueError("Column does not belong to index: {0}".format(col_name))
 
     def insert_row(self, pos, vals, columns):
         '''
@@ -111,7 +118,7 @@ class Index:
         key = [None] * len(self.columns)
         for i, col in enumerate(columns):
             try:
-                key[i] = vals[self.col_position(col)]
+                key[i] = vals[self.col_position(col.info.name)]
             except ValueError: # not a member of index
                 continue
         # shift all rows >= pos to the right
@@ -186,7 +193,7 @@ class Index:
         upper = tuple(upper + (ncols - n) * [b])
         return self.data.range(lower, upper, bounds)
 
-    def replace(self, row, col, val):
+    def replace(self, row, col_name, val):
         '''
         Replace the value of a column at a given position.
 
@@ -194,8 +201,8 @@ class Index:
         ----------
         row : int
             Row number to modify
-        col : Column
-            Column to modify
+        col_name : str
+            Name of the Column to modify
         val : col.dtype
             Value to insert at specified row of col
         '''
@@ -203,7 +210,7 @@ class Index:
             return
         self.remove_row(row, reorder=False)
         key = [c[row] for c in self.columns]
-        key[self.col_position(col)] = val
+        key[self.col_position(col_name)] = val
         self.data.add(tuple(key), row)
 
     def replace_rows(self, col_slice):
@@ -325,7 +332,7 @@ def get_index(table, table_copy):
     indices = set()
     for column in cols:
         for index in table[column].indices:
-            if set([x.name for x in index.columns]) == cols:
+            if set([x.info.name for x in index.columns]) == cols:
                 return index
     return None
 
@@ -334,8 +341,12 @@ class index_mode:
     A context manager that allows for special indexing modes, which
     are intended to improve performance. Currently the allowed modes
     are "freeze", in which indices are not modified upon column modification,
+    "copy_on_getitem", in which indices are copied upon column slicing,
     and "discard_on_copy", in which indices are discarded upon table
     copying/slicing.
+
+    NOTE: freeze and discard_on_copy affect only the supplied table,
+    while copy_on_getitem affects all instances of BaseColumn.
     '''
 
     def __init__(self, table, mode):
@@ -363,23 +374,27 @@ class index_mode:
                              "'{0}'".format(mode))
 
     def __enter__(self):
+        from .column import BaseColumn
+
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = False
         elif self.mode == 'copy_on_getitem':
-            self.copy_func = {}
-            for col in self.table.columns.values():
-                self.copy_func[col.info.name] = col._instance_getitem
-                col._instance_getitem = col.get_item
+            # we need to modify BaseColumn directly rather than
+            # individual columns since new-style classes refer
+            # directly to the class for special methods
+            self.copy_func = BaseColumn.__getitem__
+            BaseColumn.__getitem__ = BaseColumn.get_item
         else:
             for index in self.table.indices:
                 index._frozen = True
 
     def __exit__(self, exc_type, exc_value, traceback):
+        from .column import BaseColumn
+
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = True
         elif self.mode == 'copy_on_getitem':
-            for col in self.table.columns.values():
-                col._instance_getitem = self.copy_func[col.info.name]
+            BaseColumn.__getitem__ = self.copy_func
         else:
             for index in self.table.indices:
                 index._frozen = False

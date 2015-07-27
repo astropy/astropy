@@ -392,6 +392,32 @@ class BaseColumnInfo(DataInfo):
         for str_val in _pformat_col_iter(col, -1, False, False, {}):
             yield str_val
 
+    def adjust_indices(self, index, value, col_len):
+        if not self.indices:
+            return
+
+        if isinstance(index, slice):
+            # run through each key in slice
+            t = index.indices(col_len)
+            keys = range(*t)
+            num_keys = len(t)
+        elif isinstance(index, np.ndarray) and index.dtype.kind == 'b':
+            # boolean mask
+            keys = np.where(index)[0]
+            num_keys = len(keys)
+        else: # single int
+            keys = [index]
+            num_keys = 1
+
+        value = np.atleast_1d(value) # turn array(x) into array([x])
+        if value.size == 1:
+            # repeat single value
+            value = list(value) * num_keys
+
+        for key, val in zip(keys, value):
+            for col_index in self.indices:
+                col_index.replace(key, self.name, val)
+
 class MixinInfo(BaseColumnInfo):
     pass
 

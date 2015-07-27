@@ -31,7 +31,7 @@ class SortedArray(object):
             self.num_cols = len(col_dtypes)
         else:
             self.num_cols = len(lines.colnames) - 1
-            col_dtypes = [x.dtype for x in lines.columns[:-1].values()]
+            col_dtypes = [x.info.dtype for x in lines.columns[:-1].values()]
 
         self.length = 0 if lines is None else len(lines)
         self._data = [np.zeros(self.length, dtype=d) for d in col_dtypes]
