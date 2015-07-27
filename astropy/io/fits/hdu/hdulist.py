@@ -7,6 +7,7 @@ import os
 import shutil
 import sys
 import warnings
+import numpy as np
 
 from . import compressed
 from .base import _BaseHDU, _ValidHDU, _NonstandardHDU, ExtensionHDU
@@ -18,8 +19,9 @@ from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
                     _get_array_mmap)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
-from ....utils import indent, check_free_space_in_dir, get_free_space_in_dir
+from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
+from ....utils.data import check_free_space_in_dir, get_free_space_in_dir
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -600,8 +602,8 @@ class HDUList(list, _Verify):
                         extver = ''
 
                 free_space = get_free_space_in_dir(os.getcwd())
-                hdulist_size = np.sum(hdu_size for hdu.size in self)
-                if not self._file.file_like and free_space < hdu.size:
+                hdulist_size = np.sum(hdu.size for hdu in self)
+                if not self._file.file_like and free_space < hdulist_size:
                     raise IOError('Not enough space on disk')
 
                 # only append HDU's which are "new"
@@ -691,8 +693,8 @@ class HDUList(list, _Verify):
         hdulist = self.fromfile(fileobj)
 
         free_space = get_free_space_in_dir(os.getcwd())
-        hdulist_size = np.sum(hdu_size for hdu.size in self)
-        if not fileobj.file_like and free_space < hdu.size:
+        hdulist_size = np.sum(hdu.size for hdu in self)
+        if not fileobj.file_like and free_space < hdulist_size:
             raise IOError('Not enough space on disk')
 
         for hdu in self:
