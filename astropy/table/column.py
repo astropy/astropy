@@ -93,6 +93,7 @@ class FalseArray(np.ndarray):
 
 class ColumnInfo(BaseColumnInfo):
     attrs_from_parent = BaseColumnInfo.attr_names
+    _supports_indexing = True
 
 
 class _NDColumnProxyShim(np.ndarray):
@@ -306,12 +307,6 @@ class BaseColumn(np.ndarray):
         state = state + (column_state,)
 
         return reconstruct_func, reconstruct_func_args, state
-
-    def __getitem__(self, item):
-        return self._instance_getitem(item)
-
-    def _instance_getitem(self, item):
-        return super(BaseColumn, self).__getitem__(item)
 
     def get_item(self, item):
         if isinstance(item, INTEGER_TYPES):
@@ -844,40 +839,14 @@ class Column(BaseColumn):
     # order-of-magnitude speed-up. [#2994]
     def __setitem__(self, index, value):
         # update indices
-        self._adjust_indices(index, value)
+        self.info.adjust_indices(index, value, len(self))
         self.data[index] = value
 
     # # Set slices using a view of the underlying data, as it gives an
     # # order-of-magnitude speed-up.  Only gets called in Python 2.  [#3020]
     def __setslice__(self, start, stop, value):
-        self._adjust_indices(slice(start, stop), value)
+        self.info.adjust_indices(slice(start, stop), value, len(self))
         self.data.__setslice__(start, stop, value)
-
-    def _adjust_indices(self, index, value):
-        if not self.indices:
-            return
-
-        if isinstance(index, slice):
-            # run through each key in slice
-            t = index.indices(len(self))
-            keys = range(*t)
-            num_keys = len(t)
-        elif isinstance(index, np.ndarray) and index.dtype.kind == 'b':
-            # boolean mask
-            keys = np.where(index)[0]
-            num_keys = len(keys)
-        else: # single int
-            keys = [index]
-            num_keys = 1
-
-        value = np.atleast_1d(value) # turn array(x) into array([x])
-        if value.size == 1:
-            # repeat single value
-            value = list(value) * num_keys
-
-        for key, val in zip(keys, value):
-            for col_index in self.indices:
-                col_index.replace(key, self, val)
 
     def insert(self, obj, values):
         """
@@ -1190,7 +1159,7 @@ class MaskedColumn(Column, ma.MaskedArray):
     # copy the mask properly. See test_setting_from_masked_column test.
     def __setitem__(self, index, value):
         # update indices
-        self._adjust_indices(index, value)
+        self.info.adjust_indices(index, value, len(self))
         ma.MaskedArray.__setitem__(self, index, value)
 
     def __setslice__(self, start, stop, value):

@@ -104,6 +104,7 @@ class TimeInfo(MixinInfo):
     be used as a general way to store meta information.
     """
     attrs_from_parent = set(['unit'])  # unit is read-only and None
+    _supports_indexing = True
 
     @property
     def unit(self):
@@ -972,6 +973,7 @@ class Time(object):
         """
         jd_approx = self.jd
         jd_remainder = (self - self.__class__(jd_approx, format='jd')).jd
+        print(jd_approx, jd_remainder)
         if axis is None:
             return np.lexsort((jd_remainder.ravel(), jd_approx.ravel()))
         else:
