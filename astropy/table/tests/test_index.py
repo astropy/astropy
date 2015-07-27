@@ -8,16 +8,20 @@ from ...table import table_helpers
 from ..index import index_mode
 from ... import units as u
 from ...coordinates import SkyCoord
+from ...time import Time
 
 @pytest.fixture(params=[BST, FastBST, FastRBT, SortedArray])
 def impl(request):
     return request.param
 
+_col = [1, 2, 3, 4, 5]
+
 @pytest.fixture(params=[
-    [1, 2, 3, 4, 5],
-    u.Quantity([1, 2, 3, 4, 5]),
-    SkyCoord(ra=[1, 2, 3, 4, 5] * u.deg,
-             dec=[1, 2, 3, 4, 5] * u.deg)])
+    _col,
+    u.Quantity(_col),
+    Time(_col, format='jyear'),
+    SkyCoord(ra=_col * u.deg, dec=_col * u.deg)
+])
 def main_col(request):
     return request.param
 
@@ -32,7 +36,8 @@ class TestIndex(SetupData):
         if isinstance(main_col, u.Quantity):
             self._table_type = QTable
         if not isinstance(main_col, list):
-            self._column_type = lambda x: x
+            self._column_type = lambda x: x # don't change mixin type
+        self.mutable = isinstance(main_col, (list, u.Quantity))
 
     def make_col(self, name, lst):
         return self._column_type(lst, name=name)
@@ -51,6 +56,11 @@ class TestIndex(SetupData):
         self._setup(main_col, table_types)
         t = self.t
         t.add_index(('a', 'b') if composite else 'a', impl=impl)
+        assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+
+        if not self.mutable:
+            return
+        # test altering table columns
         t['a'][0] = 4
         t.add_row((6, 6.0, '7'))
         t['a'][3] = 10
@@ -71,7 +81,6 @@ class TestIndex(SetupData):
                                 ((6, 6.0), [4]),
                                 ((10, 7.0), [2])])
         else:
-            print(l)
             assert np.all(l == [((2,), [1]),
                                 ((4,), [0, 5]),
                                 ((5,), [3]),
@@ -97,6 +106,8 @@ class TestIndex(SetupData):
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
     def test_remove_rows(self, main_col, table_types, impl):
+        if not self.mutable:
+            return
         self._setup(main_col, table_types)
         t = self.t
         t.add_index('a', impl=impl)
@@ -145,6 +156,15 @@ class TestIndex(SetupData):
             assert len(t_empty['a'].data) == 0
             assert np.all(t_empty.indices[0].sorted_data() == [])
 
+        # get boolean mask
+        mask = t['a'] % 2 == 1
+        t2 = t[mask]
+        assert np.all(t2['a'].data == [1, 3, 5])
+        assert np.all(t2.indices[0].sorted_data() == [0, 1, 2])
+
+        if not self.mutable:
+            return
+
         # set slice
         t2 = t.copy()
         t2['a'][1:3] = np.array([6, 7])
@@ -161,12 +181,6 @@ class TestIndex(SetupData):
         assert np.all(t2['a'].data == np.array([1, 5, 3, 4, 5]))
         assert np.all(t3.indices[0].sorted_data() == [1, 0])
         assert np.all(t2.indices[0].sorted_data() == [0, 2, 3, 1, 4])
-
-        # get boolean mask
-        mask = t['a'] % 2 == 1
-        t2 = t[mask]
-        assert np.all(t2['a'].data == [1, 3, 5])
-        assert np.all(t2.indices[0].sorted_data() == [0, 1, 2])
 
         # set boolean mask
         t2 = t.copy()

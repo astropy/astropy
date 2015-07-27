@@ -72,7 +72,7 @@ class Index:
             try:
                 lines = table[np.lexsort(sort_columns)]
             except TypeError: # mixin columns might not work with lexsort
-                lines = table[np.argsort(sort_columns)]
+                lines = table.group_by(names)
 
         if self.engine == SortedArray:
             self.data = self.engine(lines, col_dtypes=col_dtypes)
