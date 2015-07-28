@@ -606,6 +606,8 @@ Bug Fixes
     will now "set" rather than "add" units to the active set to avoid
     the namespace clash with the default units. [#3873]
 
+  - Ensure in-place operations on ``float32`` quantities work. [#4007]
+
 - ``astropy.utils``
 
   - The ``deprecated`` decorator did not correctly wrap classes that have a
