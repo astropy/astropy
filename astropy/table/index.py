@@ -72,7 +72,7 @@ class Index:
             try:
                 lines = table[np.lexsort(sort_columns)]
             except TypeError: # mixin columns might not work with lexsort
-                lines = table.group_by(names)
+                lines = table[table.argsort()]
 
         if self.engine == SortedArray:
             self.data = self.engine(lines, col_dtypes=col_dtypes)
@@ -203,7 +203,7 @@ class Index:
             Row number to modify
         col_name : str
             Name of the Column to modify
-        val : col.dtype
+        val : col.info.dtype
             Value to insert at specified row of col
         '''
         if self._frozen:
@@ -244,8 +244,8 @@ class Index:
     def __deepcopy__(self, memo):
         # deep copy must be overridden to perform a shallow copy of columns
         num_cols = self.data.num_cols if self.engine == SortedArray else None
-        index = Index(None, impl=self.data.__class__, col_dtypes=[x.dtype for
-                                                    x in self.columns])
+        index = Index(None, impl=self.data.__class__, col_dtypes=
+                      [x.info.dtype for x in self.columns])
         index.data = deepcopy(self.data, memo)
         index.columns = self.columns[:] # new list, same columns
         memo[id(self)] = index
@@ -382,7 +382,6 @@ class index_mode:
             # we need to modify BaseColumn directly rather than
             # individual columns since new-style classes refer
             # directly to the class for special methods
-            self.copy_func = BaseColumn.__getitem__
             BaseColumn.__getitem__ = BaseColumn.get_item
         else:
             for index in self.table.indices:
@@ -394,8 +393,9 @@ class index_mode:
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = True
         elif self.mode == 'copy_on_getitem':
-            BaseColumn.__getitem__ = self.copy_func
+            del BaseColumn.__getitem__
         else:
             for index in self.table.indices:
                 index._frozen = False
                 index.reload()
+

@@ -391,7 +391,7 @@ class BST(object):
 
 class FastBase(object):
     def __init__(self, lines):
-        if lines == []:
+        if len(lines) == 0:
             self.data = self.engine()
             return
         num_cols = len(lines.columns)
@@ -475,11 +475,14 @@ class FastBase(object):
         return [v for v in self.data.value_slice(lower, upper)]
 
     def replace_rows(self, row_map):
+        to_remove = [] # list of keys to delete
         for key, row in self.data.items():
             if row in row_map:
                 self.data[key] = row_map[row]
-            else:
-                del self.data[key]
+            else: # not in slice
+                to_remove.append(key)
+        for k in to_remove:
+            del self.data[k]
 
     def __str__(self):
         return str(self.data)

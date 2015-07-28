@@ -549,7 +549,7 @@ class Table(object):
                 # Copy the mixin column attributes if they exist since the copy below
                 # may not get this attribute.
                 if copy:
-                    col = col_copy(col)
+                    col = col_copy(col, copy_indices=self._init_indices)
 
                 col.info.name = name or col.info.name or def_name
             elif isinstance(col, np.ndarray) or isiterable(col):
@@ -645,10 +645,10 @@ class Table(object):
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
         for col in cols:
-            col._copy_indices = self._copy_indices
+            col.info._copy_indices = self._copy_indices
         newcols = [self._get_slice(col, slice_) for col in cols]
         for col in cols:
-            col._copy_indices = True
+            col.info._copy_indices = True
 
         self._make_table_from_cols(table, newcols)
 
@@ -1939,7 +1939,7 @@ class Table(object):
             for table_index in self.indices:
                 table_index.insert_row(index, vals, self.columns.values())
 
-        except RuntimeError:
+        except Exception as err:
             raise ValueError("Unable to insert row because of exception in column '{0}':\n{1}"
                              .format(name, err))
         else:
@@ -2340,8 +2340,9 @@ class QTable(Table):
 
     """
     def __init__(self, data=None, masked=None, names=None, dtype=None,
-                 meta=None, copy=True, rows=None):
-        super(QTable, self).__init__(data, masked, names, dtype, meta, copy, rows)
+                 meta=None, copy=True, rows=None, copy_indices=True):
+        super(QTable, self).__init__(data, masked, names, dtype, meta,
+                                     copy, rows, copy_indices)
 
     def _add_as_mixin_column(self, col):
         """
