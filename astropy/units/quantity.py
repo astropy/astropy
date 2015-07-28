@@ -383,8 +383,8 @@ class Quantity(np.ndarray):
             # decomposed, which involves being scaled by a float, but since
             # the array is an integer the output then gets converted to an int
             # and truncated.
-            result_dtype = np.result_type(*((args +(float,)) if any(converters)
-                                            else args))
+            result_dtype = np.result_type(*((args + (float,))
+                                            if any(converters) else args))
             if not np.can_cast(result_dtype, obj.dtype, casting='same_kind'):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
