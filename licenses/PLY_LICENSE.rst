@@ -1,6 +1,6 @@
-PLY (Python Lex-Yacc)                   Version 3.4
+PLY (Python Lex-Yacc)                   Version 3.6
 
-Copyright (C) 2001-2011,
+Copyright (C) 2001-2015,
 David M. Beazley (Dabeaz LLC)
 All rights reserved.
 

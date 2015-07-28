@@ -437,6 +437,7 @@ Other Changes and Additions
 - The repr for ``Table`` no longer displays ``masked=False`` since tables
   are not masked by default anyway. [#3869]
 
+- The version of ``PLY`` that ships with astropy has been updated to 3.6.
 
 1.0.4 (unreleased)
 ------------------

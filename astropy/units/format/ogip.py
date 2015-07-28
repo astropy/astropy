@@ -172,12 +172,8 @@ class OGIP(generic.Generic):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
-        try:
-            from . import ogip_lextab
-            lexer = lex.lex(optimize=True, lextab=ogip_lextab)
-        except ImportError:
-            lexer = lex.lex(optimize=True, lextab='ogip_lextab',
-                            outputdir=os.path.dirname(__file__))
+        lexer = lex.lex(optimize=True, lextab='ogip_lextab',
+                        outputdir=os.path.dirname(__file__))
 
         def p_main(p):
             '''
@@ -342,13 +338,9 @@ class OGIP(generic.Generic):
         def p_error(p):
             raise ValueError()
 
-        try:
-            from . import ogip_parsetab
-            parser = yacc.yacc(debug=False, tabmodule=ogip_parsetab,
-                               write_tables=False)
-        except ImportError:
-            parser = yacc.yacc(debug=False, tabmodule='ogip_parsetab',
-                               outputdir=os.path.dirname(__file__))
+        parser = yacc.yacc(debug=False, tabmodule='ogip_parsetab',
+                           outputdir=os.path.dirname(__file__),
+                           write_tables=True)
 
         return parser, lexer
 
