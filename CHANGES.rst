@@ -628,6 +628,9 @@ Bug Fixes
   - Fixed multiple instances of a bug that prevented Astropy from being used
     when compiled with the ``python -OO`` flag, due to it causing all
     docstrings to be stripped out. [#3923]
+    
+  - Removed source code template files that were being installed
+    accidentally alongside installed Python modules. [#4014]
 
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
