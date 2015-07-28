@@ -633,3 +633,25 @@ class TestInplaceUfuncs(object):
         s2 += 1. * u.cm
         assert np.all(s[::2] > s_copy[::2])
         assert np.all(s[1::2] == s_copy[1::2])
+
+    def test_ufunc_inplace_non_standard_dtype(self):
+        """Check that inplace operations check properly for casting.
+
+        First two tests that check that float32 is kept close #3976.
+        """
+        a1 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.float32)
+        a1 *= np.float32(10)
+        assert a1.unit is u.m
+        assert a1.dtype == np.float32
+        a2 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.float32)
+        a2 += (20.*u.km)
+        assert a2.unit is u.m
+        assert a2.dtype == np.float32
+        # For integer, in-place only workds if no conversion is done.
+        a3 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.int32)
+        a3 += u.Quantity(10, u.m, dtype=np.int64)
+        assert a3.unit is u.m
+        assert a3.dtype == np.int32
+        a4 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.int32)
+        with pytest.raises(TypeError):
+            a4 += u.Quantity(10, u.mm, dtype=np.int64)
