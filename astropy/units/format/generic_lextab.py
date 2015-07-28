@@ -1,6 +1,8 @@
-# generic_lextab.py. This file automatically created by PLY (version 3.4). Don't edit!
-_tabversion   = '3.4'
-_lextokens    = {'CARET': 1, 'SOLIDUS': 1, 'STAR': 1, 'DOUBLE_STAR': 1, 'PERIOD': 1, 'FUNCNAME': 1, 'OPEN_PAREN': 1, 'UINT': 1, 'UNIT': 1, 'SIGN': 1, 'CLOSE_PAREN': 1, 'UFLOAT': 1}
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function, unicode_literals)
+
+_tabversion   = '3.5'
+_lextokens    = set(['CARET', 'SOLIDUS', 'STAR', 'DOUBLE_STAR', 'PERIOD', 'FUNCNAME', 'OPEN_PAREN', 'UINT', 'UNIT', 'SIGN', 'CLOSE_PAREN', 'UFLOAT'])
 _lexreflags   = 32
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}
