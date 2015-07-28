@@ -9,8 +9,9 @@ from ..index import index_mode
 from ... import units as u
 from ...coordinates import SkyCoord
 from ...time import Time
+from ..column import BaseColumn
 
-@pytest.fixture(params=[BST, FastBST, FastRBT, SortedArray])
+@pytest.fixture(params=[BST, FastRBT, SortedArray])
 def impl(request):
     return request.param
 
@@ -20,13 +21,15 @@ _col = [1, 2, 3, 4, 5]
     _col,
     u.Quantity(_col),
     Time(_col, format='jyear'),
-    SkyCoord(ra=_col * u.deg, dec=_col * u.deg)
 ])
 def main_col(request):
     return request.param
 
 def assert_col_equal(col, array):
-    assert np.all(col == col.__class__(array))
+    if isinstance(col, Time):
+        assert np.all(col == Time(array, format='jyear'))
+    else:
+        assert np.all(col == col.__class__(array))
 
 @pytest.mark.usefixtures('table_types')
 class TestIndex(SetupData):
@@ -93,36 +96,36 @@ class TestIndex(SetupData):
         self._setup(main_col, table_types)
         t = self.t
         t.add_index('a', impl=impl)
-        assert_col_equal(t['a'],  np.array([1, 2, 3, 4, 5]))
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
         t2 = t[[0, 2]]
         # t2 should retain an index on column 'a'
         assert len(t2.indices) == 1
-        assert np.all(t2['a'].data == np.array([1, 3]))
+        assert_col_equal(t2['a'], [1, 3])
         # the index in t2 should reorder row numbers after slicing
+
         assert np.all(t2.indices[0].sorted_data() == [0, 1])
         # however, this index should be a deep copy of t1's index
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
     def test_remove_rows(self, main_col, table_types, impl):
+        self._setup(main_col, table_types)
         if not self.mutable:
             return
-        self._setup(main_col, table_types)
         t = self.t
         t.add_index('a', impl=impl)
         
         # remove individual row
         t2 = t.copy()
         t2.remove_rows(2)
-        assert np.all(t2['a'].data == np.array([1, 2, 4, 5]))
+        assert_col_equal(t2['a'], [1, 2, 4, 5])
         assert np.all(t2.indices[0].sorted_data() == [0, 1, 2, 3])
 
         # remove by list, ndarray, or slice
         for cut in ([0, 2, 4], np.array([0, 2, 4]), slice(0, 5, 2)):
             t2 = t.copy()
             t2.remove_rows(cut)
-            assert np.all(t2['a'].data == np.array([2, 4]))
+            assert_col_equal(t2['a'], [2, 4])
             assert np.all(t2.indices[0].sorted_data() == [0, 1])
 
         with pytest.raises(ValueError):
@@ -135,57 +138,59 @@ class TestIndex(SetupData):
 
         # get slice
         t2 = t[1:3] # table slice
-        assert np.all(t2['a'].data == np.array([2, 3]))
+        assert_col_equal(t2['a'], [2, 3])
         assert np.all(t2.indices[0].sorted_data() == [0, 1])
 
-        col_slice = t['a'][1:3] # column slice should discard indices
-        assert np.all(col_slice.data == np.array([2, 3]))
-        assert np.all(col_slice.indices == [])
+        col_slice = t['a'][1:3]
+        assert_col_equal(col_slice, [2, 3])
+        # true column slices discard indices
+        if isinstance(t['a'], BaseColumn):
+            assert len(col_slice.info.indices) == 0
 
         # take slice of slice
         t2 = t[::2]
-        assert np.all(t2['a'].data == np.array([1, 3, 5]))
+        assert_col_equal(t2['a'], np.array([1, 3, 5]))
         t3 = t2[::-1]
-        assert np.all(t3['a'].data == np.array([5, 3, 1]))
+        assert_col_equal(t3['a'], np.array([5, 3, 1]))
         assert np.all(t3.indices[0].sorted_data() == [2, 1, 0])
         t3 = t2[:2]
-        assert np.all(t3['a'].data == np.array([1, 3]))
+        assert_col_equal(t3['a'], np.array([1, 3]))
         assert np.all(t3.indices[0].sorted_data() == [0, 1])
         # out-of-bound slices
         for t_empty in (t2[3:], t2[2:1], t3[2:]):
-            assert len(t_empty['a'].data) == 0
+            assert len(t_empty['a']) == 0
             assert np.all(t_empty.indices[0].sorted_data() == [])
-
-        # get boolean mask
-        mask = t['a'] % 2 == 1
-        t2 = t[mask]
-        assert np.all(t2['a'].data == [1, 3, 5])
-        assert np.all(t2.indices[0].sorted_data() == [0, 1, 2])
 
         if not self.mutable:
             return
 
+        # get boolean mask
+        mask = t['a'] % 2 == 1
+        t2 = t[mask]
+        assert_col_equal(t2['a'], [1, 3, 5])
+        assert np.all(t2.indices[0].sorted_data() == [0, 1, 2])
+
         # set slice
         t2 = t.copy()
         t2['a'][1:3] = np.array([6, 7])
-        assert np.all(t2['a'].data == np.array([1, 6, 7, 4, 5]))
+        assert_col_equal(t2['a'], np.array([1, 6, 7, 4, 5]))
         assert np.all(t2.indices[0].sorted_data() == [0, 3, 4, 1, 2])
 
         # change original table via slice reference
         t2 = t.copy()
         t3 = t2[1:3]
-        assert np.all(t3['a'].data == np.array([2, 3]))
+        assert_col_equal(t3['a'], np.array([2, 3]))
         assert np.all(t3.indices[0].sorted_data() == [0, 1])
         t3['a'][0] = 5
-        assert np.all(t3['a'].data == np.array([5, 3]))
-        assert np.all(t2['a'].data == np.array([1, 5, 3, 4, 5]))
+        assert_col_equal(t3['a'], np.array([5, 3]))
+        assert_col_equal(t2['a'], np.array([1, 5, 3, 4, 5]))
         assert np.all(t3.indices[0].sorted_data() == [1, 0])
         assert np.all(t2.indices[0].sorted_data() == [0, 2, 3, 1, 4])
 
         # set boolean mask
         t2 = t.copy()
         t2['a'][mask] = 0.
-        assert np.all(t2['a'].data == [0, 2, 0, 4, 0])
+        assert_col_equal(t2['a'], [0, 2, 0, 4, 0])
         assert np.all(t2.indices[0].sorted_data() == [0, 2, 4, 1, 3])
 
     def test_sort(self, main_col, table_types, impl):
@@ -195,6 +200,9 @@ class TestIndex(SetupData):
         t.add_index('a', impl=impl)
         assert np.all(t.indices[0].sorted_data() == [4, 3, 2, 1, 0])
 
+        if not self.mutable:
+            return
+
         # sort table by column a
         t.sort('a')
         assert_col_equal(t['a'], [1, 2, 3, 4, 5])
@@ -202,6 +210,10 @@ class TestIndex(SetupData):
 
     def test_insert_row(self, main_col, table_types, impl):
         self._setup(main_col, table_types)
+
+        if not self.mutable:
+            return
+
         t = self.t
         t.add_index('a', impl=impl)
         t.insert_row(2, (6, 1.0, '12'))
@@ -219,46 +231,47 @@ class TestIndex(SetupData):
         # first, no special mode
         assert len(t[[1, 3]].indices) == 1
         assert len(t[::-1].indices) == 1
-        assert len(Table(t).indices) == 1
+        assert len(self._table_type(t).indices) == 1
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
-        t['a'][0] = 6
-        assert_col_equal(t['a'], [6, 2, 3, 4, 5])
-        assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
         t2 = t.copy()
 
         # non-copy mode
         with index_mode(t, 'discard_on_copy'):
             assert len(t[[1, 3]].indices) == 0
             assert len(t[::-1].indices) == 0
-            assert len(Table(t).indices) == 0
+            assert len(self._table_type(t).indices) == 0
             assert len(t2.copy().indices) == 1 # mode should only affect t
 
         # make sure non-copy mode is exited correctly
         assert len(t[[1, 3]].indices) == 1
 
+        if not self.mutable:
+            return
+
         # non-modify mode
         with index_mode(t, 'freeze'):
-            assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
-            t['a'][0] = 1
-            assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
+            assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+            t['a'][0] = 6
+            assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
             t.add_row((2, 1.5, '12'))
-            assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
+            assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
             t.remove_rows([1, 3])
-            assert np.all(t.indices[0].sorted_data() == [1, 2, 3, 4, 0])
-            assert_col_equal(t['a'], [1, 3, 5, 2])
+            assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+            assert_col_equal(t['a'], [6, 3, 5, 2])
             # mode should only affect t
-            assert np.all(t2.indices[0].sorted_data() == [1, 2, 3, 4, 0])
-            t2['a'][0] = 1
             assert np.all(t2.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+            t2['a'][0] = 6
+            assert np.all(t2.indices[0].sorted_data() == [1, 2, 3, 4, 0])
 
         # make sure non-modify mode is exited correctly
-        assert np.all(t.indices[0].sorted_data() == [0, 3, 1, 2])
+        assert np.all(t.indices[0].sorted_data() == [3, 1, 2, 0])
 
-        assert len(t['a'][::-1].indices) == 0
-        with index_mode(t, 'copy_on_getitem'):
-            assert len(t['a'][[1, 2]].indices) == 1
-            # mode affects t2 as well as t
-            assert len(t2['a'][[1, 2]].indices) == 1
+        if isinstance(t['a'], BaseColumn):
+            assert len(t['a'][::-1].info.indices) == 0
+            with index_mode(t, 'copy_on_getitem'):
+                assert len(t['a'][[1, 2]].info.indices) == 1
+                # mode affects t2 as well as t
+                assert len(t2['a'][[1, 2]].info.indices) == 1
 
-        assert len(t['a'][::-1].indices) == 0
-        assert len(t2['a'][::-1].indices) == 0
+            assert len(t['a'][::-1].info.indices) == 0
+            assert len(t2['a'][::-1].info.indices) == 0

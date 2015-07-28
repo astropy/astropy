@@ -418,6 +418,24 @@ class BaseColumnInfo(DataInfo):
             for col_index in self.indices:
                 col_index.replace(key, self.name, val)
 
+    def slice_indices(self, col_slice, item):
+        if not getattr(self, '_copy_indices', True):
+            # Necessary because MaskedArray will perform a shallow copy
+            col_slice.info.indices = []
+            return col_slice
+        elif isinstance(item, slice):
+            col_slice.info.indices = [x[item] for x in self.indices]
+        elif self.indices:
+            col_slice.info.indices = deepcopy(self.indices)
+            if isinstance(item, np.ndarray) and item.dtype.kind == 'b':
+                # boolean mask
+                item = np.where(item)[0]
+            for index in col_slice.info.indices:
+                index.replace_rows(item)
+
+        return col_slice
+
+
 class MixinInfo(BaseColumnInfo):
     pass
 

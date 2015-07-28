@@ -45,7 +45,7 @@ _comparison_functions = set(
      np.isfinite, np.isinf, np.isnan, np.sign, np.signbit])
 
 
-def col_copy(col):
+def col_copy(col, copy_indices=True):
     """
     This is a mixin-safe version of Column.copy() (with copy_data=True).
     """
@@ -66,6 +66,7 @@ def col_copy(col):
     try:
         newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
         newcol.info = col.info
+        newcol.info.indices = deepcopy(indices or []) if copy_indices else []
     finally:
         col.info.parent_table = parent_table
         col.info.indices = indices
@@ -313,21 +314,8 @@ class BaseColumn(np.ndarray):
             return self.data[item]  # Return as plain ndarray or ma.MaskedArray
 
         col_slice = super(BaseColumn, self).__getitem__(item)
-
-        if not getattr(self, '_copy_indices', True):
-            # Necessary because MaskedArray will perform a shallow copy
-            col_slice.indices = []
-            return col_slice
-        elif isinstance(item, slice):
-            col_slice.indices = [x[item] for x in self.indices]
-        elif isinstance(col_slice, BaseColumn) and self.indices:
-            col_slice.indices = deepcopy(self.indices)
-            if isinstance(item, np.ndarray) and item.dtype.kind == 'b':
-                # boolean mask
-                item = np.where(item)[0]
-            for index in col_slice.indices:
-                index.replace_rows(item)
-
+        if isinstance(col_slice, BaseColumn):
+            col_slice = self.info.slice_indices(col_slice, item)
         return col_slice
 
 
