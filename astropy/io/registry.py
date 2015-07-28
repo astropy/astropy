@@ -317,7 +317,7 @@ def read(cls, *args, **kwargs):
                     try:
                         ctx = get_readable_fileobj(args[0], encoding='binary')
                         fileobj = ctx.__enter__()
-                    except Exception as e:
+                    except Exception:
                         fileobj = None
                     else:
                         args = [fileobj] + list(args[1:])

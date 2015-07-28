@@ -575,6 +575,10 @@ Bug Fixes
     ``do_not_scale_image_data=True`` (that is, since we're just reading the
     raw / physical data there is no reason mmap can't be used). [#3766]
 
+  - Fixed a reference cycle that could sometimes cause FITS table-related
+    objects (``BinTableHDU``, ``ColDefs``, etc.) to hang around in memory
+    longer than expected. [#4012]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
