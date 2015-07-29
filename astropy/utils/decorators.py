@@ -513,7 +513,12 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
     """
 
     def wrapper(func):
-        func = make_function_with_signature(func, name=wrapped.__name__,
+        if '__name__' in assigned:
+            name = wrapped.__name__
+        else:
+            name = func.__name__
+
+        func = make_function_with_signature(func, name=name,
                                             **_get_function_args(wrapped))
         func = functools.update_wrapper(func, wrapped, assigned=assigned,
                                         updated=updated)
