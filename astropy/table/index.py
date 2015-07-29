@@ -207,8 +207,7 @@ class Index:
         if self._frozen:
             return
         # for removal, form a key consisting of column values in this row
-        if not self.data.remove(tuple([col[row] for col in self.columns]),
-                                data=row):
+        if not self.data.remove(tuple([col[row] for col in self.columns]), row):
             raise ValueError("Could not remove row {0} from index".format(row))
         # decrement the row number of all later rows
         if reorder:
@@ -540,4 +539,3 @@ class index_mode:
             for index in self.table.indices:
                 index._frozen = False
                 index.reload()
-

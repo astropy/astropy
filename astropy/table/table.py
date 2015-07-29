@@ -242,7 +242,6 @@ class Table(object):
         self.meta = meta
         self.formatter = self.TableFormatter()
         self._copy_indices = True # copy indices from this Table by default
-        self._modify_indices = True # modify indices upon Table modification
         self._init_indices = copy_indices # whether to copy indices in init
 
         # Must copy if dtype are changing

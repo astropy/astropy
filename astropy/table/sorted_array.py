@@ -1,27 +1,20 @@
 import numpy as np
 
-class ArraySlot(object):
-    __lt__ = lambda x, y: x.key < y.key
-    __le__ = lambda x, y: x.key <= y.key
-    __eq__ = lambda x, y: x.key == y.key
-    __ge__ = lambda x, y: x.key >= y.key
-    __gt__ = lambda x, y: x.key > y.key
-    __ne__ = lambda x, y: x.key != y.key
-
-    def __init__(self, key, val):
-        self.key = key
-        self.data = val
-    def __repr__(self):
-        return str((self.key, self.data))
-    def __str__(self):
-        return repr(self)
-
 class SortedArray(object):
     '''
     Implements a sorted array container using
-    a numpy structured array.
-    '''
+    a list of numpy arrays.
 
+    Parameters
+    ----------
+    lines : `Table`
+        Sorted columns of the original table as well as
+        a final column consisting of the rows given by argsort()
+    col_dtypes : list or None
+        If not None, col_dtypes should be a list of types for each column
+    data : list or None
+        An internal data object to use instead of creating new data
+    '''
     def __init__(self, lines, col_dtypes=None, data=None):
         if data is not None: # sliced reference to data
             self.length = len(data[0])
@@ -43,6 +36,9 @@ class SortedArray(object):
             self._data[-1] = np.array(lines[lines.colnames[self.num_cols]])
 
     def resize(self):
+        '''
+        Regrow the internal numpy column buffers if necessary.
+        '''
         buffer_size = len(self._data[0])
         if self.length == buffer_size:
             # resize to 50% larger capacity
@@ -54,6 +50,16 @@ class SortedArray(object):
                 self._data[i] = np.resize(col, buffer_size)
 
     def add(self, key, row):
+        '''
+        Add a new entry to the sorted array.
+
+        Parameters
+        ----------
+        key : tuple
+            Column values at the given row
+        row : int
+            Row number
+        '''
         self.resize()
         pos = self.find_pos(key, row) # first >= key
         key = key + (row,)
@@ -66,9 +72,20 @@ class SortedArray(object):
         self.length += 1
 
     def find_pos(self, key, data, exact=False):
-        # Return the index of the largest key in data >= given key, data pair.
-        # If exact is True, return the index of the given key in
-        # data or -1 if the key is not present.
+        '''
+        Return the index of the largest key in data greater than or
+        equal to the given key, data pair.
+
+        Parameters
+        ----------
+        key : tuple
+            Column key
+        data : int
+            Row number
+        exact : bool
+            If True, return the index of the given key in data
+            or -1 if the key is not present.
+        '''
         begin = 0
         end = self.length
         key = key + (data,)
@@ -93,6 +110,19 @@ class SortedArray(object):
         return begin
 
     def find(self, key):
+        '''
+        Find all rows matching the given key.
+
+        Parameters
+        ----------
+        key : tuple
+            Column values
+
+        Returns
+        -------
+        matching_rows : list
+            List of rows matching the input key
+        '''
         begin = 0
         end = self.length
 
@@ -115,6 +145,21 @@ class SortedArray(object):
         return self._data[-1][begin:end]
 
     def range(self, lower, upper, bounds):
+        '''
+        Find values in the given range.
+
+        Parameters
+        ----------
+        lower : tuple
+            Lower search bound
+        upper : tuple
+            Upper search bound
+        bounds : tuple (x, y) of bools
+            Indicates whether the search should be inclusive or
+            exclusive with respect to the endpoints. The first
+            argument x corresponds to an inclusive lower bound,
+            and the second argument y to an inclusive upper bound.
+        '''
         lower_pos = self.find_pos(lower, 0)
         upper_pos = self.find_pos(upper, 0)
         if lower_pos == self.length:
@@ -134,7 +179,22 @@ class SortedArray(object):
                 upper_pos -= 1 # data[upper_pos] <= upper
         return self._data[-1][lower_pos:upper_pos + 1]
 
-    def remove(self, key, data=None):
+    def remove(self, key, data):
+        '''
+        Remove the given entry from the sorted array.
+
+        Parameters
+        ----------
+        key : tuple
+            Column values
+        data : int
+            Row number
+
+        Returns
+        -------
+        successful : bool
+            Whether the entry was successfully removed
+        '''
         pos = self.find_pos(key, data, exact=True)
         if pos == -1: # key not found
             return False
@@ -146,17 +206,47 @@ class SortedArray(object):
         return True
 
     def shift_left(self, row):
+        '''
+        Decrement all row numbers greater than the input row.
+
+        Parameters
+        ----------
+        row : int
+            Input row number
+        '''
         self._data[-1][self._data[-1] > row] -= 1
 
     def shift_right(self, row):
+        '''
+        Increment all row numbers greater than or equal to the input row.
+
+        Parameters
+        ----------
+        row : int
+            Input row number
+        '''
         self._data[-1][self.data[-1] >= row] += 1
 
     def replace_rows(self, row_map):
+        '''
+        Replace all rows with the values they map to in the
+        given dictionary. Any rows not present as keys in
+        the dictionary will have their entries deleted.
+
+        Parameters
+        ----------
+        row_map : dict
+            Mapping of row numbers to new row numbers
+        '''
         for i, col in enumerate(self._data):
             self._data[i] = col[np.array([x in row_map for x in self._data[-1]])]
         self._data[-1] = np.array([row_map[x] for x in self._data[-1]])
 
     def items(self):
+        '''
+        Retrieve all array items as a list of pairs of the form
+        [(key, [row 1, row 2, ...]), ...]
+        '''
         array = []
         last_key = None
         for line in zip(*self.data):
@@ -169,6 +259,9 @@ class SortedArray(object):
         return array
 
     def sort(self):
+        '''
+        Return rows in sorted order.
+        '''
         return self.data[-1]
 
     @property
@@ -176,7 +269,14 @@ class SortedArray(object):
         return [col[:self.length] for col in self._data]
 
     def __getitem__(self, item):
-        # item must be slice
+        '''
+        Return a sliced reference to this sorted array.
+
+        Parameters
+        ----------
+        item : slice
+            Slice to use for referencing
+        '''
         return SortedArray([], data=[col[item] for col in self._data])
 
     def __repr__(self):

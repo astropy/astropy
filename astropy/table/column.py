@@ -310,6 +310,22 @@ class BaseColumn(np.ndarray):
         return reconstruct_func, reconstruct_func_args, state
 
     def get_item(self, item):
+        '''
+        Return self[item] and adjust indices as necessary.
+
+        Parameters
+        ----------
+        item : int, slice, list, or ndarray
+            Element of column to retrieve
+
+        Notes
+        -----
+        This method is an alternative to __getitem__ in the
+        case that index updating is important. The rationale
+        behind creating separate methods is that __getitem__
+        takes a major performance hit if it overrides the
+        (fast) __getitem__ method of ndarray.
+        '''
         if isinstance(item, INTEGER_TYPES):
             return self.data[item]  # Return as plain ndarray or ma.MaskedArray
 
@@ -1139,6 +1155,14 @@ class MaskedColumn(Column, ma.MaskedArray):
         return self.copy_attribs(out)
 
     def get_item(self, item):
+        '''
+        Return self[item] and adjust indices as necessary.
+
+        Parameters
+        ----------
+        item : int, slice, list, or ndarray
+            Element of column to retrieve
+        '''
         out = super(MaskedColumn, self).get_item(item)
         return self.copy_attribs(out)
 

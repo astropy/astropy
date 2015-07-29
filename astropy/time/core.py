@@ -977,7 +977,6 @@ class Time(object):
         """
         jd_approx = self.jd
         jd_remainder = (self - self.__class__(jd_approx, format='jd')).jd
-        print(jd_approx, jd_remainder)
         if axis is None:
             return np.lexsort((jd_remainder.ravel(), jd_approx.ravel()))
         else:
