@@ -49,6 +49,30 @@ def test_wraps():
     assert argspec.defaults == (1, 2, 3)
 
 
+def test_wraps_exclude_names():
+    """
+    Test the optional ``exclude_names`` argument to the wraps decorator.
+    """
+
+    # This particular test demonstrates wrapping an instance method
+    # as a function and excluding the "self" argument:
+
+    class TestClass(object):
+        def method(self, a, b, c=1, d=2, **kwargs):
+            return (a, b, c, d, kwargs)
+
+    test = TestClass()
+
+    @wraps(test.method, exclude_args=('self',))
+    def func(*args, **kwargs):
+        return test.method(*args, **kwargs)
+
+    argspec = inspect.getargspec(func)
+    assert argspec.args == ['a', 'b', 'c', 'd']
+
+    assert func('a', 'b', e=3) == ('a', 'b', 1, 2, {'e': 3})
+
+
 def test_wraps_keep_orig_name():
     """
     Test that when __name__ is excluded from the ``assigned`` argument

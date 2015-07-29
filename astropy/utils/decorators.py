@@ -607,15 +607,21 @@ class sharedmethod(classmethod):
 
 
 def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
-          updated=functools.WRAPPER_UPDATES):
+          updated=functools.WRAPPER_UPDATES, exclude_args=()):
     """
     An alternative to `functools.wraps` which also preserves the original
     function's call signature by way of
     `~astropy.utils.codegen.make_function_with_signature`.
 
+    This also adds an optional ``exclude_args`` argument.  If given it should
+    be a sequence of argument names that should not be copied from the wrapped
+    function (either positional or keyword arguments).
+
     The documentation for the original `functools.wraps` follows:
 
     """
+
+    wrapped_args = _get_function_args(wrapped, exclude_args=exclude_args)
 
     def wrapper(func):
         if '__name__' in assigned:
@@ -623,8 +629,7 @@ def wraps(wrapped, assigned=functools.WRAPPER_ASSIGNMENTS,
         else:
             name = func.__name__
 
-        func = make_function_with_signature(func, name=name,
-                                            **_get_function_args(wrapped))
+        func = make_function_with_signature(func, name=name, **wrapped_args)
         func = functools.update_wrapper(func, wrapped, assigned=assigned,
                                         updated=updated)
         return func
@@ -637,7 +642,7 @@ if isinstance(wraps.__doc__, six.string_types):
 
 
 if six.PY3:
-    def _get_function_args(func):
+    def _get_function_args_internal(func):
         """
         Utility function for `wraps`.
 
@@ -662,7 +667,7 @@ if six.PY3:
         return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
                 'varkwargs': argspec.varkw}
 else:
-    def _get_function_args(func):
+    def _get_function_args_internal(func):
         """
         Utility function for `wraps`.
 
@@ -682,3 +687,20 @@ else:
 
         return {'args': args, 'kwargs': kwargs, 'varargs': argspec.varargs,
                 'varkwargs': argspec.keywords}
+
+
+def _get_function_args(func, exclude_args=()):
+    all_args = _get_function_args_internal(func)
+
+    if exclude_args:
+        exclude_args = set(exclude_args)
+
+        for arg_type in ('args', 'kwargs'):
+            all_args[arg_type] = [arg for arg in all_args[arg_type]
+                                  if arg not in exclude_args]
+
+        for arg_type in ('varargs', 'varkwargs'):
+            if all_args[arg_type] in exclude_args:
+                all_args[arg_type] = None
+
+    return all_args
