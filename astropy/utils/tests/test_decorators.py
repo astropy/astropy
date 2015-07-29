@@ -53,6 +53,8 @@ def test_wraps_keep_orig_name():
     """
     Test that when __name__ is excluded from the ``assigned`` argument
     to ``wrap`` that the function being wrapped keeps its original name.
+
+    Regression test for https://github.com/astropy/astropy/pull/4016
     """
 
     def foo():

@@ -612,6 +612,10 @@ Bug Fixes
     custom metaclass--the metaclass could be dropped from the deprecated
     version of the class. [#3997]
 
+  - The ``wraps`` decorator would copy the wrapped function's name to the
+    wrapper function even when ``'__name__'`` is excluded from the
+    ``assigned`` argument. [#4016]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
