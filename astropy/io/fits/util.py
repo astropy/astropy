@@ -134,8 +134,13 @@ class NotifierMixin(object):
             return
 
         method_name = '_update_{0}'.format(notification)
-        for listener in self._listeners.itervaluerefs():
+        for listener in self._listeners.valuerefs():
+            # Use valuerefs instead of itervaluerefs; see
+            # https://github.com/astropy/astropy/issues/4015
             listener = listener()  # dereference weakref
+            if listener is None:
+                continue
+
             if hasattr(listener, method_name):
                 method = getattr(listener, method_name)
                 if callable(method):
