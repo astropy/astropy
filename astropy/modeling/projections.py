@@ -1286,12 +1286,12 @@ class Pix2Sky_ConicEqualArea(Pix2SkyProjection, Conic):
     sigma : float
         :math:`(\theta_1 + \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 0.
+        in degrees.  Default is 90.
 
     delta : float
         :math:`(\theta_1 - \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 90
+        in degrees.  Default is 0.
     """
     @property
     def inverse(self):
@@ -1329,12 +1329,12 @@ class Sky2Pix_ConicEqualArea(Sky2PixProjection, Conic):
     sigma : float
         :math:`(\theta_1 + \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 0.
+        in degrees.  Default is 90.
 
     delta : float
         :math:`(\theta_1 - \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 90.
+        in degrees.  Default is 0.
     """
     @property
     def inverse(self):
@@ -1369,12 +1369,12 @@ class Pix2Sky_ConicEquidistant(Pix2SkyProjection, Conic):
     sigma : float
         :math:`(\theta_1 + \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 0.
+        in degrees.  Default is 90.
 
     delta : float
         :math:`(\theta_1 - \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 90.
+        in degrees.  Default is 0.
     """
     @property
     def inverse(self):
@@ -1408,12 +1408,12 @@ class Sky2Pix_ConicEquidistant(Sky2PixProjection, Conic):
     sigma : float
         :math:`(\theta_1 + \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 0.
+        in degrees.  Default is 90.
 
     delta : float
         :math:`(\theta_1 - \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 90.
+        in degrees.  Default is 0.
     """
     @property
     def inverse(self):
@@ -1457,12 +1457,12 @@ class Pix2Sky_ConicOrthomorphic(Pix2SkyProjection, Conic):
     sigma : float
         :math:`(\theta_1 + \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 0.
+        in degrees.  Default is 90.
 
     delta : float
         :math:`(\theta_1 - \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 90.
+        in degrees.  Default is 0.
     """
     @property
     def inverse(self):
@@ -1505,12 +1505,12 @@ class Sky2Pix_ConicOrthomorphic(Sky2PixProjection, Conic):
     sigma : float
         :math:`(\theta_1 + \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 0.
+        in degrees.  Default is 90.
 
     delta : float
         :math:`(\theta_1 - \theta_2) / 2`, where :math:`\theta_1` and
         :math:`\theta_2` are the latitudes of the standard parallels,
-        in degrees.  Default is 90.
+        in degrees.  Default is 0.
     """
     @property
     def inverse(self):
