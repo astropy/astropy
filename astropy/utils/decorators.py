@@ -352,6 +352,13 @@ class classproperty(property):
 
         super(classproperty, self).__init__(fget=fget, doc=doc)
 
+        # There is a buglet in Python where self.__doc__ doesn't
+        # get set properly on instances of property subclasses if
+        # the doc argument was used rather than taking the docstring
+        # from fget
+        if doc is not None:
+            self.__doc__ = doc
+
     def __get__(self, obj, objtype=None):
         if objtype is not None:
             # The base property.__get__ will just return self here;
