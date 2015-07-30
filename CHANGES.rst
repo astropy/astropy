@@ -348,6 +348,12 @@ API changes
     - The ``*`` character is accepted as a separator between the scale
       and the units.
 
+  - Unit formatter classes now require the ``parse`` and ``to_string``
+    methods are now required to be classmethods (and the formatter
+    classes themselves are assumed to be singletons that are not
+    instantiated).  As unit formatters are mostly an internal implementation
+    detail this is not likely to affect any users. [#4001]
+
 - ``astropy.utils``
 
   - ``astropy.utils.iers`` now uses a ``QTable`` internally, which means that
