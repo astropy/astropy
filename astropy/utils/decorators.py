@@ -320,7 +320,7 @@ class classproperty(property):
 
     lazy : bool, optional
         If True, caches the value returned by the first call to the getter
-        function, so that it is only caused once (used for lazy evaluation
+        function, so that it is only called once (used for lazy evaluation
         of an attribute).  This is analogous to `lazyproperty`.  The ``lazy``
         argument can also be used when `classproperty` is used as a decorator
         (see the third example below).  When used in the decorator syntax this
