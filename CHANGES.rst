@@ -190,6 +190,14 @@ New Features
   - Added ``classproperty`` decorator--this is to ``property`` as
     ``classmethod`` is to normal instance methods. [#3982]
 
+  - The ``astropy.utils.wraps`` decorator now takes an optional
+    ``exclude_args`` argument not shared by the standard library ``wraps``
+    decorator (as it is unique to the Astropy version's ability of copying
+    the wrapped function's argument signature).  ``exclude_args`` allows
+    certain arguments on the wrapped function to be excluded from the signature
+    of the wrapper function.  This is particularly useful when wrapping an
+    instance method as a function (to exclude the ``self`` argument). [#4017]
+
 - ``astropy.visualization``
 
   - Added the ``hist`` function, which is similar to ``plt.hist`` but
