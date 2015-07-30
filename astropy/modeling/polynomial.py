@@ -374,14 +374,6 @@ class Chebyshev1D(PolynomialModel):
                 v[i] = v[i - 1] * x2 - v[i - 2]
         return np.rollaxis(v, 0, v.ndim)
 
-    def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = \
-                super(PolynomialModel, self).prepare_inputs(x, **kwargs)
-
-        x = inputs[0]
-
-        return (x,), format_info
-
     def evaluate(self, x, *coeffs):
         if self.domain is not None:
             x = poly_map_domain(x, self.domain, self.window)
@@ -436,14 +428,6 @@ class Legendre1D(PolynomialModel):
         super(Legendre1D, self).__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
-
-    def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = \
-                super(PolynomialModel, self).prepare_inputs(x, **kwargs)
-
-        x = inputs[0]
-
-        return (x,), format_info
 
     def evaluate(self, x, *coeffs):
         if self.domain is not None:
@@ -524,13 +508,6 @@ class Polynomial1D(PolynomialModel):
         super(Polynomial1D, self).__init__(
             degree, n_models=n_models, model_set_axis=model_set_axis,
             name=name, meta=meta, **params)
-
-    def prepare_inputs(self, x, **kwargs):
-        inputs, format_info = \
-                super(Polynomial1D, self).prepare_inputs(x, **kwargs)
-
-        x = inputs[0]
-        return (x,), format_info
 
     def evaluate(self, x, *coeffs):
         if self.domain is not None:
