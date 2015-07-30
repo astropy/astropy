@@ -6,27 +6,17 @@ from the installed astropy.  It makes use of the `pytest` testing framework.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..config.paths import set_temp_config, set_temp_cache
-from ..extern import six
-from ..extern.six.moves import cPickle as pickle
-
-import errno
-import shlex
-import sys
 import base64
-import zlib
+import errno
 import functools
-import multiprocessing
 import os
-import tempfile
+import sys
 import types
 import warnings
+import zlib
 
-__all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
-           'treat_deprecations_as_exceptions', 'catch_warnings',
-           'assert_follows_unicode_guidelines', 'quantity_allclose',
-           'assert_quantity_allclose', 'check_pickling_recovery',
-           'pickle_protocol', 'generic_recursive_equality_test']
+from ..extern import six
+from ..extern.six.moves import cPickle as pickle
 
 try:
     # Import pkg_resources to prevent it from issuing warnings upon being
@@ -40,6 +30,13 @@ from .. import test
 from ..utils.exceptions import (AstropyWarning,
                                 AstropyDeprecationWarning,
                                 AstropyPendingDeprecationWarning)
+
+
+__all__ = ['raises', 'enable_deprecations_as_exceptions', 'remote_data',
+           'treat_deprecations_as_exceptions', 'catch_warnings',
+           'assert_follows_unicode_guidelines', 'quantity_allclose',
+           'assert_quantity_allclose', 'check_pickling_recovery',
+           'pickle_protocol', 'generic_recursive_equality_test']
 
 
 if os.environ.get('ASTROPY_USE_SYSTEM_PYTEST') or '_pytest' in sys.modules:
@@ -100,177 +97,6 @@ _rewrite._write_pyc = _write_pyc_wrapper
 
 # pytest marker to mark tests which get data from the web
 remote_data = pytest.mark.remote_data
-
-
-class TestRunner(object):
-    def __init__(self, base_path):
-        self.base_path = os.path.abspath(base_path)
-
-    def run_tests(self, package=None, test_path=None, args=None, plugins=None,
-                  verbose=False, pastebin=None, remote_data=False, pep8=False,
-                  pdb=False, coverage=False, open_files=False, parallel=0,
-                  docs_path=None, skip_docs=False, repeat=None):
-        """
-        The docstring for this method lives in astropy/__init__.py:test
-        """
-
-        if coverage:
-            warnings.warn(
-                "The coverage option is ignored on run_tests, since it "
-                "can not be made to work in that context.  Use "
-                "'python setup.py test --coverage' instead.",
-                AstropyWarning)
-
-        all_args = []
-
-        if package is None:
-            package_path = self.base_path
-        else:
-            package_path = os.path.join(self.base_path,
-                                        package.replace('.', os.path.sep))
-
-            if not os.path.isdir(package_path):
-                raise ValueError('Package not found: {0}'.format(package))
-
-        if docs_path is not None and not skip_docs:
-            if package is not None:
-                docs_path = os.path.join(
-                    docs_path, package.replace('.', os.path.sep))
-            if not os.path.exists(docs_path):
-                warnings.warn(
-                    "Can not test .rst docs, since docs path "
-                    "({0}) does not exist.".format(docs_path))
-                docs_path = None
-
-        if test_path:
-            base, ext = os.path.splitext(test_path)
-
-            if ext in ('.rst', ''):
-                if docs_path is None:
-                    # This shouldn't happen from "python setup.py test"
-                    raise ValueError(
-                        "Can not test .rst files without a docs_path "
-                        "specified.")
-
-                abs_docs_path = os.path.abspath(docs_path)
-                abs_test_path = os.path.abspath(
-                    os.path.join(abs_docs_path, os.pardir, test_path))
-
-                common = os.path.commonprefix((abs_docs_path, abs_test_path))
-
-                if os.path.exists(abs_test_path) and common == abs_docs_path:
-                    # Since we aren't testing any Python files within
-                    # the astropy tree, we need to forcibly load the
-                    # astropy py.test plugins, and then turn on the
-                    # doctest_rst plugin.
-                    all_args.extend(['-p', 'astropy.tests.pytest_plugins',
-                                     '--doctest-rst'])
-                    test_path = abs_test_path
-
-            if not (os.path.isdir(test_path) or ext in ('.py', '.rst')):
-                raise ValueError("Test path must be a directory or a path to "
-                                 "a .py or .rst file")
-
-            all_args.append(test_path)
-        else:
-            all_args.append(package_path)
-            if docs_path is not None and not skip_docs:
-                all_args.extend([docs_path, '--doctest-rst'])
-
-        # add any additional args entered by the user
-        if args is not None:
-            all_args.extend(
-                shlex.split(args, posix=not sys.platform.startswith('win')))
-
-        # add verbosity flag
-        if verbose:
-            all_args.append('-v')
-
-        # turn on pastebin output
-        if pastebin is not None:
-            if pastebin in ['failed', 'all']:
-                all_args.append('--pastebin={0}'.format(pastebin))
-            else:
-                raise ValueError("pastebin should be 'failed' or 'all'")
-
-        # run @remote_data tests
-        if remote_data:
-            all_args.append('--remote-data')
-
-        if pep8:
-            try:
-                import pytest_pep8
-            except ImportError:
-                raise ImportError('PEP8 checking requires pytest-pep8 plugin: '
-                                  'http://pypi.python.org/pypi/pytest-pep8')
-            else:
-                all_args.extend(['--pep8', '-k', 'pep8'])
-
-        # activate post-mortem PDB for failing tests
-        if pdb:
-            all_args.append('--pdb')
-
-        # check for opened files after each test
-        if open_files:
-            if parallel != 0:
-                raise SystemError(
-                    "open file detection may not be used in conjunction with "
-                    "parallel testing.")
-
-            try:
-                import psutil
-            except ImportError:
-                raise SystemError(
-                    "open file detection requested, but psutil package "
-                    "is not installed.")
-
-            all_args.append('--open-files')
-
-            print("Checking for unclosed files")
-
-        if parallel != 0:
-            try:
-                import xdist
-            except ImportError:
-                raise ImportError(
-                    'Parallel testing requires the pytest-xdist plugin '
-                    'https://pypi.python.org/pypi/pytest-xdist')
-
-            try:
-                parallel = int(parallel)
-            except ValueError:
-                raise ValueError(
-                    "parallel must be an int, got {0}".format(parallel))
-
-            if parallel < 0:
-                parallel = multiprocessing.cpu_count()
-            all_args.extend(['-n', six.text_type(parallel)])
-
-        if repeat:
-            all_args.append('--repeat={0}'.format(repeat))
-
-        if six.PY2:
-            all_args = [x.encode('utf-8') for x in all_args]
-
-        # override the config locations to not make a new directory nor use
-        # existing cache or config
-        astropy_config = tempfile.mkdtemp('astropy_config')
-        astropy_cache = tempfile.mkdtemp('astropy_cache')
-
-        # This prevents cyclical import problems that make it
-        # impossible to test packages that define Table types on their
-        # own.
-        from ..table import Table
-
-        # Have to use nested with statements for cross-Python support
-        # Note, using these context managers here is superfluous if the
-        # config_dir or cache_dir options to py.test are in use, but it's
-        # also harmless to nest the contexts
-        with set_temp_config(astropy_config, delete=True):
-            with set_temp_cache(astropy_cache, delete=True):
-                return pytest.main(args=all_args, plugins=plugins)
-
-    run_tests.__doc__ = test.__doc__
 
 
 # This is for Python 2.x and 3.x compatibility.  distutils expects
