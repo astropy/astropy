@@ -88,6 +88,21 @@ def test_Pix2Sky(code):
     utils.assert_almost_equal(np.asarray(theta), wcs_theta)
 
 
+@pytest.mark.parametrize(('code',), pars)
+def test_projection_default(code):
+    """Check astropy model eval with default parameters"""
+    # Just makes sure that the default parameter values are reasonable
+    # and accepted by wcslib.
+
+    model = getattr(projections, 'Sky2Pix_' + code)
+    tinv = model()
+    x, y = tinv(45, 45)
+
+    model = getattr(projections, 'Pix2Sky_' + code)
+    tinv = model()
+    x, y = tinv(0, 0)
+
+
 class TestZenithalPerspective(object):
     """Test Zenithal Perspective projection"""
 
