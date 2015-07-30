@@ -266,8 +266,7 @@ class TestRunner(object):
 
         runner = cls(path)
 
-        @wraps(runner.run_tests, ('__doc__', '__annotations__'),
-               exclude_args=('self',))
+        @wraps(runner.run_tests, ('__doc__',), exclude_args=('self',))
         def test(*args, **kwargs):
             return runner.run_tests(*args, **kwargs)
 
