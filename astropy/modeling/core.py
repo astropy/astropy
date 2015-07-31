@@ -346,42 +346,82 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
         if ('__call__' not in members and 'inputs' in members and
                 isinstance(members['inputs'], tuple)):
-            inputs = members['inputs']
-            # Done create a custom __call__ for classes that already have one
+            # Don't create a custom __call__ for classes that already have one
             # explicitly defined (this includes the Model base class, and any
             # other classes that manually override __call__
+
             def __call__(self, *inputs, **kwargs):
                 """Evaluate this model on the supplied inputs."""
 
                 return super(cls, self).__call__(*inputs, **kwargs)
 
-            args = ('self',) + inputs
+            args, kwargs, varargs, varkwargs = mcls._get_call_signature(
+                    cls, parameters)
+
             new_call = make_function_with_signature(
-                    __call__, args, [('model_set_axis', None)])
+                    __call__, args, kwargs, varargs=varargs,
+                    varkwargs=varkwargs)
             update_wrapper(new_call, cls)
             cls.__call__ = new_call
 
         if ('__init__' not in members and not inspect.isabstract(cls) and
                 parameters):
-            # If *all* the parameters have default values we can make them
-            # keyword arguments; otherwise they must all be positional
-            # arguments
-            if all(p.default is not None
-                   for p in six.itervalues(parameters)):
-                args = ('self',)
-                kwargs = [(name, parameters[name].default)
-                          for name in cls.param_names]
-            else:
-                args = ('self',) + cls.param_names
-                kwargs = {}
 
             def __init__(self, *params, **kwargs):
                 return super(cls, self).__init__(*params, **kwargs)
 
+            args, kwargs, varargs, varkwargs = mcls._get_init_signature(
+                    cls, parameters)
+
             new_init = make_function_with_signature(
-                    __init__, args, kwargs, varkwargs='kwargs')
+                    __init__, args, kwargs, varargs=varargs,
+                    varkwargs=varkwargs)
             update_wrapper(new_init, cls)
             cls.__init__ = new_init
+
+    @classmethod
+    def _get_init_signature(mcls, cls, parameters):
+        """
+        Used in _handle_special_methods to return the argument signature for
+        auto-generated ``__init__`` method.  This can be overridden by
+        subclasses for model types with different ``__init__` signatures (see
+        `_PolynomialModelMeta`).
+
+        Returns a tuple of ``(args, kwargs, varargs, varkwargs)`` which are
+        interpreted as the arguments to `make_function_with_signature` of the
+        same names.
+        """
+
+        # This is the default signature, which consists of the parameters
+        # first (either as positional arguments, or as keyword arguments *if*
+        # all parameters have a default value)
+        if all(p.default is not None
+               for p in six.itervalues(parameters)):
+            args = ('self',)
+            kwargs = [(name, parameters[name].default)
+                      for name in cls.param_names]
+        else:
+            args = ('self',) + cls.param_names
+            kwargs = []
+
+        for cons in cls.parameter_constraints + cls.model_constraints:
+            kwargs.append((cons, None))
+
+        kwargs += [('n_models', None), ('model_set_axis', None)]
+
+        return (args, kwargs, None, None)
+
+    @classmethod
+    def _get_call_signature(mcls, cls, parameters):
+        """
+        Like `_get_init_signature`, but for the auto-generated ``__call__``
+        methods.
+        """
+
+        inputs = cls.inputs
+        args = ('self',) + inputs
+        return (args, [('model_set_axis', None)], None, None)
+
 
     # *** Arithmetic operators for creating compound models ***
     __add__ =     _model_oper('+')
