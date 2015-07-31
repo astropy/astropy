@@ -405,7 +405,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             kwargs = []
 
         for cons in cls.parameter_constraints + cls.model_constraints:
-            kwargs.append((cons, None))
+            kwargs.append((cons, {}))
 
         kwargs += [('n_models', None), ('model_set_axis', None)]
 
