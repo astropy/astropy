@@ -90,10 +90,8 @@ class Gaussian1D(Fittable1DModel):
         import matplotlib.pyplot as plt
 
         from astropy.modeling.models import Gaussian1D
-        from astropy.visualization import astropy_mpl_style
 
         plt.figure()
-        plt.style.use(astropy_mpl_style)
         s1 = Gaussian1D()
         r = np.arange(-5, 5, .01)
 
@@ -579,10 +577,8 @@ class Sine1D(Fittable1DModel):
         import matplotlib.pyplot as plt
 
         from astropy.modeling.models import Sine1D
-        from astropy.visualization import astropy_mpl_style
 
         plt.figure()
-        plt.style.use(astropy_mpl_style)
         s1 = Sine1D(amplitude=1, frequency=.25)
         r=np.arange(0, 10, .01)
 
