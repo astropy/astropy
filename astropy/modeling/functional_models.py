@@ -83,6 +83,27 @@ class Gaussian1D(Fittable1DModel):
     >>> g1.stddev.fixed
     True
 
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy.modeling.models import Gaussian1D
+        from astropy.visualization import astropy_mpl_style
+
+        plt.figure()
+        plt.style.use(astropy_mpl_style)
+        s1 = Gaussian1D()
+        r = np.arange(-5, 5, .01)
+
+        for factor in range(1, 4):
+            s1.amplitude = factor
+            plt.plot(r, s1(r), color=str(0.25 * factor), lw=2)
+
+        plt.axis([-5, 5, -1, 4])
+        plt.show()
+
     See Also
     --------
     Gaussian2D, Box1D, Moffat1D, Lorentz1D
