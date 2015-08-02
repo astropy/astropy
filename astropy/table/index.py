@@ -39,7 +39,7 @@ class QueryError(ValueError):
     '''
     pass
 
-class Index:
+class Index(object):
     '''
     The Index class makes it possible to maintain indices
     on columns of a Table, so that column values can be queried
@@ -60,6 +60,10 @@ class Index:
     data : SortedArray, BST, FastBST, FastRBT, or None
         Engine data to copy
     '''
+    def __new__(cls, *args, **kwargs):
+        self = super(Index, cls).__new__(cls)
+        self.__init__(*args, **kwargs)
+        return SlicedIndex(self, slice(0, 0, None), original=True)
 
     def __init__(self, columns, impl=None, col_dtypes=None, data=None):
         from .table import Table
@@ -95,7 +99,12 @@ class Index:
         else:
             self.data = self.engine(lines)
         self.columns = columns
-        self._frozen = False # if _frozen, treat index as read-only
+
+    def __len__(self):
+        '''
+        Number of rows in index.
+        '''
+        return len(self.columns[0])
 
     def refresh(self, columns):
         '''
@@ -145,8 +154,6 @@ class Index:
         columns : list
             Table column references
         '''
-        if self._frozen: # don't modify index
-            return
         key = [None] * len(self.columns)
         for i, col in enumerate(columns):
             try:
@@ -157,6 +164,26 @@ class Index:
         self.data.shift_right(pos)
         self.data.add(tuple(key), pos)
 
+    def get_row_specifier(self, row_specifier):
+        '''
+        Return an interable corresponding to the
+        input row specifier.
+
+        Parameters
+        ----------
+        row_specifier : int, list, ndarray, or slice
+        '''
+        if isinstance(row_specifier, int):
+            # single row
+            return (row_specifier,)
+        elif isinstance(row_specifier, (list, np.ndarray)):
+            return row_specifier
+        elif isinstance(row_specifier, slice):
+            col_len = len(self.columns[0])
+            return range(*row_specifier.indices(col_len))
+        raise ValueError("Expected int, array of ints, or slice but "
+                         "got {0} in remove_rows".format(row_specifier))
+
     def remove_rows(self, row_specifier):
         '''
         Remove the given rows from the index.
@@ -166,26 +193,11 @@ class Index:
         row_specifier : int, list, ndarray, or slice
             Indicates which row(s) to remove
         '''
-        if self._frozen:
-            return
-        elif isinstance(row_specifier, int):
-            # single row
-            self.remove_row(row_specifier)
-            return
-        elif isinstance(row_specifier, (list, np.ndarray)):
-            iterable = row_specifier
-        elif isinstance(row_specifier, slice):
-            col_len = len(self.columns[0])
-            iterable = range(*row_specifier.indices(col_len))
-        else:
-            raise ValueError("Expected int, array of ints, or slice but "
-                             "got {0} in remove_rows".format(row_specifier))
-
         rows = []
 
         # To maintain the correct row order, we loop twice,
         # deleting rows first and then reordering the remaining rows
-        for row in iterable:
+        for row in self.get_row_specifier(row_specifier):
             self.remove_row(row, reorder=False)
             rows.append(row)
         # second pass - row order is reversed to maintain
@@ -204,8 +216,6 @@ class Index:
         reorder : bool
             Whether to reorder indices after removal
         '''
-        if self._frozen:
-            return
         # for removal, form a key consisting of column values in this row
         if not self.data.remove(tuple([col[row] for col in self.columns]), row):
             raise ValueError("Could not remove row {0} from index".format(row))
@@ -274,8 +284,6 @@ class Index:
         val : col.info.dtype
             Value to insert at specified row of col
         '''
-        if self._frozen:
-            return
         self.remove_row(row, reorder=False)
         key = [c[row] for c in self.columns]
         key[self.col_position(col_name)] = val
@@ -340,14 +348,16 @@ class Index:
         memo : dict
         '''
         num_cols = self.data.num_cols if self.engine == SortedArray else None
-        index = Index(None, impl=self.data.__class__, col_dtypes=
+        # create an actual Index, not a SlicedIndex
+        index = super(Index, Index).__new__(Index)
+        index.__init__(None, impl=self.data.__class__, col_dtypes=
                       [x.info.dtype for x in self.columns])
         index.data = deepcopy(self.data, memo)
         index.columns = self.columns[:] # new list, same columns
         memo[id(self)] = index
         return index
 
-class SlicedIndex:
+class SlicedIndex(object):
     '''
     This class provides a wrapper around an actual Index object
     to make index slicing function correctly. Since numpy expects
@@ -361,15 +371,32 @@ class SlicedIndex:
         The original Index reference
     index_slice : slice
         The slice to which this SlicedIndex corresponds
+    original : bool
+        Whether this SlicedIndex represents the original index itself.
+        For the most part this is similar to index[:] but certain
+        copying operations are avoided, and the slice retains the
+        length of the actual index despite modification.
     '''
-    def __init__(self, index, index_slice):
+    def __init__(self, index, index_slice, original=False):
         self.index = index
-        num_rows = len(index.columns[0])
+        self.original = original
+        self._frozen = False
+
         if isinstance(index_slice, tuple):
-            self.start, self.stop, self.step = index_slice
+            self.start, self._stop, self.step = index_slice
         else: # index_slice is an actual slice
-            self.start, self.stop, self.step = index_slice.indices(num_rows)
+            num_rows = len(index.columns[0])
+            self.start, self._stop, self.step = index_slice.indices(num_rows)
+
         self.length = 1 + (self.stop - self.start - 1) // self.step
+
+    @property
+    def stop(self):
+        '''
+        The stopping position of the slice, or the end of the
+        index if this is an original slice.
+        '''
+        return len(self.index) if self.original else self._stop
 
     def __getitem__(self, item):
         '''
@@ -386,7 +413,7 @@ class SlicedIndex:
         start, stop, step = item.indices(self.length)
         new_start = self.orig_coords(start)
         new_stop = self.orig_coords(stop)
-        new_step = self.orig_coords(step)
+        new_step = self.step * step
         return SlicedIndex(self.index, (new_start, new_stop, new_step))
 
     def sliced_coords(self, rows):
@@ -445,7 +472,30 @@ class SlicedIndex:
         return self.sliced_coords(self.index.sorted_data())
 
     def replace(self, row, col, val):
-        return self.index.replace(self.orig_coords(row), col, val)
+        if not self._frozen:
+            self.index.replace(self.orig_coords(row), col, val)
+
+    def copy(self):
+        # replace self.index with a new object reference
+        self.index = deepcopy(self.index)
+        return self.index
+
+    def insert_row(self, pos, vals, columns):
+        if not self._frozen:
+            self.copy().insert_row(self.orig_coords(pos), vals,
+                                   columns)
+
+    def get_row_specifier(self, row_specifier):
+        return [self.orig_coords(x) for x in
+                self.index.get_row_specifier(row_specifier)]
+
+    def remove_rows(self, row_specifier):
+        if not self._frozen:
+            self.copy().remove_rows(row_specifier)
+
+    def replace_rows(self, col_slice):
+        if not self._frozen:
+            self.index.replace_rows([self.orig_coords(x) for x in col_slice])
 
     def __repr__(self):
         return 'Index slice {0} of {1}'.format(
@@ -453,6 +503,20 @@ class SlicedIndex:
 
     def refresh(self, columns):
         self.index.refresh(columns)
+
+    def reload(self):
+        self.index.reload()
+
+    def col_position(self, col_name):
+        return self.index.col_position(col_name)
+
+    @property
+    def columns(self):
+        return self.index.columns
+
+    @property
+    def data(self):
+        return self.index.data
 
 
 def get_index(table, table_copy):
@@ -476,7 +540,7 @@ def get_index(table, table_copy):
                 return index
     return None
 
-class index_mode:
+class index_mode(object):
     '''
     A context manager that allows for special indexing modes, which
     are intended to improve performance. Currently the allowed modes
