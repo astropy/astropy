@@ -256,7 +256,8 @@ class TestIndex(SetupData):
             t.add_row((2, 1.5, '12'))
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
             t.remove_rows([1, 3])
-            assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+            # index length still adapts to number of rows
+            assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3])
             assert_col_equal(t['a'], [6, 3, 5, 2])
             # mode should only affect t
             assert np.all(t2.indices[0].sorted_data() == [0, 1, 2, 3, 4])
