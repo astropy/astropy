@@ -451,7 +451,8 @@ class SlicedIndex:
         return 'Index slice {0} of {1}'.format(
             (self.start, self.stop, self.step), self.index)
 
-    ##TODO: adapt other Index methods here
+    def refresh(self, columns):
+        self.index.refresh(columns)
 
 
 def get_index(table, table_copy):
@@ -483,9 +484,6 @@ class index_mode:
     "copy_on_getitem", in which indices are copied upon column slicing,
     and "discard_on_copy", in which indices are discarded upon table
     copying/slicing.
-
-    NOTE: freeze and discard_on_copy affect only the supplied table,
-    while copy_on_getitem affects all instances of BaseColumn.
     '''
 
     def __init__(self, table, mode):
@@ -515,26 +513,41 @@ class index_mode:
                              "'{0}'".format(mode))
 
     def __enter__(self):
-        from .column import BaseColumn
+        from .column import (Column, MaskedColumn, _GetitemColumn,
+                             _GetitemMaskedColumn)
 
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = False
         elif self.mode == 'copy_on_getitem':
-            # we need to modify BaseColumn directly rather than
-            # individual columns since new-style classes refer
-            # directly to the class for special methods
-            BaseColumn.__getitem__ = BaseColumn.get_item
+            # we need to change column classes temporarily rather
+            # than adjusting instance methods, since new-style
+            # classes refer directly to the class for special
+            # methods
+            self.columns = []
+            self.masked_columns = []
+
+            for col in self.table.columns.values():
+                if isinstance(col, Column):
+                    col.__class__ = _GetitemColumn
+                    self.columns.append(col)
+                elif isinstance(col, MaskedColumn):
+                    col.__class__ = _GetitemMaskedColumn
+                    self.masked_columns.append(col)
         else:
             for index in self.table.indices:
                 index._frozen = True
 
     def __exit__(self, exc_type, exc_value, traceback):
-        from .column import BaseColumn
+        from .column import (Column, MaskedColumn, _GetitemColumn,
+                             _GetitemMaskedColumn)
 
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = True
         elif self.mode == 'copy_on_getitem':
-            del BaseColumn.__getitem__
+            for col in self.columns:
+                col.__class__ = Column
+            for col in self.masked_columns:
+                col.__class__ = MaskedColumn
         else:
             for index in self.table.indices:
                 index._frozen = False
