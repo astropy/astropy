@@ -1185,3 +1185,17 @@ class MaskedColumn(Column, ma.MaskedArray):
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
     convert_unit_to = BaseColumn.convert_unit_to
+
+class _GetitemColumn(Column):
+    '''
+    A Column whose __getitem__ method copies indices.
+    '''
+    def __getitem__(self, item):
+        return super(_GetitemColumn, self).get_item(item)
+
+class _GetitemMaskedColumn(MaskedColumn):
+    '''
+    A MaskedColumn whose __getitem__ method copies indices.
+    '''
+    def __getitem__(self, item):
+        return super(_GetitemMaskedColumn, self).get_item(item)

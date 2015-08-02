@@ -270,8 +270,8 @@ class TestIndex(SetupData):
             assert len(t['a'][::-1].info.indices) == 0
             with index_mode(t, 'copy_on_getitem'):
                 assert len(t['a'][[1, 2]].info.indices) == 1
-                # mode affects t2 as well as t
-                assert len(t2['a'][[1, 2]].info.indices) == 1
+                # mode should only affect t
+                assert len(t2['a'][[1, 2]].info.indices) == 0
 
             assert len(t['a'][::-1].info.indices) == 0
             assert len(t2['a'][::-1].info.indices) == 0
