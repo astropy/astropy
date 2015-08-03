@@ -357,11 +357,6 @@ API changes
 
 - ``astropy.visualization``
 
-  - The ``astropy_mpl_style`` no longer sets ``interactive`` to
-    ``True``, but instead leaves it at the user preference.  This
-    makes using the style compatible with building docs with Sphinx,
-    and other non-interactive contexts. [#4030]
-
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -538,6 +533,13 @@ API Changes
 - ``astropy.units``
 
 - ``astropy.utils``
+
+- ``astropy.visualization``
+
+  - The ``astropy_mpl_style`` no longer sets ``interactive`` to
+    ``True``, but instead leaves it at the user preference.  This
+    makes using the style compatible with building docs with Sphinx,
+    and other non-interactive contexts. [#4030]
 
 - ``astropy.vo``
 
