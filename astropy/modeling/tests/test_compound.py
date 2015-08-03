@@ -821,6 +821,29 @@ def test_compound_custom_inverse():
         (model1 & poly).inverse
 
 
+def test_call_argument_parsing():
+    """
+    Regression test to ensure that arguments to compound models' ``__call__``
+    method are not mishandled (in particular that positional arguments are
+    interpreted correctly with respect to which positional arguments are
+    input variables).
+    """
+
+    poly = Polynomial1D(5)
+    shift = Shift(3)
+    model = poly | shift
+
+    # The second positional argument should be interpreted as model_set_axis,
+    # which is irrelevant here--if arguments aren't bound correctly this ends
+    # up getting passed in as an additional "input", which in the case of
+    # compound model evaluation ends up being treated as the first parameter to
+    # the polynomial part of the model--oops!
+    assert model(1, 2) == model(1) == 3
+
+    with pytest.raises(TypeError):
+        model(x=1, y=2)
+
+
 @pytest.mark.parametrize('poly',
                          [Chebyshev1D(5), Legendre1D(5), Polynomial1D(5)])
 def test_compound_with_polynomials_1d(poly):

@@ -34,9 +34,9 @@ from ..extern import six
 from ..extern.six.moves import copyreg
 from ..table import Table
 from ..utils import (deprecated, sharedmethod, find_current_module,
-                     InheritDocstrings)
+                     lazyproperty, InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
-from ..utils.compat import ignored
+from ..utils.compat import ignored, funcsigs
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
@@ -485,6 +485,9 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
         Like `_get_init_signature`, but for the auto-generated ``__call__``
         methods.
         """
+
+        # TODO: Ideally model_set_axis should probably be a keyword-only
+        # argument, but those aren't supported on Python 2
 
         inputs = cls.inputs
         args = ('self',) + inputs
@@ -2189,6 +2192,39 @@ class _CompoundModel(Model):
     col_fit_deriv = False
 
     _submodels = None
+
+    @lazyproperty
+    def _call_signature(self):
+        """
+        Generate a call signature for this compound model's ``__call__`` to
+        ensure that the positional and keyword arguments are interpreted
+        correctly.
+
+        This is necessary for now since compound models don't get an
+        auto-generated ``__call__`` method.
+        """
+
+        P_K = funcsigs.Parameter.POSITIONAL_OR_KEYWORD
+
+        parameters = [funcsigs.Parameter(input_, P_K)
+                      for input_ in self.inputs]
+
+        # TODO: Probably should be keyword-only, but that's not supported on
+        # Python 2
+        parameters.append(
+            funcsigs.Parameter('model_set_axis', P_K, default=None))
+
+        return funcsigs.Signature(parameters)
+
+    def __call__(self, *inputs, **kwargs):
+        # Special __call__ implementation that parses positional arguments
+        # correctly, for lack of auto-generated __call__ methods on compound
+        # models
+        bound_args = self._call_signature.bind(*inputs, **kwargs)
+        inputs = (bound_args.arguments[input_] for input_ in self.inputs)
+        model_set_axis = bound_args.arguments.get('model_set_axis')
+        return super(_CompoundModel, self).__call__(
+                *inputs, model_set_axis=model_set_axis)
 
     def __getattr__(self, attr):
         value = getattr(self.__class__, attr)
