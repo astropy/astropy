@@ -95,7 +95,6 @@ astropy_mpl_style_1 = {
 
     # Other
     'savefig.dpi': 72,
-    'interactive': True,
     'toolbar': 'toolbar2',
     'timezone': 'UTC'
 }
