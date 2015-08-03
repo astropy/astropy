@@ -97,8 +97,6 @@ astropy_mpl_style_1 = {
 
     # Other
     'savefig.dpi': 72,
-    'toolbar': 'toolbar2',
-    'timezone': 'UTC'
 }
 '''
 Version 1 astropy plotting style for matplotlib.
