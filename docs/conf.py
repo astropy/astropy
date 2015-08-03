@@ -47,7 +47,6 @@ import astropy
 
 # Use the astropy style when building docs
 from astropy import visualization
-from matplotlib import pyplot as plt
 plot_rcparams = visualization.astropy_mpl_style
 plot_apply_rcparams = True
 
