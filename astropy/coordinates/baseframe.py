@@ -483,8 +483,7 @@ class BaseCoordinateFrame(object):
         use_skycoord = False
 
         for arg in args:
-            if (not isinstance(arg, u.Quantity)
-                and not isinstance(arg, BaseRepresentation)):
+            if not isinstance(arg, (u.Quantity, BaseRepresentation)):
                 msg = ('Initializing frame classes like "{0}" using string '
                        'or other non-Quantity arguments is deprecated, and '
                        'will be removed in the next version of Astropy.  '
