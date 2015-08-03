@@ -404,8 +404,11 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             args = ('self',) + cls.param_names
             kwargs = []
 
-        for cons in cls.parameter_constraints + cls.model_constraints:
+        for cons in cls.parameter_constraints:
             kwargs.append((cons, {}))
+
+        for cons in cls.model_constraints:
+            kwargs.append((cons, []))
 
         kwargs += [('n_models', None), ('model_set_axis', None)]
 
