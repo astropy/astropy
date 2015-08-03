@@ -108,6 +108,10 @@ def test_custom_model_signature():
     methods of custom models are useful.
     """
 
+    param_constraints = ['fixed', 'tied', 'bounds']
+    generic_init_args = ['eqcons', 'ineqcons', 'n_models', 'model_set_axis',
+                         'name', 'meta']
+
     @custom_model
     def model_a(x):
         return x
@@ -115,7 +119,7 @@ def test_custom_model_signature():
     assert model_a.param_names == ()
     assert model_a.n_inputs == 1
     argspec = inspect.getargspec(model_a.__init__)
-    assert argspec.args == ['self']
+    assert argspec.args == ['self'] + generic_init_args
     argspec = inspect.getargspec(model_a.__call__)
     assert argspec.args == ['self', 'x', 'model_set_axis']
 
@@ -126,8 +130,9 @@ def test_custom_model_signature():
     assert model_b.param_names == ('a', 'b')
     assert model_b.n_inputs == 1
     argspec = inspect.getargspec(model_b.__init__)
-    assert argspec.args == ['self', 'a', 'b']
-    assert argspec.defaults == (1, 2)
+    assert argspec.args == (['self', 'a', 'b'] + param_constraints +
+                            generic_init_args)
+    assert argspec.defaults[:2] == (1, 2)
     argspec = inspect.getargspec(model_b.__call__)
     assert argspec.args == ['self', 'x', 'model_set_axis']
 
@@ -138,14 +143,19 @@ def test_custom_model_signature():
     assert model_c.param_names == ('a', 'b')
     assert model_c.n_inputs == 2
     argspec = inspect.getargspec(model_c.__init__)
-    assert argspec.args == ['self', 'a', 'b']
-    assert argspec.defaults == (1, 2)
+    assert argspec.args == (['self', 'a', 'b'] + param_constraints +
+                            generic_init_args)
+    assert argspec.defaults[:2] == (1, 2)
     argspec = inspect.getargspec(model_c.__call__)
     assert argspec.args == ['self', 'x', 'y', 'model_set_axis']
 
 
 def test_custom_model_subclass():
     """Test that custom models can be subclassed."""
+
+    param_constraints = ['fixed', 'tied', 'bounds']
+    generic_init_args = ['eqcons', 'ineqcons', 'n_models', 'model_set_axis',
+                         'name', 'meta']
 
     @custom_model
     def model_a(x, a=1):
@@ -163,7 +173,8 @@ def test_custom_model_subclass():
     assert b(1) == -1
 
     argspec = inspect.getargspec(model_b.__init__)
-    assert argspec.args == ['self', 'a']
+    assert argspec.args == (['self', 'a'] + param_constraints +
+                            generic_init_args)
     argspec = inspect.getargspec(model_b.__call__)
     assert argspec.args == ['self', 'x', 'model_set_axis']
 
