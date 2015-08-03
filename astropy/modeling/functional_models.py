@@ -481,19 +481,19 @@ class Sersic1D(Fittable1DModel):
         import matplotlib.pyplot as plt
 
         plt.figure()
-        plt.subplot(111,xscale='log',yscale='log')
+        plt.subplot(111, xscale='log', yscale='log')
         s1 = Sersic1D(amplitude=1, r_eff=5)
-        r=np.arange(0,100,.01)
+        r=np.arange(0, 100, .01)
 
-        for n in range(1,10):
+        for n in range(1, 10):
              s1.n = n
-             plt.plot(r,s1(r),color='k',alpha=0.5,lw=2)
+             plt.plot(r, s1(r), color=str(float(n) / 15))
 
-        plt.axis([1e-1,30,1e-2,1e3])
-        plt.xlabel('log Radius',fontsize=16)
-        plt.ylabel('log Surface Brightness',fontsize=16)
-        plt.text(.25,1.5,'n=1',fontsize=16)
-        plt.text(.25,300,'n=10',fontsize=16)
+        plt.axis([1e-1, 30, 1e-2, 1e3])
+        plt.xlabel('log Radius')
+        plt.ylabel('log Surface Brightness')
+        plt.text(.25, 1.5, 'n=1')
+        plt.text(.25, 300, 'n=10')
         plt.xticks([])
         plt.yticks([])
         plt.show()
@@ -699,7 +699,7 @@ class Voigt1D(Fittable1DModel):
         import matplotlib.pyplot as plt
 
         plt.figure()
-        x = np.arange(0, 10, 0.1)
+        x = np.arange(0, 10, 0.01)
         v1 = Voigt1D(x_0=5, amplitude_L=10, fwhm_L=0.5, fwhm_G=0.9)
         plt.plot(x, v1(x))
         plt.show()
@@ -903,8 +903,8 @@ class Ellipse2D(Fittable2DModel):
         y, x = np.mgrid[0:50, 0:50]
         fig, ax = plt.subplots(1, 1)
         ax.imshow(e(x, y), origin='lower', interpolation='none', cmap='Greys_r')
-        e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, theta.degree,
-                              edgecolor='red', facecolor='none')
+        e2 = mpatches.Ellipse((x0, y0), 2*a, 2*b, theta.degree, edgecolor='red',
+                              facecolor='none')
         ax.add_patch(e2)
         plt.show()
     """
@@ -1587,21 +1587,22 @@ class Sersic2D(Fittable2DModel):
         from astropy.modeling.models import Sersic2D
         import matplotlib.pyplot as plt
 
-        x,y = np.meshgrid(np.arange(100),np.arange(100))
+        x,y = np.meshgrid(np.arange(100), np.arange(100))
 
-        mod = Sersic2D(amplitude = 1, r_eff = 25, n=4, x_0=50, y_0=50, ellip=.5,theta=-1)
-        img = mod(x,y)
+        mod = Sersic2D(amplitude = 1, r_eff = 25, n=4, x_0=50, y_0=50,
+                       ellip=.5, theta=-1)
+        img = mod(x, y)
         log_img = np.log10(img)
 
 
         plt.figure()
-        plt.imshow(log_img, origin='lower', interpolation='nearest', cmap='binary_r',
-                    vmin=-1, vmax=2)
-        plt.xlabel('x', fontsize=16)
-        plt.ylabel('y', fontsize=16)
-        cbar=plt.colorbar()
-        cbar.set_label('Log Brightness', rotation=270, labelpad=25, fontsize=16)
-        cbar.set_ticks([-1,0,1,2],update_ticks=True)
+        plt.imshow(log_img, origin='lower', interpolation='nearest',
+                   vmin=-1, vmax=2)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        cbar = plt.colorbar()
+        cbar.set_label('Log Brightness', rotation=270, labelpad=25)
+        cbar.set_ticks([-1, 0, 1, 2], update_ticks=True)
         plt.show()
 
     References

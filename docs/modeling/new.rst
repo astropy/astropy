@@ -48,7 +48,7 @@ of two Gaussians:
 
     # Plot the data and the best fit
     plt.plot(x, y, 'o', color='k')
-    plt.plot(x, m(x), color='r', lw=2)
+    plt.plot(x, m(x))
 
 
 This decorator also supports setting a model's
