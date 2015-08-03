@@ -61,13 +61,15 @@ astropy_mpl_style_1 = {
     'axes.labelsize': 'large',
     'axes.labelcolor': '#FFFFFF',
     'axes.axisbelow': True,
-    'axes.color_cycle': ['#348ABD',   # blue
-                         '#7A68A6',   # purple
-                         '#A60628',   # red
-                         '#467821',   # green
-                         '#CF4457',   # pink
-                         '#188487',   # turquoise
-                         '#E24A33'],  # orange
+    'axes.color_cycle': [
+        '#E24A33',   # orange
+        '#348ABD',   # blue
+        '#467821',   # green
+        '#A60628',   # red
+        '#7A68A6',   # purple
+        '#CF4457',   # pink
+        '#188487'    # turquoise
+    ],
 
     # Ticks
     'xtick.major.size': 0,
