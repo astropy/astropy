@@ -98,6 +98,8 @@ New Features
 
   - Added the Voigt profile to existing models. [#3901]
 
+  - Added ``bounding_box`` property and ``render_model`` function [#3909]
+
 - ``astropy.nddata``
 
   - Added ``block_reduce`` and ``block_replicate`` functions. [#3453]

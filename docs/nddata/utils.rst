@@ -24,14 +24,15 @@ postage stamp cutout image from a 2D array.  If an optional
 `~astropy.nddata.utils.Cutout2D` object will contain an updated
 `~astropy.wcs.WCS` corresponding to the cutout array.
 
-First, let's create a simple 2D data array::
+First, let's simulate a single source on a 2D data array. If you would like to
+simulate many sources, see :ref:`bounding-boxes`.
 
     >>> import numpy as np
     >>> from astropy.modeling.models import Gaussian2D
     >>> y, x = np.mgrid[0:500, 0:500]
     >>> data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
 
-Next, let's display the image:
+Now, let's display the image:
 
 .. doctest-skip::
 

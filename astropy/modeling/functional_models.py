@@ -12,6 +12,7 @@ import numpy as np
 from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError, custom_model)
 from .parameters import Parameter, InputParameterError
+from .utils import ellipse_extent
 from ..utils import deprecated
 from ..extern import six
 
@@ -91,6 +92,38 @@ class Gaussian1D(Fittable1DModel):
     amplitude = Parameter(default=1)
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
+    _bounding_box = 'auto'
+
+    def bounding_box_default(self, factor=5.5):
+        """
+        Tuple defining the default ``bounding_box`` limits, 
+        ``(x_low, x_high)``
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of `stddev` used to define the limits. 
+            The default is 5.5-sigma, corresponding to a relative error < 1e-7. 
+
+        Examples
+        --------
+        >>> from astropy.modeling.models import Gaussian1D
+        >>> model = Gaussian1D(mean=0, stddev=2)
+        >>> model.bounding_box
+        (-11.0, 11.0)
+
+        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by 
+        using a different factor, like:
+
+        >>> model.bounding_box = model.bounding_box_default(factor=2)
+        >>> model.bounding_box
+        (-4.0, 4.0)
+        """
+
+        x0 = self.mean.value
+        dx = factor * self.stddev
+
+        return (x0 - dx, x0 + dx)
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
@@ -240,6 +273,7 @@ class Gaussian2D(Fittable2DModel):
     x_stddev = Parameter(default=1)
     y_stddev = Parameter(default=1)
     theta = Parameter(default=0)
+    _bounding_box = 'auto'
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
@@ -280,6 +314,43 @@ class Gaussian2D(Fittable2DModel):
         super(Gaussian2D, self).__init__(
             amplitude=amplitude, x_mean=x_mean, y_mean=y_mean,
             x_stddev=x_stddev, y_stddev=y_stddev, theta=theta, **kwargs)
+
+    def bounding_box_default(self, factor=5.5):
+        """
+        Tuple defining the default ``bounding_box`` limits in each dimension, 
+        ``((y_low, y_high), (x_low, x_high))``
+
+        The default offset from the mean is 5.5-sigma, corresponding 
+        to a relative error < 1e-7. The limits are adjusted for rotation.
+
+        Parameters
+        ----------
+        factor : float, optional
+            The multiple of `x_stddev` and `y_stddev` used to define the limits. 
+            The default is 5.5. 
+
+        Examples
+        --------
+        >>> from astropy.modeling.models import Gaussian2D
+        >>> model = Gaussian2D(x_mean=0, y_mean=0, x_stddev=1, y_stddev=2)
+        >>> model.bounding_box
+        ((-11.0, 11.0), (-5.5, 5.5))
+
+        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by 
+        using a different factor like:
+
+        >>> model.bounding_box = model.bounding_box_default(factor=2)
+        >>> model.bounding_box
+        ((-4.0, 4.0), (-2.0, 2.0))
+        """
+
+        a = factor * self.x_stddev
+        b = factor * self.y_stddev
+        theta = self.theta.value
+        dx, dy = ellipse_extent(a, b, theta)
+
+        return ((self.y_mean - dy, self.y_mean + dy),
+                (self.x_mean - dx, self.x_mean + dx))
 
     @staticmethod
     def evaluate(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
@@ -915,6 +986,26 @@ class Ellipse2D(Fittable2DModel):
     a = Parameter(default=1)
     b = Parameter(default=1)
     theta = Parameter(default=0)
+    _bounding_box = 'auto'
+
+    def bounding_box_default(self):
+        """
+        Tuple defining the default ``bounding_box`` limits around the ellipse.
+
+        ``((y_low, y_high), (x_low, x_high))``
+
+        References
+        ----------
+        `astropy.modeling.Model.bounding_box`
+        """
+
+        a = self.a
+        b = self.b
+        theta = self.theta.value
+        dx, dy = ellipse_extent(a, b, theta)
+
+        return ((self.y_0 - dy, self.y_0 + dy),
+                (self.x_0 - dx, self.x_0 + dx))
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):

@@ -327,6 +327,7 @@ Using `astropy.modeling`
    fitting
    compound-models
    new
+   bounding-boxes
    algorithms
 
 
