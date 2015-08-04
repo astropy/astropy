@@ -184,6 +184,15 @@ New Features
 
 - ``astropy.utils``
 
+  - Added new ``OrderedDescriptor`` and ``OrderedDescriptorContainer`` utility
+    classes that make it easier to implement classes with declarative APIs,
+    wherein class-level attributes have an inherit "ordering" to them that is
+    specified by the order in which those attributes are defined in the class
+    declaration (by defining them using special descriptors that have
+    ``OrderedDescriptor`` as a base class).  See the API documentation for
+    these classes for more details. Coordinate frames and models now use this
+    interface. [#3679]
+
   - Added function ``dtype_info_name`` to the ``data_info`` module to provide
     the name of a ``dtype`` for human-readable informational purposes. [#3868]
 
