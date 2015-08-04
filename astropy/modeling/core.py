@@ -815,17 +815,21 @@ class Model(object):
 
         The default is `None`, unless ``bounding_box_default`` is defined.
         `bounding_box` can be set manually to an array-like  object of shape 
-        ``(model.n_inputs, 2)``. For further usage, see :ref:`bounding-boxes`
+        ``(model.n_inputs, 2)``. For further usage, including how to set the
+        ``bounding_box_default``, see :ref:`bounding-boxes`
 
-        .. note:: The limits are ordered according to the `numpy` indexing 
-            convention, and are the reverse of the model input order, 
-            e.g. for inputs ``('x', 'y', 'z')`` the ``bounding_box`` is defined:
-                * for 1D: ``(x_low, x_high)``
-                * for 2D: ``((y_low, y_high), (x_low, x_high))``
-                * 3D: ``((z_low, z_high), (y_low, y_high), (x_low, x_high))``
+        The limits are ordered according to the `numpy` indexing
+        convention, and are the reverse of the model input order,
+        e.g. for inputs ``('x', 'y', 'z')`` the ``bounding_box`` is defined:
+        
+        * for 1D: ``(x_low, x_high)``
+        * for 2D: ``((y_low, y_high), (x_low, x_high))``
+        * for 3D: ``((z_low, z_high), (y_low, y_high), (x_low, x_high))``
 
         Examples
         --------
+        Setting the bounding boxes for a 1D, 2D, and custom 3D model.
+
         >>> from astropy.modeling.models import Gaussian1D, Gaussian2D, custom_model
         >>> model_1d = Gaussian1D()
         >>> model_2d = Gaussian2D(x_stddev=1, y_stddev=1)
@@ -851,6 +855,7 @@ class Model(object):
         To turn off the bounding box:
 
         >>> model_1d.bounding_box = None
+
         """
 
         if self._bounding_box == 'auto':

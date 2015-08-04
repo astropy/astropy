@@ -104,7 +104,7 @@ negligible loss of information.
 	    image = np.zeros(imshape)
 	    t1 = time()
 	    for i,model in enumerate(model_list): 
-	        if mode == 'full': model.bounding_box=None
+	        if mode == 'full': model.bounding_box = None
 	        elif mode == 'auto': model.bounding_box = 'auto'
 	        image = render_model(model, image)
 	    t2 = time()
