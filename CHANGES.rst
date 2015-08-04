@@ -540,6 +540,13 @@ API Changes
 
 - ``astropy.utils``
 
+- ``astropy.visualization``
+
+  - The ``astropy_mpl_style`` no longer sets ``interactive`` to
+    ``True``, but instead leaves it at the user preference.  This
+    makes using the style compatible with building docs with Sphinx,
+    and other non-interactive contexts. [#4030]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
@@ -648,7 +655,7 @@ Bug Fixes
   - Fixed multiple instances of a bug that prevented Astropy from being used
     when compiled with the ``python -OO`` flag, due to it causing all
     docstrings to be stripped out. [#3923]
-    
+
   - Removed source code template files that were being installed
     accidentally alongside installed Python modules. [#4014]
 
