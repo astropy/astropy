@@ -433,11 +433,11 @@ class SlicedIndex(object):
             Rows in the sliced coordinate system
         '''
         if self.step > 0:
-            return [(row - self.start) / self.step for row in rows
+            return [(row - self.start) // self.step for row in rows
                     if self.start <= row < self.stop and
                     (row - self.start) % self.step == 0]
         else:
-            return [(row - self.start) / self.step for row in rows
+            return [(row - self.start) // self.step for row in rows
                     if self.stop < row <= self.start and
                     (row - self.start) % self.step == 0]
 
@@ -500,8 +500,13 @@ class SlicedIndex(object):
             self.index.replace_rows([self.orig_coords(x) for x in col_slice])
 
     def __repr__(self):
+        if self.original:
+            return repr(self.index)
         return 'Index slice {0} of {1}'.format(
             (self.start, self.stop, self.step), self.index)
+
+    def __str__(self):
+        return repr(self)
 
     def refresh(self, columns):
         self.index.refresh(columns)
