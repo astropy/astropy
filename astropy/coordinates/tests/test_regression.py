@@ -70,7 +70,7 @@ def test_regression_3998():
     assert sun.isscalar
     # in 3998, the above yields False - `sun` is a length-1 vector
 
-    assert sun.time is time
+    assert sun.obstime is time
 
 
 def test_regression_4033():
