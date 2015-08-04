@@ -7,6 +7,12 @@ A collection of different unit formats.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+# This is pretty atrocious, but it will prevent a circular import for those
+# formatters that need access to the units.core module An entry for it should
+# exist in sys.modules since astropy.units.core imports this module
+import sys
+core = sys.modules['astropy.units.core']
+
 from .base import Base
 from .generic import Generic, Unscaled
 from .cds import CDS
@@ -22,6 +28,7 @@ from ...extern.six import string_types
 __all__ = [
     'Base', 'Generic', 'CDS', 'Console', 'Fits', 'Latex', 'LatexInline',
     'OGIP', 'Unicode', 'Unscaled', 'VOUnit', 'get_format']
+
 
 def get_format(format=None):
     """
@@ -39,8 +46,6 @@ def get_format(format=None):
         The requested formatter.
     """
     if isinstance(format, type) and issubclass(format, Base):
-        return format()
-    elif isinstance(format, Base):
         return format
     elif not (isinstance(format, string_types) or format is None):
         raise TypeError(
@@ -54,7 +59,7 @@ def get_format(format=None):
     format_lower = format.lower()
 
     if format_lower in Base.registry:
-        return Base.registry[format_lower]()
+        return Base.registry[format_lower]
 
     raise ValueError("Unknown format {0!r}.  Valid formatter names are: "
                      "[{1}]".format(format, ', '.join(Base.registry)))

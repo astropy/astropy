@@ -13,8 +13,7 @@ import keyword
 import re
 import warnings
 
-from . import generic
-from . import utils
+from . import core, generic, utils
 
 
 class VOUnit(generic.Generic):
@@ -28,14 +27,6 @@ class VOUnit(generic.Generic):
         "^[YZEPTGMkhdcmunpfazy]?'((?!\d)\w)+'$")
     _custom_unit_regex = re.compile("^((?!\d)\w)+$")
     _custom_units = {}
-
-    def __init__(self):
-        if '_parser' not in VOUnit.__dict__:
-            VOUnit._parser, VOUnit._lexer = self._make_parser()
-
-        if not '_units' in VOUnit.__dict__:
-            unit_names = VOUnit._generate_unit_names()
-            VOUnit._units, VOUnit._deprecated_units = unit_names
 
     @staticmethod
     def _generate_unit_names():
@@ -87,21 +78,19 @@ class VOUnit(generic.Generic):
         do_defines(binary_bases, si_prefixes + binary_prefixes, ['dB', 'dbyte'])
         do_defines(simple_units, [''])
 
-        return names, deprecated_names
+        return names, deprecated_names, []
 
-    def parse(self, s, debug=False):
-        from ... import units as u
-
+    @classmethod
+    def parse(cls, s, debug=False):
         if s in ('unknown', 'UNKNOWN'):
             return None
         if s == '':
-            return u.dimensionless_unscaled
+            return core.dimensionless_unscaled
         if s.count('/') > 1:
-            from ..core import UnitsError
-            raise UnitsError(
+            raise core.UnitsError(
                 "'{0}' contains multiple slashes, which is "
                 "disallowed by the VOUnit standard".format(s))
-        result = self._do_parse(s, debug=debug)
+        result = cls._do_parse(s, debug=debug)
         if hasattr(result, 'function_unit'):
             raise ValueError("Function units are not yet supported in "
                              "VOUnit.")
@@ -109,8 +98,6 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def _parse_unit(cls, unit, detailed_exception=True):
-        from ... import units as u
-
         if unit not in cls._units:
             if cls._explicit_custom_unit_regex.match(unit):
                 return cls._def_custom_unit(unit)
@@ -124,7 +111,7 @@ class VOUnit(generic.Generic):
                     unit, utils.did_you_mean_units(
                         unit, cls._units, cls._deprecated_units,
                         cls._to_decomposed_alternative)),
-                u.UnitsWarning)
+                core.UnitsWarning)
 
             return cls._def_custom_unit(unit)
 
@@ -137,11 +124,9 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def _get_unit_name(cls, unit):
-        from ... import units as u
-
         # The da- and d- prefixes are discouraged.  This has the
         # effect of adding a scale to value in the result.
-        if isinstance(unit, u.PrefixUnit):
+        if isinstance(unit, core.PrefixUnit):
             if unit._represents.scale == 10.0:
                 raise ValueError(
                     "In '{0}': VOUnit can not represent units with the 'da' "
@@ -169,32 +154,30 @@ class VOUnit(generic.Generic):
 
     @classmethod
     def _def_custom_unit(cls, unit):
-        from ... import units as u
-
         def def_base(name):
             if name in cls._custom_units:
                 return cls._custom_units[name]
 
             if name.startswith("'"):
-                return u.def_unit(
+                return core.def_unit(
                     [name[1:-1], name],
                     format={'vounit': name},
                     namespace=cls._custom_units)
             else:
-                return u.def_unit(
+                return core.def_unit(
                     name, namespace=cls._custom_units)
 
         if unit in cls._custom_units:
             return cls._custom_units[unit]
 
-        for short, full, factor in u.si_prefixes:
+        for short, full, factor in core.si_prefixes:
             for prefix in short:
                 if unit.startswith(prefix):
                     base_name = unit[len(prefix):]
                     base_unit = def_base(base_name)
-                    return u.PrefixUnit(
+                    return core.PrefixUnit(
                         [prefix + x for x in base_unit.names],
-                        u.CompositeUnit(factor, [base_unit], [1],
+                        core.CompositeUnit(factor, [base_unit], [1],
                                         _error_check=False),
                         format={'vounit': prefix + base_unit.names[-1]},
                         namespace=cls._custom_units)

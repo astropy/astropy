@@ -9,8 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from . import base
-from . import utils
+from . import base, core, utils
 from ...extern.six.moves import zip
 
 
@@ -21,8 +20,6 @@ class Latex(base.Base):
     Attempts to follow the `IAU Style Manual
     <http://www.iau.org/static/publications/stylemanual1989.pdf>`_.
     """
-    def __init__(self):
-        pass
 
     @classmethod
     def _latex_escape(cls, name):
@@ -68,9 +65,8 @@ class Latex(base.Base):
 
         return s
 
-    def to_string(self, unit):
-        from .. import core
-
+    @classmethod
+    def to_string(cls, unit):
         latex_name = None
         if hasattr(unit, '_format'):
             latex_name = unit._format.get('latex')
@@ -81,13 +77,13 @@ class Latex(base.Base):
             if unit.scale == 1:
                 s = ''
             else:
-                s = self.format_exponential_notation(unit.scale) + r'\,'
+                s = cls.format_exponential_notation(unit.scale) + r'\,'
 
             if len(unit.bases):
-                s += self._format_bases(unit)
+                s += cls._format_bases(unit)
 
         elif isinstance(unit, core.NamedUnit):
-            s = self._latex_escape(unit.name)
+            s = cls._latex_escape(unit.name)
 
         return r'$\mathrm{{{0}}}$'.format(s)
 
