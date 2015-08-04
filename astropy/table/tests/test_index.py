@@ -131,7 +131,7 @@ class TestIndex(SetupData):
         with pytest.raises(ValueError):
             t.remove_rows((0, 2, 4))
 
-    def test_col_slicing(self, main_col, table_types, impl):
+    def test_col_get_slice(self, main_col, table_types, impl):
         self._setup(main_col, table_types)
         t = self.t
         t.add_index('a', impl=impl)
@@ -161,14 +161,19 @@ class TestIndex(SetupData):
             assert len(t_empty['a']) == 0
             assert np.all(t_empty.indices[0].sorted_data() == [])
 
+        if self.mutable:
+            # get boolean mask
+            mask = t['a'] % 2 == 1
+            t2 = t[mask]
+            assert_col_equal(t2['a'], [1, 3, 5])
+            assert np.all(t2.indices[0].sorted_data() == [0, 1, 2])
+
+    def test_col_set_slice(self, main_col, table_types, impl):
+        self._setup(main_col, table_types)
         if not self.mutable:
             return
-
-        # get boolean mask
-        mask = t['a'] % 2 == 1
-        t2 = t[mask]
-        assert_col_equal(t2['a'], [1, 3, 5])
-        assert np.all(t2.indices[0].sorted_data() == [0, 1, 2])
+        t = self.t
+        t.add_index('a', impl=impl)
 
         # set slice
         t2 = t.copy()
@@ -189,9 +194,60 @@ class TestIndex(SetupData):
 
         # set boolean mask
         t2 = t.copy()
+        mask = t['a'] % 2 == 1
         t2['a'][mask] = 0.
         assert_col_equal(t2['a'], [0, 2, 0, 4, 0])
         assert np.all(t2.indices[0].sorted_data() == [0, 2, 4, 1, 3])
+
+    def test_multiple_slices(self, main_col, table_types, impl):
+        self._setup(main_col, table_types)
+
+        if not self.mutable:
+            return
+
+        t = self.t
+        t.add_index('a', impl=impl)
+
+        for i in range(6, 51):
+            t.add_row((i, 1.0, 'A'))
+
+        assert_col_equal(t['a'], [i for i in range(1, 51)])
+        assert np.all(t.indices[0].sorted_data() == [i for i in range(50)])
+
+        evens = t[::2]
+        assert np.all(evens.indices[0].sorted_data() == [i for i in range(25)])
+        reverse = evens[::-1]
+        index = reverse.indices[0]
+        assert (index.start, index.stop, index.step) == (48, -2, -2)
+        assert np.all(index.sorted_data() == [i for i in range(24, -1, -1)])
+
+        # modify slice of slice
+        reverse[-10:] = 0
+        expected = np.array([i for i in range(1, 51)])
+        expected[:20][expected[:20] % 2 == 1] = 0
+        assert_col_equal(t['a'], expected)
+        assert_col_equal(evens['a'], expected[::2])
+        assert_col_equal(reverse['a'], expected[::2][::-1])
+        # first ten evens are now zero
+        assert np.all(t.indices[0].sorted_data() ==
+                      [0, 2, 4, 6, 8, 10, 12, 14, 16, 18,
+                       1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+                      + [i for i in range(20, 50)])
+        assert np.all(evens.indices[0].sorted_data() == [i for i in range(25)])
+        assert np.all(reverse.indices[0].sorted_data() ==
+                      [i for i in range(24, -1, -1)])
+
+        # try different step sizes of slice
+        t2 = t[1:20:2]
+        assert_col_equal(t2['a'], [2, 4, 6, 8, 10, 12, 14, 16, 18, 20])
+        assert np.all(t2.indices[0].sorted_data() == [i for i in range(10)])
+        t3 = t2[::3]
+        assert_col_equal(t3['a'], [2, 8, 14, 20])
+        assert np.all(t3.indices[0].sorted_data() == [0, 1, 2, 3])
+        t4 = t3[2::-1]
+        assert_col_equal(t4['a'], [14, 8, 2])
+        assert np.all(t4.indices[0].sorted_data() == [2, 1, 0])
+
 
     def test_sort(self, main_col, table_types, impl):
         self._setup(main_col, table_types)

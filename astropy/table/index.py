@@ -388,7 +388,9 @@ class SlicedIndex(object):
             num_rows = len(index.columns[0])
             self.start, self._stop, self.step = index_slice.indices(num_rows)
 
-        self.length = 1 + (self.stop - self.start - 1) // self.step
+    @property
+    def length(self):
+        return 1 + (self.stop - self.start - 1) // self.step
 
     @property
     def stop(self):
