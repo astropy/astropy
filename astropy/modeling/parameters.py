@@ -499,7 +499,15 @@ class Parameter(object):
             to parameter 'b'
 
         On bound parameters this property returns the validator method itself,
-        as a bound method on the `Parameter`.
+        as a bound method on the `Parameter`.  This is not often as useful, but
+        it allows validating a parameter value without setting that parameter::
+
+            >>> m.a.validator(42)  # Passes
+            >>> m.a.validator(-42)  # doctest: +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            ...
+            InputParameterError: parameter 'a' must be greater than or equal
+            to parameter 'b'
         """
 
         if self._model is None:
@@ -516,7 +524,10 @@ class Parameter(object):
                 if self._validator is not None:
                     return self._validator(self._model, value)
 
-            return types.MethodType(validator, self)
+            if six.PY2:
+                return types.MethodType(validator, self, type(self))
+            else:
+                return types.MethodType(validator, self)
 
     def copy(self, name=None, description=None, default=None, getter=None,
              setter=None, fixed=False, tied=False, min=None, max=None,
