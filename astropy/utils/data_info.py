@@ -399,20 +399,17 @@ class BaseColumnInfo(DataInfo):
         if isinstance(index, slice):
             # run through each key in slice
             t = index.indices(col_len)
-            keys = range(*t)
-            num_keys = len(t)
+            keys = list(range(*t))
         elif isinstance(index, np.ndarray) and index.dtype.kind == 'b':
             # boolean mask
             keys = np.where(index)[0]
-            num_keys = len(keys)
         else: # single int
             keys = [index]
-            num_keys = 1
 
         value = np.atleast_1d(value) # turn array(x) into array([x])
         if value.size == 1:
             # repeat single value
-            value = list(value) * num_keys
+            value = list(value) * len(keys)
 
         for key, val in zip(keys, value):
             for col_index in self.indices:
