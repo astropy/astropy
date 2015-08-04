@@ -412,7 +412,7 @@ class Table(object):
     @property
     def indices(self):
         '''
-        Returns the indices associated with columns of the table.
+        Return the indices associated with columns of the table.
         '''
         lst = []
         for column in self.columns.values():
@@ -423,15 +423,23 @@ class Table(object):
 
     def _get_slice(self, col, item):
         '''
-        Returns either col.get_item(item) if col is a regular Column
+        Return either col.get_item(item) if col is a regular Column
         or col[item] if col is a mixin.
         '''
         return getattr(col, 'get_item', col.__getitem__)(item)
 
     def add_index(self, colnames, impl=None):
         '''
-        Inserts a new index among one or more columns. The input parameter
-        may be either a list of column names or a single column name.
+        Insert a new index among one or more columns.
+
+        Parameters
+        ----------
+        colnames : str or list
+            List of column names (or a single column name) to index
+        impl : type or None
+            Indexing engine class to use, from among SortedArray, BST,
+            FastBST, and FastRBT. If the supplied argument is None (by
+            default), use SortedArray.
         '''
         if isinstance(colnames, six.string_types):
             colnames = (colnames,)
@@ -450,6 +458,11 @@ class Table(object):
     def remove_indices(self, colname):
         '''
         Remove all indices involving the given column.
+
+        Parameters
+        ----------
+        colname : str
+            Name of column
         '''
         col = self.columns[colname]
         for index in self.indices:

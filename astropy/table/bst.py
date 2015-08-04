@@ -2,9 +2,6 @@ import operator
 import numpy as np
 from ..extern.six.moves import zip
 
-BLACK = 0
-RED = 1
-
 
 class MaxValue(object):
     '''
@@ -55,11 +52,19 @@ class MinValue(object):
     __ge__ = __gt__
     __str__ = __repr__
 
+
 class Epsilon(object):
-    # Represents the "next largest" version of a given value,
-    # so for all valid comparisons we have
-    # x < y < Epsilon(y) < z wherever x < y < z and x, z are
-    # not Epsilon objects
+    '''
+    Represents the "next largest" version of a given value,
+    so that for all valid comparisons we have
+    x < y < Epsilon(y) < z whenever x < y < z and x, z are
+    not Epsilon objects.
+
+    Parameters
+    ----------
+    val : object
+        Original value
+    '''
 
     def __init__(self, val):
         self.val = val
@@ -81,6 +86,18 @@ class Epsilon(object):
         return repr(self.val) + " + epsilon"
 
 class Node(object):
+    '''
+    An element in a binary search tree, containing
+    a key, data, and references to children nodes and
+    a parent node.
+
+    Parameters
+    ----------
+    key : tuple
+        Node key
+    data : list or int
+        Node data
+    '''
     __lt__ = lambda x, y: x.key < y.key
     __le__ = lambda x, y: x.key <= y.key
     __eq__ = lambda x, y: x.key == y.key
@@ -97,6 +114,9 @@ class Node(object):
         self.parent = None
 
     def replace(self, child, new_child):
+        '''
+        Replace this node's child with a new child.
+        '''
         if self.left is not None and self.left == child:
             self.set_left(new_child)
         elif self.right is not None and self.right == child:
@@ -105,18 +125,30 @@ class Node(object):
             raise ValueError("Cannot call replace() on non-child")
 
     def remove(self, child):
+        '''
+        Remove the given child.
+        '''
         self.replace(child, None)
 
     def set(self, other):
+        '''
+        Copy the given node.
+        '''
         self.key = other.key
         self.data = other.data[:]
 
     def set_left(self, node):
+        '''
+        Set the left child to the given node.
+        '''
         self.left = node
         if node is not None:
             node.parent = self
 
     def set_right(self, node):
+        '''
+        Set the right child to the given node.
+        '''
         self.right = node
         if node is not None:
             node.parent = self
@@ -127,11 +159,22 @@ class Node(object):
     def __repr__(self):
         return str(self)
 
+
 class BST(object):
+    '''
+    A basic binary search tree in pure Python, used
+    as an engine for indexing.
+
+    Parameters
+    ----------
+    lines : `Table`
+        Sorted columns of the original table as well as
+        a final column consisting of the rows given by argsort()
+    '''
     NodeClass = Node
     UNIQUE = False
 
-    def __init__(self, lines={}):
+    def __init__(self, lines=[]):
         self.root = None
         self.size = 0
         for row in lines:
@@ -140,6 +183,9 @@ class BST(object):
             self.add(key, data)
 
     def add(self, key, data=None):
+        '''
+        Add a key, data pair.
+        '''
         if data is None:
             data = key
 
@@ -148,7 +194,6 @@ class BST(object):
         curr_node = self.root
         if curr_node is None:
             self.root = node
-            node.color = BLACK
             return
         while True:
             if node < curr_node:
@@ -169,23 +214,42 @@ class BST(object):
                 return
         self.balance(node)
 
-    def balance(self, node):
-        pass
-
     def find(self, key):
+        '''
+        Return all data values corresponding to a given key.
+
+        Parameters
+        ----------
+        key : tuple
+            Input key
+
+        Returns
+        -------
+        data_vals : list
+            List of rows corresponding to the input key
+        '''
         node = self.find_node(key)
         return node.data if node is not None else []
 
     def find_node(self, key):
+        '''
+        Find the node associated with the given key.
+        '''
         if self.root is None:
             return None
         return self._find_recursive(key, self.root)
 
     def shift_left(self, row):
+        '''
+        Decrement all rows larger than the given row.
+        '''
         for node in self.traverse():
             node.data = [x - 1 if x > row else x for x in node.data]
 
     def shift_right(self, row):
+        '''
+        Increment all rows greater than or equal to the given row.
+        '''
         for node in self.traverse():
             node.data = [x + 1 if x >= row else x for x in node.data]
 
@@ -205,6 +269,18 @@ class BST(object):
             return None
 
     def traverse(self, order='inorder'):
+        '''
+        Return nodes of the BST in the given order.
+
+        Parameters
+        ----------
+        order : str
+            The order in which to recursively search the BST.
+            Possible values are:
+            "preorder": current node, left subtree, right subtree
+            "inorder": left subtree, current node, right subtree
+            "postorder": left subtree, right subtree, current node
+        '''
         if order == 'preorder':
             return self._preorder(self.root, [])
         elif order == 'inorder':
@@ -214,9 +290,15 @@ class BST(object):
         raise ValueError("Invalid traversal method: \"{0}\"".format(order))
 
     def items(self):
+        '''
+        Return BST items in order as (key, data) pairs.
+        '''
         return [(x.key, x.data) for x in self.traverse()]
 
     def sort(self):
+        '''
+        Return BST rows sorted by key values.
+        '''
         return [x for node in self.traverse() for x in node.data]
 
     def _preorder(self, node, lst):
@@ -250,9 +332,22 @@ class BST(object):
             node.parent.replace(node, new_node)
 
     def remove(self, key, data=None):
-        # returns True if successfully removed, False otherwise
-        # if data is not None, remove the entire node if only this data
-        # is present, otherwise just pop off data from the node
+        '''
+        Remove data corresponding to the given key.
+
+        Parameters
+        ----------
+        key : tuple
+            The key to remove
+        data : int or None
+            If None, remove the node corresponding to the given key.
+            If not None, remove only the given data value from the node.
+
+        Returns
+        -------
+        successful : bool
+            True if removal was successful, false otherwise
+        '''
         node = self.find_node(key)
         if node is None:
             return False
@@ -279,6 +374,9 @@ class BST(object):
         return True
 
     def is_valid(self):
+        '''
+        Returns whether this is a valid BST.
+        '''
         return self._is_valid(self.root)
 
     def _is_valid(self, node):
@@ -289,12 +387,28 @@ class BST(object):
             self._is_valid(node.left) and self._is_valid(node.right)
 
     def range(self, lower, upper, bounds=(True, True)):
-        # return all nodes with keys in range [lower, upper] by default
-        # changing bounds to (False, False) makes the range exclusive
+        '''
+        Return all nodes with keys in the given range.
+
+        Parameters
+        ----------
+        lower : tuple
+            Lower bound
+        upper : tuple
+            Upper bound
+        bounds : tuple (x, y) of bools
+            Indicates whether the search should be inclusive or
+            exclusive with respect to the endpoints. The first
+            argument x corresponds to an inclusive lower bound,
+            and the second argument y to an inclusive upper bound.
+        '''
         nodes = self.range_nodes(lower, upper, bounds)
         return [x for node in nodes for x in node.data]
 
     def range_nodes(self, lower, upper, bounds=(True, True)):
+        '''
+        Return nodes in the given range.
+        '''
         if self.root is None:
             return []
         # ops are <= or <
@@ -302,8 +416,10 @@ class BST(object):
         return self._range(lower, upper, ops, self.root, [])
 
     def same_prefix(self, val):
-        # assuming val has smaller length than keys, return
-        # nodes whose keys have val as a prefix
+        '''
+        Assuming the given value has smaller length than keys, return
+        nodes whose keys have this value as a prefix.
+        '''
         if self.root is None:
             return []
         nodes = self._same_prefix(val, self.root, [])
@@ -329,10 +445,6 @@ class BST(object):
             self._same_prefix(val, node.left, lst)
         return lst
 
-    def nodes(self):
-        # for debugging
-        return [(x.key, x.data) for x in self.traverse('inorder')]
-
     def __str__(self):
         if self.root is None:
             return 'Empty'
@@ -350,6 +462,9 @@ class BST(object):
         return line
 
     def height(self):
+        '''
+        Return the BST height.
+        '''
         return self._height(self.root)
 
     def _height(self, node):
@@ -359,37 +474,31 @@ class BST(object):
                    self._height(node.right)) + 1
 
     def replace_rows(self, row_map):
+        '''
+        Replace all rows with the values they map to in the
+        given dictionary. Any rows not present as keys in
+        the dictionary will have their nodes deleted.
+
+        Parameters
+        ----------
+        row_map : dict
+            Mapping of row numbers to new row numbers
+        '''
         for key, data in self.nodes():
             data[:] = [row_map[x] for x in data if x in row_map]
 
-    def rotate_left(self, node):
-        parent = node.parent
-        subtree = node.right.left
-        new_node = node.right
-        node.set_right(subtree)
-        new_node.set_left(node)
-
-        if parent is not None:
-            parent.replace(node, new_node)
-        else:
-            self.root = new_node
-            new_node.parent = None
-
-    def rotate_right(self, node):
-        parent = node.parent
-        subtree = node.left.right
-        new_node = node.left
-        node.set_left(subtree)
-        new_node.set_right(node)
-
-        if parent is not None:
-            parent.replace(node, new_node)
-        else:
-            self.root = new_node
-            new_node.parent = None
-
 
 class FastBase(object):
+    '''
+    A fast binary search tree implementation for indexing,
+    using the bintrees library.
+
+    Parameters
+    ----------
+    lines : `Table`
+        Sorted columns of the original table as well as
+        a final column consisting of the rows given by argsort()
+    '''
     def __init__(self, lines):
         if len(lines) == 0:
             self.data = self.engine()
@@ -402,13 +511,23 @@ class FastBase(object):
         self.data = self.engine(zip(zip(*key_cols.columns.values()), row_col))
 
     def add(self, key, val):
+        '''
+        Add a key, value pair.
+        '''
         self.data[key + (self.next_ID,)] = val
         self.next_ID += 1
 
     def find(self, key):
-        return sorted(self.data.value_slice(key + (MinValue(),), key + (MaxValue(),)))
+        '''
+        Find rows corresponding to the given key.
+        '''
+        return sorted(self.data.value_slice(key + (MinValue(),),
+                                            key + (MaxValue(),)))
 
     def remove(self, key, data=None):
+        '''
+        Remove data from the given key.
+        '''
         lower = key + (MinValue(),)
         upper = key + (MaxValue(),)
         if data is None:
@@ -426,16 +545,25 @@ class FastBase(object):
         return True
 
     def shift_left(self, row):
+        '''
+        Decrement rows larger than the given row.
+        '''
         for key, val in self.data.items():
             if val > row:
                 self.data[key] = val - 1
 
     def shift_right(self, row):
+        '''
+        Increment rows greater than or equal to the given row.
+        '''
         for key, val in self.data.items():
             if val >= row:
                 self.data[key] = val + 1
 
     def traverse(self):
+        '''
+        Return all nodes in this BST.
+        '''
         l = []
         for key, data in self.data.items():
             n = Node(key, key)
@@ -444,6 +572,9 @@ class FastBase(object):
         return l
 
     def items(self):
+        '''
+        Return a list of key, data tuples.
+        '''
         equiv_dict = {}
         keys = []
         for x, y in self.data.items():
@@ -453,6 +584,9 @@ class FastBase(object):
         return [(k, equiv_dict[k]) for k in keys]
 
     def sort(self):
+        '''
+        Return a list of rows in order sorted by key.
+        '''
         keys = [] # find unique keys
         l = []
         for key in self.data:
@@ -463,6 +597,9 @@ class FastBase(object):
         return [x for sublist in l for x in sublist]
 
     def range(self, lower, upper, bounds=(True, True)):
+        '''
+        Return row values in the given range.
+        '''
         # we need Epsilon since bintrees searches for
         # lower <= key < upper, while we might want lower <= key <= upper
         # or similar
@@ -475,6 +612,9 @@ class FastBase(object):
         return [v for v in self.data.value_slice(lower, upper)]
 
     def replace_rows(self, row_map):
+        '''
+        Replace rows with the values in row_map.
+        '''
         to_remove = [] # list of keys to delete
         for key, row in self.data.items():
             if row in row_map:
