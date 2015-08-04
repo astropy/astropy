@@ -6,7 +6,8 @@ import functools
 import inspect
 import pickle
 
-from ..decorators import deprecated_attribute, deprecated, wraps, sharedmethod
+from ..decorators import (deprecated_attribute, deprecated, wraps,
+                          sharedmethod, classproperty)
 from ..exceptions import AstropyDeprecationWarning
 from ...extern import six
 from ...tests.helper import pytest, catch_warnings
@@ -334,3 +335,30 @@ def test_sharedmethod_reuse_on_subclasses():
         x = 5
 
     assert B.foo() == 5
+
+
+def test_classproperty_docstring():
+    """
+    Tests that the docstring is set correctly on classproperties.
+
+    This failed previously due to a bug in Python that didn't always
+    set __doc__ properly on instances of property subclasses.
+    """
+
+    class A(object):
+        # Inherits docstring from getter
+        @classproperty
+        def foo(cls):
+            """The foo."""
+
+            return 1
+
+    assert A.__dict__['foo'].__doc__ == "The foo."
+
+    class B(object):
+        # Use doc passed to classproperty constructor
+        def _get_foo(cls): return 1
+
+        foo = classproperty(_get_foo, doc="The foo.")
+
+    assert B.__dict__['foo'].__doc__ == "The foo."
