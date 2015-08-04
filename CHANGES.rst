@@ -555,6 +555,13 @@ Bug Fixes
   - Fixed confusing warning message shown when using dates outside current
     IERS data. [#3844]
 
+  - ``get_sun`` now yields a scalar when the input time is a scalar (this
+    was a regression in v1.0.3 from v1.0.2) [#3998]
+
+  - Fixed bug where some scalar coordinates were incorrectly being changed
+    to length-1 array coordinates after transforming through certain frames.
+    [#3920]
+
 - ``astropy.cosmology``
 
   - Fixed wCDM to not ignore the Ob0 parameter on initialization. [#3934]
@@ -642,7 +649,7 @@ Bug Fixes
   - Fixed multiple instances of a bug that prevented Astropy from being used
     when compiled with the ``python -OO`` flag, due to it causing all
     docstrings to be stripped out. [#3923]
-    
+
   - Removed source code template files that were being installed
     accidentally alongside installed Python modules. [#4014]
 

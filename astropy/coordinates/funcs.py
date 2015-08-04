@@ -162,7 +162,10 @@ def get_sun(time):
     y = -dsun*properdir[..., 1] * u.AU
     z = -dsun*properdir[..., 2] * u.AU
 
-    cartrep = CartesianRepresentation(x=x, y=y, z=z)
+    if time.isscalar:
+        cartrep = CartesianRepresentation(x=x[0], y=y[0], z=z[0])
+    else:
+        cartrep = CartesianRepresentation(x=x, y=y, z=z)
     return SkyCoord(cartrep, frame=GCRS(obstime=time))
 
 
