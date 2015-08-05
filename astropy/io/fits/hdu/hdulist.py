@@ -21,7 +21,7 @@ from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
-from ....utils.data import check_free_space_in_dir, get_free_space_in_dir
+from ....utils.data import get_free_space_in_dir
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
