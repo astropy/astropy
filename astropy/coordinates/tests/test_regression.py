@@ -10,7 +10,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from ... import units as u
-from .. import AltAz, EarthLocation, SkyCoord, get_sun
+from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS
 from ...time import Time
 
 from ...tests.helper import assert_quantity_allclose
@@ -31,6 +31,12 @@ def test_regression_3920():
     sc2 = SkyCoord(10*u.deg, 3*u.deg, 1*u.AU)
     assert sc2.transform_to(aa).shape == tuple()
     # in 3920 that assert fails, because the shape is (1,)
+
+    # check that the same behavior occurs even if transform is from low-level classes
+    icoo = ICRS(sc.data)
+    icoo2 = ICRS(sc2.data)
+    assert icoo.transform_to(aa).shape == tuple()
+    assert icoo2.transform_to(aa).shape == tuple()
 
 
 def test_regression_3938():
