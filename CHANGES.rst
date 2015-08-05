@@ -176,6 +176,11 @@ Bug Fixes
   - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
     ``divmod``, such that it only works where the quotient is dimensionless.
     This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817]
+  - Fixed the documentation of supported units to correctly report support for
+    SI prefixes.  Previously the table of supported units incorrectly showed
+    several derived unit as not supporting prefixes, when in fact they do.
+    [#3835]
+
   - Fix a crash when calling ``astropy.units.cds.enable()``.  This
     will now "set" rather than "add" units to the active set to avoid
     the namespace clash with the default units. [#3873]
