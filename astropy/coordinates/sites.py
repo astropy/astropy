@@ -17,6 +17,7 @@ import json
 from difflib import get_close_matches
 
 from ..utils.data import get_pkg_data_contents
+from ..extern import six
 from .earth import EarthLocation
 
 __all__ = ['get_site', 'get_site_names', 'add_site', 'remove_site']
@@ -45,7 +46,7 @@ def get_site(site_name):
     """
     Return an `~astropy.coordinates.EarthLocation` object for known observatory.
 
-    Use `~astroplan.core.get_site_names` to see a list of available
+    Use `~astropy.coordinates.get_site_names` to see a list of available
     observatories.
 
     Parameters
@@ -139,7 +140,7 @@ def add_site(site_names, location):
     if not isinstance(location, EarthLocation):
         raise ValueError('Location must be an EarthLocation.')
 
-    if isinstance(site_names, basestring):
+    if isinstance(site_names, six.string_types):
         site_names = [site_names]
 
     firstnamedone = False
@@ -182,7 +183,7 @@ def remove_site(site_name, remove_aliases=False):
         remloc = _site_db.pop(lname)
         if remove_aliases:
             namestorem = []
-            for name, loc in _site_db.items():
+            for name, loc in six.iteritems(_site_db):
                 if remloc is loc:
                     namestorem.append(name)
             for nm in namestorem:
