@@ -19,7 +19,7 @@ from difflib import get_close_matches
 from ..utils.data import get_pkg_data_contents
 from .earth import EarthLocation
 
-__all__ = ['get_site', 'get_site_names', 'add_site']
+__all__ = ['get_site', 'get_site_names', 'add_site', 'remove_site']
 
 # Observatory database and list of names:
 _site_db = None
@@ -62,6 +62,7 @@ def get_site(site_name):
     --------
     get_site_names : the list of sites that this function can access
     add_site : adds a new site to the list
+    remove_site : remove a site by name from the list of sites
     """
     if _site_db is None:
         _load_sites()
@@ -101,6 +102,7 @@ def get_site_names(full_list=True):
     get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
                sites this returns.
     get_site_names : the list of sites names that this function can access
+    remove_site : remove a site by name from the list of sites
 
     """
     if _site_db is None:
@@ -111,15 +113,15 @@ def get_site_names(full_list=True):
     else:
         return sorted(_site_names)
 
-def add_site(site_name, location):
+def add_site(site_names, location):
     """
     Add a site to the list of available observatories.
 
     Parameters
     ----------
-    site_name : string
-        Name of the observatory
-
+    site_names : string or list of strings
+        Name of the observatory.  If a list, all names will be aliases for the
+        same ``location``, and the first will be taken as the canonical name.
     location : `~astropy.coordinates.EarthLocation`
         Location of the observatory
 
@@ -128,6 +130,7 @@ def add_site(site_name, location):
     get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
                sites this returns.
     get_site_names : the list of site names that this function will add to
+    remove_site : remove a site by name from the list of sites
 
     """
     if _site_db is None:
@@ -136,10 +139,64 @@ def add_site(site_name, location):
     if not isinstance(location, EarthLocation):
         raise ValueError('Location must be an EarthLocation.')
 
-    if site_name.lower() not in _site_db.keys():
-        _site_db[site_name.lower()] = location
-        _site_names.append(site_name)
+    if isinstance(site_names, basestring):
+        site_names = [site_names]
+
+    firstnamedone = False
+    for name in site_names:
+        if name.lower() not in _site_db.keys():
+            _site_db[name.lower()] = location
+            if not firstnamedone:
+                _site_names.append(name)
+                firstnamedone = True
+        else:
+            raise KeyError('The site "{}" already exists at (longitude,latitude,'
+                           'elevation)={}'.format(name,
+                                         _site_db[name.lower()].to_geodetic()))
+
+def remove_site(site_name, remove_aliases=False):
+    """
+    Removes a site from the list of available observatories.
+
+    Parameters
+    ----------
+    site_name : string
+        Name of the observatory to remove
+    remove_aliases : bool
+        Also remove any aliases for the corresponding location
+
+    Raises
+    ------
+    KeyError
+        If the name is not in the database
+
+    See Also
+    --------
+    get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
+               sites this returns.
+    get_site_names : the list of site names that this function will add to
+    add_site : adds a new site to the list
+    """
+    lname = site_name.lower()
+    if lname in _site_db:
+        remloc = _site_db.pop(lname)
+        if remove_aliases:
+            namestorem = []
+            for name, loc in _site_db.items():
+                if remloc is loc:
+                    namestorem.append(name)
+            for nm in namestorem:
+                del _site_db[nm]
+        else:
+            namestorem = [lname]
+
+        #now go through and make sure none of them are in _site_names
+        for nm in namestorem:
+            lnm = nm.lower()
+            if lnm in _site_names:
+                _site_names.remove(lnm)
     else:
-        raise KeyError('The site "{}" already exists at (longitude,latitude,'
-                       'elevation)={}'.format(site_name,
-                                     _site_db[site_name.lower()].to_geodetic()))
+        msg = 'Site name "{0}" not in the database of sites'
+        raise KeyError(msg.format(lname))
+
+
