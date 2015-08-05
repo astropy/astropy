@@ -149,17 +149,6 @@ class PolynomialBase(FittableModel):
     default_coefficient = 0.0
     """Default value given to all coefficients."""
 
-    n_degrees = 1
-    """
-    Specifies the number of 'degrees' of the polynomial.  Typically this is
-    just 1, as in an N-degree polynomial.  Alternatively, this may equal
-    cls.n_inputs, in which case the index/exponent on each variable may range
-    from 0 to N, 0 to M, and so on (where N, M, etc. are the degrees in each
-    variable).
-
-    See for example `OrthoPolynomialBase`.
-    """
-
     _degrees = None
     """
     This internal attribute is set by
@@ -249,22 +238,14 @@ class PolynomialBase(FittableModel):
     def _get_degree_attrs(cls):
         """
         Returns the names of class attributes representing the degree of the
-        polynomial (or per-variable degrees).
+        polynomial (or per-variable degrees).  In principle these can be any
+        attributes that define a polynomial of the given type (i.e. results in
+        a new subclass being created when the polynomial is instantiated).
 
         Also returns docstrings for those attributes as ``(name, doc)`` tuples.
         """
 
-        if cls.n_degrees == 1:
-            degree_attrs = ('degree',)
-            degree_docs = ("Degree of the polynomial.",)
-        else:
-            degree_attrs = tuple('{0}_degree'.format(input_)
-                                 for input_ in cls.inputs)
-            doc_templ = "Maximum degree in the '{0}' variable."
-            degree_docs = tuple(doc_templ.format(input_)
-                                for input_ in cls.inputs)
-
-        return zip(degree_attrs, degree_docs)
+        return [('degree', "Degree of the polynomial.")]
 
     @classmethod
     def _term_powers(cls, *degrees):
@@ -278,23 +259,7 @@ class PolynomialBase(FittableModel):
         used to index terms in a generalized polynomial.
         """
 
-        if len(degrees) == 1:
-            # Note: This could just as well be done with itertools.product,
-            # however that doesn't return the coefficients in the same order as
-            # the original implementation, so this implementation is used to
-            # not break backward-compatibility unnecessarily.
-
-            return polynomial_exponents(cls.n_inputs, degrees[0])
-        else:
-            # The original implementation increments the x degree fastest,
-            # while itertools.product increments the y degree fastest,
-            # hence the reverses
-            def exponents():
-                ranges = (range(d + 1) for d in degrees[::-1])
-                for ind in itertools.product(*ranges):
-                    yield ind[::-1]
-
-            return exponents()
+        return polynomial_exponents(cls.n_inputs, degrees[0])
 
     @classmethod
     def _coefficient_name(cls, *powers):
@@ -743,8 +708,6 @@ class OrthoPolynomialBase(Polynomial2D):
         {keyword: value} pairs, representing {parameter_name: value}
     """
 
-    n_degrees = 2
-
     def __init__(self, x_degree, y_degree, x_domain=None, x_window=None,
                  y_domain=None, y_window=None, n_models=None,
                  model_set_axis=None, name=None, meta=None, **params):
@@ -757,9 +720,28 @@ class OrthoPolynomialBase(Polynomial2D):
         return self._format_repr([self.x_degree, self.y_degree])
 
     def __str__(self):
-        return self._format_str(
-            [('X-Degree', self.x_degree),
-             ('Y-Degree', self.y_degree)])
+        return self._format_str(*(('{0}-degree'.format(var.upper()),
+                                  getattr(self, '{0}_degree'.format(var)))
+                                  for var in self.inputs))
+
+    @classmethod
+    def _get_degree_attrs(cls):
+        degree_attrs = tuple('{0}_degree'.format(input_)
+                             for input_ in cls.inputs)
+        doc_templ = "Maximum degree in the '{0}' variable."
+        degree_docs = tuple(doc_templ.format(input_)
+                            for input_ in cls.inputs)
+
+        return zip(degree_attrs, degree_docs)
+
+    @classmethod
+    def _term_powers(cls, *degrees):
+        # The original implementation increments the x degree fastest,
+        # while itertools.product increments the y degree fastest,
+        # hence the reverses
+        ranges = (range(d + 1) for d in degrees[::-1])
+        for ind in itertools.product(*ranges):
+            yield ind[::-1]
 
     def _invlex(self):
         # TODO: This is a very slow way to do this; fix it and related methods
