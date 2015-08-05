@@ -9,6 +9,8 @@ place to live
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import numpy as np
+
 from ... import units as u
 from .. import AltAz, EarthLocation, SkyCoord, get_sun, ICRS
 from ...time import Time
@@ -98,8 +100,12 @@ def test_regression_4033():
     de_wdistaa = de_wdist.transform_to(aa)
 
     # these work fine
-    assert_quantity_allclose(deaa.separation(albaa), 22.2862*u.deg, rtol=1e-6)
-    assert_quantity_allclose(deaa.separation(alb_wdistaa), 22.2862*u.deg, rtol=1e-6)
+    sepnod = deaa.separation(albaa)
+    sepwd = deaa.separation(alb_wdistaa)
+    assert_quantity_allclose(sepnod, 22.2862*u.deg, rtol=1e-6)
+    assert_quantity_allclose(sepwd, 22.2862*u.deg, rtol=1e-6)
+    # parallax should be present when distance added
+    assert np.abs(sepnod - sepwd) > 1*u.marcsec
 
     # in 4033, the following fail with a recursion error
     assert_quantity_allclose(de_wdistaa.separation(alb_wdistaa), 22.2862*u.deg, rtol=1e-3)
