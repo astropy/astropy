@@ -567,6 +567,10 @@ Bug Fixes
     to length-1 array coordinates after transforming through certain frames.
     [#3920]
 
+  - Made it so that passing in a list of ``SkyCoord`` objects that are in
+    UnitSphericalRepresentation to the ``SkyCoord`` constructor appropriately
+    yields a new object in UnitSphericalRepresentation [#3938]
+
 - ``astropy.cosmology``
 
   - Fixed wCDM to not ignore the Ob0 parameter on initialization. [#3934]
