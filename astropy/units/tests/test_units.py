@@ -700,3 +700,28 @@ def test_enable_unit_groupings():
     from ...units import imperial
     with imperial.enable():
         assert imperial.inch in u.m.find_equivalent_units()
+
+
+def test_unit_summary_prefixes():
+    """
+    Test for a few units that the unit summary table correctly reports
+    whether or not that unit supports prefixes.
+
+    Regression test for https://github.com/astropy/astropy/issues/3835
+    """
+
+    from .. import astrophys
+
+    for summary in utils._iter_unit_summary(astrophys.__dict__):
+        unit, _, _, _, prefixes = summary
+
+        if unit.name == 'lyr':
+            assert prefixes
+        elif unit.name == 'pc':
+            assert prefixes
+        elif unit.name == 'barn':
+            assert prefixes
+        elif unit.name == 'cycle':
+            assert not prefixes
+        elif unit.name == 'vox':
+            assert prefixes
