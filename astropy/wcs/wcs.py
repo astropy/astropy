@@ -378,18 +378,18 @@ class WCS(WCSBase):
                     fobj = fits.open(header)
                     close_fds.append(fobj)
                     header = fobj[0].header
-                    header_string = header.tostring()
+                    header_string = header.tostring().rstrip()
                 else:
                     header_string = header
             elif isinstance(header, fits.Header):
-                header_string = header.tostring()
+                header_string = header.tostring().rstrip()
             else:
                 try:
                     # Accept any dict-like object
                     new_header = fits.Header()
                     for dict_key in header.keys():
                         new_header[dict_key] = header[dict_key]
-                    header_string = new_header.tostring()
+                    header_string = new_header.tostring().rstrip()
                 except TypeError:
                     raise TypeError(
                         "header must be a string, an astropy.io.fits.Header "
@@ -406,12 +406,26 @@ class WCS(WCSBase):
 
             header = fits.Header.fromstring(header_string)
 
-            if naxis is None:
-                self.naxis = header.get('NAXIS', 2)
+            try:
+                tmp_wcsprm = _wcs.Wcsprm(header=header_bytes, key=key,
+                                         relax=relax, keysel=keysel_flags,
+                                         colsel=colsel, warnings=False)
+            except _wcs.NoWcsKeywordsFoundError:
+                est_naxis = 0
             else:
-                self.naxis = naxis
-            if self.naxis == 0:
-                self.naxis = 2
+                if naxis is not None:
+                    try:
+                        tmp_wcsprm.sub(naxis)
+                    except ValueError:
+                        pass
+                    est_naxis = tmp_wcsprm.naxis
+                else:
+                    est_naxis = 2
+
+            if est_naxis == 0:
+                est_naxis = 2
+            self.naxis = est_naxis
+
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)

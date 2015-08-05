@@ -340,6 +340,15 @@ def test_warning_about_defunct_keywords():
     for item in w:
         assert 'PCi_ja' in str(item.message)
 
+    # Make sure the warnings come out every time...
+
+    with catch_warnings(wcs.FITSFixedWarning) as w:
+        run()
+
+    assert len(w) == 4
+    for item in w:
+        assert 'PCi_ja' in str(item.message)
+
 
 @raises(wcs.FITSFixedWarning)
 def test_warning_about_defunct_keywords_exception():
@@ -819,9 +828,31 @@ def test_hst_wcs():
     w.cpdis1.crval = w.cpdis1.crval
     w.cpdis1.data = w.cpdis1.data
 
-    print(w.sip.crpix, w.sip.ap_order, w.sip.bp_order)
     assert w.sip.a_order == 4
     assert w.sip.b_order == 4
     assert w.sip.ap_order == 0
     assert w.sip.bp_order == 0
     assert_array_equal(w.sip.crpix, [2048., 1024.])
+    wcs.WCS(hdulist[1].header, hdulist)
+
+
+def test_list_naxis():
+    path = get_pkg_data_filename("data/dist_lookup.fits.gz")
+
+    hdulist = fits.open(path)
+    # wcslib will complain about the distortion parameters if they
+    # weren't correctly deleted from the header
+    w = wcs.WCS(hdulist[1].header, hdulist, naxis=['celestial'])
+    assert w.naxis == 2
+    assert w.wcs.naxis == 2
+
+    path = get_pkg_data_filename("maps/1904-66_SIN.hdr")
+    with open(path, 'rb') as fd:
+        content = fd.read()
+    w = wcs.WCS(content, naxis=['celestial'])
+    assert w.naxis == 2
+    assert w.wcs.naxis == 2
+
+    w = wcs.WCS(content, naxis=['spectral'])
+    assert w.naxis == 0
+    assert w.wcs.naxis == 0
