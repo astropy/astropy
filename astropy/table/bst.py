@@ -212,7 +212,6 @@ class BST(object):
                 curr_node.data.extend(node.data)
                 curr_node.data = sorted(curr_node.data)
                 return
-        self.balance(node)
 
     def find(self, key):
         '''
@@ -484,7 +483,7 @@ class BST(object):
         row_map : dict
             Mapping of row numbers to new row numbers
         '''
-        for key, data in self.nodes():
+        for key, data in self.items():
             data[:] = [row_map[x] for x in data if x in row_map]
 
 
@@ -500,65 +499,55 @@ class FastBase(object):
         a final column consisting of the rows given by argsort()
     '''
     def __init__(self, lines):
-        if len(lines) == 0:
-            self.data = self.engine()
-            return
-        num_cols = len(lines.columns)
-        key_cols = lines[['col{0}'.format(i) for i in range(num_cols - 1)]]
-        row_col = lines['col{0}'.format(num_cols - 1)]
-        self.next_ID = len(lines)
-        key_cols['id'] = np.arange(self.next_ID)
-        self.data = self.engine(zip(zip(*key_cols.columns.values()), row_col))
+        self.data = self.engine()
+        for row in np.array(lines):
+            row = tuple(row)
+            self.add(row[:-1], row[-1])
 
     def add(self, key, val):
         '''
         Add a key, value pair.
         '''
-        self.data[key + (self.next_ID,)] = val
-        self.next_ID += 1
+        rows = self.data.set_default(key, [])
+        rows.insert(np.searchsorted(rows, val), val)
 
     def find(self, key):
         '''
         Find rows corresponding to the given key.
         '''
-        return sorted(self.data.value_slice(key + (MinValue(),),
-                                            key + (MaxValue(),)))
+        return self.data.get(key, [])
 
     def remove(self, key, data=None):
         '''
         Remove data from the given key.
         '''
-        lower = key + (MinValue(),)
-        upper = key + (MaxValue(),)
+        node = self.data.get(key, None)
+        if node is None or len(node) == 0:
+            return False
         if data is None:
-            data_slice = self.data[lower:upper]
-            if len(data_slice) == 0:
+            self.data.pop(key)
+            return True
+        if data not in node:
+            if len(node) == 0:
                 return False
-            del self.data[lower:upper]
-        else:
-            for k, v in self.data.item_slice(lower, upper):
-                if v == data:
-                    del self.data[k]
-                    break
-            else:
-                raise ValueError("Data does not belong to correct node")
+            raise ValueError("Data does not belong to correct node")
+        node.remove(data)
         return True
+
 
     def shift_left(self, row):
         '''
         Decrement rows larger than the given row.
         '''
-        for key, val in self.data.items():
-            if val > row:
-                self.data[key] = val - 1
+        for key, node in self.data.items():
+            self.data[key] = [x - 1 if x > row else x for x in node]
 
     def shift_right(self, row):
         '''
         Increment rows greater than or equal to the given row.
         '''
-        for key, val in self.data.items():
-            if val >= row:
-                self.data[key] = val + 1
+        for key, node in self.data.items():
+            self.data[key] = [x + 1 if x >= row else x for x in node]
 
     def traverse(self):
         '''
@@ -575,26 +564,13 @@ class FastBase(object):
         '''
         Return a list of key, data tuples.
         '''
-        equiv_dict = {}
-        keys = []
-        for x, y in self.data.items():
-            equiv_dict.setdefault(x[:-1], []).append(y)
-            if len(keys) == 0 or keys[-1] != x[:-1]:
-                keys.append(x[:-1])
-        return [(k, equiv_dict[k]) for k in keys]
+        return [x for x in self.data.items() if len(x[1]) > 0]
 
     def sort(self):
         '''
         Return a list of rows in order sorted by key.
         '''
-        keys = [] # find unique keys
-        l = []
-        for key in self.data:
-            if key[:-1] not in keys: # eliminate duplicates
-                keys.append(key[:-1])
-
-        l = [self.find(x) for x in keys]
-        return [x for sublist in l for x in sublist]
+        return [x for node in self.data.values() for x in node]
 
     def range(self, lower, upper, bounds=(True, True)):
         '''
@@ -603,26 +579,19 @@ class FastBase(object):
         # we need Epsilon since bintrees searches for
         # lower <= key < upper, while we might want lower <= key <= upper
         # or similar
-        lower += (MinValue(),)
-        upper += (MaxValue(),)
         if not bounds[0]: # lower < key
             lower = Epsilon(lower)
         if bounds[1]: # key <= upper
             upper = Epsilon(upper)
-        return [v for v in self.data.value_slice(lower, upper)]
+        l = [v for v in self.data.value_slice(lower, upper)]
+        return [x for sublist in l for x in sublist]
 
     def replace_rows(self, row_map):
         '''
         Replace rows with the values in row_map.
         '''
-        to_remove = [] # list of keys to delete
-        for key, row in self.data.items():
-            if row in row_map:
-                self.data[key] = row_map[row]
-            else: # not in slice
-                to_remove.append(key)
-        for k in to_remove:
-            del self.data[k]
+        for data in self.data.values():
+            data[:] = [row_map[x] for x in data if x in row_map]
 
     def __str__(self):
         return str(self.data)
