@@ -567,6 +567,9 @@ Bug Fixes
     to length-1 array coordinates after transforming through certain frames.
     [#3920]
 
+  - Fixed bug causing the ``separation`` methods of ``SkyCoord`` and frame
+    classes to fail due to infinite recursion [#4033]
+
   - Made it so that passing in a list of ``SkyCoord`` objects that are in
     UnitSphericalRepresentation to the ``SkyCoord`` constructor appropriately
     yields a new object in UnitSphericalRepresentation [#3938]
