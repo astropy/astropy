@@ -50,9 +50,11 @@ then
 fi
 
 # COVERAGE DEPENDENCIES
+# cpp-coveralls must be installed first.  It installs two identical
+# scripts: 'cpp-coveralls' and 'coveralls'.  The latter will overwrite
+# the script installed by 'coveralls', unless it's installed first.
 if [[ $SETUP_CMD == 'test --coverage' ]]
 then
-  pip install coverage coveralls
+  pip install cpp-coveralls;
+  pip install coverage coveralls;
 fi
-
-
