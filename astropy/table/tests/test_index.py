@@ -1,3 +1,4 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 import pytest
 import numpy as np
 from .test_table import SetupData
@@ -12,7 +13,7 @@ from ...time import Time
 from ..column import BaseColumn
 
 @pytest.fixture(params=[BST, FastRBT, SortedArray])
-def impl(request):
+def engine(request):
     return request.param
 
 _col = [1, 2, 3, 4, 5]
@@ -55,10 +56,10 @@ class TestIndex(SetupData):
         return self._t
 
     @pytest.mark.parametrize("composite", [False, True])
-    def test_table_index(self, main_col, table_types, composite, impl):
+    def test_table_index(self, main_col, table_types, composite, engine):
         self._setup(main_col, table_types)
         t = self.t
-        t.add_index(('a', 'b') if composite else 'a', impl=impl)
+        t.add_index(('a', 'b') if composite else 'a', engine=engine)
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
         if not self.mutable:
@@ -92,10 +93,10 @@ class TestIndex(SetupData):
         t.remove_indices('a')
         assert len(t.indices) == 0
 
-    def test_table_slicing(self, main_col, table_types, impl):
+    def test_table_slicing(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
         t = self.t
-        t.add_index('a', impl=impl)
+        t.add_index('a', engine=engine)
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
         for slice_ in ([0, 2], np.array([0, 2])):
@@ -109,12 +110,12 @@ class TestIndex(SetupData):
             # however, this index should be a deep copy of t1's index
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
-    def test_remove_rows(self, main_col, table_types, impl):
+    def test_remove_rows(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
         if not self.mutable:
             return
         t = self.t
-        t.add_index('a', impl=impl)
+        t.add_index('a', engine=engine)
         
         # remove individual row
         t2 = t.copy()
@@ -132,10 +133,10 @@ class TestIndex(SetupData):
         with pytest.raises(ValueError):
             t.remove_rows((0, 2, 4))
 
-    def test_col_get_slice(self, main_col, table_types, impl):
+    def test_col_get_slice(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
         t = self.t
-        t.add_index('a', impl=impl)
+        t.add_index('a', engine=engine)
 
         # get slice
         t2 = t[1:3] # table slice
@@ -169,12 +170,12 @@ class TestIndex(SetupData):
             assert_col_equal(t2['a'], [1, 3, 5])
             assert np.all(t2.indices[0].sorted_data() == [0, 1, 2])
 
-    def test_col_set_slice(self, main_col, table_types, impl):
+    def test_col_set_slice(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
         if not self.mutable:
             return
         t = self.t
-        t.add_index('a', impl=impl)
+        t.add_index('a', engine=engine)
 
         # set slice
         t2 = t.copy()
@@ -200,14 +201,14 @@ class TestIndex(SetupData):
         assert_col_equal(t2['a'], [0, 2, 0, 4, 0])
         assert np.all(t2.indices[0].sorted_data() == [0, 2, 4, 1, 3])
 
-    def test_multiple_slices(self, main_col, table_types, impl):
+    def test_multiple_slices(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
 
         if not self.mutable:
             return
 
         t = self.t
-        t.add_index('a', impl=impl)
+        t.add_index('a', engine=engine)
 
         for i in range(6, 51):
             t.add_row((i, 1.0, 'A'))
@@ -250,11 +251,11 @@ class TestIndex(SetupData):
         assert np.all(t4.indices[0].sorted_data() == [2, 1, 0])
 
 
-    def test_sort(self, main_col, table_types, impl):
+    def test_sort(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
         t = self.t[::-1] # reverse table
         assert_col_equal(t['a'], [5, 4, 3, 2, 1])
-        t.add_index('a', impl=impl)
+        t.add_index('a', engine=engine)
         assert np.all(t.indices[0].sorted_data() == [4, 3, 2, 1, 0])
 
         if not self.mutable:
@@ -265,14 +266,14 @@ class TestIndex(SetupData):
         assert_col_equal(t['a'], [1, 2, 3, 4, 5])
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
-    def test_insert_row(self, main_col, table_types, impl):
+    def test_insert_row(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
 
         if not self.mutable:
             return
 
         t = self.t
-        t.add_index('a', impl=impl)
+        t.add_index('a', engine=engine)
         t.insert_row(2, (6, 1.0, '12'))
         assert_col_equal(t['a'], [1, 2, 6, 3, 4, 5])
         assert np.all(t.indices[0].sorted_data() == [0, 1, 3, 4, 5, 2])
@@ -280,10 +281,10 @@ class TestIndex(SetupData):
         assert_col_equal(t['a'], [1, 0, 2, 6, 3, 4, 5])
         assert np.all(t.indices[0].sorted_data() == [1, 0, 2, 4, 5, 6, 3])
 
-    def test_index_modes(self, main_col, table_types, impl):
+    def test_index_modes(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
         t = self.t
-        t.add_index('a', impl=impl)
+        t.add_index('a', engine=engine)
 
         # first, no special mode
         assert len(t[[1, 3]].indices) == 1

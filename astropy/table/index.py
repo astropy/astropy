@@ -1,3 +1,6 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 from copy import deepcopy
 import numpy as np
 
@@ -8,7 +11,7 @@ from .sorted_array import SortedArray
 The Index class can use several implementations as its
 engine. Any implementation should implement the following:
 
-__init__([dict] lines) : initializes based on key/row list pairs
+__init__([Table] lines) : initializes based on key/row list pairs
 add(key, row) -> None : add (key, row) to existing data
 remove(key, data=None) -> boolean : remove data from self[key], or all of
                                     self[key] if data is None
@@ -51,7 +54,7 @@ class Index(object):
     columns : list or None
         List of columns on which to create an index. If None,
         create an empty index for purposes of deep copying.
-    impl : type or None
+    engine : type or None
         Indexing engine class to use, from among SortedArray, BST,
         FastBST, and FastRBT. If the supplied argument is None (by
         default), use SortedArray.
@@ -65,7 +68,7 @@ class Index(object):
         self.__init__(*args, **kwargs)
         return SlicedIndex(self, slice(0, 0, None), original=True)
 
-    def __init__(self, columns, impl=None, col_dtypes=None, data=None):
+    def __init__(self, columns, engine=None, col_dtypes=None, data=None):
         from .table import Table
 
         if data is not None: # create from data
@@ -75,7 +78,7 @@ class Index(object):
             return
 
         # by default, use SortedArray
-        self.engine = impl or SortedArray
+        self.engine = engine or SortedArray
 
         if columns is None: # this creates a special exception for deep copying
             columns = []
@@ -352,7 +355,7 @@ class Index(object):
         num_cols = self.data.num_cols if self.engine == SortedArray else None
         # create an actual Index, not a SlicedIndex
         index = super(Index, Index).__new__(Index)
-        index.__init__(None, impl=self.data.__class__, col_dtypes=
+        index.__init__(None, engine=self.data.__class__, col_dtypes=
                       [x.info.dtype for x in self.columns])
         index.data = deepcopy(self.data, memo)
         index.columns = self.columns[:] # new list, same columns
@@ -436,14 +439,17 @@ class SlicedIndex(object):
         '''
         if self.original:
             return rows
-        elif self.step > 0:
-            return [(row - self.start) // self.step for row in rows
-                    if self.start <= row < self.stop and
-                    (row - self.start) % self.step == 0]
         else:
-            return [(row - self.start) // self.step for row in rows
-                    if self.stop < row <= self.start and
-                    (row - self.start) % self.step == 0]
+            rows = np.array(rows)
+            row0 = rows - self.start
+            if self.step != 1:
+                correct_mod = np.mod(row0, self.step) == 0
+                row0 = row0[correct_mod]
+            if self.step > 0:
+                ok = (row0 >= 0) & (row0 < self.stop - self.start)
+            else:
+                ok = (row0 <= 0) & (row0 > self.stop - self.start)
+            return row0[ok] // self.step
 
     def orig_coords(self, row):
         '''
