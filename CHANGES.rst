@@ -508,6 +508,11 @@ API Changes
 
 - ``astropy.coordinates``
 
+  - Some transformations for an input coordinate that's a scalar now
+    correctly return a scalar.  This was the intend behavior, but it may
+    break code that has been written to work-around this bug, so it may
+    be viewed as an unplanned API change [#3920]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
