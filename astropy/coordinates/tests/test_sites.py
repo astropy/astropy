@@ -1,10 +1,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ..sites import get_site, add_site
-from astropy.tests.helper import assert_quantity_allclose
-from astropy.coordinates import Latitude, Longitude, EarthLocation
-import astropy.units as u
-import unittest
+
+from ...tests.helper import pytest, assert_quantity_allclose
+from ... import units as u
+from .. import Latitude, Longitude, EarthLocation, get_site, add_site
 
 def test_get_site():
     # Compare to the IRAF observatory list available at:
@@ -33,7 +32,6 @@ def test_add_site():
     retrieved_location = get_site(new_site_name)
     assert retrieved_location == new_site_location
 
-class TestExceptions(unittest.TestCase):
-    def test_bad_site(self):
-        with self.assertRaises(KeyError):
-            get_site('nonexistent site')
+def test_bad_site():
+    with pytest.raises(KeyError):
+        get_site('nonexistent site')

@@ -1,21 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Observatories accessible by the `sites` module originate from the IRAF
-Observatory Database, and are stored in astroplan/data/observatories.json.
+Observatory Database, and are stored in ``data/observatories.json``.
 Longitudes are listed with positive to the West.
 
-Additions and corrections to the observatory list can be submitted via Pull
-Request to the [astroplan GitHub repository](https://github.com/astroplanners/astroplan).
+Additions or corrections to the observatory list can be submitted via Pull
+Request to the [astropy GitHub repository](https://github.com/astropy/astropy),
+updating the ``observatories.json`` file.
 
 """
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from astropy.utils.data import get_pkg_data_contents
-from difflib import get_close_matches
 import json
-from astropy.coordinates import EarthLocation
+from difflib import get_close_matches
+
+from ..utils.data import get_pkg_data_contents
+from .earth import EarthLocation
 
 __all__ = ['get_site', 'get_site_names', 'add_site']
 
@@ -25,7 +27,8 @@ _site_names = []
 
 def _load_sites():
     """
-    Load observatory database from astroplan/data/observatories.json
+    Load observatory database from data/observatories.json and parse them into
+    a dictionary in memory.
     """
     global _site_db, _site_names
     _site_db = dict()
@@ -54,6 +57,11 @@ def get_site(site_name):
     -------
     `~astropy.coordinates.EarthLocation`
         The location of the observatory.
+
+    See Also
+    --------
+    get_site_names : the list of sites that this function can access
+    add_site : adds a new site to the list
     """
     if _site_db is None:
         _load_sites()
@@ -63,7 +71,7 @@ def get_site(site_name):
         close_names = get_close_matches(site_name, _site_db.keys())
         close_names = sorted(close_names, key=lambda x: len(x))
         if len(close_names) > 0:
-            errmsg = ("Site not in database. Use `astroplan.get_site_names()` "
+            errmsg = ("Site not in database. Use ``get_site_names()`` "
                       "to see available sites. Did you mean: '{}'?".format(
                       "', '".join(close_names)))
         else:
@@ -74,7 +82,8 @@ def get_site(site_name):
 
 def get_site_names(full_list=True):
     """
-    Get list of names of observatories for use with `~astroplan.core.get_site`.
+    Get list of names of observatories for use with
+    `~astropy.coordinates.get_site`.
 
     Parameters
     ----------
@@ -84,7 +93,15 @@ def get_site_names(full_list=True):
 
     Returns
     -------
-    List of observatory names (strings)
+    names : list of str
+        List of valid observatory names
+
+    See Also
+    --------
+    get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
+               sites this returns.
+    get_site_names : the list of sites names that this function can access
+
     """
     if _site_db is None:
         _load_sites()
@@ -105,6 +122,13 @@ def add_site(site_name, location):
 
     location : `~astropy.coordinates.EarthLocation`
         Location of the observatory
+
+    See Also
+    --------
+    get_site : gets the `~astropy.coordinates.EarthLocation` for one of the
+               sites this returns.
+    get_site_names : the list of site names that this function will add to
+
     """
     if _site_db is None:
         _load_sites()
