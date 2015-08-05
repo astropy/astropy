@@ -98,15 +98,16 @@ class TestIndex(SetupData):
         t.add_index('a', impl=impl)
         assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
-        t2 = t[[0, 2]]
-        # t2 should retain an index on column 'a'
-        assert len(t2.indices) == 1
-        assert_col_equal(t2['a'], [1, 3])
-        # the index in t2 should reorder row numbers after slicing
+        for slice_ in ([0, 2], np.array([0, 2])):
+            t2 = t[slice_]
+            # t2 should retain an index on column 'a'
+            assert len(t2.indices) == 1
+            assert_col_equal(t2['a'], [1, 3])
 
-        assert np.all(t2.indices[0].sorted_data() == [0, 1])
-        # however, this index should be a deep copy of t1's index
-        assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+            # the index in t2 should reorder row numbers after slicing
+            assert np.all(t2.indices[0].sorted_data() == [0, 1])
+            # however, this index should be a deep copy of t1's index
+            assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
     def test_remove_rows(self, main_col, table_types, impl):
         self._setup(main_col, table_types)
@@ -312,8 +313,7 @@ class TestIndex(SetupData):
             t.add_row((2, 1.5, '12'))
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
             t.remove_rows([1, 3])
-            # index length still adapts to number of rows
-            assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3])
+            assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
             assert_col_equal(t['a'], [6, 3, 5, 2])
             # mode should only affect t
             assert np.all(t2.indices[0].sorted_data() == [0, 1, 2, 3, 4])

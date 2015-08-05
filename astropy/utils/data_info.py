@@ -393,6 +393,21 @@ class BaseColumnInfo(DataInfo):
             yield str_val
 
     def adjust_indices(self, index, value, col_len):
+        '''
+        Adjust info indices after column modification.
+
+        Parameters
+        ----------
+        index : slice, int, list, or ndarray
+            Element(s) of column to modify. This parameter can
+            be a single row number, a list of row numbers, an
+            ndarray of row numbers, a boolean ndarray (a mask),
+            or a column slice.
+        value : int, list, or ndarray
+            New value(s) to insert
+        col_len : int
+            Length of the column
+        '''
         if not self.indices:
             return
 
@@ -416,6 +431,17 @@ class BaseColumnInfo(DataInfo):
                 col_index.replace(key, self.name, val)
 
     def slice_indices(self, col_slice, item):
+        '''
+        Given a sliced object, modify its indices
+        to correctly represent the slice.
+
+        Parameters
+        ----------
+        col_slice : Column or mixin
+            Sliced object
+        item : slice, list, or ndarray
+            Slice used to create col_slice
+        '''
         if not getattr(self, '_copy_indices', True):
             # Necessary because MaskedArray will perform a shallow copy
             col_slice.info.indices = []

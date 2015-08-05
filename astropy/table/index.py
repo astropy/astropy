@@ -160,8 +160,10 @@ class Index(object):
                 key[i] = vals[self.col_position(col.info.name)]
             except ValueError: # not a member of index
                 continue
-        # shift all rows >= pos to the right
-        self.data.shift_right(pos)
+        num_rows = len(self.columns[0])
+        if pos < num_rows:
+            # shift all rows >= pos to the right
+            self.data.shift_right(pos)
         self.data.add(tuple(key), pos)
 
     def get_row_specifier(self, row_specifier):
@@ -432,7 +434,9 @@ class SlicedIndex(object):
         sliced_rows : list
             Rows in the sliced coordinate system
         '''
-        if self.step > 0:
+        if self.original:
+            return rows
+        elif self.step > 0:
             return [(row - self.start) // self.step for row in rows
                     if self.start <= row < self.stop and
                     (row - self.start) % self.step == 0]
@@ -456,7 +460,7 @@ class SlicedIndex(object):
         orig_row : int
             Row in the original coordinate system
         '''
-        return self.start + row * self.step
+        return row if self.original else self.start + row * self.step
 
     def find(self, key):
         return self.sliced_coords(self.index.find(key))
@@ -478,8 +482,9 @@ class SlicedIndex(object):
             self.index.replace(self.orig_coords(row), col, val)
 
     def copy(self):
-        # replace self.index with a new object reference
-        self.index = deepcopy(self.index)
+        if not self.original:
+            # replace self.index with a new object reference
+            self.index = deepcopy(self.index)
         return self.index
 
     def insert_row(self, pos, vals, columns):
