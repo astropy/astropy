@@ -1199,11 +1199,25 @@ class Model(object):
             for name, value in six.iteritems(params):
                 param_ndim = np.ndim(value)
                 if param_ndim < min_ndim:
-                    raise InputParameterError(
-                        "All parameter values must be arrays of dimension "
-                        "at least {0} for model_set_axis={1} (the value "
-                        "given for {2!r} is only {3}-dimensional)".format(
-                            min_ndim, model_set_axis, name, param_ndim))
+                    # Exception: If the parameter is given its default value
+                    # (i.e. was unspecified) we can broadcast the default value
+                    # just fine.
+                    default = getattr(self, name).default
+                    if (np.shape(value) == np.shape(default) and
+                            np.all(value == default)):
+                        default_shape = np.shape(default)
+                        new_shape = (default_shape[:model_set_axis] +
+                                     (n_models,) +
+                                     default_shape[model_set_axis:])
+                        value = np.full(new_shape, default, dtype=np.float64)
+                        params[name] = value
+                    else:
+                        raise InputParameterError(
+                            "All parameter values must be arrays of dimension "
+                            "at least {0} for model_set_axis={1} (the value "
+                            "given for {2!r} is only {3}-dimensional)".format(
+                                min_ndim, model_set_axis, name, param_ndim))
+
 
                 max_ndim = max(max_ndim, param_ndim)
 
