@@ -601,11 +601,6 @@ class HDUList(list, _Verify):
                     except KeyError:
                         extver = ''
 
-                free_space = get_free_space_in_dir(os.getcwd())
-                hdulist_size = np.sum(hdu.size for hdu in self)
-                if not self._file.file_like and free_space < hdulist_size:
-                    raise IOError('Not enough space on disk')
-
                 # only append HDU's which are "new"
                 if hdu._new:
                     hdu._prewriteto(checksum=hdu._output_checksum)
@@ -614,6 +609,13 @@ class HDUList(list, _Verify):
                         if verbose:
                             print('append HDU', hdu.name, extver)
                         hdu._new = False
+                    except IOError, e:
+                        free_space = get_free_space_in_dir(os.getcwd())
+                        hdulist_size = np.sum(hdu.size for hdu in self)
+                        if not self._file.file_like and free_space < hdulist_size:
+                            raise IOError("Not enough space on disk. " + str(e))
+                        else:
+                            raise IOError(str(e))
                     finally:
                         hdu._postwriteto()
         elif self._file.mode == 'update':
@@ -692,15 +694,17 @@ class HDUList(list, _Verify):
         fileobj = _File(fileobj, mode='ostream', clobber=clobber)
         hdulist = self.fromfile(fileobj)
 
-        free_space = get_free_space_in_dir(os.getcwd())
-        hdulist_size = np.sum(hdu.size for hdu in self)
-        if not fileobj.file_like and free_space < hdulist_size:
-            raise IOError('Not enough space on disk')
-
         for hdu in self:
             hdu._prewriteto(checksum=checksum)
             try:
                 hdu._writeto(hdulist._file)
+            except IOError, e:
+                free_space = get_free_space_in_dir(os.getcwd())
+                hdulist_size = np.sum(hdu.size for hdu in self)
+                if not fileobj.file_like and free_space < hdulist_size:
+                    raise IOError("Not enough space on disk. " + str(e))
+                else:
+                    raise IOError(str(e))
             finally:
                 hdu._postwriteto()
 

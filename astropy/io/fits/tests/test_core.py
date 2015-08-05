@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
-from __future__ import division, with_statement
+from __future__ import division, with_statement, absolute_import
 
 import gzip
 import bz2
@@ -782,6 +782,7 @@ class TestFileFunctions(FitsTestCase):
 
         old_mode = os.stat(filename).st_mode
 
+        filename = self.temp('test.fits')
         hdul = fits.open(filename, mode='update')
         hdul.insert(1, fits.ImageHDU())
         hdul.flush()
@@ -995,6 +996,49 @@ class TestFileFunctions(FitsTestCase):
 
         with fits.open(self.temp(filename)) as hdul:
             assert np.all(hdul[0].data == hdu.data)
+
+
+    def test_writeto_full_disk(self, monkeypatch):
+        """
+        Test that it gives a readable error when trying to write an hdulist
+        to a full disk.
+        """
+        def _writeto(self, array):
+            raise IOError("Fake error raised for writing to files")
+
+        with pytest.raises(IOError) as e:
+            monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
+
+            filename = self.temp('test.fits')
+            hdul = [fits.PrimaryHDU(), fits.ImageHDU()]
+            hdul = fits.HDUList(hdul)
+            hdul.writeto(filename)
+            hdul.close()
+
+            assert "Fake error raised for writing to files" in e.value
+
+    def test_flush_full_disk(self, monkeypatch):
+        """
+        Test that it gives a readable error when trying to update an hdulist
+        to a full disk.
+        """
+        filename = self.temp('test.fits')
+        hdul = [fits.PrimaryHDU(), fits.ImageHDU()]
+        hdul = fits.HDUList(hdul)
+        hdul.writeto(filename)
+
+        def _writeto(self, array, inplace=False, copy=False):
+            raise IOError("Fake error raised for writing to files")
+
+        monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
+
+        with pytest.raises(IOError) as e:
+            filename = self.temp('test.fits')
+            hdul = fits.open(filename, mode='update')
+            hdul.insert(1, fits.ImageHDU())
+            hdul.flush()
+            hdul.close()
+            assert "Fake error raised for writing to files" in e.value
 
     def _test_write_string_bytes_io(self, fileobj):
         """
