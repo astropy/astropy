@@ -428,7 +428,7 @@ class Table(object):
         '''
         return getattr(col, 'get_item', col.__getitem__)(item)
 
-    def add_index(self, colnames, impl=None):
+    def add_index(self, colnames, engine=None):
         '''
         Insert a new index among one or more columns.
 
@@ -436,7 +436,7 @@ class Table(object):
         ----------
         colnames : str or list
             List of column names (or a single column name) to index
-        impl : type or None
+        engine : type or None
             Indexing engine class to use, from among SortedArray, BST,
             FastBST, and FastRBT. If the supplied argument is None (by
             default), use SortedArray.
@@ -451,7 +451,7 @@ class Table(object):
                 raise ValueError('Cannot create an index on column "{0}", of '
                                  'type "{1}"'.format(col.info.name, type(col)))
 
-        index = Index(columns, impl=impl)
+        index = Index(columns, engine=engine)
         for col in columns:
             col.info.indices.append(index)
 
