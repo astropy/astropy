@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 5.9 2015/07/21 09:20:01 mcalabre Exp $
+  $Id: wcshdr.c,v 5.9.1.2 2015/08/02 07:49:06 mcalabre Exp mcalabre $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -488,9 +488,10 @@ int wcsvfree(int *nwcs, struct wcsprm **wcs)
 #define I_NIPARM  1	/* Full (allocated) length of iparm[].              */
 #define I_NDPARM  2	/* No. of parameters in dparm[], excl. work space.  */
 #define I_DOCORR  3	/* True if distortion func computes a correction.   */
-#define I_TPDNCO  4	/* No. of TPD coefficients.                         */
-#define I_TPDAUX  5	/* True if auxiliary variables are used.            */
-#define I_TPDRAD  6	/* True if the radial variable is used.             */
+#define I_TPDNCO  4	/* No. of TPD coefficients, forward...              */
+#define I_TPDINV  5     /* ...and inverse.                                  */
+#define I_TPDAUX  6	/* True if auxiliary variables are used.            */
+#define I_TPDRAD  7	/* True if the radial variable is used.             */
 
 int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
 
@@ -502,9 +503,10 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   const char axid[] = "xyxuvu", *cp;
   const int  nTPD[] = {1, 4, 7, 12, 17, 24, 31, 40, 49, 60};
 
-  char alt, comment[72], ctemp[32], *ctypei, format[8], keyvalue[72],
-       keyword[16], *kp, *kp0, obsg[8] = "OBSG?", obsgeo[8] = "OBSGEO-?", pq,
-       ptype, xtype, term[16], tpdsrc[24], xyz[] = "XYZ";
+  char alt, comment[72], ctemp[32], *ctypei, format[8], fmt01[8],
+       keyvalue[72], keyword[16], *kp, *kp0, obsg[8] = "OBSG?",
+       obsgeo[8] = "OBSGEO-?", pq, ptype, xtype, term[16], tpdsrc[24],
+       xyz[] = "XYZ";
   int  *axmap, bintab, col0, *colax, colnum, degree, direct, doaux, dosip,
        dotpd, dotpv, i, idis, idp, *iparm, j, jhat, k, m, naxis, ncoeff, Nhat,
        p, pixlist, precision, primage, q, status = 0;
@@ -1223,6 +1225,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
         /* Determine a suitable numerical precision for the polynomial   */
         /* coefficients to avoid trailing zeroes common to all of them.  */
         wcshdo_format('E', iparm[I_NDPARM], dparm, format);
+        sprintf(fmt01, "%.3ss", format);
 
         wcshdo_util(relax, "", "", 0, 0x0, 0, 0, 0, ' ', 0, 0, "", "",
           nkeyrec, header, &status);
@@ -1246,7 +1249,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
           sprintf(comment, "TPV coefficient: %s", term);
 
           if (keyval == 1.0) {
-            strcpy(keyvalue, "                 1.0");
+            sprintf(keyvalue, fmt01, "1.0");
           } else {
             wcsutil_double2str(keyvalue, format, keyval);
           }
@@ -1388,14 +1391,15 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
           /* Polynomial, the dpkey records may not relate to TPD.       */
           /* Output is therefore handled via dparm.                     */
           wcshdo_format('E', iparm[I_NDPARM], dparm, format);
+          sprintf(fmt01, "%.3ss", format);
 
           /* AUX.jhat.COEFF.m */
           if (doaux) {
             for (idp = 0; idp < 6; idp++) {
               if (dparm[idp] == 0.0) {
-                strcpy(ctemp, "                 0.0");
+                sprintf(ctemp, fmt01, "0.0");
               } else if (dparm[idp] == 1.0) {
-                strcpy(ctemp, "                 1.0");
+                sprintf(ctemp, fmt01, "1.0");
               } else {
                 wcsutil_double2str(ctemp, format, dparm[idp]);
               }
@@ -1421,7 +1425,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
             if (dparm[idp] == 0.0) continue;
 
             if (dparm[idp] == 1.0) {
-              strcpy(ctemp, "                 1.0");
+              sprintf(ctemp, fmt01, "1.0");
             } else {
               wcsutil_double2str(ctemp, format, dparm[idp]);
             }
@@ -1653,17 +1657,19 @@ void wcshdo_format(
   cp0 = cval + 2;
   expmax = -999;
   for (i = 0; i < nval; i++) {
-    wcsutil_double2str(cval, "%20.13E", val[i]);
+    /* Double precision has at least 15 significant digits, and up to 17:  */
+    /* http://en.wikipedia.org/wiki/Double-precision_floating-point_format */
+    wcsutil_double2str(cval, "%21.14E", val[i]);
 
-    cp = cval + 15;
+    cp = cval + 16;
     while (cp0 < cp && *cp == '0') cp--;
     cp0 = cp;
 
-    sscanf(cval+17, "%d", &expon);
+    sscanf(cval+18, "%d", &expon);
     if (expmax < expon) expmax = expon;
   }
 
-  nsig = cp - (cval + 2) + 1;
+  nsig = cp0 - (cval + 2) + 1;
 
 
   if (fmt == 'f') {
@@ -1675,8 +1681,12 @@ void wcshdo_format(
   } else {
     precision = nsig - 1;
     if (precision < 1)  precision = 1;
-    if (13 < precision) precision = 13;
-    sprintf(format, "%%20.%dE", precision);
+    if (14 < precision) precision = 14;
+    if (precision < 14) {
+      sprintf(format, "%%20.%dE", precision);
+    } else {
+      sprintf(format, "%%21.%dE", precision);
+    }
   }
 }
 
