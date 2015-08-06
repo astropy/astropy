@@ -59,6 +59,11 @@ API Changes
 
 - ``astropy.coordinates``
 
+  - Some transformations for an input coordinate that's a scalar now
+    correctly return a scalar.  This was the intend behavior, but it may
+    break code that has been written to work-around this bug, so it may
+    be viewed as an unplanned API change [#3920]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
@@ -112,6 +117,20 @@ Bug Fixes
 
   - Fixed confusing warning message shown when using dates outside current
     IERS data. [#3844]
+
+  - ``get_sun`` now yields a scalar when the input time is a scalar (this
+    was a regression in v1.0.3 from v1.0.2) [#3998]
+
+  - Fixed bug where some scalar coordinates were incorrectly being changed
+    to length-1 array coordinates after transforming through certain frames.
+    [#3920]
+
+  - Fixed bug causing the ``separation`` methods of ``SkyCoord`` and frame
+    classes to fail due to infinite recursion [#4033]
+
+  - Made it so that passing in a list of ``SkyCoord`` objects that are in
+    UnitSphericalRepresentation to the ``SkyCoord`` constructor appropriately
+    yields a new object in UnitSphericalRepresentation [#3938]
 
 - ``astropy.cosmology``
 

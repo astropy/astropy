@@ -54,16 +54,22 @@ def cartrepr_from_matmul(pmat, coo, transpose=False):
     if pmat.shape[-2:] != (3, 3):
         raise ValueError("tried to do matrix multiplication with an array that "
                          "doesn't end in 3x3")
-    xyz = coo.cartesian.xyz.T
-    # these expression are the same as iterating over the first dimension of
-    # pmat and xyz and doing matrix multiplication on each in turn.  resulting
-    # dimension is <coo shape> x 3
-    pmat = pmat.reshape(pmat.size//9, 3, 3)
-    if transpose:
-        pmat = pmat.transpose(0, 2, 1)
-    newxyz = np.sum(pmat * xyz.reshape(xyz.size//3, 1, 3), axis=-1)
+    if coo.isscalar:
+        # a simpler path for scalar coordinates
+        if transpose:
+            pmat = pmat.T
+        newxyz = np.sum(pmat * coo.cartesian.xyz, axis=-1)
+    else:
+        xyz = coo.cartesian.xyz.T
+        # these expression are the same as iterating over the first dimension of
+        # pmat and xyz and doing matrix multiplication on each in turn.  resulting
+        # dimension is <coo shape> x 3
+        pmat = pmat.reshape(pmat.size//9, 3, 3)
+        if transpose:
+            pmat = pmat.transpose(0, 2, 1)
+        newxyz = np.sum(pmat * xyz.reshape(xyz.size//3, 1, 3), axis=-1).T
 
-    return CartesianRepresentation(newxyz.T)
+    return CartesianRepresentation(newxyz)
 
 
 # now the actual transforms
