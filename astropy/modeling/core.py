@@ -364,7 +364,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             update_wrapper(new_call, cls)
             cls.__call__ = new_call
 
-        make_init, parameters = mcls._make_custom_init(cls, members,
+        make_init, parameters = mcls._should_make_init(cls, members,
                                                        parameters)
 
         if make_init:
@@ -382,7 +382,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             cls.__init__ = new_init
 
     @staticmethod
-    def _make_custom_init(cls, members, parameters):
+    def _should_make_init(cls, members, parameters):
         """
         Determine whether an ``__init__`` method with a customized signature
         should be created.  The rules are this:
