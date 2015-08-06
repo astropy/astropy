@@ -54,6 +54,17 @@ class _PolynomialModelMeta(_ModelMeta):
         # through the `type` class's method-getter).
         cls._get_subclass_for_degree = classmethod(cache_wrapper(getter))
 
+        # Add the degree attributes as classproperties (making them read-only)
+        degree_attrs = cls._get_degree_attrs()
+
+        for name, doc in cls._get_degree_attrs():
+
+            def _degree_getter(cls, name=name):
+                return getattr(cls, '_' + name)
+
+            setattr(cls, '_' + name, None)
+            setattr(cls, name, classproperty(_degree_getter, doc=doc))
+
     def _get_subclass_for_degree(cls, *degrees):
         # Creates a subclass of the given Polynomial class that has its degree
         # fixed (and has the appropriate coefficient Parameters to go with it)
@@ -71,16 +82,9 @@ class _PolynomialModelMeta(_ModelMeta):
             '_is_dynamic': True  # See _ModelMeta.__reduce__
         }
 
-        degree_attrs = cls._get_degree_attrs()
-
-        for attr, degree in zip(degree_attrs, degrees):
-            name, doc = attr
-
-            def _degree_getter(cls, name=name):
-                return getattr(cls, '_' + name)
-
-            members['_' + name] = degree
-            members[name] = classproperty(_degree_getter, doc=doc)
+        # See the degree attribute values (on their internal attributes)
+        for attr, degree in zip(cls._get_degree_attrs(), degrees):
+            members['_' + attr[0]] = degree
 
         for exponents in cls._term_powers(*degrees):
             coeff_name = cls._coefficient_name(*exponents)

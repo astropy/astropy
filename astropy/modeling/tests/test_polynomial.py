@@ -8,6 +8,11 @@ import os
 
 from itertools import product
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 import numpy as np
 
 from numpy.testing.utils import assert_allclose
@@ -347,3 +352,16 @@ def test_zero_degree_polynomial(cls):
         p2_fit = fitter(p2_init, x, y, z)
 
         assert_allclose(p2_fit.c0_0, 1, atol=0.10)
+
+
+def test_pickle_polynomial():
+    """
+    Polynomial instances have dynamically generated classes, which are often
+    tricky when dealing with pickling.
+    """
+
+    p_orig = Polynomial1D(5, 0, 1, 2, 3, 4, 5)
+    p = pickle.loads(pickle.dumps(p_orig))
+    assert np.all(p.parameters == p_orig.parameters)
+    assert p.param_names == p_orig.param_names
+    assert p.degree == p_orig.degree
