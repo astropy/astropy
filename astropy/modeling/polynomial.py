@@ -8,7 +8,6 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 import abc
-import copyreg
 import itertools
 
 import numpy as np
@@ -18,6 +17,7 @@ from .functional_models import Shift
 from .parameters import Parameter
 from .utils import poly_map_domain, comb, check_broadcast, polynomial_exponents
 from ..extern import six
+from ..extern.six.moves import copyreg
 from ..utils import lazyproperty, classproperty, indent, deprecated
 from ..utils.compat import funcsigs
 from ..utils.compat.functools import lru_cache
