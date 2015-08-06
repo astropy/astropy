@@ -174,6 +174,9 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
         stdfunc = lambda d: np.expand_dims(stdfunc_in(d, axis=axis),
                                            axis=axis)
 
+    if np.sum(np.isnan(data)) > 0:
+        data = np.ma.array(data, mask=np.isnan(data))
+
     filtered_data = np.ma.array(data, copy=copy)
 
     if iters is None:
