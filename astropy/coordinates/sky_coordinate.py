@@ -485,7 +485,7 @@ class SkyCoord(object):
             frameattrs = ': '+crepr[crepr.index('(')+1:crepr.index('):')]
 
         s = '<{clsnm} ({coonm}{frameattrs})'.format(**locals())
-        return s + crepr[crepr.index(':'):]
+        return s + crepr[crepr.rindex(':'):]
 
     def to_string(self, style='decimal', **kwargs):
         """

@@ -21,8 +21,8 @@ from ...tests.helper import (pytest, remote_data, catch_warnings,
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
-                            UnitSphericalRepresentation)
-from ...coordinates import Latitude, Longitude
+                            UnitSphericalRepresentation, AltAz)
+from ...coordinates import Latitude, Longitude, EarthLocation
 from ...time import Time
 from ...utils import minversion
 from ...utils.exceptions import AstropyDeprecationWarning
@@ -499,7 +499,17 @@ def test_repr():
     sc_default = SkyCoord(0 * u.deg, 1 * u.deg)
     assert repr(sc_default) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                                 '    (0.0, 1.0)>')
-
+    loc = EarthLocation.from_geodetic(-122*u.deg, -47*u.deg)
+    time = Time('2005-03-21 00:00:00')
+    sc4 = sc2.transform_to(AltAz(location=loc, obstime=time))
+    assert repr(sc4) == ("<SkyCoord (AltAz: obstime=2005-03-21 00:00:00.000, "
+                         "location=(-2309222.664660742, -3695528.7655007695, "
+                         "-4641764.788820372) m, pressure=0.0 hPa, "
+                         "temperature=0.0 deg_C, relative_humidity=0, "
+                         "obswl=1.0 micron): (az, alt, distance) in "
+                         "(deg, deg, m)\n"
+                         "    (297.31930986, 21.87980592, "
+                         "30856775790428692480.0)>")
 
 def test_ops():
     """
