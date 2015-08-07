@@ -33,12 +33,20 @@ table.dataTable {width: auto !important; margin: 0 !important;}
  </head>
  <body>
   <script>
+jQuery.extend( jQuery.fn.dataTableExt.oSort, {
+    "optionalnum-pre": function (a) { var b=parseFloat(a); if (isNaN(b)) return ''; else return b;},
+    "optionalnum-asc": function (a,b) { return ((a < b) ? -1 : ((a > b) ? 1 : 0)); },
+    "optionalnum-desc": function (a,b) { return ((a < b) ? 1 : ((a > b) ? -1 : 0)); }
+});
+
 $(document).ready(function() {
     $('#%(table_id)s').dataTable({
-        "order": [],
-        "iDisplayLength": %(length)s,
-        "aLengthMenu": [[%(display_length)s, -1], [%(display_length)s, 'All']],
-        "pagingType": "full_numbers"
+     "iDisplayLength": %(length)s,
+     "aLengthMenu": [[%(display_length)s, -1], [%(display_length)s, 'All']],
+     "pagingType": "full_numbers",
+     "bJQueryUI": true,
+     "sPaginationType": "full_numbers",
+     "aoColumnDefs": [{"sType": "optionalnum", "aTargets": [0]}]
     });
 } );  </script>
   <table class="%(table_class)s" id="%(table_id)s">
