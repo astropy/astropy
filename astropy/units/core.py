@@ -18,7 +18,7 @@ import warnings
 import numpy as np
 
 from ..utils.decorators import lazyproperty, deprecated
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import AstropyUserWarning
 from ..utils.misc import isiterable, InheritDocstrings
 from .utils import (is_effectively_unity, sanitize_scale, validate_power,
                     resolve_fractions)
@@ -458,7 +458,7 @@ class UnitConversionError(UnitsError, ValueError):
     """
 
 
-class UnitsWarning(AstropyWarning):
+class UnitsWarning(AstropyUserWarning):
     """
     The base class for unit-specific exceptions.
     """

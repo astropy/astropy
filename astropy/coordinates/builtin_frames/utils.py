@@ -14,7 +14,7 @@ import numpy as np
 from ... import units as u
 from ...time import Time
 from ...utils import iers
-from ...utils.exceptions import AstropyWarning
+from ...utils.exceptions import AstropyUserWarning
 
 # The UTC time scale is not properly defined prior to 1960, so Time('B1950',
 # scale='utc') will emit a warning. Instead, we use Time('B1950', scale='tai')
@@ -55,7 +55,7 @@ def get_polar_motion(time):
         xp.ravel()[status.ravel()==iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[0]
         yp.ravel()[status.ravel()==iers.TIME_BEFORE_IERS_RANGE] = _DEFAULT_PM[1]
 
-        warnings.warn(wmsg, AstropyWarning)
+        warnings.warn(wmsg, AstropyUserWarning)
 
     if np.any(status == iers.TIME_BEYOND_IERS_RANGE):
         wmsg = ('Tried to get polar motions for times after IERS data is '
@@ -64,7 +64,7 @@ def get_polar_motion(time):
         xp.ravel()[status.ravel()==iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[0]
         yp.ravel()[status.ravel()==iers.TIME_BEYOND_IERS_RANGE] = _DEFAULT_PM[1]
 
-        warnings.warn(wmsg, AstropyWarning)
+        warnings.warn(wmsg, AstropyUserWarning)
 
     return xp.to(u.radian).value, yp.to(u.radian).value
 
@@ -79,5 +79,5 @@ def get_dut1utc(time):
         return time.delta_ut1_utc
     except IndexError as e:
         msg = e.args[0] + ' Assuming UT1-UTC=0 for coordinate transformations.' + _IERS_HINT
-        warnings.warn(msg, AstropyWarning)
+        warnings.warn(msg, AstropyUserWarning)
         return np.zeros(time.shape)

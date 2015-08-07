@@ -578,7 +578,7 @@ if sys.platform.startswith('win32'):
                 'library or library is corrupt/misconfigured; cannot '
                 'determine whether your file object was opened in append '
                 'mode.  Please consider using a file object opened in write '
-                'mode instead.')
+                'mode instead.', AstropyUserWarning)
             return False
 
         msvcrt_dll = find_msvcrt()

@@ -25,7 +25,7 @@ from tempfile import NamedTemporaryFile, gettempdir
 from warnings import warn
 
 from .. import config as _config
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import AstropyUserWarning
 from ..utils.introspection import find_current_module, resolve_name
 
 
@@ -82,7 +82,7 @@ DELETE_TEMPORARY_DOWNLOADS_AT_EXIT = _config.ConfigAlias(
     '0.4', 'DELETE_TEMPORARY_DOWNLOADS_AT_EXIT', 'delete_temporary_downloads_at_exit')
 
 
-class CacheMissingWarning(AstropyWarning):
+class CacheMissingWarning(AstropyUserWarning):
     """
     This warning indicates the standard cache directory is not accessible, with
     the first argument providing the warning message. If args[1] is present, it

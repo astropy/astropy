@@ -6,7 +6,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from ..utils.exceptions import AstropyWarning
+from ..utils.exceptions import AstropyUserWarning
 
 __all__ = ['RangeError', 'BoundsError', 'IllegalHourError',
            'IllegalMinuteError', 'IllegalSecondError', 'ConvertError',
@@ -16,6 +16,13 @@ __all__ = ['RangeError', 'BoundsError', 'IllegalHourError',
 class RangeError(ValueError):
     """
     Raised when some part of an angle is out of its valid range.
+    """
+
+
+class RangeWarning(AstropyUserWarning):
+    """
+    Base class for warnings when some part of an angle is out of its valid
+    range.
     """
 
 
@@ -48,7 +55,7 @@ class IllegalHourError(RangeError):
         return "An invalid value for 'hours' was found ('{0}'); must be in the range [0,24).".format(self.hour)
 
 
-class IllegalHourWarning(AstropyWarning):
+class IllegalHourWarning(RangeWarning):
     """
     Raised when an hour value is 24.
 
@@ -91,7 +98,7 @@ class IllegalMinuteError(RangeError):
         return "An invalid value for 'minute' was found ('{0}'); should be in the range [0,60).".format(self.minute)
 
 
-class IllegalMinuteWarning(AstropyWarning):
+class IllegalMinuteWarning(RangeWarning):
     """
     Raised when a minute value is 60.
 
@@ -133,7 +140,7 @@ class IllegalSecondError(RangeError):
         return "An invalid value for 'second' was found ('{0}'); should be in the range [0,60).".format(self.second)
 
 
-class IllegalSecondWarning(AstropyWarning):
+class IllegalSecondWarning(RangeWarning):
     """
     Raised when a second value is 60.
 

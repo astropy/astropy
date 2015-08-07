@@ -24,7 +24,7 @@ import types
 from warnings import warn
 
 from ..extern.configobj import configobj, validate
-from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
+from ..utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from ..utils import find_current_module
 from ..utils.introspection import resolve_name
 from ..utils.misc import InheritDocstrings
@@ -36,14 +36,18 @@ __all__ = ['ConfigurationItem', 'InvalidConfigurationItemWarning',
            'reload_config', 'ConfigNamespace', 'ConfigItem', 'ConfigAlias']
 
 
-class InvalidConfigurationItemWarning(AstropyWarning):
+class ConfigurationWarning(AstropyUserWarning):
+    """Base class for warnings about the Astropy configuration system."""
+
+
+class InvalidConfigurationItemWarning(ConfigurationWarning):
     """ A Warning that is issued when the configuration value specified in the
     astropy configuration file does not match the type expected for that
     configuration value.
     """
 
 
-class ConfigurationMissingWarning(AstropyWarning):
+class ConfigurationMissingWarning(ConfigurationWarning):
     """ A Warning that is issued when the configuration directory cannot be
     accessed (usually due to a permissions problem). If this warning appears,
     configuration items will be set to their defaults rather than read from the
@@ -59,13 +63,13 @@ class ConfigurationDefaultMissingError(ValueError):
 
 
 # this is used in astropy/__init__.py
-class ConfigurationDefaultMissingWarning(AstropyWarning):
+class ConfigurationDefaultMissingWarning(ConfigurationWarning):
     """ A warning that is issued when the configuration defaults (which
     should be generated at build-time) are missing.
     """
 
 
-class ConfigurationChangedWarning(AstropyWarning):
+class ConfigurationChangedWarning(ConfigurationWarning):
     """
     A warning that the configuration options have changed.
     """
