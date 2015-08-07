@@ -168,6 +168,9 @@ class XMLWriter:
         Any additional keyword arguments will be passed directly to the
         ``clean`` function.
 
+        Finally, use ``method='none'`` to disable any sanitization. This should
+        be used sparingly.
+
         Example::
 
           w = writer.XMLWriter(ListWriter(lines))
@@ -179,8 +182,8 @@ class XMLWriter:
         Parameters
         ----------
         method : str
-            Cleaning method.  Allowed values are "escape_xml" and
-            "bleach_clean".
+            Cleaning method.  Allowed values are "escape_xml",
+            "bleach_clean", and "none".
 
         **clean_kwargs : keyword args
             Additional keyword args that are passed to the
@@ -196,8 +199,10 @@ class XMLWriter:
             else:
                 raise ValueError('bleach package is required when HTML escaping is disabled.\n'
                                  'Use "pip install bleach".')
+        elif method == "none":
+            self.xml_escape_cdata = lambda x: x
         elif method != 'escape_xml':
-            raise ValueError('allowed values of method are "escape_xml" and "bleach_clean"')
+            raise ValueError('allowed values of method are "escape_xml", "bleach_clean", and "none"')
 
         yield
 
