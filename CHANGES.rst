@@ -621,6 +621,10 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Fixed iteration of scalar ``Time`` objects so that ``iter()`` correctly
+    raises a ``TypeError`` on them (while still allowing ``Time`` arrays to
+    be iterated). [#4048]
+
 - ``astropy.units``
 
   - Fixed the documentation of supported units to correctly report support for
