@@ -138,25 +138,53 @@ is explicitly requested by the user, for example ``print_header(...)``
 or ``list_catalogs(...)``. Any other standard output, warnings, and
 errors should follow these rules:
 
+* For informational and debugging messages, one should always use
+  ``log.info(message)`` and ``log.debug(message)``.
+
+* For warnings, one should always use ``warnings.warn(message,
+  warning_class)``, whre ``warning_class`` should in almost all cases be
+  :class:`astropy.utils.exceptions.AstropyUserWarning`.  Other more fine-grained
+  exceptions should generally be subclasses of this class.  The reason for this
+  is that the Astropy log also records warning messages using ``log.warning``,
+  but only if they are subclasses of
+  :class:`astropy.utils.exceptions.AstropyWarning`.  Warnings from Python
+  itself or from other libraries or software are passed through to the standard
+  warning handler.
+
+  Any custom warning classes used in Astropy or affiliated packages should
+  be subclasses of :class:`astropy.utils.exceptions.AstropyUserWarning`.  The
+  base class ``AstropyWarning`` should not be used directly.  The only other
+  subclass of this is
+  :class:`astropy.utils.exception.AstropyDeprecationWarning`.  This class
+  hierarchy is meant to mimic the Python standard library's `warning` class
+  hierarchy, where `UserWarning`, the default warning class, is intended for
+  warnings to users of the software.  Other warnings, like deprecation
+  warnings, are intended more for developers of the library or developers of
+  code using the library.
+
+  Warning messages can also be written directly to the log using
+  ``log.warning``, but in general use of `warnings.warn` should be preferred,
+  since it also allows warning messages to be filtered and disabled by
+  users using the standard mechanisms like `warnings.simplefilter`.
+
+  The logging system uses the built-in Python `logging
+  <http://docs.python.org/library/logging.html>`_ module. The logger can be
+  imported using::
+
+    from astropy import log
+
 * For errors/exceptions, one should always use ``raise`` with one of the
   built-in exception classes, or a custom exception class. The
   nondescript ``Exception`` class should be avoided as much as possible,
   in favor of more specific exceptions (``IOError``, ``ValueError``,
   etc.).
 
-* For warnings, one should always use ``warnings.warn(message, warning_class)``. These get redirected to ``log.warn`` by default, but one
-  can still use the standard warning-catching mechanism and custom warning
-  classes. The warning class should be either
-  :class:`~astropy.utils.exceptions.AstropyUserWarning` or inherit from it.
+  By default, exceptions are also automatically logged as errors to the Astropy
+  log.  Error log messages are also printed to ``stderr``.  Additional error
+  information may be written to the log at any time using ``log.error``, though
+  most conditions that would be considered an "error" should also raise an
+  exception of some sort (except maybe in scripts).
 
-* For informational and debugging messages, one should always use
-  ``log.info(message)`` and ``log.debug(message)``.
-
-The logging system uses the built-in Python `logging
-<http://docs.python.org/library/logging.html>`_ module. The logger can
-be imported using::
-
-    from astropy import log
 
 Coding Style/Conventions
 ------------------------
