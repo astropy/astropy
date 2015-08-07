@@ -14,6 +14,7 @@ from ..extern.six.moves import filter
 import ast
 import doctest
 import fnmatch
+import gc
 import imp
 import io
 import locale
@@ -434,6 +435,7 @@ class DocTestFinderPlus(doctest.DocTestFinder):
 
 def _get_open_file_list():
     import psutil
+
     files = []
     p = psutil.Process()
 
@@ -490,34 +492,47 @@ def pytest_runtest_teardown(item, nextitem):
     start_open_files = item.open_files
     del item.open_files
 
-    open_files = _get_open_file_list()
-
-    # This works in tandem with the test_open_file_detection test to
-    # ensure that it creates one extra open file.
-    if item.name == 'test_open_file_detection':
-        assert len(start_open_files) + 1 == len(open_files)
-        return
-
-    not_closed = set()
     open_files_ignore = item.config.getini('open_files_ignore')
-    for filename in open_files:
-        ignore = False
 
-        for ignored in open_files_ignore:
-            if not os.path.isabs(ignored):
-                if os.path.basename(filename) == ignored:
-                    ignore = True
-                    break
-            else:
-                if filename == ignored:
-                    ignore = True
-                    break
+    def check_open_files():
+        not_closed = set()
+        open_files = _get_open_file_list()
 
-        if ignore:
-            continue
+        # This works in tandem with the test_open_file_detection test to
+        # ensure that it creates one extra open file.
+        if item.name == 'test_open_file_detection':
+            assert len(start_open_files) + 1 == len(open_files)
+            return not_closed
 
-        if filename not in start_open_files:
-            not_closed.add(filename)
+        for filename in open_files:
+            ignore = False
+
+            for ignored in open_files_ignore:
+                if not os.path.isabs(ignored):
+                    if os.path.basename(filename) == ignored:
+                        ignore = True
+                        break
+                else:
+                    if filename == ignored:
+                        ignore = True
+                        break
+
+            if ignore:
+                continue
+
+            if filename not in start_open_files:
+                not_closed.add(filename)
+
+        return not_closed
+
+    not_closed = check_open_files()
+
+    if not_closed:
+        # Make sure a full garbage collection cycle has been run so that deleted
+        # file objects can be closed, etc.  Then given it one more try...
+        gc.collect()
+        not_closed = check_open_files()
+
 
     if len(not_closed):
         msg = ['File(s) not closed:']

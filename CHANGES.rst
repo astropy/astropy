@@ -638,6 +638,12 @@ Bug Fixes
 
 - ``astropy.table``
 
+- ``astropy.tests``
+
+  - Reduced the likelihood of false positives with the ``--open-files`` option
+    due to open file objects still lingering before garbage collection when
+    the open files are counted. [#4002]
+
 - ``astropy.time``
 
 - ``astropy.units``
