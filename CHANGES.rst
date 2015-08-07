@@ -240,6 +240,10 @@ Bug Fixes
   - Removed source code template files that were being installed
     accidentally alongside installed Python modules. [#4014]
 
+  - Fixed a bug in the exception logging that caused a crash in the exception
+    handler itself on Python 3 when exceptions do not include a message.
+    [#4056]
+
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
