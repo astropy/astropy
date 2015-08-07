@@ -13,6 +13,7 @@ import numpy as np
 from ...tests.helper import pytest, catch_warnings
 from ...extern import six
 from .. import Time, ScaleValueError, erfa_time, TIME_SCALES
+from ...utils import isiterable
 from ...coordinates import EarthLocation
 
 
@@ -814,3 +815,18 @@ def test_datetime_tzinfo():
     d = datetime(2002, 1, 2, 10, 3, 4, tzinfo=TZm6())
     t = Time(d)
     assert t.value == datetime(2002, 1, 2, 16, 3, 4)
+
+def test_isiterable():
+    """
+    Ensure that scalar `Time` instances are not reported as iterable by the
+    `isiterable` utility.
+
+    Regression test for https://github.com/astropy/astropy/issues/4048
+    """
+
+    t1 = Time.now()
+    assert not isiterable(t1)
+
+    t2 = Time(['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00'],
+              format='iso', scale='utc')
+    assert isiterable(t2)

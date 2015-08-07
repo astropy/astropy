@@ -187,6 +187,10 @@ Bug Fixes
 
 - ``astropy.time``
 
+  - Fixed iteration of scalar ``Time`` objects so that ``iter()`` correctly
+    raises a ``TypeError`` on them (while still allowing ``Time`` arrays to
+    be iterated). [#4048]
+
 - ``astropy.units``
 
   - Added frequency-equivalency check when declaring doppler equivalencies
