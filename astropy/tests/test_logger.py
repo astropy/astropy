@@ -266,6 +266,8 @@ def test_exception_logging_argless_exception():
     """
     Regression test for a crash that occurred on Python 3 when logging an
     exception that was instantiated with no arguments (no message, etc.)
+
+    Regression test for https://github.com/astropy/astropy/pull/4056
     """
 
     try:
