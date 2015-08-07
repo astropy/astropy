@@ -12,7 +12,7 @@ from contextlib import contextmanager
 
 from . import config as _config
 from . import conf as _conf
-from .extern.six import PY3
+from .extern.six import PY3, text_type
 from .utils import find_current_module
 from .utils.console import color_print
 from .utils.exceptions import AstropyWarning, AstropyUserWarning
@@ -284,7 +284,7 @@ class AstropyLogger(Logger):
         if len(value.args) > 0:
             message = '{0}: {1}'.format(etype.__name__, str(value))
         else:
-            message = unicode(etype.__name__)
+            message = text_type(etype.__name__)
 
         if mod is not None:
             self.error(message, extra={'origin': mod.__name__})
@@ -536,7 +536,7 @@ class AstropyLogger(Logger):
             except (IOError, OSError) as e:
                 warnings.warn(
                     'log file {0!r} could not be opened for writing: '
-                    '{1}'.format(log_file_path, unicode(e)), RuntimeWarning)
+                    '{1}'.format(log_file_path, text_type(e)), RuntimeWarning)
             else:
                 formatter = logging.Formatter(conf.log_file_format)
                 fh.setFormatter(formatter)
