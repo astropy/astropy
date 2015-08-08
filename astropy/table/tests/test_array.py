@@ -7,16 +7,17 @@ import numpy as np
 @pytest.fixture
 def array():
     # composite index
-    col0 = [x % 2 for x in range(1, 11)]
-    col1 = [x for x in range(1, 11)]
-    t = Table([col0, col1, np.arange(1, 11)])
-    return SortedArray(t[t.argsort()])
+    col0 = np.array([x % 2 for x in range(1, 11)])
+    col1 = np.array([x for x in range(1, 11)])
+    t = Table([col0, col1])
+    t = t[t.argsort()]
+    return SortedArray(t, t['col1'].copy())
 
 @pytest.fixture
 def wide_array():
     # array with 100 columns
     t = Table([[x] * 10 for x in np.arange(100)])
-    return SortedArray(t[t.argsort()])
+    return SortedArray(t, t['col0'].copy())
 
 def test_array_find(array):
     for i in range(1, 11):
@@ -34,4 +35,4 @@ def test_wide_array(wide_array):
     # sliced SortedArray was set to the number of columns
     # instead of the number of elements in each column
     first_row = wide_array[:1].data
-    assert np.all(first_row == [[x] for x in np.arange(100)])
+    assert np.all(first_row == Table([[x] for x in np.arange(100)]))

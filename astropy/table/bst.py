@@ -177,13 +177,11 @@ class BST(object):
     NodeClass = Node
     UNIQUE = False
 
-    def __init__(self, lines=[]):
+    def __init__(self, data, row_index):
         self.root = None
         self.size = 0
-        for row in lines:
-            row = tuple(row)
-            key, data = row[:-1], row[-1]
-            self.add(key, data)
+        for key, row in zip(data, row_index):
+            self.add(tuple(key), row)
 
     def add(self, key, data=None):
         '''
@@ -501,11 +499,10 @@ class FastBase(object):
         Sorted columns of the original table as well as
         a final column consisting of the rows given by argsort()
     '''
-    def __init__(self, lines):
+    def __init__(self, data, row_index):
         self.data = self.engine()
-        for row in np.array(lines):
-            row = tuple(row)
-            self.add(row[:-1], row[-1])
+        for key, row in zip(data, row_index):
+            self.add(tuple(key), row)
 
     def add(self, key, val):
         '''
