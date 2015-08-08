@@ -11,7 +11,7 @@ from .sorted_array import SortedArray
 The Index class can use several implementations as its
 engine. Any implementation should implement the following:
 
-__init__([Table] lines) : initializes based on key/row list pairs
+__init__(data, row_index) : initialize index based on key/row list pairs
 add(key, row) -> None : add (key, row) to existing data
 remove(key, data=None) -> boolean : remove data from self[key], or all of
                                     self[key] if data is None
@@ -58,8 +58,6 @@ class Index(object):
         Indexing engine class to use, from among SortedArray, BST,
         FastBST, and FastRBT. If the supplied argument is None (by
         default), use SortedArray.
-    col_dtypes : list or None
-        List of dtypes to use for each column
     data : SortedArray, BST, FastBST, FastRBT, or None
         Engine data to copy
     '''
@@ -68,7 +66,7 @@ class Index(object):
         self.__init__(*args, **kwargs)
         return SlicedIndex(self, slice(0, 0, None), original=True)
 
-    def __init__(self, columns, engine=None, col_dtypes=None, data=None):
+    def __init__(self, columns, engine=None, data=None):
         from .table import Table
 
         if data is not None: # create from data
@@ -96,11 +94,10 @@ class Index(object):
                 lines = table[np.lexsort(sort_columns)]
             except TypeError: # mixin columns might not work with lexsort
                 lines = table[table.argsort()]
+            data = table[table.colnames[:-1]]
+            row_index = table[table.colnames[-1]]
 
-        if self.engine == SortedArray:
-            self.data = self.engine(lines, col_dtypes=col_dtypes)
-        else:
-            self.data = self.engine(lines)
+        self.data = self.engine(data, row_index)
         self.columns = columns
 
     def __len__(self):
@@ -355,8 +352,7 @@ class Index(object):
         num_cols = self.data.num_cols if self.engine == SortedArray else None
         # create an actual Index, not a SlicedIndex
         index = super(Index, Index).__new__(Index)
-        index.__init__(None, engine=self.data.__class__, col_dtypes=
-                      [x.info.dtype for x in self.columns])
+        index.__init__(None, engine=self.data.__class__)
         index.data = deepcopy(self.data, memo)
         index.columns = self.columns[:] # new list, same columns
         memo[id(self)] = index

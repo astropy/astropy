@@ -10,33 +10,19 @@ class SortedArray(object):
 
     Parameters
     ----------
-    lines : `Table`
-        Sorted columns of the original table as well as
-        a final column consisting of the rows given by argsort()
-    col_dtypes : list or None
-        If not None, col_dtypes should be a list of types for each column
-    data : list or None
-        An internal data object to use instead of creating new data
+    data : `Table`
+        Sorted columns of the original table
+    row_index : Column object
+        Row numbers corresponding to data columns
     '''
-    def __init__(self, lines, col_dtypes=None, data=None):
-        if data is not None: # sliced reference to data
-            self.length = len(data[0])
-            self._data = data
-            return
-        elif col_dtypes is not None:
-            self.num_cols = len(col_dtypes)
-        else:
-            self.num_cols = len(lines.colnames) - 1
-            col_dtypes = [x.info.dtype for x in lines.columns[:-1].values()]
+    def __init__(self, data, row_index):
+        self._data = data
+        self.length = len(data)
+        self.num_cols = len(data.colnames)
+        self._row_index = row_index
 
-        self.length = 0 if lines is None else len(lines)
-        self._data = [np.zeros(self.length, dtype=d) for d in col_dtypes]
-        self._data.append(np.zeros(self.length, dtype='i')) # row column
-
-        if len(lines) > 0:
-            for i in range(self.num_cols):
-                self._data[i] = np.array(lines[lines.colnames[i]])
-            self._data[-1] = np.array(lines[lines.colnames[self.num_cols]])
+    def set_col(i, val):
+        self._data[self._data.colnames[i]] = val
 
     def resize(self):
         '''
@@ -49,8 +35,10 @@ class SortedArray(object):
             if increase == 0: # started out with buffer_size == 1
                 increase = 1
             buffer_size += increase
-            for i, col in enumerate(self._data):
-                self._data[i] = np.resize(col, buffer_size)
+            for i, col in enumerate(self._data.columns.values()):
+                self.set_col(i, np.resize(col, buffer_size))
+            for i in range(
+            self._row_index[
 
     def add(self, key, row):
         '''
@@ -280,7 +268,8 @@ class SortedArray(object):
         item : slice
             Slice to use for referencing
         '''
-        return SortedArray([], data=[col[item] for col in self._data])
+        ######TODO: test for correct out-of-bounds (data vs _data)
+        return SortedArray([col[item] for col in self._data])
 
     def __repr__(self):
         return '[' + ', '.join([str(x) for x in self.data]) + ']'
