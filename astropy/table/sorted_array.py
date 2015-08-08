@@ -16,29 +16,16 @@ class SortedArray(object):
         Row numbers corresponding to data columns
     '''
     def __init__(self, data, row_index):
-        self._data = data
-        self.length = len(data)
-        self.num_cols = len(data.colnames)
-        self._row_index = row_index
+        self.data = data
+        self.row_index = row_index
+        self.num_cols = len(getattr(data, 'colnames', []))
 
     def set_col(i, val):
-        self._data[self._data.colnames[i]] = val
+        self.data[self.data.colnames[i]] = val
 
-    def resize(self):
-        '''
-        Regrow the internal numpy column buffers if necessary.
-        '''
-        buffer_size = len(self._data[0])
-        if self.length == buffer_size:
-            # resize to 50% larger capacity
-            increase = int(0.5 * buffer_size)
-            if increase == 0: # started out with buffer_size == 1
-                increase = 1
-            buffer_size += increase
-            for i, col in enumerate(self._data.columns.values()):
-                self.set_col(i, np.resize(col, buffer_size))
-            for i in range(
-            self._row_index[
+    @property
+    def cols(self):
+        return self.data.columns.values()
 
     def add(self, key, row):
         '''
@@ -51,16 +38,9 @@ class SortedArray(object):
         row : int
             Row number
         '''
-        self.resize()
         pos = self.find_pos(key, row) # first >= key
-        key = key + (row,)
-
-        # shift larger keys rightward
-        for i, col in enumerate(self._data):
-            col[pos:] = np.roll(col[pos:], 1)
-            col[pos] = key[i]
-
-        self.length += 1
+        self.data.insert_row(pos, key)
+        self.row_index = self.row_index.insert(pos, row)
 
     def find_pos(self, key, data, exact=False):
         '''
@@ -78,12 +58,13 @@ class SortedArray(object):
             or -1 if the key is not present.
         '''
         begin = 0
-        end = self.length
+        end = len(self.row_index)
         key = key + (data,)
 
         # search through keys in lexicographic order
         for i in range(self.num_cols + 1):
-            key_slice = self._data[i][begin:end]
+            key_slice = self.cols[i][begin:end] if i < self.num_cols \
+                        else self.row_index[begin:end]
             t = np.searchsorted(key_slice, key[i])
             # t is the smallest index >= key[i]
             if exact and (t == len(key_slice) or key_slice[t] != key[i]):
@@ -95,7 +76,7 @@ class SortedArray(object):
                 return begin + t
             end = begin + np.searchsorted(key_slice, key[i], side='right')
             begin += t
-            if begin >= self.length: # greater than all keys
+            if begin >= len(self.row_index): # greater than all keys
                 return begin
 
         return begin
@@ -115,11 +96,11 @@ class SortedArray(object):
             List of rows matching the input key
         '''
         begin = 0
-        end = self.length
+        end = len(self.row_index)
 
         # search through keys in lexicographic order
         for i in range(self.num_cols):
-            key_slice = self._data[i][begin:end]
+            key_slice = self.cols[i][begin:end]
             t = np.searchsorted(key_slice, key[i])
             # t is the smallest index >= key[i]
             if t == len(key_slice) or key_slice[t] != key[i]:
@@ -130,10 +111,10 @@ class SortedArray(object):
                 return []
             end = begin + np.searchsorted(key_slice, key[i], side='right')
             begin += t
-            if begin >= self.length: # greater than all keys
+            if begin >= len(self.row_index): # greater than all keys
                 return []
 
-        return self._data[-1][begin:end]
+        return self.row_index[begin:end]
 
     def range(self, lower, upper, bounds):
         '''
@@ -153,22 +134,22 @@ class SortedArray(object):
         '''
         lower_pos = self.find_pos(lower, 0)
         upper_pos = self.find_pos(upper, 0)
-        if lower_pos == self.length:
+        if lower_pos == len(self.row_index):
             return []
 
-        lower_bound = tuple([col[lower_pos] for col in self._data[:-1]])
+        lower_bound = tuple([col[lower_pos] for col in self.cols])
         if not bounds[0] and lower_bound == lower:
             lower_pos += 1 # data[lower_pos] > lower
 
         # data[lower_pos] >= lower
         # data[upper_pos] >= upper
-        if upper_pos < self.length:
-            upper_bound = tuple([col[upper_pos] for col in self._data[:-1]])
+        if upper_pos < len(self.row_index):
+            upper_bound = tuple([col[upper_pos] for col in self.cols])
             if not bounds[1] and upper_bound == upper:
                 upper_pos -= 1 # data[upper_pos] < upper
             elif upper_bound > upper:
                 upper_pos -= 1 # data[upper_pos] <= upper
-        return self._data[-1][lower_pos:upper_pos + 1]
+        return self.row_index[lower_pos:upper_pos + 1]
 
     def remove(self, key, data):
         '''
@@ -190,10 +171,10 @@ class SortedArray(object):
         if pos == -1: # key not found
             return False
 
-        # shift larger keys leftward
-        for col in self._data:
-            col[pos:] = np.roll(col[pos:], -1)
-        self.length -= 1
+        self.data.remove_row(pos)
+        keep_mask = np.ones(len(self.row_index), dtype=np.bool)
+        keep_mask[pos] = False
+        self.row_index = self.row_index[keep_mask]
         return True
 
     def shift_left(self, row):
@@ -205,7 +186,7 @@ class SortedArray(object):
         row : int
             Input row number
         '''
-        self._data[-1][self._data[-1] > row] -= 1
+        self.row_index[self.row_index > row] -= 1
 
     def shift_right(self, row):
         '''
@@ -216,7 +197,7 @@ class SortedArray(object):
         row : int
             Input row number
         '''
-        self._data[-1][self.data[-1] >= row] += 1
+        self.row_index[self.row_index >= row] += 1
 
     def replace_rows(self, row_map):
         '''
@@ -229,9 +210,11 @@ class SortedArray(object):
         row_map : dict
             Mapping of row numbers to new row numbers
         '''
-        for i, col in enumerate(self._data):
-            self._data[i] = col[np.array([x in row_map for x in self._data[-1]])]
-        self._data[-1] = np.array([row_map[x] for x in self._data[-1]])
+        keep_rows = np.array([x in row_map for x in self.row_index],
+                             dtype=np.bool)
+        self.data = self.data[keep_rows]
+        self.row_index = np.array(
+            [row_map[x] for x in self.row_index[keep_rows]])
 
     def items(self):
         '''
@@ -240,8 +223,8 @@ class SortedArray(object):
         '''
         array = []
         last_key = None
-        for line in zip(*self.data):
-            key, row = line[:-1], line[-1]
+        for i, key in enumerate(zip(*self.data.columns.values())):
+            row = self.row_index[i]
             if key == last_key:
                 array[-1][1].append(row)
             else:
@@ -253,11 +236,7 @@ class SortedArray(object):
         '''
         Return rows in sorted order.
         '''
-        return self.data[-1]
-
-    @property
-    def data(self):
-        return [col[:self.length] for col in self._data]
+        return self.row_index
 
     def __getitem__(self, item):
         '''
@@ -268,11 +247,12 @@ class SortedArray(object):
         item : slice
             Slice to use for referencing
         '''
-        ######TODO: test for correct out-of-bounds (data vs _data)
-        return SortedArray([col[item] for col in self._data])
+        return SortedArray(self.data[item], self.row_index[item])
 
     def __repr__(self):
-        return '[' + ', '.join([str(x) for x in self.data]) + ']'
+        t = self.data.copy()
+        t['rows'] = self.row_index
+        return str(t)
 
     def __str__(self):
         return repr(self)

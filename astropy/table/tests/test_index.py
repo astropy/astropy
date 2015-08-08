@@ -64,6 +64,7 @@ class TestIndex(SetupData):
 
         if not self.mutable:
             return
+
         # test altering table columns
         t['a'][0] = 4
         t.add_row((6, 6.0, '7'))

@@ -5,7 +5,7 @@ import random
 import math
 
 def get_tree(TreeType):
-    b = TreeType()
+    b = TreeType([], [])
     for val in [5, 2, 9, 3, 4, 1, 6, 10, 8, 7]:
         b.add(val)
     return b

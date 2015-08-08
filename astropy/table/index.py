@@ -80,7 +80,8 @@ class Index(object):
 
         if columns is None: # this creates a special exception for deep copying
             columns = []
-            lines = []
+            data = []
+            row_index = []
         elif len(columns) == 0:
             raise ValueError("Cannot create index without at least one column")
         else:
@@ -94,8 +95,8 @@ class Index(object):
                 lines = table[np.lexsort(sort_columns)]
             except TypeError: # mixin columns might not work with lexsort
                 lines = table[table.argsort()]
-            data = table[table.colnames[:-1]]
-            row_index = table[table.colnames[-1]]
+            data = lines[lines.colnames[:-1]]
+            row_index = lines[lines.colnames[-1]]
 
         self.data = self.engine(data, row_index)
         self.columns = columns
@@ -125,7 +126,8 @@ class Index(object):
         num_rows = len(self.columns[0])
         table = Table([np.array(x) for x in self.columns] + [np.arange(num_rows)])
         lines = table[np.lexsort(self.columns[::-1])]
-        self.data = self.engine(lines)
+        self.data = self.engine(lines[lines.colnames[:-1]],
+                                lines[lines.colnames[-1]])
 
     def col_position(self, col_name):
         '''
