@@ -371,6 +371,43 @@ class TestJoin():
         np.testing.assert_allclose(t3['c'], t2['c'])
 
 
+    def test_join_multidimensional_masked(self):
+        """
+        Test for outer join with multidimensional columns where masking is required.
+        """
+        a = table.MaskedColumn([1, 2, 3], name='a')
+        a2 = table.Column([1, 3, 4], name='a')
+        b = table.MaskedColumn([[1, 2],
+                                [3, 4],
+                                [5, 6]],
+                               name='b',
+                               mask=[[1, 0],
+                                     [0, 1],
+                                     [0, 0]])
+        c = table.Column([[1, 1],
+                          [2, 2],
+                          [3, 3]],
+                         name='c')
+        t1 = Table([a, b])
+        t2 = Table([a2, c])
+        t12 = table.join(t1, t2, join_type='inner')
+
+        assert np.all(t12['b'].mask == [[ True, False],
+                                        [False, False]])
+        assert np.all(t12['c'].mask == [[False, False],
+                                        [False, False]])
+
+        t12 = table.join(t1, t2, join_type='outer')
+        assert np.all(t12['b'].mask == [[True, False],
+                                        [False, True],
+                                        [False, False],
+                                        [ True, True]])
+        assert np.all(t12['c'].mask == [[False, False],
+                                        [True, True],
+                                        [False, False],
+                                        [False, False]])
+
+
 class TestVStack():
 
     def setup_method(self, method):
