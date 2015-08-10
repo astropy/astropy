@@ -171,10 +171,14 @@ Access the data by column or row using familiar `numpy` structured array syntax:
   >>> t['a'][1]    # Row 1 of column 'a'
   4
 
-  >>> t[1]         # Row obj for with row 1 values
-  <Row 1 of table
-   values=(4, 5.0, 'y')
-   dtype=[('a', '<i4'), ('b', '<f8'), ('c', 'S1')]>
+  >>> t[1]         # Row object for table row index=1
+  <Row index=1>
+    a      b     c
+           s
+  int32 float64 str1
+  ----- ------- ----
+      4   5.000    y
+
 
   >>> t[1]['a']    # Column 'a' of row 1
   4

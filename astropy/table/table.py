@@ -579,7 +579,7 @@ class Table(object):
 
         table.columns = columns
 
-    def _base_repr_(self, html=False, descr_vals=None, max_width=None):
+    def _base_repr_(self, html=False, descr_vals=None, max_width=None, tableid=None):
         if descr_vals is None:
             descr_vals = [self.__class__.__name__]
             if self.masked:
@@ -592,7 +592,9 @@ class Table(object):
             from ..utils.xml.writer import xml_escape
             descr = xml_escape(descr)
 
-        tableid = 'table{id}'.format(id=id(self))
+        if tableid is None:
+            tableid = 'table{id}'.format(id=id(self))
+
         data_lines, outs = self.formatter._pformat_table(self, tableid=tableid, html=html,
                                                          max_width=max_width,
                                                          show_name=True, show_unit=None,

@@ -23,9 +23,11 @@ class Row(object):
       ...               dtype=('int32', 'int32'))
       >>> row = table[1]
       >>> row
-      <Row 1 of table
-       values=(2, 4)
-       dtype=[('a', '<i4'), ('b', '<i4')]>
+      <Row index=1>
+        a     b
+      int32 int32
+      ----- -----
+          2     4
       >>> row['a']
       2
       >>> row[1]
@@ -184,7 +186,8 @@ class Row(object):
         if table.masked:
             descr_vals.append('masked=True')
 
-        return table._base_repr_(html, descr_vals, max_width=-1)
+        return table._base_repr_(html, descr_vals, max_width=-1,
+                                 tableid='table{0}'.format(id(self._table)))
 
     def _repr_html_(self):
         return self._base_repr_(html=True)
