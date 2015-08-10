@@ -2067,6 +2067,10 @@ Bug Fixes
 
   - Added missing default values for ``Ellipse2D`` parameters. [#3903]
 
+- ``astropy.table``
+
+  - Fix bug when doing outer join on multi-dimensional columns. [#4060]
+
 - ``astropy.time``
 
   - Fixed iteration of scalar ``Time`` objects so that ``iter()`` correctly
