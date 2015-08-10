@@ -346,3 +346,14 @@ class TestIndex(SetupData):
 
         with pytest.raises(IndexError):
             t.indices['b']
+
+    def test_col_rename(self, main_col, table_types, engine):
+        '''
+        Checks for a previous bug in which copying a Table
+        with different column names raised an exception.
+        '''
+        self._setup(main_col, table_types)
+        t = self.t
+        t.add_index('a', engine=engine)
+        t2 = self._table_type(self.t, names=['d', 'e', 'f'])
+        assert len(t2.indices) == 1

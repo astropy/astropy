@@ -117,7 +117,10 @@ class Index(object):
         columns : list
             List of column references to use for updating
         '''
-        self.columns = [columns[x.info.name] for x in self.columns]
+        prev_names = [x.info.name for x in self.columns]
+        new_names = [x.info.name for x in columns.values()]
+        name_dict = dict(zip(prev_names, new_names))
+        self.columns = [columns[name_dict[x.info.name]] for x in self.columns]
 
     def reload(self):
         '''
