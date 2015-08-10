@@ -14,7 +14,7 @@ Univariate polynomial evaluation
 Multivariate polynomial evaluation
 ==================================
 
-* Multivariate Polynomials are evaluated following the algorithm in [1]_ .  The
+* Multivariate Polynomials are evaluated following the algorithm in [1]_ . The
   algorithm uses the following notation:
 
   - **multiindex** is a tuple of non-negative integers for which the length is
@@ -51,9 +51,9 @@ Multivariate polynomial evaluation
 
 * The evaluation of multivariate Chebyshev and Legendre polynomials uses a
   variation of the above Horner's scheme, in which every Legendre or Chebyshev
-  function is considered a separate variable.  In this case the length of the
+  function is considered a separate variable. In this case the length of the
   :math:`\alpha` indices tuple is equal to the number of functions in x plus
-  the number of functions in y.  In addition the Chebyshev and Legendre
+  the number of functions in y. In addition the Chebyshev and Legendre
   functions are cached for efficiency.
 
 

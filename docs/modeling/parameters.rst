@@ -18,22 +18,22 @@ individual models to users (including documentation).
 
 Most subclasses of `~astropy.modeling.Model`--specifically those implementing a
 specific physical or statistical model, have a fixed set of parameters that can
-be specified for instances of that model.  There are a few classes of models
+be specified for instances of that model. There are a few classes of models
 (in particular polynomials) in which the number of parameters depends on some
 other property of the model (the degree in the case of polynomials).
 
 Models maintain a list of parameter names,
-`~astropy.modeling.Model.param_names`.  Single parameters are instances of
+`~astropy.modeling.Model.param_names`. Single parameters are instances of
 `~astropy.modeling.Parameter` which provide a proxy for the actual parameter
-values.  Simple mathematical operations can be performed with them, but they
+values. Simple mathematical operations can be performed with them, but they
 also contain additional attributes specific to model parameters, such as any
 constraints on their values and documentation. See
 :ref:`here <constraining_parameters>` for examples on how to constrain
 parameters during fitting.
 
-Parameter values may be scalars *or* array values.  Some parameters are
+Parameter values may be scalars *or* array values. Some parameters are
 required by their very nature to be arrays (such as the transformation matrix
-for an `~astropy.modeling.projections.AffineTransformation2D`).  In most other
+for an `~astropy.modeling.projections.AffineTransformation2D`). In most other
 cases, however, array-valued parameters have no meaning specific to the model,
 and are simply combined with input arrays during model evaluation according to
 the standard `Numpy broadcasting rules`_.
@@ -66,13 +66,13 @@ Parameter examples
       <Gaussian1D(amplitude=2.0, mean=0.0, stddev=0.2)>
 
   So all that really matters is knowing the names (and meanings) of the
-  parameters that each model accepts.  More information about an individual
+  parameters that each model accepts. More information about an individual
   model can also be obtained using the `help` built-in::
 
       >>> help(models.Gaussian1D)  # doctest: +SKIP
 
 - Some types of models can have different numbers of parameters depending
-  on other properties of the model.  In particular, the parameters of
+  on other properties of the model. In particular, the parameters of
   polynomial models are their coefficients, the number of which depends on the
   polynomial's degree::
 
@@ -84,7 +84,7 @@ Parameter examples
 
   For the basic `~astropy.modeling.polynomial.Polynomial1D` class the
   parameters are named ``c0`` through ``cN`` where ``N`` is the degree of the
-  polynomial.  The above example represents the polynomial :math:`3x^3 + 2x^2 +
+  polynomial. The above example represents the polynomial :math:`3x^3 + 2x^2 +
   1`.
 
 - Some models also have default values for one or more of their parameters.
@@ -170,5 +170,5 @@ Parameter examples
       Traceback (most recent call last):
       ...
       InputParameterError: Parameter u'c1' of shape (2,) cannot be broadcast
-      with parameter u'c2' of shape (3,).  All parameter arrays must have
+      with parameter u'c2' of shape (3,). All parameter arrays must have
       shapes that are mutually compatible according to the broadcasting rules.

@@ -17,7 +17,7 @@ Using Models
 ------------
 
 The `astropy.modeling` package defines a number of models that are collected
-under a single namespace as ``astropy.modeling.models``.  Models behave like
+under a single namespace as ``astropy.modeling.models``. Models behave like
 parametrized functions::
 
     >>> from astropy.modeling import models
@@ -31,6 +31,8 @@ parametrized functions::
         amplitude mean stddev
         --------- ---- ------
               1.2  0.9    0.5
+
+.. _setting-params:
 
 Model parameters can be accessed as attributes::
 
@@ -109,8 +111,8 @@ that takes the initial model (``t_init`` or ``g_init``) and the data values
 The fitting framework includes many useful features that are not demonstrated
 here, such as weighting of datapoints, fixing or linking parameters, and
 placing lower or upper limits on parameters. For more information on these,
-take a look at the :doc:`fitting` documentation. A list of available models is
-provided :ref:`here <models_list>`.
+take a look at the :doc:`fitting` documentation. A list of available models can
+be found in the :doc:`Reference/API<api>`.
 
 .. _model-sets-index:
 
@@ -118,19 +120,19 @@ Model sets
 ----------
 
 In some cases it is necessary to describe many models of the same type but with
-different sets of parameter values.  This could be done simply by instantiating
-as many instances of a `~astropy.modeling.Model` as are needed.  But that can
-be inefficient for a large number of models.  To that end, all model classes in
+different sets of parameter values. This could be done simply by instantiating
+as many instances of a `~astropy.modeling.Model` as are needed. But that can
+be inefficient for a large number of models. To that end, all model classes in
 `astropy.modeling` can also be used to represent a model *set* which is a
 collection of models of the same type, but with different values for their
 parameters. For example one may instantiate a single Gaussian model with one
-mean, standard deviation, and amplitude.  Or one may create a set of N
+mean, standard deviation, and amplitude. Or one may create a set of N
 Gaussians, each one of which would be fitted to, for example, a different plane
 in an image cube.
 
 
 To instantiate a model set, use argument ``n_models=N`` where ``N`` is the
-number of models in the set when constructing the model.  The value of each
+number of models in the set when constructing the model. The value of each
 parameter must be a list or array of length ``N``, such that each item in
 the array corresponds to one model in the set::
 
@@ -148,7 +150,7 @@ the array corresponds to one model in the set::
               2.0  0.0    0.2
 
 This is equivalent to two Gaussians with the parameters ``amplitude=1, mean=0,
-stddev=0.1`` and ``amplitude=2, mean=0, stddev=0.2`` respectively.  When
+stddev=0.1`` and ``amplitude=2, mean=0, stddev=0.2`` respectively. When
 printing the model the parameter values are displayed as a table, with each row
 corresponding to a single model in the set.
 
@@ -165,7 +167,7 @@ the number of models, with one input per model::
     >>> g([0, 0.1])
     array([ 1.        ,  1.76499381])
 
-The result is an array with one result per model in the set.  It is also
+The result is an array with one result per model in the set. It is also
 possible to broadcast a single value to all models in the set::
 
     >>> g(0)
@@ -173,8 +175,8 @@ possible to broadcast a single value to all models in the set::
 
 Model sets are used primarily for fitting, allowing a large number of models of
 the same type to be fitted simultaneously (and independently from each other)
-to some large set of inputs.  For example, fitting a polynomial to the time
-response of each pixel in a data cube.  This can greatly speed up the fitting
+to some large set of inputs. For example, fitting a polynomial to the time
+response of each pixel in a data cube. This can greatly speed up the fitting
 process, especially for linear models.
 
 .. _compound-models-intro:
@@ -189,8 +191,8 @@ Compound models
 While the Astropy modeling package makes it very easy to define :doc:`new
 models <new>` either from existing functions, or by writing a
 `~astropy.modeling.Model` subclass, an additional way to create new models is
-by combining them using arithmetic expressions.  This works with models built
-into Astropy, and most user-defined models as well.  For example, it is
+by combining them using arithmetic expressions. This works with models built
+into Astropy, and most user-defined models as well. For example, it is
 possible to create a superposition of two Gaussians like so::
 
     >>> from astropy.modeling import models
@@ -198,7 +200,7 @@ possible to create a superposition of two Gaussians like so::
     >>> g2 = models.Gaussian1D(2.5, 0.5, 0.1)
     >>> g1_plus_2 = g1 + g2
 
-The resulting object ``g1_plus_2`` is itself a new model.  Evaluating, say,
+The resulting object ``g1_plus_2`` is itself a new model. Evaluating, say,
 ``g1_plus_2(0.25)`` is the same as evaluating ``g1(0.25) + g2(0.25)``::
 
     >>> g1_plus_2(0.25)  # doctest: +FLOAT_CMP
@@ -206,10 +208,10 @@ The resulting object ``g1_plus_2`` is itself a new model.  Evaluating, say,
     >>> g1_plus_2(0.25) == g1(0.25) + g2(0.25)
     True
 
-This model can be further combined with other models in new expressions.  It is
+This model can be further combined with other models in new expressions. It is
 also possible to define entire new model *classes* using arithmetic expressions
-of other model classes.  This allows general compound models to be created
-without specifying any parameter values up front.  This more advanced usage is
+of other model classes. This allows general compound models to be created
+without specifying any parameter values up front. This more advanced usage is
 explained in more detail in the :ref:`compound model documentation
 <compound-model-classes>`.
 
@@ -243,5 +245,5 @@ These new compound models can also be fitted to data, like most other models:
 
 This works for 1-D models, 2-D models, and combinations thereof, though there
 are some complexities involved in correctly matching up the inputs and outputs
-of all models used to build a compound model.  You can learn more details in
+of all models used to build a compound model. You can learn more details in
 the :doc:`compound-models` documentation.

@@ -8,7 +8,7 @@ instance of `~astropy.modeling.FittableModel` as input and modify its
 ``parameters`` attribute. The idea is to make this extensible and allow
 users to easily add other fitters.
 
-Linear fitting is done using Numpy's `numpy.linalg.lstsq` function.  There are
+Linear fitting is done using Numpy's `numpy.linalg.lstsq` function. There are
 currently two non-linear fitters which use `scipy.optimize.leastsq` and
 `scipy.optimize.fmin_slsqp`.
 
@@ -17,7 +17,7 @@ The rules for passing input to fitters are:
 * Non-linear fitters currently work only with single models (not model sets).
 
 * The linear fitter can fit a single input to multiple model sets creating
-  multiple fitted models.  This may require specifying the ``model_set_axis``
+  multiple fitted models. This may require specifying the ``model_set_axis``
   argument just as used when evaluating models; this may be required for the
   fitter to know how to broadcast the input data.
 
@@ -75,7 +75,7 @@ Fitters support constrained fitting.
 
 - Bounded fitting is supported through the ``bounds`` arguments to models or by
   setting `~astropy.modeling.Parameter.min` and `~astropy.modeling.Parameter.max`
-  attributes on a parameter.  Bounds for the
+  attributes on a parameter. Bounds for the
   `~astropy.modeling.fitting.LevMarLSQFitter` are always exactly satisfied--if
   the value of the parameter is outside the fitting interval, it will be reset
   to the value at the bounds. The `~astropy.modeling.fitting.SLSQPLSQFitter`
@@ -102,7 +102,7 @@ Simple 2-D model fitting
 ------------------------
 
 Similarly to the :ref:`1-D example <1D-fitting>`, we can create a simulated 2-D data dataset, and
-fit a polynomial model to it.  This could be used for example to fit the
+fit a polynomial model to it. This could be used for example to fit the
 background in an image.
 
 .. plot::
@@ -179,12 +179,3 @@ simultaneously::
           --- --- ------------------ -----------------
           1.0 2.0 -5.86673908219e-16 3.61636197841e-17
           1.0 2.0 -5.86673908219e-16 3.61636197841e-17
-
-
-.. _available-fitters:
-
-Available fitters
-=================
-
-.. automodsumm:: astropy.modeling.fitting
-   :classes-only:
