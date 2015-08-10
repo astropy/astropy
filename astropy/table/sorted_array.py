@@ -20,9 +20,6 @@ class SortedArray(object):
         self.row_index = row_index
         self.num_cols = len(getattr(data, 'colnames', []))
 
-    def set_col(i, val):
-        self.data[self.data.colnames[i]] = val
-
     @property
     def cols(self):
         return self.data.columns.values()
