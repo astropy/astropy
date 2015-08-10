@@ -115,6 +115,7 @@ New Features
 
   - Added ``cenfunc``, ``stdfunc``, and ``axis`` keywords to
     ``sigma_clipped_stats``. [#3792]
+
   - Added the ``histogram`` routine, which is similar to ``np.histogram`` but
     includes several additional options for automatic determination of optimal
     histogram bins. Associated helper routines include ``bayesian_blocks``,
@@ -322,6 +323,9 @@ API changes
 
   - Renamed the ``sigma_clipped_stats`` ``mask_val`` keyword to
     ``mask_value``. [#3595]
+
+  - Changed the default ``iters`` keyword value to 5 in both the
+    ``sigma_clip`` and ``sigma_clipped_stats`` functions. [#4067]
 
 - ``astropy.table``
 
