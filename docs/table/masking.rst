@@ -53,12 +53,12 @@ available for a masked table.
 
 **Create a table with one or more columns as a MaskedColumn object**
 
-  >>> a = MaskedColumn([1, 2], name='a', mask=[False, True])
-  >>> b = Column([3, 4], name='b')
+  >>> a = MaskedColumn([1, 2], name='a', mask=[False, True], dtype='i4')
+  >>> b = Column([3, 4], name='b', dtype='i8')
   >>> Table([a, b])
   <Table masked=True length=2>
     a     b
-  int64 int64
+  int32 int64
   ----- -----
       1     3
      --     4
