@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 from copy import deepcopy
 import numpy as np
 
+from ..extern import six
 from .bst import BST, FastBST, FastRBT, MinValue, MaxValue
 from .sorted_array import SortedArray
 
@@ -89,7 +90,7 @@ class Index(object):
             num_rows = len(columns[0])
             names = ['col{0}'.format(i) for i in range(num_cols + 1)]
             # sort the table lexicographically and keep row numbers
-            table = Table(columns + [np.arange(num_rows)], names=names)
+            table = Table(columns + [np.arange(num_rows)])
             sort_columns = columns[::-1]
             try:
                 lines = table[np.lexsort(sort_columns)]
@@ -632,3 +633,43 @@ class index_mode(object):
             for index in self.table.indices:
                 index._frozen = False
                 index.reload()
+
+class TableIndices(list):
+    '''
+    A special list of table indices allowing
+    for retrieval by column name(s).
+
+    Parameters
+    ----------
+    lst : list
+        List of indices
+    '''
+    def __init__(self, lst):
+        super(TableIndices, self).__init__(lst)
+
+    def __getitem__(self, item):
+        '''
+        Retrieve an item from the list of indices.
+
+        Parameters
+        ----------
+        item : int, str, tuple, or list
+            Position in list or name(s) of indexed column(s)
+        '''
+        if isinstance(item, six.string_types):
+            item = [item]
+        if isinstance(item, (list, tuple)):
+            item = list(item)
+            for index in self:
+                try:
+                    for name in item:
+                        index.col_position(name)
+                    if len(index.columns) == len(item):
+                        return index
+                except ValueError:
+                    pass
+            # index search failed
+            raise IndexError("No index found for {0}".format(item))
+
+        return super(TableIndices, self).__getitem__(item)
+                    
