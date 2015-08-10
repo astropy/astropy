@@ -579,11 +579,12 @@ class Table(object):
 
         table.columns = columns
 
-    def _base_repr_(self, html=False):
-        descr_vals = [self.__class__.__name__]
-        if self.masked:
-            descr_vals.append('masked=True')
-        descr_vals.append('length={0}'.format(len(self)))
+    def _base_repr_(self, html=False, descr_vals=None, max_width=None):
+        if descr_vals is None:
+            descr_vals = [self.__class__.__name__]
+            if self.masked:
+                descr_vals.append('masked=True')
+            descr_vals.append('length={0}'.format(len(self)))
 
         descr = '<' + ' '.join(descr_vals) + '>\n'
 
@@ -592,9 +593,10 @@ class Table(object):
             descr = xml_escape(descr)
 
         tableid = 'table{id}'.format(id=id(self))
-        data_lines, outs = self.formatter._pformat_table(self,
-            tableid=tableid, html=html, max_width=(-1 if html else None),
-            show_name=True, show_unit=None, show_dtype=True)
+        data_lines, outs = self.formatter._pformat_table(self, tableid=tableid, html=html,
+                                                         max_width=max_width,
+                                                         show_name=True, show_unit=None,
+                                                         show_dtype=True)
 
         out = descr + '\n'.join(data_lines)
         if six.PY2 and isinstance(out, six.text_type):
@@ -603,10 +605,10 @@ class Table(object):
         return out
 
     def _repr_html_(self):
-        return self._base_repr_(html=True)
+        return self._base_repr_(html=True, max_width=-1)
 
     def __repr__(self):
-        return self._base_repr_(html=False)
+        return self._base_repr_(html=False, max_width=None)
 
     def __unicode__(self):
         return '\n'.join(self.pformat())
