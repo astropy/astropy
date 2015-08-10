@@ -62,7 +62,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
     iters : int or `None`, optional
         The number of iterations to perform sigma clipping, or `None` to
         clip until convergence is achieved (i.e., continue until the
-        last iteration clips nothing). Defaults to 1.
+        last iteration clips nothing). Defaults to 5.
     cenfunc : callable, optional
         The function used to compute the center for the clipping. Must
         be a callable that takes in a masked array and outputs the
@@ -247,7 +247,7 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
         The number of iterations to perform sigma clipping, or `None` to
         clip until convergence is achieved (i.e., continue until the
         last iteration clips nothing) when calculating the image
-        statistics. Defaults to `None`.
+        statistics. Defaults to 5.
 
     cenfunc : callable, optional
         The function used to compute the center for the clipping. Must
