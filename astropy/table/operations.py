@@ -639,8 +639,7 @@ def _join(left, right, keys=None, join_type='inner',
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, ie. (length, 1, 1, ..).
             # Mixin columns might not have ndim attribute so use len(col.shape).
-            mask_shape = [out[out_name].shape[0]] + [1] * (len(out[out_name].shape) - 1)
-            array_mask = array_mask.reshape(mask_shape)
+            array_mask.shape = (out[out_name].shape[0],) + (1,) * (len(out[out_name].shape) - 1)
 
             if array.masked:
                 array_mask = array_mask | array[name].mask[array_out]

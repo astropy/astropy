@@ -374,6 +374,7 @@ class TestJoin():
     def test_join_multidimensional_masked(self):
         """
         Test for outer join with multidimensional columns where masking is required.
+        (Issue #4059).
         """
         a = table.MaskedColumn([1, 2, 3], name='a')
         a2 = table.Column([1, 3, 4], name='a')
