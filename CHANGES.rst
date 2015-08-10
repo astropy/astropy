@@ -454,150 +454,7 @@ Other Changes and Additions
 - The version of ``PLY`` that ships with astropy has been updated to 3.6.
 
 
-1.0.4 (unreleased)
-------------------
-
-New Features
-^^^^^^^^^^^^
-
-- ``astropy.convolution``
-
-  - Modified Cython functions to release the GIL. This enables convolution
-    to be parallelized effectively and gives large speedups when used with
-    multithreaded task schedulers such as Dask. [#3949]
-
-API Changes
-^^^^^^^^^^^
-
-- ``astropy.coordinates``
-
-  - Some transformations for an input coordinate that's a scalar now correctly
-    return a scalar.  This was always the intended behavior, but it may break
-    code that has been written to work-around this bug, so it may be viewed as
-    an unplanned API change [#3920]
-
-- ``astropy.visualization``
-
-  - The ``astropy_mpl_style`` no longer sets ``interactive`` to ``True``, but
-    instead leaves it at the user preference.  This makes using the style
-    compatible with building docs with Sphinx, and other non-interactive
-    contexts. [#4030]
-
-Bug Fixes
-^^^^^^^^^
-
-- ``astropy.coordinates``
-
-  - Fix bug where coordinate representation setting gets reset to default value
-    when coordinate array is indexed or sliced. [#3824]
-
-  - Fixed confusing warning message shown when using dates outside current IERS
-    data. [#3844]
-
-  - ``get_sun`` now yields a scalar when the input time is a scalar (this was a
-    regression in v1.0.3 from v1.0.2) [#3998]
-
-  - Fixed bug where some scalar coordinates were incorrectly being changed to
-    length-1 array coordinates after transforming through certain frames.
-    [#3920]
-
-  - Fixed bug causing the ``separation`` methods of ``SkyCoord`` and frame
-    classes to fail due to infinite recursion [#4033]
-
-  - Made it so that passing in a list of ``SkyCoord`` objects that are in
-    UnitSphericalRepresentation to the ``SkyCoord`` constructor appropriately
-    yields a new object in UnitSphericalRepresentation [#3938]
-
-- ``astropy.cosmology``
-
-  - Fixed wCDM to not ignore the Ob0 parameter on initialization. [#3934]
-
-- ``astropy.io.fits``
-
-  - Fixed crash when updating data in a random groups HDU opened in update
-    mode. [#3730]
-
-  - Fixed incorrect checksum / datasum being written when re-writing a scaled
-    HDU (i.e. non-trivial BSCALE and/or BZERO) with
-    ``do_not_scale_image_data=False``. [#3883]
-
-  - Fixed stray deprecation warning in ``BinTableHDU.copy()``. [#3789]
-
-  - Better handling of the ``BLANK`` keyword when auto-scaling scaled image
-    data.  The ``BLANK`` keyword is now removed from the header after
-    auto-scaling is applied, and it is restored properly (with floating point
-    NaNs replaced by the filler value) when updating a file opened with the
-    ``scale_back=True`` argument.  Invalid usage of the ``BLANK`` keyword is
-    also better warned about during validation. [#3865]
-
-  - Reading memmaped scaled images won't fail when
-    ``do_not_scale_image_data=True`` (that is, since we're just reading the raw
-    / physical data there is no reason mmap can't be used). [#3766]
-
-  - Fixed a reference cycle that could sometimes cause FITS table-related
-    objects (``BinTableHDU``, ``ColDefs``, etc.) to hang around in memory
-    longer than expected. [#4012]
-
-- ``astropy.modeling``
-
-  - Improved support for pickling of compound models, including both compound
-    model instances, and new compound model classes. [#3867]
-
-  - Added missing default values for ``Ellipse2D`` parameters. [#3903]
-
-- ``astropy.table``
-
-  - Fix bug when doing outer join on multi-dimensional columns. [#4060]
-
-- ``astropy.time``
-
-  - Fixed iteration of scalar ``Time`` objects so that ``iter()`` correctly
-    raises a ``TypeError`` on them (while still allowing ``Time`` arrays to be
-    iterated). [#4048]
-
-- ``astropy.units``
-
-  - Fixed the documentation of supported units to correctly report support for
-    SI prefixes.  Previously the table of supported units incorrectly showed
-    several derived unit as not supporting prefixes, when in fact they do.
-    [#3835]
-
-  - Fix a crash when calling ``astropy.units.cds.enable()``.  This will now
-    "set" rather than "add" units to the active set to avoid the namespace
-    clash with the default units. [#3873]
-
-  - Ensure in-place operations on ``float32`` quantities work. [#4007]
-
-- ``astropy.utils``
-
-  - The ``deprecated`` decorator did not correctly wrap classes that have a
-    custom metaclass--the metaclass could be dropped from the deprecated
-    version of the class. [#3997]
-
-  - The ``wraps`` decorator would copy the wrapped function's name to the
-    wrapper function even when ``'__name__'`` is excluded from the ``assigned``
-    argument. [#4016]
-
-- Misc
-
-  - ``fitscheck`` no longer causes scaled image data to be rescaled when
-    adding checksums to existing files. [#3884]
-
-  - Fixed an issue where running ``import astropy`` from within the source
-    tree did not automatically build the extension modules if the source is
-    from a source distribution (as opposed to a git repository). [#3932]
-
-  - Fixed multiple instances of a bug that prevented Astropy from being used
-    when compiled with the ``python -OO`` flag, due to it causing all
-    docstrings to be stripped out. [#3923]
-
-  - Removed source code template files that were being installed
-    accidentally alongside installed Python modules. [#4014]
-
-  - Fixed a bug in the exception logging that caused a crash in the exception
-    handler itself on Python 3 when exceptions do not include a message.
-    [#4056]
-1.0.4 (unreleased)
+1.0.5 (unreleased)
 ------------------
 
 New Features
@@ -715,6 +572,8 @@ Bug Fixes
 
 - ``astropy.table``
 
+  - Fix bug when doing outer join on multi-dimensional columns. [#4060]
+
 - ``astropy.time``
 
 - ``astropy.units``
@@ -729,6 +588,147 @@ Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Nothing changed yet.
+
+
+1.0.4 (unreleased)
+------------------
+
+New Features
+^^^^^^^^^^^^
+
+- ``astropy.convolution``
+
+  - Modified Cython functions to release the GIL. This enables convolution
+    to be parallelized effectively and gives large speedups when used with
+    multithreaded task schedulers such as Dask. [#3949]
+
+API Changes
+^^^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - Some transformations for an input coordinate that's a scalar now correctly
+    return a scalar.  This was always the intended behavior, but it may break
+    code that has been written to work-around this bug, so it may be viewed as
+    an unplanned API change [#3920]
+
+- ``astropy.visualization``
+
+  - The ``astropy_mpl_style`` no longer sets ``interactive`` to ``True``, but
+    instead leaves it at the user preference.  This makes using the style
+    compatible with building docs with Sphinx, and other non-interactive
+    contexts. [#4030]
+
+Bug Fixes
+^^^^^^^^^
+
+- ``astropy.coordinates``
+
+  - Fix bug where coordinate representation setting gets reset to default value
+    when coordinate array is indexed or sliced. [#3824]
+
+  - Fixed confusing warning message shown when using dates outside current IERS
+    data. [#3844]
+
+  - ``get_sun`` now yields a scalar when the input time is a scalar (this was a
+    regression in v1.0.3 from v1.0.2) [#3998]
+
+  - Fixed bug where some scalar coordinates were incorrectly being changed to
+    length-1 array coordinates after transforming through certain frames.
+    [#3920]
+
+  - Fixed bug causing the ``separation`` methods of ``SkyCoord`` and frame
+    classes to fail due to infinite recursion [#4033]
+
+  - Made it so that passing in a list of ``SkyCoord`` objects that are in
+    UnitSphericalRepresentation to the ``SkyCoord`` constructor appropriately
+    yields a new object in UnitSphericalRepresentation [#3938]
+
+- ``astropy.cosmology``
+
+  - Fixed wCDM to not ignore the Ob0 parameter on initialization. [#3934]
+
+- ``astropy.io.fits``
+
+  - Fixed crash when updating data in a random groups HDU opened in update
+    mode. [#3730]
+
+  - Fixed incorrect checksum / datasum being written when re-writing a scaled
+    HDU (i.e. non-trivial BSCALE and/or BZERO) with
+    ``do_not_scale_image_data=False``. [#3883]
+
+  - Fixed stray deprecation warning in ``BinTableHDU.copy()``. [#3789]
+
+  - Better handling of the ``BLANK`` keyword when auto-scaling scaled image
+    data.  The ``BLANK`` keyword is now removed from the header after
+    auto-scaling is applied, and it is restored properly (with floating point
+    NaNs replaced by the filler value) when updating a file opened with the
+    ``scale_back=True`` argument.  Invalid usage of the ``BLANK`` keyword is
+    also better warned about during validation. [#3865]
+
+  - Reading memmaped scaled images won't fail when
+    ``do_not_scale_image_data=True`` (that is, since we're just reading the raw
+    / physical data there is no reason mmap can't be used). [#3766]
+
+  - Fixed a reference cycle that could sometimes cause FITS table-related
+    objects (``BinTableHDU``, ``ColDefs``, etc.) to hang around in memory
+    longer than expected. [#4012]
+
+- ``astropy.modeling``
+
+  - Improved support for pickling of compound models, including both compound
+    model instances, and new compound model classes. [#3867]
+
+  - Added missing default values for ``Ellipse2D`` parameters. [#3903]
+
+- ``astropy.time``
+
+  - Fixed iteration of scalar ``Time`` objects so that ``iter()`` correctly
+    raises a ``TypeError`` on them (while still allowing ``Time`` arrays to be
+    iterated). [#4048]
+
+- ``astropy.units``
+
+  - Fixed the documentation of supported units to correctly report support for
+    SI prefixes.  Previously the table of supported units incorrectly showed
+    several derived unit as not supporting prefixes, when in fact they do.
+    [#3835]
+
+  - Fix a crash when calling ``astropy.units.cds.enable()``.  This will now
+    "set" rather than "add" units to the active set to avoid the namespace
+    clash with the default units. [#3873]
+
+  - Ensure in-place operations on ``float32`` quantities work. [#4007]
+
+- ``astropy.utils``
+
+  - The ``deprecated`` decorator did not correctly wrap classes that have a
+    custom metaclass--the metaclass could be dropped from the deprecated
+    version of the class. [#3997]
+
+  - The ``wraps`` decorator would copy the wrapped function's name to the
+    wrapper function even when ``'__name__'`` is excluded from the ``assigned``
+    argument. [#4016]
+
+- Misc
+
+  - ``fitscheck`` no longer causes scaled image data to be rescaled when
+    adding checksums to existing files. [#3884]
+
+  - Fixed an issue where running ``import astropy`` from within the source
+    tree did not automatically build the extension modules if the source is
+    from a source distribution (as opposed to a git repository). [#3932]
+
+  - Fixed multiple instances of a bug that prevented Astropy from being used
+    when compiled with the ``python -OO`` flag, due to it causing all
+    docstrings to be stripped out. [#3923]
+
+  - Removed source code template files that were being installed
+    accidentally alongside installed Python modules. [#4014]
+
+  - Fixed a bug in the exception logging that caused a crash in the exception
+    handler itself on Python 3 when exceptions do not include a message.
+    [#4056]
 
 
 1.0.3 (2015-06-05)
