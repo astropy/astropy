@@ -253,7 +253,7 @@ class Index(object):
         '''
         return self.same_prefix_range(key, key, (True, True))
 
-    def same_prefix_range(self, lower, upper, bounds):
+    def same_prefix_range(self, lower, upper, bounds=(True, True)):
         '''
         Return rows whose keys have a prefix in the given range.
 
@@ -275,8 +275,8 @@ class Index(object):
         b = MaxValue() if bounds[1] else MinValue()
         # [x, y] search corresponds to [(x, min), (y, max)]
         # (x, y) search corresponds to ((x, max), (x, min))
-        lower = tuple(lower + (ncols - n) * [a])
-        upper = tuple(upper + (ncols - n) * [b])
+        lower = lower + tuple((ncols - n) * [a])
+        upper = upper + tuple((ncols - n) * [b])
         return self.data.range(lower, upper, bounds)
 
     def replace(self, row, col_name, val):
@@ -477,7 +477,7 @@ class SlicedIndex(object):
         return self.sliced_coords(self.index.where(col_map))
 
     def range(self, lower, upper):
-        return self.sliced_coords(self.index.range(lower, upper))
+        return self.sliced_coords(self.index.same_prefix_range(lower, upper))
 
     def same_prefix(self, key):
         return self.sliced_coords(self.index.same_prefix(key))
@@ -676,3 +676,62 @@ class TableIndices(list):
 
         return super(TableIndices, self).__getitem__(item)
                     
+
+class TableLoc(object):
+    '''
+    A pseudo-list of Table rows allowing for retrieval
+    of rows by indexed column values.
+
+    Parameters
+    ----------
+    table : Table
+        Indexed table to use
+    '''
+    def __init__(self, table):
+        self.table = table
+        self.indices = table.indices
+        if len(self.indices) == 0:
+            raise ValueError("Cannot create TableLoc object with no indices")
+
+    def __getitem__(self, item):
+        '''
+        Retrieve Table rows by value slice.
+
+        Parameters
+        ----------
+        item : slice or tuple
+            Either a value slice on the table primary index, or a
+            tuple (key, slice) providing a specific table index.
+        '''
+        if isinstance(item, tuple):
+            key, item = item
+        else:
+            key = 0
+        if not isinstance(item, slice):
+            raise ValueError("TableLoc object can only be indexed by slice")
+
+        index = self.indices[key]
+        rows = index.range((item.start,), (item.stop,))
+        return self.table[rows]
+
+class TableILoc(TableLoc):
+    '''
+    A variant of TableLoc allowing for row retrieval by
+    indexed order rather than data values.
+
+    Parameters
+    ----------
+    table : Table
+        Indexed table to use
+    '''
+    def __init__(self, table):
+        super(TableILoc, self).__init__(table)
+
+    def __getitem__(self, item):
+        if isinstance(item, tuple):
+            key, item = item
+        else:
+            key = 0
+        index = self.indices[key]
+        rows = index.sorted_data()[item]
+        return self.table[rows]

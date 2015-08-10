@@ -357,3 +357,22 @@ class TestIndex(SetupData):
         t.add_index('a', engine=engine)
         t2 = self._table_type(self.t, names=['d', 'e', 'f'])
         assert len(t2.indices) == 1
+
+    def test_table_loc(self, main_col, table_types, engine):
+        self._setup(main_col, table_types)
+
+        if isinstance(main_col, Time):
+            return ##TODO: implement loc for Time
+        t = self.t
+        t.add_index('a', engine=engine)
+        t.add_index('b', engine=engine)
+        t2 = t.loc[3:5] # 'a' is the primary key
+        assert_col_equal(t2['a'], [3, 4, 5])
+        t3 = t.loc['b', 5.0:7.0]
+        assert_col_equal(t3['b'], [5.1, 6.2, 7.0])
+        # search by sorted index
+        t4 = t.iloc[0:2]
+        assert_col_equal(t4['a'], [1, 2])
+        t5 = t.iloc['b', 2:]
+        assert_col_equal(t5['b'], [5.1, 6.2, 7.0])
+

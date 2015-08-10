@@ -5,7 +5,7 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 from .sorted_array import SortedArray
-from .index import QueryError, TableIndices
+from .index import QueryError, TableIndices, TableLoc, TableILoc
 
 import re
 import sys
@@ -421,6 +421,22 @@ class Table(object):
                 if sum([index is x for x in lst]) == 0: # ensure uniqueness
                     lst.append(index)
         return TableIndices(lst)
+
+    @property
+    def loc(self):
+        '''
+        Return a TableLoc object that can be used for retrieving
+        rows by index in a given data range.
+        '''
+        return TableLoc(self)
+
+    @property
+    def iloc(self):
+        '''
+        Return a TableILoc object that can be used for retrieving
+        indexed rows in the order they appear in the index.
+        '''
+        return TableILoc(self)
 
     def _get_slice(self, col, item):
         '''
