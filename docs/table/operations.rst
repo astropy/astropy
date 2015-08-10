@@ -588,8 +588,9 @@ matching values from the right table when available, this is known as a left joi
    M31 2012-01-02  17.0  16.0    --
    M82 2012-10-29  16.2  15.2  45.0
 
-Two of the observations do not have X-ray data, as indicated by the "--" in the table.
-When there are any missing values the output will be a masked table.  You might be
+Two of the observations do not have X-ray data, as indicated by the ``--`` in the table.
+When there are any missing values the output will be a masked table (see
+:ref:`masking_and_missing_values` for more information).  You might be
 surprised that there is no X-ray data for M31 in the output.  Remember that the default
 matching key includes both ``name`` and ``obs_date``.  Specifying the key as only the
 ``name`` column gives::
