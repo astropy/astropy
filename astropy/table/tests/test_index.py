@@ -334,3 +334,15 @@ class TestIndex(SetupData):
 
             assert len(t['a'][::-1].info.indices) == 0
             assert len(t2['a'][::-1].info.indices) == 0
+
+    def test_index_retrieval(self, main_col, table_types, engine):
+        self._setup(main_col, table_types)
+        t = self.t
+        t.add_index('a', engine=engine)
+        t.add_index(['a', 'c'], engine=engine)
+        assert len(t.indices) == 2
+        assert len(t.indices['a'].columns) == 1
+        assert len(t.indices['a', 'c'].columns) == 2
+
+        with pytest.raises(IndexError):
+            t.indices['b']

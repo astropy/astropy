@@ -5,7 +5,7 @@ from ..extern import six
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 from .sorted_array import SortedArray
-from .index import QueryError
+from .index import QueryError, TableIndices
 
 import re
 import sys
@@ -412,14 +412,15 @@ class Table(object):
     @property
     def indices(self):
         '''
-        Return the indices associated with columns of the table.
+        Return the indices associated with columns of the table
+        as a TableIndices object.
         '''
         lst = []
         for column in self.columns.values():
             for index in column.info.indices:
                 if sum([index is x for x in lst]) == 0: # ensure uniqueness
                     lst.append(index)
-        return lst
+        return TableIndices(lst)
 
     def _get_slice(self, col, item):
         '''
@@ -431,6 +432,8 @@ class Table(object):
     def add_index(self, colnames, engine=None):
         '''
         Insert a new index among one or more columns.
+        If there are no indices, make this index the
+        primary table index.
 
         Parameters
         ----------
@@ -458,6 +461,9 @@ class Table(object):
     def remove_indices(self, colname):
         '''
         Remove all indices involving the given column.
+        If the primary index is removed, the new primary
+        index will be the most recently added remaining
+        index.
 
         Parameters
         ----------
