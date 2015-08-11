@@ -263,9 +263,16 @@ class TestIndex(SetupData):
             return
 
         # sort table by column a
-        t.sort('a')
-        assert_col_equal(t['a'], [1, 2, 3, 4, 5])
-        assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+        t2 = t.copy()
+        t2.sort('a')
+        assert_col_equal(t2['a'], [1, 2, 3, 4, 5])
+        assert np.all(t2.indices[0].sorted_data() == [0, 1, 2, 3, 4])
+
+        # sort table by primary key
+        t2 = t.copy()
+        t2.sort()
+        assert_col_equal(t2['a'], [1, 2, 3, 4, 5])
+        assert np.all(t2.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
     def test_insert_row(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
@@ -371,8 +378,11 @@ class TestIndex(SetupData):
         t3 = t.loc['b', 5.0:7.0]
         assert_col_equal(t3['b'], [5.1, 6.2, 7.0])
         # search by sorted index
-        t4 = t.iloc[0:2]
+        t4 = t.iloc[0:2] # two smallest rows by column 'a'
         assert_col_equal(t4['a'], [1, 2])
-        t5 = t.iloc['b', 2:]
+        t5 = t.iloc['b', 2:] # exclude two smallest rows in column 'b'
         assert_col_equal(t5['b'], [5.1, 6.2, 7.0])
 
+    def test_primary_key(self, main_col, table_types, engine):
+        self._setup(main_col, table_types)
+        t = self.t
