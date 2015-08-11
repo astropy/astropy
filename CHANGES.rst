@@ -591,7 +591,7 @@ Other Changes and Additions
 - Nothing changed yet.
 
 
-1.0.4 (unreleased)
+1.0.4 (2015-08-11)
 ------------------
 
 New Features
