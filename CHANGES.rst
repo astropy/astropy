@@ -441,10 +441,6 @@ Bug fixes
   - Added frequency-equivalency check when declaring doppler equivalencies
     [#3728]
 
-  - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
-    ``divmod``, such that it only works where the quotient is dimensionless.
-    This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817]
-
 - ``astropy.utils``
 
 - ``astropy.visualization``
@@ -696,6 +692,10 @@ Bug Fixes
     iterated). [#4048]
 
 - ``astropy.units``
+
+  - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
+    ``divmod``, such that it only works where the quotient is dimensionless.
+    This guarantees that ``(q1 // q2) * q2 + (q1 % q2) == q1``. [#3817]
 
   - Fixed the documentation of supported units to correctly report support for
     SI prefixes.  Previously the table of supported units incorrectly showed
