@@ -23,7 +23,7 @@ from .common import assert_equal, assert_almost_equal, assert_true
 from ....tests.helper import pytest
 from ....extern import six
 
-TRAVIS = os.environ.get('TRAVIS', False)
+TRAVIS = str('TRAVIS') in os.environ
 
 def assert_table_equal(t1, t2, check_meta=False):
     assert_equal(len(t1), len(t2))
@@ -940,6 +940,8 @@ def test_fortran_reader(parallel):
     expected = Table([['1.0001+1', '.42d0'], ['2.3+10', '0.5'], ['3+1001', '3'],
                       ['2', '4.56-123.4'], [8000, 4.2e-122]], 
                      names=('A', 'B', 'C', 'D', 'E'))
+    if parallel and TRAVIS:
+        pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
     table = ascii.read(text, format='basic', guess=False, 
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
