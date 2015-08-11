@@ -438,9 +438,6 @@ Bug fixes
 
 - ``astropy.units``
 
-  - Added frequency-equivalency check when declaring doppler equivalencies
-    [#3728]
-
 - ``astropy.utils``
 
 - ``astropy.visualization``
@@ -692,6 +689,9 @@ Bug Fixes
     iterated). [#4048]
 
 - ``astropy.units``
+
+  - Added frequency-equivalency check when declaring doppler equivalencies
+    [#3728]
 
   - Define ``floor_divide`` (``//``) for ``Quantity`` to be consistent
     ``divmod``, such that it only works where the quotient is dimensionless.
