@@ -926,3 +926,20 @@ def test_fortran_reader(parallel):
     table = ascii.read(text, format='basic', guess=False, 
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
+
+    # additional corner-case checks
+    text = 'A B C\n1.0001+101 2.0+000 3\n0.42+000 0.5 .42-000'
+    expected['C'][1] = 4.2e-1
+    table = ascii.read(text, format='basic', guess=False, 
+                       fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
+    assert_table_equal(table, expected)
+
+    # test for invalid exponent-like patterns (no triple-digits) to make sure
+    # they are parsed as strings
+    text = 'A B C D E\n1.0001+1 2.3+10 3+1001 2 8.e3\n.42d0 0.5 3 4.56-123.4 0.42-123'
+    expected = Table([['1.0001+1', '.42d0'], ['2.3+10', '0.5'], ['3+1001', '3'],
+                      ['2', '4.56-123.4'], [8000, 4.2e-122]], 
+                     names=('A', 'B', 'C', 'D', 'E'))
+    table = ascii.read(text, format='basic', guess=False, 
+                       fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
+    assert_table_equal(table, expected)

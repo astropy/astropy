@@ -763,6 +763,10 @@ conversion_error:
 // Modifications by Michael Mueller, August 2014:
 // * Cache powers of 10 in memory to avoid rounding errors
 // * Stop parsing decimals after 17 significant figures
+// Modifications by Derek Homeier, August 2015:
+// * Recognise alternative exponent characters passed in 'sci'; try automatic
+//   detection of allowed Fortran formats with sci='A'
+// * Require exactly 3 digits in exponent for Fortran-type format '8.7654+321'
 //
 
 double xstrtod(const char *str, char **endptr, char decimal,
@@ -776,6 +780,7 @@ double xstrtod(const char *str, char **endptr, char decimal,
     int num_digits;
     int num_decimals;
     int max_digits = 17;
+    int num_exp = 3;
     int n;
     // Cache powers of 10 in memory
     static double e[] = {1., 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10,
@@ -906,7 +911,14 @@ double xstrtod(const char *str, char **endptr, char decimal,
             while (isdigit(*p))
             {
                 n = n * 10 + (*p - '0');
+                num_exp--;
                 p++;
+            }
+            // Trigger error if not exactly three digits
+            if (num_exp != 0 && (exp == '+' || exp == '-'))
+            {
+               errno = ERANGE;
+               return 0.0;
             }
 
             if (negative)
