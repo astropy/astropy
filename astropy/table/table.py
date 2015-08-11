@@ -243,6 +243,7 @@ class Table(object):
         self.formatter = self.TableFormatter()
         self._copy_indices = True # copy indices from this Table by default
         self._init_indices = copy_indices # whether to copy indices in init
+        self.primary_key = None
 
         # Must copy if dtype are changing
         if not copy and dtype is not None:
@@ -426,7 +427,8 @@ class Table(object):
     def loc(self):
         '''
         Return a TableLoc object that can be used for retrieving
-        rows by index in a given data range.
+        rows by index in a given data range. Note that both loc
+        and iloc work only with single-column indices.
         '''
         return TableLoc(self)
 
@@ -471,6 +473,8 @@ class Table(object):
                                  'type "{1}"'.format(col.info.name, type(col)))
 
         index = Index(columns, engine=engine)
+        if not self.indices:
+            self.primary_key = colnames
         for col in columns:
             col.info.indices.append(index)
 
