@@ -709,19 +709,30 @@ class TableLoc(object):
 
         Parameters
         ----------
-        item : slice or tuple
-            Either a value slice on the table primary index, or a
-            tuple (key, slice) providing a specific table index.
+        item : column element, list, ndarray, slice or tuple
+            Can be a value of the table primary index, a list/ndarray
+            of such values, or a value slice (both endpoints are included).
+            If a tuple is provided, the first element must be
+            an index to use instead of the primary key, and the
+            second element must be as above.
         '''
         if isinstance(item, tuple):
             key, item = item
         else:
-            key = 0
-        if not isinstance(item, slice):
-            raise ValueError("TableLoc object can only be indexed by slice")
+            key = self.table.primary_key
 
         index = self.indices[key]
-        rows = index.range((item.start,), (item.stop,))
+
+        if isinstance(item, slice):
+            rows = index.range((item.start,), (item.stop,))
+        else:
+            if not isinstance(item, (list, np.ndarray)): # single element
+                item = [item]
+            # item should be a list or ndarray of values
+            rows = []
+            for key in item:
+                rows.extend(index.find((key,)))
+            
         return self.table[rows]
 
 class TableILoc(TableLoc):
@@ -741,7 +752,7 @@ class TableILoc(TableLoc):
         if isinstance(item, tuple):
             key, item = item
         else:
-            key = 0
+            key = self.table.primary_key
         index = self.indices[key]
         rows = index.sorted_data()[item]
         return self.table[rows]

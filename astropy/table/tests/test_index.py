@@ -373,15 +373,21 @@ class TestIndex(SetupData):
         t = self.t
         t.add_index('a', engine=engine)
         t.add_index('b', engine=engine)
-        t2 = t.loc[3:5] # 'a' is the primary key
+        t2 = t.loc[3] # single label, with primary key 'a'
+        assert_col_equal(t2['a'], [3])
+        for query in ([1, 4, 2], np.array([1, 4, 2])): # list/ndarray search
+            t2 = t.loc[query]
+            assert_col_equal(t2['a'], [1, 4, 2]) # same order as input list
+        assert_col_equal(t2['a'], [1, 4, 2]) 
+        t2 = t.loc[3:5] # range search
         assert_col_equal(t2['a'], [3, 4, 5])
-        t3 = t.loc['b', 5.0:7.0]
-        assert_col_equal(t3['b'], [5.1, 6.2, 7.0])
+        t2 = t.loc['b', 5.0:7.0]
+        assert_col_equal(t2['b'], [5.1, 6.2, 7.0])
         # search by sorted index
-        t4 = t.iloc[0:2] # two smallest rows by column 'a'
-        assert_col_equal(t4['a'], [1, 2])
-        t5 = t.iloc['b', 2:] # exclude two smallest rows in column 'b'
-        assert_col_equal(t5['b'], [5.1, 6.2, 7.0])
+        t2 = t.iloc[0:2] # two smallest rows by column 'a'
+        assert_col_equal(t2['a'], [1, 2])
+        tt2 = t.iloc['b', 2:] # exclude two smallest rows in column 'b'
+        assert_col_equal(t2['b'], [5.1, 6.2, 7.0])
 
     def test_primary_key(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
