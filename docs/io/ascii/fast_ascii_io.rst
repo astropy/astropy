@@ -89,7 +89,7 @@ slightly imprecise conversion method for floating-point values, as described bel
 The ``exponent_style`` parameter allows to define a different character
 from the default ``'e'`` for exponential formats in the input file.
 The special setting ``'fortran'`` enables auto-detection of any valid
-Fortran-style exponent character.
+exponent character under Fortran notation.
 For details see the section on :ref:`fortran_style_exponents`.
 
 Writing
