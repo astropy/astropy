@@ -889,7 +889,28 @@ def test_fast_tab_with_names(parallel, read_tab):
     table = read_tab(content, data_start=1,
                      parallel=parallel, names=head)
 
+
 # catch Windows environment since we cannot use _read() with custom fast_reader
+@pytest.mark.parametrize("parallel", [
+    pytest.mark.xfail(os.name == 'nt', reason=
+                      "Multiprocessing is currently unsupported on Windows")(True),
+    False])
+def test_data_out_of_range(parallel, read_basic):
+    """
+    Exponents beyond the float64 range (+308) should raise an error in
+    the C parser and be returned as strings; below (-308) as float64 zeros.
+    """
+    text = 'a b c d\n10.1E+199 3.14e+313 2048e+306 0.6E-414'
+    if parallel and TRAVIS:
+        pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
+    # not currently supported by the standard (Python) reader
+    #table = read_basic(text, parallel=parallel)
+    table = ascii.read(text, format='basic', guess=False, 
+                       fast_reader={'parallel': parallel})
+    expected = Table([[1.01e+200], ['3.14e+313'], ['2048e+306'], ['0.6E-414']],
+                     names=('a', 'b', 'c', 'd'))
+    assert_table_equal(table, expected)
+
 @pytest.mark.parametrize("parallel", [
     pytest.mark.xfail(os.name == 'nt', reason=
                       "Multiprocessing is currently unsupported on Windows")(True),
@@ -940,7 +961,7 @@ def test_fortran_reader(parallel):
     expected = Table([['1.0001+1', '.42d0'], ['2.3+10', '0.5'], ['3+1001', '3'],
                       ['2', '4.56-123.4'], [8000, 4.2e-122]], 
                      names=('A', 'B', 'C', 'D', 'E'))
-    if parallel and TRAVIS:
+    if TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
     table = ascii.read(text, format='basic', guess=False, 
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
