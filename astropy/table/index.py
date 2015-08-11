@@ -7,6 +7,7 @@ import numpy as np
 from ..extern import six
 from .bst import BST, FastBST, FastRBT, MinValue, MaxValue
 from .sorted_array import SortedArray
+from ..time import Time
 
 '''
 The Index class can use several implementations as its
@@ -86,15 +87,24 @@ class Index(object):
         elif len(columns) == 0:
             raise ValueError("Cannot create index without at least one column")
         else:
-            num_cols = len(columns)
             num_rows = len(columns[0])
-            names = ['col{0}'.format(i) for i in range(num_cols + 1)]
+
+            # replace Time columns with approximate form and remainder
+            new_columns = []
+            for col in columns:
+                if isinstance(col, Time):
+                    new_columns.append(col.jd)
+                    remainder = col - col.__class__(col.jd, format='jd')
+                    new_columns.append(remainder.jd)
+                else:
+                    new_columns.append(col)
+
             # sort the table lexicographically and keep row numbers
-            table = Table(columns + [np.arange(num_rows)])
-            sort_columns = columns[::-1]
+            table = Table(new_columns + [np.arange(num_rows)])
+            sort_columns = new_columns[::-1]
             try:
                 lines = table[np.lexsort(sort_columns)]
-            except TypeError: # mixin columns might not work with lexsort
+            except TypeError: # arbitrary mixins might not work with lexsort
                 lines = table[table.argsort()]
             data = lines[lines.colnames[:-1]]
             row_index = lines[lines.colnames[-1]]
