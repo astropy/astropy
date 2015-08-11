@@ -170,7 +170,7 @@ class TestBasic():
         assert t7_tdb[0, 0].delta_tdb_tt == t7_tdb.delta_tdb_tt[0, 0]
         assert np.all(t7_tdb[5].delta_tdb_tt == t7_tdb.delta_tdb_tt[5])
         assert np.all(t7_tdb[:, 2].delta_tdb_tt == t7_tdb.delta_tdb_tt[:, 2])
-        # Explicitly set delta_tdb_tt attrbite. Now it should not be sliced.
+        # Explicitly set delta_tdb_tt attribute. Now it should not be sliced.
         t7.delta_tdb_tt = 0.1
         t7_tdb2 = t7.tdb
         assert t7_tdb2[0, 0].delta_tdb_tt == 0.1

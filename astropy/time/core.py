@@ -717,7 +717,7 @@ class Time(object):
             except AttributeError:
                 continue
 
-            # Appy the method to any value arrays (though skip if there is only
+            # Apply the method to any value arrays (though skip if there is only
             # a single element and the method would return a view, since in
             # that case nothing would change).
             if method is not None and val is not None:
@@ -899,7 +899,7 @@ class Time(object):
         axis : int or None
             axis along which argmin or argmax was used.
         keepdims : bool
-            Whether to contruct indices that keep or remove the axis along
+            Whether to construct indices that keep or remove the axis along
             which argmin or argmax was used.  Default: ``False``.
 
         Returns
