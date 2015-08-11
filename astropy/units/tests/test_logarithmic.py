@@ -47,7 +47,7 @@ class TestLogUnitCreation(object):
     @pytest.mark.parametrize('lu_unit, physical_unit',
                              itertools.product(lu_units, pu_sample))
     def test_call_units(self, lu_unit, physical_unit):
-        """Create a LogUnit subclass using the callable unit and physcal unit,
+        """Create a LogUnit subclass using the callable unit and physical unit,
         and do basic check that output is right."""
         lu1 = lu_unit(physical_unit)
         assert lu1.physical_unit == physical_unit

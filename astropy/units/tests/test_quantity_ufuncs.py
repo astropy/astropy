@@ -647,7 +647,7 @@ class TestInplaceUfuncs(object):
         a2 += (20.*u.km)
         assert a2.unit is u.m
         assert a2.dtype == np.float32
-        # For integer, in-place only workds if no conversion is done.
+        # For integer, in-place only works if no conversion is done.
         a3 = u.Quantity([1, 2, 3, 4], u.m, dtype=np.int32)
         a3 += u.Quantity(10, u.m, dtype=np.int64)
         assert a3.unit is u.m

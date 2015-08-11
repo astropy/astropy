@@ -868,7 +868,7 @@ def test_pickle_compound():
     assert np.all(m.parameters == m2.parameters)
     assert np.all(m(0) == m2(0))
 
-    # Test picling a concrete class
+    # Test pickling a concrete class
     p = pickle.dumps(_TestPickleModel, protocol=0)
     # Note: This is very dependent on the specific protocol, but the point of
     # this test is that the "concrete" model is pickled in a very simple way
