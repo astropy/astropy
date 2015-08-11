@@ -2,6 +2,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
+from ..time import Time
 
 class SortedArray(object):
     '''
@@ -39,6 +40,38 @@ class SortedArray(object):
         self.data.insert_row(pos, key)
         self.row_index = self.row_index.insert(pos, row)
 
+    def _get_key_slice(self, i, begin, end):
+        '''
+        Retrieve the ith slice of the sorted array
+        from begin to end.
+        '''
+        if i < self.num_cols:
+            return self.cols[i][begin:end]
+        else:
+            return self.row_index[begin:end]
+
+    def _searchsorted(self, array, val, side='left'):
+        '''
+        Call np.searchsorted or use a custom binary
+        search if necessary.
+        '''
+        if hasattr(array, 'searchsorted'):
+            return array.searchsorted(val, side=side)
+        # Python binary search
+        begin = 0
+        end = len(array)
+        while begin < end:
+            mid = (begin + end) // 2
+            if val > array[mid]:
+                begin = mid + 1
+            elif val < array[mid]:
+                end = mid
+            elif side == 'right':
+                begin = mid + 1
+            else:
+                end = mid
+        return begin
+
     def find_pos(self, key, data, exact=False):
         '''
         Return the index of the largest key in data greater than or
@@ -60,18 +93,17 @@ class SortedArray(object):
 
         # search through keys in lexicographic order
         for i in range(self.num_cols + 1):
-            key_slice = self.cols[i][begin:end] if i < self.num_cols \
-                        else self.row_index[begin:end]
-            t = np.searchsorted(key_slice, key[i])
+            key_slice = self._get_key_slice(i, begin, end)
+            t = self._searchsorted(key_slice, key[i])
             # t is the smallest index >= key[i]
             if exact and (t == len(key_slice) or key_slice[t] != key[i]):
                 # no match
                 return -1
-            elif t == len(key_slice) or (t == 0 and len(key_slice > 0) and
-                                         key_slice[0] > key[i]):
+            elif t == len(key_slice) or (t == 0 and len(key_slice) > 0 and
+                                         key[i] < key_slice[0]):
                 # too small or too large
                 return begin + t
-            end = begin + np.searchsorted(key_slice, key[i], side='right')
+            end = begin + self._searchsorted(key_slice, key[i], side='right')
             begin += t
             if begin >= len(self.row_index): # greater than all keys
                 return begin
@@ -97,16 +129,16 @@ class SortedArray(object):
 
         # search through keys in lexicographic order
         for i in range(self.num_cols):
-            key_slice = self.cols[i][begin:end]
-            t = np.searchsorted(key_slice, key[i])
+            key_slice = self._get_key_slice(i, begin, end)
+            t = self._searchsorted(key_slice, key[i])
             # t is the smallest index >= key[i]
             if t == len(key_slice) or key_slice[t] != key[i]:
                 # no match
                 return []
-            elif t == 0 and len(key_slice > 0) and key_slice[0] > key[i]:
+            elif t == 0 and len(key_slice) > 0 and key[i] < key_slice[0]:
                 # too small or too large
                 return []
-            end = begin + np.searchsorted(key_slice, key[i], side='right')
+            end = begin + self._searchsorted(key_slice, key[i], side='right')
             begin += t
             if begin >= len(self.row_index): # greater than all keys
                 return []

@@ -411,9 +411,10 @@ class BST(object):
         '''
         if self.root is None:
             return []
-        # ops are <= or <
-        ops = tuple([operator.le if x else operator.lt for x in bounds])
-        return self._range(lower, upper, ops, self.root, [])
+        # op1 is <= or <, op2 is >= or >
+        op1 = operator.le if bounds[0] else operator.lt
+        op2 = operator.ge if bounds[1] else operator.gt
+        return self._range(lower, upper, op1, op2, self.root, [])
 
     def same_prefix(self, val):
         '''
@@ -425,14 +426,13 @@ class BST(object):
         nodes = self._same_prefix(val, self.root, [])
         return [x for node in nodes for x in node.data]
 
-    def _range(self, lower, upper, ops, node, lst):
-        op1, op2 = ops
-        if op1(lower, node.key) and op2(node.key, upper):
+    def _range(self, lower, upper, op1, op2, node, lst):
+        if op1(lower, node.key) and op2(upper, node.key):
             lst.append(node)
-        if node.key < upper and node.right is not None:
-            self._range(lower, upper, ops, node.right, lst)
-        if node.key > lower and node.left is not None:
-            self._range(lower, upper, ops, node.left, lst)
+        if upper > node.key and node.right is not None:
+            self._range(lower, upper, op1, op2, node.right, lst)
+        if lower < node.key and node.left is not None:
+            self._range(lower, upper, op1, op2, node.left, lst)
         return lst
 
     def _same_prefix(self, val, node, lst):

@@ -443,9 +443,11 @@ class Table(object):
     def _get_slice(self, col, item):
         '''
         Return either col.get_item(item) if col is a regular Column
-        or col[item] if col is a mixin.
+        with indices or col[item] otherwise.
         '''
-        return getattr(col, 'get_item', col.__getitem__)(item)
+        if col.info.indices:
+            return getattr(col, 'get_item', col.__getitem__)(item)
+        return col[item]
 
     def add_index(self, colnames, engine=None):
         '''
@@ -682,6 +684,7 @@ class Table(object):
         table.meta.clear()
         table.meta.update(deepcopy(self.meta))
         cols = self.columns.values()
+
         for col in cols:
             col.info._copy_indices = self._copy_indices
         newcols = [self._get_slice(col, slice_) for col in cols]
