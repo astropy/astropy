@@ -46,6 +46,11 @@ class TestIndex(SetupData):
     def make_col(self, name, lst):
         return self._column_type(lst, name=name)
 
+    def make_val(self, val):
+        if isinstance(self.main_col, Time):
+            return Time(val, format='jyear')
+        return val
+
     @property
     def t(self):
         if not hasattr(self, '_t'):
@@ -367,28 +372,30 @@ class TestIndex(SetupData):
 
     def test_table_loc(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
-
-        if isinstance(main_col, Time):
-            return ##TODO: implement loc for Time
         t = self.t
+
         t.add_index('a', engine=engine)
         t.add_index('b', engine=engine)
-        t2 = t.loc[3] # single label, with primary key 'a'
+
+        t2 = t.loc[self.make_val(3)] # single label, with primary key 'a'
         assert_col_equal(t2['a'], [3])
-        for query in ([1, 4, 2], np.array([1, 4, 2])): # list/ndarray search
-            t2 = t.loc[query]
-            assert_col_equal(t2['a'], [1, 4, 2]) # same order as input list
+        # list search
+        t2 = t.loc[[self.make_val(1), self.make_val(4), self.make_val(2)]]
+        assert_col_equal(t2['a'], [1, 4, 2]) # same order as input list
+        if not isinstance(main_col, Time):
+            # ndarray search
+            t2 = t.loc[np.array([1, 4, 2])]
+            assert_col_equal(t2['a'], [1, 4, 2])
         assert_col_equal(t2['a'], [1, 4, 2]) 
-        t2 = t.loc[3:5] # range search
+        t2 = t.loc[self.make_val(3): self.make_val(5)] # range search
         assert_col_equal(t2['a'], [3, 4, 5])
         t2 = t.loc['b', 5.0:7.0]
         assert_col_equal(t2['b'], [5.1, 6.2, 7.0])
         # search by sorted index
         t2 = t.iloc[0:2] # two smallest rows by column 'a'
         assert_col_equal(t2['a'], [1, 2])
-        tt2 = t.iloc['b', 2:] # exclude two smallest rows in column 'b'
+        t2 = t.iloc['b', 2:] # exclude two smallest rows in column 'b'
         assert_col_equal(t2['b'], [5.1, 6.2, 7.0])
 
-    def test_primary_key(self, main_col, table_types, engine):
-        self._setup(main_col, table_types)
-        t = self.t
+        for t2 in (t.loc[:], t.iloc[:]):
+            assert_col_equal(t2['a'], [1, 2, 3, 4, 5])

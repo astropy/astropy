@@ -100,7 +100,7 @@ class Index(object):
                     new_columns.append(col)
 
             # sort the table lexicographically and keep row numbers
-            table = Table(new_columns + [np.arange(num_rows)])
+            table = Table(columns + [np.arange(num_rows)])
             sort_columns = new_columns[::-1]
             try:
                 lines = table[np.lexsort(sort_columns)]
@@ -287,6 +287,24 @@ class Index(object):
         # (x, y) search corresponds to ((x, max), (x, min))
         lower = lower + tuple((ncols - n) * [a])
         upper = upper + tuple((ncols - n) * [b])
+        return self.data.range(lower, upper, bounds)
+
+    def range(self, lower, upper, bounds=(True, True)):
+        '''
+        Return rows within the given range.
+
+        Parameters
+        ----------
+        lower : tuple
+            Lower prefix bound
+        upper : tuple
+            Upper prefix bound
+        bounds : tuple (x, y) of bools
+            Indicates whether the search should be inclusive or
+            exclusive with respect to the endpoints. The first
+            argument x corresponds to an inclusive lower bound,
+            and the second argument y to an inclusive upper bound.
+        '''
         return self.data.range(lower, upper, bounds)
 
     def replace(self, row, col_name, val):
@@ -487,7 +505,7 @@ class SlicedIndex(object):
         return self.sliced_coords(self.index.where(col_map))
 
     def range(self, lower, upper):
-        return self.sliced_coords(self.index.same_prefix_range(lower, upper))
+        return self.sliced_coords(self.index.range(lower, upper))
 
     def same_prefix(self, key):
         return self.sliced_coords(self.index.same_prefix(key))
@@ -722,9 +740,14 @@ class TableLoc(object):
             key = self.table.primary_key
 
         index = self.indices[key]
+        if len(index.columns) > 1:
+            raise ValueError("Cannot use .loc on multi-column indices")
 
         if isinstance(item, slice):
-            rows = index.range((item.start,), (item.stop,))
+            # None signifies no upper/lower bound
+            start = MinValue() if item.start is None else item.start
+            stop = MaxValue() if item.stop is None else item.stop
+            rows = index.range((start,), (stop,))
         else:
             if not isinstance(item, (list, np.ndarray)): # single element
                 item = [item]
