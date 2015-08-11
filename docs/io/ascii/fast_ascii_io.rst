@@ -88,12 +88,9 @@ slightly imprecise conversion method for floating-point values, as described bel
 
 The ``exponent_style`` parameter allows to define a different character
 from the default ``'e'`` for exponential formats in the input file.
-The special setting ``'Fortran'`` enables auto-detection of any valid
-Fortran-style exponent character like in ``'1.495978707D+13'``
-(``'E'``, ``'D'``, ``'Q'``), including triple-digit exponents prefixed
-with no character at all. 
-All values are case-insensitive; any value other than the default
-``'E'``, implies the automatic setting of ``'use_fast_converter': True``.
+The special setting ``'fortran'`` enables auto-detection of any valid
+Fortran-style exponent character.
+For details see the section on :ref:`fortran_style_exponents`.
 
 Writing
 ^^^^^^^
