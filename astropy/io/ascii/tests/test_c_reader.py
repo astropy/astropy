@@ -914,7 +914,7 @@ def test_data_out_of_range(parallel, read_basic):
 
     # non-standard exponent_style at this point treats very small numbers
     # like the Python parser as zeros:
-    text = 'a b c d\n10.1D+199 3.14+d313 2048D+306 0.6d-414'
+    text = 'a b c d\n10.1D+199 3.14d+313 2048D+306 0.6d-414'
     expected = Table([[1.01e+200], ['3.14d+313'], ['2048D+306'], [0.0]],
                      names=('a', 'b', 'c', 'd'))
     table = ascii.read(text, format='basic', guess=False, 
