@@ -914,11 +914,11 @@ def test_data_out_of_range(parallel, read_basic):
 
     # non-standard exponent_style at this point treats very small numbers
     # like the Python parser as zeros:
-    text = 'a b c d\n10.1D+199 3.14+313 2048Q+306 0.6E-414'
-    expected = Table([[1.01e+200], ['3.14+313'], ['2048Q+306'], [0.0]],
+    text = 'a b c d\n10.1D+199 3.14+d313 2048D+306 0.6d-414'
+    expected = Table([[1.01e+200], ['3.14d+313'], ['2048D+306'], [0.0]],
                      names=('a', 'b', 'c', 'd'))
     table = ascii.read(text, format='basic', guess=False, 
-                       fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
+                       fast_reader={'parallel': parallel, 'exponent_style': 'D'})
     assert_table_equal(table, expected)
 
 @pytest.mark.parametrize("parallel", [
@@ -971,7 +971,7 @@ def test_fortran_reader(parallel):
     expected = Table([['1.0001+1', '.42d0'], ['2.3+10', '0.5'], ['3+1001', '3'],
                       ['2', '4.56-123.4'], [8000, 4.2e-122]], 
                      names=('A', 'B', 'C', 'D', 'E'))
-    if parallel and TRAVIS:
+    if TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
     table = ascii.read(text, format='basic', guess=False, 
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
