@@ -52,8 +52,9 @@ We create a cutout array centered at position ``(x, y) = (49.7,
 100.1)`` with a shape of ``(ny, nx) = (40, 50)``::
 
     >>> from astropy.nddata import Cutout2D
+    >>> from astropy import units as u
     >>> position = (49.7, 100.1)
-    >>> shape = (40, 50)
+    >>> shape = (40*u.pixel, 50*u.pixel)
     >>> cutout = Cutout2D(data, position, shape)
 
 The cutout array is stored in the ``data`` attribute of the
@@ -132,6 +133,29 @@ including::
     >>> # tuple of slice objects for the cutout array
     >>> print(cutout.slices_cutout)
     (slice(0, 40, None), slice(0, 50, None))
+
+Cutouts don't have to be specified by their shape if they are square.
+Let's create another cutout array centered at position ``(x, y) = (49.7,
+100.1)``, but this time with a square cutout that is 55 pixels to a side::
+
+    >>> side_length = 55*u.pixel
+    >>> cutout = Cutout2D(data, position, side_length=side_length)
+
+.. doctest-skip::
+
+    >>> plt.imshow(cutout.data, origin='lower')
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from astropy.modeling.models import Gaussian2D
+    from astropy.nddata import Cutout2D
+    y, x = np.mgrid[0:500, 0:500]
+    data = Gaussian2D(1, 50, 100, 10, 5, theta=0.5)(x, y)
+    position = (49.7, 100.1)
+    cutout = Cutout2D(data, position, side_length=55)
+    plt.imshow(cutout.data, origin='lower')
 
 There are also two `~astropy.nddata.utils.Cutout2D` methods to convert
 pixel positions between the original and cutout arrays::
