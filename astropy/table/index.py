@@ -588,7 +588,7 @@ def get_index(table, table_copy):
                 return index
     return None
 
-class index_mode(object):
+class _IndexModeContext(object):
     '''
     A context manager that allows for special indexing modes, which
     are intended to improve performance. Currently the allowed modes
@@ -620,7 +620,7 @@ class index_mode(object):
         self.table = table
         self.mode = mode
         if mode not in ('freeze', 'discard_on_copy', 'copy_on_getitem'):
-            raise ValueError("index_mode expects a mode of either 'freeze', "
+            raise ValueError("Expected a mode of either 'freeze', "
                              "'discard_on_copy', or 'copy_on_getitem', got "
                              "'{0}'".format(mode))
 

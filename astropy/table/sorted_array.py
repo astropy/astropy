@@ -239,8 +239,16 @@ class SortedArray(object):
         row_map : dict
             Mapping of row numbers to new row numbers
         '''
-        keep_rows = np.array([x in row_map for x in self.row_index],
-                             dtype=np.bool)
+        num_rows = len(row_map)
+        keep_rows = np.zeros(len(self.row_index), dtype=np.bool)
+        tagged = 0
+        for i, row in enumerate(self.row_index):
+            if row in row_map:
+                keep_rows[i] = True
+                tagged += 1
+                if tagged == num_rows:
+                    break
+
         self.data = self.data[keep_rows]
         self.row_index = np.array(
             [row_map[x] for x in self.row_index[keep_rows]])

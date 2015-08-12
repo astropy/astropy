@@ -68,6 +68,7 @@ class Epsilon(object):
     val : object
         Original value
     '''
+    __slots__ = ('val',)
 
     def __init__(self, val):
         self.val = val
@@ -107,6 +108,7 @@ class Node(object):
     __ge__ = lambda x, y: x.key >= y.key
     __gt__ = lambda x, y: x.key > y.key
     __ne__ = lambda x, y: x.key != y.key
+    __slots__ = ('key', 'data', 'left', 'right')
 
     # each node has a key and data list
     def __init__(self, key, data):
@@ -114,16 +116,15 @@ class Node(object):
         self.data = data if isinstance(data, list) else [data]
         self.left = None
         self.right = None
-        self.parent = None
 
     def replace(self, child, new_child):
         '''
         Replace this node's child with a new child.
         '''
         if self.left is not None and self.left == child:
-            self.set_left(new_child)
+            self.left = new_child
         elif self.right is not None and self.right == child:
-            self.set_right(new_child)
+            self.right = new_child
         else:
             raise ValueError("Cannot call replace() on non-child")
 
@@ -139,22 +140,6 @@ class Node(object):
         '''
         self.key = other.key
         self.data = other.data[:]
-
-    def set_left(self, node):
-        '''
-        Set the left child to the given node.
-        '''
-        self.left = node
-        if node is not None:
-            node.parent = self
-
-    def set_right(self, node):
-        '''
-        Set the right child to the given node.
-        '''
-        self.right = node
-        if node is not None:
-            node.parent = self
 
     def __str__(self):
         return str((self.key, self.data))
@@ -199,12 +184,12 @@ class BST(object):
         while True:
             if node < curr_node:
                 if curr_node.left is None:
-                    curr_node.set_left(node)
+                    curr_node.left = node
                     break
                 curr_node = curr_node.left
             elif node > curr_node:
                 if curr_node.right is None:
-                    curr_node.set_right(node)
+                    curr_node.right = node
                     break
                 curr_node = curr_node.right
             elif self.UNIQUE:
@@ -228,7 +213,7 @@ class BST(object):
         data_vals : list
             List of rows corresponding to the input key
         '''
-        node = self.find_node(key)
+        node, parent = self.find_node(key)
         return node.data if node is not None else []
 
     def find_node(self, key):
@@ -236,8 +221,8 @@ class BST(object):
         Find the node associated with the given key.
         '''
         if self.root is None:
-            return None
-        return self._find_recursive(key, self.root)
+            return (None, None)
+        return self._find_recursive(key, self.root, None)
 
     def shift_left(self, row):
         '''
@@ -253,20 +238,20 @@ class BST(object):
         for node in self.traverse():
             node.data = [x + 1 if x >= row else x for x in node.data]
 
-    def _find_recursive(self, key, node):
+    def _find_recursive(self, key, node, parent):
         try:
             if key == node.key:
-                return node
+                return (node, parent)
             elif key > node.key:
                 if node.right is None:
-                    return None
-                return self._find_recursive(key, node.right)
+                    return (None, None)
+                return self._find_recursive(key, node.right, node)
             else:
                 if node.left is None:
-                    return None
-                return self._find_recursive(key, node.left)
+                    return (None, None)
+                return self._find_recursive(key, node.left, node)
         except TypeError: # wrong key type
-            return None
+            return (None, None)
 
     def traverse(self, order='inorder'):
         '''
@@ -325,11 +310,11 @@ class BST(object):
         lst.append(node)
         return lst
 
-    def _substitute(self, node, new_node):
+    def _substitute(self, node, parent, new_node):
         if node is self.root:
             self.root = new_node
         else:
-            node.parent.replace(node, new_node)
+            parent.replace(node, new_node)
 
     def remove(self, key, data=None):
         '''
@@ -348,7 +333,7 @@ class BST(object):
         successful : bool
             True if removal was successful, false otherwise
         '''
-        node = self.find_node(key)
+        node, parent = self.find_node(key)
         if node is None:
             return False
         if data is not None:
@@ -358,17 +343,19 @@ class BST(object):
                 node.data.remove(data)
                 return True
         if node.left is None and node.right is None:
-            self._substitute(node, None)
+            self._substitute(node, parent, None)
         elif node.left is None and node.right is not None:
-            self._substitute(node, node.right)
+            self._substitute(node, parent, node.right)
         elif node.right is None and node.left is not None:
-            self._substitute(node, node.left)
+            self._substitute(node, parent, node.left)
         else:
             # find largest element of left subtree
             curr_node = node.left
+            parent = node
             while curr_node.right is not None:
+                parent = curr_node
                 curr_node = curr_node.right
-            self._substitute(curr_node, curr_node.left)
+            self._substitute(curr_node, parent, curr_node.left)
             node.set(curr_node)
         self.size -= 1
         return True
@@ -461,6 +448,7 @@ class BST(object):
             line += self._print(node.right, level + 1)
         return line
 
+    @property
     def height(self):
         '''
         Return the BST height.

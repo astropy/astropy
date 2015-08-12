@@ -29,7 +29,7 @@ from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
-from .index import Index
+from .index import Index, _IndexModeContext
 
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays containing Unicode columns to
@@ -501,6 +501,27 @@ class Table(object):
             else:
                 for c in index.columns:
                     c.info.indices.remove(index)
+
+    def index_mode(self, mode):
+        '''
+        Return a context manager for an indexing mode.
+
+        Parameters
+        ----------
+        mode : str
+            Either 'freeze', 'copy_on_getitem', or 'discard_on_copy'.
+            In 'discard_on_copy' mode,
+            indices are not copied whenever columns or tables are copied.
+            In 'freeze' mode, indices are not modified whenever columns are
+            modified; at the exit of the context, indices refresh themselves
+            based on column values. This mode is intended for scenarios in
+            which one intends to make many additions or modifications in an
+            indexed column.
+            In 'copy_on_getitem' mode, indices are copied when taking column
+            slices as well as table slices, so col[i0:i1] will preserve
+            indices.
+        '''
+        return _IndexModeContext(self, mode)
 
     def __array__(self, dtype=None):
         """Support converting Table to np.array via np.array(table).
