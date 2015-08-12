@@ -6,7 +6,6 @@ from ..bst import BST, FastBST, FastRBT
 from ..sorted_array import SortedArray
 from ..table import Table, QTable, NdarrayMixin
 from ...table import table_helpers
-from ..index import index_mode
 from ... import units as u
 from ...coordinates import SkyCoord
 from ...time import Time
@@ -307,7 +306,7 @@ class TestIndex(SetupData):
         t2 = t.copy()
 
         # non-copy mode
-        with index_mode(t, 'discard_on_copy'):
+        with t.index_mode('discard_on_copy'):
             assert len(t[[1, 3]].indices) == 0
             assert len(t[::-1].indices) == 0
             assert len(self._table_type(t).indices) == 0
@@ -320,7 +319,7 @@ class TestIndex(SetupData):
             return
 
         # non-modify mode
-        with index_mode(t, 'freeze'):
+        with t.index_mode('freeze'):
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
             t['a'][0] = 6
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
@@ -339,7 +338,7 @@ class TestIndex(SetupData):
 
         if isinstance(t['a'], BaseColumn):
             assert len(t['a'][::-1].info.indices) == 0
-            with index_mode(t, 'copy_on_getitem'):
+            with t.index_mode('copy_on_getitem'):
                 assert len(t['a'][[1, 2]].info.indices) == 1
                 # mode should only affect t
                 assert len(t2['a'][[1, 2]].info.indices) == 0

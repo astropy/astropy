@@ -44,7 +44,7 @@ def test_bst_add(bst):
 
 def test_bst_dimensions(bst):
     assert bst.size == 10
-    assert bst.height() == 4
+    assert bst.height == 4
 
 def test_bst_find(tree):
     bst = tree
