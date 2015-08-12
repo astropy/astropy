@@ -34,7 +34,7 @@ table.dataTable {width: auto !important; margin: 0 !important;}
  <body>
   <script>
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {
-    "optionalnum-pre": function (a) { var b=parseFloat(a); if (isNaN(b)) return ''; else return b;},
+    "optionalnum-pre": function (a) { var b=parseFloat(a); if (isNaN(b)) return Number.NEGATIVE_INFINITY; else return b;},
     "optionalnum-asc": function (a,b) { return ((a < b) ? -1 : ((a > b) ? 1 : 0)); },
     "optionalnum-desc": function (a,b) { return ((a < b) ? 1 : ((a > b) ? -1 : 0)); }
 });

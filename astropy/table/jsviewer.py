@@ -52,7 +52,7 @@ require(["datatables"], function(){{
 
 HTML_JS_SCRIPT = """
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {{
-    "optionalnum-pre": function (a) {{ var b=parseFloat(a); if (isNaN(b)) return ''; else return b;}},
+    "optionalnum-pre": function (a) {{ var b=parseFloat(a); if (isNaN(b)) return Number.NEGATIVE_INFINITY; else return b;}},
     "optionalnum-asc": function (a,b) {{ return ((a < b) ? -1 : ((a > b) ? 1 : 0)); }},
     "optionalnum-desc": function (a,b) {{ return ((a < b) ? 1 : ((a > b) ? -1 : 0)); }}
 }});
