@@ -897,18 +897,28 @@ def test_fast_tab_with_names(parallel, read_tab):
     False])
 def test_data_out_of_range(parallel, read_basic):
     """
-    Exponents beyond the float64 range (+308) should raise an error in
-    the C parser and be returned as strings; below (-308) as float64 zeros.
+    Exponents beyond the float64 range (+-308) currently raise an error in
+    the C parser; such numbers are returned as strings instead, not so
+    with the Python parser!
     """
-    text = 'a b c d\n10.1E+199 3.14e+313 2048e+306 0.6E-414'
     if parallel and TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
-    # not currently supported by the standard (Python) reader
+    text = 'a b c d\n10.1E+199 3.14e+313 2048e+306 0.6E-414'
+    expected = Table([[1.01e+200], ['3.14e+313'], ['2048e+306'], ['0.6E-414']],
+                     names=('a', 'b', 'c', 'd'))
+    # currently different behaviour by the standard (Python) reader
     #table = read_basic(text, parallel=parallel)
     table = ascii.read(text, format='basic', guess=False, 
                        fast_reader={'parallel': parallel})
-    expected = Table([[1.01e+200], ['3.14e+313'], ['2048e+306'], ['0.6E-414']],
+    assert_table_equal(table, expected)
+
+    # non-standard exponent_style at this point treats very small numbers
+    # like the Python parser as zeros:
+    text = 'a b c d\n10.1D+199 3.14+313 2048Q+306 0.6E-414'
+    expected = Table([[1.01e+200], ['3.14+313'], ['2048Q+306'], [0.0]],
                      names=('a', 'b', 'c', 'd'))
+    table = ascii.read(text, format='basic', guess=False, 
+                       fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
     assert_table_equal(table, expected)
 
 @pytest.mark.parametrize("parallel", [
@@ -961,7 +971,7 @@ def test_fortran_reader(parallel):
     expected = Table([['1.0001+1', '.42d0'], ['2.3+10', '0.5'], ['3+1001', '3'],
                       ['2', '4.56-123.4'], [8000, 4.2e-122]], 
                      names=('A', 'B', 'C', 'D', 'E'))
-    if TRAVIS:
+    if parallel and TRAVIS:
         pytest.xfail("Multiprocessing can sometimes fail on Travis CI")
     table = ascii.read(text, format='basic', guess=False, 
                        fast_reader={'parallel': parallel, 'exponent_style': 'fortran'})
