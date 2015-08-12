@@ -139,11 +139,11 @@ Let's create another cutout array centered at position ``(x, y) = (49.7,
 100.1)``, but this time with a square cutout that is 55 pixels to a side::
 
     >>> side_length = 55*u.pixel
-    >>> cutout = Cutout2D(data, position, side_length=side_length)
+    >>> cutout2 = Cutout2D(data, position, side_length=side_length)
 
 .. doctest-skip::
 
-    >>> plt.imshow(cutout.data, origin='lower')
+    >>> plt.imshow(cutout2.data, origin='lower')
 
 .. plot::
 
