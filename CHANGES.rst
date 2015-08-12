@@ -60,6 +60,8 @@ New Features
   - Add a function ``get_read_trace()`` that returns a traceback of the
     attempted read formats for the last call to ``astropy.io.ascii.read``. [#3688]
 
+  - Supports LZMA decompression via ``get_readable_fileobj`` [#3667]
+
 - ``astropy.io.fits``
 
   - Support reading and writing from bzip2 compressed files. i.e. ``.fits.bz2``
@@ -202,6 +204,10 @@ New Features
     certain arguments on the wrapped function to be excluded from the signature
     of the wrapper function.  This is particularly useful when wrapping an
     instance method as a function (to exclude the ``self`` argument). [#4017]
+
+  - ``get_readable_fileobj`` can automatically decompress LZMA ('.xz')
+    files using the ``lzma`` module of Python 3.3+ or, when available, the
+    ``backports.lzma`` package on earlier versions. [#3667]
 
 - ``astropy.visualization``
 

@@ -49,6 +49,11 @@ Similarly, for writing, the format can be explicitly specified::
 As for the :meth:`~astropy.table.Table.read` method, the format may
 be automatically identified in some cases.
 
+The underlying file handler will also automatically detect various
+compressed data formats and transparently uncompress them as far as
+supported by the Python installation (see
+:meth:`~astropy.utils.data.get_readable_fileobj`).
+
 Any additional arguments specified will depend on the format.  For examples of this see the
 section `Built-in table readers/writers`_.  This section also provides the full list of
 choices for the ``format`` argument.

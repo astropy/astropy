@@ -21,9 +21,10 @@ def get_package_data():
             'data/test_package/*.py',
             'data/test_package/data/*.txt',
             'data/*.dat',
-            'data/*.dat.gz',
-            'data/*.dat.bz2',
             'data/*.txt',
+            'data/*.gz',
+            'data/*.bz2',
+            'data/*.xz',
             'data/.hidden_file.txt',
             'data/*.cfg'],
         'astropy.utils.iers': [

@@ -285,6 +285,8 @@ def read(table, guess=None, **kwargs):
             try:
                 with get_readable_fileobj(table) as fileobj:
                     table = fileobj.read()
+            except ValueError:  # unreadable or invalid binary file
+                raise
             except:
                 pass
             else:
