@@ -1,6 +1,5 @@
 import sys
 import numpy as np
-cimport numpy as cnp
 
 
 if sys.version_info[0] == 3:
@@ -23,13 +22,14 @@ cdef extern from "Python.h":
         PyMappingMethods* tp_as_mapping
 
 
-ndarray = np.ndarray
-ctypedef cnp.ndarray ndarray_t
+cdef extern from "numpy/arrayobject.h":
+    ctypedef class numpy.ndarray [object PyArrayObject]:
+        cdef int ndim "nd"
 
 
 cdef class _ColumnGetitemShim:
     def __getitem__(self, item):
-        if (<ndarray_t>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
+        if (<ndarray>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
             return self.data[item]
         else:
             return (<PyTypeObject *>ndarray).tp_as_mapping.mp_subscript(self, item)
@@ -40,7 +40,7 @@ MaskedArray = np.ma.MaskedArray
 
 cdef class _MaskedColumnGetitemShim(_ColumnGetitemShim):
     def __getitem__(self, item):
-        if (<ndarray_t>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
+        if (<ndarray>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
             return self.data[item]
         else:
             return MaskedArray.__getitem__(self, item)
