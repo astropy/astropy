@@ -467,7 +467,7 @@ class classproperty(property):
         return fget
 
 
-class lazyproperty(object):
+class lazyproperty(property):
     """
     Works similarly to property(), but computes the value only once.
 
@@ -501,20 +501,14 @@ class lazyproperty(object):
     """
 
     def __init__(self, fget, fset=None, fdel=None, doc=None):
-        self._fget = fget
-        self._fset = fset
-        self._fdel = fdel
-        if doc is None:
-            self.__doc__ = fget.__doc__
-        else:
-            self.__doc__ = doc
-        self._key = self._fget.__name__
+        super(lazyproperty, self).__init__(fget, fset, fdel, doc)
+        self._key = self.fget.__name__
 
     def __get__(self, obj, owner=None):
         try:
             return obj.__dict__[self._key]
         except KeyError:
-            val = self._fget(obj)
+            val = self.fget(obj)
             obj.__dict__[self._key] = val
             return val
         except AttributeError:
@@ -524,8 +518,8 @@ class lazyproperty(object):
 
     def __set__(self, obj, val):
         obj_dict = obj.__dict__
-        if self._fset:
-            ret = self._fset(obj, val)
+        if self.fset:
+            ret = self.fset(obj, val)
             if ret is not None and obj_dict.get(self._key) is ret:
                 # By returning the value set the setter signals that it took
                 # over setting the value in obj.__dict__; this mechanism allows
@@ -534,32 +528,10 @@ class lazyproperty(object):
         obj_dict[self._key] = val
 
     def __delete__(self, obj):
-        if self._fdel:
-            self._fdel(obj)
+        if self.fdel:
+            self.fdel(obj)
         if self._key in obj.__dict__:
             del obj.__dict__[self._key]
-
-    def getter(self, fget):
-        return self.__ter(fget, 0)
-
-    def setter(self, fset):
-        return self.__ter(fset, 1)
-
-    def deleter(self, fdel):
-        return self.__ter(fdel, 2)
-
-    def __ter(self, f, arg):
-        args = [self._fget, self._fset, self._fdel, self.__doc__]
-        args[arg] = f
-        cls_ns = sys._getframe(1).f_locals
-        for k, v in six.iteritems(cls_ns):
-            if v is self:
-                property_name = k
-                break
-
-        cls_ns[property_name] = lazyproperty(*args)
-
-        return cls_ns[property_name]
 
 
 class sharedmethod(classmethod):
