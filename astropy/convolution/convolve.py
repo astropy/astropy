@@ -10,7 +10,10 @@ import numpy as np
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
-
+from ..modeling.core import Model, _make_arithmetic_operator, \
+                       BINARY_OPERATORS, _CompoundModelMeta
+from scipy.signal import fftconvolve
+from functools import partial
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
