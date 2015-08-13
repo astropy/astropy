@@ -41,12 +41,14 @@ then
 fi
 
 # DOCUMENTATION DEPENDENCIES
-# build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
-# this matplotlib will *not* work with py 3.x, but our sphinx build is
+# build_sphinx needs sphinx, matplotlib, and wcsaxes (for plot_directive).
+# Note that this matplotlib will *not* work with py 3.x, but our sphinx build is
 # currently 2.7, so that's fine
 if [[ $SETUP_CMD == build_sphinx* ]]
 then
   $CONDA_INSTALL Sphinx=1.2.2 Pygments matplotlib
+  $CONDA_INSTALL Sphinx=1.2.2 Pygments matplotlib  
+  pip install wcsaxes
 fi
 
 # COVERAGE DEPENDENCIES

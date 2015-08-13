@@ -235,6 +235,29 @@ ability to use the :class:`~astropy.wcs.WCS` to define projections in
 Matplotlib. More information on installing and using WCSAxes can be found `here
 <http://wcsaxes.readthedocs.org>`__.
 
+.. plot::
+    :include-source:
+
+    import numpy as np
+    from matplotlib import rcParams, pyplot as plt
+    from astropy.io import fits
+    from astropy.wcs import WCS
+    from astropy.visualization import astropy_mpl_style
+    rcParams.update(astropy_mpl_style)
+    from astropy.utils.data import download_file
+
+    fits_file = 'http://data.astropy.org/tutorials/FITS-images/HorseHead.fits'
+    image_file = download_file(fits_file, cache=True )
+    hdu = fits.open(image_file)[0]
+    wcs = WCS(hdu.header)
+
+    fig = plt.figure()
+    fig.add_subplot(111, projection=wcs)
+    plt.imshow(hdu.data, origin='lower', cmap='cubehelix')
+    plt.xlabel('RA')
+    plt.ylabel('Dec')
+    plt.show()
+
 Other information
 =================
 

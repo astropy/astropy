@@ -10,7 +10,10 @@ import numpy as np
 from .core import Kernel, Kernel1D, Kernel2D, MAX_NORMALIZATION
 from ..utils.exceptions import AstropyUserWarning
 from ..utils.console import human_file_size
-
+from ..modeling.core import Model, _make_arithmetic_operator, \
+                       BINARY_OPERATORS, _CompoundModelMeta
+from scipy.signal import fftconvolve
+from functools import partial
 
 # Disabling all doctests in this module until a better way of handling warnings
 # in doctests can be determined
@@ -563,3 +566,48 @@ def convolve_fft(array, kernel, boundary='fill', fill_value=0, crop=True,
         return result
     else:
         return rifft.real
+
+def convolve_model(model, kernel):
+    """
+    Convolve a model with another model. Returns a 
+    `astropy.modeling.CompoundModel` object.
+
+    Parameters
+    ----------
+    model : `astropy.modeling.Model`
+          Source model to be convolved.
+    kernel : `astropy.modeling.Model`
+          Kernal model. Assumed to be normalized. 
+
+    See Also
+    --------
+    convolve_fft, convolve
+
+    Returns
+    -------
+    model : `astropy.model.CompoundModel`
+        Returns a CompoundModel instance that convolves``model`` and ``kernel`` 
+        when evaluated.
+
+    Examples
+    --------
+
+    """
+
+    # Check model and kernel are Model instances
+    if not (isinstance(model, Model) & isinstance(kernel, Model)):
+        raise TypeError("Input model and kernal should be "
+                        "`astropy.modeling.Model` instances.")
+
+    # Check that the number of dimensions is compatible
+    if model.n_inputs != kernel.n_inputs:
+        raise ValueError("Model and kernel must have same number of "
+                         "dimensions")
+
+    convolve_func = partial(fftconvolve, mode='same')
+
+    BINARY_OPERATORS['convolve'] = _make_arithmetic_operator(convolve_func)
+
+    conv = _CompoundModelMeta._from_operator('convolve', model, kernel)
+
+    return conv
