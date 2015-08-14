@@ -46,7 +46,7 @@ def test_maps():
         assert_array_almost_equal(pix, [[97, 97]], decimal=0)
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = list(get_pkg_data_filenames("maps", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("maps", pattern="*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:
@@ -91,7 +91,7 @@ def test_spectra():
         assert len(all_wcs) == 9
 
     # get the list of the hdr files that we want to test
-    hdr_file_list = list(get_pkg_data_filenames("spectra", "*.hdr"))
+    hdr_file_list = list(get_pkg_data_filenames("spectra", pattern="*.hdr"))
 
     # actually perform a test for each one
     for filename in hdr_file_list:

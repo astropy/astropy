@@ -738,7 +738,7 @@ def test_open_files():
     def test_file(filename):
         parse(filename, pedantic=False)
 
-    for filename in get_pkg_data_filenames('data', '*.xml'):
+    for filename in get_pkg_data_filenames('data', pattern='*.xml'):
         if filename.endswith('custom_datatype.xml'):
             continue
         yield test_file, filename
