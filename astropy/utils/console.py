@@ -643,7 +643,11 @@ class ProgressBar(six.Iterator):
                 from IPython.html import widgets
             from IPython.display import display
 
-            self._widget = widgets.FloatProgress()
+            try:
+                self._widget = widgets.FloatProgress()
+            except AttributeError:
+                self._widget = widgets.FloatProgressWidget()
+
             display(self._widget)
             self._widget.value = 0
 
