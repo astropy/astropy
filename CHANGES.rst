@@ -573,6 +573,8 @@ Bug Fixes
 
 - ``astropy.modeling``
 
+  - Cleaned up ``repr`` of models that have no parameters. [#4076]
+
 - ``astropy.nddata``
 
 - ``astropy.stats``
