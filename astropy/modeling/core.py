@@ -1352,13 +1352,10 @@ class Model(object):
         else:
             columns = [getattr(self, name).value
                        for name in self.param_names]
-        # check for models without parameters
-        if not columns:
-            return '\n'.join(parts)
 
-        param_table = Table(columns, names=self.param_names)
-
-        parts.append(indent(str(param_table), width=4))
+        if columns:
+            param_table = Table(columns, names=self.param_names)
+            parts.append(indent(str(param_table), width=4))
 
         return '\n'.join(parts)
 
