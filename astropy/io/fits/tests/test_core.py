@@ -21,6 +21,7 @@ except ImportError:
 from ....io import fits
 from ....tests.helper import pytest, raises, catch_warnings
 from ....utils.exceptions import AstropyDeprecationWarning
+from ....utils import data
 from . import FitsTestCase
 from .util import ignore_warnings
 from ..convenience import _getext
@@ -1004,18 +1005,23 @@ class TestFileFunctions(FitsTestCase):
         to a full disk.
         """
         def _writeto(self, array):
-            raise IOError("Fake error raised for writing to files")
+            raise IOError("Fake error raised when writing file.")
 
-        with pytest.raises(IOError) as e:
+        def get_free_space_in_dir(path):
+            return 0
+
+        with pytest.raises(IOError) as exc:
             monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
+            monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
+            n = np.arange(0, 1000)
+            hdu = fits.PrimaryHDU(n)
+            hdulist = fits.HDUList(hdu)
             filename = self.temp('test.fits')
-            hdul = [fits.PrimaryHDU(), fits.ImageHDU()]
-            hdul = fits.HDUList(hdul)
-            hdul.writeto(filename)
-            hdul.close()
+            hdulist.writeto(filename)
+            hdulist.close()
 
-            assert "Fake error raised for writing to files" in e.value
+            assert "Not enough space on disk. Fake error raised for writing to files" in exc.value
 
     def test_flush_full_disk(self, monkeypatch):
         """
@@ -1025,20 +1031,26 @@ class TestFileFunctions(FitsTestCase):
         filename = self.temp('test.fits')
         hdul = [fits.PrimaryHDU(), fits.ImageHDU()]
         hdul = fits.HDUList(hdul)
+        hdul[0].data = np.arange(0, 1000)
         hdul.writeto(filename)
 
         def _writeto(self, array, inplace=False, copy=False):
-            raise IOError("Fake error raised for writing to files")
+            raise IOError("Fake error raised when writing file.")
+
+        def get_free_space_in_dir(path):
+            return 0
 
         monkeypatch.setattr(fits.hdu.base._BaseHDU, "_writeto", _writeto)
+        monkeypatch.setattr(data, "get_free_space_in_dir", get_free_space_in_dir)
 
-        with pytest.raises(IOError) as e:
+        with pytest.raises(IOError) as exc:
             filename = self.temp('test.fits')
             hdul = fits.open(filename, mode='update')
+            hdul[0].data = np.arange(0, 1000)
             hdul.insert(1, fits.ImageHDU())
             hdul.flush()
             hdul.close()
-            assert "Fake error raised for writing to files" in e.value
+            assert "Not enough space on disk. Fake error raised for writing to files" in exc.value
 
     def _test_write_string_bytes_io(self, fileobj):
         """

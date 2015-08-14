@@ -21,7 +21,7 @@ from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
-from ....utils.data import get_free_space_in_dir
+from ....utils import data
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -609,17 +609,25 @@ class HDUList(list, _Verify):
                         if verbose:
                             print('append HDU', hdu.name, extver)
                         hdu._new = False
-                    except IOError, e:
-                        free_space = get_free_space_in_dir(os.getcwd())
+                    except:
+                        free_space = data.get_free_space_in_dir(os.getcwd())
                         hdulist_size = np.sum(hdu.size for hdu in self)
-                        if not self._file.file_like and free_space < hdulist_size:
-                            raise IOError("Not enough space on disk. " + str(e))
+                        if free_space < hdulist_size:
+                            raise IOError("Not enough space on disk. " + str(exc))
                         else:
-                            raise IOError(str(e))
+                            raise IOError("Got to this part of the code")
                     finally:
                         hdu._postwriteto()
         elif self._file.mode == 'update':
-            self._flush_update()
+            try:
+                self._flush_update()
+            except IOError as exc:
+                free_space = data.get_free_space_in_dir(os.getcwd())
+                hdulist_size = np.sum(hdu.size for hdu in self)
+                if free_space < hdulist_size:
+                    raise IOError("Not enough space on disk. " + str(exc))
+                else:
+                    raise
 
     def update_extend(self):
         """
@@ -698,13 +706,13 @@ class HDUList(list, _Verify):
             hdu._prewriteto(checksum=checksum)
             try:
                 hdu._writeto(hdulist._file)
-            except IOError, e:
-                free_space = get_free_space_in_dir(os.getcwd())
-                hdulist_size = np.sum(hdu.size for hdu in self)
-                if not fileobj.file_like and free_space < hdulist_size:
-                    raise IOError("Not enough space on disk. " + str(e))
+            except IOError as exc:
+                free_space = data.get_free_space_in_dir(os.getcwd())
+                hdulist_size = np.sum(hdu1.size for hdu1 in self)
+                if free_space < hdulist_size:
+                    raise IOError("Not enough space on disk. " + str(exc))
                 else:
-                    raise IOError(str(e))
+                    raise
             finally:
                 hdu._postwriteto()
 
