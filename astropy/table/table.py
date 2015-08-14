@@ -6,6 +6,7 @@ from ..extern.six.moves import zip as izip
 from ..extern.six.moves import range as xrange
 
 import re
+import sys
 
 from copy import deepcopy
 
@@ -182,10 +183,17 @@ class Table(object):
         """
         return self.as_array()
 
-    def as_array(self):
+    def as_array(self, keep_byteorder=False):
         """
         Return a new copy of the table in the form of a structured np.ndarray or
         np.ma.MaskedArray object (as appropriate).
+
+        Parameters
+        ----------
+        keep_byteorder : bool, optional
+            By default the returned array has all columns in native byte
+            order.  However, if this option is `True` this preserves the
+            byte order of all columns (if any are non-native).
 
         Returns
         -------
@@ -195,11 +203,28 @@ class Table(object):
         if len(self.columns) == 0:
             return None
 
+        sys_byteorder = ('>', '<')[sys.byteorder == 'little']
+        native_order = ('=', sys_byteorder)
+
+        dtype = []
+
         cols = self.columns.values()
-        dtype = [descr(col) for col in cols]
+
+        for col in cols:
+            col_descr = descr(col)
+            byteorder = col.info.dtype.byteorder
+
+            if not keep_byteorder and byteorder not in native_order:
+                new_dt = np.dtype(col_descr[1]).newbyteorder('=')
+                col_descr = (col_descr[0], new_dt, col_descr[2])
+
+            dtype.append(col_descr)
+
         empty_init = ma.empty if self.masked else np.empty
         data = empty_init(len(self), dtype=dtype)
         for col in cols:
+            # This should automatically swap columns to their destination byte
+            # order where applicable
             data[col.info.name] = col
 
         return data
