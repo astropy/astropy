@@ -32,12 +32,15 @@ except NameError:
     IPythonIOStream = None
 else:
     try:
-        from IPython.zmq.iostream import OutStream
+        from ipykernel.iostream import OutStream
     except ImportError:
         try:
-            from IPython.kernel.zmq.iostream import OutStream
+            from IPython.zmq.iostream import OutStream
         except ImportError:
-            OutStream = None
+            try:
+                from IPython.kernel.zmq.iostream import OutStream
+            except ImportError:
+                OutStream = None
 
     if OutStream is not None:
         from IPython.utils import io as ipyio
