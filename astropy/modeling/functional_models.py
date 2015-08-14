@@ -535,6 +535,8 @@ class Sine1D(Fittable1DModel):
         Oscillation amplitude
     frequency : float
         Oscillation frequency
+    phase : float
+        Osciallation phase
 
     See Also
     --------
@@ -545,26 +547,29 @@ class Sine1D(Fittable1DModel):
     -----
     Model formula:
 
-        .. math:: f(x) = A \\sin(2 \\pi f x)
+        .. math:: f(x) = A \\sin(2 \\pi f x + 2 \\pi p)
     """
 
     amplitude = Parameter(default=1)
     frequency = Parameter(default=1)
+    phase = Parameter(default=0)
 
     @staticmethod
-    def evaluate(x, amplitude, frequency):
+    def evaluate(x, amplitude, frequency, phase):
         """One dimensional Sine model function"""
 
-        return amplitude * np.sin(2 * np.pi * frequency * x)
+        return amplitude * np.sin(2 * np.pi * frequency * x + 2 * np.pi * phase)
 
     @staticmethod
-    def fit_deriv(x, amplitude, frequency):
+    def fit_deriv(x, amplitude, frequency, phase):
         """One dimensional Sine model derivative"""
 
-        d_amplitude = np.sin(2 * np.pi * frequency * x)
+        d_amplitude = np.sin(2 * np.pi * frequency * x + 2 * np.pi * phase)
         d_frequency = (2 * np.pi * x * amplitude *
-                       np.cos(2 * np.pi * frequency * x))
-        return [d_amplitude, d_frequency]
+                       np.cos(2 * np.pi * frequency * x + 2 * np.pi * phase))
+        d_phase = (2 * np.pi * amplitude *
+                   np.cos(2 * np.pi * frequency * x + 2 * np.pi * phase))
+        return [d_amplitude, d_frequency, d_phase]
 
 
 class Linear1D(Fittable1DModel):
@@ -708,7 +713,7 @@ class Voigt1D(Fittable1DModel):
     _abcd = np.array([
         [-1.2150, -1.3509, -1.2150, -1.3509],  # A
         [1.2359, 0.3786, -1.2359, -0.3786],    # B
-        [-0.3085, 0.5906, 0.3085, 0.5906],     # C
+        [-0.3085, 0.5906, -0.3085, 0.5906],    # C
         [0.0210, -1.1858, -0.0210, 1.1858]])   # D
 
     @classmethod
@@ -855,7 +860,7 @@ class Ellipse2D(Fittable2DModel):
     b : float
         The length of the semiminor axis.
 
-    theta : float, optional
+    theta : float
         The rotation angle in radians of the semimajor axis.  The
         rotation angle increases counterclockwise from the positive x
         axis.
@@ -904,12 +909,12 @@ class Ellipse2D(Fittable2DModel):
         plt.show()
     """
 
-    amplitude = Parameter()
-    x_0 = Parameter()
-    y_0 = Parameter()
-    a = Parameter()
-    b = Parameter()
-    theta = Parameter()
+    amplitude = Parameter(default=1)
+    x_0 = Parameter(default=0)
+    y_0 = Parameter(default=0)
+    a = Parameter(default=1)
+    b = Parameter(default=1)
+    theta = Parameter(default=0)
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
@@ -1532,22 +1537,6 @@ class Moffat2D(Fittable2DModel):
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
 
 
-@deprecated('1.0', alternative='astropy.modeling.models.custom_model',
-            pending=True)
-def custom_model_1d(func, func_fit_deriv=None):
-    argspec = inspect.getargspec(func)
-    param_values = argspec.defaults
-    nparams = len(param_values)
-
-    if len(argspec.args) == nparams + 1:
-        param_names = argspec.args[-nparams:]
-    else:
-        raise ModelDefinitionError(
-            "All parameters must be keyword arguments")
-
-    return custom_model(func, fit_deriv=func_fit_deriv)
-
-
 class Sersic2D(Fittable2DModel):
     r"""
     Two dimensional Sersic surface brightness profile.
@@ -1654,3 +1643,19 @@ class Sersic2D(Fittable2DModel):
         z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
         return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
+
+
+@deprecated('1.0', alternative='astropy.modeling.models.custom_model',
+            pending=True)
+def custom_model_1d(func, func_fit_deriv=None):
+    argspec = inspect.getargspec(func)
+    param_values = argspec.defaults
+    nparams = len(param_values)
+
+    if len(argspec.args) == nparams + 1:
+        param_names = argspec.args[-nparams:]
+    else:
+        raise ModelDefinitionError(
+            "All parameters must be keyword arguments")
+
+    return custom_model(func, fit_deriv=func_fit_deriv)

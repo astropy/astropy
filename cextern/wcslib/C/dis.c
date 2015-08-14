@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.7 - an implementation of the FITS WCS standard.
+  WCSLIB 5.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.c,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
+  $Id: dis.c,v 5.9 2015/07/21 09:20:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -37,8 +37,9 @@
 
 const int DISSET = 137;
 
-const int POLYNOMIAL = 0;
-const int TPD        = 1;
+const int DIS_TPD        =    1;
+const int DIS_POLYNOMIAL =    2;
+const int DIS_DOTPD      = 1024;
 
 /* Maximum number of DPja or DQia keywords. */
 int NDPMAX = 256;
@@ -48,12 +49,41 @@ const char *dis_errmsg[] = {
   "Success",
   "Null disprm pointer passed",
   "Memory allocation failed",
-  "Failed to initialize distortion functions",
+  "Invalid parameter value",
   "Distort error",
   "De-distort error"};
 
 /* Convenience macro for invoking wcserr_set(). */
 #define DIS_ERRMSG(status) WCSERR_SET(status), dis_errmsg[status]
+
+/* Internal helper functions, not for general use. */
+static int polyset(int j, struct disprm *dis);
+static int tpdset(int j, struct disprm *dis);
+
+static int pol2tpd(int j, struct disprm *dis);
+static int tpvset(int j, struct disprm *dis);
+static int sipset(int j, struct disprm *dis);
+static int dssset(int j, struct disprm *dis);
+static int watset(int j, struct disprm *dis);
+static int cheleg(int type, int m, int n, double coeffm[], double coeffn[]);
+
+static int dispoly(DISP2X_ARGS);
+static int tpd1(DISP2X_ARGS);
+static int tpd2(DISP2X_ARGS);
+static int tpd3(DISP2X_ARGS);
+static int tpd4(DISP2X_ARGS);
+static int tpd5(DISP2X_ARGS);
+static int tpd6(DISP2X_ARGS);
+static int tpd7(DISP2X_ARGS);
+static int tpd8(DISP2X_ARGS);
+static int tpd9(DISP2X_ARGS);
+
+/* The first four iparm indices have meanings common to all distortion      */
+/* functions.  They are used by disp2x(), disx2p(), disprt(), and dishdo(). */
+#define I_DTYPE   0	/* Distortion type code.                            */
+#define I_NIPARM  1	/* Full (allocated) length of iparm[].              */
+#define I_NDPARM  2	/* No. of parameters in dparm[], excl. work space.  */
+#define I_DOCORR  3	/* True if distortion func computes a correction.   */
 
 /*--------------------------------------------------------------------------*/
 
@@ -71,11 +101,24 @@ int dpfill(
   double f)
 
 {
-  char *cp;
+  char axno[8], *cp;
 
   if (keyword) {
     if (field) {
-      sprintf(dp->field, "%s.%s", keyword, field);
+      if (j && 2 <= strlen(keyword)) {
+        /* Fill in the axis number from the value given. */
+        if (keyword[2] == '\0') {
+          sprintf(dp->field, "%s%d.%s", keyword, j, field);
+        } else {
+          /* Take care not to overwrite any alternate code. */
+          sprintf(dp->field, "%s.%s", keyword, field);
+          sprintf(axno, "%d", j);
+          dp->field[2] = axno[0];
+        }
+
+      } else {
+        sprintf(dp->field, "%s.%s", keyword, field);
+      }
     } else {
       strcpy(dp->field, keyword);
     }
@@ -441,7 +484,7 @@ int disprt(const struct disprm *dis)
 
     if (dis->iparm[j]) {
       wcsprintf(" iparm[%d][]:", j);
-      for (k = 0; k < dis->iparm[j][1]; k++) {
+      for (k = 0; k < dis->iparm[j][I_NIPARM]; k++) {
         if (k && k%5 == 0) {
           wcsprintf("\n            ");
         }
@@ -458,7 +501,7 @@ int disprt(const struct disprm *dis)
 
     if (dis->dparm[j]) {
       wcsprintf(" dparm[%d][]:", j);
-      for (k = 0; k < dis->iparm[j][2]; k++) {
+      for (k = 0; k < dis->iparm[j][I_NDPARM]; k++) {
         if (k && k%5 == 0) {
           wcsprintf("\n            ");
         }
@@ -541,6 +584,39 @@ int disperr(const struct disprm *dis, const char *prefix)
   }
 
   return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int dishdo(struct disprm *dis)
+
+{
+  static const char *function = "dishdo";
+
+  int j, status;
+  struct wcserr **err;
+
+  if (dis == 0x0) return DISERR_NULL_POINTER;
+  err = &(dis->err);
+
+  status = 0;
+  for (j = 0; j < dis->naxis; j++) {
+    if (dis->iparm[j][I_DTYPE]) {
+      if (dis->iparm[j][I_DTYPE] == DIS_TPD) {
+        /* Implemented as TPD... */
+        if (strcmp(dis->dtype[j], "TPD") != 0) {
+          /* ... but isn't TPD. */
+          dis->iparm[j][I_DTYPE] |= DIS_DOTPD;
+        }
+      } else {
+        /* Must be a Polynomial that can't be implemented as TPD. */
+        status = wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+          "Translation of %s to TPD is not possible", dis->dtype[j]);
+      }
+    }
+  }
+
+  return status;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -737,7 +813,7 @@ int disset(struct disprm *dis)
         "Invalid axis number (%d) in %s", j, keyp->field);
     }
 
-    if ((fp = strpbrk(keyp->field, ".")) == 0x0) {
+    if ((fp = strchr(keyp->field, '.')) == 0x0) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "Invalid record field name: %s", j, keyp->field);
     }
@@ -773,6 +849,9 @@ int disset(struct disprm *dis)
       sscanf(fp+6, "%d", &jhat);
       dis->scale[j][jhat-1] = wcsutil_dpkey_double(keyp);
     }
+
+    /* DOCORR should also be handled here but no space was provided for it
+       in disprm. */
   }
 
   /* Set defaults and do sanity checks on axmap[][].  */
@@ -872,6 +951,20 @@ int disset(struct disprm *dis)
         return status;
       }
 
+    } else if (strcmp(dis->dtype[j], "DSS") == 0) {
+      /* Digitized Sky Survey (DSS). */
+      if ((status = dssset(j, dis))) {
+        /* (Preserve the error message set by dssset().) */
+        return status;
+      }
+
+    } else if (strncmp(dis->dtype[j], "WAT", 3) == 0) {
+      /* WAT (TNX or ZPX "projections"). */
+      if ((status = watset(j, dis))) {
+        /* (Preserve the error message set by watset().) */
+        return status;
+      }
+
     } else if (strcmp(dis->dtype[j], "Polynomial")  == 0 ||
                strcmp(dis->dtype[j], "Polynomial*") == 0) {
       /* General polynomial distortion. */
@@ -938,7 +1031,12 @@ int disp2x(
         return wcserr_set(DIS_ERRMSG(DISERR_DISTORT));
       }
 
-      discrd[j] = dtmp;
+      if (dis->iparm[j][I_DOCORR]) {
+        /* Distortion function computes a correction. */
+        discrd[j] = rawcrd[j] + dtmp;
+      } else {
+        discrd[j] = dtmp;
+      }
 
     } else {
       discrd[j] = rawcrd[j];
@@ -1021,7 +1119,12 @@ int disx2p(
         return wcserr_set(DIS_ERRMSG(DISERR_DEDISTORT));
       }
 
-      rawcrd[j] = rtmp;
+      if (dis->iparm[j][I_DOCORR]) {
+        /* Inverse distortion function computes a correction. */
+        rawcrd[j] = discrd[j] + rtmp;
+      } else {
+        rawcrd[j] = rtmp;
+      }
     }
   }
 
@@ -1325,7 +1428,7 @@ int polyset(int j, struct disprm *dis)
   for (idp = 0; idp < dis->ndp; idp++, keyp++) {
     if (keyp->j-1 != j) continue;
 
-    if ((fp = strpbrk(keyp->field, ".")) == 0x0) {
+    if ((fp = strchr(keyp->field, '.')) == 0x0) {
       return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
         "Invalid field name for %s: %s", id, keyp->field);
     }
@@ -1354,28 +1457,26 @@ int polyset(int j, struct disprm *dis)
   nTparm = 1 + nVar;
   ndparm = K*nKparm + M*nTparm;
 
-#define I_DTYPE   0	/* Distortion type code.                            */
-#define I_NIPARM  1	/* Full (allocated) length of iparm[].              */
-#define I_NDPARM  2	/* No. of parameters in dparm[], excl. work space.  */
-#define I_NIDX    3	/* No. of indexes in iparm[].                       */
-#define I_LENDP   4	/* Full (allocated) length of dparm[].              */
-#define I_K       5	/* No. of auxiliary variables.                      */
-#define I_M       6	/* No. of terms in the polynomial.                  */
-#define I_NKPARM  7	/* No. of parameters used to define each auxiliary. */
-#define I_NTPARM  8	/* No. of parameters used to define each term.      */
-#define I_NVAR    9	/* No. of independent + auxiliary variables.        */
-#define I_MNVAR  10	/* No. of powers (exponents) in the polynomial.     */
-#define I_DPOLY  11	/* dparm offset for polynomial coefficients.        */
-#define I_DAUX   12	/* dparm offset for auxiliary coefficients.         */
-#define I_DVPOW  13	/* dparm offset for integral powers of variables.   */
-#define I_MAXPOW 14	/* iparm offset for max powers.                     */
-#define I_DPOFF  15	/* iparm offset for dparm offsets.                  */
-#define I_FLAGS  16	/* iparm offset for flags.                          */
-#define I_IPOW   17	/* iparm offset for integral powers.                */
-#define NIDX     18
+/* These iparm indices are specific to Polynomial.                          */
+#define I_NIDX    4	/* No. of indexes in iparm[].                       */
+#define I_LENDP   5	/* Full (allocated) length of dparm[].              */
+#define I_K       6	/* No. of auxiliary variables.                      */
+#define I_M       7	/* No. of terms in the polynomial.                  */
+#define I_NKPARM  8	/* No. of parameters used to define each auxiliary. */
+#define I_NTPARM  9	/* No. of parameters used to define each term.      */
+#define I_NVAR   10	/* No. of independent + auxiliary variables.        */
+#define I_MNVAR  11	/* No. of powers (exponents) in the polynomial.     */
+#define I_DPOLY  12	/* dparm offset for polynomial coefficients.        */
+#define I_DAUX   13	/* dparm offset for auxiliary coefficients.         */
+#define I_DVPOW  14	/* dparm offset for integral powers of variables.   */
+#define I_MAXPOW 15	/* iparm offset for max powers.                     */
+#define I_DPOFF  16	/* iparm offset for dparm offsets.                  */
+#define I_FLAGS  17	/* iparm offset for flags.                          */
+#define I_IPOW   18	/* iparm offset for integral powers.                */
+#define I_NPOLY  19
 
-  /* Add extra for integer exponents.  See "Optimization" below. */
-  niparm = NIDX + (2 + 2*M)*nVar;
+  /* Add extra for handling integer exponents.  See "Optimization" below. */
+  niparm = I_NPOLY + (2 + 2*M)*nVar;
 
   /* Add extra memory for temporaries. */
   lendp = ndparm + K;
@@ -1394,11 +1495,13 @@ int polyset(int j, struct disprm *dis)
   dparm = dis->dparm[j];
 
 
-  /* Record the indexing parameters.  The first two are used by disprt(). */
-  iparm[I_DTYPE]  = POLYNOMIAL;
+  /* Record the indexing parameters.  The first four are more widely used. */
+  iparm[I_DTYPE]  = DIS_POLYNOMIAL;
   iparm[I_NIPARM] = niparm;
   iparm[I_NDPARM] = ndparm;
-  iparm[I_NIDX]   = NIDX;
+  iparm[I_DOCORR] = 0;
+
+  iparm[I_NIDX]   = I_NPOLY;
   iparm[I_LENDP]  = lendp;
   iparm[I_K]      = K;
   iparm[I_M]      = M;
@@ -1437,9 +1540,14 @@ int polyset(int j, struct disprm *dis)
     /* N.B. keyp->j is 1-relative, but j is 0-relative. */
     if (keyp->j-1 != j) continue;
 
-    fp = strpbrk(keyp->field, ".") + 1;
+    fp = strchr(keyp->field, '.') + 1;
 
-    if (strncmp(fp, "AUX.", 4) == 0) {
+    if (strncmp(fp, "DOCORR:", 7) == 0) {
+      fp += 7;
+      sscanf(fp, "%d", &k);
+      if (k) iparm[I_DOCORR] = 1;
+
+    } else if (strncmp(fp, "AUX.", 4) == 0) {
       /* N.B. k here is 1-relative. */
       fp += 4;
       sscanf(fp, "%d", &k);
@@ -1448,7 +1556,7 @@ int polyset(int j, struct disprm *dis)
           "Bad auxiliary variable (%d) for %s: %s", k, id, keyp->field);
       }
 
-      if ((fp = strpbrk(fp, ".")) == 0x0) {
+      if ((fp = strchr(fp, '.')) == 0x0) {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
           "Invalid field name for %s: %s", id, keyp->field);
       }
@@ -1485,7 +1593,7 @@ int polyset(int j, struct disprm *dis)
           "Bad term (%d) for %s: %s", m, id, keyp->field);
       }
 
-      if ((fp = strpbrk(fp, ".")) == 0x0) {
+      if ((fp = strchr(fp, '.')) == 0x0) {
         return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
           "Invalid field name for %s: %s", id, keyp->field);
       }
@@ -1541,7 +1649,7 @@ int polyset(int j, struct disprm *dis)
   /* Optimization: when the power is integral, it is faster to multiply     */
   /* ------------  repeatedly than call pow().  iparm[] is constructed as   */
   /*               follows:                                                 */
-  /*     NIDX indexing parameters, as above,                                */
+  /*  I_NPOLY indexing parameters, as above,                                */
   /*     nVar elements record the largest integral power for each variable, */
   /*     nVar elements record offsets into dparm for each variable,         */
   /*   M*nVar flags to signal whether the power is integral,                */
@@ -1609,6 +1717,241 @@ int polyset(int j, struct disprm *dis)
   /* However don't do it if the name was given as "Polynomial*". */
   if (strcmp(dis->dtype[j], "Polynomial") == 0) {
     pol2tpd(j, dis);
+  }
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int tpdset(int j, struct disprm *dis)
+
+{
+  static const char *function = "tpdset";
+
+  char   *fp, id[16];
+  int    doaux, docorr, doradial, idis, idp, k, m, ncoeff[2], ndparm, niparm;
+  struct dpkey *keyp;
+  struct wcserr **err;
+  int (*(distpd[2]))(DISP2X_ARGS);
+
+  if (dis == 0x0) return DISERR_NULL_POINTER;
+  err = &(dis->err);
+
+  sprintf(id, "TPD on axis %d", j+1);
+
+
+  /* TPD distortion. */
+  if (dis->Nhat[j] < 1 || 2 < dis->Nhat[j]) {
+    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+      "Axis map for %s must contain 1 or 2 entries, not %d", id,
+      dis->Nhat[j]);
+  }
+
+  /* Find the number of parameters. */
+  ncoeff[0] = 0;
+  ncoeff[1] = 0;
+  doaux     = 0;
+  doradial  = 0;
+  docorr    = 0;
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    if (keyp->j-1 != j) continue;
+
+    fp = strchr(keyp->field, '.') + 1;
+
+    if (strncmp(fp, "TPD.", 4) == 0) {
+      fp += 4;
+      if (strncmp(fp, "FWD.", 4) == 0) {
+        idis = 0;
+
+      } else if (strncmp(fp, "REV.", 4) == 0) {
+        /* TPD may provide a polynomial approximation for the inverse. */
+        idis = 1;
+
+      } else {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+          "Unrecognized field name for %s: %s", id, keyp->field);
+      }
+
+      sscanf(fp+4, "%d", &k);
+      if (0 <= k && k <= 59) {
+        if (ncoeff[idis] < k+1) ncoeff[idis] = k+1;
+
+        /* Any radial terms? */
+        if (k == 3 || k == 11 || k == 23 || k == 39 || k == 59) {
+          doradial = 1;
+        }
+
+      } else {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+          "Invalid parameter number (%d) for %s: %s", k, id, keyp->field);
+      }
+
+    } else if (strncmp(fp, "AUX.", 4) == 0) {
+      /* Flag usage of auxiliary variables. */
+      doaux = 1;
+
+    } else if (strncmp(fp, "DOCORR:", 7) == 0) {
+      fp += 7;
+      sscanf(fp, "%d", &k);
+      if (k) docorr = 1;
+
+
+    } else if (strcmp(fp, "NAXES")  &&
+              strncmp(fp, "AXIS.",   5) &&
+              strncmp(fp, "OFFSET.", 7) &&
+              strncmp(fp, "SCALE.",  6)) {
+      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Unrecognized field name for %s: %s", id, keyp->field);
+    }
+  }
+
+  distpd[0] = 0x0;
+  distpd[1] = 0x0;
+  for (idis = 0; idis < 2; idis++) {
+    if (ncoeff[idis] <= 4) {
+      if (idis) {
+        /* No inverse polynomial. */
+        break;
+      }
+
+      /* First degree. */
+      ncoeff[idis] = 4;
+      distpd[idis] = tpd1;
+    } else if (ncoeff[idis] <= 7) {
+      /* Second degree. */
+      ncoeff[idis] = 7;
+      distpd[idis] = tpd2;
+    } else if (ncoeff[idis] <= 12) {
+      /* Third degree. */
+      ncoeff[idis] = 12;
+      distpd[idis] = tpd3;
+    } else if (ncoeff[idis] <= 17) {
+      /* Fourth degree. */
+      ncoeff[idis] = 17;
+      distpd[idis] = tpd4;
+    } else if (ncoeff[idis] <= 24) {
+      /* Fifth degree. */
+      ncoeff[idis] = 24;
+      distpd[idis] = tpd5;
+    } else if (ncoeff[idis] <= 31) {
+      /* Sixth degree. */
+      ncoeff[idis] = 31;
+      distpd[idis] = tpd6;
+    } else if (ncoeff[idis] <= 40) {
+      /* Seventh degree. */
+      ncoeff[idis] = 40;
+      distpd[idis] = tpd7;
+    } else if (ncoeff[idis] <= 49) {
+      /* Eighth degree. */
+      ncoeff[idis] = 49;
+      distpd[idis] = tpd8;
+    } else if (ncoeff[idis] <= 60) {
+      /* Ninth degree. */
+      ncoeff[idis] = 60;
+      distpd[idis] = tpd9;
+    } else {
+      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Invalid number of parameters (%d) for %s", ncoeff[idis], id);
+    }
+  }
+
+  /* disx2p() only uses the inverse TPD, if present, to provide a better */
+  /* zeroth approximation. */
+  dis->disp2x[j] = distpd[0];
+  dis->disx2p[j] = distpd[1];
+
+
+/* These iparm indices are specific to TPD.                      */
+#define I_TPDNCO  4	/* No. of TPD coefficients, forward...   */
+#define I_TPDINV  5     /* ...and inverse.                       */
+#define I_TPDAUX  6	/* True if auxiliary variables are used. */
+#define I_TPDRAD  7	/* True if the radial variable is used.  */
+#define I_NTPD    8
+
+  /* Record indexing parameters. */
+  niparm = I_NTPD;
+  if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  ndparm = (doaux?6:0) + ncoeff[0] + ncoeff[1];
+
+  /* The first four are more widely used. */
+  dis->iparm[j][I_DTYPE]  = DIS_TPD;
+  dis->iparm[j][I_NIPARM] = niparm;
+  dis->iparm[j][I_NDPARM] = ndparm;
+  dis->iparm[j][I_DOCORR] = docorr;
+
+  /* Number of TPD coefficients. */
+  dis->iparm[j][I_TPDNCO] = ncoeff[0];
+  dis->iparm[j][I_TPDINV] = ncoeff[1];
+
+  /* Flag for presence of auxiliary variables. */
+  dis->iparm[j][I_TPDAUX] = doaux;
+
+  /* Flag for presence of radial terms. */
+  dis->iparm[j][I_TPDRAD] = doradial;
+
+
+  /* Allocate memory for the polynomial coefficients and fill it. */
+  if ((dis->dparm[j] = calloc(ndparm, sizeof(double))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  /* Set default auxiliary coefficients. */
+  if (doaux) {
+    dis->dparm[j][1] = 1.0;
+    dis->dparm[j][5] = 1.0;
+  }
+
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    if (keyp->j-1 != j) continue;
+
+    fp = strchr(keyp->field, '.') + 1;
+
+    if (strncmp(fp, "AUX.", 4) == 0) {
+      /* Auxiliary variables. */
+      fp += 4;
+      sscanf(fp, "%d", &k);
+      if (k < 1 || 2 < k) {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+          "Bad auxiliary variable (%d) for %s: %s", k, id, keyp->field);
+      }
+
+      if ((fp = strchr(fp, '.')) == 0x0) {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+          "Invalid field name for %s: %s", id, keyp->field);
+      }
+      fp++;
+
+      if (strncmp(fp, "COEFF.", 6) != 0) {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+          "Unrecognized field name for %s: %s", id, keyp->field);
+      }
+
+      fp += 6;
+      sscanf(fp, "%d", &m);
+      if (m < 0 || 2 < m) {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Invalid coefficient number (%d) for %s: %s", m, id, keyp->field);
+      }
+
+      idis = 3*(k-1) + m;
+      dis->dparm[j][idis] = wcsutil_dpkey_double(keyp);
+
+    } else if (strncmp(fp, "TPD.", 4) == 0) {
+      fp += 4;
+      idis = (doaux?6:0);
+      if (strncmp(fp, "REV.", 4) == 0) {
+        idis += ncoeff[0];
+      }
+
+      sscanf(fp+4, "%d", &k);
+      dis->dparm[j][idis+k] = wcsutil_dpkey_double(keyp);
+    }
   }
 
   return 0;
@@ -1703,6 +2046,7 @@ int pol2tpd(int j, struct disprm *dis)
 
 
   /* OK, it ticks all the boxes.  Now translate it. */
+  ndparm = 0;
   if (degree == 1) {
     ndparm = 4;
     dis->disp2x[j] = tpd1;
@@ -1736,19 +2080,26 @@ int pol2tpd(int j, struct disprm *dis)
   dis->disx2p[j] = 0x0;
 
   /* Record indexing parameters. */
-  niparm = 5;
+  niparm = I_NTPD;
   if ((tpd_iparm = calloc(niparm, sizeof(int))) == 0x0) {
     return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
   }
 
-  /* The first three are required by disprt(). */
-  tpd_iparm[0] = TPD;
-  tpd_iparm[1] = niparm;
-  tpd_iparm[2] = ndparm;
-  tpd_iparm[3] = ndparm;
+  /* The first four are more widely used. */
+  tpd_iparm[I_DTYPE]  = DIS_TPD;
+  tpd_iparm[I_NIPARM] = niparm;
+  tpd_iparm[I_NDPARM] = ndparm;
+  tpd_iparm[I_DOCORR] = iparm[I_DOCORR];
+
+  /* Number of TPD coefficients. */
+  tpd_iparm[I_TPDNCO] = ndparm;
+  tpd_iparm[I_TPDINV] = 0;
+
+  /* No auxiliary variables yet. */
+  tpd_iparm[I_TPDAUX] = 0;
 
   /* Flag for presence of radial terms. */
-  tpd_iparm[4] = K;
+  tpd_iparm[I_TPDRAD] = K;
 
 
   /* Allocate memory for the polynomial coefficients and fill it. */
@@ -1801,6 +2152,845 @@ int pol2tpd(int j, struct disprm *dis)
   free(dparm);
   dis->iparm[j] = tpd_iparm;
   dis->dparm[j] = tpd_dparm;
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int tpvset(int j, struct disprm *dis)
+
+{
+  static const char *function = "tpvset";
+
+  char   *fp, id[16];
+  int    doradial, idp, k, ndparm, niparm;
+  struct dpkey *keyp;
+  struct wcserr **err;
+
+
+  /* Initialize. */
+  if (dis == 0x0) return DISERR_NULL_POINTER;
+  err = &(dis->err);
+
+  /* TPV "projection". */
+  sprintf(id, "TPV on axis %d", j+1);
+
+
+  if (dis->Nhat[j] != 2) {
+    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+      "Axis map for %s must contain 2 entries, not %d", id, dis->Nhat[j]);
+  }
+
+  /* Find the number of parameters. */
+  ndparm   = 0;
+  doradial = 0;
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    if (keyp->j-1 != j) continue;
+
+    fp = strchr(keyp->field, '.') + 1;
+
+    if (strncmp(fp, "TPV.", 4) == 0) {
+      sscanf(fp+4, "%d", &k);
+      if (0 <= k && k <= 39) {
+        if (ndparm < k+1) ndparm = k+1;
+
+        /* Any radial terms? */
+        if (k == 3 || k == 11 || k == 23 || k == 39 || k == 59) {
+          doradial = 1;
+        }
+
+      } else {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+          "Invalid parameter number (%d) for %s: %s", k, id, keyp->field);
+      }
+
+    } else if (strcmp(fp, "NAXES")  &&
+              strncmp(fp, "AXIS.",   5) &&
+              strncmp(fp, "OFFSET.", 7) &&
+              strncmp(fp, "SCALE.",  6)) {
+      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Unrecognized field name for %s: %s", id, keyp->field);
+    }
+  }
+
+  /* TPD is going to do the dirty work. */
+  if (ndparm <= 4) {
+    /* First degree. */
+    ndparm = 4;
+    dis->disp2x[j] = tpd1;
+  } else if (ndparm <= 7) {
+    /* Second degree. */
+    ndparm = 7;
+    dis->disp2x[j] = tpd2;
+  } else if (ndparm <= 12) {
+    /* Third degree. */
+    ndparm = 12;
+    dis->disp2x[j] = tpd3;
+  } else if (ndparm <= 17) {
+    /* Fourth degree. */
+    ndparm = 17;
+    dis->disp2x[j] = tpd4;
+  } else if (ndparm <= 24) {
+    /* Fifth degree. */
+    ndparm = 24;
+    dis->disp2x[j] = tpd5;
+  } else if (ndparm <= 31) {
+    /* Sixth degree. */
+    ndparm = 31;
+    dis->disp2x[j] = tpd6;
+  } else if (ndparm <= 40) {
+    /* Seventh degree. */
+    ndparm = 40;
+    dis->disp2x[j] = tpd7;
+  } else {
+    /* Could go to ninth degree, but that wouldn't be legit. */
+    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+      "Invalid number of parameters (%d) for %s", ndparm, id);
+  }
+
+  /* No specialist de-distortions. */
+  dis->disx2p[j] = 0x0;
+
+  /* Record indexing parameters. */
+  niparm = I_NTPD;
+  if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  /* The first four are more widely used. */
+  dis->iparm[j][I_DTYPE]  = DIS_TPD;
+  dis->iparm[j][I_NIPARM] = niparm;
+  dis->iparm[j][I_NDPARM] = ndparm;
+  dis->iparm[j][I_DOCORR] = 0;
+
+  /* Number of TPD coefficients. */
+  dis->iparm[j][I_TPDNCO] = ndparm;
+  dis->iparm[j][I_TPDINV] = 0;
+
+  /* TPV never needs auxiliary variables. */
+  dis->iparm[j][I_TPDAUX] = 0;
+
+  /* Flag for presence of radial terms. */
+  dis->iparm[j][I_TPDRAD] = doradial;
+
+
+  /* Allocate memory for the polynomial coefficients and fill it. */
+  if ((dis->dparm[j] = calloc(ndparm, sizeof(double))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    if (keyp->j-1 != j) continue;
+
+    fp = strchr(keyp->field, '.') + 1;
+
+    /* One-to-one correspondence between TPV and TPD coefficients. */
+    if (strncmp(fp, "TPV.", 4) == 0) {
+      sscanf(fp+4, "%d", &k);
+      dis->dparm[j][k] = wcsutil_dpkey_double(keyp);
+    }
+  }
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int sipset(int j, struct disprm *dis)
+
+{
+  static const char *function = "sipset";
+
+  static const int map[][10] = {{ 0,  2,  6, 10, 16, 22, 30, 38, 48, 58},
+                                { 1,  5,  9, 15, 21, 29, 37, 47, 57, -1},
+                                { 4,  8, 14, 20, 28, 36, 46, 56, -1, -1},
+                                { 7, 13, 19, 27, 35, 45, 55, -1, -1, -1},
+                                {12, 18, 26, 34, 44, 54, -1, -1, -1, -1},
+                                {17, 25, 33, 43, 53, -1, -1, -1, -1, -1},
+                                {24, 32, 42, 52, -1, -1, -1, -1, -1, -1},
+                                {31, 41, 51, -1, -1, -1, -1, -1, -1, -1},
+                                {40, 50, -1, -1, -1, -1, -1, -1, -1, -1},
+                                {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
+
+  char   *fp, id[16];
+  int    deg, degree[2], idis, idp, jhat, naxis, ncoeff[2], ndparm, niparm,
+         p, q;
+  struct dpkey *keyp;
+  struct wcserr **err;
+  int (*(distpd[2]))(DISP2X_ARGS);
+
+
+  /* Initialize. */
+  if (dis == 0x0) return DISERR_NULL_POINTER;
+  err = &(dis->err);
+
+  /* Simple Imaging Polynomial. */
+  sprintf(id, "SIP on axis %d", j+1);
+
+
+  if (dis->Nhat[j] != 2) {
+    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+      "Axis map for %s must contain 2 entries, not %d", id, dis->Nhat[j]);
+  }
+
+  /* Find the polynomial degree, at least 1 for the forward function. */
+  degree[0] =  1;
+  degree[1] = -1;
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    if (keyp->j-1 != j) continue;
+
+    fp = strchr(keyp->field, '.') + 1;
+
+    if (strncmp(fp, "SIP.", 4) == 0) {
+      fp += 4;
+      if (strncmp(fp, "FWD.", 4) == 0) {
+        idis = 0;
+
+      } else if (strncmp(fp, "REV.", 4) == 0) {
+        /* SIP uses a polynomial approximation for the inverse. */
+        idis = 1;
+
+      } else {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+          "Unrecognized field name for %s: %s", id, keyp->field);
+      }
+
+      fp += 4;
+      sscanf(fp, "%d_%d", &p, &q);
+      deg = p + q;
+      if (p < 0 || 9 < p || q < 0 || 9 < q || 9 < deg) {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Invalid powers (%d, %d) for %s: %s", p, q, id, keyp->field);
+      }
+
+      if (degree[idis] < deg) degree[idis] = deg;
+
+    } else if (strcmp(fp, "NAXES")  &&
+              strncmp(fp, "AXIS.",   5) &&
+              strncmp(fp, "OFFSET.", 7) &&
+              strncmp(fp, "SCALE.",  6)) {
+      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Unrecognized field name for %s: %s", id, keyp->field);
+    }
+  }
+
+  if (degree[1] == 0 ) degree[1] = 1;
+
+  /* TPD is going to do the dirty work. */
+  distpd[0] = 0x0;
+  distpd[1] = 0x0;
+  for (idis = 0; idis < 2; idis++) {
+    ncoeff[idis] = 0;
+    if (degree[idis] == 1) {
+      ncoeff[idis] = 4;
+      distpd[idis] = tpd1;
+    } else if (degree[idis] == 2) {
+      ncoeff[idis] = 7;
+      distpd[idis] = tpd2;
+    } else if (degree[idis] == 3) {
+      ncoeff[idis] = 12;
+      distpd[idis] = tpd3;
+    } else if (degree[idis] == 4) {
+      ncoeff[idis] = 17;
+      distpd[idis] = tpd4;
+    } else if (degree[idis] == 5) {
+      ncoeff[idis] = 24;
+      distpd[idis] = tpd5;
+    } else if (degree[idis] == 6) {
+      ncoeff[idis] = 31;
+      distpd[idis] = tpd6;
+    } else if (degree[idis] == 7) {
+      ncoeff[idis] = 40;
+      distpd[idis] = tpd7;
+    } else if (degree[idis] == 8) {
+      ncoeff[idis] = 49;
+      distpd[idis] = tpd8;
+    } else if (degree[idis] == 9) {
+      ncoeff[idis] = 60;
+      distpd[idis] = tpd9;
+    }
+  }
+
+  /* SIP uses a polynomial approximation to the inverse.  It's not very    */
+  /* accurate but may provide disx2p() with a better zeroth approximation. */
+  dis->disp2x[j] = distpd[0];
+  dis->disx2p[j] = distpd[1];
+
+
+  /* Record indexing parameters. */
+  niparm = I_NTPD;
+  if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  ndparm = ncoeff[0] + ncoeff[1];
+
+  /* The first four are more widely used. */
+  dis->iparm[j][I_DTYPE]  = DIS_TPD;
+  dis->iparm[j][I_NIPARM] = niparm;
+  dis->iparm[j][I_NDPARM] = ndparm;
+  dis->iparm[j][I_DOCORR] = 0;
+
+  /* Number of TPD coefficients. */
+  dis->iparm[j][I_TPDNCO] = ncoeff[0];
+  dis->iparm[j][I_TPDINV] = ncoeff[1];
+
+  /* SIP never needs auxiliary variables. */
+  dis->iparm[j][I_TPDAUX] = 0;
+
+  /* SIP never needs the radial terms. */
+  dis->iparm[j][I_TPDRAD] = 0;
+
+
+  /* Allocate memory for the polynomial coefficients and fill it. */
+  if ((dis->dparm[j] = calloc(ndparm, sizeof(double))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    if (keyp->j-1 != j) continue;
+
+    fp = strchr(keyp->field, '.') + 1;
+
+    if (strncmp(fp, "SIP.", 4) == 0) {
+      fp += 4;
+      if (strncmp(fp, "FWD.", 4) == 0) {
+        idis = 0;
+      } else {
+        idis = ncoeff[0];
+      }
+
+      sscanf(fp+4, "%d_%d", &p, &q);
+
+      /* Map to TPD coefficient number. */
+      idis += map[p][q];
+
+      dis->dparm[j][idis] = wcsutil_dpkey_double(keyp);
+    }
+  }
+
+  /* Account for the fact that the SIP distortion provides an additive    */
+  /* correction to the offset of the pixel coordinate from CRPIX, whereas */
+  /* we expect the distortion function to provide the actual value of the */
+  /* distorted pixel coordinate.                                          */
+  naxis = dis->naxis;
+  jhat  = dis->axmap[j][naxis+j];
+  idis  = jhat + 1;
+  dis->dparm[j][0] = dis->offset[j][jhat];
+  dis->dparm[j][idis] += 1.0;
+  if (degree[1] > 0) {
+    dis->dparm[j][ncoeff[0]] = dis->offset[j][jhat];
+    dis->dparm[j][ncoeff[0]+idis] += 1.0;
+  }
+
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+int dssset(int j, struct disprm *dis)
+
+{
+  static const char *function = "dssset";
+
+  char   *fp, id[16];
+  int    degree, idp, m, ncoeff, ndparm, niparm;
+  double A1, A2, A3, B1, B2, B3, coeff, *dparm, S, X0, Y0;
+  struct dpkey *keyp;
+  struct wcserr **err;
+
+
+  /* Initialize. */
+  if (dis == 0x0) return DISERR_NULL_POINTER;
+  err = &(dis->err);
+
+  /* Digitized Sky Survey. */
+  sprintf(id, "DSS on axis %d", j+1);
+
+
+  if (dis->Nhat[j] != 2) {
+    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+      "Axis map for %s must contain 2 entries, not %d", id, dis->Nhat[j]);
+  }
+
+  /* Safe to assume the polynomial degree is 5 (or less). */
+  ncoeff = 24;
+  dis->disp2x[j] = tpd5;
+
+  /* No specialist de-distortions. */
+  dis->disx2p[j] = 0x0;
+
+
+ /* Record indexing parameters. */
+  niparm = I_NTPD;
+  if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  ndparm = 6 + ncoeff;
+
+  /* The first four are more widely used. */
+  dis->iparm[j][I_DTYPE]  = DIS_TPD;
+  dis->iparm[j][I_NIPARM] = niparm;
+  dis->iparm[j][I_NDPARM] = ndparm;
+  dis->iparm[j][I_DOCORR] = 0;
+
+  /* Number of TPD coefficients. */
+  dis->iparm[j][I_TPDNCO] = ncoeff;
+  dis->iparm[j][I_TPDINV] = 0;
+
+  /* DSS always needs auxiliary variables. */
+  dis->iparm[j][I_TPDAUX] = 1;
+
+  /* DSS never needs the radial terms. */
+  dis->iparm[j][I_TPDRAD] = 0;
+
+
+  /* Allocate memory for the polynomial coefficients and fill it. */
+  if ((dis->dparm[j] = calloc(ndparm, sizeof(double))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  /* This translation follows WCS Paper IV, Sect. 5.2 using the same */
+  /* variable names.  Find A1, A2, A3, B1, B2, and B3.               */
+  A1 = A2 = A3 = 0.0;
+  B1 = B2 = B3 = 0.0;
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    fp = strchr(keyp->field, '.') + 1;
+    if (strncmp(fp, "DSS.AMD.", 8) == 0) {
+      fp += 8;
+      sscanf(fp, "%d", &m);
+
+      if (m == 1) {
+        if (keyp->j == 1) {
+          A1 = wcsutil_dpkey_double(keyp);
+        } else {
+          B1 = wcsutil_dpkey_double(keyp);
+        }
+      } else if (m == 2) {
+        if (keyp->j == 1) {
+          A2 = wcsutil_dpkey_double(keyp);
+        } else {
+          B2 = wcsutil_dpkey_double(keyp);
+        }
+      } else if (m == 3) {
+        if (keyp->j == 1) {
+          A3 = wcsutil_dpkey_double(keyp);
+        } else {
+          B3 = wcsutil_dpkey_double(keyp);
+        }
+      }
+    }
+  }
+
+  X0 = (A2*B3 - A3*B1) / (A1*B1 - A2*B2);
+  Y0 = (A3*B2 - A1*B3) / (A1*B1 - A2*B2);
+
+  S = sqrt(fabs(A1*B1 - A2*B2));
+  if (S == 0.0) {
+    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+      "Coefficient scale for %s is zero.", id);
+  }
+
+  /* Coefficients for the auxiliary variables. */
+  dparm = dis->dparm[j];
+  if (j == 0) {
+    dparm[0] =  X0;
+    dparm[1] = -B1/S;
+    dparm[2] = -A2/S;
+    dparm[3] =  Y0;
+    dparm[4] =  B2/S;
+    dparm[5] =  A1/S;
+
+    /* Change the sign of S for scaling the A coefficients. */
+    S *= -1.0;
+
+  } else {
+    dparm[0] =  Y0;
+    dparm[1] =  B2/S;
+    dparm[2] =  A1/S;
+    dparm[3] =  X0;
+    dparm[4] = -B1/S;
+    dparm[5] = -A2/S;
+  }
+
+  /* Translate DSS coefficients to TPD. */
+  dparm += 6;
+  degree = 3;
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    if (keyp->j-1 != j) continue;
+
+    fp = strchr(keyp->field, '.') + 1;
+
+    if (strncmp(fp, "DSS.AMD.", 8) == 0) {
+      /* Skip zero coefficients. */
+      if ((coeff = wcsutil_dpkey_double(keyp)) == 0.0) continue;
+
+      fp += 8;
+      sscanf(fp, "%d", &m);
+
+      /* Apply the coefficient scale factor. */
+      coeff /= S;
+
+      if (m == 1) {
+        dparm[1]  = coeff;
+      } else if (m == 2) {
+        dparm[2]  = coeff;
+      } else if (m == 3) {
+        dparm[0]  = coeff;
+      } else if (m == 4) {
+        dparm[4] += coeff;
+      } else if (m == 5) {
+        dparm[5]  = coeff;
+      } else if (m == 6) {
+        dparm[6] += coeff;
+      } else if (m == 7) {
+        dparm[4] += coeff;
+        dparm[6] += coeff;
+      } else if (m == 8) {
+        dparm[7] += coeff;
+      } else if (m == 9) {
+        dparm[8]  = coeff;
+      } else if (m == 10) {
+        dparm[9] += coeff;
+      } else if (m == 11) {
+        dparm[10] = coeff;
+      } else if (m == 12) {
+        dparm[7] += coeff;
+        dparm[9] += coeff;
+      } else if (m == 13) {
+        dparm[17] = coeff;
+        dparm[19] = coeff * 2.0;
+        dparm[21] = coeff;
+	degree = 5;
+      } else if (coeff != 0.0) {
+        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Invalid parameter for %s: %s", m, id, keyp->field);
+      }
+
+    } else if (strcmp(fp, "NAXES")  &&
+              strncmp(fp, "AXIS.",   5) &&
+              strncmp(fp, "OFFSET.", 7) &&
+              strncmp(fp, "SCALE.",  6)) {
+      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Unrecognized field name for %s: %s", id, keyp->field);
+    }
+  }
+
+  /* The DSS polynomial doesn't have 4th degree terms, and the 5th degree
+     coefficient is often zero. */
+  if (degree == 3) {
+    dis->iparm[j][I_TPDNCO] = 12;
+    dis->disp2x[j] = tpd3;
+  }
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+
+#define CHEBYSHEV 1
+#define LEGENDRE  2
+#define MONOMIAL  3
+
+int watset(int j, struct disprm *dis)
+
+{
+  static const char *function = "watset";
+
+  static const int map[][10] = {{ 0,  2,  6, 10, 16, 22, 30, 38, 48, 58},
+                                { 1,  5,  9, 15, 21, 29, 37, 47, 57, -1},
+                                { 4,  8, 14, 20, 28, 36, 46, 56, -1, -1},
+                                { 7, 13, 19, 27, 35, 45, 55, -1, -1, -1},
+                                {12, 18, 26, 34, 44, 54, -1, -1, -1, -1},
+                                {17, 25, 33, 43, 53, -1, -1, -1, -1, -1},
+                                {24, 32, 42, 52, -1, -1, -1, -1, -1, -1},
+                                {31, 41, 51, -1, -1, -1, -1, -1, -1, -1},
+                                {40, 50, -1, -1, -1, -1, -1, -1, -1, -1},
+                                {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
+
+  char   *fp, id[16];
+  int    deg, degree, doaux, idis, idp, im, in, *iparm, kind, m, n, ncoeff,
+         ndparm, niparm;
+  double coeff, coeffm[10], coeffn[10], *dparm, dx, dy, x0, xmax, xmin,
+         y0, ymax, ymin;
+  struct dpkey *keyp;
+  struct wcserr **err;
+
+
+  /* Initialize. */
+  if (dis == 0x0) return DISERR_NULL_POINTER;
+  err = &(dis->err);
+
+  /* WAT (TNX or ZPX) Polynomial. */
+  sprintf(id, "WAT (%s) on axis %d", dis->dtype[0]+4, j+1);
+
+  if (dis->Nhat[j] != 2) {
+    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+      "Axis map for %s must contain 2 entries, not %d", id, dis->Nhat[j]);
+  }
+
+  /* Find the polynomial degree (at least 1), kind, and domain. */
+  degree = 1;
+  kind = 0;
+  xmin = xmax = 0.0;
+  ymin = ymax = 0.0;
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    if (keyp->j-1 != j) continue;
+
+    fp = strchr(keyp->field, '.') + 1;
+
+    if (strncmp(fp, "WAT.", 4) == 0) {
+      fp += 4;
+      if (strncmp(fp, "CHBY.", 5) == 0 ||
+          strncmp(fp, "LEGR.", 5) == 0 ||
+          strncmp(fp, "MONO.", 5) == 0) {
+
+        fp += 5;
+        sscanf(fp, "%d_%d", &m, &n);
+        deg = m + n;
+        if (m < 0 || 9 < m || n < 0 || 9 < n || 9 < deg) {
+          return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+          "Invalid powers (%d, %d) for %s: %s", m, n, id, keyp->field);
+        }
+
+        if (degree < deg) degree = deg;
+
+      } else if (strcmp(fp, "POLY") == 0) {
+        kind = wcsutil_dpkey_int(keyp);
+
+      } else if (strcmp(fp, "XMIN") == 0) {
+        xmin = wcsutil_dpkey_double(keyp);
+
+      } else if (strcmp(fp, "XMAX") == 0) {
+        xmax = wcsutil_dpkey_double(keyp);
+
+      } else if (strcmp(fp, "YMIN") == 0) {
+        ymin = wcsutil_dpkey_double(keyp);
+
+      } else if (strcmp(fp, "YMAX") == 0) {
+        ymax = wcsutil_dpkey_double(keyp);
+      }
+
+    } else if (strcmp(fp, "NAXES")  &&
+              strncmp(fp, "AXIS.",   5) &&
+              strncmp(fp, "OFFSET.", 7) &&
+              strncmp(fp, "SCALE.",  6)) {
+      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Unrecognized field name for %s: %s", id, keyp->field);
+    }
+  }
+
+  doaux = (kind == 1 || kind == 2);
+
+  /* TPD is going to do the dirty work. */
+  ncoeff = 0;
+  if (degree == 1) {
+    /* First degree. */
+    ncoeff = 4;
+    dis->disp2x[j] = tpd1;
+  } else if (degree == 2) {
+    /* Second degree. */
+    ncoeff = 7;
+    dis->disp2x[j] = tpd2;
+  } else if (degree == 3) {
+    /* Third degree. */
+    ncoeff = 12;
+    dis->disp2x[j] = tpd3;
+  } else if (degree == 4) {
+    /* Fourth degree. */
+    ncoeff = 17;
+    dis->disp2x[j] = tpd4;
+  } else if (degree == 5) {
+    /* Fifth degree. */
+    ncoeff = 24;
+    dis->disp2x[j] = tpd5;
+  } else if (degree == 6) {
+    /* Sixth degree. */
+    ncoeff = 31;
+    dis->disp2x[j] = tpd6;
+  } else if (degree == 7) {
+    /* Seventh degree. */
+    ncoeff = 40;
+    dis->disp2x[j] = tpd7;
+  } else if (degree == 8) {
+    /* Eighth degree. */
+    ncoeff = 49;
+    dis->disp2x[j] = tpd8;
+  } else if (degree == 9) {
+    /* Ninth degree. */
+    ncoeff = 60;
+    dis->disp2x[j] = tpd9;
+  }
+
+  /* No specialist de-distortions. */
+  dis->disx2p[j] = 0x0;
+
+
+  /* Record indexing parameters. */
+  niparm = I_NTPD;
+  if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  iparm = dis->iparm[j];
+
+  ndparm = 6 + ncoeff;
+
+  /* The first four are more widely used. */
+  iparm[I_DTYPE]  = DIS_TPD;
+  iparm[I_NIPARM] = niparm;
+  iparm[I_NDPARM] = ndparm;
+  iparm[I_DOCORR] = 1;
+
+  /* Number of TPD coefficients. */
+  iparm[I_TPDNCO] = ncoeff;
+  iparm[I_TPDINV] = 0;
+
+  /* The Chebyshev and Legendre polynomials use auxiliary variables. */
+  iparm[I_TPDAUX] = doaux;
+
+  /* WAT never needs the radial terms. */
+  iparm[I_TPDRAD] = 0;
+
+
+  /* Allocate memory for the polynomial coefficients and fill it. */
+  if ((dis->dparm[j] = calloc(ndparm, sizeof(double))) == 0x0) {
+    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
+  }
+
+  dparm = dis->dparm[j];
+
+
+  /* Coefficients for the auxiliary variables. */
+  if (doaux) {
+    x0 = (xmax + xmin)/2.0;
+    dx = (xmax - xmin)/2.0;
+    if (dx == 0.0) {
+      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "X-span for %s is zero", id);
+    }
+
+    dparm[0] = -x0/dx;
+    dparm[1] = 1.0/dx;
+    dparm[2] = 0.0;
+
+    y0 = (ymax + ymin)/2.0;
+    dy = (ymax - ymin)/2.0;
+    if (dy == 0.0) {
+      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
+        "Y-span for %s is zero", id);
+    }
+
+    dparm[3] = -y0/dy;
+    dparm[4] = 0.0;
+    dparm[5] = 1.0/dy;
+
+    dparm += 6;
+  }
+
+
+  /* Unpack the polynomial coefficients. */
+  keyp = dis->dp;
+  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
+    if (keyp->j-1 != j) continue;
+
+    fp = strchr(keyp->field, '.') + 1;
+
+    if ((kind == CHEBYSHEV && strncmp(fp, "WAT.CHBY.", 9) == 0) ||
+        (kind == LEGENDRE  && strncmp(fp, "WAT.LEGR.", 9) == 0) ||
+        (kind == MONOMIAL  && strncmp(fp, "WAT.MONO.", 9) == 0)) {
+      fp += 9;
+
+      sscanf(fp, "%d_%d", &m, &n);
+
+      if (kind == MONOMIAL) {
+        /* Monomial coefficient, maps simply to TPD coefficient number. */
+        idis = map[m][n];
+        dparm[idis] = wcsutil_dpkey_double(keyp);
+
+      } else {
+        /* Coefficient of the product of two Chebyshev or two Legendre */
+        /* polynomials.  Find the corresponding monomial coefficients. */
+        coeff = wcsutil_dpkey_double(keyp);
+
+        cheleg(kind, m, n, coeffm, coeffn);
+        for (im = 0; im <= m; im++) {
+          if (coeffm[im] == 0.0) continue;
+
+          for (in = 0; in <= n; in++) {
+            if (coeffn[in] == 0.0) continue;
+
+            idis = map[im][in];
+            dparm[idis] += coeff*coeffm[im]*coeffn[in];
+          }
+        }
+      }
+    }
+  }
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------------*/
+/* Compute the coefficients of Chebyshev or Legendre polynomials of degree  */
+/* m and n.                                                                 */
+
+int cheleg(int kind, int m, int n, double coeffm[], double coeffn[])
+
+{
+  int    j, j0, j1, j2, k, N;
+  double *coeff[3], d;
+
+  N = (m > n) ? m : n;
+
+  /* Allocate work arrays. */
+  coeff[0] = calloc(3*(N+1), sizeof(double));
+  coeff[1] = coeff[0] + (N+1);
+  coeff[2] = coeff[1] + (N+1);
+
+  for (j = 0; j <= N; j++) {
+    j0 =  j%3;
+
+    if (j == 0) {
+      coeff[0][0] = 1.0;
+
+    } else if (j == 1) {
+      coeff[1][1] = 1.0;
+
+    } else {
+      /* Cyclic buffer indices. */
+      j1 = (j-1)%3;
+      j2 = (j-2)%3;
+
+      memset(coeff[j0], 0, (N+1)*sizeof(double));
+
+      d = (double)j;
+      for (k = 0; k < N; k++) {
+        if (kind == CHEBYSHEV) {
+          coeff[j0][k+1] = 2.0 * coeff[j1][k];
+          coeff[j0][k]  -=       coeff[j2][k];
+        } else if (kind == LEGENDRE) {
+          coeff[j0][k+1] = ((2.0*d - 1.0) * coeff[j1][k]) / d;
+          coeff[j0][k]  -=     ((d - 1.0) * coeff[j2][k]) / d;
+        }
+      }
+    }
+
+    if (j == m) memcpy(coeffm, coeff[j0], (m+1)*sizeof(double));
+    if (j == n) memcpy(coeffn, coeff[j0], (n+1)*sizeof(double));
+  }
+
+  free(coeff[0]);
 
   return 0;
 }
@@ -1922,496 +3112,6 @@ int dispoly(
 
 /*--------------------------------------------------------------------------*/
 
-int tpvset(int j, struct disprm *dis)
-
-{
-  static const char *function = "tpvset";
-
-  char   *fp, id[16];
-  int    doradial, idp, k, ndparm, niparm;
-  struct dpkey *keyp;
-  struct wcserr **err;
-
-  if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
-
-  sprintf(id, "TPV on axis %d", j+1);
-
-
-  /* TPV "projection". */
-  if (dis->Nhat[j] != 2) {
-    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-      "Axis map for %s must contain 2 entries, not %d", id, dis->Nhat[j]);
-  }
-
-  /* Find the number of parameters. */
-  ndparm   = 0;
-  doradial = 0;
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
-    if (keyp->j-1 != j) continue;
-
-    fp = strpbrk(keyp->field, ".") + 1;
-
-    if (strncmp(fp, "TPV.", 4) == 0) {
-      sscanf(fp+4, "%d", &k);
-      if (0 <= k && k <= 39) {
-        if (ndparm < k+1) ndparm = k+1;
-
-        /* Any radial terms? */
-        if (k == 3 || k == 11 || k == 23 || k == 39 || k == 59) {
-          doradial = 1;
-        }
-
-      } else {
-        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-          "Invalid parameter number (%d) for %s: %s", k, id, keyp->field);
-      }
-
-    } else if (strcmp(fp, "NAXES")  &&
-              strncmp(fp, "AXIS.",   5) &&
-              strncmp(fp, "OFFSET.", 7) &&
-              strncmp(fp, "SCALE.",  6)) {
-      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-        "Unrecognized field name for %s: %s", id, keyp->field);
-    }
-  }
-
-  /* TPD is going to do the dirty work. */
-  if (ndparm <= 4) {
-    /* First degree. */
-    ndparm = 4;
-    dis->disp2x[j] = tpd1;
-  } else if (ndparm <= 7) {
-    /* Second degree. */
-    ndparm = 7;
-    dis->disp2x[j] = tpd2;
-  } else if (ndparm <= 12) {
-    /* Third degree. */
-    ndparm = 12;
-    dis->disp2x[j] = tpd3;
-  } else if (ndparm <= 17) {
-    /* Fourth degree. */
-    ndparm = 17;
-    dis->disp2x[j] = tpd4;
-  } else if (ndparm <= 24) {
-    /* Fifth degree. */
-    ndparm = 24;
-    dis->disp2x[j] = tpd5;
-  } else if (ndparm <= 31) {
-    /* Sixth degree. */
-    ndparm = 31;
-    dis->disp2x[j] = tpd6;
-  } else if (ndparm <= 40) {
-    /* Seventh degree. */
-    ndparm = 40;
-    dis->disp2x[j] = tpd7;
-  } else {
-    /* Could go to ninth degree, but that wouldn't be legit. */
-    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-      "Invalid number of parameters (%d) for %s", ndparm, id);
-  }
-
-  /* No specialist de-distortions. */
-  dis->disx2p[j] = 0x0;
-
-  /* Record indexing parameters. */
-  niparm = 5;
-  if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
-    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-  }
-
-  /* The first three are required by disprt(). */
-  dis->iparm[j][0] = TPD;
-  dis->iparm[j][1] = niparm;
-  dis->iparm[j][2] = ndparm;
-  dis->iparm[j][3] = ndparm;
-
-  /* Flag for presence of radial terms. */
-  dis->iparm[j][4] = doradial;
-
-
-  /* Allocate memory for the polynomial coefficients and fill it. */
-  if ((dis->dparm[j] = calloc(ndparm, sizeof(double))) == 0x0) {
-    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-  }
-
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
-    if (keyp->j-1 != j) continue;
-
-    fp = strpbrk(keyp->field, ".") + 1;
-
-    /* One-to-one correspondence between TPV and TPD coefficients. */
-    if (strncmp(fp, "TPV.", 4) == 0) {
-      sscanf(fp+4, "%d", &k);
-      dis->dparm[j][k] = wcsutil_dpkey_double(keyp);
-    }
-  }
-
-  return 0;
-}
-
-/*--------------------------------------------------------------------------*/
-
-int sipset(int j, struct disprm *dis)
-
-{
-  static const char *function = "sipset";
-
-  static const int map[][10] = {{ 0,  2,  6, 10, 16, 22, 30, 38, 48, 58},
-                                { 1,  5,  9, 15, 21, 29, 37, 47, 57, -1},
-                                { 4,  8, 14, 20, 28, 36, 46, 56, -1, -1},
-                                { 7, 13, 19, 27, 35, 45, 55, -1, -1, -1},
-                                {12, 18, 26, 34, 44, 54, -1, -1, -1, -1},
-                                {17, 25, 33, 43, 53, -1, -1, -1, -1, -1},
-                                {24, 32, 42, 52, -1, -1, -1, -1, -1, -1},
-                                {31, 41, 51, -1, -1, -1, -1, -1, -1, -1},
-                                {40, 50, -1, -1, -1, -1, -1, -1, -1, -1},
-                                {49, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
-
-  char   *fp, id[16];
-  int    deg, degree[2], idis, idp, jhat, naxis, ncoeff[2], ndparm, niparm,
-         p, q;
-  struct dpkey *keyp;
-  struct wcserr **err;
-  int (*(distpd[2]))(DISP2X_ARGS);
-
-  if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
-
-  sprintf(id, "SIP on axis %d", j+1);
-
-
-  /* Simple Imaging Polynomial. */
-  if (dis->Nhat[j] != 2) {
-    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-      "Axis map for %s must contain 2 entries, not %d", id, dis->Nhat[j]);
-  }
-
-  /* Find the polynomial degree, at least 1 for the forward function. */
-  degree[0] =  1;
-  degree[1] = -1;
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
-    if (keyp->j-1 != j) continue;
-
-    fp = strpbrk(keyp->field, ".") + 1;
-
-    if (strncmp(fp, "SIP.", 4) == 0) {
-      fp += 4;
-      if (strncmp(fp, "FWD.", 4) == 0) {
-        idis = 0;
-
-      } else if (strncmp(fp, "REV.", 4) == 0) {
-        /* SIP uses a polynomial approximation for the inverse. */
-        idis = 1;
-
-      } else {
-        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-          "Unrecognized field name for %s: %s", id, keyp->field);
-      }
-
-      fp += 4;
-      sscanf(fp, "%d_%d", &p, &q);
-      deg = p + q;
-      if (p < 0 || 9 < p || q < 0 || 9 < q || 9 < deg) {
-        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-        "Invalid powers (%d, %d) for %s: %s", p, q, id, keyp->field);
-      }
-
-      if (degree[idis] < deg) degree[idis] = deg;
-
-    } else if (strcmp(fp, "NAXES")  &&
-              strncmp(fp, "AXIS.",   5) &&
-              strncmp(fp, "OFFSET.", 7) &&
-              strncmp(fp, "SCALE.",  6)) {
-      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-        "Unrecognized field name for %s: %s", id, keyp->field);
-    }
-  }
-
-  if (degree[1] == 0 ) degree[1] = 1;
-
-  /* TPD is going to do the dirty work. */
-  distpd[0] = 0x0;
-  distpd[1] = 0x0;
-  for (idis = 0; idis < 2; idis++) {
-    ncoeff[idis] = 0;
-    if (degree[idis] == 1) {
-      ncoeff[idis] = 4;
-      distpd[idis] = tpd1;
-    } else if (degree[idis] == 2) {
-      ncoeff[idis] = 7;
-      distpd[idis] = tpd2;
-    } else if (degree[idis] == 3) {
-      ncoeff[idis] = 12;
-      distpd[idis] = tpd3;
-    } else if (degree[idis] == 4) {
-      ncoeff[idis] = 17;
-      distpd[idis] = tpd4;
-    } else if (degree[idis] == 5) {
-      ncoeff[idis] = 24;
-      distpd[idis] = tpd5;
-    } else if (degree[idis] == 6) {
-      ncoeff[idis] = 31;
-      distpd[idis] = tpd6;
-    } else if (degree[idis] == 7) {
-      ncoeff[idis] = 40;
-      distpd[idis] = tpd7;
-    } else if (degree[idis] == 8) {
-      ncoeff[idis] = 49;
-      distpd[idis] = tpd8;
-    } else if (degree[idis] == 9) {
-      ncoeff[idis] = 60;
-      distpd[idis] = tpd9;
-    }
-  }
-
-  /* SIP uses a polynomial approximation to the inverse.  It's not very    */
-  /* accurate but may provide disx2p() with a better zeroth approximation. */
-  dis->disp2x[j] = distpd[0];
-  dis->disx2p[j] = distpd[1];
-
-
-  /* Record indexing parameters. */
-  niparm = 5;
-  if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
-    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-  }
-
-  /* The first three are required by disprt(). */
-  ndparm = ncoeff[0] + ncoeff[1];
-  dis->iparm[j][0] = TPD;
-  dis->iparm[j][1] = niparm;
-  dis->iparm[j][2] = ndparm;
-  dis->iparm[j][3] = ncoeff[0];
-
-  /* SIP never needs the radial terms. */
-  dis->iparm[j][4] = 0;
-
-
-  /* Allocate memory for the polynomial coefficients and fill it. */
-  if ((dis->dparm[j] = calloc(ndparm, sizeof(double))) == 0x0) {
-    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-  }
-
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
-    if (keyp->j-1 != j) continue;
-
-    fp = strpbrk(keyp->field, ".") + 1;
-
-    if (strncmp(fp, "SIP.", 4) == 0) {
-      fp += 4;
-      if (strncmp(fp, "FWD.", 4) == 0) {
-        idis = 0;
-      } else {
-        idis = ncoeff[0];
-      }
-
-      sscanf(fp+4, "%d_%d", &p, &q);
-
-      /* Map to TPD coefficient number. */
-      idis += map[p][q];
-
-      dis->dparm[j][idis] = wcsutil_dpkey_double(keyp);
-    }
-  }
-
-  /* Account for the fact that the SIP distortion provides an additive    */
-  /* correction to the offset of the pixel coordinate from CRPIX, whereas */
-  /* we expect the distortion function to provide the actual value of the */
-  /* distorted pixel coordinate.                                          */
-  naxis = dis->naxis;
-  jhat  = dis->axmap[j][naxis+j];
-  idis  = jhat + 1;
-  dis->dparm[j][0]  = dis->offset[j][jhat];
-  dis->dparm[j][idis] += 1.0;
-  if (degree[1] > 0) {
-    dis->dparm[j][ncoeff[0]] = dis->offset[j][jhat];
-    dis->dparm[j][ncoeff[0]+idis] += 1.0;
-  }
-
-
-  return 0;
-}
-
-/*--------------------------------------------------------------------------*/
-
-int tpdset(int j, struct disprm *dis)
-
-{
-  static const char *function = "tpdset";
-
-  char   *fp, id[16];
-  int    doradial, idis, idp, k, ncoeff[2], ndparm, niparm;
-  struct dpkey *keyp;
-  struct wcserr **err;
-  int (*(distpd[2]))(DISP2X_ARGS);
-
-  if (dis == 0x0) return DISERR_NULL_POINTER;
-  err = &(dis->err);
-
-  sprintf(id, "TPD on axis %d", j+1);
-
-
-  /* TPD distortion. */
-  if (dis->Nhat[j] < 1 || 2 < dis->Nhat[j]) {
-    return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-      "Axis map for %s must contain 1 or 2 entries, not %d", id,
-      dis->Nhat[j]);
-  }
-
-  /* Find the number of parameters. */
-  ncoeff[0] = 0;
-  ncoeff[1] = 0;
-  doradial  = 0;
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
-    if (keyp->j-1 != j) continue;
-
-    fp = strpbrk(keyp->field, ".") + 1;
-
-    if (strncmp(fp, "TPD.", 4) == 0) {
-      fp += 4;
-      if (strncmp(fp, "FWD.", 4) == 0) {
-        idis = 0;
-
-      } else if (strncmp(fp, "REV.", 4) == 0) {
-        /* TPD may provide a polynomial approximation for the inverse. */
-        idis = 1;
-
-      } else {
-        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-          "Unrecognized field name for %s: %s", id, keyp->field);
-      }
-
-      sscanf(fp+4, "%d", &k);
-      if (0 <= k && k <= 59) {
-        if (ncoeff[idis] < k+1) ncoeff[idis] = k+1;
-
-        /* Any radial terms? */
-        if (k == 3 || k == 11 || k == 23 || k == 39 || k == 59) {
-          doradial = 1;
-        }
-
-      } else {
-        return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-          "Invalid parameter number (%d) for %s: %s", k, id, keyp->field);
-      }
-
-    } else if (strcmp(fp, "NAXES")  &&
-              strncmp(fp, "AXIS.",   5) &&
-              strncmp(fp, "OFFSET.", 7) &&
-              strncmp(fp, "SCALE.",  6)) {
-      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-        "Unrecognized field name for %s: %s", id, keyp->field);
-    }
-  }
-
-  distpd[0] = 0x0;
-  distpd[1] = 0x0;
-  for (idis = 0; idis < 2; idis++) {
-    if (ncoeff[idis] <= 4) {
-      if (idis) {
-        /* No inverse polynomial. */
-        break;
-      }
-
-      /* First degree. */
-      ncoeff[idis] = 4;
-      distpd[idis] = tpd1;
-    } else if (ncoeff[idis] <= 7) {
-      /* Second degree. */
-      ncoeff[idis] = 7;
-      distpd[idis] = tpd2;
-    } else if (ncoeff[idis] <= 12) {
-      /* Third degree. */
-      ncoeff[idis] = 12;
-      distpd[idis] = tpd3;
-    } else if (ncoeff[idis] <= 17) {
-      /* Fourth degree. */
-      ncoeff[idis] = 17;
-      distpd[idis] = tpd4;
-    } else if (ncoeff[idis] <= 24) {
-      /* Fifth degree. */
-      ncoeff[idis] = 24;
-      distpd[idis] = tpd5;
-    } else if (ncoeff[idis] <= 31) {
-      /* Sixth degree. */
-      ncoeff[idis] = 31;
-      distpd[idis] = tpd6;
-    } else if (ncoeff[idis] <= 40) {
-      /* Seventh degree. */
-      ncoeff[idis] = 40;
-      distpd[idis] = tpd7;
-    } else if (ncoeff[idis] <= 49) {
-      /* Eighth degree. */
-      ncoeff[idis] = 49;
-      distpd[idis] = tpd8;
-    } else if (ncoeff[idis] <= 60) {
-      /* Ninth degree. */
-      ncoeff[idis] = 60;
-      distpd[idis] = tpd9;
-    } else {
-      return wcserr_set(WCSERR_SET(DISERR_BAD_PARAM),
-        "Invalid number of parameters (%d) for %s", ncoeff[idis], id);
-    }
-  }
-
-  /* disx2p() only uses the inverse TPD, if present, to provide a better */
-  /* zeroth approximation. */
-  dis->disp2x[j] = distpd[0];
-  dis->disx2p[j] = distpd[1];
-
-
-  /* Record indexing parameters. */
-  niparm = 5;
-  if ((dis->iparm[j] = calloc(niparm, sizeof(int))) == 0x0) {
-    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-  }
-
-  /* The first three are required by disprt(). */
-  ndparm = ncoeff[0] + ncoeff[1];
-  dis->iparm[j][0] = TPD;
-  dis->iparm[j][1] = niparm;
-  dis->iparm[j][2] = ndparm;
-  dis->iparm[j][3] = ncoeff[0];
-
-  /* Flag for presence of radial terms. */
-  dis->iparm[j][4] = doradial;
-
-
-  /* Allocate memory for the polynomial coefficients and fill it. */
-  if ((dis->dparm[j] = calloc(ndparm, sizeof(double))) == 0x0) {
-    return wcserr_set(DIS_ERRMSG(DISERR_MEMORY));
-  }
-
-  keyp = dis->dp;
-  for (idp = 0; idp < dis->ndp; idp++, keyp++) {
-    if (keyp->j-1 != j) continue;
-
-    fp = strpbrk(keyp->field, ".") + 1;
-
-    if (strncmp(fp, "TPD.", 4) == 0) {
-      fp += 4;
-      if (strncmp(fp, "FWD.", 4) == 0) {
-        idis = 0;
-      } else {
-        idis = ncoeff[0];
-      }
-
-      sscanf(fp+4, "%d", &k);
-      dis->dparm[j][idis+k] = wcsutil_dpkey_double(keyp);
-    }
-  }
-
-  return 0;
-}
-
-/*--------------------------------------------------------------------------*/
-
 int tpd1(
   int inverse,
   const int i[],
@@ -2423,24 +3123,32 @@ int tpd1(
 {
   double r, s, u, v;
 
-  if (i[3] != 4 || 2 < Nhat) {
+  if (i[I_TPDNCO+inverse] != 4 || 2 < Nhat) {
     return 1;
   }
 
-  if (inverse) p += i[3];
-
   u = rawcrd[0];
+  v = rawcrd[1];
+
+  /* Auxiliary variables? */
+  if (i[I_TPDAUX]) {
+    r = p[0] + p[1]*u + p[2]*v;
+    v = p[3] + p[4]*u + p[5]*v;
+    u = r;
+    p += 6;
+  }
+
+  if (inverse) p += i[I_TPDNCO];
 
   /* First degree. */
   *discrd = p[0] + u*p[1];
 
   if (Nhat == 1) return 0;
 
-  v = rawcrd[1];
-
   *discrd += v*p[2];
 
-  if (i[4]) {
+  /* Radial terms? */
+  if (i[I_TPDRAD]) {
     s = u*u + v*v;
     r = sqrt(s);
 
@@ -2463,26 +3171,34 @@ int tpd2(
 {
   double r, s, u, v;
 
-  if (i[3] != 7 || 2 < Nhat) {
+  if (i[I_TPDNCO+inverse] != 7 || 2 < Nhat) {
     return 1;
   }
 
-  if (inverse) p += i[3];
-
   u = rawcrd[0];
+  v = rawcrd[1];
+
+  /* Auxiliary variables? */
+  if (i[I_TPDAUX]) {
+    r = p[0] + p[1]*u + p[2]*v;
+    v = p[3] + p[4]*u + p[5]*v;
+    u = r;
+    p += 6;
+  }
+
+  if (inverse) p += i[I_TPDNCO];
 
   /* Second degree. */
   *discrd = p[0] + u*(p[1] + u*(p[4]));
 
   if (Nhat == 1) return 0;
 
-  v = rawcrd[1];
-
   *discrd +=
       v*(p[2]  + v*(p[6]))
     + u*(p[5])*v;
 
-  if (i[4]) {
+  /* Radial terms? */
+  if (i[I_TPDRAD]) {
     s = u*u + v*v;
     r = sqrt(s);
 
@@ -2505,27 +3221,35 @@ int tpd3(
 {
   double r, s, u, v;
 
-  if (i[3] != 12 || 2 < Nhat) {
+  if (i[I_TPDNCO+inverse] != 12 || 2 < Nhat) {
     return 1;
   }
 
-  if (inverse) p += i[3];
-
   u = rawcrd[0];
+  v = rawcrd[1];
+
+  /* Auxiliary variables? */
+  if (i[I_TPDAUX]) {
+    r = p[0] + p[1]*u + p[2]*v;
+    v = p[3] + p[4]*u + p[5]*v;
+    u = r;
+    p += 6;
+  }
+
+  if (inverse) p += i[I_TPDNCO];
 
   /* Third degree. */
   *discrd = p[0] + u*(p[1] + u*(p[4] + u*(p[7])));
 
   if (Nhat == 1) return 0;
 
-  v = rawcrd[1];
-
   *discrd +=
       v*(p[2]  + v*(p[6]  + v*(p[10])))
     + u*(p[5]  + v*(p[9])
     + u*(p[8]))*v;
 
-  if (i[4]) {
+  /* Radial terms? */
+  if (i[I_TPDRAD]) {
     s = u*u + v*v;
     r = sqrt(s);
 
@@ -2548,20 +3272,27 @@ int tpd4(
 {
   double r, s, u, v;
 
-  if (i[3] != 17 || 2 < Nhat) {
+  if (i[I_TPDNCO+inverse] != 17 || 2 < Nhat) {
     return 1;
   }
 
-  if (inverse) p += i[3];
-
   u = rawcrd[0];
+  v = rawcrd[1];
+
+  /* Auxiliary variables? */
+  if (i[I_TPDAUX]) {
+    r = p[0] + p[1]*u + p[2]*v;
+    v = p[3] + p[4]*u + p[5]*v;
+    u = r;
+    p += 6;
+  }
+
+  if (inverse) p += i[I_TPDNCO];
 
   /* Fourth degree. */
   *discrd = p[0] + u*(p[1] + u*(p[4] + u*(p[7] + u*(p[12]))));
 
   if (Nhat == 1) return 0;
-
-  v = rawcrd[1];
 
   *discrd +=
       v*(p[2]  + v*(p[6]  + v*(p[10] + v*(p[16]))))
@@ -2569,7 +3300,8 @@ int tpd4(
     + u*(p[8]  + v*(p[14])
     + u*(p[13])))*v;
 
-  if (i[4]) {
+  /* Radial terms? */
+  if (i[I_TPDRAD]) {
     s = u*u + v*v;
     r = sqrt(s);
 
@@ -2592,20 +3324,27 @@ int tpd5(
 {
   double r, s, u, v;
 
-  if (i[3] != 24 || 2 < Nhat) {
+  if (i[I_TPDNCO+inverse] != 24 || 2 < Nhat) {
     return 1;
   }
 
-  if (inverse) p += i[3];
-
   u = rawcrd[0];
+  v = rawcrd[1];
+
+  /* Auxiliary variables? */
+  if (i[I_TPDAUX]) {
+    r = p[0] + p[1]*u + p[2]*v;
+    v = p[3] + p[4]*u + p[5]*v;
+    u = r;
+    p += 6;
+  }
+
+  if (inverse) p += i[I_TPDNCO];
 
   /* Fifth degree. */
   *discrd = p[0] + u*(p[1] + u*(p[4] + u*(p[7] + u*(p[12] + u*(p[17])))));
 
   if (Nhat == 1) return 0;
-
-  v = rawcrd[1];
 
   *discrd +=
       v*(p[2]  + v*(p[6]  + v*(p[10] + v*(p[16] + v*(p[22])))))
@@ -2614,7 +3353,8 @@ int tpd5(
     + u*(p[13] + v*(p[19])
     + u*(p[18]))))*v;
 
-  if (i[4]) {
+  /* Radial terms? */
+  if (i[I_TPDRAD]) {
     s = u*u + v*v;
     r = sqrt(s);
 
@@ -2637,20 +3377,27 @@ int tpd6(
 {
   double r, s, u, v;
 
-  if (i[3] != 31 || 2 < Nhat) {
+  if (i[I_TPDNCO+inverse] != 31 || 2 < Nhat) {
     return 1;
   }
 
-  if (inverse) p += i[3];
-
   u = rawcrd[0];
+  v = rawcrd[1];
+
+  /* Auxiliary variables? */
+  if (i[I_TPDAUX]) {
+    r = p[0] + p[1]*u + p[2]*v;
+    v = p[3] + p[4]*u + p[5]*v;
+    u = r;
+    p += 6;
+  }
+
+  if (inverse) p += i[I_TPDNCO];
 
   /* Sixth degree. */
   *discrd = p[0] + u*(p[1] + u*(p[4] + u*(p[7] + u*(p[12] + u*(p[17] + u*(p[24]))))));
 
   if (Nhat == 1) return 0;
-
-  v = rawcrd[1];
 
   *discrd +=
       v*(p[2]  + v*(p[6]  + v*(p[10] + v*(p[16] + v*(p[22] + v*(p[30]))))))
@@ -2660,7 +3407,8 @@ int tpd6(
     + u*(p[18] + v*(p[26])
     + u*(p[25])))))*v;
 
-  if (i[4]) {
+  /* Radial terms? */
+  if (i[I_TPDRAD]) {
     s = u*u + v*v;
     r = sqrt(s);
 
@@ -2683,20 +3431,27 @@ int tpd7(
 {
   double r, s, u, v;
 
-  if (i[3] != 40 || 2 < Nhat) {
+  if (i[I_TPDNCO+inverse] != 40 || 2 < Nhat) {
     return 1;
   }
 
-  if (inverse) p += i[3];
-
   u = rawcrd[0];
+  v = rawcrd[1];
+
+  /* Auxiliary variables? */
+  if (i[I_TPDAUX]) {
+    r = p[0] + p[1]*u + p[2]*v;
+    v = p[3] + p[4]*u + p[5]*v;
+    u = r;
+    p += 6;
+  }
+
+  if (inverse) p += i[I_TPDNCO];
 
   /* Seventh degree. */
   *discrd = p[0] + u*(p[1] + u*(p[4] + u*(p[7] + u*(p[12] + u*(p[17] + u*(p[24] + u*(p[31])))))));
 
   if (Nhat == 1) return 0;
-
-  v = rawcrd[1];
 
   *discrd +=
       v*(p[2]  + v*(p[6]  + v*(p[10] + v*(p[16] + v*(p[22] + v*(p[30] + v*(p[38])))))))
@@ -2707,7 +3462,8 @@ int tpd7(
     + u*(p[25] + v*(p[33])
     + u*(p[32]))))))*v;
 
-  if (i[4]) {
+  /* Radial terms? */
+  if (i[I_TPDRAD]) {
     s = u*u + v*v;
     r = sqrt(s);
 
@@ -2730,20 +3486,27 @@ int tpd8(
 {
   double r, s, u, v;
 
-  if (i[3] != 49 || 2 < Nhat) {
+  if (i[I_TPDNCO+inverse] != 49 || 2 < Nhat) {
     return 1;
   }
 
-  if (inverse) p += i[3];
-
   u = rawcrd[0];
+  v = rawcrd[1];
+
+  /* Auxiliary variables? */
+  if (i[I_TPDAUX]) {
+    r = p[0] + p[1]*u + p[2]*v;
+    v = p[3] + p[4]*u + p[5]*v;
+    u = r;
+    p += 6;
+  }
+
+  if (inverse) p += i[I_TPDNCO];
 
   /* Eighth degree. */
   *discrd = p[0] + u*(p[1] + u*(p[4] + u*(p[7] + u*(p[12] + u*(p[17] + u*(p[24] + u*(p[31] + u*(p[40]))))))));
 
   if (Nhat == 1) return 0;
-
-  v = rawcrd[1];
 
   *discrd +=
       v*(p[2]  + v*(p[6]  + v*(p[10] + v*(p[16] + v*(p[22] + v*(p[30] + v*(p[38] + v*(p[48]))))))))
@@ -2755,7 +3518,8 @@ int tpd8(
     + u*(p[32] + v*(p[42])
     + u*(p[41])))))))*v;
 
-  if (i[4]) {
+  /* Radial terms? */
+  if (i[I_TPDRAD]) {
     s = u*u + v*v;
     r = sqrt(s);
 
@@ -2778,20 +3542,27 @@ int tpd9(
 {
   double r, s, u, v;
 
-  if (i[3] != 60 || 2 < Nhat) {
+  if (i[I_TPDNCO+inverse] != 60 || 2 < Nhat) {
     return 1;
   }
 
-  if (inverse) p += i[3];
-
   u = rawcrd[0];
+  v = rawcrd[1];
+
+  /* Auxiliary variables? */
+  if (i[I_TPDAUX]) {
+    r = p[0] + p[1]*u + p[2]*v;
+    v = p[3] + p[4]*u + p[5]*v;
+    u = r;
+    p += 6;
+  }
+
+  if (inverse) p += i[I_TPDNCO];
 
   /* Ninth degree. */
   *discrd = p[0] + u*(p[1] + u*(p[4] + u*(p[7] + u*(p[12] + u*(p[17] + u*(p[24] + u*(p[31] + u*(p[40] + u*(p[49])))))))));
 
   if (Nhat == 1) return 0;
-
-  v = rawcrd[1];
 
   *discrd +=
       v*(p[2]  + v*(p[6]  + v*(p[10] + v*(p[16] + v*(p[22] + v*(p[30] + v*(p[38] + v*(p[48] + v*(p[58])))))))))
@@ -2804,7 +3575,8 @@ int tpd9(
     + u*(p[41] + v*(p[51])
     + u*(p[50]))))))))*v;
 
-  if (i[4]) {
+  /* Radial terms? */
+  if (i[I_TPDRAD]) {
     s = u*u + v*v;
     r = sqrt(s);
 

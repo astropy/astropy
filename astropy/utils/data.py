@@ -123,8 +123,9 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
     Given a filename or a readable file-like object, return a context
     manager that yields a readable file-like object.
 
-    This supports passing filenames, URLs, and readable file-like
-    objects, any of which can be compressed in gzip or bzip2.
+    This supports passing filenames, URLs, and readable file-like objects,
+    any of which can be compressed in gzip, bzip2 or lzma (xz) if the
+    appropriate compression libraries are provided by the Python installation.
 
     Notes
     -----
@@ -232,28 +233,63 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
         try:
             import bz2
         except ImportError:
+            for fd in close_fds:
+                fd.close()
             raise ValueError(
                 ".bz2 format files are not supported since the Python "
                 "interpreter does not include the bz2 module")
         try:
             # bz2.BZ2File does not support file objects, only filenames, so we
             # need to write the data to a temporary file
-            tmp = NamedTemporaryFile("wb", delete=False)
-            tmp.write(fileobj.read())
-            tmp.close()
-            delete_fds.append(tmp)
-            fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
+            with NamedTemporaryFile("wb", delete=False) as tmp:
+                tmp.write(fileobj.read())
+                tmp.close()
+                fileobj_new = bz2.BZ2File(tmp.name, mode='rb')
             fileobj_new.read(1)  # need to check that the file is really bzip2
         except IOError:  # invalid bzip2 file
             fileobj.seek(0)
             fileobj_new.close()
+            # raise
         else:
             fileobj_new.seek(0)
             close_fds.append(fileobj_new)
             fileobj = fileobj_new
+    elif signature[:3] == b'\xfd7z':  # xz
+        try:
+            # for Python < 3.3 try backports.lzma; pyliblzma installs as lzma,
+            # but does not support TextIOWrapper
+            if sys.version_info >= (3,3,0):
+                import lzma
+                fileobj_new = lzma.LZMAFile(fileobj, mode='rb')
+            else:
+                from backports import lzma
+                from backports.lzma import LZMAFile
+                # when called with file object, returns a non-seekable instance
+                # need a filename here, too, so have to write the data to a 
+                # temporary file
+                with NamedTemporaryFile("wb", delete=False) as tmp:
+                    tmp.write(fileobj.read())
+                    tmp.close()
+                    fileobj_new = LZMAFile(tmp.name, mode='rb')
+            fileobj_new.read(1)  # need to check that the file is really xz
+        except ImportError:
+            for fd in close_fds:
+                fd.close()
+            raise ValueError(
+                ".xz format files are not supported since the Python "
+                "interpreter does not include the lzma module. "
+                "On Python versions < 3.3 consider installing backports.lzma")
+        except (IOError, EOFError) as e:  # invalid xz file
+            fileobj.seek(0)
+            fileobj_new.close()
+            # should we propagate this to the caller to signal bad content?
+            # raise ValueError(e)
+        else:
+            fileobj_new.seek(0)
+            fileobj = fileobj_new
 
-    # By this point, we have a file, io.FileIO, gzip.GzipFile, or
-    # bz2.BZ2File instance opened in binary mode (that is, read
+    # By this point, we have a file, io.FileIO, gzip.GzipFile, bz2.BZ2File
+    # or lzma.LZMAFile instance opened in binary mode (that is, read
     # returns bytes).  Now we need to, if requested, wrap it in a
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.

@@ -22,7 +22,7 @@ from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
-from ..utils.data_info import MixinInfo, InfoDescriptor
+from ..utils.data_info import InfoDescriptor, ParentDtypeInfo
 from .utils import validate_power
 from .. import config as _config
 
@@ -113,7 +113,7 @@ class QuantityIterator(object):
     next = __next__
 
 
-class QuantityInfo(MixinInfo):
+class QuantityInfo(ParentDtypeInfo):
     """
     Container for meta information like name, description, format.  This is
     required when the object is used as a mixin column within a table, but can
@@ -383,10 +383,9 @@ class Quantity(np.ndarray):
             # decomposed, which involves being scaled by a float, but since
             # the array is an integer the output then gets converted to an int
             # and truncated.
-            result_dtype = np.result_type(*(args + tuple(
-                (float if converter and converter(1.) % 1. != 0. else int)
-                for converter in converters)))
-            if not np.can_cast(result_dtype, obj.dtype):
+            result_dtype = np.result_type(*((args + (float,))
+                                            if any(converters) else args))
+            if not np.can_cast(result_dtype, obj.dtype, casting='same_kind'):
                 raise TypeError("Arguments cannot be cast safely to inplace "
                                 "output with dtype={0}".format(self.dtype))
 

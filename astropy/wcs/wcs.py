@@ -61,7 +61,6 @@ if _wcs is not None:
             "later on the 5.x series are known to work.  The version of wcslib "
             "that ships with astropy may be used.")
 
-from ..utils import deprecated, deprecated_attribute
 from ..utils.compat import possible_filename
 from ..utils.exceptions import AstropyWarning, AstropyUserWarning, AstropyDeprecationWarning
 
@@ -717,14 +716,22 @@ reduce these to 2 dimensions using the naxis kwarg.
             if distortion in header:
                 dis = header[distortion].lower()
                 if dis == 'lookup':
+                    del header[distortion]
                     assert isinstance(fobj, fits.HDUList), ('An astropy.io.fits.HDUList'
                                 'is required for Lookup table distortion.')
                     dp = (d_kw + str(i)).strip()
-                    d_extver = header.get(dp + '.EXTVER', 1)
-                    if i == header[dp + '.AXIS.{0:d}'.format(i)]:
+                    dp_extver_key = dp + str('.EXTVER')
+                    if dp_extver_key in header:
+                        d_extver = header[dp_extver_key]
+                        del header[dp_extver_key]
+                    else:
+                        d_extver = 1
+                    dp_axis_key = dp + str('.AXIS.{0:d}').format(i)
+                    if i == header[dp_axis_key]:
                         d_data = fobj[str('D2IMARR'), d_extver].data
                     else:
                         d_data = (fobj[str('D2IMARR'), d_extver].data).transpose()
+                    del header[dp_axis_key]
                     d_header = fobj[str('D2IMARR'), d_extver].header
                     d_crpix = (d_header.get(str('CRPIX1'), 0.0), d_header.get(str('CRPIX2'), 0.0))
                     d_crval = (d_header.get(str('CRVAL1'), 0.0), d_header.get(str('CRVAL2'), 0.0))
@@ -734,6 +741,9 @@ reduce these to 2 dimensions using the naxis kwarg.
                     tables[i] = d_lookup
                 else:
                     warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
+                for key in list(header.keys()):
+                    if key.startswith(dp + str('.')):
+                        del header[key]
             else:
                 tables[i] = None
         if not tables:
@@ -844,24 +854,36 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         tables = {}
         for i in range(1, self.naxis + 1):
-            d_error = header.get(err_kw + str(i), 0.0)
+            d_error_key = err_kw + str(i)
+            if d_error_key in header:
+                d_error = header[d_error_key]
+                del header[d_error_key]
+            else:
+                d_error = 0.0
             if d_error < err:
                 tables[i] = None
                 continue
             distortion = dist + str(i)
             if distortion in header:
                 dis = header[distortion].lower()
+                del header[distortion]
                 if dis == 'lookup':
                     assert isinstance(fobj, fits.HDUList), \
                         'An astropy.io.fits.HDUList is required for ' + \
                         'Lookup table distortion.'
                     dp = (d_kw + str(i)).strip()
-                    d_extver = header.get(dp + str('.EXTVER'), 1)
-                    if i == header[dp + str('.AXIS.') + str(i)]:
+                    dp_extver_key = dp + str('.EXTVER')
+                    if dp_extver_key in header:
+                        d_extver = header[dp_extver_key]
+                        del header[dp_extver_key]
+                    else:
+                        d_extver = 1
+                    dp_axis_key = dp + str('.AXIS.{0:d}'.format(i))
+                    if i == header[dp_axis_key]:
                         d_data = fobj[str('WCSDVARR'), d_extver].data
                     else:
                         d_data = (fobj[str('WCSDVARR'), d_extver].data).transpose()
-
+                    del header[dp_axis_key]
                     d_header = fobj[str('WCSDVARR'), d_extver].header
                     d_crpix = (d_header.get(str('CRPIX1'), 0.0),
                                d_header.get(str('CRPIX2'), 0.0))
@@ -871,6 +893,10 @@ reduce these to 2 dimensions using the naxis kwarg.
                                d_header.get(str('CDELT2'), 1.0))
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
+
+                    for key in list(header.keys()):
+                        if key.startswith(dp + str('.')):
+                            del header[key]
                 else:
                     warnings.warn('Polynomial distortion is not implemented.\n', AstropyUserWarning)
             else:
@@ -2424,9 +2450,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             display_warning = True
             relax = False
 
-        if key is not None:
-            self.wcs.alt = key
-
         if relax not in (True, False):
             do_sip = relax & WCSHDO_SIP
             relax &= ~WCSHDO_SIP
@@ -2434,8 +2457,19 @@ reduce these to 2 dimensions using the naxis kwarg.
             do_sip = relax
 
         if self.wcs is not None:
-            header_string = self.wcs.to_header(relax)
+            if key is not None:
+                orig_key = self.wcs.alt
+                self.wcs.alt = key
+            try:
+                header_string = self.wcs.to_header(relax)
+            finally:
+                if key is not None:
+                    self.wcs.alt = orig_key
             header = fits.Header.fromstring(header_string)
+            keys_to_remove = ["", " ", "COMMENT"]
+            for kw in keys_to_remove:
+                if kw in header:
+                    del header[kw]
         else:
             header = fits.Header()
 

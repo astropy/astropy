@@ -10,6 +10,7 @@ astronomy.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import itertools
 import fnmatch
 import time
 import re
@@ -617,9 +618,11 @@ class Time(object):
 
         gst = self._erfa_sidereal_time(available_models[model.upper()])
         return Longitude(gst + longitude, u.hourangle)
-    sidereal_time.__doc__ = sidereal_time.__doc__.format(
-        'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
-        'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
+
+    if isinstance(sidereal_time.__doc__, six.string_types):
+        sidereal_time.__doc__ = sidereal_time.__doc__.format(
+            'apparent', sorted(SIDEREAL_TIME_MODELS['apparent'].keys()),
+            'mean', sorted(SIDEREAL_TIME_MODELS['mean'].keys()))
 
     def _erfa_sidereal_time(self, model):
         """Calculate a sidereal time using a IAU precession/nutation model."""
@@ -789,6 +792,21 @@ class Time(object):
         copy of the JD arrays.
         """
         return self.copy()
+
+    def __iter__(self):
+        if self.isscalar:
+            raise TypeError('scalar {0!r} object is not iterable.'.format(
+                self.__class__.__name__))
+
+        def time_iter():
+            try:
+                for idx in itertools.count():
+                    yield self[idx]
+            except IndexError:
+                # Results in StopIteration
+                pass
+
+        return time_iter()
 
     def __getitem__(self, item):
         if self.isscalar:

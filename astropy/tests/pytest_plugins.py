@@ -23,11 +23,13 @@ import re
 import sys
 import types
 
+from ..config.paths import set_temp_config, set_temp_cache
 from .helper import (
     pytest, treat_deprecations_as_exceptions, enable_deprecations_as_exceptions)
 from .disable_internet import turn_off_internet, turn_on_internet
 from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
 from ..utils import OrderedDict
+from ..utils.argparse import writeable_directory
 
 # Needed for Python 2.6 compatibility
 try:
@@ -53,6 +55,20 @@ def pytest_addoption(parser):
     parser.addoption("--doctest-rst", action="store_true",
                      help="enable running doctests in .rst documentation")
 
+    parser.addoption("--config-dir", nargs='?', type=writeable_directory,
+                     help="specify directory for storing and retrieving the "
+                          "Astropy configuration during tests (default is "
+                          "to use a temporary directory created by the test "
+                          "runner); be aware that using an Astropy config "
+                          "file other than the default can cause some tests "
+                          "to fail unexpectedly")
+
+    parser.addoption("--cache-dir", nargs='?', type=writeable_directory,
+                     help="specify directory for storing and retrieving the "
+                          "Astropy cache during tests (default is "
+                          "to use a temporary directory created by the test "
+                          "runner)")
+
     parser.addini("doctest_plus", "enable running doctests with additional "
                   "features not found in the normal doctest plugin")
 
@@ -63,6 +79,27 @@ def pytest_addoption(parser):
     parser.addini("doctest_rst",
                   "Run the doctests in the rst documentation",
                   default=False)
+
+    parser.addini("config_dir",
+                  "specify directory for storing and retrieving the "
+                  "Astropy configuration during tests (default is "
+                  "to use a temporary directory created by the test "
+                  "runner); be aware that using an Astropy config "
+                  "file other than the default can cause some tests "
+                  "to fail unexpectedly", default=None)
+
+    parser.addini("cache_dir",
+                  "specify directory for storing and retrieving the "
+                  "Astropy cache during tests (default is "
+                  "to use a temporary directory created by the test "
+                  "runner)", default=None)
+
+    parser.addini("open_files_ignore",
+                  "when used with the --open-files option, allows "
+                  "specifying names of files that may be ignored when "
+                  "left open between tests--files in this list are matched "
+                  "may be specified by their base name (ignoring their full "
+                  "path) or by absolute path", type="args", default=())
 
     parser.addoption('--repeat', action='store',
                      help='Number of times to repeat each test')
@@ -411,6 +448,22 @@ def _get_open_file_list():
 
 
 def pytest_runtest_setup(item):
+    config_dir = item.config.getini('config_dir')
+    cache_dir = item.config.getini('cache_dir')
+
+    # Command-line options can override, however
+    config_dir = item.config.getoption('config_dir') or config_dir
+    cache_dir = item.config.getoption('cache_dir') or cache_dir
+
+    # We can't really use context managers directly in py.test (although
+    # py.test 2.7 adds the capability), so this may look a bit hacky
+    if config_dir:
+        item.set_temp_config = set_temp_config(config_dir)
+        item.set_temp_config.__enter__()
+    if cache_dir:
+        item.set_temp_cache = set_temp_cache(cache_dir)
+        item.set_temp_cache.__enter__()
+
     # Store a list of the currently opened files so we can compare
     # against them when the test is done.
     if item.config.getvalue('open_files'):
@@ -422,6 +475,11 @@ def pytest_runtest_setup(item):
 
 
 def pytest_runtest_teardown(item, nextitem):
+    if hasattr(item, 'set_temp_cache'):
+        item.set_temp_cache.__exit__()
+    if hasattr(item, 'set_temp_config'):
+        item.set_temp_config.__exit__()
+
     # a "skipped" test will not have been called with
     # pytest_runtest_setup, so therefore won't have an
     # "open_files" member
@@ -441,10 +499,21 @@ def pytest_runtest_teardown(item, nextitem):
         return
 
     not_closed = set()
+    open_files_ignore = item.config.getini('open_files_ignore')
     for filename in open_files:
-        # astropy.log files are allowed to continue to exist
-        # between test runs
-        if os.path.basename(filename) == 'astropy.log':
+        ignore = False
+
+        for ignored in open_files_ignore:
+            if not os.path.isabs(ignored):
+                if os.path.basename(filename) == ignored:
+                    ignore = True
+                    break
+            else:
+                if filename == ignored:
+                    ignore = True
+                    break
+
+        if ignore:
             continue
 
         if filename not in start_open_files:
@@ -680,6 +749,7 @@ class NoUnicodeLiteralsModule(ModifiedModule):
                             return ast.copy_location(ast.Str(s=s), node)
                 return node
         return NonAsciiLiteral().visit(tree)
+
 
 def pytest_unconfigure():
     """

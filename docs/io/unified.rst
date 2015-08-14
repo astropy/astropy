@@ -49,6 +49,11 @@ Similarly, for writing, the format can be explicitly specified::
 As for the :meth:`~astropy.table.Table.read` method, the format may
 be automatically identified in some cases.
 
+The underlying file handler will also automatically detect various
+compressed data formats and transparently uncompress them as far as
+supported by the Python installation (see
+:meth:`~astropy.utils.data.get_readable_fileobj`).
+
 Any additional arguments specified will depend on the format.  For examples of this see the
 section `Built-in table readers/writers`_.  This section also provides the full list of
 choices for the ``format`` argument.
@@ -178,32 +183,75 @@ indicates which support write functionality.
 FITS
 ^^^^
 
-Reading/writing from/to `FITS <http://fits.gsfc.nasa.gov/>`_
-files is supported with ``format='fits'``. In most cases, existing FITS
-files should be automatically identified as such based on the header of the
-file, but if not, or if writing to disk, then the format should be explicitly
-specified.
+Reading and writing tables in `FITS <http://fits.gsfc.nasa.gov/>`_ format is
+supported with ``format='fits'``. In most cases, existing FITS files should be
+automatically identified as such based on the header of the file, but if not,
+or if writing to disk, then the format should be explicitly specified.
+
+Reading
+""""""""
 
 If a FITS table file contains only a single table, then it can be read in
 with::
 
+    >>> from astropy.table import Table
     >>> t = Table.read('data.fits')
 
-If more than one table is present in the file, the first table found will be
+If more than one table is present in the file, you can select the HDU
+as follows::
+
+    >>> t = Table.read('data.fits', hdu=3)
+
+In this case if the ``hdu`` argument is omitted then the first table found will be
 read in and a warning will be emitted::
 
     >>> t = Table.read('data.fits')
     WARNING: hdu= was not specified but multiple tables are present, reading in first available table (hdu=1) [astropy.io.fits.connect]
 
-To write to a new file::
+Writing
+""""""""
+
+To write a table ``t`` to a new file::
 
     >>> t.write('new_table.fits')
 
-At this time, the ``meta`` attribute of the
-:class:`~astropy.table.Table` class is simply an ordered
-dictionary and does not fully represent the structure of a FITS
-header (for example, keyword comments are dropped). This is likely
-to change in a future release.
+If the file already exists and you want to overwrite it, then set the
+``overwrite`` keyword::
+
+    >>> t.write('existing_table.fits', overwrite=True)
+
+At this time there is no support for appending an HDU to an existing file or
+writing multi-HDU files using the Table interface.  Instead one can use the
+lower-level :ref:`astropy.io.fits <astropy-io-fits>` interface.
+
+Keywords
+"""""""""
+
+The FITS keywords associated with an HDU table are represented in the ``meta``
+ordered dictionary attribute of a :ref:`Table <astropy-table>`.  After reading
+a table one can view the available keywords in a readable format using::
+
+  >>> for key, value in t.meta.items():
+  ...     print('{0} = {1}'.format(key, value))
+
+This does not include the "internal" FITS keywords that are required to specify
+the FITS table properties (e.g. ``NAXIS``, ``TTYPE1``). ``HISTORY`` and
+``COMMENT`` keywords are treated specially and are returned as a list of
+values.
+
+Conversely, the following shows examples of setting user keyword values for a
+table ``t``::
+
+  >>> t.meta['MY_KEYWD'] = 'my value'
+  >>> t.meta['COMMENT'] = ['First comment', 'Second comment', 'etc']
+  >>> t.write('my_table.fits', overwrite=True)
+
+The keyword names (e.g. ``MY_KEYWD``) will be automatically capitalized prior
+to writing.
+
+At this time, the ``meta`` attribute of the :class:`~astropy.table.Table` class
+is simply an ordered dictionary and does not fully represent the structure of a
+FITS header (for example, keyword comments are dropped).
 
 .. _table_io_hdf5:
 

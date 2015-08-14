@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 5.7 and its test suite.
+# GNU makefile for building WCSLIB 5.9 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
+# $Id: GNUmakefile,v 5.9 2015/07/21 09:20:01 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 include ../makedefs
@@ -70,7 +70,7 @@ TEST_N := tlin tdis1 tdis2 tlog tprj1 tsph tsphdpa tspx ttab1 twcs twcssub \
 TEST_n := tdisiter tspcaips tspcspxe tspctrne twcs_locale
 
 # Test programs that require CFITSIO (they don't need PGPLOT).
-TEST_C := twcstab twcshdr twcslint
+TEST_C := twcstab twcshdr tdis3 twcslint
 
 # Test programs that require PGPLOT but not PGSBOX.
 TEST_P := tspc tprj2 tcel1 tcel2 ttab2 ttab3 twcsmix
@@ -286,10 +286,11 @@ clean :
 cleaner : clean
 	-  $(RM) .gdb_history
 	-  $(RM) $(TEST_N) $(TEST_n) $(TEST_X)
-	-  $(RM) $(TEST_P) tpih2 twcstab twcshdr twcslint
+	-  $(RM) $(TEST_P) tdis3 tpih2 twcshdr twcslint twcstab
 	-  $(RM) tofits
 	-  $(RM) bth.fits fitshdr.fits pih.fits wcslint.fits wcstab.fits
-	-  $(RM) TPV3.fits TPV5.fits TPV7.fits SIP.fits SIPTPV.fits
+	-  $(RM) SIP.fits SIPTPV.fits TPV3.fits TPV5.fits TPV7.fits
+	-  $(RM) DSS.fits TNX.fits ZPX.fits
 	-  $(RM) t*_cfitsio test_results
 
 cleanest distclean realclean : cleaner
@@ -344,6 +345,11 @@ twcshdr : test/twcshdr.c $(GETWCSTAB) $(WCSLIB)
 	   $(CC) $(CPPFLAGS) $(CFITSIOINC) $(CFLAGS) -o $@ $< $(GETWCSTAB) \
 	     $(LDFLAGS) $(CFITSIOLIB) $(WCSLIB) $(LIBS)
 	-@ $(RM) $@.o
+
+tdis3 : test/tdis3
+	-@ echo ''
+	   cp $< .
+	-@ chmod a+x $@
 
 twcslint : test/twcslint
 	-@ echo ''
@@ -454,6 +460,7 @@ twcstab : cel.h fitshdr.h getwcstab.h lin.h log.h prj.h spc.h sph.h spx.h \
 
 run_tdis1 : TPV3.fits TPV5.fits TPV7.fits
 run_tdis2 : SIP.fits
+run_tdis3 : DSS.fits SIPTPV.fits TNX.fits ZPX.fits
 run_tbth1 run_tbth1_cfitsio : bth.fits
 run_tfitshdr run_tfitshdr_cfitsio : fitshdr.fits
 run_tpih1 run_tpih1_cfitsio : pih.fits

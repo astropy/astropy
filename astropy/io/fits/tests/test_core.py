@@ -1122,3 +1122,8 @@ class TestStreamingFunctions(FitsTestCase):
         pth = self.data('blank.fits')
         with pytest.raises(ValueError):
             fits.open(pth, memmap=True)[0].data
+
+        # However, it should not fail if do_not_scale_image_data was used:
+        # See https://github.com/astropy/astropy/issues/3766
+        hdul = fits.open(pth, memmap=True, do_not_scale_image_data=True)
+        hdul[0].data  # Just make sure it doesn't crash

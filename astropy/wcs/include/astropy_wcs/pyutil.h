@@ -165,9 +165,6 @@ wcs_to_python_exc(const struct wcsprm *wcs);
 void
 wcserr_fix_to_python_exc(const struct wcserr *err);
 
-void
-wcserr_units_to_python_exc(const struct wcserr *err);
-
 /***************************************************************************
   Property helpers
  ***************************************************************************/

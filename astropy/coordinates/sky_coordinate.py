@@ -1399,11 +1399,15 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
             # SkyCoords from the list elements and then combine them.
             scs = [SkyCoord(coord, **init_kwargs) for coord in coords]
 
-            # now check that they're all self-consistent in their frames
+            # now check that they're all self-consistent in their frames and
+            # check if they are all UnitSphericalRepresentation internally
+            allunitsphrepr = True
             for sc in scs[1:]:
                 if not sc.is_equivalent_frame(scs[0]):
                         raise ValueError("List of inputs don't have equivalent "
                                          "frames: {0} != {1}".format(sc, scs[0]))
+                if allunitsphrepr and not isinstance(sc.data, UnitSphericalRepresentation):
+                    allunitsphrepr = False
 
             # get the frame attributes from the first one, because from above we
             # know it matches all the others
@@ -1412,7 +1416,10 @@ def _parse_coordinate_arg(coords, frame, units, init_kwargs):
 
             # Now combine the values, to be used below
             values = []
-            for data_attr_name in frame_attr_names:
+            for data_attr_name, repr_attr_name in zip(frame_attr_names, repr_attr_names):
+                if allunitsphrepr and repr_attr_name == 'distance':
+                    #if they are *all* UnitSpherical, don't give a distance
+                    continue
                 data_vals = []
                 for sc in scs:
                     data_val = getattr(sc, data_attr_name)

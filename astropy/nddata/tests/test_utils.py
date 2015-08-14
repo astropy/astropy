@@ -2,11 +2,14 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import numpy as np
-
-from ...tests.helper import pytest
+from numpy.testing import assert_allclose
+from ...tests.helper import pytest, assert_quantity_allclose
 from ..utils import (extract_array, add_array, subpixel_indices,
                      block_reduce, block_replicate,
-                     overlap_slices, NoOverlapError, PartialOverlapError)
+                     overlap_slices, NoOverlapError, PartialOverlapError,
+                     Cutout2D)
+from ...wcs import WCS
+from ...coordinates import SkyCoord
 
 try:
     import skimage
@@ -33,14 +36,14 @@ test_pos_bad = [(-1, -4), (-1, 0), (6, 2), (6, 6)]
 def test_slices_different_dim():
     '''Overlap from arrays with different number of dim is undefined.'''
     with pytest.raises(ValueError) as e:
-        temp = overlap_slices((4, 5, 6), (1, 2), (0, 0))
+        overlap_slices((4, 5, 6), (1, 2), (0, 0))
     assert "the same number of dimensions" in str(e.value)
 
 
 def test_slices_pos_different_dim():
     '''Position must have same dim as arrays.'''
     with pytest.raises(ValueError) as e:
-        temp = overlap_slices((4, 5), (1, 2), (0, 0, 3))
+        overlap_slices((4, 5), (1, 2), (0, 0, 3))
     assert "the same number of dimensions" in str(e.value)
 
 
@@ -48,7 +51,7 @@ def test_slices_pos_different_dim():
 def test_slices_no_overlap(pos):
     '''If there is no overlap between arrays, an error should be raised.'''
     with pytest.raises(NoOverlapError):
-        temp = overlap_slices((5, 5), (2, 2), pos)
+        overlap_slices((5, 5), (2, 2), pos)
 
 
 def test_slices_partial_overlap():
@@ -68,14 +71,14 @@ def test_slices_partial_overlap():
 def test_slices_overlap_wrong_mode():
     '''Call overlap_slices with non-existing mode.'''
     with pytest.raises(ValueError) as e:
-        temp = overlap_slices((5,), (3,), (0,), mode='full')
-    assert "Mode can only be" in str(e.value)
+        overlap_slices((5,), (3,), (0,), mode='full')
+    assert "Mode can be only" in str(e.value)
 
 
 def test_extract_array_wrong_mode():
     '''Call extract_array with non-existing mode.'''
     with pytest.raises(ValueError) as e:
-        temp = extract_array(np.arange(4), (2, ), (0, ), mode='full')
+        extract_array(np.arange(4), (2, ), (0, ), mode='full')
     assert "Valid modes are 'partial', 'trim', and 'strict'." == str(e.value)
 
 
@@ -316,3 +319,110 @@ class TestBlockReplicate(object):
         data = np.arange(5)
         with pytest.raises(ValueError):
             block_replicate(data, (2, 2))
+
+
+class TestCutout2D(object):
+    def setup_class(self):
+        self.data = np.arange(20.).reshape(5, 4)
+        self.position = SkyCoord('13h11m29.96s -01d19m18.7s', frame='icrs')
+        wcs = WCS(naxis=2)
+        rho = np.pi / 3.
+        scale = 0.05 / 3600.
+        wcs.wcs.cd = [[scale*np.cos(rho), -scale*np.sin(rho)],
+                        [scale*np.sin(rho), scale*np.cos(rho)]]
+        wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN']
+        wcs.wcs.crval = [self.position.ra.value, self.position.dec.value]
+        wcs.wcs.crpix = [3, 3]
+        self.wcs = wcs
+
+    def test_cutout(self):
+        position = (2.1, 1.9)
+        shape = (3, 3)
+        c = Cutout2D(self.data, position, shape)
+        assert c.data.shape == shape
+        assert c.data[1, 1] == 10
+        assert c.origin_original == (1, 1)
+        assert c.origin_cutout == (0, 0)
+        assert c.input_position_original == position
+        assert_allclose(c.input_position_cutout, (1.1, 0.9))
+        assert c.position_original == (2., 2.)
+        assert c.position_cutout == (1., 1.)
+        assert c.center_original == (2., 2.)
+        assert c.center_cutout == (1., 1.)
+        assert c.bbox_original == ((1, 3), (1, 3))
+        assert c.bbox_cutout == ((0, 2), (0, 2))
+        assert c.slices_original == (slice(1, 4), slice(1, 4))
+        assert c.slices_cutout == (slice(0, 3), slice(0, 3))
+
+    def test_cutout_trim_overlap(self):
+        shape = (3, 3)
+        c = Cutout2D(self.data, (0, 0), shape, mode='trim')
+        assert c.data.shape == (2, 2)
+        assert c.data[0, 0] == 0
+        assert c.slices_original == (slice(0, 2), slice(0, 2))
+        assert c.slices_cutout == (slice(0, 2), slice(0, 2))
+
+    def test_cutout_partial_overlap(self):
+        shape = (3, 3)
+        c = Cutout2D(self.data, (0, 0), shape, mode='partial')
+        assert c.data.shape == (3, 3)
+        assert c.data[1, 1] == 0
+        assert c.slices_original == (slice(0, 2), slice(0, 2))
+        assert c.slices_cutout == (slice(1, 3), slice(1, 3))
+
+    def test_cutout_partial_overlap_fill_value(self):
+        shape = (3, 3)
+        fill_value = -99
+        c = Cutout2D(self.data, (0, 0), shape, mode='partial',
+                   fill_value=fill_value)
+        assert c.data.shape == (3, 3)
+        assert c.data[1, 1] == 0
+        assert c.data[0, 0] == fill_value
+
+    def test_copy(self):
+        data = np.copy(self.data)
+        c = Cutout2D(data, (2, 3), (3, 3))
+        xy = (0, 0)
+        value = 100.
+        c.data[xy] = value
+        xy_orig = c.to_original_position(xy)
+        yx = xy_orig[::-1]
+        assert data[yx] == value
+
+        data = np.copy(self.data)
+        c2 = Cutout2D(self.data, (2, 3), (3, 3), copy=True)
+        c2.data[xy] = value
+        assert data[yx] != value
+
+    def test_to_from_large(self):
+        position = (2, 2)
+        shape = (3, 3)
+        c = Cutout2D(self.data, position, shape)
+        xy = (0, 0)
+        result = c.to_cutout_position(c.to_original_position(xy))
+        assert_allclose(result, xy)
+
+    def test_skycoord_without_wcs(self):
+        with pytest.raises(ValueError):
+            Cutout2D(self.data, self.position, (3, 3))
+
+    def test_skycoord(self):
+        c = Cutout2D(self.data, self.position, (3, 3), wcs=self.wcs)
+        skycoord_original = self.position.from_pixel(c.center_original[1],
+                                                     c.center_original[0],
+                                                     self.wcs)
+        skycoord_cutout = self.position.from_pixel(c.center_cutout[1],
+                                                   c.center_cutout[0], c.wcs)
+        assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
+        assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
+
+    def test_skycoord_partial(self):
+        c = Cutout2D(self.data, self.position, (3, 3), wcs=self.wcs,
+                   mode='partial')
+        skycoord_original = self.position.from_pixel(c.center_original[1],
+                                                     c.center_original[0],
+                                                     self.wcs)
+        skycoord_cutout = self.position.from_pixel(c.center_cutout[1],
+                                                   c.center_cutout[0], c.wcs)
+        assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
+        assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)

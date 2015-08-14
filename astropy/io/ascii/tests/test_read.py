@@ -18,6 +18,13 @@ from .common import (raises, assert_equal, assert_almost_equal,
 from .. import core
 from ..ui import _probably_html, get_read_trace
 
+try:
+    import bz2
+except ImportError:
+    HAS_BZ2 = False
+else:
+    HAS_BZ2 = True
+
 
 @pytest.mark.parametrize('fast_reader', [True, False, 'force'])
 def test_convert_overflow(fast_reader):
@@ -895,6 +902,7 @@ def test_guess_fail():
     assert 'Number of header columns (1) inconsistent with data columns (3)' in str(err.value)
 
 
+@pytest.mark.xfail('not HAS_BZ2')
 def test_guessing_file_object():
     """
     Test guessing a file object.  Fixes #3013 and similar issue noted in #3019.

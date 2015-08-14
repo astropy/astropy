@@ -13,13 +13,12 @@ import os
 import re
 import warnings
 
-from . import utils
+from . import core, utils
 from .base import Base
+from ...utils import classproperty
 from ...utils.misc import did_you_mean
 
 def _to_string(cls, unit):
-    from .. import core
-
     if isinstance(unit, core.CompositeUnit):
         parts = []
 
@@ -58,41 +57,50 @@ class Generic(Base):
 
     _show_scale = True
 
-    def __init__(self):
-        # Build this on the class, so it only gets generated once.
-        if '_parser' not in Generic.__dict__:
-            Generic._parser, Generic._lexer = self._make_parser()
+    _tokens = (
+        'DOUBLE_STAR',
+        'STAR',
+        'PERIOD',
+        'SOLIDUS',
+        'CARET',
+        'OPEN_PAREN',
+        'CLOSE_PAREN',
+        'FUNCNAME',
+        'UNIT',
+        'SIGN',
+        'UINT',
+        'UFLOAT'
+    )
+
+    @classproperty(lazy=True)
+    def _all_units(cls):
+        return cls._generate_unit_names()
+
+    @classproperty(lazy=True)
+    def _units(cls):
+        return cls._all_units[0]
+
+    @classproperty(lazy=True)
+    def _deprecated_units(cls):
+        return cls._all_units[1]
+
+    @classproperty(lazy=True)
+    def _functions(cls):
+        return cls._all_units[2]
+
+    @classproperty(lazy=True)
+    def _parser(cls):
+        return cls._make_parser()
+
+    @classproperty(lazy=True)
+    def _lexer(cls):
+        return cls._make_lexer()
 
     @classmethod
-    def _make_parser(cls):
-        """
-        The grammar here is based on the description in the `FITS
-        standard
-        <http://fits.gsfc.nasa.gov/standard30/fits_standard30aa.pdf>`_,
-        Section 4.3, which is not terribly precise.  The exact grammar
-        is here is based on the YACC grammar in the `unity library
-        <https://bitbucket.org/nxg/unity/>`_.
+    def _make_lexer(cls):
+        from ...extern.ply import lex
 
-        This same grammar is used by the `"fits"` and `"vounit"`
-        formats, the only difference being the set of available unit
-        strings.
-        """
-        from ...extern.ply import lex, yacc
-
-        tokens = (
-            'DOUBLE_STAR',
-            'STAR',
-            'PERIOD',
-            'SOLIDUS',
-            'CARET',
-            'OPEN_PAREN',
-            'CLOSE_PAREN',
-            'FUNCNAME',
-            'UNIT',
-            'SIGN',
-            'UINT',
-            'UFLOAT'
-            )
+        tokens = cls._tokens
 
         t_STAR = r'\*'
         t_PERIOD = r'\.'
@@ -144,30 +152,51 @@ class Generic(Base):
             raise ValueError(
                 "Invalid character at col {0}".format(t.lexpos))
 
-        try:
-            from . import generic_lextab
-            lexer = lex.lex(optimize=True, lextab=generic_lextab,
-                            reflags=re.UNICODE)
-        except ImportError:
-            lexer = lex.lex(optimize=True, lextab='generic_lextab',
-                            outputdir=os.path.dirname(__file__),
-                            reflags=re.UNICODE)
+        lexer = lex.lex(optimize=True, lextab='generic_lextab',
+                        outputdir=os.path.dirname(__file__),
+                        reflags=re.UNICODE)
+
+        return lexer
+
+    @classmethod
+    def _make_parser(cls):
+        """
+        The grammar here is based on the description in the `FITS
+        standard
+        <http://fits.gsfc.nasa.gov/standard30/fits_standard30aa.pdf>`_,
+        Section 4.3, which is not terribly precise.  The exact grammar
+        is here is based on the YACC grammar in the `unity library
+        <https://bitbucket.org/nxg/unity/>`_.
+
+        This same grammar is used by the `"fits"` and `"vounit"`
+        formats, the only difference being the set of available unit
+        strings.
+        """
+
+        from ...extern.ply import yacc
+
+        tokens = cls._tokens
 
         def p_main(p):
             '''
             main : product_of_units
                  | factor product_of_units
+                 | factor product product_of_units
                  | division_product_of_units
                  | factor division_product_of_units
+                 | factor product division_product_of_units
                  | inverse_unit
                  | factor inverse_unit
+                 | factor product inverse_unit
                  | factor
             '''
             from ..core import Unit
             if len(p) == 2:
                 p[0] = Unit(p[1])
-            else:
+            elif len(p) == 3:
                 p[0] = Unit(p[1] * p[2])
+            elif len(p) == 4:
+                p[0] = Unit(p[1] * p[3])
 
         def p_division_product_of_units(p):
             '''
@@ -188,7 +217,8 @@ class Generic(Base):
 
         def p_factor(p):
             '''
-            factor : factor_float
+            factor : factor_fits
+                   | factor_float
                    | factor_int
             '''
             p[0] = p[1]
@@ -199,6 +229,8 @@ class Generic(Base):
                          | signed_float UINT signed_int
                          | signed_float UINT power numeric_power
             '''
+            if cls.name == 'fits':
+                raise ValueError("Numeric factor not supported by FITS")
             if len(p) == 4:
                 p[0] = p[1] * p[2] ** float(p[3])
             elif len(p) == 5:
@@ -214,6 +246,8 @@ class Generic(Base):
                        | UINT UINT signed_int
                        | UINT UINT power numeric_power
             '''
+            if cls.name == 'fits':
+                raise ValueError("Numeric factor not supported by FITS")
             if len(p) == 2:
                 p[0] = p[1]
             elif len(p) == 3:
@@ -225,6 +259,28 @@ class Generic(Base):
                     p[0] = p[1] ** float(p[3])
             elif len(p) == 5:
                 p[0] = p[1] * p[2] ** p[4]
+
+        def p_factor_fits(p):
+            '''
+            factor_fits : UINT power OPEN_PAREN signed_int CLOSE_PAREN
+                        | UINT power signed_int
+                        | UINT SIGN UINT
+                        | UINT OPEN_PAREN signed_int CLOSE_PAREN
+            '''
+            if p[1] != 10:
+                if cls.name == 'fits':
+                    raise ValueError("Base must be 10")
+                else:
+                    return
+            if len(p) == 4:
+                if p[2] in ('**', '^'):
+                    p[0] = 10 ** p[3]
+                else:
+                    p[0] = 10 ** (p[2] * p[3])
+            elif len(p) == 5:
+                p[0] = 10 ** p[3]
+            elif len(p) == 6:
+                p[0] = 10 ** p[4]
 
         def p_product_of_units(p):
             '''
@@ -318,7 +374,7 @@ class Generic(Base):
             power : DOUBLE_STAR
                   | CARET
             '''
-            pass
+            p[0] = p[1]
 
         def p_signed_int(p):
             '''
@@ -359,15 +415,10 @@ class Generic(Base):
         def p_error(p):
             raise ValueError()
 
-        try:
-            from . import generic_parsetab
-            parser = yacc.yacc(debug=False, tabmodule=generic_parsetab,
-                               write_tables=False)
-        except ImportError:
-            parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
-                               outputdir=os.path.dirname(__file__))
-
-        return parser, lexer
+        parser = yacc.yacc(debug=False, tabmodule='generic_parsetab',
+                           outputdir=os.path.dirname(__file__),
+                           write_tables=True)
+        return parser
 
     @classmethod
     def _get_unit(cls, t):
@@ -380,8 +431,7 @@ class Generic(Base):
 
     @classmethod
     def _parse_unit(cls, s, detailed_exception=True):
-        from ..core import get_current_unit_registry
-        registry = get_current_unit_registry().registry
+        registry = core.get_current_unit_registry().registry
         if s == '%':
             return registry['percent']
         elif s in registry:
@@ -394,27 +444,28 @@ class Generic(Base):
         else:
             raise ValueError()
 
-    def parse(self, s, debug=False):
+    @classmethod
+    def parse(cls, s, debug=False):
         if not isinstance(s, six.text_type):
             s = s.decode('ascii')
 
-        result = self._do_parse(s, debug=debug)
+        result = cls._do_parse(s, debug=debug)
         if s.count('/') > 1:
-            from ..core import UnitsWarning
             warnings.warn(
                 "'{0}' contains multiple slashes, which is "
                 "discouraged by the FITS standard".format(s),
-                UnitsWarning)
+                core.UnitsWarning)
         return result
 
-    def _do_parse(self, s, debug=False):
+    @classmethod
+    def _do_parse(cls, s, debug=False):
         try:
             # This is a short circuit for the case where the string
             # is just a single unit name
-            return self._parse_unit(s, detailed_exception=False)
+            return cls._parse_unit(s, detailed_exception=False)
         except ValueError as e:
             try:
-                return self._parser.parse(s, lexer=self._lexer, debug=debug)
+                return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
             except ValueError as e:
                 if six.text_type(e):
                     raise

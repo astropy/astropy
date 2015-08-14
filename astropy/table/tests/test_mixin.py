@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -19,9 +22,10 @@ except ImportError:
 import numpy as np
 import copy
 
+from ...extern import six
 from ...extern.six.moves import cPickle as pickle
 from ...tests.helper import pytest
-from ...table import Table, QTable, join, hstack, vstack
+from ...table import Table, QTable, join, hstack, vstack, Column, NdarrayMixin
 from ... import time
 from ... import coordinates
 from ... import units as u
@@ -62,7 +66,8 @@ def test_attributes(mixin_cols):
 
 
 def check_mixin_type(table, table_col, in_col):
-    if isinstance(in_col, u.Quantity) and type(table) is not QTable:
+    if ((isinstance(in_col, u.Quantity) and type(table) is not QTable)
+            or isinstance(in_col, Column)):
         assert type(table_col) is table.ColumnClass
     else:
         assert type(table_col) is type(in_col)
@@ -79,7 +84,7 @@ def test_make_table(table_types, mixin_cols):
     check_mixin_type(t, t['m'], mixin_cols['m'])
 
     cols = list(mixin_cols.values())
-    t = table_types.Table(cols, names=('a', 'b', 'c', 'm'))
+    t = table_types.Table(cols, names=('i', 'a', 'b', 'm'))
     check_mixin_type(t, t['m'], mixin_cols['m'])
 
     t = table_types.Table(cols)
@@ -304,7 +309,7 @@ def test_insert_row(mixin_cols):
     """
     t = QTable(mixin_cols)
     t['m'].info.description = 'd'
-    if isinstance(t['m'], u.Quantity):
+    if isinstance(t['m'], (u.Quantity, Column)):
         t.insert_row(1, t[-1])
         assert t[1] == t[-1]
         assert t['m'].info.description == 'd'
@@ -452,3 +457,63 @@ def test_skycoord_representation():
                            '  m,deg,m   ',
                            '------------',
                            '1.0,90.0,0.0']
+
+
+def test_ndarray_mixin():
+    """
+    Test directly adding a plain structured array into a table instead of the
+    view as an NdarrayMixin.  Once added as an NdarrayMixin then all the previous
+    tests apply.
+    """
+    a = np.array([(1, 'a'), (2, 'b'), (3, 'c'), (4, 'd')],
+                 dtype='<i4,' + ('|S1' if six.PY2 else '|U1'))
+    b = np.array([(10, 'aa'), (20, 'bb'), (30, 'cc'), (40, 'dd')],
+                 dtype=[('x', 'i4'), ('y', ('S2' if six.PY2 else 'U2'))])
+    c = np.rec.fromrecords([(100, 'raa'), (200, 'rbb'), (300, 'rcc'), (400, 'rdd')],
+                           names=['rx', 'ry'])
+    d = np.arange(8).reshape(4, 2).view(NdarrayMixin)
+
+    # Add one during initialization and the next as a new column.
+    t = Table([a], names=['a'])
+    t['b'] = b
+    t['c'] = c
+    t['d'] = d
+
+    assert isinstance(t['a'], NdarrayMixin)
+
+    assert t['a'][1][1] == a[1][1]
+    assert t['a'][2][0] == a[2][0]
+
+    assert t[1]['a'][1] == a[1][1]
+    assert t[2]['a'][0] == a[2][0]
+
+    assert isinstance(t['b'], NdarrayMixin)
+
+    assert t['b'][1]['x'] == b[1]['x']
+    assert t['b'][1]['y'] == b[1]['y']
+
+    assert t[1]['b']['x'] == b[1]['x']
+    assert t[1]['b']['y'] == b[1]['y']
+
+    assert isinstance(t['c'], NdarrayMixin)
+
+    assert t['c'][1]['rx'] == c[1]['rx']
+    assert t['c'][1]['ry'] == c[1]['ry']
+
+    assert t[1]['c']['rx'] == c[1]['rx']
+    assert t[1]['c']['ry'] == c[1]['ry']
+
+    assert isinstance(t['d'], NdarrayMixin)
+
+    assert t['d'][1][0] == d[1][0]
+    assert t['d'][1][1] == d[1][1]
+
+    assert t[1]['d'][0] == d[1][0]
+    assert t[1]['d'][1] == d[1][1]
+
+    assert t.pformat() == ['   a         b           c       d [2] ',
+                           '-------- ---------- ------------ ------',
+                           "(1, 'a') (10, 'aa') (100, 'raa') 0 .. 1",
+                           "(2, 'b') (20, 'bb') (200, 'rbb') 2 .. 3",
+                           "(3, 'c') (30, 'cc') (300, 'rcc') 4 .. 5",
+                           "(4, 'd') (40, 'dd') (400, 'rdd') 6 .. 7"]

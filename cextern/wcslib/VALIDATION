@@ -1,6 +1,26 @@
 Platforms on which the installation procedures and test suite were exercised
 
 
+WCSLIB version 5.9 (2015/07/21)
+-------------------------------
+
+* Dell Latitude D620 (Intel Centrino T2300, 2 processors, i686)
+  Debian linux 8.0 (jessie)
+  uname -r (kernel version): 3.16.0-4-686-pae
+  gcc --version: gcc (Debian 4.9.2-10) 4.9.2
+  gfortran --version: GNU Fortran (Debian 4.9.2-10) 4.9.2
+
+
+WCSLIB version 5.8 (2015/07/08)
+-------------------------------
+
+* Dell Latitude D620 (Intel Centrino T2300, 2 processors, i686)
+  Debian linux 8.0 (jessie)
+  uname -r (kernel version): 3.16.0-4-686-pae
+  gcc --version: gcc (Debian 4.9.2-10) 4.9.2
+  gfortran --version: GNU Fortran (Debian 4.9.2-10) 4.9.2
+
+
 WCSLIB version 5.7 (2015/06/29)
 -------------------------------
 
@@ -428,4 +448,4 @@ WCSLIB version 4.4 (2009/08/06)
           2004/04/23
 
 ------------------------------------------------------------------------------
-$Id: VALIDATION,v 5.7 2015/06/29 02:44:18 mcalabre Exp $
+$Id: VALIDATION,v 5.9 2015/07/21 09:20:04 mcalabre Exp $

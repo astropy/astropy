@@ -121,7 +121,7 @@ class QuantityInput(object):
                             error_msg = "a 'unit' attribute without an 'is_equivalent' method"
                         else:
                             error_msg = "no 'unit' attribute"
-                        raise TypeError("Argument '{0}' to function has '{1}' {2}. "
+                        raise TypeError("Argument '{0}' to function '{1}' has {2}. "
                               "You may want to pass in an astropy Quantity instead."
                                  .format(param.name, wrapped_function.__name__, error_msg))
 

@@ -14,14 +14,63 @@ from ...utils.compat import subprocess
 
 from ...utils.data import get_pkg_data_filename
 from .. import configuration
+from .. import paths
 from ...utils.exceptions import AstropyDeprecationWarning
 
 
 def test_paths():
-    from ..paths import get_config_dir, get_cache_dir
+    assert 'astropy' in paths.get_config_dir()
+    assert 'astropy' in paths.get_cache_dir()
 
-    assert 'astropy' in get_config_dir()
-    assert 'astropy' in get_cache_dir()
+
+def test_set_temp_config(tmpdir, monkeypatch):
+    monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
+
+    orig_config_dir = paths.get_config_dir()
+    temp_config_dir = str(tmpdir.mkdir('config'))
+    temp_astropy_config = os.path.join(temp_config_dir, 'astropy')
+
+    # Test decorator mode
+    @paths.set_temp_config(temp_config_dir)
+    def test_func():
+        assert paths.get_config_dir() == temp_astropy_config
+
+        # Test temporary restoration of original default
+        with paths.set_temp_config() as d:
+            assert d == orig_config_dir == paths.get_config_dir()
+
+    test_func()
+
+    # Test context manager mode (with cleanup)
+    with paths.set_temp_config(temp_config_dir, delete=True):
+        assert paths.get_config_dir() == temp_astropy_config
+
+    assert not os.path.exists(temp_config_dir)
+
+
+def test_set_temp_cache(tmpdir, monkeypatch):
+    monkeypatch.setattr(paths.set_temp_cache, '_temp_path', None)
+
+    orig_cache_dir = paths.get_cache_dir()
+    temp_cache_dir = str(tmpdir.mkdir('cache'))
+    temp_astropy_cache = os.path.join(temp_cache_dir, 'astropy')
+
+    # Test decorator mode
+    @paths.set_temp_cache(temp_cache_dir)
+    def test_func():
+        assert paths.get_cache_dir() == temp_astropy_cache
+
+        # Test temporary restoration of original default
+        with paths.set_temp_cache() as d:
+            assert d == orig_cache_dir == paths.get_cache_dir()
+
+    test_func()
+
+    # Test context manager mode (with cleanup)
+    with paths.set_temp_cache(temp_cache_dir, delete=True):
+        assert paths.get_cache_dir() == temp_astropy_cache
+
+    assert not os.path.exists(temp_cache_dir)
 
 
 def test_config_file():
@@ -121,11 +170,11 @@ def test_config_noastropy_fallback(monkeypatch):
     there's a problem accessing the astropy directory
     """
     from ...tests.helper import pytest
-    from .. import paths
 
     # make sure the config directory is not searched
     monkeypatch.setenv(str('XDG_CONFIG_HOME'), 'foo')
     monkeypatch.delenv(str('XDG_CONFIG_HOME'))
+    monkeypatch.setattr(paths.set_temp_config, '_temp_path', None)
 
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed

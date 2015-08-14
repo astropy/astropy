@@ -23,9 +23,11 @@ class Row(object):
       ...               dtype=('int32', 'int32'))
       >>> row = table[1]
       >>> row
-      <Row 1 of table
-       values=(2, 4)
-       dtype=[('a', '<i4'), ('b', '<i4')]>
+      <Row index=1>
+        a     b
+      int32 int32
+      ----- -----
+          2     4
       >>> row['a']
       2
       >>> row[1]
@@ -173,9 +175,36 @@ class Row(object):
     def dtype(self):
         return self._table.dtype
 
+    def _base_repr_(self, html=False):
+        """
+        Display row as a single-line table but with appropriate header line.
+        """
+        index = self.index if (self.index >= 0) else self.index + len(self._table)
+        table = self._table[index:index + 1]
+        descr_vals = [self.__class__.__name__,
+                      'index={0}'.format(self.index)]
+        if table.masked:
+            descr_vals.append('masked=True')
+
+        return table._base_repr_(html, descr_vals, max_width=-1,
+                                 tableid='table{0}'.format(id(self._table)))
+
+    def _repr_html_(self):
+        return self._base_repr_(html=True)
+
     def __repr__(self):
-        return "<{3} {0} of table\n values={1!r}\n dtype={2}>".format(
-            self.index, self.as_void(), self.dtype, self.__class__.__name__)
+        return self._base_repr_(html=False)
+
+    def __unicode__(self):
+        index = self.index if (self.index >= 0) else self.index + len(self._table)
+        return '\n'.join(self.table[index:index + 1].pformat(max_width=-1))
+    if six.PY3:
+        __str__ = __unicode__
+
+    def __bytes__(self):
+        return six.text_type(self).encode('utf-8')
+    if six.PY2:
+        __str__ = __bytes__
 
 
 collections.Sequence.register(Row)

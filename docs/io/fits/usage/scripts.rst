@@ -4,6 +4,10 @@ Executable Scripts
 Astropy installs a couple of useful utility programs on your system that are
 built with Astropy.
 
+fitsinfo
+^^^^^^^^
+.. automodule:: astropy.io.fits.scripts.fitsinfo
+
 fitsheader
 ^^^^^^^^^^
 .. automodule:: astropy.io.fits.scripts.fitsheader

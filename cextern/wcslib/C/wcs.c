@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.7 - an implementation of the FITS WCS standard.
+  WCSLIB 5.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,7 +22,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcs.c,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
+  $Id: wcs.c,v 5.9 2015/07/21 09:20:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -823,7 +823,7 @@ int wcssub(
           /* Thorough error checking will be done later by disset(). */
           if (dpsrc->j != j+1) continue;
           if (dpsrc->field[1] != pq[m]) continue;
-          if ((fp = strpbrk(dpsrc->field, ".")) == 0x0) continue;
+          if ((fp = strchr(dpsrc->field, '.')) == 0x0) continue;
           fp++;
 
           ndp++;
@@ -1107,7 +1107,7 @@ int wcssub(
         for (idp = 0; idp < dissrc->ndp; idp++, dpsrc++) {
           if (dpsrc->j != j+1) continue;
           if (dpsrc->field[1] != pq[m]) continue;
-          if ((fp = strpbrk(dpsrc->field, ".")) == 0x0) continue;
+          if ((fp = strchr(dpsrc->field, '.')) == 0x0) continue;
           fp++;
 
           if (strncmp(fp, "NAXES", 6) == 0) {
@@ -1129,7 +1129,7 @@ int wcssub(
         for (idp = 0; idp < dissrc->ndp; idp++, dpsrc++) {
           if (dpsrc->j != axes[j]) continue;
           if (dpsrc->field[1] != pq[m]) continue;
-          if ((fp = strpbrk(dpsrc->field, ".")) == 0x0) continue;
+          if ((fp = strchr(dpsrc->field, '.')) == 0x0) continue;
           fp++;
 
           if (strncmp(fp, "AXIS.", 5) == 0) {
@@ -1149,7 +1149,7 @@ int wcssub(
             for (jhat = 0; jhat < Nhat; jhat++) {
               strcpy(dpdst->field, dpsrc->field);
               dpdst->field[2] = ctmp[0];
-              fp = strpbrk(dpdst->field, ".") + 1;
+              fp = strchr(dpdst->field, '.') + 1;
               sprintf(fp, "AXIS.%d", jhat+1);
               dpdst->j = j+1;
               dpdst->type = 0;
@@ -2017,6 +2017,18 @@ int wcsset(struct wcsprm *wcs)
          this translation from re-occurring if wcsset() is called again. */
       strcpy(wcs->ctype[wcs->lng]+5, "TAN");
       strcpy(wcs->ctype[wcs->lat]+5, "TAN");
+
+    } else if (strncmp(wcsprj->code, "TNX", 3) == 0) {
+      /* The WAT distortion should already have been encoded in disseq. */
+      strcpy(wcsprj->code, "TAN");
+      strcpy(wcs->ctype[wcs->lng]+5, "TAN");
+      strcpy(wcs->ctype[wcs->lat]+5, "TAN");
+
+    } else if (strncmp(wcsprj->code, "ZPX", 3) == 0) {
+      /* The WAT distortion should already have been encoded in disseq. */
+      strcpy(wcsprj->code, "ZPN");
+      strcpy(wcs->ctype[wcs->lng]+5, "ZPN");
+      strcpy(wcs->ctype[wcs->lat]+5, "ZPN");
     }
 
     /* PVi_ma keyvalues. */
@@ -2261,8 +2273,8 @@ int wcs_types(struct wcsprm *wcs)
 {
   static const char *function = "wcs_types";
 
-  const int  nalias = 4;
-  const char aliases [4][4] = {"NCP", "GLS", "TPU", "TPV"};
+  const int  nalias = 6;
+  const char aliases [6][4] = {"NCP", "GLS", "TPU", "TPV", "TNX", "ZPX"};
 
   const char *alt = "";
   char ctypei[16], pcode[4], requir[9], scode[4], specsys[9];

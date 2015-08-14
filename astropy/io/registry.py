@@ -82,6 +82,12 @@ def _update__doc__(data_class, readwrite):
 
     # Get the existing read or write method and its docstring
     class_readwrite_func = getattr(data_class, readwrite)
+
+    if not isinstance(class_readwrite_func.__doc__, six.string_types):
+        # No docstring--could just be test code, or possibly code compiled
+        # without docstrings
+        return
+
     lines = class_readwrite_func.__doc__.splitlines()
 
     # Find the location of the existing formats table if it exists
@@ -311,7 +317,7 @@ def read(cls, *args, **kwargs):
                     try:
                         ctx = get_readable_fileobj(args[0], encoding='binary')
                         fileobj = ctx.__enter__()
-                    except Exception as e:
+                    except Exception:
                         fileobj = None
                     else:
                         args = [fileobj] + list(args[1:])

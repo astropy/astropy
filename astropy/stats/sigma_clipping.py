@@ -30,9 +30,12 @@ def sigma_clip(data, **kwargs):
     return _sigma_clip(data, **kwargs)
 
 
-def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
+def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
                 cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True):
-    """Perform sigma-clipping on the provided data.
+    """
+    sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5, cenfunc=np.ma.median, stdfunc=np.std, axis=None, copy=True)
+
+    Perform sigma-clipping on the provided data.
 
     The data will be iterated over, each time rejecting points that are
     discrepant by more than a specified number of standard deviations
@@ -132,7 +135,7 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=1,
         >>> from astropy.stats import sigma_clip
         >>> from numpy.random import randn
         >>> randvar = randn(10000)
-        >>> filtered_data = sigma_clip(randvar, sigma=2, iters=1)
+        >>> filtered_data = sigma_clip(randvar, sigma=2, iters=5)
 
     This example sigma clips on a similar distribution, but uses 3 sigma
     relative to the sample *mean*, clips until convergence, and does not
@@ -205,7 +208,7 @@ sigma_clip.__doc__ = _sigma_clip.__doc__
 
 
 def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
-                        sigma_lower=None, sigma_upper=None, iters=None,
+                        sigma_lower=None, sigma_upper=None, iters=5,
                         cenfunc=np.ma.median, stdfunc=np.std, axis=None):
     """
     Calculate sigma-clipped statistics from data.

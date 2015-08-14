@@ -1098,7 +1098,7 @@ class BaseCoordinateFrame(object):
         from .angles import Angle
 
         self_unit_sph = self.represent_as(UnitSphericalRepresentation)
-        other_transformed = other.transform_to(self.__class__)
+        other_transformed = other.transform_to(self)
         other_unit_sph = other_transformed.represent_as(UnitSphericalRepresentation)
 
         # Get the separation as a Quantity, convert to Angle in degrees
@@ -1134,7 +1134,7 @@ class BaseCoordinateFrame(object):
                              'compute 3d separation.')
 
         # do this first just in case the conversion somehow creates a distance
-        other_in_self_system = other.transform_to(self.__class__)
+        other_in_self_system = other.transform_to(self)
 
         if other_in_self_system.__class__ == UnitSphericalRepresentation:
             raise ValueError('The other object does not have a distance; '

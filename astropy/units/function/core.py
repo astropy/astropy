@@ -14,16 +14,19 @@ from .. import (Unit, UnitBase, UnitsError,
 
 __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 
-_supported_ufuncs = set([ufunc for ufunc, helper in qh.UFUNC_HELPERS.items()
-                         if helper in (qh.helper_onearg_test,
-                                       qh.helper_invariant,
-                                       qh.helper_division,
-                                       qh.helper_copysign)])
-_supported_ufuncs |= set([getattr(np.core.umath, ufunc)
-                          for ufunc in ('sqrt', 'cbrt', 'square', 'reciprocal',
-                                        'multiply', 'power',
-                                        '_ones_like', 'ones_like')
-                          if hasattr(np.core.umath, ufunc)])
+SUPPORTED_UFUNCS = set([ufunc for ufunc, helper in qh.UFUNC_HELPERS.items()
+                        if helper in (qh.helper_onearg_test,
+                                      qh.helper_invariant,
+                                      qh.helper_division,
+                                      qh.helper_copysign)])
+SUPPORTED_UFUNCS |= set([getattr(np.core.umath, ufunc)
+                         for ufunc in ('sqrt', 'cbrt', 'square', 'reciprocal',
+                                       'multiply', 'power',
+                                       '_ones_like', 'ones_like')
+                         if hasattr(np.core.umath, ufunc)])
+
+SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
+                          ('clip', 'trace', 'mean', 'min', 'max', 'round'))
 
 
 # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
@@ -273,6 +276,9 @@ class FunctionUnitBase(object):
             return self.physical_unit.to(other, self.to_physical(value),
                                          equivalencies)
 
+    def is_unity(self):
+        return False
+
     def __eq__(self, other):
         return (self.physical_unit == getattr(other, 'physical_unit',
                                               dimensionless_unscaled) and
@@ -481,6 +487,10 @@ class FunctionQuantity(Quantity):
     # to allow a Quantity view with just the function unit (stored in _unit)
     _full_unit = None
 
+    # Define functions that work on FunctionQuantity.
+    _supported_ufuncs = SUPPORTED_UFUNCS
+    _supported_functions = SUPPORTED_FUNCTIONS
+
     def __new__(cls, value, unit=None, dtype=None, copy=True, order=None,
                 subok=False, ndmin=0):
 
@@ -608,7 +618,7 @@ class FunctionQuantity(Quantity):
 
         # Find out whether ufunc is supported
         function = context[0]
-        if not (function in _supported_ufuncs or
+        if not (function in self._supported_ufuncs or
                 all(arg.unit.physical_unit == dimensionless_unscaled
                     for arg in context[1][:function.nin]
                     if (hasattr(arg, 'unit') and
@@ -688,7 +698,8 @@ class FunctionQuantity(Quantity):
         unit, and returning NotImplemented when there are other errors."""
         try:
             # will raise a UnitsError if physical units not equivalent
-            return comparison_func(other.to(self.unit).value)
+            return comparison_func(
+                self._to_own_unit(other, check_precision=False))
         except UnitsError:
             raise
         except:
@@ -718,8 +729,18 @@ class FunctionQuantity(Quantity):
     def __le__(self, other):
         return self._comparison(other, self.value.__le__)
 
-    # vvvv override Quantity methods that make no sense for function units
-    def _not_implemented(self, *args, **kwargs):
-        raise NotImplementedError
+    # Ensure Quantity methods are used only if they make sense.
+    def _wrap_function(self, function, *args, **kwargs):
+        if function in self._supported_functions:
+            return super(FunctionQuantity,
+                         self)._wrap_function(function, *args, **kwargs)
 
-    dot = nansum = sum = cumsum = prod = cumprod = _not_implemented
+        if all(arg.unit.physical_unit == dimensionless_unscaled
+               for arg in (self,) + args
+               if (hasattr(arg, 'unit') and
+                   hasattr(arg.unit, 'physical_unit'))):
+            return self._function_view._wrap_function(function, *args, **kwargs)
+
+        raise TypeError("Cannot use method that uses function '{0}' with "
+                        "function quantities that are not dimensionless."
+                        .format(function.__name__))

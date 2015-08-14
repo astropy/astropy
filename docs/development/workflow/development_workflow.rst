@@ -313,10 +313,14 @@ In more detail
    the documentation builds and looks correct by running, from the
    ``astropy`` directory::
 
-     python setup.py build_sphinx
+     python setup.py build_docs
 
    The last line should just state ``build succeeded``, and should not mention
    any warnings.  (For more details, see :ref:`documentation-guidelines`.)
+
+   .. note::
+       If the build_docs command is not found, try running ``python setup.py
+       build_sphinx`` instead.
 
 #. Add tests of your new code, if appropriate. Some changes (e.g. to
    documentation) do not need tests. Detailed instructions are at

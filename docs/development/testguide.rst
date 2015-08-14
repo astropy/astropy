@@ -355,7 +355,8 @@ Tests that need to make use of a data file should use the
 search locally first, and then on the astropy data server or an arbitrary
 URL, and return a file-like object or a local filename, respectively.  They
 automatically cache the data locally if remote data is obtained, and from
-then on the local copy will be used transparently.
+then on the local copy will be used transparently.  See the next section for
+note specific to dealing with the cache in tests.
 
 They also support the use of an MD5 hash to get a specific version of a data
 file.  This hash can be obtained prior to submitting a file to the astropy
@@ -401,6 +402,33 @@ The ``get_remote_test_data`` will place the files in a temporary directory
 indicated by the ``tempfile`` module, so that the test files will eventually
 get removed by the system. In the long term, once test data files become too
 large, we will need to design a mechanism for removing test data immediately.
+
+Tests that use the file cache
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, the Astropy test runner sets up a clean file cache in a temporary
+directory that is used only for that test run and then destroyed.  This is to
+ensure consistency between test runs, as well as to not clutter users' caches
+(i.e. the cache directory returned by `~astropy.config.get_cache_dir`) with
+test files.
+
+However, some test authors (especially for affiliated packages) may find it
+desirable to cache files downloaded during a test run in a more permanent
+location (e.g. for large data sets).  To this end the
+`~astropy.config.set_temp_cache` helper may be used.  It can be used either as
+a context manager within a test to temporarily set the cache to a custom
+location, or as a *decorator* that takes effect for an entire test function
+(not including setup or teardown, which would have to be decorated separately).
+
+Furthermore, it is possible to set an option ``cache_dir`` in the py.test
+config file which sets the cache location for the entire test run.  A
+``--cache-dir`` command-line option is also supported (which overrides all
+other settings).  Currently it is not directly supported by the
+``./setup.py test`` command, so it is necessary to use it with the ``-a``
+argument like::
+
+    $ ./setup.py test -a "--cache-dir=/path/to/custom/cache/dir"
+
 
 Tests that create files
 -----------------------

@@ -358,7 +358,13 @@ def test_to_header_string():
     WCSAXES =                    2 / Number of coordinate axes                      CRPIX1  =                  0.0 / Pixel coordinate of reference point            CRPIX2  =                  0.0 / Pixel coordinate of reference point            CDELT1  =                  1.0 / Coordinate increment at reference point        CDELT2  =                  1.0 / Coordinate increment at reference point        CRVAL1  =                  0.0 / Coordinate value at reference point            CRVAL2  =                  0.0 / Coordinate value at reference point            LATPOLE =                 90.0 / [deg] Native latitude of celestial pole        END"""
 
     w = wcs.WCS()
-    assert w.to_header_string().strip() == header_string.strip()
+    h0 = fits.Header.fromstring(w.to_header_string().strip())
+    if 'COMMENT' in h0:
+        del h0['COMMENT']
+    if '' in h0:
+        del h0['']
+    h1 = fits.Header.fromstring(header_string.strip())
+    assert dict(h0) == dict(h1)
 
 
 def test_to_fits():
@@ -377,6 +383,19 @@ def test_to_header_warning():
         x.to_header()
     assert len(w) == 1
     assert 'A_ORDER' in str(w[0])
+
+
+def test_no_comments_in_header():
+    w = wcs.WCS()
+    header = w.to_header()
+    assert w.wcs.alt not in header
+    assert 'COMMENT' + w.wcs.alt.strip() not in header
+    assert 'COMMENT' not in header
+    wkey = 'P'
+    header = w.to_header(key=wkey)
+    assert wkey not in header
+    assert 'COMMENT' not in header
+    assert 'COMMENT' + w.wcs.alt.strip() not in header
 
 
 @raises(wcs.InvalidTransformError)
@@ -772,3 +791,37 @@ def test_tpv_copy():
     ra, dec = w_tpv.wcs_pix2world([0, 100, 200], [0, -100, 200], 0)
     assert ra[0] != ra[1] and ra[1] != ra[2]
     assert dec[0] != dec[1] and dec[1] != dec[2]
+
+
+def test_hst_wcs():
+    path = get_pkg_data_filename("data/dist_lookup.fits.gz")
+
+    hdulist = fits.open(path)
+    # wcslib will complain about the distortion parameters if they
+    # weren't correctly deleted from the header
+    w = wcs.WCS(hdulist[1].header, hdulist)
+
+    # Exercise the main transformation functions, mainly just for
+    # coverage
+    w.p4_pix2foc([0, 100, 200], [0, -100, 200], 0)
+    w.det2im([0, 100, 200], [0, -100, 200], 0)
+
+    w.cpdis1 = w.cpdis1
+    w.cpdis2 = w.cpdis2
+
+    w.det2im1 = w.det2im1
+    w.det2im2 = w.det2im2
+
+    w.sip = w.sip
+
+    w.cpdis1.cdelt = w.cpdis1.cdelt
+    w.cpdis1.crpix = w.cpdis1.crpix
+    w.cpdis1.crval = w.cpdis1.crval
+    w.cpdis1.data = w.cpdis1.data
+
+    print(w.sip.crpix, w.sip.ap_order, w.sip.bp_order)
+    assert w.sip.a_order == 4
+    assert w.sip.b_order == 4
+    assert w.sip.ap_order == 0
+    assert w.sip.bp_order == 0
+    assert_array_equal(w.sip.crpix, [2048., 1024.])

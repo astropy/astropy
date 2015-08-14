@@ -514,6 +514,18 @@ def test_ScaleModel():
                        [[ 42,  84], [ 43,  86]])
 
 
+def test_voigt_model():
+    """
+    Currently just tests that the model peaks at its origin.
+    Regression test for https://github.com/astropy/astropy/issues/3942
+    """
+
+    m = models.Voigt1D(x_0=5, amplitude_L=10, fwhm_L=0.5, fwhm_G=0.9)
+    x = np.arange(0, 10, 0.01)
+    y = m(x)
+    assert y[500] == y.max()  # y[500] is right at the center
+
+
 def test_model_instance_repr():
     m = models.Gaussian1D(1, 2, 3)
     assert repr(m) == '<Gaussian1D(amplitude=1.0, mean=2.0, stddev=3.0)>'

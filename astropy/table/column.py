@@ -92,9 +92,39 @@ class ColumnInfo(BaseColumnInfo):
     attrs_from_parent = BaseColumnInfo.attr_names
 
 
+class _NDColumnProxyShim(np.ndarray):
+    """
+    This mixin class exists solely to provide an override to
+    ndarray.__getitem__ that provides the desirable behavior for single
+    item gets on columns with multi-dimensional data types.  The default
+    behavior from Numpy is to automatically view-cast these to the ndarray
+    subclass (i.e. Column), but the multi-dimensional array elements of
+    multi-dimensional columns are not, themselves, Columns.
+
+    This class is shimmed into a new class used for any BaseColumn instances
+    that contain multi-dimensional data via BaseColumn._get_nd_proxy_class
+    (this is also done explicitly in MaskedColumn.__new__ due to the
+    peculiarities of MaskedColumn).
+    """
+
+    def __getitem__(self, item):
+        if isinstance(item, INTEGER_TYPES):
+            return self.data[item]  # Return as plain ndarray or ma.MaskedArray
+        else:
+            return super(_NDColumnProxyShim, self).__getitem__(item)
+
+
 class BaseColumn(np.ndarray):
 
     meta = MetaData()
+
+    _nd_proxy_classes = {}
+    """
+    Alternate versions of BaseColumn and any subclasses that have the
+    _NDColumnProxyShim, mapped to by the original class.  The shimmed
+    classes have the same name as the original class and are otherwise
+    indistinguishable.  This hack exists only as a performance tweak.
+    """
 
     def __new__(cls, data=None, name=None,
                 dtype=None, shape=(), length=0,
@@ -135,6 +165,8 @@ class BaseColumn(np.ndarray):
         else:
             self_data = np.array(data, dtype=dtype, copy=copy)
 
+        cls = cls._get_nd_proxy_class(self_data)
+
         self = self_data.view(cls)
         self._name = fix_column_name(name)
         self.unit = unit
@@ -144,6 +176,27 @@ class BaseColumn(np.ndarray):
         self._parent_table = None
 
         return self
+
+    @classmethod
+    def _get_nd_proxy_class(cls, data):
+        """
+        Creates new classes with the _NDColumnProxyShim.  See the docstring
+        for _NDColumnProxyShim for more detail.
+
+        The data argument should be the array data that will be held by the
+        column--this can be used to determine what proxy class to use if any at
+        all.
+        """
+
+        if data.ndim < 2:
+            # We only this special proxy for columns whose individual elements
+            # are themselves arrays
+            return cls
+
+        if cls not in cls._nd_proxy_classes:
+            cls._nd_proxy_classes[cls] = type(cls.__name__,
+                                              (_NDColumnProxyShim, cls), {})
+        return cls._nd_proxy_classes[cls]
 
     @property
     def data(self):
@@ -247,12 +300,6 @@ class BaseColumn(np.ndarray):
         state = state + (column_state,)
 
         return reconstruct_func, reconstruct_func_args, state
-
-    def __getitem__(self, item):
-        if isinstance(item, INTEGER_TYPES):
-            return self.data[item]  # Return as plain ndarray or ma.MaskedArray
-        else:
-            return super(BaseColumn, self).__getitem__(item)
 
     # avoid == and != to be done based on type of subclass
     # (helped solve #1446; see also __array_wrap__)
@@ -903,6 +950,9 @@ class MaskedColumn(Column, ma.MaskedArray):
         # with MaskedArray.
         self_data = BaseColumn(data, dtype=dtype, shape=shape, length=length, name=name,
                                unit=unit, format=format, description=description, meta=meta, copy=copy)
+
+        cls = cls._get_nd_proxy_class(self_data)
+
         self = ma.MaskedArray.__new__(cls, data=self_data, mask=mask)
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not

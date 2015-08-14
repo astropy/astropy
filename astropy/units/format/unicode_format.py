@@ -8,8 +8,7 @@ Handles the "Unicode" unit format.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from . import console
-from . import utils
+from . import console, utils
 
 
 class Unicode(console.Console):
@@ -25,9 +24,6 @@ class Unicode(console.Console):
       2.1798721×10⁻¹⁸ ─────
                        s²
     """
-
-    def __init__(self):
-        pass
 
     _times = "×"
     _line = "─"

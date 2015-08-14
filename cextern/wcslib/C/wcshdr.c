@@ -1,6 +1,6 @@
 /*============================================================================
 
-  WCSLIB 5.7 - an implementation of the FITS WCS standard.
+  WCSLIB 5.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2015, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -22,10 +22,11 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.c,v 5.7 2015/06/29 02:44:16 mcalabre Exp $
+  $Id: wcshdr.c,v 5.9 2015/07/21 09:20:01 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +40,8 @@
 #include "wcs.h"
 
 extern const int WCSSET;
+
+extern const int DIS_DOTPD;
 
 /* Map status return value to message. */
 const char *wcshdr_errmsg[] = {
@@ -62,6 +65,7 @@ const int wcshdr_taberr[] = {
 /* Convenience macro for invoking wcserr_set(). */
 #define WCSHDR_ERRMSG(status) WCSERR_SET(status), wcshdr_errmsg[status]
 
+/* Internal helper functions, not for general use. */
 static void wcshdo_format(int, int, const double [], char *);
 static void wcshdo_tpdterm(int, int, char *);
 static void wcshdo_util(int, const char [], const char [], int, const char [],
@@ -480,6 +484,13 @@ int wcsvfree(int *nwcs, struct wcsprm **wcs)
 }
 
 /*--------------------------------------------------------------------------*/
+#define I_DTYPE   0	/* Distortion type code.                            */
+#define I_NIPARM  1	/* Full (allocated) length of iparm[].              */
+#define I_NDPARM  2	/* No. of parameters in dparm[], excl. work space.  */
+#define I_DOCORR  3	/* True if distortion func computes a correction.   */
+#define I_TPDNCO  4	/* No. of TPD coefficients.                         */
+#define I_TPDAUX  5	/* True if auxiliary variables are used.            */
+#define I_TPDRAD  6	/* True if the radial variable is used.             */
 
 int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
 
@@ -488,14 +499,15 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
 {
   static const char *function = "wcshdo";
 
-  const int nTPD[] = {1, 4, 7, 12, 17, 24, 31, 40, 49, 60};
+  const char axid[] = "xyxuvu", *cp;
+  const int  nTPD[] = {1, 4, 7, 12, 17, 24, 31, 40, 49, 60};
 
-  char alt, comment[72], ctemp[32], *ctypei, format[8], *fp, keyvalue[72],
-       keyword[16], *kp, obsg[8] = "OBSG?", obsgeo[8] = "OBSGEO-?", pq, ptype,
-       xtype, term[16], xyz[] = "XYZ";
-  int  *axmap, bintab, col0, *colax, colnum, degree, direct, dosip, dotpd,
-       dotpv, i, idis, idp, *iparm, j, jhat, k, m, naxis, ncoeff, Nhat, p,
-       pixlist, precision, primage, q, status = 0;
+  char alt, comment[72], ctemp[32], *ctypei, format[8], keyvalue[72],
+       keyword[16], *kp, *kp0, obsg[8] = "OBSG?", obsgeo[8] = "OBSGEO-?", pq,
+       ptype, xtype, term[16], tpdsrc[24], xyz[] = "XYZ";
+  int  *axmap, bintab, col0, *colax, colnum, degree, direct, doaux, dosip,
+       dotpd, dotpv, i, idis, idp, *iparm, j, jhat, k, m, naxis, ncoeff, Nhat,
+       p, pixlist, precision, primage, q, status = 0;
   double *dparm, keyval;
   struct disprm *dis;
   struct dpkey  *keyp;
@@ -544,14 +556,16 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   }
 
   /* Reference pixel coordinates. */
+  wcshdo_format('G', naxis, wcs->crpix, format);
   for (j = 0; j < naxis; j++) {
-    wcsutil_double2str(keyvalue, "%20.12G", wcs->crpix[j]);
+    wcsutil_double2str(keyvalue, format, wcs->crpix[j]);
     wcshdo_util(relax, "CRPIX", "CRP", WCSHDO_CRPXna, "CRPX", 0, j+1, 0, alt,
       colnum, colax, keyvalue, "Pixel coordinate of reference point", nkeyrec,
       header, &status);
   }
 
   /* Linear transformation matrix. */
+  wcshdo_format('G', naxis*naxis, wcs->pc, format);
   k = 0;
   for (i = 0; i < naxis; i++) {
     for (j = 0; j < naxis; j++, k++) {
@@ -561,7 +575,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
         if (wcs->pc[k] == 0.0) continue;
       }
 
-      wcsutil_double2str(keyvalue, "%20.12G", wcs->pc[k]);
+      wcsutil_double2str(keyvalue, format, wcs->pc[k]);
       wcshdo_util(relax, "PC", bintab ? "PC" : "P", WCSHDO_TPCn_ka,
         bintab ? 0x0 : "PC", i+1, j+1, 0, alt, colnum, colax,
         keyvalue, "Coordinate transformation matrix element",
@@ -570,8 +584,9 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   }
 
   /* Coordinate increment at reference point. */
+  wcshdo_format('G', naxis, wcs->cdelt, format);
   for (i = 0; i < naxis; i++) {
-    wcsutil_double2str(keyvalue, "%20.12G", wcs->cdelt[i]);
+    wcsutil_double2str(keyvalue, format, wcs->cdelt[i]);
     comment[0] = '\0';
     if (wcs->cunit[i][0]) sprintf(comment, "[%s] ", wcs->cunit[i]);
     strcat(comment, "Coordinate increment at reference point");
@@ -589,36 +604,51 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
       nkeyrec, header, &status);
   }
 
-  /* May need to alter ctype for particular distortions so do basic checks. */
+  /* May need to alter ctype for particular distortions so do basic checks */
+  /* now.  Note that SIP, TPV, DSS, TNX, and ZPX are restricted to exactly */
+  /* two axes and cannot coexist with other distortion types.              */
   dosip = 0;
   dotpv = 0;
+  dotpd = 0;
+
   if ((dis = wcs->lin.dispre)) {
     for (i = 0; i < naxis; i++) {
       if (strcmp(dis->dtype[i], "SIP") == 0) {
-        /* Simple Imaging Polynomial (SIP). */
-        dosip = 1;
+        /* Simple Imaging Polynomial (SIP).  Write it in its native form  */
+        /* if possible, unless specifically requested to write it as TPD. */
+        dotpd = (dis->iparm[i][I_DTYPE] & DIS_DOTPD);
 
-        if (alt ||
-            dis->axmap[0][0]  != 0 ||
-            dis->axmap[0][1]  != 1 ||
-            dis->axmap[1][0]  != 0 ||
-            dis->axmap[1][1]  != 1 ||
-            dis->offset[0][0] != wcs->crpix[0] ||
-            dis->offset[0][1] != wcs->crpix[1] ||
-            dis->offset[1][0] != wcs->crpix[0] ||
-            dis->offset[1][1] != wcs->crpix[1] ||
-            dis->scale[0][0]  != 1.0 ||
-            dis->scale[0][1]  != 1.0 ||
-            dis->scale[1][0]  != 1.0 ||
-            dis->scale[1][1]  != 1.0) {
-          /* Must have been read as a 'SIP' distortion, CPDISja = 'SIP'. */
-          /* Can't be written as native SIP so write it as TPD.          */
-          dosip = 2;
-        } else if (strncmp(wcs->ctype[0], "RA---TAN", 8) ||
-                   strncmp(wcs->ctype[1], "DEC--TAN", 8)) {
-          /* Must have been permuted by wcssub(). */
-          /* Native SIP doesn't have axis mapping so write it as TPD. */
-          dosip = 2;
+        if (!dotpd) {;
+          if (alt ||
+              dis->Nhat[0]      != 2 ||
+              dis->Nhat[1]      != 2 ||
+              dis->axmap[0][0]  != 0 ||
+              dis->axmap[0][1]  != 1 ||
+              dis->axmap[1][0]  != 0 ||
+              dis->axmap[1][1]  != 1 ||
+              dis->offset[0][0] != wcs->crpix[0] ||
+              dis->offset[0][1] != wcs->crpix[1] ||
+              dis->offset[1][0] != wcs->crpix[0] ||
+              dis->offset[1][1] != wcs->crpix[1] ||
+              dis->scale[0][0]  != 1.0 ||
+              dis->scale[0][1]  != 1.0 ||
+              dis->scale[1][0]  != 1.0 ||
+              dis->scale[1][1]  != 1.0) {
+            /* Must have been read as a 'SIP' distortion, CPDISja = 'SIP'. */
+            /* Cannot be written as native SIP so write it as TPD.         */
+            dotpd = DIS_DOTPD;
+          } else if (strncmp(wcs->ctype[0], "RA---TAN", 8) ||
+                     strncmp(wcs->ctype[1], "DEC--TAN", 8)) {
+            /* Must have been permuted by wcssub(). */
+            /* Native SIP doesn't have axis mapping so write it as TPD. */
+            dotpd = DIS_DOTPD;
+          }
+
+          if (dotpd) {
+            strcpy(tpdsrc, "SIP coordinates");
+          } else {
+            dosip = 1;
+          }
         }
 
         break;
@@ -629,24 +659,51 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   if ((dis = wcs->lin.disseq)) {
     for (i = 0; i < naxis; i++) {
       if (strcmp(dis->dtype[i], "TPV") == 0) {
-        /* TPV "projection". */
-        dotpv = 1;
+        /* TPV "projection".  Write it in its native form if possible, */
+        /* unless specifically requested to write it as TPD.           */
+        dotpd = (dis->iparm[i][I_DTYPE] & DIS_DOTPD);
 
-        if (dis->axmap[wcs->lng][0] != wcs->lng ||
-            dis->axmap[wcs->lng][1] != wcs->lat ||
-            dis->axmap[wcs->lat][0] != wcs->lat ||
-            dis->axmap[wcs->lat][1] != wcs->lng ||
-            dis->offset[wcs->lng][wcs->lng] != 0.0 ||
-            dis->offset[wcs->lng][wcs->lat] != 0.0 ||
-            dis->offset[wcs->lat][wcs->lng] != 0.0 ||
-            dis->offset[wcs->lat][wcs->lat] != 0.0 ||
-            dis->scale[wcs->lng][wcs->lng]  != 1.0 ||
-            dis->scale[wcs->lng][wcs->lat]  != 1.0 ||
-            dis->scale[wcs->lat][wcs->lng]  != 1.0 ||
-            dis->scale[wcs->lat][wcs->lat]  != 1.0) {
-          /* Must have been read as a 'TPV' distortion, CPDISja = 'TPV'. */
-          /* Can't be written as native TPV so write it as TPD.          */
-          dotpv = 2;
+        if (!dotpd) {;
+          if (dis->axmap[wcs->lng][0] != wcs->lng ||
+              dis->axmap[wcs->lng][1] != wcs->lat ||
+              dis->axmap[wcs->lat][0] != wcs->lat ||
+              dis->axmap[wcs->lat][1] != wcs->lng ||
+              dis->offset[wcs->lng][wcs->lng] != 0.0 ||
+              dis->offset[wcs->lng][wcs->lat] != 0.0 ||
+              dis->offset[wcs->lat][wcs->lng] != 0.0 ||
+              dis->offset[wcs->lat][wcs->lat] != 0.0 ||
+              dis->scale[wcs->lng][wcs->lng]  != 1.0 ||
+              dis->scale[wcs->lng][wcs->lat]  != 1.0 ||
+              dis->scale[wcs->lat][wcs->lng]  != 1.0 ||
+              dis->scale[wcs->lat][wcs->lat]  != 1.0) {
+            /* Must have been read as a 'TPV' distortion, CPDISja = 'TPV'. */
+            /* Cannot be written as native TPV so write it as TPD.         */
+            dotpd = DIS_DOTPD;
+          }
+
+          if (dotpd) {
+            strcpy(tpdsrc, "TPV \"projection\"");
+          } else {
+            dotpv = 1;
+          }
+        }
+
+        break;
+
+      } else if (strcmp(dis->dtype[i], "DSS") == 0) {
+        /* Always written as TPD. */
+        dotpd = DIS_DOTPD;
+        strcpy(tpdsrc, dis->dtype[i]);
+
+      } else if (strncmp(dis->dtype[i], "WAT", 3) == 0) {
+        /* Always written as TPD. */
+        dotpd = DIS_DOTPD;
+        strcpy(tpdsrc, dis->dtype[i]+4);
+
+        if (strcmp(dis->dtype[i], "DSS") == 0) {
+          strcpy(tpdsrc, wcs->wcsname);
+        } else {
+          strcat(tpdsrc, " \"projection\"");
         }
 
         break;
@@ -664,10 +721,10 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
     ctypei = keyvalue + 1;
     if (i == wcs->lng || i == wcs->lat) {
       /* Alter ctype for particular distortions. */
-      if (dosip == 1) {
+      if (dosip) {
         /* It could have come in as CPDISja = 'SIP'. */
         strcpy(ctypei+8, "-SIP'");
-      } else if (dotpv == 1) {
+      } else if (dotpv) {
         /* Reinstate projection code edited by wcsset(). */
         strcpy(ctypei+4, "-TPV'");
       }
@@ -739,8 +796,9 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   }
 
   /* Coordinate value at reference point. */
+  wcshdo_format('G', naxis, wcs->crval, format);
   for (i = 0; i < naxis; i++) {
-    wcsutil_double2str(keyvalue, "%20.12G", wcs->crval[i]);
+    wcsutil_double2str(keyvalue, format, wcs->crval[i]);
     comment[0] = '\0';
     if (wcs->cunit[i][0]) sprintf(comment, "[%s] ", wcs->cunit[i]);
     strcat(comment, "Coordinate value at reference point");
@@ -1027,24 +1085,26 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
   }
 
 
-  /* As far as possible, write distortion functions in the form of the */
-  /* convention recorded in disprm::dtype.                             */
-  if (dosip == 1) {
+  /* Write distortion function parameters. */
+  if (dosip) {
     /* Simple Imaging Polynomial (SIP) is handled by translating its dpkey */
     /* records.  Determine a suitable numerical precision for the          */
     /* polynomial coefficients to avoid trailing zeroes common to all of   */
     /* them.                                                               */
-    dis = wcs->lin.dispre;
+    dis  = wcs->lin.dispre;
     keyp = dis->dp;
-    kp = keyvalue + 3;
+    kp0  = keyvalue + 2;
     for (idp = 0; idp < dis->ndp; idp++, keyp++) {
-      fp = strpbrk(keyp->field, ".") + 1;
-      if (strncmp(fp, "SIP.", 4) != 0) continue;
+      cp = strchr(keyp->field, '.') + 1;
+      if (strncmp(cp, "SIP.", 4) != 0) continue;
       wcsutil_double2str(keyvalue, "%20.13E", wcsutil_dpkey_double(keyp));
-      while (*kp != '0' && *kp != 'E') kp++;
+
+      kp = keyvalue + 15;
+      while (kp0 < kp && *kp == '0') kp--;
+      kp0 = kp;
     }
 
-    precision = kp - keyvalue - 3;
+    precision = kp - (keyvalue + 2);
     if (precision < 1)  precision = 1;
     if (13 < precision) precision = 13;
     sprintf(format, "%%20.%dE", precision);
@@ -1061,14 +1121,14 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
         strcpy(keyword, "B_");
       }
 
-      ncoeff = dis->iparm[j][3];
+      ncoeff = dis->iparm[j][I_TPDNCO];
       for (degree = 0; degree <= 9; degree++) {
         if (ncoeff <= nTPD[degree]) break;
       }
 
       strcpy(keyword+2, "ORDER");
       sprintf(keyvalue, "%20d", degree);
-      sprintf(comment, "SIP polynomial degree, axis %d, pixel-to-sky", j);
+      sprintf(comment, "SIP polynomial degree, axis %d, pixel-to-sky", j+1);
       wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, ' ', 0, 0,
         keyvalue, comment, nkeyrec, header, &status);
 
@@ -1077,11 +1137,11 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
         if (keyp->j != j+1) continue;
         if ((keyval = wcsutil_dpkey_double(keyp)) == 0.0) continue;
 
-        fp = strpbrk(keyp->field, ".") + 1;
-        if (strncmp(fp, "SIP.FWD.", 8) != 0) continue;
-        fp += 8;
-        strcpy(keyword+2, fp);
-        sscanf(fp, "%d_%d", &p, &q);
+        cp = strchr(keyp->field, '.') + 1;
+        if (strncmp(cp, "SIP.FWD.", 8) != 0) continue;
+        cp += 8;
+        strcpy(keyword+2, cp);
+        sscanf(cp, "%d_%d", &p, &q);
         strncpy(term, "xxxxxxxxx", p);
         strncpy(term+p, "yyyyyyyyy", q);
         term[p+q] = '\0';
@@ -1092,11 +1152,13 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
           keyvalue, comment, nkeyrec, header, &status);
       }
 
-      strcpy(keyword+2, "MAX");
-      wcsutil_double2str(keyvalue, "%20.3f", dis->maxdis[j]);
-      wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, ' ', 0, 0,
-        keyvalue, "Maximum value of distortion function", nkeyrec,
-        header, &status);
+      if (dis->maxdis[j] != 0.0) {
+        strcpy(keyword+2, "DMAX");
+        wcsutil_double2str(keyvalue, "%20.3f", dis->maxdis[j]);
+        wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, ' ', 0, 0,
+          keyvalue, "Maximum value of distortion function", nkeyrec,
+          header, &status);
+      }
 
       /* Inverse distortion function polynomial coefficients. */
       if (dis->disx2p == 0x0) continue;
@@ -1110,7 +1172,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
         strcpy(keyword, "BP_");
       }
 
-      ncoeff = dis->iparm[j][2] - dis->iparm[j][3];
+      ncoeff = dis->iparm[j][I_NDPARM] - dis->iparm[j][I_TPDNCO];
       for (degree = 0; degree <= 9; degree++) {
         if (ncoeff <= nTPD[degree]) break;
       }
@@ -1126,11 +1188,11 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
         if (keyp->j != j+1) continue;
         if ((keyval = wcsutil_dpkey_double(keyp)) == 0.0) continue;
 
-        fp = strpbrk(keyp->field, ".") + 1;
-        if (strncmp(fp, "SIP.REV.", 8) != 0) continue;
-        fp += 8;
-        strcpy(keyword+3, fp);
-        sscanf(fp, "%d_%d", &p, &q);
+        cp = strchr(keyp->field, '.') + 1;
+        if (strncmp(cp, "SIP.REV.", 8) != 0) continue;
+        cp += 8;
+        strcpy(keyword+3, cp);
+        sscanf(cp, "%d_%d", &p, &q);
         strncpy(term, "xxxxxxxxx", p);
         strncpy(term+p, "yyyyyyyyy", q);
         term[p+q] = '\0';
@@ -1143,7 +1205,6 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
     }
   }
 
-
   for (idis = 0; idis < 2; idis++) {
     if (idis == 0 && (dis = wcs->lin.dispre) == 0x0) continue;
     if (idis == 1 && (dis = wcs->lin.disseq) == 0x0) continue;
@@ -1151,14 +1212,17 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
     for (j = 0; j < naxis; j++) {
       if (dis->disp2x[j] == 0x0) continue;
 
+      iparm = dis->iparm[j];
+      dparm = dis->dparm[j];
+
       /* Identify the distortion type. */
-      if (strcmp(dis->dtype[j], "TPV") == 0 && dotpv == 1) {
+      if (dotpv) {
         /* TPV "projection" is handled by translating its dpkey records, */
         /* which were originally translated from PVi_ma by wcsset(), or  */
         /* possibly input directly as a CQDISia = 'TPV' distortion type. */
         /* Determine a suitable numerical precision for the polynomial   */
         /* coefficients to avoid trailing zeroes common to all of them.  */
-        wcshdo_format('E', dis->iparm[j][2], dis->dparm[j], format);
+        wcshdo_format('E', iparm[I_NDPARM], dparm, format);
 
         wcshdo_util(relax, "", "", 0, 0x0, 0, 0, 0, ' ', 0, 0, "", "",
           nkeyrec, header, &status);
@@ -1172,12 +1236,12 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
           if (keyp->j != j+1) continue;
           if ((keyval = wcsutil_dpkey_double(keyp)) == 0.0) continue;
 
-          fp = strpbrk(keyp->field, ".") + 1;
-          if (strncmp(fp, "TPV.", 4) != 0) continue;
-          strcpy(kp, fp+4);
+          cp = strchr(keyp->field, '.') + 1;
+          if (strncmp(cp, "TPV.", 4) != 0) continue;
+          strcpy(kp, cp+4);
 
           /* Identify the term of the TPV polynomial for human readers. */
-          sscanf(fp+4, "%d", &m);
+          sscanf(cp+4, "%d", &m);
           wcshdo_tpdterm(m, j == wcs->lng, term);
           sprintf(comment, "TPV coefficient: %s", term);
 
@@ -1190,15 +1254,21 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
             keyvalue, comment, nkeyrec, header, &status);
         }
 
-      } else if (strcmp(dis->dtype[j], "TPD") == 0 ||
-                 dosip == 2 || dotpv == 2 ||
+      } else if (strcmp(dis->dtype[j], "TPD") == 0 || dotpd ||
                  strcmp(dis->dtype[j], "Polynomial")  == 0 ||
                  strcmp(dis->dtype[j], "Polynomial*") == 0) {
         /* One of the Paper IV type polynomial distortions. */
         wcshdo_util(relax, "", "", 0, 0x0, 0, 0, 0, ' ', 0, 0, "", "",
           nkeyrec, header, &status);
 
-        dotpd = strncmp(dis->dtype[j], "Polynomial", 10);
+        if (strcmp(dis->dtype[j], "TPD") == 0) {
+          /* Pure TPD. */
+          dotpd = 1;
+        } else if (strncmp(dis->dtype[j], "Polynomial", 10) == 0) {
+          /* Polynomial distortion.  Write it as TPD by request? */
+          dotpd = (iparm[I_DTYPE] & DIS_DOTPD);
+          strcpy(tpdsrc, "Polynomial distortion");
+        }
 
         pq = idis ? 'Q' : 'P';
         Nhat = dis->Nhat[j];
@@ -1218,6 +1288,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
           /* For identifying terms of the TPD polynomial. */
           axmap  = dis->axmap[j];
           direct = 1;
+          doaux  = iparm[I_TPDAUX];
           if (Nhat == 2) {
             /* Associate x with longitude, y with latitude. */
             if (axmap[0] == wcs->lng && axmap[1] == wcs->lat) {
@@ -1267,11 +1338,11 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
           sprintf(comment+strlen(comment), " independent variable: axis %d",
             axmap[jhat]+1);
           if (dotpd) {
-            if (jhat == 0) {
-              sprintf(comment+strlen(comment), " (= %c)", direct?'x':'y');
-            } else {
-              sprintf(comment+strlen(comment), " (= %c)", direct?'y':'x');
-            }
+            /* axid is "xyxuvu". */
+            cp = axid;
+            if (!direct) cp++;
+            if (doaux) cp += 3;
+            sprintf(comment+strlen(comment), " (= %c)", cp[jhat]);
           }
 
           wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, alt, 0, 0,
@@ -1304,15 +1375,49 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
             keyvalue, comment, nkeyrec, header, &status);
         }
 
+        /* Does the distortion function compute a correction? */
+        if (iparm[I_DOCORR]) {
+          wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, alt, 0, 0,
+            "'DOCORR: 1'", "Distortion function computes a correction",
+            nkeyrec, header, &status);
+        }
+
         if (dotpd) {
-          /* Template Polynomial Distortion.  As it may have been translated */
-          /* from SIP, TPV, or perhaps Polynomial, the dpkey records may not */
-          /* relate to TPD.  Output is therefore handled via dparm.          */
+          /* Template Polynomial Distortion (TPD).  As it may have been */
+          /* translated from SIP, TPV, DSS, TNX, ZPX, or perhaps        */
+          /* Polynomial, the dpkey records may not relate to TPD.       */
+          /* Output is therefore handled via dparm.                     */
+          wcshdo_format('E', iparm[I_NDPARM], dparm, format);
+
+          /* AUX.jhat.COEFF.m */
+          if (doaux) {
+            for (idp = 0; idp < 6; idp++) {
+              if (dparm[idp] == 0.0) {
+                strcpy(ctemp, "                 0.0");
+              } else if (dparm[idp] == 1.0) {
+                strcpy(ctemp, "                 1.0");
+              } else {
+                wcsutil_double2str(ctemp, format, dparm[idp]);
+              }
+
+              if (idp < 3) {
+                sprintf(keyvalue, "'AUX.1.COEFF.%d: %s'", idp%3, ctemp);
+                sprintf(comment, "TPD: x = c0 + c1*u + c2*v");
+              } else {
+                sprintf(keyvalue, "'AUX.2.COEFF.%d: %s'", idp%3, ctemp);
+                sprintf(comment, "TPD: y = d0 + d1*u + d2*v");
+              }
+
+              wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, alt, 0, 0,
+                keyvalue, comment, nkeyrec, header, &status);
+
+            }
+
+            dparm += 6;
+          }
+
           /* TPD.FWD.m */
-          iparm = dis->iparm[j];
-          dparm = dis->dparm[j];
-          wcshdo_format('E', iparm[2], dparm, format);
-          for (idp = 0; idp < iparm[3]; idp++) {
+          for (idp = 0; idp < iparm[I_TPDNCO]; idp++) {
             if (dparm[idp] == 0.0) continue;
 
             if (dparm[idp] == 1.0) {
@@ -1320,6 +1425,7 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
             } else {
               wcsutil_double2str(ctemp, format, dparm[idp]);
             }
+
             m = idp;
             sprintf(keyvalue, "'TPD.FWD.%d:%s %s'", m, (m<10)?" ":"", ctemp);
             wcshdo_tpdterm(m, direct, term);
@@ -1347,11 +1453,11 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
 
           /* TPD.REV.m */
           sprintf(keyword,  "D%c%d", pq, j+1);
-          for (idp = iparm[3]; idp < iparm[2]; idp++) {
+          for (idp = iparm[I_TPDNCO]; idp < iparm[I_NDPARM]; idp++) {
             if (dparm[idp] == 0.0) continue;
 
             wcsutil_double2str(ctemp, format, dparm[idp]);
-            m = idp - iparm[3];
+            m = idp - iparm[I_TPDNCO];
             sprintf(keyvalue, "'TPD.REV.%d:%s %s'", m, (m<10)?" ":"", ctemp);
             wcshdo_tpdterm(m, direct, term);
             sprintf(comment, "TPD coefficient: %s", term);
@@ -1369,10 +1475,10 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
           for (idp = 0; idp < dis->ndp; idp++, keyp++) {
             if (keyp->j != j+1) continue;
 
-            fp = strpbrk(keyp->field, ".") + 1;
-            if (strncmp(fp, "NAUX", 4) != 0) continue;
+            cp = strchr(keyp->field, '.') + 1;
+            if (strncmp(cp, "NAUX", 4) != 0) continue;
 
-            sprintf(keyvalue, "'%s: %d'", fp, wcsutil_dpkey_int(keyp));
+            sprintf(keyvalue, "'%s: %d'", cp, wcsutil_dpkey_int(keyp));
             wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, alt, 0, 0,
               keyvalue, "Number of auxiliary variables", nkeyrec, header,
               &status);
@@ -1383,13 +1489,13 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
 
               keyval = wcsutil_dpkey_double(keyp);
 
-              fp = strpbrk(keyp->field, ".") + 1;
-              if (strncmp(fp, "AUX.", 4) != 0) continue;
+              cp = strchr(keyp->field, '.') + 1;
+              if (strncmp(cp, "AUX.", 4) != 0) continue;
 
-              sscanf(fp+4, "%d", &m);
-              sprintf(keyvalue, "'%s:", fp);
+              sscanf(cp+4, "%d", &m);
+              sprintf(keyvalue, "'%s:", cp);
 
-              fp = strpbrk(fp+4, ".") + 1;
+              cp = strchr(cp+4, '.') + 1;
               kp = keyvalue + strlen(keyvalue);
 
               if ((double)((int)keyval) == keyval) {
@@ -1401,8 +1507,8 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
                 strcat(keyvalue, "'");
               }
 
-              sscanf(fp+6, "%d", &p);
-              if (strncmp(fp, "POWER.", 4) == 0) {
+              sscanf(cp+6, "%d", &p);
+              if (strncmp(cp, "POWER.", 4) == 0) {
                 if (p) {
                   sprintf(comment, "Aux %d: var %d power", m, p);
                 } else {
@@ -1428,10 +1534,10 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
           for (idp = 0; idp < dis->ndp; idp++, keyp++) {
             if (keyp->j != j+1) continue;
 
-            fp = strpbrk(keyp->field, ".") + 1;
-            if (strncmp(fp, "NTERMS", 6) != 0) continue;
+            cp = strchr(keyp->field, '.') + 1;
+            if (strncmp(cp, "NTERMS", 6) != 0) continue;
 
-            sprintf(keyvalue, "'%s: %d'", fp, wcsutil_dpkey_int(keyp));
+            sprintf(keyvalue, "'%s: %d'", cp, wcsutil_dpkey_int(keyp));
             wcshdo_util(relax, keyword, "", 0, 0x0, 0, 0, 0, alt, 0, 0,
               keyvalue, "Number of terms in the polynomial", nkeyrec, header,
               &status);
@@ -1443,22 +1549,22 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
 
             if ((keyval = wcsutil_dpkey_double(keyp)) == 0.0) continue;
 
-            fp = strpbrk(keyp->field, ".") + 1;
-            if (strncmp(fp, "TERM.", 5) != 0) continue;
+            cp = strchr(keyp->field, '.') + 1;
+            if (strncmp(cp, "TERM.", 5) != 0) continue;
 
-            sscanf(fp+5, "%d", &m);
-            sprintf(keyvalue, "'%s:%s ", fp, (m<10)?" ":"");
+            sscanf(cp+5, "%d", &m);
+            sprintf(keyvalue, "'%s:%s ", cp, (m<10)?" ":"");
 
-            fp = strpbrk(fp+5, ".") + 1;
+            cp = strchr(cp+5, '.') + 1;
             kp = keyvalue + strlen(keyvalue);
-            if (strncmp(fp, "VAR.", 4) == 0) {
+            if (strncmp(cp, "VAR.", 4) == 0) {
               if ((double)((int)keyval) == keyval) {
                 sprintf(kp, "%20d", (int)keyval);
               } else {
                 wcsutil_double2str(kp, "%20.13f", keyval);
               }
 
-              sscanf(fp+4, "%d", &p);
+              sscanf(cp+4, "%d", &p);
               if (p <= Nhat) {
                 sprintf(comment, "Poly term %d: var %d power", m, p);
               } else {
@@ -1495,8 +1601,24 @@ int wcshdo(int relax, struct wcsprm *wcs, int *nkeyrec, char **header)
       wcshdo_util(relax, "DVERR", "", 0, 0x0, 0, 0, 0, alt, 0, 0,
         keyvalue, comment, nkeyrec, header, &status);
     }
-
   }
+
+
+  /* Add identification. */
+  wcshdo_util(relax, "", "", 0, 0x0, 0, 0, 0, ' ', 0, 0, "", "",
+    nkeyrec, header, &status);
+
+  if (dotpd == DIS_DOTPD) {
+    /* TPD by translation. */
+    sprintf(comment, "Translated from %s to TPD by WCSLIB %s", tpdsrc,
+      wcslib_version(0x0));
+  } else {
+    sprintf(comment, "WCS header keyrecords produced by WCSLIB %s",
+      wcslib_version(0x0));
+  }
+
+  wcshdo_util(relax, "COMMENT", "", 0, 0x0, 0, 0, 0, ' ', 0, 0,
+    "", comment, nkeyrec, header, &status);
 
 
   if (status == WCSHDRERR_MEMORY) {
@@ -1515,37 +1637,43 @@ void wcshdo_format(
   char *format)
 
 {
-  char *cp, cval[24];
-  int  i, j, nblank, precision;
+  char *cp, *cp0, cval[24];
+  int  i, expmax, expon, nsig, precision;
+
+  if (fmt == 'G') {
+    fmt = 'f';
+    for (i = 0; i < nval; i++) {
+      if (fabs(val[i]) < 1e-4 || 1e12 < val[i]) {
+        fmt = 'E';
+        break;
+      }
+    }
+  }
+
+  cp0 = cval + 2;
+  expmax = -999;
+  for (i = 0; i < nval; i++) {
+    wcsutil_double2str(cval, "%20.13E", val[i]);
+
+    cp = cval + 15;
+    while (cp0 < cp && *cp == '0') cp--;
+    cp0 = cp;
+
+    sscanf(cval+17, "%d", &expon);
+    if (expmax < expon) expmax = expon;
+  }
+
+  nsig = cp - (cval + 2) + 1;
+
 
   if (fmt == 'f') {
-    nblank = 8;
-    cp = cval + 10;
-    for (i = 0; i < nval; i++) {
-      wcsutil_double2str(cval, "%20.10f", val[i]);
-
-      for (j = 0; j <= nblank; j++) {
-        if (cval[j] != ' ') {
-          if (j < nblank) nblank = j;
-          break;
-        }
-      }
-
-      while (*cp && *cp != '0') cp++;
-    }
-
-    precision = cp - (cval + 10);
+    precision = nsig - (expmax + 1);
     if (precision < 1)  precision = 1;
-    sprintf(format, "%%%d.%df", (10-nblank)+precision, precision);
+    if (17 < precision) precision = 17;
+    sprintf(format, "%%20.%df", precision);
 
   } else {
-    cp = cval + 3;
-    for (i = 0; i < nval; i++) {
-      wcsutil_double2str(cval, "%20.13E", val[i]);
-      while (*cp != '0' && *cp != 'E') cp++;
-    }
-
-    precision = cp - cval - 3;
+    precision = nsig - 1;
     if (precision < 1)  precision = 1;
     if (13 < precision) precision = 13;
     sprintf(format, "%%20.%dE", precision);

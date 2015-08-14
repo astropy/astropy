@@ -12,6 +12,7 @@ import numpy as np
 
 from ...tests.helper import pytest, catch_warnings
 from ...extern import six
+from ...utils import isiterable
 from .. import Time, ScaleValueError, erfa_time, TIME_SCALES, TimeString
 from ...coordinates import EarthLocation
 
@@ -983,3 +984,18 @@ def test_remove_astropy_time():
     with pytest.raises(ValueError) as err:
         Time(t1, format='astropy_time')
     assert 'format must be one of' in str(err)
+
+def test_isiterable():
+    """
+    Ensure that scalar `Time` instances are not reported as iterable by the
+    `isiterable` utility.
+
+    Regression test for https://github.com/astropy/astropy/issues/4048
+    """
+
+    t1 = Time.now()
+    assert not isiterable(t1)
+
+    t2 = Time(['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00'],
+              format='iso', scale='utc')
+    assert isiterable(t2)

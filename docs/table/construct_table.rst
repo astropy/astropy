@@ -49,6 +49,8 @@ size, columns, or data are not known.
   >>> t.add_row((1, 2.0, 'x'))
   >>> t.add_row((4, 5.0, 'y'))
 
+  >>> t = Table(dtype=[('a', 'f4'), ('b', 'i4'), ('c', 'S2')])
+
 
 List of columns
 """""""""""""""

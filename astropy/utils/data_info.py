@@ -384,3 +384,8 @@ class BaseColumnInfo(DataInfo):
 
 class MixinInfo(BaseColumnInfo):
     pass
+
+class ParentDtypeInfo(MixinInfo):
+    """Mixin that gets info.dtype from parent"""
+
+    attrs_from_parent = set(['dtype'])  # dtype and unit taken from parent

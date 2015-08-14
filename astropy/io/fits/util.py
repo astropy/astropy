@@ -34,6 +34,7 @@ from ...extern.six import (string_types, integer_types, text_type,
                            binary_type, next)
 from ...extern.six.moves import zip
 from ...utils import wraps
+from ...utils.compat import ignored
 from ...utils.compat import gzip as _astropy_gzip
 from ...utils.exceptions import AstropyUserWarning
 
@@ -103,18 +104,9 @@ class NotifierMixin(object):
         """
 
         if self._listeners is None:
-            self._listeners = []
+            self._listeners = weakref.WeakValueDictionary()
 
-        def remove(p):
-            self._listeners.remove(p)
-
-        # Make sure this object is not already in the listeners:
-        for ref in self._listeners:
-            if ref() is listener:
-                return
-
-        ref = weakref.ref(listener, remove)
-        self._listeners.append(ref)
+        self._listeners[id(listener)] = listener
 
     def _remove_listener(self, listener):
         """
@@ -125,10 +117,8 @@ class NotifierMixin(object):
         if self._listeners is None:
             return
 
-        for idx, ref in enumerate(self._listeners[:]):
-            if ref() is listener:
-                del self._listeners[idx]
-                break
+        with ignored(KeyError):
+            del self._listeners[id(listener)]
 
     def _notify(self, notification, *args, **kwargs):
         """
@@ -144,8 +134,13 @@ class NotifierMixin(object):
             return
 
         method_name = '_update_{0}'.format(notification)
-        for listener in self._listeners:
+        for listener in self._listeners.valuerefs():
+            # Use valuerefs instead of itervaluerefs; see
+            # https://github.com/astropy/astropy/issues/4015
             listener = listener()  # dereference weakref
+            if listener is None:
+                continue
+
             if hasattr(listener, method_name):
                 method = getattr(listener, method_name)
                 if callable(method):

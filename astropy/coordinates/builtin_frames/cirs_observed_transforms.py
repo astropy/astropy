@@ -88,13 +88,12 @@ def altaz_to_cirs(altaz_coo, cirs_frame):
     # the 'A' indicates zen/az inputs
     cirs_ra, cirs_dec = erfa.atoiq('A', az, zen, astrom)
 
-    dat = altaz_coo.data
-    if dat.get_name() == 'unitspherical'  or dat.to_cartesian().x.unit == u.one:
+    if isinstance(altaz_coo.data, UnitSphericalRepresentation):
         distance = None
     else:
         #now we get the distance as just the cartesian
         #distance from the earth location to the coordinate location
-        distance = altaz_coo.location.itrs.separation_3d(altaz_coo)
+        distance = altaz_coo.separation_3d(altaz_coo.location.itrs)
 
     #the final transform may be a no-op if the obstimes are the same
     return CIRS(ra=cirs_ra*u.radian, dec=cirs_dec*u.radian, distance=distance,
