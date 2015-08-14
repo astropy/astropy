@@ -1336,9 +1336,9 @@ class Model(object):
             columns = [getattr(self, name).value
                        for name in self.param_names]
 
-        param_table = Table(columns, names=self.param_names)
-
-        parts.append(indent(str(param_table), width=4))
+        if columns:
+            param_table = Table(columns, names=self.param_names)
+            parts.append(indent(str(param_table), width=4))
 
         return '\n'.join(parts)
 
