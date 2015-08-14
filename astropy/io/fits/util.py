@@ -992,9 +992,11 @@ def _free_space_check(hdulist):
     try:
         yield
     except IOError as exc:
-        free_space = data.get_free_space_in_dir(os.path.dirname(hdulist._file.name))
-        hdulist_size = np.sum(hdu.size for hdu in hdulist)
-        if not hdulist._file.file_like and free_space < hdulist_size:
-            raise IOError("Not enough space on disk. " + str(exc))
-        else:
-            raise
+        dirname = os.path.dirname(hdulist._file.name)
+        if os.path.isdir(dirname):
+            free_space = data.get_free_space_in_dir(dirname)
+            hdulist_size = np.sum(hdu.size for hdu in hdulist)
+            if not hdulist._file.file_like and free_space < hdulist_size:
+                raise IOError("Not enough space on disk. " + str(exc))
+            else:
+                raise

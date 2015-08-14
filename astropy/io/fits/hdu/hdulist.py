@@ -47,7 +47,7 @@ def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
     save_backup : bool, optional
         If the file was opened in update or append mode, this ensures that a
         backup of the original file is saved before any changes are flushed.
-        The backup has the same name as the original file with ".bak" appended.
+        The backup has the same name as the original file  ".bak" appended.
         If "file.bak" already exists then "file.bak.1" is used, and so on.
 
     cache : bool, optional
@@ -609,7 +609,7 @@ class HDUList(list, _Verify):
                         if verbose:
                             print('append HDU', hdu.name, extver)
                         hdu._new = False
-                        hdu._postwriteto()
+                    hdu._postwriteto()
         elif self._file.mode == 'update':
             with _free_space_check(self):
                 self._flush_update()
