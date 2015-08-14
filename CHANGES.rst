@@ -461,6 +461,8 @@ Other Changes and Additions
 
 - The version of ``PLY`` that ships with astropy has been updated to 3.6.
 
+- WCSAxes is now required for doc builds. [#4074]
+
 
 1.0.5 (unreleased)
 ------------------
