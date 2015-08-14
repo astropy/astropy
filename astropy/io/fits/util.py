@@ -16,6 +16,8 @@ import textwrap
 import threading
 import warnings
 import weakref
+from contextlib import contextmanager
+from ...utils import data
 
 from distutils.version import LooseVersion
 
@@ -984,3 +986,15 @@ def _get_array_mmap(array):
         if isinstance(base.base, mmap.mmap):
             return base.base
         base = base.base
+
+@contextmanager
+def _free_space_check(hdulist):
+    try:
+        yield
+    except IOError as exc:
+        free_space = data.get_free_space_in_dir(os.path.dirname(hdulist._file.name))
+        hdulist_size = np.sum(hdu.size for hdu in hdulist)
+        if not hdulist._file.file_like and free_space < hdulist_size:
+            raise IOError("Not enough space on disk. " + str(exc))
+        else:
+            raise

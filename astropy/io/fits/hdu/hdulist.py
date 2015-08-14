@@ -16,12 +16,12 @@ from .image import PrimaryHDU, ImageHDU
 from ..file import _File
 from ..header import _pad_length
 from ..util import (_is_int, _tmp_name, fileobj_closed, ignore_sigint,
-                    _get_array_mmap)
+                    _get_array_mmap, _free_space_check)
 from ..verify import _Verify, _ErrList, VerifyError, VerifyWarning
 from ....extern.six import string_types
 from ....utils import indent
 from ....utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
-from ....utils import data
+
 
 
 def fitsopen(name, mode='readonly', memmap=None, save_backup=False,
@@ -604,30 +604,15 @@ class HDUList(list, _Verify):
                 # only append HDU's which are "new"
                 if hdu._new:
                     hdu._prewriteto(checksum=hdu._output_checksum)
-                    try:
+                    with _free_space_check(self):
                         hdu._writeto(self._file)
                         if verbose:
                             print('append HDU', hdu.name, extver)
                         hdu._new = False
-                    except:
-                        free_space = data.get_free_space_in_dir(os.getcwd())
-                        hdulist_size = np.sum(hdu.size for hdu in self)
-                        if free_space < hdulist_size:
-                            raise IOError("Not enough space on disk. " + str(exc))
-                        else:
-                            raise IOError("Got to this part of the code")
-                    finally:
                         hdu._postwriteto()
         elif self._file.mode == 'update':
-            try:
+            with _free_space_check(self):
                 self._flush_update()
-            except IOError as exc:
-                free_space = data.get_free_space_in_dir(os.getcwd())
-                hdulist_size = np.sum(hdu.size for hdu in self)
-                if free_space < hdulist_size:
-                    raise IOError("Not enough space on disk. " + str(exc))
-                else:
-                    raise
 
     def update_extend(self):
         """
@@ -704,17 +689,9 @@ class HDUList(list, _Verify):
 
         for hdu in self:
             hdu._prewriteto(checksum=checksum)
-            try:
+            with _free_space_check(hdulist):
                 hdu._writeto(hdulist._file)
-            except IOError as exc:
-                free_space = data.get_free_space_in_dir(os.getcwd())
-                hdulist_size = np.sum(hdu1.size for hdu1 in self)
-                if free_space < hdulist_size:
-                    raise IOError("Not enough space on disk. " + str(exc))
-                else:
-                    raise
-            finally:
-                hdu._postwriteto()
+            hdu._postwriteto()
 
         hdulist.close(output_verify=output_verify, closed=closed)
 
