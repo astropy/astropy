@@ -493,7 +493,10 @@ class ProgressBar(six.Iterator):
         if ipython_widget:
             # Import only if ipython_widget, i.e., widget in IPython
             # notebook
-            from IPython.html import widgets
+            try:
+                from ipywidgets import widgets
+            except ImportError:
+                from IPython.html import widgets
             from IPython.display import display
 
         if file is None:
@@ -634,10 +637,13 @@ class ProgressBar(six.Iterator):
         # if none exists.
         if not hasattr(self, '_widget'):
             # Import only if an IPython widget, i.e., widget in iPython NB
-            from IPython.html import widgets
+            try:
+                from ipywidgets import widgets
+            except ImportError:
+                from IPython.html import widgets
             from IPython.display import display
 
-            self._widget = widgets.FloatProgressWidget()
+            self._widget = widgets.FloatProgress()
             display(self._widget)
             self._widget.value = 0
 
