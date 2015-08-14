@@ -38,6 +38,7 @@ Fitters support constrained fitting.
   However, the fixed value of the coefficient is used when evaluating the
   model::
 
+      >>> import numpy as np
       >>> x = np.arange(1, 10, .1)
       >>> p1 = models.Polynomial1D(2, c0=[1, 1], c1=[2, 2], c2=[3, 3],
       ...                          n_models=2)
@@ -149,9 +150,7 @@ simultaneously::
 
       >>> from astropy.modeling import models, fitting
       >>> import numpy as np
-      >>> p1 = models.Polynomial1D(3)
-      >>> p1.c0 = 1
-      >>> p1.c1 = 2
+      >>> p1 = models.Polynomial1D(3, c0=1, c1=2)
       >>> print(p1)
       Model: Polynomial1D
       Inputs: ('x',)
@@ -168,7 +167,7 @@ simultaneously::
       >>> p2 = models.Polynomial1D(3, n_models=2)
       >>> pfit = fitting.LinearLSQFitter()
       >>> new_model = pfit(p2, x, yy)
-      >>> print(new_model)  # doctest: +SKIP
+      >>> print(new_model)  # doctest: +FLOAT_CMP
       Model: Polynomial1D
       Inputs: 1
       Outputs: 1
@@ -179,3 +178,20 @@ simultaneously::
           --- --- ------------------ -----------------
           1.0 2.0 -5.86673908219e-16 3.61636197841e-17
           1.0 2.0 -5.86673908219e-16 3.61636197841e-17
+
+
+Fitting results
+---------------
+
+The results from a fitting routine, such as the final value of the optimized
+function are stored in the ``fit_info`` dictionary of each fitter. The elements
+of the ``fit_info`` dictionary are different for each fitter. For example, for
+a `~astropy.modeling.fitting.LinearLSQFitter`, the fit_info dictionary contains
+the following values::
+
+      >>> fitting.LinearLSQFitter().fit_info
+      {u'singular_values': None, u'params': None, u'residuals': None, u'rank': None}
+
+Here, `residuals` refers to the sum of the residuals, which is also the value
+that is minimized during the fit. See the individual documentation of each
+fitter for more information.

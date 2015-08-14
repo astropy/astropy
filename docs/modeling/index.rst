@@ -26,8 +26,8 @@ datasets. For example, the `~astropy.modeling.functional_models.Gaussian1D`
 model evaluates the Gaussian function
 :math:`f(x) = A e^{- \frac{\left(x - x_{0}\right)^{2}}{2 \sigma^{2}}}`.
 Single values or arrays can be passed to models to evaluate the function at
-these points. Examples on using models can be found
-:ref:`here <modeling_tutorial>`.
+these points. Examples of using models can be found in the
+:ref:`modeling tutorial <modeling_tutorial>`.
 
 Detailed documentation on models can be found :doc:`here <models>`.
 Additional features of models are:
@@ -55,8 +55,9 @@ Advanced Model Topics
 
 * **Algorithms**
 
-  A description of the algorithms used in the 1-D polynomial, Chebyshe
-  and Legendre polynomial models can be found :doc:`here <algorithms>`.
+  A description of the algorithms used to evaluate the 1-D polynomial,
+  Chebyshev and Legendre polynomial models can be found
+  :doc:`here <algorithms>`.
 
 Parameters
 ----------
@@ -65,7 +66,8 @@ This refers to the parameters of a model which are implemented as attributes of
 models. For example, the parameters of a ``Gaussian1D`` model are
 ``amplitude``, ``x_0`` and ``stddev`` which refer to the amplitude, the
 position of the center of the peak, and the standard deviation of the function
-respectively. Features of parameters are:
+respectively. Parameters may be single values or arrays. Features of parameters
+include:
 
 * **Accessing parameters**
 
@@ -128,3 +130,4 @@ Reference/API
    compound-models
    new
    algorithms
+   api
