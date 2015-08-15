@@ -10,6 +10,7 @@ from ..utils import (extract_array, add_array, subpixel_indices,
                      Cutout2D)
 from ...wcs import WCS
 from ...coordinates import SkyCoord
+from ... import units as u
 
 try:
     import skimage
@@ -336,23 +337,42 @@ class TestCutout2D(object):
         self.wcs = wcs
 
     def test_cutout(self):
-        position = (2.1, 1.9)
-        shape = (3, 3)
-        c = Cutout2D(self.data, position, shape)
-        assert c.data.shape == shape
-        assert c.data[1, 1] == 10
-        assert c.origin_original == (1, 1)
-        assert c.origin_cutout == (0, 0)
-        assert c.input_position_original == position
-        assert_allclose(c.input_position_cutout, (1.1, 0.9))
-        assert c.position_original == (2., 2.)
-        assert c.position_cutout == (1., 1.)
-        assert c.center_original == (2., 2.)
-        assert c.center_cutout == (1., 1.)
-        assert c.bbox_original == ((1, 3), (1, 3))
-        assert c.bbox_cutout == ((0, 2), (0, 2))
-        assert c.slices_original == (slice(1, 4), slice(1, 4))
-        assert c.slices_cutout == (slice(0, 3), slice(0, 3))
+        for shape in [(3, 3), (3*u.pixel, 3*u.pix)]:
+            position = (2.1, 1.9)
+            c = Cutout2D(self.data, position, shape)
+            assert c.data.shape == (3, 3)
+            assert c.data[1, 1] == 10
+            assert c.origin_original == (1, 1)
+            assert c.origin_cutout == (0, 0)
+            assert c.input_position_original == position
+            assert_allclose(c.input_position_cutout, (1.1, 0.9))
+            assert c.position_original == (2., 2.)
+            assert c.position_cutout == (1., 1.)
+            assert c.center_original == (2., 2.)
+            assert c.center_cutout == (1., 1.)
+            assert c.bbox_original == ((1, 3), (1, 3))
+            assert c.bbox_cutout == ((0, 2), (0, 2))
+            assert c.slices_original == (slice(1, 4), slice(1, 4))
+            assert c.slices_cutout == (slice(0, 3), slice(0, 3))
+
+    def test_cutout_sidelength(self):
+        for side_length in [3, 3*u.pixel]:
+            position = (2.1, 1.9)
+            c = Cutout2D(self.data, position, side_length=side_length)
+            assert c.data.shape == (3, 3)
+            assert c.data[1, 1] == 10
+            assert c.origin_original == (1, 1)
+            assert c.origin_cutout == (0, 0)
+            assert c.input_position_original == position
+            assert_allclose(c.input_position_cutout, (1.1, 0.9))
+            assert c.position_original == (2., 2.)
+            assert c.position_cutout == (1., 1.)
+            assert c.center_original == (2., 2.)
+            assert c.center_cutout == (1., 1.)
+            assert c.bbox_original == ((1, 3), (1, 3))
+            assert c.bbox_cutout == ((0, 2), (0, 2))
+            assert c.slices_original == (slice(1, 4), slice(1, 4))
+            assert c.slices_cutout == (slice(0, 3), slice(0, 3))
 
     def test_cutout_trim_overlap(self):
         shape = (3, 3)
