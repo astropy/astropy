@@ -77,7 +77,7 @@ class BaseInitFrom():
     def test_names_cols_mismatch(self, table_type):
         self._setup(table_type)
         with pytest.raises(ValueError):
-            table_type(self.data, names=('a',), dtype=('i4'))
+            table_type(self.data, names=('a',), dtype=('i4',))
 
 @pytest.mark.usefixtures('table_type')
 class BaseInitFromListLike(BaseInitFrom):
@@ -465,3 +465,28 @@ def test_init_and_ref_from_multidim_ndarray(table_type):
         else:
             assert nd[str('a')][0] == -200
             assert nd[str('b')][1][1] == -100
+
+def test_init_names_and_dtype_type_exception():
+    """
+    Names and dtype parameters should raise an exception if a string is 
+    used in the constructor.
+    """
+    names = 'a'
+    with pytest.raises(TypeError) as exc:
+        t = table.Table(names=names)
+    assert exc.value.args[0] == 'Names type {0} not allowed to init Table'.format(type(names))
+
+    dtype = 'a'
+    with pytest.raises(TypeError) as exc:
+        t = table.Table(names=['a'], dtype=dtype)
+    assert exc.value.args[0] == 'Dtype type {0} not allowed to init Table'.format(type(dtype))
+
+def test_init_meta_type_exception():
+    """
+    Meta parameter should raise an exception if a dict-like object
+    is not used in the constructor.
+    """
+    meta = ['a']
+    with pytest.raises(TypeError) as exc:
+        t = table.Table(meta=meta)
+    assert exc.value.args[0] == 'Meta type {0} not allowed to init Table'.format(type(meta))
