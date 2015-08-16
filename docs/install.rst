@@ -337,6 +337,8 @@ packages:
       and most affiliated packages include this as a submodule in the source
       repository, so it does not need to be installed separately.)
 
+    - `WCSAxes <http://wcsaxes.readthedocs.org/en/latest/>`_
+
 .. note::
 
     Sphinx also requires a reasonably modern LaTeX installation to render
