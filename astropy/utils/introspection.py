@@ -55,23 +55,23 @@ def resolve_name(name):
     if len(parts) == 1:
         # No dots in the name--just a straight up module import
         cursor = 1
-        attr_name = str('')  # Must not be unicode on Python 2
+        fromlist=[]
     else:
         cursor = len(parts) - 1
-        attr_name = parts[-1]
+        fromlist = [parts[-1]]
 
     module_name = parts[:cursor]
 
     while cursor > 0:
         try:
-            ret = __import__(str('.'.join(module_name)), fromlist=[attr_name])
+            ret = __import__(str('.'.join(module_name)), fromlist=fromlist)
             break
         except ImportError:
             if cursor == 0:
                 raise
             cursor -= 1
             module_name = parts[:cursor]
-            attr_name = parts[cursor]
+            fromlist = [parts[cursor]]
             ret = ''
 
     for part in parts[cursor:]:
