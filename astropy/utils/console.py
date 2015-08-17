@@ -42,6 +42,9 @@ else:
             except ImportError:
                 OutStream = None
 
+    from IPython import version_info
+    ipython_major_version = version_info[0]
+
     if OutStream is not None:
         from IPython.utils import io as ipyio
         # On Windows in particular this is necessary, as the io.stdout stream
@@ -493,10 +496,10 @@ class ProgressBar(six.Iterator):
         if ipython_widget:
             # Import only if ipython_widget, i.e., widget in IPython
             # notebook
-            try:
-                from ipywidgets import widgets
-            except ImportError:
+            if ipython_major_version < 4:
                 from IPython.html import widgets
+            else:
+                from ipywidgets import widgets
             from IPython.display import display
 
         if file is None:
@@ -637,16 +640,13 @@ class ProgressBar(six.Iterator):
         # if none exists.
         if not hasattr(self, '_widget'):
             # Import only if an IPython widget, i.e., widget in iPython NB
-            try:
-                from ipywidgets import widgets
-            except ImportError:
+            if ipython_major_version < 4:
                 from IPython.html import widgets
-            from IPython.display import display
-
-            try:
-                self._widget = widgets.FloatProgress()
-            except AttributeError:
                 self._widget = widgets.FloatProgressWidget()
+            else:
+                from ipywidgets import widgets
+                self._widget = widgets.FloatProgress()
+            from IPython.display import display
 
             display(self._widget)
             self._widget.value = 0
