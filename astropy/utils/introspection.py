@@ -21,7 +21,7 @@ __all__ = ['resolve_name', 'minversion', 'find_current_module',
 __doctest_skip__ = ['find_current_module']
 
 
-def resolve_name(name):
+def resolve_name(name, *additional_parts):
     """Resolve a name like ``module.object`` to an object and return it.
 
     This ends up working like ``from module import object`` but is easier
@@ -37,10 +37,16 @@ def resolve_name(name):
         including parent modules, separated by dots.  Also known as the fully
         qualified name of the object.
 
+    additional_parts : iterable, optional
+        If more than one positional arguments are given, those arguments are
+        automatically dotted together with ``name``.
+
     Examples
     --------
 
     >>> resolve_name('astropy.utils.introspection.resolve_name')
+    <function resolve_name at 0x...>
+    >>> resolve_name('astropy', 'utils', 'introspection', 'resolve_name')
     <function resolve_name at 0x...>
 
     Raises
@@ -48,6 +54,11 @@ def resolve_name(name):
     `ImportError`
         If the module or named object is not found.
     """
+
+    additional_parts = '.'.join(additional_parts)
+
+    if additional_parts:
+        name = name + '.' + additional_parts
 
     # Note: On python 2 these must be str objects and not unicode
     parts = [str(part) for part in name.split('.')]
@@ -137,7 +148,7 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     if '.' not in version_path:
         have_version = getattr(module, version_path)
     else:
-        have_version = resolve_name('.'.join([module.__name__, version_path]))
+        have_version = resolve_name(module.__name__, version_path)
 
     try:
         from pkg_resources import parse_version
@@ -295,8 +306,7 @@ def find_mod_objs(modname, onlylocals=False):
 
     """
 
-    __import__(modname)
-    mod = sys.modules[modname]
+    mod = resolve_name(modname)
 
     if hasattr(mod, '__all__'):
         pkgitems = [(k, mod.__dict__[k]) for k in mod.__all__]
