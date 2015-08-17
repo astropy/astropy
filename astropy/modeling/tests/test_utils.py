@@ -7,7 +7,9 @@ import operator
 
 import numpy as np
 
-from ..utils import ExpressionTree as ET
+from ..utils import ExpressionTree as ET, ellipse_extent
+from ..core import render_model
+from ..models import Ellipse2D
 
 
 def test_traverse_postorder_duplicate_subtrees():
@@ -66,3 +68,39 @@ def test_tree_evaluate_subexpression():
     test_slice(4, 5, 5.0)
 
     test_slice(5, 6, 6.0)
+
+
+def test_ellipse_extent():
+    # Test this properly bounds the ellipse
+
+    imshape = (100, 100)
+    coords = y, x = np.indices(imshape)
+
+    amplitude = 1
+    x0 = 50
+    y0 = 50
+    a = 30
+    b = 10
+    theta = np.pi / 4
+
+    model = Ellipse2D(amplitude, x0, y0, a, b, theta)
+
+    dx, dy = ellipse_extent(a, b, theta)
+
+    limits = ((y0 - dy, y0 + dy), (x0 - dx, x0 + dx))
+
+    model.bounding_box = limits
+
+    actual = render_model(model, coords=coords)
+
+    expected = model(x, y)
+
+    # Check that the full ellipse is captured
+    np.testing.assert_allclose(expected, actual, atol=0, rtol=1)
+
+    # Check the bounding_box isn't too large
+    limits = np.array(limits).flatten()
+    for i in [0, 1]:
+        s = actual.sum(axis=i)
+        diff = np.abs(limits[2 * i] - np.where(s > 0)[0][0])
+        assert diff < 1

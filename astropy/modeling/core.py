@@ -41,12 +41,13 @@ from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
                     IncompatibleShapeError, AliasDict)
+from ..nddata.utils import add_array, extract_array
 
 from .parameters import Parameter, InputParameterError
 
 
 __all__ = ['Model', 'FittableModel', 'Fittable1DModel', 'Fittable2DModel',
-           'custom_model', 'ModelDefinitionError']
+           'custom_model', 'ModelDefinitionError', 'render_model']
 
 
 class ModelDefinitionError(TypeError):
@@ -581,11 +582,16 @@ class Model(object):
     """A dict-like object to store optional information."""
 
     # By default models either use their own inverse property or have no
-    # inverse at all, but users my also assign a custom inverse to a model,
+    # inverse at all, but users may also assign a custom inverse to a model,
     # optionally; in that case it is of course up to the user to determine
     # whether their inverse is *actually* an inverse to the model they assign
     # it to.
     _custom_inverse = None
+
+    # If a bounding_box_default function is defined in the model,
+    # then the _bounding_box attribute should be set to 'auto' in the model. 
+    # Otherwise, the default is None for no bounding box.
+    _bounding_box = None
 
     # Default n_models attribute, so that __len__ is still defined even when a
     # model hasn't completed initialization yet
@@ -800,6 +806,94 @@ class Model(object):
 
         raise NotImplementedError("An analytical inverse transform has not "
                                   "been implemented for this model.")
+
+    @property
+    def bounding_box(self):
+        """
+        A `tuple` of length `n_inputs` defining the bounding box limits, or 
+        `None` for no bounding box. 
+
+        The default is `None`, unless ``bounding_box_default`` is defined.
+        `bounding_box` can be set manually to an array-like  object of shape 
+        ``(model.n_inputs, 2)``. For further usage, including how to set the
+        ``bounding_box_default``, see :ref:`bounding-boxes`
+
+        The limits are ordered according to the `numpy` indexing
+        convention, and are the reverse of the model input order,
+        e.g. for inputs ``('x', 'y', 'z')`` the ``bounding_box`` is defined:
+        
+        * for 1D: ``(x_low, x_high)``
+        * for 2D: ``((y_low, y_high), (x_low, x_high))``
+        * for 3D: ``((z_low, z_high), (y_low, y_high), (x_low, x_high))``
+
+        Examples
+        --------
+        Setting the bounding boxes for a 1D, 2D, and custom 3D model.
+
+        >>> from astropy.modeling.models import Gaussian1D, Gaussian2D, custom_model
+        >>> model_1d = Gaussian1D()
+        >>> model_2d = Gaussian2D(x_stddev=1, y_stddev=1)
+
+        Set the bounding box like:
+
+        >>> model_1d.bounding_box = (-5, 5)
+        >>> model_2d.bounding_box = ((-6, 6), (-5, 5))
+
+        For a user-defined 3D model:
+
+        >>> def const3d(x, y, z, amp=1):
+        ...    return amp
+        ...
+        >>> Const3D = custom_model(const3d)
+        >>> model_3d = Const3D()
+        >>> model_3d.bounding_box = ((-6, 6), (-5, 5), (-4, 4))
+
+        To reset the default:
+
+        >>> model_1d.bounding_box = 'auto'
+
+        To turn off the bounding box:
+
+        >>> model_1d.bounding_box = None
+
+        """
+
+        if self._bounding_box == 'auto':
+            return self.bounding_box_default()
+
+        else:
+            return self._bounding_box
+
+    @bounding_box.setter
+    def bounding_box(self, limits):
+        """
+        Assigns the bounding box limits. 
+        """
+
+        if limits == 'auto':
+            if not hasattr(self, 'bounding_box_default'):
+                warnings.warn('The default for this model is None.')
+                limits = None
+
+        elif limits is None:
+            pass
+
+        else:
+            nd = self.n_inputs
+            try:
+                if nd == 1:
+                    assert np.shape(limits) == (2,)
+                    limits = tuple(limits)
+
+                else:
+                    assert np.shape(limits) == (nd, 2)
+                    limits = tuple([tuple(lim) for lim in limits])
+
+            except AssertionError:
+                raise AssertionError('If not \'auto\' or None, bounding_box must be '
+                                     'array-like of shape ``(model.n_inputs, 2)``.')
+
+        self._bounding_box = limits
 
     @abc.abstractmethod
     def evaluate(self, *args, **kwargs):
@@ -2313,6 +2407,95 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members.update(params)
 
     return type(model_name, (FittableModel,), members)
+
+
+def render_model(model, arr=None, coords=None):
+    """
+    Evaluates a model on an input array. Evaluation is limited to
+    a bounding box if the `Model.bounding_box` attribute is set.
+
+    Parameters
+    ----------
+    model : `Model`
+        Model to be evaluated.
+    arr : `numpy.ndarray`, optional
+        Array on which the model is evaluated.
+    coords : array-like, optional
+        Coordinate arrays mapping to ``arr``, such that 
+        ``arr[coords] == arr``.
+
+    Returns
+    -------
+    array : `numpy.ndarray`
+        The model evaluated on the input ``arr`` or a new array from ``coords``.  
+        If ``arr`` and ``coords`` are both `None`, the returned array is 
+        limited to the `Model.bounding_box` limits. If 
+        `Model.bounding_box` is `None`, ``arr`` or ``coords`` must be passed.
+
+    Examples
+    --------
+    :ref:`bounding-boxes`
+    """
+
+    bbox = model.bounding_box
+
+    if (coords is None) & (arr is None) & (bbox is None):
+        raise AssertionError('If no bounding_box is set, coords or arr must be input.')
+
+    # for consistent indexing
+    if model.n_inputs == 1:
+        if coords is not None:
+            coords = [coords]
+        if bbox is not None:
+            bbox = [bbox]
+
+    if arr is not None:
+        arr = arr.copy()
+        # Check dimensions match model
+        assert arr.ndim == model.n_inputs
+
+    if coords is not None:
+        # Check dimensions match arr and model
+        coords = np.array(coords)
+        assert len(coords) == model.n_inputs
+        if arr is not None:
+            assert coords[0].shape == arr.shape
+        else:
+            arr = np.zeros(coords[0].shape)
+
+    if bbox is not None:
+        # assures position is at center pixel, important when using add_array
+        pd = pos, delta = np.array([(np.mean(bb), np.ceil((bb[1] - bb[0]) / 2)) 
+                                    for bb in bbox]).astype(int).T
+
+        if coords is not None:
+            sub_shape = tuple(delta * 2 + 1)
+            sub_coords = np.array([extract_array(c, sub_shape, pos) for c in coords])
+        else:
+            limits = [slice(p - d, p + d + 1, 1) for p, d in pd.T]
+            sub_coords = np.mgrid[limits]         
+
+        sub_coords = sub_coords[::-1]
+
+        if arr is None:
+            arr = model(*sub_coords)
+        else:
+            try:
+                arr = add_array(arr, model(*sub_coords), pos)
+            except ValueError:
+                raise ValueError('The `bounding_box` is larger than the input'
+                                ' arr in one or more dimensions. Set '
+                                '`model.bounding_box = None`.')
+    else:
+
+        if coords is None:
+            im_shape = arr.shape
+            limits = [slice(i) for i in im_shape]
+            coords = np.mgrid[limits]
+
+        arr += model(*coords[::-1])
+
+    return arr
 
 
 def _prepare_inputs_single_model(model, params, inputs, **kwargs):
