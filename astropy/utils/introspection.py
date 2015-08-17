@@ -148,7 +148,7 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     if '.' not in version_path:
         have_version = getattr(module, version_path)
     else:
-        have_version = resolve_name('.'.join([module.__name__, version_path]))
+        have_version = resolve_name(module.__name__, version_path)
 
     try:
         from pkg_resources import parse_version
@@ -306,8 +306,7 @@ def find_mod_objs(modname, onlylocals=False):
 
     """
 
-    __import__(modname)
-    mod = sys.modules[modname]
+    mod = resolve_name(modname)
 
     if hasattr(mod, '__all__'):
         pkgitems = [(k, mod.__dict__[k]) for k in mod.__all__]

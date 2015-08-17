@@ -26,6 +26,7 @@ from warnings import warn
 
 from .. import config as _config
 from ..utils.exceptions import AstropyWarning
+from ..utils.introspection import resolve_name
 
 
 __all__ = [
@@ -265,7 +266,7 @@ def get_readable_fileobj(name_or_obj, encoding=None, cache=False,
                 from backports import lzma
                 from backports.lzma import LZMAFile
                 # when called with file object, returns a non-seekable instance
-                # need a filename here, too, so have to write the data to a 
+                # need a filename here, too, so have to write the data to a
                 # temporary file
                 with NamedTemporaryFile("wb", delete=False) as tmp:
                     tmp.write(fileobj.read())
@@ -827,7 +828,7 @@ def _find_pkg_data_path(data_name):
 
     rootpkgname = pkgname.partition('.')[0]
 
-    rootpkg = __import__(rootpkgname)
+    rootpkg = resolve_name(rootpkgname)
 
     module_path = os.path.dirname(module.__file__)
     path = os.path.join(module_path, data_name)

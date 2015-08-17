@@ -26,6 +26,7 @@ from warnings import warn
 from ..extern.configobj import configobj, validate
 from ..utils.exceptions import AstropyWarning, AstropyDeprecationWarning
 from ..utils import find_current_module
+from ..utils.introspection import resolve_name
 from ..utils.misc import InheritDocstrings
 from .paths import get_config_dir
 
@@ -565,11 +566,7 @@ class ConfigAlias(ConfigItem):
             AstropyDeprecationWarning)
 
     def _get_target(self):
-        if self._new_module not in sys.modules:
-            __import__(self._new_module)
-        mod = sys.modules[self._new_module]
-        cfg = getattr(mod, 'conf')
-        return cfg
+        return resolve_name(self._new_module, 'conf')
 
     def set(self, value):
         self._deprecation_warning()
@@ -841,8 +838,7 @@ def update_default_config(pkg, default_cfg_dir_or_fn, version=None):
             identical = False
 
     if version is None:
-        mod = __import__(pkg)
-        version = mod.__version__
+        version = resolve_name(pkg, '__version__')
 
     # Don't install template files for dev versions, or we'll end up
     # spamming `~/.astropy/config`.
