@@ -198,6 +198,7 @@ New Features
 
   - Added ``classproperty`` decorator--this is to ``property`` as
     ``classmethod`` is to normal instance methods. [#3982]
+  - ``iers.open`` now handles network URLs, as well as local paths. [#3850] 
 
   - The ``astropy.utils.wraps`` decorator now takes an optional
     ``exclude_args`` argument not shared by the standard library ``wraps``

@@ -33,11 +33,10 @@ _DEFAULT_PM = (0.035, 0.29)*u.arcsec
 
 _IERS_HINT = """
 If you need enough precision such that this matters (~<10 arcsec), you can
-download the latest IERS predictions by running:
+use the latest IERS predictions by running:
 
-    >>> from astropy.utils.data import download_file
     >>> from astropy.utils import iers
-    >>> iers.IERS.iers_table = iers.IERS_A.open(download_file(iers.IERS_A_URL, cache=True))
+    >>> iers.IERS.iers_table = iers.IERS_A.open(iers.IERS_A_URL)
 
 """
 
