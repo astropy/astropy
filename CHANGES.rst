@@ -209,6 +209,10 @@ New Features
     files using the ``lzma`` module of Python 3.3+ or, when available, the
     ``backports.lzma`` package on earlier versions. [#3667]
 
+  - The ``resolve_name`` utility now accepts any number of additional
+    positional arguments that are automatically dotted together with the
+    first ``name`` argument. [#4083]
+
 - ``astropy.visualization``
 
   - Added the ``hist`` function, which is similar to ``plt.hist`` but
