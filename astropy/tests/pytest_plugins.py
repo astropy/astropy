@@ -28,6 +28,7 @@ from .helper import (
 from .disable_internet import turn_off_internet, turn_on_internet
 from .output_checker import AstropyOutputChecker, FIX, FLOAT_CMP
 from ..utils import OrderedDict
+from ..utils.introspection import resolve_name
 
 # Needed for Python 2.6 compatibility
 try:
@@ -515,7 +516,7 @@ def pytest_report_header(config):
 
     for module_display, module_name in six.iteritems(PYTEST_HEADER_MODULES):
         try:
-            module = __import__(module_name)
+            module = resolve_name(module_name)
         except ImportError:
             s += "{0}: not available\n".format(module_display)
         else:

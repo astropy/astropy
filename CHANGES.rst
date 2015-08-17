@@ -127,6 +127,10 @@ Bug Fixes
 
 - ``astropy.utils``
 
+  - ``resolve_name`` no longer causes ``sys.modules`` to be cluttered with
+    additional copies of modules under a package imported like
+    ``resolve_name('numpy')``. [#4084]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
