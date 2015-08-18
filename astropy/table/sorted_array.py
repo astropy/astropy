@@ -271,6 +271,12 @@ class SortedArray(object):
 
     def sort(self):
         '''
+        Make row order align with key order.
+        '''
+        self.row_index = np.arange(len(self.row_index))
+
+    def sorted_data(self):
+        '''
         Return rows in sorted order.
         '''
         return self.row_index

@@ -22,7 +22,8 @@ shift_right(row) -> None : increase row numbers >= row
 find(key) -> list : list of rows corresponding to key
 range(lower, upper, bounds) -> list : rows in self[k] where k is between
                                lower and upper (<= or < based on bounds)
-sort() -> list of rows in sorted order (by key)
+sort() -> None : make row order align with key order
+sorted_data() -> list of rows in sorted order (by key)
 replace_rows(row_map) -> None : replace row numbers based on slice
 items() -> list of tuples of the form (key, data)
 
@@ -56,24 +57,23 @@ class Index(object):
     columns : list or None
         List of columns on which to create an index. If None,
         create an empty index for purposes of deep copying.
-    engine : type or None
-        Indexing engine class to use, from among SortedArray, BST,
-        FastBST, and FastRBT. If the supplied argument is None (by
-        default), use SortedArray.
-    data : SortedArray, BST, FastBST, FastRBT, or None
-        Engine data to copy
+    engine : type, instance, or None
+        Indexing engine class to use (from among SortedArray, BST,
+        FastBST, and FastRBT) or actual engine instance.
+        If the supplied argument is None (by default), use SortedArray.
     '''
     def __new__(cls, *args, **kwargs):
         self = super(Index, cls).__new__(cls)
         self.__init__(*args, **kwargs)
         return SlicedIndex(self, slice(0, 0, None), original=True)
 
-    def __init__(self, columns, engine=None, data=None):
+    def __init__(self, columns, engine=None):
         from .table import Table
 
-        if data is not None: # create from data
-            self.engine = data.__class__
-            self.data = data
+        if engine is not None and not isinstance(engine, type):
+            # create from data
+            self.engine = engine.__class__
+            self.data = engine
             self.columns = columns
             return
 
@@ -341,12 +341,19 @@ class Index(object):
         row_map = dict((row, i) for i, row in enumerate(col_slice))
         self.data.replace_rows(row_map)
 
+    def sort(self):
+        '''
+        Make row numbers follow the same sort order as the keys
+        of the index.
+        '''
+        self.data.sort()
+
     def sorted_data(self):
         '''
         Returns a list of rows in sorted order based on keys;
         essentially acts as an argsort() on columns.
         '''
-        return self.data.sort()
+        return self.data.sorted_data()
 
     def __getitem__(self, item):
         '''
@@ -540,6 +547,10 @@ class SlicedIndex(object):
         if not self._frozen:
             self.index.replace_rows([self.orig_coords(x) for x in col_slice])
 
+    def sort(self):
+        if not self._frozen:
+            self.copy().sort()
+
     def __repr__(self):
         if self.original:
             return repr(self.index)
@@ -583,7 +594,7 @@ def get_index(table, table_copy):
     cols = set(table_copy.columns)
     indices = set()
     for column in cols:
-        for index in table[column].indices:
+        for index in table[column].info.indices:
             if set([x.info.name for x in index.columns]) == cols:
                 return index
     return None
@@ -611,7 +622,7 @@ class _IndexModeContext(object):
             In 'freeze' mode, indices are not modified whenever columns are
             modified; at the exit of the context, indices refresh themselves
             based on column values. This mode is intended for scenarios in
-            which one intends to make many additions or modifications in an
+            which one intends to make many additions or modifications on an
             indexed column.
             In 'copy_on_getitem' mode, indices are copied when taking column
             slices as well as table slices, so col[i0:i1] will preserve
