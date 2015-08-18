@@ -81,6 +81,9 @@ API Changes
 
 - ``astropy.utils``
 
+  - ``console`` was updated to support IPython 4.x and Jupyter 1.x.
+    [#4078]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``

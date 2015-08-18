@@ -32,12 +32,18 @@ except NameError:
     IPythonIOStream = None
 else:
     try:
-        from IPython.zmq.iostream import OutStream
+        from ipykernel.iostream import OutStream
     except ImportError:
         try:
-            from IPython.kernel.zmq.iostream import OutStream
+            from IPython.zmq.iostream import OutStream
         except ImportError:
-            OutStream = None
+            try:
+                from IPython.kernel.zmq.iostream import OutStream
+            except ImportError:
+                OutStream = None
+
+    from IPython import version_info
+    ipython_major_version = version_info[0]
 
     if OutStream is not None:
         from IPython.utils import io as ipyio
@@ -490,7 +496,10 @@ class ProgressBar(six.Iterator):
         if ipython_widget:
             # Import only if ipython_widget, i.e., widget in IPython
             # notebook
-            from IPython.html import widgets
+            if ipython_major_version < 4:
+                from IPython.html import widgets
+            else:
+                from ipywidgets import widgets
             from IPython.display import display
 
         if file is None:
@@ -631,10 +640,14 @@ class ProgressBar(six.Iterator):
         # if none exists.
         if not hasattr(self, '_widget'):
             # Import only if an IPython widget, i.e., widget in iPython NB
-            from IPython.html import widgets
+            if ipython_major_version < 4:
+                from IPython.html import widgets
+                self._widget = widgets.FloatProgressWidget()
+            else:
+                from ipywidgets import widgets
+                self._widget = widgets.FloatProgress()
             from IPython.display import display
 
-            self._widget = widgets.FloatProgressWidget()
             display(self._widget)
             self._widget.value = 0
 
