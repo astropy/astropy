@@ -38,8 +38,9 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     Perform sigma-clipping on the provided data.
 
     The data will be iterated over, each time rejecting points that are
-    discrepant by more than a specified number of standard deviations
-    from a center value.
+    discrepant by more than a specified number of standard deviations from a
+    center value. If the data contains invalid values (NaNs or infs),
+    they are automatically masked before performing the sigma clipping.
 
     .. note::
         `scipy.stats.sigmaclip
