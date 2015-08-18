@@ -8,6 +8,7 @@ from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
 from collections import deque, MutableMapping
+from itertools import product, combinations
 
 import numpy as np
 
@@ -466,6 +467,69 @@ def comb(N, k):
     for j in xrange(min(k, N - k)):
         val = (val * (N - j)) / (j + 1)
     return val
+
+
+def polynomial_exponents(n, degree):
+    """
+    Generates the exponents for the terms of an ``n``-dimensional polynomial
+    of the given degree in the order:
+
+    .. math:
+
+        1 + x_1 + \cdots + x_1^d + \cdots x_n + \cdots x_n^d + x_1x_2 +
+        x_1x_2^2 + \cdots + x_1x_2^{d-1} + \cdots x_1x_n + \cdots +
+        x_1x_n^{d-1} + \cdots
+
+    Parameters
+    ----------
+    n : int
+        The dimension of the polynomial
+    degree : int
+        The degree of the polynomial
+
+    Examples
+    --------
+
+    ::
+
+        >>> list(polynomial_exponents(1, 3))
+        [(0,), (1,), (2,), (3,)]
+
+    Which corresponds to :math:`1 + x + x^2 + x^3`.
+
+    ::
+
+        >>> list(polynomial_exponents(2, 3))
+        [(0, 0), (1, 0), (2, 0), (3, 0), (0, 1), (0, 2), (0, 3),
+        (1, 1), (1, 2), (2, 1)]
+
+    Which corresponds to :math:`1 + x + y + xy + xy^2 + x^2y`.
+
+    ::
+
+        >>> list(polynomial_exponents(3, 3))
+        [(0, 0, 0), (1, 0, 0), (2, 0, 0), (3, 0, 0), (0, 1, 0), (0, 2, 0),
+        (0, 3, 0), (0, 0, 1), (0, 0, 2), (0, 0, 3), (1, 1, 0), (1, 2, 0),
+        (2, 1, 0), (1, 0, 1), (1, 0, 2), (2, 0, 1), (0, 1, 1), (0, 1, 2),
+        (0, 2, 1), (1, 1, 1)]
+
+    Which corresponds to :math:`1 + x + y + z + xy + xy^2 + x^2y + xz + xz^2 +
+    x^2z + xyz`
+    """
+
+    for m in range(min(degree + 1, n + 1)):
+        # m is the number of variables appearing with non-zero exponents in the
+        # current term
+        for indices in combinations(range(0, n), m):
+            # indices basically selects which variables will have non-zero
+            # exponents in the product-loop below
+            ranges = (range(1, degree + 1) if idx in indices else (0,)
+                      for idx in range(n))
+            for powers in product(*ranges):
+                # powers is only ever empty if n == 0 in which case we stop
+                # iteration immediately
+                if powers and sum(powers) <= degree:
+                    yield powers
 
 
 def array_repr_oneline(array):

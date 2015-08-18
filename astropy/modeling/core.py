@@ -34,9 +34,9 @@ from ..extern import six
 from ..extern.six.moves import copyreg
 from ..table import Table
 from ..utils import (deprecated, sharedmethod, find_current_module,
-                     InheritDocstrings)
+                     lazyproperty, InheritDocstrings)
 from ..utils.codegen import make_function_with_signature
-from ..utils.compat import ignored
+from ..utils.compat import ignored, funcsigs
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
@@ -112,7 +112,7 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
         mcls._handle_special_methods(members, cls, parameters)
 
-        if not inspect.isabstract(cls) and not name.startswith('_'):
+        if cls._is_concrete:
             mcls.registry.add(cls)
 
         return cls
@@ -347,42 +347,153 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
 
         if ('__call__' not in members and 'inputs' in members and
                 isinstance(members['inputs'], tuple)):
-            inputs = members['inputs']
-            # Done create a custom __call__ for classes that already have one
+            # Don't create a custom __call__ for classes that already have one
             # explicitly defined (this includes the Model base class, and any
             # other classes that manually override __call__
+
             def __call__(self, *inputs, **kwargs):
                 """Evaluate this model on the supplied inputs."""
 
                 return super(cls, self).__call__(*inputs, **kwargs)
 
-            args = ('self',) + inputs
+            args, kwargs, varargs, varkwargs = mcls._get_call_signature(
+                    cls, parameters)
+
             new_call = make_function_with_signature(
-                    __call__, args, [('model_set_axis', None)])
+                    __call__, args, kwargs, varargs=varargs,
+                    varkwargs=varkwargs)
             update_wrapper(new_call, cls)
             cls.__call__ = new_call
 
-        if ('__init__' not in members and not inspect.isabstract(cls) and
-                parameters):
-            # If *all* the parameters have default values we can make them
-            # keyword arguments; otherwise they must all be positional
-            # arguments
-            if all(p.default is not None
-                   for p in six.itervalues(parameters)):
-                args = ('self',)
-                kwargs = [(name, parameters[name].default)
-                          for name in cls.param_names]
-            else:
-                args = ('self',) + cls.param_names
-                kwargs = {}
+        make_init, parameters = mcls._should_make_init(cls, members,
+                                                       parameters)
+
+        if make_init:
 
             def __init__(self, *params, **kwargs):
                 return super(cls, self).__init__(*params, **kwargs)
 
+            args, kwargs, varargs, varkwargs = mcls._get_init_signature(
+                    cls, parameters)
+
             new_init = make_function_with_signature(
-                    __init__, args, kwargs, varkwargs='kwargs')
+                    __init__, args, kwargs, varargs=varargs,
+                    varkwargs=varkwargs)
             update_wrapper(new_init, cls)
             cls.__init__ = new_init
+
+    @staticmethod
+    def _should_make_init(cls, members, parameters):
+        """
+        Determine whether an ``__init__`` method with a customized signature
+        should be created.  The rules are this:
+
+            1. If an ``__init__`` method is found in the class definitions'
+               members the the class has a manually-defined ``__init__`` and
+               so that should be used.
+            2. If the class is not "concrete" as defined by the
+              ``_is_concrete`` property there's no sense in making a custom
+              ``__init__``.  This mostly applies to generic subclasses (like
+              `Fittable1DModel`) or base classes like `Model` that aren't
+              generally used or inspected directly by users (outside a
+              development context).
+            3. If no ``__init__`` is found in the members, but no parameters
+               were found in the class definition either (i.e. ``parameters``
+               is empty) this may be a subclass of some more generic class in
+               which the parameters were defined (see for example some of the
+               projection models).  In those cases see if the base classes are
+               concrete and have a custom ``__init__``.  In that case lookup
+               of the class's ``__init__`` should fall back to that one.
+               In this case this method also returns a new parameters dict
+               containing the `Parameter` descriptors found on the base class.
+            4. If no ``__init__`` is found, but parameters were defined in this
+               class's body then it may have different parameters from its base
+               class, so go ahead and make the custom ``__init__``.
+            5. If this is a concrete class with simply no parameters defined
+               either in the class body or the base class still define a custom
+               ``__init__` that simply accepts no parameter arguments.
+        """
+
+        if '__init__' in members or not cls._is_concrete:
+            return False, parameters
+        elif parameters:
+            return True, parameters
+        else:
+            # No __init__, no parameters, but is concrete.  This is case 3 in
+            # the docstring
+            for base_cls in cls.mro():
+                if (hasattr(base_cls, 'param_names') and
+                        isinstance(base_cls.param_names, tuple) and
+                        base_cls.param_names):
+                    # The base class defines the parameters
+                    # If the base class is concrete we can just fall back to
+                    # its __init__
+                    if base_cls._is_concrete:
+                        return False, parameters
+                    # Otherwise we want to use parameters from the base class,
+                    # but we do need to make our own __init__
+                    parameters = dict((name, getattr(base_cls, name))
+                                      for name in base_cls.param_names)
+                    return (True, parameters)
+
+            # Failing all else make a custom __init__ with no parameters
+            return (True, parameters)
+
+
+    @classmethod
+    def _get_init_signature(mcls, cls, parameters):
+        """
+        Used in _handle_special_methods to return the argument signature for
+        auto-generated ``__init__`` method.  This can be overridden by
+        subclasses for model types with different ``__init__` signatures (see
+        `_PolynomialModelMeta`).
+
+        Returns a tuple of ``(args, kwargs, varargs, varkwargs)`` which are
+        interpreted as the arguments to `make_function_with_signature` of the
+        same names.
+        """
+
+        args = ('self',)
+        kwargs = []
+
+        # This is the default signature, which consists of the parameters
+        # first (either as positional arguments, or as keyword arguments *if*
+        # all parameters have a default value)
+        if all(p.default is not None
+               for p in six.itervalues(parameters)):
+            kwargs += [(name, parameters[name].default)
+                       for name in cls.param_names]
+        else:
+            args += cls.param_names
+
+        if parameters:
+            for cons in cls.parameter_constraints:
+                kwargs.append((cons, {}))
+
+        for cons in cls.model_constraints:
+            # Since these don't map to from specific parameters their defaults
+            # are just []
+            kwargs.append((cons, []))
+
+        kwargs += [('n_models', None), ('model_set_axis', None),
+                   ('name', None), ('meta', None)]
+
+        return (args, kwargs, None, None)
+
+    @classmethod
+    def _get_call_signature(mcls, cls, parameters):
+        """
+        Like `_get_init_signature`, but for the auto-generated ``__call__``
+        methods.
+        """
+
+        # TODO: Ideally model_set_axis should probably be a keyword-only
+        # argument, but those aren't supported on Python 2
+
+        inputs = cls.inputs
+        args = ('self',) + inputs
+        return (args, [('model_set_axis', None)], None, None)
+
 
     # *** Arithmetic operators for creating compound models ***
     __add__ =     _model_oper('+')
@@ -421,9 +532,8 @@ class _ModelMeta(InheritDocstrings, abc.ABCMeta):
             for base in cls.mro()[1:]:
                 if not issubclass(base, Model):
                     continue
-                elif (inspect.isabstract(base) or
-                        base.__name__.startswith('_')):
-                    break
+                elif not base._is_concrete:
+                    continue
                 bases.append(base.name)
             if bases:
                 return '{0} ({1})'.format(cls.name, ' -> '.join(bases))
@@ -1183,11 +1293,25 @@ class Model(object):
             for name, value in six.iteritems(params):
                 param_ndim = np.ndim(value)
                 if param_ndim < min_ndim:
-                    raise InputParameterError(
-                        "All parameter values must be arrays of dimension "
-                        "at least {0} for model_set_axis={1} (the value "
-                        "given for {2!r} is only {3}-dimensional)".format(
-                            min_ndim, model_set_axis, name, param_ndim))
+                    # Exception: If the parameter is given its default value
+                    # (i.e. was unspecified) we can broadcast the default value
+                    # just fine.
+                    default = getattr(self, name).default
+                    if (np.shape(value) == np.shape(default) and
+                            np.all(value == default)):
+                        default_shape = np.shape(default)
+                        new_shape = (default_shape[:model_set_axis] +
+                                     (n_models,) +
+                                     default_shape[model_set_axis:])
+                        value = np.full(new_shape, default, dtype=np.float64)
+                        params[name] = value
+                    else:
+                        raise InputParameterError(
+                            "All parameter values must be arrays of dimension "
+                            "at least {0} for model_set_axis={1} (the value "
+                            "given for {2!r} is only {3}-dimensional)".format(
+                                min_ndim, model_set_axis, name, param_ndim))
+
 
                 max_ndim = max(max_ndim, param_ndim)
 
@@ -1394,6 +1518,10 @@ class Model(object):
         override the default ``__repr__`` while keeping the same basic
         formatting.
         """
+
+        if not hasattr(self, '_parameters'):
+            # Primarily in here for debugging purposes
+            return object.__repr__(self)
 
         # TODO: I think this could be reworked to preset model sets better
 
@@ -1857,6 +1985,18 @@ class _CompoundModelMeta(_ModelMeta):
         return
 
     @classmethod
+    def _handle_special_methods(mcls, members, cls, parameters):
+        # Don't make generated __init__ or __call__ methods--since compound
+        # model class's parameters aren't determined at class creation time we
+        # can't make methods with custom arguments either (we could for
+        # __call__, technically, but nevermind that, it's still overly
+        # time-consuming for little benefit)
+
+        # TODO: We could still do this lazily on an as-needed basis.  That'll
+        # be low-priority though.
+        return
+
+    @classmethod
     def _make_custom_inverse(mcls, operator, left, right):
         """
         Generates an inverse `Model` for this `_CompoundModel` when either
@@ -2160,6 +2300,39 @@ class _CompoundModel(Model):
     col_fit_deriv = False
 
     _submodels = None
+
+    @lazyproperty
+    def _call_signature(self):
+        """
+        Generate a call signature for this compound model's ``__call__`` to
+        ensure that the positional and keyword arguments are interpreted
+        correctly.
+
+        This is necessary for now since compound models don't get an
+        auto-generated ``__call__`` method.
+        """
+
+        P_K = funcsigs.Parameter.POSITIONAL_OR_KEYWORD
+
+        parameters = [funcsigs.Parameter(input_, P_K)
+                      for input_ in self.inputs]
+
+        # TODO: Probably should be keyword-only, but that's not supported on
+        # Python 2
+        parameters.append(
+            funcsigs.Parameter('model_set_axis', P_K, default=None))
+
+        return funcsigs.Signature(parameters)
+
+    def __call__(self, *inputs, **kwargs):
+        # Special __call__ implementation that parses positional arguments
+        # correctly, for lack of auto-generated __call__ methods on compound
+        # models
+        bound_args = self._call_signature.bind(*inputs, **kwargs)
+        inputs = (bound_args.arguments[input_] for input_ in self.inputs)
+        model_set_axis = bound_args.arguments.get('model_set_axis')
+        return super(_CompoundModel, self).__call__(
+                *inputs, model_set_axis=model_set_axis)
 
     def __getattr__(self, attr):
         value = getattr(self.__class__, attr)
