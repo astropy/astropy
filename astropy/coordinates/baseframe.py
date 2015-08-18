@@ -482,24 +482,21 @@ class BaseCoordinateFrame(object):
 
         use_skycoord = False
 
-        if (len(args) > 1 or (len(args) == 1 and
-                not isinstance(args[0], BaseRepresentation))):
-            for arg in args:
-                if (not isinstance(arg, u.Quantity)
-                    and not isinstance(arg, BaseRepresentation)):
-                    msg = ('Initializing frame classes like "{0}" using string '
-                           'or other non-Quantity arguments is deprecated, and '
-                           'will be removed in the next version of Astropy.  '
-                           'Instead, you probably want to use the SkyCoord '
-                           'class with the "frame={1}" keyword, or if you '
-                           'really want to use the low-level frame classes, '
-                           'create it with an Angle or Quantity.')
+        for arg in args:
+            if not isinstance(arg, (u.Quantity, BaseRepresentation)):
+                msg = ('Initializing frame classes like "{0}" using string '
+                       'or other non-Quantity arguments is deprecated, and '
+                       'will be removed in the next version of Astropy.  '
+                       'Instead, you probably want to use the SkyCoord '
+                       'class with the "frame={1}" keyword, or if you '
+                       'really want to use the low-level frame classes, '
+                       'create it with an Angle or Quantity.')
 
-                    warnings.warn(msg.format(cls.__name__,
-                                             cls.__name__.lower()),
-                                  AstropyDeprecationWarning)
-                    use_skycoord = True
-                    break
+                warnings.warn(msg.format(cls.__name__,
+                                         cls.__name__.lower()),
+                              AstropyDeprecationWarning)
+                use_skycoord = True
+                break
 
         if 'unit' in kwargs and not use_skycoord:
             warnings.warn(
