@@ -29,7 +29,7 @@ from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
 from .row import Row
 from .np_utils import fix_column_name, recarray_fromrecords
 from .info import TableInfo
-from .index import Index, _IndexModeContext
+from .index import Index, _IndexModeContext, get_index
 
 # Prior to Numpy 1.6.2, there was a bug (in Numpy) that caused
 # sorting of structured arrays containing Unicode columns to
@@ -2041,6 +2041,13 @@ class Table(object):
         """
         if isinstance(keys, six.string_types):
             keys = [keys]
+
+        # use index sorted order if possible
+        if keys is not None:
+            index = get_index(self, self[keys])
+            if index is not None:
+                return index.sorted_data()
+
         kwargs = {}
         if keys:
             kwargs['order'] = keys
@@ -2100,8 +2107,21 @@ class Table(object):
             keys = [keys]
 
         indexes = self.argsort(keys)
+        sort_index = get_index(self, self[keys])
+        if sort_index is not None:
+            # avoid inefficient relabelling of sorted index
+            prev_frozen = sort_index._frozen
+            sort_index._frozen = True
+
         for col in self.columns.values():
             col[:] = col.take(indexes, axis=0)
+
+        if sort_index is not None:
+            # undo index freeze
+            sort_index._frozen = prev_frozen
+            # now relabel the sort index appropriately
+            sort_index.sort()
+
 
     def reverse(self):
         '''

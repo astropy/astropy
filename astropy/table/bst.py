@@ -282,6 +282,16 @@ class BST(object):
 
     def sort(self):
         '''
+        Make row order align with key order.
+        '''
+        i = 0
+        for node in self.traverse():
+            num_rows = len(node.data)
+            node.data = [x for x in range(i, i + num_rows)]
+            i += num_rows
+
+    def sorted_data(self):
+        '''
         Return BST rows sorted by key values.
         '''
         return [x for node in self.traverse() for x in node.data]
@@ -555,6 +565,16 @@ class FastBase(object):
         return [x for x in self.data.items() if len(x[1]) > 0]
 
     def sort(self):
+        '''
+        Make row order align with key order.
+        '''
+        i = 0
+        for key, rows in self.data.items():
+            num_rows = len(rows)
+            self.data[key] = [x for x in range(i, i + num_rows)]
+            i += num_rows
+
+    def sorted_data(self):
         '''
         Return a list of rows in order sorted by key.
         '''
