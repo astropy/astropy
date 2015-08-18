@@ -104,3 +104,22 @@ def test_sigma_clipped_stats():
     assert result2[0] == 1.
     assert result2[1] == 1.
     assert result2[2] == 0.
+
+
+def test_invalid_sigma_clip():
+    """Test sigma_clip of data containing invalid values."""
+
+    data = np.ones((5, 5))
+    data[2, 2] = 1000
+    data[3, 4] = np.nan
+    data[1, 1] = np.inf
+
+    result = sigma_clip(data)
+
+    # Pre #4051 if data contains any NaN or infs sigma_clip returns the mask
+    # containig `False` only or TypeError if data also contains a masked value.
+
+    assert result.mask[2, 2] == True
+    assert result.mask[3, 4] == True
+    assert result.mask[1, 1] == True
+

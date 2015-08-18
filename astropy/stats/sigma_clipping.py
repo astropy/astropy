@@ -38,8 +38,9 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     Perform sigma-clipping on the provided data.
 
     The data will be iterated over, each time rejecting points that are
-    discrepant by more than a specified number of standard deviations
-    from a center value.
+    discrepant by more than a specified number of standard deviations from a
+    center value. If the data contains invalid values (NaNs or infs),
+    they are automatically masked before performing the sigma clipping.
 
     .. note::
         `scipy.stats.sigmaclip
@@ -173,6 +174,11 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
                                            axis=axis)
         stdfunc = lambda d: np.expand_dims(stdfunc_in(d, axis=axis),
                                            axis=axis)
+
+    if np.any(~np.isfinite(data)):
+        data = np.ma.masked_invalid(data)
+        warnings.warn("Input data contains invalid values (NaNs or infs), "
+                      "which were automatically masked.", AstropyUserWarning)
 
     filtered_data = np.ma.array(data, copy=copy)
 

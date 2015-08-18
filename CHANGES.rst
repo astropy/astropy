@@ -120,6 +120,9 @@ New Features
   - Added ``cenfunc``, ``stdfunc``, and ``axis`` keywords to
     ``sigma_clipped_stats``. [#3792]
 
+  - ``sigma_clip`` automatically masks invalid input values (NaNs, Infs) before
+    performing the clipping [#4051]
+
   - Added the ``histogram`` routine, which is similar to ``np.histogram`` but
     includes several additional options for automatic determination of optimal
     histogram bins. Associated helper routines include ``bayesian_blocks``,
