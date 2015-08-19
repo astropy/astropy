@@ -1359,7 +1359,7 @@ class Header(object):
                 else:
                     extend_cards.append(card)
             else:
-                if unique or update and keyword in self:
+                if (unique or update) and keyword in self:
                     if card.is_blank:
                         extend_cards.append(card)
                         continue

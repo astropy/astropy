@@ -1184,9 +1184,26 @@ class TestHeaderFunctions(FitsTestCase):
         hdu = fits.PrimaryHDU()
         hdu2 = fits.ImageHDU()
         hdu.header['MYKEY'] = ('some val', 'some comment')
+        hdu2.header['MYKEY'] = ('some other val', 'some other comment')
         hdu.header.extend(hdu2.header, unique=True)
         assert len(hdu.header) == 5
         assert hdu.header[-1] == 'some val'
+
+    def test_header_extend_unique_commentary(self):
+        """
+        Test extending header with and without unique=True and commentary
+        cards in the header being added. Issue astropy/astropy#3967
+        """
+        for commentary_card in ['', 'COMMENT', 'HISTORY']:
+            for is_unique in [True, False]:
+                hdu = fits.PrimaryHDU()
+                # Make sure we are testing the case we want.
+                assert commentary_card not in hdu.header
+                hdu2 = fits.ImageHDU()
+                hdu2.header[commentary_card] = 'My text'
+                hdu.header.extend(hdu2.header, unique=is_unique)
+                assert len(hdu.header) == 5
+                assert hdu.header[commentary_card][0] == 'My text'
 
     def test_header_extend_update(self):
         """
@@ -1218,6 +1235,25 @@ class TestHeaderFunctions(FitsTestCase):
         assert hdu.header['MYKEY'] == 'some other val'
         assert len(hdu.header['HISTORY']) == 2
         assert hdu.header[-1] == 'history 2'
+
+    def test_header_extend_update_commentary(self):
+        """
+        Test extending header with and without unique=True and commentary
+        cards in the header being added.
+
+        Though not quite the same as astropy/astropy#3967, update=True hits
+        the same if statement as that issue.
+        """
+        for commentary_card in ['', 'COMMENT', 'HISTORY']:
+            for is_update in [True, False]:
+                hdu = fits.PrimaryHDU()
+                # Make sure we are testing the case we want.
+                assert commentary_card not in hdu.header
+                hdu2 = fits.ImageHDU()
+                hdu2.header[commentary_card] = 'My text'
+                hdu.header.extend(hdu2.header, update=is_update)
+                assert len(hdu.header) == 5
+                assert hdu.header[commentary_card][0] == 'My text'
 
     def test_header_extend_exact(self):
         """
