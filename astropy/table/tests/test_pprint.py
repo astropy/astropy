@@ -286,7 +286,7 @@ class TestFormat():
         assert str(t['a']) == '   a   \n-------\n%4.2f 1\n%4.2f 2'
 
         #  Invalid format spec
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             t['a'].format = 'fail'
 
     def test_column_format_with_threshold(self, table_type):

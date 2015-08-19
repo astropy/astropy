@@ -373,6 +373,10 @@ class BaseColumn(np.ndarray):
 
     @property
     def format(self):
+        """
+        Format string for displaying values in this column.
+        """
+
         return self._format
 
     @format.setter
@@ -389,17 +393,19 @@ class BaseColumn(np.ndarray):
         self._format = format_string  # set new format string
 
         try:
+            # test whether it formats without error exemplarily
+            self.pformat(max_lines=1)
+
             if self.dtype.kind == 'O':
                 # test whether it formats without error for all entries
                 self.pformat(max_lines=-1)
-            else:
-                # test whether it formats without error exemplarily
-                self.pformat(max_lines=1)
-
         except TypeError as err:
             # revert to restore previous format if there was one
             self._format = prev_format
-            raise  # propagate the error upwards
+            raise ValueError(
+                "Invalid format for column '{0}': could not display "
+                "values in this column using this format ({1})".format(
+                    self.name, err.args[0]))
 
     @property
     def descr(self):
