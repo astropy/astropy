@@ -17,8 +17,7 @@ import types
 
 import numpy as np
 
-from ..utils import isiterable
-from ..utils.compat import ignored
+from ..utils import isiterable, OrderedDescriptor
 from ..extern import six
 
 __all__ = ['Parameter', 'InputParameterError']
@@ -55,7 +54,7 @@ def _tofloat(value):
     return value
 
 
-class Parameter(object):
+class Parameter(OrderedDescriptor):
     """
     Wraps individual parameters.
 
@@ -83,6 +82,13 @@ class Parameter(object):
     ----------
     name : str
         parameter name
+
+        .. warning::
+
+            The fact that `Parameter` accepts ``name`` as an argument is an
+            implementation detail, and should not be used directly.  When
+            defining a new `Model` class, parameter names are always
+            automatically defined by the class attribute they're assigned to.
     description : str
         parameter description
     default : float or array
@@ -121,8 +127,9 @@ class Parameter(object):
     constraint (which is represented as a 2-tuple).
     """
 
-    # See the _nextid classmethod
-    _nextid = 1
+    # Settings for OrderedDescriptor
+    _class_attribute_ = '_parameters_'
+    _name_attribute_ = '_name'
 
     def __init__(self, name='', description='', default=None, getter=None,
                  setter=None, fixed=False, tied=False, min=None, max=None,
@@ -163,9 +170,7 @@ class Parameter(object):
 
         # Only Parameters declared as class-level descriptors require
         # and ordering ID
-        if model is None:
-            self._order = self._get_nextid()
-        else:
+        if model is not None:
             self._bind(model)
 
     def __get__(self, obj, objtype):
@@ -579,19 +584,6 @@ class Parameter(object):
 
         return self._get_model_value(self._model)
 
-    @classmethod
-    def _get_nextid(cls):
-        """Returns a monotonically increasing ID used to order Parameter
-        descriptors declared at the class-level of Model subclasses.
-
-        This allows the desired parameter order to be determined without
-        having to list it manually in the param_names class attribute.
-        """
-
-        nextid = cls._nextid
-        cls._nextid += 1
-        return nextid
-
     def _bind(self, model):
         """
         Bind the `Parameter` to a specific `Model` instance; don't use this
@@ -700,64 +692,113 @@ class Parameter(object):
     __bool__ = __nonzero__
 
     def __add__(self, val):
+        if self._model is None:
+            # If we don't do this, __add__ will raise an AttributeError instead
+            # (from self.value) which is strange and unexpected
+            return NotImplemented
         return self.value + val
 
     def __radd__(self, val):
+        if self._model is None:
+            return NotImplemented
         return val + self.value
 
     def __sub__(self, val):
+        if self._model is None:
+            return NotImplemented
         return self.value - val
 
     def __rsub__(self, val):
+        if self._model is None:
+            return NotImplemented
         return val - self.value
 
     def __mul__(self, val):
+        if self._model is None:
+            return NotImplemented
         return self.value * val
 
     def __rmul__(self, val):
+        if self._model is None:
+            return NotImplemented
         return val * self.value
 
     def __pow__(self, val):
+        if self._model is None:
+            return NotImplemented
         return self.value ** val
 
     def __rpow__(self, val):
+        if self._model is None:
+            return NotImplemented
         return val ** self.value
 
     def __div__(self, val):
+        if self._model is None:
+            return NotImplemented
         return self.value / val
 
     def __rdiv__(self, val):
+        if self._model is None:
+            return NotImplemented
         return val / self.value
 
     def __truediv__(self, val):
+        if self._model is None:
+            return NotImplemented
         return self.value / val
 
     def __rtruediv__(self, val):
+        if self._model is None:
+            return NotImplemented
         return val / self.value
 
     def __eq__(self, val):
         if self._model is None:
-            return super(Parameter, self).__eq__(val)
+            return NotImplemented
 
         return self.__array__() == val
 
     def __ne__(self, val):
+        if self._model is None:
+            return NotImplemented
+
         return self.__array__() != val
 
     def __lt__(self, val):
+        # Because OrderedDescriptor uses __lt__ to work, we need to call the
+        # super method, but only when not bound to an instance anyways
+        if self._model is None:
+            return super(Parameter, self).__lt__(val)
+
         return self.__array__() < val
 
     def __gt__(self, val):
+        if self._model is None:
+            return NotImplemented
+
         return self.__array__() > val
 
     def __le__(self, val):
+        if self._model is None:
+            return NotImplemented
+
         return self.__array__() <= val
 
     def __ge__(self, val):
+        if self._model is None:
+            return NotImplemented
+
         return self.__array__() >= val
 
     def __neg__(self):
+        if self._model is None:
+            return NotImplemented
+
         return -self.value
 
     def __abs__(self):
+        if self._model is None:
+            return NotImplemented
+
         return np.abs(self.value)

@@ -220,6 +220,11 @@ class ConfigItem(object):
     # this is used to make validation faster so a Validator object doesn't
     # have to be created every time
     _validator = validate.Validator()
+    cfgtype = None
+    """
+    A type specifier like those used as the *values* of a particular key in a
+    ``configspec`` file of ``configobj``.
+    """
 
     def __init__(self, defaultvalue='', description=None, cfgtype=None,
                  module=None, aliases=None):
@@ -309,12 +314,14 @@ class ConfigItem(object):
         Sets this item to a specified value only inside a with block.
 
         Use as::
+
             ITEM = ConfigItem('ITEM', 'default', 'description')
 
             with ITEM.set_temp('newval'):
-                ... do something that wants ITEM's value to be 'newval' ...
+                #... do something that wants ITEM's value to be 'newval' ...
+                print(ITEM)
 
-             # ITEM is now 'default' after the with block
+            # ITEM is now 'default' after the with block
 
         Parameters
         ----------
