@@ -554,7 +554,7 @@ class SlicedIndex(object):
     def __repr__(self):
         if self.original:
             return repr(self.index)
-        return 'Index slice {0} of {1}'.format(
+        return 'Index slice {0} of\n{1}'.format(
             (self.start, self.stop, self.step), self.index)
 
     def __str__(self):
@@ -766,7 +766,7 @@ class TableLoc(object):
             rows = []
             for key in item:
                 rows.extend(index.find((key,)))
-            
+
         return self.table[rows]
 
 class TableILoc(TableLoc):
