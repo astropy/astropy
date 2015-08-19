@@ -1,6 +1,6 @@
 .. include:: references.txt
-.. |add_index| replace:: :func:`~astropy.table.add_index`
-.. |index_mode| replace:: :func:`~astropy.table.index_mode`
+.. |add_index| replace:: :func:`~astropy.table.Table.add_index`
+.. |index_mode| replace:: :func:`~astropy.table.Table.index_mode`
 
 Table indexing
 --------------
@@ -26,7 +26,7 @@ instead::
 
 In particular, the first index created using the
 |add_index| method is considered the default index or the "primary key". To
-retrieve an index from a table, use the `indices` property::
+retrieve an index from a table, use the `~astropy.table.Table.indices` property::
 
    >>> t.indices['a']
     a  rows
@@ -48,8 +48,8 @@ retrieve an index from a table, use the `indices` property::
 Row retrieval using indices
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Row retrieval can be accomplished using two table properties: `loc` and
-`iloc`. The `loc` property can be indexed either by column value, range of
+Row retrieval can be accomplished using two table properties: `~astropy.table.Table.loc` and
+`~astropy.table.Table.iloc`. The `~astropy.table.Table.loc` property can be indexed either by column value, range of
 column values (*including* the bounds), or a list or ndarray of column values::
 
    >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'))
@@ -86,9 +86,9 @@ column values (*including* the bounds), or a list or ndarray of column values::
        4     9
 
 
-Note that by default, `loc` uses the primary index, which here is column
+Note that by default, `~astropy.table.Table.loc` uses the primary index, which here is column
 'a'. To use a different index, pass the indexed column name before the
-retrieval data::
+retrieval data ::
 
    >>> t.add_index('b')
    >>> t.loc['b', 8:10]
@@ -100,7 +100,7 @@ retrieval data::
        4     9
        1    10
 
-The property `iloc` works similarly, except that the retrieval information must
+The property `~astropy.table.Table.iloc` works similarly, except that the retrieval information must
 be either an int or a slice, and relates to the sorted order of the index
 rather than column values. For example::
 
@@ -188,3 +188,22 @@ or table is copied::
   ...    t2 = Table(t)
   ...    print(t2.indices)
   []
+
+Engines
+^^^^^^^
+When creating an index via |add_index|, the keyword argument `engine` may be
+specified to use a particular indexing engine. The available engines are
+
+* `~astropy.table.SortedArray`, a sorted array engine using an underlying
+  sorted Table
+* `~astropy.table.FastRBT`, a C-based red-black tree engine
+* `~astropy.table.FastBST`, a C-based binary search tree engine
+* `~astropy.table.BST`, a Python-based binary search tree engine
+
+Note that FastRBT and FastBST depend on the bintrees dependency; without this
+dependency, both classes default to `~astropy.table.BST`. For a comparison of
+engine performance, see `this IPython notebook
+<http://nbviewer.ipython.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_. Probably
+the most important takeaway is that `~astropy.table.SortedArray` (the default
+engine) is usually best, although `~astropy.table.FastRBT` may be more
+appropriate for an index created on an empty column since adding new values is quicker.
