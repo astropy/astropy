@@ -108,6 +108,9 @@ Bug Fixes
 
 - ``astropy.io.fits``
 
+  - Fix bug when extending one header (without comments) with another
+    (with comments). [#3967]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
