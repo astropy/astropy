@@ -282,6 +282,14 @@ Table operations
 
    operations.rst
 
+Indexing
+--------
+
+.. toctree::
+   :maxdepth: 2
+
+   indexing.rst
+
 Masking
 ---------------
 

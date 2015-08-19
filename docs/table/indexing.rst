@@ -1,0 +1,190 @@
+.. include:: references.txt
+.. |add_index| replace:: :func:`~astropy.table.add_index`
+.. |index_mode| replace:: :func:`~astropy.table.index_mode`
+
+Table indexing
+--------------
+
+Once a |Table| has been created, it is possible to create indexes on one or
+more columns of the table. An index internally sorts the rows of a table based
+on the index column(s), allowing for element retrieval by column value and
+improved performance for certain table operations.
+
+Creating an index
+^^^^^^^^^^^^^^^^^
+
+To create an index on a table, use the |add_index| method::
+
+   >>> from astropy.table import Table
+   >>> t = Table([(1, 2, 3, 4), (5, 6, 7, 8)], names=('a', 'b'))
+   >>> t.add_index('a')
+
+To create a composite index on multiple columns, pass a list of columns
+instead::
+
+   >>> t.add_index(['a', 'b'])
+
+In particular, the first index created using the
+|add_index| method is considered the default index or the "primary key". To
+retrieve an index from a table, use the `indices` property::
+
+   >>> t.indices['a']
+    a  rows
+   --- ----
+     1    0
+     2    1
+     3    2
+     4    3
+   >>> t.indices['a', 'b']
+    a   b  rows
+   --- --- ----
+     1   5    0
+     2   6    1
+     3   7    2
+     4   8    3
+
+
+
+Row retrieval using indices
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Row retrieval can be accomplished using two table properties: `loc` and
+`iloc`. The `loc` property can be indexed either by column value, range of
+column values (*including* the bounds), or a list or ndarray of column values::
+
+   >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'))
+   >>> t.add_index('a')
+   >>> t.loc[2]
+   <Table length=1>
+     a     b  
+   int64 int64
+   ----- -----
+       2     1
+   >>> t.loc[[1, 4]]
+   <Table length=2>
+     a     b  
+   int64 int64
+   ----- -----
+       1    10
+       4     9
+   >>> t.loc[1:3]
+   <Table length=3>
+     a     b  
+   int64 int64
+   ----- -----
+       1    10
+       2     1
+       3     9
+   >>> t.loc[:]
+   <Table length=4>
+     a     b  
+   int64 int64
+   ----- -----
+       1    10
+       2     1
+       3     9
+       4     9
+
+
+Note that by default, `loc` uses the primary index, which here is column
+'a'. To use a different index, pass the indexed column name before the
+retrieval data::
+
+   >>> t.add_index('b')
+   >>> t.loc['b', 8:10]
+   <Table length=3>
+     a     b  
+   int64 int64
+   ----- -----
+       3     9
+       4     9
+       1    10
+
+The property `iloc` works similarly, except that the retrieval information must
+be either an int or a slice, and relates to the sorted order of the index
+rather than column values. For example::
+
+   >>> t.iloc[0] # smallest row by value 'a'
+   <Row 0 of table
+   values=(1, 10)
+   dtype=[('a', '<i8'), ('b', '<i8')]>
+   >>> t.iloc['b', 1:] # all but smallest value of 'b'
+   <Table length=3>
+     a     b  
+   int64 int64
+   ----- -----
+       3     9
+       4     9
+       1    10
+
+Effects on performance
+^^^^^^^^^^^^^^^^^^^^^^
+Table operations change somewhat when indices are present, and there are a
+number of factors to consider when deciding whether the use of indices will
+improve performance. In general, indexing offers the following advantages:
+
+* Table grouping and sorting based on indexed column(s) become faster
+* Retrieving values by index is faster than custom searching
+
+There are certain caveats, however:
+
+* Creating an index requires time and memory
+* Table modifications become slower due to automatic index updates
+* Slicing a table becomes slower due to index relabeling
+
+See `here <http://nbviewer.ipython.org/github/mdmueller/astropy-notebooks/blob/master/table/indexing-profiling.ipynb>`_ for an IPython notebook profiling various aspects of table indexing.
+
+Index modes
+^^^^^^^^^^^
+The |index_mode| method allows for some flexibility in the behavior of table
+indexing by allowing the user to enter a specific indexing mode via a context manager. There are
+currently three indexing modes: *freeze*, *copy_on_getitem*, and
+*discard_on_copy*. The *freeze* mode prevents automatic index updates whenever
+a column of the index is modified, and all indices refresh themselves after the
+context ends::
+
+  >>> with t.index_mode('freeze'):
+  ...    t['a'][0] = 0
+  ...    print(t.indices['a']) # unmodified
+  col0 rows
+  ---- ----
+     1    0
+     2    1
+     3    2
+     4    3
+  >>> print(t.indices['a']) # modified
+  col0 rows
+  ---- ----
+     0    0
+     2    1
+     3    2
+     4    3
+
+The *copy_on_getitem* mode forces columns to copy and relabel their indices upon
+slicing. In the absence of this mode, table slices will preserve
+indices while column slices will not::
+
+  >>> t['a'][[1, 3]].info.indices
+  []
+  >>> with t.index_mode('copy_on_getitem'):
+  ...    print(t['a'][[1, 3]].info.indices)
+  [col0 rows
+  ---- ----
+     2    0
+     4    1]
+
+The *discard_on_copy* mode prevents indices from being copied whenever a column
+or table is copied::
+
+  >>> t2 = Table(t)
+  >>> t2.indices
+  [col0 rows
+  ---- ----
+     0    0
+     2    1
+     3    2
+     4    3]
+  >>> with t.index_mode('discard_on_copy'):
+  ...    t2 = Table(t)
+  ...    print(t2.indices)
+  []
