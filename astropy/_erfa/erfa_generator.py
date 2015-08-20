@@ -182,6 +182,10 @@ class Argument(object):
     def ndim(self):
         return len(self.shape)
 
+    @property
+    def cshape(self):
+        return ''.join(['[{0}]'.format(s) for s in self.shape])
+
     def __repr__(self):
         return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
 
