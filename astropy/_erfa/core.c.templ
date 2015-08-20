@@ -38,7 +38,10 @@ typedef struct {
 
 static PyObject *Py_{{ func.pyname }}(PyObject *self, PyObject *args, PyObject *kwds)
 {
-    {%- for arg in func.args_by_inout('in|inout|out|ret|stat') %}
+    {%- for arg in func.args_by_inout('in|inout|out') %}
+    {{ arg.ctype }} (*_{{ arg.name }}){{ arg.cshape }};
+    {%- endfor %}
+    {%- for arg in func.args_by_inout('ret|stat') %}
     {{ arg.ctype_ptr }} _{{ arg.name }};
     {%- endfor %}
     {%- if func.args_by_inout('stat')|length > 0 %}
@@ -52,10 +55,10 @@ static PyObject *Py_{{ func.pyname }}(PyObject *self, PyObject *args, PyObject *
 
     do {
         {%- for arg in func.args_by_inout('in|inout|out') %}
-        _{{ arg.name }} = (({{ arg.ctype }} *)(dataptrarray[{{ func.args.index(arg) }}])){%- if arg.ctype_ptr[-1] != '*' %}[0]{%- endif %};
+        _{{ arg.name }} = (({{ arg.ctype }} (*){{ arg.cshape }})(dataptrarray[{{ func.args.index(arg) }}]));
         {%- endfor %}
 
-        {{ func.args_by_inout('ret|stat')|map(attribute='name')|surround('_', ' = ')|join }}{{func.name}}({{ func.args_by_inout('in|inout|out')|map(attribute='name')|prefix('_')|join(', ') }});
+        {{ func.args_by_inout('ret|stat')|map(attribute='name')|surround('_', ' = ')|join }}{{func.name}}({{ func.args_by_inout('in|inout|out')|map(attribute='name_for_call')|join(', ') }});
 
         {%- for arg in func.args_by_inout('ret|stat') %}
         *(({{ arg.ctype_ptr }} *)(dataptrarray[{{ func.args.index(arg) }}])) = _{{ arg.name }};
