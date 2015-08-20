@@ -15,6 +15,7 @@ from __future__ import absolute_import, division, print_function
 
 import re
 import os.path
+from collections import OrderedDict
 
 
 ctype_to_dtype = {'double'     : "numpy.double",
@@ -378,7 +379,7 @@ def main(srcdir, outfn, templateloc, verbose=True):
     with open(erfahfn, "r") as f:
         erfa_h = f.read()
 
-    funcs = {}
+    funcs = OrderedDict()
     section_subsection_functions = re.findall('/\* (\w*)/(\w*) \*/\n(.*?)\n\n',
                                               erfa_h, flags=re.DOTALL|re.MULTILINE)
     for section, subsection, functions in section_subsection_functions:
