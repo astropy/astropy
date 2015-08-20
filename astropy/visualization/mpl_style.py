@@ -110,3 +110,20 @@ Most recent version of the astropy plotting style for matplotlib.
 
 This style improves some settings over the matplotlib default.
 '''
+
+astropy_mpl_docs_style = astropy_mpl_style_1.copy()
+'''
+The style used in the astropy documentation.
+'''
+
+astropy_mpl_docs_style['axes.color_cycle'] = [
+    '#E24A33',   # orange
+    '#348ABD',   # blue
+    '#467821',   # green
+    '#A60628',   # red
+    '#7A68A6',   # purple
+    '#CF4457',   # pink
+    '#188487'    # turquoise
+]
+
+astropy_mpl_docs_style['axes.grid'] = False
