@@ -27,20 +27,38 @@ cdef extern from "numpy/arrayobject.h":
         cdef int ndim "nd"
 
 
+ctypedef object (*item_getter)(object, object)
+
+
+cdef inline object base_getitem(object self, object item, item_getter getitem):
+    if (<ndarray>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
+        return self.data[item]
+
+    value = getitem(self, item)
+
+    if type(value) is type(self):
+        value = self.info.slice_indices(value, item, len(self))
+
+    return value
+
+
+cdef inline object column_getitem(object self, object item):
+    return (<PyTypeObject *>ndarray).tp_as_mapping.mp_subscript(self, item)
+
+
 cdef class _ColumnGetitemShim:
     def __getitem__(self, item):
-        if (<ndarray>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
-            return self.data[item]
-        else:
-            return (<PyTypeObject *>ndarray).tp_as_mapping.mp_subscript(self, item)
+        return base_getitem(self, item, column_getitem)
 
 
 MaskedArray = np.ma.MaskedArray
 
 
+cdef inline object masked_column_getitem(object self, object item):
+    value = MaskedArray.__getitem__(self, item)
+    return self._copy_attrs_slice(value)
+
+
 cdef class _MaskedColumnGetitemShim(_ColumnGetitemShim):
     def __getitem__(self, item):
-        if (<ndarray>self).ndim > 1 and isinstance(item, INTEGER_TYPES):
-            return self.data[item]
-        else:
-            return MaskedArray.__getitem__(self, item)
+        return base_getitem(self, item, masked_column_getitem)

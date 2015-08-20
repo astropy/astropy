@@ -260,32 +260,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         return reconstruct_func, reconstruct_func_args, state
 
-    def get_item(self, item):
-        '''
-        Return self[item] and adjust indices as necessary.
-
-        Parameters
-        ----------
-        item : int, slice, list, or ndarray
-            Element of column to retrieve
-
-        Notes
-        -----
-        This method is an alternative to __getitem__ in the
-        case that index updating is important. The rationale
-        behind creating separate methods is that __getitem__
-        takes a major performance hit if it overrides the
-        (fast) __getitem__ method of ndarray.
-        '''
-        if isinstance(item, INTEGER_TYPES):
-            return self.data[item]  # Return as plain ndarray or ma.MaskedArray
-
-        col_slice = super(BaseColumn, self).__getitem__(item)
-        if isinstance(col_slice, BaseColumn):
-            col_slice = self.info.slice_indices(col_slice, item, len(self))
-        return col_slice
-
-
     # avoid == and != to be done based on type of subclass
     # (helped solve #1446; see also __array_wrap__)
     def __eq__(self, other):
@@ -1104,27 +1078,6 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             out._copy_attrs(self)
         return out
 
-    def __getitem__(self, item):
-        out = super(MaskedColumn, self).__getitem__(item)
-        return self._copy_attrs_slice(out)
-
-    def get_item(self, item):
-        '''
-        Return self[item] and adjust indices as necessary.
-
-        Parameters
-        ----------
-        item : int, slice, list, or ndarray
-            Element of column to retrieve
-        '''
-        col_slice = self[item]
-        if isinstance(col_slice, BaseColumn):
-            col_slice = self.info.slice_indices(col_slice, item, len(self))
-        return col_slice
-
-    # Set items and slices using MaskedArray method, instead of falling through
-    # to the (faster) Column version which uses an ndarray view.  This doesn't
-    # copy the mask properly. See test_setting_from_masked_column test.
     def __setitem__(self, index, value):
         # update indices
         self.info.adjust_indices(index, value, len(self))
@@ -1141,17 +1094,3 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     pprint = BaseColumn.pprint
     pformat = BaseColumn.pformat
     convert_unit_to = BaseColumn.convert_unit_to
-
-class _GetitemColumn(Column):
-    '''
-    A Column whose __getitem__ method copies indices.
-    '''
-    def __getitem__(self, item):
-        return super(_GetitemColumn, self).get_item(item)
-
-class _GetitemMaskedColumn(MaskedColumn):
-    '''
-    A MaskedColumn whose __getitem__ method copies indices.
-    '''
-    def __getitem__(self, item):
-        return super(_GetitemMaskedColumn, self).get_item(item)

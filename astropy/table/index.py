@@ -655,41 +655,19 @@ class _IndexModeContext(object):
                              "'{0}'".format(mode))
 
     def __enter__(self):
-        from .column import (Column, MaskedColumn, _GetitemColumn,
-                             _GetitemMaskedColumn)
-
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = False
         elif self.mode == 'copy_on_getitem':
-            # we need to change column classes temporarily rather
-            # than adjusting instance methods, since new-style
-            # classes refer directly to the class for special
-            # methods
-            self.columns = []
-            self.masked_columns = []
-
-            for col in self.table.columns.values():
-                if isinstance(col, Column):
-                    col.__class__ = _GetitemColumn
-                    self.columns.append(col)
-                elif isinstance(col, MaskedColumn):
-                    col.__class__ = _GetitemMaskedColumn
-                    self.masked_columns.append(col)
+            pass
         else:
             for index in self.table.indices:
                 index._frozen = True
 
     def __exit__(self, exc_type, exc_value, traceback):
-        from .column import (Column, MaskedColumn, _GetitemColumn,
-                             _GetitemMaskedColumn)
-
         if self.mode == 'discard_on_copy':
             self.table._copy_indices = True
         elif self.mode == 'copy_on_getitem':
-            for col in self.columns:
-                col.__class__ = Column
-            for col in self.masked_columns:
-                col.__class__ = MaskedColumn
+            pass
         else:
             for index in self.table.indices:
                 index._frozen = False
