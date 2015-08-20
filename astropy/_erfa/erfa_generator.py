@@ -15,7 +15,7 @@ from __future__ import absolute_import, division, print_function
 
 import re
 import os.path
-from collections import OrderedDict
+from astropy.utils.compat.odict import OrderedDict
 
 
 ctype_to_dtype = {'double'     : "numpy.double",
