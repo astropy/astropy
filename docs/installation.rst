@@ -12,7 +12,7 @@ packages to be installed:
 
 * `Matplotlib <http://www.matplotlib.org>`_
 
-* `Astropy <http://www.astropy.org>`__ 0.3 or later
+* `Astropy <http://www.astropy.org>`__ 1.0 or later
 
 First-time Python users may want to consider an all-in-one Python installation
 package, such as the `Anaconda Python Distribution
