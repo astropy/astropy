@@ -1,7 +1,8 @@
 0.7 (unreleased)
 ----------------
 
-- No changes yet
+- Use wcs_to_celestial from Astropy. Astropy >= 1.0 is now required for
+  WCSAxes. [#176]
 
 0.6 (2015-07-20)
 ----------------
