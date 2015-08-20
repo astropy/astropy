@@ -4,6 +4,9 @@
 - Use wcs_to_celestial from Astropy. Astropy >= 1.0 is now required for
   WCSAxes. [#176]
 
+- Fix bug that caused coordinate transformations to not work properly if they
+  used sub-classes of Spherical representation classes. [#177]
+
 0.6 (2015-07-20)
 ----------------
 
