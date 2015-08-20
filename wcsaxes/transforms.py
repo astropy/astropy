@@ -244,8 +244,7 @@ class CoordinateTransform(CurvedTransform):
 
         c_out = c_in.transform_to(self.output_system)
 
-        if (c_out.representation is SphericalRepresentation or
-            c_out.representation is UnitSphericalRepresentation):
+        if issubclass(c_out.representation, (SphericalRepresentation, UnitSphericalRepresentation)):
             lon = c_out.data.lon.deg
             lat = c_out.data.lat.deg
         else:
