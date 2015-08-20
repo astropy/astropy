@@ -4,13 +4,13 @@ from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
 from astropy.wcs import WCS
+from astropy.wcs.utils import wcs_to_celestial_frame
 from astropy.extern import six
 
 from .transforms import (WCSPixel2WorldTransform, WCSWorld2PixelTransform,
                          CoordinateTransform)
 from .coordinates_map import CoordinatesMap
 from .utils import get_coord_meta
-from .wcs_utils import wcs_to_celestial_frame
 from .frame import RectangularFrame
 import numpy as np
 
