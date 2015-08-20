@@ -14,13 +14,12 @@ from matplotlib.transforms import Transform
 
 from astropy import units as u
 from astropy.wcs import WCS
+from astropy.wcs.utils import wcs_to_celestial_frame
 from astropy.extern import six
 from astropy.coordinates import (SkyCoord, frame_transform_graph,
                                  SphericalRepresentation,
                                  UnitSphericalRepresentation,
                                  BaseCoordinateFrame)
-
-from .wcs_utils import wcs_to_celestial_frame
 
 
 @six.add_metaclass(abc.ABCMeta)
