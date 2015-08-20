@@ -186,6 +186,13 @@ class Argument(object):
     def cshape(self):
         return ''.join(['[{0}]'.format(s) for s in self.shape])
 
+    @property
+    def name_for_call(self):
+        if self.is_ptr:
+            return '_'+self.name
+        else:
+            return '*_'+self.name
+
     def __repr__(self):
         return "Argument('{0}', name='{1}', ctype='{2}', inout_state='{3}')".format(self.definition, self.name, self.ctype, self.inout_state)
 
