@@ -1006,6 +1006,11 @@ class MaskedColumn(Column, ma.MaskedArray):
         # To handle this we are forced to reset a private variable first:
         self._fill_value = None
 
+        # At the end of all workarounds / fixes, coerce the fill value `val`
+        # to the correct dtype.
+        if val is not None:
+            val = self.dtype.type(val)
+
         self.set_fill_value(val)  # defer to native ma.MaskedArray method
 
     @property

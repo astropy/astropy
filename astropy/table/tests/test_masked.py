@@ -397,3 +397,23 @@ def test_setting_from_masked_column():
         mask_before_add = t.mask.copy()
         t['d'] = np.arange(len(t))
         assert np.all(t.mask['b'] == mask_before_add['b'])
+
+
+def test_coercing_fill_value_type():
+    """
+    Test that masked column fill_value is coerced into the correct column type.
+    """
+    # This is the original example posted on the astropy@scipy mailing list
+    t = Table({'a': ['1']}, masked=True)
+    t['a'].set_fill_value('0')
+    u = Table(t, names=['a'], dtype=[np.int])
+
+    # Unit test of underlying change where any value that can be coerced into
+    # column dtype is acceptable.
+    t = Table({'a': [1]}, masked=True)
+
+    t['a'].fill_value = '0'
+    assert t['a'].fill_value == 0
+
+    t['a'].fill_value = 0.0
+    assert t['a'].fill_value == 0
