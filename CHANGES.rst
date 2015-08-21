@@ -457,8 +457,6 @@ Bug fixes
 
 - ``astropy.table``
 
-  - Fix an issue with setting fill value when column dtype is changed. [#4088]
-
 - ``astropy.tests``
 
 - ``astropy.time``
@@ -611,6 +609,8 @@ Bug Fixes
 - ``astropy.table``
 
   - Fix bug when doing outer join on multi-dimensional columns. [#4060]
+
+  - Fix an issue with setting fill value when column dtype is changed. [#4088]
 
 - ``astropy.time``
 
