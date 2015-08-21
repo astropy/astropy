@@ -22,7 +22,7 @@ from numpy.testing import utils
 from .example_models import models_1D, models_2D
 from .. import (fitting, models, LabeledInput, SerialCompositeModel,
                 SummedCompositeModel)
-from ..core import FittableModel, render_model
+from ..core import FittableModel
 from ..polynomial import PolynomialBase
 from ...tests.helper import pytest
 
@@ -213,43 +213,36 @@ def test_custom_model_defaults():
 def test_custom_model_bounding_box():
     """Test bounding box evaluation for a 3D model"""
 
-    def ellipsoid(x, y, z, x0=13., y0=10., z0=8., a=4., b=3., c=2., amp=1.):
+    def ellipsoid(x, y, z, x0=13, y0=10, z0=8, a=4, b=3, c=2, amp=1):
         rsq = ((x - x0) / a) ** 2 + ((y - y0) / b) ** 2 + ((z - z0) / c) ** 2
         val = (rsq < 1) * amp
         return val
 
-    def ellipsoid_bbox(self):
-        return ((self.z0 - self.c, self.z0 + self.c),
-                (self.y0 - self.b, self.y0 + self.b),
-                (self.x0 - self.a, self.x0 + self.a))
-
-    Ellipsoid3D = models.custom_model(ellipsoid)
-    Ellipsoid3D.bounding_box_default = ellipsoid_bbox
+    class Ellipsoid3D(models.custom_model(ellipsoid)):
+        def bounding_box_default(self):
+            return ((self.z0 - self.c, self.z0 + self.c),
+                    (self.y0 - self.b, self.y0 + self.b),
+                    (self.x0 - self.a, self.x0 + self.a))
 
     model = Ellipsoid3D()
-    model.bounding_box = 'auto'
     bbox = model.bounding_box
-    if bbox is None:
-        pytest.skip("Bounding_box is not defined for model.")
 
-    # Check for exact agreement within bounded region
+    assert bbox == model.bounding_box_default()
+
     zlim, ylim, xlim = bbox
-    dx = np.ceil((xlim[1] - xlim[0]) / 2)
-    dy = np.ceil((ylim[1] - ylim[0]) / 2)
-    dz = np.ceil((zlim[1] - zlim[0]) / 2)
-    z0, y0, x0 = np.mean(bbox, axis=1).astype(int)
-    z, y, x = np.mgrid[z0 - dz: z0 + dz + 1, y0 - dy:
-                                y0 + dy + 1, x0 - dx: x0 + dx + 1]
+    dz, dy, dx = np.diff(bbox) / 2
+    z1, y1, x1 = np.mgrid[slice(zlim[0], zlim[1] + 1),
+                          slice(ylim[0], ylim[1] + 1),
+                          slice(xlim[0], xlim[1] + 1)]
+    z2, y2, x2 = np.mgrid[slice(zlim[0] - dz, zlim[1] + dz + 1),
+                          slice(ylim[0] - dy, ylim[1] + dy + 1),
+                          slice(xlim[0] - dx, xlim[1] + dx + 1)]
 
-    expected = model(x, y, z)
-    actual = render_model(model)
+    arr = model(x2, y2, z2)
+    sub_arr = model(x1, y1, z1)
 
-    utils.assert_allclose(actual, expected, rtol=0, atol=0)
-
-    # check result with no bounding box defined
-    model.bounding_box = None
-    actual = render_model(model, coords=[z,y,x])
-    utils.assert_allclose(actual, expected, rtol=0, atol=0)
+    # check for flux agreement
+    assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
 
 
 class Fittable2DModelTester(object):
@@ -297,27 +290,36 @@ class Fittable2DModelTester(object):
 
         model = create_model(model_class, test_parameters)
 
-        bbox = model.bounding_box
-        if bbox is None:
+        # testing setter
+        model.bounding_box = ((-5, 5), (-5, 5))
+        model.bounding_box = None
+        model.bounding_box = 'auto'
+
+        # test the exception of dimensions don't match
+        try:
+            model.bounding_box = (-5, 5)
+        except ValueError:
+            pass
+
+        try :
+            bbox = model.bounding_box
+        except NotImplementedError:
             pytest.skip("Bounding_box is not defined for model.")
 
-        # Check for exact agreement within bounded region
-        xlim, ylim = bbox
-        dx = np.ceil((xlim[1] - xlim[0]) / 2)
-        dy = np.ceil((ylim[1] - ylim[0]) / 2)
-        x0, y0 = np.mean(bbox, axis=1).astype(int)
-        y, x = np.mgrid[y0 - dy: y0 + dy + 1,
-                        x0 - dx: x0 + dx + 1]
+        assert bbox == model.bounding_box_default()
 
-        expected = model(x, y)
-        actual = render_model(model)
+        ylim, xlim = bbox
+        dy, dx = np.diff(bbox)/2
+        y1, x1 = np.mgrid[slice(ylim[0], ylim[1] + 1),
+                          slice(xlim[0], xlim[1] + 1)]
+        y2, x2 = np.mgrid[slice(ylim[0] - dy, ylim[1] + dy + 1),
+                          slice(xlim[0] - dx, xlim[1] + dx + 1)]
 
-        utils.assert_allclose(actual, expected, rtol=0, atol=0)
+        arr = model(x2, y2)
+        sub_arr = model(x1, y1)
 
-        # check result with no bounding box defined
-        model.bounding_box = None
-        actual = render_model(model, coords=[y, x])
-        utils.assert_allclose(actual, expected, rtol=0, atol=0)
+        # check for flux agreement
+        assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fitter2D(self, model_class, test_parameters):
@@ -461,24 +463,33 @@ class Fittable1DModelTester(object):
 
         model = create_model(model_class, test_parameters)
 
-        bbox = model.bounding_box
-        if bbox is None:
+        # testing setter
+        model.bounding_box = (-5, 5)
+        model.bounding_box = None
+        model.bounding_box = 'auto'
+
+        # test exception if dimensions don't match
+        try:
+            model.bounding_box = 5
+        except ValueError:
+            pass
+
+        try:
+            bbox = model.bounding_box
+        except NotImplementedError:
             pytest.skip("Bounding_box is not defined for model.")
 
-        # Check for exact agreement within bounded region
-        dx = np.ceil(np.diff(model.bounding_box)[0] / 2)
-        x0 = int(np.mean(bbox))
-        x = np.mgrid[x0 - dx: x0 + dx + 1]
+        assert bbox == model.bounding_box_default()
 
-        expected = model(x)
-        actual = render_model(model)
+        dx = np.diff(bbox) / 2
+        x1 = np.mgrid[slice(bbox[0], bbox[1] + 1)]
+        x2 = np.mgrid[slice(bbox[0] - dx, bbox[1] + dx + 1)]
 
-        utils.assert_allclose(actual, expected, rtol=0, atol=0)
+        arr = model(x2)
+        sub_arr = model(x1)
 
-        # check result with no bounding box defined
-        model.bounding_box = None
-        actual = render_model(model, coords=x)
-        utils.assert_allclose(actual, expected, rtol=0, atol=0)
+        # check for flux agreement
+        assert abs(arr.sum() - sub_arr.sum()) < arr.sum() * 1e-7
 
     @pytest.mark.skipif('not HAS_SCIPY')
     def test_fitter1D(self, model_class, test_parameters):
