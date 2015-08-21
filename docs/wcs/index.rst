@@ -238,7 +238,7 @@ Matplotlib. More information on installing and using WCSAxes can be found `here
 .. plot::
     :include-source:
 
-    from matplotlib import rcParams, pyplot as plt
+    from matplotlib import pyplot as plt
     from astropy.io import fits
     from astropy.wcs import WCS
     from astropy.utils.data import download_file
