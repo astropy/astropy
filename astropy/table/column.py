@@ -957,8 +957,10 @@ class MaskedColumn(Column, ma.MaskedArray):
 
         # Note: do not set fill_value in the MaskedArray constructor because this does not
         # go through the fill_value workarounds (see _fix_fill_value below).
-        if fill_value is None and hasattr(data, 'fill_value'):
-            fill_value = data.fill_value
+        if fill_value is None and hasattr(data, 'fill_value') and data.fill_value is not None:
+            # Coerce the fill_value to the correct type since `data` may be a
+            # different dtype than self.
+            fill_value = self.dtype.type(data.fill_value)
         self.fill_value = fill_value
 
         self.parent_table = None
@@ -1005,11 +1007,6 @@ class MaskedColumn(Column, ma.MaskedArray):
         #
         # To handle this we are forced to reset a private variable first:
         self._fill_value = None
-
-        # At the end of all workarounds / fixes, coerce the fill value `val`
-        # to the correct dtype.
-        if val is not None:
-            val = self.dtype.type(val)
 
         self.set_fill_value(val)  # defer to native ma.MaskedArray method
 

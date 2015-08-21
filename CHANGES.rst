@@ -457,6 +457,8 @@ Bug fixes
 
 - ``astropy.table``
 
+  - Fix an issue with setting fill value when column dtype is changed. [#4088]
+
 - ``astropy.tests``
 
 - ``astropy.time``

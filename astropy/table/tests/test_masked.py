@@ -406,14 +406,11 @@ def test_coercing_fill_value_type():
     # This is the original example posted on the astropy@scipy mailing list
     t = Table({'a': ['1']}, masked=True)
     t['a'].set_fill_value('0')
-    u = Table(t, names=['a'], dtype=[np.int])
+    t2 = Table(t, names=['a'], dtype=[np.int32])
+    assert isinstance(t2['a'].fill_value, np.int32)
 
-    # Unit test of underlying change where any value that can be coerced into
-    # column dtype is acceptable.
-    t = Table({'a': [1]}, masked=True)
-
-    t['a'].fill_value = '0'
-    assert t['a'].fill_value == 0
-
-    t['a'].fill_value = 0.0
-    assert t['a'].fill_value == 0
+    # Unit test the same thing.
+    c = MaskedColumn(['1'])
+    c.set_fill_value('0')
+    c2 = MaskedColumn(c, dtype=np.int32)
+    assert isinstance(c2.fill_value, np.int32)
