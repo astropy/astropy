@@ -34,7 +34,7 @@ def cirs_to_altaz(cirs_coo, altaz_frame):
     lon, lat, height = altaz_frame.location.to_geodetic('WGS84')
     xp, yp = get_polar_motion(cirs_coo.obstime)
 
-    #first set up the astrometry context for ICRS<->CIRS
+    #first set up the astrometry context for CIRS<->AltAz
     astrom = erfa.apio13(cirs_coo.obstime.jd1, cirs_coo.obstime.jd2,
                          get_dut1utc(cirs_coo.obstime),
                          lon.to(u.radian).value, lat.to(u.radian).value,
