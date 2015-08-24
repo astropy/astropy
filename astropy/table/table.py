@@ -110,6 +110,12 @@ class TableColumns(OrderedDict):
             raise IndexError('Illegal key or index value for {} object'
                              .format(self.__class__.__name__))
 
+    def __setitem__(self, item, value):
+        if item in self:
+            raise ValueError("Cannot replace column '{0}'.  Use Table.replace_column() instead."
+                             .format(item))
+        super(TableColumns, self).__setitem__(item, value)
+
     def __repr__(self):
         names = ("'{0}'".format(x) for x in six.iterkeys(self))
         return "<{1} names=({0})>".format(",".join(names), self.__class__.__name__)
@@ -1433,6 +1439,33 @@ class Table(object):
                 existing_names.add(new_name)
 
         self._init_from_cols(newcols)
+
+    def replace_column(self, name, col):
+        """
+        Replace column `name` with the new `col` object.
+
+        Parameters
+        ----------
+        name : str
+            Name of column to replace
+        col : column object (list, ndarray, Column, etc)
+            New column object to replace the existing column
+
+        Examples
+        --------
+        Create a table with two columns 'a' and 'b'::
+
+            >>> t = Table([[1, 2, 3], [0.1, 0.2, 0.3]], names=('a', 'b'))
+            >>> float_a = t['a'].astype(float)
+            >>> t.replace_column('a', float_a)
+        """
+        if name not in self.colnames:
+            raise ValueError('Column name {0} is not in the table'.format(name))
+
+        cols = OrderedDict(self.columns)
+        cols[name] = col
+        self._init_from_list(data=cols.values(), names=cols.keys(), dtype=[None] * len(cols),
+                             n_cols=len(cols), copy=False)
 
     def remove_row(self, index):
         """
