@@ -9,6 +9,7 @@ import os
 
 import numpy as np
 from ..extern import six
+from ..utils.data_info import DataInfo
 
 __all__ = ['table_info', 'TableInfo']
 
@@ -114,7 +115,7 @@ def table_info(tbl, option='attributes', out=''):
 
     out.writelines(outline + os.linesep for outline in outlines)
 
-class TableInfo(object):
+class TableInfo(DataInfo):
     _parent = None
 
     def __call__(self, option='attributes', out=''):

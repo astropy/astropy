@@ -13,7 +13,7 @@ from ..units import Unit, IrreducibleUnit
 from .. import units as u
 from ..wcs.utils import skycoord_to_pixel, pixel_to_skycoord
 from ..utils.exceptions import AstropyDeprecationWarning
-from ..utils.data_info import InfoDescriptor, MixinInfo
+from ..utils.data_info import MixinInfo
 
 from .distances import Distance
 from .baseframe import BaseCoordinateFrame, frame_transform_graph, GenericFrame, _get_repr_cls
@@ -178,7 +178,7 @@ class SkyCoord(object):
 
     # Declare that SkyCoord can be used as a Table column by defining the
     # info property.
-    info = InfoDescriptor(SkyCoordInfo)
+    info = SkyCoordInfo()
 
 
     def __init__(self, *args, **kwargs):

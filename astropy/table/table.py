@@ -18,7 +18,7 @@ from ..units import Quantity
 from ..utils import OrderedDict, isiterable, deprecated, minversion
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import InfoDescriptor, BaseColumnInfo, MixinInfo, ParentDtypeInfo
+from ..utils.data_info import BaseColumnInfo, MixinInfo, ParentDtypeInfo
 from . import groups
 from .pprint import TableFormatter
 from .column import (BaseColumn, Column, MaskedColumn, _auto_names, FalseArray,
@@ -2178,7 +2178,7 @@ class Table(object):
 
         return cls(out)
 
-    info = InfoDescriptor(TableInfo)
+    info = TableInfo()
 
 
 class QTable(Table):
