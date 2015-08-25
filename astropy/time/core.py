@@ -25,7 +25,7 @@ from ..units import UnitConversionError
 from ..utils.compat.numpycompat import NUMPY_LT_1_7
 from ..utils.compat.odict import OrderedDict
 from ..utils.compat.misc import override__dir__
-from ..utils.data_info import InfoDescriptor, MixinInfo, data_info_factory
+from ..utils.data_info import MixinInfo, data_info_factory
 from ..utils.compat.numpy import broadcast_to
 from ..extern import six
 
@@ -346,7 +346,7 @@ class Time(object):
         dtnow = datetime.utcnow()
         return cls(val=dtnow, format='datetime', scale='utc')
 
-    info = InfoDescriptor(TimeInfo)
+    info = TimeInfo()
 
     @property
     def format(self):

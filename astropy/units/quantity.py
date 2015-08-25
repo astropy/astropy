@@ -22,7 +22,7 @@ from .format.latex import Latex
 from ..utils.compat import NUMPY_LT_1_7, NUMPY_LT_1_8, NUMPY_LT_1_9
 from ..utils.compat.misc import override__dir__
 from ..utils.misc import isiterable, InheritDocstrings
-from ..utils.data_info import InfoDescriptor, ParentDtypeInfo
+from ..utils.data_info import ParentDtypeInfo
 from .utils import validate_power
 from .. import config as _config
 
@@ -274,7 +274,7 @@ class Quantity(np.ndarray):
         self._unit = getattr(obj, '_unit', None)
 
         # Copy info if the original had `info` defined.  Because of the way the
-        # InfoDescriptor works, `'info' in obj.__dict__` is False until the
+        # DataInfo works, `'info' in obj.__dict__` is False until the
         # `info` attribute is accessed or set.  Note that `obj` can be an
         # ndarray which doesn't have a `__dict__`.
         if 'info' in getattr(obj, '__dict__', ()):
@@ -625,7 +625,7 @@ class Quantity(np.ndarray):
             self.unit.to(unit, self.value, equivalencies=equivalencies))
         return self._new_view(new_val, unit)
 
-    info = InfoDescriptor(QuantityInfo)
+    info = QuantityInfo()
 
     @property
     def value(self):

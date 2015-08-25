@@ -14,7 +14,7 @@ from ..units import Unit, Quantity
 from ..utils.compat import NUMPY_LT_1_8
 from ..utils.console import color_print
 from ..utils.metadata import MetaData
-from ..utils.data_info import BaseColumnInfo, InfoDescriptor, dtype_info_name
+from ..utils.data_info import BaseColumnInfo, dtype_info_name
 from . import groups
 from . import pprint
 from .np_utils import fix_column_name
@@ -216,7 +216,7 @@ class BaseColumn(np.ndarray):
         else:
             self._parent_table = weakref.ref(table)
 
-    info = InfoDescriptor(ColumnInfo)
+    info = ColumnInfo()
 
     def copy(self, order='C', data=None, copy_data=True):
         """

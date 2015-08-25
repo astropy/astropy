@@ -9,6 +9,7 @@ import os
 
 import numpy as np
 from ..extern import six
+from ..utils.data_info import DataInfo
 
 __all__ = ['table_info', 'TableInfo']
 
@@ -114,15 +115,10 @@ def table_info(tbl, option='attributes', out=''):
 
     out.writelines(outline + os.linesep for outline in outlines)
 
-class TableInfo(object):
+class TableInfo(DataInfo):
     _parent = None
 
     def __call__(self, option='attributes', out=''):
         return table_info(self._parent, option, out)
 
     __call__.__doc__ = table_info.__doc__
-
-    def __repr__(self):
-        out = six.moves.cStringIO()
-        self.__call__(out=out)
-        return out.getvalue()
