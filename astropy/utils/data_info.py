@@ -356,6 +356,9 @@ class DataInfo(object):
                 out.write('{0} = {1}'.format(key, val) + os.linesep)
 
     def __repr__(self):
+        if self._parent is None:
+            return super(DataInfo, self).__repr__()
+
         out = six.moves.cStringIO()
         self.__call__(out=out)
         return out.getvalue()

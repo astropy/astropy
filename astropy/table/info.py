@@ -122,8 +122,3 @@ class TableInfo(DataInfo):
         return table_info(self._parent, option, out)
 
     __call__.__doc__ = table_info.__doc__
-
-    def __repr__(self):
-        out = six.moves.cStringIO()
-        self.__call__(out=out)
-        return out.getvalue()
