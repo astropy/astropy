@@ -2239,7 +2239,7 @@ class NdarrayMixin(np.ndarray):
     """
     Minimal mixin using a simple subclass of numpy array
     """
-    info = InfoDescriptor(ParentDtypeInfo)
+    info = ParentDtypeInfo()
 
     def __new__(cls, obj, *args, **kwargs):
         self = np.array(obj, *args, **kwargs).view(cls)

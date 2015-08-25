@@ -9,8 +9,8 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import sys
-from copy import deepcopy
 import weakref
+from copy import deepcopy
 import numpy as np
 from functools import partial
 import warnings
@@ -133,11 +133,11 @@ def _get_data_attribute(dat, attr=None):
     return str(val)
 
 
-class InfoDescriptor(object):
+class DataInfo(object):
     """
     Descriptor that data classes use to add an ``info`` attribute for storing
     data attributes in a uniform and portable way.  Note that it *must* be
-    called ``info`` so that the ``info_cls()`` object can be stored in the
+    called ``info`` so that the DataInfo() object can be stored in the
     ``instance`` using the ``info`` key.  Because owner_cls.x is a descriptor,
     Python doesn't use __dict__['x'] normally, and the descriptor can safely
     store stuff there.  Thanks to http://nbviewer.ipython.org/urls/
@@ -146,30 +146,10 @@ class InfoDescriptor(object):
 
     Parameters
     ----------
-    info_cls : class
-        Class reference for the DataInfo subclass that actually stores info
+    bound : bool, default=False
+        If True this is a descriptor attribute in a class definition, else it
+        is a DataInfo() object that is bound to a data object instance.
     """
-    def __init__(self, info_cls):
-        self.info_cls = info_cls
-
-    def __get__(self, instance, owner_cls):
-        if 'info' not in instance.__dict__:
-            instance.__dict__['info'] = self.info_cls()
-        instance.__dict__['info']._parent = instance
-        return instance.__dict__['info']
-
-    def __set__(self, instance, value):
-        if isinstance(value, DataInfo):
-            info = instance.__dict__['info'] = self.info_cls()
-            for attr in info.attr_names - info.attrs_from_parent - info._attrs_no_copy:
-                info._attrs[attr] = deepcopy(getattr(value, attr))
-
-        else:
-            raise TypeError('info must be set with a DataInfo instance')
-
-
-class DataInfo(object):
-
     _stats = ['mean', 'std', 'min', 'max']
     attrs_from_parent = set()
     attr_names = set(['name', 'unit', 'dtype', 'format', 'description', 'meta'])
@@ -177,8 +157,35 @@ class DataInfo(object):
     _info_summary_attrs = ('dtype', 'shape', 'unit', 'format', 'description', 'class')
     _parent = None
 
-    def __init__(self):
-        self._attrs = dict((attr, None) for attr in self.attr_names)
+    def __init__(self, bound=False):
+        # If bound to a data object instance then create the dict of attributes
+        # which stores the info attribute values.
+        if bound:
+            self._attrs = dict((attr, None) for attr in self.attr_names)
+
+    def __get__(self, instance, owner_cls):
+        if instance is None:
+            # This is an unbound descriptor on the class
+            info = self
+        else:
+            info = instance.__dict__.get('info')
+            if info is None:
+                info = instance.__dict__['info'] = self.__class__(bound=True)
+            info._parent = instance
+        return info
+
+    def __set__(self, instance, value):
+        if instance is None:
+            # This is an unbound descriptor on the class
+            raise ValueError('cannot set unbound descriptor')
+
+        if isinstance(value, DataInfo):
+            info = instance.__dict__['info'] = self.__class__(bound=True)
+            for attr in info.attr_names - info.attrs_from_parent - info._attrs_no_copy:
+                info._attrs[attr] = deepcopy(getattr(value, attr))
+
+        else:
+            raise TypeError('info must be set with a DataInfo instance')
 
     def __getstate__(self):
         return self._attrs
