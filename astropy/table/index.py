@@ -68,7 +68,7 @@ class Index(object):
         return SlicedIndex(self, slice(0, 0, None), original=True)
 
     def __init__(self, columns, engine=None):
-        from .table import Table
+        from .table import Table, Column
 
         if engine is not None and not isinstance(engine, type):
             # create from data
@@ -86,6 +86,10 @@ class Index(object):
             row_index = []
         elif len(columns) == 0:
             raise ValueError("Cannot create index without at least one column")
+        elif len(columns) == 1:
+            col = columns[0]
+            row_index = Column(col.argsort())
+            data = Table([col[row_index]])
         else:
             num_rows = len(columns[0])
 
@@ -100,7 +104,7 @@ class Index(object):
                     new_columns.append(col)
 
             # sort the table lexicographically and keep row numbers
-            table = Table(columns + [np.arange(num_rows)])
+            table = Table(columns + [np.arange(num_rows)], copy_indices=False)
             sort_columns = new_columns[::-1]
             try:
                 lines = table[np.lexsort(sort_columns)]
@@ -569,6 +573,25 @@ class SlicedIndex(object):
     def col_position(self, col_name):
         return self.index.col_position(col_name)
 
+    def get_slice(self, col_slice, item):
+        '''
+        Return a newly created index from the given slice.
+
+        Parameters
+        ----------
+        col_slice : Column object
+            Already existing slice of a single column
+        item : list or ndarray
+            Slice for retrieval
+        '''
+        from .table import Table
+        if len(self.columns) == 1:
+            return Index([col_slice], engine=self.data.__class__)
+        t = Table(self.columns, copy_indices=False)
+        with t.index_mode('discard_on_copy'):
+            new_cols = t[item].columns.values()
+        return Index(new_cols, engine=self.data.__class__)
+
     @property
     def columns(self):
         return self.index.columns
@@ -745,6 +768,7 @@ class TableLoc(object):
             an index to use instead of the primary key, and the
             second element must be as above.
         '''
+
         if isinstance(item, tuple):
             key, item = item
         else:
@@ -766,6 +790,9 @@ class TableLoc(object):
             rows = []
             for key in item:
                 rows.extend(index.find((key,)))
+
+        if len(rows) == 0: # no matches found
+            raise KeyError('No matches found for key {0}'.format(item))
 
         return self.table[rows]
 

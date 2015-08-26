@@ -88,7 +88,7 @@ column values (*including* the bounds), or a list or ndarray of column values::
 
 Note that by default, `~astropy.table.Table.loc` uses the primary index, which here is column
 'a'. To use a different index, pass the indexed column name before the
-retrieval data ::
+retrieval data::
 
    >>> t.add_index('b')
    >>> t.loc['b', 8:10]
@@ -146,19 +146,19 @@ context ends::
   >>> with t.index_mode('freeze'):
   ...    t['a'][0] = 0
   ...    print(t.indices['a']) # unmodified
-  col0 rows
-  ---- ----
-     1    0
-     2    1
-     3    2
-     4    3
+   a  rows
+  --- ----
+    1    0
+    2    1
+    3    2
+    4    3
   >>> print(t.indices['a']) # modified
-  col0 rows
-  ---- ----
-     0    0
-     2    1
-     3    2
-     4    3
+   a  rows
+  --- ----
+    0    0
+    2    1
+    3    2
+    4    3
 
 The *copy_on_getitem* mode forces columns to copy and relabel their indices upon
 slicing. In the absence of this mode, table slices will preserve
@@ -168,22 +168,28 @@ indices while column slices will not::
   []
   >>> with t.index_mode('copy_on_getitem'):
   ...    print(t['a'][[1, 3]].info.indices)
-  [col0 rows
-  ---- ----
-     2    0
-     4    1]
+  [ a  rows
+  --- ----
+    2    0
+    4    1]
 
 The *discard_on_copy* mode prevents indices from being copied whenever a column
 or table is copied::
 
   >>> t2 = Table(t)
   >>> t2.indices
-  [col0 rows
-  ---- ----
-     0    0
-     2    1
-     3    2
-     4    3]
+  [ a  rows
+  --- ----
+    0    0
+    2    1
+    3    2
+    4    3,
+   b  rows
+  --- ----
+    1    1
+    9    2
+    9    3
+   10    0]
   >>> with t.index_mode('discard_on_copy'):
   ...    t2 = Table(t)
   ...    print(t2.indices)
