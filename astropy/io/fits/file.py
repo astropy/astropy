@@ -100,6 +100,9 @@ class _File(object):
         else:
             self.simulateonly = False
 
+        # Holds Memmap instance for files that use mmap
+        self._memmap = None
+
         if mode is None:
             if _is_random_access_file_backed(fileobj):
                 fmode = fileobj_mode(fileobj)
@@ -229,8 +232,17 @@ class _File(object):
         if isinstance(shape, int):
             shape = (shape,)
 
+        if not (size or shape):
+            warnings.warn('No size or shape given to readarray(); assuming a '
+                          'shape of (1,)', AstropyUserWarning)
+            shape = (1,)
+
+        if size and not shape:
+            shape = (size // dtype.itemsize,)
+
         if size and shape:
-            actualsize = sum(dim * dtype.itemsize for dim in shape)
+            actualsize = np.prod(shape) * dtype.itemsize
+
             if actualsize < size:
                 raise ValueError('size %d is too few bytes for a %s array of '
                                  '%s' % (size, shape, dtype))
@@ -238,18 +250,17 @@ class _File(object):
                 raise ValueError('size %d is too many bytes for a %s array of '
                                  '%s' % (size, shape, dtype))
 
-        if size and not shape:
-            shape = (size // dtype.itemsize,)
-
-        if not (size or shape):
-            warnings.warn('No size or shape given to readarray(); assuming a '
-                          'shape of (1,)', AstropyUserWarning)
-            shape = (1,)
-
         if self.memmap:
-            return Memmap(self._file, offset=offset,
-                          mode=MEMMAP_MODES[self.mode], dtype=dtype,
-                          shape=shape).view(np.ndarray)
+            if self._memmap is None:
+                # Instantiate Memmap array of the file offset at 0
+                # (so we can return slices of it to offset anywhere else into
+                # the file)
+                self._memmap = Memmap(self._file,
+                                      mode=MEMMAP_MODES[self.mode],
+                                      dtype=np.uint8)
+
+            return np.ndarray(shape=shape, dtype=dtype, offset=offset,
+                              buffer=self._memmap.base)
         else:
             count = reduce(lambda x, y: x * y, shape)
             pos = self._file.tell()
