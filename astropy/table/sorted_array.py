@@ -4,6 +4,28 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from ..time import Time
 
+def _searchsorted(array, val, side='left'):
+    '''
+    Call np.searchsorted or use a custom binary
+    search if necessary.
+    '''
+    if hasattr(array, 'searchsorted'):
+        return array.searchsorted(val, side=side)
+    # Python binary search
+    begin = 0
+    end = len(array)
+    while begin < end:
+        mid = (begin + end) // 2
+        if val > array[mid]:
+            begin = mid + 1
+        elif val < array[mid]:
+            end = mid
+        elif side == 'right':
+            begin = mid + 1
+        else:
+            end = mid
+    return begin
+
 class SortedArray(object):
     '''
     Implements a sorted array container using
@@ -11,7 +33,7 @@ class SortedArray(object):
 
     Parameters
     ----------
-    data : `Table`
+    data : Table
         Sorted columns of the original table
     row_index : Column object
         Row numbers corresponding to data columns
@@ -50,28 +72,6 @@ class SortedArray(object):
         else:
             return self.row_index[begin:end]
 
-    def _searchsorted(self, array, val, side='left'):
-        '''
-        Call np.searchsorted or use a custom binary
-        search if necessary.
-        '''
-        if hasattr(array, 'searchsorted'):
-            return array.searchsorted(val, side=side)
-        # Python binary search
-        begin = 0
-        end = len(array)
-        while begin < end:
-            mid = (begin + end) // 2
-            if val > array[mid]:
-                begin = mid + 1
-            elif val < array[mid]:
-                end = mid
-            elif side == 'right':
-                begin = mid + 1
-            else:
-                end = mid
-        return begin
-
     def find_pos(self, key, data, exact=False):
         '''
         Return the index of the largest key in data greater than or
@@ -94,7 +94,7 @@ class SortedArray(object):
         # search through keys in lexicographic order
         for i in range(self.num_cols + 1):
             key_slice = self._get_key_slice(i, begin, end)
-            t = self._searchsorted(key_slice, key[i])
+            t = _searchsorted(key_slice, key[i])
             # t is the smallest index >= key[i]
             if exact and (t == len(key_slice) or key_slice[t] != key[i]):
                 # no match
@@ -103,7 +103,7 @@ class SortedArray(object):
                                          key[i] < key_slice[0]):
                 # too small or too large
                 return begin + t
-            end = begin + self._searchsorted(key_slice, key[i], side='right')
+            end = begin + _searchsorted(key_slice, key[i], side='right')
             begin += t
             if begin >= len(self.row_index): # greater than all keys
                 return begin
@@ -130,7 +130,7 @@ class SortedArray(object):
         # search through keys in lexicographic order
         for i in range(self.num_cols):
             key_slice = self._get_key_slice(i, begin, end)
-            t = self._searchsorted(key_slice, key[i])
+            t = _searchsorted(key_slice, key[i])
             # t is the smallest index >= key[i]
             if t == len(key_slice) or key_slice[t] != key[i]:
                 # no match
@@ -138,7 +138,7 @@ class SortedArray(object):
             elif t == 0 and len(key_slice) > 0 and key[i] < key_slice[0]:
                 # too small or too large
                 return []
-            end = begin + self._searchsorted(key_slice, key[i], side='right')
+            end = begin + _searchsorted(key_slice, key[i], side='right')
             begin += t
             if begin >= len(self.row_index): # greater than all keys
                 return []

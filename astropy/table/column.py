@@ -331,7 +331,7 @@ class BaseColumn(np.ndarray):
 
         col_slice = super(BaseColumn, self).__getitem__(item)
         if isinstance(col_slice, BaseColumn):
-            col_slice = self.info.slice_indices(col_slice, item)
+            col_slice = self.info.slice_indices(col_slice, item, len(self))
         return col_slice
 
 
@@ -1139,7 +1139,7 @@ class MaskedColumn(Column, ma.MaskedArray):
 
         return out
 
-    def copy_attribs(self, out):
+    def _copy_attrs_slice(self, out):
         # Fixes issue #3023: when calling getitem with a MaskedArray subclass
         # the original object attributes are not copied.
         if out.__class__ is self.__class__:
@@ -1152,7 +1152,7 @@ class MaskedColumn(Column, ma.MaskedArray):
 
     def __getitem__(self, item):
         out = super(MaskedColumn, self).__getitem__(item)
-        return self.copy_attribs(out)
+        return self._copy_attrs_slice(out)
 
     def get_item(self, item):
         '''
@@ -1164,7 +1164,7 @@ class MaskedColumn(Column, ma.MaskedArray):
             Element of column to retrieve
         '''
         out = super(MaskedColumn, self).get_item(item)
-        return self.copy_attribs(out)
+        return self._copy_attrs_slice(out)
 
     # Set items and slices using MaskedArray method, instead of falling through
     # to the (faster) Column version which uses an ndarray view.  This doesn't

@@ -430,7 +430,7 @@ class BaseColumnInfo(DataInfo):
             for col_index in self.indices:
                 col_index.replace(key, self.name, val)
 
-    def slice_indices(self, col_slice, item):
+    def slice_indices(self, col_slice, item, col_len):
         '''
         Given a sliced object, modify its indices
         to correctly represent the slice.
@@ -441,7 +441,11 @@ class BaseColumnInfo(DataInfo):
             Sliced object
         item : slice, list, or ndarray
             Slice used to create col_slice
+        col_len : int
+            Length of original object
         '''
+        from ..table.index import Index
+        from ..table.sorted_array import SortedArray
         if not getattr(self, '_copy_indices', True):
             # Necessary because MaskedArray will perform a shallow copy
             col_slice.info.indices = []
@@ -449,12 +453,23 @@ class BaseColumnInfo(DataInfo):
         elif isinstance(item, slice):
             col_slice.info.indices = [x[item] for x in self.indices]
         elif self.indices:
-            col_slice.info.indices = deepcopy(self.indices)
             if isinstance(item, np.ndarray) and item.dtype.kind == 'b':
                 # boolean mask
                 item = np.where(item)[0]
-            for index in col_slice.info.indices:
-                index.replace_rows(item)
+            threshold = 0.6
+            # Empirical testing suggests that recreating a BST/RBT index is
+            # more effective than relabelling when less than ~60% of
+            # the total number of rows are involved, and is in general
+            # more effective for SortedArray.
+            small = len(item) <= 0.6 * col_len
+            col_slice.info.indices = []
+            for index in self.indices:
+                if small or isinstance(index, SortedArray):
+                    new_index = index.get_slice(col_slice, item)
+                else:
+                    new_index = deepcopy(index)
+                    new_index.replace_rows(item)
+                col_slice.info.indices.append(new_index)
 
         return col_slice
 

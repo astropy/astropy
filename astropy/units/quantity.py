@@ -906,7 +906,7 @@ class Quantity(np.ndarray):
             out = self._new_view(out)
         # adjust indices of slice as necessary
         if not out.isscalar and out.info.indices:
-            out = self.info.slice_indices(out, key)
+            out = self.info.slice_indices(out, key, len(self))
         return out
 
     def __setitem__(self, i, value):

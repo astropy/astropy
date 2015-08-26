@@ -162,6 +162,8 @@ class Table(object):
         Copy the input data (default=True).
     rows : numpy ndarray, list of lists, optional
         Row-oriented data for table instead of ``data`` argument
+    copy_indices : bool, optional
+        Copy any indices in the input data (default=True)
     """
 
     meta = MetaData()
@@ -708,6 +710,7 @@ class Table(object):
 
         for col in cols:
             col.info._copy_indices = self._copy_indices
+
         newcols = [self._get_slice(col, slice_) for col in cols]
         for col in cols:
             col.info._copy_indices = True

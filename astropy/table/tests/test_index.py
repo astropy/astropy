@@ -398,3 +398,12 @@ class TestIndex(SetupData):
 
         for t2 in (t.loc[:], t.iloc[:]):
             assert_col_equal(t2['a'], [1, 2, 3, 4, 5])
+
+    def test_invalid_search(self, main_col, table_types, engine):
+        # using .loc with a value not present should raise an exception
+        self._setup(main_col, table_types)
+        t = self.t
+
+        t.add_index('a')
+        with pytest.raises(KeyError):
+            t.loc[self.make_val(6)]
