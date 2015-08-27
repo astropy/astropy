@@ -4,6 +4,7 @@ from __future__ import division, with_statement
 
 import mmap
 import os
+import sys
 import tempfile
 import warnings
 import zipfile
@@ -21,6 +22,7 @@ from ...extern.six import b, string_types
 from ...extern.six.moves import urllib
 from ...utils.compat import gzip
 from ...utils.data import download_file, _is_url
+from ...utils.decorators import classproperty
 from ...utils.exceptions import AstropyUserWarning
 
 
@@ -78,9 +80,6 @@ class _File(object):
     Represents a FITS file on disk (or in some other file-like object).
     """
 
-    # See self._test_mmap
-    _mmap_available = None
-
     def __init__(self, fileobj=None, mode=None, memmap=None, clobber=False,
                  cache=True):
         self.strict_memmap = bool(memmap)
@@ -99,6 +98,9 @@ class _File(object):
             return
         else:
             self.simulateonly = False
+
+        # Holds mmap instance for files that use mmap
+        self._mmap = None
 
         if mode is None:
             if _is_random_access_file_backed(fileobj):
@@ -173,7 +175,7 @@ class _File(object):
         if self.memmap:
             if not isfile(self._file):
                 self.memmap = False
-            elif not self.readonly and not self._test_mmap():
+            elif not self.readonly and not self._mmap_available:
                 # Test mmap.flush--see
                 # https://github.com/astropy/astropy/issues/968
                 self.memmap = False
@@ -229,8 +231,17 @@ class _File(object):
         if isinstance(shape, int):
             shape = (shape,)
 
+        if not (size or shape):
+            warnings.warn('No size or shape given to readarray(); assuming a '
+                          'shape of (1,)', AstropyUserWarning)
+            shape = (1,)
+
+        if size and not shape:
+            shape = (size // dtype.itemsize,)
+
         if size and shape:
-            actualsize = sum(dim * dtype.itemsize for dim in shape)
+            actualsize = np.prod(shape) * dtype.itemsize
+
             if actualsize < size:
                 raise ValueError('size %d is too few bytes for a %s array of '
                                  '%s' % (size, shape, dtype))
@@ -238,18 +249,29 @@ class _File(object):
                 raise ValueError('size %d is too many bytes for a %s array of '
                                  '%s' % (size, shape, dtype))
 
-        if size and not shape:
-            shape = (size // dtype.itemsize,)
-
-        if not (size or shape):
-            warnings.warn('No size or shape given to readarray(); assuming a '
-                          'shape of (1,)', AstropyUserWarning)
-            shape = (1,)
-
         if self.memmap:
-            return Memmap(self._file, offset=offset,
-                          mode=MEMMAP_MODES[self.mode], dtype=dtype,
-                          shape=shape).view(np.ndarray)
+            if self._mmap is None:
+                # Instantiate Memmap array of the file offset at 0
+                # (so we can return slices of it to offset anywhere else into
+                # the file)
+                memmap = Memmap(self._file,
+                                mode=MEMMAP_MODES[self.mode],
+                                dtype=np.uint8)
+
+                # Now we immediately discard the memmap array; we are really
+                # just using it as a factory function to instantiate the mmap
+                # object in a convenient way (may later do away with this
+                # usage)
+                self._mmap = memmap.base
+
+                # Prevent dorking with self._memmap._mmap by memmap.__del__ in
+                # Numpy 1.6 (see
+                # https://github.com/numpy/numpy/commit/dcc355a0b179387eeba10c95baf2e1eb21d417c7)
+                memmap._mmap = None
+                del memmap
+
+            return np.ndarray(shape=shape, dtype=dtype, offset=offset,
+                              buffer=self._mmap)
         else:
             count = reduce(lambda x, y: x * y, shape)
             pos = self._file.tell()
@@ -322,7 +344,26 @@ class _File(object):
         if hasattr(self._file, 'close'):
             self._file.close()
 
+        self._maybe_close_mmap()
+        # Set self._memmap to None anyways since no new .data attributes can be
+        # loaded after the file is closed
+        self._mmap = None
+
         self.closed = True
+
+    def _maybe_close_mmap(self, refcount_delta=0):
+        """
+        When mmap is in use these objects hold a reference to the mmap of the
+        file (so there is only one, shared by all HDUs that reference this
+        file).
+
+        This will close the mmap if there are no arrays referencing it.
+        """
+
+        if (self._mmap is not None and
+                sys.getrefcount(self._mmap) == 2 + refcount_delta):
+            self._mmap.close()
+            self._mmap = None
 
     def _overwrite_existing(self, clobber, fileobj, closed):
         """Overwrite an existing file if ``clobber`` is ``True``, otherwise
@@ -459,7 +500,8 @@ class _File(object):
         else:
             self._file.seek(0)
 
-    def _test_mmap(self):
+    @classproperty(lazy=True)
+    def _mmap_available(cls):
         """Tests that mmap, and specifically mmap.flush works.  This may
         be the case on some uncommon platforms (see
         https://github.com/astropy/astropy/issues/968).
@@ -467,9 +509,6 @@ class _File(object):
         If mmap.flush is found not to work, ``self.memmap = False`` is
         set and a warning is issued.
         """
-
-        if self._mmap_available is not None:
-            return self._mmap_available
 
         tmpfd, tmpname = tempfile.mkstemp()
         try:
@@ -481,7 +520,6 @@ class _File(object):
             except mmap.error as e:
                 warnings.warn('Failed to create mmap: %s; mmap use will be '
                               'disabled' % str(e), AstropyUserWarning)
-                _File._mmap_available = False
                 del exc
                 return False
             try:
@@ -490,7 +528,6 @@ class _File(object):
                 warnings.warn('mmap.flush is unavailable on this platform; '
                               'using mmap in writeable mode will be disabled',
                               AstropyUserWarning)
-                _File._mmap_available = False
                 return False
             finally:
                 mm.close()
@@ -498,7 +535,6 @@ class _File(object):
             os.close(tmpfd)
             os.remove(tmpname)
 
-        _File._mmap_available = True
         return True
 
     def _open_zipfile(self, fileobj, mode):

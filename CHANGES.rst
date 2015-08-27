@@ -592,6 +592,16 @@ Bug Fixes
   - Fix bug when extending one header (without comments) with another
     (with comments). [#3967]
 
+  - Somewhat improved resource usage for FITS data--previously a new ``mmap``
+    was opened for each HDU of a FITS file accessed through an ``HDUList``.
+    Each ``mmap`` used up a single file descriptor, causing problems with
+    system resource limits for some users.  Now only a single ``mmap`` is
+    opened, and shared for the data of all HDUs.  Note: The problem still
+    persists with using the "convenience" functions.  For example using
+    ``fits.getdata`` will create one ``mmap`` per HDU read this way (as
+    opposed to opening the file with ``fits.open`` and accessing the HDUs
+    through the ``HDUList`` object). [#4097]
+
 - ``astropy.io.misc``
 
 - ``astropy.io.registry``
