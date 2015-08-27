@@ -54,19 +54,19 @@ def _sigma_clip(data, sigma=3, sigma_lower=None, sigma_upper=None, iters=5,
     sigma : float, optional
         The number of standard deviations to use for both the lower and
         upper clipping limit. These limits are overridden by
-        ``sigma_lower`` and ``sigma_upper``, if input.
+        ``sigma_lower`` and ``sigma_upper``, if input. Defaults to 3.
     sigma_lower : float or `None`, optional
         The number of standard deviations to use as the lower bound for
         the clipping limit. If `None` then the value of ``sigma`` is
-        used.
+        used. Defaults to `None`.
     sigma_upper : float or `None`, optional
         The number of standard deviations to use as the upper bound for
         the clipping limit. If `None` then the value of ``sigma`` is
-        used.
+        used. Defaults to `None`.
     iters : int or `None`, optional
         The number of iterations to perform sigma clipping, or `None` to
         clip until convergence is achieved (i.e., continue until the
-        last iteration clips nothing).
+        last iteration clips nothing). Defaults to 5.
     cenfunc : callable, optional
         The function used to compute the center for the clipping. Must
         be a callable that takes in a masked array and outputs the
@@ -240,21 +240,23 @@ def sigma_clipped_stats(data, mask=None, mask_value=None, sigma=3.0,
     sigma : float, optional
         The number of standard deviations to use as the lower and upper
         clipping limit.  These limits are overridden by ``sigma_lower``
-        and ``sigma_upper``, if input.
+        and ``sigma_upper``, if input. Defaults to 3.
 
     sigma_lower : float, optional
         The number of standard deviations to use as the lower bound for
         the clipping limit.  If `None` then the value of ``sigma`` is used.
+        Defaults to `None`.
 
     sigma_upper : float, optional
         The number of standard deviations to use as the upper bound for
         the clipping limit.  If `None` then the value of ``sigma`` is used.
+        Defaults to `None`.
 
     iters : int, optional
         The number of iterations to perform sigma clipping, or `None` to
         clip until convergence is achieved (i.e., continue until the
         last iteration clips nothing) when calculating the image
-        statistics.
+        statistics. Defaults to 5.
 
     cenfunc : callable, optional
         The function used to compute the center for the clipping. Must
