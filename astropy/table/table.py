@@ -357,10 +357,6 @@ class Table(object):
         if type(self.masked) != bool:
             raise TypeError("masked property has not been set to True or False")
 
-        # refresh indices
-        for index in self.indices:
-            index.refresh(self.columns)
-
     def __getstate__(self):
         return (self.columns.values(), self.meta)
 
@@ -716,11 +712,6 @@ class Table(object):
             col.info._copy_indices = True
 
         self._make_table_from_cols(table, newcols)
-
-        if not isinstance(slice_, slice): # list, boolean mask, etc.
-            for index in table.indices:
-                # this doesn't happen in Table initialization
-                index.refresh(table.columns)
         return table
 
     @staticmethod

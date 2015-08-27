@@ -67,6 +67,8 @@ def col_copy(col, copy_indices=True):
         newcol = col.copy() if hasattr(col, 'copy') else deepcopy(col)
         newcol.info = col.info
         newcol.info.indices = deepcopy(indices or []) if copy_indices else []
+        for index in newcol.info.indices:
+            index.replace_col(col, newcol)
     finally:
         col.info.parent_table = parent_table
         col.info.indices = indices
@@ -181,8 +183,11 @@ class BaseColumn(np.ndarray):
         self._parent_table = None
         self.indices = deepcopy(getattr(data, 'indices', [])) if \
                        copy_indices else []
+        for index in self.indices:
+            index.replace_col(data, self)
   
         return self
+
 
     @classmethod
     def _get_nd_proxy_class(cls, data):
@@ -1006,6 +1011,10 @@ class MaskedColumn(Column, ma.MaskedArray):
 
         self.parent_table = None
 
+        # needs to be done here since self doesn't come from BaseColumn.__new__
+        for index in self.indices:
+            index.replace_col(self_data, self)
+
         return self
 
     def _fix_fill_value(self, val):
@@ -1163,8 +1172,10 @@ class MaskedColumn(Column, ma.MaskedArray):
         item : int, slice, list, or ndarray
             Element of column to retrieve
         '''
-        out = super(MaskedColumn, self).get_item(item)
-        return self._copy_attrs_slice(out)
+        col_slice = self[item]
+        if isinstance(col_slice, BaseColumn):
+            col_slice = self.info.slice_indices(col_slice, item, len(self))
+        return col_slice
 
     # Set items and slices using MaskedArray method, instead of falling through
     # to the (faster) Column version which uses an ndarray view.  This doesn't
