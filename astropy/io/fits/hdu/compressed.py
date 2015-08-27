@@ -1428,7 +1428,10 @@ class CompImageHDU(BinTableHDU):
         # data) from the file, if there is any.
         compressed_data = super(BinTableHDU, self).data
         if isinstance(compressed_data, np.rec.recarray):
-            del self.data
+            # Make sure not to use 'del self.data' so we don't accidentally
+            # go through the self.data.fdel and close the mmap underlying
+            # the compressed_data array
+            del self.__dict__['data']
             return compressed_data
         else:
             # This will actually set self.compressed_data with the
