@@ -448,7 +448,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
 
 def poisson_conf_interval(n, interval='root-n', sigma=1):
     r"""Poisson parameter confidence interval given observed counts
-    
+
     Parameters
     ----------
     n : int or numpy.ndarray
@@ -459,7 +459,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     sigma : float
         Number of sigma for confidence interval; only supported for
         the 'frequentist-confidence' mode.
-    
+
 
     Returns
     -------
@@ -495,7 +495,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
 
     **2. 'root-n-0'** This is identical to the above except that where
     n is zero the interval returned is (0,1).
-        
+
     **3. 'pearson'** This is an only-slightly-more-complicated rule
     based on Pearson's chi-squared rule (as [explained][pois_eb] by
     the CDF working group). It also has the nice feature that
@@ -570,7 +570,7 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
            [  4.8074176 ,  10.1925824 ],
            [  5.62771868,  11.37228132],
            [  6.45861873,  12.54138127]])
-    
+
     >>> poisson_conf_interval(np.arange(10),
     ...                       interval='frequentist-confidence').T
     array([[  0.        ,   1.84102165],
@@ -587,19 +587,19 @@ def poisson_conf_interval(n, interval='root-n', sigma=1):
     >>> poisson_conf_interval(7,
     ...                       interval='frequentist-confidence').T
     array([  4.41852954,  10.77028072])
-                   
+
     [pois_eb]: http://www-cdf.fnal.gov/physics/statistics/notes/pois_eb.txt
-    
+
     [ErrorBars]: http://www.pp.rhul.ac.uk/~cowan/atlas/ErrorBars.pdf
-    
+
     [ac12]: http://adsabs.harvard.edu/abs/2012EPJP..127...24A
-    
+
     [maxw11]: http://adsabs.harvard.edu/abs/2011arXiv1102.0822M
-    
+
     [gehrels86]: http://adsabs.harvard.edu/abs/1986ApJ...303..336G
 
     [sherpa_gehrels]: http://cxc.harvard.edu/sherpa4.4/statistics/#chigehrels
-    
+
     """
 
     if not np.isscalar(n):

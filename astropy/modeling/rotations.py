@@ -36,7 +36,7 @@ class EulerAngleRotation(Model):
     Implements Euler angle intrinsic rotations.
 
     Rotates one coordinate system into another (fixed) coordinate system.
-    All coordinate systems are right-handed. The sign of the angles is 
+    All coordinate systems are right-handed. The sign of the angles is
     determined by the right-hand rule..
 
     Parameters

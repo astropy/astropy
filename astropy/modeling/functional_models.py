@@ -96,14 +96,14 @@ class Gaussian1D(Fittable1DModel):
 
     def bounding_box_default(self, factor=5.5):
         """
-        Tuple defining the default ``bounding_box`` limits, 
+        Tuple defining the default ``bounding_box`` limits,
         ``(x_low, x_high)``
 
         Parameters
         ----------
         factor : float
-            The multiple of `stddev` used to define the limits. 
-            The default is 5.5-sigma, corresponding to a relative error < 1e-7. 
+            The multiple of `stddev` used to define the limits.
+            The default is 5.5-sigma, corresponding to a relative error < 1e-7.
 
         Examples
         --------
@@ -112,7 +112,7 @@ class Gaussian1D(Fittable1DModel):
         >>> model.bounding_box
         (-11.0, 11.0)
 
-        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by 
+        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by
         using a different factor, like:
 
         >>> model.bounding_box = model.bounding_box_default(factor=2)
@@ -317,17 +317,17 @@ class Gaussian2D(Fittable2DModel):
 
     def bounding_box_default(self, factor=5.5):
         """
-        Tuple defining the default ``bounding_box`` limits in each dimension, 
+        Tuple defining the default ``bounding_box`` limits in each dimension,
         ``((y_low, y_high), (x_low, x_high))``
 
-        The default offset from the mean is 5.5-sigma, corresponding 
+        The default offset from the mean is 5.5-sigma, corresponding
         to a relative error < 1e-7. The limits are adjusted for rotation.
 
         Parameters
         ----------
         factor : float, optional
-            The multiple of `x_stddev` and `y_stddev` used to define the limits. 
-            The default is 5.5. 
+            The multiple of `x_stddev` and `y_stddev` used to define the limits.
+            The default is 5.5.
 
         Examples
         --------
@@ -336,7 +336,7 @@ class Gaussian2D(Fittable2DModel):
         >>> model.bounding_box
         ((-11.0, 11.0), (-5.5, 5.5))
 
-        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by 
+        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by
         using a different factor like:
 
         >>> model.bounding_box = model.bounding_box_default(factor=2)

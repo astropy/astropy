@@ -551,7 +551,7 @@ class Model(object):
     _custom_inverse = None
 
     # If a bounding_box_default function is defined in the model,
-    # then the _bounding_box attribute should be set to 'auto' in the model. 
+    # then the _bounding_box attribute should be set to 'auto' in the model.
     # Otherwise, the default is None for no bounding box.
     _bounding_box = None
 
@@ -773,18 +773,18 @@ class Model(object):
     @property
     def bounding_box(self):
         """
-        A `tuple` of length `n_inputs` defining the bounding box limits, or 
-        `None` for no bounding box. 
+        A `tuple` of length `n_inputs` defining the bounding box limits, or
+        `None` for no bounding box.
 
         The default is `None`, unless ``bounding_box_default`` is defined.
-        `bounding_box` can be set manually to an array-like  object of shape 
+        `bounding_box` can be set manually to an array-like  object of shape
         ``(model.n_inputs, 2)``. For further usage, including how to set the
         ``bounding_box_default``, see :ref:`bounding-boxes`
 
         The limits are ordered according to the `numpy` indexing
         convention, and are the reverse of the model input order,
         e.g. for inputs ``('x', 'y', 'z')`` the ``bounding_box`` is defined:
-        
+
         * for 1D: ``(x_low, x_high)``
         * for 2D: ``((y_low, y_high), (x_low, x_high))``
         * for 3D: ``((z_low, z_high), (y_low, y_high), (x_low, x_high))``
@@ -830,7 +830,7 @@ class Model(object):
     @bounding_box.setter
     def bounding_box(self, limits):
         """
-        Assigns the bounding box limits. 
+        Assigns the bounding box limits.
         """
 
         if limits == 'auto':
@@ -2384,15 +2384,15 @@ def render_model(model, arr=None, coords=None):
     arr : `numpy.ndarray`, optional
         Array on which the model is evaluated.
     coords : array-like, optional
-        Coordinate arrays mapping to ``arr``, such that 
+        Coordinate arrays mapping to ``arr``, such that
         ``arr[coords] == arr``.
 
     Returns
     -------
     array : `numpy.ndarray`
-        The model evaluated on the input ``arr`` or a new array from ``coords``.  
-        If ``arr`` and ``coords`` are both `None`, the returned array is 
-        limited to the `Model.bounding_box` limits. If 
+        The model evaluated on the input ``arr`` or a new array from ``coords``.
+        If ``arr`` and ``coords`` are both `None`, the returned array is
+        limited to the `Model.bounding_box` limits. If
         `Model.bounding_box` is `None`, ``arr`` or ``coords`` must be passed.
 
     Examples
@@ -2428,7 +2428,7 @@ def render_model(model, arr=None, coords=None):
 
     if bbox is not None:
         # assures position is at center pixel, important when using add_array
-        pd = pos, delta = np.array([(np.mean(bb), np.ceil((bb[1] - bb[0]) / 2)) 
+        pd = pos, delta = np.array([(np.mean(bb), np.ceil((bb[1] - bb[0]) / 2))
                                     for bb in bbox]).astype(int).T
 
         if coords is not None:
@@ -2436,7 +2436,7 @@ def render_model(model, arr=None, coords=None):
             sub_coords = np.array([extract_array(c, sub_shape, pos) for c in coords])
         else:
             limits = [slice(p - d, p + d + 1, 1) for p, d in pd.T]
-            sub_coords = np.mgrid[limits]         
+            sub_coords = np.mgrid[limits]
 
         sub_coords = sub_coords[::-1]
 

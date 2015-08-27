@@ -86,7 +86,7 @@ def test_histogram_range(N=1000, rseed=0):
     rng = np.random.RandomState(rseed)
     x = rng.randn(N)
     range = (0.1, 0.8)
-    
+
     for bins in ['scott', 'freedman', 'blocks']:
         counts, bins = histogram(x, bins, range=range)
 
@@ -128,7 +128,7 @@ def test_histogram_output():
     assert_allclose(counts, [3, 27, 41, 29])
     assert_allclose(bins, [-2.55298982, -1.7162764 , -0.42062562,
                            0.46422235, 2.26975462])
-        
+
 
 def test_histogram_badargs(N=1000, rseed=0):
     rng = np.random.RandomState(rseed)
@@ -143,4 +143,4 @@ def test_histogram_badargs(N=1000, rseed=0):
     with pytest.raises(ValueError):
         histogram(x, bins='bad_argument')
 
-    
+
