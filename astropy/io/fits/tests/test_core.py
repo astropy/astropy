@@ -869,6 +869,56 @@ class TestFileFunctions(FitsTestCase):
             mmap.mmap = old_mmap
             _File.__dict__['_mmap_available']._cache.clear()
 
+    def test_mmap_closing(self):
+        """
+        Tests that the mmap reference is closed/removed when there aren't any
+        HDU data references left.
+        """
+
+        if not _File._mmap_available:
+            pytest.xfail('not expected to work on platforms without mmap '
+                         'support')
+
+        with fits.open(self.data('test0.fits'), memmap=True) as hdul:
+            assert hdul._file._memmap is None
+
+            hdul[1].data
+            assert hdul._file._memmap is not None
+
+            del hdul[1].data
+            # Should be no more references to data in the file so close the
+            # mmap
+            assert hdul._file._memmap is None
+
+            hdul[1].data
+            hdul[2].data
+            del hdul[1].data
+            # hdul[2].data is still references so keep the mmap open
+            assert hdul._file._memmap is not None
+            del hdul[2].data
+            assert hdul._file._memmap is None
+
+        assert hdul._file._memmap is None
+
+        with fits.open(self.data('test0.fits'), memmap=True) as hdul:
+            hdul[1].data
+
+        # When the only reference to the data is on the hdu object, and the
+        # hdulist it belongs to has been closed, the mmap should be closed as
+        # well
+        assert hdul._file._memmap is None
+
+        with fits.open(self.data('test0.fits'), memmap=True) as hdul:
+            data = hdul[1].data
+            # also make a copy
+            data_copy = data.copy()
+
+        # The HDUList is closed; in fact, get rid of it completely
+        del hdul
+
+        # The data array should still work though...
+        assert np.all(data == data_copy)
+
     def test_uncloseable_file(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/2356

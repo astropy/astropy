@@ -4,6 +4,7 @@ from __future__ import division, with_statement
 
 import mmap
 import os
+import sys
 import tempfile
 import warnings
 import zipfile
@@ -331,7 +332,33 @@ class _File(object):
         if hasattr(self._file, 'close'):
             self._file.close()
 
+        self._maybe_close_memmap()
+        # Set self._memmap to None anyways so no new .data attributes can be
+        # loaded after the file is closed
+        self._memmap = None
+
         self.closed = True
+
+    def _maybe_close_memmap(self, refcount_delta=0):
+        """
+        When mmap is in use these objects hold a reference to the mmap of the
+        file (so there is only one, shared by all HDUs that reference this
+        file).
+
+        This will close the mmap if there are no arrays referencing it other
+        than the one referenced in self._memmap).
+        """
+
+        if (self._memmap is not None and
+                sys.getrefcount(self._memmap.base) == 3 + refcount_delta):
+            # If the mmap is only referenced from self._memmap there should be
+            # only 3 references: self._memmap.__dict__, self._memmap.base, and
+            # the reference used by getrefcount itself.
+            # Originally this also extra-checked that the result of
+            # gc.get_referrers() was just self._memmap, but it turns out
+            # ndarrays aren't tracked by Python's GC
+            self._memmap.base.close()
+            self._memmap = None
 
     def _overwrite_existing(self, clobber, fileobj, closed):
         """Overwrite an existing file if ``clobber`` is ``True``, otherwise
