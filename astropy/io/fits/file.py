@@ -99,8 +99,8 @@ class _File(object):
         else:
             self.simulateonly = False
 
-        # Holds Memmap instance for files that use mmap
-        self._memmap = None
+        # Holds mmap instance for files that use mmap
+        self._mmap = None
 
         if mode is None:
             if _is_random_access_file_backed(fileobj):
@@ -250,16 +250,28 @@ class _File(object):
                                  '%s' % (size, shape, dtype))
 
         if self.memmap:
-            if self._memmap is None:
+            if self._mmap is None:
                 # Instantiate Memmap array of the file offset at 0
                 # (so we can return slices of it to offset anywhere else into
                 # the file)
-                self._memmap = Memmap(self._file,
-                                      mode=MEMMAP_MODES[self.mode],
-                                      dtype=np.uint8)
+                memmap = Memmap(self._file,
+                                mode=MEMMAP_MODES[self.mode],
+                                dtype=np.uint8)
+
+                # Now we immediately discard the memmap array; we are really
+                # just using it as a factory function to instantiate the mmap
+                # object in a convenient way (may later do away with this
+                # usage)
+                self._mmap = memmap.base
+
+                # Prevent dorking with self._memmap._mmap by memmap.__del__ in
+                # Numpy 1.6 (see
+                # https://github.com/numpy/numpy/commit/dcc355a0b179387eeba10c95baf2e1eb21d417c7)
+                memmap._mmap = None
+                del memmap
 
             return np.ndarray(shape=shape, dtype=dtype, offset=offset,
-                              buffer=self._memmap.base)
+                              buffer=self._mmap)
         else:
             count = reduce(lambda x, y: x * y, shape)
             pos = self._file.tell()
@@ -332,33 +344,26 @@ class _File(object):
         if hasattr(self._file, 'close'):
             self._file.close()
 
-        self._maybe_close_memmap()
-        # Set self._memmap to None anyways so no new .data attributes can be
+        self._maybe_close_mmap()
+        # Set self._memmap to None anyways since no new .data attributes can be
         # loaded after the file is closed
-        self._memmap = None
+        self._mmap = None
 
         self.closed = True
 
-    def _maybe_close_memmap(self, refcount_delta=0):
+    def _maybe_close_mmap(self, refcount_delta=0):
         """
         When mmap is in use these objects hold a reference to the mmap of the
         file (so there is only one, shared by all HDUs that reference this
         file).
 
-        This will close the mmap if there are no arrays referencing it other
-        than the one referenced in self._memmap).
+        This will close the mmap if there are no arrays referencing it.
         """
 
-        if (self._memmap is not None and
-                sys.getrefcount(self._memmap.base) == 3 + refcount_delta):
-            # If the mmap is only referenced from self._memmap there should be
-            # only 3 references: self._memmap.__dict__, self._memmap.base, and
-            # the reference used by getrefcount itself.
-            # Originally this also extra-checked that the result of
-            # gc.get_referrers() was just self._memmap, but it turns out
-            # ndarrays aren't tracked by Python's GC
-            self._memmap.base.close()
-            self._memmap = None
+        if (self._mmap is not None and
+                sys.getrefcount(self._mmap) == 2 + refcount_delta):
+            self._mmap.close()
+            self._mmap = None
 
     def _overwrite_existing(self, clobber, fileobj, closed):
         """Overwrite an existing file if ``clobber`` is ``True``, otherwise

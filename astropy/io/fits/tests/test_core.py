@@ -880,25 +880,25 @@ class TestFileFunctions(FitsTestCase):
                          'support')
 
         with fits.open(self.data('test0.fits'), memmap=True) as hdul:
-            assert hdul._file._memmap is None
+            assert hdul._file._mmap is None
 
             hdul[1].data
-            assert hdul._file._memmap is not None
+            assert hdul._file._mmap is not None
 
             del hdul[1].data
             # Should be no more references to data in the file so close the
             # mmap
-            assert hdul._file._memmap is None
+            assert hdul._file._mmap is None
 
             hdul[1].data
             hdul[2].data
             del hdul[1].data
             # hdul[2].data is still references so keep the mmap open
-            assert hdul._file._memmap is not None
+            assert hdul._file._mmap is not None
             del hdul[2].data
-            assert hdul._file._memmap is None
+            assert hdul._file._mmap is None
 
-        assert hdul._file._memmap is None
+        assert hdul._file._mmap is None
 
         with fits.open(self.data('test0.fits'), memmap=True) as hdul:
             hdul[1].data
@@ -906,7 +906,7 @@ class TestFileFunctions(FitsTestCase):
         # When the only reference to the data is on the hdu object, and the
         # hdulist it belongs to has been closed, the mmap should be closed as
         # well
-        assert hdul._file._memmap is None
+        assert hdul._file._mmap is None
 
         with fits.open(self.data('test0.fits'), memmap=True) as hdul:
             data = hdul[1].data

@@ -107,7 +107,10 @@ class _BaseHDUMeta(type):
                         # are hanging around (perhaps the user ran ``data =
                         # hdu.data``) don't even consider this:
                         if sys.getrefcount(self.data) == 2:
-                            self._file._maybe_close_memmap(refcount_delta=1)
+                            # Add 1 to refcount since by the time this deleter
+                            # is called, the data array isn't actually deleted
+                            # *yet*, but will be shortly after
+                            self._file._maybe_close_mmap(refcount_delta=1)
 
                 setattr(cls, 'data', data_prop.deleter(data))
 
