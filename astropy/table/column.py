@@ -284,6 +284,7 @@ class BaseColumn(np.ndarray):
         self.format = format
         self.description = description
         self.meta = meta
+        self._parent_table = None
 
     def __reduce__(self):
         """
