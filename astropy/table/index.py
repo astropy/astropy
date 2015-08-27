@@ -122,30 +122,24 @@ class Index(object):
         '''
         return len(self.columns[0])
 
-    def refresh(self, columns):
+    def replace_col(self, prev_col, new_col):
         '''
-        Update index to include correct column references.
+        Replace an indexed column with an updated reference.
 
         Parameters
         ----------
-        columns : list
-            List of column references to use for updating
+        prev_col : Column
+            Column reference to replace
+        new_col : Column
+            New column reference
         '''
-        prev_names = [x.info.name for x in self.columns]
-        new_names = [x.info.name for x in columns.values()]
-        name_dict = dict(zip(prev_names, new_names))
-        self.columns = [columns[name_dict[x.info.name]] for x in self.columns]
+        self.columns[self.col_position(prev_col.info.name)] = new_col
 
     def reload(self):
         '''
         Recreate the index based on data in self.columns.
         '''
-        from .table import Table
-        num_rows = len(self.columns[0])
-        table = Table([np.array(x) for x in self.columns] + [np.arange(num_rows)])
-        lines = table[np.lexsort(self.columns[::-1])]
-        self.data = self.engine(lines[lines.colnames[:-1]],
-                                lines[lines.colnames[-1]])
+        self.__init__(self.columns, engine=self.engine)
 
     def col_position(self, col_name):
         '''
@@ -397,7 +391,7 @@ class Index(object):
         num_cols = self.data.num_cols if self.engine == SortedArray else None
         # create an actual Index, not a SlicedIndex
         index = super(Index, Index).__new__(Index)
-        index.__init__(None, engine=self.data.__class__)
+        index.__init__(None, engine=self.engine)
         index.data = deepcopy(self.data, memo)
         index.columns = self.columns[:] # new list, same columns
         memo[id(self)] = index
@@ -564,8 +558,8 @@ class SlicedIndex(object):
     def __str__(self):
         return repr(self)
 
-    def refresh(self, columns):
-        self.index.refresh(columns)
+    def replace_col(self, prev_col, new_col):
+        self.index.replace_col(prev_col, new_col)
 
     def reload(self):
         self.index.reload()

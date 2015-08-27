@@ -106,8 +106,8 @@ rather than column values. For example::
 
    >>> t.iloc[0] # smallest row by value 'a'
    <Row 0 of table
-   values=(1, 10)
-   dtype=[('a', '<i8'), ('b', '<i8')]>
+    values=(1, 10)
+    dtype=[('a', '<i8'), ('b', '<i8')]>
    >>> t.iloc['b', 1:] # all but smallest value of 'b'
    <Table length=3>
      a     b  
@@ -177,19 +177,20 @@ The *discard_on_copy* mode prevents indices from being copied whenever a column
 or table is copied::
 
   >>> t2 = Table(t)
-  >>> t2.indices
-  [ a  rows
+  >>> t2.indices['a']
+   a  rows
   --- ----
     0    0
     2    1
     3    2
-    4    3,
+    4    3
+  >>> t2.indices['b']
    b  rows
   --- ----
     1    1
     9    2
     9    3
-   10    0]
+   10    0
   >>> with t.index_mode('discard_on_copy'):
   ...    t2 = Table(t)
   ...    print(t2.indices)

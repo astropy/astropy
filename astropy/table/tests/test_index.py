@@ -407,3 +407,16 @@ class TestIndex(SetupData):
         t.add_index('a')
         with pytest.raises(KeyError):
             t.loc[self.make_val(6)]
+
+    def test_copy_index_references(self, main_col, table_types, engine):
+        # check against a bug in which indices were given an incorrect
+        # column reference when copied
+        self._setup(main_col, table_types)
+        t = self.t
+
+        t.add_index('a')
+        t.add_index('b')
+        t2 = t.copy()
+        assert t2.indices['a'].columns[0] is t2['a']
+        assert t2.indices['b'].columns[0] is t2['b']
+
