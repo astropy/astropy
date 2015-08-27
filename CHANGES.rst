@@ -131,6 +131,9 @@ Bug Fixes
 
   - Fix an issue with setting fill value when column dtype is changed. [#4088]
 
+  - Fix bug when unpickling a bare Column where the _parent_table
+    attibute was not set.  This impacted the Column representation. [#4099]
+
 - ``astropy.time``
 
 - ``astropy.units``

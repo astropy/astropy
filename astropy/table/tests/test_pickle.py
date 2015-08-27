@@ -15,6 +15,8 @@ def test_pickle_column(protocol):
     cp = pickle.loads(cs)
     assert np.all(cp == c)
     assert cp.attrs_equal(c)
+    assert cp._parent_table is None
+    assert repr(c) == repr(cp)
 
 
 def test_pickle_masked_column(protocol):
@@ -30,6 +32,8 @@ def test_pickle_masked_column(protocol):
     assert np.all(cp.mask == c.mask)
     assert cp.attrs_equal(c)
     assert cp.fill_value == -99
+    assert cp._parent_table is None
+    assert repr(c) == repr(cp)
 
 
 def test_pickle_table(protocol):
