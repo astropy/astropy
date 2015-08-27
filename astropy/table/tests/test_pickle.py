@@ -36,6 +36,20 @@ def test_pickle_masked_column(protocol):
     assert repr(c) == repr(cp)
 
 
+def test_pickle_multidimensional_column(protocol):
+    """Regression test for https://github.com/astropy/astropy/issues/4098"""
+
+    a = np.zeros((3, 2))
+    c = Column(a, name='a')
+    cs = pickle.dumps(c)
+    cp = pickle.loads(cs)
+
+    assert np.all(c == cp)
+    assert c.shape == cp.shape
+    assert cp.attrs_equal(c)
+    assert repr(c) == repr(cp)
+
+
 def test_pickle_table(protocol):
     a = Column(data=[1, 2], name='a', format='%05d', description='col a', unit='cm', meta={'a': 1})
     b = Column(data=[3.0, 4.0], name='b', format='%05d', description='col b', unit='cm',
