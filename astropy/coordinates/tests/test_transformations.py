@@ -10,8 +10,8 @@ from ... import units as u
 from ..distances import Distance
 from .. import transformations as t
 from ..builtin_frames import ICRS, FK5, FK4, FK4NoETerms, Galactic, \
-                             Galactocentric, CIRS, GCRS, AltAz, ITRS, \
-                             PrecessedGeocentric
+                             Supergalactic, Galactocentric, CIRS, GCRS, AltAz, \
+                             ITRS, PrecessedGeocentric
 from .. import representation as r
 from ..baseframe import frame_transform_graph
 from ...tests.helper import (pytest, quantity_allclose as allclose,
@@ -336,6 +336,35 @@ def test_galactocentric():
     g2t = g2.transform_to(Galactocentric)
 
     np.testing.assert_almost_equal(g1t.cartesian.xyz.value, g2t.cartesian.xyz.value[:,:,0,0])
+
+
+def test_supergalactic():
+    """
+    Check Galactic<->Supergalactic and Galactic<->ICRS conversion.
+    """
+    # Check supergalactic North pole.
+    npole = Galactic(l=47.37*u.degree, b=+6.32*u.degree)
+    assert allclose(npole.transform_to(Supergalactic).sgb.deg, +90, atol=1e-9)
+
+    # Check the origin of supergalactic longitude.
+    lon0 = Supergalactic(sgl=0*u.degree, sgb=0*u.degree)
+    lon0_gal = lon0.transform_to(Galactic)
+    assert allclose(lon0_gal.l.deg, 137.37, atol=1e-9)
+    assert allclose(lon0_gal.b.deg, 0, atol=1e-9)
+
+    # Test Galactic<->ICRS with some positions that appear in Foley et al. 2008
+    # (http://adsabs.harvard.edu/abs/2008A%26A...484..143F)
+
+    # GRB 021219
+    supergalactic = Supergalactic(sgl=29.91*u.degree, sgb=+73.72*u.degree)
+    icrs = ICRS('18h50m27s +31d57m17s')
+    assert supergalactic.separation(icrs) < 0.005 * u.degree
+
+    # GRB 030320
+    supergalactic = Supergalactic(sgl=-174.44*u.degree, sgb=+46.17*u.degree)
+    icrs = ICRS('17h51m36s -25d18m52s')
+    assert supergalactic.separation(icrs) < 0.005 * u.degree
+
 
 def test_icrs_cirs():
     """
