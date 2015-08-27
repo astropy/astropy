@@ -850,7 +850,7 @@ class TestFileFunctions(FitsTestCase):
         mmap.mmap = MockMmap
 
         # Force the mmap test to be rerun
-        _File._mmap_available = None
+        _File.__dict__['_mmap_available']._cache.clear()
 
         try:
             self.copy_file('test0.fits')
@@ -867,43 +867,7 @@ class TestFileFunctions(FitsTestCase):
                 assert h[1].data[0, 0] == 999
         finally:
             mmap.mmap = old_mmap
-            _File._mmap_available = None
-
-    def test_mmap_unwriteable(self):
-        """Regression test for
-        https://github.com/astropy/astropy/issues/968
-
-        Temporarily patches mmap.mmap to exhibit platform-specific bad
-        behavior.
-        """
-
-        class MockMmap(mmap.mmap):
-            def flush(self):
-                raise mmap.error('flush is broken on this platform')
-
-        old_mmap = mmap.mmap
-        mmap.mmap = MockMmap
-
-        # Force the mmap test to be rerun
-        _File._mmap_available = None
-
-        try:
-            # TODO: Use self.copy_file once it's merged into Astropy
-            shutil.copy(self.data('test0.fits'), self.temp('test0.fits'))
-            with catch_warnings() as w:
-                with fits.open(self.temp('test0.fits'), mode='update',
-                               memmap=True) as h:
-                    h[1].data[0, 0] = 999
-
-                assert len(w) == 1
-                assert 'mmap.flush is unavailable' in str(w[0].message)
-
-            # Double check that writing without mmap still worked
-            with fits.open(self.temp('test0.fits')) as h:
-                assert h[1].data[0, 0] == 999
-        finally:
-            mmap.mmap = old_mmap
-            _File._mmap_available = None
+            _File.__dict__['_mmap_available']._cache.clear()
 
     def test_uncloseable_file(self):
         """

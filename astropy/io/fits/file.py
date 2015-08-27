@@ -21,6 +21,7 @@ from ...extern.six import b, string_types
 from ...extern.six.moves import urllib
 from ...utils.compat import gzip
 from ...utils.data import download_file, _is_url
+from ...utils.decorators import classproperty
 from ...utils.exceptions import AstropyUserWarning
 
 
@@ -77,9 +78,6 @@ class _File(object):
     """
     Represents a FITS file on disk (or in some other file-like object).
     """
-
-    # See self._test_mmap
-    _mmap_available = None
 
     def __init__(self, fileobj=None, mode=None, memmap=None, clobber=False,
                  cache=True):
@@ -176,7 +174,7 @@ class _File(object):
         if self.memmap:
             if not isfile(self._file):
                 self.memmap = False
-            elif not self.readonly and not self._test_mmap():
+            elif not self.readonly and not self._mmap_available:
                 # Test mmap.flush--see
                 # https://github.com/astropy/astropy/issues/968
                 self.memmap = False
@@ -470,7 +468,8 @@ class _File(object):
         else:
             self._file.seek(0)
 
-    def _test_mmap(self):
+    @classproperty(lazy=True)
+    def _mmap_available(cls):
         """Tests that mmap, and specifically mmap.flush works.  This may
         be the case on some uncommon platforms (see
         https://github.com/astropy/astropy/issues/968).
@@ -478,9 +477,6 @@ class _File(object):
         If mmap.flush is found not to work, ``self.memmap = False`` is
         set and a warning is issued.
         """
-
-        if self._mmap_available is not None:
-            return self._mmap_available
 
         tmpfd, tmpname = tempfile.mkstemp()
         try:
@@ -492,7 +488,6 @@ class _File(object):
             except mmap.error as e:
                 warnings.warn('Failed to create mmap: %s; mmap use will be '
                               'disabled' % str(e), AstropyUserWarning)
-                _File._mmap_available = False
                 del exc
                 return False
             try:
@@ -501,7 +496,6 @@ class _File(object):
                 warnings.warn('mmap.flush is unavailable on this platform; '
                               'using mmap in writeable mode will be disabled',
                               AstropyUserWarning)
-                _File._mmap_available = False
                 return False
             finally:
                 mm.close()
@@ -509,7 +503,6 @@ class _File(object):
             os.close(tmpfd)
             os.remove(tmpname)
 
-        _File._mmap_available = True
         return True
 
     def _open_zipfile(self, fileobj, mode):
