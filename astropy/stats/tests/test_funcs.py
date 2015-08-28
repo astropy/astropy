@@ -279,7 +279,7 @@ def test_poisson_conf_array_rootn0_zero():
                     funcs.poisson_conf_interval(n[0,0,0], interval='root-n-0')[:,None,None,None]*np.ones_like(n))
 
     assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='root-n-0')))
-    
+
 @pytest.mark.skipif('not HAS_SCIPY')
 def test_poisson_conf_array_frequentist_confidence_zero():
     n = np.zeros((3,4,5))
@@ -287,14 +287,14 @@ def test_poisson_conf_array_frequentist_confidence_zero():
                     funcs.poisson_conf_interval(n[0,0,0], interval='frequentist-confidence')[:,None,None,None]*np.ones_like(n))
 
     assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='root-n-0')))
-    
+
 def test_poisson_conf_list_rootn0_zero():
     n = [0,0,0]
     assert_allclose(funcs.poisson_conf_interval(n, interval='root-n-0'),
                     [[0,0,0],[1,1,1]])
 
     assert not np.any(np.isnan(funcs.poisson_conf_interval(n, interval='root-n-0')))
-    
+
 def test_poisson_conf_array_rootn0():
     n = 7*np.ones((3,4,5))
     assert_allclose(funcs.poisson_conf_interval(n, interval='root-n-0'),
@@ -340,7 +340,7 @@ def test_poisson_conf_frequentist_confidence_gehrels_2sigma():
     Note: I think there's a typo (transposition of digits) in Gehrels 1986,
     specifically for the two-sigma lower limit for 3 events; they claim
     0.569 but this function returns 0.59623...
-    
+
     """
     nlh = np.array([(0, 2, 0, 3.783),
                     (1, 2, 2.30e-2, 5.683),

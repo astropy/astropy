@@ -222,7 +222,7 @@ class Simplex(Optimization):
         if 'xtol' in kwargs:
             self._acc = kwargs['xtol']
             kwargs.pop('xtol')
-  
+
         fitparams, final_func_val, numiter, funcalls, exit_mode = self.opt_method(
             objfunc, initval, args=fargs, xtol=self._acc,
             full_output=True, **kwargs)

@@ -7,14 +7,14 @@ source activate test
 # EGG_INFO
 if [[ $SETUP_CMD == egg_info ]]
 then
-  exit  # no more dependencies needed
+  return  # no more dependencies needed
 fi
 
 # PEP8
 if [[ $MAIN_CMD == pep8* ]]
 then
   pip install pep8
-  exit  # no more dependencies needed
+  return  # no more dependencies needed
 fi
 
 # CORE DEPENDENCIES
