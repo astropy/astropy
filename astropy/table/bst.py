@@ -155,16 +155,19 @@ class BST(object):
 
     Parameters
     ----------
-    lines : `Table`
-        Sorted columns of the original table as well as
-        a final column consisting of the rows given by argsort()
+    data : Table
+        Sorted columns of the original table
+    row_index : Column object
+        Row numbers corresponding to data columns
+    unique : bool (defaults to False)
+        Whether the values of the index must be unique
     '''
     NodeClass = Node
-    UNIQUE = False
 
-    def __init__(self, data, row_index):
+    def __init__(self, data, row_index, unique=False):
         self.root = None
         self.size = 0
+        self.unique = unique
         for key, row in zip(data, row_index):
             self.add(tuple(key), row)
 
@@ -192,7 +195,7 @@ class BST(object):
                     curr_node.right = node
                     break
                 curr_node = curr_node.right
-            elif self.UNIQUE:
+            elif self.unique:
                 raise ValueError("Cannot insert non-unique value")
             else: # add data to node
                 curr_node.data.extend(node.data)
@@ -493,12 +496,17 @@ class FastBase(object):
 
     Parameters
     ----------
-    lines : `Table`
-        Sorted columns of the original table as well as
-        a final column consisting of the rows given by argsort()
+    data : Table
+        Sorted columns of the original table
+    row_index : Column object
+        Row numbers corresponding to data columns
+    unique : bool (defaults to False)
+        Whether the values of the index must be unique
     '''
-    def __init__(self, data, row_index):
+    def __init__(self, data, row_index, unique=False):
         self.data = self.engine()
+        self.unique = unique
+
         for key, row in zip(data, row_index):
             self.add(tuple(key), row)
 
@@ -506,30 +514,47 @@ class FastBase(object):
         '''
         Add a key, value pair.
         '''
-        rows = self.data.set_default(key, [])
-        rows.insert(np.searchsorted(rows, val), val)
+        if self.unique:
+            if key in self.data:
+                # already exists
+                raise ValueError('Cannot add duplicate value "{0}" in a '
+                                 'unique index'.format(key))
+            self.data[key] = val
+        else:
+            rows = self.data.set_default(key, [])
+            rows.insert(np.searchsorted(rows, val), val)
 
     def find(self, key):
         '''
         Find rows corresponding to the given key.
         '''
-        return self.data.get(key, [])
+        rows = self.data.get(key, [])
+        if self.unique:
+            # only one row
+            rows = [rows]
+        return rows
 
     def remove(self, key, data=None):
         '''
         Remove data from the given key.
         '''
-        node = self.data.get(key, None)
-        if node is None or len(node) == 0:
-            return False
-        if data is None:
-            self.data.pop(key)
-            return True
-        if data not in node:
-            if len(node) == 0:
+        if self.unique:
+            try:
+                self.data.pop(key)
+            except KeyError:
                 return False
-            raise ValueError("Data does not belong to correct node")
-        node.remove(data)
+        else:
+            node = self.data.get(key, None)
+            if node is None or len(node) == 0:
+                return False
+            if data is None:
+                self.data.pop(key)
+                return True
+            if data not in node:
+                if len(node) == 0:
+                    return False
+                raise ValueError("Data does not belong to correct node")
+            node.remove(data)
         return True
 
 
@@ -537,15 +562,25 @@ class FastBase(object):
         '''
         Decrement rows larger than the given row.
         '''
-        for key, node in self.data.items():
-            self.data[key] = [x - 1 if x > row else x for x in node]
+        if self.unique:
+            for key, x in self.data.items():
+                if x > row:
+                    self.data[key] = x - 1
+        else:
+            for key, node in self.data.items():
+                self.data[key] = [x - 1 if x > row else x for x in node]
 
     def shift_right(self, row):
         '''
         Increment rows greater than or equal to the given row.
         '''
-        for key, node in self.data.items():
-            self.data[key] = [x + 1 if x >= row else x for x in node]
+        if self.unique:
+            for key, x in self.data.items():
+                if x >= row:
+                    self.data[key] = x + 1
+        else:
+            for key, node in self.data.items():
+                self.data[key] = [x + 1 if x >= row else x for x in node]
 
     def traverse(self):
         '''
@@ -562,22 +597,30 @@ class FastBase(object):
         '''
         Return a list of key, data tuples.
         '''
+        if self.unique:
+            return self.data.items()
         return [x for x in self.data.items() if len(x[1]) > 0]
 
     def sort(self):
         '''
         Make row order align with key order.
         '''
-        i = 0
-        for key, rows in self.data.items():
-            num_rows = len(rows)
-            self.data[key] = [x for x in range(i, i + num_rows)]
-            i += num_rows
+        if self.unique:
+            for i, (key, row) in enumerate(self.data.items()):
+                self.data[key] = i
+        else:
+            i = 0
+            for key, rows in self.data.items():
+                num_rows = len(rows)
+                self.data[key] = [x for x in range(i, i + num_rows)]
+                i += num_rows
 
     def sorted_data(self):
         '''
         Return a list of rows in order sorted by key.
         '''
+        if self.unique:
+            return [x for x in self.data.values()]
         return [x for node in self.data.values() for x in node]
 
     def range(self, lower, upper, bounds=(True, True)):
@@ -592,14 +635,26 @@ class FastBase(object):
         if bounds[1]: # key <= upper
             upper = Epsilon(upper)
         l = [v for v in self.data.value_slice(lower, upper)]
+        if self.unique:
+            return l
         return [x for sublist in l for x in sublist]
 
     def replace_rows(self, row_map):
         '''
         Replace rows with the values in row_map.
         '''
-        for data in self.data.values():
-            data[:] = [row_map[x] for x in data if x in row_map]
+        if self.unique:
+            del_keys = []
+            for key, data in self.data.items():
+                if data in row_map:
+                    self.data[key] = row_map[data]
+                else:
+                    del_keys.append(key)
+            for key in del_keys:
+                self.data.pop(key)
+        else:
+            for data in self.data.values():
+                data[:] = [row_map[x] for x in data if x in row_map]
 
     def __str__(self):
         return str(self.data)

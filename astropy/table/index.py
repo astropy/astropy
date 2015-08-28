@@ -61,13 +61,15 @@ class Index(object):
         Indexing engine class to use (from among SortedArray, BST,
         FastBST, and FastRBT) or actual engine instance.
         If the supplied argument is None (by default), use SortedArray.
+    unique : bool (defaults to False)
+        Whether the values of the index must be unique
     '''
     def __new__(cls, *args, **kwargs):
         self = super(Index, cls).__new__(cls)
         self.__init__(*args, **kwargs)
         return SlicedIndex(self, slice(0, 0, None), original=True)
 
-    def __init__(self, columns, engine=None):
+    def __init__(self, columns, engine=None, unique=False):
         from .table import Table, Column
 
         if engine is not None and not isinstance(engine, type):
@@ -113,7 +115,7 @@ class Index(object):
             data = lines[lines.colnames[:-1]]
             row_index = lines[lines.colnames[-1]]
 
-        self.data = self.engine(data, row_index)
+        self.data = self.engine(data, row_index, unique=unique)
         self.columns = columns
 
     def __len__(self):
@@ -810,4 +812,9 @@ class TableILoc(TableLoc):
             key = self.table.primary_key
         index = self.indices[key]
         rows = index.sorted_data()[item]
-        return self.table[rows]
+        table_slice = self.table[rows]
+
+        if len(table_slice) == 0: # no matches found
+            raise IndexError('Invalid index for iloc: {0}'.format(item))
+
+        return table_slice

@@ -19,6 +19,9 @@ To create an index on a table, use the |add_index| method::
    >>> t = Table([(1, 2, 3, 4), (5, 6, 7, 8)], names=('a', 'b'))
    >>> t.add_index('a')
 
+The optional argument "unique" may be specified to create an index with
+uniquely valued elements.
+
 To create a composite index on multiple columns, pass a list of columns
 instead::
 
@@ -198,7 +201,7 @@ or table is copied::
 
 Engines
 ^^^^^^^
-When creating an index via |add_index|, the keyword argument `engine` may be
+When creating an index via |add_index|, the keyword argument "engine" may be
 specified to use a particular indexing engine. The available engines are
 
 * `~astropy.table.SortedArray`, a sorted array engine using an underlying
