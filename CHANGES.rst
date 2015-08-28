@@ -164,6 +164,9 @@ New Features
     as a mixin column.  This allows for an approximation of nested tables.
     [#3925]
 
+  - Added ``keep_byteorder`` option to ``Table.as_array()``.  See the
+    "API Changes" section below. [#4080]
+
 - ``astropy.tests``
 
   - Added new test config options, ``config_dir`` and ``cache_dir``  (these
@@ -341,6 +344,10 @@ API changes
     ``sigma_clip`` and ``sigma_clipped_stats`` functions. [#4067]
 
 - ``astropy.table``
+
+  - ``Table.as_array()`` always returns a structured array with each column in
+    the system's native byte order.  The optional ``keep_byteorder=True``
+    option will keep each column's data in its original byteorder. [#4080]
 
 - ``astropy.tests``
 
