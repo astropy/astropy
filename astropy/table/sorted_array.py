@@ -37,11 +37,14 @@ class SortedArray(object):
         Sorted columns of the original table
     row_index : Column object
         Row numbers corresponding to data columns
+    unique : bool (defaults to False)
+        Whether the values of the index must be unique
     '''
-    def __init__(self, data, row_index):
+    def __init__(self, data, row_index, unique=False):
         self.data = data
         self.row_index = row_index
         self.num_cols = len(getattr(data, 'colnames', []))
+        self.unique = unique
 
     @property
     def cols(self):
@@ -59,6 +62,12 @@ class SortedArray(object):
             Row number
         '''
         pos = self.find_pos(key, row) # first >= key
+
+        if self.unique and 0 <= pos < len(self.row_index) and \
+           all(self.data[pos][i] == key[i] for i in range(len(key))):
+            # already exists
+            raise ValueError('Cannot add duplicate value "{0}" in a '
+                             'unique index'.format(key))
         self.data.insert_row(pos, key)
         self.row_index = self.row_index.insert(pos, row)
 
@@ -89,10 +98,14 @@ class SortedArray(object):
         '''
         begin = 0
         end = len(self.row_index)
-        key = key + (data,)
+        num_cols = self.num_cols
+        if not self.unique:
+            # consider the row value as well
+            key = key + (data,)
+            num_cols += 1
 
         # search through keys in lexicographic order
-        for i in range(self.num_cols + 1):
+        for i in range(num_cols):
             key_slice = self._get_key_slice(i, begin, end)
             t = _searchsorted(key_slice, key[i])
             # t is the smallest index >= key[i]
@@ -109,6 +122,7 @@ class SortedArray(object):
                 return begin
 
         return begin
+
 
     def find(self, key):
         '''

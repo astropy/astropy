@@ -447,7 +447,7 @@ class Table(object):
             return getattr(col, 'get_item', col.__getitem__)(item)
         return col[item]
 
-    def add_index(self, colnames, engine=None):
+    def add_index(self, colnames, engine=None, unique=False):
         '''
         Insert a new index among one or more columns.
         If there are no indices, make this index the
@@ -461,6 +461,8 @@ class Table(object):
             Indexing engine class to use, from among SortedArray, BST,
             FastBST, and FastRBT. If the supplied argument is None (by
             default), use SortedArray.
+        unique : bool (defaults to False)
+            Whether the values of the index must be unique
         '''
         if isinstance(colnames, six.string_types):
             colnames = (colnames,)
@@ -472,7 +474,7 @@ class Table(object):
                 raise ValueError('Cannot create an index on column "{0}", of '
                                  'type "{1}"'.format(col.info.name, type(col)))
 
-        index = Index(columns, engine=engine)
+        index = Index(columns, engine=engine, unique=unique)
         if not self.indices:
             self.primary_key = colnames
         for col in columns:

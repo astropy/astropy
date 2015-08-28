@@ -420,3 +420,13 @@ class TestIndex(SetupData):
         assert t2.indices['a'].columns[0] is t2['a']
         assert t2.indices['b'].columns[0] is t2['b']
 
+    def test_unique_index(self, main_col, table_types, engine):
+        self._setup(main_col, table_types)
+        t = self.t
+
+        t.add_index('a', engine=engine, unique=True)
+        assert np.all(t.indices['a'].sorted_data() == [0, 1, 2, 3, 4])
+
+        if self.mutable:
+            with pytest.raises(ValueError):
+                t.add_row((5, 5.0, '9'))
