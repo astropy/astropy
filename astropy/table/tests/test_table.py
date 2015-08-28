@@ -1091,10 +1091,27 @@ class TestConvertNumpyArray():
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[(str('c'), 'i8'), (str('d'), 'i8')])
 
+    def test_as_array_byteswap(self, table_types):
+        """Test for https://github.com/astropy/astropy/pull/4080"""
+
+        byte_orders = ('>', '<')
+        native_order = byte_orders[sys.byteorder == 'little']
+
+        for order in byte_orders:
+            col = table_types.Column([1.0, 2.0], name='a', dtype=order + 'f8')
+            t = table_types.Table([col])
+            arr = t.as_array()
+            assert arr['a'].dtype.byteorder in (native_order, '=')
+            arr = t.as_array(keep_byteorder=True)
+            if order == native_order:
+                assert arr['a'].dtype.byteorder in (order, '=')
+            else:
+                assert arr['a'].dtype.byteorder == order
+
     def test_byteswap_fits_array(self, table_types):
         """
-        Test for #XXXX, demonstrating that FITS tables are converted to native
-        byte order.
+        Test for https://github.com/astropy/astropy/pull/4080, demonstrating
+        that FITS tables are converted to native byte order.
         """
 
         non_native_order = ('>', '<')[sys.byteorder != 'little']

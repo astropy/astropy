@@ -223,8 +223,9 @@ class Table(object):
         empty_init = ma.empty if self.masked else np.empty
         data = empty_init(len(self), dtype=dtype)
         for col in cols:
-            # This should automatically swap columns to their destination byte
-            # order where applicable
+            # When assigning from one array into a field of a structured array,
+            # Numpy will automatically swap thos columns to their destination
+            # byte order where applicable
             data[col.info.name] = col
 
         return data
