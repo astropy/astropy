@@ -32,6 +32,7 @@ def test_GaussianAbsorption1D():
     assert_allclose(g_ab(xx), 1 - g_em(xx))
     assert_allclose(g_ab.fit_deriv(xx[0], 0.8, 3000, 20),
                     -np.array(g_em.fit_deriv(xx[0], 0.8, 3000, 20)))
+    assert g_ab.bounding_box_default() == g_em.bounding_box
 
 
 def test_Gaussian2D():
@@ -117,6 +118,7 @@ def test_Ellipse2D():
     e = em(x, y)
     assert np.all(e[e > 0] == amplitude)
     assert e[y0, x0] == amplitude
+    assert em.bounding_box_default() == em.bounding_box
 
     rotation = models.Rotation2D(angle=theta.degree)
     point1 = [2, 0]      # Rotation2D center is (0, 0)

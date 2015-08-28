@@ -92,7 +92,6 @@ class Gaussian1D(Fittable1DModel):
     amplitude = Parameter(default=1)
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
-    _bounding_box = 'auto'
 
     def bounding_box_default(self, factor=5.5):
         """
@@ -103,7 +102,7 @@ class Gaussian1D(Fittable1DModel):
         ----------
         factor : float
             The multiple of `stddev` used to define the limits. 
-            The default is 5.5-sigma, corresponding to a relative error < 1e-7. 
+            The default is 5.5, corresponding to a relative error < 1e-7. 
 
         Examples
         --------
@@ -112,7 +111,7 @@ class Gaussian1D(Fittable1DModel):
         >>> model.bounding_box
         (-11.0, 11.0)
 
-        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by 
+        This range can be set directly (see: ``help(model.bounding_box)``) or by 
         using a different factor, like:
 
         >>> model.bounding_box = model.bounding_box_default(factor=2)
@@ -172,6 +171,37 @@ class GaussianAbsorption1D(Fittable1DModel):
     amplitude = Parameter(default=1)
     mean = Parameter(default=0)
     stddev = Parameter(default=1)
+
+    def bounding_box_default(self, factor=5.5):
+        """
+        Tuple defining the default ``bounding_box`` limits, 
+        ``(x_low, x_high)``
+
+        Parameters
+        ----------
+        factor : float
+            The multiple of `stddev` used to define the limits. 
+            The default is 5.5, corresponding to a relative error < 1e-7. 
+
+        Examples
+        --------
+        >>> from astropy.modeling.models import Gaussian1D
+        >>> model = Gaussian1D(mean=0, stddev=2)
+        >>> model.bounding_box
+        (-11.0, 11.0)
+
+        This range can be set directly (see: ``help(model.bounding_box)``) or by 
+        using a different factor, like:
+
+        >>> model.bounding_box = model.bounding_box_default(factor=2)
+        >>> model.bounding_box
+        (-4.0, 4.0)
+        """
+
+        x0 = self.mean.value
+        dx = factor * self.stddev
+
+        return (x0 - dx, x0 + dx)
 
     @staticmethod
     def evaluate(x, amplitude, mean, stddev):
@@ -273,7 +303,6 @@ class Gaussian2D(Fittable2DModel):
     x_stddev = Parameter(default=1)
     y_stddev = Parameter(default=1)
     theta = Parameter(default=0)
-    _bounding_box = 'auto'
 
     def __init__(self, amplitude=amplitude.default, x_mean=x_mean.default,
                  y_mean=y_mean.default, x_stddev=None, y_stddev=None,
@@ -336,7 +365,7 @@ class Gaussian2D(Fittable2DModel):
         >>> model.bounding_box
         ((-11.0, 11.0), (-5.5, 5.5))
 
-        This range can be set directly (see: `astropy.modeling.Model.bounding_box`) or by 
+        This range can be set directly (see: ``help(model.bounding_box)``) or by 
         using a different factor like:
 
         >>> model.bounding_box = model.bounding_box_default(factor=2)
@@ -442,7 +471,6 @@ class Shift(Model):
     def evaluate(x, offset):
         return x + offset
 
-
 class Scale(Model):
     """
     Multiply a model by a factor.
@@ -468,7 +496,6 @@ class Scale(Model):
     @staticmethod
     def evaluate(x, factor):
         return factor * x
-
 
 class Redshift(Fittable1DModel):
     """
@@ -508,7 +535,6 @@ class Redshift(Fittable1DModel):
         inv = self.copy()
         inv.z = 1.0 / (1.0 + self.z) - 1.0
         return inv
-
 
 class Sersic1D(Fittable1DModel):
     r"""
@@ -595,7 +621,6 @@ class Sersic1D(Fittable1DModel):
         """One dimensional Sersic profile function."""
         return amplitude * np.exp(-cls._gammaincinv(2 * n, 0.5) * ((r / r_eff) ** (1 / n) - 1))
 
-
 class Sine1D(Fittable1DModel):
     """
     One dimensional Sine model.
@@ -642,7 +667,6 @@ class Sine1D(Fittable1DModel):
                    np.cos(2 * np.pi * frequency * x + 2 * np.pi * phase))
         return [d_amplitude, d_frequency, d_phase]
 
-
 class Linear1D(Fittable1DModel):
     """
     One dimensional Line model.
@@ -683,7 +707,6 @@ class Linear1D(Fittable1DModel):
         d_slope = x
         d_intercept = np.ones_like(x)
         return [d_slope, d_intercept]
-
 
 class Lorentz1D(Fittable1DModel):
     """
@@ -731,7 +754,6 @@ class Lorentz1D(Fittable1DModel):
                  (fwhm ** 2 + (x - x_0) ** 2))
         d_fwhm = 2 * amplitude * d_amplitude / fwhm * (1 - d_amplitude)
         return [d_amplitude, d_x_0, d_fwhm]
-
 
 class Voigt1D(Fittable1DModel):
     """
@@ -824,7 +846,6 @@ class Voigt1D(Fittable1DModel):
                 -constant * (V + (sqrt_ln2 / fwhm_G) * (2 * (x - x_0) * dVdx + fwhm_L * dVdy)) / fwhm_G]
         return dyda
 
-
 class Const1D(Fittable1DModel):
     """
     One dimensional Constant model.
@@ -870,7 +891,6 @@ class Const1D(Fittable1DModel):
         d_amplitude = np.ones_like(x)
         return [d_amplitude]
 
-
 class Const2D(Fittable2DModel):
     """
     Two dimensional Constant model.
@@ -908,7 +928,6 @@ class Const2D(Fittable2DModel):
             x = amplitude * np.ones_like(x)
 
         return x
-
 
 class Ellipse2D(Fittable2DModel):
     """
@@ -986,26 +1005,6 @@ class Ellipse2D(Fittable2DModel):
     a = Parameter(default=1)
     b = Parameter(default=1)
     theta = Parameter(default=0)
-    _bounding_box = 'auto'
-
-    def bounding_box_default(self):
-        """
-        Tuple defining the default ``bounding_box`` limits around the ellipse.
-
-        ``((y_low, y_high), (x_low, x_high))``
-
-        References
-        ----------
-        `astropy.modeling.Model.bounding_box`
-        """
-
-        a = self.a
-        b = self.b
-        theta = self.theta.value
-        dx, dy = ellipse_extent(a, b, theta)
-
-        return ((self.y_0 - dy, self.y_0 + dy),
-                (self.x_0 - dx, self.x_0 + dx))
 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
@@ -1020,6 +1019,20 @@ class Ellipse2D(Fittable2DModel):
         in_ellipse = (((numerator1 / a) ** 2 + (numerator2 / b) ** 2) <= 1.)
         return np.select([in_ellipse], [amplitude])
 
+    def bounding_box_default(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        a = self.a
+        b = self.b
+        theta = self.theta.value
+        dx, dy = ellipse_extent(a, b, theta)
+
+        return ((self.y_0 - dy, self.y_0 + dy),
+                (self.x_0 - dx, self.x_0 + dx))
 
 class Disk2D(Fittable2DModel):
     """
@@ -1066,6 +1079,16 @@ class Disk2D(Fittable2DModel):
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         return np.select([rr <= R_0 ** 2], [amplitude])
 
+
+    def bounding_box_default(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        return ((self.y_0 - self.R_0, self.y_0 + self.R_0),
+                (self.x_0 - self.R_0, self.x_0 + self.R_0))
 
 class Ring2D(Fittable2DModel):
     """
@@ -1135,6 +1158,17 @@ class Ring2D(Fittable2DModel):
         r_range = np.logical_and(rr >= r_in ** 2, rr <= (r_in + width) ** 2)
         return np.select([r_range], [amplitude])
 
+    def bounding_box_default(self):
+        """
+        Tuple defining the default ``bounding_box``.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        dr = self.r_in + self.width
+
+        return ((self.y_0 - dr, self.y_0 + dr),
+                (self.x_0 - dr, self.x_0 + dr))
 
 class Delta1D(Fittable1DModel):
     """One dimensional Dirac delta function."""
@@ -1202,6 +1236,16 @@ class Box1D(Fittable1DModel):
         d_width = np.zeros_like(x)
         return [d_amplitude, d_x_0, d_width]
 
+    def bounding_box_default(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        ``(x_low, x_high))``
+        """
+
+        dx = self.width / 2
+
+        return (self.x_0 - dx, self.x_0 + dx)
 
 class Box2D(Fittable2DModel):
     """
@@ -1256,6 +1300,18 @@ class Box2D(Fittable2DModel):
                                  y <= y_0 + y_width / 2.)
         return np.select([np.logical_and(x_range, y_range)], [amplitude], 0)
 
+    def bounding_box_default(self):
+        """
+        Tuple defining the default ``bounding_box``.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        dx = self.x_width / 2
+        dy = self.y_width / 2
+
+        return ((self.y_0 - dy, self.y_0 + dy),
+                (self.x_0 - dx, self.x_0 + dx))
 
 class Trapezoid1D(Fittable1DModel):
     """
@@ -1302,6 +1358,16 @@ class Trapezoid1D(Fittable1DModel):
         val_c = slope * (x4 - x)
         return np.select([range_a, range_b, range_c], [val_a, val_b, val_c])
 
+    def bounding_box_default(self):
+        """
+        Tuple defining the default ``bounding_box`` limits.
+
+        ``(x_low, x_high))``
+        """
+
+        dx = self.width / 2 + self.amplitude / self.slope
+
+        return (self.x_0 - dx, self.x_0 + dx)
 
 class TrapezoidDisk2D(Fittable2DModel):
     """
@@ -1330,7 +1396,7 @@ class TrapezoidDisk2D(Fittable2DModel):
     y_0 = Parameter(default=0)
     R_0 = Parameter(default=1)
     slope = Parameter(default=1)
-
+ 
     @staticmethod
     def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
         """Two dimensional Trapezoid Disk model function"""
@@ -1342,6 +1408,17 @@ class TrapezoidDisk2D(Fittable2DModel):
         val_2 = amplitude + slope * (R_0 - r)
         return np.select([range_1, range_2], [val_1, val_2])
 
+    def bounding_box_default(self):
+        """
+        Tuple defining the default ``bounding_box``.
+
+        ``((y_low, y_high), (x_low, x_high))``
+        """
+
+        dr = self.R_0 + self.amplitude / self.slope
+
+        return ((self.y_0 - dr, self.y_0 + dr),
+                (self.x_0 - dr, self.x_0 + dr))
 
 class MexicanHat1D(Fittable1DModel):
     """
@@ -1381,7 +1458,6 @@ class MexicanHat1D(Fittable1DModel):
 
         xx_ww = (x - x_0) ** 2 / (2 * sigma ** 2)
         return amplitude * (1 - 2 * xx_ww) * np.exp(-xx_ww)
-
 
 class MexicanHat2D(Fittable2DModel):
     """
@@ -1425,7 +1501,6 @@ class MexicanHat2D(Fittable2DModel):
 
         rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma ** 2)
         return amplitude * (1 - rr_ww) * np.exp(- rr_ww)
-
 
 class AiryDisk2D(Fittable2DModel):
     """
@@ -1516,7 +1591,6 @@ class AiryDisk2D(Fittable2DModel):
         z *= amplitude
         return z
 
-
 class Moffat1D(Fittable1DModel):
     """
     One dimensional Moffat model.
@@ -1567,7 +1641,6 @@ class Moffat1D(Fittable1DModel):
                    (gamma ** 3 * d_A ** alpha))
         d_alpha = -amplitude * d_A * np.log(1 + (x - x_0) ** 2 / gamma ** 2)
         return [d_A, d_x_0, d_gamma, d_alpha]
-
 
 class Moffat2D(Fittable2DModel):
     """
@@ -1626,7 +1699,6 @@ class Moffat2D(Fittable2DModel):
         d_alpha = -amplitude * d_A * np.log(1 + rr_gg)
         d_gamma = 2 * amplitude * alpha * d_A * (rr_gg / (gamma * (1 + rr_gg)))
         return [d_A, d_x_0, d_y_0, d_gamma, d_alpha]
-
 
 class Sersic2D(Fittable2DModel):
     r"""
@@ -1734,7 +1806,6 @@ class Sersic2D(Fittable2DModel):
         z = np.sqrt((x_maj / a) ** 2 + (x_min / b) ** 2)
 
         return amplitude * np.exp(-bn * (z ** (1 / n) - 1))
-
 
 @deprecated('1.0', alternative='astropy.modeling.models.custom_model',
             pending=True)

@@ -633,11 +633,11 @@ class Cutout2D(object):
         self.input_position_original = position
         self.shape_input = shape
 
-        ((self.xmin_original, self.xmax_original),
-         (self.ymin_original, self.ymax_original)) = self.bbox_original
+        ((self.ymin_original, self.ymax_original),
+         (self.xmin_original, self.xmax_original)) = self.bbox_original
 
-        ((self.xmin_cutout, self.xmax_cutout),
-         (self.ymin_cutout, self.ymax_cutout)) = self.bbox_cutout
+        ((self.ymin_cutout, self.ymax_cutout),
+         (self.xmin_cutout, self.xmax_cutout)) = self.bbox_cutout
 
         # the true origin pixel of the cutout array, including any
         # filled cutout values
@@ -743,14 +743,14 @@ class Cutout2D(object):
     @staticmethod
     def _calc_bbox(slices):
         """
-        Calculate a minimal bounding box in the form ``((xmin, xmax),
-        (ymin, ymax))``.  Note these are pixel locations, not slice
+        Calculate a minimal bounding box in the form ``((ymin, ymax),
+        (xmin, xmax))``.  Note these are pixel locations, not slice
         indices.  For ``mode='partial'``, the bounding box indices are
         for the valid (non-filled) cutout values.
         """
         # (stop - 1) to return the max pixel location, not the slice index
-        return ((slices[1].start, slices[1].stop - 1),
-                (slices[0].start, slices[0].stop - 1))
+        return ((slices[0].start, slices[0].stop - 1),
+                (slices[1].start, slices[1].stop - 1))
 
     @lazyproperty
     def origin_original(self):
@@ -810,7 +810,7 @@ class Cutout2D(object):
     @lazyproperty
     def bbox_original(self):
         """
-        The bounding box ``(ymin, xmin, ymax, xmax)`` of the minimal
+        The bounding box ``((ymin, ymax), (xmin, xmax))`` of the minimal
         rectangular region of the cutout array with respect to the
         original array.  For ``mode='partial'``, the bounding box
         indices are for the valid (non-filled) cutout values.
@@ -820,7 +820,7 @@ class Cutout2D(object):
     @lazyproperty
     def bbox_cutout(self):
         """
-        The bounding box ``(ymin, xmin, ymax, xmax)`` of the minimal
+        The bounding box ``((ymin, ymax), (xmin, xmax))`` of the minimal
         rectangular region of the cutout array with respect to the
         cutout array.  For ``mode='partial'``, the bounding box indices
         are for the valid (non-filled) cutout values.
