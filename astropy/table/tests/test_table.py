@@ -5,12 +5,15 @@
 
 import copy
 import gc
+import sys
 
 import numpy as np
 from numpy.testing import assert_allclose
 
 from ...extern import six
+from ...io import fits
 from ...tests.helper import pytest, assert_follows_unicode_guidelines
+from ...utils.data import get_pkg_data_filename
 from ... import table
 from ... import units as u
 from .conftest import MaskedTable
@@ -1087,6 +1090,49 @@ class TestConvertNumpyArray():
 
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[(str('c'), 'i8'), (str('d'), 'i8')])
+
+    def test_as_array_byteswap(self, table_types):
+        """Test for https://github.com/astropy/astropy/pull/4080"""
+
+        byte_orders = ('>', '<')
+        native_order = byte_orders[sys.byteorder == 'little']
+
+        for order in byte_orders:
+            col = table_types.Column([1.0, 2.0], name='a', dtype=order + 'f8')
+            t = table_types.Table([col])
+            arr = t.as_array()
+            assert arr['a'].dtype.byteorder in (native_order, '=')
+            arr = t.as_array(keep_byteorder=True)
+            if order == native_order:
+                assert arr['a'].dtype.byteorder in (order, '=')
+            else:
+                assert arr['a'].dtype.byteorder == order
+
+    def test_byteswap_fits_array(self, table_types):
+        """
+        Test for https://github.com/astropy/astropy/pull/4080, demonstrating
+        that FITS tables are converted to native byte order.
+        """
+
+        non_native_order = ('>', '<')[sys.byteorder != 'little']
+
+        filename = get_pkg_data_filename('data/tb.fits',
+                                         'astropy.io.fits.tests')
+        t = table_types.Table.read(filename)
+        arr = t.as_array()
+
+        for idx in range(len(arr.dtype)):
+            assert arr.dtype[idx].byteorder != non_native_order
+
+        with fits.open(filename) as hdul:
+            data = hdul[1].data
+            for colname in data.columns.names:
+                assert np.all(data[colname] == arr[colname])
+
+            arr2 = t.as_array(keep_byteorder=True)
+            for colname in data.columns.names:
+                assert (data[colname].dtype.byteorder ==
+                        arr2[colname].dtype.byteorder)
 
 
 def _assert_copies(t, t2, deep=True):
