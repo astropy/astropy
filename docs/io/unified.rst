@@ -163,6 +163,7 @@ indicates which support write functionality.
 ``ascii.sextractor``                         :class:`~astropy.io.ascii.SExtractor`: SExtractor format table
 ``ascii.tab``                            Yes :class:`~astropy.io.ascii.Tab`: Basic table with tab-separated values
 ``ascii.csv``                     .csv   Yes :class:`~astropy.io.ascii.Csv`: Basic table with comma-separated values
+``ascii.ecsv``                   .ecsv   Yes :class:`~astropy.io.ascii.Ecsv`: Basic table with Enhanced CSV (supporting metadata)
 =============================== ====== ===== ============================================================================================
 
 .. note::
