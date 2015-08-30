@@ -49,7 +49,7 @@ redshifts as input:
 
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> cosmo.comoving_distance([0.5, 1.0, 1.5])  # doctest: +FLOAT_CMP
-  <Quantity [ 1916.0694236 , 3363.07064333, 4451.74756242] Mpc>
+  <Quantity [ 1916.06942039, 3363.0706321 , 4451.74754107] Mpc>
 
 You can create your own FLRW-like cosmology using one of the Cosmology
 classes::
@@ -114,21 +114,21 @@ redshift 4 by:
 .. doctest-requires:: scipy
 
   >>> cosmo.luminosity_distance(4)  # doctest: +FLOAT_CMP
-  <Quantity 35842.353618623194 Mpc>
-
+  <Quantity 35842.35328799687 Mpc>
+  
 or the age of the universe at z = 0:
 
 .. doctest-requires:: scipy
 
   >>> cosmo.age(0)  # doctest: +FLOAT_CMP
-  <Quantity 13.461701658024014 Gyr>
+  <Quantity 13.461701476415707 Gyr>
 
 They also accept arrays of redshifts:
 
 .. doctest-requires:: scipy
 
   >>> cosmo.age([0.5, 1, 1.5]).value  # doctest: +FLOAT_CMP
-  array([ 8.42128047,  5.74698053,  4.19645402])
+  array([ 8.4212803 ,  5.74698037,  4.19645387])
 
 See the `~astropy.cosmology.FLRW` and
 `~astropy.cosmology.FlatLambdaCDM` object docstring for all the
@@ -223,8 +223,8 @@ redshift which it corresponds to, you can use ``z_at_value``:
   >>> import astropy.units as u
   >>> from astropy.cosmology import Planck13, z_at_value
   >>> z_at_value(Planck13.age, 2 * u.Gyr)  # doctest: +FLOAT_CMP
-  3.1981226843560968
-
+  3.1981209656529268
+  
 For some quantities there can be more than one redshift that satisfies
 a value. In this case you can use the ``zmin`` and ``zmax`` keywords
 to restrict the search range. See the ``z_at_value`` docstring for more
@@ -241,7 +241,7 @@ the WMAP and Planck satellite data. For example,
 
   >>> from astropy.cosmology import Planck13  # Planck 2013
   >>> Planck13.lookback_time(2)  # lookback time in Gyr at z=2  # doctest: +FLOAT_CMP
-  <Quantity 10.511841788576083 Gyr>
+  <Quantity 10.511841376920712 Gyr>
 
 A full list of the pre-defined cosmologies is given by
 ``cosmology.parameters.available``, and summarized below:
