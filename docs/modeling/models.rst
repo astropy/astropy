@@ -1,9 +1,24 @@
 .. include:: links.inc
 .. _modeling-instantiating:
 
-***********************************
-Instantiating and Evaluating Models
-***********************************
+************
+Using Models
+************
+
+`~astropy.modeling` is designed to be easily extensible and flexible. Models do not
+reference fitting algorithms explicitly and new fitting algorithms may be added
+without changing the existing models (though not all models can be used with
+all fitting algorithms due to constraints such as model linearity).
+
+As demonstrated in the :doc:`quick-tutorial`, a model can be
+instantiated with one set of parameters::
+
+    >>> from astropy.modeling import models
+    >>> g = models.Gaussian1D(amplitude=1., mean=0., stddev=1.)
+    >>> g
+    <Gaussian1D(amplitude=1.0, mean=0.0, stddev=1.0)>
+
+where these model parameters can be accesses and modified as attributes.
 
 The base class of all models is `~astropy.modeling.Model`, however
 fittable models should subclass `~astropy.modeling.FittableModel`.
@@ -22,16 +37,10 @@ which would be fitted to, for example, a different plane in an image cube.
 
 Regardless of whether using a single model, or a model set, parameter values
 may be scalar values, or arrays of any size and shape, so long as they are
-compatible according to the standard `Numpy broadcasting rules`_.  For example,
-a model may be instantiated with all scalar parameters::
-
-    >>> from astropy.modeling.models import Gaussian1D
-    >>> g = Gaussian1D(amplitude=1, mean=0, stddev=1)
-    >>> g
-    <Gaussian1D(amplitude=1.0, mean=0.0, stddev=1.0)>
-
-Or it may use all array parameters.  For example if all parameters are 2x2
-arrays the model is computed element-wise using all elements in the arrays::
+compatible according to the standard `Numpy broadcasting rules`_. As shown
+above, a model may be instantiated with all scalar parameters, or it may use
+all array parameters. For example if all parameters are 2x2 arrays the model is
+computed element-wise using all elements in the arrays::
 
     >>> g = Gaussian1D(amplitude=[[1, 2], [3, 4]], mean=[[0, 1], [1, 0]],
     ...                stddev=[[0.1, 0.2], [0.3, 0.4]])
