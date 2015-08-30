@@ -165,15 +165,15 @@ class OrthoPolynomialBase(PolynomialBase):
         degree in x
     y_degree : int
         degree in y
-    x_domain : list or None
+    x_domain : list or None, optional
         domain of the x independent variable
-    x_window : list or None
+    x_window : list or None, optional
         range of the x independent variable
-    y_domain : list or None
+    y_domain : list or None, optional
         domain of the y independent variable
-    y_window : list or None
+    y_window : list or None, optional
         range of the y independent variable
-    param_dim : int
+    param_dim : int, optional
         number of parameter sets
     **params : dict
         {keyword: value} pairs, representing {parameter_name: value}
@@ -326,11 +326,11 @@ class Chebyshev1D(PolynomialModel):
     ----------
     degree : int
         degree of the series
-    domain : list or None
-    window : list or None
+    domain : list or None, optional
+    window : list or None, optional
         If None, it is set to [-1,1]
         Fitters will remap the domain to this window
-    param_dim : int
+    param_dim : int, optional
         number of parameter sets
     **params : dict
         keyword : value pairs, representing parameter_name: value
@@ -416,11 +416,11 @@ class Legendre1D(PolynomialModel):
     ----------
     degree : int
         degree of the series
-    domain : list or None
-    window : list or None
+    domain : list or None, optional
+    window : list or None, optional
         If None, it is set to [-1,1]
         Fitters will remap the domain to this window
-    param_dim : int
+    param_dim : int, optional
         number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
@@ -504,11 +504,11 @@ class Polynomial1D(PolynomialModel):
     ----------
     degree : int
         degree of the series
-    domain : list or None
-    window : list or None
+    domain : list or None, optional
+    window : list or None, optional
         If None, it is set to [-1,1]
         Fitters will remap the domain to this window
-    param_dim : int
+    param_dim : int, optional
         number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
@@ -586,15 +586,15 @@ class Polynomial2D(PolynomialModel):
     degree : int
         highest power of the polynomial,
         the number of terms is degree+1
-    x_domain : list or None
+    x_domain : list or None, optional
         domain of the x independent variable
-    y_domain : list or None
+    y_domain : list or None, optional
         domain of the y independent variable
-    x_window : list or None
+    x_window : list or None, optional
         range of the x independent variable
-    y_window : list or None
+    y_window : list or None, optional
         range of the y independent variable
-    param_dim : int
+    param_dim : int, optional
         number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
@@ -736,15 +736,15 @@ class Chebyshev2D(OrthoPolynomialBase):
         degree in x
     y_degree : int
         degree in y
-    x_domain : list or None
+    x_domain : list or None, optional
         domain of the x independent variable
-    y_domain : list or None
+    y_domain : list or None, optional
         domain of the y independent variable
-    x_window : list or None
+    x_window : list or None, optional
         range of the x independent variable
-    y_window : list or None
+    y_window : list or None, optional
         range of the y independent variable
-    param_dim : int
+    param_dim : int, optional
         number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
@@ -851,15 +851,15 @@ class Legendre2D(OrthoPolynomialBase):
         degree in x
     y_degree : int
         degree in y
-    x_domain : list or None
+    x_domain : list or None, optional
         domain of the x independent variable
-    y_domain : list or None
+    y_domain : list or None, optional
         domain of the y independent variable
-    x_window : list or None
+    x_window : list or None, optional
         range of the x independent variable
-    y_window : list or None
+    y_window : list or None, optional
         range of the y independent variable
-    param_dim : int
+    param_dim : int, optional
         number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
