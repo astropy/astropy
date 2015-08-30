@@ -287,12 +287,12 @@ def test_new_style_latex():
 
 
 def test_latex_scale():
-    latex = '$\\mathrm{2.1798721 \\times 10^{-18}\\,\\frac{m^{2}\\,kg}{s^{2}}}$'
+    latex = '$\\mathrm{2.1798722 \\times 10^{-18}\\,\\frac{m^{2}\\,kg}{s^{2}}}$'
     assert u.Ry.decompose().to_string('latex') == latex
 
 
 def test_latex_inline_scale():
-    latex_inline = '$\\mathrm{2.1798721 \\times 10^{-18}\\,m^{2}\\,kg\\,s^{-2}}$'
+    latex_inline = '$\\mathrm{2.1798722 \\times 10^{-18}\\,m^{2}\\,kg\\,s^{-2}}$'
     assert u.Ry.decompose().to_string('latex_inline') == latex_inline
 
 
