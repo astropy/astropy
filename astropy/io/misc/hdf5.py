@@ -274,5 +274,6 @@ def write_table_hdf5(table, output, path=None, compression=False,
                 dset.attrs[key] = val
             except TypeError:
                 warnings.warn("Attribute `{0}` of type {1} cannot be written to "
-                              "HDF5 files - skipping".format(key, type(val)),
+                              "HDF5 files - skipping. (Consider specifying "
+                              "serialize_meta=True to write all meta data)".format(key, type(val)),
                               AstropyUserWarning)
