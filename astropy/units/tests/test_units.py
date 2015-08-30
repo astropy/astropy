@@ -419,6 +419,14 @@ def test_compose_no_duplicates():
     composed = new.compose(units=u.cgs.bases)
     assert len(composed) == 1
 
+def test_first_base():
+    x = u.kpc
+    y = u.yr
+    z = x/y
+    assert x.first_base == u.pc
+    assert y.first_base == u.yr
+    assert z.first_base == u.pc/u.yr
+
 
 def test_long_int():
     """

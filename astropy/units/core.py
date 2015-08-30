@@ -570,6 +570,10 @@ class UnitBase(object):
         return [self]
 
     @property
+    def first_base(self):
+        return self
+
+    @property
     def powers(self):
         """
         Return the powers of the unit.
@@ -1942,6 +1946,9 @@ class PrefixUnit(Unit):
     The constructor is the same as for `Unit`.
     """
 
+    @property
+    def first_base(self):
+        return self._represents.bases[0]
 
 class CompositeUnit(UnitBase):
     """
@@ -2110,6 +2117,10 @@ class CompositeUnit(UnitBase):
         unit = self.decompose()
         return len(unit.bases) == 0 and unit.scale == 1.0
 
+    @property
+    def first_base(self):
+        first_bases = [b.first_base for b in self.bases]
+        return CompositeUnit(self.scale, first_bases, self.powers)
 
 si_prefixes = [
     (['Y'], ['yotta'], 1e24),
