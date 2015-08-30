@@ -146,7 +146,7 @@ You can see how the density parameters evolve with redshift as well::
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.Om([0, 1.0, 2.0]), WMAP7.Ode([0., 1.0, 2.0])  # doctest: +FLOAT_CMP
-  (array([ 0.272     ,  0.74898524,  0.90905239]),
+  (array([ 0.272     ,  0.74898523,  0.90905237]),
    array([ 0.72791572,  0.25055061,  0.0901026 ]))
 
 Note that these don't quite add up to one even though WMAP7 assumes a

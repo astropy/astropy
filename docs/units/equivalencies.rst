@@ -106,7 +106,7 @@ energy can be converted.
   >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())
   <Quantity [  2.99792458e+14,  1.49896229e+14] Hz>
   >>> ([1000, 2000] * u.nm).to(u.eV, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
-  <Quantity [ 1.23984193, 0.61992096] eV>
+  <Quantity [ 1.23984197, 0.61992099] eV>
 
 These equivalencies even work with non-base units::
 

@@ -33,7 +33,7 @@ different units for example::
       Value  = 299792458.0
       Error  = 0.0
       Units  = m / s
-      Reference = CODATA 2010
+      Reference = CODATA 2014
 
     >>> print const.c.to('km/s')
     299792.458 km / s
