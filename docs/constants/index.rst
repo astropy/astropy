@@ -47,7 +47,7 @@ and you can use them in conjunction with unit and other non-constant
     >>> from astropy import units as u
     >>> F = (const.G * 3. * const.M_sun * 100 * u.kg) / (2.2 * u.au) ** 2
     >>> print F.to(u.N)
-    0.367669392028 N
+    0.367682613899 N
 
 It is possible to convert most constants to cgs using e.g.::
 
