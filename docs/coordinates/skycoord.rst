@@ -799,7 +799,7 @@ its usual position to avoid overlap with the axis labels.
     plt.title("Aitoff projection of our random data", y=1.08)
     plt.grid(True)
     plt.plot(ra_rad, dec_rad, 'o', markersize=2, alpha=0.3)
-    plt.subplots_adjust(top=0.95,bottom=0.0)
+    plt.subplots_adjust(top=0.95, bottom=0.0)
     plt.show()
 
 
