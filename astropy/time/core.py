@@ -26,6 +26,9 @@ from ..extern import six
 from .utils import day_frac
 from .formats import (TIME_FORMATS, TIME_DELTA_FORMATS,
                       TimeJD, TimeUnique, TimeAstropyTime)
+# Import TimeFromEpoch to avoid breaking code that followed the old example of
+# making a custom timescale in the documentation.
+from .formats import TimeFromEpoch
 
 
 __all__ = ['Time', 'TimeDelta', 'TIME_SCALES', 'TIME_DELTA_SCALES',
