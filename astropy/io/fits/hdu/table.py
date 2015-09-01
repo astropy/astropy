@@ -747,10 +747,11 @@ class TableHDU(_TableBaseHDU):
             # We have the data to be used.
             # We need to pad the data to a block length before calculating
             # the datasum.
+            bytes_array = self.data.view(type=np.ndarray, dtype=np.ubyte)
+            padding = np.fromstring(_pad_length(self.size) * b' ',
+                                    dtype=np.ubyte)
 
-            d = np.append(self.data.view(dtype='ubyte'),
-                          np.fromstring(_pad_length(self.size) * ' ',
-                                        dtype='ubyte'))
+            d = np.append(bytes_array, padding)
 
             cs = self._compute_checksum(d, blocking=blocking)
             return cs
@@ -800,7 +801,7 @@ class BinTableHDU(_TableBaseHDU):
 
         swapped = self._binary_table_byte_swap()
         try:
-            dout = self.data.view(dtype='ubyte')
+            dout = self.data.view(type=np.ndarray, dtype=np.ubyte)
             csum = self._compute_checksum(dout, blocking=blocking)
 
             # Now add in the heap data to the checksum (we can skip any gap
