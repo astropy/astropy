@@ -60,10 +60,15 @@ Other Tips
   This will prevent automated tests for running against your change, freeing
   up resources for testing non-trivial changes.
 
-  - If you already made the commit without including this string, you can edit
-    your existing commit message by running:
+  - If you already made the commit without including this string, but have not
+    yet pushed it to a remote, you can edit your existing commit message by
+    running:
 
         $ git commit --amend
+
+  - Then force push your branch:
+
+        $ git push --force origin branch_name
 
 Checklist for Contributed Code
 ------------------------------
