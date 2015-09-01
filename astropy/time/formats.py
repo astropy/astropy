@@ -184,8 +184,6 @@ class TimeFormat(object):
         scales.  Provide a different error message if `None` (no value) was
         supplied.
         """
-        from .core import TIME_SCALES, ScaleValueError
-
         if hasattr(self.__class__, 'epoch_scale') and scale is None:
             scale = self.__class__.epoch_scale
 
@@ -264,8 +262,6 @@ class TimeDecimalYear(TimeFormat):
     name = 'decimalyear'
 
     def set_jds(self, val1, val2):
-        from .core import Time
-
         self._check_scale(self._scale)  # Validate scale.
 
         sum12, err12 = two_sum(val1, val2)
@@ -328,8 +324,6 @@ class TimeFromEpoch(TimeFormat):
     """
     def __init__(self, val1, val2, scale, precision,
                  in_subfmt, out_subfmt, from_jd=False):
-        from .core import Time
-
         self.scale = scale
         # Initialize the reference epoch (a single time defined in subclasses)
         epoch = Time(self.epoch_val, self.epoch_val2, scale=self.epoch_scale,
@@ -357,8 +351,6 @@ class TimeFromEpoch(TimeFormat):
         # and 1/86400 is not exactly representable as a float64, so multiplying
         # by that will cause rounding errors. (But inverting it as a float64
         # recovers the exact number)
-        from .core import Time, ScaleValueError
-
         day, frac = day_frac(val1, val2, divisor=1. / self.unit)
 
         jd1 = self.epoch.jd1 + day
@@ -495,8 +487,6 @@ class TimeAstropyTime(TimeUnique):
         Use __new__ instead of __init__ to output a class instance that
         is the same as the class of the first Time object in the list.
         """
-        from .core import Time
-
         val1_0 = val1.flat[0]
         if not (isinstance(val1_0, Time) and all(type(val) is type(val1_0)
                                                  for val in val1.flat)):
@@ -862,8 +852,6 @@ class TimeFITS(TimeString):
 
     def parse_string(self, timestr, subfmts):
         """Read time and set scale according to trailing scale codes."""
-        from .core import TIME_SCALES
-
         # Try parsing with any of the allowed sub-formats.
         for _, regex, _ in subfmts:
             tm = re.match(regex, timestr)
@@ -1023,7 +1011,6 @@ class TimeDeltaFormat(TimeFormat):
         """
         Check that the scale is in the allowed list of scales, or is `None`
         """
-        from .core import TIME_DELTA_SCALES, ScaleValueError
         if scale is not None and scale not in TIME_DELTA_SCALES:
             raise ScaleValueError("Scale value '{0}' not in "
                                   "allowed values {1}"
@@ -1050,3 +1037,6 @@ class TimeDeltaJD(TimeDeltaFormat):
     """Time delta in Julian days (86400 SI seconds)"""
     name = 'jd'
     unit = 1.
+
+
+from .core import Time, TIME_SCALES, TIME_DELTA_SCALES, ScaleValueError
