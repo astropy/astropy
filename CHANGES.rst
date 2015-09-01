@@ -228,6 +228,9 @@ New Features
     positional arguments that are automatically dotted together with the
     first ``name`` argument. [#4083]
 
+  - Added ``is_url_in_cache`` for resolving paths to cached files via URLS
+    and checking if files exist. [#4095]
+
 - ``astropy.visualization``
 
   - Added the ``hist`` function, which is similar to ``plt.hist`` but
