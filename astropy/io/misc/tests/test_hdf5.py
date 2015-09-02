@@ -377,9 +377,11 @@ def test_preserve_serialized(tmpdir):
 
     t1 = Table()
     t1['a'] = Column(data=[1, 2, 3], unit="s"))
+    t1['a'].meta['a0'] = "A0"
+    t1['a'].meta['a1'] = {"a1": [0, 1]}
     t1['a'].format = '7.3f'
     t1['a'].description = 'A column'
-    t1.meta['b'] = {"b0": 1}
+    t1.meta['b'] = 1
     t1.meta['c'] = {"c0": [0, 1]}
 
     t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
@@ -389,7 +391,10 @@ def test_preserve_serialized(tmpdir):
     assert t1['a'].unit == t2['a'].unit
     assert t1['a'].format == t2['a'].format
     assert t1['a'].description == t2['a'].description
-    assert t1.meta['b']['b0'] == t2.meta['b']['b0']
+    assert t1['a'].meta['a0'] == t2['a'].meta['a0']
+    assert np.all([x == y for (x, y) in zip(t1['a'].meta['a1']['a1'],
+                                            t2['a'].meta['a1']['a1'])])
+    assert t1.meta['b'] == t2.meta['b']
     assert np.all([x == y for (x, y) in zip(t1.meta['c']['c0'],
                                             t2.meta['c']['c0'])])
 
