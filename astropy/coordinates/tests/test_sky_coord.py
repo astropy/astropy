@@ -26,6 +26,7 @@ from ...coordinates import Latitude, Longitude, EarthLocation
 from ...time import Time
 from ...utils import minversion
 from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.compat import NUMPY_LT_1_7
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -480,7 +481,6 @@ def test_seps():
 
     assert sep3d == 1 * u.kpc
 
-
 def test_repr():
     # Repr tests must use exact floating point vals because Python 2.6
     # outputs values like 0.1 as 0.1000000000001.  No workaround found.
@@ -499,6 +499,10 @@ def test_repr():
     sc_default = SkyCoord(0 * u.deg, 1 * u.deg)
     assert repr(sc_default) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                                 '    (0.0, 1.0)>')
+
+@pytest.mark.skipif('NUMPY_LT_1_7')
+def test_repr_altaz():
+    sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
     loc = EarthLocation.from_geodetic(-122*u.deg, -47*u.deg)
     time = Time('2005-03-21 00:00:00')
     sc4 = sc2.transform_to(AltAz(location=loc, obstime=time))
