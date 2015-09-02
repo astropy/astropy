@@ -986,12 +986,12 @@ reduce these to 2 dimensions using the naxis kwarg.
                 val = header.get(key)
                 if val is not None and val.endswith('-SIP'):
                     header[key] = val[:-4]
-        for prefix in ('A', 'B', 'AP', 'BP'):
-            for i in range(30):
-                for j in range(30):
-                    key = '{0}_{1}_{2}'.format(prefix, i, j)
-                    if key in header:
-                        del header[key]
+            for prefix in ('A', 'B', 'AP', 'BP'):
+                for i in range(20):
+                    for j in range(20):
+                        key = '{0}_{1}_{2}{3}'.format(prefix, i, j, sel)
+                        if key in header:
+                            del header[key]
 
     def _read_sip_kw(self, header):
         """
