@@ -448,6 +448,9 @@ Bug fixes
 
 - ``astropy.coordinates``
 
+  - Fix string representation of ``SkyCoord`` objects transformed into
+    the ``AltAz`` frame
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
