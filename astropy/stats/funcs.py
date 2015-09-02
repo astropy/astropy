@@ -368,8 +368,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
        plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
                     label='estimate')
        X = np.linspace(20., 30., 1000)
-       plt.plot(X, true_efficiency(X), ls='-', color='r',
-                label='true efficiency')
+       plt.plot(X, true_efficiency(X), label='true efficiency')
        plt.ylim(0., 1.)
        plt.title('Detection efficiency vs magnitude')
        plt.xlabel('Magnitude')
@@ -409,8 +408,7 @@ def binned_binom_proportion(x, success, bins=10, range=None, conf=0.68269,
        plt.errorbar(bins, p, xerr=binshw, yerr=perr, ls='none', marker='o',
                     label='estimate')
        X = np.linspace(20., 30., 1000)
-       plt.plot(X, true_efficiency(X), ls='-', color='r',
-                label='true efficiency')
+       plt.plot(X, true_efficiency(X), label='true efficiency')
        plt.ylim(0., 1.)
        plt.title('The Wald interval can give nonsensical uncertainties')
        plt.xlabel('Magnitude')

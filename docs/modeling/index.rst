@@ -125,8 +125,8 @@ and `~astropy.modeling.functional_models.Trapezoid1D` models and the
     # Plot the data with the best-fit model
     plt.figure(figsize=(8,5))
     plt.plot(x, y, 'ko')
-    plt.plot(x, t(x), 'b-', lw=2, label='Trapezoid')
-    plt.plot(x, g(x), 'r-', lw=2, label='Gaussian')
+    plt.plot(x, t(x), label='Trapezoid')
+    plt.plot(x, g(x), label='Gaussian')
     plt.xlabel('Position')
     plt.ylabel('Flux')
     plt.legend(loc=2)
@@ -166,15 +166,15 @@ background in an image.
         p = fit_p(p_init, x, y, z)
 
     # Plot the data with the best-fit model
-    plt.figure(figsize=(8,2.5))
-    plt.subplot(1,3,1)
+    plt.figure(figsize=(8, 2.5))
+    plt.subplot(1, 3, 1)
     plt.imshow(z, origin='lower', interpolation='nearest', vmin=-1e4, vmax=5e4)
     plt.title("Data")
-    plt.subplot(1,3,2)
+    plt.subplot(1, 3, 2)
     plt.imshow(p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
                vmax=5e4)
     plt.title("Model")
-    plt.subplot(1,3,3)
+    plt.subplot(1, 3, 3)
     plt.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
                vmax=5e4)
     plt.title("Residual")
@@ -306,7 +306,7 @@ These new compound models can also be fitted to data, like most other models:
     # Plot the data with the best-fit model
     plt.figure(figsize=(8,5))
     plt.plot(x, y, 'ko')
-    plt.plot(x, gg_fit(x), 'r-', lw=2)
+    plt.plot(x, gg_fit(x))
     plt.xlabel('Position')
     plt.ylabel('Flux')
 
@@ -344,4 +344,3 @@ Reference/API
 .. automodapi:: astropy.modeling.fitting
 .. automodapi:: astropy.modeling.optimizers
 .. automodapi:: astropy.modeling.statistic
-

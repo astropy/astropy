@@ -214,17 +214,18 @@ PyWcsprm_init(
   PyObject*      colsel        = Py_None;
   PyArrayObject* colsel_array  = NULL;
   int*           colsel_ints   = NULL;
+  int            warnings      = 1;
   int            nreject       = 0;
   int            nwcs          = 0;
   struct wcsprm* wcs           = NULL;
   int            i             = 0;
   const char*    keywords[]    = {"header", "key", "relax", "naxis", "keysel",
-                                  "colsel", NULL};
+                                  "colsel", "warnings", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|OsOiiO:WCSBase.__init__",
+          args, kwds, "|OsOiiOi:WCSBase.__init__",
           (char **)keywords, &header_obj, &key, &relax_obj, &naxis, &keysel,
-          &colsel)) {
+          &colsel, &warnings)) {
     return -1;
   }
 
@@ -383,7 +384,7 @@ PyWcsprm_init(
 
     wcsvfree(&nwcs, &wcs);
 
-    if (convert_rejections_to_warnings()) {
+    if (warnings && convert_rejections_to_warnings()) {
       free(colsel_ints);
       return -1;
     }
@@ -534,18 +535,19 @@ PyWcsprm_find_all_wcs(
   PyObject*      relax_obj     = NULL;
   int            relax         = 0;
   int            keysel        = 0;
+  int            warnings      = 1;
   int            nreject       = 0;
   int            nwcs          = 0;
   struct wcsprm* wcs           = NULL;
   PyObject*      result        = NULL;
   PyWcsprm*      subresult     = NULL;
   int            i             = 0;
-  const char*    keywords[]    = {"header", "relax", "keysel", NULL};
+  const char*    keywords[]    = {"header", "relax", "keysel", "warnings", NULL};
   int            status        = -1;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O|Oi:find_all_wcs",
-          (char **)keywords, &header_obj, &relax_obj, &keysel)) {
+          args, kwds, "O|Oii:find_all_wcs",
+          (char **)keywords, &header_obj, &relax_obj, &keysel, &warnings)) {
     return NULL;
   }
 
@@ -621,7 +623,7 @@ PyWcsprm_find_all_wcs(
 
   wcsvfree(&nwcs, &wcs);
 
-  if (convert_rejections_to_warnings()) {
+  if (warnings && convert_rejections_to_warnings()) {
     return NULL;
   }
 
@@ -1862,6 +1864,7 @@ PyWcsprm_sub(
   status = wcssub(1, &self->x, &nsub, axes, &py_dest_wcs->x);
   wcsprm_c2python(&self->x);
   if (PyWcsprm_cset(py_dest_wcs, 0)) {
+    status = -1;
     goto exit;
   }
   wcsprm_c2python(&py_dest_wcs->x);

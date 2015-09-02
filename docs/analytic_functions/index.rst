@@ -95,7 +95,7 @@ Plot a blackbody spectrum for 5000 K:
     with np.errstate(all='ignore'):
         flux = blackbody_lambda(waveset, temperature)
 
-    fig, ax = plt.subplots(figsize=(8,5))
+    fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(waveset.value, flux.value)
     ax.axvline(wavemax.value, ls='--')
     ax.get_yaxis().get_major_formatter().set_powerlimits((0, 1))

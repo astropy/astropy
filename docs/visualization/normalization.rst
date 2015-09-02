@@ -150,7 +150,7 @@ instance:
 
     # Make the figure
     fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
+    ax = fig.add_subplot(1, 1, 1)
     im = ax.imshow(image, origin='lower', norm=norm)
     fig.colorbar(im)
 

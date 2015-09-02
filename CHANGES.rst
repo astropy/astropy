@@ -170,6 +170,9 @@ New Features
     as a mixin column.  This allows for an approximation of nested tables.
     [#3925]
 
+  - Added ``keep_byteorder`` option to ``Table.as_array()``.  See the
+    "API Changes" section below. [#4080]
+
 - ``astropy.tests``
 
   - Added new test config options, ``config_dir`` and ``cache_dir``  (these
@@ -207,6 +210,11 @@ New Features
     ``OrderedDescriptor`` as a base class).  See the API documentation for
     these classes for more details. Coordinate frames and models now use this
     interface. [#3679]
+
+  - The ``get_pkg_data_*`` functions now take an optional ``package`` argument
+    which allows specifying any package to read package data filenames or
+    content out of, as opposed to only being able to use data from the package
+    that the function is called from. [#4079]
 
   - Added function ``dtype_info_name`` to the ``data_info`` module to provide
     the name of a ``dtype`` for human-readable informational purposes. [#3868]
@@ -357,6 +365,10 @@ API changes
 
 - ``astropy.table``
 
+  - ``Table.as_array()`` always returns a structured array with each column in
+    the system's native byte order.  The optional ``keep_byteorder=True``
+    option will keep each column's data in its original byteorder. [#4080]
+
 - ``astropy.tests``
 
 - ``astropy.time``
@@ -391,6 +403,11 @@ API changes
     detail this is not likely to affect any users. [#4001]
 
 - ``astropy.utils``
+
+  - All of the ``get_pkg_data_*`` functions take an optional ``package``
+    argument as their second positional argument.  So any code that previously
+    passed other arguments to these functions as positional arguments might
+    break.  Use keyword argument passing instead to mitigate this. [#4079]
 
   - ``astropy.utils.iers`` now uses a ``QTable`` internally, which means that
     the numerical columns are stored as ``Quantity``, with full support for
