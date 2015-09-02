@@ -376,7 +376,7 @@ def test_preserve_serialized(tmpdir):
     test_file = str(tmpdir.join('test.hdf5'))
 
     t1 = Table()
-    t1['a'] = Column(data=[1, 2, 3], unit="s"))
+    t1['a'] = Column(data=[1, 2, 3], unit="s")
     t1['a'].meta['a0'] = "A0"
     t1['a'].meta['a1'] = {"a1": [0, 1]}
     t1['a'].format = '7.3f'
