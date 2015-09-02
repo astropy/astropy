@@ -34,7 +34,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import copy
 import io
 import os
-import string
 import textwrap
 import warnings
 import platform
@@ -981,7 +980,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         # Never pass SIP CTYPES or other information along to
         # wcslib
-        for sel in [''] + list(string.uppercase):
+        for sel in [''] + [chr(i + ord('A')) for i in range(26)]:
             for axis in ['1', '2']:
                 key = 'CTYPE{0}{1}'.format(axis, sel)
                 val = header.get(key)
