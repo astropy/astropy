@@ -41,8 +41,8 @@ def table_info(tbl, option='attributes', out=''):
     <Table length=2>
     name  dtype  unit
     ---- ------- ----
-       a   int32    m
-       b float32
+       a   int64    m
+       b float64
 
     >>> t.info('stats')
     <Table length=2>

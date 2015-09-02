@@ -369,6 +369,9 @@ API changes
     the system's native byte order.  The optional ``keep_byteorder=True``
     option will keep each column's data in its original byteorder. [#4080]
 
+  - ``Table.simple_table()`` now creates tables with int64 and float64 types
+    instead of int32 and float64. [#4114]
+
 - ``astropy.tests``
 
 - ``astropy.time``

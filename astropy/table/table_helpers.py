@@ -96,9 +96,9 @@ def simple_table(size=3, cols=None, kinds='ifS', masked=False):
     letters = np.array([c for c in string.ascii_letters])
     for jj, kind in zip(range(cols), cycle(kinds)):
         if kind == 'i':
-            data = np.arange(1, size + 1, dtype=int) + jj
+            data = np.arange(1, size + 1, dtype=np.int64) + jj
         elif kind == 'f':
-            data = np.arange(size, dtype=float) + jj
+            data = np.arange(size, dtype=np.float64) + jj
         elif kind == 'S':
             indices = (np.arange(size) + jj) % len(letters)
             data = letters[indices]
@@ -108,7 +108,7 @@ def simple_table(size=3, cols=None, kinds='ifS', masked=False):
             data = [{val: index} for val, index in zip(vals, indices)]
         else:
             raise ValueError('Unknown data kind')
-        columns.append(Column(data, dtype=kind))
+        columns.append(Column(data))
 
     table = Table(columns, names=names, masked=masked)
     if masked:
