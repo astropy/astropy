@@ -372,6 +372,40 @@ def test_preserve_meta(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
+def test_preserve_units(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1.add_column(Column(name='a', data=[1, 2, 3], unit="s"))
+
+    t1.meta['b'] = {"b0": 1}
+
+    t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
+
+    t2 = Table.read(test_file, path='the_table')
+
+    assert t1['a'].unit == t2['a'].unit
+
+
+@pytest.mark.skipif('not HAS_H5PY')
+def test_preserve_dict(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1.add_column(Column(name='a', data=[1, 2, 3]))
+    t1.meta['b'] = {"b0": 1}
+    t1.meta['c'] = {"c0": [0, 1]}
+
+    t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
+
+    t2 = Table.read(test_file, path='the_table')
+
+    assert t1.meta['b']['b0'] == t2.meta['b']['b0']
+    assert np.all([x == y for (x, y) in zip(t1.meta['c']['c0'],
+                                            t2.meta['c']['c0'])])
+
+
+@pytest.mark.skipif('not HAS_H5PY')
 def test_skip_meta(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
