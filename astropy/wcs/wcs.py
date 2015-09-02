@@ -34,6 +34,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import copy
 import io
 import os
+import string
 import textwrap
 import warnings
 import platform
@@ -404,10 +405,13 @@ class WCS(WCSBase):
                 header_bytes = header_string
                 header_string = header_string.decode('ascii')
 
-            header = fits.Header.fromstring(header_string)
-
             try:
-                tmp_wcsprm = _wcs.Wcsprm(header=header_bytes, key=key,
+                tmp_header = fits.Header.fromstring(header_string)
+                self._remove_sip_kw(tmp_header)
+                tmp_header_bytes = tmp_header.tostring().rstrip()
+                if isinstance(tmp_header_bytes, six.text_type):
+                    tmp_header_bytes = tmp_header_bytes.encode('ascii')
+                tmp_wcsprm = _wcs.Wcsprm(header=tmp_header_bytes, key=key,
                                          relax=relax, keysel=keysel_flags,
                                          colsel=colsel, warnings=False)
             except _wcs.NoWcsKeywordsFoundError:
@@ -422,6 +426,8 @@ class WCS(WCSBase):
                 else:
                     est_naxis = 2
 
+            header = fits.Header.fromstring(header_string)
+
             if est_naxis == 0:
                 est_naxis = 2
             self.naxis = est_naxis
@@ -430,6 +436,7 @@ class WCS(WCSBase):
             cpdis = self._read_distortion_kw(
                 header, fobj, dist='CPDIS', err=minerr)
             sip = self._read_sip_kw(header)
+            self._remove_sip_kw(header)
 
             header_string = header.tostring()
             header_string = header_string.replace('END' + ' ' * 77, '')
@@ -559,7 +566,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             return
 
         # Nothing to be done if axes don't use SIP distortion parameters
-        if not all(ctype.endswith('-SIP') for ctype in self.wcs.ctype):
+        if self.sip is None:
             return
 
         # Nothing to be done if any radial terms are present...
@@ -967,6 +974,25 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         write_dist(1, self.cpdis1)
         write_dist(2, self.cpdis2)
+
+    def _remove_sip_kw(self, header):
+        """
+        Remove SIP information from a header.
+        """
+        # Never pass SIP CTYPES or other information along to
+        # wcslib
+        for sel in [''] + list(string.uppercase):
+            for axis in ['1', '2']:
+                key = 'CTYPE{0}{1}'.format(axis, sel)
+                val = header.get(key)
+                if val is not None and val.endswith('-SIP'):
+                    header[key] = val[:-4]
+        for prefix in ('A', 'B', 'AP', 'BP'):
+            for i in range(30):
+                for j in range(30):
+                    key = '{0}_{1}_{2}'.format(prefix, i, j)
+                    if key in header:
+                        del header[key]
 
     def _read_sip_kw(self, header):
         """

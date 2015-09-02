@@ -813,7 +813,7 @@ def test_header_parse():
             'data/header_newlines.fits', encoding='binary') as test_file:
         hdulist = fits.open(test_file)
         w = wcs.WCS(hdulist[0].header)
-    assert w.wcs.ctype[0] == 'RA---TAN-SIP'
+    assert w.wcs.ctype[0] == 'RA---TAN'
 
 
 def test_locale():
