@@ -379,8 +379,13 @@ def _guess(table, read_kwargs, format, fast_reader):
     # Filter the full guess list so that each entry is consistent with user kwarg inputs.
     # This also removes any duplicates from the list.
     filtered_guess_kwargs = []
+    fast_reader = read_kwargs.get('fast_reader')
 
     for guess_kwargs in full_list_guess:
+        # If user specified slow reader then skip all fast readers
+        if fast_reader is False and guess_kwargs['Reader'] in core.FAST_CLASSES.values():
+            continue
+
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
         for key, val in read_kwargs.items():
             # Do guess_kwargs.update(read_kwargs) except that if guess_args has
