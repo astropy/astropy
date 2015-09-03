@@ -32,7 +32,8 @@ from ..extern.six.moves import urllib
 __all__ = ['isiterable', 'silence', 'format_exception', 'NumpyRNGContext',
            'find_api_page', 'is_path_hidden', 'walk_skip_hidden',
            'JsonCustomEncoder', 'indent', 'InheritDocstrings',
-           'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale']
+           'OrderedDescriptor', 'OrderedDescriptorContainer', 'set_locale',
+           'ShapedLikeNDArray']
 
 
 def isiterable(obj):
@@ -850,3 +851,129 @@ def set_locale(name):
                 yield
             finally:
                 locale.setlocale(locale.LC_ALL, saved)
+
+
+class ShapedLikeNDArray(object):
+    """Mixin class to provide shape-changing methods.
+
+    These assume that the class proper defines
+    _replicate(method, *args, **kwargs)
+    """
+
+    @abc.abstractproperty
+    def shape(self):
+        """The shape of the instance and underlying arrays."""
+
+    @abc.abstractproperty
+    def ndim(self):
+        """The number of dimensions of the instance and underlying arrays."""
+
+    @abc.abstractmethod
+    def _replicate(method, *args, **kwargs):
+        """Replicate an instance, possibly ``method`` to the underlying arrays.
+
+        Parameters
+        ----------
+        method : str, optional
+            If given, the method should be applied to the internal arrays that
+            hold the instance's data (e.g., ``jd1`` and ``jd2`` for
+            `~astropy.time.Time`)
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.
+        """
+
+    # Typically, this will be overridden, but this gives a sensible default.
+    @property
+    def size(self):
+        """The size of the object, as calculated from its shape."""
+        size = 1
+        for sh in self.shape:
+            size *= sh
+        return size
+
+    def __getitem__(self, item):
+        if self.isscalar:
+            raise TypeError('scalar {0!r} object is not subscriptable.'.format(
+                self.__class__.__name__))
+        return self._replicate('__getitem__', item)
+
+    def reshape(self, *args, **kwargs):
+        """Returns an instance containing the same data with a new shape.
+
+        Parameters are as for :meth:`~numpy.ndarray.reshape`.  Note that it is
+        not always possible to change the shape of an array without copying the
+        data. If you want an error to be raise if the data is copied, you
+        should assign the new shape to the shape attribute.
+        """
+        return self._replicate('reshape', *args, **kwargs)
+
+    def ravel(self, *args, **kwargs):
+        """Return an instance with the array collapsed into one dimension.
+
+        Parameters are as for :meth:`~numpy.ndarray.ravel`. Note that it is
+        not always possible to unravel an array without copying the data.
+        If you want an error to be raise if the data is copied, you should
+        should assign shape ``(-1,)`` to the shape attribute.
+        """
+        return self._replicate('ravel', *args, **kwargs)
+
+    def flatten(self, *args, **kwargs):
+        """Return a copy with the array collapsed into one dimension.
+
+        Parameters are as for :meth:`~numpy.ndarray.flatten`.
+        """
+        return self._replicate('flatten', *args, **kwargs)
+
+    def transpose(self, *args, **kwargs):
+        """Return an instance with the data transposed.
+
+        Parameters are as for :meth:`~numpy.ndarray.transpose`.  All internal
+        data are views of the data of the original.
+        """
+        return self._replicate('transpose', *args, **kwargs)
+
+    @property
+    def T(self):
+        """Return an instance with the data transposed.
+
+        Parameters are as for :attr:`~numpy.ndarray.T`.  All internal
+        data are views of the data of the original.
+        """
+        if self.ndim < 2:
+            return self
+        else:
+            return self.transpose()
+
+    def swapaxes(self, *args, **kwargs):
+        """Return an instance with the given axes interchanged.
+
+        Parameters are as for :meth:`~numpy.ndarray.swapaxes`.  All internal
+        data are views of the data of the original.
+        """
+        return self._replicate('swapaxes', *args, **kwargs)
+
+    def diagonal(self, *args, **kwargs):
+        """Return an instance with the specified diagonals.
+
+        Parameters are as for :meth:`~numpy.ndarray.diagonal`.  All internal
+        data are views of the data of the original.
+        """
+        return self._replicate('diagonal', *args, **kwargs)
+
+    def squeeze(self, *args, **kwargs):
+        """Return an instance with single-dimensional shape entries removed
+
+        Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
+        data are views of the data of the original.
+        """
+        return self._replicate('squeeze', *args, **kwargs)
+
+    def take(self, indices, axis=None, mode='raise'):
+        """Return a new instance formed from the elements the given indices.
+
+        Parameters are as for :meth:`~numpy.ndarray.take`, except that,
+        obviously, no output array can be given.
+        """
+        return self._replicate('take', indices, axis=axis, mode=mode)

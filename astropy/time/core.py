@@ -20,6 +20,7 @@ from .. import units as u, constants as const
 from .. import _erfa as erfa
 from ..units import UnitConversionError
 from ..utils.decorators import lazyproperty
+from ..utils import ShapedLikeNDArray
 from ..utils.compat.misc import override__dir__
 from ..utils.data_info import MixinInfo, data_info_factory
 from ..utils.compat.numpy import broadcast_to
@@ -111,7 +112,7 @@ class TimeInfo(MixinInfo):
     # funcs = [lambda x: getattr(x, stat)() for stat_name in MixinInfo._stats])
 
 
-class Time(object):
+class Time(ShapedLikeNDArray):
     """
     Represent and manipulate times and dates for astronomy.
 
@@ -871,91 +872,6 @@ class Time(object):
                 pass
 
         return time_iter()
-
-    def __getitem__(self, item):
-        if self.isscalar:
-            raise TypeError('scalar {0!r} object is not subscriptable.'.format(
-                self.__class__.__name__))
-        return self._replicate('__getitem__', item)
-
-    def reshape(self, *args, **kwargs):
-        """Returns a time instance containing the same data with a new shape.
-
-        Parameters are as for :meth:`~numpy.ndarray.reshape`.  Note that it is
-        not always possible to change the shape of an array without copying the
-        data. If you want an error to be raise if the data is copied, you
-        should assign the new shape to the shape attribute.
-        """
-        return self._replicate('reshape', *args, **kwargs)
-
-    def ravel(self, *args, **kwargs):
-        """Return an instance with the time array collapsed into one dimension.
-
-        Parameters are as for :meth:`~numpy.ndarray.ravel`. Note that it is
-        not always possible to unravel an array without copying the data.
-        If you want an error to be raise if the data is copied, you should
-        should assign shape ``(-1,)`` to the shape attribute.
-        """
-        return self._replicate('ravel', *args, **kwargs)
-
-    def flatten(self, *args, **kwargs):
-        """Return a copy with the time array collapsed into one dimension.
-
-        Parameters are as for :meth:`~numpy.ndarray.flatten`.
-        """
-        return self._replicate('flatten', *args, **kwargs)
-
-    def transpose(self, *args, **kwargs):
-        """Return a time instance with the data transposed.
-
-        Parameters are as for :meth:`~numpy.ndarray.transpose`.  All internal
-        data are views of the data of the original.
-        """
-        return self._replicate('transpose', *args, **kwargs)
-
-    @property
-    def T(self):
-        """Return a time instance with the data transposed.
-
-        Parameters are as for :attr:`~numpy.ndarray.T`.  All internal
-        data are views of the data of the original.
-        """
-        if self.ndim < 2:
-            return self
-        else:
-            return self.transpose()
-
-    def swapaxes(self, *args, **kwargs):
-        """Return a time instance with the given axes interchanged.
-
-        Parameters are as for :meth:`~numpy.ndarray.swapaxes`.  All internal
-        data are views of the data of the original.
-        """
-        return self._replicate('swapaxes', *args, **kwargs)
-
-    def diagonal(self, *args, **kwargs):
-        """Return a time instance with the specified diagonals.
-
-        Parameters are as for :meth:`~numpy.ndarray.diagonal`.  All internal
-        data are views of the data of the original.
-        """
-        return self._replicate('diagonal', *args, **kwargs)
-
-    def squeeze(self, *args, **kwargs):
-        """Return a time instance with single-dimensional shape entries removed
-
-        Parameters are as for :meth:`~numpy.ndarray.squeeze`.  All internal
-        data are views of the data of the original.
-        """
-        return self._replicate('squeeze', *args, **kwargs)
-
-    def take(self, indices, axis=None, mode='raise'):
-        """Return a Time object formed from the elements the given indices.
-
-        Parameters are as for :meth:`~numpy.ndarray.take`, except that,
-        obviously, no output array can be given.
-        """
-        return self._replicate('take', indices, axis=axis, mode=mode)
 
     def _advanced_index(self, indices, axis=None, keepdims=False):
         """Turn argmin, argmax output into an advanced index.
