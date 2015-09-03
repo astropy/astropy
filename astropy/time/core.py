@@ -1412,7 +1412,7 @@ class Time(object):
     def __ge__(self, other):
         return self._time_difference(other, '>=') >= 0.
 
-    def to_datetime(self, timezone):
+    def to_datetime(self, timezone=None):
         tm = self.replicate(format='datetime')
         return tm._shaped_like_input(tm._time.to_value(timezone))
 
