@@ -265,14 +265,13 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     if serialize_meta:
         header_yaml = meta.get_yaml_from_table(table)
-        header_encoded = [h.encode('utf8') for h in header_yaml]
-        # Check that the length of the header is "small" (less than 64k)
-        header_encoded_length = sum(len(h) for h in header_encoded)
-        if header_encoded_length > 65536:
-            warnings.warn("The size of the metadata is large. Please consider reducing the"
-                          " content of the meta information in the table and the columns"
-                          " (including the description attribute).")
-        dset.attrs[META_KEY] = header_encoded
+
+        try:
+            dset.attrs[META_KEY] = [h.encode('utf8') for h in header_yaml]
+        except Exception as e:
+            warnings.warn("Attributes could not be written to the output HDF5 "
+                          "file: {}".format(e))
+
     else:
         # Write the meta-data to the file
         for key in table.meta:
