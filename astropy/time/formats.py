@@ -26,7 +26,7 @@ except ImportError:
 
 __all__ = ['TimeFormat', 'TimeJD', 'TimeMJD', 'TimeFromEpoch', 'TimeUnix',
            'TimeCxcSec', 'TimeGPS', 'TimeDecimalYear',
-           'TimePlotDate', 'TimeDatetime', 'TimeString',
+           'TimePlotDate', 'TimeUnique', 'TimeDatetime', 'TimeString',
            'TimeISO', 'TimeISOT', 'TimeFITS', 'TimeYearDayTime',
            'TimeEpochDate', 'TimeBesselianEpoch', 'TimeJulianEpoch',
            'TimeDeltaFormat', 'TimeDeltaSec', 'TimeDeltaJD',
