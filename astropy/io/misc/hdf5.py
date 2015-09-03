@@ -270,7 +270,7 @@ def write_table_hdf5(table, output, path=None, compression=False,
             dset.attrs[META_KEY] = [h.encode('utf8') for h in header_yaml]
         except Exception as e:
             warnings.warn("Attributes could not be written to the output HDF5 "
-                          "file: {}".format(e))
+                          "file: {0}".format(e))
 
     else:
         # Write the meta-data to the file
