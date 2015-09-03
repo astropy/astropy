@@ -928,7 +928,7 @@ to count leap seconds.  This would be done by using the TAI scale instead
 of the UTC scale.  In this case we inherit from the
 `~astropy.time.TimeFromEpoch` class and define a few class attributes::
 
-  >>> from astropy.time.core import erfa, TimeFromEpoch
+  >>> from astropy.time.formats import erfa, TimeFromEpoch
   >>> class TimeUnixLeap(TimeFromEpoch):
   ...    """
   ...    Seconds from 1970-01-01 00:00:00 TAI.  Similar to Unix time
