@@ -122,6 +122,17 @@ Plotting a quantity with an incompatible unit will raise an exception::
     UnitConversionError: 'kg' (mass) and 'm' (length) are not convertible
     >>> plt.clf()
 
+To make sure unit support is turned off afterward, you can use
+`~astropy.visualization.quantity_support` with a ``with`` statement::
+
+.. doctest-requires:: matplotlib
+
+    >>> from astropy.visualization import quantity_support
+    >>> from matplotlib import pyplot as plt
+    >>> with quantity_support():
+    ...     plt.figure()
+    ...     plt.plot([1, 2, 3] * u.m)
+
 Arithmetic
 ----------
 
