@@ -265,7 +265,13 @@ def write_table_hdf5(table, output, path=None, compression=False,
 
     if serialize_meta:
         header_yaml = meta.get_yaml_from_table(table)
-        dset.attrs[META_KEY] = [h.encode('utf8') for h in header_yaml]
+
+        try:
+            dset.attrs[META_KEY] = [h.encode('utf8') for h in header_yaml]
+        except Exception as e:
+            warnings.warn("Attributes could not be written to the output HDF5 "
+                          "file: {}".format(e))
+
     else:
         # Write the meta-data to the file
         for key in table.meta:
