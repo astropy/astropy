@@ -544,7 +544,7 @@ class TimeDatetime(TimeUnique):
             dt = val.item()
 
             if dt.tzinfo is not None:
-               dt = (dt - dt.utcoffset()).replace(tzinfo=None)
+                dt = (dt - dt.utcoffset()).replace(tzinfo=None)
 
             iy[...] = dt.year
             im[...] = dt.month
