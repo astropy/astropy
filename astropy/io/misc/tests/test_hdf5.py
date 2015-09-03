@@ -400,6 +400,21 @@ def test_preserve_serialized(tmpdir):
 
 
 @pytest.mark.skipif('not HAS_H5PY')
+def test_metadata_too_large(tmpdir):
+    test_file = str(tmpdir.join('test.hdf5'))
+
+    t1 = Table()
+    t1['a'] = Column(data=[1, 2, 3])
+    t1.meta = "0" * (2**16 + 1)
+
+    with catch_warnings() as w:
+        t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
+    assert len(w) == 1
+    assert str(w[0].message).startswith(
+        "The size of the metadata is large.")
+
+
+@pytest.mark.skipif('not HAS_H5PY')
 def test_skip_meta(tmpdir):
 
     test_file = str(tmpdir.join('test.hdf5'))
