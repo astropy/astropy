@@ -405,7 +405,7 @@ def test_metadata_too_large(tmpdir):
 
     t1 = Table()
     t1['a'] = Column(data=[1, 2, 3])
-    t1.meta = "0" * (2**16 + 1)
+    t1.meta["meta"] = {"0" * (2**16 + 1)}
 
     with catch_warnings() as w:
         t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
