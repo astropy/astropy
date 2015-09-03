@@ -411,7 +411,8 @@ def test_metadata_too_large(tmpdir):
         t1.write(test_file, path='the_table', serialize_meta=True, overwrite=True)
     assert len(w) == 1
     assert str(w[0].message).startswith(
-        "The size of the metadata is large.")
+        "Attributes could not be written to the output HDF5 "
+        "file: Unable to create attribute (Object header message is too large)")
 
 
 @pytest.mark.skipif('not HAS_H5PY')
