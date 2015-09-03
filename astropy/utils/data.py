@@ -36,7 +36,7 @@ __all__ = [
     'get_pkg_data_filenames', 'compute_hash', 'clear_download_cache',
     'CacheMissingWarning', 'get_free_space_in_dir',
     'check_free_space_in_dir', 'download_file',
-    'download_files_in_parallel']
+    'download_files_in_parallel', 'is_url_in_cache']
 
 
 class Conf(_config.ConfigNamespace):
@@ -1102,6 +1102,32 @@ def download_file(remote_url, cache=False, show_progress=True, timeout=None):
 
     return local_path
 
+def is_url_in_cache(url_key):
+    """
+    Check if a download from ``url_key`` is in the cache.
+
+    Parameters
+    ----------
+    url_key : string
+        The URL retrieved
+
+    Returns
+    -------
+    in_cache : bool
+        `True` if a download from ``url_key`` is in the cache
+    """
+    # The code below is modified from astropy.utils.data.download_file()
+    try:
+        dldir, urlmapfn = _get_download_cache_locs()
+    except (IOError, OSError) as e:
+        msg = 'Remote data cache could not be accessed due to '
+        estr = '' if len(e.args) < 1 else (': ' + str(e))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+        return False
+    with _open_shelve(urlmapfn, True) as url2hash:
+        if url_key in url2hash:
+            return True
+    return False
 
 def _do_download_files_in_parallel(args):
     return download_file(*args, show_progress=False)
