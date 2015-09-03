@@ -449,7 +449,7 @@ Bug fixes
 - ``astropy.coordinates``
 
   - Fix string representation of ``SkyCoord`` objects transformed into
-    the ``AltAz`` frame
+    the ``AltAz`` frame [#4055]
 
 - ``astropy.cosmology``
 
