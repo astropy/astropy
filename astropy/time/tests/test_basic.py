@@ -5,6 +5,7 @@
 import copy
 import functools
 import sys
+import pytz
 
 from datetime import datetime, tzinfo, timedelta
 
@@ -999,3 +1000,21 @@ def test_isiterable():
     t2 = Time(['1999-01-01 00:00:00.123456789', '2010-01-01 00:00:00'],
               format='iso', scale='utc')
     assert isiterable(t2)
+
+def test_scalar_to_datetime():
+    tzinfo = pytz.timezone('US/Hawaii')
+    time = Time('2010-09-03 00:00:00')
+    tz_aware_datetime = time.to_datetime(tzinfo)
+    forced_to_astropy_time = Time(tz_aware_datetime)
+    assert tzinfo.tzname(time.datetime) == tz_aware_datetime.tzname()
+    assert time == forced_to_astropy_time
+
+def test_nonscalar_to_datetime():
+    tzinfo = pytz.timezone('US/Hawaii')
+    time = Time(['2010-09-03 00:00:00', '2005-09-03 06:00:00',
+                 '1990-09-03 06:00:00'])
+    tz_aware_datetime = time.to_datetime(tzinfo)
+    forced_to_astropy_time = Time(tz_aware_datetime)
+    for dt, tz_dt in zip(time.datetime, tz_aware_datetime):
+        assert tzinfo.tzname(dt) == tz_dt.tzname()
+    assert np.all(time == forced_to_astropy_time)

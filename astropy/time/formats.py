@@ -7,6 +7,7 @@ import fnmatch
 import time
 import re
 from datetime import datetime
+import pytz
 
 import numpy as np
 
@@ -543,7 +544,7 @@ class TimeDatetime(TimeUnique):
             dt = val.item()
 
             if dt.tzinfo is not None:
-                dt = (dt - dt.utcoffset()).replace(tzinfo=None)
+               dt = (dt - dt.utcoffset()).replace(tzinfo=None)
 
             iy[...] = dt.year
             im[...] = dt.month
@@ -573,6 +574,49 @@ class TimeDatetime(TimeUnique):
 
         return iterator.operands[-1]
 
+    def to_value(self, timezone=None):
+        """
+        Convert to (potentially timezone-aware) `~datetime.datetime` object.
+
+        If ``timezone`` is not `None`, return a timezone-aware datetime
+        object.
+
+        Parameters
+        ----------
+        timezone : {`~datetime.tzinfo`, None} (optional)
+            If not `None`, return timezone-aware datetime.
+
+        Returns
+        -------
+        `~datetime.datetime`
+            If ``timezone`` is not `None`, output will be timezone-aware.
+        """
+        if timezone is not None:
+            if self._scale != 'utc':
+                raise ScaleValueError("Scale is {}, must be UTC."
+                                      "".format(self._scale))
+
+        # Below is mostly copied from self.value, with added timezone handling
+        iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
+                                                 .encode('utf8'),
+                                                 6,  # precision=6 for microsec
+                                                 self.jd1, self.jd2)
+        ihrs = ihmsfs[..., 0]
+        imins = ihmsfs[..., 1]
+        isecs = ihmsfs[..., 2]
+        ifracs = ihmsfs[..., 3]
+        iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
+                             flags=['refs_ok'],
+                             op_dtypes=7*[iys.dtype] + [np.object])
+        for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
+            if timezone is not None:
+                out[...] = pytz.utc.localize(datetime(iy, im, id, ihr, imin, isec,
+                                                      ifracsec)).astimezone(timezone)
+            else:
+                out[...] = datetime(iy, im, id, ihr, imin, isec, ifracsec)
+        return iterator.operands[-1]
+
+    value = property(to_value)
 
 class TimeString(TimeUnique):
     """
