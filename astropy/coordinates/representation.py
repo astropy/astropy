@@ -17,6 +17,7 @@ import astropy.units as u
 from .angles import Angle, Longitude, Latitude
 from .distances import Distance
 from ..extern import six
+from ..utils import ShapedLikeNDArray
 from ..utils.compat.numpy import broadcast_arrays
 
 __all__ = ["BaseRepresentation", "CartesianRepresentation",
@@ -61,7 +62,7 @@ def _fstyle(precision, x):
 
 
 @six.add_metaclass(MetaBaseRepresentation)
-class BaseRepresentation(object):
+class BaseRepresentation(ShapedLikeNDArray):
     """
     Base Representation object, for representing a point in a 3D coordinate
     system.
@@ -114,9 +115,22 @@ class BaseRepresentation(object):
             name = name[:-14]
         return name
 
-    def __getitem__(self, view):
-        return self.__class__(*[getattr(self, component)[view]
-                                for component in self.components])
+    def _replicate(self, method, *args, **kwargs):
+        """Replicate a coordinate object while applying a method to the arrays.
+
+        Parameters
+        ----------
+        method : str
+            The method is applied to the internal ``components``.
+            Example methods: ``copy``, ``__getitem__``, ``reshape``.
+        args : tuple
+            Any positional arguments for ``method``.
+        kwargs : dict
+            Any keyword arguments for ``method``.
+        """
+        return self.__class__(
+            *[getattr(getattr(self, component), method)(*args, **kwargs)
+              for component in self.components], copy=False)
 
     def __len__(self):
         if self.isscalar:
@@ -134,6 +148,14 @@ class BaseRepresentation(object):
     @property
     def shape(self):
         return getattr(self, self.components[0]).shape
+
+    @property
+    def ndim(self):
+        return getattr(self, self.components[0]).ndim
+
+    @property
+    def size(self):
+        return getattr(self, self.components[0]).size
 
     @property
     def isscalar(self):
