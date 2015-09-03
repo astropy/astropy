@@ -792,23 +792,7 @@ class Time(object):
         if self.isscalar:
             raise TypeError('scalar {0!r} object is not subscriptable.'.format(
                 self.__class__.__name__))
-        tm = self.replicate()
-        tm._time.jd1 = self._time.jd1[item]
-        tm._time.jd2 = self._time.jd2[item]
-        attrs = ('_delta_ut1_utc', '_delta_tdb_tt', 'location')
-        for attr in attrs:
-            val = getattr(self, attr, None)
-            if val is not None:
-                try:
-                    setattr(tm, attr, val[item])
-                except IndexError:  # location may be scalar (same for all)
-                    continue
-
-        # Copy other 'info' attr only if it has actually been defined.
-        if 'info' in self.__dict__:
-            tm.info = self.info
-
-        return tm
+        return self._replicate('__getitem__', item)
 
     def reshape(self, *args, **kwargs):
         """Returns a time instance containing the same data with a new shape.
