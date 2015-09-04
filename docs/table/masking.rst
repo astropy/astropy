@@ -1,5 +1,7 @@
 .. include:: references.txt
 
+.. _masking_and_missing_values:
+
 Masking and missing values
 --------------------------
 
@@ -38,24 +40,28 @@ A masked table can be created in several ways:
 **Create a new table object and specify masked=True** ::
 
   >>> from astropy.table import Table, Column, MaskedColumn
-  >>> t = Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True, dtype=('i4', 'i8'))
-  >>> t
+  >>> Table([(1, 2), (3, 4)], names=('a', 'b'), masked=True, dtype=('i4', 'i8'))
   <Table masked=True length=2>
     a     b
   int32 int64
   ----- -----
       1     3
       2     4
-  <BLANKLINE>
 
 Notice the table attributes ``mask`` and ``fill_value`` that are
 available for a masked table.
 
 **Create a table with one or more columns as a MaskedColumn object**
 
-  >>> a = MaskedColumn([1, 2], name='a')
-  >>> b = Column([3, 4], name='b')
-  >>> t = Table([a, b])
+  >>> a = MaskedColumn([1, 2], name='a', mask=[False, True], dtype='i4')
+  >>> b = Column([3, 4], name='b', dtype='i8')
+  >>> Table([a, b])
+  <Table masked=True length=2>
+    a     b
+  int32 int64
+  ----- -----
+      1     3
+     --     4
 
 The |MaskedColumn| is the masked analog of the |Column| class and
 provides the interface for creating and manipulating a column of
@@ -63,6 +69,8 @@ masked data.  The |MaskedColumn| class inherits from
 `numpy.ma.MaskedArray`, in contrast to |Column| which inherits from
 `numpy.ndarray`.  This distinction is the main reason there are
 different classes for these two cases.
+
+Notice that masked entries in the table output are shown as ``--``.
 
 **Create a table with one or more columns as a numpy MaskedArray**
 
@@ -104,10 +112,6 @@ indexing a single row of a table:
 
 - For standard tables, two such rows can be compared for equality, but
   in masked tables this comparison will produce an exception.
-- For standard tables a |Row| object provides a view of the underlying
-  table data so that it is possible to modify a table by modifying the
-  row values.  In masked tables this is a copy so that modifying the
-  |Row| object has no effect on the original table data.
 
 Both of these differences are due to issues in the underlying
 `numpy.ma.MaskedArray` implementation.
@@ -134,7 +138,25 @@ viewed and modified via the ``mask`` attribute::
     1  --
    --   4
 
-Masked entries are shown as ``--`` when the table is printed.
+Masked entries are shown as ``--`` when the table is printed.  You can
+view the mask directly, either at the column or table level::
+
+  >>> t['a'].mask
+  array([False,  True], dtype=bool)
+
+  >>> t.mask
+  <Table masked=False length=2>
+    a     b
+   bool  bool
+  ----- -----
+  False  True
+   True False
+
+To get the indices of masked elements use an expression like::
+
+  >>> t['a'].mask.nonzero()[0]  # doctest: +SKIP
+  array([1])
+
 
 Filling
 """""""
