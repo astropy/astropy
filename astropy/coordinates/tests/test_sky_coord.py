@@ -20,11 +20,12 @@ from ...tests.helper import (pytest, catch_warnings, quantity_allclose,
 from ..representation import REPRESENTATION_CLASSES
 from ...coordinates import (ICRS, FK4, FK5, Galactic, SkyCoord, Angle,
                             SphericalRepresentation, CartesianRepresentation,
-                            UnitSphericalRepresentation)
-from ...coordinates import Latitude, Longitude
+                            UnitSphericalRepresentation, AltAz)
+from ...coordinates import Latitude, Longitude, EarthLocation
 from ...time import Time
 from ...utils import minversion
 from ...utils.exceptions import AstropyDeprecationWarning
+from ...utils.compat import NUMPY_LT_1_7
 
 RA = 1.0 * u.deg
 DEC = 2.0 * u.deg
@@ -479,7 +480,6 @@ def test_seps():
 
     assert sep3d == 1 * u.kpc
 
-
 def test_repr():
     # Repr tests must use exact floating point vals because Python 2.6
     # outputs values like 0.1 as 0.1000000000001.  No workaround found.
@@ -499,6 +499,18 @@ def test_repr():
     assert repr(sc_default) == ('<SkyCoord (ICRS): (ra, dec) in deg\n'
                                 '    (0.0, 1.0)>')
 
+@pytest.mark.skipif('NUMPY_LT_1_7')
+def test_repr_altaz():
+    sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame='icrs', distance=1 * u.kpc)
+    loc = EarthLocation.from_geodetic(-122*u.deg, -47*u.deg)
+    time = Time('2005-03-21 00:00:00')
+    sc4 = sc2.transform_to(AltAz(location=loc, obstime=time))
+    assert repr(sc4).startswith("<SkyCoord (AltAz: obstime=2005-03-21 00:00:00.000, "
+                         "location=(-2309222.664660742, -3695528.7655007695, "
+                         "-4641764.788820372) m, pressure=0.0 hPa, "
+                         "temperature=0.0 deg_C, relative_humidity=0, "
+                         "obswl=1.0 micron): (az, alt, distance) in "
+                         "(deg, deg, m)\n")
 
 def test_ops():
     """
