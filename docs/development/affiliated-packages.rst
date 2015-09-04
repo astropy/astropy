@@ -501,8 +501,28 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
 
         git commit -m "Back to development: <next_version>"
 
-#. Check out the release commit with ``git checkout v<version>``. Run
-   ``git clean -fxd`` to remove any non-committed files, then either release with::
+#. Check out the release commit with ``git checkout v<version>``.
+   Run ``git clean -fxd`` to remove any non-committed files.
+
+#. (optional) Run the tests in a virtual environment that mocks up a
+   "typical user" scenario.  This is not strictly necessary because you ran the
+   tests above, but it can sometimes be useful to catch subtle bugs that might
+   come from you using a customized developer environment.  For more on setting
+   up virtual environments, see :ref:`virtual-envs`, but for the sake of example
+   we will assume you're using `Anaconda <http://conda.pydata.org/docs/>`_. Do::
+
+       conda create -n myaffilpkg_rel_test astropy <any more dependencies here>
+       source activate myaffilpkg_rel_test
+       python setup.py install
+       cd <anywhere not your package's source directory>
+       python -c 'import myaffilpkg; myaffilpkg.test()'
+       source deactivate
+       cd <back to your source>
+
+   Assuming the tests all passed, you can proceed on.
+
+#. If you did the previous step, do ``git clean -fxd`` again to remove anything
+   you made there. Then either release with::
 
         python setup.py register build sdist --format=gztar upload
 
