@@ -144,9 +144,6 @@ view the mask directly, either at the column or table level::
   >>> t['a'].mask
   array([False,  True], dtype=bool)
 
-  >>> t['a'].mask.nonzero()[0]  # Indices of masked elements
-  array([1])
-
   >>> t.mask
   <Table length=2>
     a     b
@@ -154,6 +151,11 @@ view the mask directly, either at the column or table level::
   ----- -----
   False  True
    True False
+
+To get the indices of masked elements use an expression like::
+
+  >>> t['a'].mask.nonzero()[0]  # doctest: +SKIP
+  array([1])
 
 
 Filling
