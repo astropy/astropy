@@ -609,6 +609,9 @@ Bug Fixes
 
 - ``astropy.coordinates``
 
+  - Fix string representation of ``SkyCoord`` objects transformed into
+    the ``AltAz`` frame [#4055]
+
 - ``astropy.cosmology``
 
 - ``astropy.io.ascii``
