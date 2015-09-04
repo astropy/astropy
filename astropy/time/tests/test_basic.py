@@ -1018,7 +1018,7 @@ def test_to_datetime():
             return self._utcoffset
 
         def tzname(self, dt):
-            return self._tzname
+            return str(self._tzname)
 
         def dst(self, dt):
             if self._dst is None:
