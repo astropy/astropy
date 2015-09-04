@@ -5,7 +5,6 @@
 import copy
 import functools
 import sys
-import pytz
 
 from datetime import datetime, tzinfo, timedelta
 
@@ -1001,20 +1000,46 @@ def test_isiterable():
               format='iso', scale='utc')
     assert isiterable(t2)
 
-def test_scalar_to_datetime():
-    tzinfo = pytz.timezone('US/Hawaii')
+def test_to_datetime():
+    class TimezoneInfo(tzinfo):
+        """
+        This defines a timezone with UTC offset ``utcoffset``, meant as
+        a replacement for the `datetime.tzinfo` objects output by
+        `pytz.timezone`. For example, to simulate a timezone like
+        `pytz.timezone("US/Hawaii")`, try
+        `TimezoneInfo(utcoffset=datetime.timedelta(hours=-10))`
+        """
+        def __init__(self, utcoffset=None, tzname=None, dst=None):
+            self._utcoffset = utcoffset
+            self._tzname = tzname
+            self._dst = dst
+
+        def utcoffset(self, dt):
+            return self._utcoffset
+
+        def tzname(self, dt):
+            return self._tzname
+
+        def dst(self, dt):
+            if self._dst is None:
+                return timedelta(0)
+            else:
+                return self._dst
+
+    tz = TimezoneInfo(utcoffset=timedelta(hours=-10), tzname='US/Hawaii')
+    # The above lines produces a `datetime.tzinfo` object similar to:
+    #     tzinfo = pytz.timezone('US/Hawaii')
     time = Time('2010-09-03 00:00:00')
-    tz_aware_datetime = time.to_datetime(tzinfo)
+    tz_aware_datetime = time.to_datetime(tz)
     forced_to_astropy_time = Time(tz_aware_datetime)
-    assert tzinfo.tzname(time.datetime) == tz_aware_datetime.tzname()
+    assert tz.tzname(time.datetime) == tz_aware_datetime.tzname()
     assert time == forced_to_astropy_time
 
-def test_nonscalar_to_datetime():
-    tzinfo = pytz.timezone('US/Hawaii')
+    # Test non-scalar time inputs:
     time = Time(['2010-09-03 00:00:00', '2005-09-03 06:00:00',
                  '1990-09-03 06:00:00'])
-    tz_aware_datetime = time.to_datetime(tzinfo)
+    tz_aware_datetime = time.to_datetime(tz)
     forced_to_astropy_time = Time(tz_aware_datetime)
     for dt, tz_dt in zip(time.datetime, tz_aware_datetime):
-        assert tzinfo.tzname(dt) == tz_dt.tzname()
+        assert tz.tzname(dt) == tz_dt.tzname()
     assert np.all(time == forced_to_astropy_time)

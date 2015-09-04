@@ -6,8 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 import fnmatch
 import time
 import re
-from datetime import datetime
-import pytz
+from datetime import datetime, tzinfo, timedelta
 
 import numpy as np
 
@@ -608,15 +607,35 @@ class TimeDatetime(TimeUnique):
         iterator = np.nditer([iys, ims, ids, ihrs, imins, isecs, ifracs, None],
                              flags=['refs_ok'],
                              op_dtypes=7*[iys.dtype] + [np.object])
+
         for iy, im, id, ihr, imin, isec, ifracsec, out in iterator:
             if timezone is not None:
-                out[...] = pytz.utc.localize(datetime(iy, im, id, ihr, imin, isec,
-                                                      ifracsec)).astimezone(timezone)
+                out[...] = datetime(iy, im, id, ihr, imin, isec, ifracsec,
+                                    tzinfo=_UTCTimezoneInfo()).astimezone(timezone)
             else:
                 out[...] = datetime(iy, im, id, ihr, imin, isec, ifracsec)
         return iterator.operands[-1]
 
     value = property(to_value)
+
+class _UTCTimezoneInfo(tzinfo):
+    """
+    Class for a UTC `~datetime.timezone` object, used in the
+    `TimeDatetime.to_datetime` method.
+    """
+    def __init__(self):
+        self._utcoffset = timedelta(0)
+        self._tzname = 'UTC'
+        self._dst = timedelta(0)
+
+    def utcoffset(self, dt):
+        return self._utcoffset
+
+    def tzname(self, dt):
+        return self._tzname
+
+    def dst(self, dt):
+        return self._dst
 
 class TimeString(TimeUnique):
     """
