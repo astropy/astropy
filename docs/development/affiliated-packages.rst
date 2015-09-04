@@ -519,7 +519,9 @@ replace ``CHANGES.rst`` by ``CHANGES.md`` in the instructions.
        source deactivate
        cd <back to your source>
 
-   Assuming the tests all passed, you can proceed on.
+   You may want to repeat this for other combinations of dependencies if you think
+   your users might have other relevant packages installed.  Assuming the tests
+   all pass, you can proceed on.
 
 #. If you did the previous step, do ``git clean -fxd`` again to remove anything
    you made there. Then either release with::
