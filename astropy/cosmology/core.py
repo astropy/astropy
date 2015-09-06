@@ -10,6 +10,8 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
+from . import scalar_inv_efuncs
+
 from .. import constants as const
 from .. import units as u
 from ..utils import isiterable, deprecated
@@ -45,15 +47,17 @@ __doctest_requires__ = {'*': ['scipy.integrate']}
 # The second, and more advanced, option is to also explicitly
 #  provide a scalar only version of inv_efunc.  This results in a fairly
 #  large speedup (>10x in most cases) in the distance and age integrals,
-#  because testing whether the inputs are iterable or pure scalars turns out
-#  to be rather expensive. If somebody making a new subclass wants to pursue
-#  this optimization, the key thing is to explicitly set the
+#  even if only done in python,  because testing whether the inputs are
+#  iterable or pure scalars turns out to be rather expensive. To take
+#  advantage of this, the key thing is to explicitly set the
 #  instance variables self._inv_efunc_scalar and self._inv_efunc_scalar_args
 #  in the constructor for the subclass, where the latter are all the
 #  arguments except z to _inv_efunc_scalar.
-#  Again, the provided classes do use this optimization, and in fact go
-#   even further and provide optimizations for no radiation, and for radiation
-#   with massless neutrinos.  Consult the subclasses for details.
+#
+#  The provided classes do use this optimization, and in fact go
+#  even further and provide optimizations for no radiation, and for radiation
+#  with massless neutrinos coded in cython.  Consult the subclasses for
+#  details, and scalar_inv_efuncs for the details.
 #
 #  However, the important point is that it is -not- necessary to do this.
 
@@ -260,10 +264,14 @@ class FLRW(Cosmology):
             self._Tnu0 = 0.7137658555036082 * self._Tcmb0
 
             # Compute Neutrino Omega and total relativistic component
-            # for massive neutrinos
+            # for massive neutrinos.  We also store a list version,
+            # since that is more efficient to do integrals with (perhaps
+            # surpisingly!  But small python lists are much more efficient
+            # than small numpy arrays).
             if self._massivenu:
                 nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
                 self._nu_y = nu_y.value
+                self._nu_y_list = self._nu_y.tolist()
                 self._Onu0 = self._Ogamma0 * self.nu_relative_density(0)
             else:
                 # This case is particularly simple, so do it directly
@@ -764,17 +772,15 @@ class FLRW(Cosmology):
                 return prefac * self._Neff *\
                     np.ones(np.asanyarray(z).shape, dtype=np.float)
 
+        # These are purely fitting constants -- see the Komatsu paper
         p = 1.83
         invp = 1.0 / p
-        if np.isscalar(z):
-            curr_nu_y = self._nu_y / (1.0 + z)  # only includes massive ones
-            rel_mass_per = (1.0 + (0.3173 * curr_nu_y) ** p) ** invp
-            rel_mass = rel_mass_per.sum() + self._nmasslessnu
-        else:
-            z = np.asarray(z)
-            curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
-            rel_mass_per = (1. + (0.3173 * curr_nu_y) ** p) ** invp
-            rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
+        k = 0.3173
+
+        z = np.asarray(z)
+        curr_nu_y = self._nu_y / (1. + np.expand_dims(z, axis=-1))
+        rel_mass_per = (1.0 + (k * curr_nu_y) ** p) ** invp
+        rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
 
         return prefac * self._neff_per_nu * rel_mass
 
@@ -1589,17 +1595,18 @@ class LambdaCDM(FLRW):
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = self._lcdm_inv_efunc_norel
+            self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0)
         elif not self._massivenu:
-            self._inv_efunc_scalar = self._lcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0)
         else:
-            self._inv_efunc_scalar = self._lcdm_inv_efunc
+            self._inv_efunc_scalar = scalar_inv_efuncs.lcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0,
-                                           self.nu_relative_density)
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list)
 
     def w(self, z):
         """Returns dark energy equation of state at redshift ``z``.
@@ -1714,25 +1721,6 @@ class LambdaCDM(FLRW):
 
         return (zp1 ** 2 * ((Or * zp1 + Om0) * zp1 + Ok0) + Ode0)**(-0.5)
 
-    # The stuff below here for this class is -not- something
-    # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons.
-    @staticmethod
-    def _lcdm_inv_efunc_norel(z, Om0, Ode0, Ok0):
-        opz = 1.0 + z
-        return (opz**2 * (opz * Om0 + Ok0) + Ode0)**(-0.5)
-
-    @staticmethod
-    def _lcdm_inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0):
-        opz = 1.0 + z
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 + Ode0)**(-0.5)
-
-    @staticmethod
-    def _lcdm_inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc):
-        Or0 = Ogamma0 * (1. + nufunc(z))
-        opz = 1.0 + z
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 + Ode0)**(-0.5)
-
 
 class FlatLambdaCDM(LambdaCDM):
     """FLRW cosmology with a cosmological constant and no curvature.
@@ -1795,17 +1783,18 @@ class FlatLambdaCDM(LambdaCDM):
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = self._flcdm_inv_efunc_norel
+            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0)
         elif not self._massivenu:
-            self._inv_efunc_scalar = self._flcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0 + self._Onu0)
         else:
-            self._inv_efunc_scalar = self._flcdm_inv_efunc
+            self._inv_efunc_scalar = scalar_inv_efuncs.flcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._Ogamma0,
-                                           self.nu_relative_density)
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -1873,25 +1862,6 @@ class FlatLambdaCDM(LambdaCDM):
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
-
-    # The stuff below here for this class is -not- something
-    # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons, and results in a 10x speedup
-    # in distance calculations.
-    @staticmethod
-    def _flcdm_inv_efunc_norel(z, Om0, Ode0):
-        return ((1. + z)**3 * Om0 + Ode0)**(-0.5)
-
-    @staticmethod
-    def _flcdm_inv_efunc_nomnu(z, Om0, Ode0, Or0):
-        opz = 1.0 + z
-        return (opz**3 * (opz * Or0 + Om0) + Ode0)**(-0.5)
-
-    @staticmethod
-    def _flcdm_inv_efunc(z, Om0, Ode0, Ogamma0, nufunc):
-        Or0 = Ogamma0 * (1. + nufunc(z))
-        opz = 1.0 + z
-        return (opz**3 * (opz * Or0 + Om0) + Ode0)**(-0.5)
 
 
 class wCDM(FLRW):
@@ -1964,20 +1934,20 @@ class wCDM(FLRW):
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = self._wcdm_inv_efunc_norel
+            self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._w0)
         elif not self._massivenu:
-            self._inv_efunc_scalar = self._wcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0)
         else:
-            self._inv_efunc_scalar = self._wcdm_inv_efunc
+            self._inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0,
-                                           self.nu_relative_density,
-                                           self._w0)
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0)
 
     @property
     def w0(self):
@@ -2102,27 +2072,6 @@ class wCDM(FLRW):
                              self._Ode0, self._w0, self._Tcmb0, self._Neff,
                              self.m_nu, _float_or_none(self._Ob0))
 
-    # Please see "Notes about speeding up integrals" for discussion
-    # about what is being done here.
-    @staticmethod
-    def _wcdm_inv_efunc_norel(z, Om0, Ode0, Ok0, w0):
-        opz = 1.0 + z
-        return (opz**2 * (opz * Om0 + Ok0) +
-                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
-
-    @staticmethod
-    def _wcdm_inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, w0):
-        opz = 1.0 + z
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
-
-    @staticmethod
-    def _wcdm_inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, w0):
-        Or0 = Ogamma0 * (1. + nufunc(z))
-        opz = 1.0 + z
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
-
 
 class FlatwCDM(wCDM):
     """FLRW cosmology with a constant dark energy equation of state
@@ -2192,20 +2141,20 @@ class FlatwCDM(wCDM):
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = self._fwcdm_inv_efunc_norel
+            self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._w0)
         elif not self._massivenu:
-            self._inv_efunc_scalar = self._fwcdm_inv_efunc_nomnu
+            self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0)
         else:
-            self._inv_efunc_scalar = self._fwcdm_inv_efunc
+            self._inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._Ogamma0,
-                                           self.nu_relative_density,
-                                           self._w0)
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0)
 
     def efunc(self, z):
         """ Function used to calculate H(z), the Hubble parameter.
@@ -2273,27 +2222,6 @@ class FlatwCDM(wCDM):
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
-
-    # Please see "Notes about speeding up integrals" for discussion
-    # about what is being done here.
-    @staticmethod
-    def _fwcdm_inv_efunc_norel(z, Om0, Ode0, w0):
-        opz = 1.0 + z
-        return (opz**3 * Om0 + Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
-
-    @staticmethod
-    def _fwcdm_inv_efunc_nomnu(z, Om0, Ode0, Or0, w0):
-        opz = 1.0 + z
-        return (opz**3 * (opz * Or0 + Om0) +
-                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
-
-    @staticmethod
-    def _fwcdm_inv_efunc(z, Om0, Ode0, Ogamma0, nufunc, w0):
-        Or0 = Ogamma0 * (1. + nufunc(z))
-        opz = 1.0 + z
-        return (opz**3 * (opz * Or0 + Om0) +
-                Ode0 * opz**(3. * (1.0 + w0)))**(-0.5)
-
 
 class w0waCDM(FLRW):
     """FLRW cosmology with a CPL dark energy equation of state and curvature.
@@ -2370,20 +2298,21 @@ class w0waCDM(FLRW):
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = self._w0wa_inv_efunc_norel
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._w0, self._wa)
         elif not self._massivenu:
-            self._inv_efunc_scalar = self._w0wa_inv_efunc_nomnu
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0, self._wa)
         else:
-            self._inv_efunc_scalar = self._w0wa_inv_efunc
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wacdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0,
-                                           self.nu_relative_density,
-                                           self._w0, self._wa)
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0,
+                                           self._wa)
 
     @property
     def w0(self):
@@ -2461,31 +2390,6 @@ class w0waCDM(FLRW):
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
 
-    # The stuff below here for this class is -not- something
-    # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons, and results in a 10x speedup
-    # in distance calculations.
-    @staticmethod
-    def _w0wa_inv_efunc_norel(z, Om0, Ode0, Ok0, w0, wa):
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return (opz**2 * (opz * Om0 + Ok0) + Ode0 * Odescl)**(-0.5)
-
-    @staticmethod
-    def _w0wa_inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, w0, wa):
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                Ode0 * Odescl)**(-0.5)
-
-    @staticmethod
-    def _w0wa_inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, w0, wa):
-        Or0 = Ogamma0 * (1. + nufunc(z))
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                Ode0 * Odescl)**(-0.5)
-
 
 class Flatw0waCDM(w0waCDM):
     """FLRW cosmology with a CPL dark energy equation of state and no
@@ -2561,20 +2465,21 @@ class Flatw0waCDM(w0waCDM):
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = self._fw0wa_inv_efunc_norel
+            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._w0, self._wa)
         elif not self._massivenu:
-            self._inv_efunc_scalar = self._fw0wa_inv_efunc_nomnu
+            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0, self._wa)
         else:
-            self._inv_efunc_scalar = self._fw0wa_inv_efunc
+            self._inv_efunc_scalar = scalar_inv_efuncs.fw0wacdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0,
-                                           self._Ogamma0,
-                                           self.nu_relative_density,
-                                           self._w0, self._wa)
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0,
+                                           self._wa)
 
     def __repr__(self):
         retstr = "{0}H0={1:.3g}, Om0={2:.3g}, "\
@@ -2583,27 +2488,6 @@ class Flatw0waCDM(w0waCDM):
         return retstr.format(self._namelead(), self._H0, self._Om0, self._w0,
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
-
-    # Please see "Notes about speeding up integrals" for discussion
-    # about what is being done here.
-    @staticmethod
-    def _fw0wa_inv_efunc_norel(z, Om0, Ode0, w0, wa):
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return (Om0 * opz**3 + Ode0 * Odescl)**(-0.5)
-
-    @staticmethod
-    def _fw0wa_inv_efunc_nomnu(z, Om0, Ode0, Or0, w0, wa):
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**(-0.5)
-
-    @staticmethod
-    def _fw0wa_inv_efunc(z, Om0, Ode0, Ogamma0, nufunc, w0, wa):
-        Or0 = Ogamma0 * (1. + nufunc(z))
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1 + w0 + wa)) * exp(-3.0 * wa * z / opz)
-        return ((opz * Or0 + Om0) * opz**3 + Ode0 * Odescl)**(-0.5)
 
 
 class wpwaCDM(FLRW):
@@ -2691,20 +2575,21 @@ class wpwaCDM(FLRW):
         # about what is being done here.
         apiv = 1.0 / (1.0 + self._zp)
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = self._wpwa_inv_efunc_norel
+            self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._wp, apiv, self._wa)
         elif not self._massivenu:
-            self._inv_efunc_scalar = self._wpwa_inv_efunc_nomnu
+            self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0,
                                            self._wp, apiv, self._wa)
         else:
-            self._inv_efunc_scalar = self._wpwa_inv_efunc
+            self._inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0,
-                                           self.nu_relative_density,
-                                           self._wp, apiv, self._wa)
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._wp,
+                                           apiv, self._wa)
 
     @property
     def wp(self):
@@ -2792,31 +2677,6 @@ class wpwaCDM(FLRW):
                              self._Tcmb0, self._Neff, self.m_nu,
                              _float_or_none(self._Ob0))
 
-    # The stuff below here for this class is -not- something
-    # you need to overload for your own classes.  It is done
-    # purely for efficiency reasons, and results in a 10x speedup
-    # in distance calculations.
-    @staticmethod
-    def _wpwa_inv_efunc_norel(z, Om0, Ode0, Ok0, wp, apiv, wa):
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1. + wp + apiv * wa)) * exp(-3. * wa * z / opz)
-        return (opz**2 * (opz * Om0 + Ok0) + Ode0 * Odescl)**(-0.5)
-
-    @staticmethod
-    def _wpwa_inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, wp, apiv, wa):
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1. + wp + apiv * wa)) * exp(-3. * wa * z / opz)
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                Ode0 * Odescl)**(-0.5)
-
-    @staticmethod
-    def _wpwa_inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, wp, apiv, wa):
-        Or0 = Ogamma0 * (1. + nufunc(z))
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1. + wp + apiv * wa)) * exp(-3. * wa * z / opz)
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                Ode0 * Odescl)**(-0.5)
-
 
 class w0wzCDM(FLRW):
     """FLRW cosmology with a variable dark energy equation of state
@@ -2896,20 +2756,21 @@ class w0wzCDM(FLRW):
         # Please see "Notes about speeding up integrals" for discussion
         # about what is being done here.
         if self._Tcmb0.value == 0:
-            self._inv_efunc_scalar = self._w0wz_inv_efunc_norel
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_norel
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._w0, self._wz)
         elif not self._massivenu:
-            self._inv_efunc_scalar = self._w0wz_inv_efunc_nomnu
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc_nomnu
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
                                            self._Ogamma0 + self._Onu0,
                                            self._w0, self._wz)
         else:
-            self._inv_efunc_scalar = self._w0wz_inv_efunc
+            self._inv_efunc_scalar = scalar_inv_efuncs.w0wzcdm_inv_efunc
             self._inv_efunc_scalar_args = (self._Om0, self._Ode0, self._Ok0,
-                                           self._Ogamma0,
-                                           self.nu_relative_density,
-                                           self._w0, self._wz)
+                                           self._Ogamma0, self._neff_per_nu,
+                                           self._nmasslessnu,
+                                           self._nu_y_list, self._w0,
+                                           self._wz)
 
     @property
     def w0(self):
@@ -2985,29 +2846,6 @@ class w0wzCDM(FLRW):
         return retstr.format(self._namelead(), self._H0, self._Om0,
                              self._Ode0, self._w0, self._wz, self._Tcmb0,
                              self._Neff, self.m_nu, _float_or_none(self._Ob0))
-
-    # Please see "Notes about speeding up integrals" for discussion
-    # about what is being done here.
-    @staticmethod
-    def _w0wz_inv_efunc_norel(z, Om0, Ode0, Ok0, w0, wz):
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
-        return (opz**2 * (opz * Om0 + Ok0) + Ode0 * Odescl)**(-0.5)
-
-    @staticmethod
-    def _w0wz_inv_efunc_nomnu(z, Om0, Ode0, Ok0, Or0, w0, wz):
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                Ode0 * Odescl)**(-0.5)
-
-    @staticmethod
-    def _w0wz_inv_efunc(z, Om0, Ode0, Ok0, Ogamma0, nufunc, w0, wz):
-        Or0 = Ogamma0 * (1. + nufunc(z))
-        opz = 1.0 + z
-        Odescl = opz**(3. * (1. + w0 - wz)) * exp(-3. * wz * z)
-        return ((((opz * Or0 + Om0) * opz) + Ok0) * opz**2 +
-                Ode0 * Odescl)**(-0.5)
 
 
 def _float_or_none(x, digits=3):
