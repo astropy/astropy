@@ -132,6 +132,8 @@ To make sure unit support is turned off afterward, you can use
     >>> with quantity_support():
     ...     plt.figure()
     ...     plt.plot([1, 2, 3] * u.m)
+    <...>
+    [...]
 
 Arithmetic
 ----------
