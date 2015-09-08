@@ -856,3 +856,11 @@ def test_list_naxis():
     w = wcs.WCS(content, naxis=['spectral'])
     assert w.naxis == 0
     assert w.wcs.naxis == 0
+
+
+def test_sip_broken():
+    # This header caused wcslib to segfault because it has a SIP
+    # specification in a non-default keyword
+    hdr = get_pkg_data_contents("data/sip-broken.hdr")
+
+    w = wcs.WCS(hdr)
