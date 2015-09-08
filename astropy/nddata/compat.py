@@ -83,7 +83,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
 
     def __init__(self, *arg, **kwd):
         # Remove the flag argument from input.
-        flag_argument = kwd.pop('flags', None)
+        flags = kwd.pop('flags', None)
 
         # Initialize with the parent...
         super(NDDataArray, self).__init__(*arg, **kwd)
@@ -98,7 +98,14 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
 
         # Initial flags because it is no longer handled in NDData
         # or NDDataBase.
-        self.flags = flag_argument
+        data = arg[0]  # do this after parent __init__, to validate the args
+        if isinstance(data, self.__class__):
+            if flags is None:
+                flags = data.flags
+            else:
+                log.info("Overwriting NDDataArrays's current "
+                         "flags with specified flags")
+        self.flags = flags
 
     # Implement uncertainty as NDUncertainty to support propagation of
     # uncertainties in arithmetic operations

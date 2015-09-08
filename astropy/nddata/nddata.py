@@ -86,11 +86,11 @@ class NDData(NDDataBase):
             # No need to check the data because data must have successfully
             # initialized.
             self._data = data._data
+            self._unit = data.unit
             self.uncertainty = data.uncertainty
             self._mask = data.mask
             self._wcs = data.wcs
             self._meta = data.meta
-            self._unit = data.unit
 
             if uncertainty is not None:
                 self._uncertainty = uncertainty
