@@ -765,17 +765,16 @@ class Table(object):
         path = os.path.join(tmpdir, 'table.html')
 
         with open(path, 'w') as tmp:
-
             if jsviewer:
                 self.write(tmp, format='jsviewer', css=css, max_lines=max_lines,
                            jskwargs=jskwargs, table_id=tableid)
             else:
                 self.write(tmp, format='html')
 
-            if browser == 'default':
-                webbrowser.open("file://" + path)
-            else:
-                webbrowser.get(browser).open("file://" + path)
+        if browser == 'default':
+            webbrowser.open("file://" + path)
+        else:
+            webbrowser.get(browser).open("file://" + path)
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=None, show_dtype=False, html=False, tableid=None,
