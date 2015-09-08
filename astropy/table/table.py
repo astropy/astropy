@@ -736,17 +736,18 @@ class Table(object):
             Maximum number of rows to export to the table (set low by default
             to avoid memory issues, since the browser view requires duplicating
             the table in memory).  A negative value of ``max_lines`` indicates
-            no row limit
+            no row limit.
         jsviewer : bool
             If `True`, prepends some javascript headers so that the table is
-            rendered as a https://datatables.net data table.  This allows
-            in-browser searching & sorting.  See `JSViewer
-            <http://www.jsviewer.com/>`_
+            rendered as a `DataTables <https://datatables.net>`_ data table.
+            This allows in-browser searching & sorting.
         jskwargs : dict
-            Passed to the `JSViewer`_ init.
+            Passed to the `astropy.table.JSViewer` init. Default to
+            ``{'use_local_files': True}`` which means that the JavaScipt
+            librairies will be served from local copies.
         tableid : str or `None`
-            An html ID tag for the table.  Default is "table{id}", where id is
-            the unique integer id of the table object, id(self).
+            An html ID tag for the table.  Default is ``table{id}``, where id
+            is the unique integer id of the table object, id(self).
         browser : str
             Any legal browser name, e.g. ``'firefox'``, ``'chrome'``,
             ``'safari'`` (for mac, you may need to use ``'open -a
