@@ -99,7 +99,7 @@ class NDDataArray(NDArithmeticMixin, NDSlicingMixin, NDIOMixin, NDData):
         # Initial flags because it is no longer handled in NDData
         # or NDDataBase.
         data = arg[0]  # do this after parent __init__, to validate the args
-        if isinstance(data, self.__class__):
+        if isinstance(data, NDDataArray):
             if flags is None:
                 flags = data.flags
             else:
