@@ -40,7 +40,11 @@ The threshold level (defined above) for messages can be set with e.g.::
 
 Color (enabled by default) can be disabled with::
 
-    log.setColor(False)
+    log.disable_color()
+
+and enabled with::
+
+    log.enable_color()
 
 Warnings from ``warnings.warn`` can be logged with::
 
@@ -52,7 +56,7 @@ which can be disabled with::
 
 and exceptions can be included in the log with::
 
-    log.set_exception_logging()
+    log.enable_exception_logging()
 
 which can be disabled with::
 
