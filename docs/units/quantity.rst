@@ -79,6 +79,62 @@ convert the |quantity| to base S.I. or c.g.s units:
     >>> q.cgs
     <Quantity 240.0 cm / s>
 
+Plotting quantities
+-------------------
+
+|quantity| objects can be conveniently plotted using matplotlib.  This
+feature needs to be explicitly turned on:
+
+.. doctest-requires:: matplotlib
+
+    >>> from astropy.visualization import quantity_support
+    >>> quantity_support()
+    <astropy.visualization.units.MplQuantityConverter ...>
+
+Then |quantity| objects can be passed to matplotlib plotting
+functions.  The axis labels are automatically labeled with the unit of
+the quantity:
+
+.. doctest-requires:: matplotlib
+
+    >>> from matplotlib import pyplot as plt
+    >>> plt.figure()
+    <...>
+    >>> plt.plot([1, 2, 3] * u.m)
+    [...]
+
+Quantities are automatically converted to the first unit set on a
+particular axis, so in the following, the y-axis remains in ``m`` even
+though the second line is given in ``cm``::
+
+.. doctest-requires:: matplotlib
+
+    >>> plt.plot([1, 2, 3] * u.cm)
+    [...]
+
+Plotting a quantity with an incompatible unit will raise an exception::
+
+.. doctest-requires:: matplotlib
+
+    >>> plt.plot([1, 2, 3] * u.kg)
+    Traceback (most recent call last):
+    ...
+    UnitConversionError: 'kg' (mass) and 'm' (length) are not convertible
+    >>> plt.clf()
+
+To make sure unit support is turned off afterward, you can use
+`~astropy.visualization.quantity_support` with a ``with`` statement::
+
+.. doctest-requires:: matplotlib
+
+    >>> from astropy.visualization import quantity_support
+    >>> from matplotlib import pyplot as plt
+    >>> with quantity_support():
+    ...     plt.figure()
+    ...     plt.plot([1, 2, 3] * u.m)
+    <...>
+    [...]
+
 Arithmetic
 ----------
 
@@ -254,17 +310,17 @@ Instead, only dimensionless values can be converted to plain Python scalars:
 Functions Accepting Quantities
 ------------------------------
 
-Validation of quantity arguments to functions can lead to many repetitons 
+Validation of quantity arguments to functions can lead to many repetitions
 of the same checking code. A decorator is provided which verifies that certain
 arguments to a function are `~astropy.units.Quantity` objects and that the units
 are compatible with a desired unit.
 
 The decorator does not convert the unit to the desired unit, say arcseconds
-to degrees, it merely checks that such a conversion is possible, thus verifying 
+to degrees, it merely checks that such a conversion is possible, thus verifying
 that the `~astropy.units.Quantity` argument can be used in calculations.
 
-The decorator `~astropy.units.quantity_input` accepts keyword arguments to 
-spcifiy which arguments should be validated and what unit they are expected to 
+The decorator `~astropy.units.quantity_input` accepts keyword arguments to
+specify which arguments should be validated and what unit they are expected to
 be compatible with:
 
     >>> @u.quantity_input(myarg=u.deg)
