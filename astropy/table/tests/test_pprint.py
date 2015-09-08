@@ -502,8 +502,8 @@ class TestFormatWithMaskedElements():
         arr = [np.array([[1, 2],
                          [10, 20]])]
         t = Table(arr, names=['a'], masked=True)
-        t['a'].mask[0,1] = True
-        t['a'].mask[1,1] = True
+        t['a'].mask[0, 1] = True
+        t['a'].mask[1, 1] = True
         # mathematical function
         t['a'].format = lambda x: str(x * 3.)
         outstr = '  a [2]   \n----------\n 3.0 .. --\n30.0 .. --'
@@ -537,5 +537,34 @@ def test_pprint_nameless_col():
     """Regression test for #2213, making sure a nameless column can be printed
     using None as the name.
     """
-    col = table.Column([1.,2.])
+    col = table.Column([1., 2.])
     assert str(col).startswith('None')
+
+
+def test_html():
+    """Test HTML printing"""
+    dat = np.array([1., 2.], dtype=np.float32)
+    t = Table([dat], names=['a'])
+
+    lines = t.pformat(html=True)
+    assert lines == ['<table id="table{id}">'.format(id=id(t)),
+                     u'<thead><tr><th>a</th></tr></thead>',
+                     u'<tr><td>1.0</td></tr>',
+                     u'<tr><td>2.0</td></tr>',
+                     u'</table>']
+
+    lines = t.pformat(html=True, tableclass='table-striped')
+    assert lines == [
+        '<table id="table{id}" class="table-striped">'.format(id=id(t)),
+        u'<thead><tr><th>a</th></tr></thead>',
+        u'<tr><td>1.0</td></tr>',
+        u'<tr><td>2.0</td></tr>',
+        u'</table>']
+
+    lines = t.pformat(html=True, tableclass=['table', 'table-striped'])
+    assert lines == [
+        '<table id="table{id}" class="table table-striped">'.format(id=id(t)),
+        u'<thead><tr><th>a</th></tr></thead>',
+        u'<tr><td>1.0</td></tr>',
+        u'<tr><td>2.0</td></tr>',
+        u'</table>']

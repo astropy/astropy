@@ -424,7 +424,7 @@ class TableFormatter(object):
 
     def _pformat_table(self, table, max_lines=None, max_width=None,
                        show_name=True, show_unit=None, show_dtype=False,
-                       html=False, tableid=None, align='right'):
+                       html=False, tableid=None, tableclass=None, align='right'):
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -454,6 +454,10 @@ class TableFormatter(object):
             An ID tag for the table; only used if html is set.  Default is
             "table{id}", where id is the unique integer id of the table object,
             id(table)
+
+        tableclass : str or list of str or `None`
+            CSS classes for the table; only used if html is set.  Default is
+            none
 
         align : str or list
             Left/right alignment of a column. Default is 'right'. A list
@@ -534,7 +538,15 @@ class TableFormatter(object):
 
             if tableid is None:
                 tableid = 'table{id}'.format(id=id(table))
-            rows.append('<table id="{tid}">'.format(tid=tableid))
+
+            if tableclass is not None:
+                if isinstance(tableclass, list):
+                    tableclass = ' '.join(tableclass)
+                rows.append('<table id="{tid}" class="{tcls}">'.format(
+                    tid=tableid, tcls=tableclass))
+            else:
+                rows.append('<table id="{tid}">'.format(tid=tableid))
+
             for i in range(n_rows):
                 # _pformat_col output has a header line '----' which is not needed here
                 if i == n_header - 1:
