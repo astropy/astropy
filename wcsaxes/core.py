@@ -188,6 +188,16 @@ class WCSAxes(Axes):
 
     def draw(self, renderer, inframe=False):
 
+        # In Axes.draw, the following code can result in the xlim and ylim
+        # values changing, so we need to force call this here to make sure that
+        # the limits are correct before we update the patch.
+        locator = self.get_axes_locator()
+        if locator:
+            pos = locator(self, renderer)
+            self.apply_aspect(pos)
+        else:
+            self.apply_aspect()
+
         # We need to make sure that that frame path is up to date
         self.coords.frame._update_patch_path()
 
