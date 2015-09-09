@@ -86,7 +86,7 @@ class NDData(NDDataBase):
             # No need to check the data because data must have successfully
             # initialized.
             self._data = data._data
-            self._unit = data.unit
+            self._unit = data.unit  # must set before uncert for NDDataArray
             self.uncertainty = data.uncertainty
             self._mask = data.mask
             self._wcs = data.wcs
