@@ -200,6 +200,9 @@ New Features
   - Added support for functional units, in particular the logarithmic ones
     ``Magnitude``, ``Decibel``, and ``Dex``. [#1894]
 
+  - Quantities now work with the unit support in matplotlib.  See
+    :ref:`plotting-quantities`. [#3981]
+
 - ``astropy.utils``
 
   - Added new ``OrderedDescriptor`` and ``OrderedDescriptorContainer`` utility

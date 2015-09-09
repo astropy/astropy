@@ -79,6 +79,8 @@ convert the |quantity| to base S.I. or c.g.s units:
     >>> q.cgs
     <Quantity 240.0 cm / s>
 
+.. _plotting-quantities:
+
 Plotting quantities
 -------------------
 
