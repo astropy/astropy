@@ -479,10 +479,11 @@ Bug fixes
 
 - ``astropy.nddata``
 
-  - Initializing an NDDataArray from another instance now sets ``flags`` as
+  - Initializing ``NDDataArray`` from another instance now sets ``flags`` as
     expected and no longer fails when ``uncertainty`` is set [#4129].
-    Initializing an NDData subclass from a parent instance (eg. NDDataArray
-    from NDData) now set attributes other than ``data`` as it should [#4137].
+    Initializing an ``NDData`` subclass from a parent instance
+    (eg. ``NDDataArray`` from ``NDData``) now sets the attributes other than
+    ``data`` as it should [#4137].
 
 - ``astropy.stats``
 
