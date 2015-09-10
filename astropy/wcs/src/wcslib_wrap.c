@@ -376,9 +376,7 @@ PyWcsprm_init(
 
     if (status != 0) {
       free(colsel_ints);
-      PyErr_SetString(
-          PyExc_MemoryError,
-          "Memory allocation error.");
+      wcshdr_err_to_python_exc(wcs->err);
       return -1;
     }
 
@@ -414,9 +412,7 @@ PyWcsprm_init(
     free(colsel_ints);
 
     if (status != 0) {
-      PyErr_SetString(
-          PyExc_MemoryError,
-          "Memory allocation error.");
+      wcshdr_err_to_python_exc(wcs->err);
       return -1;
     }
 
@@ -615,9 +611,7 @@ PyWcsprm_find_all_wcs(
   Py_END_ALLOW_THREADS
 
   if (status != 0) {
-    PyErr_SetString(
-        PyExc_MemoryError,
-        "Memory allocation error.");
+    wcshdr_err_to_python_exc(wcs->err);
     return NULL;
   }
 
@@ -652,9 +646,7 @@ PyWcsprm_find_all_wcs(
   Py_END_ALLOW_THREADS
 
   if (status != 0) {
-    PyErr_SetString(
-        PyExc_MemoryError,
-        "Memory allocation error.");
+    wcshdr_err_to_python_exc(wcs->err);
     return NULL;
   }
 
