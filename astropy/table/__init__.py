@@ -22,6 +22,7 @@ from .column import Column, MaskedColumn
 from .groups import TableGroups, ColumnGroups
 from .table import Table, QTable, TableColumns, Row, TableFormatter
 from .operations import join, hstack, vstack, unique, TableMergeError
+from .jsviewer import JSViewer
 
 # Import routines that connect readers/writers to astropy.table
 from ..io.ascii import connect
