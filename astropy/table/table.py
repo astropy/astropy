@@ -758,6 +758,8 @@ class Table(object):
         import os
         import webbrowser
         import tempfile
+        from ..extern.six.moves.urllib.parse import urljoin
+        from ..extern.six.moves.urllib.request import pathname2url
 
         # We can't use NamedTemporaryFile here because it gets deleted as
         # soon as it gets garbage collected.
@@ -772,10 +774,12 @@ class Table(object):
             else:
                 self.write(tmp, format='html')
 
-        if browser == 'default':
-            webbrowser.open("file://" + path)
+        try:
+            br = webbrowser.get(None if browser == 'default' else browser)
+        except webbrowser.Error:
+            log.error("Browser '%s' not found." % browser)
         else:
-            webbrowser.get(browser).open("file://" + path)
+            br.open(urljoin('file:', pathname2url(path)))
 
     def pformat(self, max_lines=None, max_width=None, show_name=True,
                 show_unit=None, show_dtype=False, html=False, tableid=None,
