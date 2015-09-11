@@ -2003,7 +2003,14 @@ def _convert_record2fits(format):
 
     recformat, kind, dtype = _dtype_to_recformat(format)
     shape = dtype.shape
-    option = str(dtype.base.itemsize)
+    itemsize = dtype.base.itemsize
+    if dtype.char == 'U':
+        # Unicode dtype--itemsize is 4 times actual ASCII character length,
+        # which what matters for FITS column formats
+        # Use dtype.base--dtype may be a multi-dimensional dtype
+        itemsize = itemsize // 4
+
+    option = str(itemsize)
 
     ndims = len(shape)
     repeat = 1
@@ -2048,11 +2055,12 @@ def _dtype_to_recformat(dtype):
         dtype = np.dtype(dtype)
 
     kind = dtype.base.kind
-    itemsize = dtype.base.itemsize
-    recformat = kind + str(itemsize)
 
     if kind in ('U', 'S'):
         recformat = kind = 'a'
+    else:
+        itemsize = dtype.base.itemsize
+        recformat = kind + str(itemsize)
 
     return recformat, kind, dtype
 

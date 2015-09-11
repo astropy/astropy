@@ -21,12 +21,13 @@ from ..column import (FITS2NUMPY, KEYWORD_NAMES, KEYWORD_TO_ATTRIBUTE,
                       _AsciiColDefs, _FormatP, _FormatQ, _makep,
                       _parse_tformat, _scalar_to_format, _convert_format,
                       _cmp_recformats, _get_index)
-from ..fitsrec import FITS_rec, _get_recarray_field
+from ..fitsrec import FITS_rec, _get_recarray_field, _has_unicode_fields
 from ..header import Header, _pad_length
 from ..util import _is_int, _str_to_num
 
 from ....extern import six
 from ....extern.six import string_types
+from ....extern.six.moves import xrange as range
 from ....utils import deprecated, lazyproperty
 from ....utils.compat import ignored
 from ....utils.exceptions import AstropyUserWarning
@@ -194,11 +195,9 @@ class _TableLikeHDU(_ValidHDU):
         data._gap = self._theap - tbsize
 
         # pass the attributes
-        fidx = 0
-        for idx in range(len(columns)):
+        for idx, col in enumerate(columns):
             # get the data for each column object from the rec.recarray
-            columns[idx].array = data.field(fidx)
-            fidx += 1
+            col.array = data.field(idx)
 
         # delete the _arrays attribute so that it is recreated to point to the
         # new data placed in the column object above
@@ -343,7 +342,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                         self.data._coldefs[indx]._physical_values = False
                         self.data._coldefs[indx]._pseudo_unsigned_ints = True
 
-                self._header['NAXIS1'] = self.data.itemsize
+                # TODO: Too much of the code in this class uses header keywords
+                # in making calculations related to the data size.  This is
+                # unreliable, however, in cases when users mess with the header
+                # unintentionally--code that does this should be cleaned up.
+                self._header['NAXIS1'] = self.data._raw_itemsize
                 self._header['NAXIS2'] = self.data.shape[0]
                 self._header['TFIELDS'] = len(self.data._coldefs)
 
@@ -354,8 +357,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     # Make the ndarrays in the Column objects of the ColDefs
                     # object of the HDU reference the same ndarray as the HDU's
                     # FITS_rec object.
-                    for idx in range(len(self.columns)):
-                        self.columns[idx].array = self.data.field(idx)
+                    for idx, col in enumerate(self.columns):
+                        col.array = self.data.field(idx)
 
                     # Delete the _arrays attribute so that it is recreated to
                     # point to the new data placed in the column objects above
@@ -443,8 +446,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 # Make the ndarrays in the Column objects of the ColDefs
                 # object of the HDU reference the same ndarray as the HDU's
                 # FITS_rec object.
-                for idx in range(len(self.columns)):
-                    self.columns[idx].array = self.data.field(idx)
+                for idx, col in enumerate(self.columns):
+                    col.array = self.data.field(idx)
 
                 # Delete the _arrays attribute so that it is recreated to
                 # point to the new data placed in the column objects above
@@ -478,7 +481,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         Update header keywords to reflect recent changes of columns.
         """
 
-        self._header.set('NAXIS1', self.data.itemsize, after='NAXIS')
+        self._header.set('NAXIS1', self.data._raw_itemsize, after='NAXIS')
         self._header.set('NAXIS2', self.data.shape[0], after='NAXIS1')
         self._header.set('TFIELDS', len(self.columns), after='GCOUNT')
 
@@ -848,10 +851,16 @@ class BinTableHDU(_TableBaseHDU):
 
         swapped = self._binary_table_byte_swap()
         try:
-            fileobj.writearray(self.data)
-            # write out the heap of variable length array columns this has
-            # to be done after the "regular" data is written (above)
-            fileobj.write((self.data._gap * '\0').encode('ascii'))
+            if _has_unicode_fields(self.data):
+                # If the raw data was a user-supplied recarray, we can't write
+                # unicode columns directly to the file, so we have to switch
+                # to a slower row-by-row write
+                self._writedata_by_row(fileobj)
+            else:
+                fileobj.writearray(self.data)
+                # write out the heap of variable length array columns this has
+                # to be done after the "regular" data is written (above)
+                fileobj.write((self.data._gap * '\0').encode('ascii'))
 
             nbytes = self.data._gap
 
@@ -883,9 +892,25 @@ class BinTableHDU(_TableBaseHDU):
         finally:
             for arr in swapped:
                 arr.byteswap(True)
-        size += self.data.size * self.data.itemsize
+        size += self.data.size * self.data._raw_itemsize
 
         return size
+
+    def _writedata_by_row(self, fileobj):
+        fields = [self.data.field(idx)
+                  for idx in range(len(self.data.columns))]
+
+        # Creating Record objects is expensive (as in
+        # `for row in self.data:` so instead we just iterate over the row
+        # indicies and get one field at a time:
+        for idx in range(len(self.data)):
+            for field in fields:
+                item = field[idx]
+
+                if field.dtype.kind == 'U':
+                    item = np.char.encode(item, 'ascii')
+
+                fileobj.writearray(item)
 
     def _binary_table_byte_swap(self):
         """Prepares data in the native FITS format and writes the raw bytes

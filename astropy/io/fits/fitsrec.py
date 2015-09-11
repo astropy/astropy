@@ -590,6 +590,28 @@ class FITS_rec(np.recarray):
 
         return self._coldefs.formats
 
+    @property
+    def _raw_itemsize(self):
+        """
+        Returns the size of row items that would be written to the raw FITS
+        file, taking into account the possibility of unicode columns being
+        compactified.
+
+        Currently for internal use only.
+        """
+
+        if _has_unicode_fields(self):
+            total_itemsize = 0
+            for field in self.dtype.fields.values():
+                itemsize = field[0].itemsize
+                if field[0].kind == 'U':
+                    itemsize = itemsize // 4
+                total_itemsize += itemsize
+            return total_itemsize
+        else:
+            # Just return the normal itemsize
+            return self.itemsize
+
     def field(self, key):
         """
         A view of a `Column`'s data as an array.
@@ -1226,3 +1248,12 @@ def _ascii_encode(inarray, out=None):
     except UnicodeEncodeError as exc:
         index = np.unravel_index(it.iterindex, inarray.shape)
         raise _UnicodeArrayEncodeError(*(exc.args + (index,)))
+
+
+def _has_unicode_fields(array):
+    """
+    Returns True if any fields in a structured array have Unicode dtype.
+    """
+
+    dtypes = (d[0] for d in array.dtype.fields.values())
+    return any(d.kind == 'U' for d in dtypes)
