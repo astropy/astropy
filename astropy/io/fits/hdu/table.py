@@ -843,45 +843,47 @@ class BinTableHDU(_TableBaseHDU):
     def _writedata_internal(self, fileobj):
         size = 0
 
-        if self.data is not None:
-            swapped = self._binary_table_byte_swap()
-            try:
-                fileobj.writearray(self.data)
-                # write out the heap of variable length array columns this has
-                # to be done after the "regular" data is written (above)
-                fileobj.write((self.data._gap * '\0').encode('ascii'))
+        if self.data is None:
+            return size
 
-                nbytes = self.data._gap
+        swapped = self._binary_table_byte_swap()
+        try:
+            fileobj.writearray(self.data)
+            # write out the heap of variable length array columns this has
+            # to be done after the "regular" data is written (above)
+            fileobj.write((self.data._gap * '\0').encode('ascii'))
 
-                if not self._manages_own_heap:
-                    # Write the heap data one column at a time, in the order
-                    # that the data pointers appear in the column (regardless
-                    # if that data pointer has a different, previous heap
-                    # offset listed)
-                    for idx in range(self.data._nfields):
-                        if not isinstance(self.data.columns._recformats[idx],
-                                          _FormatP):
-                            continue
+            nbytes = self.data._gap
 
-                        field = self.data.field(idx)
-                        for row in field:
-                            if len(row) > 0:
-                                nbytes += row.nbytes
-                                if not fileobj.simulateonly:
-                                    fileobj.writearray(row)
-                else:
-                    heap_data = self.data._get_heap_data()
-                    if len(heap_data) > 0:
-                        nbytes += len(heap_data)
-                        if not fileobj.simulateonly:
-                            fileobj.writearray(heap_data)
+            if not self._manages_own_heap:
+                # Write the heap data one column at a time, in the order
+                # that the data pointers appear in the column (regardless
+                # if that data pointer has a different, previous heap
+                # offset listed)
+                for idx in range(self.data._nfields):
+                    if not isinstance(self.data.columns._recformats[idx],
+                                      _FormatP):
+                        continue
 
-                self.data._heapsize = nbytes - self.data._gap
-                size += nbytes
-            finally:
-                for arr in swapped:
-                    arr.byteswap(True)
-            size += self.data.size * self.data.itemsize
+                    field = self.data.field(idx)
+                    for row in field:
+                        if len(row) > 0:
+                            nbytes += row.nbytes
+                            if not fileobj.simulateonly:
+                                fileobj.writearray(row)
+            else:
+                heap_data = self.data._get_heap_data()
+                if len(heap_data) > 0:
+                    nbytes += len(heap_data)
+                    if not fileobj.simulateonly:
+                        fileobj.writearray(heap_data)
+
+            self.data._heapsize = nbytes - self.data._gap
+            size += nbytes
+        finally:
+            for arr in swapped:
+                arr.byteswap(True)
+        size += self.data.size * self.data.itemsize
 
         return size
 
