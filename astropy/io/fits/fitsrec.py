@@ -1019,15 +1019,7 @@ class FITS_rec(np.recarray):
                         # Ensure that blanks at the end of each string are
                         # converted to nulls instead of spaces, see Trac #15
                         # and #111
-                        itemsize = dummy.itemsize
-                        if dummy.dtype.kind == 'U':
-                            pad = self._coldefs._padding_byte
-                        else:
-                            pad = self._coldefs._padding_byte.encode('ascii')
-
-                        for idx in range(len(dummy)):
-                            val = dummy[idx]
-                            dummy[idx] = val + (pad * (itemsize - len(val)))
+                        _rstrip_inplace(dummy)
 
                         # Encode *after* handling the padding byte or else
                         # Numpy will complain about trying to append bytes to
@@ -1139,3 +1131,18 @@ def _get_recarray_field(array, key):
     if field.dtype.char in ('S', 'U') and not isinstance(field, np.chararray):
         field = field.view(np.chararray)
     return field
+
+
+def _rstrip_inplace(array, chars=None):
+    """
+    Performs an in-place rstrip operation on string arrays.
+    This is necessary since the built-in `np.char.rstrip` in Numpy does not
+    perform an in-place calculation.  This can be removed if ever
+    https://github.com/numpy/numpy/issues/6303 is implemented (however, for
+    the purposes of this module the only in-place vectorized string function
+    we need is rstrip).
+    """
+
+    for item in np.nditer(array, flags=['zerosize_ok'],
+                                 op_flags=['readwrite']):
+        item[...] = item.item().rstrip(chars)
