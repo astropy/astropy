@@ -118,7 +118,7 @@ class Constant(Quantity):
         return inst
 
     def __repr__(self):
-        return ('<Constant name={0!r} value={1} error={2} units={3!r} '
+        return ('<Constant name={0!r} value={1} uncertainty={2} unit={3!r} '
                 'reference={4!r}>'.format(self.name, self.value,
                                           self.uncertainty, str(self.unit),
                                           self.reference))
@@ -126,8 +126,8 @@ class Constant(Quantity):
     def __str__(self):
         return ('  Name   = {0}\n'
                 '  Value  = {1}\n'
-                '  Error  = {2}\n'
-                '  Units  = {3}\n'
+                '  Uncertainty  = {2}\n'
+                '  Unit  = {3}\n'
                 '  Reference = {4}'.format(self.name, self.value,
                                            self.uncertainty, self.unit,
                                            self.reference))
