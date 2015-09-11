@@ -266,7 +266,7 @@ class FLRW(Cosmology):
             # Compute Neutrino Omega and total relativistic component
             # for massive neutrinos.  We also store a list version,
             # since that is more efficient to do integrals with (perhaps
-            # surpisingly!  But small python lists are much more efficient
+            # surprisingly!  But small python lists are more efficient
             # than small numpy arrays).
             if self._massivenu:
                 nu_y = self._massivenu_mass / (kB_evK * self._Tnu0)
