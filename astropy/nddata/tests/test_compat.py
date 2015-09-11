@@ -7,6 +7,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 
 from ...tests.helper import pytest
+from ..nddata import NDData
 from ..compat import NDDataArray
 from ..nduncertainty import StdDevUncertainty
 from ... import units as u
@@ -94,3 +95,31 @@ def test_init_of_subclass_in_convert_unit_to():
     arr1 = SubNDData(data, unit='m', wcs=5)
     result = arr1.convert_unit_to('km')
     np.testing.assert_array_equal(arr1.data, 1000 * result.data)
+
+
+# Test for issue #4129:
+def test_nddataarray_from_nddataarray():
+    ndd1 = NDDataArray([1., 4., 9.],
+                       uncertainty=StdDevUncertainty([1., 2., 3.]),
+                       flags=[0, 1, 0])
+    ndd2 = NDDataArray(ndd1)
+    # Test that the 2 instances point to the same objects and aren't just
+    # equal; this is explicitly documented for the main data array and we
+    # probably want to catch any future change in behaviour for the other
+    # attributes too and ensure they are intentional.
+    assert ndd2.data is ndd1.data
+    assert ndd2.uncertainty is ndd1.uncertainty
+    assert ndd2.flags is ndd1.flags
+    assert ndd2.meta is ndd1.meta
+
+
+# Test for issue #4137:
+def test_nddataarray_from_nddata():
+    ndd1 = NDData([1., 4., 9.],
+                  uncertainty=StdDevUncertainty([1., 2., 3.]))
+    ndd2 = NDDataArray(ndd1)
+
+    assert ndd2.data is ndd1.data
+    assert ndd2.uncertainty is ndd1.uncertainty
+    assert ndd2.meta is ndd1.meta
+

@@ -82,15 +82,15 @@ class NDData(NDDataBase):
 
         super(NDData, self).__init__()
 
-        if isinstance(data, self.__class__):
+        if isinstance(data, NDData):  # don't use self.__class__ (issue #4137)
             # No need to check the data because data must have successfully
             # initialized.
             self._data = data._data
+            self._unit = data.unit  # must set before uncert for NDDataArray
             self.uncertainty = data.uncertainty
             self._mask = data.mask
             self._wcs = data.wcs
             self._meta = data.meta
-            self._unit = data.unit
 
             if uncertainty is not None:
                 self._uncertainty = uncertainty
