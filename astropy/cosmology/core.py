@@ -758,7 +758,12 @@ class FLRW(Cosmology):
         analytical fitting formula given in Komatsu et al. 2011, ApJS 192, 18.
         """
 
+        # Note that there is also a scalar-z-only cython implementation of
+        # this in scalar_inv_efuncs.pyx, so if you find a problem in this
+        # you need to update there too.
+
         # See Komatsu et al. 2011, eq 26 and the surrounding discussion
+        # for an explanation of what we are doing here.
         # However, this is modified to handle multiple neutrino masses
         # by computing the above for each mass, then summing
         prefac = 0.22710731766  # 7/8 (4/11)^4/3 -- see any cosmo book
@@ -774,7 +779,7 @@ class FLRW(Cosmology):
 
         # These are purely fitting constants -- see the Komatsu paper
         p = 1.83
-        invp = 1.0 / p
+        invp = 0.54644808743  # 1.0 / p
         k = 0.3173
 
         z = np.asarray(z)
