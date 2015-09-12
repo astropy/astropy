@@ -95,11 +95,11 @@ def table_data(request):
             self.Column = table.MaskedColumn if request.param else table.Column
             self.COLS = [
                 self.Column(name='a', data=[1, 2, 3], description='da',
-                            format='fa', meta={'ma': 1}, unit='ua'),
+                            format='%i', meta={'ma': 1}, unit='ua'),
                 self.Column(name='b', data=[4, 5, 6], description='db',
-                            format='fb', meta={'mb': 1}, unit='ub'),
+                            format='%d', meta={'mb': 1}, unit='ub'),
                 self.Column(name='c', data=[7, 8, 9], description='dc',
-                            format='fc', meta={'mc': 1}, unit='ub')]
+                            format='%f', meta={'mc': 1}, unit='ub')]
             self.DATA = self.Table(self.COLS)
     return TableData(request)
 

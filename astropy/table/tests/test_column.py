@@ -158,11 +158,11 @@ class TestColumn():
         Test for issue #3023: when calling getitem with a MaskedArray subclass
         the original object attributes are not copied.
         """
-        c1 = Column([1, 2, 3], name='a', unit='m', format='i',
+        c1 = Column([1, 2, 3], name='a', unit='m', format='%i',
                     description='aa', meta={'a': 1})
         c1.name = 'b'
         c1.unit = 'km'
-        c1.format = 'i2'
+        c1.format = '%d'
         c1.description = 'bb'
         c1.meta = {'bbb': 2}
 
@@ -171,7 +171,7 @@ class TestColumn():
             c2 = c1[item]
             assert c2.name == 'b'
             assert c2.unit is u.km
-            assert c2.format == 'i2'
+            assert c2.format == '%d'
             assert c2.description == 'bb'
             assert c2.meta == {'bbb': 2}
 

@@ -6,6 +6,7 @@ from ..extern.six import text_type
 from ..extern.six.moves import zip as izip
 from ..extern.six.moves import xrange
 
+import itertools
 import os
 import sys
 
@@ -122,7 +123,7 @@ def _auto_format_func(format_, val):
                 break
         else:
             # None of the possible string functions passed muster.
-            raise ValueError('Unable to parse format string {0}'
+            raise TypeError('Unable to parse format string {0} for its column'
                              .format(format_))
 
         # String-based format functions will fail on masked elements;
@@ -346,6 +347,7 @@ class TableFormatter(object):
             Must be a dict which is used to pass back additional values
             defined within the iterator.
         """
+
         max_lines, _ = self._get_pprint_size(max_lines, -1)
 
         multidims = getattr(col, 'shape', [0])[1:]
@@ -387,36 +389,47 @@ class TableFormatter(object):
         n_print2 = max_lines // 2
         n_rows = len(col)
 
-        col_format = col.info.format or getattr(col.info, 'default_format', None)
+        col_format = col.info.format or getattr(col.info, 'default_format',
+                                                None)
         format_func = _format_funcs.get(col_format, _auto_format_func)
+
         if len(col) > max_lines:
             if show_length is None:
                 show_length = True
             i0 = n_print2 - (1 if show_length else 0)
             i1 = n_rows - n_print2 - max_lines % 2
-            ii = np.concatenate([np.arange(0, i0 + 1), np.arange(i1 + 1, len(col))])
+            indices = np.concatenate([np.arange(0, i0 + 1),
+                                      np.arange(i1 + 1, len(col))])
         else:
             i0 = -1
-            ii = np.arange(len(col))
+            indices = np.arange(len(col))
+
+        def format_col_str(idx):
+            if multidims:
+                # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
+                # with shape (n,1,...,1) from being printed as if there was
+                # more than one element in a row
+                if trivial_multidims:
+                    return format_func(col_format, col[(idx,) + multidim0])
+                else:
+                    left = format_func(col_format, col[(idx,) + multidim0])
+                    right = format_func(col_format, col[(idx,) + multidim1])
+                    return '{0} .. {1}'.format(left, right)
+            else:
+                return format_func(col_format, col[idx])
 
         # Add formatted values if within bounds allowed by max_lines
-        for i in ii:
-            if i == i0:
+        for idx in indices:
+            if idx == i0:
                 yield '...'
             else:
-                if multidims:
-                    # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
-                    # with shape (n,1,...,1) from being printed as if there was
-                    # more than one element in a row
-                    if trivial_multidims:
-                        col_str = format_func(col_format, col[(i,) + multidim0])
-                    else:
-                        col_str = (format_func(col_format, col[(i,) + multidim0]) +
-                                  ' .. ' +
-                                  format_func(col_format, col[(i,) + multidim1]))
-                else:
-                    col_str = format_func(col_format, col[i])
-                yield col_str
+                try:
+                    yield format_col_str(idx)
+                except TypeError:
+                    raise TypeError(
+                        'Unable to parse format string "{0}" for entry "{1}" '
+                        'in column "{2}"'.format(col_format, col[idx],
+                                                 col.name))
 
         outs['show_length'] = show_length
         outs['n_header'] = n_header
@@ -479,31 +492,31 @@ class TableFormatter(object):
             show_unit = any([col.info.unit for col in six.itervalues(table.columns)])
 
         # Figure out align
-        if isinstance(align,str):
-            align = align
-        elif isinstance(align,list) and len(align) == 1:
-            align = align[0]
-        elif isinstance(align,list) and len(align) == len(table.columns.values()):
-            align = align
+        if isinstance(align, str):
+            pass
+        elif isinstance(align, list):
+            if len(align) == 1:
+                align = align[0]
+            elif len(align) == len(table.columns):
+                pass
+            else:
+                align = 'right'
         else:
             align = 'right'
 
         # If align remains a list, need to loop over values
-        if type(align) == list:
-            for i,col in enumerate(table.columns.values()):
-                lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
-                                                show_unit=show_unit, show_dtype=show_dtype,
-                                                align=align[i])
-                if outs['show_length']:
-                    lines = lines[:-1]
-                cols.append(lines)
+        if isinstance(align, list):
+            it = izip(six.itervalues(table.columns), align)
         else:
-            for col in six.itervalues(table.columns):
-                lines, outs = self._pformat_col(col, max_lines, show_name=show_name,
-                                                show_unit=show_unit, show_dtype=show_dtype)
-                if outs['show_length']:
-                    lines = lines[:-1]
-                cols.append(lines)
+            it = izip(six.itervalues(table.columns), itertools.repeat(None))
+
+        for col, align_ in it:
+            lines, outs = self._pformat_col(
+                    col, max_lines, show_name=show_name, show_unit=show_unit,
+                    show_dtype=show_dtype, align=align_)
+            if outs['show_length']:
+                lines = lines[:-1]
+            cols.append(lines)
 
         if not cols:
             return ['<No columns>'], {'show_length': False}
