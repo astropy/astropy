@@ -26,7 +26,7 @@ a logarithmic unit.  For instance::
   >>> -2.5 * u.mag(u.ct / u.s)
   <Magnitude -2.5 mag(ct / s)>
   >>> u.Dex((c.G * u.M_sun / u.R_sun**2).cgs)  # doctest: +FLOAT_CMP
-  <Dex 4.43842814841305 dex(cm / s2)>
+  <Dex 4.438443765928838 dex(cm / s2)>
   >>> np.linspace(2., 5., 7) * u.Unit("dex(cm/s2)")
   <Dex [ 2. , 2.5, 3. , 3.5, 4. , 4.5, 5. ] dex(cm / s2)>
 

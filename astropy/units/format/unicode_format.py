@@ -21,7 +21,7 @@ class Unicode(console.Console):
       >>> import astropy.units as u
       >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
                       m² kg
-      2.1798721×10⁻¹⁸ ─────
+      2.1798722×10⁻¹⁸ ─────
                        s²
     """
 

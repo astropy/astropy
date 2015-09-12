@@ -106,7 +106,7 @@ energy can be converted.
   >>> ([1000, 2000] * u.nm).to(u.Hz, equivalencies=u.spectral())
   <Quantity [  2.99792458e+14,  1.49896229e+14] Hz>
   >>> ([1000, 2000] * u.nm).to(u.eV, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
-  <Quantity [ 1.23984193, 0.61992096] eV>
+  <Quantity [ 1.23984197, 0.61992099] eV>
 
 These equivalencies even work with non-base units::
 
@@ -189,7 +189,7 @@ here is an example::
     >>> omega_B = 2 * np.pi * beam_sigma**2
     >>> freq = 5 * u.GHz
     >>> u.Jy.to(u.K, equivalencies=u.brightness_temperature(omega_B, freq))
-    3.526294...
+    3.526295...
 
 .. note:: Despite the Astropy unit on the left being shown as ``u.Jy``, this is
           the conversion factor from Jy/beam to K (because ``u.beam`` cannot
@@ -221,7 +221,7 @@ observations at high-energy, be it for solar or X-ray astronomy. Example::
     >>> import astropy.units as u
     >>> t_k = 1e6 * u.K
     >>> t_k.to(u.eV, equivalencies=u.temperature_energy())  # doctest: +FLOAT_CMP
-    <Quantity 86.17332384960955 eV>
+    <Quantity 86.17330337217213 eV>
 
 Writing new equivalencies
 -------------------------

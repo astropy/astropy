@@ -49,7 +49,7 @@ redshifts as input:
 
   >>> from astropy.cosmology import WMAP9 as cosmo
   >>> cosmo.comoving_distance([0.5, 1.0, 1.5])  # doctest: +FLOAT_CMP
-  <Quantity [ 1916.0694236 , 3363.07064333, 4451.74756242] Mpc>
+  <Quantity [ 1916.06942039, 3363.0706321 , 4451.74754107] Mpc>
 
 You can create your own FLRW-like cosmology using one of the Cosmology
 classes::
@@ -114,21 +114,21 @@ redshift 4 by:
 .. doctest-requires:: scipy
 
   >>> cosmo.luminosity_distance(4)  # doctest: +FLOAT_CMP
-  <Quantity 35842.353618623194 Mpc>
-
+  <Quantity 35842.35328799687 Mpc>
+  
 or the age of the universe at z = 0:
 
 .. doctest-requires:: scipy
 
   >>> cosmo.age(0)  # doctest: +FLOAT_CMP
-  <Quantity 13.461701658024014 Gyr>
+  <Quantity 13.461701476415707 Gyr>
 
 They also accept arrays of redshifts:
 
 .. doctest-requires:: scipy
 
   >>> cosmo.age([0.5, 1, 1.5]).value  # doctest: +FLOAT_CMP
-  array([ 8.42128047,  5.74698053,  4.19645402])
+  array([ 8.4212803 ,  5.74698037,  4.19645387])
 
 See the `~astropy.cosmology.FLRW` and
 `~astropy.cosmology.FlatLambdaCDM` object docstring for all the
@@ -146,7 +146,7 @@ You can see how the density parameters evolve with redshift as well::
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.Om([0, 1.0, 2.0]), WMAP7.Ode([0., 1.0, 2.0])  # doctest: +FLOAT_CMP
-  (array([ 0.272     ,  0.74898524,  0.90905239]),
+  (array([ 0.272     ,  0.74898523,  0.90905237]),
    array([ 0.72791572,  0.25055061,  0.0901026 ]))
 
 Note that these don't quite add up to one even though WMAP7 assumes a
@@ -223,8 +223,8 @@ redshift which it corresponds to, you can use ``z_at_value``:
   >>> import astropy.units as u
   >>> from astropy.cosmology import Planck13, z_at_value
   >>> z_at_value(Planck13.age, 2 * u.Gyr)  # doctest: +FLOAT_CMP
-  3.1981226843560968
-
+  3.1981209656529268
+  
 For some quantities there can be more than one redshift that satisfies
 a value. In this case you can use the ``zmin`` and ``zmax`` keywords
 to restrict the search range. See the ``z_at_value`` docstring for more
@@ -241,7 +241,7 @@ the WMAP and Planck satellite data. For example,
 
   >>> from astropy.cosmology import Planck13  # Planck 2013
   >>> Planck13.lookback_time(2)  # lookback time in Gyr at z=2  # doctest: +FLOAT_CMP
-  <Quantity 10.511841788576083 Gyr>
+  <Quantity 10.511841376920712 Gyr>
 
 A full list of the pre-defined cosmologies is given by
 ``cosmology.parameters.available``, and summarized below:
@@ -337,8 +337,8 @@ can be found as a function of redshift::
   (4.985694972799396e-05, 3.442154948307989e-05)
   >>> z = [0, 1.0, 2.0]
   >>> WMAP7.Ogamma(z), WMAP7.Onu(z)
-  (array([  4.98569497e-05,   2.74574409e-04,   4.99881391e-04]),
-   array([  3.44215495e-05,   1.89567887e-04,   3.45121234e-04]))
+  (array([  4.98586899e-05,   2.74583989e-04,   4.99898824e-04]),
+   array([  3.44227509e-05,   1.89574501e-04,   3.45133270e-04]))
 
 If you want to exclude photons and neutrinos from your calculations,
 simply set ``Tcmb0`` to 0::
@@ -354,7 +354,7 @@ Neutrinos can be removed (while leaving photons) by setting ``Neff`` to 0::
   >>> from astropy.cosmology import FlatLambdaCDM
   >>> cos = FlatLambdaCDM(70.4, 0.272, Neff=0)
   >>> cos.Ogamma([0, 1, 2])  # Photons are still present  # doctest: +FLOAT_CMP
-  array([  4.98569497e-05,   2.74623215e-04,   5.00051839e-04])
+  array([  4.98586899e-05,   2.74632798e-04,   5.00069284e-04])
   >>> cos.Onu([0, 1, 2])  # But not neutrinos
   array([ 0.,  0.,  0.])
 
@@ -382,7 +382,7 @@ value is provided, all the species are assumed to have the same mass.
   >>> cosmo.m_nu
   <Quantity [ 0.  , 0.05, 0.1 ] eV>
   >>> cosmo.Onu([0, 1.0, 15.0])  # doctest: +FLOAT_CMP
-  array([ 0.00326988,  0.00896783,  0.0125786 ])
+  array([ 0.00327   ,  0.00896814,  0.01257904])
   >>> cosmo.Onu(1) * cosmo.critical_density(1)  # doctest: +FLOAT_CMP
   <Quantity 2.444380380370406e-31 g / cm3>
 
