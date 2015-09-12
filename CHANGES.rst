@@ -1,4 +1,4 @@
-1.1 (unreleased)
+﻿1.1 (unreleased)
 ----------------
 
 New Features
@@ -479,6 +479,8 @@ Bug fixes
 
   - The keyword ``acc`` (for accuracy) is now correctly accepted by
     ``Simplex``. [#3966]
+
+  - Switched first two elements of the returned list of fit_deriv in Voigt1D class. [#4144]
 
 - ``astropy.nddata``
 
