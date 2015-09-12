@@ -1,4 +1,4 @@
-1.1 (unreleased)
+﻿1.1 (unreleased)
 ----------------
 
 New Features
@@ -440,6 +440,8 @@ Bug fixes
 - ``astropy.conftest.py``
 
 - ``astropy.constants``
+
+  - Changed repr of constants from error to uncertainty and from units to unit [#4145].
 
 - ``astropy.convolution``
 
