@@ -31,8 +31,8 @@ different units for example::
     >>> print const.c
       Name   = Speed of light in vacuum
       Value  = 299792458.0
-      Error  = 0.0
-      Units  = m / s
+      Uncertainty  = 0.0
+      Unit  = m / s
       Reference = CODATA 2010
 
     >>> print const.c.to('km/s')
