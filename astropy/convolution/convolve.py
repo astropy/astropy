@@ -150,7 +150,7 @@ def convolve(array, kernel, boundary='fill', fill_value=0.,
     # end if normalization was not requested.
     kernel_sum = kernel_internal.sum()
 
-    if kernel_sum < 1. / MAX_NORMALIZATION and normalize_kernel:
+    if kernel_sum < 1. / MAX_NORMALIZATION:
         raise Exception("The kernel can't be normalized, because its sum is "
                         "close to zero. The sum of the given kernel is < {0}"
                         .format(1. / MAX_NORMALIZATION))
