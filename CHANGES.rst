@@ -612,6 +612,8 @@ Bug Fixes
 
 - ``astropy.convolution``
 
+  - Raise Exception in ``convolve`` for kernels that sum to zero. [#4138]
+
 - ``astropy.coordinates``
 
   - Fix string representation of ``SkyCoord`` objects transformed into
