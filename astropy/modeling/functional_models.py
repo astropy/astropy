@@ -818,7 +818,8 @@ class Voigt1D(Fittable1DModel):
         dVdx = np.sum((D/beta - 2 * (X - B) * alpha / np.square(beta)), axis=-1)
         dVdy = np.sum((C/beta - 2 * (Y - A) * alpha / np.square(beta)), axis=-1)
 
-        dyda = [- constant * dVdx * 2 * sqrt_ln2 / fwhm_G, constant * V / amplitude_L,
+        dyda = [- constant * dVdx * 2 * sqrt_ln2 / fwhm_G,
+                constant * V / amplitude_L,
                 constant * (V / fwhm_L + dVdy * sqrt_ln2 / fwhm_G),
                 -constant * (V + (sqrt_ln2 / fwhm_G) * (2 * (x - x_0) * dVdx + fwhm_L * dVdy)) / fwhm_G]
         return dyda
