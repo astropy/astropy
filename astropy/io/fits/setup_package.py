@@ -32,7 +32,8 @@ def get_extensions():
                 '-Wno-unused-variable', '-Wno-parentheses',
                 '-Wno-uninitialized', '-Wno-format', '-Wno-strict-prototypes',
                 '-Wno-unused', '-Wno-comments', '-Wno-switch',
-                '-Wno-declaration-after-statement'
+                '-Wno-declaration-after-statement',
+                '-Wno-strict-aliasing', '-Wno-return-type', '-Wno-address'
             ])
 
         cfitsio_path = os.path.join('cextern', 'cfitsio')
