@@ -173,8 +173,6 @@ class OrthoPolynomialBase(PolynomialBase):
         domain of the y independent variable
     y_window : list or None, optional
         range of the y independent variable
-    param_dim : int, optional
-        number of parameter sets
     **params : dict
         {keyword: value} pairs, representing {parameter_name: value}
     """
@@ -330,8 +328,6 @@ class Chebyshev1D(PolynomialModel):
     window : list or None, optional
         If None, it is set to [-1,1]
         Fitters will remap the domain to this window
-    param_dim : int, optional
-        number of parameter sets
     **params : dict
         keyword : value pairs, representing parameter_name: value
     """
@@ -420,8 +416,6 @@ class Legendre1D(PolynomialModel):
     window : list or None, optional
         If None, it is set to [-1,1]
         Fitters will remap the domain to this window
-    param_dim : int, optional
-        number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
     """
@@ -508,8 +502,6 @@ class Polynomial1D(PolynomialModel):
     window : list or None, optional
         If None, it is set to [-1,1]
         Fitters will remap the domain to this window
-    param_dim : int, optional
-        number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
     """
@@ -594,8 +586,6 @@ class Polynomial2D(PolynomialModel):
         range of the x independent variable
     y_window : list or None, optional
         range of the y independent variable
-    param_dim : int, optional
-        number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
     """
@@ -744,8 +734,6 @@ class Chebyshev2D(OrthoPolynomialBase):
         range of the x independent variable
     y_window : list or None, optional
         range of the y independent variable
-    param_dim : int, optional
-        number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
 
@@ -859,8 +847,6 @@ class Legendre2D(OrthoPolynomialBase):
         range of the x independent variable
     y_window : list or None, optional
         range of the y independent variable
-    param_dim : int, optional
-        number of parameter sets
     **params : dict
         keyword: value pairs, representing parameter_name: value
     """
@@ -1060,8 +1046,6 @@ class SIP(Model):
         coefficients for the inverse transform
     bp_coeff : dict
         coefficients for the inverse transform
-    param_dim : int
-        number of parameter sets
 
     References
     ----------
@@ -1136,8 +1120,6 @@ class InverseSIP(Model):
         coefficients for the inverse transform
     bp_coeff : dict
         coefficients for the inverse transform
-    param_dim : int
-        number of parameter sets
 
     """
 
