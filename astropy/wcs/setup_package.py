@@ -242,7 +242,8 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
             '-Wno-strict-prototypes',
             '-Wno-unused-function',
             '-Wno-unused-value',
-            '-Wno-uninitialized'])
+            '-Wno-uninitialized',
+            '-Wno-unused-but-set-variable'])
 
 
 
