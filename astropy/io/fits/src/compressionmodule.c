@@ -270,7 +270,7 @@ int get_header_string(PyObject* header, char* keyword, char* val, char* def) {
     }
     else {
         PyErr_Clear();
-        *val = def;
+        strncpy(val, def, 72);
         retval = 1;
     }
 
