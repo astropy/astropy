@@ -233,7 +233,6 @@ PySip_foc2pix(
   PyArrayObject* pixcrd     = NULL;
   int            status     = -1;
   double*        foccrd_data = NULL;
-  double*        pixcrd_data = NULL;
   unsigned int   nelem      = 0;
   unsigned int   i, j;
   const char*    keywords[] = {
