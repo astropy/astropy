@@ -51,7 +51,7 @@ def hist(x, bins=10, ax=None, **kwargs):
     astropy.stats.histogram
     """
     # arguments of np.histogram should be passed to astropy.stats.histogram
-    arglist = signature(np.histogram).parameters.keys()[1:]
+    arglist = list(signature(np.histogram).parameters.keys())[1:]
     np_hist_kwds = dict((key, kwargs[key]) for key in arglist if key in kwargs)
     hist, bins = histogram(x, bins, **np_hist_kwds)
 
