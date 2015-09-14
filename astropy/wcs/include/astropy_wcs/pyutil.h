@@ -27,7 +27,7 @@
 #endif
 
 #ifndef PyArray_SetBaseObject
-#define PyArray_SetBaseObject(arr, base) (arr->base = (PyObject *)base)
+#define PyArray_SetBaseObject(arr, baseobj) ((arr)->base = (PyObject *)baseobj)
 #endif
 
 #if PY_MAJOR_VERSION >= 3
