@@ -197,7 +197,7 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         ('_GNU_SOURCE', None)])
 
     if (not setup_helpers.use_system_library('wcslib') or
-        sys.platform == 'win32'):
+            sys.platform == 'win32'):
         write_wcsconfig_h(include_paths)
 
         wcslib_path = join("cextern", "wcslib")  # Path to wcslib
@@ -235,6 +235,15 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
 
     if sys.platform.startswith('linux'):
         cfg['define_macros'].append(('HAVE_SINCOS', None))
+
+    # Squelch a few compilation warnings in WCSLIB
+    if setup_helpers.get_compiler_option() in ('unix', 'mingw32'):
+        cfg['extra_compile_args'].extend([
+            '-Wno-strict-prototypes',
+            '-Wno-unused-function',
+            '-Wno-unused-value',
+            '-Wno-uninitialized'])
+
 
 
 def get_extensions():
