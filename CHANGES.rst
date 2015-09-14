@@ -450,6 +450,8 @@ Bug fixes
 
 - ``astropy.constants``
 
+  - Rename units -> unit and error -> uncertainty in the ``__repr__`` to match attribute names. [#4147]
+
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
@@ -686,7 +688,7 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- astropy now supports Python 3.5. [#4027]
 
 
 1.0.4 (2015-08-11)
