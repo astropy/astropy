@@ -722,6 +722,7 @@ else:
         for `make_function_with_signature`.  This requires different
         implementations on Python 2 versus Python 3.
         """
+
         argspec = inspect.getargspec(func)
 
         if argspec.defaults:
