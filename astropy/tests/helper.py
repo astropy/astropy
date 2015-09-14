@@ -361,7 +361,6 @@ def enable_deprecations_as_exceptions(include_astropy_deprecations=True):
     """
     Turn on the feature that turns deprecations into exceptions.
     """
-
     global _deprecations_as_exceptions
     _deprecations_as_exceptions = True
 
@@ -379,9 +378,6 @@ def treat_deprecations_as_exceptions():
     This completely resets the warning filters and any "already seen"
     warning state.
     """
-    if not _deprecations_as_exceptions:
-        return
-
     # First, totally reset the warning state
     for module in list(six.itervalues(sys.modules)):
         # We don't want to deal with six.MovedModules, only "real"
@@ -389,6 +385,9 @@ def treat_deprecations_as_exceptions():
         if (isinstance(module, types.ModuleType) and
             hasattr(module, '__warningregistry__')):
             del module.__warningregistry__
+
+    if not _deprecations_as_exceptions:
+        return
 
     warnings.resetwarnings()
 
@@ -424,7 +423,7 @@ def treat_deprecations_as_exceptions():
         # py.test's warning.showwarning does not include the line argument
         # on Python 2.6, so we need to explicitly ignore this warning.
         warnings.filterwarnings(
-            "always",
+            "ignore",
             r"functions overriding warnings\.showwarning\(\) must support "
             r"the 'line' argument",
             DeprecationWarning)
@@ -433,20 +432,20 @@ def treat_deprecations_as_exceptions():
         # py.test reads files with the 'U' flag, which is now
         # deprecated in Python 3.4.
         warnings.filterwarnings(
-            "always",
+            "ignore",
             r"'U' mode is deprecated",
             DeprecationWarning)
 
         # BeautifulSoup4 triggers a DeprecationWarning in stdlib's
         # html module.x
         warnings.filterwarnings(
-            "always",
-            "The strict argument and mode are deprecated.",
+            "ignore",
+            r"The strict argument and mode are deprecated\.",
             DeprecationWarning)
         warnings.filterwarnings(
-            "always",
-            "The value of convert_charrefs will become True in 3.5. "
-            "You are encouraged to set the value explicitly.",
+            "ignore",
+            r"The value of convert_charrefs will become True in 3\.5\. "
+            r"You are encouraged to set the value explicitly\.",
             DeprecationWarning)
 
 

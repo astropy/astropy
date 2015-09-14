@@ -188,7 +188,7 @@ def test_exception_logging_enable_twice():
 @pytest.mark.skipif(str("ip is not None"))
 def test_exception_logging_overridden():
     log.enable_exception_logging()
-    sys.excepthook = lambda: None
+    sys.excepthook = lambda etype, evalue, tb: None
     with pytest.raises(LoggingError) as e:
         log.disable_exception_logging()
     assert e.value.args[0] == 'Cannot disable exception logging: sys.excepthook was not set by this logger, or has been overridden'

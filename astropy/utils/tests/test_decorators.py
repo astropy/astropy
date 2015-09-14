@@ -68,7 +68,10 @@ def test_wraps_exclude_names():
     def func(*args, **kwargs):
         return test.method(*args, **kwargs)
 
-    argspec = inspect.getargspec(func)
+    if six.PY2:
+        argspec = inspect.getargspec(func)
+    else:
+        argspec = inspect.getfullargspec(func)
     assert argspec.args == ['a', 'b', 'c', 'd']
 
     assert func('a', 'b', e=3) == ('a', 'b', 1, 2, {'e': 3})
