@@ -47,7 +47,7 @@ convert_matrix(
   }
 
   *array = (PyArrayObject*)PyArray_ContiguousFromAny(
-      pyobj, PyArray_DOUBLE, 2, 2);
+      pyobj, NPY_DOUBLE, 2, 2);
   if (*array == NULL) {
     return -1;
   }
@@ -102,7 +102,7 @@ PySip_init(
     goto exit;
   }
 
-  crpix = (PyArrayObject*)PyArray_ContiguousFromAny(py_crpix, PyArray_DOUBLE,
+  crpix = (PyArrayObject*)PyArray_ContiguousFromAny(py_crpix, NPY_DOUBLE,
                                                     1, 1);
   if (crpix == NULL) {
     goto exit;
@@ -167,7 +167,7 @@ PySip_pix2foc(
     return NULL;
   }
 
-  pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny(pixcrd_obj, PyArray_DOUBLE, 2, 2);
+  pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny(pixcrd_obj, NPY_DOUBLE, 2, 2);
   if (pixcrd == NULL) {
     goto exit;
   }
@@ -178,7 +178,7 @@ PySip_pix2foc(
   }
 
   foccrd = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(pixcrd),
-                                             PyArray_DOUBLE);
+                                             NPY_DOUBLE);
   if (foccrd == NULL) {
     goto exit;
   }
@@ -250,7 +250,7 @@ PySip_foc2pix(
     return NULL;
   }
 
-  foccrd = (PyArrayObject*)PyArray_ContiguousFromAny(foccrd_obj, PyArray_DOUBLE, 2, 2);
+  foccrd = (PyArrayObject*)PyArray_ContiguousFromAny(foccrd_obj, NPY_DOUBLE, 2, 2);
   if (foccrd == NULL) {
     goto exit;
   }
@@ -261,7 +261,7 @@ PySip_foc2pix(
   }
 
   pixcrd = (PyArrayObject*)PyArray_SimpleNew(2, PyArray_DIMS(foccrd),
-                                             PyArray_DOUBLE);
+                                             NPY_DOUBLE);
   if (pixcrd == NULL) {
     status = 2;
     goto exit;

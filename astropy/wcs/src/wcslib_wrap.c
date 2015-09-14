@@ -213,6 +213,7 @@ PyWcsprm_init(
   int            keysel        = -1;
   PyObject*      colsel        = Py_None;
   PyArrayObject* colsel_array  = NULL;
+  int*           colsel_data  = NULL;
   int*           colsel_ints   = NULL;
   int            warnings      = 1;
   int            nreject       = 0;
@@ -323,7 +324,7 @@ PyWcsprm_init(
 
     if (colsel != Py_None) {
       colsel_array = (PyArrayObject*) PyArray_ContiguousFromAny(
-        colsel, 1, 1, PyArray_INT);
+        colsel, 1, 1, NPY_INT);
       if (colsel_array == NULL) {
         return -1;
       }
@@ -338,8 +339,9 @@ PyWcsprm_init(
       }
 
       colsel_ints[0] = (int)PyArray_DIM(colsel_array, 0);
+      colsel_data = (int *)PyArray_DATA(colsel_array);
       for (i = 0; i < colsel_ints[0]; ++i) {
-        colsel_ints[i+1] = colsel_array->data[i];
+        colsel_ints[i+1] = colsel_data[i];
       }
 
       Py_DECREF(colsel_array);
@@ -785,7 +787,7 @@ PyWcsprm_cylfix(
 
   if (naxis_obj != NULL && naxis_obj != Py_None) {
     naxis_array = (PyArrayObject*)PyArray_ContiguousFromAny(
-        naxis_obj, 1, 1, PyArray_INT);
+        naxis_obj, 1, 1, NPY_INT);
     if (naxis_array == NULL) {
       return NULL;
     }
@@ -888,7 +890,7 @@ PyWcsprm_fix(
 
   if (naxis_obj != NULL && naxis_obj != Py_None) {
     naxis_array = (PyArrayObject*)PyArray_ContiguousFromAny(
-        naxis_obj, 1, 1, PyArray_INT);
+        naxis_obj, 1, 1, NPY_INT);
     if (naxis_array == NULL) {
       return NULL;
     }
@@ -1091,7 +1093,7 @@ PyWcsprm_mix(
   }
 
   world = (PyArrayObject*)PyArray_ContiguousFromAny
-    (world_obj, PyArray_DOUBLE, 1, 1);
+    (world_obj, NPY_DOUBLE, 1, 1);
   if (world == NULL) {
     PyErr_SetString(
         PyExc_TypeError,
@@ -1108,7 +1110,7 @@ PyWcsprm_mix(
   }
 
   pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny
-    (pixcrd_obj, PyArray_DOUBLE, 1, 1);
+    (pixcrd_obj, NPY_DOUBLE, 1, 1);
   if (pixcrd == NULL) {
     PyErr_SetString(
         PyExc_TypeError,
@@ -1145,19 +1147,19 @@ PyWcsprm_mix(
    */
   naxis = (Py_ssize_t)self->x.naxis;
   phi = (PyArrayObject*)PyArray_SimpleNew
-    (1, &naxis, PyArray_DOUBLE);
+    (1, &naxis, NPY_DOUBLE);
   if (phi == NULL) {
     goto exit;
   }
 
   theta = (PyArrayObject*)PyArray_SimpleNew
-    (1, &naxis, PyArray_DOUBLE);
+    (1, &naxis, NPY_DOUBLE);
   if (theta == NULL) {
     goto exit;
   }
 
   imgcrd = (PyArrayObject*)PyArray_SimpleNew
-    (1, &naxis, PyArray_DOUBLE);
+    (1, &naxis, NPY_DOUBLE);
   if (imgcrd == NULL) {
     goto exit;
   }
@@ -1246,7 +1248,7 @@ PyWcsprm_p2s(
   naxis = self->x.naxis;
 
   pixcrd = (PyArrayObject*)PyArray_ContiguousFromAny
-    (pixcrd_obj, PyArray_DOUBLE, 2, 2);
+    (pixcrd_obj, NPY_DOUBLE, 2, 2);
   if (pixcrd == NULL) {
     return NULL;
   }
@@ -1262,31 +1264,31 @@ PyWcsprm_p2s(
   /* Now we allocate a bunch of numpy arrays to store the results in.
    */
   imgcrd = (PyArrayObject*)PyArray_SimpleNew(
-      2, PyArray_DIMS(pixcrd), PyArray_DOUBLE);
+      2, PyArray_DIMS(pixcrd), NPY_DOUBLE);
   if (imgcrd == NULL) {
     goto exit;
   }
 
   phi = (PyArrayObject*)PyArray_SimpleNew(
-      1, PyArray_DIMS(pixcrd), PyArray_DOUBLE);
+      1, PyArray_DIMS(pixcrd), NPY_DOUBLE);
   if (phi == NULL) {
     goto exit;
   }
 
   theta = (PyArrayObject*)PyArray_SimpleNew(
-      1, PyArray_DIMS(pixcrd), PyArray_DOUBLE);
+      1, PyArray_DIMS(pixcrd), NPY_DOUBLE);
   if (theta == NULL) {
     goto exit;
   }
 
   world = (PyArrayObject*)PyArray_SimpleNew(
-      2, PyArray_DIMS(pixcrd), PyArray_DOUBLE);
+      2, PyArray_DIMS(pixcrd), NPY_DOUBLE);
   if (world == NULL) {
     goto exit;
   }
 
   stat = (PyArrayObject*)PyArray_SimpleNew(
-      1, PyArray_DIMS(pixcrd), PyArray_INT);
+      1, PyArray_DIMS(pixcrd), NPY_INT);
   if (stat == NULL) {
     goto exit;
   }
@@ -1388,7 +1390,7 @@ PyWcsprm_s2p(
   naxis = self->x.naxis;
 
   world = (PyArrayObject*)PyArray_ContiguousFromAny(
-      world_obj, PyArray_DOUBLE, 2, 2);
+      world_obj, NPY_DOUBLE, 2, 2);
   if (world == NULL) {
     return NULL;
   }
@@ -1405,31 +1407,31 @@ PyWcsprm_s2p(
    * results in.
    */
   phi = (PyArrayObject*)PyArray_SimpleNew(
-      1, PyArray_DIMS(world), PyArray_DOUBLE);
+      1, PyArray_DIMS(world), NPY_DOUBLE);
   if (phi == NULL) {
     goto exit;
   }
 
   theta = (PyArrayObject*)PyArray_SimpleNew(
-      1, PyArray_DIMS(world), PyArray_DOUBLE);
+      1, PyArray_DIMS(world), NPY_DOUBLE);
   if (phi == NULL) {
     goto exit;
   }
 
   imgcrd = (PyArrayObject*)PyArray_SimpleNew(
-      2, PyArray_DIMS(world), PyArray_DOUBLE);
+      2, PyArray_DIMS(world), NPY_DOUBLE);
   if (theta == NULL) {
     goto exit;
   }
 
   pixcrd = (PyArrayObject*)PyArray_SimpleNew(
-      2, PyArray_DIMS(world), PyArray_DOUBLE);
+      2, PyArray_DIMS(world), NPY_DOUBLE);
   if (pixcrd == NULL) {
     goto exit;
   }
 
   stat = (PyArrayObject*)PyArray_SimpleNew(
-      1, PyArray_DIMS(world), PyArray_INT);
+      1, PyArray_DIMS(world), NPY_INT);
   if (stat == NULL) {
     goto exit;
   }
