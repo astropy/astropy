@@ -6,8 +6,9 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
 from .. import models
-from astropy.coordinates import Angle
-from astropy.modeling import fitting
+from ...coordinates import Angle
+from .. import fitting
+from ...tests.helper import pytest
 
 try:
     from scipy import optimize
