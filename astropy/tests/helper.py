@@ -329,9 +329,10 @@ class raises(object):
         def test_foo():
             x = 1/0
 
-    This can also be used a context manager, in which case it is just an alias
-    for the `pytest.raises` context manager (because the two have the same name
-    this help avoid confusion by being flexible).
+    This can also be used a context manager, in which case it is just
+    an alias for the ``pytest.raises`` context manager (because the
+    two have the same name this help avoid confusion by being
+    flexible).
     """
 
     # pep-8 naming exception -- this is a decorator class
