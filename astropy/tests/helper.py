@@ -18,7 +18,6 @@ import zlib
 import functools
 import multiprocessing
 import os
-import shutil
 import tempfile
 import types
 import warnings
@@ -446,6 +445,16 @@ def treat_deprecations_as_exceptions():
             "ignore",
             r"The value of convert_charrefs will become True in 3\.5\. "
             r"You are encouraged to set the value explicitly\.",
+            DeprecationWarning)
+
+    if sys.version_info[:2] >= (3, 5):
+        # py.test raises this warning on Python 3.5.
+        # This can be removed when fixed in py.test.
+        # See https://github.com/pytest-dev/pytest/pull/1009
+        warnings.filterwarnings(
+            "ignore",
+            r"inspect\.getargspec\(\) is deprecated, use "
+            r"inspect\.signature\(\) instead",
             DeprecationWarning)
 
 
