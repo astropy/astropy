@@ -152,11 +152,12 @@ def test_Shift_inverse():
     assert_allclose(m.inverse(m(6.789)), 6.789)
 
 
+@pytest.mark.skipif("not HAS_SCIPY")
 def test_Voigt1D():
     voi = models.Voigt1D(amplitude_L=-0.5, x_0=1.0, fwhm_L=5.0, fwhm_G=5.0)
-    xarr = np.linspace(-5.0,5.0,num=40)
+    xarr = np.linspace(-5.0, 5.0, num=40)
     yarr = voi(xarr)
     voi_init = models.Voigt1D(amplitude_L=-1.0, x_0=1.0, fwhm_L=5.0, fwhm_G=5.0)
     fitter = fitting.LevMarLSQFitter()
     voi_fit = fitter(voi_init, xarr, yarr)
-    assert_allclose(voi_fit.param_sets,voi.param_sets)
+    assert_allclose(voi_fit.param_sets, voi.param_sets)
