@@ -86,7 +86,6 @@ matrix:
 
     allow_failures:
       - env: PYTHON_VERSION=2.7 NUMPY_VERSION=dev SETUP_CMD='test'
-      - env: PYTHON_VERSION=3.5 SETUP_CMD='test --open-files'
 
 install:
     - source .continuous-integration/travis/setup_environment_$TRAVIS_OS_NAME.sh
