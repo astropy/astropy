@@ -575,6 +575,10 @@ This output table has all observations that have both optical and X-ray data for
 been split into two columns, ``obs_date_1`` and ``obs_date_2``.  The values are taken from
 the "left" (``optical``) and "right" (``xray``) tables, respectively.
 
+
+Different join options
+~~~~~~~~~~~~~~~~~~~~~~
+
 The table joins so far are known as "inner" joins and represent the strict intersection of
 the two tables on the key columns.
 
@@ -616,8 +620,12 @@ Finally, to make a table with the union of rows from both tables do an "outer" j
   NGC3516 2011-11-11    --    --  42.1
 
 
-In the following case we have two tables, but one has a ``'name'`` column
-while the other an ``'obj_id'`` column::
+Non-identical key column names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |join| function requires the key column names to be identical in the
+two tables. However, in the following one table has a ``'name'`` column
+while the other has an ``'obj_id'`` column::
 
   >>> optical = Table.read("""name    obs_date    mag_b  mag_v
   ...                         M31     2012-01-02  17.0   16.0
@@ -651,8 +659,8 @@ The original ``xray_1`` table remains unchanged after the operation::
       M82 2012-10-29  45.0
 
 
-Identical keys
-~~~~~~~~~~~~~~
+Identical key values
+~~~~~~~~~~~~~~~~~~~~
 
 The |Table| join operation works even if there are multiple rows with identical key
 values.  For example the following tables have multiple rows for the key column ``x``::
