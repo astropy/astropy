@@ -975,48 +975,57 @@ class BaseCoordinateFrame(object):
             return False
 
     def __repr__(self):
-        frameattrs = ', '.join([attrnm + '=' + str(getattr(self, attrnm))
-                                for attrnm in self.get_frame_attr_names()])
+        frameattrs = self._frame_attrs_repr()
+        data_repr = self._data_repr()
 
-        if self.has_data:
-            if self.representation:
-                if (issubclass(self.representation, SphericalRepresentation) and
-                        isinstance(self.data, UnitSphericalRepresentation)):
-                    data = self.represent_as(self.data.__class__,
-                                             in_frame_units=True)
-                else:
-                    data = self.represent_as(self.representation,
-                                             in_frame_units=True)
+        if frameattrs:
+            frameattrs = ' ({0})'.format(frameattrs)
 
-                data_repr = repr(data)
-                for nmpref, nmrepr in self.representation_component_names.items():
-                    data_repr = data_repr.replace(nmrepr, nmpref)
-
-            else:
-                data = self.data
-                data_repr = repr(self.data)
-
-            if data_repr.startswith('<' + data.__class__.__name__):
-                # standard form from BaseRepresentation
-                if frameattrs:
-                    frameattrs = ' (' + frameattrs + ')'
-
-                #remove both the leading "<" and the space after the name
-                data_repr = data_repr[(len(data.__class__.__name__) + 2):]
-
-                return '<{0} Coordinate{1}: {2}'.format(self.__class__.__name__,
-                                                        frameattrs, data_repr)
-            else:
-                # should only happen if a representation has a non-standard
-                # __repr__ method, and we just punt to that
-                if frameattrs:
-                    frameattrs = ' (' + frameattrs + '), '
-                s = '<{0} Coordinate{1}Data:\n{2}>'
-                return s.format(self.__class__.__name__, frameattrs, data_repr)
+        if data_repr:
+            return '<{0} Coordinate{1}: {2}>'.format(self.__class__.__name__,
+                                                     frameattrs, data_repr)
         else:
-            if frameattrs:
-                frameattrs = ' (' + frameattrs + ')'
-            return '<{0} Frame{1}>'.format(self.__class__.__name__, frameattrs)
+            return '<{0} Frame{1}>'.format(self.__class__.__name__,
+                                            frameattrs)
+
+    def _data_repr(self):
+        """Returns a string representation of the coordinate data."""
+
+        if not self.has_data:
+            return ''
+
+        if self.representation:
+            if (issubclass(self.representation, SphericalRepresentation) and
+                    isinstance(self.data, UnitSphericalRepresentation)):
+                data = self.represent_as(self.data.__class__,
+                                         in_frame_units=True)
+            else:
+                data = self.represent_as(self.representation,
+                                         in_frame_units=True)
+
+            data_repr = repr(data)
+            for nmpref, nmrepr in self.representation_component_names.items():
+                data_repr = data_repr.replace(nmrepr, nmpref)
+
+        else:
+            data = self.data
+            data_repr = repr(self.data)
+
+        if data_repr.startswith('<' + data.__class__.__name__):
+            # remove both the leading "<" and the space after the name, as well
+            # as the trailing ">"
+            data_repr = data_repr[(len(data.__class__.__name__) + 2):-1]
+        else:
+            data_repr = 'Data:\n' + data_repr
+
+        return data_repr
+
+    def _frame_attrs_repr(self):
+        """
+        Returns a string representation of the frame's attributes, if any.
+        """
+        return ', '.join([attrnm + '=' + str(getattr(self, attrnm))
+                          for attrnm in self.get_frame_attr_names()])
 
     def __getitem__(self, view):
         if self.has_data:
