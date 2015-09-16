@@ -7,6 +7,7 @@ import inspect
 
 import numpy as np
 
+from ...extern import six
 from ...tests.helper import catch_warnings, pytest
 from ... import units as u
 
@@ -178,6 +179,11 @@ def test_wrap_preserve_signature_docstring():
     if wrapped_function_6.__doc__ is not None:
         assert wrapped_function_6.__doc__.strip() == "An awesome function"
 
-    signature = inspect.formatargspec(*inspect.getargspec(wrapped_function_6))
+    if six.PY3:
+        signature = inspect.formatargspec(
+            *inspect.getfullargspec(wrapped_function_6))
+    else:
+        signature = inspect.formatargspec(
+            *inspect.getargspec(wrapped_function_6))
 
     assert signature == "(data, wcs=None, unit=None)"

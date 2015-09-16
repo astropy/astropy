@@ -14,7 +14,11 @@ from .core import (Fittable1DModel, Fittable2DModel, Model,
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
 from ..utils import deprecated
+from ..utils.compat.funcsigs import signature
 from ..extern import six
+
+from .utils import get_inputs_and_params
+
 
 __all__ = sorted([
     'AiryDisk2D', 'Moffat1D', 'Moffat2D', 'Box1D',
@@ -1740,13 +1744,9 @@ class Sersic2D(Fittable2DModel):
 @deprecated('1.0', alternative='astropy.modeling.models.custom_model',
             pending=True)
 def custom_model_1d(func, func_fit_deriv=None):
-    argspec = inspect.getargspec(func)
-    param_values = argspec.defaults
-    nparams = len(param_values)
+    inputs, params = get_inputs_and_params(func)
 
-    if len(argspec.args) == nparams + 1:
-        param_names = argspec.args[-nparams:]
-    else:
+    if len(inputs) != 1:
         raise ModelDefinitionError(
             "All parameters must be keyword arguments")
 

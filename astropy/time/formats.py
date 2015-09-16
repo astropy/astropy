@@ -66,7 +66,7 @@ def _regexify_subfmts(subfmts):
                                      ('%H', r'(?P<hour>\d{1,2})'),
                                      ('%M', r'(?P<min>\d{1,2})'),
                                      ('%S', r'(?P<sec>\d{1,2})')):
-            subfmt_in = re.sub(strptime_code, regex, subfmt_in)
+            subfmt_in = subfmt_in.replace(strptime_code, regex)
 
         if '%' not in subfmt_in:
             subfmt_tuple = (subfmt_tuple[0],

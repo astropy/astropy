@@ -2,9 +2,9 @@
 
 from __future__ import absolute_import, division, unicode_literals
 
-import inspect
 import numpy as np
 from ..stats import histogram
+from ..utils.compat.funcsigs import signature
 
 __all__ = ['hist']
 
@@ -51,7 +51,7 @@ def hist(x, bins=10, ax=None, **kwargs):
     astropy.stats.histogram
     """
     # arguments of np.histogram should be passed to astropy.stats.histogram
-    arglist = inspect.getargspec(np.histogram)[0][1:]
+    arglist = list(signature(np.histogram).parameters.keys())[1:]
     np_hist_kwds = dict((key, kwargs[key]) for key in arglist if key in kwargs)
     hist, bins = histogram(x, bins, **np_hist_kwds)
 

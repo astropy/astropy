@@ -29,6 +29,7 @@ env:
         - PYTHON_VERSION=2.7 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.3 SETUP_CMD='egg_info'
         - PYTHON_VERSION=3.4 SETUP_CMD='egg_info'
+        - PYTHON_VERSION=3.5 SETUP_CMD='egg_info'
 
 matrix:
 
@@ -56,6 +57,8 @@ matrix:
           env: PYTHON_VERSION=3.3 SETUP_CMD='test --open-files'
         - os: linux
           env: PYTHON_VERSION=3.4 SETUP_CMD='test --open-files'
+        - os: linux
+          env: PYTHON_VERSION=3.5 SETUP_CMD='test --open-files'
 
         # Now try with all optional dependencies on 2.7 and an appropriate 3.x
         # build (with latest numpy). We also note the code coverage on Python

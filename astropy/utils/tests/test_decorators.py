@@ -68,7 +68,10 @@ def test_wraps_exclude_names():
     def func(*args, **kwargs):
         return test.method(*args, **kwargs)
 
-    argspec = inspect.getargspec(func)
+    if six.PY2:
+        argspec = inspect.getargspec(func)
+    else:
+        argspec = inspect.getfullargspec(func)
     assert argspec.args == ['a', 'b', 'c', 'd']
 
     assert func('a', 'b', e=3) == ('a', 'b', 1, 2, {'e': 3})
@@ -127,7 +130,7 @@ def test_deprecated_attribute():
 # This needs to be defined outside of the test function, because we
 # want to try to pickle it.
 @deprecated('100.0')
-class TestA(object):
+class TA(object):
     """
     This is the class docstring.
     """
@@ -138,38 +141,38 @@ class TestA(object):
         pass
 
 
-class TestMeta(type):
+class TMeta(type):
     metaclass_attr = 1
 
 
 @deprecated('100.0')
-@six.add_metaclass(TestMeta)
-class TestB(object):
+@six.add_metaclass(TMeta)
+class TB(object):
     pass
 
 
 def test_deprecated_class():
-    orig_A = TestA.__bases__[0]
+    orig_A = TA.__bases__[0]
 
     # The only thing that should be different about the new class
     # is __doc__, __init__, __bases__ and __subclasshook__.
     for x in dir(orig_A):
         if x not in ('__doc__', '__init__', '__bases__', '__dict__',
                      '__subclasshook__'):
-            assert getattr(TestA, x) == getattr(orig_A, x)
+            assert getattr(TA, x) == getattr(orig_A, x)
 
     with catch_warnings(AstropyDeprecationWarning) as w:
-        TestA()
+        TA()
 
     assert len(w) == 1
-    if TestA.__doc__ is not None:
-        assert 'function' not in TestA.__doc__
-        assert 'deprecated' in TestA.__doc__
-        assert 'function' not in TestA.__init__.__doc__
-        assert 'deprecated' in TestA.__init__.__doc__
+    if TA.__doc__ is not None:
+        assert 'function' not in TA.__doc__
+        assert 'deprecated' in TA.__doc__
+        assert 'function' not in TA.__init__.__doc__
+        assert 'deprecated' in TA.__init__.__doc__
 
     # Make sure the object is picklable
-    pickle.dumps(TestA)
+    pickle.dumps(TA)
 
 
 def test_deprecated_class_with_super():
@@ -180,19 +183,19 @@ def test_deprecated_class_with_super():
     """
 
     @deprecated('100.0')
-    class TestB(object):
+    class TB(object):
         def __init__(self, a, b):
-            super(TestB, self).__init__()
+            super(TB, self).__init__()
 
     with catch_warnings(AstropyDeprecationWarning) as w:
-        TestB(1, 2)
+        TB(1, 2)
 
     assert len(w) == 1
-    if TestB.__doc__ is not None:
-        assert 'function' not in TestB.__doc__
-        assert 'deprecated' in TestB.__doc__
-        assert 'function' not in TestB.__init__.__doc__
-        assert 'deprecated' in TestB.__init__.__doc__
+    if TB.__doc__ is not None:
+        assert 'function' not in TB.__doc__
+        assert 'deprecated' in TB.__doc__
+        assert 'function' not in TB.__init__.__doc__
+        assert 'deprecated' in TB.__init__.__doc__
 
 
 def test_deprecated_class_with_custom_metaclass():
@@ -203,11 +206,11 @@ def test_deprecated_class_with_custom_metaclass():
     """
 
     with catch_warnings(AstropyDeprecationWarning) as w:
-        TestB()
+        TB()
 
     assert len(w) == 1
-    assert type(TestB) is TestMeta
-    assert TestB.metaclass_attr == 1
+    assert type(TB) is TMeta
+    assert TB.metaclass_attr == 1
 
 
 def test_deprecated_static_and_classmethod():

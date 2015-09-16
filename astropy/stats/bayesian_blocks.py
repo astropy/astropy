@@ -41,7 +41,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-import inspect
+
+from ..utils.compat.funcsigs import signature
 
 # TODO: implement other fitness functions from appendix B of Scargle 2012
 
@@ -301,7 +302,7 @@ class FitnessFunc(object):
     # the method fitness().  This allows more efficient computation below.
     @property
     def _fitness_args(self):
-        return inspect.getargspec(self.fitness)[0][1:]
+        return signature(self.fitness).parameters.keys()
 
     def fit(self, t, x=None, sigma=None):
         """Fit the Bayesian Blocks model given the specified fitness function.

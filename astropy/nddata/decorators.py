@@ -3,11 +3,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import inspect
 import warnings
 
 from ..utils import wraps
 from ..utils.exceptions import AstropyUserWarning
+from ..utils.compat.funcsigs import signature
 
 from .nddata import NDData
 
@@ -76,15 +76,16 @@ def support_nddata(_func=None, accepts=NDData, repack=False, returns=None):
     def support_nddata_decorator(func):
 
         # Find out args and kwargs
-        wrapped_argspec = inspect.getargspec(func)
-
-        # Find out the args and kwargs
-        if wrapped_argspec.defaults:
-            func_args = wrapped_argspec.args[:-len(wrapped_argspec.defaults)]
-            func_kwargs = wrapped_argspec.args[len(func_args):]
-        else:
-            func_args = wrapped_argspec.args
-            func_kwargs = []
+        sig = signature(func)
+        func_args = []
+        func_kwargs = []
+        for param in sig.parameters.values():
+            if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
+                raise ValueError("func may not have *args or **kwargs")
+            elif param.default == param.empty:
+                func_args.append(param.name)
+            else:
+                func_kwargs.append(param.name)
 
         # First argument should be data
         if len(func_args) == 0 or func_args[0] != 'data':

@@ -686,7 +686,7 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Nothing changed yet.
+- astropy now supports Python 3.5. [#4027]
 
 
 1.0.4 (2015-08-11)
