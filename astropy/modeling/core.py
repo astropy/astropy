@@ -29,7 +29,7 @@ from itertools import chain, islice
 
 import numpy as np
 
-from ..utils import indent, isiterable, isinstancemethod, metadata
+from ..utils import indent, isinstancemethod, metadata
 from ..extern import six
 from ..extern.six.moves import copyreg
 from ..table import Table
@@ -40,7 +40,7 @@ from ..utils.compat import ignored
 from ..utils.exceptions import AstropyDeprecationWarning
 from .utils import (array_repr_oneline, check_broadcast, combine_labels,
                     make_binary_operator_eval, ExpressionTree,
-                    IncompatibleShapeError, AliasDict)
+                    IncompatibleShapeError, AliasDict, get_inputs_and_params)
 
 from .parameters import Parameter, InputParameterError
 
@@ -2251,30 +2251,22 @@ def _custom_model_wrapper(func, fit_deriv=None):
             "callable object")
 
     model_name = func.__name__
-    argspec = inspect.getargspec(func)
-    param_values = argspec.defaults or ()
 
-    nparams = len(param_values)
-    param_names = argspec.args[-nparams:]
+    inputs, params = get_inputs_and_params(func)
 
     if (fit_deriv is not None and
-            len(six.get_function_defaults(fit_deriv)) != nparams):
+            len(six.get_function_defaults(fit_deriv)) != len(params)):
         raise ModelDefinitionError("derivative function should accept "
                                    "same number of parameters as func.")
 
-    if nparams:
-        input_names = argspec.args[:-nparams]
-    else:
-        input_names = argspec.args
-
     # TODO: Maybe have a clever scheme for default output name?
-    if input_names:
-        output_names = (input_names[0],)
+    if inputs:
+        output_names = (inputs[0].name,)
     else:
         output_names = ('x',)
 
-    params = dict((name, Parameter(name, default=default))
-                  for name, default in zip(param_names, param_values))
+    params = dict((param.name, Parameter(param.name, default=param.default))
+                  for param in params)
 
     mod = find_current_module(2)
     if mod:
@@ -2285,7 +2277,7 @@ def _custom_model_wrapper(func, fit_deriv=None):
     members = {
         '__module__': str(modname),
         '__doc__': func.__doc__,
-        'inputs': tuple(input_names),
+        'inputs': tuple(x.name for x in inputs),
         'outputs': output_names,
         'evaluate': staticmethod(func),
     }

@@ -10,7 +10,6 @@ define their own models.
 from __future__ import (absolute_import, unicode_literals, division,
                         print_function)
 
-import inspect
 import functools
 import numbers
 
@@ -19,6 +18,8 @@ import numpy as np
 from ..utils import isiterable
 from ..utils.compat import ignored
 from ..extern import six
+
+from .utils import get_inputs_and_params
 
 __all__ = ['Parameter', 'InputParameterError']
 
@@ -576,8 +577,8 @@ class Parameter(object):
                                 "getter/setter may only take one input "
                                 "argument")
         else:
-            wrapper_args = inspect.getargspec(wrapper)
-            nargs = len(wrapper_args.args)
+            inputs, params = get_inputs_and_params(wrapper)
+            nargs = len(inputs)
 
             if nargs == 1:
                 pass
@@ -585,7 +586,7 @@ class Parameter(object):
                 if model is not None:
                     # Don't make a partial function unless we're tied to a
                     # specific model instance
-                    model_arg = wrapper_args.args[1]
+                    model_arg = inputs[1].name
                     wrapper = functools.partial(wrapper, **{model_arg: model})
             else:
                 raise TypeError("Parameter getter/setter must be a function "

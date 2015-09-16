@@ -14,6 +14,8 @@ import numpy as np
 from ..extern import six
 from ..extern.six.moves import xrange, zip_longest
 
+from ..utils.compat.funcsigs import signature
+
 
 __all__ = ['ExpressionTree', 'AliasDict', 'check_broadcast',
            'poly_map_domain', 'comb']
@@ -493,3 +495,31 @@ def combine_labels(left, right):
 
     return left + right
 
+
+def get_inputs_and_params(func):
+    """
+    Given a callable, determine the input variables and the
+    parameters.
+
+    Parameters
+    ----------
+    func : callable
+
+    Returns
+    -------
+    inputs, params : tuple
+        Each entry is a list of inspect.Parameter objects
+    """
+    sig = signature(func)
+
+    inputs = []
+    params = []
+    for param in sig.parameters.values():
+        if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
+            raise ValueError("Signature must not have *args or **kwargs")
+        if param.default == param.empty:
+            inputs.append(param)
+        else:
+            params.append(param)
+
+    return inputs, params

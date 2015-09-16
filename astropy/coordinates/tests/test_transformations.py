@@ -20,11 +20,11 @@ from ...time import Time
 
 
 #Coordinates just for these tests.
-class TestCoo1(ICRS):
+class TCoo1(ICRS):
     pass
 
 
-class TestCoo2(ICRS):
+class TCoo2(ICRS):
     pass
 
 
@@ -34,11 +34,11 @@ def test_transform_classes():
     """
 
     tfun = lambda c, f: f.__class__(ra=c.ra, dec=c.dec)
-    trans1 = t.FunctionTransform(tfun, TestCoo1, TestCoo2,
+    trans1 = t.FunctionTransform(tfun, TCoo1, TCoo2,
                         register_graph=frame_transform_graph)
 
-    c1 = TestCoo1(ra=1*u.radian, dec=0.5*u.radian)
-    c2 = c1.transform_to(TestCoo2)
+    c1 = TCoo1(ra=1*u.radian, dec=0.5*u.radian)
+    c2 = c1.transform_to(TCoo2)
     assert_allclose(c2.ra.radian, 1)
     assert_allclose(c2.dec.radian, 0.5)
 
@@ -47,11 +47,11 @@ def test_transform_classes():
         return [[1, 0, 0],
                 [0, coo.ra.degree, 0],
                 [0, 0, 1]]
-    trans2 = t.DynamicMatrixTransform(matfunc, TestCoo1, TestCoo2)
+    trans2 = t.DynamicMatrixTransform(matfunc, TCoo1, TCoo2)
     trans2.register(frame_transform_graph)
 
-    c3 = TestCoo1(ra=1*u.deg, dec=2*u.deg)
-    c4 = c3.transform_to(TestCoo2)
+    c3 = TCoo1(ra=1*u.deg, dec=2*u.deg)
+    c4 = c3.transform_to(TCoo2)
 
     assert_allclose(c4.ra.degree, 1)
     assert_allclose(c4.ra.degree, 1)
@@ -65,25 +65,25 @@ def test_transform_decos():
     """
     Tests the decorator syntax for creating transforms
     """
-    c1 = TestCoo1(ra=1*u.deg, dec=2*u.deg)
+    c1 = TCoo1(ra=1*u.deg, dec=2*u.deg)
 
-    @frame_transform_graph.transform(t.FunctionTransform, TestCoo1, TestCoo2)
+    @frame_transform_graph.transform(t.FunctionTransform, TCoo1, TCoo2)
     def trans(coo1, f):
-        return TestCoo2(ra=coo1.ra, dec=coo1.dec * 2)
+        return TCoo2(ra=coo1.ra, dec=coo1.dec * 2)
 
-    c2 = c1.transform_to(TestCoo2)
+    c2 = c1.transform_to(TCoo2)
     assert_allclose(c2.ra.degree, 1)
     assert_allclose(c2.dec.degree, 4)
 
-    c3 = TestCoo1(r.CartesianRepresentation(x=1*u.pc, y=1*u.pc, z=2*u.pc))
+    c3 = TCoo1(r.CartesianRepresentation(x=1*u.pc, y=1*u.pc, z=2*u.pc))
 
-    @frame_transform_graph.transform(t.StaticMatrixTransform, TestCoo1, TestCoo2)
+    @frame_transform_graph.transform(t.StaticMatrixTransform, TCoo1, TCoo2)
     def matrix():
         return [[2, 0, 0],
                 [0, 1, 0],
                 [0, 0, 1]]
 
-    c4 = c3.transform_to(TestCoo2)
+    c4 = c3.transform_to(TCoo2)
 
     assert_allclose(c4.cartesian.x, 2*u.pc)
     assert_allclose(c4.cartesian.y, 1*u.pc)

@@ -92,6 +92,9 @@ REMOTE_DATA = doctest.register_optionflag('REMOTE_DATA')
 def pytest_configure(config):
     treat_deprecations_as_exceptions()
 
+    config.getini('markers').append(
+        'remote_data: Run tests that require data from remote servers')
+
     # Monkeypatch to deny access to remote resources unless explicitly told
     # otherwise
     if not config.getoption('remote_data'):

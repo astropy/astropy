@@ -13,6 +13,7 @@ import numpy as np
 from .. import constants as const
 from .. import units as u
 from ..utils import isiterable
+from ..utils.compat.funcsigs import signature
 from ..utils.state import ScienceState, ScienceStateAlias
 
 from . import parameters
@@ -404,8 +405,7 @@ class FLRW(Cosmology):
             return self
 
         # Get constructor arguments
-        import inspect
-        arglist = inspect.getargspec(self.__init__).args
+        arglist = signature(self.__init__).parameters.keys()
 
         # Build the dictionary of values used to construct this
         #  object.  This -assumes- every argument to __init__ has a
@@ -413,7 +413,7 @@ class FLRW(Cosmology):
         #  maybe a user won't do that.  So at least try to have a useful
         #  error message.
         argdict = {}
-        for arg in arglist[1:]:  # Skip self, which should always be first
+        for arg in arglist:
             try:
                 val = getattr(self, arg)
                 argdict[arg] = val

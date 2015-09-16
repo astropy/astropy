@@ -33,6 +33,8 @@ matrix:
           env: SETUP_CMD='test --open-files'
         - python: 3.4
           env: SETUP_CMD='test --open-files'
+        - python: 3.5
+          env: SETUP_CMD='test --open-files'
 
         # Now try do scipy on 2.7 and an appropriate 3.x build (with latest numpy)
         # We also note the code coverage on Python 2.7.
