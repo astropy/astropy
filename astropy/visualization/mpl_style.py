@@ -59,7 +59,7 @@ astropy_mpl_style_1 = {
     'axes.grid': True,
     'axes.titlesize': 'x-large',
     'axes.labelsize': 'large',
-    'axes.labelcolor': '#FFFFFF',
+    'axes.labelcolor': 'k',
     'axes.axisbelow': True,
     'axes.color_cycle': ['#348ABD',   # blue
                          '#7A68A6',   # purple

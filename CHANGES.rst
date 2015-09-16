@@ -679,6 +679,12 @@ Bug Fixes
     additional copies of modules under a package imported like
     ``resolve_name('numpy')``. [#4084]
 
+- ``astropy.visualization``
+
+  - The color for axes labels was set to white. Since white labels on white
+    background are hard to read, the label color has been changed to black. 
+    [#4143]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
