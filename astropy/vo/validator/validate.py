@@ -186,22 +186,19 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     all_urls = list(key_lookup_by_url)
     timeout = data.conf.remote_timeout
+    map_args = [(out_dir, url, timeout) for url in all_urls]
 
     # Validate URLs
     if parallel:
-        mp_list = []
         pool = multiprocessing.Pool()
-        map_args = [(out_dir, url, timeout) for url in all_urls]
-        mp_proc = pool.map_async(_do_validation, map_args,
-                                 callback=mp_list.append)
-        mp_proc.wait()
-        if len(mp_list) < 1:  # pragma: no cover
+        try:
+            mp_list = pool.map(_do_validation, map_args)
+        except Exception as exc:  # pragma: no cover
             raise ValidationMultiprocessingError(
-                'Multiprocessing pool callback returned empty list.')
-        mp_list = mp_list[0]
+                'An exception occurred during parallel processing '
+                'of validation results: {0}'.format(exc))
     else:
-        mp_list = [_do_validation((out_dir, cur_url, timeout))
-                   for cur_url in all_urls]
+        mp_list = map(_do_validation, map_args)
 
     # Categorize validation results
     for r in mp_list:
@@ -217,8 +214,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     if parallel:
         html_subindex_args = [(out_dir, html_subset, uniq_rows)
                               for html_subset in html_subsets]
-        mp_proc = pool.map_async(_html_subindex, html_subindex_args)
-        mp_proc.wait()
+        pool.map(_html_subindex, html_subindex_args)
     else:
         for html_subset in html_subsets:
             _html_subindex((out_dir, html_subset, uniq_rows))
