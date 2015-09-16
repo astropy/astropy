@@ -457,7 +457,7 @@ class classproperty(property):
         # Using stock functools.wraps instead of the fancier version
         # found later in this module, which is overkill for this purpose
 
-        @wraps(orig_fget)
+        @functools.wraps(orig_fget)
         def fget(obj):
             return orig_fget(obj.__class__)
 
