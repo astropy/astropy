@@ -681,6 +681,9 @@ Bug Fixes
 
 - ``astropy.vo``
 
+  - Cone Search validation no longer crashes when the provider gives an
+    incomplete test query. [#4158]
+
 - ``astropy.wcs``
 
 Other Changes and Additions
