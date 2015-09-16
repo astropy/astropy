@@ -682,7 +682,8 @@ Bug Fixes
 - ``astropy.vo``
 
   - Cone Search validation no longer crashes when the provider gives an
-    incomplete test query. [#4158]
+    incomplete test query. It also ensures search radius for a test query
+    is not too large to avoid timeout. [#4158, #4159]
 
 - ``astropy.wcs``
 

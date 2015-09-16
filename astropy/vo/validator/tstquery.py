@@ -7,6 +7,7 @@ In case USVO service is unstable, it does the following:
     #. Try USVO production server.
     #. If fails, try USVO test server (has latest bug fix, but does not
        contain all registered services).
+    #. If SR > 0.1, force SR to be 0.1.
     #. If fails, use RA=0 DEC=0 SR=0.1.
 
 """
@@ -72,9 +73,18 @@ def parse_cs(id):
             urls_failed = True
             urls_errmsg = 'No testQuery found for {0}, using default'.format(id)
 
-    # If no testQuery found, use RA=0 DEC=0 SR=0.1
+    # Handle big SR returning too big a table for some queries, causing
+    # tests to fail due to timeout.
+    default_sr = '0.1'
+
+    # If no testQuery found, use default
     if urls_failed:  # pragma: no cover
-        d = OrderedDict({'RA': '0', 'DEC': '0', 'SR': '0.1'})
+        d = OrderedDict({'RA': '0', 'DEC': '0', 'SR': default_sr})
         warnings.warn(urls_errmsg, AstropyUserWarning)
+    # Force SR to be reasonably small
+    elif d['SR'] > default_sr:
+        warnings.warn('SR={0} is too large, using SR={1} for {2}'.format(
+            d['SR'], default_sr, id), AstropyUserWarning)
+        d['SR'] = default_sr
 
     return d
