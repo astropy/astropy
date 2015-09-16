@@ -450,8 +450,6 @@ Bug fixes
 
 - ``astropy.constants``
 
-  - Rename units -> unit and error -> uncertainty in the ``__repr__`` to match attribute names. [#4147]
-
 - ``astropy.convolution``
 
 - ``astropy.coordinates``
