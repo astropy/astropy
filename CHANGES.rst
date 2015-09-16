@@ -684,6 +684,9 @@ Bug Fixes
   - The color for axes labels was set to white. Since white labels on white
     background are hard to read, the label color has been changed to black. 
     [#4143]
+  - ``ImageNormalize`` now automatically determines ``vmin``/``vmax``
+    (via the ``autoscale_None`` method) when they have not been set
+    explicitly. [#4117]
 
 - ``astropy.vo``
 

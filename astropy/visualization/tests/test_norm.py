@@ -61,6 +61,24 @@ def test_normalize_noclip():
 
 
 @pytest.mark.skipif('not HAS_MATPLOTLIB')
+def test_normalize_implicit_autoscale():
+
+    data = np.linspace(0., 15., 6)
+
+    n = ImageNormalize(vmin=None, vmax=10., stretch=SqrtStretch(), clip=False)
+    n(data)
+
+    assert n.vmin == np.min(data)
+    assert n.vmax == 10.
+
+    n = ImageNormalize(vmin=2., vmax=None, stretch=SqrtStretch(), clip=False)
+    n(data)
+
+    assert n.vmin == 2.
+    assert n.vmax == np.max(data)
+
+
+@pytest.mark.skipif('not HAS_MATPLOTLIB')
 def test_masked_normalize_clip():
 
     data = np.linspace(0., 15., 6)
