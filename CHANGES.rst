@@ -655,6 +655,12 @@ Bug Fixes
     additional copies of modules under a package imported like
     ``resolve_name('numpy')``. [#4084]
 
+- ``astropy.visualization``
+
+  - ``ImageNormalize`` now automatically determines ``vmin``/``vmax``
+    (via the ``autoscale_None`` method) when they have not been set
+    explicitly. [#4117]
+
 - ``astropy.vo``
 
 - ``astropy.wcs``
