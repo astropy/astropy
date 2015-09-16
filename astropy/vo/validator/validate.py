@@ -42,8 +42,6 @@ NONCRIT_WARNINGS = ConfigAlias(
     '0.4', 'NONCRIT_WARNINGS', 'noncritical_warnings',
     'astropy.vo.validator.validate', 'astropy.vo.validator')
 
-_OUT_ROOT = None  # Set by check_conesearch_sites()
-
 
 @timefunc(1)
 def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
@@ -96,7 +94,6 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
 
     """
     from . import conf
-    global _OUT_ROOT
 
     if url_list == 'default':
         url_list = conf.conesearch_urls
@@ -109,10 +106,10 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         os.mkdir(destdir)
 
     # Output dir created by votable.validator
-    _OUT_ROOT = os.path.join(destdir, 'results')
+    out_dir = os.path.join(destdir, 'results')
 
-    if not os.path.exists(_OUT_ROOT):
-        os.mkdir(_OUT_ROOT)
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
 
     # Output files
     db_file = OrderedDict()
@@ -194,7 +191,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     if parallel:
         mp_list = []
         pool = multiprocessing.Pool()
-        map_args = [(_OUT_ROOT, url, timeout) for url in all_urls]
+        map_args = [(out_dir, url, timeout) for url in all_urls]
         mp_proc = pool.map_async(_do_validation, map_args,
                                  callback=mp_list.append)
         mp_proc.wait()
@@ -203,7 +200,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
                 'Multiprocessing pool callback returned empty list.')
         mp_list = mp_list[0]
     else:
-        mp_list = [_do_validation((_OUT_ROOT, cur_url, timeout))
+        mp_list = [_do_validation((out_dir, cur_url, timeout))
                    for cur_url in all_urls]
 
     # Categorize validation results
@@ -215,16 +212,16 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
         js_tree[db_key].add_catalog(cat_key, cur_cat)
 
     # Write to HTML
-    html_subsets = result.get_result_subsets(mp_list, _OUT_ROOT)
-    html.write_index(html_subsets, all_urls, _OUT_ROOT)
+    html_subsets = result.get_result_subsets(mp_list, out_dir)
+    html.write_index(html_subsets, all_urls, out_dir)
     if parallel:
-        html_subindex_args = [(html_subset, uniq_rows)
+        html_subindex_args = [(out_dir, html_subset, uniq_rows)
                               for html_subset in html_subsets]
         mp_proc = pool.map_async(_html_subindex, html_subindex_args)
         mp_proc.wait()
     else:
         for html_subset in html_subsets:
-            _html_subindex((html_subset, uniq_rows))
+            _html_subindex((out_dir, html_subset, uniq_rows))
 
     # Write to JSON
     n = {}
@@ -338,8 +335,8 @@ def _categorize_result(r):
 
 def _html_subindex(args):
     """HTML writer for multiprocessing support."""
-    subset, total = args
-    html.write_index_table(_OUT_ROOT, *subset, total=total)
+    out_dir, subset, total = args
+    html.write_index_table(out_dir, *subset, total=total)
 
 
 def _copy_r_to_cat(r, cat):
