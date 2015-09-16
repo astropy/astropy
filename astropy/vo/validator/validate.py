@@ -188,12 +188,14 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
             warnings.warn(warn_str, AstropyUserWarning)
 
     all_urls = list(key_lookup_by_url)
+    timeout = data.conf.remote_timeout
 
     # Validate URLs
     if parallel:
         mp_list = []
         pool = multiprocessing.Pool()
-        mp_proc = pool.map_async(_do_validation, all_urls,
+        map_args = [(_OUT_ROOT, url, timeout) for url in all_urls]
+        mp_proc = pool.map_async(_do_validation, map_args,
                                  callback=mp_list.append)
         mp_proc.wait()
         if len(mp_list) < 1:  # pragma: no cover
@@ -201,7 +203,8 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
                 'Multiprocessing pool callback returned empty list.')
         mp_list = mp_list[0]
     else:
-        mp_list = [_do_validation(cur_url) for cur_url in all_urls]
+        mp_list = [_do_validation((_OUT_ROOT, cur_url, timeout))
+                   for cur_url in all_urls]
 
     # Categorize validation results
     for r in mp_list:
@@ -242,11 +245,14 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
             'No good sites available for Cone Search.', AstropyUserWarning)
 
 
-def _do_validation(url):
+def _do_validation(args):
     """Validation for multiprocessing support."""
+
+    root, url, timeout = args
+
     votable.table.reset_vo_warnings()
 
-    r = result.Result(url, root=_OUT_ROOT, timeout=data.conf.remote_timeout)
+    r = result.Result(url, root=root, timeout=timeout)
     r.validate_vo()
 
     _categorize_result(r)
