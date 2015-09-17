@@ -1,4 +1,4 @@
-1.1 (unreleased)
+﻿1.1 (unreleased)
 ----------------
 
 New Features
@@ -465,6 +465,8 @@ Bug fixes
 
   - Included a new command-line script called ``fitsinfo`` to display
     a summary of the HDUs in one or more FITS files. [#3677]
+
+  - The function ``report_diff_values()`` now explicitly reports type differences. [#4122]
 
 - ``astropy.io.misc``
 
