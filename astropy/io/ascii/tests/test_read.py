@@ -1058,20 +1058,22 @@ def test_table_with_no_newline():
     """
     if six.PY3:
         import io
-        StringIO = io.BytesIO
+        _StringIO = io.BytesIO
+    else:
+        _StringIO = StringIO
 
     # With guessing
-    table = StringIO()
+    table = _StringIO()
     with pytest.raises(ascii.InconsistentTableError):
         ascii.read(table)
 
     # Without guessing
-    table = StringIO()
+    table = _StringIO()
     with pytest.raises(ValueError) as err:
         ascii.read(table, guess=False, fast_reader=False, format='basic')
     assert 'No header line found' in str(err.value)
 
-    table = StringIO()
+    table = _StringIO()
     with pytest.raises(ValueError) as err:
         ascii.read(table, guess=False, fast_reader=True, format='fast_basic')
     assert 'Inconsistent data column lengths' in str(err.value)
@@ -1080,7 +1082,7 @@ def test_table_with_no_newline():
     for kwargs in [dict(),
                    dict(guess=False, fast_reader=False, format='basic'),
                    dict(guess=False, fast_reader=True, format='fast_basic')]:
-        table = StringIO()
+        table = _StringIO()
         table.write(b'a b')
         t = ascii.read(table, **kwargs)
         assert t.colnames == ['a', 'b']
