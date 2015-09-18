@@ -290,6 +290,14 @@ def read(table, guess=None, **kwargs):
             except:
                 pass
             else:
+                # Ensure that `table` has at least one \r or \n in it
+                # so that the core.BaseInputter test of
+                # ('\n' not in table and '\r' not in table)
+                # will fail and so `table` cannot be interpreted there
+                # as a filename.  See #4160.
+                if not re.search(r'[\r\n]', table):
+                    table = table + os.linesep
+
                 # If the table got successfully read then look at the content
                 # to see if is probably HTML, but only if it wasn't already
                 # identified as HTML based on the filename.

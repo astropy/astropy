@@ -6,6 +6,7 @@ import re
 
 import numpy as np
 
+from ....extern import six
 from ....extern.six.moves import cStringIO as StringIO
 from ....utils import OrderedDict
 from ....tests.helper import pytest
@@ -1048,3 +1049,39 @@ def test_data_header_start(fast_reader):
             # Sanity check that the expected Reader is being used
             assert get_read_trace()[-1]['kwargs']['Reader'] is (
                 ascii.Basic if (fast_reader is False) else ascii.FastBasic)
+
+
+def test_table_with_no_newline():
+    """
+    Test that an input file which is completely empty fails in the expected way.
+    Test that an input file with one line but no newline succeeds.
+    """
+    if six.PY3:
+        import io
+        StringIO = io.BytesIO
+
+    # With guessing
+    table = StringIO()
+    with pytest.raises(ascii.InconsistentTableError):
+        ascii.read(table)
+
+    # Without guessing
+    table = StringIO()
+    with pytest.raises(ValueError) as err:
+        ascii.read(table, guess=False, fast_reader=False, format='basic')
+    assert 'No header line found' in str(err.value)
+
+    table = StringIO()
+    with pytest.raises(ValueError) as err:
+        ascii.read(table, guess=False, fast_reader=True, format='fast_basic')
+    assert 'Inconsistent data column lengths' in str(err.value)
+
+    # Put a single line of column names but with no newline
+    for kwargs in [dict(),
+                   dict(guess=False, fast_reader=False, format='basic'),
+                   dict(guess=False, fast_reader=True, format='fast_basic')]:
+        table = StringIO()
+        table.write(b'a b')
+        t = ascii.read(table, **kwargs)
+        assert t.colnames == ['a', 'b']
+        assert len(t) == 0
