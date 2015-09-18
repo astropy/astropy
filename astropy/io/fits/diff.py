@@ -1216,6 +1216,12 @@ def report_diff_values(fileobj, a, b, ind=0):
 
     typea = type(a)
     typeb = type(b)
+
+    if (isinstance(a, string_types) and not isinstance(b, string_types)): 
+        a = repr(a).lstrip('u')
+    elif (isinstance(b, string_types) and not isinstance(a, string_types)):
+        b = repr(b).lstrip('u')
+    
     if isinstance(a, (int, float, complex, np.number)):
         a = repr(a)
 
@@ -1242,19 +1248,6 @@ def report_diff_values(fileobj, a, b, ind=0):
             line = 'b>' + line[1:]
         else:
             line = ' ' + line
-        
-        if typea != typeb:
-            if 'a>' in line:
-                line += ' ' + repr(typea)
-            elif 'b' in line:
-                line += ' ' + repr(typeb)
-            elif '?' not in line:
-                line1 = 'a>' + line + ' ' + repr(typea)
-                fileobj.write(indent(u('  %s\n') % line1.rstrip('\n'), ind))
-                line2 = 'b>' + line + ' ' + repr(typeb)
-                fileobj.write(indent(u('  %s\n') % line2.rstrip('\n'), ind))
-                return
-        
         fileobj.write(indent(u('  %s\n') % line.rstrip('\n'), ind))
 
 
