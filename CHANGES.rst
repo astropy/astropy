@@ -186,7 +186,10 @@ Bug Fixes
 Other Changes and Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- astropy now supports Python 3.5. [#4027]
+- Astropy now supports Python 3.5. [#4027]
+
+- Updated tests to support py.test 2.7, and upgraded the bundled copy of
+  py.test to v2.7.3. [#4027]
 
 
 1.0.4 (2015-08-11)
