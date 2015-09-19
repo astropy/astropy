@@ -1,6 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# TODO: need to download some images used by the jquery-ui css file:
-# images/ui-icons_888888_256x240.png
 
 import os
 import glob
