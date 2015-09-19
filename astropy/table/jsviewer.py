@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import os
-import glob
+from os.path import abspath, dirname, join
 
 from .table import Table
 
@@ -39,10 +38,8 @@ DATATABLES_URL = _config.ConfigAlias(
     '0.4', 'DATATABLES_URL', 'datatables_url',
     'astropy.table.jsviewer', 'astropy.table.jsviewer')
 
-
-DATA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data')
-EXTERN_JS_DIR = os.path.abspath(os.path.join(os.path.dirname(extern.__file__), 'js'))
-
+EXTERN_JS_DIR = abspath(join(dirname(extern.__file__), 'js'))
+EXTERN_CSS_DIR = abspath(join(dirname(extern.__file__), 'css'))
 
 IPYNB_JS_SCRIPT = """
 <script>
@@ -120,15 +117,16 @@ class JSViewer(object):
     @property
     def jquery_urls(self):
         if self._use_local_files:
-            return ['file://' + os.path.join(EXTERN_JS_DIR, 'jquery-1.11.3.min.js'),
-                    'file://' + os.path.join(EXTERN_JS_DIR, 'jquery.dataTables.min.js')]
+            return ['file://' + join(EXTERN_JS_DIR, 'jquery-1.11.3.min.js'),
+                    'file://' + join(EXTERN_JS_DIR, 'jquery.dataTables.min.js')]
         else:
             return [conf.jquery_url, conf.datatables_url]
 
     @property
     def css_urls(self):
         if self._use_local_files:
-            return ["file://" + filename for filename in glob.glob(os.path.join(DATA_PATH, '*.css'))]
+            return ['file://' + join(EXTERN_CSS_DIR,
+                                     'jquery.dataTables.min.css')]
         else:
             return conf.css_urls
 
@@ -136,12 +134,8 @@ class JSViewer(object):
         # downloaded from http://datatables.net/download/build/
         datatables_url = conf.datatables_url
         if not datatables_url:
-            datatables_url = 'file://' + os.path.abspath(
-                os.path.join(
-                    os.path.dirname(extern.__file__), 'js',
-                    'jquery.dataTables.js'))
-        return '<script class="jsbin" src="{0}"></script>'.format(
-            datatables_url)
+            datatables_url = 'file://' + join(EXTERN_JS_DIR, 'jquery.dataTables.js')
+        return '<script class="jsbin" src="{0}"></script>'.format(datatables_url)
 
     def _css_files(self):
         return [
@@ -154,8 +148,7 @@ class JSViewer(object):
         js.append(IPYNB_JS_SCRIPT.format(
             display_length=self.display_length,
             display_length_menu=self.display_length_menu,
-            tid=table_id,
-            data_path="file://"+DATA_PATH))
+            tid=table_id))
         return js
 
     def html_js(self, table_id='table0'):
