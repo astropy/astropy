@@ -16,15 +16,15 @@ class Conf(_config.ConfigNamespace):
     """
 
     jquery_url = _config.ConfigItem(
-        'http://code.jquery.com/jquery-1.11.1.min.js',
+        'http://code.jquery.com/jquery-1.11.3.min.js',
         'The URL to the jquery library.')
 
     datatables_url = _config.ConfigItem(
-        'http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js',
+        'http://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js',
         'The URL to the jquery datatables library.')
 
     css_urls = _config.ConfigItem(
-        ['https://cdn.datatables.net/1.10.2/css/jquery.dataTables.css'],
+        ['https://cdn.datatables.net/1.10.9/css/jquery.dataTables.css'],
         'The URLs to the css file(s) to include.', cfgtype='list')
 
 

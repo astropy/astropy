@@ -7,10 +7,10 @@ REFERENCE = """
   <meta content="text/html;charset=UTF-8" http-equiv="Content-type"/>
   <style>
 table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}  </style>
-  <link href="https://cdn.datatables.net/1.10.2/css/jquery.dataTables.css" rel="stylesheet" type="text/css"/>
-  <script src="http://code.jquery.com/jquery-1.11.1.min.js">
+  <link href="https://cdn.datatables.net/1.10.9/css/jquery.dataTables.css" rel="stylesheet" type="text/css"/>
+  <script src="http://code.jquery.com/jquery-1.11.3.min.js">
   </script>
-  <script src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js">
+  <script src="http://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js">
   </script>
  </head>
  <body>
