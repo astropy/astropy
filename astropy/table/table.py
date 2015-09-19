@@ -235,7 +235,7 @@ class Table(object):
         data = empty_init(len(self), dtype=dtype)
         for col in cols:
             # When assigning from one array into a field of a structured array,
-            # Numpy will automatically swap thos columns to their destination
+            # Numpy will automatically swap those columns to their destination
             # byte order where applicable
             data[col.info.name] = col
 
@@ -923,8 +923,8 @@ class Table(object):
             This allows in-browser searching & sorting.
         jskwargs : dict
             Passed to the `astropy.table.JSViewer` init. Default to
-            ``{'use_local_files': True}`` which means that the JavaScipt
-            librairies will be served from local copies.
+            ``{'use_local_files': True}`` which means that the JavaScript
+            libraries will be served from local copies.
         tableid : str or `None`
             An html ID tag for the table.  Default is ``table{id}``, where id
             is the unique integer id of the table object, id(self).
