@@ -164,26 +164,23 @@ class JSViewer(object):
                                      tid=table_id).strip()
 
 
-def write_table_jsviewer(table, filename, table_id=None,
-                         css="table,th,td,tr,tbody {border: 1px solid black; border-collapse: collapse;}",
-                         max_lines=5000,
-                         jskwargs={}):
+def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
+                         css="", table_class="display compact", jskwargs=None):
 
     if table_id is None:
         table_id = 'table{id}'.format(id=id(table))
 
-    table_class = "cell-border compact strip hover order-column" #Nice defaults
-
+    jskwargs = jskwargs or {}
     jsv = JSViewer(**jskwargs)
 
-    htmldict = {}
-    htmldict['table_id'] = table_id
-    htmldict['table_class'] = table_class
-    htmldict['css'] = css
-    htmldict['cssfiles'] = jsv.css_urls
-    htmldict['jsfiles'] = jsv.jquery_urls
-    htmldict['js'] =  jsv.html_js(table_id=table_id)
-
+    htmldict = {
+        'table_id': table_id,
+        'table_class': table_class,
+        'css': css,
+        'cssfiles': jsv.css_urls,
+        'jsfiles': jsv.jquery_urls,
+        'js':  jsv.html_js(table_id=table_id)
+    }
     table.write(filename, format='html', htmldict=htmldict)
 
 io_registry.register_writer('jsviewer', Table, write_table_jsviewer)
