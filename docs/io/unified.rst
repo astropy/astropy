@@ -293,7 +293,7 @@ file that has multiple datasets, use *both* the ``overwrite=True`` and
 
 If the metadata of the table cannot be written directly to the HDF5 file 
 (e.g. dictionaries), or if you want to preserve the units and description
-of tables and columns, use using ``serialize_meta=True``::
+of tables and columns, use using ``serialized_meta=True``::
 
     >>> t.write('observations.hdf5', path='updated_data', serialized_meta=True)
  
