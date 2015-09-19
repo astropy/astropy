@@ -586,14 +586,13 @@ class TestDiff(FitsTestCase):
         
         f = io.StringIO()
         
-        a = "1.0"
-        b = 1.0
+        a = 1.0
+        b = '1.0'
         
         report_diff_values(f, a, b)
         out = f.getvalue()
         
-        assert 'a>' in out
-        assert 'b>' in out
+        assert out.lstrip('u') == "  (float) a> 1.0\n    (str) b> '1.0'\n           ? +   +\n"
 
     def test_float_comparison(self):
         """
