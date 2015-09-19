@@ -120,8 +120,8 @@ class JSViewer(object):
     @property
     def jquery_urls(self):
         if self._use_local_files:
-            return ['file://' + os.path.join(EXTERN_JS_DIR, 'jquery-1.11.0.js'),
-                    'file://' + os.path.join(EXTERN_JS_DIR, 'jquery.dataTables.js')]
+            return ['file://' + os.path.join(EXTERN_JS_DIR, 'jquery-1.11.3.min.js'),
+                    'file://' + os.path.join(EXTERN_JS_DIR, 'jquery.dataTables.min.js')]
         else:
             return [conf.jquery_url, conf.datatables_url]
 
