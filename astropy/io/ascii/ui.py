@@ -306,7 +306,9 @@ def read(table, guess=None, **kwargs):
 
     if not guess:
         reader = get_reader(**new_kwargs)
-        # Try the fast reader first if applicable
+        # Try the fast reader version of `format` first if applicable.  Note that
+        # if user specified a fast format (e.g. format='fast_basic') this test
+        # will fail and the else-clause below will be used.
         if fast_reader_param and format is not None and 'fast_{0}'.format(format) \
                                                         in core.FAST_CLASSES:
             fast_kwargs = copy.copy(new_kwargs)
@@ -328,8 +330,8 @@ def read(table, guess=None, **kwargs):
         else:
             dat = reader.read(table)
             _read_trace.append({'kwargs': new_kwargs,
-                                'status': 'Success with slow reader which has no fast '
-                                          'reader analog (no guessing)'})
+                                'status': 'Success with specified Reader class '
+                                          '(no guessing)'})
 
     return dat
 
