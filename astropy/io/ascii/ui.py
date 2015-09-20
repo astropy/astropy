@@ -14,7 +14,7 @@ import re
 import os
 import sys
 import copy
-
+import time
 
 from . import core
 from . import basic
@@ -430,15 +430,18 @@ def _guess(table, read_kwargs, format, fast_reader):
 
             reader = get_reader(**guess_kwargs)
             reader.guessing = True
+            t0 = time.time()
             dat = reader.read(table)
-            _read_trace.append({'kwargs': guess_kwargs, 'status': 'Success (guessing)'})
+            _read_trace.append({'kwargs': guess_kwargs, 'status': 'Success (guessing)',
+                                'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
             return dat
 
         except (core.InconsistentTableError, ValueError, TypeError, AttributeError,
                 core.OptionalTableImportError, core.ParameterError, cparser.CParserError) as err:
             _read_trace.append({'kwargs': guess_kwargs,
                                 'status': '{0}: {1}'.format(err.__class__.__name__,
-                                                            str(err))})
+                                                            str(err)),
+                                'dt': '{:.3f} ms'.format((time.time() - t0) * 1000)})
             failed_kwargs.append(guess_kwargs)
     else:
         # Failed all guesses, try the original read_kwargs without column requirements
