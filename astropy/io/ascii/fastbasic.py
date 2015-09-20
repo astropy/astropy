@@ -248,6 +248,9 @@ class FastCommentedHeader(FastBasic):
                 if len(commented_lines) == self.header_start + 1:
                     break
 
+        if len(commented_lines) <= self.header_start:
+            raise cparser.CParserError('not enough commented lines')
+
         self.engine.setup_tokenizer([commented_lines[self.header_start]])
         self.engine.header_start = 0
         self.engine.read_header()

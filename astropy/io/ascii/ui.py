@@ -543,7 +543,8 @@ def _get_guess_kwargs_list(read_kwargs):
 
     # Cycle through the basic-style readers using all combinations of delimiter
     # and quotechar.
-    for Reader in (basic.CommentedHeader, fastbasic.FastBasic, basic.Basic,
+    for Reader in (fastbasic.FastCommentedHeader, basic.CommentedHeader,
+                   fastbasic.FastBasic, basic.Basic,
                    fastbasic.FastNoHeader, basic.NoHeader):
         for delimiter in ("|", ",", " ", "\s"):
             for quotechar in ('"', "'"):
