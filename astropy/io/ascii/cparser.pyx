@@ -168,6 +168,7 @@ cdef class CParser:
     cdef:
         tokenizer_t *tokenizer
         object names
+        object header_names
         int data_start
         object data_end
         object include_names
@@ -300,17 +301,14 @@ cdef class CParser:
     def read_header(self):
         self.tokenizer.source_pos = 0
 
-        if self.names:
-            self.width = len(self.names)
-
         # header_start is a valid line number
-        elif self.header_start is not None and self.header_start >= 0:
+        if self.header_start is not None and self.header_start >= 0:
             if skip_lines(self.tokenizer, self.header_start, 1) != 0:
                 self.raise_error("an error occurred while advancing to the "
                                  "first header line")
             if tokenize(self.tokenizer, -1, 1, 0) != 0:
                 self.raise_error("an error occurred while tokenizing the header line")
-            self.names = []
+            self.header_names = []
             name = ''
 
             for i in range(self.tokenizer.output_len[0]): # header is in first col string
@@ -318,13 +316,13 @@ cdef class CParser:
                 if not c: # zero byte -- field terminator
                     if name:
                         # replace empty placeholder with ''
-                        self.names.append(name.replace('\x01', ''))
+                        self.header_names.append(name.replace('\x01', ''))
                         name = ''
                     else:
                         break # end of string
                 else:
                     name += chr(c)
-            self.width = len(self.names)
+            self.width = len(self.header_names)
 
         else:
             # Get number of columns from first data row
@@ -343,7 +341,12 @@ cdef class CParser:
                 raise core.InconsistentTableError('No data lines found, C reader '
                                             'cannot autogenerate column names')
             # auto-generate names
-            self.names = ['col{0}'.format(i + 1) for i in range(self.width)]
+            self.header_names = ['col{0}'.format(i + 1) for i in range(self.width)]
+
+        if self.names:
+            self.width = len(self.names)
+        else:
+            self.names = self.header_names
 
         # self.use_cols should only contain columns included in output
         self.use_cols = set(self.names)
@@ -737,6 +740,9 @@ cdef class CParser:
 
     def set_names(self, names):
         self.names = names
+
+    def get_header_names(self):
+        return self.header_names
 
     def __reduce__(self):
         cdef bytes source_ptr = self.source_ptr if self.source_ptr else b''

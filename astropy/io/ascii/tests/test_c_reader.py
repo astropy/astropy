@@ -164,21 +164,23 @@ def test_no_header(parallel, read_basic, read_no_header):
     The header should not be read when header_start=None. Unless names is
     passed, the column names should be auto-generated.
     """
-    t1 = read_basic("A B C\n1 2 3\n4 5 6", header_start=None, data_start=0, parallel=parallel)
+    # Cannot set header_start=None for basic format
+    with pytest.raises(ValueError):
+        read_basic("A B C\n1 2 3\n4 5 6", header_start=None, data_start=0, parallel=parallel)
+
     t2 = read_no_header("A B C\n1 2 3\n4 5 6", parallel=parallel)
     expected = Table([['A', '1', '4'], ['B', '2', '5'], ['C', '3', '6']], names=('col1', 'col2', 'col3'))
-    assert_table_equal(t1, expected)
     assert_table_equal(t2, expected)
 
 
 @pytest.mark.parametrize("parallel", [True, False])
-def test_no_header_supplied_names(parallel, read_basic):
+def test_no_header_supplied_names(parallel, read_basic, read_no_header):
     """
     If header_start=None and names is passed as a parameter, header
     data should not be read and names should be used instead.
     """
-    table = read_basic("A B C\n1 2 3\n4 5 6", header_start=None, data_start=0,
-                       names=('X', 'Y', 'Z'), parallel=parallel)
+    table = read_no_header("A B C\n1 2 3\n4 5 6",
+                           names=('X', 'Y', 'Z'), parallel=parallel)
     expected = Table([['A', '1', '4'], ['B', '2', '5'], ['C', '3', '6']], names=('X', 'Y', 'Z'))
     assert_table_equal(table, expected)
 
