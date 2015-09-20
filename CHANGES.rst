@@ -689,7 +689,7 @@ Bug Fixes
 - ``astropy.visualization``
 
   - The color for axes labels was set to white. Since white labels on white
-    background are hard to read, the label color has been changed to black. 
+    background are hard to read, the label color has been changed to black.
     [#4143]
   - ``ImageNormalize`` now automatically determines ``vmin``/``vmax``
     (via the ``autoscale_None`` method) when they have not been set
@@ -1319,15 +1319,14 @@ New Features
 
   - Add ``unique`` convenience method to table. [#3185]
 
+  - New CSS for jsviewer table [#2917, #2982, #4174]
+
 - ``astropy.tests``
 
   - Added a new Quantity-aware ``assert_quantity_allclose``. [#3273]
   - Added column alignment formatting for better pprint viewing
     experience. [#3037]
 
-  - New CSS for jsviewer table [#2917]
-  - New CSS for jsviewer table [#2917, #2982]
-  
 - ``astropy.time``
 
   - ``Time`` can now handle arbitrary array dimensions, with operations
