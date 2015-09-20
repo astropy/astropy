@@ -388,6 +388,10 @@ def _guess(table, read_kwargs, format, fast_reader):
         if fast_reader is False and guess_kwargs['Reader'] in core.FAST_CLASSES.values():
             continue
 
+        # If user required a fast reader with 'force' then skip all non-fast readers
+        if fast_reader == 'force' and guess_kwargs['Reader'] not in core.FAST_CLASSES.values():
+            continue
+
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
         for key, val in read_kwargs.items():
             # Do guess_kwargs.update(read_kwargs) except that if guess_args has
