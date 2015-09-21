@@ -31,7 +31,11 @@ NUMPY_LT_1P7 = [int(x) for x in np.__version__.split('.')[:2]] < [1, 7]
 # get registered automatically.
 REPRESENTATION_CLASSES = {}
 
-class MetaBaseRepresentation(type):
+# Need to subclass ABCMeta rather than type, so that this meta class can be
+# combined with a ShapedLikeNDArray subclass (which is an ABC).  Without it:
+# "TypeError: metaclass conflict: the metaclass of a derived class must be a
+#  (non-strict) subclass of the metaclasses of all its bases"
+class MetaBaseRepresentation(abc.ABCMeta):
     def __init__(cls, name, bases, dct):
         super(MetaBaseRepresentation, cls).__init__(name, bases, dct)
 
