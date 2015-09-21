@@ -1342,7 +1342,9 @@ def _acquire_download_cache_lock():
             time.sleep(1)
         else:
             return
-    msg = 'Unable to acquire lock for cache directory ({0} exists)'
+    msg = ("Unable to acquire lock for cache directory ({0} exists). "
+           "You may need to delete the lock if the python interpreter wasn't "
+           "shut down properly.")
     raise RuntimeError(msg.format(lockdir))
 
 
