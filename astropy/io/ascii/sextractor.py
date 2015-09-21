@@ -38,7 +38,7 @@ class SExtractorHeader(core.BaseHeader):
         # E.g. '# 1 ID identification number' (without units) or '# 2 MAGERR magnitude of error [mag]'
         re_name_def = re.compile(r"""^ \s* \# \s*            # possible whitespace around #
                                  (?P<colnumber> [0-9]+)\s+   # number of the column in table
-                                 (?P<colname> \w+)           # name of the column
+                                 (?P<colname> [-\w]+)        # name of the column
                                  (?:\s+(?P<coldescr> \w [^\[]*\w))? # column description, match non-[
                                  (?:\s+\[(?P<colunit>.+)\])?.*   # match units in brackets
                                  """, re.VERBOSE)
