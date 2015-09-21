@@ -1240,19 +1240,19 @@ def report_diff_values(fileobj, a, b, ind=0):
             fileobj.write(indent(u('  ...and at %d more indices.\n') %
                           (num_diffs - 3), ind))
         return
-
+    
+    padding = max(len(typea.__name__), len(typeb.__name__)) + 3
+    
     for line in difflib.ndiff(str(a).splitlines(), str(b).splitlines()):
         if line[0] == '-':
             line = 'a>' + line[1:]
             if typea != typeb:
-                padding = max(len(typea.__name__), len(typeb.__name__)) + 3
                 typename = '(' + typea.__name__ + ') '
                 line = typename.rjust(padding) + line
             
         elif line[0] == '+':
             line = 'b>' + line[1:]
             if typea != typeb:
-                padding = max(len(typea.__name__), len(typeb.__name__)) + 3
                 typename = '(' + typeb.__name__ + ') '
                 line = typename.rjust(padding) + line
         else:
