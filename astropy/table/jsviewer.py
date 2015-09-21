@@ -159,7 +159,9 @@ class JSViewer(object):
 
 
 def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
-                         css="", table_class="display compact", jskwargs=None):
+                         table_class="display compact", jskwargs=None,
+                         css='body {font-family: sans-serif} '
+                         '.dataTables_wrapper {width:80%; margin: 0 auto;}'):
 
     if table_id is None:
         table_id = 'table{id}'.format(id=id(table))

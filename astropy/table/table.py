@@ -718,15 +718,21 @@ class Table(object):
             else:
                 print(line)
 
-    def show_in_browser(self, css="", max_lines=5000, jsviewer=False,
-                        jskwargs={'use_local_files': True}, tableid=None,
-                        table_class="display compact", browser='default'):
+    def show_in_browser(self, max_lines=5000, jsviewer=False,
+                        browser='default', jskwargs={'use_local_files': True},
+                        tableid=None, table_class="display compact",
+                        css='body {font-family: sans-serif} '
+                        '.dataTables_wrapper {width:80%; margin: 0 auto;}'):
+
         """Render the table in HTML and show it in a web browser.
 
         Parameters
         ----------
         css : string
-            A valid CSS string declaring the formatting for the table
+            A valid CSS string declaring the formatting for the table. Default:
+            ::
+                body {font-family: sans-serif}
+                .dataTables_wrapper {width:80%; margin: 0 auto;}
         max_lines : int
             Maximum number of rows to export to the table (set low by default
             to avoid memory issues, since the browser view requires duplicating
