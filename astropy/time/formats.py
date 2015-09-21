@@ -577,7 +577,7 @@ class TimeDatetime(TimeUnique):
         """
         Convert to (potentially timezone-aware) `~datetime.datetime` object.
 
-        If ``timezone`` is not `None`, return a timezone-aware datetime
+        If ``timezone`` is not ``None``, return a timezone-aware datetime
         object.
 
         Parameters
@@ -588,14 +588,15 @@ class TimeDatetime(TimeUnique):
         Returns
         -------
         `~datetime.datetime`
-            If ``timezone`` is not `None`, output will be timezone-aware.
+            If ``timezone`` is not ``None``, output will be timezone-aware.
         """
         if timezone is not None:
             if self._scale != 'utc':
-                raise ScaleValueError("Scale is {}, must be UTC."
-                                      "".format(self._scale))
+                raise ScaleValueError("scale is {}, must be 'utc' when timezone "
+                                      "is supplied.".format(self._scale))
 
-        # Below is mostly copied from self.value, with added timezone handling
+        # Rather than define a value property directly, we have a function,
+        # since we want to be able to pass in timezone information.
         iys, ims, ids, ihmsfs = erfa_time.jd_dtf(self.scale.upper()
                                                  .encode('utf8'),
                                                  6,  # precision=6 for microsec
