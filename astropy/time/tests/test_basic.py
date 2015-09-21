@@ -16,6 +16,11 @@ from ...utils import isiterable
 from .. import Time, ScaleValueError, erfa_time, TIME_SCALES, TimeString
 from ...coordinates import EarthLocation
 
+try:
+    import pytz
+    HAS_PYTZ = True
+except ImportError:
+    HAS_PYTZ = False
 
 allclose_jd = functools.partial(np.allclose, rtol=2. ** -52, atol=0)
 allclose_jd2 = functools.partial(np.allclose, rtol=2. ** -52,
@@ -24,6 +29,8 @@ allclose_sec = functools.partial(np.allclose, rtol=2. ** -52,
                                  atol=2. ** -52 * 24 * 3600)  # 20 ps atol
 allclose_year = functools.partial(np.allclose, rtol=2. ** -52,
                                   atol=0.)  # 14 microsec at current epoch
+
+
 
 
 class TestBasic():
@@ -1029,6 +1036,25 @@ def test_to_datetime():
     tz = TimezoneInfo(utcoffset=timedelta(hours=-10), tzname='US/Hawaii')
     # The above lines produces a `datetime.tzinfo` object similar to:
     #     tzinfo = pytz.timezone('US/Hawaii')
+    time = Time('2010-09-03 00:00:00')
+    tz_aware_datetime = time.to_datetime(tz)
+    forced_to_astropy_time = Time(tz_aware_datetime)
+    assert tz.tzname(time.datetime) == tz_aware_datetime.tzname()
+    assert time == forced_to_astropy_time
+
+    # Test non-scalar time inputs:
+    time = Time(['2010-09-03 00:00:00', '2005-09-03 06:00:00',
+                 '1990-09-03 06:00:00'])
+    tz_aware_datetime = time.to_datetime(tz)
+    forced_to_astropy_time = Time(tz_aware_datetime)
+    for dt, tz_dt in zip(time.datetime, tz_aware_datetime):
+        assert tz.tzname(dt) == tz_dt.tzname()
+    assert np.all(time == forced_to_astropy_time)
+
+@pytest.mark.skipif('not HAS_PYTZ')
+def test_to_datetime_pytz():
+
+    tz = pytz.timezone('US/Hawaii')
     time = Time('2010-09-03 00:00:00')
     tz_aware_datetime = time.to_datetime(tz)
     forced_to_astropy_time = Time(tz_aware_datetime)
