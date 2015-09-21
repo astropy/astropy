@@ -238,11 +238,10 @@ class StdDevUncertainty(NDUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
-            raise ValueError("standard deviation values are not set")
+            return StdDevUncertainty(other_nddata.uncertainty.array)
 
         if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set "
-                             "in other_nddata")
+            return StdDevUncertainty(self.array)
 
         result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = np.sqrt(self.array**2 +
@@ -265,9 +264,9 @@ class StdDevUncertainty(NDUncertainty):
         Parameters
         ----------
         other_nddata : NDData instance
-            The data for the second other_nddata in a + b
+            The data for the second other_nddata in a - b
         result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
+            The data array that is the result of the subtraction
 
         Returns
         -------
@@ -285,11 +284,10 @@ class StdDevUncertainty(NDUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
-            raise ValueError("standard deviation values are not set")
+            return StdDevUncertainty(other_nddata.uncertainty.array)
 
         if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set "
-                             "in other_nddata")
+            return StdDevUncertainty(self.array)
 
         result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = np.sqrt(self.array**2 +
@@ -304,9 +302,9 @@ class StdDevUncertainty(NDUncertainty):
         Parameters
         ----------
         other_nddata : NDData instance
-            The data for the second other_nddata in a + b
+            The data for the second other_nddata in a * b
         result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
+            The data array that is the result of the multiplication
 
         Returns
         -------
@@ -324,11 +322,11 @@ class StdDevUncertainty(NDUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
-            raise ValueError("standard deviation values are not set")
+            return StdDevUncertainty(other_nddata.uncertainty.array
+                                     * self.parent_nddata.data)
 
         if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set in "
-                             "other_nddata")
+            return StdDevUncertainty(self.array * other_nddata.data)
 
         result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = \
@@ -345,9 +343,9 @@ class StdDevUncertainty(NDUncertainty):
         Parameters
         ----------
         other_nddata : NDData instance
-            The data for the second other_nddata in a + b
+            The data for the second other_nddata in a / b
         result_data : `~numpy.ndarray` instance
-            The data array that is the result of the addition
+            The data array that is the result of the divison
 
         Returns
         -------
@@ -365,11 +363,12 @@ class StdDevUncertainty(NDUncertainty):
             raise IncompatibleUncertaintiesException
 
         if self.array is None:
-            raise ValueError("standard deviation values are not set")
+            return StdDevUncertainty(self.parent_nddata.data * 
+                other_nddata.uncertainty.array
+                / (other_nddata.data * other_nddata.data))
 
         if other_nddata.uncertainty.array is None:
-            raise ValueError("standard deviation values are not set "
-                             "in other_nddata")
+            return StdDevUncertainty(self.array / other_nddata.data)
 
         result_uncertainty = StdDevUncertainty()
         result_uncertainty.array = \
