@@ -799,8 +799,7 @@ class OrderedDescriptorContainer(type):
                     obj_cls_base = descr_bases[obj.__class__]
                     descriptors[obj_cls_base].append((obj, name))
 
-            if not (isinstance(mro_cls, type(cls)) and
-                        mro_cls._inherit_descriptors_):
+            if not getattr(mro_cls, '_inherit_descriptors_', False):
                 # If _inherit_descriptors_ is undefined then we don't inherit
                 # any OrderedDescriptors from any of the base classes, and
                 # there's no reason to continue through the MRO
@@ -853,38 +852,39 @@ def set_locale(name):
                 locale.setlocale(locale.LC_ALL, saved)
 
 
+@six.add_metaclass(abc.ABCMeta)
 class ShapedLikeNDArray(object):
     """Mixin class to provide shape-changing methods.
 
-    These assume that the class proper defines
-    _replicate(method, *args, **kwargs)
+    The class proper must define a ``shape`` property and ``_replicate`` method.
     """
 
     @abc.abstractproperty
     def shape(self):
         """The shape of the instance and underlying arrays."""
 
-    @abc.abstractproperty
-    def ndim(self):
-        """The number of dimensions of the instance and underlying arrays."""
-
     @abc.abstractmethod
     def _replicate(method, *args, **kwargs):
-        """Replicate an instance, possibly ``method`` to the underlying arrays.
+        """Replicate an instance, applying ``method`` to the underlying arrays.
 
         Parameters
         ----------
-        method : str, optional
-            If given, the method should be applied to the internal arrays that
-            hold the instance's data (e.g., ``jd1`` and ``jd2`` for
-            `~astropy.time.Time`)
+        method : str
+            Method to be be applied to the internal arrays holding the instance
+            data (e.g., ``jd1`` and ``jd2`` for `~astropy.time.Time`)
         args : tuple
             Any positional arguments for ``method``.
         kwargs : dict
             Any keyword arguments for ``method``.
         """
 
-    # Typically, this will be overridden, but this gives a sensible default.
+    # Typically, ndim and size will be overridden, but we might as well set
+    # sensible defaults.
+    @property
+    def ndim(self):
+        """The number of dimensions of the instance and underlying arrays."""
+        return len(self.shape)
+
     @property
     def size(self):
         """The size of the object, as calculated from its shape."""
