@@ -175,6 +175,9 @@ def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
         'jsfiles': jsv.jquery_urls,
         'js':  jsv.html_js(table_id=table_id)
     }
+
+    if max_lines < len(table):
+        table = table[:max_lines]
     table.write(filename, format='html', htmldict=htmldict)
 
 io_registry.register_writer('jsviewer', Table, write_table_jsviewer)
