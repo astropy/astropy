@@ -7,7 +7,7 @@ source activate test
 # --no-use-wheel requirement is temporary due to
 # https://github.com/astropy/astropy/issues/4180
 # and may be removed once the upstream fix is in place
-export PIP="pip install --no-use-wheel"
+export PIP_INSTALL="pip install --no-use-wheel"
 
 # EGG_INFO
 if [[ $SETUP_CMD == egg_info ]]
@@ -18,7 +18,7 @@ fi
 # PEP8
 if [[ $MAIN_CMD == pep8* ]]
 then
-  $PIP pep8
+  $PIP_INSTALL pep8
   return  # no more dependencies needed
 fi
 
@@ -28,7 +28,7 @@ conda install --yes pytest Cython jinja2 psutil
 # NUMPY
 if [[ $NUMPY_VERSION == dev ]]
 then
-  $PIP git+http://github.com/numpy/numpy.git
+  $PIP_INSTALL git+http://github.com/numpy/numpy.git
   export CONDA_INSTALL="conda install --yes python=$PYTHON_VERSION"
 else
   conda install --yes numpy=$NUMPY_VERSION
@@ -42,7 +42,7 @@ fi
 if $OPTIONAL_DEPS
 then
   $CONDA_INSTALL scipy h5py matplotlib pyyaml scikit-image pandas
-  $PIP beautifulsoup4
+  $PIP_INSTALL beautifulsoup4
 fi
 
 # DOCUMENTATION DEPENDENCIES
@@ -52,7 +52,7 @@ fi
 if [[ $SETUP_CMD == build_sphinx* ]]
 then
   $CONDA_INSTALL Sphinx=1.2.2 Pygments matplotlib
-  $PIP wcsaxes
+  $PIP_INSTALL wcsaxes
 fi
 
 # COVERAGE DEPENDENCIES
@@ -61,6 +61,6 @@ fi
 # the script installed by 'coveralls', unless it's installed first.
 if [[ $SETUP_CMD == 'test --coverage' ]]
 then
-  $PIP cpp-coveralls;
-  $PIP coverage coveralls;
+  $PIP_INSTALL cpp-coveralls;
+  $PIP_INSTALL coverage coveralls;
 fi
