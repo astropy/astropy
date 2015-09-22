@@ -11,7 +11,10 @@ REFERENCE = """
   <meta charset="utf-8"/>
   <meta content="text/html;charset=UTF-8" http-equiv="Content-type"/>
   <style>
-body {font-family: sans-serif} .dataTables_wrapper {width:80%%; margin: 0 auto;}  </style>
+body {font-family: sans-serif;}
+table.dataTable {width: auto !important; margin: 0 !important;}
+.dataTables_filter, .dataTables_paginate {float: left !important; margin-left:1em}
+  </style>
   <link href="%(datatables_css_url)s" rel="stylesheet" type="text/css"/>
   <script src="%(jquery_url)s">
   </script>

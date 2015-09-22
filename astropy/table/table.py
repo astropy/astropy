@@ -721,18 +721,15 @@ class Table(object):
     def show_in_browser(self, max_lines=5000, jsviewer=False,
                         browser='default', jskwargs={'use_local_files': True},
                         tableid=None, table_class="display compact",
-                        css='body {font-family: sans-serif} '
-                        '.dataTables_wrapper {width:80%; margin: 0 auto;}'):
+                        css=None):
 
         """Render the table in HTML and show it in a web browser.
 
         Parameters
         ----------
         css : string
-            A valid CSS string declaring the formatting for the table. Default:
-            ::
-                body {font-family: sans-serif}
-                .dataTables_wrapper {width:80%; margin: 0 auto;}
+            A valid CSS string declaring the formatting for the table. Default
+            to ``astropy.table.jsviewer.DEFAULT_CSS``.
         max_lines : int
             Maximum number of rows to export to the table (set low by default
             to avoid memory issues, since the browser view requires duplicating
@@ -765,6 +762,10 @@ class Table(object):
         import tempfile
         from ..extern.six.moves.urllib.parse import urljoin
         from ..extern.six.moves.urllib.request import pathname2url
+        from .jsviewer import DEFAULT_CSS
+
+        if css is None:
+            css = DEFAULT_CSS
 
         # We can't use NamedTemporaryFile here because it gets deleted as
         # soon as it gets garbage collected.

@@ -88,6 +88,13 @@ $(document).ready(function() {{
 """
 
 
+DEFAULT_CSS = """\
+body {font-family: sans-serif;}
+table.dataTable {width: auto !important; margin: 0 !important;}
+.dataTables_filter, .dataTables_paginate {float: left !important; margin-left:1em}
+"""
+
+
 class JSViewer(object):
     """Provides an interactive HTML export of a Table.
 
@@ -160,9 +167,7 @@ class JSViewer(object):
 
 def write_table_jsviewer(table, filename, table_id=None, max_lines=5000,
                          table_class="display compact", jskwargs=None,
-                         css='body {font-family: sans-serif} '
-                         '.dataTables_wrapper {width:80%; margin: 0 auto;}'):
-
+                         css=DEFAULT_CSS):
     if table_id is None:
         table_id = 'table{id}'.format(id=id(table))
 
