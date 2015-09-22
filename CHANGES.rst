@@ -510,6 +510,9 @@ Other Changes and Additions
 
 - WCSAxes is now required for doc builds. [#4074]
 
+- Updated ``astropy.tests`` test runner code to work with Coverage v4.0 when
+  generating test coverage reports. [#4176]
+
 
 1.0.5 (unreleased)
 ------------------
