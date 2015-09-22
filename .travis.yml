@@ -94,7 +94,7 @@ install:
     - if [[ $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL Sphinx=1.2.2 Pygments matplotlib; fi
 
     # COVERAGE DEPENDENCIES
-    - if [[ $SETUP_CMD == 'test --coverage' ]]; then pip install coverage coveralls; fi
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then pip install 'coverage<4.0' coveralls; fi
 
     # PEP8 DEPENDENCIES
     - if [[ $MAIN_CMD == pep8* ]]; then pip install pep8; fi
